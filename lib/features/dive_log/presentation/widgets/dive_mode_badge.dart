@@ -17,23 +17,52 @@ class DiveModeBadge extends StatelessWidget {
 
   const DiveModeBadge({super.key, required this.mode, this.dense = false});
 
+  // Non-dense sits next to the header's rating number (titleMedium) --
+  // close to that size rather than the smaller labelSmall default, but a
+  // touch under it so the badge doesn't outweigh the number.
+  static double _fontSizeOf(BuildContext context, bool dense) => dense
+      ? 10.0
+      : (Theme.of(context).textTheme.titleMedium?.fontSize ?? 16) - 3;
+
+  static double _horizontalPadding(bool dense) => dense ? 3 : 4;
+
+  /// Rendered width of the badge for [mode], so a parent sharing its line
+  /// can reserve room for it before laying out its own content.
+  static double widthOf(
+    BuildContext context,
+    DiveMode mode, {
+    bool dense = false,
+  }) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: mode.name.toUpperCase(),
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          fontSize: _fontSizeOf(context, dense),
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      maxLines: 1,
+    )..layout();
+    // Horizontal padding each side plus the 1px border each side.
+    final width = painter.width + _horizontalPadding(dense) * 2 + 2;
+    painter.dispose();
+    return width;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    // Non-dense sits next to the header's rating number (titleMedium) --
-    // close to that size rather than the smaller labelSmall default, but a
-    // touch under it so the badge doesn't outweigh the number.
-    final fontSize = dense
-        ? 10.0
-        : (Theme.of(context).textTheme.titleMedium?.fontSize ?? 16) - 3;
+    final fontSize = _fontSizeOf(context, dense);
     return Container(
       // Vertical padding is deliberately asymmetric: even with
       // textHeightBehavior forcing a tight ascent/descent box, the ink still
       // renders a hair low within it (font hinting residual), so the box
       // itself compensates with less padding above than below.
       padding: EdgeInsets.only(
-        left: dense ? 3 : 4,
-        right: dense ? 3 : 4,
+        left: _horizontalPadding(dense),
+        right: _horizontalPadding(dense),
         top: dense ? 1.5 : 2.5,
         bottom: dense ? 2.5 : 3.5,
       ),

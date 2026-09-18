@@ -27,24 +27,48 @@ class DiveTypeBadgeRow extends StatelessWidget {
   // text.
   static double _badgeChrome(bool dense) => (dense ? 3.0 : 4.0) * 2 + 1.0 * 2;
 
-  @override
-  Widget build(BuildContext context) {
-    if (labels.isEmpty) return const SizedBox.shrink();
+  /// Narrowest width this row can render [labels] in without overflowing:
+  /// the single "+N" badge every label collapses into. Zero when [labels] is
+  /// empty. Lets a parent sharing the line reserve this much before handing
+  /// the rest to its own content.
+  static double minWidthOf(
+    BuildContext context,
+    List<String> labels, {
+    bool dense = false,
+  }) {
+    if (labels.isEmpty) return 0;
+    return _badgeWidthMeasurer(context, dense)('+${labels.length}');
+  }
 
+  static double Function(String) _badgeWidthMeasurer(
+    BuildContext context,
+    bool dense,
+  ) {
     final style = Theme.of(context).textTheme.labelSmall?.copyWith(
       fontSize: DiveTypeBadge.fontSizeOf(context, dense: dense),
       fontWeight: FontWeight.bold,
     );
     final direction = Directionality.of(context);
+    final textScaler = MediaQuery.textScalerOf(context);
 
-    double badgeWidth(String text) {
+    return (text) {
       final painter = TextPainter(
         text: TextSpan(text: text, style: style),
         textDirection: direction,
+        textScaler: textScaler,
         maxLines: 1,
       )..layout();
-      return painter.width + _badgeChrome(dense);
-    }
+      final width = painter.width + _badgeChrome(dense);
+      painter.dispose();
+      return width;
+    };
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (labels.isEmpty) return const SizedBox.shrink();
+
+    final badgeWidth = _badgeWidthMeasurer(context, dense);
 
     return LayoutBuilder(
       builder: (context, constraints) {

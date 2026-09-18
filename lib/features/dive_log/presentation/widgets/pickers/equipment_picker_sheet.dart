@@ -8,6 +8,7 @@ import 'package:submersion/features/equipment/domain/services/equipment_arranger
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_arrange_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
@@ -45,6 +46,21 @@ class EquipmentPickerSheet extends ConsumerWidget {
       equipment
           .where((e) => typeFilter == null || e.type == typeFilter)
           .where((e) => !hideSpare || e.status != EquipmentStatus.spare);
+
+  /// The type name leads when there is no type heading to say it, then the
+  /// details that tell this item from its neighbours.
+  Widget? _subtitle(
+    BuildContext context,
+    List<String> parts,
+    EquipmentItem item, {
+    required bool showTypeLabel,
+  }) {
+    final all = [
+      if (showTypeLabel) item.type.localizedName(context.l10n),
+      ...parts,
+    ];
+    return all.isEmpty ? null : Text(all.join(' · '));
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -181,6 +197,9 @@ class EquipmentPickerSheet extends ConsumerWidget {
               // construction on open and on every filter or arrangement
               // change. Widgets are built in itemBuilder, so only visible rows
               // cost anything.
+              // Labelled as one list, because telling identical items apart
+              // means comparing the rows the diver is looking at (#1549).
+              final labels = equipmentRowLabelsOf(context, ref, available);
               final rows = <_PickerRow>[
                 for (final group in arrangeEquipment(
                   available,
@@ -212,9 +231,12 @@ class EquipmentPickerSheet extends ConsumerWidget {
                       ),
                     ),
                     title: Text(item.name),
-                    subtitle: showTypeLabel
-                        ? Text(item.type.localizedName(context.l10n))
-                        : null,
+                    subtitle: _subtitle(
+                      context,
+                      labels[item.id]?.subtitleParts ?? const [],
+                      item,
+                      showTypeLabel: showTypeLabel,
+                    ),
                     onTap: () => onEquipmentSelected(item),
                   ),
                 },

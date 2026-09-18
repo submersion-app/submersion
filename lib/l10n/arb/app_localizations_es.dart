@@ -35,6 +35,32 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String equipment_rowLabel_identifier(Object identifier) {
+    return 'ID $identifier';
+  }
+
+  @override
+  String equipment_rowLabel_serial(Object serial) {
+    return 'N.º de serie $serial';
+  }
+
+  @override
+  String equipment_rowLabel_purchased(Object date) {
+    return 'Comprado $date';
+  }
+
+  @override
+  String equipment_components_countOfTotal(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count de $total componentes',
+      one: '$count de 1 componente',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'Ese equipo ya contiene este, por lo que no se puede añadir como componente.';
 
@@ -215,6 +241,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get equipment_setEdit_defaultSwitch_subtitle =>
       'Se aplica automáticamente a las inmersiones nuevas que aún no tienen equipo';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Aplicar al importar el ordenador de este set';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'Si este set incluye un ordenador de buceo, añade automáticamente todo el set a una inmersión descargada o importada desde él';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Geocercas';
@@ -3102,6 +3136,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'Comenzar';
+
+  @override
+  String get diveLog_gear_addMissingParts => 'Añadir piezas que faltan';
 
   @override
   String get diveLog_gear_collapse => 'Ocultar piezas';
@@ -19850,6 +19887,9 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get statistics_chart_noTrendData =>
       'No hay datos de tendencia disponibles';
+
+  @override
+  String get statistics_chart_notRecorded => 'Sin registrar';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {

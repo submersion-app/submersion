@@ -35,6 +35,32 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String equipment_rowLabel_identifier(Object identifier) {
+    return 'ID $identifier';
+  }
+
+  @override
+  String equipment_rowLabel_serial(Object serial) {
+    return 'S/N $serial';
+  }
+
+  @override
+  String equipment_rowLabel_purchased(Object date) {
+    return 'Bought $date';
+  }
+
+  @override
+  String equipment_components_countOfTotal(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count of $total components',
+      one: '$count of 1 component',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'That item already contains this one, so it cannot be added as a component.';
 
@@ -213,6 +239,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get equipment_setEdit_defaultSwitch_subtitle =>
       'Auto-applied to new dives that have no equipment yet';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Apply when this set\'s computer is imported';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
@@ -3046,6 +3080,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'Begin';
+
+  @override
+  String get diveLog_gear_addMissingParts => 'Add missing parts';
 
   @override
   String get diveLog_gear_collapse => 'Hide parts';
@@ -19516,6 +19553,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => 'No trend data available';
+
+  @override
+  String get statistics_chart_notRecorded => 'Not recorded';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {

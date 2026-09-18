@@ -709,11 +709,12 @@ class EquipmentRepository {
       }
       // The successor is the same kind of part, so its physical spec carries
       // over (a cell's slot, a battery's chemistry and rechargeability).
-      // Its install date and purchase record are its own.
+      // Its install date, identifier and purchase record are its own.
       final specKeys = {
         for (final def in EquipmentAttributeCatalog.attributesFor(current.type))
           if (def.group == AttributeGroup.spec &&
-              def.key != EquipmentAttrKeys.installedDate)
+              def.key != EquipmentAttrKeys.installedDate &&
+              def.key != EquipmentAttrKeys.identifier)
             def.key,
       };
       final successor = EquipmentItem(

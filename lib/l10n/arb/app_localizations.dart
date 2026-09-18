@@ -146,6 +146,30 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 component} other{{count} components}}'**
   String equipment_components_count(num count);
 
+  /// No description provided for @equipment_rowLabel_identifier.
+  ///
+  /// In en, this message translates to:
+  /// **'ID {identifier}'**
+  String equipment_rowLabel_identifier(Object identifier);
+
+  /// No description provided for @equipment_rowLabel_serial.
+  ///
+  /// In en, this message translates to:
+  /// **'S/N {serial}'**
+  String equipment_rowLabel_serial(Object serial);
+
+  /// No description provided for @equipment_rowLabel_purchased.
+  ///
+  /// In en, this message translates to:
+  /// **'Bought {date}'**
+  String equipment_rowLabel_purchased(Object date);
+
+  /// No description provided for @equipment_components_countOfTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'{total, plural, =1{{count} of 1 component} other{{count} of {total} components}}'**
+  String equipment_components_countOfTotal(int count, int total);
+
   /// No description provided for @equipment_components_cycleError.
   ///
   /// In en, this message translates to:
@@ -391,6 +415,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Auto-applied to new dives that have no equipment yet'**
   String get equipment_setEdit_defaultSwitch_subtitle;
+
+  /// No description provided for @equipment_setEdit_computerAutoApplySwitch_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply when this set\'s computer is imported'**
+  String get equipment_setEdit_computerAutoApplySwitch_title;
+
+  /// No description provided for @equipment_setEdit_computerAutoApplySwitch_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it'**
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle;
 
   /// No description provided for @equipment_setEdit_geofencesTitle.
   ///
@@ -5018,6 +5054,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Begin'**
   String get preDive_start_begin;
+
+  /// No description provided for @diveLog_gear_addMissingParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Add missing parts'**
+  String get diveLog_gear_addMissingParts;
 
   /// No description provided for @diveLog_gear_collapse.
   ///
@@ -32494,6 +32536,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No trend data available'**
   String get statistics_chart_noTrendData;
+
+  /// No description provided for @statistics_chart_notRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get statistics_chart_notRecorded;
 
   /// No description provided for @statistics_chart_trendSemanticLabel.
   ///

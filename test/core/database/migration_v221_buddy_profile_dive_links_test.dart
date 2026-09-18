@@ -4,12 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v220 is the current schema version and is in the ladder', () {
+  test('v221 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 220);
-    expect(AppDatabase.migrationVersions, contains(220));
-    expect(AppDatabase.migrationStepCount(219), 1);
+    expect(AppDatabase.currentSchemaVersion, 221);
+    expect(AppDatabase.migrationVersions, contains(221));
+    expect(AppDatabase.migrationStepCount(220), 1);
   });
 
   test('the columns are additive, so the sync floor does not move', () {
@@ -50,10 +50,10 @@ void main() {
     },
   );
 
-  test('a v219 database upgrades to v220 with both columns', () async {
+  test('a v220 database upgrades to v221 with both columns', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 219');
+        rawDb.execute('PRAGMA user_version = 220');
         rawDb.execute('''
           CREATE TABLE divers (
             id TEXT NOT NULL PRIMARY KEY,
@@ -92,7 +92,7 @@ void main() {
     final diveCols = await db.customSelect("PRAGMA table_info('dives')").get();
     expect(diveCols.map((c) => c.read<String>('name')), contains('outing_id'));
     final version = await db.customSelect('PRAGMA user_version').getSingle();
-    expect(version.read<int>('user_version'), 220);
+    expect(version.read<int>('user_version'), 221);
   });
 
   test('the asserts are no-ops when the tables are absent', () async {

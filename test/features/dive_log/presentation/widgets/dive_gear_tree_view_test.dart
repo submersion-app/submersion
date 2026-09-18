@@ -3,15 +3,23 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_gear_tree_view.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
+import 'package:submersion/features/equipment/presentation/providers/assembly_snapshot_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 /// The shared gear renderer (issue #1487): set bands first, loose gear last,
 /// each band's top-level rows arranged by the diver's preference, assemblies
@@ -43,17 +51,39 @@ void main() {
     updatedAt: DateTime(2026),
   );
   final flat = EquipmentArrangement.defaults.copyWith(groupByType: false);
+  // The template has grown since the dive was logged: the reg now also
+  // lists a first stage, which this dive never received (issue #1988).
+  EquipmentComponent edge(String parent, String child, int order) =>
+      EquipmentComponent(
+        id: '$parent-$child',
+        parentEquipmentId: parent,
+        componentEquipmentId: child,
+        sortOrder: order,
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      );
+  final grownTemplate = ComponentsIndex.fromRows([
+    edge('reg', 'hose', 0),
+    edge('reg', 'first', 1),
+  ]);
 
   Widget build({
     required EquipmentArrangement arrangement,
+    List<GearLink>? gear,
     void Function(String)? onRemovePart,
     void Function(String)? onRemoveSubtree,
     void Function(String)? onRemoveSet,
     Widget Function(EquipmentItem)? rowTrailing,
+    void Function(GearLink)? onUpdateAssembly,
+    ComponentsIndex template = ComponentsIndex.empty,
+    Set<String> activeParts = const {},
   }) => ProviderScope(
     overrides: [
       equipmentArrangementProvider.overrideWithValue(arrangement),
       equipmentSetsProvider.overrideWith((ref) async => [winter]),
+      settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+      equipmentComponentsIndexProvider.overrideWith((ref) async => template),
+      activeComponentIdsProvider.overrideWith((ref) async => activeParts),
     ],
     child: MaterialApp(
       locale: const Locale('en'),
@@ -62,11 +92,12 @@ void main() {
       home: Scaffold(
         body: SingleChildScrollView(
           child: DiveGearTreeView(
-            links: links,
+            links: gear ?? links,
             onRemovePart: onRemovePart,
             onRemoveSubtree: onRemoveSubtree,
             onRemoveSet: onRemoveSet,
             rowTrailing: rowTrailing,
+            onUpdateAssembly: onUpdateAssembly,
           ),
         ),
       ),
@@ -192,5 +223,107 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Long hose'), findsOneWidget);
     expect(find.byTooltip('Remove part'), findsNothing);
+  });
+
+  testWidgets('an assembly behind its template says how many of its parts '
+      'the dive carries', (tester) async {
+    await tester.pumpWidget(
+      build(
+        arrangement: flat,
+        template: grownTemplate,
+        activeParts: const {'hose', 'first'},
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('1 of 2 components'), findsOneWidget);
+    expect(find.textContaining('1 component'), findsNothing);
+  });
+
+  testWidgets('a retired template part is not missing, so the count stays '
+      'plain', (tester) async {
+    await tester.pumpWidget(
+      build(
+        arrangement: flat,
+        template: grownTemplate,
+        activeParts: const {'hose'},
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('1 component'), findsOneWidget);
+    expect(find.textContaining(' of '), findsNothing);
+  });
+
+  testWidgets('edit mode offers the update on a behind assembly and hands '
+      'back its row', (tester) async {
+    GearLink? updated;
+    await tester.pumpWidget(
+      build(
+        arrangement: flat,
+        template: grownTemplate,
+        activeParts: const {'hose', 'first'},
+        onUpdateAssembly: (link) => updated = link,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Add missing parts'), findsOneWidget);
+    await tester.tap(find.byTooltip('Add missing parts'));
+    expect(updated?.item.id, 'reg');
+    expect(updated?.viaSetId, 'winter');
+  });
+
+  testWidgets('read mode shows the count but no update control', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      build(
+        arrangement: flat,
+        template: grownTemplate,
+        activeParts: const {'hose', 'first'},
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('1 of 2 components'), findsOneWidget);
+    expect(find.byTooltip('Add missing parts'), findsNothing);
+  });
+
+  testWidgets('an assembly that is up to date offers no update', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      build(
+        arrangement: flat,
+        template: ComponentsIndex.fromRows([edge('reg', 'hose', 0)]),
+        activeParts: const {'hose'},
+        onUpdateAssembly: (_) {},
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byTooltip('Add missing parts'), findsNothing);
+  });
+
+  testWidgets('identical items on a dive are told apart', (tester) async {
+    EquipmentItem pouch(String id, String mark) => EquipmentItem(
+      id: id,
+      name: 'Pouches',
+      type: EquipmentType.other,
+      brand: 'Palantic',
+      model: 'Drop-Bottom',
+      attributes: [
+        EquipmentAttribute.curated(
+          equipmentId: id,
+          key: EquipmentAttrKeys.identifier,
+          valueText: mark,
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      build(
+        arrangement: flat,
+        gear: gearLinksFor([pouch('b', 'P2'), pouch('a', 'P1')], const []),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Palantic Drop-Bottom · ID P1'), findsOneWidget);
+    expect(find.text('Palantic Drop-Bottom · ID P2'), findsOneWidget);
   });
 }

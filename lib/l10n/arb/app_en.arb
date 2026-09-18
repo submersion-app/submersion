@@ -4,6 +4,16 @@
   "equipment_components_add": "Add component",
   "equipment_components_containsSection": "Contains",
   "equipment_components_count": "{count, plural, =1{1 component} other{{count} components}}",
+  "equipment_rowLabel_identifier": "ID {identifier}",
+  "equipment_rowLabel_serial": "S/N {serial}",
+  "equipment_rowLabel_purchased": "Bought {date}",
+  "equipment_components_countOfTotal": "{total, plural, =1{{count} of 1 component} other{{count} of {total} components}}",
+  "@equipment_components_countOfTotal": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
   "equipment_components_cycleError": "That item already contains this one, so it cannot be added as a component.",
   "equipment_components_editRole": "Edit role",
   "equipment_components_empty": "No components. Add the parts this item is assembled from.",
@@ -78,6 +88,8 @@
   "common_action_dismiss": "Dismiss",
   "equipment_setEdit_defaultSwitch_title": "Default set",
   "equipment_setEdit_defaultSwitch_subtitle": "Auto-applied to new dives that have no equipment yet",
+  "equipment_setEdit_computerAutoApplySwitch_title": "Apply when this set's computer is imported",
+  "equipment_setEdit_computerAutoApplySwitch_subtitle": "If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it",
   "equipment_setEdit_geofencesTitle": "Geofences",
   "equipment_setEdit_geofencesSubtitle": "Auto-suggest this set for dives near these locations",
   "equipment_setEdit_addGeofence": "Add geofence",
@@ -1910,6 +1922,7 @@
   "preDive_start_noEquipmentSet": "None",
   "preDive_start_noEquipment": "None",
   "preDive_start_begin": "Begin",
+  "diveLog_gear_addMissingParts": "Add missing parts",
   "diveLog_gear_collapse": "Hide parts",
   "diveLog_gear_expand": "Show parts",
   "diveLog_gear_removeAssembly": "Remove assembly and its parts",
@@ -11935,6 +11948,7 @@
   "statistics_chart_noBarData": "No data available",
   "statistics_chart_noDistributionData": "No distribution data available",
   "statistics_chart_noTrendData": "No trend data available",
+  "statistics_chart_notRecorded": "Not recorded",
   "statistics_chart_trendSemanticLabel": "Trend line chart showing {count} data points",
   "statistics_chart_trendSemanticLabelWithAxis": "Trend line chart showing {count} data points for {yAxisLabel}",
   "statistics_conditions_appBar_title": "Conditions",

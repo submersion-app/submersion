@@ -5,6 +5,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
@@ -26,6 +27,7 @@ class PdfCourseExportService {
     Course course,
     List<Dive> trainingDives, {
     required PdfDateFormatter dates,
+    required UnitFormatter units,
   }) async {
     final pdf = pw.Document();
 
@@ -114,10 +116,7 @@ class PdfCourseExportService {
                   _buildStatBox('${totalRuntime.inMinutes}', 'Total Minutes'),
                   if (maxDepth != null) ...[
                     pw.SizedBox(width: 30),
-                    _buildStatBox(
-                      '${maxDepth.toStringAsFixed(1)}m',
-                      'Max Depth',
-                    ),
+                    _buildStatBox(units.formatDepth(maxDepth), 'Max Depth'),
                   ],
                 ],
               ),
@@ -157,7 +156,12 @@ class PdfCourseExportService {
               pw.Divider(color: PdfColors.grey300),
               pw.SizedBox(height: 10),
               ...pageDives.map(
-                (dive) => _buildDiveEntry(dive, diveSignatures[dive.id], dates),
+                (dive) => _buildDiveEntry(
+                  dive,
+                  diveSignatures[dive.id],
+                  dates,
+                  units,
+                ),
               ),
             ],
           ),
@@ -250,6 +254,7 @@ class PdfCourseExportService {
     Dive dive,
     List<Signature>? signatures,
     PdfDateFormatter dates,
+    UnitFormatter units,
   ) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 15),
@@ -293,10 +298,7 @@ class PdfCourseExportService {
           pw.Row(
             children: [
               if (dive.maxDepth != null)
-                _buildInfoChip(
-                  'Max Depth',
-                  '${dive.maxDepth!.toStringAsFixed(1)} m',
-                ),
+                _buildInfoChip('Max Depth', units.formatDepth(dive.maxDepth)),
               if (dive.effectiveRuntime != null) ...[
                 pw.SizedBox(width: 20),
                 _buildInfoChip(
@@ -308,7 +310,7 @@ class PdfCourseExportService {
                 pw.SizedBox(width: 20),
                 _buildInfoChip(
                   'Water Temp',
-                  '${dive.waterTemp!.toStringAsFixed(0)}\u00B0C',
+                  units.formatTemperature(dive.waterTemp, decimals: 0),
                 ),
               ],
             ],

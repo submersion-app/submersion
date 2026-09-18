@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
@@ -54,6 +56,13 @@ class EquipmentSetDetailPage extends ConsumerWidget {
   }
 
   Widget _buildContent(BuildContext context, WidgetRef ref, EquipmentSet set) {
+    // Labelled as one list, so identical items in the set read differently
+    // from each other (#1549).
+    final labels = equipmentRowLabelsOf(
+      context,
+      ref,
+      set.items ?? const <EquipmentItem>[],
+    );
     return Scaffold(
       appBar: AppBar(
         title: Text(set.name),
@@ -225,7 +234,7 @@ class EquipmentSetDetailPage extends ConsumerWidget {
               )) ...[
                 if (group.type != null) EquipmentGroupHeader(type: group.type!),
                 ...group.items.map(
-                  (item) => _buildEquipmentTile(context, item),
+                  (item) => _buildEquipmentTile(context, item, labels),
                 ),
               ],
             const SizedBox(height: 24),
@@ -267,7 +276,11 @@ class EquipmentSetDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildEquipmentTile(BuildContext context, EquipmentItem item) {
+  Widget _buildEquipmentTile(
+    BuildContext context,
+    EquipmentItem item,
+    Map<String, EquipmentRowLabel> labels,
+  ) {
     return Card(
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
@@ -284,10 +297,16 @@ class EquipmentSetDetailPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
+            // The type stands in for a missing brand and model, as it always
+            // has here; an identifier or a tie-break detail follows it
+            // rather than replacing it, or "ID P2" alone would not say what
+            // the item is.
             Text(
-              item.fullName != item.name
-                  ? item.fullName
-                  : item.type.localizedName(context.l10n),
+              [
+                if (item.fullName == item.name)
+                  item.type.localizedName(context.l10n),
+                ...?labels[item.id]?.subtitleParts,
+              ].join(' · '),
             ),
             AssemblyChips(itemId: item.id),
           ],

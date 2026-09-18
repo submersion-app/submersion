@@ -164,6 +164,10 @@ class EquipmentItem extends Equatable {
   String? get retailer => attrText(EquipmentAttrKeys.retailer);
   String? get productUrl => attrText(EquipmentAttrKeys.productUrl);
 
+  /// The diver's own mark for this item ("P2", "Bill's spare"), shown in
+  /// gear lists to tell identical items apart (issue #1549).
+  String? get identifier => attrText(EquipmentAttrKeys.identifier);
+
   /// Full name including brand and model
   String get fullName {
     final parts = <String>[];

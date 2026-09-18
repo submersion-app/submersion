@@ -35,6 +35,32 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String equipment_rowLabel_identifier(Object identifier) {
+    return '编号 $identifier';
+  }
+
+  @override
+  String equipment_rowLabel_serial(Object serial) {
+    return '序列号 $serial';
+  }
+
+  @override
+  String equipment_rowLabel_purchased(Object date) {
+    return '购买于 $date';
+  }
+
+  @override
+  String equipment_components_countOfTotal(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count/$total 个组件',
+      one: '$count/1 个组件',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError => '该装备已包含此项，因此无法将其添加为组件。';
 
   @override
@@ -203,6 +229,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_setEdit_defaultSwitch_subtitle => '自动应用于尚无装备的新潜水';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_title => '导入该套装的电脑时自动应用';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      '如果该套装包含潜水电脑，则从该电脑下载或导入的潜水记录会自动添加整个套装';
 
   @override
   String get equipment_setEdit_geofencesTitle => '地理围栏';
@@ -2924,6 +2957,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get preDive_start_begin => '开始';
+
+  @override
+  String get diveLog_gear_addMissingParts => '添加缺少的部件';
 
   @override
   String get diveLog_gear_collapse => '隐藏部件';
@@ -18835,6 +18871,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => '无趋势数据可用';
+
+  @override
+  String get statistics_chart_notRecorded => '未记录';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {

@@ -8,6 +8,7 @@ import 'package:submersion/features/marine_life/presentation/providers/species_p
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
 
 import '../../../../helpers/bulk_delete_contract.dart';
+import '../../../../helpers/fab_clearance.dart';
 import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/test_app.dart';
 
@@ -45,6 +46,19 @@ void main() {
       child: const SpeciesManagePage(),
     );
   }
+
+  testWidgets('the last species clears the Add button (#2029)', (tester) async {
+    await tester.pumpWidget(
+      host(
+        species: [
+          for (var i = 0; i < 20; i++) _species(id: 's$i', name: 'Fish $i'),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await expectLastRowClearOfFab(tester);
+  });
 
   group('SpeciesManagePage selection', () {
     testWidgets('satisfies the shared selection contract', (tester) async {

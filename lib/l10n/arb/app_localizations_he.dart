@@ -35,6 +35,32 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_rowLabel_identifier(Object identifier) {
+    return 'מזהה $identifier';
+  }
+
+  @override
+  String equipment_rowLabel_serial(Object serial) {
+    return 'מס׳ סידורי $serial';
+  }
+
+  @override
+  String equipment_rowLabel_purchased(Object date) {
+    return 'נרכש $date';
+  }
+
+  @override
+  String equipment_components_countOfTotal(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count מתוך $total רכיבים',
+      one: '$count מתוך רכיב אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'הפריט הזה כבר מכיל את זה, ולכן אי אפשר להוסיף אותו כרכיב.';
 
@@ -212,6 +238,14 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get equipment_setEdit_defaultSwitch_subtitle =>
       'מוחלת אוטומטית על צלילות חדשות שאין בהן ציוד עדיין';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'החל בעת ייבוא המחשב של סט זה';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'אם סט זה כולל מחשב צלילה, הסט כולו יתווסף אוטומטית לצלילה שהורדה או יובאה ממנו';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'גדרות גאוגרפיות';
@@ -3021,6 +3055,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'התחל';
+
+  @override
+  String get diveLog_gear_addMissingParts => 'הוספת חלקים חסרים';
 
   @override
   String get diveLog_gear_collapse => 'הסתרת חלקים';
@@ -19353,6 +19390,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => 'אין נתוני מגמה זמינים';
+
+  @override
+  String get statistics_chart_notRecorded => 'לא נרשם';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {

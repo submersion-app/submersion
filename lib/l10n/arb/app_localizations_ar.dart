@@ -35,6 +35,32 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String equipment_rowLabel_identifier(Object identifier) {
+    return 'المعرّف $identifier';
+  }
+
+  @override
+  String equipment_rowLabel_serial(Object serial) {
+    return 'الرقم التسلسلي $serial';
+  }
+
+  @override
+  String equipment_rowLabel_purchased(Object date) {
+    return 'تاريخ الشراء $date';
+  }
+
+  @override
+  String equipment_components_countOfTotal(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count من $total مكوّنات',
+      one: '$count من مكوّن واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'هذا العنصر يحتوي بالفعل على هذا، لذا لا يمكن إضافته كمكوّن.';
 
@@ -213,6 +239,14 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get equipment_setEdit_defaultSwitch_subtitle =>
       'تُطبَّق تلقائيًا على الغطسات الجديدة التي لا تحتوي على معدات بعد';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'التطبيق عند استيراد كمبيوتر هذه المجموعة';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'إذا كانت هذه المجموعة تتضمن كمبيوتر غوص، تتم إضافة المجموعة كاملة تلقائيًا إلى الغطسة التي يتم تنزيلها أو استيرادها منه';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'الأسوار الجغرافية';
@@ -3043,6 +3077,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'بدء';
+
+  @override
+  String get diveLog_gear_addMissingParts => 'إضافة الأجزاء الناقصة';
 
   @override
   String get diveLog_gear_collapse => 'إخفاء الأجزاء';
@@ -19505,6 +19542,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => 'لا توجد بيانات اتجاه متاحة';
+
+  @override
+  String get statistics_chart_notRecorded => 'غير مسجل';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {

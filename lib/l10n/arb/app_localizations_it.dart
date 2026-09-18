@@ -35,6 +35,32 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String equipment_rowLabel_identifier(Object identifier) {
+    return 'ID $identifier';
+  }
+
+  @override
+  String equipment_rowLabel_serial(Object serial) {
+    return 'N. di serie $serial';
+  }
+
+  @override
+  String equipment_rowLabel_purchased(Object date) {
+    return 'Acquistato $date';
+  }
+
+  @override
+  String equipment_components_countOfTotal(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count di $total componenti',
+      one: '$count di 1 componente',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'Quell\'articolo contiene già questo, quindi non può essere aggiunto come componente.';
 
@@ -216,6 +242,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get equipment_setEdit_defaultSwitch_subtitle =>
       'Applicato automaticamente alle nuove immersioni senza attrezzatura';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Applica quando viene importato il computer di questo set';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'Se questo set include un computer da immersione, aggiunge automaticamente l\'intero set a un\'immersione scaricata o importata da esso';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Geofence';
@@ -3100,6 +3134,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'Inizia';
+
+  @override
+  String get diveLog_gear_addMissingParts => 'Aggiungi parti mancanti';
 
   @override
   String get diveLog_gear_collapse => 'Nascondi parti';
@@ -19843,6 +19880,9 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get statistics_chart_noTrendData =>
       'Nessun dato di tendenza disponibile';
+
+  @override
+  String get statistics_chart_notRecorded => 'Non registrato';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {

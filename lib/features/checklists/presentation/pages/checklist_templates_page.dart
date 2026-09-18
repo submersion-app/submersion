@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/checklists/domain/entities/checklist_template.dart';
 import 'package:submersion/features/checklists/presentation/providers/checklist_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/fab_clearance.dart';
 
 /// Settings page listing reusable checklist templates.
 class ChecklistTemplatesPage extends ConsumerWidget {
@@ -29,6 +30,7 @@ class ChecklistTemplatesPage extends ConsumerWidget {
             return Center(child: Text(context.l10n.checklists_templates_empty));
           }
           return ListView.separated(
+            padding: kFabListPadding,
             itemCount: templates.length,
             separatorBuilder: (_, _) => const Divider(height: 1),
             itemBuilder: (context, index) =>

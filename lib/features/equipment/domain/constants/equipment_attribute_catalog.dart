@@ -76,6 +76,11 @@ abstract final class EquipmentAttrKeys {
   static const workingPressureBar = 'working_pressure_bar';
   static const tankMaterial = 'tank_material';
 
+  // The diver's own mark for telling identical items apart (issue #1549).
+  // Cylinders had it first, and the stored key keeps that name: renaming it
+  // would rewrite attribute rows on every sync peer.
+  static const identifier = 'tank_identifier';
+
   // Purchase record (issue #1517).
   static const sku = 'sku';
   static const retailer = 'retailer';
@@ -120,6 +125,10 @@ abstract final class EquipmentAttributeCatalog {
       key: EquipmentAttrKeys.dryWeightKg,
       kind: AttributeKind.number,
       dimension: AttributeDimension.massKg,
+    ),
+    EquipmentAttributeDef(
+      key: EquipmentAttrKeys.identifier,
+      kind: AttributeKind.text,
     ),
   ];
 
@@ -278,7 +287,6 @@ abstract final class EquipmentAttributeCatalog {
         kind: AttributeKind.choice,
         choiceKeys: ['din', 'yoke', 'convertible'],
       ),
-      EquipmentAttributeDef(key: 'tank_identifier', kind: AttributeKind.text),
       EquipmentAttributeDef(
         key: 'last_visual_inspection',
         kind: AttributeKind.date,

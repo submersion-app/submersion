@@ -35,6 +35,32 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String equipment_rowLabel_identifier(Object identifier) {
+    return 'ID $identifier';
+  }
+
+  @override
+  String equipment_rowLabel_serial(Object serial) {
+    return 'S/N $serial';
+  }
+
+  @override
+  String equipment_rowLabel_purchased(Object date) {
+    return 'Gekocht $date';
+  }
+
+  @override
+  String equipment_components_countOfTotal(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count van $total onderdelen',
+      one: '$count van 1 onderdeel',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'Dat item bevat dit item al, dus het kan niet als onderdeel worden toegevoegd.';
 
@@ -213,6 +239,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get equipment_setEdit_defaultSwitch_subtitle =>
       'Automatisch toegepast op nieuwe duiken zonder uitrusting';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Toepassen wanneer de computer van deze set wordt geïmporteerd';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'Als deze set een duikcomputer bevat, wordt de hele set automatisch toegevoegd aan een duik die van deze computer is gedownload of geïmporteerd';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
@@ -3080,6 +3114,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get preDive_start_begin => 'Beginnen';
+
+  @override
+  String get diveLog_gear_addMissingParts => 'Ontbrekende onderdelen toevoegen';
 
   @override
   String get diveLog_gear_collapse => 'Onderdelen verbergen';
@@ -19686,6 +19723,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => 'Geen trendgegevens beschikbaar';
+
+  @override
+  String get statistics_chart_notRecorded => 'Niet vastgelegd';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {

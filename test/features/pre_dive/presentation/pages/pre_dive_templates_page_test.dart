@@ -7,6 +7,7 @@ import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_
 import 'package:submersion/features/pre_dive/presentation/pages/pre_dive_templates_page.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 
+import '../../../../helpers/fab_clearance.dart';
 import '../../../../helpers/test_app.dart';
 
 /// Captures clone/delete calls so the tile's menu actions can be asserted to
@@ -154,6 +155,14 @@ void main() {
 
     expect(find.text('Clone'), findsOneWidget);
     expect(find.text('Delete'), findsOneWidget);
+  });
+
+  testWidgets('the last template clears the Add button (#2029)', (
+    tester,
+  ) async {
+    await pumpPage(tester, [for (var i = 0; i < 20; i++) template('T$i')]);
+
+    await expectLastRowClearOfFab(tester);
   });
 
   testWidgets('empty state renders', (tester) async {

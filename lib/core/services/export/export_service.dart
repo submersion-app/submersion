@@ -185,8 +185,15 @@ class ExportService {
     Trip trip,
     List<Dive> dives, {
     required PdfDateFormatter dates,
+    required UnitFormatter units,
     TripWithStats? stats,
-  }) => _pdf.exportTripToPdf(trip, dives, dates: dates, stats: stats);
+  }) => _pdf.exportTripToPdf(
+    trip,
+    dives,
+    dates: dates,
+    units: units,
+    stats: stats,
+  );
 
   Future<({List<int> bytes, String fileName})> generateDivePdfBytes(
     List<Dive> dives, {
@@ -294,10 +301,12 @@ class ExportService {
     Course course,
     List<Dive> trainingDives, {
     required PdfDateFormatter dates,
+    required UnitFormatter units,
   }) => _pdfCourse.exportCourseTrainingLogToPdf(
     course,
     trainingDives,
     dates: dates,
+    units: units,
   );
 
   // ==================== Excel Export ====================
