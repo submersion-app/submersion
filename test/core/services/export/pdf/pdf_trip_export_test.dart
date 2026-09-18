@@ -115,6 +115,19 @@ void main() {
     expect(text, contains('Max Depth: 18.0 m'));
   });
 
+  test('a dive with a water temperature prints it', () async {
+    final text = await exportText([
+      Dive(
+        id: 'd1',
+        diveNumber: 1,
+        dateTime: DateTime(2026, 5, 2, 9),
+        waterTemp: 24.0,
+      ),
+    ]);
+
+    expect(text, contains('Water Temp: 24.0'));
+  });
+
   test('trip and dive dates follow the diver\'s preferences (#964)', () async {
     final text = await exportText(
       [
