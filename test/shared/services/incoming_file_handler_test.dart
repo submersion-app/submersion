@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -12,6 +13,11 @@ import 'package:submersion/shared/services/incoming_file_handler.dart';
 final _uddfBytes = Uint8List.fromList(
   '<?xml version="1.0"?><uddf version="3.2.0"></uddf>'.codeUnits,
 );
+
+/// A real Seacraft ENC3 recording (005.DAT.csv) -- a route, not a dive log.
+final _encBytes = File(
+  'test/fixtures/nav_tracks/seacraft_enc3_short.csv',
+).readAsBytesSync();
 
 /// PNG magic bytes -- not a supported dive-log format.
 final _pngBytes = Uint8List.fromList([
@@ -66,7 +72,7 @@ void main() {
         messenger: messenger,
       );
 
-      expect(result, isFalse);
+      expect(result, IncomingFileOutcome.none);
     });
 
     testWidgets(
@@ -96,7 +102,7 @@ void main() {
           messenger: messenger,
         );
 
-        expect(result, isFalse);
+        expect(result, IncomingFileOutcome.none);
         // Notifier should be reset after unsupported format.
         expect(notifier.state.currentStep, ImportWizardStep.fileSelection);
         expect(notifier.state.fileBytes, isNull);
@@ -128,9 +134,45 @@ void main() {
         messenger: messenger,
       );
 
-      expect(result, isTrue);
+      expect(result, IncomingFileOutcome.navigateToWizard);
       expect(notifier.state.currentStep, ImportWizardStep.sourceConfirmation);
     });
+
+    testWidgets(
+      'returns navigateToNavTrackReview for a Seacraft ENC file without '
+      'touching the wizard state',
+      (tester) async {
+        late ScaffoldMessengerState messenger;
+
+        await tester.pumpWidget(
+          MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Builder(
+              builder: (context) {
+                messenger = ScaffoldMessenger.of(context);
+                return const Scaffold(body: SizedBox.shrink());
+              },
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final result = await handleIncomingFile(
+          bytes: _encBytes,
+          fileName: '005.DAT.csv',
+          currentPath: '/home',
+          notifier: notifier,
+          messenger: messenger,
+        );
+
+        expect(result, IncomingFileOutcome.navigateToNavTrackReview);
+        // The notifier stays reset -- the file never enters the dive
+        // import wizard's own state.
+        expect(notifier.state.currentStep, ImportWizardStep.fileSelection);
+        expect(notifier.state.fileBytes, isNull);
+      },
+    );
 
     test('works with null messenger', () async {
       final result = await handleIncomingFile(
@@ -142,7 +184,7 @@ void main() {
       );
 
       // Returns false (wizard active) without crashing on null messenger.
-      expect(result, isFalse);
+      expect(result, IncomingFileOutcome.none);
     });
 
     test('resets notifier before loading file', () async {
@@ -171,7 +213,7 @@ void main() {
         unsupportedFileMessage: 'Custom unsupported message',
       );
 
-      expect(result, isFalse);
+      expect(result, IncomingFileOutcome.none);
     });
   });
 }

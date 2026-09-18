@@ -123,6 +123,32 @@ void main() {
     expect(find.textContaining('GMRT'), findsNothing);
   });
 
+  testWidgets('a measured route shows the recorded-route chip', (tester) async {
+    final measured = SpatialSceneResult(
+      scene: const SpatialGeometryService().build(_path(), siteMaxDepth: 30),
+      pathProvenance: PathProvenance.measured,
+      pathSourceLabel: 'Seacraft ENC',
+    );
+    await tester.pumpWidget(page(measured));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Recorded route (Seacraft ENC)'), findsOneWidget);
+    expect(find.text('Estimated path (dead reckoning)'), findsNothing);
+  });
+
+  testWidgets('a measured route with no source label shows the generic chip', (
+    tester,
+  ) async {
+    final measured = SpatialSceneResult(
+      scene: const SpatialGeometryService().build(_path(), siteMaxDepth: 30),
+      pathProvenance: PathProvenance.measured,
+    );
+    await tester.pumpWidget(page(measured));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Recorded route'), findsOneWidget);
+  });
+
   testWidgets('no path renders the message, never a spinner', (tester) async {
     await tester.pumpWidget(page(null));
     await tester.pump();
