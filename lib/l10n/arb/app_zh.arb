@@ -4072,6 +4072,7 @@
   "equipment_serviceClocks_countingSince": "自 {date} 起计算",
   "equipment_serviceClocks_overdue": "已逾期",
   "equipment_serviceClocks_divesLeft": "剩余 {remaining}/{total} 次潜水",
+  "equipment_serviceClocks_divesUsedAndLeft": "已用 {used} 次，剩余 {remaining}/{total} 次潜水",
   "cylinderConfigs_title": "气瓶配置",
   "cylinderConfigs_empty": "尚无配置",
   "cylinderConfigs_emptyBody": "保存一次稀释气与备用气配置，即可应用到任何一次潜水。",
@@ -4109,6 +4110,7 @@
   "cylinderConfigs_sectionTitle": "配置",
   "equipment_serviceClocks_hoursSource": "根据已记录的潜水时间计算",
   "equipment_serviceClocks_hoursLeft": "剩余 {remaining}/{total} 小时",
+  "equipment_serviceClocks_hoursUsedAndLeft": "已用 {used} 小时，剩余 {remaining}/{total} 小时",
   "equipment_serviceClocks_saltHoursLeft": "海水小时数剩余 {remaining} / {total}",
   "@equipment_serviceClocks_saltHoursLeft": {
     "placeholders": {
@@ -4120,6 +4122,7 @@
       }
     }
   },
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "海水小时数已用 {used}，剩余 {remaining} / {total}",
   "equipment_serviceClocks_coldDivesLeft": "冷水潜水剩余 {remaining} / {total} 次",
   "@equipment_serviceClocks_coldDivesLeft": {
     "placeholders": {
@@ -4131,6 +4134,7 @@
       }
     }
   },
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "冷水潜水已用 {used} 次，剩余 {remaining} / {total} 次",
   "equipment_serviceClocks_o2HoursLeft": "高氧小时数剩余 {remaining} / {total}",
   "@equipment_serviceClocks_o2HoursLeft": {
     "placeholders": {
@@ -4142,6 +4146,7 @@
       }
     }
   },
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "高氧小时数已用 {used}，剩余 {remaining} / {total}",
   "equipment_serviceClocks_deepCyclesLeft": "深潜剩余 {remaining} / {total} 次",
   "@equipment_serviceClocks_deepCyclesLeft": {
     "placeholders": {
@@ -4153,6 +4158,7 @@
       }
     }
   },
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "深潜已用 {used} 次，剩余 {remaining} / {total} 次",
   "equipment_serviceClocks_cyclesLeft": "电池循环剩余 {remaining} / {total} 次",
   "@equipment_serviceClocks_cyclesLeft": {
     "placeholders": {
@@ -4164,6 +4170,7 @@
       }
     }
   },
+  "equipment_serviceClocks_cyclesUsedAndLeft": "电池循环已用 {used} 次，剩余 {remaining} / {total} 次",
   "equipment_serviceClocks_manageKinds": "管理维护类型",
   "equipment_serviceClocks_appliesToClock": "适用的倒计时",
   "equipment_serviceClocks_noClockOption": "不关联倒计时",
@@ -4369,6 +4376,7 @@
   "equipment_serviceDialog_serviceTypeNotSet": "未设置",
   "equipment_serviceDialog_categoryHelper": "用于筛选和导出",
   "equipment_serviceDialog_manageServiceTypes": "管理维护类型",
+  "equipment_serviceDialog_filterToConfiguredTypes": "仅显示已配置的维护类型",
   "equipment_serviceDialog_categoryLabel": "类别",
   "equipment_serviceDialog_snackbar_added": "维护记录已添加",
   "equipment_serviceDialog_snackbar_error": "错误： {error}",
@@ -4401,6 +4409,8 @@
   "equipment_service_filterClear": "清除筛选",
   "equipment_service_filterNoMatches": "没有符合此筛选条件的保养记录",
   "equipment_service_filterMatchCount": "显示 {count} / {total}",
+  "equipment_service_showMore": "{count, plural, other{再显示 {count} 项}}",
+  "equipment_service_showFewer": "收起",
   "equipment_serviceKinds_defaultCategoryLabel": "默认类别",
   "equipment_serviceKinds_defaultCategoryNone": "无默认值",
   "equipment_serviceKinds_defaultCostLabel": "默认价格",

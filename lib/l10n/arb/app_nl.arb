@@ -3927,6 +3927,7 @@
   "equipment_serviceClocks_countingSince": "Telt sinds {date}",
   "equipment_serviceClocks_overdue": "Te laat",
   "equipment_serviceClocks_divesLeft": "{remaining} van {total} duiken resterend",
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} duiken, {remaining} van {total} resterend",
   "cylinderConfigs_title": "Flesconfiguraties",
   "cylinderConfigs_empty": "Nog geen configuraties",
   "cylinderConfigs_emptyBody": "Sla een diluent- en bailout-opstelling één keer op en pas hem toe op elke duik.",
@@ -3964,6 +3965,7 @@
   "cylinderConfigs_sectionTitle": "Configuraties",
   "equipment_serviceClocks_hoursSource": "Berekend op basis van geregistreerde duiktijd",
   "equipment_serviceClocks_hoursLeft": "{remaining} van {total} uur resterend",
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} uur, {remaining} van {total} resterend",
   "equipment_serviceClocks_saltHoursLeft": "{remaining} van {total} uren in zout water over",
   "@equipment_serviceClocks_saltHoursLeft": {
     "placeholders": {
@@ -3975,6 +3977,7 @@
       }
     }
   },
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} uren in zout water, {remaining} van {total} over",
   "equipment_serviceClocks_coldDivesLeft": "{remaining} van {total} koudwaterduiken over",
   "@equipment_serviceClocks_coldDivesLeft": {
     "placeholders": {
@@ -3986,6 +3989,7 @@
       }
     }
   },
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} koudwaterduiken, {remaining} van {total} over",
   "equipment_serviceClocks_o2HoursLeft": "{remaining} van {total} uren met hoog O2 over",
   "@equipment_serviceClocks_o2HoursLeft": {
     "placeholders": {
@@ -3997,6 +4001,7 @@
       }
     }
   },
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} uren met hoog O2, {remaining} van {total} over",
   "equipment_serviceClocks_deepCyclesLeft": "{remaining} van {total} diepe duiken over",
   "@equipment_serviceClocks_deepCyclesLeft": {
     "placeholders": {
@@ -4008,6 +4013,7 @@
       }
     }
   },
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} diepe duiken, {remaining} van {total} over",
   "equipment_serviceClocks_cyclesLeft": "{remaining} van {total} batterijcycli over",
   "@equipment_serviceClocks_cyclesLeft": {
     "placeholders": {
@@ -4019,6 +4025,7 @@
       }
     }
   },
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} batterijcycli, {remaining} van {total} over",
   "equipment_serviceClocks_manageKinds": "Servicetypen beheren",
   "equipment_serviceClocks_appliesToClock": "Gekoppeld aan interval",
   "equipment_serviceClocks_noClockOption": "Niet aan een interval gekoppeld",
@@ -4224,6 +4231,7 @@
   "equipment_serviceDialog_serviceTypeNotSet": "Niet ingesteld",
   "equipment_serviceDialog_categoryHelper": "Gebruikt voor filteren en exporteren",
   "equipment_serviceDialog_manageServiceTypes": "Servicetypes beheren",
+  "equipment_serviceDialog_filterToConfiguredTypes": "Alleen geconfigureerde servicetypes tonen",
   "equipment_serviceDialog_categoryLabel": "Categorie",
   "equipment_serviceDialog_snackbar_added": "Servicerecord toegevoegd",
   "equipment_serviceDialog_snackbar_error": "Fout: {error}",
@@ -4256,6 +4264,8 @@
   "equipment_service_filterClear": "Filter wissen",
   "equipment_service_filterNoMatches": "Geen onderhoud voldoet aan dit filter",
   "equipment_service_filterMatchCount": "{count} van {total} getoond",
+  "equipment_service_showMore": "{count, plural, =1{1 meer tonen} other{{count} meer tonen}}",
+  "equipment_service_showFewer": "Minder tonen",
   "equipment_serviceKinds_defaultCategoryLabel": "Standaardcategorie",
   "equipment_serviceKinds_defaultCategoryNone": "Geen standaard",
   "equipment_serviceKinds_defaultCostLabel": "Standaardprijs",

@@ -3823,6 +3823,7 @@
   "equipment_serviceClocks_countingSince": "Számlálás kezdete: {date}",
   "equipment_serviceClocks_overdue": "Lejárt",
   "equipment_serviceClocks_divesLeft": "{remaining} / {total} merülés van hátra",
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} merülés, {remaining} / {total} van hátra",
   "cylinderConfigs_title": "Palackkonfigurációk",
   "cylinderConfigs_empty": "Még nincs konfiguráció",
   "cylinderConfigs_emptyBody": "Mentsd el egyszer a diluent- és bailout-összeállítást, majd alkalmazd bármelyik merülésre.",
@@ -3860,6 +3861,7 @@
   "cylinderConfigs_sectionTitle": "Konfigurációk",
   "equipment_serviceClocks_hoursSource": "A naplózott merülési idő alapján számolva",
   "equipment_serviceClocks_hoursLeft": "{remaining} / {total} óra van hátra",
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} óra, {remaining} / {total} van hátra",
   "equipment_serviceClocks_saltHoursLeft": "{remaining} / {total} sós vízi óra van hátra",
   "@equipment_serviceClocks_saltHoursLeft": {
     "placeholders": {
@@ -3871,6 +3873,7 @@
       }
     }
   },
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} sós vízi óra, {remaining} / {total} van hátra",
   "equipment_serviceClocks_coldDivesLeft": "{remaining} / {total} hideg vízi merülés van hátra",
   "@equipment_serviceClocks_coldDivesLeft": {
     "placeholders": {
@@ -3882,6 +3885,7 @@
       }
     }
   },
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} hideg vízi merülés, {remaining} / {total} van hátra",
   "equipment_serviceClocks_o2HoursLeft": "{remaining} / {total} magas O2-tartalmú óra van hátra",
   "@equipment_serviceClocks_o2HoursLeft": {
     "placeholders": {
@@ -3893,6 +3897,7 @@
       }
     }
   },
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} magas O2-tartalmú óra, {remaining} / {total} van hátra",
   "equipment_serviceClocks_deepCyclesLeft": "{remaining} / {total} mély merülés van hátra",
   "@equipment_serviceClocks_deepCyclesLeft": {
     "placeholders": {
@@ -3904,6 +3909,7 @@
       }
     }
   },
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} mély merülés, {remaining} / {total} van hátra",
   "equipment_serviceClocks_cyclesLeft": "{remaining} / {total} akkumulátorciklus van hátra",
   "@equipment_serviceClocks_cyclesLeft": {
     "placeholders": {
@@ -3915,6 +3921,7 @@
       }
     }
   },
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} akkumulátorciklus, {remaining} / {total} van hátra",
   "equipment_serviceClocks_manageKinds": "Szerviztípusok kezelése",
   "equipment_serviceClocks_appliesToClock": "Kapcsolódó intervallum",
   "equipment_serviceClocks_noClockOption": "Nem tartozik intervallumhoz",
@@ -4120,6 +4127,7 @@
   "equipment_serviceDialog_serviceTypeNotSet": "Nincs beállítva",
   "equipment_serviceDialog_categoryHelper": "Szűréshez és exportáláshoz használt",
   "equipment_serviceDialog_manageServiceTypes": "Szerviz típusok kezelése",
+  "equipment_serviceDialog_filterToConfiguredTypes": "Csak a beállított szerviztípusok megjelenítése",
   "equipment_serviceDialog_categoryLabel": "Kategória",
   "equipment_serviceDialog_snackbar_added": "Szervizrekord hozzáadva",
   "equipment_serviceDialog_snackbar_error": "Hiba: {error}",
@@ -4152,6 +4160,8 @@
   "equipment_service_filterClear": "Szűrő törlése",
   "equipment_service_filterNoMatches": "Nincs a szűrőnek megfelelő karbantartás",
   "equipment_service_filterMatchCount": "{count} / {total} megjelenítve",
+  "equipment_service_showMore": "{count, plural, =1{1 további megjelenítése} other{{count} további megjelenítése}}",
+  "equipment_service_showFewer": "Kevesebb megjelenítése",
   "equipment_serviceKinds_defaultCategoryLabel": "Alapértelmezett kategória",
   "equipment_serviceKinds_defaultCategoryNone": "Nincs alapértelmezés",
   "equipment_serviceKinds_defaultCostLabel": "Alapértelmezett ár",

@@ -3823,6 +3823,7 @@
   "equipment_serviceClocks_countingSince": "Conteggio dal {date}",
   "equipment_serviceClocks_overdue": "In ritardo",
   "equipment_serviceClocks_divesLeft": "{remaining} immersioni rimanenti su {total}",
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} immersioni, {remaining} rimanenti su {total}",
   "cylinderConfigs_title": "Configurazioni bombole",
   "cylinderConfigs_empty": "Nessuna configurazione",
   "cylinderConfigs_emptyBody": "Salva una volta un assetto diluente e bailout, poi applicalo a qualsiasi immersione.",
@@ -3860,6 +3861,7 @@
   "cylinderConfigs_sectionTitle": "Configurazioni",
   "equipment_serviceClocks_hoursSource": "Calcolato dal tempo di immersione registrato",
   "equipment_serviceClocks_hoursLeft": "{remaining} ore rimanenti su {total}",
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} ore, {remaining} rimanenti su {total}",
   "equipment_serviceClocks_saltHoursLeft": "{remaining} di {total} ore in acqua salata rimanenti",
   "@equipment_serviceClocks_saltHoursLeft": {
     "placeholders": {
@@ -3871,6 +3873,7 @@
       }
     }
   },
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} ore in acqua salata, {remaining} di {total} rimanenti",
   "equipment_serviceClocks_coldDivesLeft": "{remaining} di {total} immersioni in acqua fredda rimanenti",
   "@equipment_serviceClocks_coldDivesLeft": {
     "placeholders": {
@@ -3882,6 +3885,7 @@
       }
     }
   },
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} immersioni in acqua fredda, {remaining} di {total} rimanenti",
   "equipment_serviceClocks_o2HoursLeft": "{remaining} di {total} ore ad alto O2 rimanenti",
   "@equipment_serviceClocks_o2HoursLeft": {
     "placeholders": {
@@ -3893,6 +3897,7 @@
       }
     }
   },
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} ore ad alto O2, {remaining} di {total} rimanenti",
   "equipment_serviceClocks_deepCyclesLeft": "{remaining} di {total} immersioni profonde rimanenti",
   "@equipment_serviceClocks_deepCyclesLeft": {
     "placeholders": {
@@ -3904,6 +3909,7 @@
       }
     }
   },
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} immersioni profonde, {remaining} di {total} rimanenti",
   "equipment_serviceClocks_cyclesLeft": "{remaining} di {total} cicli di batteria rimanenti",
   "@equipment_serviceClocks_cyclesLeft": {
     "placeholders": {
@@ -3915,6 +3921,7 @@
       }
     }
   },
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} cicli di batteria, {remaining} di {total} rimanenti",
   "equipment_serviceClocks_manageKinds": "Gestisci tipi di manutenzione",
   "equipment_serviceClocks_appliesToClock": "Si applica alla scadenza",
   "equipment_serviceClocks_noClockOption": "Non collegato a una scadenza",
@@ -4120,6 +4127,7 @@
   "equipment_serviceDialog_serviceTypeNotSet": "Non impostato",
   "equipment_serviceDialog_categoryHelper": "Usata per filtri ed esportazione",
   "equipment_serviceDialog_manageServiceTypes": "Gestisci tipi di manutenzione",
+  "equipment_serviceDialog_filterToConfiguredTypes": "Mostra solo i tipi di manutenzione configurati",
   "equipment_serviceDialog_categoryLabel": "Categoria",
   "equipment_serviceDialog_snackbar_added": "Registro manutenzione aggiunto",
   "equipment_serviceDialog_snackbar_error": "Errore: {error}",
@@ -4152,6 +4160,8 @@
   "equipment_service_filterClear": "Azzera filtro",
   "equipment_service_filterNoMatches": "Nessuna manutenzione corrisponde a questo filtro",
   "equipment_service_filterMatchCount": "{count} di {total} mostrati",
+  "equipment_service_showMore": "{count, plural, =1{Mostra 1 in più} other{Mostra altri {count}}}",
+  "equipment_service_showFewer": "Mostra meno",
   "equipment_serviceKinds_defaultCategoryLabel": "Categoria predefinita",
   "equipment_serviceKinds_defaultCategoryNone": "Nessuna predefinita",
   "equipment_serviceKinds_defaultCostLabel": "Prezzo predefinito",

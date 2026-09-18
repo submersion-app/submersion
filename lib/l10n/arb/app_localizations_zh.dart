@@ -11608,7 +11608,7 @@ class AppLocalizationsZh extends AppLocalizations {
     int remaining,
     int total,
   ) {
-    return '$used dives, $remaining of $total dives left';
+    return '已用 $used 次，剩余 $remaining/$total 次潜水';
   }
 
   @override
@@ -11702,7 +11702,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used hours, $remaining of $total hours left';
+    return '已用 $used 小时，剩余 $remaining/$total 小时';
   }
 
   @override
@@ -11716,7 +11716,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used salt-water hours, $remaining of $total salt-water hours left';
+    return '海水小时数已用 $used，剩余 $remaining / $total';
   }
 
   @override
@@ -11730,7 +11730,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used cold dives, $remaining of $total cold dives left';
+    return '冷水潜水已用 $used 次，剩余 $remaining / $total 次';
   }
 
   @override
@@ -11744,7 +11744,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used high-O2 hours, $remaining of $total high-O2 hours left';
+    return '高氧小时数已用 $used，剩余 $remaining / $total';
   }
 
   @override
@@ -11761,7 +11761,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used deep dives, $remaining of $total deep dives left';
+    return '深潜已用 $used 次，剩余 $remaining / $total 次';
   }
 
   @override
@@ -11775,7 +11775,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used battery cycles, $remaining of $total battery cycles left';
+    return '电池循环已用 $used 次，剩余 $remaining / $total 次';
   }
 
   @override
@@ -12504,8 +12504,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_serviceDialog_manageServiceTypes => '管理维护类型';
 
   @override
-  String get equipment_serviceDialog_filterToConfiguredTypes =>
-      'Only show configured service types';
+  String get equipment_serviceDialog_filterToConfiguredTypes => '仅显示已配置的维护类型';
 
   @override
   String get equipment_serviceDialog_categoryLabel => '类别';
@@ -12616,14 +12615,13 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Show $count more',
-      one: 'Show 1 more',
+      other: '再显示 $count 项',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_service_showFewer => 'Show fewer';
+  String get equipment_service_showFewer => '收起';
 
   @override
   String get equipment_serviceKinds_defaultCategoryLabel => '默认类别';

@@ -3823,6 +3823,7 @@
   "equipment_serviceClocks_countingSince": "נספר מאז {date}",
   "equipment_serviceClocks_overdue": "באיחור",
   "equipment_serviceClocks_divesLeft": "נותרו {remaining} מתוך {total} צלילות",
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} צלילות, נותרו {remaining} מתוך {total}",
   "cylinderConfigs_title": "תצורות בלונים",
   "cylinderConfigs_empty": "אין עדיין תצורות",
   "cylinderConfigs_emptyBody": "שמור פעם אחת מערך מדלל וביילאאוט, ואז החל אותו על כל צלילה.",
@@ -3860,6 +3861,7 @@
   "cylinderConfigs_sectionTitle": "תצורות",
   "equipment_serviceClocks_hoursSource": "מחושב מזמן הצלילה המתועד",
   "equipment_serviceClocks_hoursLeft": "נותרו {remaining} מתוך {total} שעות",
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} שעות, נותרו {remaining} מתוך {total}",
   "equipment_serviceClocks_saltHoursLeft": "נותרו {remaining} מתוך {total} שעות במים מלוחים",
   "@equipment_serviceClocks_saltHoursLeft": {
     "placeholders": {
@@ -3871,6 +3873,7 @@
       }
     }
   },
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} שעות במים מלוחים, נותרו {remaining} מתוך {total}",
   "equipment_serviceClocks_coldDivesLeft": "נותרו {remaining} מתוך {total} צלילות במים קרים",
   "@equipment_serviceClocks_coldDivesLeft": {
     "placeholders": {
@@ -3882,6 +3885,7 @@
       }
     }
   },
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} צלילות במים קרים, נותרו {remaining} מתוך {total}",
   "equipment_serviceClocks_o2HoursLeft": "נותרו {remaining} מתוך {total} שעות בחמצן גבוה",
   "@equipment_serviceClocks_o2HoursLeft": {
     "placeholders": {
@@ -3893,6 +3897,7 @@
       }
     }
   },
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} שעות בחמצן גבוה, נותרו {remaining} מתוך {total}",
   "equipment_serviceClocks_deepCyclesLeft": "נותרו {remaining} מתוך {total} צלילות עמוקות",
   "@equipment_serviceClocks_deepCyclesLeft": {
     "placeholders": {
@@ -3904,6 +3909,7 @@
       }
     }
   },
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} צלילות עמוקות, נותרו {remaining} מתוך {total}",
   "equipment_serviceClocks_cyclesLeft": "נותרו {remaining} מתוך {total} מחזורי סוללה",
   "@equipment_serviceClocks_cyclesLeft": {
     "placeholders": {
@@ -3915,6 +3921,7 @@
       }
     }
   },
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} מחזורי סוללה, נותרו {remaining} מתוך {total}",
   "equipment_serviceClocks_manageKinds": "ניהול סוגי טיפול",
   "equipment_serviceClocks_appliesToClock": "חל על שעון",
   "equipment_serviceClocks_noClockOption": "לא משויך לשעון",
@@ -4120,6 +4127,7 @@
   "equipment_serviceDialog_serviceTypeNotSet": "לא הוגדר",
   "equipment_serviceDialog_categoryHelper": "משמשת לסינון ולייצוא",
   "equipment_serviceDialog_manageServiceTypes": "ניהול סוגי טיפול",
+  "equipment_serviceDialog_filterToConfiguredTypes": "הצג רק סוגי טיפול מוגדרים",
   "equipment_serviceDialog_categoryLabel": "קטגוריה",
   "equipment_serviceDialog_snackbar_added": "רשומת טיפול נוספה",
   "equipment_serviceDialog_snackbar_error": "שגיאה: {error}",
@@ -4152,6 +4160,8 @@
   "equipment_service_filterClear": "ניקוי הסינון",
   "equipment_service_filterNoMatches": "אין תחזוקה התואמת לסינון זה",
   "equipment_service_filterMatchCount": "מוצגים {count} מתוך {total}",
+  "equipment_service_showMore": "{count, plural, =1{הצג עוד אחד} other{הצג עוד {count}}}",
+  "equipment_service_showFewer": "הצג פחות",
   "equipment_serviceKinds_defaultCategoryLabel": "קטגוריית ברירת מחדל",
   "equipment_serviceKinds_defaultCategoryNone": "ללא ברירת מחדל",
   "equipment_serviceKinds_defaultCostLabel": "מחיר ברירת מחדל",

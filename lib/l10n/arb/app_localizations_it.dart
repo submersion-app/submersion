@@ -12140,7 +12140,7 @@ class AppLocalizationsIt extends AppLocalizations {
     int remaining,
     int total,
   ) {
-    return '$used dives, $remaining of $total dives left';
+    return '$used immersioni, $remaining rimanenti su $total';
   }
 
   @override
@@ -12240,7 +12240,7 @@ class AppLocalizationsIt extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used hours, $remaining of $total hours left';
+    return '$used ore, $remaining rimanenti su $total';
   }
 
   @override
@@ -12254,7 +12254,7 @@ class AppLocalizationsIt extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used salt-water hours, $remaining of $total salt-water hours left';
+    return '$used ore in acqua salata, $remaining di $total rimanenti';
   }
 
   @override
@@ -12268,7 +12268,7 @@ class AppLocalizationsIt extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used cold dives, $remaining of $total cold dives left';
+    return '$used immersioni in acqua fredda, $remaining di $total rimanenti';
   }
 
   @override
@@ -12282,7 +12282,7 @@ class AppLocalizationsIt extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used high-O2 hours, $remaining of $total high-O2 hours left';
+    return '$used ore ad alto O2, $remaining di $total rimanenti';
   }
 
   @override
@@ -12299,7 +12299,7 @@ class AppLocalizationsIt extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used deep dives, $remaining of $total deep dives left';
+    return '$used immersioni profonde, $remaining di $total rimanenti';
   }
 
   @override
@@ -12313,7 +12313,7 @@ class AppLocalizationsIt extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used battery cycles, $remaining of $total battery cycles left';
+    return '$used cicli di batteria, $remaining di $total rimanenti';
   }
 
   @override
@@ -13106,7 +13106,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_serviceDialog_filterToConfiguredTypes =>
-      'Only show configured service types';
+      'Mostra solo i tipi di manutenzione configurati';
 
   @override
   String get equipment_serviceDialog_categoryLabel => 'Categoria';
@@ -13222,14 +13222,14 @@ class AppLocalizationsIt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Show $count more',
-      one: 'Show 1 more',
+      other: 'Mostra altri $count',
+      one: 'Mostra 1 in più',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_service_showFewer => 'Show fewer';
+  String get equipment_service_showFewer => 'Mostra meno';
 
   @override
   String get equipment_serviceKinds_defaultCategoryLabel =>

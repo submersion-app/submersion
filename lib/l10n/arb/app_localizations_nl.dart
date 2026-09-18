@@ -12053,7 +12053,7 @@ class AppLocalizationsNl extends AppLocalizations {
     int remaining,
     int total,
   ) {
-    return '$used dives, $remaining of $total dives left';
+    return '$used duiken, $remaining van $total resterend';
   }
 
   @override
@@ -12153,7 +12153,7 @@ class AppLocalizationsNl extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used hours, $remaining of $total hours left';
+    return '$used uur, $remaining van $total resterend';
   }
 
   @override
@@ -12167,7 +12167,7 @@ class AppLocalizationsNl extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used salt-water hours, $remaining of $total salt-water hours left';
+    return '$used uren in zout water, $remaining van $total over';
   }
 
   @override
@@ -12181,7 +12181,7 @@ class AppLocalizationsNl extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used cold dives, $remaining of $total cold dives left';
+    return '$used koudwaterduiken, $remaining van $total over';
   }
 
   @override
@@ -12195,7 +12195,7 @@ class AppLocalizationsNl extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used high-O2 hours, $remaining of $total high-O2 hours left';
+    return '$used uren met hoog O2, $remaining van $total over';
   }
 
   @override
@@ -12212,7 +12212,7 @@ class AppLocalizationsNl extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used deep dives, $remaining of $total deep dives left';
+    return '$used diepe duiken, $remaining van $total over';
   }
 
   @override
@@ -12226,7 +12226,7 @@ class AppLocalizationsNl extends AppLocalizations {
     String remaining,
     String total,
   ) {
-    return '$used battery cycles, $remaining of $total battery cycles left';
+    return '$used batterijcycli, $remaining van $total over';
   }
 
   @override
@@ -13010,7 +13010,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_serviceDialog_filterToConfiguredTypes =>
-      'Only show configured service types';
+      'Alleen geconfigureerde servicetypes tonen';
 
   @override
   String get equipment_serviceDialog_categoryLabel => 'Categorie';
@@ -13126,14 +13126,14 @@ class AppLocalizationsNl extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Show $count more',
-      one: 'Show 1 more',
+      other: '$count meer tonen',
+      one: '1 meer tonen',
     );
     return '$_temp0';
   }
 
   @override
-  String get equipment_service_showFewer => 'Show fewer';
+  String get equipment_service_showFewer => 'Minder tonen';
 
   @override
   String get equipment_serviceKinds_defaultCategoryLabel =>

@@ -3927,6 +3927,7 @@
   "equipment_serviceClocks_countingSince": "يُحتسب منذ {date}",
   "equipment_serviceClocks_overdue": "متأخر",
   "equipment_serviceClocks_divesLeft": "متبقٍ {remaining} من {total} غوصة",
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} غوصة، متبقٍ {remaining} من {total} غوصة",
   "cylinderConfigs_title": "إعدادات الأسطوانات",
   "cylinderConfigs_empty": "لا توجد إعدادات بعد",
   "cylinderConfigs_emptyBody": "احفظ إعداد المخفف والبديل مرة واحدة ثم طبّقه على أي غوصة.",
@@ -3964,6 +3965,7 @@
   "cylinderConfigs_sectionTitle": "الإعدادات",
   "equipment_serviceClocks_hoursSource": "محسوب من زمن الغوص المسجل",
   "equipment_serviceClocks_hoursLeft": "متبقٍ {remaining} من {total} ساعة",
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} ساعة، متبقٍ {remaining} من {total} ساعة",
   "equipment_serviceClocks_saltHoursLeft": "تبقى {remaining} من {total} ساعة في الماء المالح",
   "@equipment_serviceClocks_saltHoursLeft": {
     "placeholders": {
@@ -3975,6 +3977,7 @@
       }
     }
   },
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} ساعة في الماء المالح، تبقى {remaining} من {total} ساعة في الماء المالح",
   "equipment_serviceClocks_coldDivesLeft": "تبقى {remaining} من {total} غطسة في الماء البارد",
   "@equipment_serviceClocks_coldDivesLeft": {
     "placeholders": {
@@ -3986,6 +3989,7 @@
       }
     }
   },
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} غطسة في الماء البارد، تبقى {remaining} من {total} غطسة في الماء البارد",
   "equipment_serviceClocks_o2HoursLeft": "تبقى {remaining} من {total} ساعة بأكسجين مرتفع",
   "@equipment_serviceClocks_o2HoursLeft": {
     "placeholders": {
@@ -3997,6 +4001,7 @@
       }
     }
   },
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} ساعة بأكسجين مرتفع، تبقى {remaining} من {total} ساعة بأكسجين مرتفع",
   "equipment_serviceClocks_deepCyclesLeft": "تبقى {remaining} من {total} غطسة عميقة",
   "@equipment_serviceClocks_deepCyclesLeft": {
     "placeholders": {
@@ -4008,6 +4013,7 @@
       }
     }
   },
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} غطسة عميقة، تبقى {remaining} من {total} غطسة عميقة",
   "equipment_serviceClocks_cyclesLeft": "تبقى {remaining} من {total} دورة بطارية",
   "@equipment_serviceClocks_cyclesLeft": {
     "placeholders": {
@@ -4019,6 +4025,7 @@
       }
     }
   },
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} دورة بطارية، تبقى {remaining} من {total} دورة بطارية",
   "equipment_serviceClocks_manageKinds": "إدارة أنواع الصيانة",
   "equipment_serviceClocks_appliesToClock": "ينطبق على العداد",
   "equipment_serviceClocks_noClockOption": "غير مرتبط بعداد",
@@ -4224,6 +4231,7 @@
   "equipment_serviceDialog_serviceTypeNotSet": "غير محدد",
   "equipment_serviceDialog_categoryHelper": "تستخدم للتصفية والتصدير",
   "equipment_serviceDialog_manageServiceTypes": "إدارة أنواع الصيانة",
+  "equipment_serviceDialog_filterToConfiguredTypes": "إظهار أنواع الصيانة المهيأة فقط",
   "equipment_serviceDialog_categoryLabel": "الفئة",
   "equipment_serviceDialog_snackbar_added": "تمت إضافة سجل الصيانة",
   "equipment_serviceDialog_snackbar_error": "خطأ: {error}",
@@ -4256,6 +4264,8 @@
   "equipment_service_filterClear": "مسح عامل التصفية",
   "equipment_service_filterNoMatches": "لا توجد صيانة تطابق عامل التصفية",
   "equipment_service_filterMatchCount": "عرض {count} من {total}",
+  "equipment_service_showMore": "{count, plural, =1{إظهار عنصر واحد إضافي} other{إظهار {count} عناصر إضافية}}",
+  "equipment_service_showFewer": "إظهار عدد أقل",
   "equipment_serviceKinds_defaultCategoryLabel": "الفئة الافتراضية",
   "equipment_serviceKinds_defaultCategoryNone": "بدون افتراضي",
   "equipment_serviceKinds_defaultCostLabel": "السعر الافتراضي",
