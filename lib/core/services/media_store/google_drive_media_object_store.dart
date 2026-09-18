@@ -438,10 +438,32 @@ class GoogleDriveMediaObjectStore implements MediaObjectStore {
     } else {
       kind = MediaStoreErrorKind.fatal;
     }
+    final reason = _errorReason(response.body);
     return MediaStoreException(
-      'Drive $op $subject failed (HTTP $status)',
+      'Drive $op $subject failed (HTTP $status)'
+      '${reason != null ? ': $reason' : ''}',
       kind: kind,
     );
+  }
+
+  /// Google's own explanation for the failure, pulled from the `{"error":
+  /// {"message": "..."}}` envelope every Drive API error response uses.
+  ///
+  /// Null when the body isn't that shape (an empty body, HTML from a proxy,
+  /// or anything else unparseable), so a bad body degrades to the bare
+  /// status code the caller already had, rather than surfacing raw JSON or
+  /// throwing while building the error message itself.
+  static String? _errorReason(String body) {
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is! Map<String, Object?>) return null;
+      final error = decoded['error'];
+      if (error is! Map<String, Object?>) return null;
+      final message = error['message'];
+      return message is String ? message : null;
+    } on FormatException {
+      return null;
+    }
   }
 }
 

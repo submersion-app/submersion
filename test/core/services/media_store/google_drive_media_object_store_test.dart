@@ -225,6 +225,72 @@ void main() {
     );
   });
 
+  test("an error response's own message is folded into the exception "
+      '(issue reported by Max: a bare "HTTP 400" gave no way to diagnose '
+      'why Drive rejected the request)', () async {
+    final store = GoogleDriveMediaObjectStore.withClient(
+      MockClient(
+        (_) async => http.Response(
+          '{"error":{"message":"Invalid request: parent not found"}}',
+          400,
+        ),
+      ),
+      apiBase: 'https://fake.googleapis.test',
+    );
+
+    await expectLater(
+      store.head('smv1/objects/aa/x.bin'),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.message,
+          'message',
+          contains('Invalid request: parent not found'),
+        ),
+      ),
+    );
+  });
+
+  test('an unparsable error body degrades to the bare status code instead of '
+      'throwing while building the error message', () async {
+    final store = GoogleDriveMediaObjectStore.withClient(
+      MockClient((_) async => http.Response('not json', 400)),
+      apiBase: 'https://fake.googleapis.test',
+    );
+
+    await expectLater(
+      store.head('smv1/objects/aa/x.bin'),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.message,
+          'message',
+          contains('HTTP 400'),
+        ),
+      ),
+    );
+  });
+
+  test(
+    'a non-string error.message (Copilot review) degrades to the bare '
+    'status code instead of throwing a TypeError while building the error',
+    () async {
+      final store = GoogleDriveMediaObjectStore.withClient(
+        MockClient((_) async => http.Response('{"error":{"message":42}}', 400)),
+        apiBase: 'https://fake.googleapis.test',
+      );
+
+      await expectLater(
+        store.head('smv1/objects/aa/x.bin'),
+        throwsA(
+          isA<MediaStoreException>().having(
+            (e) => e.message,
+            'message',
+            contains('HTTP 400'),
+          ),
+        ),
+      );
+    },
+  );
+
   test('a missing source file is a fatal MediaStoreException', () async {
     final store = build();
     await expectLater(

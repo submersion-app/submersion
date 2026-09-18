@@ -78,7 +78,7 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 221);
     expect(AppDatabase.migrationVersions, contains(221));
-    expect(AppDatabase.migrationStepCount(219), 1);
+    expect(AppDatabase.migrationStepCount(220), 1);
     // Additive rung: the sync compatibility floor must not move.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 210);
   });

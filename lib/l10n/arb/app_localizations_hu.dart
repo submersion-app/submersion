@@ -243,6 +243,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Automatikusan alkalmazza az új, még felszerelés nélküli merülésekre';
 
   @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Alkalmazás, ha ennek a készletnek a számítógépét importálják';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'Ha ez a készlet tartalmaz egy merülőkomputert, a teljes készlet automatikusan hozzáadódik egy erről letöltött vagy importált merüléshez';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geokerítések';
 
   @override

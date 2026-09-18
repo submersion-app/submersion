@@ -243,6 +243,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Aplicado automaticamente a novos mergulhos que ainda não têm equipamento';
 
   @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Aplicar quando o computador deste conjunto for importado';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'Se este conjunto incluir um computador de mergulho, adiciona automaticamente todo o conjunto a uma imersão descarregada ou importada dele';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geocercas';
 
   @override

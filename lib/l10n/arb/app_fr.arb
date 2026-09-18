@@ -210,6 +210,8 @@
   "equipment_components_title": "Composants",
   "equipment_setEdit_defaultSwitch_title": "Ensemble par défaut",
   "equipment_setEdit_defaultSwitch_subtitle": "Appliqué automatiquement aux nouvelles plongées sans équipement",
+  "equipment_setEdit_computerAutoApplySwitch_title": "Appliquer lors de l'importation de l'ordinateur de ce set",
+  "equipment_setEdit_computerAutoApplySwitch_subtitle": "Si ce set inclut un ordinateur de plongée, ajoute automatiquement tout le set à une plongée téléchargée ou importée depuis celui-ci",
   "equipment_setEdit_geofencesTitle": "Géorepères",
   "equipment_setEdit_geofencesSubtitle": "Suggérer automatiquement cet ensemble pour les plongées près de ces lieux",
   "equipment_setEdit_addGeofence": "Ajouter un géorepère",

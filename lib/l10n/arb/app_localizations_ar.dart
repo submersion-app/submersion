@@ -241,6 +241,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'تُطبَّق تلقائيًا على الغطسات الجديدة التي لا تحتوي على معدات بعد';
 
   @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'التطبيق عند استيراد كمبيوتر هذه المجموعة';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'إذا كانت هذه المجموعة تتضمن كمبيوتر غوص، تتم إضافة المجموعة كاملة تلقائيًا إلى الغطسة التي يتم تنزيلها أو استيرادها منه';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'الأسوار الجغرافية';
 
   @override

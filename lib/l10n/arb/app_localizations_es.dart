@@ -243,6 +243,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Se aplica automáticamente a las inmersiones nuevas que aún no tienen equipo';
 
   @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Aplicar al importar el ordenador de este set';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'Si este set incluye un ordenador de buceo, añade automáticamente todo el set a una inmersión descargada o importada desde él';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geocercas';
 
   @override

@@ -12,6 +12,10 @@ class EquipmentSet extends Equatable {
   final List<String> equipmentIds;
   final List<EquipmentItem>? items; // Populated when fetched with items
   final bool isDefault;
+
+  /// Whether this set is auto-applied to a dive whose computer is a member
+  /// of it (issue #1020). Opt-in, off by default.
+  final bool autoApplyOnComputerImport;
   final List<EquipmentSetGeofence> geofences; // Populated when fetched
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -24,6 +28,7 @@ class EquipmentSet extends Equatable {
     this.equipmentIds = const [],
     this.items,
     this.isDefault = false,
+    this.autoApplyOnComputerImport = false,
     this.geofences = const [],
     required this.createdAt,
     required this.updatedAt,
@@ -45,6 +50,7 @@ class EquipmentSet extends Equatable {
     List<String>? equipmentIds,
     List<EquipmentItem>? items,
     bool? isDefault,
+    bool? autoApplyOnComputerImport,
     List<EquipmentSetGeofence>? geofences,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -57,6 +63,8 @@ class EquipmentSet extends Equatable {
       equipmentIds: equipmentIds ?? this.equipmentIds,
       items: items ?? this.items,
       isDefault: isDefault ?? this.isDefault,
+      autoApplyOnComputerImport:
+          autoApplyOnComputerImport ?? this.autoApplyOnComputerImport,
       geofences: geofences ?? this.geofences,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -71,6 +79,7 @@ class EquipmentSet extends Equatable {
     description,
     equipmentIds,
     isDefault,
+    autoApplyOnComputerImport,
     geofences,
     createdAt,
     updatedAt,

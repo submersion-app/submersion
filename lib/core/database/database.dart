@@ -1311,6 +1311,14 @@ class EquipmentSets extends Table {
   /// layer, mirroring DiverRepository.setDefaultDiver.
   BoolColumn get isDefault => boolean().withDefault(const Constant(false))();
 
+  /// Whether this set is auto-applied to a dive whose computer is a member
+  /// of it (issue #1020), e.g. a CCR rig set that bundles the controller
+  /// with drysuit and tec fins. Opt-in per set, off by default: unlike
+  /// [isDefault] this has no diver-wide mutual exclusion, several sets can
+  /// have it on at once.
+  BoolColumn get autoApplyOnComputerImport =>
+      boolean().withDefault(const Constant(false))();
+
   /// Hybrid Logical Clock for cross-device conflict resolution
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
@@ -4864,11 +4872,14 @@ class AppDatabase extends _$AppDatabase {
     // (equipment_id, tag_id) unique index. Additive only, so the
     // compatibility floor stays.
     219,
+    // v220: equipment_sets.auto_apply_on_computer_import (issue #1020).
+    // Additive column, default off. Renumbered from 219: #1964 (equipment
+    // tags) shipped first and claimed it.
+    220,
     // v221: rental gear memory (issue #2075). dive_center_gear_notes, a
     // child of dive_centers. Table-only rung, no backfill, so the
-    // compatibility floor stays. Takes 221, not 220: four open PRs held
-    // 220 when this landed, and a rung at or below the shipped version
-    // never runs its onUpgrade step.
+    // compatibility floor stays. Sits above v220 (#1980), which shipped
+    // while this was in review.
     221,
   ];
 
@@ -6320,6 +6331,25 @@ class AppDatabase extends _$AppDatabase {
     if (cols.isNotEmpty && !names.contains('dive_detail_layout')) {
       await customStatement(
         'ALTER TABLE diver_settings ADD COLUMN dive_detail_layout TEXT',
+      );
+    }
+  }
+
+  /// v220: equipment_sets.auto_apply_on_computer_import (issue #1020).
+  /// Additive column, default off, so pre-existing sets keep today's
+  /// behavior until a diver opts in. Idempotent, so it is safe to call from
+  /// both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertEquipmentSetComputerAutoApplyColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('equipment_sets')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('auto_apply_on_computer_import')) {
+      await customStatement(
+        'ALTER TABLE equipment_sets '
+        'ADD COLUMN auto_apply_on_computer_import INTEGER NOT NULL '
+        'DEFAULT 0',
       );
     }
   }
@@ -12325,6 +12355,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertEquipmentTagSchema();
         }
         if (from < 219) await reportProgress();
+        // v220: equipment_sets.auto_apply_on_computer_import (issue #1020).
+        // Column-only rung, no backfill: null/0 reads back as off.
+        if (from < 220) {
+          await _assertEquipmentSetComputerAutoApplyColumn();
+        }
+        if (from < 220) await reportProgress();
         // v221: rental gear memory (issue #2075). Table-only rung, no
         // backfill.
         if (from < 221) {
@@ -12333,6 +12369,9 @@ class AppDatabase extends _$AppDatabase {
         if (from < 221) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v220 backstop: the computer-set auto-apply opt-in column.
+        await _assertEquipmentSetComputerAutoApplyColumn();
+
         // v217 and v219 backstop: the tag scope flags.
         await _assertTagScopeColumns();
 

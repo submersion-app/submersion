@@ -3,6 +3,10 @@ import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
 
+import 'package:submersion/core/services/logger_service.dart';
+
+const _log = LoggerService('SwissStacClient');
+
 /// One selected STAC asset for a swissBATHY3D tile: a ZIP containing the
 /// grid file.
 class SwissBathyAsset {
@@ -21,10 +25,30 @@ class SwissBathyAsset {
   /// for equality. Null when the item carries none of those properties.
   final String? datetime;
 
+  /// The owning STAC item's own declared `bbox` (WGS84
+  /// `[minLon, minLat, maxLon, maxLat]`), when present — used by
+  /// `_firstOverlappingCandidate` as a cheap, no-extra-network-cost
+  /// pre-filter against a TILE's own bounds before downloading and parsing
+  /// a candidate (GitHub Copilot review: since #1764 queries this per
+  /// LAKE rather than per tile, a neighboring lake's asset can pass the
+  /// wider lake-level bbox check yet still declare a bbox that does not
+  /// reach every one of that lake's own tiles). Null when the item
+  /// carried no valid bbox, in which case the candidate is never skipped
+  /// by that filter — same as everywhere else in this class, an
+  /// unrecognized/missing bbox proves nothing about location (Bug 15's
+  /// own lesson), so it degrades to the slower-but-correct
+  /// always-download behavior instead of silently dropping a real match.
+  /// Content validation (`extractRawEsriSubgridFromGrids`) remains the
+  /// sole correctness authority regardless — this field only decides what
+  /// gets downloaded and parsed AT ALL, exactly like the filename-based
+  /// prefilter `_entriesNearTile` already does one layer deeper.
+  final ({double minLon, double minLat, double maxLon, double maxLat})? bbox;
+
   const SwissBathyAsset({
     required this.href,
     required this.format,
     this.datetime,
+    this.bbox,
   });
 }
 
@@ -137,15 +161,42 @@ class SwissStacClient {
     const maxPages = 10;
     for (var page = 0; page < maxPages && url != null; page++) {
       final http.Response resp;
+      final stopwatch = Stopwatch()..start();
       try {
         resp = await _client.get(url).timeout(_itemsTimeout);
       } catch (e) {
+        // Warnings are persisted to the on-disk log even with Debug-Modus
+        // off (#1826), but this request's `url` carries the `bbox` query
+        // parameter -- a real location -- so, like
+        // BathymetryRepository._guardedLoad's own doc explains, the
+        // coordinate-bearing detail stays at debug level (gated behind
+        // Debug-Modus) while the always-persisted warning itself names
+        // only what happened, never where (GitHub Copilot review).
+        _log.warning(
+          'items request failed after ${stopwatch.elapsedMilliseconds}ms',
+          error: e,
+        );
+        _log.debug(
+          'items request failed after ${stopwatch.elapsedMilliseconds}ms: '
+          '$url',
+        );
         throw SwissStacException('STAC items request failed: $e');
       }
       if (resp.statusCode == 404) {
+        _log.warning('items request 404');
+        _log.debug('items request 404: $url');
         throw SwissStacCollectionNotFoundException(collectionId);
       }
       if (resp.statusCode != 200) {
+        _log.warning(
+          'items request HTTP ${resp.statusCode} after '
+          '${stopwatch.elapsedMilliseconds}ms',
+        );
+        _log.debug(
+          'items request HTTP ${resp.statusCode} after '
+          '${stopwatch.elapsedMilliseconds}ms: $url | body: '
+          '${_truncate(resp.body)}',
+        );
         throw SwissStacException('STAC items HTTP ${resp.statusCode}');
       }
       final Object? decoded;
@@ -182,6 +233,7 @@ class SwissStacClient {
             datetime: _itemDatetime(
               properties is Map<String, dynamic> ? properties : null,
             ),
+            bbox: _parseFeatureBbox(feature),
           ),
         );
       }
@@ -221,16 +273,15 @@ class SwissStacClient {
     return null;
   }
 
-  /// Whether STAC item [featureMap]'s own `bbox` genuinely overlaps the
-  /// requested [queryBbox]. A missing or malformed `bbox` is treated as no
-  /// overlap: a valid STAC item always carries one when it has geometry, so
-  /// its absence means the response cannot be trusted for this lookup.
-  static bool _featureOverlaps(
-    Map<String, dynamic> featureMap,
-    List<double> queryBbox,
-  ) {
+  /// STAC item [featureMap]'s own declared `bbox`, parsed to WGS84
+  /// `(minLon, minLat, maxLon, maxLat)`, or null when it is missing or
+  /// malformed. Shared by [_featureOverlaps] (the query-time filter) and
+  /// [findAssetCandidates] (which retains it on [SwissBathyAsset] for
+  /// `_firstOverlappingCandidate`'s own later per-tile pre-filter).
+  static ({double minLon, double minLat, double maxLon, double maxLat})?
+  _parseFeatureBbox(Map<String, dynamic> featureMap) {
     final raw = featureMap['bbox'];
-    if (raw is! List || raw.length < 4) return false;
+    if (raw is! List || raw.length < 4) return null;
     final rawMinLon = raw[0];
     final rawMinLat = raw[1];
     final rawMaxLon = raw[2];
@@ -239,16 +290,30 @@ class SwissStacClient {
         rawMinLat is! num ||
         rawMaxLon is! num ||
         rawMaxLat is! num) {
-      return false;
+      return null;
     }
-    final minLon = rawMinLon.toDouble();
-    final minLat = rawMinLat.toDouble();
-    final maxLon = rawMaxLon.toDouble();
-    final maxLat = rawMaxLat.toDouble();
-    return minLon <= queryBbox[2] &&
-        maxLon >= queryBbox[0] &&
-        minLat <= queryBbox[3] &&
-        maxLat >= queryBbox[1];
+    return (
+      minLon: rawMinLon.toDouble(),
+      minLat: rawMinLat.toDouble(),
+      maxLon: rawMaxLon.toDouble(),
+      maxLat: rawMaxLat.toDouble(),
+    );
+  }
+
+  /// Whether STAC item [featureMap]'s own `bbox` genuinely overlaps the
+  /// requested [queryBbox]. A missing or malformed `bbox` is treated as no
+  /// overlap: a valid STAC item always carries one when it has geometry, so
+  /// its absence means the response cannot be trusted for this lookup.
+  static bool _featureOverlaps(
+    Map<String, dynamic> featureMap,
+    List<double> queryBbox,
+  ) {
+    final bbox = _parseFeatureBbox(featureMap);
+    if (bbox == null) return false;
+    return bbox.minLon <= queryBbox[2] &&
+        bbox.maxLon >= queryBbox[0] &&
+        bbox.minLat <= queryBbox[3] &&
+        bbox.maxLat >= queryBbox[1];
   }
 
   /// `properties.datetime`, falling back to `updated` then `created` — STAC
@@ -287,14 +352,48 @@ class SwissStacClient {
   /// Downloads the asset ZIP at [href].
   Future<Uint8List> downloadBytes(String href) async {
     final http.Response resp;
+    final stopwatch = Stopwatch()..start();
     try {
       resp = await _client.get(Uri.parse(href)).timeout(_downloadTimeout);
     } catch (e) {
+      // Same privacy split as findAssetCandidates' own warnings: [href]
+      // names the specific lake asset (e.g. ".../swissbathy3d_walensee/
+      // ...zip"), so it stays out of the always-persisted warning and
+      // only reaches the debug-level, Debug-Modus-gated line.
+      _log.warning(
+        'asset download failed after ${stopwatch.elapsedMilliseconds}ms',
+        error: e,
+      );
+      _log.debug(
+        'asset download failed after ${stopwatch.elapsedMilliseconds}ms: '
+        '$href',
+      );
       throw SwissStacException('Asset download failed: $e');
     }
     if (resp.statusCode != 200) {
+      _log.warning(
+        'asset download HTTP ${resp.statusCode} after '
+        '${stopwatch.elapsedMilliseconds}ms',
+      );
+      _log.debug(
+        'asset download HTTP ${resp.statusCode} after '
+        '${stopwatch.elapsedMilliseconds}ms: $href',
+      );
       throw SwissStacException('Asset download HTTP ${resp.statusCode}');
     }
     return resp.bodyBytes;
+  }
+
+  /// First 200 UTF-16 code units of [body], for a log line that must never
+  /// embed an unbounded server response. Backs off to 199 when code unit
+  /// 199 is a lead (high) surrogate, so a non-BMP character (an emoji, some
+  /// CJK extension characters) straddling the cut is dropped whole rather
+  /// than split into an unpaired surrogate.
+  static String _truncate(String body) {
+    if (body.length <= 200) return body;
+    var cut = 200;
+    final lead = body.codeUnitAt(cut - 1);
+    if (lead >= 0xD800 && lead <= 0xDBFF) cut--;
+    return '${body.substring(0, cut)}...';
   }
 }

@@ -210,6 +210,8 @@
   "equipment_components_title": "组件",
   "equipment_setEdit_defaultSwitch_title": "默认套装",
   "equipment_setEdit_defaultSwitch_subtitle": "自动应用于尚无装备的新潜水",
+  "equipment_setEdit_computerAutoApplySwitch_title": "导入该套装的电脑时自动应用",
+  "equipment_setEdit_computerAutoApplySwitch_subtitle": "如果该套装包含潜水电脑，则从该电脑下载或导入的潜水记录会自动添加整个套装",
   "equipment_setEdit_geofencesTitle": "地理围栏",
   "equipment_setEdit_geofencesSubtitle": "自动为这些位置附近的潜水推荐此套装",
   "equipment_setEdit_addGeofence": "添加地理围栏",

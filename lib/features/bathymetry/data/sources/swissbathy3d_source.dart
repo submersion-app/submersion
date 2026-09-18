@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:archive/archive.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/lv95_transform.dart';
 import 'package:submersion/features/bathymetry/data/sources/esri_ascii_parser.dart';
 import 'package:submersion/features/bathymetry/data/sources/swiss_bathy_tile_cache_repository.dart';
@@ -13,6 +14,42 @@ import 'package:submersion/features/bathymetry/data/sources/swiss_stac_client.da
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_source.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+
+part 'swissbathy3d_sibling_precache.dart';
+part 'swissbathy3d_resolution.dart';
+part 'swissbathy3d_freshness.dart';
+
+const _log = LoggerService('SwissBathy3dSource');
+
+/// Everything one `fetch()`/`refreshAllCachedTiles()` call shares across
+/// every tile and lake it touches — memoized strictly for that one call's
+/// lifetime (a fresh instance every time, never an instance field or other
+/// longer-lived cache) and then dropped: downloaded zip bytes by href
+/// ([_downloadZipBytes]) and STAC candidate lookups by lake name
+/// ([_findAssetCandidatesForLake]). Bundled into one object so a future
+/// addition of this same shape is one field here, not another parameter
+/// threaded by hand through every function in this file group (Copilot
+/// review).
+///
+/// Each zip entry's own parsed grid ([_parsedEntry]) is deliberately NOT a
+/// field here, even though it is memoized the same way: [fetch] shares one
+/// entry-parse cache across everything IT touches (one lake's span, plus
+/// whatever [_precacheSiblingSites] reuses from it), which is the same
+/// bounded blast radius as [zipBytes]/[candidates] above. But
+/// [refreshAllCachedTiles] shares this ONE [_SharedFetchState] across its
+/// ENTIRE sweep of every tile ever cached, across every lake the diver has
+/// ever visited — sharing the PARSED-GRID cache at that same scope would
+/// let several large lakes' fully decompressed grids accumulate in memory
+/// simultaneously whenever a sweep happens to re-resolve more than one of
+/// them, resurrecting the exact "time out or crash on a phone" failure
+/// mode this class's own doc describes Bug 15's `_entriesNearTile` filter
+/// as existing to prevent. Each caller therefore passes its own
+/// `parsedEntries` map explicitly (see [_fetchTile]'s and
+/// [_refreshAllCachedTilesImpl]'s own docs for each one's actual scope).
+class _SharedFetchState {
+  final zipBytes = <String, Future<Uint8List>>{};
+  final candidates = <String, Future<List<SwissBathyAsset>>>{};
+}
 
 /// Regional tier: swisstopo swissBATHY3D lake-bed elevation model, via the
 /// STAC API on data.geo.admin.ch (OGD, "Freie Nutzung, Quellenangabe ist
@@ -33,8 +70,8 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 /// check found swisstopo instead publishes one asset per LAKE (e.g. all of
 /// Walensee in one "swissbathy3d_walensee" zip). [_fetchTile] downloads
 /// that asset's bytes once per asset href (shared across every tile
-/// coordinate that resolves to it, via [fetch]'s `sharedZipBytes`), then
-/// each tile independently parses and slices out just its own cells with
+/// coordinate that resolves to it, via [_SharedFetchState.zipBytes]), then
+/// each tile independently slices out just its own cells with
 /// [extractRawEsriSubgridFromGrids] before caching — without that slicing
 /// step, every tile in the same lake would cache and stitch the exact same
 /// whole-lake grid regardless of its own coordinates.
@@ -46,9 +83,9 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 /// that together cover the whole lake. Reading only the zip's first
 /// matching entry meant nearly every requested tile fell outside that one
 /// entry's footprint and came back as a false "no data" gap, except the one
-/// coincidentally aligned with it (Bug 15) — [extractGridZipTextsFiltered]
-/// reads every entry plausibly near the requested tile (see its own doc),
-/// and [_downloadAndParseFiltered] parses all of them, so
+/// coincidentally aligned with it (Bug 15) — [_entriesNearTile] reads every
+/// entry plausibly near the requested tile (see its own doc), and
+/// [_downloadAndParseFiltered] parses all of them, so
 /// [extractRawEsriSubgridFromGrids] can search across that set.
 ///
 /// A STAC item's declared `bbox` overlapping a tile's query is not proof its
@@ -64,23 +101,36 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 ///
 /// A lake-wide asset zip is not necessarily small: a live check found some
 /// lakes' zips hold hundreds of internal entries and hundreds of MB
-/// uncompressed (Bodensee: 751 entries, 237 MB zip). Parsing every entry to
+/// uncompressed (Bodensee: 751 entries, 237 MB zip; Walensee's own 46
+/// entries run up to ~10 MB uncompressed EACH). Parsing every entry to
 /// answer one tile query made large lakes slow enough, and memory-heavy
-/// enough, to time out or crash on a phone. [extractGridZipTextsFiltered]
-/// only decompresses entries whose filename-declared tile is within one
-/// tile of the one actually being resolved (a live check across every
-/// lake in [swissLakeLevels] confirmed each entry's name encodes its own
+/// enough, to time out or crash on a phone. [_entriesNearTile] only
+/// decompresses entries whose filename-declared tile is within one tile of
+/// the one actually being resolved (a live check across every lake in
+/// [swissLakeLevels] confirmed each entry's name encodes its own
 /// `xllcorner`/`yllcorner` truncated to the kilometre); an entry whose name
 /// does not match that pattern is still always included, so an unexpected
 /// naming scheme degrades to the slower-but-correct unfiltered behaviour
-/// rather than silently dropping data. This filtering happens per tile,
-/// independently — [_downloadAndParseFiltered] shares only the downloaded
-/// zip BYTES across tiles in one [fetch] call (via `sharedZipBytes`), never
-/// the parsed/filtered entries, because two tiles sharing one href can
-/// legitimately need different entries out of it; sharing the filtered
-/// result would silently starve whichever tile's entries were not part of
-/// the first tile's own neighborhood — the Bug 15 failure mode one layer
-/// deeper.
+/// rather than silently dropping data.
+///
+/// This filename filter is decided per tile, independently — two tiles can
+/// legitimately end up wanting different entries out of the same zip, so
+/// sharing which entries a tile even LOOKS at would risk resurrecting Bug
+/// 15 for whichever tile's entries were not part of another tile's own
+/// neighborhood. What IS shared, via [_parsedEntry] and
+/// [_SharedFetchState.parsedEntries], is the WORK of getting from an
+/// entry's raw bytes to its parsed grid, keyed by (href, entry name): two
+/// neighboring tiles' "within one tile" windows routinely overlap on
+/// several of the same entries, and a live desktop debug run measured
+/// 6-12 s to decompress and parse just one such entry set, PER TILE, for
+/// an 8 km / up-to-81-tile span — over 80 tiles' overlapping neighborhoods
+/// otherwise redoing that same decompress-and-parse work from scratch.
+/// Correctness is unaffected: which entries a tile even considers is still
+/// decided independently per tile as before, and
+/// [extractRawEsriSubgridFromGrids] still validates every returned grid's
+/// own real extent against that tile's bounds regardless of whether it
+/// came from this cache or a fresh parse — only the (href, name)-keyed
+/// WORK is reused, never which entries count as a match.
 class SwissBathy3dSource implements BathymetrySource {
   static const String sourceId = 'swissbathy3d';
   static const double tileSizeMeters = 1000;
@@ -105,6 +155,21 @@ class SwissBathy3dSource implements BathymetrySource {
   /// call sites stay in lockstep with each other and with the design intent.
   static const int maxConcurrentTileRequests = 4;
 
+  /// Caps concurrency for [_precacheSiblingSites]'s own background sweep,
+  /// deliberately much lower than [maxConcurrentTileRequests]. Precaching
+  /// is a pure cache-warming bonus with no user waiting on it directly, but
+  /// it runs fire-and-forget from inside a foreground [fetch] call and
+  /// shares this same class's CPU-bound decompress/parse work (see the
+  /// class doc on why that can cost several seconds per tile) — a
+  /// precache sweep contending for the same worker slots as a concurrently
+  /// running foreground [fetch]/[refreshAllCachedTiles] call would slow
+  /// down the very thing the user is actually looking at, defeating the
+  /// point of caching ahead of time. Kept at 1 (fully sequential) rather
+  /// than merely lower-than-4: precaching several sibling sites is not
+  /// time-critical, and running it strictly one tile at a time leaves the
+  /// most possible headroom for whatever the user is doing right now.
+  static const int maxConcurrentPrecacheRequests = 1;
+
   /// Nominal grid spacing swissBATHY3D publishes for lake bathymetry.
   /// Declared, not measured, per [SourceCapability]'s contract -- the actual
   /// per-tile [BathymetryGrid.resolutionMeters] comes from each tile's own
@@ -113,13 +178,16 @@ class SwissBathy3dSource implements BathymetrySource {
 
   final SwissStacClient _stac;
   final SwissBathyTileCacheRepository _tileCache;
+  final KnownDiveSiteLocations? _knownSiteLocations;
 
   SwissBathy3dSource({
     required SwissBathyTileCacheRepository tileCache,
     http.Client? httpClient,
     SwissStacClient? stacClient,
+    KnownDiveSiteLocations? knownSiteLocations,
   }) : _tileCache = tileCache,
-       _stac = stacClient ?? SwissStacClient(client: httpClient);
+       _stac = stacClient ?? SwissStacClient(client: httpClient),
+       _knownSiteLocations = knownSiteLocations;
 
   @override
   String get id => sourceId;
@@ -189,17 +257,31 @@ class SwissBathy3dSource implements BathymetrySource {
           (tileE: tileE, tileN: tileN),
     ];
 
-    // Distinct 1-km tile coordinates can legitimately resolve to the exact
-    // same STAC asset href -- confirmed live: swisstopo publishes one asset
-    // per LAKE, not per tile, so every tile coordinate within a lake shares
-    // one href. Memoized per fetch() call on the DOWNLOADED BYTES (not the
-    // parsed result -- see this class's own doc for why sharing parsed,
-    // filtered entries across tiles is unsafe) so that shared, potentially
-    // lake-sized zip travels over the network exactly once, not once per
-    // tile coordinate that happens to resolve to it. Each tile still parses
-    // and slices its own, location-correct entries independently in
-    // _fetchTile.
-    final sharedZipBytes = <String, Future<Uint8List>>{};
+    // Everything this call shares across every tile/lake it touches --
+    // downloaded zip bytes and STAC candidate lookups -- bundled in one
+    // [_SharedFetchState] (see its own doc). Distinct 1-km tile
+    // coordinates can legitimately resolve to the exact same STAC asset
+    // href -- confirmed live: swisstopo publishes one asset per LAKE, not
+    // per tile -- and every tile of the SAME lake used to ask the STAC
+    // items endpoint the identical "which asset covers this?" question
+    // independently too (#1764): an 8 km span touching up to 81 tiles
+    // fired up to 81 near-identical metadata lookups, each on its own 15 s
+    // budget, for an answer that never varies within a lake, and a single
+    // slow or transiently failed one among those 81 was enough to fail
+    // the whole span.
+    final shared = _SharedFetchState();
+
+    // Each zip entry's decompressed/parsed grid, shared across every tile
+    // (and, via [_precacheSiblingSites], every sibling site) THIS call
+    // touches -- deliberately a separate map from [shared] itself, not one
+    // of its fields; see [_SharedFetchState]'s own doc for why this one
+    // map's sharing scope must track the CALLER, not always match
+    // [zipBytes]/[candidates]'s scope. This call's own span is bounded to
+    // one lake, so accumulating its entries' parsed grids for this call's
+    // duration is the same bounded cost [zipBytes] already pays -- unlike
+    // [refreshAllCachedTiles]'s own sweep, which must NOT share this map
+    // this widely (see [_refreshAllCachedTilesImpl]'s doc).
+    final parsedEntries = <String, Future<RawEsriGrid>>{};
 
     // Bounded concurrency, not strictly sequential nor unbounded: up to
     // maxConcurrentTileRequests tiles in flight at once. Each is
@@ -207,7 +289,24 @@ class SwissBathy3dSource implements BathymetrySource {
     // for a cold cache spanning dozens of tiles, this keeps a single page
     // view from either taking minutes (one at a time) or hammering the OGD
     // server with dozens of simultaneous requests.
-    var hadTransientTileFailure = false;
+    final failedTileKeys = <String>[];
+    // Distinct failure messages already logged this call -- since the
+    // metadata lookup and zip download are now shared per lake (#1764),
+    // one underlying failure reaches every tile awaiting that same shared
+    // future, and each would otherwise log its own near-identical warning
+    // line (up to 81 times for one bad request) and flood the persistent
+    // log file (GitHub Copilot review). failedTileKeys below still
+    // records every affected tile for the aggregate exception message;
+    // this only dedupes the WARNING LOG line, never which tiles fetch()
+    // reports as failed.
+    final loggedFailureMessages = <String>{};
+    // Lakes _fetchTile actually did fresh work for (not served purely from
+    // cache) -- see that method's own doc on this parameter. Gates the
+    // precache call below so a fully-cached fetch() (the common case on a
+    // lake, per BathymetryRepository's own doc on why lake coordinates
+    // skip outer-cell quantization) never pays for a known-site-locations
+    // lookup it has nothing to reuse for.
+    final freshlyResolvedLakes = <String, SwissLakeLevel>{};
     final results = await _runBounded(tileCoords, maxConcurrentTileRequests, (
       coord,
     ) async {
@@ -225,9 +324,11 @@ class SwissBathy3dSource implements BathymetrySource {
           coord.tileE,
           coord.tileN,
           tileLake,
-          sharedZipBytes,
+          shared,
+          parsedEntries,
+          freshlyResolvedLakes: freshlyResolvedLakes,
         );
-      } on BathymetryFetchException {
+      } on BathymetryFetchException catch (e) {
         // Individually harmless -- the failed tile's own cache stays
         // untouched (see _fetchTile), so a retry only re-downloads that
         // one tile, and every OTHER tile's successful download is already
@@ -240,21 +341,60 @@ class SwissBathy3dSource implements BathymetrySource {
         // dozens of transiently-failed ones would otherwise pass every
         // floor and get cached by the outer repository as a complete,
         // definitive 'ok' answer, permanently starving the failed tiles of
-        // ever being retried (Copilot review). hadTransientTileFailure
-        // flags that below instead.
-        hadTransientTileFailure = true;
+        // ever being retried (Copilot review). failedTileKeys flags that
+        // below instead -- and, unlike a bare boolean, also captures WHICH
+        // tile(s) and the underlying [e] (network error, HTTP status, or
+        // timeout) that fetch()'s own caller would otherwise never see:
+        // BathymetryFetchException's message alone used to reach no log at
+        // all once it got here.
+        // The LV95 tile indices pinpoint a real, ~1 km location, so -- like
+        // SwissStacClient's own warnings -- they stay out of this
+        // always-persisted (even with Debug-Modus off) warning and only
+        // reach the debug-level, Debug-Modus-gated line below (GitHub
+        // Copilot review).
+        if (loggedFailureMessages.add(e.toString())) {
+          _log.warning('a tile failed', error: e);
+        }
+        _log.debug('tile ${coord.tileE}_${coord.tileN} failed', error: e);
+        failedTileKeys.add('${coord.tileE}_${coord.tileN}');
         return null;
       }
     });
     final tiles = [for (final tile in results) ?tile];
 
-    if (hadTransientTileFailure) {
+    // Fire-and-forget, deliberately not awaited (.ignore() suppresses the
+    // unawaited-future lint and any unhandled-error crash report): this is
+    // a pure cache-warming bonus for OTHER dive sites on the same lake(s),
+    // reusing the zip bytes/candidates already in memory from the tiles
+    // above, so it must never delay -- or, via some future refactor,
+    // accidentally fail -- the result this call actually promised its
+    // caller. Placed before the failure checks below so it still runs
+    // (for whichever lake(s) DID resolve) even when this span itself is
+    // about to throw. One call covering every FRESHLY resolved lake, not
+    // one per lake and not for every touched lake regardless of outcome
+    // (see freshlyResolvedLakes' own doc): the known-site lookup runs at
+    // most once per fetch() call, only when there is genuinely new
+    // in-memory data worth reusing, and every sibling tile still shares
+    // [maxConcurrentTileRequests] with the rest of this class instead of
+    // running as its own uncapped, concurrent side quest -- see
+    // [_precacheSiblingSites]'s own doc.
+    if (freshlyResolvedLakes.isNotEmpty) {
+      _precacheSiblingSites(
+        this,
+        freshlyResolvedLakes.values,
+        shared,
+        parsedEntries,
+      ).ignore();
+    }
+
+    if (failedTileKeys.isNotEmpty) {
       // Whatever DID succeed is already sitting in the per-tile cache, so
       // this costs a retry of only the tiles that actually failed, not a
       // re-download of the whole span -- see the catch block above.
       throw BathymetryFetchException(
-        'one or more tiles in span failed transiently '
-        'E[$tileEMin..$tileEMax] N[$tileNMin..$tileNMax]',
+        '${failedTileKeys.length} of ${tileCoords.length} tiles in span '
+        'failed transiently E[$tileEMin..$tileEMax] N[$tileNMin..$tileNMax]: '
+        '${failedTileKeys.join(', ')}',
       );
     }
 
@@ -274,23 +414,49 @@ class SwissBathy3dSource implements BathymetrySource {
   /// STAC response) still throw and are never cached, so the caller falls
   /// through to the next resolver tier and retries on the next visit.
   ///
-  /// [sharedZipBytes] memoizes the downloaded (not parsed) asset bytes by
-  /// href across every tile in the same [fetch] call — see that method's
-  /// doc — so two tile coordinates resolving to the same href (the common
-  /// case: one asset per lake, not per tile) share one network round trip.
-  /// Each tile still calls [_downloadAndParseFiltered] independently to
-  /// parse just its own filename-filtered subset of entries, never a
-  /// subset another tile already resolved. [_firstOverlappingCandidate]
-  /// then slices out just this tile's own cells before it is cached and
-  /// returned, trying every candidate STAC returned for this bbox (not
+  /// [shared] memoizes the downloaded (not parsed) asset bytes by href, and
+  /// the STAC items metadata lookup by lake name, across every tile in the
+  /// same [fetch] call — see [_SharedFetchState]'s own doc — so two tile
+  /// coordinates resolving to the same href/lake (the common case: one
+  /// asset per lake, not per tile) share one network round trip and one
+  /// metadata lookup respectively.
+  ///
+  /// [parsedEntries] memoizes each zip entry's actual decompressed/parsed
+  /// grid, by (href, entry name) — see [_parsedEntry]'s own doc for why
+  /// this is safe to share across DIFFERENT tiles' filename-filtered
+  /// subsets, unlike sharing which entries a tile even considers. Passed
+  /// SEPARATELY from [shared], not as one of its fields, because the two
+  /// callers of this method need different sharing scopes for it: [fetch]
+  /// passes one map for its own single-lake span (and whatever
+  /// [_precacheSiblingSites] reuses from it), while [_refreshIfStale] (via
+  /// `refreshAllCachedTiles()`'s sweep) must NOT share this map across
+  /// every lake ever cached — see [_refreshAllCachedTilesImpl]'s doc.
+  /// [_firstOverlappingCandidate] slices out just this tile's own cells
+  /// from whatever entries [parsedEntries] hands back before caching and
+  /// returning, trying every candidate STAC returned for this bbox (not
   /// just the first) in case an earlier one's declared bbox overlapped but
   /// its actual content did not — see that method's doc.
+  ///
+  /// [freshlyResolvedLakes], when given, records [lake]'s name once this
+  /// call's own candidate lookup and any download/parse it triggered have
+  /// actually SUCCEEDED -- including the definitive "no tile here" gap,
+  /// which is still real, reusable knowledge -- but NOT when that attempt
+  /// throws. [fetch] uses it to tell "this lake's shared maps may hold
+  /// real data worth reusing" apart from both "every tile was already
+  /// cached" (Copilot review: a 100%-cache-hit fetch() call used to still
+  /// fire a full known-site-locations lookup for nothing) and "the one
+  /// attempt made for this lake just failed" (Copilot review: marking on
+  /// a transient failure used to let [_precacheSiblingSites] retry that
+  /// same failing lookup once per known sibling instead of leaving it to
+  /// the caller's own retry).
   Future<BathymetryGrid?> _fetchTile(
     int tileE,
     int tileN,
     SwissLakeLevel lake,
-    Map<String, Future<Uint8List>> sharedZipBytes,
-  ) async {
+    _SharedFetchState shared,
+    Map<String, Future<RawEsriGrid>> parsedEntries, {
+    Map<String, SwissLakeLevel>? freshlyResolvedLakes,
+  }) async {
     final tileKey = '${tileE}_$tileN';
 
     final cached = await _tileCache.read(
@@ -299,27 +465,57 @@ class SwissBathy3dSource implements BathymetrySource {
     );
     if (cached != null) {
       if (!_isStale(cached.checkedAt)) return cached.grid;
-      return _refreshIfStale(tileKey, tileE, tileN, lake, cached);
+      return _refreshIfStale(
+        this,
+        tileKey,
+        tileE,
+        tileN,
+        lake,
+        cached,
+        shared,
+        parsedEntries,
+        freshlyResolvedLakes: freshlyResolvedLakes,
+      );
     }
     if (await _tileCache.hasCachedAnswer(tileKey)) return null;
 
     final List<SwissBathyAsset> candidates;
     final ({SwissBathyAsset asset, RawEsriGrid subRaw})? resolved;
     try {
-      candidates = await _findAssetCandidates(_tileBboxWgs84(tileE, tileN));
+      candidates = await _findAssetCandidatesForLake(this, lake, shared);
       resolved = await _firstOverlappingCandidate(
         tileE,
         tileN,
         candidates,
-        (href) => _downloadAndParseFiltered(href, tileE, tileN, sharedZipBytes),
+        (href) => _downloadAndParseFiltered(
+          this,
+          href,
+          tileE,
+          tileN,
+          shared,
+          parsedEntries,
+        ),
       );
     } on SwissStacException catch (e) {
       // Transient: network error, HTTP failure, unparseable STAC response.
-      // Must not be cached — the next visit should retry.
+      // Must not be cached — the next visit should retry. Deliberately
+      // NOT marking freshlyResolvedLakes here (GitHub Copilot review): a
+      // transient failure leaves nothing usable in shared/parsedEntries
+      // for a sibling to reuse, so letting the precache pass fire anyway
+      // would just retry the very lookup that just failed, once per known
+      // sibling, competing with the caller's own imminent retry instead
+      // of helping it.
       throw BathymetryFetchException('swissBATHY3D fetch failed: $e');
     } on FormatException catch (e) {
       throw BathymetryFetchException('swissBATHY3D grid parse failed: $e');
     }
+
+    // Marked only once the candidate lookup and any download/parse it
+    // triggered have genuinely SUCCEEDED (including the definitive-gap
+    // case just below) -- moved here from right after the cache-check
+    // early-returns above so a transient failure (caught above) never
+    // marks this lake "fresh" in the first place (GitHub Copilot review).
+    freshlyResolvedLakes?[lake.name] = lake;
 
     if (resolved == null) {
       // Either no candidate at all, or none of them actually cover this
@@ -349,523 +545,12 @@ class SwissBathy3dSource implements BathymetrySource {
     return grid;
   }
 
-  /// Tries each of [candidates] in order — downloading (via [download]) and
-  /// slicing out ([tileE], [tileN])'s own cells with
-  /// [extractRawEsriSubgridFromGrids] — and returns the first whose actual
-  /// content genuinely overlaps the tile, or null when none do.
-  ///
-  /// A STAC item's declared `bbox` overlapping the query
-  /// ([SwissStacClient.findAssetCandidates]'s filter) is only the server's
-  /// word for it; it can be coarser or simply wrong relative to its own
-  /// raster's real footprint, which only [extractRawEsriSubgridFromGrids] —
-  /// reading the downloaded grid's own `xllcorner`/`yllcorner`/`ncols`/
-  /// `nrows` — can actually confirm. Trusting the first bbox-plausible
-  /// candidate alone meant one wrong-but-plausible candidate silently
-  /// starved every tile query it happened to satisfy, surfacing as
-  /// widespread "no tile here" gaps despite genuine coverage.
-  Future<({SwissBathyAsset asset, RawEsriGrid subRaw})?>
-  _firstOverlappingCandidate(
-    int tileE,
-    int tileN,
-    List<SwissBathyAsset> candidates,
-    Future<List<RawEsriGrid>> Function(String href) download,
-  ) async {
-    for (final asset in candidates) {
-      final rawGrids = await download(asset.href);
-      if (rawGrids.isEmpty) continue;
-      final subRaw = extractRawEsriSubgridFromGrids(
-        rawGrids,
-        minEasting: tileE * tileSizeMeters,
-        maxEasting: (tileE + 1) * tileSizeMeters,
-        minNorthing: tileN * tileSizeMeters,
-        maxNorthing: (tileN + 1) * tileSizeMeters,
-      );
-      if (subRaw == null) continue;
-      return (asset: asset, subRaw: subRaw);
-    }
-    return null;
-  }
-
-  /// Downloads the zip at [href], memoized in [sharedZipBytes] by href so a
-  /// shared lake-wide asset travels over the network only once per [fetch]/
-  /// [refreshAllCachedTiles] call regardless of how many tiles resolve to
-  /// it — see those methods' docs.
-  Future<Uint8List> _downloadZipBytes(
-    String href,
-    Map<String, Future<Uint8List>> sharedZipBytes,
-  ) => sharedZipBytes.putIfAbsent(href, () => _stac.downloadBytes(href));
-
-  /// Downloads (shared, see [_downloadZipBytes]) and parses only the
-  /// entries of the zip at [href] relevant to tile ([tileE], [tileN]) —
-  /// potentially several, each an entire lake's worth of cells, or
-  /// swisstopo's own internal sub-tiles of one, see
-  /// [extractRawEsriSubgridFromGrids]'s doc — never the whole zip
-  /// regardless of how many entries it holds. See
-  /// [extractGridZipTextsFiltered]'s doc for the filename-based prefilter
-  /// and its always-safe fallback, and this class's own doc for why this
-  /// filtered parse step is deliberately NOT shared across tiles the way
-  /// the download itself is.
-  ///
-  /// [extractGridZipTextsFiltered] decodes [zipBytes] with the `archive`
-  /// package, which throws its own `ArchiveException` (not
-  /// [FormatException]) on malformed zip bytes — e.g. an HTTP 200 response
-  /// body that is actually an HTML error page, or a truncated download.
-  /// Every callsite of this method already narrows on [FormatException] to
-  /// report a clean parse failure rather than a transient one (see
-  /// [_fetchTile] and [_checkAndMaybeUpdate]), so anything the decode or
-  /// grid parse step throws that is not already a [FormatException] is
-  /// normalized into one here, instead of escaping as a raw
-  /// `ArchiveException` (or any other type) and crashing the fetch/stitch
-  /// pipeline.
-  Future<List<RawEsriGrid>> _downloadAndParseFiltered(
-    String href,
-    int tileE,
-    int tileN,
-    Map<String, Future<Uint8List>> sharedZipBytes,
-  ) async {
-    final zipBytes = await _downloadZipBytes(href, sharedZipBytes);
-    try {
-      final gridTexts = extractGridZipTextsFiltered(
-        zipBytes,
-        tileE: tileE,
-        tileN: tileN,
-      );
-      return [for (final text in gridTexts) EsriAsciiGridParser.parseRaw(text)];
-    } on FormatException {
-      rethrow;
-    } catch (e) {
-      throw FormatException('swissBATHY3D zip/grid decode failed: $e');
-    }
-  }
-
-  static bool _isStale(DateTime? checkedAt) {
-    if (checkedAt == null) return true;
-    return DateTime.now().difference(checkedAt) >= staleCheckInterval;
-  }
-
-  /// Revalidates an expired cached tile with one light STAC item lookup (no
-  /// asset download) and only re-downloads the zip when the previously-
-  /// covering asset's version token actually changed, or when that asset
-  /// cannot be matched among the current candidates at all. Any failure
-  /// along the way — the metadata lookup itself, the re-download, or
-  /// reparsing — falls back to serving the still-cached [cached] grid
-  /// unchanged rather than propagating an error: a stale-but-present tile
-  /// beats no tile, and per the fair-use requirement this must never turn
-  /// into an unbounded re-download loop.
-  Future<BathymetryGrid?> _refreshIfStale(
-    String tileKey,
-    int tileE,
-    int tileN,
-    SwissLakeLevel lake,
-    SwissBathyTileCacheEntry cached,
-  ) async {
-    return (await _checkAndMaybeUpdate(
-      tileKey,
-      tileE,
-      tileN,
-      lake,
-      cached,
-      <String, Future<Uint8List>>{},
-    )).grid;
-  }
-
-  /// The same one-light-lookup, re-download-only-on-change check
-  /// [_refreshIfStale] performs, but reporting which of the three outcomes
-  /// happened rather than just the resulting grid — used by
-  /// [refreshAllCachedTiles], the manual "reload map data" action, to build
-  /// a summary of how many tiles were actually updated.
-  ///
-  /// [sharedZipBytes] memoizes each downloaded asset's BYTES by href, so
-  /// [refreshAllCachedTiles] can pass in one shared across its whole sweep
-  /// — distinct cached tiles commonly share one href (one asset per lake,
-  /// see this file's own doc), and a version change discovered while
-  /// revalidating one of them would otherwise redundantly re-download the
-  /// exact same zip once per affected tile instead of once per sweep — the
-  /// same fair-use concern [fetch]'s `sharedZipBytes` already addresses for
-  /// the initial-fetch path. Parsing itself is never shared across tiles
-  /// this way (see this class's own doc for why) — each call here parses
-  /// only its own ([tileE], [tileN])-filtered subset via
-  /// [_downloadAndParseFiltered].
-  Future<({BathymetryGrid? grid, _TileCheckOutcome outcome})>
-  _checkAndMaybeUpdate(
-    String tileKey,
-    int tileE,
-    int tileN,
-    SwissLakeLevel lake,
-    SwissBathyTileCacheEntry cached,
-    Map<String, Future<Uint8List>> sharedZipBytes,
-  ) async {
-    Future<List<RawEsriGrid>> download(String href) =>
-        _downloadAndParseFiltered(href, tileE, tileN, sharedZipBytes);
-    final List<SwissBathyAsset> candidates;
-    try {
-      candidates = await _findAssetCandidates(_tileBboxWgs84(tileE, tileN));
-    } on SwissStacException {
-      // metadata lookup failed -- retry on next check
-      return (grid: cached.grid, outcome: _TileCheckOutcome.failed);
-    } on BathymetryFetchException {
-      // no known collection id resolved right now
-      return (grid: cached.grid, outcome: _TileCheckOutcome.failed);
-    }
-
-    // Match by href, not list position: the candidate whose content
-    // actually covers this tile is not necessarily candidates.first (see
-    // _firstOverlappingCandidate's doc above) and that order is not
-    // guaranteed stable across requests either. Comparing an unrelated
-    // candidate's datetime against cached.sourceDatetime would report
-    // "changed" for two assets that were never the same thing to begin
-    // with, forcing a real download on every single check. Matching back
-    // to the exact previously-covering href keeps the check just as cheap
-    // (still only the light items lookup above, no asset download) while
-    // actually comparing the right two datetimes.
-    final previousHref = cached.sourceHref;
-    SwissBathyAsset? matched;
-    if (previousHref != null) {
-      for (final candidate in candidates) {
-        if (candidate.href == previousHref) {
-          matched = candidate;
-          break;
-        }
-      }
-    }
-    if (matched != null && matched.datetime == cached.sourceDatetime) {
-      // Same asset, same version: nothing to update, just record that the
-      // check happened, so the next one is due again in staleCheckInterval.
-      await _tileCache.touch(tileKey, sourceDatetime: matched.datetime);
-      return (grid: cached.grid, outcome: _TileCheckOutcome.upToDate);
-    }
-
-    // Either the previously-covering asset changed version, or it is no
-    // longer among the current candidates (renamed/replaced), or this row
-    // predates sourceHref (v15 and earlier) and has never been matched
-    // yet. None of those can be told apart from metadata alone, so fall
-    // through to a real re-resolution -- the one-time cost self-heals a
-    // pre-v16 row onto its href for every check after this one.
-    try {
-      final resolved = await _firstOverlappingCandidate(
-        tileE,
-        tileN,
-        candidates,
-        download,
-      );
-      if (resolved == null) {
-        // None of the candidates' actual content covers this tile --
-        // nothing usable to update to, so just record the check happened.
-        await _tileCache.touch(tileKey, sourceDatetime: cached.sourceDatetime);
-        return (grid: cached.grid, outcome: _TileCheckOutcome.upToDate);
-      }
-      if (resolved.asset.href == previousHref &&
-          resolved.asset.datetime == cached.sourceDatetime) {
-        // Only reachable when the href-based shortcut above could not run
-        // (no stored href yet) but re-resolution landed on the exact same
-        // asset and version anyway -- still no update needed.
-        await _tileCache.touch(
-          tileKey,
-          sourceDatetime: resolved.asset.datetime,
-        );
-        return (grid: cached.grid, outcome: _TileCheckOutcome.upToDate);
-      }
-      final grid = parseSwissLv95RawGrid(
-        resolved.subRaw,
-        sourceId: sourceId,
-        fetchedAt: DateTime.now(),
-        referenceLevelMeters: lake.meanLevelMeters,
-      );
-      await _tileCache.writeOk(
-        tileKey,
-        grid,
-        sourceDatetime: resolved.asset.datetime,
-        sourceHref: resolved.asset.href,
-        referenceLevelMeters: lake.meanLevelMeters,
-      );
-      return (grid: grid, outcome: _TileCheckOutcome.updated);
-    } on SwissStacException {
-      return (grid: cached.grid, outcome: _TileCheckOutcome.failed);
-    } on FormatException {
-      return (grid: cached.grid, outcome: _TileCheckOutcome.failed);
-    }
-  }
-
-  /// Immediately revalidates every currently cached tile's freshness,
-  /// bypassing [staleCheckInterval] — the manual "reload map data" action's
-  /// entry point. Reuses [_checkAndMaybeUpdate], the exact same light STAC
-  /// item lookup with conditional re-download the periodic per-fetch check
-  /// performs, so this never re-downloads a tile whose version has not
-  /// actually changed. A tile whose check fails (offline, STAC error) keeps
-  /// serving its existing cached grid unchanged, counted as
-  /// [SwissBathyRefreshSummary.failed] rather than thrown — one failed tile
-  /// must not abort the sweep over the rest, matching the fair-use
-  /// requirement that a failed check never becomes a crash or a forced
-  /// re-download loop. Uses the same [maxConcurrentTileRequests]-bounded
-  /// concurrency as [fetch]'s tile-stitching loop, rather than an
-  /// independent sequential or unbounded sweep, so a large cache (many
-  /// visited lakes) revalidates quickly without exceeding the same
-  /// fair-use-driven concurrency ceiling.
-  ///
-  /// Distinct cached tiles routinely share one STAC asset href (one asset
-  /// per lake, not per tile — see this file's own doc), so [sharedZipBytes]
-  /// memoizes the downloaded bytes by href across the whole sweep, exactly
-  /// like [fetch]'s own `sharedZipBytes` does for the initial-fetch path: a
-  /// version change discovered on one tile of a lake re-downloads that
-  /// lake's zip at most once for the entire sweep, not once per affected
-  /// tile. Each tile still parses only its own filtered subset of entries
-  /// independently — see this class's own doc.
-  Future<SwissBathyRefreshSummary> refreshAllCachedTiles() async {
-    final tileKeys = await _tileCache.allTileKeys();
-
-    final sharedZipBytes = <String, Future<Uint8List>>{};
-
-    final outcomes = await _runBounded(tileKeys, maxConcurrentTileRequests, (
-      tileKey,
-    ) async {
-      final parts = tileKey.split('_');
-      final tileE = parts.length == 2 ? int.tryParse(parts[0]) : null;
-      final tileN = parts.length == 2 ? int.tryParse(parts[1]) : null;
-      if (tileE == null || tileN == null) return null;
-
-      final lake = findSwissLake(_tileCenterWgs84(tileE, tileN));
-      if (lake == null) {
-        // The tile's OWN center resolves to no current lake, but the row
-        // may still be one fetch() cached under the FETCH CENTER's lake
-        // as a fallback (a real edge tile whose own center misses every
-        // registered bbox -- see fetch()'s tileLake fallback), so there is
-        // no single current lake to pass to read()'s normal per-lookup
-        // check. Delete it only if its stored level belongs to no lake in
-        // the CURRENT table at all -- the actual staleness signal a lake
-        // removal or a documented level correction leaves behind (Copilot
-        // review).
-        await _tileCache.deleteIfLevelUnknown(
-          tileKey,
-          swissLakeLevels.map((l) => l.meanLevelMeters),
-        );
-        return null;
-      }
-
-      // Computed BEFORE the read so a reference-level mismatch (the lake
-      // table changed since this tile was cached) is caught here too, not
-      // just on the next fetch() visit -- read() drops the row and returns
-      // null in that case, same as corruption. Applies uniformly to an
-      // 'ok' row (dropped, so the next fetch() re-downloads) and an
-      // 'empty' one (dropped, so the next fetch() re-resolves instead of
-      // hasCachedAnswer() suppressing it forever) -- see allTileKeys' doc
-      // for why 'empty' tiles are included in this sweep at all. A still-
-      // valid 'empty' row also reads back null here (it never carries a
-      // grid), so this branch covers "nothing to check" and "just
-      // invalidated" alike; neither needs the freshness check below.
-      final cached = await _tileCache.read(
-        tileKey,
-        expectedReferenceLevelMeters: lake.meanLevelMeters,
-      );
-      if (cached == null) {
-        return null;
-      }
-
-      final result = await _checkAndMaybeUpdate(
-        tileKey,
-        tileE,
-        tileN,
-        lake,
-        cached,
-        sharedZipBytes,
-      );
-      return result.outcome;
-    });
-
-    var updated = 0;
-    var upToDate = 0;
-    var failed = 0;
-    for (final outcome in outcomes) {
-      switch (outcome) {
-        case _TileCheckOutcome.updated:
-          updated++;
-        case _TileCheckOutcome.upToDate:
-          upToDate++;
-        case _TileCheckOutcome.failed:
-          failed++;
-        case null:
-          break; // evicted, corrupted, or unparseable tile key: not counted
-      }
-    }
-    return SwissBathyRefreshSummary(
-      updated: updated,
-      upToDate: upToDate,
-      failed: failed,
-    );
-  }
-
-  /// Merges same-resolution tile grids into one rectangular [BathymetryGrid]
-  /// spanning all of them. Each tile's cells are placed by rounding its
-  /// origin's offset from the merged origin to the nearest cell — robust to
-  /// the sub-cell drift between tiles' independently-reprojected LV95
-  /// origins (see [parseSwissLv95Grid]) — rather than assuming tiles are
-  /// pixel-perfectly aligned. Gaps (no tile, or nodata cells) stay null.
-  static BathymetryGrid _stitchTiles(List<BathymetryGrid> tiles) {
-    final reference = tiles.first;
-    final cellSizeLat = reference.cellSizeLatDeg;
-    final cellSizeLon = reference.cellSizeLonDeg;
-
-    var minLat = double.infinity;
-    var maxLat = -double.infinity;
-    var minLon = double.infinity;
-    var maxLon = -double.infinity;
-    for (final tile in tiles) {
-      final tileMinLat = tile.originLat - cellSizeLat / 2;
-      final tileMaxLat = tile.originLat + cellSizeLat * (tile.rows - 0.5);
-      final tileMinLon = tile.originLon - cellSizeLon / 2;
-      final tileMaxLon = tile.originLon + cellSizeLon * (tile.cols - 0.5);
-      if (tileMinLat < minLat) minLat = tileMinLat;
-      if (tileMaxLat > maxLat) maxLat = tileMaxLat;
-      if (tileMinLon < minLon) minLon = tileMinLon;
-      if (tileMaxLon > maxLon) maxLon = tileMaxLon;
-    }
-
-    final rows = ((maxLat - minLat) / cellSizeLat).round();
-    final cols = ((maxLon - minLon) / cellSizeLon).round();
-    final originLat = minLat + cellSizeLat / 2;
-    final originLon = minLon + cellSizeLon / 2;
-
-    final merged = List<double?>.filled(rows * cols, null);
-    var fetchedAt = reference.fetchedAt;
-    for (final tile in tiles) {
-      if (tile.fetchedAt.isBefore(fetchedAt)) fetchedAt = tile.fetchedAt;
-      final rowOffset = ((tile.originLat - originLat) / cellSizeLat).round();
-      final colOffset = ((tile.originLon - originLon) / cellSizeLon).round();
-      for (var r = 0; r < tile.rows; r++) {
-        final mergedRow = rowOffset + r;
-        if (mergedRow < 0 || mergedRow >= rows) continue;
-        for (var c = 0; c < tile.cols; c++) {
-          final mergedCol = colOffset + c;
-          if (mergedCol < 0 || mergedCol >= cols) continue;
-          final depth = tile.depthAt(r, c);
-          if (depth != null) merged[mergedRow * cols + mergedCol] = depth;
-        }
-      }
-    }
-
-    return BathymetryGrid(
-      originLat: originLat,
-      originLon: originLon,
-      cellSizeLatDeg: cellSizeLat,
-      cellSizeLonDeg: cellSizeLon,
-      rows: rows,
-      cols: cols,
-      depthsMeters: merged,
-      sourceId: reference.sourceId,
-      resolutionMeters: reference.resolutionMeters,
-      fetchedAt: fetchedAt,
-    );
-  }
-
-  /// Tries each candidate collection ID in turn, falling through to the
-  /// next on a confirmed 404 (wrong ID) rather than failing outright.
-  Future<List<SwissBathyAsset>> _findAssetCandidates(List<double> bbox) async {
-    SwissStacCollectionNotFoundException? lastNotFound;
-    for (final collectionId in SwissStacClient.collectionIds) {
-      try {
-        return await _stac.findAssetCandidates(
-          collectionId: collectionId,
-          bbox: bbox,
-        );
-      } on SwissStacCollectionNotFoundException catch (e) {
-        lastNotFound = e;
-      }
-    }
-    throw BathymetryFetchException(
-      'no known swissBATHY3D collection id resolved: $lastNotFound',
-    );
-  }
-
-  static GeoPoint _tileCenterWgs84(int tileE, int tileN) {
-    final center = Lv95Transform.toWgs84(
-      (tileE + 0.5) * tileSizeMeters,
-      (tileN + 0.5) * tileSizeMeters,
-    );
-    return GeoPoint(center.latitude, center.longitude);
-  }
-
-  static List<double> _tileBboxWgs84(int tileE, int tileN) {
-    final sw = Lv95Transform.toWgs84(
-      tileE * tileSizeMeters,
-      tileN * tileSizeMeters,
-    );
-    final ne = Lv95Transform.toWgs84(
-      (tileE + 1) * tileSizeMeters,
-      (tileN + 1) * tileSizeMeters,
-    );
-    // Small buffer so a tile-edge coordinate reliably intersects the item's
-    // own bbox despite the two approximation formulas' independent error.
-    const epsilon = 0.0005;
-    return [
-      sw.longitude - epsilon,
-      sw.latitude - epsilon,
-      ne.longitude + epsilon,
-      ne.latitude + epsilon,
-    ];
-  }
-
-  /// Matches swisstopo's internal entry naming, e.g.
-  /// `swissBATHY3D_CHLV95_LN02_2726_1221.asc` — confirmed, across every
-  /// lake in [swissLakeLevels] plus several published outside it, to
-  /// encode that entry's own `xllcorner`/`yllcorner` truncated to the
-  /// kilometre (e.g. xllcorner 2726016 for `..._2726_1221.asc`).
-  static final RegExp _entryTileRe = RegExp(
-    r'_(\d{3,4})_(\d{3,4})\.(asc|grd)$',
-    caseSensitive: false,
-  );
-
-  /// The `.asc`/`.grd` entries of the zip relevant to tile ([tileE],
-  /// [tileN]), in the archive's own order, or an empty list when it
-  /// contains none at all.
-  ///
-  /// Reading every entry regardless of relevance was correct (see Bug 15
-  /// below) but expensive: some lakes' zips hold hundreds of entries and
-  /// hundreds of MB uncompressed, all to answer one 1-km tile's query.
-  /// Entries are decompressed ([entry.readBytes]) only when their filename
-  /// (see [_entryTileRe]) declares a tile within one tile of ([tileE],
-  /// [tileN]) in every direction — generous headroom over the tens-of-
-  /// metres misalignment a live check found between a raster's real
-  /// `xllcorner` and its filename's kilometre label. An entry whose name
-  /// does not match [_entryTileRe] at all is always included: an
-  /// unrecognized name proves nothing about location, and excluding it
-  /// would risk resurrecting Bug 15 (below) for that entry. If swisstopo
-  /// ever changes its naming scheme, every entry falls back to this
-  /// always-included path and this method's cost degrades to exactly what
-  /// reading every entry unconditionally always cost — slower, never
-  /// wrong.
-  ///
-  /// The caller (`_firstOverlappingCandidate`, via
-  /// [extractRawEsriSubgridFromGrids]) still re-checks every returned
-  /// entry's OWN real `xllcorner`/`yllcorner`/`ncols`/`nrows` against the
-  /// requested tile before accepting it — this prefilter only decides what
-  /// gets decompressed and parsed at all, never what counts as a match.
-  /// That is also why a zip whose entries do not follow the one-per-lake
-  /// assumption (Bug 15: swisstopo's own internal sub-tiling can itself be
-  /// smaller than 1 km) still resolves correctly: the surviving entries
-  /// after this prefilter are searched exactly the same way the whole set
-  /// used to be.
-  static List<String> extractGridZipTextsFiltered(
-    Uint8List zipBytes, {
-    required int tileE,
-    required int tileN,
-  }) {
-    final archive = ZipDecoder().decodeBytes(zipBytes);
-    final texts = <String>[];
-    for (final entry in archive) {
-      if (!entry.isFile) continue;
-      final lower = entry.name.toLowerCase();
-      if (!lower.endsWith('.asc') && !lower.endsWith('.grd')) continue;
-      final match = _entryTileRe.firstMatch(entry.name);
-      if (match != null) {
-        final entryE = int.parse(match.group(1)!);
-        final entryN = int.parse(match.group(2)!);
-        if ((entryE - tileE).abs() > 1 || (entryN - tileN).abs() > 1) continue;
-      }
-      texts.add(
-        utf8.decode(entry.readBytes() ?? const [], allowMalformed: true),
-      );
-    }
-    return texts;
-  }
+  /// Immediately revalidates every currently cached tile's freshness. See
+  /// `swissbathy3d_freshness.dart`'s `_refreshAllCachedTilesImpl` for the
+  /// full implementation, extracted there (with the rest of the periodic/
+  /// manual freshness-check logic) purely for file size.
+  Future<SwissBathyRefreshSummary> refreshAllCachedTiles() =>
+      _refreshAllCachedTilesImpl(this);
 }
 
 /// Runs [task] over [items] with at most [maxConcurrent] running at once —
@@ -898,34 +583,4 @@ Future<List<T>> _runBounded<S, T>(
       : items.length;
   await Future.wait(List.generate(workerCount, (_) => worker()));
   return results.cast<T>();
-}
-
-/// The result of one tile's freshness check in [SwissBathy3dSource._checkAndMaybeUpdate].
-enum _TileCheckOutcome { updated, upToDate, failed }
-
-/// Tally of a [SwissBathy3dSource.refreshAllCachedTiles] sweep, for the
-/// manual "reload map data" action's confirmation message.
-class SwissBathyRefreshSummary {
-  /// Tiles whose STAC version had genuinely changed and were re-downloaded.
-  final int updated;
-
-  /// Tiles checked and confirmed to already be the latest version.
-  final int upToDate;
-
-  /// Tiles whose check itself failed (offline, STAC error) — these kept
-  /// serving their existing cached grid unchanged, never counted as an
-  /// error the user needs to act on.
-  final int failed;
-
-  const SwissBathyRefreshSummary({
-    required this.updated,
-    required this.upToDate,
-    required this.failed,
-  });
-
-  /// Tiles the sweep reached a verdict on. Excludes cached rows it skipped
-  /// without checking (an evicted, corrupt or unparseable key yields no
-  /// outcome), so this can be lower than the row count at the start of the
-  /// sweep and must not be read as "everything that was cached".
-  int get total => updated + upToDate + failed;
 }

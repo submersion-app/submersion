@@ -210,6 +210,8 @@
   "equipment_components_title": "רכיבים",
   "equipment_setEdit_defaultSwitch_title": "ערכת ברירת מחדל",
   "equipment_setEdit_defaultSwitch_subtitle": "מוחלת אוטומטית על צלילות חדשות שאין בהן ציוד עדיין",
+  "equipment_setEdit_computerAutoApplySwitch_title": "החל בעת ייבוא המחשב של סט זה",
+  "equipment_setEdit_computerAutoApplySwitch_subtitle": "אם סט זה כולל מחשב צלילה, הסט כולו יתווסף אוטומטית לצלילה שהורדה או יובאה ממנו",
   "equipment_setEdit_geofencesTitle": "גדרות גאוגרפיות",
   "equipment_setEdit_geofencesSubtitle": "הצע ערכה זו אוטומטית לצלילות ליד מיקומים אלה",
   "equipment_setEdit_addGeofence": "הוסף גדר גאוגרפית",

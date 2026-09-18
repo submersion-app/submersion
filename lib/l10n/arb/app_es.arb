@@ -210,6 +210,8 @@
   "equipment_components_title": "Componentes",
   "equipment_setEdit_defaultSwitch_title": "Conjunto predeterminado",
   "equipment_setEdit_defaultSwitch_subtitle": "Se aplica automáticamente a las inmersiones nuevas que aún no tienen equipo",
+  "equipment_setEdit_computerAutoApplySwitch_title": "Aplicar al importar el ordenador de este set",
+  "equipment_setEdit_computerAutoApplySwitch_subtitle": "Si este set incluye un ordenador de buceo, añade automáticamente todo el set a una inmersión descargada o importada desde él",
   "equipment_setEdit_geofencesTitle": "Geocercas",
   "equipment_setEdit_geofencesSubtitle": "Sugerir automáticamente este conjunto para inmersiones cerca de estas ubicaciones",
   "equipment_setEdit_addGeofence": "Añadir geocerca",

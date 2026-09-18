@@ -210,6 +210,8 @@
   "equipment_components_title": "Alkatrészek",
   "equipment_setEdit_defaultSwitch_title": "Alapértelmezett készlet",
   "equipment_setEdit_defaultSwitch_subtitle": "Automatikusan alkalmazza az új, még felszerelés nélküli merülésekre",
+  "equipment_setEdit_computerAutoApplySwitch_title": "Alkalmazás, ha ennek a készletnek a számítógépét importálják",
+  "equipment_setEdit_computerAutoApplySwitch_subtitle": "Ha ez a készlet tartalmaz egy merülőkomputert, a teljes készlet automatikusan hozzáadódik egy erről letöltött vagy importált merüléshez",
   "equipment_setEdit_geofencesTitle": "Geokerítések",
   "equipment_setEdit_geofencesSubtitle": "Automatikusan javasolja ezt a készletet az e helyek közelében végzett merülésekhez",
   "equipment_setEdit_addGeofence": "Geokerítés hozzáadása",
