@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/providers/view_config_
 import 'package:submersion/features/dive_log/presentation/widgets/dive_table_view.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 
 import '../../../../helpers/test_app.dart';
 
@@ -805,6 +806,41 @@ void main() {
       await tester.pumpAndSettle();
 
       double rowY(String name) => tester.getTopLeft(find.text(name)).dy;
+      expect(rowY('anchor'), lessThan(rowY('plage')));
+      expect(rowY('plage'), lessThan(rowY('Zebra')));
+    });
+
+    testWidgets('tags sort by formatted text, ignoring case', (tester) async {
+      final stamp = DateTime(2024, 6, 1);
+      Dive tagged(String id, String tagName) => Dive(
+        id: id,
+        dateTime: stamp,
+        tags: [
+          Tag(id: 'tag-$id', name: tagName, createdAt: stamp, updatedAt: stamp),
+        ],
+      );
+      final sortedConfig = TableViewConfig(
+        columns: [
+          TableColumnConfig(field: DiveField.diveNumber, isPinned: true),
+          TableColumnConfig(field: DiveField.tags),
+        ],
+        sortField: DiveField.tags,
+        sortAscending: true,
+      );
+
+      await tester.pumpWidget(
+        _buildTable(
+          dives: [
+            tagged('z', 'Zebra'),
+            tagged('l', 'plage'),
+            tagged('a', 'anchor'),
+          ],
+          config: sortedConfig,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      double rowY(String text) => tester.getTopLeft(find.text(text)).dy;
       expect(rowY('anchor'), lessThan(rowY('plage')));
       expect(rowY('plage'), lessThan(rowY('Zebra')));
     });
