@@ -287,6 +287,8 @@ class DiveCenterRepository {
   /// The newest real dive logged with [centerId], skipping planned dives
   /// and [excludingDiveId] (the dive being edited), for the "last time
   /// here" card (issue #2075). Null when the diver has no other dive there.
+  /// stats-scope-exempt: a displayed lookup, not a statistic; a dive the
+  /// diver excluded from their numbers still tells them what they wore.
   Future<String?> latestDiveIdAtCenter(
     String centerId, {
     String? excludingDiveId,
