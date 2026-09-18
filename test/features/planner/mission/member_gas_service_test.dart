@@ -63,7 +63,7 @@ void main() {
   test('a row without a tank is ignored', () {
     final liters = service.litersByTank(
       rows: [
-        PlanScheduleRow(
+        const PlanScheduleRow(
           kind: PlanScheduleRowKind.level,
           depthMeters: 20,
           durationSeconds: 60,

@@ -7,7 +7,7 @@ void main() {
       type: MissionIssueType.emptyTeam,
       severity: MissionIssueSeverity.blocking,
     );
-    final outcome = MissionOutcome.empty(issues: const [issue]);
+    const outcome = MissionOutcome.empty(issues: [issue]);
     expect(outcome.issues, [issue]);
     expect(outcome.segments, isEmpty);
     expect(outcome.legs, isEmpty);
@@ -20,8 +20,8 @@ void main() {
   });
 
   test('isBlocked is false when no issue is blocking', () {
-    final outcome = MissionOutcome.empty(
-      issues: const [
+    const outcome = MissionOutcome.empty(
+      issues: [
         MissionIssue(
           type: MissionIssueType.memberSacUnset,
           severity: MissionIssueSeverity.warning,
