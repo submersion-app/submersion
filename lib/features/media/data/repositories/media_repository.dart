@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -331,6 +332,8 @@ class MediaRepository {
         entityType: 'media',
         recordId: id,
         localUpdatedAt: now.millisecondsSinceEpoch,
+        // A new row's facts start under its own first clock (spec 5.1).
+        alsoStamp: SyncFactGroups.of('media'),
       );
       SyncEventBus.notifyLocalChange();
 
@@ -521,10 +524,11 @@ class MediaRepository {
         MediaCompanion(isOrphaned: const Value(true), updatedAt: Value(now)),
       );
 
-      await _syncRepository.markRecordPending(
+      await _syncRepository.markFactsPending(
         entityType: 'media',
         recordId: id,
         localUpdatedAt: now,
+        group: SyncFactGroups.mediaVerification,
       );
       SyncEventBus.notifyLocalChange();
       _log.info('Marked media as orphaned: $id');
@@ -552,10 +556,11 @@ class MediaRepository {
         ),
       );
 
-      await _syncRepository.markRecordPending(
+      await _syncRepository.markFactsPending(
         entityType: 'media',
         recordId: id,
         localUpdatedAt: now,
+        group: SyncFactGroups.mediaVerification,
       );
       SyncEventBus.notifyLocalChange();
       _log.info('Marked media as verified: $id');
@@ -694,10 +699,11 @@ class MediaRepository {
         MediaCompanion(isOrphaned: Value(isOrphaned), updatedAt: Value(now)),
       );
 
-      await _syncRepository.markRecordPending(
+      await _syncRepository.markFactsPending(
         entityType: 'media',
         recordId: id,
         localUpdatedAt: now,
+        group: SyncFactGroups.mediaVerification,
       );
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
@@ -759,10 +765,11 @@ class MediaRepository {
       if (rowsWritten == 0) return;
       _log.info('Marked media verified: $id (isOrphaned=$isOrphaned)');
 
-      await _syncRepository.markRecordPending(
+      await _syncRepository.markFactsPending(
         entityType: 'media',
         recordId: id,
         localUpdatedAt: now,
+        group: SyncFactGroups.mediaVerification,
       );
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
@@ -807,10 +814,11 @@ class MediaRepository {
             ),
           );
       if (rowsWritten == 0) return;
-      await _syncRepository.markRecordPending(
+      await _syncRepository.markFactsPending(
         entityType: 'media',
         recordId: id,
         localUpdatedAt: now,
+        group: SyncFactGroups.mediaVerification,
       );
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
@@ -878,9 +886,13 @@ class MediaRepository {
   }
 
   /// Marks [ids] pending for sync without changing a column, so the next
-  /// changeset carries the rows exactly as they are. Returns how many.
+  /// changeset carries the rows' facts exactly as they are. Returns how many.
   ///
-  /// One transaction: markRecordPending's own per-row transaction nests as a
+  /// Stamps the two fact clocks, never the row clock: the point is to re-send
+  /// upload and verification facts, and a row-clock bump would also make
+  /// this device's copy of every user field win on peers (spec 5.1).
+  ///
+  /// One transaction: markFactsPending's own per-row transaction nests as a
   /// savepoint, so a library with thousands of stamped rows commits once.
   Future<int> republishForSync(Iterable<String> ids) async {
     final list = ids.toList();
@@ -889,11 +901,17 @@ class MediaRepository {
       final now = DateTime.now().millisecondsSinceEpoch;
       await _db.transaction(() async {
         for (final id in list) {
-          await _syncRepository.markRecordPending(
-            entityType: 'media',
-            recordId: id,
-            localUpdatedAt: now,
-          );
+          // Re-sends the facts without claiming a user edit: moving the
+          // row clock would let this device's copy of every user field
+          // win on peers (media sync program spec 5.1).
+          for (final group in SyncFactGroups.of('media')) {
+            await _syncRepository.markFactsPending(
+              entityType: 'media',
+              recordId: id,
+              localUpdatedAt: now,
+              group: group,
+            );
+          }
         }
       });
       SyncEventBus.notifyLocalChange();
@@ -1531,10 +1549,11 @@ class MediaRepository {
         updatedAt: Value(now),
       ),
     );
-    await _syncRepository.markRecordPending(
+    await _syncRepository.markFactsPending(
       entityType: 'media',
       recordId: mediaId,
       localUpdatedAt: now,
+      group: SyncFactGroups.mediaUpload,
     );
     SyncEventBus.notifyLocalChange();
   }
@@ -1552,10 +1571,11 @@ class MediaRepository {
         updatedAt: Value(now),
       ),
     );
-    await _syncRepository.markRecordPending(
+    await _syncRepository.markFactsPending(
       entityType: 'media',
       recordId: mediaId,
       localUpdatedAt: now,
+      group: SyncFactGroups.mediaUpload,
     );
     SyncEventBus.notifyLocalChange();
   }
@@ -1757,6 +1777,8 @@ class MediaRepository {
           entityType: 'media',
           recordId: write.mediaId,
           localUpdatedAt: now,
+          // The pointer edit restates the verification facts too.
+          alsoStamp: const [SyncFactGroups.mediaVerification],
         );
       }
     });
@@ -1796,6 +1818,8 @@ class MediaRepository {
           entityType: 'media',
           recordId: id,
           localUpdatedAt: now,
+          // The pointer edit restates the verification facts too.
+          alsoStamp: const [SyncFactGroups.mediaVerification],
         );
       }
     });
@@ -2146,10 +2170,11 @@ class MediaRepository {
         updatedAt: Value(now),
       ),
     );
-    await _syncRepository.markRecordPending(
+    await _syncRepository.markFactsPending(
       entityType: 'media',
       recordId: mediaId,
       localUpdatedAt: now,
+      group: SyncFactGroups.mediaUpload,
     );
     SyncEventBus.notifyLocalChange();
   }
@@ -2221,10 +2246,11 @@ class MediaRepository {
         updatedAt: Value(now),
       ),
     );
-    await _syncRepository.markRecordPending(
+    await _syncRepository.markFactsPending(
       entityType: 'media',
       recordId: mediaId,
       localUpdatedAt: now,
+      group: SyncFactGroups.mediaUpload,
     );
     SyncEventBus.notifyLocalChange();
   }
@@ -2246,10 +2272,11 @@ class MediaRepository {
         updatedAt: Value(now),
       ),
     );
-    await _syncRepository.markRecordPending(
+    await _syncRepository.markFactsPending(
       entityType: 'media',
       recordId: mediaId,
       localUpdatedAt: now,
+      group: SyncFactGroups.mediaUpload,
     );
     SyncEventBus.notifyLocalChange();
   }
@@ -2264,10 +2291,11 @@ class MediaRepository {
         updatedAt: Value(now),
       ),
     );
-    await _syncRepository.markRecordPending(
+    await _syncRepository.markFactsPending(
       entityType: 'media',
       recordId: mediaId,
       localUpdatedAt: now,
+      group: SyncFactGroups.mediaUpload,
     );
     SyncEventBus.notifyLocalChange();
   }
@@ -2283,10 +2311,11 @@ class MediaRepository {
         updatedAt: Value(now),
       ),
     );
-    await _syncRepository.markRecordPending(
+    await _syncRepository.markFactsPending(
       entityType: 'media',
       recordId: mediaId,
       localUpdatedAt: now,
+      group: SyncFactGroups.mediaUpload,
     );
     SyncEventBus.notifyLocalChange();
   }

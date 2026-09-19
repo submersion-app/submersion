@@ -38,7 +38,6 @@ void main() {
         reason: 'the local edit must survive the merge',
       );
     },
-    skip: 'Media sync program S1: turns green in slice 3 (engine merge rule)',
   );
 
   test(
