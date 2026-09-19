@@ -216,8 +216,9 @@ void main() {
   });
 
   group('buddySearchWithDiveCountProvider (issue #2084)', () {
-    test('auto-refreshes when a buddy is linked to a dive, even though that '
-        'write touches neither the buddies nor the dives table', () async {
+    test('auto-refreshes when a buddy is linked to a dive, unlike '
+        'allBuddiesWithDiveCountProvider it never watched dives changes at '
+        'all', () async {
       final diver = await seedCurrentDiver();
       final buddy = await buddyRepo.createBuddy(
         _makeBuddy(name: 'Umberto', diverId: diver.id),
@@ -240,8 +241,9 @@ void main() {
       );
       expect(results.single.diveCount, 0);
 
-      // addBuddyToDive writes only dive_buddies (see buddy_repository.dart)
-      // -- no dives row and no buddies row is touched.
+      // addBuddyToDive touches dive_buddies (and, as a side effect, the
+      // parent dive's updated_at) but never the buddies table, so this
+      // still exercises the provider's missing dives-tick subscription.
       await buddyRepo.addBuddyToDive(
         'shared-dive-1',
         buddy.id,
@@ -269,8 +271,8 @@ void main() {
   });
 
   group('buddyStatsProvider / diveIdsForBuddyProvider (issue #2084)', () {
-    test('both auto-refresh when a buddy is linked to a dive via dive_buddies '
-        'alone', () async {
+    test('both auto-refresh on a dive_buddies-only write, e.g. a synced buddy '
+        'link that never restamps the parent dive (#1769/#1915)', () async {
       final diver = await seedCurrentDiver();
       final buddy = await buddyRepo.createBuddy(
         _makeBuddy(name: 'Stats Buddy', diverId: diver.id),
@@ -300,11 +302,22 @@ void main() {
         isEmpty,
       );
 
-      await buddyRepo.addBuddyToDive(
-        'stats-dive-1',
-        buddy.id,
-        DiveRole.buddyId,
-      );
+      // A sync pull applies a remote buddy link straight to dive_buddies
+      // and deliberately never restamps the parent dive row (#1769), so
+      // this -- unlike buddyRepo.addBuddyToDive, which also touches
+      // `dives` -- is the write that actually exercises the old
+      // watchDivesChanges()-only subscription's blind spot.
+      await database
+          .into(database.diveBuddies)
+          .insert(
+            db.DiveBuddiesCompanion(
+              id: const Value('link-1'),
+              diveId: const Value('stats-dive-1'),
+              buddyId: Value(buddy.id),
+              role: const Value(DiveRole.buddyId),
+              createdAt: Value(DateTime.now().millisecondsSinceEpoch),
+            ),
+          );
 
       var totalDives = 0;
       var diveIds = <String>[];
