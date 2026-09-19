@@ -27226,6 +27226,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد إحداثيات GPS لهذا الموقع';
 
   @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
   String get dive3d_seascape_noData =>
       'لا توجد بيانات قياس أعماق متاحة لهذا الموقع';
 

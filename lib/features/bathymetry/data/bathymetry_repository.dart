@@ -130,13 +130,18 @@ class BathymetryRepository {
   }
 
   /// Whether the cache holds a DEFINITIVE answer (grid or empty) for this
-  /// coordinate's cell. False means a null from [getGrid] was transient
-  /// (network failure, broken cache) and worth retrying later.
-  Future<bool> hasCachedAnswer(GeoPoint center) async {
+  /// coordinate's cell (or, with [spanMeters], for its LOD patch cell --
+  /// see [getGridForSpan]). False means a null from [getGrid]/
+  /// [getGridForSpan] was transient (network failure, broken cache) and
+  /// worth retrying later.
+  Future<bool> hasCachedAnswer(GeoPoint center, {double? spanMeters}) async {
     try {
-      final row = await (_db.select(
-        _db.bathymetryCache,
-      )..where((t) => t.cacheKey.equals(keyFor(center)))).getSingleOrNull();
+      final row =
+          await (_db.select(_db.bathymetryCache)..where(
+                (t) =>
+                    t.cacheKey.equals(keyFor(center, spanMeters: spanMeters)),
+              ))
+              .getSingleOrNull();
       return row != null;
     } catch (_) {
       return false;

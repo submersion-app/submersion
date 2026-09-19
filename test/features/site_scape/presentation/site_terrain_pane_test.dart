@@ -1,11 +1,17 @@
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+// ignore: implementation_imports
+import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/features/bathymetry/data/terrain_imagery_service.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
+import 'package:submersion/features/bathymetry/domain/bathymetry_lod.dart';
 import 'package:submersion/features/bathymetry/domain/terrain_imagery_frame.dart';
+import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
+import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
@@ -21,6 +27,8 @@ import 'package:submersion/features/dive_sites/presentation/providers/site_featu
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_terrain_pane.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+typedef Override = riverpod.Override;
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
@@ -93,15 +101,27 @@ SiteSeascapeReady readyState({TerrainImagery? imagery}) {
   );
 }
 
+/// A minimal, valid single-triangle mesh -- enough to stand in for a real
+/// terrain patch mesh without going through the full terrain builder.
+SceneLayer _stubPatchLayer() => SceneLayer(
+  MeshData(
+    positions: Float32List.fromList([0, 0, 0, 1, 0, 0, 0, 0, 1]),
+    indices: Uint32List.fromList([0, 1, 2]),
+    colors: Float32List(9),
+  ),
+);
+
 Widget page(
   SiteSeascapeState state, {
   AppSettings settings = const AppSettings(),
   List<SiteFeature> features = const [],
+  List<Override> extraOverrides = const [],
 }) => ProviderScope(
   overrides: [
     settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
     siteSeascapeProvider.overrideWith((ref, id) async => state),
     siteFeaturesProvider('site-1').overrideWith((ref) async => features),
+    ...extraOverrides,
   ],
   child: const MaterialApp(
     locale: Locale('en'),
@@ -531,4 +551,112 @@ void main() {
       expect(find.textContaining('GMRT'), findsNothing);
     },
   );
+
+  group('additional LOD patch layer', () {
+    testWidgets(
+      'no patch is requested and none is merged before the diver zooms in '
+      '(default settled zoom is the overview stage)',
+      (tester) async {
+        var patchCalls = 0;
+        await tester.pumpWidget(
+          page(
+            readyState(),
+            extraOverrides: [
+              siteSeascapePatchLayerProvider.overrideWith((ref, request) async {
+                patchCalls++;
+                return null;
+              }),
+            ],
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        // The pane watches the patch provider unconditionally; it is the
+        // real provider's own overview-stage check (not the pane) that
+        // skips the fetch. This override still runs once to prove that.
+        expect(patchCalls, 1);
+        final viewport = tester.widget<Dive3dInteractiveViewport>(
+          find.byType(Dive3dInteractiveViewport),
+        );
+        expect(viewport.scene.layers.length, readyState().scene.layers.length);
+      },
+    );
+
+    testWidgets(
+      'a settled zoom past the medium threshold merges the patch layer '
+      'right after the base terrain layer',
+      (tester) async {
+        final state = readyState();
+        final baseLayerCount = state.scene.layers.length;
+        await tester.pumpWidget(
+          page(
+            state,
+            extraOverrides: [
+              siteSeascapePatchLayerProvider.overrideWith((ref, request) async {
+                if (request.zoom < 2.0) return null;
+                return SiteSeascapePatchLayer(
+                  layer: _stubPatchLayer(),
+                  stage: BathymetryLodStage.medium,
+                  detailLimitReached: false,
+                );
+              }),
+            ],
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        Dive3dInteractiveViewport viewport() =>
+            tester.widget<Dive3dInteractiveViewport>(
+              find.byType(Dive3dInteractiveViewport),
+            );
+        // Simulate the viewport's own debounced zoom settling, without
+        // waiting out the real 300ms timer (that behavior is covered by
+        // dive_3d_interactive_viewport_test.dart already).
+        viewport().onZoomSettled!(3.0);
+        await tester.pump();
+        await tester.pump();
+
+        expect(viewport().scene.layers.length, baseLayerCount + 1);
+        expect(viewport().scene.layers[0], state.scene.layers.first);
+        expect(viewport().scene.layers[1].mesh.indices, [0, 1, 2]);
+        // The detail-limit hint is not shown at the `medium` stage.
+        expect(find.byIcon(Icons.search_off), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'the detail-limit hint appears only at the fine stage when the patch '
+      'came back no sharper than the base grid',
+      (tester) async {
+        await tester.pumpWidget(
+          page(
+            readyState(),
+            extraOverrides: [
+              siteSeascapePatchLayerProvider.overrideWith((ref, request) async {
+                if (request.zoom < 4.5) return null;
+                return SiteSeascapePatchLayer(
+                  layer: _stubPatchLayer(),
+                  stage: BathymetryLodStage.fine,
+                  detailLimitReached: true,
+                );
+              }),
+            ],
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final viewport = tester.widget<Dive3dInteractiveViewport>(
+          find.byType(Dive3dInteractiveViewport),
+        );
+        viewport.onZoomSettled!(6.0);
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.byIcon(Icons.search_off), findsOneWidget);
+      },
+    );
+  });
 }

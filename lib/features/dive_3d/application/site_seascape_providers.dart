@@ -8,6 +8,7 @@ import 'package:submersion/features/bathymetry/application/bathymetry_providers.
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
 import 'package:submersion/features/bathymetry/data/terrain_imagery_service.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
+import 'package:submersion/features/bathymetry/domain/bathymetry_lod.dart';
 import 'package:submersion/features/bathymetry/presentation/terrain_imagery_providers.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
@@ -17,6 +18,7 @@ import 'package:submersion/features/dive_3d/domain/spatial/contour_builder.dart'
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/site_seascape_geometry_service.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
@@ -214,3 +216,94 @@ final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
 ({Scene3d scene, List<ContourLabelSpec> contourLabels}) _buildScene(
   SiteSeascapeInput input,
 ) => const SiteSeascapeGeometryService().buildWithLabels(input);
+
+/// An additional, finer terrain patch layered on top of the always-loaded
+/// base square when the diver zooms in past `overview` (see
+/// `bathymetry_lod.dart`). [detailLimitReached] flags the case where the
+/// `fine` stage's grid came back no meaningfully sharper than the base
+/// grid -- the source simply has nothing finer for this spot -- so the UI
+/// can show a quiet "no more detail here" hint instead of implying more
+/// zoom would help.
+class SiteSeascapePatchLayer {
+  final SceneLayer layer;
+  final BathymetryLodStage stage;
+  final bool detailLimitReached;
+
+  const SiteSeascapePatchLayer({
+    required this.layer,
+    required this.stage,
+    required this.detailLimitReached,
+  });
+}
+
+/// How much finer the `fine` stage's patch grid must be than the base grid
+/// to count as genuinely more detail. A simple, documented heuristic (not a
+/// real resolution comparison across sources): a patch declaring at least
+/// 10% finer resolution than the base grid is treated as real extra detail,
+/// anything coarser as the source topping out.
+const double _detailLimitResolutionRatio = 0.9;
+
+/// The additional LOD patch layer for one site at the viewport's current
+/// (settled) zoom, built in the SAME coordinate frame as the base scene's
+/// terrain -- it must reuse the base scene's [SpatialProjection] bounds
+/// (not derive its own from the smaller patch grid's extent), or the patch
+/// mesh would be scaled inconsistently with the base terrain it sits on top
+/// of. Returns null whenever there is nothing additional to render: the
+/// `overview` stage (no patch), the base scene not ready yet, or no patch
+/// grid available (a source that cannot deliver anything for this span is
+/// rejected the same way the base fetch would reject it -- see
+/// `BathymetryResolver.resolve`'s quality floors).
+final siteSeascapePatchLayerProvider =
+    FutureProvider.family<
+      SiteSeascapePatchLayer?,
+      ({String siteId, double zoom})
+    >((ref, request) async {
+      final stage = bathymetryLodStageForZoom(request.zoom);
+      if (stage == BathymetryLodStage.overview) return null;
+
+      final base = await ref.watch(siteSeascapeProvider(request.siteId).future);
+      if (base is! SiteSeascapeReady) return null;
+
+      final site = await ref.watch(siteProvider(request.siteId).future);
+      final center = site?.location;
+      if (center == null) return null;
+
+      final patchGrid = await ref.watch(
+        bathymetryPatchGridProvider((
+          lat: center.latitude,
+          lon: center.longitude,
+          spanMeters: stage.spanMeters,
+        )).future,
+      );
+      if (patchGrid == null) return null;
+
+      final appearance = ref.watch(
+        settingsProvider.select((s) => s.seascapeAppearance),
+      );
+      final proj = SpatialProjection(
+        minEast: base.axisInputs.minEast,
+        maxEast: base.axisInputs.maxEast,
+        minNorth: base.axisInputs.minNorth,
+        maxNorth: base.axisInputs.maxNorth,
+        maxDepth: base.axisInputs.maxDepth,
+      );
+      final terrain = BathymetryTerrainBuilder.build(
+        grid: patchGrid,
+        center: center,
+        projection: proj,
+        rampMaxDepthMeters: appearance.rampMaxDepthMeters,
+        rampBanded: appearance.rampBanded,
+        surfaceMode: appearance.surfaceMode,
+      );
+
+      final detailLimitReached =
+          stage == BathymetryLodStage.fine &&
+          patchGrid.resolutionMeters >=
+              base.resolutionMeters * _detailLimitResolutionRatio;
+
+      return SiteSeascapePatchLayer(
+        layer: SceneLayer(terrain.terrain),
+        stage: stage,
+        detailLimitReached: detailLimitReached,
+      );
+    });

@@ -153,3 +153,36 @@ final bathymetryGridProvider =
       }
       return grid;
     });
+
+/// A smaller, additional LOD patch grid for one site -- the `medium`/`fine`
+/// stages in `bathymetry_lod.dart`. Unlike [bathymetryGridProvider], the
+/// key carries the exact site center (not a quantized cell): a patch is
+/// requested for one specific site's zoomed-in view, not shared across
+/// nearby coordinates the way the always-loaded base square is. Same
+/// never-errors/transient-retry contract as [bathymetryGridProvider].
+final bathymetryPatchGridProvider =
+    FutureProvider.family<
+      BathymetryGrid?,
+      ({double lat, double lon, double spanMeters})
+    >((ref, request) async {
+      void retryLater() {
+        final timer = Timer(
+          bathymetryTransientRetryBackoff,
+          ref.invalidateSelf,
+        );
+        ref.onDispose(timer.cancel);
+      }
+
+      final repo = ref.watch(bathymetryRepositoryProvider);
+      if (repo == null) {
+        retryLater(); // cache DB may simply not be ready yet
+        return null;
+      }
+      final center = GeoPoint(request.lat, request.lon);
+      final grid = await repo.getGridForSpan(center, request.spanMeters);
+      if (grid == null &&
+          !await repo.hasCachedAnswer(center, spanMeters: request.spanMeters)) {
+        retryLater(); // transient failure, not a real "no water here"
+      }
+      return grid;
+    });

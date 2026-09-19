@@ -27619,6 +27619,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Este sitio no tiene coordenadas GPS';
 
   @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
   String get dive3d_seascape_noData =>
       'No hay batimetría disponible para esta ubicación';
 

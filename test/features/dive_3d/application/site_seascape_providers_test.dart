@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
+import 'package:submersion/features/bathymetry/domain/bathymetry_lod.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -86,4 +87,91 @@ void main() {
       expect(state, isA<SiteSeascapeNoCoordinates>());
     },
   );
+
+  group('siteSeascapePatchLayerProvider', () {
+    BathymetryGrid finerGrid(double resolutionMeters) => BathymetryGrid(
+      originLat: 12.1505,
+      originLon: -68.2995,
+      cellSizeLatDeg: 0.0002,
+      cellSizeLonDeg: 0.0002,
+      rows: 2,
+      cols: 2,
+      depthsMeters: const [22, 28, 24, 30],
+      sourceId: 'swissbathy3d',
+      resolutionMeters: resolutionMeters,
+      fetchedAt: DateTime.utc(2026, 7, 28),
+    );
+
+    ProviderContainer patchContainer({required BathymetryGrid? patchGrid}) {
+      final c = ProviderContainer(
+        overrides: [
+          siteProvider(siteId).overrideWith((ref) async => withGps),
+          sitesProvider.overrideWith((ref) async => [withGps]),
+          divesProvider.overrideWith((ref) async => []),
+          bathymetryGridProvider.overrideWith((ref, cell) async => smallGrid()),
+          bathymetryPatchGridProvider.overrideWith(
+            (ref, request) async => patchGrid,
+          ),
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+      );
+      addTearDown(c.dispose);
+      return c;
+    }
+
+    test('the overview stage (zoom below 2.0) never fetches a patch', () async {
+      final c = patchContainer(patchGrid: finerGrid(2));
+      final layer = await c.read(
+        siteSeascapePatchLayerProvider((siteId: siteId, zoom: 1.0)).future,
+      );
+      expect(layer, isNull);
+    });
+
+    test('a zoomed-in stage with no patch grid available yields no layer '
+        '(the source could not deliver anything for this span)', () async {
+      final c = patchContainer(patchGrid: null);
+      final layer = await c.read(
+        siteSeascapePatchLayerProvider((siteId: siteId, zoom: 3.0)).future,
+      );
+      expect(layer, isNull);
+    });
+
+    test(
+      'the medium stage with a patch grid yields a layer and never flags '
+      'the detail limit (that heuristic only applies at the fine stage)',
+      () async {
+        final c = patchContainer(patchGrid: finerGrid(2));
+        final layer = await c.read(
+          siteSeascapePatchLayerProvider((siteId: siteId, zoom: 3.0)).future,
+        );
+        expect(layer, isNotNull);
+        expect(layer!.stage, BathymetryLodStage.medium);
+        expect(layer.layer.mesh.positions, isNotEmpty);
+        expect(layer.detailLimitReached, isFalse);
+      },
+    );
+
+    test('the fine stage flags the detail limit when the patch is no sharper '
+        'than the base grid (>= 90% of its resolution)', () async {
+      // Base grid resolves at 61 m; a "fine" patch at 60 m is not a
+      // meaningful improvement (>= 90% of 61).
+      final c = patchContainer(patchGrid: finerGrid(60));
+      final layer = await c.read(
+        siteSeascapePatchLayerProvider((siteId: siteId, zoom: 6.0)).future,
+      );
+      expect(layer, isNotNull);
+      expect(layer!.stage, BathymetryLodStage.fine);
+      expect(layer.detailLimitReached, isTrue);
+    });
+
+    test('the fine stage does not flag the detail limit when the patch is '
+        'genuinely sharper than the base grid', () async {
+      final c = patchContainer(patchGrid: finerGrid(2));
+      final layer = await c.read(
+        siteSeascapePatchLayerProvider((siteId: siteId, zoom: 6.0)).future,
+      );
+      expect(layer, isNotNull);
+      expect(layer!.detailLimitReached, isFalse);
+    });
+  });
 }

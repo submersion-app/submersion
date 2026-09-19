@@ -27499,6 +27499,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ennek a helyszínnek nincsenek GPS-koordinátái';
 
   @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
   String get dive3d_seascape_noData =>
       'Ehhez a helyhez nem érhető el batimetria';
 

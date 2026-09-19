@@ -8,6 +8,7 @@ import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_labels.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
+import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_info_sheet.dart';
@@ -60,6 +61,13 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
     SceneOverlay.features,
   };
   bool _chartMode = false;
+
+  /// The viewport's own camera zoom is a private widget state (see
+  /// Dive3dInteractiveViewport), so the pane tracks a DEBOUNCED copy here,
+  /// updated only via onZoomSettled, purely to key the LOD patch provider.
+  /// Starts at 1.0, the viewport's own default zoom -- below the `medium`
+  /// threshold, so no patch fetch fires before the diver actually zooms in.
+  double _settledZoom = 1.0;
 
   @override
   void dispose() {
@@ -156,99 +164,138 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
           :final contourLabels,
           :final imagery,
         ) =>
-          Column(
-            children: [
-              Expanded(
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: Builder(
-                        builder: (context) {
-                          final axes = _buildAxes(axisInputs);
-                          return Dive3dInteractiveViewport(
-                            scene: scene,
-                            scrubPosition: _scrub,
-                            visibleOverlays: {
-                              ..._visible,
-                              if (!_chartMode) SceneOverlay.water,
+          Builder(
+            builder: (context) {
+              // Watched at this level (not inside the inner Builder) so the
+              // detail-limit hint chip below can read the same value without
+              // a second, possibly out-of-sync watch.
+              final patch = ref
+                  .watch(
+                    siteSeascapePatchLayerProvider((
+                      siteId: widget.siteId,
+                      zoom: _settledZoom,
+                    )),
+                  )
+                  .valueOrNull;
+              final displayScene = patch == null
+                  ? scene
+                  : Scene3d(
+                      layers: [
+                        scene.layers.first,
+                        patch.layer,
+                        ...scene.layers.skip(1),
+                      ],
+                      markers: scene.markers,
+                      bounds: scene.bounds,
+                      scrubPath: scene.scrubPath,
+                    );
+              return Column(
+                children: [
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: Builder(
+                            builder: (context) {
+                              final axes = _buildAxes(axisInputs);
+                              return Dive3dInteractiveViewport(
+                                scene: displayScene,
+                                scrubPosition: _scrub,
+                                visibleOverlays: {
+                                  ..._visible,
+                                  if (!_chartMode) SceneOverlay.water,
+                                },
+                                chartMode: _chartMode,
+                                contourLabels: contourLabels,
+                                axisFrame: axes.frame,
+                                axisLabels: axes.labels,
+                                chromeStyle: seascapeChromeStyle(context),
+                                chromeMode: SceneChromeMode.axesOnly,
+                                // scene.layers can legitimately be empty (e.g.
+                                // right after a source switch, before the terrain
+                                // layer has been added); hover picking has nothing
+                                // to pick against then, so this disables the
+                                // picker instead of crashing on .first.
+                                picker: scene.layers.isEmpty
+                                    ? null
+                                    : GridHoverPicker(
+                                        seascapePickGrid(
+                                          grid,
+                                          scene.layers.first.mesh,
+                                        ),
+                                      ),
+                                hoverPick: _hoverPick,
+                                onMarkerTap: _onMarkerTap,
+                                terrainImagery: imagery?.image,
+                                imageryWhiteTexel: imagery == null
+                                    ? null
+                                    : (
+                                        u: imagery.frame.whiteU,
+                                        v: imagery.frame.whiteV,
+                                      ),
+                                onZoomSettled: (zoom) {
+                                  if (mounted) {
+                                    setState(() => _settledZoom = zoom);
+                                  }
+                                },
+                              );
                             },
-                            chartMode: _chartMode,
-                            contourLabels: contourLabels,
-                            axisFrame: axes.frame,
-                            axisLabels: axes.labels,
-                            chromeStyle: seascapeChromeStyle(context),
-                            chromeMode: SceneChromeMode.axesOnly,
-                            // scene.layers can legitimately be empty (e.g.
-                            // right after a source switch, before the terrain
-                            // layer has been added); hover picking has nothing
-                            // to pick against then, so this disables the
-                            // picker instead of crashing on .first.
-                            picker: scene.layers.isEmpty
-                                ? null
-                                : GridHoverPicker(
-                                    seascapePickGrid(
-                                      grid,
-                                      scene.layers.first.mesh,
-                                    ),
-                                  ),
-                            hoverPick: _hoverPick,
-                            onMarkerTap: _onMarkerTap,
-                            terrainImagery: imagery?.image,
-                            imageryWhiteTexel: imagery == null
-                                ? null
-                                : (
-                                    u: imagery.frame.whiteU,
-                                    v: imagery.frame.whiteV,
-                                  ),
-                          );
-                        },
-                      ),
-                    ),
-                    Positioned(
-                      top: 56,
-                      left: 8,
-                      right: 8,
-                      child: _sourceChip(sourceId, resolutionMeters),
-                    ),
-                    // The legend describes the depth ramp; a photographed
-                    // surface has no ramp to explain. It sits LEFT because the
-                    // viewport's zoom column owns the right edge, and on a
-                    // phone-sized pane a right-hand legend covers the +/-
-                    // buttons outright (issue #1188).
-                    if (appearance.surfaceMode != SeascapeSurfaceMode.imagery)
-                      Positioned(
-                        top: 96,
-                        left: 8,
-                        child: SeascapeDepthLegend(
-                          maxDepthMeters: axisInputs.maxDepth,
-                          hasLand: grid.depthsMeters.any(
-                            (d) => d == null || d <= 0,
                           ),
-                          appearance: appearance,
-                          displayUnitInMeters: depthUnit == DepthUnit.feet
-                              ? 0.3048
-                              : 1.0,
-                          depthSymbol: depthUnit.symbol,
                         ),
-                      ),
-                    if (imagery != null)
-                      Positioned(
-                        bottom: 8,
-                        right: 8,
-                        child: _attributionChip(
-                          MapTileConfig.attribution(
-                            ref.watch(
-                              settingsProvider.select((s) => s.mapStyle),
+                        Positioned(
+                          top: 56,
+                          left: 8,
+                          right: 8,
+                          child: _sourceChip(sourceId, resolutionMeters),
+                        ),
+                        if (patch?.detailLimitReached ?? false)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: _detailLimitHint(context),
+                          ),
+                        // The legend describes the depth ramp; a photographed
+                        // surface has no ramp to explain. It sits LEFT because the
+                        // viewport's zoom column owns the right edge, and on a
+                        // phone-sized pane a right-hand legend covers the +/-
+                        // buttons outright (issue #1188).
+                        if (appearance.surfaceMode !=
+                            SeascapeSurfaceMode.imagery)
+                          Positioned(
+                            top: 96,
+                            left: 8,
+                            child: SeascapeDepthLegend(
+                              maxDepthMeters: axisInputs.maxDepth,
+                              hasLand: grid.depthsMeters.any(
+                                (d) => d == null || d <= 0,
+                              ),
+                              appearance: appearance,
+                              displayUnitInMeters: depthUnit == DepthUnit.feet
+                                  ? 0.3048
+                                  : 1.0,
+                              depthSymbol: depthUnit.symbol,
                             ),
                           ),
-                        ),
-                      ),
-                    _hoverTooltip(grid),
-                  ],
-                ),
-              ),
-              SafeArea(top: false, child: _overlayChips()),
-            ],
+                        if (imagery != null)
+                          Positioned(
+                            bottom: 8,
+                            right: 8,
+                            child: _attributionChip(
+                              MapTileConfig.attribution(
+                                ref.watch(
+                                  settingsProvider.select((s) => s.mapStyle),
+                                ),
+                              ),
+                            ),
+                          ),
+                        _hoverTooltip(grid),
+                      ],
+                    ),
+                  ),
+                  SafeArea(top: false, child: _overlayChips()),
+                ],
+              );
+            },
           ),
       },
     );
@@ -338,6 +385,24 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// A quiet "no more detail here" hint: shown only at the `fine` LOD stage
+  /// when the patch grid came back no meaningfully sharper than the base
+  /// grid (see [SiteSeascapePatchLayer.detailLimitReached]'s doc for the
+  /// heuristic), so the diver does not keep zooming in expecting more.
+  Widget _detailLimitHint(BuildContext context) {
+    return Tooltip(
+      message: context.l10n.dive3d_seascape_detailLimitReached,
+      child: Material(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+        shape: const CircleBorder(),
+        child: const Padding(
+          padding: EdgeInsets.all(6),
+          child: Icon(Icons.search_off, size: 16),
         ),
       ),
     );

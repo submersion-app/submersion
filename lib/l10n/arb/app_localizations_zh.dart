@@ -26158,6 +26158,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dive3d_seascape_noCoordinates => '该潜点没有GPS坐标';
 
   @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
   String get dive3d_seascape_noData => '该位置没有可用的水深数据';
 
   @override

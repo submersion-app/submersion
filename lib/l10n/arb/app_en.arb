@@ -17954,6 +17954,8 @@
   },
   "dive3d_seascape_noCoordinates": "This site has no GPS coordinates",
   "@dive3d_seascape_noCoordinates": {},
+  "dive3d_seascape_detailLimitReached": "This is the most detail available for this location",
+  "@dive3d_seascape_detailLimitReached": {},
   "dive3d_seascape_noData": "No bathymetry available for this location",
   "@dive3d_seascape_noData": {},
   "dive3d_seascape_axis_distance": "Distance ({unitSymbol})",

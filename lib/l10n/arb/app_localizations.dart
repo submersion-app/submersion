@@ -44244,6 +44244,12 @@ abstract class AppLocalizations {
   /// **'This site has no GPS coordinates'**
   String get dive3d_seascape_noCoordinates;
 
+  /// No description provided for @dive3d_seascape_detailLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the most detail available for this location'**
+  String get dive3d_seascape_detailLimitReached;
+
   /// No description provided for @dive3d_seascape_noData.
   ///
   /// In en, this message translates to:

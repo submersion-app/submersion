@@ -27695,6 +27695,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ce site n\'a pas de coordonnées GPS';
 
   @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
   String get dive3d_seascape_noData =>
       'Aucune bathymétrie disponible pour cet endroit';
 

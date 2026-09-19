@@ -27398,6 +27398,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Deze duikstek heeft geen gps-coördinaten';
 
   @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
   String get dive3d_seascape_noData =>
       'Geen bathymetrie beschikbaar voor deze locatie';
 

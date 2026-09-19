@@ -7955,6 +7955,8 @@
   "@dive3d_seascape_seafloorSource": {},
   "dive3d_seascape_noCoordinates": "Dieser Tauchplatz hat keine GPS-Koordinaten",
   "@dive3d_seascape_noCoordinates": {},
+  "dive3d_seascape_detailLimitReached": "Für diesen Ort ist kein weiteres Detail verfügbar",
+  "@dive3d_seascape_detailLimitReached": {},
   "dive3d_seascape_noData": "Keine Bathymetrie für diesen Ort verfügbar",
   "@dive3d_seascape_noData": {},
   "dive3d_seascape_axis_distance": "Entfernung ({unitSymbol})",

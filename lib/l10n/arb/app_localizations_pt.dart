@@ -27601,6 +27601,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Este local não tem coordenadas GPS';
 
   @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
   String get dive3d_seascape_noData =>
       'Nenhuma batimetria disponível para este local';
 
