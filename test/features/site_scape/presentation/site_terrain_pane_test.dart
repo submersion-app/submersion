@@ -1,23 +1,12 @@
-import 'dart:typed_data';
-import 'dart:ui' as ui;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-// ignore: implementation_imports
-import 'package:riverpod/src/framework.dart' as riverpod show Override;
 import 'package:submersion/core/constants/map_style.dart';
-import 'package:submersion/features/bathymetry/data/terrain_imagery_service.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
-import 'package:submersion/features/bathymetry/domain/bathymetry_lod.dart';
-import 'package:submersion/features/bathymetry/domain/terrain_imagery_frame.dart';
-import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
-import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/site_seascape_geometry_service.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
-import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
@@ -25,143 +14,8 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/site_scape/presentation/site_terrain_pane.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
-
-typedef Override = riverpod.Override;
-
-class _TestSettingsNotifier extends StateNotifier<AppSettings>
-    implements SettingsNotifier {
-  _TestSettingsNotifier([super.initial = const AppSettings()]);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-Future<TerrainImagery> testImagery() async {
-  final recorder = ui.PictureRecorder();
-  ui.Canvas(recorder).drawRect(
-    const ui.Rect.fromLTWH(0, 0, 4, 4),
-    ui.Paint()..color = const ui.Color(0xFF00FF00),
-  );
-  final image = await recorder.endRecording().toImage(4, 4);
-  return TerrainImagery(
-    image: image,
-    frame: const TerrainImageryFrame(
-      u0MercX: 0.4,
-      u1MercX: 0.6,
-      v0MercY: 0.4,
-      v1MercY: 0.6,
-      whiteU: 0.5,
-      whiteV: 0.9,
-    ),
-  );
-}
-
-SiteSeascapeReady readyState({TerrainImagery? imagery}) {
-  final grid = BathymetryGrid(
-    originLat: 12.15,
-    originLon: -68.30,
-    cellSizeLatDeg: 0.001,
-    cellSizeLonDeg: 0.001,
-    rows: 2,
-    cols: 2,
-    depthsMeters: const [20, 30, 25, 35],
-    sourceId: 'gmrt',
-    resolutionMeters: 61,
-    fetchedAt: DateTime.utc(2026, 7, 28),
-  );
-  final scene = const SiteSeascapeGeometryService().build(
-    SiteSeascapeInput(
-      grid: grid,
-      center: const GeoPoint(12.151, -68.299),
-      siteName: 'Salt Pier',
-      siteMaxDepth: 30,
-      divePaths: const [],
-      nearbySites: const [],
-    ),
-  );
-  final box = BathymetryTerrainBuilder.enuBounds(
-    grid,
-    const GeoPoint(12.151, -68.299),
-  );
-  return SiteSeascapeReady(
-    scene: scene,
-    sourceId: 'gmrt',
-    resolutionMeters: 61,
-    grid: grid,
-    imagery: imagery,
-    axisInputs: (
-      minEast: box.minEast,
-      maxEast: box.maxEast,
-      minNorth: box.minNorth,
-      maxNorth: box.maxNorth,
-      maxDepth: 35,
-    ),
-  );
-}
-
-/// A minimal, valid single-triangle mesh -- enough to stand in for a real
-/// terrain patch mesh without going through the full terrain builder.
-SceneLayer _stubPatchLayer() => SceneLayer(
-  MeshData(
-    positions: Float32List.fromList([0, 0, 0, 1, 0, 0, 0, 0, 1]),
-    indices: Uint32List.fromList([0, 1, 2]),
-    colors: Float32List(9),
-  ),
-);
-
-Widget page(
-  SiteSeascapeState state, {
-  AppSettings settings = const AppSettings(),
-  List<SiteFeature> features = const [],
-  List<Override> extraOverrides = const [],
-}) => ProviderScope(
-  overrides: [
-    settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
-    siteSeascapeProvider.overrideWith((ref, id) async => state),
-    siteFeaturesProvider('site-1').overrideWith((ref) async => features),
-    ...extraOverrides,
-  ],
-  child: const MaterialApp(
-    locale: Locale('en'),
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
-    home: Scaffold(body: SiteTerrainPane(siteId: 'site-1')),
-  ),
-);
-
-/// Mirrors how [SiteScapeView] actually swaps sites in production: the
-/// parent state's siteId changes and [SiteTerrainPane] is reconstructed at
-/// the SAME position in the tree with no explicit Key (see
-/// site_scape_view.dart) — never a fresh page push. Bug 7 alleged that this
-/// path leaves the pane showing the previously-selected site's bathymetry.
-class _SiteSwitchHost extends StatefulWidget {
-  const _SiteSwitchHost();
-
-  @override
-  State<_SiteSwitchHost> createState() => _SiteSwitchHostState();
-}
-
-class _SiteSwitchHostState extends State<_SiteSwitchHost> {
-  String _siteId = 'site-a';
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          ElevatedButton(
-            key: const ValueKey('switchSiteButton'),
-            onPressed: () => setState(() => _siteId = 'site-b'),
-            child: const Text('switch'),
-          ),
-          Expanded(child: SiteTerrainPane(siteId: _siteId)),
-        ],
-      ),
-    );
-  }
-}
+import 'site_terrain_pane_test_support.dart';
 
 void main() {
   testWidgets('ready state renders viewport and provenance caption', (
@@ -181,7 +35,10 @@ void main() {
     expect(viewport.axisLabels, isNotNull);
     expect(viewport.chromeStyle, isNotNull);
     // Hover inspection: pick lattice + notifier wired, tissue chrome not.
-    expect(viewport.picker, isA<GridHoverPicker>());
+    // _PatchAwareHoverPicker (private to site_terrain_pane.dart) wraps the
+    // base GridHoverPicker so a finer LOD patch can take priority when one
+    // is showing -- there is none here, but the wiring is always present.
+    expect(viewport.picker, isNotNull);
     expect(viewport.hoverPick, isNotNull);
     expect(viewport.chromeMode, SceneChromeMode.axesOnly);
   });
@@ -517,7 +374,7 @@ void main() {
         ProviderScope(
           overrides: [
             settingsProvider.overrideWith(
-              (ref) => _TestSettingsNotifier(const AppSettings()),
+              (ref) => TestSettingsNotifier(const AppSettings()),
             ),
             siteSeascapeProvider.overrideWith(
               (ref, id) async => id == 'site-a' ? stateA : stateB,
@@ -533,7 +390,7 @@ void main() {
             locale: Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
-            home: _SiteSwitchHost(),
+            home: SiteSwitchHost(),
           ),
         ),
       );
@@ -551,270 +408,4 @@ void main() {
       expect(find.textContaining('GMRT'), findsNothing);
     },
   );
-
-  group('additional LOD patch layer', () {
-    testWidgets(
-      'no patch is requested and none is merged before the diver zooms in '
-      '(default settled zoom is the overview stage)',
-      (tester) async {
-        var patchCalls = 0;
-        await tester.pumpWidget(
-          page(
-            readyState(),
-            extraOverrides: [
-              siteSeascapePatchLayerProvider.overrideWith((ref, request) async {
-                patchCalls++;
-                return null;
-              }),
-            ],
-          ),
-        );
-        await tester.pump();
-        await tester.pump();
-
-        // The pane watches the patch provider unconditionally -- with the
-        // default settled zoom, that request already carries the overview
-        // stage (computed at the call site via bathymetryLodStageForZoom).
-        // This override still runs once to prove the watch happens.
-        expect(patchCalls, 1);
-        final viewport = tester.widget<Dive3dInteractiveViewport>(
-          find.byType(Dive3dInteractiveViewport),
-        );
-        expect(viewport.scene.layers.length, readyState().scene.layers.length);
-      },
-    );
-
-    testWidgets(
-      'a settled zoom past the medium threshold merges the patch layer '
-      'right after the base terrain layer',
-      (tester) async {
-        final state = readyState();
-        final baseLayerCount = state.scene.layers.length;
-        await tester.pumpWidget(
-          page(
-            state,
-            extraOverrides: [
-              siteSeascapePatchLayerProvider.overrideWith((ref, request) async {
-                if (request.stage != BathymetryLodStage.medium) return null;
-                return SiteSeascapePatchLayer(
-                  layers: [_stubPatchLayer()],
-                  stage: BathymetryLodStage.medium,
-                  detailLimitReached: false,
-                );
-              }),
-            ],
-          ),
-        );
-        await tester.pump();
-        await tester.pump();
-
-        Dive3dInteractiveViewport viewport() =>
-            tester.widget<Dive3dInteractiveViewport>(
-              find.byType(Dive3dInteractiveViewport),
-            );
-        // Simulate the viewport's own debounced zoom settling, without
-        // waiting out the real 300ms timer (that behavior is covered by
-        // dive_3d_interactive_viewport_test.dart already).
-        viewport().onZoomSettled!(3.0);
-        await tester.pump();
-        await tester.pump();
-
-        expect(viewport().scene.layers.length, baseLayerCount + 1);
-        expect(viewport().scene.layers[0], state.scene.layers.first);
-        expect(viewport().scene.layers[1].mesh.indices, [0, 1, 2]);
-        // The detail-limit hint is not shown at the `medium` stage.
-        expect(find.byIcon(Icons.search_off), findsNothing);
-      },
-    );
-
-    testWidgets(
-      'the detail-limit hint appears only at the fine stage when the patch '
-      'came back no sharper than the base grid',
-      (tester) async {
-        await tester.pumpWidget(
-          page(
-            readyState(),
-            extraOverrides: [
-              siteSeascapePatchLayerProvider.overrideWith((ref, request) async {
-                if (request.stage != BathymetryLodStage.fine) return null;
-                return SiteSeascapePatchLayer(
-                  layers: [_stubPatchLayer()],
-                  stage: BathymetryLodStage.fine,
-                  detailLimitReached: true,
-                );
-              }),
-            ],
-          ),
-        );
-        await tester.pump();
-        await tester.pump();
-
-        final viewport = tester.widget<Dive3dInteractiveViewport>(
-          find.byType(Dive3dInteractiveViewport),
-        );
-        viewport.onZoomSettled!(6.0);
-        await tester.pump();
-        await tester.pump();
-
-        expect(find.byIcon(Icons.search_off), findsOneWidget);
-      },
-    );
-
-    testWidgets(
-      'an empty base scene (right after a source switch) with a non-null '
-      'patch does not crash on the missing base layer',
-      (tester) async {
-        final base = readyState();
-        final emptyLayersState = SiteSeascapeReady(
-          scene: Scene3d(
-            layers: const [],
-            markers: base.scene.markers,
-            bounds: base.scene.bounds,
-            scrubPath: base.scene.scrubPath,
-          ),
-          sourceId: base.sourceId,
-          resolutionMeters: base.resolutionMeters,
-          grid: base.grid,
-          axisInputs: base.axisInputs,
-        );
-        await tester.pumpWidget(
-          page(
-            emptyLayersState,
-            extraOverrides: [
-              siteSeascapePatchLayerProvider.overrideWith(
-                (ref, request) async => SiteSeascapePatchLayer(
-                  layers: [_stubPatchLayer()],
-                  stage: BathymetryLodStage.medium,
-                  detailLimitReached: false,
-                ),
-              ),
-            ],
-          ),
-        );
-        await tester.pump();
-        await tester.pump();
-
-        // Must not throw building displayScene on an empty scene.layers.
-        expect(tester.takeException(), isNull);
-        final viewport = tester.widget<Dive3dInteractiveViewport>(
-          find.byType(Dive3dInteractiveViewport),
-        );
-        // Falls back to the (empty-layers) scene unchanged: nothing to
-        // insert the patch ahead of.
-        expect(viewport.scene.layers, isEmpty);
-      },
-    );
-  });
-
-  group('LOD patch stage resets when the pane switches sites', () {
-    // Bug: SiteTerrainPane keeps its State across a siteId switch (Bug 7's
-    // host, _SiteSwitchHost), so the debounced _settledZoom it tracks for
-    // the LOD patch provider used to keep the PREVIOUS site's zoom after
-    // switching, requesting the wrong stage for the new site until the
-    // diver zoomed again.
-    testWidgets(
-      'switching siteId resets the settled zoom back to the overview stage, '
-      'even if the previous site had zoomed in past it',
-      (tester) async {
-        final requestedStages = <String, List<BathymetryLodStage>>{};
-        final stateA = readyState();
-        final stateB = readyState();
-
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              settingsProvider.overrideWith(
-                (ref) => _TestSettingsNotifier(const AppSettings()),
-              ),
-              siteSeascapeProvider.overrideWith(
-                (ref, id) async => id == 'site-a' ? stateA : stateB,
-              ),
-              siteFeaturesProvider(
-                'site-a',
-              ).overrideWith((ref) async => const []),
-              siteFeaturesProvider(
-                'site-b',
-              ).overrideWith((ref) async => const []),
-              siteSeascapePatchLayerProvider.overrideWith((ref, request) async {
-                (requestedStages[request.siteId] ??= []).add(request.stage);
-                return null;
-              }),
-            ],
-            child: const MaterialApp(
-              locale: Locale('en'),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              home: _SiteSwitchHost(),
-            ),
-          ),
-        );
-        await tester.pump();
-        await tester.pump();
-
-        // Zoom site-a in past the fine threshold.
-        final viewport = tester.widget<Dive3dInteractiveViewport>(
-          find.byType(Dive3dInteractiveViewport),
-        );
-        viewport.onZoomSettled!(6.0);
-        await tester.pump();
-        await tester.pump();
-        expect(requestedStages['site-a'], contains(BathymetryLodStage.fine));
-
-        // Switch to site-b without ever zooming it in.
-        await tester.tap(find.byKey(const ValueKey('switchSiteButton')));
-        await tester.pump();
-        await tester.pump();
-
-        // If _settledZoom had survived the switch, site-b's very first
-        // request would carry `fine` too.
-        expect(requestedStages['site-b'], isNotNull);
-        expect(
-          requestedStages['site-b'],
-          everyElement(BathymetryLodStage.overview),
-        );
-      },
-    );
-  });
-
-  group('the detail-limit hint does not overlap the docked control card', () {
-    testWidgets(
-      'the hint and the appearance/chart-mode card render at non-overlapping '
-      'positions',
-      (tester) async {
-        await tester.pumpWidget(
-          page(
-            readyState(),
-            extraOverrides: [
-              siteSeascapePatchLayerProvider.overrideWith(
-                (ref, request) async => SiteSeascapePatchLayer(
-                  layers: [_stubPatchLayer()],
-                  stage: BathymetryLodStage.fine,
-                  detailLimitReached: true,
-                ),
-              ),
-            ],
-          ),
-        );
-        await tester.pump();
-        await tester.pump();
-
-        final viewport = tester.widget<Dive3dInteractiveViewport>(
-          find.byType(Dive3dInteractiveViewport),
-        );
-        viewport.onZoomSettled!(6.0);
-        await tester.pump();
-        await tester.pump();
-
-        final hint = tester.getRect(find.byIcon(Icons.search_off));
-        final card = tester.getRect(
-          find.byKey(const ValueKey('seascapeAppearanceButton')),
-        );
-        expect(
-          hint.overlaps(card),
-          isFalse,
-          reason: 'detail-limit hint $hint overlaps the control card $card',
-        );
-      },
-    );
-  });
 }
