@@ -52,6 +52,7 @@ class LogFilterState {
       LogCategory.serial,
       LogCategory.libdc,
       LogCategory.database,
+      LogCategory.media,
     },
     this.minimumSeverity = LogLevel.debug,
     this.searchQuery = '',

@@ -11834,6 +11834,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_logCategory_database => 'Base de données';
 
   @override
+  String get enum_logCategory_media => 'Médias';
+
+  @override
   String get enum_visibility_excellent => 'Excellente (>30m / >100ft)';
 
   @override

@@ -3729,6 +3729,7 @@
   "enum_logCategory_serial": "Soros",
   "enum_logCategory_libdc": "libdc",
   "enum_logCategory_database": "Adatbázis",
+  "enum_logCategory_media": "Média",
   "enum_visibility_excellent": "Kitűnő (>30m / >100ft)",
   "enum_visibility_good": "Jó (15-30m / 50-100ft)",
   "enum_visibility_moderate": "Közepes (5-15m / 15-50ft)",

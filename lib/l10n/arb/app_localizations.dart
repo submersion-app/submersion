@@ -19672,6 +19672,12 @@ abstract class AppLocalizations {
   /// **'Database'**
   String get enum_logCategory_database;
 
+  /// No description provided for @enum_logCategory_media.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get enum_logCategory_media;
+
   /// No description provided for @enum_visibility_excellent.
   ///
   /// In en, this message translates to:

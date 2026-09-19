@@ -42,6 +42,14 @@ class LoggerService {
   /// see every level regardless.
   static LogLevel _minimumFileLevel = LogLevel.debug;
 
+  /// Categories whose breadcrumbs are worth having in a user's exported log
+  /// even when verbose logging is off. A category floor can only admit more
+  /// than the global floor, never less: a support report needs the media
+  /// resolver and transfer worker lines, which are logged at info.
+  static const Map<LogCategory, LogLevel> _categoryFileFloors = {
+    LogCategory.media: LogLevel.info,
+  };
+
   /// Set or clear the file logging backend.
   /// Pass `null` to disable file logging entirely.
   static void setFileService(LogFileService? fileService) {
@@ -78,7 +86,11 @@ class LoggerService {
     _startupBuffer = null;
     for (final line
         in buffered ?? const <({LogEntry entry, bool alwaysPersist})>[]) {
-      if (_persists(line.entry.level, line.alwaysPersist)) {
+      if (_persists(
+        line.entry.level,
+        line.alwaysPersist,
+        category: line.entry.category,
+      )) {
         final entry = line.entry.copyWith(
           message: redactSecrets(line.entry.message),
         );
@@ -99,8 +111,17 @@ class LoggerService {
     _startupBuffer ??= ListQueue();
   }
 
-  static bool _persists(LogLevel level, bool alwaysPersist) =>
-      alwaysPersist || level.index >= _minimumFileLevel.index;
+  static bool _persists(
+    LogLevel level,
+    bool alwaysPersist, {
+    required LogCategory category,
+  }) {
+    if (alwaysPersist) return true;
+    final global = _minimumFileLevel;
+    final own = _categoryFileFloors[category];
+    final floor = (own != null && own.index < global.index) ? own : global;
+    return level.index >= floor.index;
+  }
 
   /// Queue [entry] behind every earlier write, then announce it on
   /// [persistedLogStream].
@@ -148,7 +169,9 @@ class LoggerService {
   }) {
     final timestamp = DateTime.now();
     final service = _fileService;
-    final persist = service != null && _persists(LogLevel.info, alwaysPersist);
+    final persist =
+        service != null &&
+        _persists(LogLevel.info, alwaysPersist, category: category);
     final entry = message.then((text) {
       developer.log(text, name: _name, level: 800);
       final ready = LogEntry(
@@ -275,7 +298,8 @@ class LoggerService {
     // Capture the current file service so that later changes to
     // _fileService do not affect already-emitted log entries.
     final service = _fileService;
-    final persist = service != null && _persists(level, alwaysPersist);
+    final persist =
+        service != null && _persists(level, alwaysPersist, category: category);
 
     // File logging. Redacted here rather than at each call site: the file is
     // what users attach to public bug reports, and an exception's toString()

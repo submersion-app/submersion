@@ -11263,6 +11263,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_logCategory_database => '数据库';
 
   @override
+  String get enum_logCategory_media => '媒体';
+
+  @override
   String get enum_visibility_excellent => '极好 (>30m / >100ft)';
 
   @override

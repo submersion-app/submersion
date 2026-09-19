@@ -3833,6 +3833,7 @@
   "enum_logCategory_serial": "تسلسلي",
   "enum_logCategory_libdc": "libdc",
   "enum_logCategory_database": "قاعدة البيانات",
+  "enum_logCategory_media": "الوسائط",
   "enum_visibility_excellent": "ممتازة (>30m / >100ft)",
   "enum_visibility_good": "جيدة (15-30m / 50-100ft)",
   "enum_visibility_moderate": "معتدلة (5-15m / 15-50ft)",

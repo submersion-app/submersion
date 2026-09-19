@@ -11528,6 +11528,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_logCategory_database => 'מסד נתונים';
 
   @override
+  String get enum_logCategory_media => 'מדיה';
+
+  @override
   String get enum_visibility_excellent => 'מצוינת (>30m / >100ft)';
 
   @override

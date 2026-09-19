@@ -19,6 +19,11 @@ void main() {
       expect(LogCategory.fromTag('DB'), LogCategory.database);
     });
 
+    test('media category round-trips through its tag', () {
+      expect(LogCategory.media.tag, 'MED');
+      expect(LogCategory.fromTag('MED'), LogCategory.media);
+    });
+
     test('fromTag returns null for unknown tags', () {
       expect(LogCategory.fromTag('UNKNOWN'), isNull);
       expect(LogCategory.fromTag(''), isNull);

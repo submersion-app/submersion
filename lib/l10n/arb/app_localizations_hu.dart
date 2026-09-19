@@ -11764,6 +11764,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_logCategory_database => 'Adatbázis';
 
   @override
+  String get enum_logCategory_media => 'Média';
+
+  @override
   String get enum_visibility_excellent => 'Kitűnő (>30m / >100ft)';
 
   @override

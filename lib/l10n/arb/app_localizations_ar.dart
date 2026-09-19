@@ -11588,6 +11588,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_logCategory_database => 'قاعدة البيانات';
 
   @override
+  String get enum_logCategory_media => 'الوسائط';
+
+  @override
   String get enum_visibility_excellent => 'ممتازة (>30m / >100ft)';
 
   @override

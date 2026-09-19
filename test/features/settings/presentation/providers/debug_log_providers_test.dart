@@ -106,16 +106,8 @@ void main() {
   group('LogFilterState', () {
     test('default constructor has all categories active', () {
       const state = LogFilterState();
-      expect(
-        state.activeCategories,
-        equals({
-          LogCategory.app,
-          LogCategory.bluetooth,
-          LogCategory.serial,
-          LogCategory.libdc,
-          LogCategory.database,
-        }),
-      );
+      // Every category, so a new one is visible by default.
+      expect(state.activeCategories, equals(LogCategory.values.toSet()));
     });
 
     test('default constructor has minimumSeverity=debug', () {
@@ -193,16 +185,7 @@ void main() {
 
     test('initial state matches LogFilterState defaults', () {
       final state = container.read(logFilterNotifierProvider);
-      expect(
-        state.activeCategories,
-        equals({
-          LogCategory.app,
-          LogCategory.bluetooth,
-          LogCategory.serial,
-          LogCategory.libdc,
-          LogCategory.database,
-        }),
-      );
+      expect(state.activeCategories, equals(LogCategory.values.toSet()));
       expect(state.minimumSeverity, LogLevel.debug);
       expect(state.searchQuery, '');
     });
@@ -234,7 +217,8 @@ void main() {
       notifier.toggleCategory(LogCategory.bluetooth);
       notifier.toggleCategory(LogCategory.serial);
       notifier.toggleCategory(LogCategory.libdc);
-      // Only database remains — attempt to remove it.
+      notifier.toggleCategory(LogCategory.media);
+      // Only database remains; attempt to remove it.
       notifier.toggleCategory(LogCategory.database);
       final state = container.read(logFilterNotifierProvider);
       expect(state.activeCategories, equals({LogCategory.database}));
@@ -276,16 +260,7 @@ void main() {
       notifier.resetFilters();
 
       final state = container.read(logFilterNotifierProvider);
-      expect(
-        state.activeCategories,
-        equals({
-          LogCategory.app,
-          LogCategory.bluetooth,
-          LogCategory.serial,
-          LogCategory.libdc,
-          LogCategory.database,
-        }),
-      );
+      expect(state.activeCategories, equals(LogCategory.values.toSet()));
       expect(state.minimumSeverity, LogLevel.debug);
       expect(state.searchQuery, '');
     });

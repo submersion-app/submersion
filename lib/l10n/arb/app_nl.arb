@@ -3833,6 +3833,7 @@
   "enum_logCategory_serial": "Serieel",
   "enum_logCategory_libdc": "libdc",
   "enum_logCategory_database": "Database",
+  "enum_logCategory_media": "Media",
   "enum_visibility_excellent": "Uitstekend (>30m / >100ft)",
   "enum_visibility_good": "Goed (15-30m / 50-100ft)",
   "enum_visibility_moderate": "Matig (5-15m / 15-50ft)",

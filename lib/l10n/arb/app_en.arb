@@ -6766,6 +6766,7 @@
   "enum_logCategory_serial": "Serial",
   "enum_logCategory_libdc": "libdc",
   "enum_logCategory_database": "Database",
+  "enum_logCategory_media": "Media",
   "enum_visibility_excellent": "Excellent (>30m / >100ft)",
   "enum_visibility_good": "Good (15-30m / 50-100ft)",
   "enum_visibility_moderate": "Moderate (5-15m / 15-50ft)",

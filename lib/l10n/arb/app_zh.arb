@@ -3978,6 +3978,7 @@
   "enum_logCategory_serial": "串口",
   "enum_logCategory_libdc": "libdc",
   "enum_logCategory_database": "数据库",
+  "enum_logCategory_media": "媒体",
   "enum_visibility_excellent": "极好 (>30m / >100ft)",
   "enum_visibility_good": "良好 (15-30m / 50-100ft)",
   "enum_visibility_moderate": "一般 (5-15m / 15-50ft)",
