@@ -56,7 +56,7 @@ void main() {
       expect(row.defaultShowGtr, isFalse);
       expect(
         MetricDataSource.fromInt(row.defaultGtrSource),
-        MetricDataSource.calculated,
+        MetricDataSource.computer,
       );
       expect(row.gtrReservePressure, 50.0);
     },
