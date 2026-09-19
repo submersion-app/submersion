@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media/data/services/media_tile_resolver.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/services/media_orphan_reconciler.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
@@ -295,119 +296,29 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
     // .originBytes, decoded at native resolution because the Image widgets
     // below carry no cacheWidth. A screenful of 12 MP originals behind
     // 128 px tiles is enough for iOS to kill the app.
-    final native = widget.thumbnail
-        ? await resolver.resolveThumbnail(
-            widget.item,
-            target: widget.targetSize ?? kDefaultThumbnailTarget,
-          )
-        : await resolver.resolve(widget.item);
-    if (native is! UnavailableData) {
-      return (
-        data: native,
-        videoPosterMissing: false,
-        documentRenderable: false,
-        storeFallbackUsed: false,
-        nativeFailure: null,
-      );
-    }
-    // Captured once, here, where `native` is promoted. Every return below
-    // this line describes a resolution whose ORIGIN failed, whether or not
-    // the store went on to cover for it.
-    final nativeFailure = native.kind;
-    // Media store fallback (design spec section 10): only engages when the
-    // native source cannot produce bytes on this device and the row is
-    // confirmed uploaded - for thumbnail requests the thumb stamp alone
-    // suffices, since thumbs upload before originals. Rows without any
-    // confirmed upload skip the runtime entirely (no keychain read, no
-    // store construction). Any store failure keeps the native placeholder.
     //
-    // The compressed stamp counts as confirmation in its own right: an
-    // upload-quality setting other than "original" uploads a rendition and
-    // leaves remoteUploadedAt null permanently, so gating on the original
-    // alone made every such photo unviewable on other devices even though
-    // MediaStoreResolver.tryResolveRemote can serve the rendition. This
-    // mirrors what MediaRepository already treats as backed up.
-    final storeConfirmed =
-        widget.item.contentHash != null &&
-        (widget.item.remoteUploadedAt != null ||
-            widget.item.remoteCompressedUploadedAt != null ||
-            (widget.thumbnail && widget.item.remoteThumbUploadedAt != null));
-    if (!storeConfirmed) {
-      return (
-        data: native,
-        videoPosterMissing: false,
-        documentRenderable: false,
-        // The store was never consulted: the row carries no stamp saying it
-        // would have anything to offer.
-        storeFallbackUsed: false,
-        nativeFailure: nativeFailure,
-      );
-    }
-    try {
-      final runtime = await ref.read(mediaStoreRuntimeProvider.future);
-      // No store on this device: the row's stamps say the bytes exist
-      // somewhere, but nothing here can reach them, so the native
-      // placeholder is the honest answer.
-      if (runtime == null) {
-        return (
-          data: native,
-          videoPosterMissing: false,
-          documentRenderable: false,
-          // True on purpose: the fallback was attempted and there was no
-          // store here to answer it, which is a different situation from
-          // never having looked.
-          storeFallbackUsed: true,
-          nativeFailure: nativeFailure,
+    // Native resolve, the store-confirmed gate and the store fallback all
+    // live in MediaTileResolver (design spec section 10), so tests and
+    // diagnostics can ask for the same verdict without a widget tree. The
+    // runtime lookup is deferred: rows without any confirmed upload never
+    // build it (no keychain read, no store construction).
+    final tile =
+        await MediaTileResolver(
+          registry: registry,
+          remote: () async =>
+              (await ref.read(mediaStoreRuntimeProvider.future))?.resolver,
+        ).resolve(
+          widget.item,
+          thumbnail: widget.thumbnail,
+          thumbnailTarget: widget.targetSize ?? kDefaultThumbnailTarget,
         );
-      }
-      final remote = await runtime.resolver.tryResolveRemote(
-        widget.item,
-        thumbnail: widget.thumbnail,
-      );
-      if (remote != null) {
-        return (
-          data: remote,
-          videoPosterMissing: false,
-          // Not "the request was a thumbnail": a thumbnail request whose
-          // thumb object is missing or unfetchable degrades to the ORIGINAL
-          // (see MediaStoreResolver.tryResolveRemote), and for a document
-          // that original is the PDF. Only the store knows which of the two
-          // it handed back, and isPoster is how it says so.
-          documentRenderable:
-              widget.thumbnail && remote is FileData && remote.isPoster,
-          storeFallbackUsed: true,
-          // The store covered, but the ORIGIN still failed and that is what
-          // the orphan flag is about. Reporting null here would clear the
-          // flag on exactly the rows MediaStatus.cloudOnly exists for.
-          nativeFailure: nativeFailure,
-        );
-      }
-      // The movie tile claims something specific -- this video has no poster
-      // frame -- so it is shown only when that is what happened: the store
-      // holds the item, no thumb was ever stamped, and the resolver therefore
-      // declined to download the whole video just to draw an icon. A poster
-      // that IS stamped but failed to fetch is an error, not an absence, and
-      // keeps the native placeholder so a transient failure cannot read as a
-      // video that simply has no preview.
-      return (
-        data: native,
-        videoPosterMissing:
-            widget.thumbnail &&
-            widget.item.isVideo &&
-            widget.item.remoteThumbUploadedAt == null,
-        documentRenderable: false,
-        storeFallbackUsed: true,
-        nativeFailure: nativeFailure,
-      );
-    } catch (_) {
-      return (
-        data: native,
-        videoPosterMissing: false,
-        documentRenderable: false,
-        storeFallbackUsed: true,
-        nativeFailure: nativeFailure,
-      );
-    }
+    return (
+      data: tile.data,
+      videoPosterMissing: tile.videoPosterMissing,
+      documentRenderable: tile.documentRenderable,
+      storeFallbackUsed: tile.storeFallbackUsed,
+      nativeFailure: tile.nativeFailure,
+    );
   }
 
   @override
