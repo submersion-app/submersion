@@ -596,6 +596,17 @@ void main() {
             expect(find.text('Retire Equipment'), findsNothing);
             expect(find.text('Reactivate'), findsNothing);
             expect(find.byType(PopupMenuItem<String>), findsOneWidget);
+
+            // Selecting Delete still reaches the handler: it asks first,
+            // and cancelling leaves the item in place.
+            await tester.tap(find.text('Delete'));
+            await tester.pumpAndSettle();
+            expect(find.text('Delete Equipment'), findsOneWidget);
+
+            await tester.tap(find.text('Cancel'));
+            await tester.pumpAndSettle();
+            expect(find.text('Delete Equipment'), findsNothing);
+            expect(find.byType(EquipmentDetailPage), findsOneWidget);
           },
         );
       }
