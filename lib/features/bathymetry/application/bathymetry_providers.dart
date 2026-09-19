@@ -160,6 +160,10 @@ final bathymetryGridProvider =
 /// requested for one specific site's zoomed-in view, not shared across
 /// nearby coordinates the way the always-loaded base square is. Same
 /// never-errors/transient-retry contract as [bathymetryGridProvider].
+// no-tick: same write-once cache as [bathymetryGridProvider], keyed by span
+// as well as coordinate -- a span change misses the old key rather than
+// rewriting it -- and the transient-failure case already self-invalidates
+// on a backoff timer.
 final bathymetryPatchGridProvider =
     FutureProvider.family<
       BathymetryGrid?,
