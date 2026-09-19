@@ -19,6 +19,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/wait_until.dart';
 
 Buddy _makeBuddy({
   String id = '',
@@ -250,23 +251,12 @@ void main() {
         DiveRole.buddyId,
       );
 
-      var diveCount = 0;
-      for (var i = 0; i < 50; i++) {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
+      await waitUntil(() async {
         results = await container.read(
           buddySearchWithDiveCountProvider('umb').future,
         );
-        diveCount = results.single.diveCount;
-        if (diveCount == 1) break;
-      }
-
-      expect(
-        diveCount,
-        1,
-        reason:
-            'the search picker must pick up a buddy freshly linked to a '
-            'dive without the query changing or the sheet being reopened',
-      );
+        return results.single.diveCount == 1;
+      });
     });
   });
 
@@ -319,21 +309,15 @@ void main() {
             ),
           );
 
-      var totalDives = 0;
-      var diveIds = <String>[];
-      for (var i = 0; i < 50; i++) {
-        await Future<void>.delayed(const Duration(milliseconds: 10));
-        totalDives = (await container.read(
+      await waitUntil(() async {
+        final totalDives = (await container.read(
           buddyStatsProvider(buddy.id).future,
         )).totalDives;
-        diveIds = await container.read(
+        final diveIds = await container.read(
           diveIdsForBuddyProvider(buddy.id).future,
         );
-        if (totalDives == 1 && diveIds.isNotEmpty) break;
-      }
-
-      expect(totalDives, 1);
-      expect(diveIds, ['stats-dive-1']);
+        return totalDives == 1 && diveIds.singleOrNull == 'stats-dive-1';
+      });
     });
   });
 

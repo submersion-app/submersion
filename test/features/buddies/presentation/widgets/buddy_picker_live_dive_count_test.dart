@@ -10,6 +10,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/pump_until.dart';
 import '../../../../helpers/test_database.dart';
 
 final _now = DateTime(2024, 1, 1);
@@ -107,16 +108,12 @@ void main() {
       // Link the buddy to a dive the same way the dive editor does.
       await buddyRepo.addBuddyToDive('dive-1', buddy.id, DiveRole.buddyId);
 
-      // Advance past watchDivesChangesWithBuddyLinks' debounce window.
-      for (var i = 0; i < 10; i++) {
-        await tester.pump(const Duration(milliseconds: 350));
-        if (tester.any(find.text('1 dive'))) break;
-      }
-      await tester.pumpAndSettle();
-
-      expect(
-        find.text('1 dive'),
-        findsOneWidget,
+      // Interval matches watchDivesChangesWithBuddyLinks' debounce window.
+      await pumpUntil(
+        tester,
+        () => tester.any(find.text('1 dive')),
+        interval: const Duration(milliseconds: 350),
+        maxFrames: 10,
         reason:
             'the still-open search sheet must pick up the freshly linked '
             'dive without the query changing or the sheet being reopened',
