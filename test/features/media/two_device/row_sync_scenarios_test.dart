@@ -94,6 +94,5 @@ void main() {
         reason: 'B must converge on the newer value too',
       );
     },
-    skip: 'Media sync program S3: turns green in slice 3 (engine merge rule)',
   );
 }

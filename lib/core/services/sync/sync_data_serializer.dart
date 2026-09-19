@@ -1481,6 +1481,19 @@ class SyncDataSerializer {
     'gasSwitches',
   };
 
+  /// Rows that export on their own clock but merge as blind upserts (no
+  /// conflict cards). Like [parentGatedChildEntities] they carry an hlc, so
+  /// the merge refuses a copy strictly older than the local row
+  /// (SyncService._mergeEntity); unlike them they are selected for export by
+  /// their own clock, so they must not join that set, which also drives the
+  /// pending-children export.
+  static const Set<String> clockGuardedEntities = {
+    'media',
+    'mediaEnrichment',
+    'mediaSpecies',
+    'mediaStores',
+  };
+
   /// The sync record id of a [parentGatedChildEntities] row, in the shape
   /// SyncService.recordIdForEntity uses (a composite key is joined with
   /// `|`). Mirrored here rather than imported because sync_service.dart
@@ -2739,6 +2752,13 @@ class SyncDataSerializer {
       case 'buddies':
         final rows = await (_db.select(
           _db.buddies,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {
+          for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
+        };
+      case 'media':
+        final rows = await (_db.select(
+          _db.media,
         )..where((t) => t.id.isIn(idList))).get();
         return {
           for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),

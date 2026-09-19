@@ -2701,7 +2701,13 @@ class SyncService {
     final childClocked = SyncDataSerializer.parentGatedChildEntities.contains(
       entityType,
     );
-    final localById = hasUpdatedAt || childClocked
+    // The media tables join the same stale-copy guard (media sync program
+    // spec 5.1) through their own set; childClocked alone still selects the
+    // tombstone clocks below.
+    final clockGuarded =
+        childClocked ||
+        SyncDataSerializer.clockGuardedEntities.contains(entityType);
+    final localById = hasUpdatedAt || clockGuarded
         ? await _serializer.fetchRecords(entityType, [
             for (final record in records)
               ?recordIdForEntity(entityType, record),
@@ -2815,7 +2821,7 @@ class SyncService {
         }
 
         if (!hasUpdatedAt) {
-          if (childClocked) {
+          if (clockGuarded) {
             final remoteHlc = _extractHlc(record);
             if (remoteHlc != null) SyncClock.instance.receive(remoteHlc);
             final localHlc = _extractHlc(localById[recordId]);
