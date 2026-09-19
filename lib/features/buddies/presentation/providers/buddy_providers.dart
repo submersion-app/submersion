@@ -55,9 +55,8 @@ final allBuddiesWithDiveCountProvider =
       final validatedDiverId = await ref.watch(
         validatedCurrentDiverIdProvider.future,
       );
-      ref.invalidateSelfWhen(repository.watchBuddiesChanges());
       ref.invalidateSelfWhen(
-        ref.read(diveRepositoryProvider).watchDivesChanges(),
+        ref.read(diveRepositoryProvider).watchDivesChangesWithBuddyLinks(),
       );
       return repository.getAllBuddiesWithDiveCount(diverId: validatedDiverId);
     });
@@ -73,7 +72,9 @@ final buddySearchWithDiveCountProvider =
       final validatedDiverId = await ref.watch(
         validatedCurrentDiverIdProvider.future,
       );
-      ref.invalidateSelfWhen(repository.watchBuddiesChanges());
+      ref.invalidateSelfWhen(
+        ref.read(diveRepositoryProvider).watchDivesChangesWithBuddyLinks(),
+      );
       return repository.getAllBuddiesWithDiveCount(
         diverId: validatedDiverId,
         query: query,
@@ -241,8 +242,9 @@ final buddyStatsProvider = FutureProvider.family<BuddyStats, String>((
   buddyId,
 ) async {
   final repository = ref.watch(buddyRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchBuddiesChanges());
-  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
+  ref.invalidateSelfWhen(
+    ref.read(diveRepositoryProvider).watchDivesChangesWithBuddyLinks(),
+  );
   return repository.getBuddyStats(buddyId);
 });
 
@@ -256,8 +258,9 @@ final diveIdsForBuddyProvider = FutureProvider.family<List<String>, String>((
   buddyId,
 ) async {
   final repository = ref.watch(buddyRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchBuddiesChanges());
-  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
+  ref.invalidateSelfWhen(
+    ref.read(diveRepositoryProvider).watchDivesChangesWithBuddyLinks(),
+  );
   return repository.getDiveIdsForBuddy(buddyId);
 });
 

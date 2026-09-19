@@ -215,6 +215,115 @@ void main() {
     );
   });
 
+  group('buddySearchWithDiveCountProvider (issue #2084)', () {
+    test('auto-refreshes when a buddy is linked to a dive, even though that '
+        'write touches neither the buddies nor the dives table', () async {
+      final diver = await seedCurrentDiver();
+      final buddy = await buddyRepo.createBuddy(
+        _makeBuddy(name: 'Umberto', diverId: diver.id),
+      );
+      await _insertDive(database, id: 'shared-dive-1');
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      // Keep the search family instance alive, mirroring the "Add buddy"
+      // picker sheet staying open while the search query does not change.
+      final sub = container.listen(
+        buddySearchWithDiveCountProvider('umb'),
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+
+      var results = await container.read(
+        buddySearchWithDiveCountProvider('umb').future,
+      );
+      expect(results.single.diveCount, 0);
+
+      // addBuddyToDive writes only dive_buddies (see buddy_repository.dart)
+      // -- no dives row and no buddies row is touched.
+      await buddyRepo.addBuddyToDive(
+        'shared-dive-1',
+        buddy.id,
+        DiveRole.buddyId,
+      );
+
+      var diveCount = 0;
+      for (var i = 0; i < 50; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        results = await container.read(
+          buddySearchWithDiveCountProvider('umb').future,
+        );
+        diveCount = results.single.diveCount;
+        if (diveCount == 1) break;
+      }
+
+      expect(
+        diveCount,
+        1,
+        reason:
+            'the search picker must pick up a buddy freshly linked to a '
+            'dive without the query changing or the sheet being reopened',
+      );
+    });
+  });
+
+  group('buddyStatsProvider / diveIdsForBuddyProvider (issue #2084)', () {
+    test('both auto-refresh when a buddy is linked to a dive via dive_buddies '
+        'alone', () async {
+      final diver = await seedCurrentDiver();
+      final buddy = await buddyRepo.createBuddy(
+        _makeBuddy(name: 'Stats Buddy', diverId: diver.id),
+      );
+      await _insertDive(database, id: 'stats-dive-1');
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      final statsSub = container.listen(
+        buddyStatsProvider(buddy.id),
+        (_, _) {},
+      );
+      addTearDown(statsSub.close);
+      final idsSub = container.listen(
+        diveIdsForBuddyProvider(buddy.id),
+        (_, _) {},
+      );
+      addTearDown(idsSub.close);
+
+      expect(
+        (await container.read(buddyStatsProvider(buddy.id).future)).totalDives,
+        0,
+      );
+      expect(
+        await container.read(diveIdsForBuddyProvider(buddy.id).future),
+        isEmpty,
+      );
+
+      await buddyRepo.addBuddyToDive(
+        'stats-dive-1',
+        buddy.id,
+        DiveRole.buddyId,
+      );
+
+      var totalDives = 0;
+      var diveIds = <String>[];
+      for (var i = 0; i < 50; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        totalDives = (await container.read(
+          buddyStatsProvider(buddy.id).future,
+        )).totalDives;
+        diveIds = await container.read(
+          diveIdsForBuddyProvider(buddy.id).future,
+        );
+        if (totalDives == 1 && diveIds.isNotEmpty) break;
+      }
+
+      expect(totalDives, 1);
+      expect(diveIds, ['stats-dive-1']);
+    });
+  });
+
   group('BuddyListNotifier', () {
     test('silently reloads the list when a buddy is written directly to the '
         'DB (sync scenario)', () async {
