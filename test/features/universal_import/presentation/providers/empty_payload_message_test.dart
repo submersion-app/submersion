@@ -5,10 +5,13 @@
 // could not resolve dateTime, skipping", or "Row 2: failed to apply ..." when
 // a value transform happened to fail first.
 
+import 'dart:convert';
+import 'dart:typed_data';
 import 'dart:ui' show Locale;
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_dives_csv_parser.dart';
 import 'package:submersion/features/universal_import/presentation/providers/empty_payload_message.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -29,6 +32,26 @@ ImportWarning _transformFailed(int row) => ImportWarning(
 void main() {
   final en = lookupAppLocalizations(const Locale('en'));
   final de = lookupAppLocalizations(const Locale('de'));
+
+  test(
+    'a Submersion CSV with an unreadable date column is summarized',
+    () async {
+      // The whole file was reported by its first row alone, which named a row
+      // the diver had not touched (#2152).
+      const csv =
+          'Dive Number,Date (MMM D, YYYY),Time (24-hour)\r\n'
+          '1,not a date,09:05\r\n'
+          '2,nor this,10:05\r\n';
+      final payload = await const SubmersionDivesCsvParser().parse(
+        Uint8List.fromList(utf8.encode(csv)),
+      );
+
+      expect(emptyPayloadMessage(en, payload.warnings).split('\n').take(2), [
+        'Nothing was imported: the dates in 2 rows could not be read.',
+        'Rows 2, 3',
+      ]);
+    },
+  );
 
   group('rows skipped for an unreadable date', () {
     test('says how many, lists the rows, and points at the mapping', () {

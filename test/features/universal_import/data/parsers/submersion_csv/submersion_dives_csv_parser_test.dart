@@ -2,11 +2,13 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_dives_writer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
@@ -17,6 +19,13 @@ import '../../../../../core/services/export/csv/csv_dives_writer_test.dart'
 import '../../../../../core/services/export/csv/csv_test_fixtures.dart';
 
 Uint8List _bytes(String s) => Uint8List.fromList(utf8.encode(s));
+
+/// A diver whose dates are written with the month spelled, which is the
+/// setting a spreadsheet rewrites on save.
+const monthNameDates = AppSettings(
+  dateFormat: DateFormatPreference.mmmDYYYY,
+  timeFormat: TimeFormat.twentyFourHour,
+);
 
 void main() {
   test('the registry routes the format to this parser', () {
@@ -96,13 +105,62 @@ void main() {
     });
   }
 
-  test('a row with no readable date is skipped with an error', () async {
+  test('a row with no readable date is skipped and reported', () async {
     final csv = CsvDivesWriter(
       CsvExportUnits.metric,
     ).write(goldenDives()).replaceFirst('2025-03-15', 'someday');
     final payload = await const SubmersionDivesCsvParser().parse(_bytes(csv));
     expect(payload.entitiesOf(ImportEntityType.dives), hasLength(1));
-    expect(payload.warnings.single.severity, ImportWarningSeverity.error);
+    final warning = payload.warnings.single;
+    // Coded and numbered so the summary can name the dive that is missing;
+    // an error would be dropped by the notice grouper instead (#2152).
+    expect(warning.severity, ImportWarningSeverity.warning);
+    expect(warning.code, ImportWarningCode.unreadableDate);
+    expect(warning.sourceRow, 2);
+  });
+
+  test('a cleared row does not renumber the rows below it', () async {
+    // The diver cleared a row's cells rather than deleting the row, so the
+    // file still holds it; the dive after it is row 4, not row 3 (#2152).
+    final lines = CsvDivesWriter(
+      CsvExportUnits.metric,
+    ).write(goldenDives()).trimRight().split('\r\n');
+    final csv = [
+      lines[0],
+      ',,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
+      lines[1],
+      lines[2].replaceFirst('2025-03-15', 'someday'),
+    ].join('\r\n');
+    final payload = await const SubmersionDivesCsvParser().parse(_bytes(csv));
+    expect(payload.entitiesOf(ImportEntityType.dives), hasLength(1));
+    final warning = payload.warnings.single;
+    expect(warning.sourceRow, 4);
+    expect(warning.message, contains('Row 4'));
+  });
+
+  test('imports a file whose date column a spreadsheet rewrote', () async {
+    // A diver opened the export in Excel, which redisplayed the "MMM D,
+    // YYYY" column in its own 15-Mar-25 format when the file was saved
+    // (#2152). Nothing else about the file changed.
+    final csv = CsvDivesWriter(
+      CsvExportUnits.fromSettings(monthNameDates),
+    ).write(goldenDives()).replaceAll('Mar 15, 2025', '15-Mar-25');
+    final payload = await const SubmersionDivesCsvParser().parse(_bytes(csv));
+    expect(payload.warnings, isEmpty);
+    final dives = payload.entitiesOf(ImportEntityType.dives);
+    expect(dives, hasLength(2));
+    expect(dives.first['dateTime'], DateTime.utc(2025, 3, 15, 9, 5));
+  });
+
+  test('a two-digit year reads as the year the dive was logged', () async {
+    // Excel writes a year of its own accord, so an old dive must not land
+    // a century away.
+    final csv = CsvDivesWriter(
+      CsvExportUnits.fromSettings(monthNameDates),
+    ).write(goldenDives()).replaceAll('Mar 15, 2025', '9-Sep-07');
+    final payload = await const SubmersionDivesCsvParser().parse(_bytes(csv));
+    final dives = payload.entitiesOf(ImportEntityType.dives);
+    expect(dives.first['dateTime'], DateTime.utc(2007, 9, 9, 9, 5));
   });
 
   test('a hand-edited unreadable number is left out with a warning', () async {
