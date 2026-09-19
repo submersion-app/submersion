@@ -5,8 +5,22 @@ void main() {
   group('BathymetryLodStage.spanMeters', () {
     test('matches the documented span per stage', () {
       expect(BathymetryLodStage.overview.spanMeters, 8000);
-      expect(BathymetryLodStage.medium.spanMeters, 2000);
-      expect(BathymetryLodStage.fine.spanMeters, 500);
+      expect(BathymetryLodStage.medium.spanMeters, 6000);
+      expect(BathymetryLodStage.fine.spanMeters, 4000);
+      expect(BathymetryLodStage.superFine.spanMeters, 1000);
+    });
+  });
+
+  group('BathymetryLodStage.maxGridDim', () {
+    test('overview/medium/fine share the repository default', () {
+      expect(BathymetryLodStage.overview.maxGridDim, 120);
+      expect(BathymetryLodStage.medium.maxGridDim, 120);
+      expect(BathymetryLodStage.fine.maxGridDim, 120);
+    });
+
+    test('superFine raises the cap well above any shipped source\'s '
+        'native resolution over its span', () {
+      expect(BathymetryLodStage.superFine.maxGridDim, 600);
     });
   });
 
@@ -39,8 +53,20 @@ void main() {
       expect(bathymetryLodStageForZoom(4.501), BathymetryLodStage.fine);
     });
 
-    test('the viewport maximum zoom (8.0) is fine', () {
-      expect(bathymetryLodStageForZoom(8.0), BathymetryLodStage.fine);
+    test('just below the superFine threshold stays fine', () {
+      expect(bathymetryLodStageForZoom(6.499), BathymetryLodStage.fine);
+    });
+
+    test('exactly at the superFine threshold switches to superFine', () {
+      expect(bathymetryLodStageForZoom(6.5), BathymetryLodStage.superFine);
+    });
+
+    test('just above the superFine threshold is superFine', () {
+      expect(bathymetryLodStageForZoom(6.501), BathymetryLodStage.superFine);
+    });
+
+    test('the viewport maximum zoom (8.0) is superFine', () {
+      expect(bathymetryLodStageForZoom(8.0), BathymetryLodStage.superFine);
     });
   });
 }

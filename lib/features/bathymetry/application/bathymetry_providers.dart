@@ -175,10 +175,10 @@ final bathymetryGridProvider =
 // misses the old key rather than rewriting it -- and the transient-failure
 // case already self-invalidates on a backoff timer.
 final bathymetryPatchGridProvider = FutureProvider.autoDispose
-    .family<BathymetryGrid?, ({double lat, double lon, double spanMeters})>((
-      ref,
-      request,
-    ) async {
+    .family<
+      BathymetryGrid?,
+      ({double lat, double lon, double spanMeters, int maxDim})
+    >((ref, request) async {
       void retryLater() {
         final timer = Timer(
           bathymetryTransientRetryBackoff,
@@ -193,7 +193,11 @@ final bathymetryPatchGridProvider = FutureProvider.autoDispose
         return null;
       }
       final center = GeoPoint(request.lat, request.lon);
-      final grid = await repo.getGridForSpan(center, request.spanMeters);
+      final grid = await repo.getGridForSpan(
+        center,
+        request.spanMeters,
+        maxDim: request.maxDim,
+      );
       if (grid == null &&
           !await repo.hasCachedAnswer(center, spanMeters: request.spanMeters)) {
         retryLater(); // transient failure, not a real "no water here"

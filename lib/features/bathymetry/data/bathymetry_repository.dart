@@ -174,18 +174,32 @@ class BathymetryRepository {
       key,
       center,
       BathymetryResolver.defaultSpanMeters,
+      maxGridDim,
     )..whenComplete(() => _inFlight.remove(key));
   }
 
   /// A smaller, additional LOD patch grid around [center] -- e.g. the
-  /// `medium`/`fine` stages in `bathymetry_lod.dart` -- fetched and cached
-  /// independently of the always-loaded [defaultSpanMeters] base square.
-  /// Shares every cache/dedup/quantization/downsample rule with [getGrid];
-  /// only the span (and so the cache key) differs.
-  Future<BathymetryGrid?> getGridForSpan(GeoPoint center, double spanMeters) {
+  /// `medium`/`fine`/`superFine` stages in `bathymetry_lod.dart` -- fetched
+  /// and cached independently of the always-loaded [defaultSpanMeters] base
+  /// square. Shares every cache/dedup/quantization rule with [getGrid]; the
+  /// span (and so the cache key) differs, and [maxDim] lets a stage ask for
+  /// a finer downsample cap than the base square's (see
+  /// [BathymetryLodStage.maxGridDim]'s doc) -- defaults to this
+  /// repository's own [maxGridDim] when omitted. Not folded into the cache
+  /// key: every stage that calls this today has its own, unique span, so
+  /// [spanMeters] alone already disambiguates the row.
+  Future<BathymetryGrid?> getGridForSpan(
+    GeoPoint center,
+    double spanMeters, {
+    int? maxDim,
+  }) {
     final key = keyFor(center, spanMeters: spanMeters);
-    return _inFlight[key] ??= _guardedLoad(key, center, spanMeters)
-      ..whenComplete(() => _inFlight.remove(key));
+    return _inFlight[key] ??= _guardedLoad(
+      key,
+      center,
+      spanMeters,
+      maxDim ?? maxGridDim,
+    )..whenComplete(() => _inFlight.remove(key));
   }
 
   /// The scene must survive ANY cache/fetch failure (a broken table, an
@@ -213,9 +227,10 @@ class BathymetryRepository {
     String key,
     GeoPoint center,
     double spanMeters,
+    int maxDim,
   ) async {
     try {
-      return await _load(key, center, spanMeters);
+      return await _load(key, center, spanMeters, maxDim);
     } catch (e, stackTrace) {
       _log.warning(
         'getGrid($key) degraded to null',
@@ -230,6 +245,7 @@ class BathymetryRepository {
     String key,
     GeoPoint center,
     double spanMeters,
+    int maxDim,
   ) async {
     final row = await (_db.select(
       _db.bathymetryCache,
@@ -278,7 +294,7 @@ class BathymetryRepository {
         resolved,
         fetchCenter,
         spanMeters,
-      ).downsampleTo(maxGridDim);
+      ).downsampleTo(maxDim);
       await _db
           .into(_db.bathymetryCache)
           .insertOnConflictUpdate(

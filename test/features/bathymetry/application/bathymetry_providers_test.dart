@@ -55,6 +55,7 @@ void main() {
           lat: 12.16,
           lon: -68.29,
           spanMeters: 500,
+          maxDim: 120,
         )).future,
       );
       expect(grid, isNull);
@@ -135,7 +136,12 @@ void main() {
           ],
         );
         addTearDown(container.dispose);
-        const request = (lat: 12.16, lon: -68.29, spanMeters: 500.0);
+        const request = (
+          lat: 12.16,
+          lon: -68.29,
+          spanMeters: 500.0,
+          maxDim: 120,
+        );
 
         expect(
           await container.read(bathymetryPatchGridProvider(request).future),
@@ -184,7 +190,7 @@ void main() {
           ],
         );
         addTearDown(container.dispose);
-        const request = (lat: 38.5, lon: -98.0, spanMeters: 500.0);
+        const request = (lat: 38.5, lon: -98.0, spanMeters: 500.0, maxDim: 120);
 
         expect(
           await container.read(bathymetryPatchGridProvider(request).future),
