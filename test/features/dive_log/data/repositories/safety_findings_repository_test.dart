@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
@@ -604,6 +605,7 @@ class _FailingSyncRepository extends SyncRepository {
     required String entityType,
     required String recordId,
     required int localUpdatedAt,
+    List<SyncFactGroup> alsoStamp = const [],
   }) async {
     if (failAfter != null && _marks >= failAfter!) {
       throw StateError('sync bookkeeping failed');
@@ -613,6 +615,7 @@ class _FailingSyncRepository extends SyncRepository {
       entityType: entityType,
       recordId: recordId,
       localUpdatedAt: localUpdatedAt,
+      alsoStamp: alsoStamp,
     );
   }
 }
