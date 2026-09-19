@@ -3,6 +3,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
+import 'package:submersion/features/dive_log/domain/services/sequential_tank_merge.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 
@@ -200,19 +201,11 @@ class DiveMergeBuilder {
 
     final mergedId = idGen();
 
-    // Tanks: all kept, chronological, fresh ids, order re-sequenced.
-    final tankIdMap = <String, String>{};
-    final mergedTanks = <DiveTank>[];
-    var tankOrder = 0;
-    for (final d in sorted) {
-      final tanksInOrder = [...d.tanks]
-        ..sort((x, y) => x.order.compareTo(y.order));
-      for (final tank in tanksInOrder) {
-        final freshId = idGen();
-        tankIdMap[tank.id] = freshId;
-        mergedTanks.add(tank.copyWith(id: freshId, order: tankOrder++));
-      }
-    }
+    // Tanks: one per physical cylinder, chronological, fresh ids, order
+    // re-sequenced (#2036).
+    final tankMerge = mergeSequentialTanks(sorted, idGenerator: idGen);
+    final tankIdMap = tankMerge.tankIdMap;
+    final mergedTanks = tankMerge.tanks;
 
     // Weights: first source that has any (avoids double-counting lead).
     final weightSource = sorted.firstWhere(

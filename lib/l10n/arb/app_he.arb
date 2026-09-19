@@ -3824,6 +3824,7 @@
   "equipment_serviceClocks_countingSince": "נספר מאז {date}",
   "equipment_serviceClocks_overdue": "באיחור",
   "equipment_serviceClocks_divesLeft": "נותרו {remaining} מתוך {total} צלילות",
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} צלילות, נותרו {remaining} מתוך {total}",
   "cylinderConfigs_title": "תצורות בלונים",
   "cylinderConfigs_empty": "אין עדיין תצורות",
   "cylinderConfigs_emptyBody": "שמור פעם אחת מערך מדלל וביילאאוט, ואז החל אותו על כל צלילה.",
@@ -3861,6 +3862,7 @@
   "cylinderConfigs_sectionTitle": "תצורות",
   "equipment_serviceClocks_hoursSource": "מחושב מזמן הצלילה המתועד",
   "equipment_serviceClocks_hoursLeft": "נותרו {remaining} מתוך {total} שעות",
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} שעות, נותרו {remaining} מתוך {total}",
   "equipment_serviceClocks_saltHoursLeft": "נותרו {remaining} מתוך {total} שעות במים מלוחים",
   "@equipment_serviceClocks_saltHoursLeft": {
     "placeholders": {
@@ -3872,6 +3874,7 @@
       }
     }
   },
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} שעות במים מלוחים, נותרו {remaining} מתוך {total}",
   "equipment_serviceClocks_coldDivesLeft": "נותרו {remaining} מתוך {total} צלילות במים קרים",
   "@equipment_serviceClocks_coldDivesLeft": {
     "placeholders": {
@@ -3883,6 +3886,7 @@
       }
     }
   },
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} צלילות במים קרים, נותרו {remaining} מתוך {total}",
   "equipment_serviceClocks_o2HoursLeft": "נותרו {remaining} מתוך {total} שעות בחמצן גבוה",
   "@equipment_serviceClocks_o2HoursLeft": {
     "placeholders": {
@@ -3894,6 +3898,7 @@
       }
     }
   },
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} שעות בחמצן גבוה, נותרו {remaining} מתוך {total}",
   "equipment_serviceClocks_deepCyclesLeft": "נותרו {remaining} מתוך {total} צלילות עמוקות",
   "@equipment_serviceClocks_deepCyclesLeft": {
     "placeholders": {
@@ -3905,6 +3910,7 @@
       }
     }
   },
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} צלילות עמוקות, נותרו {remaining} מתוך {total}",
   "equipment_serviceClocks_cyclesLeft": "נותרו {remaining} מתוך {total} מחזורי סוללה",
   "@equipment_serviceClocks_cyclesLeft": {
     "placeholders": {
@@ -3916,6 +3922,7 @@
       }
     }
   },
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} מחזורי סוללה, נותרו {remaining} מתוך {total}",
   "equipment_serviceClocks_manageKinds": "ניהול סוגי טיפול",
   "equipment_serviceClocks_appliesToClock": "חל על שעון",
   "equipment_serviceClocks_noClockOption": "לא משויך לשעון",
@@ -4121,6 +4128,7 @@
   "equipment_serviceDialog_serviceTypeNotSet": "לא הוגדר",
   "equipment_serviceDialog_categoryHelper": "משמשת לסינון ולייצוא",
   "equipment_serviceDialog_manageServiceTypes": "ניהול סוגי טיפול",
+  "equipment_serviceDialog_filterToConfiguredTypes": "הצג רק סוגי טיפול מוגדרים",
   "equipment_serviceDialog_categoryLabel": "קטגוריה",
   "equipment_serviceDialog_snackbar_added": "רשומת טיפול נוספה",
   "equipment_serviceDialog_snackbar_error": "שגיאה: {error}",
@@ -4153,6 +4161,8 @@
   "equipment_service_filterClear": "ניקוי הסינון",
   "equipment_service_filterNoMatches": "אין תחזוקה התואמת לסינון זה",
   "equipment_service_filterMatchCount": "מוצגים {count} מתוך {total}",
+  "equipment_service_showMore": "{count, plural, =1{הצג עוד אחד} other{הצג עוד {count}}}",
+  "equipment_service_showFewer": "הצג פחות",
   "equipment_serviceKinds_defaultCategoryLabel": "קטגוריית ברירת מחדל",
   "equipment_serviceKinds_defaultCategoryNone": "ללא ברירת מחדל",
   "equipment_serviceKinds_defaultCostLabel": "מחיר ברירת מחדל",
@@ -5911,6 +5921,7 @@
   "statistics_chart_noBarData": "אין נתונים זמינים",
   "statistics_chart_noDistributionData": "אין נתוני התפלגות זמינים",
   "statistics_chart_noTrendData": "אין נתוני מגמה זמינים",
+  "statistics_chart_notRecorded": "לא נרשם",
   "statistics_chart_trendSemanticLabel": "תרשים קו מגמה המציג {count} נקודות נתונים",
   "statistics_chart_trendSemanticLabelWithAxis": "תרשים קו מגמה המציג {count} נקודות נתונים עבור {yAxisLabel}",
   "statistics_conditions_appBar_title": "תנאים",
@@ -9414,6 +9425,11 @@
   "common_bulkDelete_title": "{count, plural, one{למחוק פריט אחד?} two{למחוק שני פריטים?} many{למחוק {count} פריטים?} other{למחוק {count} פריטים?}}",
   "common_bulkDelete_body": "לא ניתן לבטל פעולה זו.",
   "common_bulkDelete_snackbar": "{count, plural, one{פריט אחד נמחק} two{שני פריטים נמחקו} many{{count} נמחקו} other{{count} נמחקו}}",
+  "common_coordinates_invalidLatitude": "קו רוחב לא תקין",
+  "common_coordinates_invalidLongitude": "קו אורך לא תקין",
+  "common_coordinates_latitudeRequired": "נדרש קו רוחב",
+  "common_coordinates_longitudeRequired": "נדרש קו אורך",
+  "common_coordinates_invalid": "קואורדינטות לא תקינות",
   "marineLife_species_delete_confirmTitle": "למחוק מין?",
   "marineLife_species_delete_confirmBody": "האם למחוק את \"{name}\"?",
   "marineLife_species_delete_inUseError": "לא ניתן למחוק את \"{name}\" - יש לו תצפיות",
@@ -12270,5 +12286,34 @@
   "plannerCanvas_compare_showOnChart": "Show on chart",
   "plannerCanvas_gas_usedReading": "בשימוש: {reading}",
   "plannerCanvas_gas_endReading": "סיום: {reading}",
-  "numberInput_invalidValue": "הזן מספר תקין"
+  "numberInput_invalidValue": "הזן מספר תקין",
+  "diveCenters_rental_sectionTitle": "ציוד מושכר",
+  "diveCenters_rental_lastTimeAt": "בפעם הקודמת ב-{center}",
+  "diveCenters_rental_lastDiveOn": "הצלילה האחרונה כאן: {date}",
+  "diveCenters_rental_noHistory": "עדיין לא נרשמו כאן צלילות נוספות.",
+  "diveCenters_rental_empty": "עדיין אין הערות על ציוד מושכר במרכז הזה.",
+  "diveCenters_rental_addNote": "הוספת הערת השכרה",
+  "diveCenters_rental_applyLastDive": "החלת הצלילה האחרונה",
+  "diveCenters_rental_applied": "המשקולות והמכלים הועתקו מהצלילה האחרונה שלך כאן.",
+  "diveCenters_rental_applyConfirmTitle": "להחליף משקולות ומכלים?",
+  "diveCenters_rental_applyConfirmBody": "לצלילה הזו כבר יש משקולות או מכלים. להחליף אותם באלה מהצלילה האחרונה שלך כאן?",
+  "diveCenters_rental_applyConfirmReplace": "החלפה",
+  "diveCenters_rental_leadTotal": "משקולות: {total}",
+  "diveCenters_rental_feedbackOver": "{amount} יותר מדי",
+  "diveCenters_rental_feedbackUnder": "{amount} פחות מדי",
+  "diveCenters_rental_tanksLabel": "מכלים",
+  "diveCenters_rental_verdictWorked": "התאים",
+  "diveCenters_rental_verdictAvoid": "להימנע",
+  "diveCenters_rental_extraLead": "{amount} משקולות נוספות",
+  "diveCenters_rental_lessLead": "{amount} פחות משקולות",
+  "diveCenters_rental_actualCapacity": "קיבולת בפועל {volume}",
+  "diveCenters_rental_sheetTitleNew": "הערת השכרה חדשה",
+  "diveCenters_rental_sheetTitleEdit": "עריכת הערת השכרה",
+  "diveCenters_rental_gearTypeLabel": "סוג ציוד",
+  "diveCenters_rental_labelLabel": "תווית או מספר",
+  "diveCenters_rental_sizeLabel": "מידה",
+  "diveCenters_rental_leadAdjustmentLabel": "משקולות נוספות נדרשות ({unit})",
+  "diveCenters_rental_volumeLabel": "קיבולת בפועל ({unit})",
+  "diveCenters_rental_noteLabel": "הערה",
+  "diveCenters_rental_deleteConfirm": "למחוק את הערת ההשכרה הזו?"
 }

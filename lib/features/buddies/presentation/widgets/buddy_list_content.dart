@@ -453,7 +453,10 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
     Widget buildContent() {
       return buddiesAsync.when(
         data: (buddies) {
-          final sorted = applyBuddyWithDiveCountSorting(buddies, sort);
+          // Favorites are pinned to the top regardless of the chosen sort
+          // field (issue #1336), matching the "Add buddy" picker sheet.
+          final (:favorites, :others) = pinFavoriteBuddiesToTop(buddies, sort);
+          final sorted = [...favorites, ...others];
           return sorted.isEmpty
               ? _buildEmptyState(context)
               : _buildBuddyList(context, ref, sorted);

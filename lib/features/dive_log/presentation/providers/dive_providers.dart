@@ -8,6 +8,7 @@ import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
@@ -208,6 +209,7 @@ List<domain.Dive> _applySorting(
 ) {
   return PerfTimer.measureSync('applySorting', () {
     final sorted = List<domain.Dive>.from(dives);
+    final collator = TextCollator();
 
     sorted.sort((a, b) {
       int comparison;
@@ -218,7 +220,7 @@ List<domain.Dive> _applySorting(
         case DiveSortField.date:
           comparison = a.dateTime.compareTo(b.dateTime);
         case DiveSortField.site:
-          comparison = (a.site?.name ?? '').compareTo(b.site?.name ?? '');
+          comparison = collator.compare(a.site?.name ?? '', b.site?.name ?? '');
         case DiveSortField.depth:
           comparison = (a.maxDepth ?? 0).compareTo(b.maxDepth ?? 0);
         case DiveSortField.bottomTime:

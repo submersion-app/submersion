@@ -11,6 +11,7 @@ import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../helpers/fake_buddy_list_notifier.dart';
 
 const _config = EntityCardViewConfig<BuddyField>(
   slots: [
@@ -79,5 +80,49 @@ void main() {
     await tester.pump();
 
     expect(find.byType(Checkbox), findsOneWidget);
+  });
+
+  group('favorite star (issue #1336)', () {
+    testWidgets('shows a filled star for a favorite buddy', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: await _overrides(),
+          child: CompactBuddyListTile(
+            entry: BuddyWithDiveCount(
+              buddy: _entry.buddy.copyWith(isFavorite: true),
+              diveCount: _entry.diveCount,
+            ),
+            onTap: () {},
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byIcon(Icons.star), findsOneWidget);
+      expect(find.byIcon(Icons.star_border), findsNothing);
+    });
+
+    testWidgets('tapping the star toggles favorite without triggering onTap', (
+      tester,
+    ) async {
+      final notifier = FakeBuddyListNotifier();
+      var rowTaps = 0;
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...await _overrides(),
+            buddyListNotifierProvider.overrideWith((ref) => notifier),
+          ],
+          child: CompactBuddyListTile(entry: _entry, onTap: () => rowTaps++),
+        ),
+      );
+      await tester.pump();
+
+      await tester.tap(find.byIcon(Icons.star_border));
+      await tester.pump();
+
+      expect(notifier.toggledFavoriteIds, ['b1']);
+      expect(rowTaps, 0);
+    });
   });
 }

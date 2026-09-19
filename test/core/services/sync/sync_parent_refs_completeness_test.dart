@@ -27,6 +27,7 @@ void main() {
     'diver_settings': 'diverSettings',
     'buddies': 'buddies',
     'dive_centers': 'diveCenters',
+    'dive_center_gear_notes': 'diveCenterGearNotes',
     'trips': 'trips',
     'liveaboard_detail_records': 'liveaboardDetails',
     'trip_itinerary_days': 'itineraryDays',

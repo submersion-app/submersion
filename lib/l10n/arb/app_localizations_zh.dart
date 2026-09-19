@@ -11606,6 +11606,15 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_divesUsedAndLeft(
+    int used,
+    int remaining,
+    int total,
+  ) {
+    return '已用 $used 次，剩余 $remaining/$total 次潜水';
+  }
+
+  @override
   String get cylinderConfigs_title => '气瓶配置';
 
   @override
@@ -11691,8 +11700,26 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_hoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '已用 $used 小时，剩余 $remaining/$total 小时';
+  }
+
+  @override
   String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
     return '海水小时数剩余 $remaining / $total';
+  }
+
+  @override
+  String equipment_serviceClocks_saltHoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '海水小时数已用 $used，剩余 $remaining / $total';
   }
 
   @override
@@ -11701,8 +11728,26 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_coldDivesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '冷水潜水已用 $used 次，剩余 $remaining / $total 次';
+  }
+
+  @override
   String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
     return '高氧小时数剩余 $remaining / $total';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '高氧小时数已用 $used，剩余 $remaining / $total';
   }
 
   @override
@@ -11714,8 +11759,26 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_deepCyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '深潜已用 $used 次，剩余 $remaining / $total 次';
+  }
+
+  @override
   String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
     return '电池循环剩余 $remaining / $total 次';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '电池循环已用 $used 次，剩余 $remaining / $total 次';
   }
 
   @override
@@ -12444,6 +12507,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_serviceDialog_manageServiceTypes => '管理维护类型';
 
   @override
+  String get equipment_serviceDialog_filterToConfiguredTypes => '仅显示已配置的维护类型';
+
+  @override
   String get equipment_serviceDialog_categoryLabel => '类别';
 
   @override
@@ -12546,6 +12612,19 @@ class AppLocalizationsZh extends AppLocalizations {
   String equipment_service_filterMatchCount(int count, int total) {
     return '显示 $count / $total';
   }
+
+  @override
+  String equipment_service_showMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '再显示 $count 项',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_service_showFewer => '收起';
 
   @override
   String get equipment_serviceKinds_defaultCategoryLabel => '默认类别';
@@ -18821,6 +18900,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => '无趋势数据可用';
+
+  @override
+  String get statistics_chart_notRecorded => '未记录';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {
@@ -29087,6 +29169,21 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get common_coordinates_invalidLatitude => '无效的纬度';
+
+  @override
+  String get common_coordinates_invalidLongitude => '无效的经度';
+
+  @override
+  String get common_coordinates_latitudeRequired => '纬度为必填项';
+
+  @override
+  String get common_coordinates_longitudeRequired => '经度为必填项';
+
+  @override
+  String get common_coordinates_invalid => '无效的坐标';
+
+  @override
   String get marineLife_species_delete_confirmTitle => '删除物种？';
 
   @override
@@ -38793,4 +38890,112 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get numberInput_invalidValue => '请输入有效的数字';
+
+  @override
+  String get diveCenters_rental_sectionTitle => '租赁装备';
+
+  @override
+  String diveCenters_rental_lastTimeAt(Object center) {
+    return '上次在$center';
+  }
+
+  @override
+  String diveCenters_rental_lastDiveOn(Object date) {
+    return '上次在此潜水：$date';
+  }
+
+  @override
+  String get diveCenters_rental_noHistory => '此处尚无其他潜水记录。';
+
+  @override
+  String get diveCenters_rental_empty => '此中心尚无租赁备注。';
+
+  @override
+  String get diveCenters_rental_addNote => '添加租赁备注';
+
+  @override
+  String get diveCenters_rental_applyLastDive => '套用上次潜水';
+
+  @override
+  String get diveCenters_rental_applied => '已从你上次在此的潜水复制配重和气瓶。';
+
+  @override
+  String get diveCenters_rental_applyConfirmTitle => '替换配重和气瓶？';
+
+  @override
+  String get diveCenters_rental_applyConfirmBody =>
+      '此次潜水已有配重或气瓶。是否替换为你上次在此潜水的配置？';
+
+  @override
+  String get diveCenters_rental_applyConfirmReplace => '替换';
+
+  @override
+  String diveCenters_rental_leadTotal(Object total) {
+    return '配重：$total';
+  }
+
+  @override
+  String diveCenters_rental_feedbackOver(Object amount) {
+    return '超重$amount';
+  }
+
+  @override
+  String diveCenters_rental_feedbackUnder(Object amount) {
+    return '欠重$amount';
+  }
+
+  @override
+  String get diveCenters_rental_tanksLabel => '气瓶';
+
+  @override
+  String get diveCenters_rental_verdictWorked => '好用';
+
+  @override
+  String get diveCenters_rental_verdictAvoid => '避免';
+
+  @override
+  String diveCenters_rental_extraLead(Object amount) {
+    return '多带$amount配重';
+  }
+
+  @override
+  String diveCenters_rental_lessLead(Object amount) {
+    return '少带$amount配重';
+  }
+
+  @override
+  String diveCenters_rental_actualCapacity(Object volume) {
+    return '实际容量$volume';
+  }
+
+  @override
+  String get diveCenters_rental_sheetTitleNew => '新建租赁备注';
+
+  @override
+  String get diveCenters_rental_sheetTitleEdit => '编辑租赁备注';
+
+  @override
+  String get diveCenters_rental_gearTypeLabel => '装备类型';
+
+  @override
+  String get diveCenters_rental_labelLabel => '标签或编号';
+
+  @override
+  String get diveCenters_rental_sizeLabel => '尺码';
+
+  @override
+  String diveCenters_rental_leadAdjustmentLabel(Object unit) {
+    return '需额外配重（$unit）';
+  }
+
+  @override
+  String diveCenters_rental_volumeLabel(Object unit) {
+    return '实际容量（$unit）';
+  }
+
+  @override
+  String get diveCenters_rental_noteLabel => '备注';
+
+  @override
+  String get diveCenters_rental_deleteConfirm => '删除此租赁备注？';
 }

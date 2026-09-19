@@ -438,6 +438,64 @@ void main() {
     });
   });
 
+  group('pinFavoriteBuddiesToTop (issue #1336)', () {
+    test('splits favorites and others, each sorted independently', () {
+      final buddies = [
+        _withCount('Zeta', diveCount: 1, isFavorite: true),
+        _withCount('Alpha', diveCount: 10),
+        _withCount('Mid Fave', diveCount: 5, isFavorite: true),
+        _withCount('Beta', diveCount: 3),
+      ];
+
+      final result = pinFavoriteBuddiesToTop(
+        buddies,
+        const SortState(
+          field: BuddySortField.diveCount,
+          direction: SortDirection.descending,
+        ),
+      );
+
+      expect(result.favorites.map((b) => b.buddy.name), [
+        'Mid Fave',
+        'Zeta',
+      ], reason: 'favorites still follow the chosen sort among themselves');
+      expect(result.others.map((b) => b.buddy.name), ['Alpha', 'Beta']);
+    });
+
+    test('an empty favorites list yields an empty favorites partition', () {
+      final buddies = [_withCount('Alpha'), _withCount('Beta')];
+
+      final result = pinFavoriteBuddiesToTop(
+        buddies,
+        const SortState(
+          field: BuddySortField.name,
+          direction: SortDirection.descending,
+        ),
+      );
+
+      expect(result.favorites, isEmpty);
+      expect(result.others.map((b) => b.buddy.name), ['Alpha', 'Beta']);
+    });
+
+    test('does not mutate the input list', () {
+      final buddies = [
+        _withCount('Fave', isFavorite: true),
+        _withCount('Plain'),
+      ];
+      final original = List.of(buddies);
+
+      pinFavoriteBuddiesToTop(
+        buddies,
+        const SortState(
+          field: BuddySortField.name,
+          direction: SortDirection.descending,
+        ),
+      );
+
+      expect(buddies, original);
+    });
+  });
+
   group('applyBuddySorting fallback (plain Buddy, no aggregates)', () {
     test('lastDive falls back to name sorting, like diveCount', () {
       final buddies = [

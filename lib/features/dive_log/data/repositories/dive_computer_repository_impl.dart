@@ -43,6 +43,7 @@ import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
@@ -105,7 +106,7 @@ class DiveComputerRepository {
       final query = _db.select(_db.diveComputers)
         ..orderBy([
           (t) => OrderingTerm.desc(t.isFavorite),
-          (t) => OrderingTerm.asc(t.name),
+          (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
 
       if (diverId != null) {
@@ -113,7 +114,11 @@ class DiveComputerRepository {
       }
 
       final rows = await query.get();
-      return rows.map((row) => _mapRowToComputer(row)).toList();
+      return sortedByText(
+        rows,
+        (r) => r.name,
+        groupOf: (r) => r.isFavorite,
+      ).map((row) => _mapRowToComputer(row)).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all dive computers',

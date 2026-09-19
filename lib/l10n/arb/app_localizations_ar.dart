@@ -11947,6 +11947,15 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_divesUsedAndLeft(
+    int used,
+    int remaining,
+    int total,
+  ) {
+    return '$used غوصة، متبقٍ $remaining من $total غوصة';
+  }
+
+  @override
   String get cylinderConfigs_title => 'إعدادات الأسطوانات';
 
   @override
@@ -12037,8 +12046,26 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_hoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used ساعة، متبقٍ $remaining من $total ساعة';
+  }
+
+  @override
   String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
     return 'تبقى $remaining من $total ساعة في الماء المالح';
+  }
+
+  @override
+  String equipment_serviceClocks_saltHoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used ساعة في الماء المالح، تبقى $remaining من $total ساعة في الماء المالح';
   }
 
   @override
@@ -12047,8 +12074,26 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_coldDivesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used غطسة في الماء البارد، تبقى $remaining من $total غطسة في الماء البارد';
+  }
+
+  @override
   String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
     return 'تبقى $remaining من $total ساعة بأكسجين مرتفع';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used ساعة بأكسجين مرتفع، تبقى $remaining من $total ساعة بأكسجين مرتفع';
   }
 
   @override
@@ -12060,8 +12105,26 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_deepCyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used غطسة عميقة، تبقى $remaining من $total غطسة عميقة';
+  }
+
+  @override
   String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
     return 'تبقى $remaining من $total دورة بطارية';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used دورة بطارية، تبقى $remaining من $total دورة بطارية';
   }
 
   @override
@@ -12835,6 +12898,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'إدارة أنواع الصيانة';
 
   @override
+  String get equipment_serviceDialog_filterToConfiguredTypes =>
+      'إظهار أنواع الصيانة المهيأة فقط';
+
+  @override
   String get equipment_serviceDialog_categoryLabel => 'الفئة';
 
   @override
@@ -12938,6 +13005,20 @@ class AppLocalizationsAr extends AppLocalizations {
   String equipment_service_filterMatchCount(int count, int total) {
     return 'عرض $count من $total';
   }
+
+  @override
+  String equipment_service_showMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'إظهار $count عناصر إضافية',
+      one: 'إظهار عنصر واحد إضافي',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_service_showFewer => 'إظهار عدد أقل';
 
   @override
   String get equipment_serviceKinds_defaultCategoryLabel => 'الفئة الافتراضية';
@@ -19488,6 +19569,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => 'لا توجد بيانات اتجاه متاحة';
+
+  @override
+  String get statistics_chart_notRecorded => 'غير مسجل';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {
@@ -30255,6 +30339,21 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get common_coordinates_invalidLatitude => 'خط العرض غير صحيح';
+
+  @override
+  String get common_coordinates_invalidLongitude => 'خط الطول غير صحيح';
+
+  @override
+  String get common_coordinates_latitudeRequired => 'خط العرض مطلوب';
+
+  @override
+  String get common_coordinates_longitudeRequired => 'خط الطول مطلوب';
+
+  @override
+  String get common_coordinates_invalid => 'إحداثيات غير صحيحة';
+
+  @override
   String get marineLife_species_delete_confirmTitle => 'حذف النوع؟';
 
   @override
@@ -40869,4 +40968,116 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get numberInput_invalidValue => 'أدخل رقمًا صالحًا';
+
+  @override
+  String get diveCenters_rental_sectionTitle => 'معدات مستأجرة';
+
+  @override
+  String diveCenters_rental_lastTimeAt(Object center) {
+    return 'آخر مرة في $center';
+  }
+
+  @override
+  String diveCenters_rental_lastDiveOn(Object date) {
+    return 'آخر غوصة هنا: $date';
+  }
+
+  @override
+  String get diveCenters_rental_noHistory =>
+      'لا توجد غوصات أخرى مسجلة هنا بعد.';
+
+  @override
+  String get diveCenters_rental_empty =>
+      'لا توجد ملاحظات عن المعدات المستأجرة لهذا المركز بعد.';
+
+  @override
+  String get diveCenters_rental_addNote => 'إضافة ملاحظة تأجير';
+
+  @override
+  String get diveCenters_rental_applyLastDive => 'تطبيق آخر غوصة';
+
+  @override
+  String get diveCenters_rental_applied =>
+      'تم نسخ الأثقال والأسطوانات من آخر غوصة لك هنا.';
+
+  @override
+  String get diveCenters_rental_applyConfirmTitle =>
+      'استبدال الأثقال والأسطوانات؟';
+
+  @override
+  String get diveCenters_rental_applyConfirmBody =>
+      'تحتوي هذه الغوصة بالفعل على أثقال أو أسطوانات. هل تريد استبدالها بتلك الموجودة في آخر غوصة لك هنا؟';
+
+  @override
+  String get diveCenters_rental_applyConfirmReplace => 'استبدال';
+
+  @override
+  String diveCenters_rental_leadTotal(Object total) {
+    return 'الأثقال: $total';
+  }
+
+  @override
+  String diveCenters_rental_feedbackOver(Object amount) {
+    return '$amount زيادة';
+  }
+
+  @override
+  String diveCenters_rental_feedbackUnder(Object amount) {
+    return '$amount نقص';
+  }
+
+  @override
+  String get diveCenters_rental_tanksLabel => 'الأسطوانات';
+
+  @override
+  String get diveCenters_rental_verdictWorked => 'مناسب';
+
+  @override
+  String get diveCenters_rental_verdictAvoid => 'تجنّب';
+
+  @override
+  String diveCenters_rental_extraLead(Object amount) {
+    return '$amount أثقال إضافية';
+  }
+
+  @override
+  String diveCenters_rental_lessLead(Object amount) {
+    return '$amount أثقال أقل';
+  }
+
+  @override
+  String diveCenters_rental_actualCapacity(Object volume) {
+    return 'السعة الفعلية $volume';
+  }
+
+  @override
+  String get diveCenters_rental_sheetTitleNew => 'ملاحظة تأجير جديدة';
+
+  @override
+  String get diveCenters_rental_sheetTitleEdit => 'تعديل ملاحظة التأجير';
+
+  @override
+  String get diveCenters_rental_gearTypeLabel => 'نوع المعدات';
+
+  @override
+  String get diveCenters_rental_labelLabel => 'الملصق أو الرقم';
+
+  @override
+  String get diveCenters_rental_sizeLabel => 'المقاس';
+
+  @override
+  String diveCenters_rental_leadAdjustmentLabel(Object unit) {
+    return 'الأثقال الإضافية المطلوبة ($unit)';
+  }
+
+  @override
+  String diveCenters_rental_volumeLabel(Object unit) {
+    return 'السعة الفعلية ($unit)';
+  }
+
+  @override
+  String get diveCenters_rental_noteLabel => 'ملاحظة';
+
+  @override
+  String get diveCenters_rental_deleteConfirm => 'حذف ملاحظة التأجير هذه؟';
 }

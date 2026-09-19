@@ -2502,7 +2502,8 @@ class DiveRepository {
         return 'sort_timestamp $dir, '
             'COALESCE(d.dive_number, 0) $dir, d.id $dir';
       case DiveSortField.site:
-        return 'COALESCE(s.name, \'\') $dir, $tiebreaker';
+        // NOCASE so "plage" sorts beside "Plage", not after "Z" (#2038).
+        return 'COALESCE(s.name, \'\') COLLATE NOCASE $dir, $tiebreaker';
       case DiveSortField.depth:
         return 'COALESCE(d.max_depth, 0) $dir, $tiebreaker';
       case DiveSortField.bottomTime:

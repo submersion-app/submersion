@@ -238,6 +238,91 @@ void main() {
     expect(find.text('All tasks'), findsNothing);
   });
 
+  group('collapsed history', () {
+    // Newest first, matching the order the repository already returns
+    // records in (see service_record_repository.dart's `_newestFirst`);
+    // this section does not re-sort what its provider hands it.
+    List<ServiceRecord> sixRecords() => [
+      for (var i = 5; i >= 0; i--)
+        record(id: 'r$i', kindId: 'disinfect', date: DateTime(2026, 1, i + 1)),
+    ];
+
+    testWidgets('only the 5 most recent rows show by default', (tester) async {
+      await pumpSection(
+        tester,
+        records: sixRecords(),
+        kinds: [kind('disinfect', 'Disinfect')],
+      );
+
+      expect(find.byType(ListTile), findsNWidgets(5));
+      // Newest first: the oldest (Jan 1) is the one left collapsed.
+      expect(find.textContaining('Jan 1,'), findsNothing);
+      expect(find.text('Show 1 more'), findsOneWidget);
+    });
+
+    testWidgets('"Show more" reveals every row and turns into "Show fewer"', (
+      tester,
+    ) async {
+      await pumpSection(
+        tester,
+        records: sixRecords(),
+        kinds: [kind('disinfect', 'Disinfect')],
+      );
+
+      await tester.tap(find.text('Show 1 more'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ListTile), findsNWidgets(6));
+      expect(find.text('Show fewer'), findsOneWidget);
+
+      await tester.tap(find.text('Show fewer'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ListTile), findsNWidgets(5));
+      expect(find.text('Show 1 more'), findsOneWidget);
+    });
+
+    testWidgets('5 or fewer rows show no collapse control', (tester) async {
+      await pumpSection(
+        tester,
+        records: [record(id: 'r1', kindId: 'disinfect')],
+        kinds: [kind('disinfect', 'Disinfect')],
+      );
+
+      expect(find.textContaining('Show'), findsNothing);
+    });
+
+    testWidgets('the collapse applies to the filtered rows, not all of them', (
+      tester,
+    ) async {
+      await pumpSection(
+        tester,
+        records: [
+          ...sixRecords(),
+          record(
+            id: 'r-other',
+            kindId: 'scrubber-repack',
+            date: DateTime(2026, 2, 1),
+          ),
+        ],
+        kinds: [
+          kind('disinfect', 'Disinfect'),
+          kind('scrubber-repack', 'Scrubber repack'),
+        ],
+      );
+
+      await tester.tap(find.text('All tasks'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Disinfect').last);
+      await tester.pumpAndSettle();
+
+      // Filtered down to the 6 disinfect records: still collapses to 5, not
+      // to the unfiltered total of 7.
+      expect(find.byType(ListTile), findsNWidgets(5));
+      expect(find.text('Show 1 more'), findsOneWidget);
+    });
+  });
+
   testWidgets('the item-level export offers share and save', (tester) async {
     await pumpSection(
       tester,
@@ -359,6 +444,10 @@ void main() {
         ],
         kinds: const [],
       );
+      // More records than the collapsed default of 5: expand first so every
+      // category's row is actually rendered.
+      await tester.tap(find.textContaining('Show'));
+      await tester.pumpAndSettle();
 
       // One avatar per record, and the switch covers every enum value without
       // falling through to a shared default.

@@ -7,6 +7,7 @@ import 'package:submersion/features/media/data/services/photo_picker_service.dar
 import 'package:submersion/features/media/domain/value_objects/media_attach_target.dart';
 import 'package:submersion/features/media/presentation/providers/files_tab_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/files_tab.dart';
 import 'package:submersion/features/media/presentation/widgets/url_tab.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -70,9 +71,11 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
     );
   }
 
-  /// Drops files staged by an earlier session that was abandoned rather than
-  /// committed: `filesTabNotifierProvider` is not autoDispose, and this
-  /// session may well attach to a different dive, or to a site.
+  /// Drops files staged, and URLs drafted, by an earlier session that was
+  /// abandoned rather than committed: `filesTabNotifierProvider` and
+  /// `urlTabNotifierProvider` are not autoDispose, and this session may well
+  /// attach to a different dive, or to a site. The Gallery selection needs
+  /// no reset here; its provider is autoDispose.
   ///
   /// Deferred by a microtask because Riverpod forbids mutating a provider
   /// inside a widget life-cycle. It still lands before the first frame the
@@ -81,11 +84,14 @@ class _PhotoPickerPageState extends ConsumerState<PhotoPickerPage> {
   void _clearStaleStaging() {
     if (!mounted) return;
     ref.read(filesTabNotifierProvider.notifier).clearStagedFiles();
+    ref.read(urlTabNotifierProvider.notifier).startSession();
   }
 
   Future<void> _checkPermissionAndLoad() async {
     final notifier = ref.read(photoPickerNotifierProvider.notifier);
     await notifier.checkPermission();
+    // Closed while the check was in flight: the session's notifier is gone.
+    if (!mounted) return;
 
     // Set already-linked IDs so they appear dimmed and non-selectable
     notifier.setAlreadyLinkedIds(widget.alreadyLinkedIds);

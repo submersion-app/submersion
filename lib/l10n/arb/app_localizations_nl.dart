@@ -12051,6 +12051,15 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_divesUsedAndLeft(
+    int used,
+    int remaining,
+    int total,
+  ) {
+    return '$used duiken, $remaining van $total resterend';
+  }
+
+  @override
   String get cylinderConfigs_title => 'Flesconfiguraties';
 
   @override
@@ -12142,8 +12151,26 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_hoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used uur, $remaining van $total resterend';
+  }
+
+  @override
   String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
     return '$remaining van $total uren in zout water over';
+  }
+
+  @override
+  String equipment_serviceClocks_saltHoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used uren in zout water, $remaining van $total over';
   }
 
   @override
@@ -12152,8 +12179,26 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_coldDivesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used koudwaterduiken, $remaining van $total over';
+  }
+
+  @override
   String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
     return '$remaining van $total uren met hoog O2 over';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used uren met hoog O2, $remaining van $total over';
   }
 
   @override
@@ -12165,8 +12210,26 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_deepCyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used diepe duiken, $remaining van $total over';
+  }
+
+  @override
   String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
     return '$remaining van $total batterijcycli over';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used batterijcycli, $remaining van $total over';
   }
 
   @override
@@ -12949,6 +13012,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Servicetypes beheren';
 
   @override
+  String get equipment_serviceDialog_filterToConfiguredTypes =>
+      'Alleen geconfigureerde servicetypes tonen';
+
+  @override
   String get equipment_serviceDialog_categoryLabel => 'Categorie';
 
   @override
@@ -13056,6 +13123,20 @@ class AppLocalizationsNl extends AppLocalizations {
   String equipment_service_filterMatchCount(int count, int total) {
     return '$count van $total getoond';
   }
+
+  @override
+  String equipment_service_showMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count meer tonen',
+      one: '1 meer tonen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_service_showFewer => 'Minder tonen';
 
   @override
   String get equipment_serviceKinds_defaultCategoryLabel =>
@@ -19669,6 +19750,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => 'Geen trendgegevens beschikbaar';
+
+  @override
+  String get statistics_chart_notRecorded => 'Niet vastgelegd';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {
@@ -30454,6 +30538,21 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get common_coordinates_invalidLatitude => 'Ongeldige breedtegraad';
+
+  @override
+  String get common_coordinates_invalidLongitude => 'Ongeldige lengtegraad';
+
+  @override
+  String get common_coordinates_latitudeRequired => 'Breedtegraad is verplicht';
+
+  @override
+  String get common_coordinates_longitudeRequired => 'Lengtegraad is verplicht';
+
+  @override
+  String get common_coordinates_invalid => 'Ongeldige coördinaten';
+
+  @override
   String get marineLife_species_delete_confirmTitle => 'Soort verwijderen?';
 
   @override
@@ -40918,4 +41017,117 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get numberInput_invalidValue => 'Voer een geldig getal in';
+
+  @override
+  String get diveCenters_rental_sectionTitle => 'Huuruitrusting';
+
+  @override
+  String diveCenters_rental_lastTimeAt(Object center) {
+    return 'Vorige keer bij $center';
+  }
+
+  @override
+  String diveCenters_rental_lastDiveOn(Object date) {
+    return 'Laatste duik hier: $date';
+  }
+
+  @override
+  String get diveCenters_rental_noHistory =>
+      'Hier zijn nog geen andere duiken gelogd.';
+
+  @override
+  String get diveCenters_rental_empty =>
+      'Nog geen huurnotities voor dit centrum.';
+
+  @override
+  String get diveCenters_rental_addNote => 'Huurnotitie toevoegen';
+
+  @override
+  String get diveCenters_rental_applyLastDive => 'Laatste duik toepassen';
+
+  @override
+  String get diveCenters_rental_applied =>
+      'Lood en flessen overgenomen van je laatste duik hier.';
+
+  @override
+  String get diveCenters_rental_applyConfirmTitle =>
+      'Lood en flessen vervangen?';
+
+  @override
+  String get diveCenters_rental_applyConfirmBody =>
+      'Deze duik heeft al lood of flessen. Vervangen door die van je laatste duik hier?';
+
+  @override
+  String get diveCenters_rental_applyConfirmReplace => 'Vervangen';
+
+  @override
+  String diveCenters_rental_leadTotal(Object total) {
+    return 'Lood: $total';
+  }
+
+  @override
+  String diveCenters_rental_feedbackOver(Object amount) {
+    return '$amount te veel';
+  }
+
+  @override
+  String diveCenters_rental_feedbackUnder(Object amount) {
+    return '$amount te weinig';
+  }
+
+  @override
+  String get diveCenters_rental_tanksLabel => 'Flessen';
+
+  @override
+  String get diveCenters_rental_verdictWorked => 'Beviel';
+
+  @override
+  String get diveCenters_rental_verdictAvoid => 'Vermijden';
+
+  @override
+  String diveCenters_rental_extraLead(Object amount) {
+    return '$amount extra lood';
+  }
+
+  @override
+  String diveCenters_rental_lessLead(Object amount) {
+    return '$amount minder lood';
+  }
+
+  @override
+  String diveCenters_rental_actualCapacity(Object volume) {
+    return 'Werkelijke inhoud $volume';
+  }
+
+  @override
+  String get diveCenters_rental_sheetTitleNew => 'Nieuwe huurnotitie';
+
+  @override
+  String get diveCenters_rental_sheetTitleEdit => 'Huurnotitie bewerken';
+
+  @override
+  String get diveCenters_rental_gearTypeLabel => 'Type uitrusting';
+
+  @override
+  String get diveCenters_rental_labelLabel => 'Label of nummer';
+
+  @override
+  String get diveCenters_rental_sizeLabel => 'Maat';
+
+  @override
+  String diveCenters_rental_leadAdjustmentLabel(Object unit) {
+    return 'Extra lood nodig ($unit)';
+  }
+
+  @override
+  String diveCenters_rental_volumeLabel(Object unit) {
+    return 'Werkelijke inhoud ($unit)';
+  }
+
+  @override
+  String get diveCenters_rental_noteLabel => 'Notitie';
+
+  @override
+  String get diveCenters_rental_deleteConfirm =>
+      'Deze huurnotitie verwijderen?';
 }

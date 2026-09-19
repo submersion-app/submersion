@@ -137,8 +137,33 @@ class UrlTabNotifier extends StateNotifier<UrlTabState> {
   /// repository.
   final MediaDeletionCoordinator? _deletionCoordinator;
 
+  /// Bumped by [startSession]. Async work captures it when it starts and
+  /// writes its outcome only while it still matches, so a resolve or commit
+  /// the previous picker left in flight cannot reach into the next one.
+  int _session = 0;
+
   void setMode(UrlTabMode mode) {
     state = state.copyWith(mode: mode);
+  }
+
+  /// Called when the picker opens. The notifier is not autoDispose (the
+  /// draft must survive a swipe to another tab, and Undo can fire after the
+  /// picker closes), so URLs typed and then abandoned would otherwise
+  /// reappear in the next session, which may attach to a different dive or
+  /// site (issue #1996). The segmented mode is kept, like the Files tab's
+  /// auto-match preference.
+  ///
+  /// A resolve or commit still running from the previous session finishes
+  /// on its own but no longer touches this state; see [_session].
+  void startSession() {
+    _session++;
+    state = state.copyWith(
+      draftLines: const [],
+      resolving: false,
+      committedIds: const [],
+      clearLastError: true,
+      unauthenticatedHosts: const {},
+    );
   }
 
   void setDraft(String text) {
@@ -171,21 +196,29 @@ class UrlTabNotifier extends StateNotifier<UrlTabState> {
         uris.add(result.uri);
       }
     }
+    final session = _session;
     state = state.copyWith(resolving: true);
     try {
       return await _pipeline.resolve(uris);
     } finally {
-      state = state.copyWith(resolving: false);
+      if (session == _session) state = state.copyWith(resolving: false);
     }
   }
 
   /// Inserts the decided rows, stamps [UrlTabState.committedIds] for the
   /// undo path, and clears the draft now that it has become rows.
+  ///
+  /// When the picker was reopened meanwhile, the draft on screen belongs to
+  /// the new session and is left alone. The ids are returned either way:
+  /// the rows exist, and the caller's Undo still needs them.
   Future<List<String>> commitRequests(
     List<NetworkInsertRequest> requests,
   ) async {
+    final session = _session;
     final ids = await _pipeline.insertResolved(requests);
-    state = state.copyWith(committedIds: ids, draftLines: const []);
+    if (session == _session) {
+      state = state.copyWith(committedIds: ids, draftLines: const []);
+    }
     return ids;
   }
 

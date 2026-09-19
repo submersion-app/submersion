@@ -6951,6 +6951,20 @@
       }
     }
   },
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} dives, {remaining} of {total} dives left",
+  "@equipment_serviceClocks_divesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "cylinderConfigs_title": "Cylinder configurations",
   "cylinderConfigs_empty": "No configurations yet",
   "cylinderConfigs_emptyBody": "Save a diluent and bailout setup once, then apply it to any dive.",
@@ -6998,9 +7012,37 @@
       }
     }
   },
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} hours, {remaining} of {total} hours left",
+  "@equipment_serviceClocks_hoursUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_saltHoursLeft": "{remaining} of {total} salt-water hours left",
   "@equipment_serviceClocks_saltHoursLeft": {
     "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} salt-water hours, {remaining} of {total} salt-water hours left",
+  "@equipment_serviceClocks_saltHoursUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
       "remaining": {
         "type": "String"
       },
@@ -7020,9 +7062,37 @@
       }
     }
   },
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} cold dives, {remaining} of {total} cold dives left",
+  "@equipment_serviceClocks_coldDivesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_o2HoursLeft": "{remaining} of {total} high-O2 hours left",
   "@equipment_serviceClocks_o2HoursLeft": {
     "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} high-O2 hours, {remaining} of {total} high-O2 hours left",
+  "@equipment_serviceClocks_o2HoursUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
       "remaining": {
         "type": "String"
       },
@@ -7042,9 +7112,37 @@
       }
     }
   },
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} deep dives, {remaining} of {total} deep dives left",
+  "@equipment_serviceClocks_deepCyclesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_cyclesLeft": "{remaining} of {total} battery cycles left",
   "@equipment_serviceClocks_cyclesLeft": {
     "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} battery cycles, {remaining} of {total} battery cycles left",
+  "@equipment_serviceClocks_cyclesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
       "remaining": {
         "type": "String"
       },
@@ -7429,6 +7527,7 @@
   "equipment_serviceDialog_serviceTypeNotSet": "Not set",
   "equipment_serviceDialog_categoryHelper": "Used for filtering and export",
   "equipment_serviceDialog_manageServiceTypes": "Manage service types",
+  "equipment_serviceDialog_filterToConfiguredTypes": "Only show configured service types",
   "equipment_serviceDialog_categoryLabel": "Category",
   "equipment_serviceDialog_snackbar_added": "Service record added",
   "equipment_serviceDialog_snackbar_error": "Error: {error}",
@@ -7478,6 +7577,15 @@
       }
     }
   },
+  "equipment_service_showMore": "{count, plural, =1{Show 1 more} other{Show {count} more}}",
+  "@equipment_service_showMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_service_showFewer": "Show fewer",
   "@equipment_service_totalCostLabel": {
     "placeholders": {
       "currency": {
@@ -11919,6 +12027,7 @@
   "statistics_chart_noBarData": "No data available",
   "statistics_chart_noDistributionData": "No distribution data available",
   "statistics_chart_noTrendData": "No trend data available",
+  "statistics_chart_notRecorded": "Not recorded",
   "statistics_chart_trendSemanticLabel": "Trend line chart showing {count} data points",
   "statistics_chart_trendSemanticLabelWithAxis": "Trend line chart showing {count} data points for {yAxisLabel}",
   "statistics_conditions_appBar_title": "Conditions",
@@ -19797,6 +19906,11 @@
       }
     }
   },
+  "common_coordinates_invalidLatitude": "Invalid latitude",
+  "common_coordinates_invalidLongitude": "Invalid longitude",
+  "common_coordinates_latitudeRequired": "Latitude is required",
+  "common_coordinates_longitudeRequired": "Longitude is required",
+  "common_coordinates_invalid": "Invalid coordinates",
   "marineLife_species_delete_confirmTitle": "Delete species?",
   "marineLife_species_delete_confirmBody": "Are you sure you want to delete \"{name}\"?",
   "marineLife_species_delete_inUseError": "Cannot delete \"{name}\" - it has sightings",
@@ -25154,5 +25268,44 @@
   "plannerCanvas_compare_planned": "Plan",
   "plannerCanvas_compare_actual": "Actual",
   "plannerCanvas_compare_showOnChart": "Show on chart",
-  "numberInput_invalidValue": "Enter a valid number"
+  "numberInput_invalidValue": "Enter a valid number",
+  "diveCenters_rental_sectionTitle": "Rental gear",
+  "diveCenters_rental_lastTimeAt": "Last time at {center}",
+  "@diveCenters_rental_lastTimeAt": {"placeholders": {"center": {"type": "Object"}}},
+  "diveCenters_rental_lastDiveOn": "Last dive here: {date}",
+  "@diveCenters_rental_lastDiveOn": {"placeholders": {"date": {"type": "Object"}}},
+  "diveCenters_rental_noHistory": "No other dives logged here yet.",
+  "diveCenters_rental_empty": "No rental notes for this center yet.",
+  "diveCenters_rental_addNote": "Add rental note",
+  "diveCenters_rental_applyLastDive": "Apply last dive",
+  "diveCenters_rental_applied": "Weights and tanks copied from your last dive here.",
+  "diveCenters_rental_applyConfirmTitle": "Replace weights and tanks?",
+  "diveCenters_rental_applyConfirmBody": "This dive already has weights or tanks. Replace them with the ones from your last dive here?",
+  "diveCenters_rental_applyConfirmReplace": "Replace",
+  "diveCenters_rental_leadTotal": "Lead: {total}",
+  "@diveCenters_rental_leadTotal": {"placeholders": {"total": {"type": "Object"}}},
+  "diveCenters_rental_feedbackOver": "{amount} over",
+  "@diveCenters_rental_feedbackOver": {"placeholders": {"amount": {"type": "Object"}}},
+  "diveCenters_rental_feedbackUnder": "{amount} under",
+  "@diveCenters_rental_feedbackUnder": {"placeholders": {"amount": {"type": "Object"}}},
+  "diveCenters_rental_tanksLabel": "Tanks",
+  "diveCenters_rental_verdictWorked": "Worked",
+  "diveCenters_rental_verdictAvoid": "Avoid",
+  "diveCenters_rental_extraLead": "{amount} extra lead",
+  "@diveCenters_rental_extraLead": {"placeholders": {"amount": {"type": "Object"}}},
+  "diveCenters_rental_lessLead": "{amount} less lead",
+  "@diveCenters_rental_lessLead": {"placeholders": {"amount": {"type": "Object"}}},
+  "diveCenters_rental_actualCapacity": "Actual capacity {volume}",
+  "@diveCenters_rental_actualCapacity": {"placeholders": {"volume": {"type": "Object"}}},
+  "diveCenters_rental_sheetTitleNew": "New rental note",
+  "diveCenters_rental_sheetTitleEdit": "Edit rental note",
+  "diveCenters_rental_gearTypeLabel": "Gear type",
+  "diveCenters_rental_labelLabel": "Label or number",
+  "diveCenters_rental_sizeLabel": "Size",
+  "diveCenters_rental_leadAdjustmentLabel": "Extra lead needed ({unit})",
+  "@diveCenters_rental_leadAdjustmentLabel": {"placeholders": {"unit": {"type": "Object"}}},
+  "diveCenters_rental_volumeLabel": "Actual capacity ({unit})",
+  "@diveCenters_rental_volumeLabel": {"placeholders": {"unit": {"type": "Object"}}},
+  "diveCenters_rental_noteLabel": "Note",
+  "diveCenters_rental_deleteConfirm": "Delete this rental note?"
 }

@@ -4,12 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v220 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 220);
+  test('v220 is in the ladder', () {
+    // The newest rung owns the exact currentSchemaVersion/step-count
+    // assertions; relaxed here once v221 (rental gear memory) landed on top.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(220));
     expect(AppDatabase.migrationVersions, contains(220));
-    expect(AppDatabase.migrationStepCount(219), 1);
+    expect(AppDatabase.migrationStepCount(219), greaterThanOrEqualTo(1));
   });
 
   test('the column is additive, so the sync floor does not move', () {

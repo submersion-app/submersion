@@ -23,6 +23,7 @@ class TripSection extends StatelessWidget {
     this.tripCaption,
     this.tripSuggestion,
     this.centerCaption,
+    this.centerChild,
   });
 
   final bool expanded;
@@ -44,6 +45,10 @@ class TripSection extends StatelessWidget {
 
   /// Dive center location, shown under the dive center row.
   final String? centerCaption;
+
+  /// Rendered under the dive center row when a center is selected: the
+  /// "last time here" rental memory card (issue #2075).
+  final Widget? centerChild;
 
   Widget _caption(BuildContext context, String text) {
     final theme = Theme.of(context);
@@ -101,6 +106,16 @@ class TripSection extends StatelessWidget {
               onClear: diveCenterName == null ? null : onClearDiveCenter,
             ),
             if (centerCaption != null) _caption(context, centerCaption!),
+            if (centerChild != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  FormStyle.groupRadius,
+                  0,
+                  FormStyle.groupRadius,
+                  10,
+                ),
+                child: centerChild,
+              ),
           ],
         ),
       ],

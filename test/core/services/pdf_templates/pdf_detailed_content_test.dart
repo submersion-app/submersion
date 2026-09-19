@@ -111,6 +111,41 @@ void main() {
     });
   });
 
+  // #2056: notes taller than one page body threw "Widget won't fit into the
+  // page" and failed the whole export. A pw.Text only breaks across pages
+  // when it is built with TextOverflow.span.
+  group('notes longer than a page (#2056)', () {
+    final pageLongNote = List.generate(
+      400,
+      (i) => 'Sentence $i of a very long dive story.',
+    ).join(' ');
+    final longNotesDive = dive.copyWith(notes: pageLongNote);
+
+    for (final pageSize in PdfPageSize.values) {
+      test('continues the notes onto another sheet on $pageSize', () async {
+        final bytes = await PdfTemplateDetailed().buildPdf(
+          dives: [longNotesDive],
+          pageSize: pageSize,
+          dates: dates,
+          units: units,
+        );
+
+        final text = pdfVisibleText(bytes);
+        expect(text, contains('Sentence 0 of'));
+        expect(
+          text,
+          contains('Sentence 399 of'),
+          reason: 'the tail of the note must land on a continuation sheet',
+        );
+        expect(
+          pdfPageCount(bytes),
+          greaterThan(pdfPageCount(await render(dive))),
+          reason: 'a note taller than a page needs more than one dive sheet',
+        );
+      });
+    }
+  });
+
   group('field coverage from #1017', () {
     late String text;
 

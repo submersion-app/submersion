@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/shared/widgets/forms/coordinate_input.dart';
+import 'package:submersion/shared/widgets/forms/coordinate_validation_messages.dart';
 
 /// Bridges a [CoordinateInput] to the pair of decimal-degree
 /// [TextEditingController]s the edit forms already keep.
@@ -21,7 +22,7 @@ class CoordinateFieldGroup extends StatefulWidget {
     this.latitudeLabel,
     this.longitudeLabel,
     this.errorText,
-    this.invalidMessage,
+    this.messages,
   });
 
   final TextEditingController latitudeController;
@@ -31,8 +32,9 @@ class CoordinateFieldGroup extends StatefulWidget {
   final String? longitudeLabel;
   final String? errorText;
 
-  /// Shown, and used to fail form validation, while the entry is invalid.
-  final String? invalidMessage;
+  /// Shown, and used to fail form validation, while the entry is not a
+  /// position. Null disables the validation.
+  final CoordinateValidationMessages? messages;
 
   @override
   State<CoordinateFieldGroup> createState() => _CoordinateFieldGroupState();
@@ -109,7 +111,7 @@ class _CoordinateFieldGroupState extends State<CoordinateFieldGroup> {
       latitudeLabel: widget.latitudeLabel,
       longitudeLabel: widget.longitudeLabel,
       errorText: widget.errorText,
-      invalidMessage: widget.invalidMessage,
+      messages: widget.messages,
     );
   }
 }

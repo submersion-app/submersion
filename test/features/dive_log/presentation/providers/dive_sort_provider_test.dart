@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 
 void main() {
@@ -11,9 +12,11 @@ void main() {
     required String id,
     Duration? bottomTime,
     DateTime? dateTime,
+    String? siteName,
   }) {
     return Dive(
       id: id,
+      site: siteName == null ? null : DiveSite(id: 'site-$id', name: siteName),
       dateTime: dateTime ?? DateTime(2026, 3, 28),
       bottomTime: bottomTime,
       tanks: const [],
@@ -103,6 +106,38 @@ void main() {
       // null bottomTime treated as 0 minutes, so d2 comes first
       expect(result.value?.first.id, 'd2');
       expect(result.value?.last.id, 'd3');
+    });
+
+    test('site sort ignores case and accents (issue #2038)', () {
+      final dives = [
+        makeDive(id: 'zebra', siteName: 'Zebra Reef'),
+        makeDive(id: 'lower', siteName: 'plage'),
+        makeDive(id: 'accent', siteName: 'Écueil'),
+        makeDive(id: 'upper', siteName: 'Plage'),
+      ];
+
+      final container = ProviderContainer(
+        overrides: [
+          filteredDivesProvider.overrideWith((ref) => AsyncValue.data(dives)),
+          // Text sorts invert: descending is A to Z.
+          diveSortProvider.overrideWith(
+            (ref) => const SortState(
+              field: DiveSortField.site,
+              direction: SortDirection.descending,
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      final result = container.read(sortedFilteredDivesProvider);
+
+      expect(result.value?.map((d) => d.id).toList(), [
+        'accent',
+        'upper',
+        'lower',
+        'zebra',
+      ]);
     });
   });
 }

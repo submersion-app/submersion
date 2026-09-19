@@ -21,9 +21,10 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
-/// The shared gear renderer (issue #1487): set bands first, loose gear last,
-/// each band's top-level rows arranged by the diver's preference, assemblies
-/// collapsed with their parts underneath.
+/// The shared gear renderer (issue #1487): the dive's sets as chips above
+/// one list of top-level rows arranged by the diver's preference, set gear
+/// and hand-added gear together (#2031), assemblies collapsed with their
+/// parts underneath.
 void main() {
   EquipmentItem item(String id, String name, EquipmentType type) =>
       EquipmentItem(id: id, name: name, type: type);
@@ -77,10 +78,11 @@ void main() {
     void Function(GearLink)? onUpdateAssembly,
     ComponentsIndex template = ComponentsIndex.empty,
     Set<String> activeParts = const {},
+    List<EquipmentSet>? sets,
   }) => ProviderScope(
     overrides: [
       equipmentArrangementProvider.overrideWithValue(arrangement),
-      equipmentSetsProvider.overrideWith((ref) async => [winter]),
+      equipmentSetsProvider.overrideWith((ref) async => sets ?? [winter]),
       settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
       equipmentComponentsIndexProvider.overrideWith((ref) async => template),
       activeComponentIdsProvider.overrideWith((ref) async => activeParts),
@@ -104,19 +106,71 @@ void main() {
     ),
   );
 
-  testWidgets('set band first, loose gear last, assembly collapsed', (
-    tester,
-  ) async {
+  testWidgets('set chip above the list, assembly collapsed', (tester) async {
     await tester.pumpWidget(build(arrangement: flat));
     await tester.pumpAndSettle();
-    expect(find.text('Winter kit'), findsOneWidget);
+    expect(find.widgetWithText(Chip, 'Winter kit'), findsOneWidget);
     expect(find.text('Cold water reg'), findsOneWidget);
     expect(find.textContaining('1 component'), findsOneWidget);
     expect(find.text('Long hose'), findsNothing);
     expect(
       tester.getTopLeft(find.text('Winter kit')).dy,
-      lessThan(tester.getTopLeft(find.text('Cressi mask')).dy),
+      lessThan(tester.getTopLeft(find.text('Cold water reg')).dy),
     );
+  });
+
+  testWidgets('hand-added gear sorts among the set\'s gear, not after it', (
+    tester,
+  ) async {
+    // Issue #2031: a diver applies a set, swaps one item for another by
+    // hand, and the swapped-in item trailed the set's gear whatever the
+    // sort. Alphabetical type order puts the loose mask between the set's
+    // fins and reg; the old per-set runs put it after both.
+    await tester.pumpWidget(build(arrangement: flat));
+    await tester.pumpAndSettle();
+    double top(String text) => tester.getTopLeft(find.text(text)).dy;
+    expect(top('Jets'), lessThan(top('Cressi mask')));
+    expect(top('Cressi mask'), lessThan(top('Cold water reg')));
+  });
+
+  testWidgets('a dive with no set shows no set chips', (tester) async {
+    await tester.pumpWidget(
+      build(arrangement: flat, gear: looseGear([items.first])),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(Chip), findsNothing);
+    expect(find.text('Cressi mask'), findsOneWidget);
+  });
+
+  testWidgets('a set missing from the catalog still gets a chip', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      build(
+        arrangement: flat,
+        gear: gearLinksFor(
+          [items.first],
+          const [GearProvenance(equipmentId: 'mask', viaSetId: 'deleted')],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(Chip, 'Set'), findsOneWidget);
+  });
+
+  testWidgets('a set with a blank name gets the fallback label', (
+    tester,
+  ) async {
+    // The set editor accepts a name of spaces and trims it on save, so a
+    // stored name can be empty; the chip must not render with no label.
+    await tester.pumpWidget(
+      build(
+        arrangement: flat,
+        sets: [winter.copyWith(name: '')],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.widgetWithText(Chip, 'Set'), findsOneWidget);
   });
 
   testWidgets('expanding shows the parts indented under the assembly', (
@@ -150,21 +204,22 @@ void main() {
     expect(find.text('slot-hose'), findsOneWidget);
   });
 
-  testWidgets('the arrangement groups each band\'s top-level rows by type', (
+  testWidgets('the arrangement groups every top-level row by type', (
     tester,
   ) async {
     await tester.pumpWidget(build(arrangement: EquipmentArrangement.defaults));
     await tester.pumpAndSettle();
-    // One header per type per band: Fins and Regulator in the winter band,
-    // Mask in the loose band. The hose is a part and gets no header.
+    // One header per type across the whole dive, set and loose gear alike,
+    // so the loose mask lands between the set's fins and reg (#2031). The
+    // hose is a part and gets no header.
     final headers = tester
         .widgetList<EquipmentGroupHeader>(find.byType(EquipmentGroupHeader))
         .map((h) => h.type)
         .toList();
     expect(headers, [
       EquipmentType.fins,
-      EquipmentType.regulator,
       EquipmentType.mask,
+      EquipmentType.regulator,
     ]);
   });
 
@@ -202,7 +257,7 @@ void main() {
       'nothing', (tester) async {
     await tester.pumpWidget(build(arrangement: flat, onRemoveSet: (_) {}));
     await tester.pumpAndSettle();
-    // Only the set header's own button; no per-row close icons.
+    // Only the set chip's own delete button; no per-row close icons.
     expect(find.byIcon(Icons.close), findsOneWidget);
     expect(find.byTooltip('Remove set from this dive'), findsOneWidget);
     expect(find.byTooltip('Remove assembly and its parts'), findsNothing);

@@ -176,12 +176,14 @@ class PhotoPickerNotifier extends StateNotifier<PhotoPickerState> {
 
     try {
       final status = await _service.requestPermission();
+      if (!mounted) return;
       state = state.copyWith(
         permissionRequested: true,
         permissionStatus: status,
         isLoading: false,
       );
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(
         isLoading: false,
         error: 'Failed to request permission: $e',
@@ -193,8 +195,10 @@ class PhotoPickerNotifier extends StateNotifier<PhotoPickerState> {
   Future<void> checkPermission() async {
     try {
       final status = await _service.checkPermission();
+      if (!mounted) return;
       state = state.copyWith(permissionStatus: status);
     } catch (e) {
+      if (!mounted) return;
       state = state.copyWith(error: 'Failed to check permission: $e');
     }
   }
@@ -240,8 +244,16 @@ class PhotoPickerNotifier extends StateNotifier<PhotoPickerState> {
 }
 
 /// StateNotifierProvider for photo picker state management.
+///
+/// autoDispose scopes the selection to one picker session. The picker is
+/// opened from a dive or a dive site, and a global selection carried the
+/// photos picked for one owner into the next session as preselected
+/// (issue #1996). [PhotoPickerPage] watches this for its whole lifetime, so
+/// the state still survives switching between its tabs.
 final photoPickerNotifierProvider =
-    StateNotifierProvider<PhotoPickerNotifier, PhotoPickerState>((ref) {
+    StateNotifierProvider.autoDispose<PhotoPickerNotifier, PhotoPickerState>((
+      ref,
+    ) {
       final service = ref.watch(photoPickerServiceProvider);
       return PhotoPickerNotifier(service);
     });

@@ -48,6 +48,7 @@ class PdfTemplatePadi extends PdfTemplateBuilder {
     bool includeVerificationAreas = false,
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
+    Map<String, String> equipmentSetNamesById = const {},
   }) async {
     final pdf = pw.Document(theme: PdfFonts.instance.theme);
     final pageFormat = getPageFormat(pageSize);

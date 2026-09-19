@@ -7,6 +7,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
@@ -61,9 +62,9 @@ class DiverRepository {
   Future<List<domain.Diver>> getAllDivers() async {
     try {
       final query = _db.select(_db.divers)
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+        ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
       final rows = await query.get();
-      return rows.map(_mapRowToDiver).toList();
+      return sortedByText(rows, (r) => r.name).map(_mapRowToDiver).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get all divers', error: e, stackTrace: stackTrace);
       rethrow;

@@ -15,6 +15,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/rental_gear_section.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_delete_usage.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
@@ -106,6 +107,8 @@ class _DiveCenterDetailPageState extends ConsumerState<DiveCenterDetailPage> {
                 const Divider(height: 32),
                 _NotesSection(notes: center.notes),
               ],
+              const Divider(height: 32),
+              RentalGearSection(centerId: widget.centerId),
               const Divider(height: 32),
               _DivesSection(centerId: widget.centerId),
               const SizedBox(height: 32),

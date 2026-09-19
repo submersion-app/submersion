@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
 import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
+import 'package:submersion/shared/widgets/forms/coordinate_validation_messages.dart';
 
 void main() {
   late TextEditingController latitude;
@@ -31,7 +32,13 @@ void main() {
               latitudeController: latitude,
               longitudeController: longitude,
               format: format,
-              invalidMessage: 'Enter a valid coordinate',
+              messages: const CoordinateValidationMessages(
+                invalidLatitude: 'Invalid latitude',
+                invalidLongitude: 'Invalid longitude',
+                latitudeRequired: 'Latitude is required',
+                longitudeRequired: 'Longitude is required',
+                invalidCoordinates: 'Invalid coordinates',
+              ),
             ),
           ),
         ),

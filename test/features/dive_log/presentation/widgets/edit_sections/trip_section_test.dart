@@ -69,4 +69,36 @@ void main() {
     );
     expect(find.text('Add trip or dive center'), findsOneWidget);
   });
+
+  testWidgets('the center child renders under the dive center row', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: TripSection(
+              expanded: true,
+              onToggle: () {},
+              summary: 'Reef Divers',
+              isEmpty: false,
+              tripName: null,
+              onPickTrip: () {},
+              onClearTrip: () {},
+              diveCenterName: 'Reef Divers',
+              onPickDiveCenter: () {},
+              onClearDiveCenter: () {},
+              centerChild: const Text('CENTER_CHILD'),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.text('CENTER_CHILD'), findsOneWidget);
+    final child = tester.getTopLeft(find.text('CENTER_CHILD'));
+    final row = tester.getTopLeft(find.text('Reef Divers').last);
+    expect(child.dy, greaterThan(row.dy));
+  });
 }

@@ -149,7 +149,7 @@ class StatisticsConditionsPage extends ConsumerWidget {
             ),
             child: DistributionPieChart(
               data: data,
-              colors: [Colors.blue.shade600, Colors.cyan.shade400],
+              colors: [for (final s in raw) _waterTypeColor(s.label)],
             ),
           );
         },
@@ -164,6 +164,17 @@ class StatisticsConditionsPage extends ConsumerWidget {
       ),
     );
   }
+
+  /// Slice color for a water type key. Keyed by value rather than by position,
+  /// so each water type keeps its color whatever order the counts put it in,
+  /// and brackish no longer reuses salt's color.
+  static Color _waterTypeColor(String key) => switch (key) {
+    'salt' => Colors.blue.shade600,
+    'fresh' => Colors.cyan.shade400,
+    'brackish' => Colors.teal.shade500,
+    kNotRecordedDistributionKey => Colors.grey.shade500,
+    _ => Colors.indigo.shade300,
+  };
 
   /// Dives per site type (issue #1765). Bars, not a pie: a dive at a site
   /// with several types counts toward each, so the shares overlap.

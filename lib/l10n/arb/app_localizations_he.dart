@@ -11874,6 +11874,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_divesUsedAndLeft(
+    int used,
+    int remaining,
+    int total,
+  ) {
+    return '$used צלילות, נותרו $remaining מתוך $total';
+  }
+
+  @override
   String get cylinderConfigs_title => 'תצורות בלונים';
 
   @override
@@ -11963,8 +11972,26 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_hoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used שעות, נותרו $remaining מתוך $total';
+  }
+
+  @override
   String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
     return 'נותרו $remaining מתוך $total שעות במים מלוחים';
+  }
+
+  @override
+  String equipment_serviceClocks_saltHoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used שעות במים מלוחים, נותרו $remaining מתוך $total';
   }
 
   @override
@@ -11973,8 +12000,26 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_coldDivesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used צלילות במים קרים, נותרו $remaining מתוך $total';
+  }
+
+  @override
   String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
     return 'נותרו $remaining מתוך $total שעות בחמצן גבוה';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used שעות בחמצן גבוה, נותרו $remaining מתוך $total';
   }
 
   @override
@@ -11986,8 +12031,26 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_deepCyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used צלילות עמוקות, נותרו $remaining מתוך $total';
+  }
+
+  @override
   String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
     return 'נותרו $remaining מתוך $total מחזורי סוללה';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used מחזורי סוללה, נותרו $remaining מתוך $total';
   }
 
   @override
@@ -12750,6 +12813,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceDialog_manageServiceTypes => 'ניהול סוגי טיפול';
 
   @override
+  String get equipment_serviceDialog_filterToConfiguredTypes =>
+      'הצג רק סוגי טיפול מוגדרים';
+
+  @override
   String get equipment_serviceDialog_categoryLabel => 'קטגוריה';
 
   @override
@@ -12852,6 +12919,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String equipment_service_filterMatchCount(int count, int total) {
     return 'מוצגים $count מתוך $total';
   }
+
+  @override
+  String equipment_service_showMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הצג עוד $count',
+      one: 'הצג עוד אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_service_showFewer => 'הצג פחות';
 
   @override
   String get equipment_serviceKinds_defaultCategoryLabel =>
@@ -19336,6 +19417,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => 'אין נתוני מגמה זמינים';
+
+  @override
+  String get statistics_chart_notRecorded => 'לא נרשם';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {
@@ -29937,6 +30021,21 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get common_coordinates_invalidLatitude => 'קו רוחב לא תקין';
+
+  @override
+  String get common_coordinates_invalidLongitude => 'קו אורך לא תקין';
+
+  @override
+  String get common_coordinates_latitudeRequired => 'נדרש קו רוחב';
+
+  @override
+  String get common_coordinates_longitudeRequired => 'נדרש קו אורך';
+
+  @override
+  String get common_coordinates_invalid => 'קואורדינטות לא תקינות';
+
+  @override
   String get marineLife_species_delete_confirmTitle => 'למחוק מין?';
 
   @override
@@ -40373,4 +40472,115 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get numberInput_invalidValue => 'הזן מספר תקין';
+
+  @override
+  String get diveCenters_rental_sectionTitle => 'ציוד מושכר';
+
+  @override
+  String diveCenters_rental_lastTimeAt(Object center) {
+    return 'בפעם הקודמת ב-$center';
+  }
+
+  @override
+  String diveCenters_rental_lastDiveOn(Object date) {
+    return 'הצלילה האחרונה כאן: $date';
+  }
+
+  @override
+  String get diveCenters_rental_noHistory =>
+      'עדיין לא נרשמו כאן צלילות נוספות.';
+
+  @override
+  String get diveCenters_rental_empty =>
+      'עדיין אין הערות על ציוד מושכר במרכז הזה.';
+
+  @override
+  String get diveCenters_rental_addNote => 'הוספת הערת השכרה';
+
+  @override
+  String get diveCenters_rental_applyLastDive => 'החלת הצלילה האחרונה';
+
+  @override
+  String get diveCenters_rental_applied =>
+      'המשקולות והמכלים הועתקו מהצלילה האחרונה שלך כאן.';
+
+  @override
+  String get diveCenters_rental_applyConfirmTitle => 'להחליף משקולות ומכלים?';
+
+  @override
+  String get diveCenters_rental_applyConfirmBody =>
+      'לצלילה הזו כבר יש משקולות או מכלים. להחליף אותם באלה מהצלילה האחרונה שלך כאן?';
+
+  @override
+  String get diveCenters_rental_applyConfirmReplace => 'החלפה';
+
+  @override
+  String diveCenters_rental_leadTotal(Object total) {
+    return 'משקולות: $total';
+  }
+
+  @override
+  String diveCenters_rental_feedbackOver(Object amount) {
+    return '$amount יותר מדי';
+  }
+
+  @override
+  String diveCenters_rental_feedbackUnder(Object amount) {
+    return '$amount פחות מדי';
+  }
+
+  @override
+  String get diveCenters_rental_tanksLabel => 'מכלים';
+
+  @override
+  String get diveCenters_rental_verdictWorked => 'התאים';
+
+  @override
+  String get diveCenters_rental_verdictAvoid => 'להימנע';
+
+  @override
+  String diveCenters_rental_extraLead(Object amount) {
+    return '$amount משקולות נוספות';
+  }
+
+  @override
+  String diveCenters_rental_lessLead(Object amount) {
+    return '$amount פחות משקולות';
+  }
+
+  @override
+  String diveCenters_rental_actualCapacity(Object volume) {
+    return 'קיבולת בפועל $volume';
+  }
+
+  @override
+  String get diveCenters_rental_sheetTitleNew => 'הערת השכרה חדשה';
+
+  @override
+  String get diveCenters_rental_sheetTitleEdit => 'עריכת הערת השכרה';
+
+  @override
+  String get diveCenters_rental_gearTypeLabel => 'סוג ציוד';
+
+  @override
+  String get diveCenters_rental_labelLabel => 'תווית או מספר';
+
+  @override
+  String get diveCenters_rental_sizeLabel => 'מידה';
+
+  @override
+  String diveCenters_rental_leadAdjustmentLabel(Object unit) {
+    return 'משקולות נוספות נדרשות ($unit)';
+  }
+
+  @override
+  String diveCenters_rental_volumeLabel(Object unit) {
+    return 'קיבולת בפועל ($unit)';
+  }
+
+  @override
+  String get diveCenters_rental_noteLabel => 'הערה';
+
+  @override
+  String get diveCenters_rental_deleteConfirm => 'למחוק את הערת ההשכרה הזו?';
 }

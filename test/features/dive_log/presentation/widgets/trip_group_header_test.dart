@@ -165,6 +165,27 @@ void main() {
       expect(find.byIcon(Icons.open_in_new), findsNothing);
     });
 
+    testWidgets('has no accent stripe on its leading edge', (tester) async {
+      // The 4px stripe doubled up with the band's borders and read as
+      // clutter; the filled card, icon and kicker mark the header on their
+      // own. The icon sits 12px inside the card instead.
+      await pumpHeader(tester, value: section());
+
+      expect(
+        find.descendant(
+          of: find.byType(TripGroupHeader),
+          matching: find.byWidgetPredicate(
+            (w) => w is Container && w.constraints?.maxWidth == 4,
+          ),
+        ),
+        findsNothing,
+      );
+      final header = tester.getRect(find.byType(TripGroupHeader));
+      final icon = tester.getRect(find.byIcon(Icons.card_travel));
+      // 16px outer padding plus the 12px inset.
+      expect(icon.left - header.left, 28);
+    });
+
     testWidgets('a partly selected group reads as mixed', (tester) async {
       await pumpHeader(
         tester,

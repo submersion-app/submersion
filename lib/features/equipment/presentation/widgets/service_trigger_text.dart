@@ -65,13 +65,15 @@ String formatServiceTriggerText(
     final remaining = u.remaining < 0 ? 0.0 : u.remaining;
     parts.add(
       unit.isFractional
-          ? unit.leftText(
+          ? unit.usedAndLeftText(
               l10n,
+              used: u.since.toStringAsFixed(1),
               remaining: remaining.toStringAsFixed(1),
               total: u.interval.toStringAsFixed(1),
             )
-          : unit.leftText(
+          : unit.usedAndLeftText(
               l10n,
+              used: u.since.round().toString(),
               remaining: remaining.round().toString(),
               total: u.interval.round().toString(),
             ),

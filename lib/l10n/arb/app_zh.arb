@@ -4073,6 +4073,7 @@
   "equipment_serviceClocks_countingSince": "自 {date} 起计算",
   "equipment_serviceClocks_overdue": "已逾期",
   "equipment_serviceClocks_divesLeft": "剩余 {remaining}/{total} 次潜水",
+  "equipment_serviceClocks_divesUsedAndLeft": "已用 {used} 次，剩余 {remaining}/{total} 次潜水",
   "cylinderConfigs_title": "气瓶配置",
   "cylinderConfigs_empty": "尚无配置",
   "cylinderConfigs_emptyBody": "保存一次稀释气与备用气配置，即可应用到任何一次潜水。",
@@ -4110,6 +4111,7 @@
   "cylinderConfigs_sectionTitle": "配置",
   "equipment_serviceClocks_hoursSource": "根据已记录的潜水时间计算",
   "equipment_serviceClocks_hoursLeft": "剩余 {remaining}/{total} 小时",
+  "equipment_serviceClocks_hoursUsedAndLeft": "已用 {used} 小时，剩余 {remaining}/{total} 小时",
   "equipment_serviceClocks_saltHoursLeft": "海水小时数剩余 {remaining} / {total}",
   "@equipment_serviceClocks_saltHoursLeft": {
     "placeholders": {
@@ -4121,6 +4123,7 @@
       }
     }
   },
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "海水小时数已用 {used}，剩余 {remaining} / {total}",
   "equipment_serviceClocks_coldDivesLeft": "冷水潜水剩余 {remaining} / {total} 次",
   "@equipment_serviceClocks_coldDivesLeft": {
     "placeholders": {
@@ -4132,6 +4135,7 @@
       }
     }
   },
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "冷水潜水已用 {used} 次，剩余 {remaining} / {total} 次",
   "equipment_serviceClocks_o2HoursLeft": "高氧小时数剩余 {remaining} / {total}",
   "@equipment_serviceClocks_o2HoursLeft": {
     "placeholders": {
@@ -4143,6 +4147,7 @@
       }
     }
   },
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "高氧小时数已用 {used}，剩余 {remaining} / {total}",
   "equipment_serviceClocks_deepCyclesLeft": "深潜剩余 {remaining} / {total} 次",
   "@equipment_serviceClocks_deepCyclesLeft": {
     "placeholders": {
@@ -4154,6 +4159,7 @@
       }
     }
   },
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "深潜已用 {used} 次，剩余 {remaining} / {total} 次",
   "equipment_serviceClocks_cyclesLeft": "电池循环剩余 {remaining} / {total} 次",
   "@equipment_serviceClocks_cyclesLeft": {
     "placeholders": {
@@ -4165,6 +4171,7 @@
       }
     }
   },
+  "equipment_serviceClocks_cyclesUsedAndLeft": "电池循环已用 {used} 次，剩余 {remaining} / {total} 次",
   "equipment_serviceClocks_manageKinds": "管理维护类型",
   "equipment_serviceClocks_appliesToClock": "适用的倒计时",
   "equipment_serviceClocks_noClockOption": "不关联倒计时",
@@ -4370,6 +4377,7 @@
   "equipment_serviceDialog_serviceTypeNotSet": "未设置",
   "equipment_serviceDialog_categoryHelper": "用于筛选和导出",
   "equipment_serviceDialog_manageServiceTypes": "管理维护类型",
+  "equipment_serviceDialog_filterToConfiguredTypes": "仅显示已配置的维护类型",
   "equipment_serviceDialog_categoryLabel": "类别",
   "equipment_serviceDialog_snackbar_added": "维护记录已添加",
   "equipment_serviceDialog_snackbar_error": "错误： {error}",
@@ -4402,6 +4410,8 @@
   "equipment_service_filterClear": "清除筛选",
   "equipment_service_filterNoMatches": "没有符合此筛选条件的保养记录",
   "equipment_service_filterMatchCount": "显示 {count} / {total}",
+  "equipment_service_showMore": "{count, plural, other{再显示 {count} 项}}",
+  "equipment_service_showFewer": "收起",
   "equipment_serviceKinds_defaultCategoryLabel": "默认类别",
   "equipment_serviceKinds_defaultCategoryNone": "无默认值",
   "equipment_serviceKinds_defaultCostLabel": "默认价格",
@@ -6102,6 +6112,7 @@
   "statistics_chart_noBarData": "无可用数据",
   "statistics_chart_noDistributionData": "无可用分布数据",
   "statistics_chart_noTrendData": "无趋势数据可用",
+  "statistics_chart_notRecorded": "未记录",
   "statistics_chart_trendSemanticLabel": "显示 {count} 个数据点的趋势折线图",
   "statistics_chart_trendSemanticLabelWithAxis": "显示 {yAxisLabel} 的 {count} 个数据点的趋势折线图",
   "statistics_conditions_appBar_title": "条件",
@@ -9414,6 +9425,11 @@
   "common_bulkDelete_title": "{count, plural, other{删除 {count} 项？}}",
   "common_bulkDelete_body": "此操作无法撤消。",
   "common_bulkDelete_snackbar": "{count, plural, other{已删除 {count} 项}}",
+  "common_coordinates_invalidLatitude": "无效的纬度",
+  "common_coordinates_invalidLongitude": "无效的经度",
+  "common_coordinates_latitudeRequired": "纬度为必填项",
+  "common_coordinates_longitudeRequired": "经度为必填项",
+  "common_coordinates_invalid": "无效的坐标",
   "marineLife_species_delete_confirmTitle": "删除物种？",
   "marineLife_species_delete_confirmBody": "确定要删除“{name}”吗？",
   "marineLife_species_delete_inUseError": "无法删除“{name}”——它有目击记录",
@@ -12270,5 +12286,34 @@
   "plannerCanvas_compare_showOnChart": "Show on chart",
   "plannerCanvas_gas_usedReading": "已用: {reading}",
   "plannerCanvas_gas_endReading": "结束: {reading}",
-  "numberInput_invalidValue": "请输入有效的数字"
+  "numberInput_invalidValue": "请输入有效的数字",
+  "diveCenters_rental_sectionTitle": "租赁装备",
+  "diveCenters_rental_lastTimeAt": "上次在{center}",
+  "diveCenters_rental_lastDiveOn": "上次在此潜水：{date}",
+  "diveCenters_rental_noHistory": "此处尚无其他潜水记录。",
+  "diveCenters_rental_empty": "此中心尚无租赁备注。",
+  "diveCenters_rental_addNote": "添加租赁备注",
+  "diveCenters_rental_applyLastDive": "套用上次潜水",
+  "diveCenters_rental_applied": "已从你上次在此的潜水复制配重和气瓶。",
+  "diveCenters_rental_applyConfirmTitle": "替换配重和气瓶？",
+  "diveCenters_rental_applyConfirmBody": "此次潜水已有配重或气瓶。是否替换为你上次在此潜水的配置？",
+  "diveCenters_rental_applyConfirmReplace": "替换",
+  "diveCenters_rental_leadTotal": "配重：{total}",
+  "diveCenters_rental_feedbackOver": "超重{amount}",
+  "diveCenters_rental_feedbackUnder": "欠重{amount}",
+  "diveCenters_rental_tanksLabel": "气瓶",
+  "diveCenters_rental_verdictWorked": "好用",
+  "diveCenters_rental_verdictAvoid": "避免",
+  "diveCenters_rental_extraLead": "多带{amount}配重",
+  "diveCenters_rental_lessLead": "少带{amount}配重",
+  "diveCenters_rental_actualCapacity": "实际容量{volume}",
+  "diveCenters_rental_sheetTitleNew": "新建租赁备注",
+  "diveCenters_rental_sheetTitleEdit": "编辑租赁备注",
+  "diveCenters_rental_gearTypeLabel": "装备类型",
+  "diveCenters_rental_labelLabel": "标签或编号",
+  "diveCenters_rental_sizeLabel": "尺码",
+  "diveCenters_rental_leadAdjustmentLabel": "需额外配重（{unit}）",
+  "diveCenters_rental_volumeLabel": "实际容量（{unit}）",
+  "diveCenters_rental_noteLabel": "备注",
+  "diveCenters_rental_deleteConfirm": "删除此租赁备注？"
 }

@@ -50,6 +50,11 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
   String? _serviceKindId;
   bool _isSaving = false;
 
+  /// Diver preference for the service-type dropdown: narrow it to the kinds
+  /// with a configured schedule on this item, or show every service type.
+  /// Local to this dialog instance, not persisted across dialog openings.
+  bool _showAllServiceTypes = false;
+
   /// Set as soon as the diver types in the cost field. Once set, the default
   /// price never writes over it again, including when the clock selection
   /// changes and re-resolves.
@@ -177,15 +182,31 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
 
+    final schedules =
+        ref
+            .watch(serviceSchedulesForEquipmentProvider(widget.equipmentId))
+            .valueOrNull ??
+        const <ServiceSchedule>[];
+
     // Resolved every build while the field is untouched, so switching the
     // clock re-prices the record.
     _maybePrefillFromKind(
       ref.watch(serviceKindsProvider).valueOrNull ?? const <ServiceKind>[],
-      ref
-              .watch(serviceSchedulesForEquipmentProvider(widget.equipmentId))
-              .valueOrNull ??
-          const <ServiceSchedule>[],
+      schedules,
     );
+
+    // A paused schedule is off for the clocks engine (see
+    // scrubber_margin_providers.dart), so it does not count as "configured"
+    // here either.
+    final configuredKindIds = {
+      for (final schedule in schedules)
+        if (schedule.enabled) schedule.serviceKindId,
+    };
+    // Nothing configured yet (a freshly added item) would otherwise narrow
+    // the dropdown down to just "Not set", so the filter has nothing useful
+    // to narrow and defaults to showing everything.
+    final effectiveShowAllServiceTypes =
+        _showAllServiceTypes || configuredKindIds.isEmpty;
 
     return AlertDialog(
       title: Text(
@@ -244,14 +265,37 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                                 ),
                               ),
                               for (final kind in kinds)
-                                DropdownMenuItem<String?>(
-                                  value: kind.id,
-                                  child: Text(kind.name),
-                                ),
+                                // The current selection stays offered even
+                                // when it falls outside the narrowed list
+                                // (e.g. its schedule got paused since), in
+                                // both add and edit mode, so switching the
+                                // filter can never silently drop it.
+                                if (effectiveShowAllServiceTypes ||
+                                    configuredKindIds.contains(kind.id) ||
+                                    kind.id == _serviceKindId)
+                                  DropdownMenuItem<String?>(
+                                    value: kind.id,
+                                    child: Text(kind.name),
+                                  ),
                             ],
                             onChanged: (value) {
                               setState(() => _serviceKindId = value);
                             },
+                          ),
+                          SwitchListTile(
+                            key: const Key(
+                              'service-record-filter-configured-types',
+                            ),
+                            contentPadding: EdgeInsets.zero,
+                            dense: true,
+                            title: Text(
+                              context
+                                  .l10n
+                                  .equipment_serviceDialog_filterToConfiguredTypes,
+                            ),
+                            value: !effectiveShowAllServiceTypes,
+                            onChanged: (value) =>
+                                setState(() => _showAllServiceTypes = !value),
                           ),
                           Align(
                             alignment: AlignmentDirectional.centerEnd,

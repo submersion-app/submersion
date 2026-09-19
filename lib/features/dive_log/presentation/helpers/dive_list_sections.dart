@@ -74,14 +74,15 @@ class TripSection extends DiveListSection {
 ///
 /// [tripTotals] carries every trip's real dive count, so a trip cut by a page
 /// boundary or trimmed by a filter can say how much of itself is missing.
-/// [forceExpandedTripId] keeps one trip open regardless of [collapsedTripIds],
-/// so the list never folds away the dive the diver is looking at.
+///
+/// [collapsedTripIds] is the only authority on folding. Nothing here keeps a
+/// trip open on the caller's behalf: a dive that must be revealed is handled
+/// by expanding its trip for real, so the header's collapse keeps working.
 List<DiveListSection> buildDiveListSections({
   required List<DiveSummary> dives,
   required bool groupingEnabled,
   required Set<String> collapsedTripIds,
   required Map<String, int> tripTotals,
-  String? forceExpandedTripId,
 }) {
   final entries = [
     for (var i = 0; i < dives.length; i++)
@@ -127,8 +128,7 @@ List<DiveListSection> buildDiveListSections({
         startDate: named.tripStartDate,
         endDate: named.tripEndDate,
         entries: run,
-        collapsed:
-            collapsedTripIds.contains(tripId) && tripId != forceExpandedTripId,
+        collapsed: collapsedTripIds.contains(tripId),
         // Never below what is on screen. An unknown total means the counts
         // query has not resolved; a total below the loaded count means it has
         // gone stale behind an optimistic insert. Either way the header must

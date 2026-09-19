@@ -12,6 +12,7 @@ import 'package:submersion/features/checklists/presentation/providers/checklist_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/fab_clearance.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
 
@@ -152,6 +153,32 @@ void main() {
     expect(find.text('Liveaboard packing'), findsOneWidget);
     expect(find.text('Resort packing'), findsOneWidget);
     expect(find.byType(Divider), findsOneWidget);
+  });
+
+  testWidgets('the last template clears the Add button (#2029)', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          checklistTemplatesProvider.overrideWith(
+            (ref) async => [
+              for (var i = 0; i < 20; i++)
+                ChecklistTemplate(
+                  id: 'tpl$i',
+                  name: 'Template $i',
+                  createdAt: DateTime(2026),
+                  updatedAt: DateTime(2026),
+                ),
+            ],
+          ),
+        ],
+        child: const ChecklistTemplatesPage(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await expectLastRowClearOfFab(tester);
   });
 
   testWidgets('tapping the FAB navigates to the new-template page', (

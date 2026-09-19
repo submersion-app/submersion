@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_log/domain/entities/profile_series.dart
     as series;
 import 'package:submersion/features/dive_log/domain/services/bottom_time_calculator.dart';
 import 'package:submersion/features/dive_log/domain/services/dive_segment_grouper.dart';
+import 'package:submersion/features/dive_log/domain/services/shared_tank_pressures.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
 
 /// One stretch of a combined dive's timeline, with the provenance rows that
@@ -186,17 +187,26 @@ class DiveUncombineService {
           throw ArgumentError('dive $diveId does not read as a combined dive');
         }
         final sourceById = {for (final row in sourceRows) row.id: row};
+        // A cylinder breathed in more than one segment is one tank carrying
+        // the combined start and end pressures (#2036). Each dive it lands
+        // on takes its own from the readings it keeps.
+        final sharedTankIds = tanksSharedAcrossSegments(allPressures, (t) {
+          final index = segments.indexWhere((s) => s.contains(t));
+          return index < 0 ? null : index;
+        });
 
         for (final segment in segments.skip(1)) {
           newDiveIds.add(
             await _restoreSegment(
               segment: segment,
+              isLast: identical(segment, segments.last),
               diveId: diveId,
               diveRow: diveRow,
               sourceById: sourceById,
               allSeries: allSeries,
               allPressures: allPressures,
               allTanks: allTanks,
+              sharedTankIds: sharedTankIds,
               allEvents: allEvents,
               allSwitches: allSwitches,
               gaps: gaps,
@@ -204,6 +214,7 @@ class DiveUncombineService {
             ),
           );
         }
+        await _refreshSharedTankPressures(diveId, sharedTankIds, now);
 
         // The original dive keeps the first segment. Trim the surface fill the
         // merge synthesized across every gap and drop the markers bracketing
@@ -264,12 +275,14 @@ class DiveUncombineService {
   /// its id. Runs inside [separate]'s transaction.
   Future<String> _restoreSegment({
     required UncombineSegment segment,
+    required bool isLast,
     required String diveId,
     required Dive diveRow,
     required Map<String, DiveDataSourcesData> sourceById,
     required List<series.ProfileSeries> allSeries,
     required List<series.TankPressureSeries> allPressures,
     required List<DiveTank> allTanks,
+    required Set<String> sharedTankIds,
     required List<DiveProfileEvent> allEvents,
     required List<GasSwitche> allSwitches,
     required MergeGapFill gaps,
@@ -468,12 +481,29 @@ class DiveUncombineService {
       if (!neededTankIds.contains(tank.id)) continue;
       final freshId = _uuid.v4();
       tankIdMap[tank.id] = freshId;
+      final ownSpan = sharedTankIds.contains(tank.id)
+          ? pressureSpanOf(movingPressures.where((s) => s.tankId == tank.id))
+          : null;
       await _db
           .into(_db.diveTanks)
           .insert(
             tank
                 .toCompanion(false)
-                .copyWith(id: Value(freshId), diveId: Value(newDiveId)),
+                .copyWith(
+                  id: Value(freshId),
+                  diveId: Value(newDiveId),
+                  // The start is an inner boundary on every restored dive. The
+                  // end is too, except on the last, where the stored value is
+                  // that dive's own reported end.
+                  startPressure: ownSpan == null ? null : Value(ownSpan.start),
+                  endPressure: ownSpan == null
+                      ? null
+                      : Value(
+                          isLast
+                              ? tank.endPressure ?? ownSpan.end
+                              : ownSpan.end,
+                        ),
+                ),
           );
       await _sync.markRecordPending(
         entityType: 'diveTanks',
@@ -584,6 +614,39 @@ class DiveUncombineService {
     }
 
     return newDiveId;
+  }
+
+  /// Resets each shared tank left on the surviving dive to the end pressure
+  /// its remaining series report, once the later segments' series have moved
+  /// off. Otherwise the first half keeps the combined dive's end pressure.
+  /// The stored start is the first half's own reported one and stays.
+  Future<void> _refreshSharedTankPressures(
+    String diveId,
+    Set<String> sharedTankIds,
+    int now,
+  ) async {
+    for (final tankId in sharedTankIds) {
+      final span = pressureSpanOf(
+        await _tankSeries.getSeriesForTank(diveId, tankId),
+      );
+      if (span == null) continue;
+      final kept = await (_db.select(
+        _db.diveTanks,
+      )..where((t) => t.id.equals(tankId))).getSingle();
+      await (_db.update(
+        _db.diveTanks,
+      )..where((t) => t.id.equals(tankId))).write(
+        DiveTanksCompanion(
+          startPressure: Value(kept.startPressure ?? span.start),
+          endPressure: Value(span.end),
+        ),
+      );
+      await _sync.markRecordPending(
+        entityType: 'diveTanks',
+        recordId: tankId,
+        localUpdatedAt: now,
+      );
+    }
   }
 
   Future<void> _refreshKeptDive({

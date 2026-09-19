@@ -149,18 +149,6 @@ void main() {
       expect(trip.entries, hasLength(1));
     });
 
-    test('forceExpandedTripId overrides a collapsed trip', () {
-      final sections = buildDiveListSections(
-        dives: [dive('d1', tripId: 't1', tripName: 'Tassie')],
-        groupingEnabled: true,
-        collapsedTripIds: const {'t1'},
-        tripTotals: const {'t1': 1},
-        forceExpandedTripId: 't1',
-      );
-
-      expect((sections.single as TripSection).collapsed, isFalse);
-    });
-
     test('a trip with no known total falls back to the loaded count', () {
       final sections = buildDiveListSections(
         dives: [dive('d1', tripId: 't1', tripName: 'Tassie')],
