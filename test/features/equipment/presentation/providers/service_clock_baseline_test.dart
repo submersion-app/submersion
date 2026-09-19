@@ -78,13 +78,25 @@ void main() {
     updatedAt: now,
   );
 
-  Future<void> setBaseline(String equipmentId, DateTime baseline) async {
+  /// When a test logs a service after setting the baseline: a minute before
+  /// the file started, so the service is newer however fast the two writes
+  /// land. Both are stored to the millisecond, and a service created in the
+  /// same millisecond as the baseline does not count as newer.
+  final setBeforeAnyService = now.subtract(const Duration(minutes: 1));
+
+  /// Sets the regulator clock's baseline, stamped as set at [setAt]
+  /// (default: now).
+  Future<void> setBaseline(
+    String equipmentId,
+    DateTime baseline, {
+    DateTime? setAt,
+  }) async {
     final repo = ServiceScheduleRepository();
     final schedule = (await repo.getSchedulesForEquipment(
       equipmentId,
     )).firstWhere((s) => s.serviceKindId == 'regulator-service');
     await repo.updateSchedule(
-      schedule.withBaseline(baseline, now: DateTime.now()),
+      schedule.withBaseline(baseline, now: setAt ?? DateTime.now()),
     );
   }
 
@@ -122,7 +134,7 @@ void main() {
   test('logging a newer service restarts the clock and keeps the baseline '
       'stored', () async {
     final reg = await regulatorWithDives();
-    await setBaseline(reg.id, yearAgo);
+    await setBaseline(reg.id, yearAgo, setAt: setBeforeAnyService);
     expect((await regClock(reg.id)).usageByUnit[ExposureUnit.dives]!.since, 3);
 
     final fiftyDaysAgo = now.subtract(const Duration(days: 50));
@@ -148,7 +160,7 @@ void main() {
     // A service logged by mistake, or deleted on another device, must not
     // leave the clock counting from an older record or the purchase date.
     final reg = await regulatorWithDives();
-    await setBaseline(reg.id, yearAgo);
+    await setBaseline(reg.id, yearAgo, setAt: setBeforeAnyService);
     final fiftyDaysAgo = now.subtract(const Duration(days: 50));
     final notifier = container.read(
       serviceRecordNotifierProvider(reg.id).notifier,
@@ -187,10 +199,7 @@ void main() {
     // knows nothing of baselines, is written without clearing anything.
     // The clock must still restart from it.
     final reg = await regulatorWithDives();
-    await setBaseline(reg.id, yearAgo);
-    // Strictly after the baseline's set time, whatever the clock's
-    // resolution on this machine.
-    await Future<void>.delayed(const Duration(milliseconds: 5));
+    await setBaseline(reg.id, yearAgo, setAt: setBeforeAnyService);
 
     final fiftyDaysAgo = now.subtract(const Duration(days: 50));
     final serviced = DateTime(

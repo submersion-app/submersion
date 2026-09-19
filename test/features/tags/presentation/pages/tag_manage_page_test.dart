@@ -17,6 +17,7 @@ import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.da
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 
+import '../../../../helpers/fab_clearance.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/selection_contract.dart';
 
@@ -321,6 +322,27 @@ void main() {
       // Usage counts: "12 dives" and "5 dives"
       expect(find.text('12 dives'), findsOneWidget);
       expect(find.text('5 dives'), findsOneWidget);
+    });
+
+    testWidgets('the last tag\'s edit button clears the Add Tag button', (
+      tester,
+    ) async {
+      final stats = [
+        for (var i = 0; i < 20; i++)
+          _scopedStat(
+            'tag$i',
+            'Tag $i',
+            const {TagScope.dives},
+            const {TagScope.dives: 1},
+          ),
+      ];
+      await tester.pumpWidget(_buildTestWidget(stats: stats));
+      await tester.pumpAndSettle();
+
+      await expectLastRowClearOfFab(
+        tester,
+        lastRow: find.byKey(const ValueKey('tag_edit_tag19')),
+      );
     });
 
     testWidgets('shows empty state when no tags exist', (tester) async {

@@ -3278,11 +3278,18 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             if (dive.trip != null) _buildTripRow(context, dive),
             if (dive.diveCenter != null) _buildDiveCenterRow(context, dive),
             if (dive.courseId != null) _buildCourseRow(context, ref, dive),
-            if (dive.visibility != null)
+            if (formatDiveVisibility(
+                  meters: dive.visibilityMeters,
+                  legacy: dive.visibility,
+                  scale: ref.watch(settingsProvider).visibilityScale,
+                  l10n: context.l10n,
+                  units: units,
+                )
+                case final visibility?)
               _buildDetailRow(
                 context,
                 context.l10n.diveLog_detail_label_visibility,
-                visibilityName(dive.visibility!, context.l10n),
+                visibility,
               ),
             if (dive.avgDepth != null)
               _buildDetailRow(

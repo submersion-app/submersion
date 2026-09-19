@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_provide
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/forms/form_row.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -81,6 +82,29 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  /// Opens the collapsed visibility row and types [text] into it.
+  Future<void> typeVisibility(WidgetTester tester, String text) async {
+    final row = find
+        .ancestor(of: find.text('Visibility'), matching: find.byType(FormRow))
+        .first;
+    await tester.ensureVisible(row);
+    await tester.pumpAndSettle();
+    await tester.tap(row);
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.descendant(of: row, matching: find.byType(TextField)),
+      text,
+    );
+    await tester.pumpAndSettle();
+  }
+
+  Future<void> tapSave(WidgetTester tester) async {
+    await tester.ensureVisible(find.text('Save'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('a measured dive shows the distance and its adjective', (
     tester,
   ) async {
@@ -130,5 +154,43 @@ void main() {
     expect(find.text('Moderate'), findsNothing);
     expect(find.text('Good'), findsNothing);
     expect(find.text('Excellent'), findsNothing);
+  });
+
+  // The field has no input formatter, so stray characters reach the save
+  // path. Unparseable text means visibility is unknown; storing 0 m would
+  // record a measurement nobody took and bin the dive as Poor (#2076).
+  testWidgets('unparseable visibility text saves as unknown, not 0 m', (
+    tester,
+  ) async {
+    final created = await repository.createDive(buildDive());
+    await pumpEditPage(tester, created.id);
+    await expandConditions(tester);
+    await typeVisibility(tester, 'abc');
+    await tapSave(tester);
+
+    final reloaded = (await repository.getDiveById(created.id))!;
+    expect(reloaded.visibilityMeters, isNull);
+  });
+
+  testWidgets('negative visibility text saves as unknown', (tester) async {
+    final created = await repository.createDive(buildDive());
+    await pumpEditPage(tester, created.id);
+    await expandConditions(tester);
+    await typeVisibility(tester, '-5');
+    await tapSave(tester);
+
+    final reloaded = (await repository.getDiveById(created.id))!;
+    expect(reloaded.visibilityMeters, isNull);
+  });
+
+  testWidgets('a valid visibility entry is stored in meters', (tester) async {
+    final created = await repository.createDive(buildDive());
+    await pumpEditPage(tester, created.id);
+    await expandConditions(tester);
+    await typeVisibility(tester, '12');
+    await tapSave(tester);
+
+    final reloaded = (await repository.getDiveById(created.id))!;
+    expect(reloaded.visibilityMeters, closeTo(12.0, 0.0001));
   });
 }

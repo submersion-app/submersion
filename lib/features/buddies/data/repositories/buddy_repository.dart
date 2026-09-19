@@ -8,6 +8,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart'
     as domain;
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
@@ -84,14 +85,16 @@ class BuddyRepository {
   Future<List<domain.Buddy>> getAllBuddies({String? diverId}) async {
     try {
       final query = _db.select(_db.buddies)
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+        ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
       }
 
       final rows = await query.get();
-      return await _withPrimaryCerts(rows.map(_mapRowToBuddy).toList());
+      return await _withPrimaryCerts(
+        sortedByText(rows, (r) => r.name).map(_mapRowToBuddy).toList(),
+      );
     } catch (e, stackTrace) {
       _log.error('Failed to get all buddies', error: e, stackTrace: stackTrace);
       rethrow;
@@ -136,10 +139,12 @@ class BuddyRepository {
          OR LOWER(email) LIKE ?
          OR phone LIKE ?)
       $diverFilter
-      ORDER BY name ASC
+      ORDER BY name COLLATE NOCASE ASC
     ''', variables: variables).get();
 
-    final buddies = results.map((row) {
+    final buddies = sortedByText(results, (r) => r.data['name'] as String).map((
+      row,
+    ) {
       return domain.Buddy(
         id: row.data['id'] as String,
         diverId: row.data['diver_id'] as String?,
@@ -385,7 +390,7 @@ class BuddyRepository {
       INNER JOIN dive_buddies db ON b.id = db.buddy_id
       LEFT JOIN dives d ON d.id = db.dive_id
       WHERE db.dive_id = ?
-      ORDER BY b.name ASC
+      ORDER BY b.name COLLATE NOCASE ASC
     ''',
           variables: [Variable.withString(diveId)],
         )
@@ -396,7 +401,9 @@ class BuddyRepository {
     final roleRows = await _db.select(_db.diveRoles).get();
     final rolesById = {for (final r in roleRows) r.id: mapDiveRoleRow(r)};
 
-    final list = results.map((row) {
+    final list = sortedByText(results, (r) => r.data['name'] as String).map((
+      row,
+    ) {
       final buddy = domain.Buddy(
         id: row.data['id'] as String,
         name: row.data['name'] as String,
@@ -463,7 +470,9 @@ class BuddyRepository {
               ])
               ..addColumns([_db.dives.diverId])
               ..where(_db.diveBuddies.diveId.isIn(diveIds))
-              ..orderBy([OrderingTerm.asc(_db.buddies.name)]))
+              ..orderBy([
+                OrderingTerm.asc(_db.buddies.name.collate(Collate.noCase)),
+              ]))
             .get();
 
     // Resolve role ids against dive_roles once, scoped to each dive's diver
@@ -472,7 +481,10 @@ class BuddyRepository {
     final rolesById = {for (final r in roleRows) r.id: mapDiveRoleRow(r)};
 
     final byDive = <String, List<domain.BuddyWithRole>>{};
-    for (final jr in joinRows) {
+    for (final jr in sortedByText(
+      joinRows,
+      (jr) => jr.readTable(_db.buddies).name,
+    )) {
       final b = jr.readTable(_db.buddies);
       final link = jr.readTable(_db.diveBuddies);
       final buddy = domain.Buddy(
@@ -875,7 +887,7 @@ class BuddyRepository {
           GROUP BY db.buddy_id
         ) dc ON b.id = dc.buddy_id
         $where
-        ORDER BY b.name ASC
+        ORDER BY b.name COLLATE NOCASE ASC
       ''', variables: variables).get();
 
       // Second whole-table query: how often each buddy held each role. The
@@ -893,7 +905,9 @@ class BuddyRepository {
         )[r.data['role'] as String] = r.data['role_count'] as int;
       }
 
-      final list = results.map((row) {
+      final list = sortedByText(results, (r) => r.data['name'] as String).map((
+        row,
+      ) {
         final buddy = domain.Buddy(
           id: row.data['id'] as String,
           diverId: row.data['diver_id'] as String?,

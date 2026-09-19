@@ -7,6 +7,7 @@ import 'package:submersion/core/database/tag_scope_tables.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/tags/data/mappers/tag_row_mapper.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 
@@ -41,7 +42,7 @@ class TagRepository {
   }) async {
     try {
       final query = _db.select(_db.tags)
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+        ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
@@ -55,7 +56,7 @@ class TagRepository {
       }
 
       final rows = await query.get();
-      return rows.map(_mapRowToTag).toList();
+      return sortedByText(rows, (r) => r.name).map(_mapRowToTag).toList();
     } catch (e, stackTrace) {
       _log.error('Failed to get all tags', error: e, stackTrace: stackTrace);
       rethrow;
@@ -454,13 +455,16 @@ class TagRepository {
         SELECT DISTINCT t.* FROM tags t
         INNER JOIN dive_tags dt ON t.id = dt.tag_id
         WHERE dt.dive_id = ?
-        ORDER BY t.name
+        ORDER BY t.name COLLATE NOCASE
       ''',
             variables: [Variable.withString(diveId)],
           )
           .get();
 
-      return result.map((row) => mapTagRow(_db.tags.map(row.data))).toList();
+      return sortedByText(
+        result,
+        (r) => r.data['name'] as String,
+      ).map((row) => mapTagRow(_db.tags.map(row.data))).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get tags for dive: $diveId',
@@ -484,13 +488,13 @@ class TagRepository {
         SELECT DISTINCT dt.dive_id, t.* FROM tags t
         INNER JOIN dive_tags dt ON t.id = dt.tag_id
         WHERE dt.dive_id IN ($placeholders)
-        ORDER BY t.name
+        ORDER BY t.name COLLATE NOCASE
       ''',
         variables: diveIds.map((id) => Variable.withString(id)).toList(),
       ).get();
 
       final tagsByDive = <String, List<domain.Tag>>{};
-      for (final row in result) {
+      for (final row in sortedByText(result, (r) => r.data['name'] as String)) {
         final diveId = row.data['dive_id'] as String;
         final tag = mapTagRow(_db.tags.map(row.data));
         tagsByDive.putIfAbsent(diveId, () => []).add(tag);
@@ -789,14 +793,14 @@ class TagRepository {
 
       final searchQuery = _db.select(_db.tags)
         ..where((t) => t.name.lower().contains(query.toLowerCase()))
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+        ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
       if (diverId != null) {
         searchQuery.where((t) => t.diverId.equals(diverId));
       }
 
       final rows = await searchQuery.get();
-      return rows.map(_mapRowToTag).toList();
+      return sortedByText(rows, (r) => r.name).map(_mapRowToTag).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to search tags: $query',

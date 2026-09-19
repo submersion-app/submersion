@@ -52,6 +52,9 @@ abstract class PdfTemplateBuilder {
   /// - [diveTypesById]: The diver's `dive_types` rows, so each type prints
   ///   under the name the diver gave it (#1834). An id with no row falls
   ///   back to a name rebuilt from the id.
+  /// - [equipmentSetNamesById]: Every equipment set's name by id, so a dive
+  ///   names the sets its gear came from (#2031). A set with no entry is
+  ///   left unnamed.
   ///
   /// Returns the PDF document as a byte array.
   Future<List<int>> buildPdf({
@@ -68,6 +71,7 @@ abstract class PdfTemplateBuilder {
     bool includeVerificationAreas = false,
     EquipmentArrangement gearArrangement = EquipmentArrangement.defaults,
     Map<String, DiveTypeEntity> diveTypesById = const {},
+    Map<String, String> equipmentSetNamesById = const {},
   });
 
   /// Convert [PdfPageSize] to the pdf package's [PdfPageFormat].

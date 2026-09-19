@@ -3927,6 +3927,7 @@
   "equipment_serviceClocks_countingSince": "Telt sinds {date}",
   "equipment_serviceClocks_overdue": "Te laat",
   "equipment_serviceClocks_divesLeft": "{remaining} van {total} duiken resterend",
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} duiken, {remaining} van {total} resterend",
   "cylinderConfigs_title": "Flesconfiguraties",
   "cylinderConfigs_empty": "Nog geen configuraties",
   "cylinderConfigs_emptyBody": "Sla een diluent- en bailout-opstelling één keer op en pas hem toe op elke duik.",
@@ -3964,6 +3965,7 @@
   "cylinderConfigs_sectionTitle": "Configuraties",
   "equipment_serviceClocks_hoursSource": "Berekend op basis van geregistreerde duiktijd",
   "equipment_serviceClocks_hoursLeft": "{remaining} van {total} uur resterend",
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} uur, {remaining} van {total} resterend",
   "equipment_serviceClocks_saltHoursLeft": "{remaining} van {total} uren in zout water over",
   "@equipment_serviceClocks_saltHoursLeft": {
     "placeholders": {
@@ -3975,6 +3977,7 @@
       }
     }
   },
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} uren in zout water, {remaining} van {total} over",
   "equipment_serviceClocks_coldDivesLeft": "{remaining} van {total} koudwaterduiken over",
   "@equipment_serviceClocks_coldDivesLeft": {
     "placeholders": {
@@ -3986,6 +3989,7 @@
       }
     }
   },
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} koudwaterduiken, {remaining} van {total} over",
   "equipment_serviceClocks_o2HoursLeft": "{remaining} van {total} uren met hoog O2 over",
   "@equipment_serviceClocks_o2HoursLeft": {
     "placeholders": {
@@ -3997,6 +4001,7 @@
       }
     }
   },
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} uren met hoog O2, {remaining} van {total} over",
   "equipment_serviceClocks_deepCyclesLeft": "{remaining} van {total} diepe duiken over",
   "@equipment_serviceClocks_deepCyclesLeft": {
     "placeholders": {
@@ -4008,6 +4013,7 @@
       }
     }
   },
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} diepe duiken, {remaining} van {total} over",
   "equipment_serviceClocks_cyclesLeft": "{remaining} van {total} batterijcycli over",
   "@equipment_serviceClocks_cyclesLeft": {
     "placeholders": {
@@ -4019,6 +4025,7 @@
       }
     }
   },
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} batterijcycli, {remaining} van {total} over",
   "equipment_serviceClocks_manageKinds": "Servicetypen beheren",
   "equipment_serviceClocks_appliesToClock": "Gekoppeld aan interval",
   "equipment_serviceClocks_noClockOption": "Niet aan een interval gekoppeld",
@@ -4224,6 +4231,7 @@
   "equipment_serviceDialog_serviceTypeNotSet": "Niet ingesteld",
   "equipment_serviceDialog_categoryHelper": "Gebruikt voor filteren en exporteren",
   "equipment_serviceDialog_manageServiceTypes": "Servicetypes beheren",
+  "equipment_serviceDialog_filterToConfiguredTypes": "Alleen geconfigureerde servicetypes tonen",
   "equipment_serviceDialog_categoryLabel": "Categorie",
   "equipment_serviceDialog_snackbar_added": "Servicerecord toegevoegd",
   "equipment_serviceDialog_snackbar_error": "Fout: {error}",
@@ -4256,6 +4264,8 @@
   "equipment_service_filterClear": "Filter wissen",
   "equipment_service_filterNoMatches": "Geen onderhoud voldoet aan dit filter",
   "equipment_service_filterMatchCount": "{count} van {total} getoond",
+  "equipment_service_showMore": "{count, plural, =1{1 meer tonen} other{{count} meer tonen}}",
+  "equipment_service_showFewer": "Minder tonen",
   "equipment_serviceKinds_defaultCategoryLabel": "Standaardcategorie",
   "equipment_serviceKinds_defaultCategoryNone": "Geen standaard",
   "equipment_serviceKinds_defaultCostLabel": "Standaardprijs",
@@ -5910,6 +5920,7 @@
   "statistics_chart_noBarData": "Geen gegevens beschikbaar",
   "statistics_chart_noDistributionData": "Geen verdelingsgegevens beschikbaar",
   "statistics_chart_noTrendData": "Geen trendgegevens beschikbaar",
+  "statistics_chart_notRecorded": "Niet vastgelegd",
   "statistics_chart_trendSemanticLabel": "Trendlijndiagram met {count} datapunten",
   "statistics_chart_trendSemanticLabelWithAxis": "Trendlijndiagram met {count} datapunten voor {yAxisLabel}",
   "statistics_conditions_appBar_title": "Omstandigheden",
@@ -9409,6 +9420,11 @@
   "common_bulkDelete_title": "{count, plural, one{{count} item verwijderen?} other{{count} items verwijderen?}}",
   "common_bulkDelete_body": "Dit kan niet ongedaan worden gemaakt.",
   "common_bulkDelete_snackbar": "{count, plural, one{{count} verwijderd} other{{count} verwijderd}}",
+  "common_coordinates_invalidLatitude": "Ongeldige breedtegraad",
+  "common_coordinates_invalidLongitude": "Ongeldige lengtegraad",
+  "common_coordinates_latitudeRequired": "Breedtegraad is verplicht",
+  "common_coordinates_longitudeRequired": "Lengtegraad is verplicht",
+  "common_coordinates_invalid": "Ongeldige coördinaten",
   "marineLife_species_delete_confirmTitle": "Soort verwijderen?",
   "marineLife_species_delete_confirmBody": "Weet je zeker dat je \"{name}\" wilt verwijderen?",
   "marineLife_species_delete_inUseError": "\"{name}\" kan niet worden verwijderd - er zijn waarnemingen",
@@ -12263,5 +12279,34 @@
   "plannerCanvas_compare_showOnChart": "Show on chart",
   "plannerCanvas_gas_usedReading": "verbruikt: {reading}",
   "plannerCanvas_gas_endReading": "einde: {reading}",
-  "numberInput_invalidValue": "Voer een geldig getal in"
+  "numberInput_invalidValue": "Voer een geldig getal in",
+  "diveCenters_rental_sectionTitle": "Huuruitrusting",
+  "diveCenters_rental_lastTimeAt": "Vorige keer bij {center}",
+  "diveCenters_rental_lastDiveOn": "Laatste duik hier: {date}",
+  "diveCenters_rental_noHistory": "Hier zijn nog geen andere duiken gelogd.",
+  "diveCenters_rental_empty": "Nog geen huurnotities voor dit centrum.",
+  "diveCenters_rental_addNote": "Huurnotitie toevoegen",
+  "diveCenters_rental_applyLastDive": "Laatste duik toepassen",
+  "diveCenters_rental_applied": "Lood en flessen overgenomen van je laatste duik hier.",
+  "diveCenters_rental_applyConfirmTitle": "Lood en flessen vervangen?",
+  "diveCenters_rental_applyConfirmBody": "Deze duik heeft al lood of flessen. Vervangen door die van je laatste duik hier?",
+  "diveCenters_rental_applyConfirmReplace": "Vervangen",
+  "diveCenters_rental_leadTotal": "Lood: {total}",
+  "diveCenters_rental_feedbackOver": "{amount} te veel",
+  "diveCenters_rental_feedbackUnder": "{amount} te weinig",
+  "diveCenters_rental_tanksLabel": "Flessen",
+  "diveCenters_rental_verdictWorked": "Beviel",
+  "diveCenters_rental_verdictAvoid": "Vermijden",
+  "diveCenters_rental_extraLead": "{amount} extra lood",
+  "diveCenters_rental_lessLead": "{amount} minder lood",
+  "diveCenters_rental_actualCapacity": "Werkelijke inhoud {volume}",
+  "diveCenters_rental_sheetTitleNew": "Nieuwe huurnotitie",
+  "diveCenters_rental_sheetTitleEdit": "Huurnotitie bewerken",
+  "diveCenters_rental_gearTypeLabel": "Type uitrusting",
+  "diveCenters_rental_labelLabel": "Label of nummer",
+  "diveCenters_rental_sizeLabel": "Maat",
+  "diveCenters_rental_leadAdjustmentLabel": "Extra lood nodig ({unit})",
+  "diveCenters_rental_volumeLabel": "Werkelijke inhoud ({unit})",
+  "diveCenters_rental_noteLabel": "Notitie",
+  "diveCenters_rental_deleteConfirm": "Deze huurnotitie verwijderen?"
 }

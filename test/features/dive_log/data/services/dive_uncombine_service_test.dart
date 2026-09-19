@@ -52,6 +52,11 @@ void main() {
     String? computerId,
     String? siteId,
     bool sourceCarriesSummary = true,
+    double? startPressure,
+    double? endPressure,
+    List<TankPressureSample> pressures = const [
+      TankPressureSample(timestamp: 60, pressure: 180.0),
+    ],
   }) async {
     await diveRepo.createDive(
       domain.Dive(
@@ -61,7 +66,14 @@ void main() {
         entryTime: entry,
         runtime: Duration(minutes: runtimeMin),
         maxDepth: depth,
-        tanks: [domain.DiveTank(id: 'tank-$id', volume: 11.1)],
+        tanks: [
+          domain.DiveTank(
+            id: 'tank-$id',
+            volume: 11.1,
+            startPressure: startPressure,
+            endPressure: endPressure,
+          ),
+        ],
         profile: [
           const domain.DiveProfilePoint(timestamp: 0, depth: 0),
           domain.DiveProfilePoint(timestamp: runtimeMin * 30, depth: depth),
@@ -110,13 +122,15 @@ void main() {
             createdAt: 0,
           ),
         );
-    await tankSeries.insertSeries(
-      diveId: id,
-      tankId: 'tank-$id',
-      samples: const [TankPressureSample(timestamp: 60, pressure: 180.0)],
-      id: 'tp-$id',
-      now: 0,
-    );
+    if (pressures.isNotEmpty) {
+      await tankSeries.insertSeries(
+        diveId: id,
+        tankId: 'tank-$id',
+        samples: pressures,
+        id: 'tp-$id',
+        now: 0,
+      );
+    }
     await db
         .into(db.diveDataSources)
         .insert(
@@ -576,6 +590,100 @@ void main() {
 
       // The original keeps its own, untouched.
       expect(await tankSeries.getSeriesForDive(mergedId), hasLength(1));
+    });
+
+    test('gives each dive its own pressures on a cylinder both breathed '
+        '(#2036)', () async {
+      // One cylinder across a surface interval: combine carries it as one
+      // tank from 200 to 90 bar, and separating must hand each half back
+      // its own start and end rather than the combined ones.
+      await seedDive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        // The computer's pre-dive reading, a little above the first logged
+        // sample: the stored outer values must survive the round trip.
+        startPressure: 207,
+        endPressure: 150,
+        pressures: const [
+          TankPressureSample(timestamp: 60, pressure: 205),
+          TankPressureSample(timestamp: 1700, pressure: 150),
+        ],
+      );
+      await seedDive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+        runtimeMin: 20,
+        startPressure: 150,
+        endPressure: 88,
+        pressures: const [
+          TankPressureSample(timestamp: 60, pressure: 150),
+          TankPressureSample(timestamp: 1100, pressure: 90),
+        ],
+      );
+      final mergedId = (await merge.apply(['a', 'b'])).mergedDive.id;
+      final mergedTanks = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals(mergedId))).get();
+      expect(mergedTanks, hasLength(1));
+      expect(mergedTanks.single.startPressure, 207);
+      expect(mergedTanks.single.endPressure, 88);
+      // Cleared so the check below sees only what separate itself marks.
+      await (db.delete(
+        db.syncRecords,
+      )..where((t) => t.entityType.equals('diveTanks'))).go();
+
+      final restoredId = (await service.separate(diveId: mergedId)).single;
+
+      final restoredTank = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals(restoredId))).getSingle();
+      expect(restoredTank.startPressure, 150);
+      expect(restoredTank.endPressure, 88);
+      final keptTank = await (db.select(
+        db.diveTanks,
+      )..where((t) => t.diveId.equals(mergedId))).getSingle();
+      expect(keptTank.startPressure, 207);
+      expect(keptTank.endPressure, 150);
+      final keptTankSync =
+          await (db.select(db.syncRecords)
+                ..where((t) => t.entityType.equals('diveTanks'))
+                ..where((t) => t.recordId.equals(keptTank.id)))
+              .get();
+      expect(keptTankSync, isNotEmpty);
+    });
+
+    test('a shared cylinder with no pressure log keeps the combined '
+        'pressures on both halves (#2036)', () async {
+      // Accepted trade-off: combine carries a hand-entered cylinder once,
+      // from the first half's start to the last half's end, and nothing
+      // records where the first half ended. Separate cannot rebuild it, so
+      // both halves come back with the combined pair.
+      await seedDive(
+        'a',
+        entry: DateTime.utc(2026, 7, 1, 9),
+        startPressure: 200,
+        endPressure: 120,
+        pressures: const [],
+      );
+      await seedDive(
+        'b',
+        entry: DateTime.utc(2026, 7, 1, 10),
+        runtimeMin: 20,
+        startPressure: 120,
+        endPressure: 60,
+        pressures: const [],
+      );
+      final mergedId = (await merge.apply(['a', 'b'])).mergedDive.id;
+
+      final restoredId = (await service.separate(diveId: mergedId)).single;
+
+      for (final id in [mergedId, restoredId]) {
+        final tank = await (db.select(
+          db.diveTanks,
+        )..where((t) => t.diveId.equals(id))).getSingle();
+        expect(tank.startPressure, 200);
+        expect(tank.endPressure, 60);
+      }
     });
 
     test('tombstones every row it moves off the surviving dive', () async {

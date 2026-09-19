@@ -199,6 +199,32 @@ void main() {
       expect(sorted.map((s) => s.site.name), ['Alice', 'Bob', 'Charlie']);
     });
 
+    test('name sort ignores case and accents (issue #2038)', () {
+      final sites = [
+        _site('plage'),
+        _site('Zebra Reef'),
+        _site('Écueil'),
+        _site('anchor'),
+        _site('Plage'),
+      ];
+
+      final sorted = applySiteSorting(
+        sites,
+        const SortState(
+          field: SiteSortField.name,
+          direction: SortDirection.descending,
+        ),
+      );
+
+      expect(sorted.map((s) => s.site.name), [
+        'anchor',
+        'Écueil',
+        'Plage',
+        'plage',
+        'Zebra Reef',
+      ]);
+    });
+
     test('dive count descending puts highest count first', () {
       final sites = [
         _site('Low', diveCount: 1),

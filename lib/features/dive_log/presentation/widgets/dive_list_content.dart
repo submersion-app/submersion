@@ -1808,26 +1808,17 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
         ref.watch(tripDiveCountsProvider).whenOrNull(data: (m) => m) ??
         const <String, int>{};
 
-    // Never fold away the dive the diver is looking at: the row open in the
-    // detail pane, or the highlighted one, keeps its trip expanded.
-    final openDiveId =
-        widget.selectedId ?? ref.watch(highlightedDiveIdProvider);
-    String? openDiveTripId;
-    if (openDiveId != null) {
-      for (final dive in dives) {
-        if (dive.id == openDiveId) {
-          openDiveTripId = dive.tripId;
-          break;
-        }
-      }
-    }
-
+    // The collapsed set is the only authority on what is folded. There used
+    // to be a render-time override keeping the open dive's trip expanded,
+    // and on desktop, where a dive is nearly always open, it silently undid
+    // every header tap on that trip. Revealing a dive inside a collapsed trip
+    // is an event instead: the scroll-to-selected path expands the trip once
+    // (see _retryScrollOnceAfterExpand), after which the header works.
     final sections = buildDiveListSections(
       dives: dives,
       groupingEnabled: groupingEnabled,
       collapsedTripIds: collapsedTripIds,
       tripTotals: tripTotals,
-      forceExpandedTripId: openDiveTripId,
     );
     _lastSections = sections;
     _lastShowedPausedNotice = ref.watch(diveListGroupingPausedBySortProvider);

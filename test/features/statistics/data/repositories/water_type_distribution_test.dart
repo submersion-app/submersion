@@ -8,6 +8,9 @@ import '../../../../helpers/test_database.dart';
 
 /// Issue #1427: the water type chart counted only the value stored on the
 /// dive, so a dive that inherits its water type from its site was missing.
+///
+/// Issue #1998: a dive with no water type anywhere is counted in its own
+/// not-recorded bucket, so the recorded shares are of all dives.
 void main() {
   late StatisticsRepository repository;
   late AppDatabase db;
@@ -90,16 +93,22 @@ void main() {
     expect(await countsByLabel(), {'salt': 1});
   });
 
-  test('a dive with no water type anywhere stays out of the chart', () async {
-    await insertSite(id: 'unknown-site');
-    await insertDive(id: 'sited', siteId: 'unknown-site');
-    await insertDive(id: 'siteless');
-    await insertDive(id: 'known', waterType: 'fresh');
+  test(
+    'a dive with no water type anywhere is counted as not recorded',
+    () async {
+      await insertSite(id: 'unknown-site');
+      await insertDive(id: 'sited', siteId: 'unknown-site');
+      await insertDive(id: 'siteless');
+      await insertDive(id: 'known', waterType: 'fresh');
 
-    expect(await countsByLabel(), {'fresh': 1});
-  });
+      expect(await countsByLabel(), {
+        'fresh': 1,
+        kNotRecordedDistributionKey: 2,
+      });
+    },
+  );
 
-  test('percentages are shares of the dives that have a water type', () async {
+  test('percentages are shares of every dive, recorded or not', () async {
     await insertSite(id: 'reef', waterType: 'salt');
     await insertDive(id: 'a', siteId: 'reef');
     await insertDive(id: 'b', waterType: 'salt');
@@ -108,8 +117,36 @@ void main() {
 
     final dist = await repository.getWaterTypeDistribution();
     final byLabel = {for (final s in dist) s.label: s};
-    expect(byLabel['salt']!.percentage, closeTo(200 / 3, 0.001));
-    expect(byLabel['fresh']!.percentage, closeTo(100 / 3, 0.001));
+    expect(byLabel['salt']!.percentage, closeTo(50, 0.001));
+    expect(byLabel['fresh']!.percentage, closeTo(25, 0.001));
+    expect(
+      byLabel[kNotRecordedDistributionKey]!.percentage,
+      closeTo(25, 0.001),
+    );
+  });
+
+  test('the not recorded bucket comes last even when it is largest', () async {
+    await insertDive(id: 'a', waterType: 'fresh');
+    await insertDive(id: 'b');
+    await insertDive(id: 'c');
+
+    final dist = await repository.getWaterTypeDistribution();
+    expect(dist.map((s) => s.label), ['fresh', kNotRecordedDistributionKey]);
+  });
+
+  test('only unrecorded dives yield a single not recorded bucket', () async {
+    await insertDive(id: 'a');
+    await insertDive(id: 'b', waterType: '');
+
+    final dist = await repository.getWaterTypeDistribution();
+    expect(dist, hasLength(1));
+    expect(dist.single.label, kNotRecordedDistributionKey);
+    expect(dist.single.count, 2);
+    expect(dist.single.percentage, closeTo(100, 0.001));
+  });
+
+  test('no dives yields no segments', () async {
+    expect(await repository.getWaterTypeDistribution(), isEmpty);
   });
 
   test('an inherited water type still honours the statistics scope', () async {

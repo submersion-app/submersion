@@ -3927,6 +3927,7 @@
   "equipment_serviceClocks_countingSince": "Contando desde {date}",
   "equipment_serviceClocks_overdue": "Vencido",
   "equipment_serviceClocks_divesLeft": "Quedan {remaining} de {total} inmersiones",
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} inmersiones, quedan {remaining} de {total}",
   "cylinderConfigs_title": "Configuraciones de botellas",
   "cylinderConfigs_empty": "Aún no hay configuraciones",
   "cylinderConfigs_emptyBody": "Guarda un montaje de diluyente y bailout una vez y aplícalo a cualquier inmersión.",
@@ -3964,6 +3965,7 @@
   "cylinderConfigs_sectionTitle": "Configuraciones",
   "equipment_serviceClocks_hoursSource": "Calculado a partir del tiempo de buceo registrado",
   "equipment_serviceClocks_hoursLeft": "Quedan {remaining} de {total} horas",
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} horas, quedan {remaining} de {total}",
   "equipment_serviceClocks_saltHoursLeft": "Quedan {remaining} de {total} horas en agua salada",
   "@equipment_serviceClocks_saltHoursLeft": {
     "placeholders": {
@@ -3975,6 +3977,7 @@
       }
     }
   },
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} horas en agua salada, quedan {remaining} de {total}",
   "equipment_serviceClocks_coldDivesLeft": "Quedan {remaining} de {total} inmersiones en agua fría",
   "@equipment_serviceClocks_coldDivesLeft": {
     "placeholders": {
@@ -3986,6 +3989,7 @@
       }
     }
   },
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} inmersiones en agua fría, quedan {remaining} de {total}",
   "equipment_serviceClocks_o2HoursLeft": "Quedan {remaining} de {total} horas con alto O2",
   "@equipment_serviceClocks_o2HoursLeft": {
     "placeholders": {
@@ -3997,6 +4001,7 @@
       }
     }
   },
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} horas con alto O2, quedan {remaining} de {total}",
   "equipment_serviceClocks_deepCyclesLeft": "Quedan {remaining} de {total} inmersiones profundas",
   "@equipment_serviceClocks_deepCyclesLeft": {
     "placeholders": {
@@ -4008,6 +4013,7 @@
       }
     }
   },
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} inmersiones profundas, quedan {remaining} de {total}",
   "equipment_serviceClocks_cyclesLeft": "Quedan {remaining} de {total} ciclos de batería",
   "@equipment_serviceClocks_cyclesLeft": {
     "placeholders": {
@@ -4019,6 +4025,7 @@
       }
     }
   },
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} ciclos de batería, quedan {remaining} de {total}",
   "equipment_serviceClocks_manageKinds": "Gestionar tipos de mantenimiento",
   "equipment_serviceClocks_appliesToClock": "Se aplica al intervalo",
   "equipment_serviceClocks_noClockOption": "No vinculado a un intervalo",
@@ -4224,6 +4231,7 @@
   "equipment_serviceDialog_serviceTypeNotSet": "Sin definir",
   "equipment_serviceDialog_categoryHelper": "Se usa para filtrar y exportar",
   "equipment_serviceDialog_manageServiceTypes": "Gestionar tipos de servicio",
+  "equipment_serviceDialog_filterToConfiguredTypes": "Mostrar solo los tipos de servicio configurados",
   "equipment_serviceDialog_categoryLabel": "Categoría",
   "equipment_serviceDialog_snackbar_added": "Registro de servicio agregado",
   "equipment_serviceDialog_snackbar_error": "Error: {error}",
@@ -4256,6 +4264,8 @@
   "equipment_service_filterClear": "Borrar filtro",
   "equipment_service_filterNoMatches": "Ningún mantenimiento coincide con este filtro",
   "equipment_service_filterMatchCount": "{count} de {total} mostrados",
+  "equipment_service_showMore": "{count, plural, =1{Mostrar 1 más} other{Mostrar {count} más}}",
+  "equipment_service_showFewer": "Mostrar menos",
   "equipment_serviceKinds_defaultCategoryLabel": "Categoría predeterminada",
   "equipment_serviceKinds_defaultCategoryNone": "Sin predeterminado",
   "equipment_serviceKinds_defaultCostLabel": "Precio predeterminado",
@@ -5910,6 +5920,7 @@
   "statistics_chart_noBarData": "No hay datos disponibles",
   "statistics_chart_noDistributionData": "No hay datos de distribucion disponibles",
   "statistics_chart_noTrendData": "No hay datos de tendencia disponibles",
+  "statistics_chart_notRecorded": "Sin registrar",
   "statistics_chart_trendSemanticLabel": "Grafico de lineas de tendencia mostrando {count} puntos de datos",
   "statistics_chart_trendSemanticLabelWithAxis": "Grafico de lineas de tendencia mostrando {count} puntos de datos para {yAxisLabel}",
   "statistics_conditions_appBar_title": "Condiciones",
@@ -9409,6 +9420,11 @@
   "common_bulkDelete_title": "{count, plural, one{¿Eliminar {count} elemento?} other{¿Eliminar {count} elementos?}}",
   "common_bulkDelete_body": "Esta acción no se puede deshacer.",
   "common_bulkDelete_snackbar": "{count, plural, one{{count} eliminado} other{{count} eliminados}}",
+  "common_coordinates_invalidLatitude": "Latitud inválida",
+  "common_coordinates_invalidLongitude": "Longitud inválida",
+  "common_coordinates_latitudeRequired": "La latitud es obligatoria",
+  "common_coordinates_longitudeRequired": "La longitud es obligatoria",
+  "common_coordinates_invalid": "Coordenadas inválidas",
   "marineLife_species_delete_confirmTitle": "¿Eliminar especie?",
   "marineLife_species_delete_confirmBody": "¿Seguro que quieres eliminar \"{name}\"?",
   "marineLife_species_delete_inUseError": "No se puede eliminar \"{name}\": tiene avistamientos",
@@ -12263,5 +12279,34 @@
   "plannerCanvas_compare_showOnChart": "Show on chart",
   "plannerCanvas_gas_usedReading": "usado: {reading}",
   "plannerCanvas_gas_endReading": "final: {reading}",
-  "numberInput_invalidValue": "Ingresa un número válido"
+  "numberInput_invalidValue": "Ingresa un número válido",
+  "diveCenters_rental_sectionTitle": "Equipo de alquiler",
+  "diveCenters_rental_lastTimeAt": "La última vez en {center}",
+  "diveCenters_rental_lastDiveOn": "Última inmersión aquí: {date}",
+  "diveCenters_rental_noHistory": "Aún no hay otras inmersiones registradas aquí.",
+  "diveCenters_rental_empty": "Aún no hay notas de alquiler para este centro.",
+  "diveCenters_rental_addNote": "Añadir nota de alquiler",
+  "diveCenters_rental_applyLastDive": "Aplicar última inmersión",
+  "diveCenters_rental_applied": "Lastre y botellas copiados de tu última inmersión aquí.",
+  "diveCenters_rental_applyConfirmTitle": "¿Reemplazar lastre y botellas?",
+  "diveCenters_rental_applyConfirmBody": "Esta inmersión ya tiene lastre o botellas. ¿Reemplazarlos por los de tu última inmersión aquí?",
+  "diveCenters_rental_applyConfirmReplace": "Reemplazar",
+  "diveCenters_rental_leadTotal": "Lastre: {total}",
+  "diveCenters_rental_feedbackOver": "{amount} de más",
+  "diveCenters_rental_feedbackUnder": "{amount} de menos",
+  "diveCenters_rental_tanksLabel": "Botellas",
+  "diveCenters_rental_verdictWorked": "Funcionó",
+  "diveCenters_rental_verdictAvoid": "Evitar",
+  "diveCenters_rental_extraLead": "{amount} más de lastre",
+  "diveCenters_rental_lessLead": "{amount} menos de lastre",
+  "diveCenters_rental_actualCapacity": "Capacidad real {volume}",
+  "diveCenters_rental_sheetTitleNew": "Nueva nota de alquiler",
+  "diveCenters_rental_sheetTitleEdit": "Editar nota de alquiler",
+  "diveCenters_rental_gearTypeLabel": "Tipo de equipo",
+  "diveCenters_rental_labelLabel": "Etiqueta o número",
+  "diveCenters_rental_sizeLabel": "Talla",
+  "diveCenters_rental_leadAdjustmentLabel": "Lastre adicional necesario ({unit})",
+  "diveCenters_rental_volumeLabel": "Capacidad real ({unit})",
+  "diveCenters_rental_noteLabel": "Nota",
+  "diveCenters_rental_deleteConfirm": "¿Eliminar esta nota de alquiler?"
 }

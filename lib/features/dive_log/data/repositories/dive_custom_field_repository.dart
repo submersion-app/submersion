@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart'
     as domain;
 import 'package:uuid/uuid.dart';
@@ -94,12 +95,15 @@ class DiveCustomFieldRepository {
           'SELECT DISTINCT cf.field_key FROM dive_custom_fields cf '
           'INNER JOIN dives d ON cf.dive_id = d.id '
           'WHERE d.diver_id = ? '
-          'ORDER BY cf.field_key',
+          'ORDER BY cf.field_key COLLATE NOCASE',
           variables: [Variable(diverId)],
         )
         .get();
 
-    return result.map((row) => row.data['field_key'] as String).toList();
+    return sortedByText(
+      result.map((row) => row.data['field_key'] as String),
+      (key) => key,
+    );
   }
 
   domain.DiveCustomField _mapRowToField(DiveCustomField row) {

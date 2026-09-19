@@ -5,6 +5,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_shared_components.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/courses/domain/entities/course.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/signatures/data/services/signature_storage_service.dart';
@@ -26,6 +27,7 @@ class PdfCourseExportService {
     Course course,
     List<Dive> trainingDives, {
     required PdfDateFormatter dates,
+    required UnitFormatter units,
   }) async {
     final pdf = pw.Document();
 
@@ -114,10 +116,7 @@ class PdfCourseExportService {
                   _buildStatBox('${totalRuntime.inMinutes}', 'Total Minutes'),
                   if (maxDepth != null) ...[
                     pw.SizedBox(width: 30),
-                    _buildStatBox(
-                      '${maxDepth.toStringAsFixed(1)}m',
-                      'Max Depth',
-                    ),
+                    _buildStatBox(units.formatDepth(maxDepth), 'Max Depth'),
                   ],
                 ],
               ),
@@ -157,7 +156,12 @@ class PdfCourseExportService {
               pw.Divider(color: PdfColors.grey300),
               pw.SizedBox(height: 10),
               ...pageDives.map(
-                (dive) => _buildDiveEntry(dive, diveSignatures[dive.id], dates),
+                (dive) => _buildDiveEntry(
+                  dive,
+                  diveSignatures[dive.id],
+                  dates,
+                  units,
+                ),
               ),
             ],
           ),
@@ -165,27 +169,32 @@ class PdfCourseExportService {
       );
     }
 
-    // Notes page (if course has notes)
+    // Notes page (if course has notes). A MultiPage, not a fixed pw.Page, so
+    // long notes continue onto another sheet instead of being dropped.
     if (course.notes.isNotEmpty) {
       pdf.addPage(
-        pw.Page(
+        pw.MultiPage(
           pageFormat: PdfPageFormat.a4,
-          build: (context) => pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Text(
-                'Course Notes',
-                style: const pw.TextStyle(
-                  fontSize: 18,
-                  fontWeight: pw.FontWeight.bold,
-                  color: PdfColors.blue800,
-                ),
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          build: (context) => [
+            pw.Text(
+              'Course Notes',
+              style: const pw.TextStyle(
+                fontSize: 18,
+                fontWeight: pw.FontWeight.bold,
+                color: PdfColors.blue800,
               ),
-              pw.Divider(color: PdfColors.grey300),
-              pw.SizedBox(height: 15),
-              pw.Text(course.notes, style: const pw.TextStyle(fontSize: 11)),
-            ],
-          ),
+            ),
+            pw.Divider(color: PdfColors.grey300),
+            pw.SizedBox(height: 15),
+            // TextOverflow.span is what lets MultiPage break the notes
+            // across sheets.
+            pw.Text(
+              course.notes,
+              style: const pw.TextStyle(fontSize: 11),
+              overflow: pw.TextOverflow.span,
+            ),
+          ],
         ),
       );
     }
@@ -250,6 +259,7 @@ class PdfCourseExportService {
     Dive dive,
     List<Signature>? signatures,
     PdfDateFormatter dates,
+    UnitFormatter units,
   ) {
     return pw.Container(
       margin: const pw.EdgeInsets.only(bottom: 15),
@@ -293,10 +303,7 @@ class PdfCourseExportService {
           pw.Row(
             children: [
               if (dive.maxDepth != null)
-                _buildInfoChip(
-                  'Max Depth',
-                  '${dive.maxDepth!.toStringAsFixed(1)} m',
-                ),
+                _buildInfoChip('Max Depth', units.formatDepth(dive.maxDepth)),
               if (dive.effectiveRuntime != null) ...[
                 pw.SizedBox(width: 20),
                 _buildInfoChip(
@@ -308,7 +315,7 @@ class PdfCourseExportService {
                 pw.SizedBox(width: 20),
                 _buildInfoChip(
                   'Water Temp',
-                  '${dive.waterTemp!.toStringAsFixed(0)}\u00B0C',
+                  units.formatTemperature(dive.waterTemp, decimals: 0),
                 ),
               ],
             ],

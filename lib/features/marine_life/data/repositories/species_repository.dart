@@ -7,6 +7,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/marine_life/data/services/builtin_species_seed_version_store.dart';
 import 'package:submersion/features/marine_life/data/services/species_seed_service.dart';
 import 'package:submersion/features/marine_life/domain/entities/species.dart'
@@ -22,11 +23,15 @@ class SpeciesRepository {
     final query = _db.select(_db.species)
       ..orderBy([
         (t) => OrderingTerm.asc(t.category),
-        (t) => OrderingTerm.asc(t.commonName),
+        (t) => OrderingTerm.asc(t.commonName.collate(Collate.noCase)),
       ]);
 
     final rows = await query.get();
-    return rows.map((row) => _mapRowToSpecies(row)).toList();
+    return sortedByText(
+      rows,
+      (r) => r.commonName,
+      groupOf: (r) => r.category,
+    ).map((row) => _mapRowToSpecies(row)).toList();
   }
 
   /// Emits whenever the `species` table changes so list providers can
@@ -52,10 +57,15 @@ class SpeciesRepository {
   ) async {
     final query = _db.select(_db.species)
       ..where((t) => t.category.equals(category.name))
-      ..orderBy([(t) => OrderingTerm.asc(t.commonName)]);
+      ..orderBy([
+        (t) => OrderingTerm.asc(t.commonName.collate(Collate.noCase)),
+      ]);
 
     final rows = await query.get();
-    return rows.map((row) => _mapRowToSpecies(row)).toList();
+    return sortedByText(
+      rows,
+      (r) => r.commonName,
+    ).map((row) => _mapRowToSpecies(row)).toList();
   }
 
   /// Search species by name or taxonomy class
@@ -69,7 +79,7 @@ class SpeciesRepository {
       WHERE LOWER(common_name) LIKE ?
          OR LOWER(scientific_name) LIKE ?
          OR LOWER(taxonomy_class) LIKE ?
-      ORDER BY category ASC, common_name ASC
+      ORDER BY category ASC, common_name COLLATE NOCASE ASC
       LIMIT 50
     ''',
           variables: [
@@ -80,7 +90,11 @@ class SpeciesRepository {
         )
         .get();
 
-    return results.map(_mapRawRowToSpecies).toList();
+    return sortedByText(
+      results,
+      (r) => r.data['common_name'] as String,
+      groupOf: (r) => r.data['category'],
+    ).map(_mapRawRowToSpecies).toList();
   }
 
   /// Get species by ID
@@ -214,13 +228,17 @@ class SpeciesRepository {
       FROM sightings s
       JOIN species sp ON s.species_id = sp.id
       WHERE s.dive_id = ?
-      ORDER BY sp.category ASC, sp.common_name ASC
+      ORDER BY sp.category ASC, sp.common_name COLLATE NOCASE ASC
     ''',
           variables: [Variable.withString(diveId)],
         )
         .get();
 
-    return results.map((row) {
+    return sortedByText(
+      results,
+      (r) => r.data['common_name'] as String,
+      groupOf: (r) => r.data['category'],
+    ).map((row) {
       return domain.Sighting(
         id: row.data['id'] as String,
         diveId: row.data['dive_id'] as String,
@@ -262,13 +280,17 @@ class SpeciesRepository {
       FROM sightings s
       JOIN species sp ON s.species_id = sp.id
       WHERE s.dive_id IN ($placeholders)
-      ORDER BY sp.category ASC, sp.common_name ASC
+      ORDER BY sp.category ASC, sp.common_name COLLATE NOCASE ASC
     ''',
             variables: [for (final id in chunk) Variable.withString(id)],
           )
           .get();
 
-      for (final row in results) {
+      for (final row in sortedByText(
+        results,
+        (r) => r.data['common_name'] as String,
+        groupOf: (r) => r.data['category'],
+      )) {
         final sighting = domain.Sighting(
           id: row.data['id'] as String,
           diveId: row.data['dive_id'] as String,
@@ -736,13 +758,17 @@ class SpeciesRepository {
       FROM site_species ss
       JOIN species sp ON ss.species_id = sp.id
       WHERE ss.site_id = ?
-      ORDER BY sp.category ASC, sp.common_name ASC
+      ORDER BY sp.category ASC, sp.common_name COLLATE NOCASE ASC
     ''',
           variables: [Variable.withString(siteId)],
         )
         .get();
 
-    return results.map((row) {
+    return sortedByText(
+      results,
+      (r) => r.data['common_name'] as String,
+      groupOf: (r) => r.data['category'],
+    ).map((row) {
       return domain.SiteSpeciesEntry(
         id: row.data['id'] as String,
         siteId: row.data['site_id'] as String,

@@ -10,6 +10,7 @@ import 'package:submersion/features/tank_presets/domain/entities/tank_preset_ent
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
+import 'package:submersion/shared/widgets/fab_clearance.dart';
 
 class TankPresetsPage extends ConsumerWidget {
   const TankPresetsPage({super.key});
@@ -48,6 +49,7 @@ class TankPresetsPage extends ConsumerWidget {
           }
 
           return ListView(
+            padding: kFabListPadding,
             children: [
               _buildSectionHeader(
                 context,

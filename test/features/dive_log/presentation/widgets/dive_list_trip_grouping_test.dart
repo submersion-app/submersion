@@ -260,8 +260,9 @@ void main() {
     testWidgets('a collapsed trip auto-expands when it holds the open dive', (
       tester,
     ) async {
-      // The list must never fold away the dive the diver is looking at, even
-      // when that dive's trip is in the collapsed set.
+      // Selecting a dive inside a collapsed trip reveals it: the scroll to
+      // the selection expands that trip once, for real, so the header's own
+      // collapse still works afterwards (no standing override).
       final overrides = await groupingOverrides(
         [makeDive('d1', tripId: 't1', tripName: 'Tassie')],
         tripTotals: const {'t1': 1},
@@ -293,7 +294,39 @@ void main() {
       expect(
         find.text('Site d1'),
         findsOneWidget,
-        reason: 'the open dive forces its trip back open',
+        reason: 'selecting the dive expands its trip once',
+      );
+    });
+
+    testWidgets('the header collapses a trip even while its dive is open', (
+      tester,
+    ) async {
+      // On desktop a dive is nearly always open in the detail pane, and a
+      // standing "keep the open dive's trip expanded" rule silently undid
+      // every header tap on that trip. Collapse wins; the detail pane keeps
+      // showing the dive.
+      final overrides = await groupingOverrides(
+        [makeDive('d1', tripId: 't1', tripName: 'Tassie')],
+        tripTotals: const {'t1': 1},
+      );
+
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: overrides,
+          child: const DiveListContent(showAppBar: false, selectedId: 'd1'),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Site d1'), findsOneWidget);
+
+      await tester.tap(find.byType(TripGroupHeader));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Site d1'),
+        findsNothing,
+        reason: 'a header tap must fold the trip, open dive or not',
       );
     });
 

@@ -12135,6 +12135,15 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_divesUsedAndLeft(
+    int used,
+    int remaining,
+    int total,
+  ) {
+    return '$used immersioni, $remaining rimanenti su $total';
+  }
+
+  @override
   String get cylinderConfigs_title => 'Configurazioni bombole';
 
   @override
@@ -12226,8 +12235,26 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_hoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used ore, $remaining rimanenti su $total';
+  }
+
+  @override
   String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
     return '$remaining di $total ore in acqua salata rimanenti';
+  }
+
+  @override
+  String equipment_serviceClocks_saltHoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used ore in acqua salata, $remaining di $total rimanenti';
   }
 
   @override
@@ -12236,8 +12263,26 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_coldDivesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used immersioni in acqua fredda, $remaining di $total rimanenti';
+  }
+
+  @override
   String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
     return '$remaining di $total ore ad alto O2 rimanenti';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used ore ad alto O2, $remaining di $total rimanenti';
   }
 
   @override
@@ -12249,8 +12294,26 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_deepCyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used immersioni profonde, $remaining di $total rimanenti';
+  }
+
+  @override
   String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
     return '$remaining di $total cicli di batteria rimanenti';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used cicli di batteria, $remaining di $total rimanenti';
   }
 
   @override
@@ -13042,6 +13105,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Gestisci tipi di manutenzione';
 
   @override
+  String get equipment_serviceDialog_filterToConfiguredTypes =>
+      'Mostra solo i tipi di manutenzione configurati';
+
+  @override
   String get equipment_serviceDialog_categoryLabel => 'Categoria';
 
   @override
@@ -13149,6 +13216,20 @@ class AppLocalizationsIt extends AppLocalizations {
   String equipment_service_filterMatchCount(int count, int total) {
     return '$count di $total mostrati';
   }
+
+  @override
+  String equipment_service_showMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Mostra altri $count',
+      one: 'Mostra 1 in più',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_service_showFewer => 'Mostra meno';
 
   @override
   String get equipment_serviceKinds_defaultCategoryLabel =>
@@ -19822,6 +19903,9 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get statistics_chart_noTrendData =>
       'Nessun dato di tendenza disponibile';
+
+  @override
+  String get statistics_chart_notRecorded => 'Non registrato';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {
@@ -30656,6 +30740,23 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get common_coordinates_invalidLatitude => 'Latitudine non valida';
+
+  @override
+  String get common_coordinates_invalidLongitude => 'Longitudine non valida';
+
+  @override
+  String get common_coordinates_latitudeRequired =>
+      'La latitudine è obbligatoria';
+
+  @override
+  String get common_coordinates_longitudeRequired =>
+      'La longitudine è obbligatoria';
+
+  @override
+  String get common_coordinates_invalid => 'Coordinate non valide';
+
+  @override
   String get marineLife_species_delete_confirmTitle => 'Eliminare la specie?';
 
   @override
@@ -41168,4 +41269,117 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get numberInput_invalidValue => 'Inserisci un numero valido';
+
+  @override
+  String get diveCenters_rental_sectionTitle => 'Attrezzatura a noleggio';
+
+  @override
+  String diveCenters_rental_lastTimeAt(Object center) {
+    return 'L\'ultima volta da $center';
+  }
+
+  @override
+  String diveCenters_rental_lastDiveOn(Object date) {
+    return 'Ultima immersione qui: $date';
+  }
+
+  @override
+  String get diveCenters_rental_noHistory =>
+      'Nessun\'altra immersione registrata qui.';
+
+  @override
+  String get diveCenters_rental_empty =>
+      'Nessuna nota sul noleggio per questo centro.';
+
+  @override
+  String get diveCenters_rental_addNote => 'Aggiungi nota noleggio';
+
+  @override
+  String get diveCenters_rental_applyLastDive => 'Applica ultima immersione';
+
+  @override
+  String get diveCenters_rental_applied =>
+      'Zavorra e bombole copiate dalla tua ultima immersione qui.';
+
+  @override
+  String get diveCenters_rental_applyConfirmTitle =>
+      'Sostituire zavorra e bombole?';
+
+  @override
+  String get diveCenters_rental_applyConfirmBody =>
+      'Questa immersione ha già zavorra o bombole. Sostituirle con quelle della tua ultima immersione qui?';
+
+  @override
+  String get diveCenters_rental_applyConfirmReplace => 'Sostituisci';
+
+  @override
+  String diveCenters_rental_leadTotal(Object total) {
+    return 'Zavorra: $total';
+  }
+
+  @override
+  String diveCenters_rental_feedbackOver(Object amount) {
+    return '$amount in più';
+  }
+
+  @override
+  String diveCenters_rental_feedbackUnder(Object amount) {
+    return '$amount in meno';
+  }
+
+  @override
+  String get diveCenters_rental_tanksLabel => 'Bombole';
+
+  @override
+  String get diveCenters_rental_verdictWorked => 'Andava bene';
+
+  @override
+  String get diveCenters_rental_verdictAvoid => 'Da evitare';
+
+  @override
+  String diveCenters_rental_extraLead(Object amount) {
+    return '$amount di zavorra in più';
+  }
+
+  @override
+  String diveCenters_rental_lessLead(Object amount) {
+    return '$amount di zavorra in meno';
+  }
+
+  @override
+  String diveCenters_rental_actualCapacity(Object volume) {
+    return 'Capacità reale $volume';
+  }
+
+  @override
+  String get diveCenters_rental_sheetTitleNew => 'Nuova nota noleggio';
+
+  @override
+  String get diveCenters_rental_sheetTitleEdit => 'Modifica nota noleggio';
+
+  @override
+  String get diveCenters_rental_gearTypeLabel => 'Tipo di attrezzatura';
+
+  @override
+  String get diveCenters_rental_labelLabel => 'Etichetta o numero';
+
+  @override
+  String get diveCenters_rental_sizeLabel => 'Taglia';
+
+  @override
+  String diveCenters_rental_leadAdjustmentLabel(Object unit) {
+    return 'Zavorra aggiuntiva necessaria ($unit)';
+  }
+
+  @override
+  String diveCenters_rental_volumeLabel(Object unit) {
+    return 'Capacità reale ($unit)';
+  }
+
+  @override
+  String get diveCenters_rental_noteLabel => 'Nota';
+
+  @override
+  String get diveCenters_rental_deleteConfirm =>
+      'Eliminare questa nota sul noleggio?';
 }

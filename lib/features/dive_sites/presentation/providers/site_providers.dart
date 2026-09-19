@@ -3,6 +3,7 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/text_sort.dart';
 
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
@@ -303,6 +304,7 @@ List<SiteWithDiveCount> applySiteSorting(
 ) {
   return PerfTimer.measureSync('applySiteSorting', () {
     final sorted = List<SiteWithDiveCount>.from(sites);
+    final collator = TextCollator();
 
     sorted.sort((a, b) {
       int comparison;
@@ -311,7 +313,7 @@ List<SiteWithDiveCount> applySiteSorting(
 
       switch (sort.field) {
         case SiteSortField.name:
-          comparison = a.site.name.compareTo(b.site.name);
+          comparison = collator.compare(a.site.name, b.site.name);
         case SiteSortField.rating:
           comparison = (a.site.rating ?? 0).compareTo(b.site.rating ?? 0);
         case SiteSortField.difficulty:
@@ -331,17 +333,13 @@ List<SiteWithDiveCount> applySiteSorting(
           final bDate = b.lastDivedAt;
           if (aDate == null || bDate == null) {
             if (aDate == null && bDate == null) {
-              return a.site.name.toLowerCase().compareTo(
-                b.site.name.toLowerCase(),
-              );
+              return collator.compare(a.site.name, b.site.name);
             }
             return aDate == null ? 1 : -1;
           }
           comparison = aDate.compareTo(bDate);
           if (comparison == 0) {
-            return a.site.name.toLowerCase().compareTo(
-              b.site.name.toLowerCase(),
-            );
+            return collator.compare(a.site.name, b.site.name);
           }
       }
 

@@ -5,6 +5,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/universal_import/data/csv/presets/csv_preset.dart'
     as domain;
 
@@ -26,11 +27,12 @@ class CsvPresetRepository {
   Future<List<domain.CsvPreset>> getAllPresets() async {
     try {
       final query = _db.select(_db.csvPresets)
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+        ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
       final rows = await query.get();
-      return rows
-          .map((row) => domain.CsvPreset.fromJson(row.presetJson))
-          .toList();
+      return sortedByText(
+        rows,
+        (r) => r.name,
+      ).map((row) => domain.CsvPreset.fromJson(row.presetJson)).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all CSV presets',

@@ -3,7 +3,9 @@ import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/export/csv/codec/tank_capacity.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -214,16 +216,31 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   bool _isTravelGas = false;
   bool _isBailout = false;
 
+  /// The volume field's seeded text, so [_save] can tell an untouched field
+  /// from an edited one and keep the stored litres exactly (issue #2027).
+  late String _initialVolumeText;
+
+  /// Imperial divers name a cylinder by its rated gas capacity in cuft, not
+  /// by its water volume, so the field must use the capacity conversion
+  /// that [UnitFormatter.formatTankVolume] shows on the chip (issue #2027).
+  bool get _isCuft => widget.units.settings.volumeUnit == VolumeUnit.cubicFeet;
+
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.tank?.name ?? '');
-    _volumeController = TextEditingController(
-      text: formatRoundedForInput(
-        widget.units.convertVolume(widget.tank?.volume ?? 11.1),
-        1,
-      ),
-    );
+    // A new tank starts as an 11.1 L cylinder; an existing tank without a
+    // volume seeds an empty field, so saving it untouched stores none.
+    final volumeLiters = widget.tank == null ? 11.1 : widget.tank!.volume;
+    _initialVolumeText = volumeLiters == null
+        ? ''
+        : formatRoundedForInput(
+            _isCuft
+                ? ratedCapacityCuft(volumeLiters, widget.tank?.workingPressure)
+                : volumeLiters,
+            1,
+          );
+    _volumeController = TextEditingController(text: _initialVolumeText);
     _pressureController = TextEditingController(
       text: formatRoundedForInput(
         widget.units.convertPressure(widget.tank?.startPressure ?? 200),
@@ -398,18 +415,31 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   void _save() {
     if (!_formKey.currentState!.validate()) return;
 
-    final parsedVolume = parseUserDecimal(_volumeController.text);
     final parsedPressure = parseUserDecimal(_pressureController.text);
+    final startPressureBar = parsedPressure != null
+        ? widget.units.pressureToBar(parsedPressure)
+        : null;
+    final specs = _volumeSpecs(startPressureBar);
+    final original = widget.tank;
 
     final tank = DiveTank(
-      id: widget.tank?.id ?? _uuid.v4(),
+      id: original?.id ?? _uuid.v4(),
       name: _nameController.text.isNotEmpty ? _nameController.text : null,
-      volume: parsedVolume != null
-          ? widget.units.volumeToLiters(parsedVolume)
-          : null,
-      startPressure: parsedPressure != null
-          ? widget.units.pressureToBar(parsedPressure)
-          : null,
+      volume: specs.volumeLiters,
+      workingPressure: specs.workingPressureBar,
+      startPressure: startPressureBar,
+      // Carried over rather than dropped: this dialog does not show them, so
+      // a save must not erase them. A preset name only still describes the
+      // cylinder while its size is untouched.
+      endPressure: original?.endPressure,
+      material: original?.material,
+      presetName: specs.volumeEdited ? null : original?.presetName,
+      computerId: original?.computerId,
+      transmitterSerial: original?.transmitterSerial,
+      sourceTankIndex: original?.sourceTankIndex,
+      regulatorEquipmentId: original?.regulatorEquipmentId,
+      equipmentId: original?.equipmentId,
+      decoSwitchDepth: original?.decoSwitchDepth,
       gasMix: GasMix(
         o2: parseUserDecimal(_o2Controller.text) ?? 21,
         he: parseUserDecimal(_heController.text) ?? 0,
@@ -423,5 +453,45 @@ class _TankEditDialogState extends State<_TankEditDialog> {
 
     widget.onSave(tank);
     Navigator.pop(context);
+  }
+
+  /// The cylinder's physical volume and working pressure from the volume
+  /// field (issue #2027).
+  ///
+  /// An existing tank's untouched field keeps its stored litres and working
+  /// pressure exactly, so opening and saving it never drifts them through
+  /// display rounding. Otherwise the field is read as typed. A new tank takes
+  /// the start pressure entered as its working pressure. A cuft value is
+  /// rated gas capacity: it resolves to litres at the tank's working
+  /// pressure, falling back to the start pressure (which it then keeps) so
+  /// the chip reads back the number in the field.
+  ({double? volumeLiters, double? workingPressureBar, bool volumeEdited})
+  _volumeSpecs(double? startPressureBar) {
+    final original = widget.tank;
+    if (original != null && _volumeController.text == _initialVolumeText) {
+      return (
+        volumeLiters: original.volume,
+        workingPressureBar: original.workingPressure,
+        volumeEdited: false,
+      );
+    }
+    final parsed = parseUserDecimal(_volumeController.text);
+    if (!_isCuft) {
+      return (
+        volumeLiters: parsed,
+        workingPressureBar: original == null
+            ? startPressureBar
+            : original.workingPressure,
+        volumeEdited: true,
+      );
+    }
+    final workingPressureBar = original?.workingPressure ?? startPressureBar;
+    return (
+      volumeLiters: parsed != null
+          ? volumeLitersFromCapacity(parsed, workingPressureBar)
+          : null,
+      workingPressureBar: workingPressureBar,
+      volumeEdited: true,
+    );
   }
 }

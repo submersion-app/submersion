@@ -5,6 +5,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/tags/data/mappers/tag_row_mapper.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart' as domain;
 
@@ -43,12 +44,15 @@ class EquipmentTagRepository {
     final rows = await _db
         .customSelect(
           'SELECT t.* FROM equipment_tags et JOIN tags t ON t.id = et.tag_id '
-          'WHERE et.equipment_id = ? ORDER BY t.name',
+          'WHERE et.equipment_id = ? ORDER BY t.name COLLATE NOCASE',
           variables: [Variable.withString(equipmentId)],
           readsFrom: {_db.equipmentTags, _db.tags},
         )
         .get();
-    return [for (final r in rows) mapTagRow(_db.tags.map(r.data))];
+    return [
+      for (final r in sortedByText(rows, (r) => r.data['name'] as String))
+        mapTagRow(_db.tags.map(r.data)),
+    ];
   }
 
   /// Every item's tags, by name, in one query. An item with no tags has no
@@ -58,12 +62,16 @@ class EquipmentTagRepository {
         .customSelect(
           'SELECT et.equipment_id AS link_equipment_id, t.* '
           'FROM equipment_tags et JOIN tags t ON t.id = et.tag_id '
-          'ORDER BY et.equipment_id, t.name',
+          'ORDER BY et.equipment_id, t.name COLLATE NOCASE',
           readsFrom: {_db.equipmentTags, _db.tags},
         )
         .get();
     final byItem = <String, List<domain.Tag>>{};
-    for (final r in rows) {
+    for (final r in sortedByText(
+      rows,
+      (r) => r.data['name'] as String,
+      groupOf: (r) => r.read<String>('link_equipment_id'),
+    )) {
       byItem
           .putIfAbsent(r.read<String>('link_equipment_id'), () => [])
           .add(mapTagRow(_db.tags.map(r.data)));

@@ -20188,6 +20188,16 @@ abstract class AppLocalizations {
   /// **'{remaining} of {total} dives left'**
   String equipment_serviceClocks_divesLeft(int remaining, int total);
 
+  /// No description provided for @equipment_serviceClocks_divesUsedAndLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} dives, {remaining} of {total} dives left'**
+  String equipment_serviceClocks_divesUsedAndLeft(
+    int used,
+    int remaining,
+    int total,
+  );
+
   /// No description provided for @cylinderConfigs_title.
   ///
   /// In en, this message translates to:
@@ -20326,11 +20336,31 @@ abstract class AppLocalizations {
   /// **'{remaining} of {total} hours left'**
   String equipment_serviceClocks_hoursLeft(String remaining, String total);
 
+  /// No description provided for @equipment_serviceClocks_hoursUsedAndLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} hours, {remaining} of {total} hours left'**
+  String equipment_serviceClocks_hoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  );
+
   /// No description provided for @equipment_serviceClocks_saltHoursLeft.
   ///
   /// In en, this message translates to:
   /// **'{remaining} of {total} salt-water hours left'**
   String equipment_serviceClocks_saltHoursLeft(String remaining, String total);
+
+  /// No description provided for @equipment_serviceClocks_saltHoursUsedAndLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} salt-water hours, {remaining} of {total} salt-water hours left'**
+  String equipment_serviceClocks_saltHoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  );
 
   /// No description provided for @equipment_serviceClocks_coldDivesLeft.
   ///
@@ -20338,11 +20368,31 @@ abstract class AppLocalizations {
   /// **'{remaining} of {total} cold dives left'**
   String equipment_serviceClocks_coldDivesLeft(String remaining, String total);
 
+  /// No description provided for @equipment_serviceClocks_coldDivesUsedAndLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} cold dives, {remaining} of {total} cold dives left'**
+  String equipment_serviceClocks_coldDivesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  );
+
   /// No description provided for @equipment_serviceClocks_o2HoursLeft.
   ///
   /// In en, this message translates to:
   /// **'{remaining} of {total} high-O2 hours left'**
   String equipment_serviceClocks_o2HoursLeft(String remaining, String total);
+
+  /// No description provided for @equipment_serviceClocks_o2HoursUsedAndLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} high-O2 hours, {remaining} of {total} high-O2 hours left'**
+  String equipment_serviceClocks_o2HoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  );
 
   /// No description provided for @equipment_serviceClocks_deepCyclesLeft.
   ///
@@ -20350,11 +20400,31 @@ abstract class AppLocalizations {
   /// **'{remaining} of {total} deep dives left'**
   String equipment_serviceClocks_deepCyclesLeft(String remaining, String total);
 
+  /// No description provided for @equipment_serviceClocks_deepCyclesUsedAndLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} deep dives, {remaining} of {total} deep dives left'**
+  String equipment_serviceClocks_deepCyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  );
+
   /// No description provided for @equipment_serviceClocks_cyclesLeft.
   ///
   /// In en, this message translates to:
   /// **'{remaining} of {total} battery cycles left'**
   String equipment_serviceClocks_cyclesLeft(String remaining, String total);
+
+  /// No description provided for @equipment_serviceClocks_cyclesUsedAndLeft.
+  ///
+  /// In en, this message translates to:
+  /// **'{used} battery cycles, {remaining} of {total} battery cycles left'**
+  String equipment_serviceClocks_cyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  );
 
   /// No description provided for @equipment_serviceClocks_manageKinds.
   ///
@@ -21589,6 +21659,12 @@ abstract class AppLocalizations {
   /// **'Manage service types'**
   String get equipment_serviceDialog_manageServiceTypes;
 
+  /// No description provided for @equipment_serviceDialog_filterToConfiguredTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Only show configured service types'**
+  String get equipment_serviceDialog_filterToConfiguredTypes;
+
   /// No description provided for @equipment_serviceDialog_categoryLabel.
   ///
   /// In en, this message translates to:
@@ -21780,6 +21856,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} of {total} shown'**
   String equipment_service_filterMatchCount(int count, int total);
+
+  /// No description provided for @equipment_service_showMore.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Show 1 more} other{Show {count} more}}'**
+  String equipment_service_showMore(int count);
+
+  /// No description provided for @equipment_service_showFewer.
+  ///
+  /// In en, this message translates to:
+  /// **'Show fewer'**
+  String get equipment_service_showFewer;
 
   /// No description provided for @equipment_serviceKinds_defaultCategoryLabel.
   ///
@@ -32440,6 +32528,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No trend data available'**
   String get statistics_chart_noTrendData;
+
+  /// No description provided for @statistics_chart_notRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get statistics_chart_notRecorded;
 
   /// No description provided for @statistics_chart_trendSemanticLabel.
   ///
@@ -49175,6 +49269,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, one{{count} deleted} other{{count} deleted}}'**
   String common_bulkDelete_snackbar(int count);
+
+  /// No description provided for @common_coordinates_invalidLatitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid latitude'**
+  String get common_coordinates_invalidLatitude;
+
+  /// No description provided for @common_coordinates_invalidLongitude.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid longitude'**
+  String get common_coordinates_invalidLongitude;
+
+  /// No description provided for @common_coordinates_latitudeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Latitude is required'**
+  String get common_coordinates_latitudeRequired;
+
+  /// No description provided for @common_coordinates_longitudeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Longitude is required'**
+  String get common_coordinates_longitudeRequired;
+
+  /// No description provided for @common_coordinates_invalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid coordinates'**
+  String get common_coordinates_invalid;
 
   /// No description provided for @marineLife_species_delete_confirmTitle.
   ///
@@ -66153,6 +66277,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a valid number'**
   String get numberInput_invalidValue;
+
+  /// No description provided for @diveCenters_rental_sectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rental gear'**
+  String get diveCenters_rental_sectionTitle;
+
+  /// No description provided for @diveCenters_rental_lastTimeAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Last time at {center}'**
+  String diveCenters_rental_lastTimeAt(Object center);
+
+  /// No description provided for @diveCenters_rental_lastDiveOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Last dive here: {date}'**
+  String diveCenters_rental_lastDiveOn(Object date);
+
+  /// No description provided for @diveCenters_rental_noHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'No other dives logged here yet.'**
+  String get diveCenters_rental_noHistory;
+
+  /// No description provided for @diveCenters_rental_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'No rental notes for this center yet.'**
+  String get diveCenters_rental_empty;
+
+  /// No description provided for @diveCenters_rental_addNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Add rental note'**
+  String get diveCenters_rental_addNote;
+
+  /// No description provided for @diveCenters_rental_applyLastDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply last dive'**
+  String get diveCenters_rental_applyLastDive;
+
+  /// No description provided for @diveCenters_rental_applied.
+  ///
+  /// In en, this message translates to:
+  /// **'Weights and tanks copied from your last dive here.'**
+  String get diveCenters_rental_applied;
+
+  /// No description provided for @diveCenters_rental_applyConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace weights and tanks?'**
+  String get diveCenters_rental_applyConfirmTitle;
+
+  /// No description provided for @diveCenters_rental_applyConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This dive already has weights or tanks. Replace them with the ones from your last dive here?'**
+  String get diveCenters_rental_applyConfirmBody;
+
+  /// No description provided for @diveCenters_rental_applyConfirmReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get diveCenters_rental_applyConfirmReplace;
+
+  /// No description provided for @diveCenters_rental_leadTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead: {total}'**
+  String diveCenters_rental_leadTotal(Object total);
+
+  /// No description provided for @diveCenters_rental_feedbackOver.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} over'**
+  String diveCenters_rental_feedbackOver(Object amount);
+
+  /// No description provided for @diveCenters_rental_feedbackUnder.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} under'**
+  String diveCenters_rental_feedbackUnder(Object amount);
+
+  /// No description provided for @diveCenters_rental_tanksLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get diveCenters_rental_tanksLabel;
+
+  /// No description provided for @diveCenters_rental_verdictWorked.
+  ///
+  /// In en, this message translates to:
+  /// **'Worked'**
+  String get diveCenters_rental_verdictWorked;
+
+  /// No description provided for @diveCenters_rental_verdictAvoid.
+  ///
+  /// In en, this message translates to:
+  /// **'Avoid'**
+  String get diveCenters_rental_verdictAvoid;
+
+  /// No description provided for @diveCenters_rental_extraLead.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} extra lead'**
+  String diveCenters_rental_extraLead(Object amount);
+
+  /// No description provided for @diveCenters_rental_lessLead.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} less lead'**
+  String diveCenters_rental_lessLead(Object amount);
+
+  /// No description provided for @diveCenters_rental_actualCapacity.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual capacity {volume}'**
+  String diveCenters_rental_actualCapacity(Object volume);
+
+  /// No description provided for @diveCenters_rental_sheetTitleNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New rental note'**
+  String get diveCenters_rental_sheetTitleNew;
+
+  /// No description provided for @diveCenters_rental_sheetTitleEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit rental note'**
+  String get diveCenters_rental_sheetTitleEdit;
+
+  /// No description provided for @diveCenters_rental_gearTypeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear type'**
+  String get diveCenters_rental_gearTypeLabel;
+
+  /// No description provided for @diveCenters_rental_labelLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Label or number'**
+  String get diveCenters_rental_labelLabel;
+
+  /// No description provided for @diveCenters_rental_sizeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Size'**
+  String get diveCenters_rental_sizeLabel;
+
+  /// No description provided for @diveCenters_rental_leadAdjustmentLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra lead needed ({unit})'**
+  String diveCenters_rental_leadAdjustmentLabel(Object unit);
+
+  /// No description provided for @diveCenters_rental_volumeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Actual capacity ({unit})'**
+  String diveCenters_rental_volumeLabel(Object unit);
+
+  /// No description provided for @diveCenters_rental_noteLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get diveCenters_rental_noteLabel;
+
+  /// No description provided for @diveCenters_rental_deleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this rental note?'**
+  String get diveCenters_rental_deleteConfirm;
 }
 
 class _AppLocalizationsDelegate

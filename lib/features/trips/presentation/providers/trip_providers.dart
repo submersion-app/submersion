@@ -1,6 +1,7 @@
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/text_sort.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -154,6 +155,7 @@ List<TripWithStats> _applyTripSorting(
   SortState<TripSortField> sort,
 ) {
   final sorted = List<TripWithStats>.from(trips);
+  final collator = TextCollator();
 
   sorted.sort((a, b) {
     int comparison;
@@ -166,7 +168,7 @@ List<TripWithStats> _applyTripSorting(
       case TripSortField.endDate:
         comparison = a.trip.endDate.compareTo(b.trip.endDate);
       case TripSortField.name:
-        comparison = a.trip.name.compareTo(b.trip.name);
+        comparison = collator.compare(a.trip.name, b.trip.name);
     }
 
     if (invertForText) {

@@ -16,6 +16,7 @@ import 'package:submersion/shared/providers/entity_card_config_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
+import '../../helpers/fake_buddy_list_notifier.dart';
 
 const _config = EntityCardViewConfig<BuddyField>(
   slots: [
@@ -323,5 +324,97 @@ void main() {
       1,
       reason: 'the checkbox claims the tap, so the row toggles exactly once',
     );
+  });
+
+  group('favorite star (issue #1336)', () {
+    testWidgets('shows an outlined star for a non-favorite buddy', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: await _overrides(),
+          child: BuddyListTile(
+            entry: BuddyWithDiveCount(buddy: _buddy(), diveCount: 0),
+            onTap: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.star_border), findsOneWidget);
+      expect(find.byIcon(Icons.star), findsNothing);
+    });
+
+    testWidgets('shows a filled star for a favorite buddy', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: await _overrides(),
+          child: BuddyListTile(
+            entry: BuddyWithDiveCount(
+              buddy: _buddy().copyWith(isFavorite: true),
+              diveCount: 0,
+            ),
+            onTap: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.star), findsOneWidget);
+      expect(find.byIcon(Icons.star_border), findsNothing);
+    });
+
+    testWidgets('tapping the star toggles favorite without triggering onTap', (
+      tester,
+    ) async {
+      final notifier = FakeBuddyListNotifier();
+      var rowTaps = 0;
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            ...await _overrides(),
+            buddyListNotifierProvider.overrideWith((ref) => notifier),
+          ],
+          child: BuddyListTile(
+            entry: BuddyWithDiveCount(buddy: _buddy(), diveCount: 0),
+            onTap: () => rowTaps++,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.star_border));
+      await tester.pumpAndSettle();
+
+      expect(notifier.toggledFavoriteIds, ['b1']);
+      expect(
+        rowTaps,
+        0,
+        reason: 'the star button claims the tap, not the row navigation',
+      );
+    });
+
+    testWidgets('stays visible in selection mode', (tester) async {
+      await tester.pumpWidget(
+        testApp(
+          overrides: await _overrides(),
+          child: BuddyListTile(
+            entry: BuddyWithDiveCount(buddy: _buddy(), diveCount: 0),
+            isSelectionMode: true,
+            isChecked: false,
+            onTap: () {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byIcon(Icons.star_border),
+        findsOneWidget,
+        reason:
+            'favoriting is independent of bulk selection, unlike the '
+            'navigation chevron it replaces',
+      );
+    });
   });
 }
