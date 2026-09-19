@@ -44253,7 +44253,7 @@ abstract class AppLocalizations {
   /// No description provided for @dive3d_seascape_lodStageLabel.
   ///
   /// In en, this message translates to:
-  /// **'Level of detail: {stage} ({span} m)'**
+  /// **'Level of detail: {stage} ({span})'**
   String dive3d_seascape_lodStageLabel(String stage, String span);
 
   /// No description provided for @dive3d_seascape_lodStageOverview.

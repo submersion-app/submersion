@@ -27551,7 +27551,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String dive3d_seascape_lodStageLabel(String stage, String span) {
-    return 'Detailstufe: $stage ($span m)';
+    return 'Detailstufe: $stage ($span)';
   }
 
   @override

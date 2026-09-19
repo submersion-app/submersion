@@ -7957,7 +7957,7 @@
   "@dive3d_seascape_noCoordinates": {},
   "dive3d_seascape_detailLimitReached": "Für diesen Ort ist kein weiteres Detail verfügbar",
   "@dive3d_seascape_detailLimitReached": {},
-  "dive3d_seascape_lodStageLabel": "Detailstufe: {stage} ({span} m)",
+  "dive3d_seascape_lodStageLabel": "Detailstufe: {stage} ({span})",
   "@dive3d_seascape_lodStageLabel": {
     "placeholders": {
       "stage": {

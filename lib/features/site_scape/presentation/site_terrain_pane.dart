@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/seascape_chrome.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/scene_projector.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_depth_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_hover_tooltip.dart';
@@ -55,6 +56,15 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
   // No timeline at site level: the scrub cursor stays parked.
   final ValueNotifier<double> _scrub = ValueNotifier(0);
   final ValueNotifier<ScenePick?> _hoverPick = ValueNotifier(null);
+
+  /// Which grid the CURRENT [_hoverPick] value's row/col indices refer to
+  /// -- the base grid, or the finer LOD patch grid when the cursor is over
+  /// its footprint (see [_PatchAwareHoverPicker]). Set synchronously by the
+  /// picker itself, before Dive3dInteractiveViewport (which calls the
+  /// picker then assigns [_hoverPick].value right after, with no await in
+  /// between) publishes the pick, so it is always in sync with whatever
+  /// [_hoverPick] currently holds.
+  BathymetryGrid? _hoverPickGrid;
   final Set<SceneOverlay> _visible = {
     SceneOverlay.markers,
     SceneOverlay.paths,
@@ -220,6 +230,18 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                             builder: (context) {
                               final axes = _buildAxes(axisInputs);
                               return Dive3dInteractiveViewport(
+                                // Keyed on siteId: the pane itself is reused
+                                // across an in-place site switch (see
+                                // didUpdateWidget above), and so is this
+                                // viewport unless forced to remount here.
+                                // Without this key the viewport's own
+                                // internal camera zoom/pan/pose survived a
+                                // site switch even after _settledZoom reset
+                                // to the overview stage, so the LOD patch
+                                // logic thought the diver was zoomed out
+                                // while the camera was still showing the
+                                // previous site's close-up view.
+                                key: ValueKey(widget.siteId),
                                 scene: displayScene,
                                 scrubPosition: _scrub,
                                 visibleOverlays: {
@@ -237,13 +259,35 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                                 // layer has been added); hover picking has nothing
                                 // to pick against then, so this disables the
                                 // picker instead of crashing on .first.
+                                //
+                                // When a finer LOD patch is showing, its own
+                                // grid/mesh is tried FIRST: it visually covers
+                                // the base terrain in that area, so a hover
+                                // there should read the patch's own depth, not
+                                // the coarser base grid underneath it. Outside
+                                // the patch's footprint the patch picker finds
+                                // nothing within its threshold and returns
+                                // null, falling through to the base grid.
                                 picker: scene.layers.isEmpty
                                     ? null
-                                    : GridHoverPicker(
-                                        seascapePickGrid(
-                                          grid,
-                                          scene.layers.first.mesh,
+                                    : _PatchAwareHoverPicker(
+                                        patchPicker: patch == null
+                                            ? null
+                                            : GridHoverPicker(
+                                                seascapePickGrid(
+                                                  patch.grid,
+                                                  patch.layers.first.mesh,
+                                                ),
+                                              ),
+                                        patchGrid: patch?.grid,
+                                        basePicker: GridHoverPicker(
+                                          seascapePickGrid(
+                                            grid,
+                                            scene.layers.first.mesh,
+                                          ),
                                         ),
+                                        baseGrid: grid,
+                                        onGridUsed: (g) => _hoverPickGrid = g,
                                       ),
                                 hoverPick: _hoverPick,
                                 onMarkerTap: _onMarkerTap,
@@ -267,18 +311,21 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                           top: 8,
                           left: 8,
                           right: 8,
-                          child: _sourceChip(sourceId, resolutionMeters, stage),
+                          child: _sourceChip(
+                            sourceId,
+                            resolutionMeters,
+                            stage,
+                            depthUnit,
+                          ),
                         ),
                         // top: 8, right: 8 is already the pane's docked
                         // appearance/chart-mode card (see build() above),
                         // which paints over anything at that same position
-                        // in this inner Stack -- so this sits in the source
-                        // chip's row instead, on the opposite (right) edge;
-                        // the chip itself aligns left, leaving that side
-                        // clear.
+                        // in this inner Stack -- so this sits a row below
+                        // it instead, on the right edge under the card.
                         if (patch?.detailLimitReached ?? false)
                           Positioned(
-                            top: 8,
+                            top: 56,
                             right: 8,
                             child: _detailLimitHint(context),
                           ),
@@ -316,7 +363,13 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                               ),
                             ),
                           ),
-                        _hoverTooltip(grid),
+                        // _hoverPickGrid tracks whichever grid (base or the
+                        // finer LOD patch) actually produced the CURRENT
+                        // _hoverPick value -- see _PatchAwareHoverPicker.
+                        // Falling back to the base grid when nothing has
+                        // been picked yet is harmless: the tooltip itself
+                        // renders nothing until _hoverPick is non-null.
+                        _hoverTooltip(_hoverPickGrid ?? grid),
                       ],
                     ),
                   ),
@@ -392,11 +445,13 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
     String sourceId,
     double resolutionMeters,
     BathymetryLodStage stage,
+    DepthUnit depthUnit,
   ) {
     // Surfaces the active LOD stage (see bathymetry_lod.dart) so a diver
     // can tell why the terrain just got sharper (or why it stopped
     // getting sharper) without needing to know the underlying zoom
-    // threshold.
+    // threshold. The span respects the diver's own depth unit, like every
+    // other measurement on this pane (legend, axes).
     final stageName = switch (stage) {
       BathymetryLodStage.overview =>
         context.l10n.dive3d_seascape_lodStageOverview,
@@ -405,9 +460,10 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
       BathymetryLodStage.superFine =>
         context.l10n.dive3d_seascape_lodStageSuperFine,
     };
+    final spanDisplay = DepthUnit.meters.convert(stage.spanMeters, depthUnit);
     final stageLabelText = context.l10n.dive3d_seascape_lodStageLabel(
       stageName,
-      stage.spanMeters.round().toString(),
+      '${spanDisplay.round()} ${depthUnit.symbol}',
     );
     return Align(
       alignment: Alignment.topLeft,
@@ -425,7 +481,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
             const SizedBox(width: 4),
             Flexible(
               child: Text(
-                '${context.l10n.dive3d_seascape_seafloorSource(bathymetrySourceDisplayName(sourceId), resolutionMeters.round().toString())} · Stufe: $stageLabelText',
+                '${context.l10n.dive3d_seascape_seafloorSource(bathymetrySourceDisplayName(sourceId), resolutionMeters.round().toString())} · $stageLabelText',
                 style: Theme.of(context).textTheme.labelSmall,
               ),
             ),
@@ -493,5 +549,47 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
         ],
       ),
     );
+  }
+}
+
+/// Tries the finer LOD patch grid first, falling back to the coarser base
+/// grid. The patch visually covers the base terrain in its footprint, so a
+/// hover there should read the patch's own depth, not the base grid
+/// underneath it; outside the patch's footprint [patchPicker] finds nothing
+/// within its own threshold and returns null, falling through to the base
+/// grid exactly like there was no patch at all.
+///
+/// [onGridUsed] reports which grid actually produced the hit -- a
+/// [TissuePick]'s row/col indices are only meaningful against the SAME
+/// grid the picker that found it was built from, so the caller must track
+/// this alongside the pick itself to build a correct [SeascapeHoverTooltip].
+class _PatchAwareHoverPicker implements HoverPicker {
+  final HoverPicker? patchPicker;
+  final BathymetryGrid? patchGrid;
+  final HoverPicker basePicker;
+  final BathymetryGrid baseGrid;
+  final ValueChanged<BathymetryGrid> onGridUsed;
+
+  const _PatchAwareHoverPicker({
+    required this.patchPicker,
+    required this.patchGrid,
+    required this.basePicker,
+    required this.baseGrid,
+    required this.onGridUsed,
+  });
+
+  @override
+  ScenePick? pick(SceneProjector projector, Offset cursor) {
+    final patch = patchPicker;
+    if (patch != null) {
+      final hit = patch.pick(projector, cursor);
+      if (hit != null) {
+        onGridUsed(patchGrid!);
+        return hit;
+      }
+    }
+    final hit = basePicker.pick(projector, cursor);
+    if (hit != null) onGridUsed(baseGrid);
+    return hit;
   }
 }

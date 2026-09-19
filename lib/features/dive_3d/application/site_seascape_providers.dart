@@ -241,10 +241,18 @@ class SiteSeascapePatchLayer {
   final BathymetryLodStage stage;
   final bool detailLimitReached;
 
+  /// The grid [layers] was built from -- exposed so a consumer can build
+  /// its own hover picker against the patch's finer terrain (see
+  /// [FirstHitHoverPicker] in hover_picker.dart) instead of only ever
+  /// picking against the coarser base grid even where the patch visually
+  /// covers it.
+  final BathymetryGrid grid;
+
   const SiteSeascapePatchLayer({
     required this.layers,
     required this.stage,
     required this.detailLimitReached,
+    required this.grid,
   });
 }
 
@@ -401,13 +409,19 @@ final siteSeascapePatchLayerProvider = FutureProvider.autoDispose
           ? await compute(_buildPatchLayers, sceneInput)
           : _buildPatchLayers(sceneInput);
 
+      // The finest stage, whichever enum value that currently is (not
+      // hardcoded to `fine`): a future stage added beyond today's
+      // `superFine` should inherit this check automatically instead of
+      // silently never flagging the limit the way `superFine` itself did
+      // when this was pinned to `fine` before it existed.
       final detailLimitReached =
-          request.stage == BathymetryLodStage.fine &&
+          request.stage == BathymetryLodStage.values.last &&
           patchGrid.resolutionMeters >=
               base.resolutionMeters * _detailLimitResolutionRatio;
 
       return SiteSeascapePatchLayer(
         layers: patchLayers,
+        grid: patchGrid,
         stage: request.stage,
         detailLimitReached: detailLimitReached,
       );

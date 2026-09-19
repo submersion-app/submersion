@@ -17956,7 +17956,7 @@
   "@dive3d_seascape_noCoordinates": {},
   "dive3d_seascape_detailLimitReached": "This is the most detail available for this location",
   "@dive3d_seascape_detailLimitReached": {},
-  "dive3d_seascape_lodStageLabel": "Level of detail: {stage} ({span} m)",
+  "dive3d_seascape_lodStageLabel": "Level of detail: {stage} ({span})",
   "@dive3d_seascape_lodStageLabel": {
     "placeholders": {
       "stage": {

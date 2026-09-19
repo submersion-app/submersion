@@ -165,25 +165,41 @@ void main() {
       expect(layer.detailLimitReached, isFalse);
     });
 
-    test('the fine stage flags the detail limit when the patch is no sharper '
-        'than the base grid (>= 90% of its resolution)', () async {
-      // Base grid resolves at 61 m; a "fine" patch at 60 m is not a
-      // meaningful improvement (>= 90% of 61).
+    test('the finest stage flags the detail limit when the patch is no '
+        'sharper than the base grid (>= 90% of its resolution)', () async {
+      // Base grid resolves at 61 m; a patch at 60 m is not a meaningful
+      // improvement (>= 90% of 61).
       final c = patchContainer(patchGrid: finerGrid(60));
       final layer = await c.read(
         siteSeascapePatchLayerProvider((
           siteId: siteId,
-          stage: BathymetryLodStage.fine,
+          stage: BathymetryLodStage.superFine,
         )).future,
       );
       expect(layer, isNotNull);
-      expect(layer!.stage, BathymetryLodStage.fine);
+      expect(layer!.stage, BathymetryLodStage.superFine);
       expect(layer.detailLimitReached, isTrue);
     });
 
-    test('the fine stage does not flag the detail limit when the patch is '
+    test('the finest stage does not flag the detail limit when the patch is '
         'genuinely sharper than the base grid', () async {
       final c = patchContainer(patchGrid: finerGrid(2));
+      final layer = await c.read(
+        siteSeascapePatchLayerProvider((
+          siteId: siteId,
+          stage: BathymetryLodStage.superFine,
+        )).future,
+      );
+      expect(layer, isNotNull);
+      expect(layer!.detailLimitReached, isFalse);
+    });
+
+    test('a non-finest stage (fine) never flags the detail limit even when '
+        'its own patch is no sharper than the base grid -- the heuristic is '
+        'pinned to BathymetryLodStage.values.last, not the literal `fine` '
+        'value, so adding a finer stage beyond the current finest does not '
+        'require touching this check', () async {
+      final c = patchContainer(patchGrid: finerGrid(60));
       final layer = await c.read(
         siteSeascapePatchLayerProvider((
           siteId: siteId,
