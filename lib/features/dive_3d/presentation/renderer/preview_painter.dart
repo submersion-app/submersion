@@ -104,8 +104,14 @@ class Dive3dScenePainter extends CustomPainter {
       zoom: zoom,
     );
     final parts = partitionLayers(scene, visibleOverlays);
-    // Only the terrain-merged group textures; rest layers (paths, pins,
-    // water) always paint their own vertex colors.
+    // Imagery/whiteTexel are passed to EVERY _paintMeshes call, merged or
+    // rest: a mesh without textureCoordinates (paths, pins, water, and
+    // every rest layer before the LOD patch) is unaffected -- soupTextureCoords
+    // samples the reserved white texel for it, which BlendMode.modulate
+    // leaves as a no-op against its own vertex colors. The LOD patch
+    // terrain (see site_seascape_providers.dart) is deliberately a rest
+    // layer, not draped -- it still needs the map imagery drape like the
+    // base terrain, just without sharing the base's depth sort.
     _paintMeshes(
       canvas,
       projector,
@@ -114,7 +120,13 @@ class Dive3dScenePainter extends CustomPainter {
       whiteTexel: imageryWhiteTexel,
     );
     for (final mesh in parts.rest) {
-      _paintMeshes(canvas, projector, [mesh]);
+      _paintMeshes(
+        canvas,
+        projector,
+        [mesh],
+        imagery: terrainImagery,
+        whiteTexel: imageryWhiteTexel,
+      );
     }
     if (_visible(SceneOverlay.markers)) _paintMarkers(canvas, projector);
   }
