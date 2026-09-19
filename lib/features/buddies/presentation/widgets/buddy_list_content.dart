@@ -1023,16 +1023,21 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
   }
 
   Widget _buildSearchResults(BuildContext context) {
-    return DebouncedSearchResults<Buddy>(
+    // Counted results, not bare buddies: the tile shows a dive count and a
+    // last-dive date, and a fabricated zero here reported every hit as having
+    // no dives (issue #2084). This is the same provider the "Add buddy"
+    // picker searches through, so both agree with the unfiltered list.
+    return DebouncedSearchResults<BuddyWithDiveCount>(
       query: query,
-      watchProvider: (ref, q) => ref.watch(buddySearchProvider(q)),
-      dataBuilder: (context, buddies) {
+      watchProvider: (ref, q) => ref.watch(buddySearchWithDiveCountProvider(q)),
+      dataBuilder: (context, entries) {
         return ListView.builder(
-          itemCount: buddies.length,
+          itemCount: entries.length,
           itemBuilder: (context, index) {
-            final buddy = buddies[index];
+            final entry = entries[index];
+            final buddy = entry.buddy;
             return BuddyListTile(
-              entry: BuddyWithDiveCount(buddy: buddy, diveCount: 0),
+              entry: entry,
               onTap: () {
                 close(context, buddy);
                 context.push('/buddies/${buddy.id}');

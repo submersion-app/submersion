@@ -689,7 +689,7 @@
   "buddies_field_phone": "Telefone",
   "buddies_field_phoneHint": "+55 (11) 98765-4321",
   "buddies_label_agency": "Agência",
-  "buddies_label_diveCount": "{count, plural, =1{1 mergulho} other{{count} mergulhos}}",
+  "buddies_label_diveCount": "{count, plural, =1{{count} mergulho} other{{count} mergulhos}}",
   "buddies_label_level": "Nível",
   "buddies_label_notSpecified": "Não especificado",
   "buddies_linkText_action": "Vincular a registros de companheiros",

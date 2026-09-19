@@ -689,7 +689,7 @@
   "buddies_field_phone": "Téléphone",
   "buddies_field_phoneHint": "+33 6 12 34 56 78",
   "buddies_label_agency": "Organisme",
-  "buddies_label_diveCount": "{count, plural, =1{1 plongée} other{{count} plongées}}",
+  "buddies_label_diveCount": "{count, plural, =1{{count} plongée} other{{count} plongées}}",
   "buddies_label_level": "Niveau",
   "buddies_label_notSpecified": "Non spécifié",
   "buddies_linkText_action": "Lier à des fiches de binômes",
