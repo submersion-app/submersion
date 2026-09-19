@@ -12,6 +12,7 @@ import 'package:submersion/features/bathymetry/domain/bathymetry_lod.dart';
 import 'package:submersion/features/bathymetry/presentation/terrain_imagery_providers.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
+import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/contour_builder.dart';
@@ -243,23 +244,62 @@ class SiteSeascapePatchLayer {
 /// anything coarser as the source topping out.
 const double _detailLimitResolutionRatio = 0.9;
 
-/// The additional LOD patch layer for one site at the viewport's current
-/// (settled) zoom, built in the SAME coordinate frame as the base scene's
-/// terrain -- it must reuse the base scene's [SpatialProjection] bounds
-/// (not derive its own from the smaller patch grid's extent), or the patch
-/// mesh would be scaled inconsistently with the base terrain it sits on top
-/// of. Returns null whenever there is nothing additional to render: the
-/// `overview` stage (no patch), the base scene not ready yet, or no patch
-/// grid available (a source that cannot deliver anything for this span is
-/// rejected the same way the base fetch would reject it -- see
-/// `BathymetryResolver.resolve`'s quality floors).
-final siteSeascapePatchLayerProvider =
-    FutureProvider.family<
+/// Isolate input for [_buildPatchTerrain] -- a plain, sendable bundle of
+/// everything [BathymetryTerrainBuilder.build] needs, mirroring how
+/// [SiteSeascapeInput] already crosses the [compute] boundary for the base
+/// terrain build.
+class _PatchTerrainInput {
+  final BathymetryGrid grid;
+  final GeoPoint center;
+  final SpatialProjection projection;
+  final double? rampMaxDepthMeters;
+  final bool rampBanded;
+  final SeascapeSurfaceMode surfaceMode;
+
+  const _PatchTerrainInput({
+    required this.grid,
+    required this.center,
+    required this.projection,
+    required this.rampMaxDepthMeters,
+    required this.rampBanded,
+    required this.surfaceMode,
+  });
+}
+
+MeshData _buildPatchTerrain(_PatchTerrainInput input) =>
+    BathymetryTerrainBuilder.build(
+      grid: input.grid,
+      center: input.center,
+      projection: input.projection,
+      rampMaxDepthMeters: input.rampMaxDepthMeters,
+      rampBanded: input.rampBanded,
+      surfaceMode: input.surfaceMode,
+    ).terrain;
+
+/// The additional LOD patch layer for one site at the current LOD [stage]
+/// (see `bathymetry_lod.dart`), built in the SAME coordinate frame as the
+/// base scene's terrain -- it must reuse the base scene's
+/// [SpatialProjection] bounds (not derive its own from the smaller patch
+/// grid's extent), or the patch mesh would be scaled inconsistently with the
+/// base terrain it sits on top of. Returns null whenever there is nothing
+/// additional to render: the `overview` stage (no patch), the base scene not
+/// ready yet, or no patch grid available (a source that cannot deliver
+/// anything for this span is rejected the same way the base fetch would
+/// reject it -- see `BathymetryResolver.resolve`'s quality floors).
+///
+/// Keyed by the discrete [BathymetryLodStage], not the raw zoom scalar --
+/// computed at the call site (`SiteTerrainPane`) via
+/// [bathymetryLodStageForZoom] -- so every settled zoom within one stage's
+/// range shares the same cache entry instead of minting a new, never-freed
+/// one per pixel of scroll. `autoDispose` for the same reason
+/// [bathymetryPatchGridProvider] is: a site/stage combination no longer
+/// being watched frees its (comparatively heavy, per-site) mesh.
+final siteSeascapePatchLayerProvider = FutureProvider.autoDispose
+    .family<
       SiteSeascapePatchLayer?,
-      ({String siteId, double zoom})
+      ({String siteId, BathymetryLodStage stage})
     >((ref, request) async {
-      final stage = bathymetryLodStageForZoom(request.zoom);
-      if (stage == BathymetryLodStage.overview) return null;
+      if (request.stage == BathymetryLodStage.overview) return null;
 
       final base = await ref.watch(siteSeascapeProvider(request.siteId).future);
       if (base is! SiteSeascapeReady) return null;
@@ -272,7 +312,7 @@ final siteSeascapePatchLayerProvider =
         bathymetryPatchGridProvider((
           lat: center.latitude,
           lon: center.longitude,
-          spanMeters: stage.spanMeters,
+          spanMeters: request.stage.spanMeters,
         )).future,
       );
       if (patchGrid == null) return null;
@@ -287,7 +327,7 @@ final siteSeascapePatchLayerProvider =
         maxNorth: base.axisInputs.maxNorth,
         maxDepth: base.axisInputs.maxDepth,
       );
-      final terrain = BathymetryTerrainBuilder.build(
+      final terrainInput = _PatchTerrainInput(
         grid: patchGrid,
         center: center,
         projection: proj,
@@ -295,15 +335,28 @@ final siteSeascapePatchLayerProvider =
         rampBanded: appearance.rampBanded,
         surfaceMode: appearance.surfaceMode,
       );
+      // Mirrors the base terrain build's isolate offload (siteSeascapeProvider
+      // above): a patch grid is capped at 120x120 (BathymetryRepository.
+      // maxGridDim) = 14400 cells, well past _isolateCellThreshold, so
+      // building it synchronously on the UI isolate would jank every zoom
+      // settle.
+      final mesh = patchGrid.rows * patchGrid.cols > _isolateCellThreshold
+          ? await compute(_buildPatchTerrain, terrainInput)
+          : _buildPatchTerrain(terrainInput);
 
       final detailLimitReached =
-          stage == BathymetryLodStage.fine &&
+          request.stage == BathymetryLodStage.fine &&
           patchGrid.resolutionMeters >=
               base.resolutionMeters * _detailLimitResolutionRatio;
 
       return SiteSeascapePatchLayer(
-        layer: SceneLayer(terrain.terrain),
-        stage: stage,
+        // Depth-sorted together with the base terrain (not painted whole on
+        // top of it): the patch is a normal-sized terrain chunk, not a thin
+        // drape riding a much bigger triangle, so the plain centroid
+        // comparison partitionLayers already does is enough -- no
+        // MeshData.sortHeights override needed (see SceneLayer's doc).
+        layer: SceneLayer(mesh, drapedOnTerrain: true),
+        stage: request.stage,
         detailLimitReached: detailLimitReached,
       );
     });

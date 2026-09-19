@@ -119,10 +119,13 @@ void main() {
       return c;
     }
 
-    test('the overview stage (zoom below 2.0) never fetches a patch', () async {
+    test('the overview stage never fetches a patch', () async {
       final c = patchContainer(patchGrid: finerGrid(2));
       final layer = await c.read(
-        siteSeascapePatchLayerProvider((siteId: siteId, zoom: 1.0)).future,
+        siteSeascapePatchLayerProvider((
+          siteId: siteId,
+          stage: BathymetryLodStage.overview,
+        )).future,
       );
       expect(layer, isNull);
     });
@@ -131,25 +134,30 @@ void main() {
         '(the source could not deliver anything for this span)', () async {
       final c = patchContainer(patchGrid: null);
       final layer = await c.read(
-        siteSeascapePatchLayerProvider((siteId: siteId, zoom: 3.0)).future,
+        siteSeascapePatchLayerProvider((
+          siteId: siteId,
+          stage: BathymetryLodStage.medium,
+        )).future,
       );
       expect(layer, isNull);
     });
 
-    test(
-      'the medium stage with a patch grid yields a layer and never flags '
-      'the detail limit (that heuristic only applies at the fine stage)',
-      () async {
-        final c = patchContainer(patchGrid: finerGrid(2));
-        final layer = await c.read(
-          siteSeascapePatchLayerProvider((siteId: siteId, zoom: 3.0)).future,
-        );
-        expect(layer, isNotNull);
-        expect(layer!.stage, BathymetryLodStage.medium);
-        expect(layer.layer.mesh.positions, isNotEmpty);
-        expect(layer.detailLimitReached, isFalse);
-      },
-    );
+    test('the medium stage with a patch grid yields a layer, drapes it on the '
+        'terrain for shared depth sorting, and never flags the detail limit '
+        '(that heuristic only applies at the fine stage)', () async {
+      final c = patchContainer(patchGrid: finerGrid(2));
+      final layer = await c.read(
+        siteSeascapePatchLayerProvider((
+          siteId: siteId,
+          stage: BathymetryLodStage.medium,
+        )).future,
+      );
+      expect(layer, isNotNull);
+      expect(layer!.stage, BathymetryLodStage.medium);
+      expect(layer.layer.mesh.positions, isNotEmpty);
+      expect(layer.layer.drapedOnTerrain, isTrue);
+      expect(layer.detailLimitReached, isFalse);
+    });
 
     test('the fine stage flags the detail limit when the patch is no sharper '
         'than the base grid (>= 90% of its resolution)', () async {
@@ -157,7 +165,10 @@ void main() {
       // meaningful improvement (>= 90% of 61).
       final c = patchContainer(patchGrid: finerGrid(60));
       final layer = await c.read(
-        siteSeascapePatchLayerProvider((siteId: siteId, zoom: 6.0)).future,
+        siteSeascapePatchLayerProvider((
+          siteId: siteId,
+          stage: BathymetryLodStage.fine,
+        )).future,
       );
       expect(layer, isNotNull);
       expect(layer!.stage, BathymetryLodStage.fine);
@@ -168,10 +179,40 @@ void main() {
         'genuinely sharper than the base grid', () async {
       final c = patchContainer(patchGrid: finerGrid(2));
       final layer = await c.read(
-        siteSeascapePatchLayerProvider((siteId: siteId, zoom: 6.0)).future,
+        siteSeascapePatchLayerProvider((
+          siteId: siteId,
+          stage: BathymetryLodStage.fine,
+        )).future,
       );
       expect(layer, isNotNull);
       expect(layer!.detailLimitReached, isFalse);
     });
+
+    test(
+      'the family key is the discrete stage, not a raw zoom value -- two '
+      'different requests for the same stage are the SAME provider entry',
+      () async {
+        final c = patchContainer(patchGrid: finerGrid(2));
+        final a = siteSeascapePatchLayerProvider((
+          siteId: siteId,
+          stage: BathymetryLodStage.medium,
+        ));
+        final b = siteSeascapePatchLayerProvider((
+          siteId: siteId,
+          stage: BathymetryLodStage.medium,
+        ));
+        // Riverpod family instances compare equal (and so share state) when
+        // their arguments are equal -- a plain identical() check would be
+        // wrong since these are two separately constructed records.
+        expect(a, equals(b));
+        // Both reads must be issued before either is awaited: with
+        // `autoDispose`, a read with no listener left standing can dispose
+        // the entry as soon as its own await completes, so awaiting them
+        // one after another would spuriously rebuild for the second read
+        // even for the SAME key, rather than proving the key is shared.
+        final results = await Future.wait([c.read(a.future), c.read(b.future)]);
+        expect(identical(results[0], results[1]), isTrue);
+      },
+    );
   });
 }

@@ -572,9 +572,10 @@ void main() {
         await tester.pump();
         await tester.pump();
 
-        // The pane watches the patch provider unconditionally; it is the
-        // real provider's own overview-stage check (not the pane) that
-        // skips the fetch. This override still runs once to prove that.
+        // The pane watches the patch provider unconditionally -- with the
+        // default settled zoom, that request already carries the overview
+        // stage (computed at the call site via bathymetryLodStageForZoom).
+        // This override still runs once to prove the watch happens.
         expect(patchCalls, 1);
         final viewport = tester.widget<Dive3dInteractiveViewport>(
           find.byType(Dive3dInteractiveViewport),
@@ -594,7 +595,7 @@ void main() {
             state,
             extraOverrides: [
               siteSeascapePatchLayerProvider.overrideWith((ref, request) async {
-                if (request.zoom < 2.0) return null;
+                if (request.stage != BathymetryLodStage.medium) return null;
                 return SiteSeascapePatchLayer(
                   layer: _stubPatchLayer(),
                   stage: BathymetryLodStage.medium,
@@ -635,7 +636,7 @@ void main() {
             readyState(),
             extraOverrides: [
               siteSeascapePatchLayerProvider.overrideWith((ref, request) async {
-                if (request.zoom < 4.5) return null;
+                if (request.stage != BathymetryLodStage.fine) return null;
                 return SiteSeascapePatchLayer(
                   layer: _stubPatchLayer(),
                   stage: BathymetryLodStage.fine,
@@ -656,6 +657,163 @@ void main() {
         await tester.pump();
 
         expect(find.byIcon(Icons.search_off), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'an empty base scene (right after a source switch) with a non-null '
+      'patch does not crash on the missing base layer',
+      (tester) async {
+        final base = readyState();
+        final emptyLayersState = SiteSeascapeReady(
+          scene: Scene3d(
+            layers: const [],
+            markers: base.scene.markers,
+            bounds: base.scene.bounds,
+            scrubPath: base.scene.scrubPath,
+          ),
+          sourceId: base.sourceId,
+          resolutionMeters: base.resolutionMeters,
+          grid: base.grid,
+          axisInputs: base.axisInputs,
+        );
+        await tester.pumpWidget(
+          page(
+            emptyLayersState,
+            extraOverrides: [
+              siteSeascapePatchLayerProvider.overrideWith(
+                (ref, request) async => SiteSeascapePatchLayer(
+                  layer: _stubPatchLayer(),
+                  stage: BathymetryLodStage.medium,
+                  detailLimitReached: false,
+                ),
+              ),
+            ],
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        // Must not throw building displayScene on an empty scene.layers.
+        expect(tester.takeException(), isNull);
+        final viewport = tester.widget<Dive3dInteractiveViewport>(
+          find.byType(Dive3dInteractiveViewport),
+        );
+        // Falls back to the (empty-layers) scene unchanged: nothing to
+        // insert the patch ahead of.
+        expect(viewport.scene.layers, isEmpty);
+      },
+    );
+  });
+
+  group('LOD patch stage resets when the pane switches sites', () {
+    // Bug: SiteTerrainPane keeps its State across a siteId switch (Bug 7's
+    // host, _SiteSwitchHost), so the debounced _settledZoom it tracks for
+    // the LOD patch provider used to keep the PREVIOUS site's zoom after
+    // switching, requesting the wrong stage for the new site until the
+    // diver zoomed again.
+    testWidgets(
+      'switching siteId resets the settled zoom back to the overview stage, '
+      'even if the previous site had zoomed in past it',
+      (tester) async {
+        final requestedStages = <String, List<BathymetryLodStage>>{};
+        final stateA = readyState();
+        final stateB = readyState();
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              settingsProvider.overrideWith(
+                (ref) => _TestSettingsNotifier(const AppSettings()),
+              ),
+              siteSeascapeProvider.overrideWith(
+                (ref, id) async => id == 'site-a' ? stateA : stateB,
+              ),
+              siteFeaturesProvider(
+                'site-a',
+              ).overrideWith((ref) async => const []),
+              siteFeaturesProvider(
+                'site-b',
+              ).overrideWith((ref) async => const []),
+              siteSeascapePatchLayerProvider.overrideWith((ref, request) async {
+                (requestedStages[request.siteId] ??= []).add(request.stage);
+                return null;
+              }),
+            ],
+            child: const MaterialApp(
+              locale: Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: _SiteSwitchHost(),
+            ),
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        // Zoom site-a in past the fine threshold.
+        final viewport = tester.widget<Dive3dInteractiveViewport>(
+          find.byType(Dive3dInteractiveViewport),
+        );
+        viewport.onZoomSettled!(6.0);
+        await tester.pump();
+        await tester.pump();
+        expect(requestedStages['site-a'], contains(BathymetryLodStage.fine));
+
+        // Switch to site-b without ever zooming it in.
+        await tester.tap(find.byKey(const ValueKey('switchSiteButton')));
+        await tester.pump();
+        await tester.pump();
+
+        // If _settledZoom had survived the switch, site-b's very first
+        // request would carry `fine` too.
+        expect(requestedStages['site-b'], isNotNull);
+        expect(
+          requestedStages['site-b'],
+          everyElement(BathymetryLodStage.overview),
+        );
+      },
+    );
+  });
+
+  group('the detail-limit hint does not overlap the docked control card', () {
+    testWidgets(
+      'the hint and the appearance/chart-mode card render at non-overlapping '
+      'positions',
+      (tester) async {
+        await tester.pumpWidget(
+          page(
+            readyState(),
+            extraOverrides: [
+              siteSeascapePatchLayerProvider.overrideWith(
+                (ref, request) async => SiteSeascapePatchLayer(
+                  layer: _stubPatchLayer(),
+                  stage: BathymetryLodStage.fine,
+                  detailLimitReached: true,
+                ),
+              ),
+            ],
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        final viewport = tester.widget<Dive3dInteractiveViewport>(
+          find.byType(Dive3dInteractiveViewport),
+        );
+        viewport.onZoomSettled!(6.0);
+        await tester.pump();
+        await tester.pump();
+
+        final hint = tester.getRect(find.byIcon(Icons.search_off));
+        final card = tester.getRect(
+          find.byKey(const ValueKey('seascapeAppearanceButton')),
+        );
+        expect(
+          hint.overlaps(card),
+          isFalse,
+          reason: 'detail-limit hint $hint overlaps the control card $card',
+        );
       },
     );
   });

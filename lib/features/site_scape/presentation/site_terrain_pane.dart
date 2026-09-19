@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/map_tile_config.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
+import 'package:submersion/features/bathymetry/domain/bathymetry_lod.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_labels.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
@@ -68,6 +69,20 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
   /// Starts at 1.0, the viewport's own default zoom -- below the `medium`
   /// threshold, so no patch fetch fires before the diver actually zooms in.
   double _settledZoom = 1.0;
+
+  @override
+  void didUpdateWidget(SiteTerrainPane oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // SiteTerrainPane is instantiated without a Key keyed to siteId, so
+    // switching the displayed site (without leaving 3D mode) reuses this
+    // State instead of recreating it. Without this reset, the zoom settled
+    // for the PREVIOUS site would keep keying the new site's LOD patch
+    // provider, fetching (or displaying) the wrong detail stage until the
+    // diver zooms again.
+    if (widget.siteId != oldWidget.siteId) {
+      _settledZoom = 1.0;
+    }
+  }
 
   @override
   void dispose() {
@@ -173,11 +188,16 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                   .watch(
                     siteSeascapePatchLayerProvider((
                       siteId: widget.siteId,
-                      zoom: _settledZoom,
+                      stage: bathymetryLodStageForZoom(_settledZoom),
                     )),
                   )
                   .valueOrNull;
-              final displayScene = patch == null
+              // scene.layers can legitimately be empty (e.g. right after a
+              // source switch, before the terrain layer has been added);
+              // there is then no base layer to insert the patch ahead of,
+              // so fall back to the scene unchanged instead of crashing on
+              // .first (mirrors the picker guard below).
+              final displayScene = patch == null || scene.layers.isEmpty
                   ? scene
                   : Scene3d(
                       layers: [
@@ -248,9 +268,16 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                           right: 8,
                           child: _sourceChip(sourceId, resolutionMeters),
                         ),
+                        // top: 8, right: 8 is already the pane's docked
+                        // appearance/chart-mode card (see build() above),
+                        // which paints over anything at that same position
+                        // in this inner Stack -- so this sits in the source
+                        // chip's row instead, on the opposite (right) edge;
+                        // the chip itself aligns left, leaving that side
+                        // clear.
                         if (patch?.detailLimitReached ?? false)
                           Positioned(
-                            top: 8,
+                            top: 56,
                             right: 8,
                             child: _detailLimitHint(context),
                           ),
