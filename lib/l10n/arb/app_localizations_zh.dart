@@ -26667,6 +26667,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_speed_mps => '最高速度';
 
   @override
+  String get attrLabel_tow_burn_factor => '拖带耗电系数';
+
+  @override
+  String get attrLabel_tow_speed_factor => '拖带速度系数';
+
+  @override
   String get attrLabel_sku => '商品编号 (SKU)';
 
   @override

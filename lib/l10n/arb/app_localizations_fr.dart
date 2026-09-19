@@ -28227,6 +28227,13 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_speed_mps => 'Vitesse maximale';
 
   @override
+  String get attrLabel_tow_burn_factor =>
+      'Facteur de consommation en remorquage';
+
+  @override
+  String get attrLabel_tow_speed_factor => 'Facteur de vitesse en remorquage';
+
+  @override
   String get attrLabel_sku => 'Référence (SKU)';
 
   @override

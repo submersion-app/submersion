@@ -18242,6 +18242,8 @@
   "attrLabel_battery_capacity_wh": "Battery capacity (Wh)",
   "attrLabel_motor_type": "Motor",
   "attrLabel_speed_mps": "Top speed",
+  "attrLabel_tow_burn_factor": "Tow burn factor",
+  "attrLabel_tow_speed_factor": "Tow speed factor",
   "attrLabel_sku": "SKU",
   "attrLabel_retailer": "Retailer",
   "attrLabel_product_url": "Web link",

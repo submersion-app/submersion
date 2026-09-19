@@ -8088,6 +8088,8 @@
   "attrLabel_battery_capacity_wh": "Akkukapacitás (Wh)",
   "attrLabel_motor_type": "Motor",
   "attrLabel_speed_mps": "Végsebesség",
+  "attrLabel_tow_burn_factor": "Fogyasztási tényező vontatáskor",
+  "attrLabel_tow_speed_factor": "Sebességtényező vontatáskor",
   "attrLabel_sku": "Cikkszám",
   "attrLabel_retailer": "Forgalmazó",
   "attrLabel_product_url": "Webhivatkozás",

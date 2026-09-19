@@ -28078,6 +28078,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_speed_mps => 'Höchstgeschwindigkeit';
 
   @override
+  String get attrLabel_tow_burn_factor => 'Verbrauchsfaktor beim Schleppen';
+
+  @override
+  String get attrLabel_tow_speed_factor =>
+      'Geschwindigkeitsfaktor beim Schleppen';
+
+  @override
   String get attrLabel_sku => 'SKU';
 
   @override
