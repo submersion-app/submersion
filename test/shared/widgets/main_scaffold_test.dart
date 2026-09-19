@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -605,6 +606,112 @@ void main() {
           expect(find.byType(NavigationDestination), findsNWidgets(5));
         },
       );
+    });
+
+    group('nav item tooltips', () {
+      Finder tooltipIn(Type navType, String message) => find.descendant(
+        of: find.byType(navType),
+        matching: find.byWidgetPredicate(
+          (w) => w is Tooltip && w.message == message,
+        ),
+      );
+
+      testWidgets('a collapsed desktop rail names every item on hover', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(1400, 900);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final repo = _FakeRepo()..alwaysHideLabels = true;
+        await tester.pumpWidget(await buildHarness(repo: repo));
+        await tester.pumpAndSettle();
+
+        expect(tooltipIn(NavigationRail, 'Dives'), findsOneWidget);
+        expect(tooltipIn(NavigationRail, 'Settings'), findsOneWidget);
+
+        final gesture = await tester.createGesture(
+          kind: PointerDeviceKind.mouse,
+        );
+        addTearDown(gesture.removePointer);
+        await gesture.addPointer(location: Offset.zero);
+        final icon = find.descendant(
+          of: tooltipIn(NavigationRail, 'Dives'),
+          matching: find.byType(Icon),
+        );
+        await gesture.moveTo(tester.getCenter(icon));
+        await tester.pump(const Duration(seconds: 1));
+
+        // The tooltip renders through an OverlayPortal, whose overlay child
+        // stays a descendant of the Tooltip in the element tree. The rail's
+        // own (hidden) label is not under the Tooltip, so this finds only the
+        // tooltip text.
+        final shown = find.descendant(
+          of: tooltipIn(NavigationRail, 'Dives'),
+          matching: find.text('Dives'),
+        );
+        expect(shown, findsOneWidget);
+
+        // Beside the rail, level with the icon, so it never covers the
+        // neighbouring destinations.
+        final shownRect = tester.getRect(shown);
+        final iconRect = tester.getRect(icon);
+        expect(shownRect.left, greaterThan(iconRect.right));
+        expect(
+          (shownRect.center.dy - iconRect.center.dy).abs(),
+          lessThan(iconRect.height / 2),
+        );
+        await gesture.moveTo(Offset.zero);
+        await tester.pumpAndSettle();
+      });
+
+      testWidgets('the narrow tablet rail names every item on hover', (
+        tester,
+      ) async {
+        // 1000px is rail width but under the extended threshold, so this
+        // rail can never show its labels.
+        tester.view.physicalSize = const Size(1000, 900);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final repo = _FakeRepo();
+        await tester.pumpWidget(await buildHarness(repo: repo));
+        await tester.pumpAndSettle();
+
+        expect(tooltipIn(NavigationRail, 'Dives'), findsOneWidget);
+      });
+
+      testWidgets('an extended rail adds no tooltip over its visible labels', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(1400, 900);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final repo = _FakeRepo();
+        await tester.pumpWidget(await buildHarness(repo: repo));
+        await tester.pumpAndSettle();
+
+        expect(
+          tester.widget<NavigationRail>(find.byType(NavigationRail)).extended,
+          isTrue,
+        );
+        expect(tooltipIn(NavigationRail, 'Dives'), findsNothing);
+      });
+
+      testWidgets('the phone bar still names items when labels are hidden', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(400, 800);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final repo = _FakeRepo()..alwaysHideLabels = true;
+        await tester.pumpWidget(await buildHarness(repo: repo));
+        await tester.pumpAndSettle();
+
+        expect(tooltipIn(NavigationBar, 'Home'), findsOneWidget);
+      });
     });
 
     testWidgets('default primary ids render default nav labels', (
