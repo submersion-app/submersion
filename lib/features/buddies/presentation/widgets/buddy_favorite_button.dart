@@ -16,7 +16,11 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// The tap target has an explicit 32x32 floor regardless of [iconSize] --
 /// without it, a small [iconSize] shrinks the button's own hit area to the
 /// icon's size, and a near-miss tap falls through to whatever sits behind it
-/// (the row's own navigation, in the dense and compact tiles).
+/// (the row's own navigation, in the dense and compact tiles). On touch
+/// platforms the theme's padded tap-target size then lifts it to the 48x48
+/// Material minimum. The button keeps the standard visual density on
+/// purpose: compact density subtracts 8 from both, which left 40x40 on touch
+/// and 32x24 on desktop.
 class BuddyFavoriteButton extends ConsumerWidget {
   final String buddyId;
   final bool isFavorite;
@@ -44,7 +48,6 @@ class BuddyFavoriteButton extends ConsumerWidget {
       tooltip: isFavorite
           ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
           : context.l10n.diveLog_detail_tooltip_addToFavorites,
-      visualDensity: VisualDensity.compact,
       constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
       onPressed: () =>
           ref.read(buddyListNotifierProvider.notifier).toggleFavorite(buddyId),

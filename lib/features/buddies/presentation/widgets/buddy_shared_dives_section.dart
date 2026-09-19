@@ -142,7 +142,7 @@ class BuddySharedDivesSection extends ConsumerWidget {
                                 children: [
                                   if (dive.maxDepth != null)
                                     Text(
-                                      '${dive.maxDepth!.toStringAsFixed(1)}m',
+                                      units.formatDepth(dive.maxDepth),
                                       style: theme.textTheme.bodyMedium
                                           ?.copyWith(
                                             fontWeight: FontWeight.w500,

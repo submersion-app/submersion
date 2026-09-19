@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -276,6 +277,73 @@ void main() {
         find.text(DateFormat.MMMd().format(dives.first.dateTime)),
         findsNothing,
       );
+    });
+  });
+
+  // The shared-dives card appended a literal "m" to the stored meter value,
+  // so an imperial diver saw a metric number labelled as meters.
+  group('BuddyDetailPage shared dive depth units', () {
+    testWidgets('shows max depth in the active diver\'s depth unit', (
+      tester,
+    ) async {
+      final buddy = Buddy(
+        id: 'buddy-1',
+        name: 'Jane Doe',
+        notes: '',
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+      );
+
+      final dives = [
+        createTestDiveWithBottomTime(
+          id: 'buddy-dive-1',
+          diveNumber: 1,
+          maxDepth: 25.0,
+        ),
+      ];
+
+      final overrides = await getBaseOverrides(
+        settingsNotifier: MockSettingsNotifier(
+          const AppSettings(depthUnit: DepthUnit.feet),
+        ),
+      );
+
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(390, 844);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      // Installed before the first frame: an overflow thrown during
+      // pumpWidget would otherwise escape the handler.
+      _ignoreOverflowErrors();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            buddyByIdProvider(buddy.id).overrideWith((ref) async => buddy),
+            buddyStatsProvider(
+              buddy.id,
+            ).overrideWith((ref) async => const BuddyStats(totalDives: 1)),
+            diveIdsForBuddyProvider(
+              buddy.id,
+            ).overrideWith((ref) async => ['buddy-dive-1']),
+            divesForBuddyProvider(buddy.id).overrideWith((ref) async => dives),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: BuddyDetailPage(buddyId: buddy.id, embedded: true),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 25 m x 3.28084 = 82.021 ft.
+      expect(find.text('82.0ft'), findsOneWidget);
+      expect(find.text('25.0m'), findsNothing);
     });
   });
 
