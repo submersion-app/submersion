@@ -366,6 +366,7 @@ void main() {
       required AppSettingsRepository repo,
       EdgeInsets systemPadding = EdgeInsets.zero,
       DownloadNotifier Function()? downloadNotifier,
+      Locale locale = const Locale('en'),
     }) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
@@ -450,7 +451,7 @@ void main() {
         ],
         child: MaterialApp.router(
           routerConfig: router,
-          locale: const Locale('en'),
+          locale: locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           // MaterialApp.builder wraps the Navigator, so padding stated here
@@ -468,10 +469,12 @@ void main() {
     Future<Widget> buildHarness({
       required AppSettingsRepository repo,
       EdgeInsets systemPadding = EdgeInsets.zero,
+      Locale locale = const Locale('en'),
     }) async {
       final result = await buildHarnessWithRouter(
         repo: repo,
         systemPadding: systemPadding,
+        locale: locale,
       );
       return result.app;
     }
@@ -660,6 +663,43 @@ void main() {
         expect(
           (shownRect.center.dy - iconRect.center.dy).abs(),
           lessThan(iconRect.height / 2),
+        );
+        await gesture.moveTo(Offset.zero);
+        await tester.pumpAndSettle();
+      });
+
+      testWidgets('an RTL rail puts the tooltip on the icon\'s other side', (
+        tester,
+      ) async {
+        tester.view.physicalSize = const Size(1400, 900);
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(tester.view.reset);
+
+        final repo = _FakeRepo()..alwaysHideLabels = true;
+        await tester.pumpWidget(
+          await buildHarness(repo: repo, locale: const Locale('ar')),
+        );
+        await tester.pumpAndSettle();
+
+        // Arabic labels, so the Dives destination is found by its icon.
+        final icon = find.byIcon(Icons.scuba_diving_outlined);
+        final tooltip = find.ancestor(of: icon, matching: find.byType(Tooltip));
+        expect(tooltip, findsOneWidget);
+
+        final gesture = await tester.createGesture(
+          kind: PointerDeviceKind.mouse,
+        );
+        addTearDown(gesture.removePointer);
+        await gesture.addPointer(location: Offset.zero);
+        await gesture.moveTo(tester.getCenter(icon));
+        await tester.pump(const Duration(seconds: 1));
+
+        final shown = find.descendant(of: tooltip, matching: find.byType(Text));
+        expect(shown, findsOneWidget);
+        // The rail hugs the right edge in RTL, so the tooltip opens leftwards.
+        expect(
+          tester.getRect(shown).right,
+          lessThan(tester.getRect(icon).left),
         );
         await gesture.moveTo(Offset.zero);
         await tester.pumpAndSettle();
