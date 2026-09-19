@@ -256,7 +256,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
           PopupMenuButton<String>(
             onSelected: (value) =>
                 _handleMenuAction(context, ref, value, equipment),
-            itemBuilder: (context) => _buildMenuItems(context, equipment),
+            itemBuilder: (context) => _buildMenuItems(context),
           ),
         ],
       ),
@@ -329,30 +329,15 @@ class _EquipmentDetailContent extends ConsumerWidget {
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) =>
                 _handleMenuAction(context, ref, value, equipment),
-            itemBuilder: (context) => _buildMenuItems(context, equipment),
+            itemBuilder: (context) => _buildMenuItems(context),
           ),
         ],
       ),
     );
   }
 
-  List<PopupMenuEntry<String>> _buildMenuItems(
-    BuildContext context,
-    EquipmentItem equipment,
-  ) {
+  List<PopupMenuEntry<String>> _buildMenuItems(BuildContext context) {
     return [
-      PopupMenuItem(
-        value: equipment.isActive ? 'retire' : 'reactivate',
-        child: ListTile(
-          leading: Icon(equipment.isActive ? Icons.archive : Icons.unarchive),
-          title: Text(
-            equipment.isActive
-                ? context.l10n.equipment_menu_retireEquipment
-                : context.l10n.equipment_menu_reactivate,
-          ),
-          contentPadding: EdgeInsets.zero,
-        ),
-      ),
       PopupMenuItem(
         value: 'delete',
         child: ListTile(
@@ -913,28 +898,6 @@ class _EquipmentDetailContent extends ConsumerWidget {
     final notifier = ref.read(equipmentListNotifierProvider.notifier);
 
     switch (action) {
-      case 'retire':
-        await notifier.retireEquipment(equipmentId);
-        ref.invalidate(equipmentItemProvider(equipmentId));
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.l10n.equipment_snackbar_retired)),
-          );
-        }
-        break;
-
-      case 'reactivate':
-        await notifier.reactivateEquipment(equipmentId);
-        ref.invalidate(equipmentItemProvider(equipmentId));
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.l10n.equipment_snackbar_reactivated),
-            ),
-          );
-        }
-        break;
-
       case 'delete':
         final confirmed = await showDialog<bool>(
           context: context,
