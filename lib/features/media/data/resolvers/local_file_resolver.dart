@@ -66,11 +66,13 @@ class LocalFileResolver implements MediaSourceResolver {
     MediaFetchGate? gate,
     bool Function()? usesSecurityScopedBookmarks,
     Future<String?> Function()? localDeviceId,
+    Future<String?> Function(String deviceId)? deviceLabel,
   }) : _bookmarkStorage = bookmarkStorage,
        _platform = platform,
        _exifExtractor = exifExtractor,
        _videoThumbnails = videoThumbnails,
        _localDeviceId = localDeviceId,
+       _deviceLabel = deviceLabel,
        _volumeOnline = (volumeStatus ?? VolumeStatus()).newExpiringProbe(
          ttl: volumeProbeTtl,
          clock: clock,
@@ -115,6 +117,10 @@ class LocalFileResolver implements MediaSourceResolver {
   /// in tests), in which case every row reads as this device's.
   final Future<String?> Function()? _localDeviceId;
 
+  /// Names the device a row was linked on, for the "From {device}"
+  /// placeholder. Consulted only on a foreign-origin miss.
+  final Future<String?> Function(String deviceId)? _deviceLabel;
+
   /// [_localDeviceId]'s answer, memoized once it succeeds. A failed fetch
   /// (no database open yet) is not cached, so the next resolution asks again.
   String? _knownDeviceId;
@@ -137,6 +143,18 @@ class LocalFileResolver implements MediaSourceResolver {
     final origin = item.originDeviceId;
     if (local == null || origin == null) return true;
     return origin == local;
+  }
+
+  /// The published name of [deviceId], or null when unknown or unset. Never
+  /// throws: a label is decoration on a placeholder, not a verdict.
+  Future<String?> _labelFor(String? deviceId) async {
+    final lookup = _deviceLabel;
+    if (deviceId == null || lookup == null) return null;
+    try {
+      return await lookup(deviceId);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Whether [item]'s bytes were imported on a different device.
@@ -205,7 +223,10 @@ class LocalFileResolver implements MediaSourceResolver {
     if (resolved is UnavailableData &&
         resolved.kind == UnavailableKind.notFound &&
         await _importedElsewhere(item)) {
-      return const UnavailableData(kind: UnavailableKind.fromOtherDevice);
+      return UnavailableData(
+        kind: UnavailableKind.fromOtherDevice,
+        originDeviceLabel: await _labelFor(item.originDeviceId),
+      );
     }
     return resolved;
   }

@@ -867,6 +867,38 @@ void main() {
       expect(await phone().verify(desktopRow()), VerifyResult.fromOtherDevice);
     });
 
+    test(
+      'a foreign-origin miss names the device when a label is known',
+      () async {
+        final labelled = LocalFileResolver(
+          bookmarkStorage: _NullBookmarkStorage(),
+          platform: LocalMediaPlatform(),
+          exifExtractor: ExifExtractor(),
+          localDeviceId: () async => 'phone',
+          deviceLabel: (id) async => id == 'desktop' ? "Eric's MacBook" : null,
+        );
+        final data = await labelled.resolve(desktopRow()) as UnavailableData;
+        expect(data.kind, UnavailableKind.fromOtherDevice);
+        expect(data.originDeviceLabel, "Eric's MacBook");
+      },
+    );
+
+    test(
+      'a label lookup that throws leaves the placeholder anonymous',
+      () async {
+        final throwing = LocalFileResolver(
+          bookmarkStorage: _NullBookmarkStorage(),
+          platform: LocalMediaPlatform(),
+          exifExtractor: ExifExtractor(),
+          localDeviceId: () async => 'phone',
+          deviceLabel: (id) async => throw StateError('no prefs'),
+        );
+        final data = await throwing.resolve(desktopRow()) as UnavailableData;
+        expect(data.kind, UnavailableKind.fromOtherDevice);
+        expect(data.originDeviceLabel, isNull);
+      },
+    );
+
     test('a file another device imported still reads when the path exists '
         'here (shared volume)', () async {
       final f = File('${tempDir.path}/shared.jpg')..writeAsBytesSync([1]);

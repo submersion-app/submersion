@@ -297,7 +297,8 @@ class _OriginSection extends ConsumerWidget {
             // stamped locally in the overwhelmingly common case.
             value: (thisDevice == null || deviceId == thisDevice)
                 ? l10n.media_info_thisDevice
-                : l10n.media_info_otherDevice,
+                : (ref.watch(originDeviceLabelProvider(deviceId)) ??
+                      l10n.media_info_otherDevice),
           ),
         DiveDetailRow(
           label: l10n.media_info_status,

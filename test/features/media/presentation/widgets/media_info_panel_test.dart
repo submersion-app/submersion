@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:submersion/features/media/data/services/media_item_verifier.dart';
@@ -23,6 +25,7 @@ import 'package:submersion/features/media/presentation/widgets/set_media_time_di
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
 import '../../../../helpers/l10n_test_helpers.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -131,6 +134,7 @@ void main() {
     QueueFacts? queue,
     MediaStoreIdentity? identity,
     String thisDevice = 'device-here',
+    Stream<Map<String, String>>? peerNames,
     List<dynamic> extra = const [],
 
     /// Single-element holder so a test can swap the stored row mid-flight,
@@ -155,6 +159,9 @@ void main() {
           ),
           mediaStoreIdentityProvider.overrideWith((ref) async => identity),
           currentDeviceIdProvider.overrideWith((ref) async => thisDevice),
+          peerDeviceNamesProvider.overrideWith(
+            (ref) => peerNames ?? Stream.value(const {}),
+          ),
           mediaServingRecorderProvider.overrideWithValue(recorder),
           // UnitFormatter reads the diver's date and time preferences, and
           // the real notifier wants SharedPreferences.
@@ -264,6 +271,38 @@ void main() {
       );
 
       expect(find.text('Another device'), findsOneWidget);
+    });
+
+    testWidgets('shows the peer\'s published name when it is known', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _item(sourceType: MediaSourceType.localFile, originDeviceId: 'dev-b'),
+        thisDevice: 'dev-a',
+        peerNames: Stream.value(const {'dev-b': "Eric's MacBook"}),
+      );
+
+      expect(find.text("Eric's MacBook"), findsOneWidget);
+      expect(find.text('Another device'), findsNothing);
+    });
+
+    testWidgets('updates in place when a sync learns the name', (tester) async {
+      final names = StreamController<Map<String, String>>();
+      addTearDown(names.close);
+      await pump(
+        tester,
+        _item(sourceType: MediaSourceType.localFile, originDeviceId: 'dev-b'),
+        thisDevice: 'dev-a',
+        peerNames: names.stream,
+      );
+      expect(find.text('Another device'), findsOneWidget);
+
+      names.add(const {'dev-b': "Eric's MacBook"});
+      await tester.pumpAndSettle();
+
+      expect(find.text("Eric's MacBook"), findsOneWidget);
+      expect(find.text('Another device'), findsNothing);
     });
   });
 
