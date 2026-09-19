@@ -27158,6 +27158,23 @@ class AppLocalizationsEn extends AppLocalizations {
       'This is the most detail available for this location';
 
   @override
+  String dive3d_seascape_lodStageLabel(String stage, String span) {
+    return 'Level of detail: $stage ($span m)';
+  }
+
+  @override
+  String get dive3d_seascape_lodStageOverview => 'Overview';
+
+  @override
+  String get dive3d_seascape_lodStageMedium => 'Medium';
+
+  @override
+  String get dive3d_seascape_lodStageFine => 'Fine';
+
+  @override
+  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
+
+  @override
   String get dive3d_seascape_noData =>
       'No bathymetry available for this location';
 

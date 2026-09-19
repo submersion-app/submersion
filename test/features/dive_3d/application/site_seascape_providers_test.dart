@@ -156,8 +156,12 @@ void main() {
       );
       expect(layer, isNotNull);
       expect(layer!.stage, BathymetryLodStage.medium);
-      expect(layer.layer.mesh.positions, isNotEmpty);
-      expect(layer.layer.drapedOnTerrain, isFalse);
+      expect(layer.layers, isNotEmpty);
+      expect(layer.layers.first.mesh.positions, isNotEmpty);
+      // Neither the terrain nor any contour/wall overlay it carries is
+      // drapedOnTerrain -- all ride the patch's own footprint and paint
+      // strictly after it, never sharing the base terrain's depth sort.
+      expect(layer.layers.every((l) => !l.drapedOnTerrain), isTrue);
       expect(layer.detailLimitReached, isFalse);
     });
 

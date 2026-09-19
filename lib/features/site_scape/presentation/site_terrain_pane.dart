@@ -184,11 +184,12 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
               // Watched at this level (not inside the inner Builder) so the
               // detail-limit hint chip below can read the same value without
               // a second, possibly out-of-sync watch.
+              final stage = bathymetryLodStageForZoom(_settledZoom);
               final patch = ref
                   .watch(
                     siteSeascapePatchLayerProvider((
                       siteId: widget.siteId,
-                      stage: bathymetryLodStageForZoom(_settledZoom),
+                      stage: stage,
                     )),
                   )
                   .valueOrNull;
@@ -202,7 +203,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                   : Scene3d(
                       layers: [
                         scene.layers.first,
-                        patch.layer,
+                        ...patch.layers,
                         ...scene.layers.skip(1),
                       ],
                       markers: scene.markers,
@@ -263,10 +264,10 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                           ),
                         ),
                         Positioned(
-                          top: 56,
+                          top: 8,
                           left: 8,
                           right: 8,
-                          child: _sourceChip(sourceId, resolutionMeters),
+                          child: _sourceChip(sourceId, resolutionMeters, stage),
                         ),
                         // top: 8, right: 8 is already the pane's docked
                         // appearance/chart-mode card (see build() above),
@@ -277,7 +278,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                         // clear.
                         if (patch?.detailLimitReached ?? false)
                           Positioned(
-                            top: 56,
+                            top: 8,
                             right: 8,
                             child: _detailLimitHint(context),
                           ),
@@ -289,7 +290,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                         if (appearance.surfaceMode !=
                             SeascapeSurfaceMode.imagery)
                           Positioned(
-                            top: 96,
+                            top: 72,
                             left: 8,
                             child: SeascapeDepthLegend(
                               maxDepthMeters: axisInputs.maxDepth,
@@ -387,7 +388,27 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
     );
   }
 
-  Widget _sourceChip(String sourceId, double resolutionMeters) {
+  Widget _sourceChip(
+    String sourceId,
+    double resolutionMeters,
+    BathymetryLodStage stage,
+  ) {
+    // Surfaces the active LOD stage (see bathymetry_lod.dart) so a diver
+    // can tell why the terrain just got sharper (or why it stopped
+    // getting sharper) without needing to know the underlying zoom
+    // threshold.
+    final stageName = switch (stage) {
+      BathymetryLodStage.overview =>
+        context.l10n.dive3d_seascape_lodStageOverview,
+      BathymetryLodStage.medium => context.l10n.dive3d_seascape_lodStageMedium,
+      BathymetryLodStage.fine => context.l10n.dive3d_seascape_lodStageFine,
+      BathymetryLodStage.superFine =>
+        context.l10n.dive3d_seascape_lodStageSuperFine,
+    };
+    final stageLabelText = context.l10n.dive3d_seascape_lodStageLabel(
+      stageName,
+      stage.spanMeters.round().toString(),
+    );
     return Align(
       alignment: Alignment.topLeft,
       child: Container(
@@ -404,10 +425,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
             const SizedBox(width: 4),
             Flexible(
               child: Text(
-                context.l10n.dive3d_seascape_seafloorSource(
-                  bathymetrySourceDisplayName(sourceId),
-                  resolutionMeters.round().toString(),
-                ),
+                '${context.l10n.dive3d_seascape_seafloorSource(bathymetrySourceDisplayName(sourceId), resolutionMeters.round().toString())} · Stufe: $stageLabelText',
                 style: Theme.of(context).textTheme.labelSmall,
               ),
             ),

@@ -9,10 +9,10 @@ import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
 import 'package:submersion/features/bathymetry/data/terrain_imagery_service.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_lod.dart';
+import 'package:submersion/features/bathymetry/domain/terrain_imagery_frame.dart';
 import 'package:submersion/features/bathymetry/presentation/terrain_imagery_providers.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/dive_3d/application/spatial_providers.dart';
-import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/contour_builder.dart';
@@ -20,6 +20,8 @@ import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.d
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_axes.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/site_seascape_geometry_service.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/wall_highlight_builder.dart';
+import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
@@ -226,12 +228,21 @@ final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
 /// can show a quiet "no more detail here" hint instead of implying more
 /// zoom would help.
 class SiteSeascapePatchLayer {
-  final SceneLayer layer;
+  /// The patch's own terrain mesh plus its contour/steep-wall overlays,
+  /// recomputed against the PATCH grid (not the base's) so the finer
+  /// stage carries the same information the base square does -- not just a
+  /// sharper terrain color ramp. None are `drapedOnTerrain`: sharing the
+  /// base terrain's depth-sort group is what caused the original
+  /// z-fighting (see the terrain layer's own doc below), and these ride
+  /// the PATCH terrain, not the base's, so they paint correctly on top of
+  /// it purely by being later entries in [Scene3d.layers] -- no shared
+  /// depth sort needed for a mesh painted strictly after the one it rides.
+  final List<SceneLayer> layers;
   final BathymetryLodStage stage;
   final bool detailLimitReached;
 
   const SiteSeascapePatchLayer({
-    required this.layer,
+    required this.layers,
     required this.stage,
     required this.detailLimitReached,
   });
@@ -244,37 +255,78 @@ class SiteSeascapePatchLayer {
 /// anything coarser as the source topping out.
 const double _detailLimitResolutionRatio = 0.9;
 
-/// Isolate input for [_buildPatchTerrain] -- a plain, sendable bundle of
-/// everything [BathymetryTerrainBuilder.build] needs, mirroring how
-/// [SiteSeascapeInput] already crosses the [compute] boundary for the base
-/// terrain build.
-class _PatchTerrainInput {
+/// Isolate input for [_buildPatchLayers] -- a plain, sendable bundle of
+/// everything the patch's terrain AND its contour/steep-wall overlays need,
+/// mirroring how [SiteSeascapeInput] already crosses the [compute] boundary
+/// for the base build.
+class _PatchSceneInput {
   final BathymetryGrid grid;
   final GeoPoint center;
   final SpatialProjection projection;
-  final double? rampMaxDepthMeters;
-  final bool rampBanded;
-  final SeascapeSurfaceMode surfaceMode;
+  final SeascapeAppearance appearance;
+  final TerrainImageryFrame? imageryFrame;
+  final double displayUnitInMeters;
+  final String depthSymbol;
 
-  const _PatchTerrainInput({
+  const _PatchSceneInput({
     required this.grid,
     required this.center,
     required this.projection,
-    required this.rampMaxDepthMeters,
-    required this.rampBanded,
-    required this.surfaceMode,
+    required this.appearance,
+    required this.imageryFrame,
+    required this.displayUnitInMeters,
+    required this.depthSymbol,
   });
 }
 
-MeshData _buildPatchTerrain(_PatchTerrainInput input) =>
-    BathymetryTerrainBuilder.build(
-      grid: input.grid,
-      center: input.center,
-      projection: input.projection,
-      rampMaxDepthMeters: input.rampMaxDepthMeters,
-      rampBanded: input.rampBanded,
-      surfaceMode: input.surfaceMode,
-    ).terrain;
+/// The patch's terrain plus its own contour/steep-wall overlays, all
+/// computed against [input.grid] -- the finer patch grid, not the base
+/// square -- so the patch carries the same kind of information the base
+/// terrain does. Every returned layer is explicitly non-draped (contours
+/// and the wall highlight default to `drapedOnTerrain: true` when built for
+/// the base scene; that flag is what pulls a layer into the shared,
+/// depth-sorted merge group, and that merge is exactly what z-fights when
+/// the patch's own near-coplanar terrain shares it with the base terrain's
+/// -- see [SiteSeascapePatchLayer]'s own doc). Riding the patch and simply
+/// painting after it (patch terrain is always layers[0] in the returned
+/// list) is enough: a later, separate `_paintMeshes` call always paints on
+/// top of an earlier one, with no shared depth sort required.
+List<SceneLayer> _buildPatchLayers(_PatchSceneInput input) {
+  final terrain = BathymetryTerrainBuilder.build(
+    grid: input.grid,
+    center: input.center,
+    projection: input.projection,
+    rampMaxDepthMeters: input.appearance.rampMaxDepthMeters,
+    rampBanded: input.appearance.rampBanded,
+    surfaceMode: input.appearance.surfaceMode,
+    imageryFrame: input.imageryFrame,
+  );
+  final layers = <SceneLayer>[SceneLayer(terrain.terrain)];
+
+  final contours = buildContourLayers(
+    grid: input.grid,
+    center: input.center,
+    projection: input.projection,
+    appearance: input.appearance,
+    displayUnitInMeters: input.displayUnitInMeters,
+    depthSymbol: input.depthSymbol,
+  );
+  for (final layer in contours.layers) {
+    layers.add(SceneLayer(layer.mesh, overlay: layer.overlay));
+  }
+
+  final wallMesh = buildWallHighlightMesh(
+    grid: input.grid,
+    center: input.center,
+    projection: input.projection,
+    thresholdDeg: input.appearance.wallAngleDeg,
+  );
+  if (wallMesh != null) {
+    layers.add(SceneLayer(wallMesh, overlay: SceneOverlay.steepWalls));
+  }
+
+  return layers;
+}
 
 /// The additional LOD patch layer for one site at the current LOD [stage]
 /// (see `bathymetry_lod.dart`), built in the SAME coordinate frame as the
@@ -313,6 +365,7 @@ final siteSeascapePatchLayerProvider = FutureProvider.autoDispose
           lat: center.latitude,
           lon: center.longitude,
           spanMeters: request.stage.spanMeters,
+          maxDim: request.stage.maxGridDim,
         )).future,
       );
       if (patchGrid == null) return null;
@@ -320,6 +373,7 @@ final siteSeascapePatchLayerProvider = FutureProvider.autoDispose
       final appearance = ref.watch(
         settingsProvider.select((s) => s.seascapeAppearance),
       );
+      final depthUnit = ref.watch(settingsProvider.select((s) => s.depthUnit));
       final proj = SpatialProjection(
         minEast: base.axisInputs.minEast,
         maxEast: base.axisInputs.maxEast,
@@ -327,22 +381,25 @@ final siteSeascapePatchLayerProvider = FutureProvider.autoDispose
         maxNorth: base.axisInputs.maxNorth,
         maxDepth: base.axisInputs.maxDepth,
       );
-      final terrainInput = _PatchTerrainInput(
+      final sceneInput = _PatchSceneInput(
         grid: patchGrid,
         center: center,
         projection: proj,
-        rampMaxDepthMeters: appearance.rampMaxDepthMeters,
-        rampBanded: appearance.rampBanded,
-        surfaceMode: appearance.surfaceMode,
+        appearance: appearance,
+        imageryFrame: base.imagery?.frame,
+        displayUnitInMeters: depthUnit == DepthUnit.feet ? 0.3048 : 1.0,
+        depthSymbol: depthUnit.symbol,
       );
       // Mirrors the base terrain build's isolate offload (siteSeascapeProvider
       // above): a patch grid is capped at 120x120 (BathymetryRepository.
       // maxGridDim) = 14400 cells, well past _isolateCellThreshold, so
       // building it synchronously on the UI isolate would jank every zoom
-      // settle.
-      final mesh = patchGrid.rows * patchGrid.cols > _isolateCellThreshold
-          ? await compute(_buildPatchTerrain, terrainInput)
-          : _buildPatchTerrain(terrainInput);
+      // settle. Contour marching and the wall-highlight scan run in the same
+      // isolate call, for the same reason.
+      final patchLayers =
+          patchGrid.rows * patchGrid.cols > _isolateCellThreshold
+          ? await compute(_buildPatchLayers, sceneInput)
+          : _buildPatchLayers(sceneInput);
 
       final detailLimitReached =
           request.stage == BathymetryLodStage.fine &&
@@ -350,20 +407,7 @@ final siteSeascapePatchLayerProvider = FutureProvider.autoDispose
               base.resolutionMeters * _detailLimitResolutionRatio;
 
       return SiteSeascapePatchLayer(
-        // NOT drapedOnTerrain: the patch fully overlaps a REGION of the base
-        // terrain (same footprint, finer grid), it doesn't ride alongside it
-        // the way a thin contour/wall drape does. Merging two independent,
-        // near-coplanar opaque surfaces into partitionLayers' per-triangle
-        // depth sort z-fights them (confirmed visually: a torn, flickering
-        // mix of both meshes' triangles). Painting the patch as a plain
-        // "rest" layer -- unconditionally on top, whole, after the merged
-        // group -- has no such artifact: the patch cleanly covers the base
-        // terrain underneath it. The tradeoff (documented, accepted): a
-        // draped contour/wall overlay drawn against the base terrain will
-        // not correctly hide behind the patch where the two overlap; that
-        // is a pre-existing limitation of the "two separate zones, no seam
-        // blending" design (see issue #2158), not a regression here.
-        layer: SceneLayer(mesh),
+        layers: patchLayers,
         stage: request.stage,
         detailLimitReached: detailLimitReached,
       );

@@ -597,7 +597,7 @@ void main() {
               siteSeascapePatchLayerProvider.overrideWith((ref, request) async {
                 if (request.stage != BathymetryLodStage.medium) return null;
                 return SiteSeascapePatchLayer(
-                  layer: _stubPatchLayer(),
+                  layers: [_stubPatchLayer()],
                   stage: BathymetryLodStage.medium,
                   detailLimitReached: false,
                 );
@@ -638,7 +638,7 @@ void main() {
               siteSeascapePatchLayerProvider.overrideWith((ref, request) async {
                 if (request.stage != BathymetryLodStage.fine) return null;
                 return SiteSeascapePatchLayer(
-                  layer: _stubPatchLayer(),
+                  layers: [_stubPatchLayer()],
                   stage: BathymetryLodStage.fine,
                   detailLimitReached: true,
                 );
@@ -683,7 +683,7 @@ void main() {
             extraOverrides: [
               siteSeascapePatchLayerProvider.overrideWith(
                 (ref, request) async => SiteSeascapePatchLayer(
-                  layer: _stubPatchLayer(),
+                  layers: [_stubPatchLayer()],
                   stage: BathymetryLodStage.medium,
                   detailLimitReached: false,
                 ),
@@ -787,7 +787,7 @@ void main() {
             extraOverrides: [
               siteSeascapePatchLayerProvider.overrideWith(
                 (ref, request) async => SiteSeascapePatchLayer(
-                  layer: _stubPatchLayer(),
+                  layers: [_stubPatchLayer()],
                   stage: BathymetryLodStage.fine,
                   detailLimitReached: true,
                 ),
