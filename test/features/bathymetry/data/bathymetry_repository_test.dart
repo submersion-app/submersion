@@ -96,6 +96,40 @@ class CenterRecordingSource implements BathymetrySource {
   }
 }
 
+/// A source that ignores [spanMeters] entirely and always returns a wide
+/// (101x101, ~11 km) grid centered exactly on the requested coordinate --
+/// standing in for etopo_erddap_source.dart's 10 km fetch-box floor, which
+/// applies regardless of how narrow an LOD patch actually asked for.
+class OversizedGridSource implements BathymetrySource {
+  static const double cellSizeDeg = 0.001; // ~111 m/cell at these latitudes
+  static const int dim = 101; // spans ~11.1 km, centered on row/col 50
+
+  @override
+  String get id => 'oversized';
+  @override
+  bool get global => true;
+  @override
+  double get minKnownFraction => 0.60;
+  @override
+  Future<SourceCapability?> probe(GeoPoint center) async =>
+      const SourceCapability(cellSizeMeters: 450, detail: 'oversized');
+  @override
+  Future<BathymetryGrid> fetch(GeoPoint c, {required double spanMeters}) async {
+    return BathymetryGrid(
+      originLat: c.latitude - cellSizeDeg * (dim - 1) / 2,
+      originLon: c.longitude - cellSizeDeg * (dim - 1) / 2,
+      cellSizeLatDeg: cellSizeDeg,
+      cellSizeLonDeg: cellSizeDeg,
+      rows: dim,
+      cols: dim,
+      depthsMeters: List<double?>.filled(dim * dim, 10),
+      sourceId: 'oversized',
+      resolutionMeters: 450,
+      fetchedAt: DateTime.utc(2026, 7, 28),
+    );
+  }
+}
+
 void main() {
   const bonaire = GeoPoint(12.16, -68.29);
   // Both inside Walensee's bounding box (see swiss_lake_levels.dart), both
@@ -415,6 +449,54 @@ void main() {
       final rows = await db.select(db.bathymetryCache).get();
       expect(rows, hasLength(2)); // two rows, not one shared row
     });
+  });
+
+  group('a source that overshoots the requested span gets cropped back', () {
+    test(
+      'a fine patch (500 m) fetched from a source that always returns an '
+      '~11 km grid (ETOPO\'s 10 km floor) is cropped down to roughly the '
+      'requested footprint, not left at the source\'s oversized extent',
+      () async {
+        final r = repo(OversizedGridSource());
+        final grid = await r.getGridForSpan(bonaire, 500);
+        expect(grid, isNotNull);
+        // The source always hands back a 101x101 (~11 km) grid; cropped to a
+        // 500 m span it should be a small fraction of that, not the full
+        // extent verbatim.
+        expect(grid!.rows, lessThan(20));
+        expect(grid.cols, lessThan(20));
+        // Still centered close to the requested coordinate -- cropping must
+        // not have picked an arbitrary corner of the oversized source grid.
+        final midLat =
+            grid.originLat + grid.cellSizeLatDeg * (grid.rows - 1) / 2;
+        final midLon =
+            grid.originLon + grid.cellSizeLonDeg * (grid.cols - 1) / 2;
+        expect(midLat, closeTo(bonaire.latitude, 0.002));
+        expect(midLon, closeTo(bonaire.longitude, 0.002));
+      },
+    );
+
+    test('the base-square fetch (8 km) from the same oversized (~11 km) source '
+        'is cropped too, since 11 km is still a material overshoot of the '
+        'requested 8 km', () async {
+      final r = repo(OversizedGridSource());
+      final grid = await r.getGrid(bonaire);
+      expect(grid, isNotNull);
+      expect(grid!.rows, lessThan(OversizedGridSource.dim));
+      expect(grid.cols, lessThan(OversizedGridSource.dim));
+    });
+
+    test(
+      'a source whose grid already matches the requested span is left '
+      'untouched (regression guard for every other, well-behaved source)',
+      () async {
+        final source = ScriptedSource(() => BathymetryResolution.ok(wetGrid()));
+        final r = repo(source);
+        final grid = await r.getGridForSpan(bonaire, 500);
+        expect(grid!.rows, wetGrid().rows);
+        expect(grid.cols, wetGrid().cols);
+      },
+    );
   });
 
   test('the cache key carries the selection generation', () {

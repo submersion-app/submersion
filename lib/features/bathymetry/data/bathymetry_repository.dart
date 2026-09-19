@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_resolver.dart';
 import 'package:submersion/features/bathymetry/data/sources/swiss_lake_levels.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
@@ -273,7 +274,11 @@ class BathymetryRepository {
     final res = await _resolver.resolve(fetchCenter, spanMeters: spanMeters);
     final resolved = res.grid;
     if (resolved != null) {
-      final grid = resolved.downsampleTo(maxGridDim);
+      final grid = _cropToSpan(
+        resolved,
+        fetchCenter,
+        spanMeters,
+      ).downsampleTo(maxGridDim);
       await _db
           .into(_db.bathymetryCache)
           .insertOnConflictUpdate(
@@ -304,5 +309,78 @@ class BathymetryRepository {
           );
     }
     return null; // transient: no row, next call retries
+  }
+
+  /// A `BathymetrySource.fetch` implementation is trusted to honor the
+  /// requested span -- and every shipped source does, except
+  /// `EtopoErddapSource` (etopo_erddap_source.dart), which floors its own
+  /// request box at 10 km regardless of how narrow a caller's span actually
+  /// is (see the comment on its `fetch`). The grid that comes back is still
+  /// correctly geo-referenced, real data per cell, not corrupted -- but for
+  /// a small LOD patch it can be many times wider than the patch's own
+  /// intended footprint, stretching the rendered patch far past where the
+  /// diver zoomed in.
+  ///
+  /// Crops back to (approximately) the requested box around [center]
+  /// whenever [grid] materially overshoots [spanMeters] in either
+  /// dimension; a source that already matches -- everyone but ETOPO -- is
+  /// returned untouched, with a tolerance so a near-exact match is never
+  /// trimmed over floating-point rounding.
+  static BathymetryGrid _cropToSpan(
+    BathymetryGrid grid,
+    GeoPoint center,
+    double spanMeters,
+  ) {
+    const overshootTolerance = 1.1;
+    final mLon = metersPerDegreeLongitude(center.latitude);
+    final actualLatSpan =
+        (grid.rows - 1) * grid.cellSizeLatDeg.abs() * metersPerDegreeLatitude;
+    final actualLonSpan = (grid.cols - 1) * grid.cellSizeLonDeg.abs() * mLon;
+    if (actualLatSpan <= spanMeters * overshootTolerance &&
+        actualLonSpan <= spanMeters * overshootTolerance) {
+      return grid;
+    }
+
+    final half = spanMeters / 2;
+    final dLat = half / metersPerDegreeLatitude;
+    final dLon = half / mLon;
+
+    int rowAt(double lat) => ((lat - grid.originLat) / grid.cellSizeLatDeg)
+        .round()
+        .clamp(0, grid.rows - 1);
+    int colAt(double lon) => ((lon - grid.originLon) / grid.cellSizeLonDeg)
+        .round()
+        .clamp(0, grid.cols - 1);
+
+    final rStart = rowAt(center.latitude - dLat);
+    final rEnd = rowAt(center.latitude + dLat);
+    final cStart = colAt(center.longitude - dLon);
+    final cEnd = colAt(center.longitude + dLon);
+    if (rEnd <= rStart || cEnd <= cStart) {
+      // Degenerate crop (spanMeters narrower than one of the source's own
+      // cells): keep the original grid rather than hand back a sliver.
+      return grid;
+    }
+
+    final newRows = rEnd - rStart + 1;
+    final newCols = cEnd - cStart + 1;
+    final out = List<double?>.filled(newRows * newCols, null);
+    for (var r = 0; r < newRows; r++) {
+      for (var c = 0; c < newCols; c++) {
+        out[r * newCols + c] = grid.depthAt(r + rStart, c + cStart);
+      }
+    }
+    return BathymetryGrid(
+      originLat: grid.originLat + grid.cellSizeLatDeg * rStart,
+      originLon: grid.originLon + grid.cellSizeLonDeg * cStart,
+      cellSizeLatDeg: grid.cellSizeLatDeg,
+      cellSizeLonDeg: grid.cellSizeLonDeg,
+      rows: newRows,
+      cols: newCols,
+      depthsMeters: out,
+      sourceId: grid.sourceId,
+      resolutionMeters: grid.resolutionMeters,
+      fetchedAt: grid.fetchedAt,
+    );
   }
 }
