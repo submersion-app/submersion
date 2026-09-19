@@ -14,6 +14,7 @@ import 'package:submersion/core/database/legacy_sample_staging.dart';
 import 'package:submersion/core/database/profile_series_pack.dart';
 import 'package:submersion/core/database/site_type_seed.dart';
 import 'package:submersion/core/database/tag_scope_tables.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_temp_dir.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -1422,12 +1423,24 @@ class SyncDataSerializer {
   /// changeset advances to. Null when the delta has no HLC-bearing rows.
   String? _maxHlcInData(SyncData data) {
     String? maxHlc;
-    for (final list in data.toJson().values) {
+    void consider(Object? h) {
+      if (h is String && (maxHlc == null || h.compareTo(maxHlc!) > 0)) {
+        maxHlc = h;
+      }
+    }
+
+    for (final entry in data.toJson().entries) {
+      final list = entry.value;
       if (list is! List) continue;
+      // Fact clocks count too (spec 5.1): a row exported only because a fact
+      // moved would otherwise leave the watermark below it and be re-sent on
+      // every publish.
+      final groups = SyncFactGroups.of(entry.key);
       for (final row in list) {
-        if (row is Map && row['hlc'] is String) {
-          final h = row['hlc'] as String;
-          if (maxHlc == null || h.compareTo(maxHlc) > 0) maxHlc = h;
+        if (row is! Map) continue;
+        consider(row['hlc']);
+        for (final g in groups) {
+          consider(row[g.clockKey]);
         }
       }
     }
@@ -6553,7 +6566,15 @@ class SyncDataSerializer {
   Future<List<Map<String, dynamic>>> _exportMedia(String? hlcSince) async {
     final query = _db.select(_db.media);
     if (hlcSince != null) {
-      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+      // A fact write stamps its group clock, not the row clock (media sync
+      // program spec 5.1), so a row is due when either has moved past the
+      // watermark.
+      query.where(
+        (t) =>
+            t.hlc.isBiggerThanValue(hlcSince) |
+            t.uploadFactsHlc.isBiggerThanValue(hlcSince) |
+            t.verifyFactsHlc.isBiggerThanValue(hlcSince),
+      );
     }
     final rows = await query.get();
     // Media carries the imageData BLOB; encode it as base64, not a byte array.
