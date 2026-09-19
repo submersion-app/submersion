@@ -847,6 +847,12 @@ void main() {
 
   // -------------------------------------------------------------------------
   group('shareLogFile', () {
+    // SharePlus.instance captures the platform the first time it is used, so
+    // one fake serves every test in the group; each test clears its calls.
+    final sharePlatform = _FakeSharePlatform();
+    setUpAll(() => SharePlatform.instance = sharePlatform);
+    setUp(sharePlatform.calls.clear);
+
     test('returns immediately when log file does not exist', () async {
       final tempDir = Directory.systemTemp.createTempSync('share_log_test_');
       addTearDown(() => tempDir.deleteSync(recursive: true));
@@ -858,13 +864,36 @@ void main() {
       // Should complete without error
     });
 
+    test('bundles the media report as a second file when given one', () async {
+      final tempDir = Directory.systemTemp.createTempSync('share_log_test_');
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final shareTemp = Directory('${tempDir.path}/tmp')..createSync();
+      PathProviderPlatform.instance = _FakePathProvider(shareTemp.path);
+      final service = LogFileService(logDirectory: tempDir.path);
+      await service.initialize();
+      await service.writeLine(_entry(message: 'a line').toLogLine());
+
+      await shareLogFile(
+        service,
+        _l10n,
+        environment: _environment,
+        mediaReport: 'Submersion media health report\nrows: 0\n',
+      );
+
+      final files = sharePlatform.calls.single.files!;
+      expect(files, hasLength(2));
+      expect(files.last.path, endsWith('submersion-media-report.txt'));
+      expect(
+        File(files.last.path).readAsStringSync(),
+        startsWith('Submersion media health report'),
+      );
+    });
+
     test('shares a header-prefixed, redacted copy of the log', () async {
       final tempDir = Directory.systemTemp.createTempSync('share_log_test_');
       addTearDown(() => tempDir.deleteSync(recursive: true));
       final shareTemp = Directory('${tempDir.path}/tmp')..createSync();
       PathProviderPlatform.instance = _FakePathProvider(shareTemp.path);
-      final sharePlatform = _FakeSharePlatform();
-      SharePlatform.instance = sharePlatform;
       final service = LogFileService(logDirectory: tempDir.path);
       await service.initialize();
       await service.writeLine(

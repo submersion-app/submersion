@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:submersion/features/media/data/services/media_health_report.dart';
+import 'package:submersion/features/media/data/services/media_health_reporter.dart';
 import 'package:submersion/features/media/data/services/media_item_verifier.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
@@ -13,6 +15,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_provenance.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/presentation/providers/media_health_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_provenance_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
@@ -78,6 +81,26 @@ class _FakeVerifier implements MediaItemVerifier {
     verified.add(item.id);
     onVerify?.call();
     return result;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName} is not stubbed');
+}
+
+/// Answers a fixed one-row report for whatever item it is asked about.
+class _FakeReporter implements MediaHealthReporter {
+  _FakeReporter(this.report);
+  final MediaHealthReport report;
+  final List<String> asked = [];
+
+  @override
+  Future<MediaHealthReport> forItem(
+    MediaItem item, {
+    bool probeStore = false,
+  }) async {
+    asked.add('${item.id}:$probeStore');
+    return report;
   }
 
   @override
@@ -261,6 +284,60 @@ void main() {
       );
 
       expect(find.text('This device'), findsOneWidget);
+    });
+
+    testWidgets('Copy diagnostics puts the one-row report on the clipboard', (
+      tester,
+    ) async {
+      final copied = <String>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall call) async {
+          if (call.method == 'Clipboard.setData') {
+            copied.add((call.arguments as Map)['text'] as String);
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      final reporter = _FakeReporter(
+        MediaHealthReport(
+          generatedAt: DateTime.utc(2026, 7, 1),
+          deviceId: 'dev-a',
+          attachedStoreId: 'store-1',
+          markerStoreId: 'store-1',
+          rows: [
+            MediaHealthRow(
+              mediaId: 'm1',
+              sourceType: 'localFile',
+              takenAt: DateTime.utc(2026, 7, 1),
+              isOrphaned: false,
+              pending: false,
+              resolverVerdict: 'available',
+            ),
+          ],
+        ),
+      );
+      await pump(
+        tester,
+        _item(sourceType: MediaSourceType.localFile, originDeviceId: 'dev-a'),
+        thisDevice: 'dev-a',
+        extra: [mediaHealthReporterProvider.overrideWithValue(reporter)],
+      );
+
+      await tester.ensureVisible(find.text('Copy diagnostics'));
+      await tester.tap(find.text('Copy diagnostics'));
+      await tester.pumpAndSettle();
+
+      expect(reporter.asked, ['m1:true']);
+      expect(copied.single, contains('attached_store: store-1'));
+      expect(copied.single, contains('media_id: m1'));
+      expect(find.text('Diagnostics copied'), findsOneWidget);
     });
 
     testWidgets('names another device when the ids differ', (tester) async {

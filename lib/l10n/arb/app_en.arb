@@ -17543,6 +17543,10 @@
       }
     }
   },
+  "settings_mediaStorage_report_action": "Export media report",
+  "settings_mediaStorage_report_done": "Media report exported",
+  "settings_mediaStorage_report_note": "The report lists file paths and device names. Nothing is sent anywhere.",
+  "settings_mediaStorage_report_running": "Building the media report...",
   "settings_mediaStorage_verify_action": "Verify library",
   "settings_mediaStorage_verify_running": "Verifying media library...",
   "settings_mediaStorage_verify_summary": "Checked {checked} cloud objects ({originals, plural, =1{1 original} other{{originals} originals}}, {thumbs, plural, =1{1 thumbnail} other{{thumbs} thumbnails}}, {renditions, plural, =1{1 compressed version} other{{renditions} compressed versions}}): removed {removed} orphans, queued {repaired} repairs, aborted {aborted} stale uploads",
@@ -24364,10 +24368,12 @@
   "@media_info_actionReveal": {
     "description": "Media info panel, Origin block: opens the platform file manager at the item's path"
   },
+  "media_info_actionCopyDiagnostics": "Copy diagnostics",
   "media_info_actionCopyPath": "Copy reference",
   "@media_info_actionCopyPath": {
     "description": "Media info panel, Origin block: copies the source reference to the clipboard"
   },
+  "media_info_diagnosticsCopied": "Diagnostics copied",
   "media_info_referenceCopied": "Reference copied",
   "@media_info_referenceCopied": {
     "description": "Confirmation shown after copying the source reference"

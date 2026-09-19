@@ -27172,6 +27172,21 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_report_action =>
+      'Exporter le rapport des médias';
+
+  @override
+  String get settings_mediaStorage_report_done => 'Rapport des médias exporté';
+
+  @override
+  String get settings_mediaStorage_report_note =>
+      'Le rapport contient des chemins de fichiers et des noms d\'appareils. Rien n\'est envoyé.';
+
+  @override
+  String get settings_mediaStorage_report_running =>
+      'Création du rapport des médias...';
+
+  @override
   String get settings_mediaStorage_verify_action => 'Vérifier la bibliothèque';
 
   @override
@@ -40029,7 +40044,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher dans le gestionnaire de fichiers';
 
   @override
+  String get media_info_actionCopyDiagnostics => 'Copier le diagnostic';
+
+  @override
   String get media_info_actionCopyPath => 'Copier la référence';
+
+  @override
+  String get media_info_diagnosticsCopied => 'Diagnostic copié';
 
   @override
   String get media_info_referenceCopied => 'Référence copiée';

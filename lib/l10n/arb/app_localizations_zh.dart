@@ -25671,6 +25671,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_report_action => '导出媒体报告';
+
+  @override
+  String get settings_mediaStorage_report_done => '媒体报告已导出';
+
+  @override
+  String get settings_mediaStorage_report_note => '报告包含文件路径和设备名称。不会向任何地方发送。';
+
+  @override
+  String get settings_mediaStorage_report_running => '正在生成媒体报告...';
+
+  @override
   String get settings_mediaStorage_verify_action => '验证媒体库';
 
   @override
@@ -37604,7 +37616,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_info_actionReveal => '在文件管理器中显示';
 
   @override
+  String get media_info_actionCopyDiagnostics => '复制诊断信息';
+
+  @override
   String get media_info_actionCopyPath => '复制引用';
+
+  @override
+  String get media_info_diagnosticsCopied => '诊断信息已复制';
 
   @override
   String get media_info_referenceCopied => '引用已复制';

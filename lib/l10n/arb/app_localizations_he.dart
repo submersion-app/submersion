@@ -26425,6 +26425,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_report_action => 'ייצוא דוח מדיה';
+
+  @override
+  String get settings_mediaStorage_report_done => 'דוח המדיה יוצא';
+
+  @override
+  String get settings_mediaStorage_report_note =>
+      'הדוח מפרט נתיבי קבצים ושמות מכשירים. שום דבר לא נשלח.';
+
+  @override
+  String get settings_mediaStorage_report_running => 'בונה את דוח המדיה...';
+
+  @override
   String get settings_mediaStorage_verify_action => 'אימות הספרייה';
 
   @override
@@ -39144,7 +39157,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_info_actionReveal => 'הצג במנהל הקבצים';
 
   @override
+  String get media_info_actionCopyDiagnostics => 'העתק אבחון';
+
+  @override
   String get media_info_actionCopyPath => 'העתק הפניה';
+
+  @override
+  String get media_info_diagnosticsCopied => 'האבחון הועתק';
 
   @override
   String get media_info_referenceCopied => 'ההפניה הועתקה';
