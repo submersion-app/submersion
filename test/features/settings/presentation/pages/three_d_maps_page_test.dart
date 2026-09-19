@@ -10,6 +10,27 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
+/// A [MapReloadNotifier] whose [start] is fully controlled by the test, so
+/// the reload flow's progress UI and outcome messages can be driven without
+/// a real bathymetry repository or dive site list.
+class _FakeMapReloadNotifier extends MapReloadNotifier {
+  _FakeMapReloadNotifier(super.ref, {required this.onStart});
+
+  final Future<void> Function(_FakeMapReloadNotifier self) onStart;
+  int cancelCalls = 0;
+
+  @override
+  Future<void> start() => onStart(this);
+
+  @override
+  void cancel() {
+    cancelCalls++;
+    super.cancel();
+  }
+
+  void setTestState(MapReloadState value) => state = value;
+}
+
 void main() {
   Future<void> pumpPage(
     WidgetTester tester, {
@@ -151,4 +172,175 @@ void main() {
       await tester.pumpAndSettle();
     },
   );
+
+  testWidgets(
+    'confirming the reload dialog shows per-site progress, a busy notice, '
+    'and a done message once it finishes, and the cancel button forwards '
+    'to the notifier',
+    (tester) async {
+      final startGate = Completer<void>();
+      late _FakeMapReloadNotifier fake;
+      await pumpPage(
+        tester,
+        extraOverrides: [
+          bathymetryRepositoryProvider.overrideWithValue(null),
+          swissBathyTileCacheRepositoryProvider.overrideWithValue(null),
+          knownDiveSiteLocationsProvider.overrideWith((ref) async => const []),
+          mapReloadProvider.overrideWith((ref) {
+            fake = _FakeMapReloadNotifier(
+              ref,
+              onStart: (self) async {
+                self.setTestState(
+                  self.state.copyWith(
+                    isRunning: true,
+                    total: 2,
+                    completed: 1,
+                    startedAt: DateTime.now().subtract(
+                      const Duration(seconds: 4),
+                    ),
+                  ),
+                );
+                await startGate.future;
+                self.setTestState(
+                  self.state.copyWith(isRunning: false, completed: 2),
+                );
+              },
+            );
+            return fake;
+          }),
+        ],
+      );
+
+      await tester.tap(find.text('Reload map data'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Reload'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('1 of 2 dive sites'), findsOneWidget);
+      expect(
+        find.text(
+          'Another 3D Maps action is running. Please wait until it finishes.',
+        ),
+        findsOneWidget,
+      );
+
+      final cancelButton = find.widgetWithText(TextButton, 'Cancel');
+      await tester.ensureVisible(cancelButton);
+      await tester.tap(cancelButton);
+      expect(fake.cancelCalls, 1);
+
+      startGate.complete();
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Map data reloaded for every dive site'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'shows the warming-phase text while lakes are being warmed, and a '
+    'failure message when the reload throws',
+    (tester) async {
+      final startGate = Completer<void>();
+      await pumpPage(
+        tester,
+        extraOverrides: [
+          bathymetryRepositoryProvider.overrideWithValue(null),
+          swissBathyTileCacheRepositoryProvider.overrideWithValue(null),
+          knownDiveSiteLocationsProvider.overrideWith((ref) async => const []),
+          mapReloadProvider.overrideWith(
+            (ref) => _FakeMapReloadNotifier(
+              ref,
+              onStart: (self) async {
+                self.setTestState(
+                  self.state.copyWith(
+                    isRunning: true,
+                    overallStartedAt: DateTime.now().subtract(
+                      const Duration(seconds: 2),
+                    ),
+                    warmStartedAt: DateTime.now(),
+                    warmingLakeName: 'Lake Zurich',
+                    warmingLakeIndex: 1,
+                    warmingLakeTotal: 3,
+                  ),
+                );
+                await startGate.future;
+                self.setTestState(
+                  self.state.copyWith(isRunning: false, error: 'boom'),
+                );
+              },
+            ),
+          ),
+        ],
+      );
+
+      await tester.tap(find.text('Reload map data'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Reload'));
+      await tester.pump();
+
+      expect(find.text('Preparing: lake 1 of 3 (Lake Zurich)'), findsOneWidget);
+
+      startGate.complete();
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Reload failed; some dive sites may not have been reloaded'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'confirming the "reset remaining bathymetry data" action calls the '
+    'clear provider and shows a confirmation snackbar',
+    (tester) async {
+      var cleared = false;
+      await pumpPage(
+        tester,
+        extraOverrides: [
+          bathymetryRepositoryProvider.overrideWithValue(null),
+          swissBathyTileCacheRepositoryProvider.overrideWithValue(null),
+          knownDiveSiteLocationsProvider.overrideWith((ref) async => const []),
+          bathymetryOtherSourcesClearProvider.overrideWithValue(() async {
+            cleared = true;
+          }),
+        ],
+      );
+
+      await tester.tap(find.text('Reset remaining bathymetry data').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Reset remaining bathymetry data').last);
+      await tester.pumpAndSettle();
+
+      expect(cleared, isTrue);
+      expect(find.text('Remaining bathymetry data reset'), findsOneWidget);
+    },
+  );
+
+  testWidgets('shows an error snackbar when a delete/reset action throws '
+      '(regression: a throwing action used to leave no signal at all)', (
+    tester,
+  ) async {
+    await pumpPage(
+      tester,
+      extraOverrides: [
+        bathymetryRepositoryProvider.overrideWithValue(null),
+        swissBathyTileCacheRepositoryProvider.overrideWithValue(null),
+        knownDiveSiteLocationsProvider.overrideWith((ref) async => const []),
+        swissBathyClearProvider.overrideWithValue(() async {
+          throw Exception('disk full');
+        }),
+      ],
+    );
+
+    await tester.tap(find.text('Delete data'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete data').last);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('disk full'), findsOneWidget);
+  });
 }
