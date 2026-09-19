@@ -13,6 +13,11 @@ import 'package:submersion/core/services/log_redactor.dart';
 class LoggerService {
   final String _name;
 
+  /// The category a call gets when it names none. Media code pins
+  /// [LogCategory.media] so every breadcrumb lands in the exported log
+  /// without each call site repeating it.
+  final LogCategory category;
+
   /// The shared LogFileService instance. Set during app initialization.
   static LogFileService? _fileService;
   static Future<void> _pendingWrite = Future<void>.value();
@@ -164,19 +169,20 @@ class LoggerService {
   /// [logStream] see the line when its text is ready.
   void infoInOrder(
     Future<String> message, {
-    LogCategory category = LogCategory.app,
+    LogCategory? category,
     bool alwaysPersist = false,
   }) {
+    final resolvedCategory = category ?? this.category;
     final timestamp = DateTime.now();
     final service = _fileService;
     final persist =
         service != null &&
-        _persists(LogLevel.info, alwaysPersist, category: category);
+        _persists(LogLevel.info, alwaysPersist, category: resolvedCategory);
     final entry = message.then((text) {
       developer.log(text, name: _name, level: 800);
       final ready = LogEntry(
         timestamp: timestamp,
-        category: category,
+        category: resolvedCategory,
         level: LogLevel.info,
         message: persist ? redactSecrets(text) : text,
       );
@@ -200,18 +206,18 @@ class LoggerService {
     }
   }
 
-  const LoggerService(this._name);
+  const LoggerService(this._name, {this.category = LogCategory.app});
 
   /// Log a debug message
   void debug(
     String message, {
-    LogCategory category = LogCategory.app,
+    LogCategory? category,
     Object? error,
     StackTrace? stackTrace,
   }) {
     _log(
       message,
-      category: category,
+      category: category ?? this.category,
       level: LogLevel.debug,
       developerLevel: 500,
       error: error,
@@ -227,14 +233,14 @@ class LoggerService {
   /// the build that wrote them.
   void info(
     String message, {
-    LogCategory category = LogCategory.app,
+    LogCategory? category,
     Object? error,
     StackTrace? stackTrace,
     bool alwaysPersist = false,
   }) {
     _log(
       message,
-      category: category,
+      category: category ?? this.category,
       level: LogLevel.info,
       developerLevel: 800,
       error: error,
@@ -246,13 +252,13 @@ class LoggerService {
   /// Log a warning message
   void warning(
     String message, {
-    LogCategory category = LogCategory.app,
+    LogCategory? category,
     Object? error,
     StackTrace? stackTrace,
   }) {
     _log(
       message,
-      category: category,
+      category: category ?? this.category,
       level: LogLevel.warning,
       developerLevel: 900,
       error: error,
@@ -263,13 +269,13 @@ class LoggerService {
   /// Log an error message
   void error(
     String message, {
-    LogCategory category = LogCategory.app,
+    LogCategory? category,
     Object? error,
     StackTrace? stackTrace,
   }) {
     _log(
       message,
-      category: category,
+      category: category ?? this.category,
       level: LogLevel.error,
       developerLevel: 1000,
       error: error,
@@ -323,7 +329,10 @@ class LoggerService {
   }
 
   /// Create a logger for a specific class
-  static LoggerService forClass(Type type) => LoggerService(type.toString());
+  static LoggerService forClass(
+    Type type, {
+    LogCategory category = LogCategory.app,
+  }) => LoggerService(type.toString(), category: category);
 
   /// Wait for all currently pending file writes to complete.
   ///

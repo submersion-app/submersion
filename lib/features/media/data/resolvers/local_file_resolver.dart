@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' show Size;
 
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/resolvers/media_fetch_gate.dart';
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
@@ -117,7 +118,10 @@ class LocalFileResolver implements MediaSourceResolver {
   /// [_localDeviceId]'s answer, memoized once it succeeds. A failed fetch
   /// (no database open yet) is not cached, so the next resolution asks again.
   String? _knownDeviceId;
-  final _log = LoggerService.forClass(LocalFileResolver);
+  final _log = LoggerService.forClass(
+    LocalFileResolver,
+    category: LogCategory.media,
+  );
 
   @override
   MediaSourceType get sourceType => MediaSourceType.localFile;

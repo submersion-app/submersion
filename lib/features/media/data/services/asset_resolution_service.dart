@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
@@ -50,7 +51,10 @@ class ResolutionResult {
 class AssetResolutionService {
   final LocalAssetCacheRepository _cacheRepository;
   final PhotoPickerService _photoPickerService;
-  final _log = LoggerService.forClass(AssetResolutionService);
+  final _log = LoggerService.forClass(
+    AssetResolutionService,
+    category: LogCategory.media,
+  );
 
   /// In-flight resolution futures keyed by mediaId to prevent duplicate work.
   final Map<String, Future<ResolutionResult>> _pendingResolutions = {};

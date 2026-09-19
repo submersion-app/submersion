@@ -32,6 +32,28 @@ void main() {
         expect(logger, isA<LoggerService>());
       });
 
+      test('can pin a default category for every call', () async {
+        final seen = <LogEntry>[];
+        final sub = LoggerService.logStream.listen(seen.add);
+        addTearDown(sub.cancel);
+
+        final logger = LoggerService.forClass(
+          Object,
+          category: LogCategory.media,
+        );
+        logger.info('pinned');
+        logger.warning('overridden', category: LogCategory.database);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          seen.map((e) => (e.message, e.category)),
+          containsAll([
+            ('pinned', LogCategory.media),
+            ('overridden', LogCategory.database),
+          ]),
+        );
+      });
+
       test('created logger does not throw when logging', () {
         final logger = LoggerService.forClass(String);
         expect(() => logger.info('test'), returnsNormally);
