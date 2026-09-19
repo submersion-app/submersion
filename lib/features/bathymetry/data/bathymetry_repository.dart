@@ -91,6 +91,17 @@ class BathymetryRepository {
     return (lat: q(c.latitude), lon: q(c.longitude));
   }
 
+  /// Whether [spanMeters] asks for a narrower-than-base-square LOD patch
+  /// (the `medium`/`fine` stages in `bathymetry_lod.dart`), as opposed to
+  /// the always-loaded 8 km base square. A patch is requested for one
+  /// specific site's zoomed-in view, so it must resolve at the site's EXACT
+  /// coordinate: the quantized 0.02 degree cell center used for the base
+  /// square can sit ~1.1-1.5 km away, which dwarfs a patch's own half-width
+  /// (e.g. 250 m for `fine`) and can point the patch nowhere near the real
+  /// site.
+  static bool _isPatchSpan(double? spanMeters) =>
+      spanMeters != null && spanMeters < BathymetryResolver.defaultSpanMeters;
+
   static String keyFor(GeoPoint c, {double? spanMeters}) {
     // The span AND the selection generation are part of the key: cached
     // rows never expire, so any change that would resolve a coordinate
@@ -123,6 +134,14 @@ class BathymetryRepository {
       return '${c.latitude.toStringAsFixed(6)},'
           '${c.longitude.toStringAsFixed(6)}@$span$selectionGeneration'
           '@${lake.meanLevelMeters}';
+    }
+    if (_isPatchSpan(spanMeters)) {
+      // Same reasoning as the lake branch above, for a different reason: a
+      // patch is resolved at the exact site coordinate (see _isPatchSpan),
+      // so two real sites a few hundred metres apart -- well within one
+      // quantized cell -- must not collide on the same cache row.
+      return '${c.latitude.toStringAsFixed(6)},'
+          '${c.longitude.toStringAsFixed(6)}@$span$selectionGeneration';
     }
     final q = quantize(c);
     return '${q.lat.toStringAsFixed(2)},${q.lon.toStringAsFixed(2)}'
@@ -239,9 +258,14 @@ class BathymetryRepository {
 
     // Fetch centered on the quantized CELL CENTER so every coordinate in
     // the cell gets the same, fully covering grid -- except where
-    // [quantumDegFor] opts out of quantization (swissBATHY3D lakes), where
-    // the raw coordinate itself IS the fetch center: no cell to center on.
-    final quantum = quantumDegFor(center);
+    // [quantumDegFor] opts out of quantization (swissBATHY3D lakes), or
+    // where [spanMeters] asks for a narrower-than-base-square LOD patch
+    // (see [_isPatchSpan]): in both cases the raw coordinate itself IS the
+    // fetch center, no cell to center on. A patch's own half-width is often
+    // smaller than the quantized cell's offset from the real coordinate, so
+    // snapping it to the cell center could point the patch nowhere near the
+    // actual site.
+    final quantum = _isPatchSpan(spanMeters) ? 0.0 : quantumDegFor(center);
     final q = quantize(center);
     final fetchCenter = quantum > 0
         ? GeoPoint(q.lat + quantum / 2, q.lon + quantum / 2)

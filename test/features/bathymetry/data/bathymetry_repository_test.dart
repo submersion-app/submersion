@@ -368,6 +368,53 @@ void main() {
       await r.getGridForSpan(bonaire, 500);
       expect(source.lastSpanMeters, 500);
     });
+
+    test('fetches at the EXACT requested coordinate, not a quantized cell '
+        'center -- a patch span is often narrower than the quantum cell '
+        'offset, so snapping to the cell center could point the patch '
+        'nowhere near the actual site', () async {
+      final source = CenterRecordingSource();
+      final r = repo(source);
+      // Deliberately not aligned to any 0.02 degree cell corner.
+      const exact = GeoPoint(12.171, -68.281);
+      await r.getGridForSpan(exact, 500);
+      expect(source.centers, [exact]);
+    });
+
+    test('the base-square fetch (defaultSpanMeters, via getGrid) still snaps '
+        'to the quantized cell center, unchanged', () async {
+      final source = CenterRecordingSource();
+      final r = repo(source);
+      const c = GeoPoint(12.171, -68.281);
+      await r.getGrid(c);
+      final q = BathymetryRepository.quantize(c);
+      expect(source.centers, [
+        GeoPoint(
+          q.lat + BathymetryRepository.quantumDeg / 2,
+          q.lon + BathymetryRepository.quantumDeg / 2,
+        ),
+      ]);
+    });
+
+    test('two nearby but distinct coordinates in the same 0.02 cell get '
+        'distinct patch cache keys and fetch independently, each at its own '
+        'exact coordinate', () async {
+      final source = CenterRecordingSource();
+      final r = repo(source);
+      const a = GeoPoint(12.16, -68.29);
+      const b = GeoPoint(12.171, -68.281); // same 0.02 cell as a
+      expect(
+        BathymetryRepository.keyFor(a, spanMeters: 500),
+        isNot(BathymetryRepository.keyFor(b, spanMeters: 500)),
+      );
+
+      await r.getGridForSpan(a, 500);
+      await r.getGridForSpan(b, 500);
+
+      expect(source.centers, [a, b]);
+      final rows = await db.select(db.bathymetryCache).get();
+      expect(rows, hasLength(2)); // two rows, not one shared row
+    });
   });
 
   test('the cache key carries the selection generation', () {
