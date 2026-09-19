@@ -1,3 +1,5 @@
+import 'package:submersion/features/bathymetry/data/bathymetry_resolver.dart';
+
 /// Discrete level-of-detail stages for the 3D site seascape's additional
 /// terrain patch. `overview` is the always-loaded 8 km base square (see
 /// [BathymetryResolver.defaultSpanMeters] in `bathymetry_resolver.dart`)
@@ -8,7 +10,7 @@
 /// span-from-zoom formula, to bound how many distinct grids the bathymetry
 /// cache ends up holding per site.
 enum BathymetryLodStage {
-  overview(8000, 120),
+  overview(BathymetryResolver.defaultSpanMeters, 120),
   medium(6000, 120),
   fine(4000, 120),
   // maxGridDim 600 over a 1 km span is a ceiling above what any shipped

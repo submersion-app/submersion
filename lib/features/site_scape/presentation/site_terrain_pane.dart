@@ -59,12 +59,17 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
 
   /// Which grid the CURRENT [_hoverPick] value's row/col indices refer to
   /// -- the base grid, or the finer LOD patch grid when the cursor is over
-  /// its footprint (see [_PatchAwareHoverPicker]). Set synchronously by the
-  /// picker itself, before Dive3dInteractiveViewport (which calls the
-  /// picker then assigns [_hoverPick].value right after, with no await in
-  /// between) publishes the pick, so it is always in sync with whatever
-  /// [_hoverPick] currently holds.
-  BathymetryGrid? _hoverPickGrid;
+  /// its footprint (see [_PatchAwareHoverPicker]). A ValueNotifier, not a
+  /// plain field: _hoverTooltip's rebuild is scoped to a listener so a
+  /// hover event doesn't force a full pane rebuild, and a plain field
+  /// mutated by the picker would never be seen by that listener unless the
+  /// pane happened to rebuild for some unrelated reason -- the tooltip
+  /// would then show whichever grid was current as of the LAST full
+  /// rebuild, not the grid the CURRENT pick actually came from. Set
+  /// synchronously by the picker itself, before Dive3dInteractiveViewport
+  /// (which calls the picker then assigns [_hoverPick].value right after,
+  /// with no await in between) publishes the pick.
+  final ValueNotifier<BathymetryGrid?> _hoverPickGrid = ValueNotifier(null);
   final Set<SceneOverlay> _visible = {
     SceneOverlay.markers,
     SceneOverlay.paths,
@@ -98,6 +103,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
   void dispose() {
     _scrub.dispose();
     _hoverPick.dispose();
+    _hoverPickGrid.dispose();
     super.dispose();
   }
 
@@ -287,7 +293,8 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                                           ),
                                         ),
                                         baseGrid: grid,
-                                        onGridUsed: (g) => _hoverPickGrid = g,
+                                        onGridUsed: (g) =>
+                                            _hoverPickGrid.value = g,
                                       ),
                                 hoverPick: _hoverPick,
                                 onMarkerTap: _onMarkerTap,
@@ -363,13 +370,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                               ),
                             ),
                           ),
-                        // _hoverPickGrid tracks whichever grid (base or the
-                        // finer LOD patch) actually produced the CURRENT
-                        // _hoverPick value -- see _PatchAwareHoverPicker.
-                        // Falling back to the base grid when nothing has
-                        // been picked yet is harmless: the tooltip itself
-                        // renders nothing until _hoverPick is non-null.
-                        _hoverTooltip(_hoverPickGrid ?? grid),
+                        _hoverTooltip(grid),
                       ],
                     ),
                   ),
@@ -398,19 +399,30 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
 
   /// The hover readout, clamped inside the viewport by the shared layout
   /// delegate and transparent to pointer events so it never steals hover.
-  Widget _hoverTooltip(BathymetryGrid grid) {
+  /// [baseGrid] is only the fallback for when nothing has been picked yet
+  /// (the tooltip itself renders nothing then); once a pick lands, which
+  /// grid to read its row/col against comes from [_hoverPickGrid], NOT a
+  /// value closed over at the pane's last full rebuild -- a hover crossing
+  /// between the base terrain and a finer LOD patch does not by itself
+  /// trigger a full pane rebuild, only _hoverPick/_hoverPickGrid notify, so
+  /// this listens to both directly instead of receiving a plain parameter.
+  Widget _hoverTooltip(BathymetryGrid baseGrid) {
     return Positioned.fill(
       child: IgnorePointer(
-        child: ValueListenableBuilder<ScenePick?>(
-          valueListenable: _hoverPick,
-          builder: (context, pick, _) {
+        child: ListenableBuilder(
+          listenable: Listenable.merge([_hoverPick, _hoverPickGrid]),
+          builder: (context, _) {
+            final pick = _hoverPick.value;
             final payload = pick?.payload;
             if (pick == null || payload is! TissuePick) {
               return const SizedBox.shrink();
             }
             return CustomSingleChildLayout(
               delegate: TissueTooltipLayoutDelegate(pick.screenPos),
-              child: SeascapeHoverTooltip(pick: payload, grid: grid),
+              child: SeascapeHoverTooltip(
+                pick: payload,
+                grid: _hoverPickGrid.value ?? baseGrid,
+              ),
             );
           },
         ),

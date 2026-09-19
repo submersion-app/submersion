@@ -223,10 +223,10 @@ final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
 /// An additional, finer terrain patch layered on top of the always-loaded
 /// base square when the diver zooms in past `overview` (see
 /// `bathymetry_lod.dart`). [detailLimitReached] flags the case where the
-/// `fine` stage's grid came back no meaningfully sharper than the base
-/// grid -- the source simply has nothing finer for this spot -- so the UI
-/// can show a quiet "no more detail here" hint instead of implying more
-/// zoom would help.
+/// FINEST stage's (`BathymetryLodStage.values.last`, currently `superFine`)
+/// grid came back no meaningfully sharper than the base grid -- the source
+/// simply has nothing finer for this spot -- so the UI can show a quiet
+/// "no more detail here" hint instead of implying more zoom would help.
 class SiteSeascapePatchLayer {
   /// The patch's own terrain mesh plus its contour/steep-wall overlays,
   /// recomputed against the PATCH grid (not the base's) so the finer
@@ -243,7 +243,7 @@ class SiteSeascapePatchLayer {
 
   /// The grid [layers] was built from -- exposed so a consumer can build
   /// its own hover picker against the patch's finer terrain (see
-  /// [FirstHitHoverPicker] in hover_picker.dart) instead of only ever
+  /// site_terrain_pane.dart's `_PatchAwareHoverPicker`) instead of only ever
   /// picking against the coarser base grid even where the patch visually
   /// covers it.
   final BathymetryGrid grid;
