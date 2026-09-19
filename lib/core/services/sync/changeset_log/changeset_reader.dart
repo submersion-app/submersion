@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
@@ -112,6 +113,7 @@ class ChangesetReader {
     int localSchemaVersion = AppDatabase.currentSchemaVersion,
     List<CloudFileInfo>? preListedFiles,
     BaseDownloadProgress? onBaseDownloadProgress,
+    PeerDeviceNameStore? peerNames,
   }) async {
     final providerId = provider.providerId;
     // [preListedFiles] lets the caller reuse a listing it just made (the
@@ -171,6 +173,7 @@ class ChangesetReader {
         final manifestName = manifest.deviceName;
         if (manifestName != null && manifestName.isNotEmpty) {
           peerName = manifestName;
+          await peerNames?.record(peerId, manifestName);
         }
 
         // Stale-epoch filter: once this device is on a library epoch, a peer

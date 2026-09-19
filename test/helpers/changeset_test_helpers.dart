@@ -269,3 +269,32 @@ Future<void> restampPeerSchemaVersion(
     folderId: folder,
   );
 }
+
+/// Rewrite [peerId]'s published manifest so it carries [deviceName]; null
+/// strips the field, as on a manifest from a device nothing identifies by
+/// name. The display name service is not injectable into SyncService, so
+/// this is how a test gives two devices in one process distinct names.
+Future<void> restampPeerDeviceName(
+  CloudStorageProvider cloud,
+  String peerId, {
+  required String? deviceName,
+}) async {
+  final folder = await cloud.getOrCreateSyncFolder();
+  final manifestFile = (await cloud.listFiles(
+    folderId: folder,
+    namePattern: ChangesetLogLayout.manifestName(peerId),
+  )).single;
+  final manifest =
+      jsonDecode(utf8.decode(await cloud.downloadFile(manifestFile.id)))
+          as Map<String, dynamic>;
+  if (deviceName == null) {
+    manifest.remove('deviceName');
+  } else {
+    manifest['deviceName'] = deviceName;
+  }
+  await cloud.uploadFile(
+    Uint8List.fromList(utf8.encode(jsonEncode(manifest))),
+    manifestFile.name,
+    folderId: folder,
+  );
+}

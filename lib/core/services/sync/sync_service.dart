@@ -12,6 +12,7 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_apply_progress.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_json_stream_reader.dart';
@@ -235,6 +236,11 @@ class SyncService {
   /// Keyslot self-heal after publish (encrypted libraries). Nullable so
   /// existing constructions keep working; heal runs only when provided.
   final SyncEncryptionService? _encryptionService;
+
+  /// Where the names peers publish on their manifests are remembered, so
+  /// labels such as "From Eric's MacBook" need no cloud read. Optional:
+  /// the legacy tests build the service without one.
+  final PeerDeviceNameStore? _peerNames;
   final _log = LoggerService.forClass(SyncService);
   final _uuid = const Uuid();
 
@@ -298,12 +304,14 @@ class SyncService {
     LibraryEpochStore? epochStore,
     SyncEncryptionService? encryptionService,
     AppLocalizations Function()? localizations,
+    PeerDeviceNameStore? peerNames,
   }) : _syncRepository = syncRepository,
        _serializer = serializer,
        _cloudProvider = cloudProvider,
        _syncInitializer = syncInitializer,
        _epochStore = epochStore,
        _encryptionService = encryptionService,
+       _peerNames = peerNames,
        _localizations = localizations ?? _englishLocalizations;
 
   /// Set a callback to receive progress updates during sync
@@ -611,6 +619,7 @@ class SyncService {
         // Reuse the fence check's listing (null after a rejoin, which mutates
         // the folder and needs a fresh view).
         preListedFiles: fence.files,
+        peerNames: _peerNames,
         apply: (payload) async {
           final r = await _applyRemotePayload(payload, lastSyncTime);
           recordsSynced += r.recordsApplied;
@@ -4153,6 +4162,10 @@ class SyncService {
         );
       } catch (_) {
         continue;
+      }
+      final publishedName = manifest.deviceName;
+      if (publishedName != null && publishedName.isNotEmpty) {
+        await _peerNames?.record(deviceId, publishedName);
       }
       if (manifest.epochId != epochId) continue;
       final baseSeq = manifest.baseSeq;
