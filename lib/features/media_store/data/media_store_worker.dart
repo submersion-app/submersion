@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media_store/data/media_delete_processor.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
@@ -85,7 +86,10 @@ class MediaStoreWorker {
   final Duration _preflightBudget;
   final Duration _preflightRetryWindow;
 
-  final _log = LoggerService.forClass(MediaStoreWorker);
+  final _log = LoggerService.forClass(
+    MediaStoreWorker,
+    category: LogCategory.media,
+  );
   bool _running = false;
   bool _disposed = false;
   bool _suspended = false;

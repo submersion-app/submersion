@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
@@ -29,7 +30,10 @@ class MediaStoreResolver {
   /// runtime shares the budget -- which is the point: the grid, an open
   /// viewer and the dive-detail strip are all pulling from the same endpoint.
   final MediaFetchGate _gate;
-  final _log = LoggerService.forClass(MediaStoreResolver);
+  final _log = LoggerService.forClass(
+    MediaStoreResolver,
+    category: LogCategory.media,
+  );
 
   /// Returns FileData when the bytes are cached or fetched (originals are
   /// hash-verified); null when this item is not confirmed in the store or

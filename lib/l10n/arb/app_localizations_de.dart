@@ -11786,6 +11786,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_logCategory_database => 'Datenbank';
 
   @override
+  String get enum_logCategory_media => 'Medien';
+
+  @override
   String get enum_visibility_excellent => 'Ausgezeichnet (>30m / >100ft)';
 
   @override
@@ -27023,6 +27026,20 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_report_action => 'Medienbericht exportieren';
+
+  @override
+  String get settings_mediaStorage_report_done => 'Medienbericht exportiert';
+
+  @override
+  String get settings_mediaStorage_report_note =>
+      'Der Bericht enthält Dateipfade und Gerätenamen. Es wird nichts gesendet.';
+
+  @override
+  String get settings_mediaStorage_report_running =>
+      'Medienbericht wird erstellt...';
+
+  @override
   String get settings_mediaStorage_verify_action => 'Bibliothek überprüfen';
 
   @override
@@ -39835,7 +39852,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_info_actionReveal => 'Im Dateimanager anzeigen';
 
   @override
+  String get media_info_actionCopyDiagnostics => 'Diagnose kopieren';
+
+  @override
   String get media_info_actionCopyPath => 'Referenz kopieren';
+
+  @override
+  String get media_info_diagnosticsCopied => 'Diagnose kopiert';
 
   @override
   String get media_info_referenceCopied => 'Referenz kopiert';

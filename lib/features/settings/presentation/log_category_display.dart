@@ -11,5 +11,6 @@ extension LogCategoryDisplay on LogCategory {
     LogCategory.serial => l10n.enum_logCategory_serial,
     LogCategory.libdc => l10n.enum_logCategory_libdc,
     LogCategory.database => l10n.enum_logCategory_database,
+    LogCategory.media => l10n.enum_logCategory_media,
   };
 }

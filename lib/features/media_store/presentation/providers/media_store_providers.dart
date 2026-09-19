@@ -391,6 +391,44 @@ final mediaStoreServiceProvider = Provider<MediaStoreService>(
   ),
 );
 
+/// The attached media store's adapter, or null when nothing is attached or
+/// the provider cannot be built right now (missing config, no silent Google
+/// session, iCloud unavailable). Side-effect free: no worker, no drain, no
+/// sweep, so diagnostics can read the store without changing anything.
+/// [mediaStoreRuntimeProvider] builds on top of this.
+// no-tick: builds a store ADAPTER from attach state, not a cached query
+// result. The one repository read (the connected account behind the
+// attachment) changes only on connect or disconnect, and both invalidate
+// this provider together with the runtime; a tick would rebuild the adapter
+// under a drain in flight.
+final FutureProvider<MediaObjectStore?> attachedMediaObjectStoreProvider =
+    FutureProvider<MediaObjectStore?>((ref) async {
+      final attachState = ref.watch(mediaStoreAttachStateProvider);
+      final attachedId = await attachState.attachedStoreId();
+      if (attachedId == null) return null;
+      final providerType = await attachState.attachedProviderType();
+
+      // Account-first: attachments made through the Connected Accounts
+      // layer resolve their store via the account's adapter. Legacy
+      // attachments (no account id) keep the pre-account path unchanged.
+      final accountId = await attachState.attachedAccountId();
+      if (accountId != null) {
+        final account = await ref
+            .watch(connectedAccountsRepositoryProvider)
+            .getById(accountId);
+        if (account == null) return null;
+        return buildMediaObjectStoreForAccount(
+          account,
+          ref.watch(accountProviderRegistryProvider),
+        );
+      }
+      final legacyType = providerType ?? CloudProviderType.s3;
+      final s3Config = legacyType == CloudProviderType.s3
+          ? await ref.watch(mediaStoreCredentialsStoreProvider).load()
+          : null;
+      return buildMediaObjectStore(legacyType, s3Config: s3Config);
+    });
+
 /// The configured media store runtime, or null when this device has no
 /// store attached. Lazy: the first watcher (a media view or the settings
 /// page) triggers construction and a queue drain. Invalidate after connect
@@ -408,33 +446,7 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
       final attachState = ref.watch(mediaStoreAttachStateProvider);
       final attachedId = await attachState.attachedStoreId();
       if (attachedId == null) return null;
-      final providerType = await attachState.attachedProviderType();
-
-      // Account-first: attachments made through the Connected Accounts
-      // layer resolve their store via the account's adapter. Legacy
-      // attachments (no account id) keep the pre-account path unchanged.
-      MediaObjectStore? builtStore;
-      final accountId = await attachState.attachedAccountId();
-      if (accountId != null) {
-        final account = await ref
-            .watch(connectedAccountsRepositoryProvider)
-            .getById(accountId);
-        if (account == null) return null;
-        builtStore = await buildMediaObjectStoreForAccount(
-          account,
-          ref.watch(accountProviderRegistryProvider),
-        );
-      } else {
-        final legacyType = providerType ?? CloudProviderType.s3;
-        final s3Config = legacyType == CloudProviderType.s3
-            ? await ref.watch(mediaStoreCredentialsStoreProvider).load()
-            : null;
-        builtStore = await buildMediaObjectStore(
-          legacyType,
-          s3Config: s3Config,
-        );
-      }
-      final store = builtStore;
+      final store = await ref.watch(attachedMediaObjectStoreProvider.future);
       if (store == null) return null;
 
       final cache = MediaCacheStore(

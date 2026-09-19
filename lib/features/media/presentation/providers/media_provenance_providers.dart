@@ -1,4 +1,5 @@
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 // Re-exports flutter_riverpod alongside the invalidateSelfWhen extension, so
 // importing both would be redundant.
 import 'package:submersion/core/providers/provider.dart';
@@ -89,6 +90,14 @@ final mediaItemVerifierProvider = Provider<MediaItemVerifier>(
 /// is the reason it is a provider rather than a direct call.
 final currentDeviceIdProvider = FutureProvider<String>(
   (ref) => SyncRepository().getDeviceId(),
+);
+
+/// The published name of the device that linked a row, for "From {device}"
+/// labels. Null while the peer has never published one, and callers keep
+/// the generic wording. Watches the live map so a label already on screen
+/// updates when a sync learns the name.
+final originDeviceLabelProvider = Provider.family<String?, String>(
+  (ref, deviceId) => ref.watch(peerDeviceNamesProvider).value?[deviceId],
 );
 
 /// Which cloud store is attached, for display.

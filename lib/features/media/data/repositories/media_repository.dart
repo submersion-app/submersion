@@ -2107,6 +2107,19 @@ class MediaRepository {
   /// A display label (file name, else caption) for each of [ids] that has
   /// one. Ids with neither, or with no row, are absent.
   ///
+  /// The row's sync clock, or null for an unknown id or a row never marked
+  /// pending. A narrow read for diagnostics: the domain entity does not carry
+  /// the column, and a stale-merge investigation needs it.
+  Future<String?> getSyncHlc(String id) async {
+    final hlc = _db.media.hlc;
+    final row =
+        await (_db.selectOnly(_db.media)
+              ..addColumns([hlc])
+              ..where(_db.media.id.equals(id)))
+            .getSingleOrNull();
+    return row?.read(hlc);
+  }
+
   /// selectOnly projection, one query per chunk: the Transfers page names
   /// every queued row, and hydrating a full MediaItem per row would drag the
   /// imageData BLOB in for each and pin it in a provider cache.

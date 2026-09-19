@@ -266,8 +266,10 @@ class HarnessDevice {
   }
 
   /// Runs [body] with this device's view of the disk: every path under the
-  /// other device's root reads as absent.
-  Future<T> _onThisDisk<T>(Future<T> Function() body) => IOOverrides.runZoned(
+  /// other device's root reads as absent. Public so a test that drives a
+  /// resolver directly (the health reporter, a verifier) sees the same disk
+  /// the device's own operations do.
+  Future<T> onThisDisk<T>(Future<T> Function() body) => IOOverrides.runZoned(
     body,
     createFile: (path) => _isForeign(path)
         ? _ForeignFile(path)
@@ -357,7 +359,7 @@ class HarnessDevice {
   /// nondeterministic in a test.
   Future<void> drain() async {
     await activate();
-    await _onThisDisk(() => worker.drain());
+    await onThisDisk(() => worker.drain());
   }
 
   /// Models the app being killed and relaunched: the queue survives, the
@@ -409,7 +411,7 @@ class HarnessDevice {
   Future<TileResolution> tile(String id, {bool thumbnail = false}) async {
     await activate();
     final row = (await MediaRepository().getMediaById(id))!;
-    return _onThisDisk(
+    return onThisDisk(
       () => tileResolver.resolve(
         row,
         thumbnail: thumbnail,
@@ -446,7 +448,7 @@ class HarnessDevice {
   Future<SweepOutcome> verifyAll() async {
     await activate();
     final repo = MediaRepository();
-    return _onThisDisk(
+    return onThisDisk(
       () => MediaVerificationSweep(
         repository: repo,
         verifier: MediaItemVerifier(registry: registry, repository: repo),

@@ -36,6 +36,7 @@ import 'package:submersion/core/services/sync/established_provider_store.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/library_replace_intent.dart';
+import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/sync_device_metadata.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/library_moved_store.dart';
@@ -489,6 +490,24 @@ final cloudStorageProviderProvider = Provider<CloudStorageProvider?>((ref) {
   );
 });
 
+/// Names peers published on their manifests, for labels that must not wait
+/// on a cloud listing.
+final peerDeviceNameStoreProvider = Provider<PeerDeviceNameStore>((ref) {
+  final store = PeerDeviceNameStore(ref.watch(sharedPreferencesProvider));
+  ref.onDispose(store.dispose);
+  return store;
+});
+
+/// The live name map: the store's contents now, then every change, so a
+/// label already on screen updates when a sync learns a name.
+final peerDeviceNamesProvider = StreamProvider<Map<String, String>>((
+  ref,
+) async* {
+  final store = ref.watch(peerDeviceNameStoreProvider);
+  yield store.all();
+  yield* store.changes;
+});
+
 /// Sync service provider
 final syncServiceProvider = Provider<SyncService>((ref) {
   return SyncService(
@@ -499,6 +518,7 @@ final syncServiceProvider = Provider<SyncService>((ref) {
     epochStore: ref.watch(libraryEpochStoreProvider),
     encryptionService: ref.watch(syncEncryptionServiceProvider),
     localizations: () => l10nForLocaleTag(ref.read(localeProvider)),
+    peerNames: ref.watch(peerDeviceNameStoreProvider),
   );
 });
 
