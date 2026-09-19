@@ -7006,6 +7006,7 @@
   "universalImport_error_stepFailed": "Não foi possível continuar a importação: {details}",
   "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{Nada foi importado: não foi possível ler a data de 1 linha.} other{Nada foi importado: não foi possível ler as datas de {count} linhas.}}",
   "universalImport_error_unreadableDatesHint": "Verifique se as colunas de data e hora estão mapeadas nesta etapa e se contêm datas.",
+  "universalImport_error_unreadableDatesHintNoMapping": "Verifique se a coluna de data contém datas escritas no formato indicado por seu cabeçalho.",
   "universalImport_error_noDataInFile": "Nenhum dado importável foi encontrado neste arquivo.",
   "universalImport_error_noDataInFileWithDetails": "Nenhum dado importável foi encontrado neste arquivo: {details}",
   "universalImport_error_noDataInFiles": "Nenhum dado importável foi encontrado nos arquivos selecionados.",

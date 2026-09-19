@@ -23661,6 +23661,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Controleer of de datum- en tijdkolommen in deze stap zijn toegewezen en of ze datums bevatten.';
 
   @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Controleer of de datumkolom datums bevat in de notatie die de kolomkop aangeeft.';
+
+  @override
   String get universalImport_error_noDataInFile =>
       'Er zijn geen importeerbare gegevens in dit bestand gevonden.';
 

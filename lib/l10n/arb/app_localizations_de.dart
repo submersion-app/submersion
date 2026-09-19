@@ -23792,6 +23792,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Prüfen Sie, ob die Datums- und Uhrzeitspalten in diesem Schritt zugeordnet sind und Datumsangaben enthalten.';
 
   @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Prüfen Sie, ob die Datumsspalte Datumsangaben in dem Format enthält, das ihre Überschrift nennt.';
+
+  @override
   String get universalImport_error_noDataInFile =>
       'In dieser Datei wurden keine importierbaren Daten gefunden.';
 

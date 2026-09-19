@@ -7006,6 +7006,7 @@
   "universalImport_error_stepFailed": "تعذّر متابعة الاستيراد: {details}",
   "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{لم يتم استيراد أي شيء: تعذّرت قراءة التاريخ في صف واحد.} other{لم يتم استيراد أي شيء: تعذّرت قراءة التواريخ في {count} صفوف.}}",
   "universalImport_error_unreadableDatesHint": "تحقق من ربط عمودي التاريخ والوقت في هذه الخطوة، ومن أنهما يحتويان على تواريخ.",
+  "universalImport_error_unreadableDatesHintNoMapping": "تحقق من أن عمود التاريخ يحتوي على تواريخ مكتوبة بالصيغة التي يذكرها عنوانه.",
   "universalImport_error_noDataInFile": "لم يتم العثور على بيانات قابلة للاستيراد في هذا الملف.",
   "universalImport_error_noDataInFileWithDetails": "لم يتم العثور على بيانات قابلة للاستيراد في هذا الملف: {details}",
   "universalImport_error_noDataInFiles": "لم يتم العثور على بيانات قابلة للاستيراد في الملفات المحددة.",

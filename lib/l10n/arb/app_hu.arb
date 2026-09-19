@@ -6902,6 +6902,7 @@
   "universalImport_error_stepFailed": "Az importálás nem folytatható: {details}",
   "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{Semmi sem lett importálva: 1 sorban nem olvasható a dátum.} other{Semmi sem lett importálva: {count} sorban nem olvasható a dátum.}}",
   "universalImport_error_unreadableDatesHint": "Ellenőrizd, hogy ebben a lépésben meg vannak-e feleltetve a dátum- és időoszlopok, és hogy dátumokat tartalmaznak-e.",
+  "universalImport_error_unreadableDatesHintNoMapping": "Ellenőrizd, hogy a dátumoszlop a fejlécében megadott formátumban tartalmaz-e dátumokat.",
   "universalImport_error_noDataInFile": "Ebben a fájlban nem található importálható adat.",
   "universalImport_error_noDataInFileWithDetails": "Ebben a fájlban nem található importálható adat: {details}",
   "universalImport_error_noDataInFiles": "A kiválasztott fájlokban nem található importálható adat.",

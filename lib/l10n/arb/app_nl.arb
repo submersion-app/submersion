@@ -7006,6 +7006,7 @@
   "universalImport_error_stepFailed": "Importeren kon niet doorgaan: {details}",
   "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{Er is niets geïmporteerd: de datum in 1 rij kon niet worden gelezen.} other{Er is niets geïmporteerd: de datums in {count} rijen konden niet worden gelezen.}}",
   "universalImport_error_unreadableDatesHint": "Controleer of de datum- en tijdkolommen in deze stap zijn toegewezen en of ze datums bevatten.",
+  "universalImport_error_unreadableDatesHintNoMapping": "Controleer of de datumkolom datums bevat in de notatie die de kolomkop aangeeft.",
   "universalImport_error_noDataInFile": "Er zijn geen importeerbare gegevens in dit bestand gevonden.",
   "universalImport_error_noDataInFileWithDetails": "Er zijn geen importeerbare gegevens in dit bestand gevonden: {details}",
   "universalImport_error_noDataInFiles": "Er zijn geen importeerbare gegevens in de geselecteerde bestanden gevonden.",

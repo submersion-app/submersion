@@ -23531,6 +23531,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تحقق من ربط عمودي التاريخ والوقت في هذه الخطوة، ومن أنهما يحتويان على تواريخ.';
 
   @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'تحقق من أن عمود التاريخ يحتوي على تواريخ مكتوبة بالصيغة التي يذكرها عنوانه.';
+
+  @override
   String get universalImport_error_noDataInFile =>
       'لم يتم العثور على بيانات قابلة للاستيراد في هذا الملف.';
 

@@ -23457,6 +23457,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Check that the date and time columns are mapped on this step, and that they hold dates.';
 
   @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Check that the date column holds dates written the way its header names.';
+
+  @override
   String get universalImport_error_noDataInFile =>
       'No importable data was found in this file.';
 

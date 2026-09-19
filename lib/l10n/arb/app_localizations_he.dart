@@ -23266,6 +23266,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'בדוק שעמודות התאריך והשעה ממופות בשלב זה ושהן מכילות תאריכים.';
 
   @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'בדוק שעמודת התאריך מכילה תאריכים בתבנית שמצוינת בכותרת שלה.';
+
+  @override
   String get universalImport_error_noDataInFile =>
       'לא נמצאו בקובץ הזה נתונים שניתן לייבא.';
 

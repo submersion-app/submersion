@@ -23848,6 +23848,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Verifique se as colunas de data e hora estão mapeadas nesta etapa e se contêm datas.';
 
   @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Verifique se a coluna de data contém datas escritas no formato indicado por seu cabeçalho.';
+
+  @override
   String get universalImport_error_noDataInFile =>
       'Nenhum dado importável foi encontrado neste arquivo.';
 

@@ -6902,6 +6902,7 @@
   "universalImport_error_stepFailed": "L'importation n'a pas pu continuer : {details}",
   "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{Rien n'a été importé : la date d'une ligne n'a pas pu être lue.} other{Rien n'a été importé : les dates de {count} lignes n'ont pas pu être lues.}}",
   "universalImport_error_unreadableDatesHint": "Vérifiez que les colonnes de date et d'heure sont associées à cette étape et qu'elles contiennent des dates.",
+  "universalImport_error_unreadableDatesHintNoMapping": "Vérifiez que la colonne de date contient des dates écrites dans le format indiqué par son en-tête.",
   "universalImport_error_noDataInFile": "Aucune donnée importable n'a été trouvée dans ce fichier.",
   "universalImport_error_noDataInFileWithDetails": "Aucune donnée importable n'a été trouvée dans ce fichier : {details}",
   "universalImport_error_noDataInFiles": "Aucune donnée importable n'a été trouvée dans les fichiers sélectionnés.",

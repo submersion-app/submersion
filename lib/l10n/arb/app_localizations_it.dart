@@ -23845,6 +23845,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Controlla che le colonne di data e ora siano mappate in questo passaggio e che contengano date.';
 
   @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Controlla che la colonna della data contenga date scritte nel formato indicato dalla sua intestazione.';
+
+  @override
   String get universalImport_error_noDataInFile =>
       'Nessun dato importabile trovato in questo file.';
 

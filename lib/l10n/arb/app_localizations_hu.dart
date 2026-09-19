@@ -23780,6 +23780,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ellenőrizd, hogy ebben a lépésben meg vannak-e feleltetve a dátum- és időoszlopok, és hogy dátumokat tartalmaznak-e.';
 
   @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Ellenőrizd, hogy a dátumoszlop a fejlécében megadott formátumban tartalmaz-e dátumokat.';
+
+  @override
   String get universalImport_error_noDataInFile =>
       'Ebben a fájlban nem található importálható adat.';
 

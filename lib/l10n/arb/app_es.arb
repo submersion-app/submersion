@@ -7006,6 +7006,7 @@
   "universalImport_error_stepFailed": "No se pudo continuar la importación: {details}",
   "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{No se importó nada: no se pudo leer la fecha de 1 fila.} other{No se importó nada: no se pudieron leer las fechas de {count} filas.}}",
   "universalImport_error_unreadableDatesHint": "Comprueba que las columnas de fecha y hora estén asignadas en este paso y que contengan fechas.",
+  "universalImport_error_unreadableDatesHintNoMapping": "Comprueba que la columna de fecha contenga fechas escritas en el formato que indica su encabezado.",
   "universalImport_error_noDataInFile": "No se encontraron datos importables en este archivo.",
   "universalImport_error_noDataInFileWithDetails": "No se encontraron datos importables en este archivo: {details}",
   "universalImport_error_noDataInFiles": "No se encontraron datos importables en los archivos seleccionados.",

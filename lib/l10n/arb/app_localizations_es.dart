@@ -23862,6 +23862,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Comprueba que las columnas de fecha y hora estén asignadas en este paso y que contengan fechas.';
 
   @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Comprueba que la columna de fecha contenga fechas escritas en el formato que indica su encabezado.';
+
+  @override
   String get universalImport_error_noDataInFile =>
       'No se encontraron datos importables en este archivo.';
 

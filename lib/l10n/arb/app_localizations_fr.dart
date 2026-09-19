@@ -23934,6 +23934,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Vérifiez que les colonnes de date et d\'heure sont associées à cette étape et qu\'elles contiennent des dates.';
 
   @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Vérifiez que la colonne de date contient des dates écrites dans le format indiqué par son en-tête.';
+
+  @override
   String get universalImport_error_noDataInFile =>
       'Aucune donnée importable n\'a été trouvée dans ce fichier.';
 

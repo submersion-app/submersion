@@ -7110,6 +7110,7 @@
   "universalImport_error_stepFailed": "Import konnte nicht fortgesetzt werden: {details}",
   "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{Es wurde nichts importiert: Das Datum in 1 Zeile konnte nicht gelesen werden.} other{Es wurde nichts importiert: Die Datumsangaben in {count} Zeilen konnten nicht gelesen werden.}}",
   "universalImport_error_unreadableDatesHint": "Prüfen Sie, ob die Datums- und Uhrzeitspalten in diesem Schritt zugeordnet sind und Datumsangaben enthalten.",
+  "universalImport_error_unreadableDatesHintNoMapping": "Prüfen Sie, ob die Datumsspalte Datumsangaben in dem Format enthält, das ihre Überschrift nennt.",
   "universalImport_error_noDataInFile": "In dieser Datei wurden keine importierbaren Daten gefunden.",
   "universalImport_error_noDataInFileWithDetails": "In dieser Datei wurden keine importierbaren Daten gefunden: {details}",
   "universalImport_error_noDataInFiles": "In den ausgewählten Dateien wurden keine importierbaren Daten gefunden.",
