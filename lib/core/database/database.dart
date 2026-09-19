@@ -1724,6 +1724,17 @@ class Media extends Table {
   IntColumn get updatedAt => integer()();
   TextColumn get hlc => text().nullable()();
 
+  /// Clock of the upload facts (content identity, the three upload stamps
+  /// and the compressed rendition's level and size). Every upload-fact write
+  /// stamps this instead of [hlc], so a stamp never makes a stale caption win
+  /// the row, and a cleared stamp still orders against a set one. Null falls
+  /// back to [hlc] (v223, media sync program spec 5.1).
+  TextColumn get uploadFactsHlc => text().nullable()();
+
+  /// Clock of the verification facts (isOrphaned, lastVerifiedAt). Same
+  /// contract as [uploadFactsHlc].
+  TextColumn get verifyFactsHlc => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -4261,7 +4272,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 221;
+  static const int currentSchemaVersion = 223;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4881,6 +4892,7 @@ class AppDatabase extends _$AppDatabase {
     // compatibility floor stays. Sits above v220 (#1980), which shipped
     // while this was in review.
     221,
+    223,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -7738,6 +7750,38 @@ class AppDatabase extends _$AppDatabase {
       'CREATE INDEX IF NOT EXISTS idx_media_equipment_id '
       'ON media(equipment_id)',
     );
+  }
+
+  Future<void> _assertMediaFactClockColumns() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('upload_facts_hlc')) {
+      await customStatement(
+        'ALTER TABLE media ADD COLUMN upload_facts_hlc TEXT',
+      );
+    }
+    if (!names.contains('verify_facts_hlc')) {
+      await customStatement(
+        'ALTER TABLE media ADD COLUMN verify_facts_hlc TEXT',
+      );
+    }
+  }
+
+  /// v223: existing facts were last written under the row clock, so that is
+  /// their clock. Rows already stamped (a re-run) are left alone. Guarded
+  /// like the backstops: a partially built database (a migration fixture, or
+  /// one caught mid-ladder) may lack the table or its row clock.
+  Future<void> _backfillMediaFactClocks() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('hlc')) return;
+    for (final column in const ['upload_facts_hlc', 'verify_facts_hlc']) {
+      if (!names.contains(column)) continue;
+      await customStatement(
+        'UPDATE media SET $column = hlc WHERE $column IS NULL',
+      );
+    }
   }
 
   Future<void> _assertBuddyFavoriteColumn() async {
@@ -12367,6 +12411,11 @@ class AppDatabase extends _$AppDatabase {
           await _assertDiveCenterGearNotesSchema();
         }
         if (from < 221) await reportProgress();
+        if (from < 223) {
+          await _assertMediaFactClockColumns();
+          await _backfillMediaFactClocks();
+        }
+        if (from < 223) await reportProgress();
       },
       beforeOpen: (details) async {
         // v220 backstop: the computer-set auto-apply opt-in column.
@@ -12846,6 +12895,11 @@ class AppDatabase extends _$AppDatabase {
         // every open: column-and-index only, no backfill, so it cannot
         // resurrect or overwrite diver data.
         await _assertMediaEquipmentIdColumn();
+
+        // v223 backstop: re-assert the media fact clock columns (parallel
+        // branch version-collision self-heal). Columns only, no backfill: a
+        // null clock falls back to the row clock, so nothing is lost.
+        await _assertMediaFactClockColumns();
 
         // v194 backstop: re-assert dive_tanks.transmitter_serial. Every tank
         // read selects the whole row, so a database that arrives by restore
