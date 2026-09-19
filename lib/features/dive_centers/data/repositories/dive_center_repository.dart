@@ -7,6 +7,7 @@ import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
@@ -26,14 +27,17 @@ class DiveCenterRepository {
   Future<List<domain.DiveCenter>> getAllDiveCenters({String? diverId}) async {
     try {
       final query = _db.select(_db.diveCenters)
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+        ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
       }
 
       final rows = await query.get();
-      return rows.map(_mapRowToDiveCenter).toList();
+      return sortedByText(
+        rows,
+        (r) => r.name,
+      ).map(_mapRowToDiveCenter).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all dive centers',
@@ -81,10 +85,13 @@ class DiveCenterRepository {
          OR LOWER(city) LIKE ?
          OR LOWER(country) LIKE ?)
       $diverFilter
-      ORDER BY name ASC
+      ORDER BY name COLLATE NOCASE ASC
     ''', variables: variables).get();
 
-    return results.map(_mapCustomRowToDiveCenter).toList();
+    return sortedByText(
+      results,
+      (r) => r.data['name'] as String,
+    ).map(_mapCustomRowToDiveCenter).toList();
   }
 
   /// Get dive centers by country
@@ -94,14 +101,14 @@ class DiveCenterRepository {
   }) async {
     final query = _db.select(_db.diveCenters)
       ..where((t) => t.country.equals(country))
-      ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+      ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
     if (diverId != null) {
       query.where((t) => t.diverId.equals(diverId));
     }
 
     final rows = await query.get();
-    return rows.map(_mapRowToDiveCenter).toList();
+    return sortedByText(rows, (r) => r.name).map(_mapRowToDiveCenter).toList();
   }
 
   /// Get dive centers with coordinates (for map view)
@@ -110,14 +117,14 @@ class DiveCenterRepository {
   }) async {
     final query = _db.select(_db.diveCenters)
       ..where((t) => t.latitude.isNotNull() & t.longitude.isNotNull())
-      ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+      ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
     if (diverId != null) {
       query.where((t) => t.diverId.equals(diverId));
     }
 
     final rows = await query.get();
-    return rows.map(_mapRowToDiveCenter).toList();
+    return sortedByText(rows, (r) => r.name).map(_mapRowToDiveCenter).toList();
   }
 
   /// Create a new dive center

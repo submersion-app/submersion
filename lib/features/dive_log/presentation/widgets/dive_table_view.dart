@@ -3,6 +3,7 @@ import 'package:linked_scroll_controller/linked_scroll_controller.dart';
 
 import 'package:submersion/core/constants/dive_field.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/dive_type_label_resolver.dart';
@@ -147,6 +148,7 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
     final units = UnitFormatter(settings);
 
     final sorted = List<Dive>.from(widget.dives);
+    final collator = TextCollator();
     sorted.sort((a, b) {
       final va = field.extractFromDive(
         a,
@@ -165,13 +167,16 @@ class _DiveTableViewState extends ConsumerState<DiveTableView> {
       if (vb == null) return -1;
 
       int cmp;
-      if (va is Comparable && vb is Comparable) {
+      if (va is String && vb is String) {
+        cmp = collator.compare(va, vb);
+      } else if (va is Comparable && vb is Comparable) {
         cmp = va.compareTo(vb);
       } else {
         // Fall back to string comparison of formatted values
-        cmp = field
-            .formatValue(va, units)
-            .compareTo(field.formatValue(vb, units));
+        cmp = collator.compare(
+          field.formatValue(va, units),
+          field.formatValue(vb, units),
+        );
       }
 
       return ascending ? cmp : -cmp;

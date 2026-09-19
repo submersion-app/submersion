@@ -170,6 +170,50 @@ void main() {
     });
 
     test(
+      'a placeholder free-text buddy does not outweigh the Solo role',
+      () async {
+        // Legacy imports wrote placeholders such as "None" into the buddy
+        // text; the dive detail page reads those as no buddy, and so does
+        // this.
+        await insertDive('none', diverRole: 'solo', freeTextBuddy: 'None');
+        await insertDive(
+          'solo-word',
+          diverRole: 'solo',
+          freeTextBuddy: ' solo ',
+        );
+
+        final result = await repository.getSoloVsBuddyCount();
+
+        expect(result.solo, 2);
+        expect(result.buddy, 0);
+        expect(result.notRecorded, 0);
+      },
+    );
+
+    test('a whitespace or placeholder buddy alone is not recorded', () async {
+      await insertDive('spaces', freeTextBuddy: '   ');
+      await insertDive('n-a', freeTextBuddy: 'n/a');
+
+      final result = await repository.getSoloVsBuddyCount();
+
+      expect(result.solo, 0);
+      expect(result.buddy, 0);
+      expect(result.notRecorded, 2);
+    });
+
+    test('dives sharing one free-text buddy are each counted', () async {
+      await insertDive('first', freeTextBuddy: 'Alex');
+      await insertDive('second', freeTextBuddy: 'Alex');
+      await insertDive('third', freeTextBuddy: 'Alex', diverRole: 'solo');
+
+      final result = await repository.getSoloVsBuddyCount();
+
+      expect(result.buddy, 3);
+      expect(result.solo, 0);
+      expect(result.notRecorded, 0);
+    });
+
+    test(
       'counts a dive with a free-text buddy and linked buddies once',
       () async {
         await insertBuddies(['b1', 'b2']);

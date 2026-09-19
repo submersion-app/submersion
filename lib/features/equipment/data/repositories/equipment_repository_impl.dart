@@ -9,6 +9,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_tag_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -70,7 +71,7 @@ class EquipmentRepository {
         )
         ..orderBy([
           (t) => OrderingTerm.asc(t.type),
-          (t) => OrderingTerm.asc(t.name),
+          (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
 
       if (diverId != null) {
@@ -78,7 +79,9 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return await _mapRowsWithAttributes(rows);
+      return await _mapRowsWithAttributes(
+        sortedByText(rows, (r) => r.name, groupOf: (r) => r.type),
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get active equipment',
@@ -103,14 +106,14 @@ class EquipmentRepository {
                   t.status.equals(EquipmentStatus.retired.name)) &
               t.status.isNotValue(EquipmentStatus.sold.name),
         )
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+        ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
       }
 
       final rows = await query.get();
-      return await _mapRowsWithAttributes(rows);
+      return await _mapRowsWithAttributes(sortedByText(rows, (r) => r.name));
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get retired equipment',
@@ -143,7 +146,7 @@ class EquipmentRepository {
       final query = _db.select(_db.equipment)
         ..orderBy([
           (t) => OrderingTerm.asc(t.type),
-          (t) => OrderingTerm.asc(t.name),
+          (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
 
       if (diverId != null) {
@@ -151,7 +154,9 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return await _mapRowsWithAttributes(rows);
+      return await _mapRowsWithAttributes(
+        sortedByText(rows, (r) => r.name, groupOf: (r) => r.type),
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all equipment',
@@ -180,7 +185,7 @@ class EquipmentRepository {
         )
         ..orderBy([
           (t) => OrderingTerm.asc(t.type),
-          (t) => OrderingTerm.asc(t.name),
+          (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
 
       if (diverId != null) {
@@ -188,7 +193,9 @@ class EquipmentRepository {
       }
 
       final rows = await query.get();
-      return await _mapRowsWithAttributes(rows);
+      return await _mapRowsWithAttributes(
+        sortedByText(rows, (r) => r.name, groupOf: (r) => r.type),
+      );
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get equipment by status: ${status.name}',
@@ -234,9 +241,11 @@ class EquipmentRepository {
                         ? const Constant(true)
                         : t.isActive.equals(true)),
               )
-              ..orderBy([(t) => OrderingTerm.asc(t.name)]))
+              ..orderBy([
+                (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
+              ]))
             .get();
-    return _mapRowsWithAttributes(rows);
+    return _mapRowsWithAttributes(sortedByText(rows, (r) => r.name));
   }
 
   /// Get multiple equipment items by IDs
@@ -843,10 +852,15 @@ class EquipmentRepository {
            OR LOWER(e.serial_number) LIKE ?
            OR LOWER(t.name) LIKE ?)
         $diverFilter
-        ORDER BY e.is_active DESC, e.type ASC, e.name ASC
+        ORDER BY e.is_active DESC, e.type ASC, e.name COLLATE NOCASE ASC
       ''', variables: variables).get();
 
-      final items = results.map((row) {
+      final ordered = sortedByText(
+        results,
+        (r) => r.data['name'] as String,
+        groupOf: (r) => (r.data['is_active'], r.data['type']),
+      );
+      final items = ordered.map((row) {
         return EquipmentItem(
           id: row.data['id'] as String,
           name: row.data['name'] as String,

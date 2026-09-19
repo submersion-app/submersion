@@ -10,6 +10,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/geocoding/place_lookup.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
 import 'package:submersion/features/dive_sites/data/mappers/dive_site_row_mapper.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
@@ -86,12 +87,12 @@ class SiteRepository {
     try {
       return await PerfTimer.measure('getAllSites', () async {
         final query = _db.select(_db.diveSites)
-          ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+          ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
         VisibilityFilter.applyToDiveSites(query, diverId);
 
         final rows = await query.get();
-        return rows.map(_mapRowToSite).toList();
+        return sortedByText(rows, (r) => r.name).map(_mapRowToSite).toList();
       });
     } catch (e, stackTrace) {
       _log.error('Failed to get all sites', error: e, stackTrace: stackTrace);
@@ -1017,12 +1018,12 @@ class SiteRepository {
                 t.island.contains(query) |
                 t.bodyOfWater.contains(query),
           )
-          ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+          ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
         VisibilityFilter.applyToDiveSites(searchQuery, diverId);
 
         final rows = await searchQuery.get();
-        return rows.map(_mapRowToSite).toList();
+        return sortedByText(rows, (r) => r.name).map(_mapRowToSite).toList();
       });
     } catch (e, stackTrace) {
       _log.error(

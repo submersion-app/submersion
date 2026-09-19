@@ -15,38 +15,47 @@ extension ExposureUnitDisplay on ExposureUnit {
     ExposureUnit.cycles => l10n.equipment_scheduleDialog_intervalCycles,
   };
 
-  /// The "N of M units left" clock line. [days] has no usage line.
-  String leftText(
+  /// The "N used, N of M units left" clock line. [days] has no usage line.
+  String usedAndLeftText(
     AppLocalizations l10n, {
+    required String used,
     required String remaining,
     required String total,
   }) => switch (this) {
     ExposureUnit.days => '',
-    ExposureUnit.dives => l10n.equipment_serviceClocks_divesLeft(
+    ExposureUnit.dives => l10n.equipment_serviceClocks_divesUsedAndLeft(
+      int.parse(used),
       int.parse(remaining),
       int.parse(total),
     ),
-    ExposureUnit.hours => l10n.equipment_serviceClocks_hoursLeft(
+    ExposureUnit.hours => l10n.equipment_serviceClocks_hoursUsedAndLeft(
+      used,
       remaining,
       total,
     ),
-    ExposureUnit.saltHours => l10n.equipment_serviceClocks_saltHoursLeft(
+    ExposureUnit.saltHours => l10n.equipment_serviceClocks_saltHoursUsedAndLeft(
+      used,
       remaining,
       total,
     ),
-    ExposureUnit.coldDives => l10n.equipment_serviceClocks_coldDivesLeft(
+    ExposureUnit.coldDives => l10n.equipment_serviceClocks_coldDivesUsedAndLeft(
+      used,
       remaining,
       total,
     ),
-    ExposureUnit.o2Hours => l10n.equipment_serviceClocks_o2HoursLeft(
+    ExposureUnit.o2Hours => l10n.equipment_serviceClocks_o2HoursUsedAndLeft(
+      used,
       remaining,
       total,
     ),
-    ExposureUnit.deepCycles => l10n.equipment_serviceClocks_deepCyclesLeft(
-      remaining,
-      total,
-    ),
-    ExposureUnit.cycles => l10n.equipment_serviceClocks_cyclesLeft(
+    ExposureUnit.deepCycles =>
+      l10n.equipment_serviceClocks_deepCyclesUsedAndLeft(
+        used,
+        remaining,
+        total,
+      ),
+    ExposureUnit.cycles => l10n.equipment_serviceClocks_cyclesUsedAndLeft(
+      used,
       remaining,
       total,
     ),

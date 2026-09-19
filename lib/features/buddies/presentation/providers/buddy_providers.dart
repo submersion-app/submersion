@@ -142,6 +142,27 @@ List<BuddyWithDiveCount> applyBuddyWithDiveCountSorting(
   return sorted;
 }
 
+/// Partitions buddies into favorites and others, each sorted independently
+/// by [sort] (issue #1336). Favorites are rendered first by callers,
+/// pinning them to the top regardless of the chosen sort field -- the same
+/// rule the "Add buddy" picker sheet already applies.
+({List<BuddyWithDiveCount> favorites, List<BuddyWithDiveCount> others})
+pinFavoriteBuddiesToTop(
+  List<BuddyWithDiveCount> buddies,
+  SortState<BuddySortField> sort,
+) {
+  return (
+    favorites: applyBuddyWithDiveCountSorting(
+      buddies.where((b) => b.buddy.isFavorite).toList(),
+      sort,
+    ),
+    others: applyBuddyWithDiveCountSorting(
+      buddies.where((b) => !b.buddy.isFavorite).toList(),
+      sort,
+    ),
+  );
+}
+
 /// Apply sorting to a list of buddies (for backward compatibility)
 List<Buddy> applyBuddySorting(
   List<Buddy> buddies,

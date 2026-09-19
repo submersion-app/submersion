@@ -10,6 +10,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/buddies/domain/services/legacy_name_parser.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_times_sql.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -1835,9 +1836,15 @@ class StatisticsRepository {
   /// Get solo vs buddy dive counts.
   ///
   /// Each dive counts exactly once: a dive is a buddy dive when it has at
-  /// least one linked buddy or a non-empty free-text buddy. The linked
+  /// least one linked buddy or a free-text buddy naming someone. The linked
   /// buddies are tested with EXISTS rather than a join, because a join yields
   /// one row per linked buddy and would count a group dive several times.
+  ///
+  /// Whether a free-text buddy names someone is decided in Dart by
+  /// [LegacyNameParser], the rule the dive detail page uses, so a legacy
+  /// placeholder such as "None" or "solo", or a blank, is no buddy. SQL
+  /// groups the dives with no linked buddy by their text, so only the
+  /// distinct texts cross into Dart, not one row per dive.
   ///
   /// A dive without a buddy is solo only when the diver's own role on it is
   /// the built-in Solo role. Otherwise nothing says whether they dived alone
@@ -1855,29 +1862,43 @@ class StatisticsRepository {
       // SELECT list, ahead of the WHERE clause's.
       final params = [DiveRole.soloId, ?diverId, ...df.params];
 
+      // A dive with a linked buddy groups with a NULL text, since its text
+      // cannot change the answer.
       final results = await _db.customSelect('''
         SELECT
-          SUM(CASE WHEN has_buddy THEN 1 ELSE 0 END) AS buddy,
-          SUM(CASE WHEN NOT has_buddy AND is_solo THEN 1 ELSE 0 END) AS solo,
-          SUM(CASE WHEN NOT has_buddy AND NOT is_solo THEN 1 ELSE 0 END)
-            AS not_recorded
+          has_linked,
+          CASE WHEN has_linked THEN NULL ELSE buddy_text END AS buddy_text,
+          is_solo,
+          COUNT(*) AS count
         FROM (
           SELECT
             EXISTS (SELECT 1 FROM dive_buddies db WHERE db.dive_id = d.id)
-              OR (d.buddy IS NOT NULL AND d.buddy != '') AS has_buddy,
+              AS has_linked,
+            NULLIF(TRIM(d.buddy), '') AS buddy_text,
             COALESCE(d.diver_role = ?, 0) AS is_solo
           FROM dives d
           WHERE 1=1 $diverFilter ${df.clause}
         )
+        GROUP BY 1, 2, 3
         ''', variables: params.map((p) => Variable(p)).toList()).get();
 
-      if (results.isEmpty) return zero;
-      final row = results.first;
-      return (
-        solo: row.read<int?>('solo') ?? 0,
-        buddy: row.read<int?>('buddy') ?? 0,
-        notRecorded: row.read<int?>('not_recorded') ?? 0,
-      );
+      var solo = 0;
+      var buddy = 0;
+      var notRecorded = 0;
+      for (final row in results) {
+        final count = row.read<int>('count');
+        final hasBuddy =
+            row.read<bool>('has_linked') ||
+            LegacyNameParser.parse(row.read<String?>('buddy_text')).isNotEmpty;
+        if (hasBuddy) {
+          buddy += count;
+        } else if (row.read<bool>('is_solo')) {
+          solo += count;
+        } else {
+          notRecorded += count;
+        }
+      }
+      return (solo: solo, buddy: buddy, notRecorded: notRecorded);
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get solo vs buddy count',

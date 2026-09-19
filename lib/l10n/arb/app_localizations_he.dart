@@ -11928,6 +11928,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_divesUsedAndLeft(
+    int used,
+    int remaining,
+    int total,
+  ) {
+    return '$used צלילות, נותרו $remaining מתוך $total';
+  }
+
+  @override
   String get cylinderConfigs_title => 'תצורות בלונים';
 
   @override
@@ -12017,8 +12026,26 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_hoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used שעות, נותרו $remaining מתוך $total';
+  }
+
+  @override
   String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
     return 'נותרו $remaining מתוך $total שעות במים מלוחים';
+  }
+
+  @override
+  String equipment_serviceClocks_saltHoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used שעות במים מלוחים, נותרו $remaining מתוך $total';
   }
 
   @override
@@ -12027,8 +12054,26 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_coldDivesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used צלילות במים קרים, נותרו $remaining מתוך $total';
+  }
+
+  @override
   String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
     return 'נותרו $remaining מתוך $total שעות בחמצן גבוה';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used שעות בחמצן גבוה, נותרו $remaining מתוך $total';
   }
 
   @override
@@ -12040,8 +12085,26 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_deepCyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used צלילות עמוקות, נותרו $remaining מתוך $total';
+  }
+
+  @override
   String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
     return 'נותרו $remaining מתוך $total מחזורי סוללה';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used מחזורי סוללה, נותרו $remaining מתוך $total';
   }
 
   @override
@@ -12804,6 +12867,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceDialog_manageServiceTypes => 'ניהול סוגי טיפול';
 
   @override
+  String get equipment_serviceDialog_filterToConfiguredTypes =>
+      'הצג רק סוגי טיפול מוגדרים';
+
+  @override
   String get equipment_serviceDialog_categoryLabel => 'קטגוריה';
 
   @override
@@ -12906,6 +12973,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String equipment_service_filterMatchCount(int count, int total) {
     return 'מוצגים $count מתוך $total';
   }
+
+  @override
+  String equipment_service_showMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הצג עוד $count',
+      one: 'הצג עוד אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_service_showFewer => 'הצג פחות';
 
   @override
   String get equipment_serviceKinds_defaultCategoryLabel =>

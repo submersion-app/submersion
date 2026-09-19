@@ -6980,6 +6980,20 @@
       }
     }
   },
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} dives, {remaining} of {total} dives left",
+  "@equipment_serviceClocks_divesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "cylinderConfigs_title": "Cylinder configurations",
   "cylinderConfigs_empty": "No configurations yet",
   "cylinderConfigs_emptyBody": "Save a diluent and bailout setup once, then apply it to any dive.",
@@ -7027,9 +7041,37 @@
       }
     }
   },
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} hours, {remaining} of {total} hours left",
+  "@equipment_serviceClocks_hoursUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_saltHoursLeft": "{remaining} of {total} salt-water hours left",
   "@equipment_serviceClocks_saltHoursLeft": {
     "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} salt-water hours, {remaining} of {total} salt-water hours left",
+  "@equipment_serviceClocks_saltHoursUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
       "remaining": {
         "type": "String"
       },
@@ -7049,9 +7091,37 @@
       }
     }
   },
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} cold dives, {remaining} of {total} cold dives left",
+  "@equipment_serviceClocks_coldDivesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_o2HoursLeft": "{remaining} of {total} high-O2 hours left",
   "@equipment_serviceClocks_o2HoursLeft": {
     "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} high-O2 hours, {remaining} of {total} high-O2 hours left",
+  "@equipment_serviceClocks_o2HoursUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
       "remaining": {
         "type": "String"
       },
@@ -7071,9 +7141,37 @@
       }
     }
   },
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} deep dives, {remaining} of {total} deep dives left",
+  "@equipment_serviceClocks_deepCyclesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_cyclesLeft": "{remaining} of {total} battery cycles left",
   "@equipment_serviceClocks_cyclesLeft": {
     "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} battery cycles, {remaining} of {total} battery cycles left",
+  "@equipment_serviceClocks_cyclesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
       "remaining": {
         "type": "String"
       },
@@ -7458,6 +7556,7 @@
   "equipment_serviceDialog_serviceTypeNotSet": "Not set",
   "equipment_serviceDialog_categoryHelper": "Used for filtering and export",
   "equipment_serviceDialog_manageServiceTypes": "Manage service types",
+  "equipment_serviceDialog_filterToConfiguredTypes": "Only show configured service types",
   "equipment_serviceDialog_categoryLabel": "Category",
   "equipment_serviceDialog_snackbar_added": "Service record added",
   "equipment_serviceDialog_snackbar_error": "Error: {error}",
@@ -7507,6 +7606,15 @@
       }
     }
   },
+  "equipment_service_showMore": "{count, plural, =1{Show 1 more} other{Show {count} more}}",
+  "@equipment_service_showMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_service_showFewer": "Show fewer",
   "@equipment_service_totalCostLabel": {
     "placeholders": {
       "currency": {
