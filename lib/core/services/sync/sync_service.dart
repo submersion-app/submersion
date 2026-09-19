@@ -12,6 +12,7 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_apply_progress.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_json_stream_reader.dart';
@@ -2707,13 +2708,18 @@ class SyncService {
     final clockGuarded =
         childClocked ||
         SyncDataSerializer.clockGuardedEntities.contains(entityType);
-    final localById = hasUpdatedAt || clockGuarded
+    final factGroups = SyncFactGroups.of(entityType);
+    final localById = hasUpdatedAt || clockGuarded || factGroups.isNotEmpty
         ? await _serializer.fetchRecords(entityType, [
             for (final record in records)
               ?recordIdForEntity(entityType, record),
           ])
         : const <String, Map<String, dynamic>>{};
     final toUpsert = <Map<String, dynamic>>[];
+    // Fact groups written after the batched upsert with explicit values, so
+    // a peer's cleared stamp lands (the upsert drops nulls; spec 5.1).
+    final factWrites =
+        <({String id, Map<String, dynamic> row, List<SyncFactGroup> groups})>[];
 
     for (final record in records) {
       String? recordId;
@@ -2821,10 +2827,16 @@ class SyncService {
         }
 
         if (!hasUpdatedAt) {
+          final local = localById[recordId];
+          var rowFromRemote = true;
           if (clockGuarded) {
             final remoteHlc = _extractHlc(record);
             if (remoteHlc != null) SyncClock.instance.receive(remoteHlc);
-            final localHlc = _extractHlc(localById[recordId]);
+            for (final g in factGroups) {
+              final factClock = _parseHlc(record[g.clockKey]);
+              if (factClock != null) SyncClock.instance.receive(factClock);
+            }
+            final localHlc = _extractHlc(local);
             // A copy strictly older than the local row is stale: a peer's
             // snapshot taken before this device's newer edit to the same
             // child, which the blind upsert used to write over it. An exact
@@ -2835,11 +2847,40 @@ class SyncService {
             if (localHlc != null &&
                 remoteHlc != null &&
                 remoteHlc.compareTo(localHlc) < 0) {
-              continue;
+              rowFromRemote = false;
             }
           }
-          toUpsert.add(recordToApply);
-          applied += 1;
+          if (factGroups.isEmpty) {
+            if (!rowFromRemote) continue;
+            toUpsert.add(recordToApply);
+            applied += 1;
+            continue;
+          }
+          // Facts resolve per group by their own clocks (spec 5.1): a stale
+          // row still hands over newer facts, and a newer row does not take
+          // older ones.
+          final resolved = mergeFactGroups(
+            entityType: entityType,
+            base: rowFromRemote ? recordToApply : local!,
+            local: local,
+            remote: recordToApply,
+          );
+          if (rowFromRemote) {
+            toUpsert.add(resolved.row);
+            factWrites.add((
+              id: recordId,
+              row: resolved.row,
+              groups: factGroups,
+            ));
+            applied += 1;
+          } else if (resolved.fromRemote.isNotEmpty) {
+            factWrites.add((
+              id: recordId,
+              row: resolved.row,
+              groups: resolved.fromRemote,
+            ));
+            applied += 1;
+          }
           continue;
         }
 
@@ -2928,6 +2969,22 @@ class SyncService {
         );
         failed += toUpsert.length;
         applied -= toUpsert.length;
+      }
+    }
+
+    for (final w in factWrites) {
+      try {
+        for (final g in w.groups) {
+          await _serializer.writeFactGroup(entityType, w.id, g, w.row);
+        }
+      } catch (e, stackTrace) {
+        _log.error(
+          'Failed to write facts for $entityType ${w.id}',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        failed += 1;
+        applied -= 1;
       }
     }
 

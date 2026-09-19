@@ -1507,6 +1507,33 @@ class SyncDataSerializer {
     'mediaStores',
   };
 
+  /// Writes one fact group's columns and clock with explicit values, nulls
+  /// included. The media upsert builds its insert with nullToAbsent, so a
+  /// cleared stamp would never land through it (media sync program spec
+  /// 5.1).
+  Future<void> writeFactGroup(
+    String entityType,
+    String recordId,
+    SyncFactGroup group,
+    Map<String, dynamic> values,
+  ) async {
+    final target = SyncFactGroups.tables[entityType];
+    if (target == null) return;
+    final assignments = {...group.columns, group.clockKey: group.clockColumn};
+    final set = assignments.values.map((c) => '"$c" = ?').join(', ');
+    final args = [
+      for (final key in assignments.keys)
+        switch (values[key]) {
+          final bool b => b ? 1 : 0,
+          final Object? v => v,
+        },
+    ];
+    await _db.customStatement(
+      'UPDATE "${target.table}" SET $set WHERE "${target.pk}" = ?',
+      [...args, recordId],
+    );
+  }
+
   /// The sync record id of a [parentGatedChildEntities] row, in the shape
   /// SyncService.recordIdForEntity uses (a composite key is joined with
   /// `|`). Mirrored here rather than imported because sync_service.dart
