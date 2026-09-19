@@ -11,6 +11,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_computer_rep
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
@@ -32,6 +33,7 @@ SuuntoParsedDive makeParsedDive({
   String? deviceName = 'Suunto Ocean',
   String? serialNumber = 'SN-1',
   String? firmwareVersion,
+  ComputerTissueSnapshot? computerTissue,
 }) {
   return SuuntoParsedDive(
     dive: DownloadedDive(
@@ -39,6 +41,7 @@ SuuntoParsedDive makeParsedDive({
       durationSeconds: durationSeconds,
       maxDepth: maxDepth,
       profile: const [],
+      computerTissue: computerTissue,
     ),
     deviceName: deviceName,
     serialNumber: serialNumber,
@@ -262,6 +265,39 @@ void main() {
 
       expect(updated.groups[ImportEntityType.dives]!.duplicateIndices, isEmpty);
     });
+  });
+
+  group('computer tissue', () {
+    test(
+      'the snapshot rides on the dive handed to the import service',
+      () async {
+        const snapshot = ComputerTissueSnapshot(
+          algorithm: 'Suunto Fused2 RGBM',
+          start: ComputerTissueState(n2Bar: [0.79, 0.79]),
+          end: ComputerTissueState(n2Bar: [0.9, 1.1], cnsPercent: 13.2),
+        );
+        adapter.setParsedDives([makeParsedDive(computerTissue: snapshot)]);
+        final bundle = await adapter.buildBundle();
+        stubImportAsNew();
+
+        await adapter.performImport(bundle, {
+          ImportEntityType.dives: {0},
+        }, {});
+
+        final imported =
+            verify(
+                  mockImportService.importSingleDiveAsNew(
+                    captureAny,
+                    computerId: anyNamed('computerId'),
+                    diverId: anyNamed('diverId'),
+                    descriptorVendor: anyNamed('descriptorVendor'),
+                    descriptorProduct: anyNamed('descriptorProduct'),
+                  ),
+                ).captured.single
+                as DownloadedDive;
+        expect(imported.computerTissue, snapshot);
+      },
+    );
   });
 
   group('retaining source dive numbers (issue #1832)', () {

@@ -4459,6 +4459,21 @@
   "diveLog_tissue_legend_mValue": "100% M-value",
   "diveLog_tissue_legend_n2": "N₂",
   "diveLog_tissue_title": "Tissue Loading",
+  "diveLog_computerTissue_title": "Dive computer",
+  "diveLog_computerTissue_algorithm": "Algorithm",
+  "diveLog_computerTissue_compartments": "{count} compartments",
+  "diveLog_computerTissue_compartmentsWithAlgorithm": "{count} {algorithm} compartments",
+  "diveLog_computerTissue_compartment": "C{number}",
+  "diveLog_computerTissue_endLoading": "Loading at end of dive",
+  "diveLog_computerTissue_endTensions": "Tissue tensions at end of dive",
+  "diveLog_computerTissue_columnStart": "Start",
+  "diveLog_computerTissue_columnEnd": "End",
+  "diveLog_computerTissue_rowN2Load": "N₂ load",
+  "diveLog_computerTissue_rowCns": "CNS",
+  "diveLog_computerTissue_rowOtu": "OTU",
+  "diveLog_computerTissue_rgbmNitrogen": "RGBM N₂ factor",
+  "diveLog_computerTissue_rgbmHelium": "RGBM He factor",
+  "diveLog_computerTissue_calculated": "calculated {value}",
   "diveLog_tooltip_avgCalculated": "(avg, calculated)",
   "diveLog_tooltip_ceiling": "Ceiling",
   "diveLog_tooltip_decoStop": "Deco stop",
@@ -4727,6 +4742,41 @@
   "@diveLog_deco_totalDecoTime": {
     "placeholders": {
       "time": {
+        "type": "Object"
+      }
+    }
+  },
+  "@diveLog_computerTissue_compartments": {
+    "description": "Compartment count label under the dive computer tissue list when the algorithm name is unknown",
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      }
+    }
+  },
+  "@diveLog_computerTissue_compartmentsWithAlgorithm": {
+    "description": "Compartment count label under the dive computer tissue list, e.g. 15 RGBM compartments",
+    "placeholders": {
+      "count": {
+        "type": "Object"
+      },
+      "algorithm": {
+        "type": "Object"
+      }
+    }
+  },
+  "@diveLog_computerTissue_compartment": {
+    "description": "Short per-compartment label, e.g. C1",
+    "placeholders": {
+      "number": {
+        "type": "Object"
+      }
+    }
+  },
+  "@diveLog_computerTissue_calculated": {
+    "description": "Secondary line under a dive-computer tissue value giving the app's own calculated value",
+    "placeholders": {
+      "value": {
         "type": "Object"
       }
     }

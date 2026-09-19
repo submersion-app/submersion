@@ -299,6 +299,13 @@ class ProfileAnalysis {
   /// Cumulative CNS% at each profile point (includes residual from prior dives)
   final List<double>? cnsCurve;
 
+  /// Aggregate N2 tissue loading (percent) as the dive computer reported it
+  /// per sample, null entries where it reported nothing. A computer-only
+  /// metric with no calculated counterpart: null unless the overlay in
+  /// profile_analysis_provider.dart found any (see
+  /// [DiveProfilePoint.n2Load]).
+  final List<int?>? n2LoadCurve;
+
   /// Cumulative OTU at each profile point
   final List<double>? otuCurve;
 
@@ -357,6 +364,7 @@ class ProfileAnalysis {
     this.ttsCurve,
     this.gtrCurve,
     this.cnsCurve,
+    this.n2LoadCurve,
     this.otuCurve,
     required this.maxDepth,
     required this.averageDepth,
@@ -455,6 +463,7 @@ class ProfileAnalysis {
     List<int>? ttsCurve,
     List<int?>? gtrCurve,
     List<double>? cnsCurve,
+    List<int?>? n2LoadCurve,
     List<double>? otuCurve,
     double? maxDepth,
     double? averageDepth,
@@ -490,6 +499,7 @@ class ProfileAnalysis {
       ttsCurve: ttsCurve ?? this.ttsCurve,
       gtrCurve: gtrCurve ?? this.gtrCurve,
       cnsCurve: cnsCurve ?? this.cnsCurve,
+      n2LoadCurve: n2LoadCurve ?? this.n2LoadCurve,
       otuCurve: otuCurve ?? this.otuCurve,
       maxDepth: maxDepth ?? this.maxDepth,
       averageDepth: averageDepth ?? this.averageDepth,

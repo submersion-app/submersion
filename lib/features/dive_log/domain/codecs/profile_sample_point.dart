@@ -37,6 +37,8 @@ extension ProfileSampleToPoint on ProfileSample {
       rbt: rbt,
       decoType: decoType,
       tts: tts,
+      gf99: gf99,
+      n2Load: n2Load,
     );
   }
 }
@@ -76,5 +78,7 @@ ProfileSample profileSampleFromPoint(
     o2SensorMv4: point.o2SensorMv4,
     o2SensorMv5: point.o2SensorMv5,
     o2SensorMv6: point.o2SensorMv6,
+    gf99: point.gf99,
+    n2Load: point.n2Load,
   );
 }

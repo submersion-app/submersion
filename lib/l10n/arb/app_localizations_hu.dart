@@ -8372,6 +8372,63 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_tissue_title => 'Szovettelitodes';
 
   @override
+  String get diveLog_computerTissue_title => 'Búvárkomputer';
+
+  @override
+  String get diveLog_computerTissue_algorithm => 'Algoritmus';
+
+  @override
+  String diveLog_computerTissue_compartments(Object count) {
+    return '$count rekesz';
+  }
+
+  @override
+  String diveLog_computerTissue_compartmentsWithAlgorithm(
+    Object count,
+    Object algorithm,
+  ) {
+    return '$count $algorithm rekesz';
+  }
+
+  @override
+  String diveLog_computerTissue_compartment(Object number) {
+    return 'C$number';
+  }
+
+  @override
+  String get diveLog_computerTissue_endLoading => 'Telítettség a merülés végén';
+
+  @override
+  String get diveLog_computerTissue_endTensions =>
+      'Szöveti feszültségek a merülés végén';
+
+  @override
+  String get diveLog_computerTissue_columnStart => 'Kezdet';
+
+  @override
+  String get diveLog_computerTissue_columnEnd => 'Vég';
+
+  @override
+  String get diveLog_computerTissue_rowN2Load => 'N₂-terhelés';
+
+  @override
+  String get diveLog_computerTissue_rowCns => 'CNS';
+
+  @override
+  String get diveLog_computerTissue_rowOtu => 'OTU';
+
+  @override
+  String get diveLog_computerTissue_rgbmNitrogen => 'RGBM N₂-tényező';
+
+  @override
+  String get diveLog_computerTissue_rgbmHelium => 'RGBM He-tényező';
+
+  @override
+  String diveLog_computerTissue_calculated(Object value) {
+    return 'számított $value';
+  }
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(átl., számított)';
 
   @override

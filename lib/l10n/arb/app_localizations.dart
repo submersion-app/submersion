@@ -13743,6 +13743,99 @@ abstract class AppLocalizations {
   /// **'Tissue Loading'**
   String get diveLog_tissue_title;
 
+  /// No description provided for @diveLog_computerTissue_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computer'**
+  String get diveLog_computerTissue_title;
+
+  /// No description provided for @diveLog_computerTissue_algorithm.
+  ///
+  /// In en, this message translates to:
+  /// **'Algorithm'**
+  String get diveLog_computerTissue_algorithm;
+
+  /// Compartment count label under the dive computer tissue list when the algorithm name is unknown
+  ///
+  /// In en, this message translates to:
+  /// **'{count} compartments'**
+  String diveLog_computerTissue_compartments(Object count);
+
+  /// Compartment count label under the dive computer tissue list, e.g. 15 RGBM compartments
+  ///
+  /// In en, this message translates to:
+  /// **'{count} {algorithm} compartments'**
+  String diveLog_computerTissue_compartmentsWithAlgorithm(
+    Object count,
+    Object algorithm,
+  );
+
+  /// Short per-compartment label, e.g. C1
+  ///
+  /// In en, this message translates to:
+  /// **'C{number}'**
+  String diveLog_computerTissue_compartment(Object number);
+
+  /// No description provided for @diveLog_computerTissue_endLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading at end of dive'**
+  String get diveLog_computerTissue_endLoading;
+
+  /// No description provided for @diveLog_computerTissue_endTensions.
+  ///
+  /// In en, this message translates to:
+  /// **'Tissue tensions at end of dive'**
+  String get diveLog_computerTissue_endTensions;
+
+  /// No description provided for @diveLog_computerTissue_columnStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get diveLog_computerTissue_columnStart;
+
+  /// No description provided for @diveLog_computerTissue_columnEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get diveLog_computerTissue_columnEnd;
+
+  /// No description provided for @diveLog_computerTissue_rowN2Load.
+  ///
+  /// In en, this message translates to:
+  /// **'N₂ load'**
+  String get diveLog_computerTissue_rowN2Load;
+
+  /// No description provided for @diveLog_computerTissue_rowCns.
+  ///
+  /// In en, this message translates to:
+  /// **'CNS'**
+  String get diveLog_computerTissue_rowCns;
+
+  /// No description provided for @diveLog_computerTissue_rowOtu.
+  ///
+  /// In en, this message translates to:
+  /// **'OTU'**
+  String get diveLog_computerTissue_rowOtu;
+
+  /// No description provided for @diveLog_computerTissue_rgbmNitrogen.
+  ///
+  /// In en, this message translates to:
+  /// **'RGBM N₂ factor'**
+  String get diveLog_computerTissue_rgbmNitrogen;
+
+  /// No description provided for @diveLog_computerTissue_rgbmHelium.
+  ///
+  /// In en, this message translates to:
+  /// **'RGBM He factor'**
+  String get diveLog_computerTissue_rgbmHelium;
+
+  /// Secondary line under a dive-computer tissue value giving the app's own calculated value
+  ///
+  /// In en, this message translates to:
+  /// **'calculated {value}'**
+  String diveLog_computerTissue_calculated(Object value);
+
   /// No description provided for @diveLog_tooltip_avgCalculated.
   ///
   /// In en, this message translates to:

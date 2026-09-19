@@ -35,6 +35,7 @@ import 'package:submersion/features/dive_centers/domain/entities/dive_center.dar
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
@@ -2271,6 +2272,11 @@ class UddfEntityImporter {
                   o2Sensor6: asDoubleOrNull(p['o2Sensor6']),
                   // UDDF carries no millivolt field; these arrive only via the
                   // libdivecomputer path that shares this map (issue #810).
+                  // Computer-reported tissue loading, whole percents. Parsers
+                  // that have them (FIT n2_load, Shearwater/UDDF GF99) set
+                  // these keys; the rest leave them absent.
+                  gf99: p['gf99'] as int?,
+                  n2Load: p['n2Load'] as int?,
                   o2SensorMv1: p['o2SensorMv1'] as int?,
                   o2SensorMv2: p['o2SensorMv2'] as int?,
                   o2SensorMv3: p['o2SensorMv3'] as int?,
@@ -2496,6 +2502,9 @@ class UddfEntityImporter {
         decoAlgorithm: diveData['decoAlgorithm'] as String?,
         gradientFactorLow: diveData['gradientFactorLow'] as int?,
         gradientFactorHigh: diveData['gradientFactorHigh'] as int?,
+        // Dive-level tissue state the computer reported, as the parser
+        // found it (a ComputerTissueSnapshot, or its JSON map or text).
+        computerTissue: ComputerTissueSnapshot.from(diveData['computerTissue']),
         diveComputerModel: diveData['diveComputerModel'] as String?,
         diveComputerSerial: diveData['diveComputerSerial'] as String?,
         diveComputerFirmware: diveData['diveComputerFirmware'] as String?,

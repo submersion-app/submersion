@@ -7978,6 +7978,62 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_tissue_title => '组织饱和度';
 
   @override
+  String get diveLog_computerTissue_title => '潜水电脑';
+
+  @override
+  String get diveLog_computerTissue_algorithm => '算法';
+
+  @override
+  String diveLog_computerTissue_compartments(Object count) {
+    return '$count 个组织舱';
+  }
+
+  @override
+  String diveLog_computerTissue_compartmentsWithAlgorithm(
+    Object count,
+    Object algorithm,
+  ) {
+    return '$count 个 $algorithm 组织舱';
+  }
+
+  @override
+  String diveLog_computerTissue_compartment(Object number) {
+    return 'C$number';
+  }
+
+  @override
+  String get diveLog_computerTissue_endLoading => '潜水结束时的负荷';
+
+  @override
+  String get diveLog_computerTissue_endTensions => '潜水结束时的组织张力';
+
+  @override
+  String get diveLog_computerTissue_columnStart => '开始';
+
+  @override
+  String get diveLog_computerTissue_columnEnd => '结束';
+
+  @override
+  String get diveLog_computerTissue_rowN2Load => 'N₂ 负荷';
+
+  @override
+  String get diveLog_computerTissue_rowCns => 'CNS';
+
+  @override
+  String get diveLog_computerTissue_rowOtu => 'OTU';
+
+  @override
+  String get diveLog_computerTissue_rgbmNitrogen => 'RGBM N₂ 系数';
+
+  @override
+  String get diveLog_computerTissue_rgbmHelium => 'RGBM He 系数';
+
+  @override
+  String diveLog_computerTissue_calculated(Object value) {
+    return '计算值 $value';
+  }
+
+  @override
   String get diveLog_tooltip_avgCalculated => '（平均值，计算）';
 
   @override

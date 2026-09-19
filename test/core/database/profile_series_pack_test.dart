@@ -90,7 +90,7 @@ void main() {
     expect(c1['has_deco_type'], 1);
     expect(c1['has_deco_stop'], 1);
     expect(c1['has_positive_ceiling'], 1);
-    expect(c1['codec_version'], 1);
+    expect(c1['codec_version'], ProfileSeriesCodec.version);
     expect(c1['created_at'], 1700000000000);
     expect(c1['updated_at'], 1700000000000);
     final decoded = codec.decode(c1['samples'] as dynamic);

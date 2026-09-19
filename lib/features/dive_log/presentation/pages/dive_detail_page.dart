@@ -2236,6 +2236,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         selectedIndex: selectedPointIndex,
         subtitle: timeSubtitle,
         expandVisualization: expand,
+        computerTissue: dive.computerTissue,
+        calculatedCnsPercent: analysis.o2Exposure.cnsEnd,
         onHeatMapHover: (index) {
           ref.read(profileTrackingIndexProvider(diveId).notifier).state = index;
         },

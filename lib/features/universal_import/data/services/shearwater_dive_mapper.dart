@@ -4,12 +4,14 @@ import 'package:flutter/services.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/services/parsed_dive_profile_mapper.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_filename_parser.dart';
+import 'package:submersion/features/universal_import/data/services/shearwater_gf99_aligner.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_value_mapper.dart';
 
 /// Converts [ShearwaterRawDive] objects into `Map<String, dynamic>` entity maps
@@ -31,6 +33,7 @@ class ShearwaterDiveMapper {
 
     final tanks = mapTanks(rawDive);
     final surfacePressure = _extractSurfacePressure(rawDive);
+    final computerTissue = _computerTissue(rawDive);
 
     return {
       'importSource': 'shearwater_cloud',
@@ -68,6 +71,11 @@ class ShearwaterDiveMapper {
       'diveMode': _mapDiveMode(rawDive.apparatus),
       'tanks': tanks,
       'profile': const <Map<String, dynamic>>[],
+      // From dive_logs; libdivecomputer's values replace these when the
+      // profile parses (mergeWithParsedDive).
+      'gradientFactorLow': ?rawDive.gfMin,
+      'gradientFactorHigh': ?rawDive.gfMax,
+      'computerTissue': ?computerTissue,
     };
   }
 
@@ -118,7 +126,11 @@ class ShearwaterDiveMapper {
         product: vendorProduct.$2,
         data: logData,
       );
-      return mergeWithParsedDive(baseMap, parsed);
+      return mergeWithParsedDive(
+        baseMap,
+        parsed,
+        gf99Samples: rawDive.gf99Samples,
+      );
     } on MissingPluginException {
       rethrow;
     } on PlatformException catch (e) {
@@ -323,6 +335,59 @@ class ShearwaterDiveMapper {
     return ShearwaterValueMapper.mbarToBar(mbar);
   }
 
+  /// The tissue state the computer reported, or null when the export carries
+  /// none of it. States without a single value are omitted.
+  static ComputerTissueSnapshot? _computerTissue(ShearwaterRawDive rawDive) {
+    final start = _tissueState(
+      surfaceGfPercent: rawDive.startGFS,
+      cnsPercent: rawDive.startCNS,
+    );
+    final end = _tissueState(
+      gf99Percent: _endGf99(rawDive),
+      cnsPercent: rawDive.endCNS,
+    );
+    if (rawDive.decoModel == null && start == null && end == null) return null;
+    return ComputerTissueSnapshot(
+      algorithm: rawDive.decoModel,
+      start: start,
+      end: end,
+    );
+  }
+
+  static ComputerTissueState? _tissueState({
+    double? gf99Percent,
+    double? surfaceGfPercent,
+    double? cnsPercent,
+  }) {
+    if (gf99Percent == null && surfaceGfPercent == null && cnsPercent == null) {
+      return null;
+    }
+    return ComputerTissueState(
+      gf99Percent: gf99Percent,
+      surfaceGfPercent: surfaceGfPercent,
+      cnsPercent: cnsPercent,
+    );
+  }
+
+  /// GF99 at the end of the dive. Shearwater Cloud writes it in three
+  /// places; the one derived from the samples
+  /// (`calculated_values_from_samples.EndGF99`) is the most reliable, and
+  /// `dive_details.EndGF99` is a 0.0 placeholder in exports that never
+  /// computed it, so zero is read as absent throughout.
+  static double? _endGf99(ShearwaterRawDive rawDive) {
+    final candidates = <double?>[
+      _toDouble(rawDive.calculatedValues?['EndGF99']),
+      rawDive.endGF99,
+      rawDive.gf99Samples.isEmpty
+          ? null
+          : rawDive.gf99Samples.last.gf99.toDouble(),
+    ];
+    for (final value in candidates) {
+      if (value != null && value > 0) return value;
+    }
+    return null;
+  }
+
   /// Parses a GNSS location string "lat,lon" into a coordinate pair.
   static (double, double)? _parseGnssLocation(String? gnss) {
     if (gnss == null || gnss.isEmpty) return null;
@@ -346,11 +411,15 @@ class ShearwaterDiveMapper {
   }
 
   /// Merges parsed profile and deco data into the base metadata map.
+  ///
+  /// [gf99Samples] (from `dive_log_records`) are aligned onto the parsed
+  /// samples by nearest time and set as each sample's `'gf99'`.
   @visibleForTesting
   static Map<String, dynamic> mergeWithParsedDive(
     Map<String, dynamic> baseMap,
-    pigeon.ParsedDive parsed,
-  ) {
+    pigeon.ParsedDive parsed, {
+    List<ShearwaterGf99Sample> gf99Samples = const [],
+  }) {
     final merged = Map<String, dynamic>.from(baseMap);
 
     // Override depth/duration with parsed values (more accurate)
@@ -378,8 +447,12 @@ class ShearwaterDiveMapper {
       };
     }
 
-    // Build profile samples with all available sensor data.
-    merged['profile'] = ParsedDiveProfileMapper.samples(parsed);
+    // Build profile samples with all available sensor data, then add the
+    // GF99 the export logs alongside (libdivecomputer does not report it).
+    merged['profile'] = ShearwaterGf99Aligner.apply(
+      ParsedDiveProfileMapper.samples(parsed),
+      gf99Samples,
+    );
 
     // Extract water temperature from profile samples if not already set
     if (merged['waterTemp'] == null) {

@@ -8,6 +8,8 @@ class FitSummary {
     this.surfaceInterval,
     this.cnsStart,
     this.cnsEnd,
+    this.startN2,
+    this.endN2,
     this.otu,
     this.entryLat,
     this.entryLong,
@@ -22,6 +24,8 @@ class FitSummary {
   final Duration? surfaceInterval;
   final double? cnsStart;
   final double? cnsEnd;
+  final int? startN2; // percent, aggregate N2 loading at dive start
+  final int? endN2; // percent, aggregate N2 loading at dive end
   final double? otu;
   final double? entryLat; // degrees
   final double? entryLong; // degrees
@@ -50,6 +54,8 @@ class FitSummaryExtractor {
       surfaceInterval: secs(summary?.surfaceInterval),
       cnsStart: summary?.startCns?.toDouble(),
       cnsEnd: summary?.endCns?.toDouble(),
+      startN2: summary?.startN2,
+      endN2: summary?.endN2,
       otu: summary?.o2Toxicity?.toDouble(),
       entryLat: session?.startPositionLat,
       entryLong: session?.startPositionLong,

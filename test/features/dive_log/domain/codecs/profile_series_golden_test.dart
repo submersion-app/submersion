@@ -153,6 +153,22 @@ void main() {
     1, 18, 200, 1, 1, 20, 200, 1, 1, 22, 200, 1,
   ];
 
+  /// The v1 samples with the two v2 fields set.
+  final samplesV2 = [
+    samples[0].withTissue(gf99: 12, n2Load: 13),
+    samples[1].withTissue(gf99: 112, n2Load: 113),
+  ];
+
+  // v2 is v1 with the version byte 2 and two deltaInt columns appended:
+  //   [1, 24, 200, 1]  gf99: presence kPresenceAll, zigzag(12), zigzag(100)
+  //   [1, 26, 200, 1]  n2_load: presence kPresenceAll, zigzag(13), zigzag(100)
+  final goldenBodyV2 = <int>[
+    2,
+    ...goldenBody.sublist(1),
+    1, 24, 200, 1, //
+    1, 26, 200, 1,
+  ];
+
   const tankSamples = [
     TankPressureSample(timestamp: 0, pressure: 200.0),
     TankPressureSample(timestamp: 10, pressure: 190.5),
@@ -174,12 +190,31 @@ void main() {
 
   group('profile series codec v1', () {
     test('encoding freezes to the golden body', () {
-      final encoded = codec.encode(samples);
+      final encoded = codec.encode(samples, version: 1);
       expect(inflate(encoded.bytes), goldenBody);
     });
 
     test('the golden body decodes to the source samples', () {
       expect(codec.decode(recompress(goldenBody)), samples);
+    });
+  });
+
+  group('profile series codec v2', () {
+    test('encoding freezes to the golden body', () {
+      final encoded = codec.encode(samplesV2);
+      expect(encoded.codecVersion, 2);
+      expect(inflate(encoded.bytes), goldenBodyV2);
+    });
+
+    test('the golden body decodes to the source samples', () {
+      expect(codec.decode(recompress(goldenBodyV2)), samplesV2);
+    });
+
+    test('the v1 golden body still decodes, with the v2 fields null', () {
+      final decoded = codec.decode(recompress(goldenBody));
+      expect(decoded, samples);
+      expect(decoded.map((s) => s.gf99), everyElement(isNull));
+      expect(decoded.map((s) => s.n2Load), everyElement(isNull));
     });
   });
 

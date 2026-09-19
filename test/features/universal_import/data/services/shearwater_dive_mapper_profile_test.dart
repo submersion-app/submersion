@@ -137,6 +137,61 @@ void main() {
 
           expect(warnings.single.code, ImportWarningCode.profileUnreadable);
         });
+
+        test(
+          'a successful decode aligns gf99 onto the parsed samples',
+          () async {
+            final parsed = pigeon.ParsedDive(
+              fingerprint: 'fp',
+              dateTimeYear: 2025,
+              dateTimeMonth: 6,
+              dateTimeDay: 15,
+              dateTimeHour: 10,
+              dateTimeMinute: 30,
+              dateTimeSecond: 0,
+              maxDepthMeters: 30,
+              avgDepthMeters: 18,
+              durationSeconds: 20,
+              samples: [
+                pigeon.ProfileSample(timeSeconds: 0, depthMeters: 1.0),
+                pigeon.ProfileSample(timeSeconds: 10, depthMeters: 20.0),
+                pigeon.ProfileSample(timeSeconds: 20, depthMeters: 5.0),
+              ],
+              tanks: [],
+              gasMixes: [],
+              events: [],
+            );
+            final messenger = TestDefaultBinaryMessengerBinding
+                .instance
+                .defaultBinaryMessenger;
+            messenger.setMockMessageHandler(channel, (_) async {
+              return pigeon.DiveComputerHostApi.pigeonChannelCodec
+                  .encodeMessage(<Object?>[parsed]);
+            });
+            addTearDown(() => messenger.setMockMessageHandler(channel, null));
+
+            final rawDive = ShearwaterRawDive(
+              diveId: 'teric-1',
+              fileName: 'Teric[AABB1234]#10 2025-06-15 10-30-00.swlogzp',
+              decompressedLogData: Uint8List.fromList(List.filled(100, 0)),
+              gf99Samples: const [
+                ShearwaterGf99Sample(timeSeconds: 0, gf99: 4),
+                ShearwaterGf99Sample(timeSeconds: 10, gf99: 31),
+                ShearwaterGf99Sample(timeSeconds: 20, gf99: 62),
+              ],
+            );
+            final warnings = <ImportWarning>[];
+            final result = await ShearwaterDiveMapper.mapDive(
+              rawDive,
+              warnings: warnings,
+            );
+
+            expect(warnings, isEmpty);
+            final profile = result['profile'] as List<Map<String, dynamic>>;
+            expect(profile.map((p) => p['gf99']), [4, 31, 62]);
+            expect(profile.map((p) => p['depth']), [1.0, 20.0, 5.0]);
+          },
+        );
       });
     });
 

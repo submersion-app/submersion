@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/deco/entities/deco_status.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/features/dive_log/domain/entities/computer_tissue_snapshot.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/computer_tissue_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_area_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tissue_heat_map.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -85,11 +87,18 @@ const _overloadedStatus = DecoStatus(
   ambientPressureBar: 4.0,
 );
 
+const _computerTissue = ComputerTissueSnapshot(
+  algorithm: 'VPM-B/GFS',
+  end: ComputerTissueState(gf99Percent: 45, cnsPercent: 8, rgbmHelium: 1.0),
+);
+
 Widget buildCard({
   DecoStatus status = _status,
   List<DecoStatus>? decoStatuses,
   bool expandVisualization = false,
   VoidCallback? onOpen3dView,
+  ComputerTissueSnapshot? computerTissue,
+  double? calculatedCnsPercent,
 }) {
   return ProviderScope(
     overrides: [settingsProvider.overrideWith((ref) => MockSettingsNotifier())],
@@ -102,6 +111,8 @@ Widget buildCard({
           decoStatuses: decoStatuses,
           expandVisualization: expandVisualization,
           onOpen3dView: onOpen3dView,
+          computerTissue: computerTissue,
+          calculatedCnsPercent: calculatedCnsPercent,
         ),
       ),
     ),
@@ -162,6 +173,60 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byIcon(Icons.view_in_ar), findsNothing);
+    });
+  });
+
+  group('CompactTissueLoadingCard computer tissue', () {
+    testWidgets('hides the computer section when the import had none', (
+      tester,
+    ) async {
+      await tester.pumpWidget(buildCard());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ComputerTissueSection), findsNothing);
+      expect(find.text('Dive computer'), findsNothing);
+    });
+
+    testWidgets('shows the computer section from the current status', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildCard(computerTissue: _computerTissue, calculatedCnsPercent: 7.4),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ComputerTissueSection), findsOneWidget);
+      expect(find.text('Dive computer'), findsOneWidget);
+      expect(find.text('VPM-B/GFS'), findsOneWidget);
+      expect(find.text('45%'), findsOneWidget);
+      expect(find.text('calculated 7%'), findsOneWidget);
+    });
+
+    testWidgets('uses the last deco status for calculated GF99', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildCard(
+          computerTissue: _computerTissue,
+          decoStatuses: [_status, _overloadedStatus],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ComputerTissueSection), findsOneWidget);
+      expect(find.text('45%'), findsOneWidget);
+    });
+
+    testWidgets('falls back to the current status when decoStatuses is empty', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildCard(computerTissue: _computerTissue, decoStatuses: const []),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ComputerTissueSection), findsOneWidget);
+      expect(find.text('Dive computer'), findsOneWidget);
     });
   });
 

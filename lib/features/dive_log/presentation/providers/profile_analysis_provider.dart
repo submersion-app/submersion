@@ -25,6 +25,7 @@ import 'package:submersion/features/dive_log/domain/entities/profile_event.dart'
 import 'package:submersion/features/dive_log/domain/services/computer_cns_extractor.dart';
 import 'package:submersion/features/dive_log/domain/services/gas_time_remaining.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_event_mapper.dart';
+import 'package:submersion/features/dive_log/presentation/providers/computer_gf99_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
@@ -428,11 +429,19 @@ ProfileAnalysisService _resolveAnalysisService(
 /// Overlays computer-reported decompression data onto a calculated
 /// [ProfileAnalysis].
 ///
-/// Each metric (NDL, ceiling, TTS, CNS, deco stop band) is independently
+/// Each metric (NDL, ceiling, TTS, CNS, deco stop band, GF99) is independently
 /// controlled by its own [MetricDataSource] parameter. When a source is
 /// [MetricDataSource.computer] and computer data exists in the profile,
 /// those values take priority over the Buhlmann-calculated values. Points
 /// without computer data fall back to the calculated values.
+///
+/// [gf99Source] alone defaults to computer: where the computer logged its
+/// GF99 the diver saw that number, and the app's Buhlmann GF99 is the
+/// fallback for computers that do not log one. There is no legend toggle or
+/// diver setting for it (each per-metric default source is its own
+/// diver_settings column). The computer's aggregate N2 loading, which has no
+/// calculated counterpart, is always exposed as
+/// [ProfileAnalysis.n2LoadCurve] when present.
 ///
 /// The deco stop band ([decoStopSource]) resolves against the incoming
 /// (calculated) [ProfileAnalysis.decoStopCurve] rather than against the
@@ -451,6 +460,7 @@ ProfileAnalysisService _resolveAnalysisService(
   MetricDataSource cnsSource = MetricDataSource.calculated,
   MetricDataSource decoStopSource = MetricDataSource.calculated,
   MetricDataSource gtrSource = MetricDataSource.calculated,
+  MetricDataSource gf99Source = MetricDataSource.computer,
   RebreatherPpO2? rebreatherPpO2,
 }) {
   // A zero is not a reading. Computers that do not measure one of these
@@ -469,6 +479,7 @@ ProfileAnalysisService _resolveAnalysisService(
   // Air-integrated computers log their own GTR (libdc RBT, stored in
   // seconds); a null sample is the computer blanking its display.
   final hasComputerGtr = profile.any((p) => p.rbt != null);
+  final hasGf99 = hasComputerGf99(profile);
 
   final useNdl = ndlSource == MetricDataSource.computer && hasComputerNdl;
   final useCeiling =
@@ -476,6 +487,9 @@ ProfileAnalysisService _resolveAnalysisService(
   final useTts = ttsSource == MetricDataSource.computer && hasComputerTts;
   final useCns = cnsSource == MetricDataSource.computer && hasComputerCns;
   final useGtr = gtrSource == MetricDataSource.computer && hasComputerGtr;
+  final useGf99 = gf99Source == MetricDataSource.computer && hasGf99;
+  // Computer-only: nothing to choose between, so no source parameter.
+  final n2LoadCurve = buildComputerN2LoadCurve(profile);
   // Resolved independently of useCeiling: the deco stop band must not be
   // dragged along when the user picks "computer" for the ceiling line alone.
   final useDecoStop =
@@ -505,6 +519,9 @@ ProfileAnalysisService _resolveAnalysisService(
         ? MetricDataSource.computer
         : MetricDataSource.calculated,
     gtrActual: useGtr ? MetricDataSource.computer : MetricDataSource.calculated,
+    gf99Actual: useGf99
+        ? MetricDataSource.computer
+        : MetricDataSource.calculated,
   );
 
   if (!useNdl &&
@@ -513,11 +530,19 @@ ProfileAnalysisService _resolveAnalysisService(
       !useTts &&
       !useCns &&
       !useGtr &&
+      !useGf99 &&
       resolvedPpO2 == null) {
-    // Millivolts stand alone: a dive can carry them with no ppO2, cells or
-    // setpoint to overlay, and they must not be dropped on this path (#810).
-    if (o2CellMvCurves != null) {
-      return (analysis.copyWith(o2CellMvCurves: o2CellMvCurves), sourceInfo);
+    // Millivolts and N2 loading stand alone: a dive can carry them with no
+    // ppO2, cells or setpoint to overlay, and they must not be dropped on
+    // this path (#810).
+    if (o2CellMvCurves != null || n2LoadCurve != null) {
+      return (
+        analysis.copyWith(
+          o2CellMvCurves: o2CellMvCurves,
+          n2LoadCurve: n2LoadCurve,
+        ),
+        sourceInfo,
+      );
     }
     return (analysis, sourceInfo);
   }
@@ -576,6 +601,8 @@ ProfileAnalysisService _resolveAnalysisService(
     gtrCurve: useGtr
         ? List<int?>.generate(profile.length, (i) => profile[i].rbt)
         : null,
+    gfCurve: useGf99 ? buildComputerGf99Curve(profile, analysis.gfCurve) : null,
+    n2LoadCurve: n2LoadCurve,
     // ppO2 from sensor/setpoint (null keeps the calculated curve).
     ppO2Curve: resolvedPpO2,
     o2SensorCurves: o2SensorCurves,
@@ -1182,6 +1209,9 @@ Future<ProfileAnalysis?> computeAnalysisForProfile(
       cnsSource: cnsSource,
       decoStopSource: decoStopSource,
       gtrSource: gtrSource,
+      // Computer-first by product rule; no legend toggle or setting exists
+      // for GF99 (see overlayComputerDecoData).
+      gf99Source: MetricDataSource.computer,
       rebreatherPpO2: rebreatherPpO2,
     );
 
@@ -1712,6 +1742,7 @@ final diveProfileAnalysisProvider = Provider.family<ProfileAnalysis?, Dive>((
       cnsSource: MetricDataSource.computer,
       decoStopSource: MetricDataSource.computer,
       gtrSource: MetricDataSource.computer,
+      gf99Source: MetricDataSource.computer,
       rebreatherPpO2: rebreatherPpO2,
     );
     return overlaid;

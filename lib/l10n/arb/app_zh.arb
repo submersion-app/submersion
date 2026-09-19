@@ -12298,5 +12298,20 @@
   "diveCenters_rental_leadAdjustmentLabel": "需额外配重（{unit}）",
   "diveCenters_rental_volumeLabel": "实际容量（{unit}）",
   "diveCenters_rental_noteLabel": "备注",
-  "diveCenters_rental_deleteConfirm": "删除此租赁备注？"
+  "diveCenters_rental_deleteConfirm": "删除此租赁备注？",
+  "diveLog_computerTissue_title": "潜水电脑",
+  "diveLog_computerTissue_algorithm": "算法",
+  "diveLog_computerTissue_compartments": "{count} 个组织舱",
+  "diveLog_computerTissue_compartmentsWithAlgorithm": "{count} 个 {algorithm} 组织舱",
+  "diveLog_computerTissue_compartment": "C{number}",
+  "diveLog_computerTissue_endLoading": "潜水结束时的负荷",
+  "diveLog_computerTissue_endTensions": "潜水结束时的组织张力",
+  "diveLog_computerTissue_columnStart": "开始",
+  "diveLog_computerTissue_columnEnd": "结束",
+  "diveLog_computerTissue_rowN2Load": "N₂ 负荷",
+  "diveLog_computerTissue_rowCns": "CNS",
+  "diveLog_computerTissue_rowOtu": "OTU",
+  "diveLog_computerTissue_rgbmNitrogen": "RGBM N₂ 系数",
+  "diveLog_computerTissue_rgbmHelium": "RGBM He 系数",
+  "diveLog_computerTissue_calculated": "计算值 {value}"
 }

@@ -12298,5 +12298,20 @@
   "diveCenters_rental_leadAdjustmentLabel": "משקולות נוספות נדרשות ({unit})",
   "diveCenters_rental_volumeLabel": "קיבולת בפועל ({unit})",
   "diveCenters_rental_noteLabel": "הערה",
-  "diveCenters_rental_deleteConfirm": "למחוק את הערת ההשכרה הזו?"
+  "diveCenters_rental_deleteConfirm": "למחוק את הערת ההשכרה הזו?",
+  "diveLog_computerTissue_title": "מחשב צלילה",
+  "diveLog_computerTissue_algorithm": "אלגוריתם",
+  "diveLog_computerTissue_compartments": "{count} מדורים",
+  "diveLog_computerTissue_compartmentsWithAlgorithm": "{count} מדורי {algorithm}",
+  "diveLog_computerTissue_compartment": "C{number}",
+  "diveLog_computerTissue_endLoading": "טעינה בסוף הצלילה",
+  "diveLog_computerTissue_endTensions": "מתחי רקמות בסוף הצלילה",
+  "diveLog_computerTissue_columnStart": "התחלה",
+  "diveLog_computerTissue_columnEnd": "סיום",
+  "diveLog_computerTissue_rowN2Load": "עומס N₂",
+  "diveLog_computerTissue_rowCns": "CNS",
+  "diveLog_computerTissue_rowOtu": "OTU",
+  "diveLog_computerTissue_rgbmNitrogen": "מקדם N₂ של RGBM",
+  "diveLog_computerTissue_rgbmHelium": "מקדם He של RGBM",
+  "diveLog_computerTissue_calculated": "מחושב {value}"
 }

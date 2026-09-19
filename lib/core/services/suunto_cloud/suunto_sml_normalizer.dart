@@ -24,6 +24,13 @@ class SuuntoSmlNormalizer {
 
   static const int _suuntoActivityScuba = 51;
 
+  /// DiveHeader fields hoisted verbatim onto `header['Diving']`.
+  static const List<String> _diveHeaderTissueKeys = [
+    'StartTissue',
+    'EndTissue',
+    'Algorithm',
+  ];
+
   /// Throws [SuuntoApiException] if [json] isn't a recognizable dive export
   /// (neither cloud 'sml' nor app 'DeviceLog' shape, or not a dive activity).
   static SuuntoDiveExport parse(Map<String, dynamic> json) {
@@ -116,6 +123,14 @@ class SuuntoSmlNormalizer {
     if (diveHeader['LowGf'] != null && diveHeader['HighGf'] != null) {
       diving['GfLow'] = diveHeader['LowGf'];
       diving['GfHigh'] = diveHeader['HighGf'];
+    }
+    // The dive-level tissue state (per-compartment tensions, CNS/OTU, RGBM
+    // factors) and the deco model name sit in the app's DeviceLog schema
+    // under Header.Diving already; the cloud shape keeps them on the
+    // DiveHeader, so carry them across under the same names for the
+    // tissue parser.
+    for (final key in _diveHeaderTissueKeys) {
+      if (diveHeader[key] != null) diving[key] = diveHeader[key];
     }
     if (diving.isNotEmpty) header['Diving'] = diving;
 

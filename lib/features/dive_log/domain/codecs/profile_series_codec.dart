@@ -32,15 +32,23 @@ class EncodedProfileSeries {
 /// Versioning: a later codec appends fields under a new version byte. The
 /// decoder selects the field table by the blob's version byte, so an older
 /// blob decodes under a newer codec with its missing fields null. A version
-/// this codec does not know is refused.
+/// this codec does not know is refused (see [UnknownSeriesVersionException]
+/// for how the sync door tells a forward version from corruption).
+///
+/// v2 appended `gf99` and `n2_load` (issue: computer tissue import).
 class ProfileSeriesCodec {
-  const ProfileSeriesCodec({this.fieldTables = const {version: fieldTableV1}});
+  const ProfileSeriesCodec({
+    this.fieldTables = const {1: fieldTableV1, version: fieldTableV2},
+  });
 
   /// The version new blobs are written with.
-  static const int version = 1;
+  static const int version = 2;
 
   /// Codec v1 field table. See [kProfileFieldTableV1].
   static const List<ProfileField> fieldTableV1 = kProfileFieldTableV1;
+
+  /// Codec v2 field table. See [kProfileFieldTableV2].
+  static const List<ProfileField> fieldTableV2 = kProfileFieldTableV2;
 
   /// Field table per version byte this codec can read.
   final Map<int, List<ProfileField>> fieldTables;
@@ -133,8 +141,8 @@ class ProfileSeriesCodec {
     }
     // The count sizes one list per field, so it needs a hard cap of its
     // own: the payload guard below bounds it only by the body, and a body
-    // at the inflate cap admits a count near 67 million, which for 28
-    // columns is about 15 GB of references before any value is read.
+    // at the inflate cap admits a count near 67 million, which for 30
+    // columns is about 16 GB of references before any value is read.
     if (count > kMaxSeriesSampleCount) {
       throw ProfileSeriesCodecException(
         'sample count $count exceeds the maximum $kMaxSeriesSampleCount',
@@ -188,14 +196,14 @@ class ProfileSeriesCodec {
         throw ArgumentError.value(
           table,
           'fieldTables',
-          '${field.name} is ${frozen.name} in v1, not ${field.kind.name}',
+          '${field.name} is frozen as ${frozen.name}, not ${field.kind.name}',
         );
       }
     }
   }
 
   static final Map<String, ProfileFieldKind> _frozenKinds = {
-    for (final field in kProfileFieldTableV1) field.name: field.kind,
+    for (final field in kProfileFieldTableV2) field.name: field.kind,
   };
 
   static Object? _fieldOf(ProfileSample s, String name) => switch (name) {
@@ -227,6 +235,8 @@ class ProfileSeriesCodec {
     'o2_sensor_mv4' => s.o2SensorMv4,
     'o2_sensor_mv5' => s.o2SensorMv5,
     'o2_sensor_mv6' => s.o2SensorMv6,
+    'gf99' => s.gf99,
+    'n2_load' => s.n2Load,
     _ => throw ArgumentError.value(name, 'name', 'not a profile sample field'),
   };
 
@@ -397,6 +407,8 @@ class ProfileSeriesCodec {
     final mv4s = column<int>('o2_sensor_mv4');
     final mv5s = column<int>('o2_sensor_mv5');
     final mv6s = column<int>('o2_sensor_mv6');
+    final gf99s = column<int>('gf99');
+    final n2Loads = column<int>('n2_load');
 
     return [
       for (var i = 0; i < count; i++)
@@ -433,6 +445,8 @@ class ProfileSeriesCodec {
           o2SensorMv4: mv4s[i],
           o2SensorMv5: mv5s[i],
           o2SensorMv6: mv6s[i],
+          gf99: gf99s[i],
+          n2Load: n2Loads[i],
         ),
     ];
   }

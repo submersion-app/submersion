@@ -12298,5 +12298,20 @@
   "diveCenters_rental_leadAdjustmentLabel": "الأثقال الإضافية المطلوبة ({unit})",
   "diveCenters_rental_volumeLabel": "السعة الفعلية ({unit})",
   "diveCenters_rental_noteLabel": "ملاحظة",
-  "diveCenters_rental_deleteConfirm": "حذف ملاحظة التأجير هذه؟"
+  "diveCenters_rental_deleteConfirm": "حذف ملاحظة التأجير هذه؟",
+  "diveLog_computerTissue_title": "كمبيوتر الغوص",
+  "diveLog_computerTissue_algorithm": "الخوارزمية",
+  "diveLog_computerTissue_compartments": "{count} حجيرات",
+  "diveLog_computerTissue_compartmentsWithAlgorithm": "{count} حجيرات {algorithm}",
+  "diveLog_computerTissue_compartment": "C{number}",
+  "diveLog_computerTissue_endLoading": "التحميل في نهاية الغطسة",
+  "diveLog_computerTissue_endTensions": "توترات الأنسجة في نهاية الغطسة",
+  "diveLog_computerTissue_columnStart": "البداية",
+  "diveLog_computerTissue_columnEnd": "النهاية",
+  "diveLog_computerTissue_rowN2Load": "حمل N₂",
+  "diveLog_computerTissue_rowCns": "CNS",
+  "diveLog_computerTissue_rowOtu": "OTU",
+  "diveLog_computerTissue_rgbmNitrogen": "معامل N₂ لـ RGBM",
+  "diveLog_computerTissue_rgbmHelium": "معامل He لـ RGBM",
+  "diveLog_computerTissue_calculated": "المحسوب {value}"
 }

@@ -8224,6 +8224,63 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_tissue_title => 'تحميل الأنسجة';
 
   @override
+  String get diveLog_computerTissue_title => 'كمبيوتر الغوص';
+
+  @override
+  String get diveLog_computerTissue_algorithm => 'الخوارزمية';
+
+  @override
+  String diveLog_computerTissue_compartments(Object count) {
+    return '$count حجيرات';
+  }
+
+  @override
+  String diveLog_computerTissue_compartmentsWithAlgorithm(
+    Object count,
+    Object algorithm,
+  ) {
+    return '$count حجيرات $algorithm';
+  }
+
+  @override
+  String diveLog_computerTissue_compartment(Object number) {
+    return 'C$number';
+  }
+
+  @override
+  String get diveLog_computerTissue_endLoading => 'التحميل في نهاية الغطسة';
+
+  @override
+  String get diveLog_computerTissue_endTensions =>
+      'توترات الأنسجة في نهاية الغطسة';
+
+  @override
+  String get diveLog_computerTissue_columnStart => 'البداية';
+
+  @override
+  String get diveLog_computerTissue_columnEnd => 'النهاية';
+
+  @override
+  String get diveLog_computerTissue_rowN2Load => 'حمل N₂';
+
+  @override
+  String get diveLog_computerTissue_rowCns => 'CNS';
+
+  @override
+  String get diveLog_computerTissue_rowOtu => 'OTU';
+
+  @override
+  String get diveLog_computerTissue_rgbmNitrogen => 'معامل N₂ لـ RGBM';
+
+  @override
+  String get diveLog_computerTissue_rgbmHelium => 'معامل He لـ RGBM';
+
+  @override
+  String diveLog_computerTissue_calculated(Object value) {
+    return 'المحسوب $value';
+  }
+
+  @override
   String get diveLog_tooltip_avgCalculated => '(متوسط، محسوب)';
 
   @override

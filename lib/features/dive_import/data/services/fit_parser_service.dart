@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_import/data/services/fit/fit_profile_ex
 import 'package:submersion/features/dive_import/data/services/fit/fit_summary_extractor.dart';
 import 'package:submersion/features/dive_import/data/services/fit/fit_tank_extractor.dart';
 import 'package:submersion/features/dive_import/data/services/fit/fit_time_resolver.dart';
+import 'package:submersion/features/dive_import/data/services/fit/fit_tissue_snapshot.dart';
 import 'package:submersion/features/dive_import/domain/entities/imported_dive.dart';
 
 /// Garmin FIT sport codes that represent dive activities.
@@ -190,6 +191,7 @@ class FitParserService {
       surfaceIntervalSeconds: summary.surfaceInterval?.inSeconds,
       cnsStart: summary.cnsStart,
       cnsEnd: summary.cnsEnd,
+      computerTissue: fitTissueSnapshot(summary),
       otu: summary.otu,
       waterType: summary.waterType,
       decoModel: summary.decoModel,
@@ -276,6 +278,7 @@ class FitParserService {
         temperature: s.temperature,
         heartRate: s.heartRate,
         cns: s.cns,
+        n2Load: s.n2Load,
         ndlSeconds: s.ndlSeconds,
         ttsSeconds: s.ttsSeconds,
         ceiling: s.ceiling,

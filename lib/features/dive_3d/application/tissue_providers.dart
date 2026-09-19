@@ -12,6 +12,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 
 /// The per-sample decompression status series for a dive's active source -
 /// the same data that feeds the 2D tissue heat map.
+///
+/// Always the app's own Buhlmann recompute. An imported
+/// `Dive.computerTissue` snapshot is dive-level (start and end only) and its
+/// compartment model differs by computer, so it cannot seed this per-sample
+/// scene and is deliberately not used here.
 final tissueDecoStatusesProvider =
     FutureProvider.family<List<DecoStatus>, String>((ref, diveId) async {
       final analysis = await ref.watch(
