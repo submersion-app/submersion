@@ -2722,7 +2722,19 @@ class SyncService {
           continue;
         }
 
-        if (pendingRecordIds.contains(recordId)) {
+        // A locally pending row used to skip the peer's copy outright, and
+        // the changeset cursor still advanced past it, so the peer's update
+        // was lost for good: a newer edit made elsewhere never landed here,
+        // and the peer then refused this device's older copy, leaving the
+        // two devices diverged. Where both sides carry a clock the ordinary
+        // resolution below orders them, and the pending mark is kept, so
+        // this device still publishes whatever wins. Where either clock is
+        // missing nothing can order an unpublished local edit against the
+        // peer's, so the skip stays. Entities whose local rows are not
+        // fetched (the clockless blind upserts) have no local clock here and
+        // keep the skip too.
+        if (pendingRecordIds.contains(recordId) &&
+            !_orderable(localById[recordId], record)) {
           continue;
         }
 
@@ -3033,6 +3045,12 @@ class SyncService {
       return null;
     }
   }
+
+  /// Whether a local row and a peer's copy can be ordered: both carry a
+  /// clock. A pending local row is protected from the peer's copy only when
+  /// they cannot be.
+  bool _orderable(Map<String, dynamic>? local, Map<String, dynamic> remote) =>
+      _extractHlc(local) != null && _extractHlc(remote) != null;
 
   /// The id the merge keys a record by: `id` for most entities, the natural
   /// key for the handful that have none. Must agree with the id
