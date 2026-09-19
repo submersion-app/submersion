@@ -57,6 +57,9 @@ class StartupFailureView extends StatelessWidget {
     this.backupsDirectory,
     this.onShowBackupsFolder,
     this.onViewPreviousReleases,
+    this.onUseAnotherFolder,
+    this.onRestoreFromFile,
+    this.onStartFresh,
   });
 
   /// Where the diver can pick an earlier build. Deliberately the releases
@@ -101,8 +104,45 @@ class StartupFailureView extends StatelessWidget {
   /// one class where an older app genuinely is an answer.
   final VoidCallback? onViewPreviousReleases;
 
+  /// Picks a folder and switches to the dive log already in it.
+  ///
+  /// The registry-backed restore above only knows about backups this install
+  /// took. Issue #2139 is the case it cannot reach: a fresh install on a
+  /// second computer, an empty registry, and an intact dive log sitting in the
+  /// diver's iCloud Drive folder. Null where no folder picker is available.
+  final VoidCallback? onUseAnotherFolder;
+
+  /// Picks a backup file the registry does not know about, and restores it.
+  ///
+  /// Same gap from the other side: a backup taken on another device, or one
+  /// the diver moved, is invisible to [recoveryBackup] however obviously it is
+  /// theirs.
+  final VoidCallback? onRestoreFromFile;
+
+  /// Sets the unreadable database aside and starts an empty one.
+  ///
+  /// Last of the three and deliberately so: it is the only one that does not
+  /// end with the diver's existing data in front of them. It earns its place
+  /// because the alternative this screen used to offer was quitting, and
+  /// because an app that opens at all puts Settings, Backup & Restore and
+  /// Database Storage back within reach.
+  final VoidCallback? onStartFresh;
+
   bool get _canRestore =>
       kind.dataIsAtRisk && recoveryBackup != null && onRestoreBackup != null;
+
+  /// Whether the "other ways back in" section has anything to show.
+  ///
+  /// Gated on [StartupFailureKind.dataIsAtRisk] for the same reason the
+  /// restore card is: pointing a broken build at a different file fixes
+  /// nothing, and a lock means the database is intact, so offering to set it
+  /// aside would invite a diver to abandon good data over a problem that a
+  /// relaunch fixes.
+  bool get _hasRecoveryRoutes =>
+      kind.dataIsAtRisk &&
+      (onUseAnotherFolder != null ||
+          onRestoreFromFile != null ||
+          onStartFresh != null);
 
   bool get _canDowngrade =>
       kind == StartupFailureKind.migrationFailed &&
@@ -243,6 +283,52 @@ class StartupFailureView extends StatelessWidget {
               ),
             ],
           ],
+          if (_hasRecoveryRoutes) ...[
+            const SizedBox(height: 24),
+            const Divider(),
+            const SizedBox(height: 12),
+            Text(
+              context.l10n.startup_failure_moreWays_title,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            // Ordered by how much of the diver's data each one keeps: the two
+            // that end with their existing dives in front of them first, and
+            // the empty log last.
+            if (onUseAnotherFolder != null)
+              _RecoveryRoute(
+                icon: Icons.folder_special_outlined,
+                label: context.l10n.startup_failure_useAnotherFolder,
+                description:
+                    context.l10n.startup_failure_useAnotherFolder_subtitle,
+                onPressed: onUseAnotherFolder!,
+                textColor: textColor,
+                subtitleColor: subtitleColor,
+              ),
+            if (onRestoreFromFile != null)
+              _RecoveryRoute(
+                icon: Icons.restore_page_outlined,
+                label: context.l10n.startup_failure_restoreFromFile,
+                description:
+                    context.l10n.startup_failure_restoreFromFile_subtitle,
+                onPressed: onRestoreFromFile!,
+                textColor: textColor,
+                subtitleColor: subtitleColor,
+              ),
+            if (onStartFresh != null)
+              _RecoveryRoute(
+                icon: Icons.note_add_outlined,
+                label: context.l10n.startup_failure_startFresh,
+                description: context.l10n.startup_failure_startFresh_subtitle,
+                onPressed: onStartFresh!,
+                textColor: textColor,
+                subtitleColor: subtitleColor,
+              ),
+          ],
           if (_canDowngrade) ...[
             const SizedBox(height: 24),
             const Divider(),
@@ -280,6 +366,56 @@ class StartupFailureView extends StatelessWidget {
           FilledButton(
             onPressed: onClose,
             child: Text(context.l10n.common_action_close),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// One route out of the failure screen: what it does, and what it costs.
+///
+/// The description is not decoration. Every one of these acts on the diver's
+/// only dive log, from a screen they reached because something already went
+/// wrong, so what each button will do has to be readable before it is pressed
+/// rather than after.
+class _RecoveryRoute extends StatelessWidget {
+  const _RecoveryRoute({
+    required this.icon,
+    required this.label,
+    required this.description,
+    required this.onPressed,
+    required this.textColor,
+    required this.subtitleColor,
+  });
+
+  final IconData icon;
+  final String label;
+  final String description;
+  final VoidCallback onPressed;
+  final Color textColor;
+  final Color subtitleColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          OutlinedButton.icon(
+            onPressed: onPressed,
+            icon: Icon(icon, size: 18),
+            label: Text(label, textAlign: TextAlign.center),
+          ),
+          const SizedBox(height: 4),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Text(
+              description,
+              style: TextStyle(fontSize: 12, color: subtitleColor),
+              textAlign: TextAlign.center,
+            ),
           ),
         ],
       ),

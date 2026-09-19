@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart' show kReleaseMode;
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path/path.dart' as p;
@@ -31,12 +32,14 @@ import 'package:submersion/core/presentation/widgets/backup_status_views.dart';
 import 'package:submersion/core/presentation/widgets/interrupted_restore_view.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/core/presentation/widgets/startup_failure_view.dart';
+import 'package:submersion/core/presentation/widgets/startup_recovery_dialogs.dart';
 import 'package:submersion/core/presentation/widgets/version_mismatch_view.dart';
 import 'package:submersion/core/services/accounts/account_deduplicator.dart';
 import 'package:submersion/core/services/accounts/account_startup_migration.dart';
 import 'package:submersion/core/services/background_service.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/startup_recovery_service.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 import 'package:submersion/core/services/security/biometric_service.dart';
 import 'package:submersion/core/services/security/database_locked_exception.dart';
@@ -49,6 +52,7 @@ import 'package:submersion/core/services/restore_journal.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_crypto.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/backup_schema_probe.dart';
 import 'package:submersion/features/backup/data/services/backup_target.dart';
@@ -178,6 +182,17 @@ class StartupWrapper extends StatefulWidget {
   @visibleForTesting
   final RestoreJournal Function(String dbPath)? restoreJournalFactory;
 
+  /// Optional override for the recovery routes offered by the failure screen
+  /// (used in tests).
+  ///
+  /// A widget test cannot drive the real one: its work is `dart:io`, and a
+  /// `dart:io` future started inside the fake-async test zone never completes.
+  /// The move itself is covered against real files in
+  /// `test/core/services/startup_recovery_service_test.dart`; this seam is
+  /// what lets a widget test prove the WIRING around it.
+  @visibleForTesting
+  final StartupRecoveryService? recoveryServiceOverride;
+
   const StartupWrapper({
     super.key,
     required this.prefs,
@@ -192,6 +207,7 @@ class StartupWrapper extends StatefulWidget {
     this.enginePreflightOverride,
     this.restoreOverride,
     this.restoreJournalFactory,
+    this.recoveryServiceOverride,
   });
 
   @override
@@ -1176,8 +1192,10 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// The order is the whole point: preserve, then swap. A failure to preserve
   /// leaves the diver on the mismatch screen with both files intact, which is
   /// strictly better than a completed downgrade that lost the newer one.
-  Future<void> _restoreFromDowngradeBackup() =>
-      _restoreAtStartup(_downgradeBackup, before: _preserveNewerDatabase);
+  Future<void> _restoreFromDowngradeBackup() => _restoreAtStartup(
+    _downgradeBackup?.localPath,
+    before: _preserveNewerDatabase,
+  );
 
   /// Swaps [_recoveryBackup] in for the live database, then resumes startup.
   ///
@@ -1185,7 +1203,7 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// [DatabaseService.restore] does its staged swap without contending with an
   /// open connection, and it rolls the original file back if the swap fails.
   Future<void> _restoreFromStartupBackup() =>
-      _restoreAtStartup(_recoveryBackup);
+      _restoreAtStartup(_recoveryBackup?.localPath);
 
   /// Shared body of both startup restores: swap [record] in, then resume
   /// startup from the top.
@@ -1194,10 +1212,9 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// anything is swapped, so a throw from it aborts with the live database
   /// untouched.
   Future<void> _restoreAtStartup(
-    BackupRecord? record, {
+    String? path, {
     Future<void> Function()? before,
   }) async {
-    final path = record?.localPath;
     if (path == null) return;
     if (_restoreStatus == StartupRestoreStatus.running) return;
 
@@ -1302,6 +1319,179 @@ class _StartupWrapperState extends State<StartupWrapper>
         _restoreError = '$e';
       });
     }
+  }
+
+  /// The ways out of the terminal failure screen, built on first use because
+  /// almost no launch ever reaches that screen.
+  late final StartupRecoveryService _recoveryService =
+      widget.recoveryServiceOverride ??
+      StartupRecoveryService(widget.locationService);
+
+  /// A context for the recovery dialogs.
+  ///
+  /// The splash owns its own Navigator precisely because the app router does
+  /// not exist yet, and every one of these routes is reached only from a
+  /// screen that exists because the router could not be built.
+  BuildContext? get _dialogContext {
+    final context = _splashNavigatorKey.currentContext;
+    return context != null && context.mounted ? context : null;
+  }
+
+  /// Switches to a dive log the diver keeps in another folder.
+  ///
+  /// The issue this answers (#2139) is a diver whose Mac database was damaged
+  /// on a fresh install: the backup registry was empty, so the screen offered
+  /// an empty folder and a Close button, while the dive log they actually use
+  /// sat in their iCloud Drive folder, reachable the whole time.
+  Future<void> _useAnotherFolder() async {
+    final String? folder;
+    try {
+      folder = (await widget.locationService.pickCustomFolder())?.path;
+    } catch (e) {
+      await _reportRecoveryProblem(null, detail: '$e');
+      return;
+    }
+    if (folder == null) return;
+
+    final inspection = await _recoveryService.inspectFolder(folder);
+    switch (inspection) {
+      // Naming both the file and the folder searched is deliberate: picking
+      // the folder ABOVE the one holding submersion.db is the mistake this
+      // step invites, and "nothing found" alone does not tell a diver that.
+      case NoDiveLogInFolder():
+        await _reportRecoveryProblem(
+          (l10n) => l10n.startup_recovery_noDiveLog_body(
+            folder!,
+            DatabaseLocationService.databaseFilename,
+          ),
+        );
+      case UnusableDiveLogInFolder():
+        await _reportRecoveryProblem(
+          (l10n) => l10n.startup_recovery_unusable_body(
+            p.join(folder!, DatabaseLocationService.databaseFilename),
+          ),
+        );
+      case final AdoptableDiveLog found:
+        final context = _dialogContext;
+        if (context == null || !context.mounted) return;
+        if (!await showAdoptDiveLogDialog(context, found)) return;
+        try {
+          await _recoveryService.adopt(found);
+        } catch (e) {
+          await _reportRecoveryProblem(null, detail: '$e');
+          return;
+        }
+        await _relaunchStartup();
+    }
+  }
+
+  /// Restores a backup file the diver picks by hand.
+  ///
+  /// The registry-backed card above can only offer backups THIS install took,
+  /// which on a fresh machine is none. A copy carried over from another
+  /// device is invisible to it however plainly it belongs to the diver.
+  Future<void> _restoreFromPickedFile() async {
+    final PlatformFile? picked;
+    try {
+      picked = await FilePicker.pickFile(type: FileType.any);
+    } catch (e) {
+      await _reportRecoveryProblem(null, detail: '$e');
+      return;
+    }
+
+    final path = picked?.path;
+    if (path == null) return;
+
+    // An encrypted backup needs the passphrase prompt, which lives behind the
+    // router. Saying so is the point: the swap below would otherwise copy
+    // ciphertext over the database and fail in a way that looks like a second
+    // corruption rather than a missing passphrase.
+    if (await BackupCrypto.isEncryptedBackup(path)) {
+      await _reportRecoveryProblem(
+        (l10n) => l10n.startup_recovery_encryptedBackup_body,
+      );
+      return;
+    }
+
+    // Validate BEFORE the swap. The registry's own records were checked when
+    // they were written; a hand-picked file has never been checked at all,
+    // and restore() leaves a file that fails its reopen in place.
+    final validation = await BackupService(
+      dbAdapter: DefaultBackupDatabaseAdapter(DatabaseService.instance),
+      preferences: BackupPreferences(widget.prefs),
+    ).validateBackupFile(path);
+    if (!validation.isValid) {
+      await _reportRecoveryProblem(
+        (l10n) => l10n.startup_recovery_unusable_body(path),
+        detail: validation.error,
+      );
+      return;
+    }
+
+    await _restoreAtStartup(path);
+  }
+
+  /// Sets the database that will not open aside and starts an empty one.
+  ///
+  /// The last resort, and still worth having: an app that opens at all puts
+  /// Backup & Restore and Database Storage back within reach, and both of
+  /// those can do far more for the diver than this screen ever will.
+  Future<void> _startFresh() async {
+    final confirmContext = _dialogContext;
+    if (confirmContext == null || !confirmContext.mounted) return;
+    if (!await showStartFreshDialog(confirmContext)) return;
+
+    final String movedTo;
+    try {
+      movedTo = await _recoveryService.setAsideUnreadableDatabase();
+    } catch (e) {
+      await _reportRecoveryProblem(null, detail: '$e');
+      return;
+    }
+
+    // Before the relaunch, not after. Once the app is up it looks to the
+    // diver like every dive they ever logged is gone, and by then this screen
+    // (and the path on it) is unreachable.
+    final doneContext = _dialogContext;
+    if (doneContext != null && doneContext.mounted) {
+      await showStartFreshDoneDialog(doneContext, movedTo);
+    }
+    await _relaunchStartup();
+  }
+
+  /// Runs startup again from the top after a recovery route changed something.
+  ///
+  /// From the top rather than resuming: the security gate and the schema
+  /// probe both have to run against whatever file is live now, exactly as
+  /// they would on an ordinary launch.
+  Future<void> _relaunchStartup() async {
+    if (!mounted) return;
+    setState(() {
+      _state = _StartupState.initializing;
+      _errorMessage = '';
+      _recoveryBackup = null;
+      _backupsDirectory = null;
+      _restoreStatus = StartupRestoreStatus.idle;
+      _restoreError = null;
+    });
+    await _runInitialization();
+  }
+
+  /// Shows [message] over the failure screen, with optional raw [detail].
+  ///
+  /// Takes a builder rather than a string because the l10n lookup needs a
+  /// context that only exists once the dialog route does.
+  Future<void> _reportRecoveryProblem(
+    String Function(AppLocalizations l10n)? message, {
+    String? detail,
+  }) async {
+    final context = _dialogContext;
+    if (context == null || !context.mounted) return;
+    await showRecoveryProblemDialog(
+      context,
+      message: message?.call(context.l10n),
+      detail: detail,
+    );
   }
 
   /// True where "show me that folder" means something. Mobile file managers
@@ -1662,6 +1852,9 @@ class _StartupWrapperState extends State<StartupWrapper>
           ? _showBackupsFolder
           : null,
       onViewPreviousReleases: _openPreviousReleases,
+      onUseAnotherFolder: _useAnotherFolder,
+      onRestoreFromFile: _restoreFromPickedFile,
+      onStartFresh: _startFresh,
       onClose: _closeApp,
     );
   }

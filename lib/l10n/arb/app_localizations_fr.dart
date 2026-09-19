@@ -38976,6 +38976,80 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher le dossier des sauvegardes';
 
   @override
+  String get startup_failure_moreWays_title => 'Autres moyens de revenir';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'Utiliser un carnet de plongée dans un autre dossier';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'Basculez vers un carnet de plongée que vous conservez déjà ailleurs, par exemple dans un dossier iCloud Drive ou Dropbox.';
+
+  @override
+  String get startup_failure_restoreFromFile =>
+      'Restaurer depuis un fichier de sauvegarde';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'Choisissez une sauvegarde Submersion n\'importe où sur cet appareil ou dans un dossier synchronisé.';
+
+  @override
+  String get startup_failure_startFresh => 'Commencer avec un carnet vide';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'Mettez le fichier endommagé de côté et repartez de zéro. Rien n\'est supprimé.';
+
+  @override
+  String get startup_recovery_adopt_title => 'Utiliser ce carnet de plongée ?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'Submersion ouvrira désormais ce carnet de plongée. Le fichier qui ne s\'ouvrait pas reste à sa place.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives plongées, $sites sites de plongée';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'Utiliser ce carnet';
+
+  @override
+  String get startup_recovery_startFresh_title =>
+      'Commencer avec un carnet vide ?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion déplace le fichier endommagé dans un dossier qui lui est propre et ouvre un carnet de plongée neuf et vide. Rien n\'est supprimé : vous pourrez réessayer l\'ancien fichier ou l\'envoyer à l\'assistance.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'Repartir de zéro';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'Votre carnet de plongée endommagé a été déplacé vers :\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'Cela n\'a pas fonctionné';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'Il n\'y a aucun fichier $filename dans $folder. Choisissez le dossier qui contient le fichier du carnet de plongée lui-même.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'Le carnet de plongée situé dans $path est endommagé, ou ce n\'est pas un carnet de plongée Submersion.';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'Cette sauvegarde est chiffrée. Submersion ne peut déverrouiller une sauvegarde chiffrée qu\'une fois l\'application ouverte : utilisez d\'abord l\'un des autres moyens proposés ici, puis restaurez-la depuis les Réglages, dans Sauvegarde et restauration.';
+
+  @override
   String get startup_failure_downgrade_title =>
       'Revenir à la version précédente';
 

@@ -36650,6 +36650,76 @@ class AppLocalizationsZh extends AppLocalizations {
   String get startup_failure_showBackupsFolder => '显示备份文件夹';
 
   @override
+  String get startup_failure_moreWays_title => '其他恢复方式';
+
+  @override
+  String get startup_failure_useAnotherFolder => '使用其他文件夹中的潜水日志';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      '切换到你已经存放在别处的潜水日志，例如 iCloud 云盘或 Dropbox 文件夹中的日志。';
+
+  @override
+  String get startup_failure_restoreFromFile => '从备份文件恢复';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      '从本设备的任意位置或同步文件夹中选择一个 Submersion 备份。';
+
+  @override
+  String get startup_failure_startFresh => '以空白潜水日志开始';
+
+  @override
+  String get startup_failure_startFresh_subtitle => '将损坏的文件移到一旁，重新开始。不会删除任何内容。';
+
+  @override
+  String get startup_recovery_adopt_title => '使用这个潜水日志？';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'Submersion 今后将打开这个潜水日志。无法打开的那个文件会留在原处。';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives 次潜水，$sites 个潜点';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => '使用这个日志';
+
+  @override
+  String get startup_recovery_startFresh_title => '以空白潜水日志开始？';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion 会把损坏的文件移入单独的文件夹，并打开一个全新的空白潜水日志。不会删除任何内容，你之后仍可再试旧文件或将其发送给支持人员。';
+
+  @override
+  String get startup_recovery_startFresh_confirm => '重新开始';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return '你损坏的潜水日志已移至：\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => '这没有奏效';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return '$folder 中没有 $filename。请选择包含潜水日志文件本身的那个文件夹。';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return '$path 中的潜水日志已损坏，或者它不是 Submersion 的潜水日志。';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      '该备份已加密。Submersion 只有在应用打开后才能解锁加密备份，因此请先使用这里的其他方式，然后在设置的备份与恢复中恢复它。';
+
+  @override
   String get startup_failure_downgrade_title => '回到上一个版本';
 
   @override

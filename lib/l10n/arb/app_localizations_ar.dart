@@ -38586,6 +38586,78 @@ class AppLocalizationsAr extends AppLocalizations {
   String get startup_failure_showBackupsFolder => 'إظهار مجلد النسخ الاحتياطية';
 
   @override
+  String get startup_failure_moreWays_title => 'طرق أخرى للعودة';
+
+  @override
+  String get startup_failure_useAnotherFolder => 'استخدام سجل غوص في مجلد آخر';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'انتقل إلى سجل غوص تحتفظ به بالفعل في مكان آخر، مثل مجلد في iCloud Drive أو Dropbox.';
+
+  @override
+  String get startup_failure_restoreFromFile =>
+      'الاستعادة من ملف نسخة احتياطية';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'اختر نسخة احتياطية من Submersion من أي مكان على هذا الجهاز أو في مجلد متزامن.';
+
+  @override
+  String get startup_failure_startFresh => 'البدء بسجل غوص فارغ';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'ضع الملف التالف جانبًا وابدأ من جديد. لا يُحذف أي شيء.';
+
+  @override
+  String get startup_recovery_adopt_title => 'استخدام سجل الغوص هذا؟';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'سيفتح Submersion سجل الغوص هذا من الآن فصاعدًا. أما الملف الذي تعذر فتحه فيبقى في مكانه.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives غطسة، $sites موقع غوص';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'استخدام هذا السجل';
+
+  @override
+  String get startup_recovery_startFresh_title => 'البدء بسجل غوص فارغ؟';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'ينقل Submersion الملف التالف إلى مجلد خاص به ويفتح سجل غوص جديدًا وفارغًا. لا يُحذف أي شيء، لذا يمكنك تجربة الملف القديم لاحقًا أو إرساله إلى الدعم.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'البدء من جديد';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'تم نقل سجل الغوص التالف إلى:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'لم ينجح ذلك';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'لا يوجد ملف $filename في $folder. اختر المجلد الذي يحتوي على ملف سجل الغوص نفسه.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'سجل الغوص في $path تالف، أو أنه ليس سجل غوص خاص بـ Submersion.';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'هذه النسخة الاحتياطية مشفَّرة. لا يستطيع Submersion فتح نسخة مشفَّرة إلا بعد تشغيل التطبيق، لذا استخدم إحدى الطرق الأخرى هنا أولًا ثم استعِدها من الإعدادات ضمن النسخ الاحتياطي والاستعادة.';
+
+  @override
   String get startup_failure_downgrade_title => 'العودة إلى الإصدار السابق';
 
   @override

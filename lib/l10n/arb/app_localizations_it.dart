@@ -38882,6 +38882,80 @@ class AppLocalizationsIt extends AppLocalizations {
   String get startup_failure_showBackupsFolder => 'Mostra cartella dei backup';
 
   @override
+  String get startup_failure_moreWays_title => 'Altri modi per rientrare';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'Usa un diario immersioni in un\'altra cartella';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'Passa a un diario immersioni che conservi già altrove, ad esempio in una cartella di iCloud Drive o Dropbox.';
+
+  @override
+  String get startup_failure_restoreFromFile =>
+      'Ripristina da un file di backup';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'Scegli un backup di Submersion da qualsiasi posizione su questo dispositivo o in una cartella sincronizzata.';
+
+  @override
+  String get startup_failure_startFresh => 'Inizia con un diario vuoto';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'Metti da parte il file danneggiato e ricomincia. Non viene eliminato nulla.';
+
+  @override
+  String get startup_recovery_adopt_title => 'Usare questo diario immersioni?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'Da ora Submersion aprirà questo diario immersioni. Il file che non si apriva resta dov\'è.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives immersioni, $sites siti di immersione';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'Usa questo diario';
+
+  @override
+  String get startup_recovery_startFresh_title =>
+      'Iniziare con un diario vuoto?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion sposta il file danneggiato in una cartella dedicata e apre un diario immersioni nuovo e vuoto. Non viene eliminato nulla, quindi potrai riprovare con il vecchio file o inviarlo all\'assistenza.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'Ricomincia';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'Il diario immersioni danneggiato è stato spostato in:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'Non ha funzionato';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'In $folder non c\'è alcun file $filename. Scegli la cartella che contiene il file del diario immersioni.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'Il diario immersioni in $path è danneggiato oppure non è un diario immersioni di Submersion.';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'Quel backup è cifrato. Submersion può sbloccare un backup cifrato solo ad app aperta, quindi usa prima una delle altre opzioni qui e poi ripristinalo dalle Impostazioni, in Backup e ripristino.';
+
+  @override
   String get startup_failure_downgrade_title =>
       'Tornare alla versione precedente';
 

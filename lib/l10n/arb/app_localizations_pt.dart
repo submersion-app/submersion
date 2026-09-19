@@ -38896,6 +38896,80 @@ class AppLocalizationsPt extends AppLocalizations {
   String get startup_failure_showBackupsFolder => 'Mostrar pasta das cópias';
 
   @override
+  String get startup_failure_moreWays_title => 'Outras formas de voltar';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'Usar um registo de mergulho noutra pasta';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'Mude para um registo de mergulho que já guarde noutro local, como uma pasta do iCloud Drive ou da Dropbox.';
+
+  @override
+  String get startup_failure_restoreFromFile =>
+      'Restaurar a partir de um ficheiro de cópia de segurança';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'Escolha uma cópia de segurança do Submersion em qualquer local deste dispositivo ou numa pasta sincronizada.';
+
+  @override
+  String get startup_failure_startFresh => 'Começar com um registo vazio';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'Ponha o ficheiro danificado de parte e comece de novo. Nada é eliminado.';
+
+  @override
+  String get startup_recovery_adopt_title => 'Usar este registo de mergulho?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'A partir de agora o Submersion abre este registo de mergulho. O ficheiro que não abria fica onde está.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives mergulhos, $sites locais de mergulho';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'Usar este registo';
+
+  @override
+  String get startup_recovery_startFresh_title =>
+      'Começar com um registo vazio?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'O Submersion move o ficheiro danificado para uma pasta própria e abre um registo de mergulho novo e vazio. Nada é eliminado, por isso ainda pode tentar o ficheiro antigo mais tarde ou enviá-lo para o suporte.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'Começar de novo';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'O seu registo de mergulho danificado foi movido para:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'Isso não resultou';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'Não existe nenhum $filename em $folder. Escolha a pasta que contém o próprio ficheiro do registo de mergulho.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'O registo de mergulho em $path está danificado ou não é um registo de mergulho do Submersion.';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'Essa cópia de segurança está cifrada. O Submersion só consegue desbloquear uma cópia cifrada com a aplicação aberta, por isso use primeiro uma das outras opções aqui e restaure-a depois nas Definições, em Cópia de segurança e restauro.';
+
+  @override
   String get startup_failure_downgrade_title => 'Voltar à versão anterior';
 
   @override
