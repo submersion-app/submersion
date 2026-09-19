@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_import/data/services/imported_file_recl
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
 import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
+import 'package:submersion/features/divers/data/repositories/diver_delete_steps.dart';
 import 'package:submersion/features/divers/data/repositories/diver_owned_rows.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
@@ -498,92 +499,30 @@ class DiverRepository {
           now: DateTime.now().millisecondsSinceEpoch,
         );
 
-        // Step 2: Delete dives (cascades: profiles, tanks, data_sources, etc.)
-        // stats-scope-exempt: deletion cascade. Deletes the diver's dives,
-        // excluded ones included.
-        await _db.customStatement('DELETE FROM dives WHERE diver_id = ?', [id]);
+        // Step 2: Delete and tombstone the diver's dives. Their children
+        // cascade here and, from each dive's tombstone, on a peer.
+        await deleteDiverRows(_db, _syncRepository, id, diverDiveSteps);
 
-        // Step 2b: Null out cross-diver FK references to sites/trips we're
-        // about to delete. Other divers may hold dives whose site_id or
-        // trip_id points at this diver's private (non-reassigned) records,
+        // Step 2b: Null out cross-diver FK references to the sites, trips
+        // and dive centers we're about to delete. Other divers may hold
+        // dives pointing at this diver's private (non-reassigned) records,
         // typically because those records were shared at one point before
         // being unshared. The schema does not cascade SET NULL on these
         // FKs, so without this step the upcoming DELETEs would violate the
         // foreign-key constraint.
-        final nullifyNow = DateTime.now().millisecondsSinceEpoch;
-        await clearDiveLinksToDiverCenters(
+        await clearDiveLinksToDiverRows(
           _db,
           _syncRepository,
           id,
-          now: nullifyNow,
+          now: DateTime.now().millisecondsSinceEpoch,
         );
 
-        final divesLosingSite = await _db
-            .customSelect(
-              // stats-scope-exempt: deletion cascade cleanup.
-              'SELECT id FROM dives WHERE site_id IN '
-              '(SELECT id FROM dive_sites WHERE diver_id = ?)',
-              variables: [Variable.withString(id)],
-            )
-            .get();
-        if (divesLosingSite.isNotEmpty) {
-          await _db.customStatement(
-            'UPDATE dives SET site_id = NULL, updated_at = ? '
-            'WHERE site_id IN (SELECT id FROM dive_sites WHERE diver_id = ?)',
-            [nullifyNow, id],
-          );
-          for (final row in divesLosingSite) {
-            await _syncRepository.markRecordPending(
-              entityType: 'dives',
-              recordId: row.data['id'] as String,
-              localUpdatedAt: nullifyNow,
-            );
-          }
-        }
+        // Step 3: Delete and tombstone the trips, with the children their
+        // own deletion tombstones, and the sites the diver still owns. The
+        // shared ones were reassigned in Step 0 and keep their children.
+        await deleteDiverRows(_db, _syncRepository, id, diverTripAndSiteSteps);
 
-        final divesLosingTrip = await _db
-            .customSelect(
-              // stats-scope-exempt: deletion cascade cleanup.
-              'SELECT id FROM dives WHERE trip_id IN '
-              '(SELECT id FROM trips WHERE diver_id = ?)',
-              variables: [Variable.withString(id)],
-            )
-            .get();
-        if (divesLosingTrip.isNotEmpty) {
-          await _db.customStatement(
-            'UPDATE dives SET trip_id = NULL, updated_at = ? '
-            'WHERE trip_id IN (SELECT id FROM trips WHERE diver_id = ?)',
-            [nullifyNow, id],
-          );
-          for (final row in divesLosingTrip) {
-            await _syncRepository.markRecordPending(
-              entityType: 'dives',
-              recordId: row.data['id'] as String,
-              localUpdatedAt: nullifyNow,
-            );
-          }
-        }
-
-        // Step 3: Delete trip children for remaining (non-reassigned) trips.
-        // Shared trips were reassigned out so their children survive with them.
-        await _db.customStatement(
-          'DELETE FROM liveaboard_detail_records WHERE trip_id IN '
-          '(SELECT id FROM trips WHERE diver_id = ?)',
-          [id],
-        );
-        await _db.customStatement(
-          'DELETE FROM trip_itinerary_days WHERE trip_id IN '
-          '(SELECT id FROM trips WHERE diver_id = ?)',
-          [id],
-        );
-        await deleteDiverTripChildren(_db, _syncRepository, id);
-
-        // Step 4: Delete remaining per-diver entities (private records only,
-        // since shared ones were reassigned in Step 0).
-        await _db.customStatement('DELETE FROM trips WHERE diver_id = ?', [id]);
-        await _db.customStatement('DELETE FROM dive_sites WHERE diver_id = ?', [
-          id,
-        ]);
+        // Step 4: Delete and tombstone the rest of the diver's library.
         // Other divers' surviving tanks can still link this diver's gear, as
         // the cylinder's item or its regulator. Cleared and staged with their
         // dives here: the cylinder link had no ON DELETE action before v210
@@ -594,9 +533,7 @@ class DiverRepository {
           await _idsOf('SELECT id FROM equipment WHERE diver_id = ?', [id]),
           now: DateTime.now().millisecondsSinceEpoch,
         );
-        await _db.customStatement('DELETE FROM equipment WHERE diver_id = ?', [
-          id,
-        ]);
+        await deleteDiverRows(_db, _syncRepository, id, diverGearSteps);
         // After the gear, so only surviving gear's schedules keep a kind.
         await retireDiverServiceKinds(
           _db,
@@ -605,26 +542,7 @@ class DiverRepository {
           survivorId: targetId,
           now: DateTime.now().millisecondsSinceEpoch,
         );
-        await _db.customStatement(
-          'DELETE FROM equipment_sets WHERE diver_id = ?',
-          [id],
-        );
-        await _db.customStatement('DELETE FROM buddies WHERE diver_id = ?', [
-          id,
-        ]);
-        await _db.customStatement(
-          'DELETE FROM certifications WHERE diver_id = ?',
-          [id],
-        );
-        await _db.customStatement(
-          'DELETE FROM dive_centers WHERE diver_id = ?',
-          [id],
-        );
-        await _db.customStatement('DELETE FROM tags WHERE diver_id = ?', [id]);
-        await _db.customStatement(
-          'DELETE FROM dive_types WHERE diver_id = ? AND is_built_in = 0',
-          [id],
-        );
+        await deleteDiverRows(_db, _syncRepository, id, diverLibrarySteps);
         // Custom site types go with their links, tombstoned: a link on
         // another diver's surviving site has no foreign key to cascade it.
         await deleteSiteTypesWithLinks(
@@ -634,18 +552,6 @@ class DiverRepository {
             'SELECT id FROM site_types WHERE diver_id = ? AND is_built_in = 0',
             [id],
           ),
-        );
-        await _db.customStatement(
-          'DELETE FROM tank_presets WHERE diver_id = ?',
-          [id],
-        );
-        await _db.customStatement(
-          'DELETE FROM dive_computers WHERE diver_id = ?',
-          [id],
-        );
-        await _db.customStatement(
-          'DELETE FROM diver_weight_entries WHERE diver_id = ?',
-          [id],
         );
 
         // Delete diver settings (not nullable, so delete instead of nullify).
