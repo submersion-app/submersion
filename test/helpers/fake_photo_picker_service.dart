@@ -78,17 +78,23 @@ class FakePhotoPickerService implements PhotoPickerService, GalleryAssetReader {
     return asset;
   }
 
+  /// Newest first, as [PhotoPickerService] documents: the resolver's
+  /// candidate order is part of the contract, so returning insertion order
+  /// would let a test pass on setup order alone.
   @override
   Future<List<AssetInfo>> getAssetsInDateRange(
     DateTime start,
     DateTime end,
-  ) async => [
-    for (final a in _assets.values)
-      if (_visible(a.id) != null &&
-          !a.takenAt.isBefore(start) &&
-          !a.takenAt.isAfter(end))
-        a.info,
-  ];
+  ) async {
+    final matches = [
+      for (final a in _assets.values)
+        if (_visible(a.id) != null &&
+            !a.takenAt.isBefore(start) &&
+            !a.takenAt.isAfter(end))
+          a,
+    ]..sort((a, b) => b.takenAt.compareTo(a.takenAt));
+    return [for (final a in matches) a.info];
+  }
 
   @override
   Future<Uint8List?> getThumbnail(String assetId, {int size = 200}) async =>
