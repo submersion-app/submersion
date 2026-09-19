@@ -254,8 +254,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
             onPressed: () => context.push('/equipment/$equipmentId/edit'),
           ),
           PopupMenuButton<String>(
-            onSelected: (value) =>
-                _handleMenuAction(context, ref, value, equipment),
+            onSelected: (value) => _handleMenuAction(context, ref, value),
             itemBuilder: (context) => _buildMenuItems(context),
           ),
         ],
@@ -327,8 +326,7 @@ class _EquipmentDetailContent extends ConsumerWidget {
           ),
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
-            onSelected: (value) =>
-                _handleMenuAction(context, ref, value, equipment),
+            onSelected: (value) => _handleMenuAction(context, ref, value),
             itemBuilder: (context) => _buildMenuItems(context),
           ),
         ],
@@ -893,7 +891,6 @@ class _EquipmentDetailContent extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     String action,
-    EquipmentItem equipment,
   ) async {
     final notifier = ref.read(equipmentListNotifierProvider.notifier);
 
