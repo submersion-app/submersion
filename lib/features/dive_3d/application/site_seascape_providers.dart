@@ -350,12 +350,20 @@ final siteSeascapePatchLayerProvider = FutureProvider.autoDispose
               base.resolutionMeters * _detailLimitResolutionRatio;
 
       return SiteSeascapePatchLayer(
-        // Depth-sorted together with the base terrain (not painted whole on
-        // top of it): the patch is a normal-sized terrain chunk, not a thin
-        // drape riding a much bigger triangle, so the plain centroid
-        // comparison partitionLayers already does is enough -- no
-        // MeshData.sortHeights override needed (see SceneLayer's doc).
-        layer: SceneLayer(mesh, drapedOnTerrain: true),
+        // NOT drapedOnTerrain: the patch fully overlaps a REGION of the base
+        // terrain (same footprint, finer grid), it doesn't ride alongside it
+        // the way a thin contour/wall drape does. Merging two independent,
+        // near-coplanar opaque surfaces into partitionLayers' per-triangle
+        // depth sort z-fights them (confirmed visually: a torn, flickering
+        // mix of both meshes' triangles). Painting the patch as a plain
+        // "rest" layer -- unconditionally on top, whole, after the merged
+        // group -- has no such artifact: the patch cleanly covers the base
+        // terrain underneath it. The tradeoff (documented, accepted): a
+        // draped contour/wall overlay drawn against the base terrain will
+        // not correctly hide behind the patch where the two overlap; that
+        // is a pre-existing limitation of the "two separate zones, no seam
+        // blending" design (see issue #2158), not a regression here.
+        layer: SceneLayer(mesh),
         stage: request.stage,
         detailLimitReached: detailLimitReached,
       );

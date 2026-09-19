@@ -142,9 +142,11 @@ void main() {
       expect(layer, isNull);
     });
 
-    test('the medium stage with a patch grid yields a layer, drapes it on the '
-        'terrain for shared depth sorting, and never flags the detail limit '
-        '(that heuristic only applies at the fine stage)', () async {
+    test('the medium stage with a patch grid yields a layer, paints it plain '
+        'on top of the base terrain rather than draping it (the patch '
+        'overlaps the base terrain\'s own footprint, so sharing the depth '
+        'sort z-fights the two), and never flags the detail limit (that '
+        'heuristic only applies at the fine stage)', () async {
       final c = patchContainer(patchGrid: finerGrid(2));
       final layer = await c.read(
         siteSeascapePatchLayerProvider((
@@ -155,7 +157,7 @@ void main() {
       expect(layer, isNotNull);
       expect(layer!.stage, BathymetryLodStage.medium);
       expect(layer.layer.mesh.positions, isNotEmpty);
-      expect(layer.layer.drapedOnTerrain, isTrue);
+      expect(layer.layer.drapedOnTerrain, isFalse);
       expect(layer.detailLimitReached, isFalse);
     });
 
