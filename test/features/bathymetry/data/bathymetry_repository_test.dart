@@ -66,6 +66,7 @@ class ScriptedSource implements BathymetrySource {
 /// which cached grid.
 class CenterRecordingSource implements BathymetrySource {
   final List<GeoPoint> centers = [];
+  double? lastSpanMeters;
 
   @override
   String get id => 'recorder';
@@ -79,6 +80,7 @@ class CenterRecordingSource implements BathymetrySource {
   @override
   Future<BathymetryGrid> fetch(GeoPoint c, {required double spanMeters}) async {
     centers.add(c);
+    lastSpanMeters = spanMeters;
     return BathymetryGrid(
       originLat: 0,
       originLon: 0,
@@ -316,6 +318,56 @@ void main() {
     final grid = await repo(source).getGrid(bonaire);
     expect(grid!.rows, lessThanOrEqualTo(120));
     expect(grid.cols, lessThanOrEqualTo(120));
+  });
+
+  group('getGridForSpan (additional LOD patch)', () {
+    test('keyFor with an explicit span differs from the base-square key', () {
+      final baseKey = BathymetryRepository.keyFor(bonaire);
+      final patchKey = BathymetryRepository.keyFor(bonaire, spanMeters: 500);
+      expect(patchKey, isNot(baseKey));
+      expect(patchKey, endsWith('@500v5'));
+      // Omitting spanMeters must reproduce the exact base-square key, so
+      // every already-cached base row keeps matching untouched.
+      expect(
+        BathymetryRepository.keyFor(
+          bonaire,
+          spanMeters: BathymetryResolver.defaultSpanMeters,
+        ),
+        baseKey,
+      );
+    });
+
+    test('fetches and caches independently of the base-square grid', () async {
+      final source = CenterRecordingSource();
+      final r = repo(source);
+
+      final base = await r.getGrid(bonaire);
+      final patch = await r.getGridForSpan(bonaire, 500);
+
+      expect(base, isNotNull);
+      expect(patch, isNotNull);
+      // Two distinct fetches (recorder tags resolutionMeters by call index).
+      expect(base!.resolutionMeters, isNot(patch!.resolutionMeters));
+      final rows = await db.select(db.bathymetryCache).get();
+      expect(rows, hasLength(2));
+    });
+
+    test('a second call for the same span reuses the cached row', () async {
+      final source = ScriptedSource(() => BathymetryResolution.ok(wetGrid()));
+      final r = repo(source);
+      final first = await r.getGridForSpan(bonaire, 2000);
+      final second = await r.getGridForSpan(bonaire, 2000);
+      expect(first, isNotNull);
+      expect(second!.depthsMeters, first!.depthsMeters);
+      expect(source.calls, 1);
+    });
+
+    test('passes the requested span through to the resolver/source', () async {
+      final source = CenterRecordingSource();
+      final r = repo(source);
+      await r.getGridForSpan(bonaire, 500);
+      expect(source.lastSpanMeters, 500);
+    });
   });
 
   test('the cache key carries the selection generation', () {

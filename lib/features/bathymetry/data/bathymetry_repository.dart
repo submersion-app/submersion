@@ -91,12 +91,17 @@ class BathymetryRepository {
     return (lat: q(c.latitude), lon: q(c.longitude));
   }
 
-  static String keyFor(GeoPoint c) {
+  static String keyFor(GeoPoint c, {double? spanMeters}) {
     // The span AND the selection generation are part of the key: cached
     // rows never expire, so any change that would resolve a coordinate
     // differently must miss the old rows and refetch. Stale rows are inert
     // leftovers in this local-only cache.
-    final span = BathymetryResolver.defaultSpanMeters.round();
+    //
+    // Defaulting to [BathymetryResolver.defaultSpanMeters] when [spanMeters]
+    // is omitted keeps every existing base-square cache key byte-for-byte
+    // unchanged; only an explicit (smaller) LOD-patch span produces a
+    // different, additional key.
+    final span = (spanMeters ?? BathymetryResolver.defaultSpanMeters).round();
     final lake = findSwissLake(c);
     if (lake != null) {
       // The lake's OWN mean level rides along in the key, not just
@@ -140,7 +145,21 @@ class BathymetryRepository {
 
   Future<BathymetryGrid?> getGrid(GeoPoint center) {
     final key = keyFor(center);
-    return _inFlight[key] ??= _guardedLoad(key, center)
+    return _inFlight[key] ??= _guardedLoad(
+      key,
+      center,
+      BathymetryResolver.defaultSpanMeters,
+    )..whenComplete(() => _inFlight.remove(key));
+  }
+
+  /// A smaller, additional LOD patch grid around [center] -- e.g. the
+  /// `medium`/`fine` stages in `bathymetry_lod.dart` -- fetched and cached
+  /// independently of the always-loaded [defaultSpanMeters] base square.
+  /// Shares every cache/dedup/quantization/downsample rule with [getGrid];
+  /// only the span (and so the cache key) differs.
+  Future<BathymetryGrid?> getGridForSpan(GeoPoint center, double spanMeters) {
+    final key = keyFor(center, spanMeters: spanMeters);
+    return _inFlight[key] ??= _guardedLoad(key, center, spanMeters)
       ..whenComplete(() => _inFlight.remove(key));
   }
 
@@ -165,9 +184,13 @@ class BathymetryRepository {
   /// installed release/beta app can never be — only that the user (or a
   /// support conversation walking them through it) flips Debug-Modus on in
   /// Settings before reproducing, in any build.
-  Future<BathymetryGrid?> _guardedLoad(String key, GeoPoint center) async {
+  Future<BathymetryGrid?> _guardedLoad(
+    String key,
+    GeoPoint center,
+    double spanMeters,
+  ) async {
     try {
-      return await _load(key, center);
+      return await _load(key, center, spanMeters);
     } catch (e, stackTrace) {
       _log.warning(
         'getGrid($key) degraded to null',
@@ -178,7 +201,11 @@ class BathymetryRepository {
     }
   }
 
-  Future<BathymetryGrid?> _load(String key, GeoPoint center) async {
+  Future<BathymetryGrid?> _load(
+    String key,
+    GeoPoint center,
+    double spanMeters,
+  ) async {
     final row = await (_db.select(
       _db.bathymetryCache,
     )..where((t) => t.cacheKey.equals(key))).getSingleOrNull();
@@ -214,7 +241,7 @@ class BathymetryRepository {
     final fetchCenter = quantum > 0
         ? GeoPoint(q.lat + quantum / 2, q.lon + quantum / 2)
         : center;
-    final res = await _resolver.resolve(fetchCenter);
+    final res = await _resolver.resolve(fetchCenter, spanMeters: spanMeters);
     final resolved = res.grid;
     if (resolved != null) {
       final grid = resolved.downsampleTo(maxGridDim);

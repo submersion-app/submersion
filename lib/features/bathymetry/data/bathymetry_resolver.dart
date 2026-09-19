@@ -50,12 +50,22 @@ class BathymetryResolver {
 
   const BathymetryResolver({required this.sources});
 
-  Future<BathymetryResolution> resolve(GeoPoint center) async {
+  /// [spanMeters] defaults to [defaultSpanMeters] (the always-loaded 8 km
+  /// base square). Callers building a smaller, additional LOD patch pass a
+  /// narrower span explicitly; every source-quality gate below (known-
+  /// fraction floor, wet-fraction floor) applies identically regardless of
+  /// span, so a patch source that cannot actually deliver finer detail is
+  /// rejected the same way the base fetch would reject it.
+  Future<BathymetryResolution> resolve(
+    GeoPoint center, {
+    double? spanMeters,
+  }) async {
+    final span = spanMeters ?? defaultSpanMeters;
     final ordered = await _order(center);
     var globalSourceSaidDry = false;
     for (final source in ordered) {
       try {
-        final grid = await source.fetch(center, spanMeters: defaultSpanMeters);
+        final grid = await source.fetch(center, spanMeters: span);
         if (grid.knownFraction < source.minKnownFraction) {
           // Nominally fine, actually absent. Deliberately NOT treated as a
           // dry answer: a grid this empty proves nothing about the water,
