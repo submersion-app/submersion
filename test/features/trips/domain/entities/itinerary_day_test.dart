@@ -123,5 +123,57 @@ void main() {
       expect(days[0].dayType, DayType.embark);
       expect(days[1].dayType, DayType.disembark);
     });
+
+    // A local calendar day is 23 hours at a spring-forward and 25 at a
+    // fall-back, so elapsed-time arithmetic (`Duration.inDays`, which floors)
+    // drops or invents a day for any trip spanning a transition. Both windows
+    // below are pinned to explicit calendar dates: a window built from
+    // `DateTime.now()` plus a `Duration` only crosses a transition for part of
+    // the year, so it would leave this unguarded most of the time.
+    test('counts calendar days across a fall-back DST boundary', () {
+      // US DST ends 2026-11-01, making that a 25-hour local day (73 elapsed
+      // hours over the window, which elapsed-time rounding must not read as 5).
+      final days = ItineraryDay.generateForTrip(
+        tripId: 'trip-1',
+        startDate: DateTime(2026, 10, 30),
+        endDate: DateTime(2026, 11, 2),
+      );
+
+      expect(days, hasLength(4));
+      expect(days.map((d) => d.date), [
+        DateTime(2026, 10, 30),
+        DateTime(2026, 10, 31),
+        DateTime(2026, 11, 1),
+        DateTime(2026, 11, 2),
+      ]);
+      expect(days.map((d) => d.dayNumber), [1, 2, 3, 4]);
+      expect(days.first.dayType, DayType.embark);
+      expect(days[1].dayType, DayType.diveDay);
+      expect(days[2].dayType, DayType.diveDay);
+      expect(days.last.dayType, DayType.disembark);
+    });
+
+    test('counts calendar days across a spring-forward DST boundary', () {
+      // US DST starts 2027-03-14, making that a 23-hour local day (71 elapsed
+      // hours over the window, which would floor to 3 days instead of 4).
+      final days = ItineraryDay.generateForTrip(
+        tripId: 'trip-1',
+        startDate: DateTime(2027, 3, 12),
+        endDate: DateTime(2027, 3, 15),
+      );
+
+      expect(days, hasLength(4));
+      expect(days.map((d) => d.date), [
+        DateTime(2027, 3, 12),
+        DateTime(2027, 3, 13),
+        DateTime(2027, 3, 14),
+        DateTime(2027, 3, 15),
+      ]);
+      expect(days.map((d) => d.dayNumber), [1, 2, 3, 4]);
+      expect(days.first.dayType, DayType.embark);
+      expect(days[1].dayType, DayType.diveDay);
+      expect(days[2].dayType, DayType.diveDay);
+      expect(days.last.dayType, DayType.disembark);
+    });
   });
 }
