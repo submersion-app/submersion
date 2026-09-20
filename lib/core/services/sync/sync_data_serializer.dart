@@ -1308,14 +1308,25 @@ class SyncDataSerializer {
         await writeData('${jsonEncode(spec.key)}:[');
         var firstRow = true;
 
+        // Fact clocks count toward the base's high-water mark as well as the
+        // row clock (media sync program spec 5.1): a base whose newest change
+        // is a fact write would otherwise leave the watermark below that
+        // clock, and the first incremental after it would re-publish the row
+        // for nothing.
+        final factClockKeys = [
+          for (final g in SyncFactGroups.of(spec.key)) g.clockKey,
+        ];
+
         Future<void> emit(Map<String, dynamic> row) async {
           if (!firstRow) await writeData(',');
           firstRow = false;
           rowCount++;
-          final hlc = row['hlc'];
-          if (hlc is String &&
-              (maxRowHlc == null || hlc.compareTo(maxRowHlc!) > 0)) {
-            maxRowHlc = hlc;
+          for (final key in ['hlc', ...factClockKeys]) {
+            final clock = row[key];
+            if (clock is String &&
+                (maxRowHlc == null || clock.compareTo(maxRowHlc!) > 0)) {
+              maxRowHlc = clock;
+            }
           }
           await writeData(jsonEncode(row));
         }

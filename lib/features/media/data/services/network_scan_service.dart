@@ -216,11 +216,15 @@ class NetworkScanService {
   /// [row] is this scan's snapshot, and an upload that finished since it was
   /// taken has stamped the row, so a whole-row write would roll those stamps
   /// back. It also keeps the verification facts under their own clock.
+  ///
+  /// [MediaRepository.stampVerification] rather than `markVerified`: this
+  /// method's contract is that every scan records when it looked, and
+  /// markVerified is a deliberate no-op when the flag already agrees.
   Future<void> _persistResult(MediaItem row, {required bool reachable}) {
-    return _repository.markVerified(
+    return _repository.stampVerification(
       row.id,
-      isOrphaned: !reachable,
       verifiedAt: clock.now(),
+      isOrphaned: !reachable,
     );
   }
 

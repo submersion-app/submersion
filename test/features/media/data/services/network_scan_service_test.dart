@@ -11,7 +11,7 @@
 //   `listen(events.add).asFuture<NetworkScanProgress?>(null)` pattern. We
 //   replace it with the simpler `await for ... in svc.scanAll()` loop used
 //   by the rest of the tests; the assertion is the same (mockRepo's
-//   `markVerified` was called with the expected verdict).
+//   `stampVerification` was called with the expected verdict).
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -51,7 +51,7 @@ void main() {
     );
     when(mockCreds.headersFor(any)).thenAnswer((_) async => null);
     when(
-      mockRepo.markVerified(
+      mockRepo.stampVerification(
         any,
         isOrphaned: anyNamed('isOrphaned'),
         verifiedAt: anyNamed('verifiedAt'),
@@ -114,10 +114,10 @@ void main() {
     // The narrow verification write, not a whole-row update: the scan's
     // snapshot would roll back an upload stamp made since it was taken.
     verify(
-      mockRepo.markVerified(
+      mockRepo.stampVerification(
         'a',
-        isOrphaned: false,
         verifiedAt: anyNamed('verifiedAt'),
+        isOrphaned: false,
       ),
     ).called(1);
   });
@@ -148,10 +148,10 @@ void main() {
     await svc.scanAll().drain<void>();
 
     verify(
-      mockRepo.markVerified(
+      mockRepo.stampVerification(
         'b',
-        isOrphaned: true,
         verifiedAt: anyNamed('verifiedAt'),
+        isOrphaned: true,
       ),
     ).called(1);
   });
@@ -194,10 +194,10 @@ void main() {
     expect(sawGet, isTrue);
 
     verify(
-      mockRepo.markVerified(
+      mockRepo.stampVerification(
         'c',
-        isOrphaned: false,
         verifiedAt: anyNamed('verifiedAt'),
+        isOrphaned: false,
       ),
     ).called(1);
   });
@@ -242,7 +242,7 @@ void main() {
     expect(events.last.available, 1);
     expect(events.last.unreachable, 1);
     verify(
-      mockRepo.markVerified(
+      mockRepo.stampVerification(
         any,
         isOrphaned: anyNamed('isOrphaned'),
         verifiedAt: anyNamed('verifiedAt'),
@@ -283,7 +283,7 @@ void main() {
     expect(report.available, 1);
     expect(report.unreachable, 0);
     verify(
-      mockRepo.markVerified(
+      mockRepo.stampVerification(
         any,
         isOrphaned: anyNamed('isOrphaned'),
         verifiedAt: anyNamed('verifiedAt'),
