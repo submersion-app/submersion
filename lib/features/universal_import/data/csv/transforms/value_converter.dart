@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:intl/intl.dart';
 
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/universal_import/data/csv/transforms/dive_type_mapper.dart';
 import 'package:submersion/features/universal_import/data/csv/transforms/unit_detector.dart';
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 
@@ -156,54 +157,13 @@ class ValueConverter {
   }
 
   // ---------------------------------------------------------------------------
-  /// Map a free-text dive type string to a canonical identifier.
+  /// Map a free-text dive type string to a dive type id.
   ///
-  /// Known mappings (case-insensitive, matched by keyword):
-  /// - training / student / course → 'training'
-  /// - night → 'night'
-  /// - deep → 'deep'
-  /// - wreck → 'wreck'
-  /// - drift → 'drift'
-  /// - cavern → 'cavern'
-  /// - cave → 'cave'
-  /// - technical / tec → 'technical'
-  /// - freedive / free dive / apnea → 'freedive'
-  /// - ice → 'ice'
-  /// - altitude → 'altitude'
-  /// - shore / beach → 'shore'
-  /// - boat → 'boat'
-  /// - liveaboard → 'liveaboard'
-  ///
-  /// Returns 'recreational' for null, empty, or unrecognised input.
-  String parseDiveType(String? raw) {
-    if (raw == null || raw.trim().isEmpty) return 'recreational';
-    final s = raw.trim().toLowerCase();
-
-    if (s.contains('training') ||
-        s.contains('student') ||
-        s.contains('course')) {
-      return 'training';
-    }
-    if (s.contains('night')) return 'night';
-    if (s.contains('deep')) return 'deep';
-    if (s.contains('wreck')) return 'wreck';
-    if (s.contains('drift')) return 'drift';
-    if (s.contains('cavern')) return 'cavern';
-    if (s.contains('cave')) return 'cave';
-    if (s.contains('technical') || s.contains('tec')) return 'technical';
-    if (s.contains('freedive') ||
-        s.contains('free dive') ||
-        s.contains('apnea')) {
-      return 'freedive';
-    }
-    if (s.contains('ice')) return 'ice';
-    if (s.contains('altitude')) return 'altitude';
-    if (s.contains('shore') || s.contains('beach')) return 'shore';
-    if (s.contains('boat')) return 'boat';
-    if (s.contains('liveaboard')) return 'liveaboard';
-
-    return 'recreational';
-  }
+  /// Delegates to the shared [mapDiveType] ladder, which every importer that
+  /// reads a single free-text dive type cell uses. See that function for the
+  /// keyword list, the orderings that are load-bearing, and why an
+  /// unrecognised value is preserved rather than recorded as 'recreational'.
+  String parseDiveType(String? raw) => mapDiveType(raw);
 
   // ---------------------------------------------------------------------------
   /// Parse a dive's types from Submersion's CSV: the [names] cell ("Night;
@@ -382,6 +342,7 @@ class ValueTransformService {
       ValueTransform.hmsToSeconds => hmsToSeconds(value),
       ValueTransform.visibilityScale => parseVisibilityScale(value),
       ValueTransform.diveTypeMap => parseDiveType(value),
+      ValueTransform.diveModeMap => mapCsvDiveType(value),
       ValueTransform.ratingScale => normalizeRating(value),
     };
   }
@@ -488,26 +449,10 @@ class ValueTransformService {
   }
 
   /// Map dive type text to Submersion's dive type identifiers.
-  String parseDiveType(String value) {
-    final lower = value.toLowerCase().trim();
-    if (lower.contains('training') || lower.contains('course')) {
-      return 'training';
-    }
-    if (lower.contains('night')) return 'night';
-    if (lower.contains('deep')) return 'deep';
-    if (lower.contains('wreck')) return 'wreck';
-    if (lower.contains('drift')) return 'drift';
-    if (lower.contains('cavern')) return 'cavern';
-    if (lower.contains('cave')) return 'cave';
-    if (lower.contains('tech')) return 'technical';
-    if (lower.contains('free')) return 'freedive';
-    if (lower.contains('ice')) return 'ice';
-    if (lower.contains('altitude')) return 'altitude';
-    if (lower.contains('shore')) return 'shore';
-    if (lower.contains('boat')) return 'boat';
-    if (lower.contains('liveaboard')) return 'liveaboard';
-    return 'recreational';
-  }
+  ///
+  /// Delegates to the shared [mapDiveType] ladder; see [ValueConverter
+  /// .parseDiveType].
+  String parseDiveType(String value) => mapDiveType(value);
 
   /// Normalize rating from various scales to 1-5.
   int? normalizeRating(String value) {

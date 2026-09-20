@@ -104,7 +104,7 @@ void main() {
     });
 
     test(
-      'a start and end pair still defaults the dive type to technical',
+      'a start and end pair no longer changes the dive type (#1513)',
       () async {
         final computerId = await insertComputer();
 
@@ -124,7 +124,7 @@ void main() {
         final dive = await (db.select(
           db.dives,
         )..where((t) => t.id.equals(diveId))).getSingle();
-        expect(dive.diveType, 'technical');
+        expect(dive.diveType, 'recreational');
       },
     );
   });

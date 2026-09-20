@@ -13,6 +13,7 @@ import 'package:submersion/core/services/export/uddf/uddf_export_builders.dart';
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_site_feature_writers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_source_export.dart';
@@ -236,6 +237,12 @@ class UddfExportService {
                       siteTypeIds:
                           extras.siteTypeIdsBySite[site.id] ?? const [],
                       tagIds: extras.siteTagIdsBySite[site.id] ?? const [],
+                    );
+                    // Shared with it too (#2200), so the two site builders
+                    // cannot drift apart over features either.
+                    UddfSiteFeatureWriters.writeSiteFeatures(
+                      builder,
+                      extras.siteFeaturesBySite[site.id] ?? const [],
                     );
                   },
                 );

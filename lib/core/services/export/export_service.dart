@@ -38,6 +38,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -90,7 +91,16 @@ class ExportService {
   Future<String> exportSitesToCsv(
     List<DiveSite> sites, {
     CsvExportUnits units = CsvExportUnits.metric,
-  }) => _csv.exportSitesToCsv(sites, units: units);
+    Map<String, List<SiteFeature>> featuresBySite = const {},
+    Map<String, List<String>> typeNamesBySite = const {},
+    Map<String, List<String>> tagNamesBySite = const {},
+  }) => _csv.exportSitesToCsv(
+    sites,
+    units: units,
+    featuresBySite: featuresBySite,
+    typeNamesBySite: typeNamesBySite,
+    tagNamesBySite: tagNamesBySite,
+  );
 
   Future<String> exportEquipmentToCsv(
     List<EquipmentItem> equipment, {
@@ -120,7 +130,16 @@ class ExportService {
   String generateSitesCsvContent(
     List<DiveSite> sites, {
     CsvExportUnits units = CsvExportUnits.metric,
-  }) => _csv.generateSitesCsvContent(sites, units: units);
+    Map<String, List<SiteFeature>> featuresBySite = const {},
+    Map<String, List<String>> typeNamesBySite = const {},
+    Map<String, List<String>> tagNamesBySite = const {},
+  }) => _csv.generateSitesCsvContent(
+    sites,
+    units: units,
+    featuresBySite: featuresBySite,
+    typeNamesBySite: typeNamesBySite,
+    tagNamesBySite: tagNamesBySite,
+  );
 
   String generateEquipmentCsvContent(
     List<EquipmentItem> equipment, {
@@ -152,7 +171,17 @@ class ExportService {
     List<DiveSite> sites, {
     required String dialogTitle,
     CsvExportUnits units = CsvExportUnits.metric,
-  }) => _csv.saveSitesCsvToFile(sites, dialogTitle: dialogTitle, units: units);
+    Map<String, List<SiteFeature>> featuresBySite = const {},
+    Map<String, List<String>> typeNamesBySite = const {},
+    Map<String, List<String>> tagNamesBySite = const {},
+  }) => _csv.saveSitesCsvToFile(
+    sites,
+    dialogTitle: dialogTitle,
+    units: units,
+    featuresBySite: featuresBySite,
+    typeNamesBySite: typeNamesBySite,
+    tagNamesBySite: tagNamesBySite,
+  );
 
   Future<String?> saveEquipmentCsvToFile(
     List<EquipmentItem> equipment, {
@@ -505,6 +534,8 @@ class ExportService {
     List<SiteTypeEntity>? customSiteTypes,
     Map<String, List<String>> siteTypeIdsBySite = const {},
     Map<String, List<String>> siteTagIdsBySite = const {},
+    // Each exported site's own features (issue #2200).
+    Map<String, List<SiteFeature>> siteFeaturesBySite = const {},
     // Each exported item's tag ids (issue #1942).
     Map<String, List<String>> equipmentTagIdsByItem = const {},
     List<DiveRole>? customDiveRoles,
@@ -538,6 +569,7 @@ class ExportService {
     customSiteTypes: customSiteTypes,
     siteTypeIdsBySite: siteTypeIdsBySite,
     siteTagIdsBySite: siteTagIdsBySite,
+    siteFeaturesBySite: siteFeaturesBySite,
     equipmentTagIdsByItem: equipmentTagIdsByItem,
     customDiveRoles: customDiveRoles,
     diveComputers: diveComputers,
@@ -572,6 +604,8 @@ class ExportService {
     List<SiteTypeEntity>? customSiteTypes,
     Map<String, List<String>> siteTypeIdsBySite = const {},
     Map<String, List<String>> siteTagIdsBySite = const {},
+    // Each exported site's own features (issue #2200).
+    Map<String, List<SiteFeature>> siteFeaturesBySite = const {},
     // Each exported item's tag ids (issue #1942).
     Map<String, List<String>> equipmentTagIdsByItem = const {},
     List<DiveRole>? customDiveRoles,
@@ -605,6 +639,7 @@ class ExportService {
     customSiteTypes: customSiteTypes,
     siteTypeIdsBySite: siteTypeIdsBySite,
     siteTagIdsBySite: siteTagIdsBySite,
+    siteFeaturesBySite: siteFeaturesBySite,
     equipmentTagIdsByItem: equipmentTagIdsByItem,
     customDiveRoles: customDiveRoles,
     diveComputers: diveComputers,
