@@ -240,6 +240,58 @@ void main() {
   );
 
   testWidgets(
+    'shows no remaining-time estimate once every site is done, instead of '
+    'rounding an empty queue up to "about 1 second remaining" (regression: '
+    'the formatter clamped a genuine zero to one)',
+    (tester) async {
+      final startGate = Completer<void>();
+      await pumpPage(
+        tester,
+        extraOverrides: [
+          bathymetryRepositoryProvider.overrideWithValue(null),
+          swissBathyTileCacheRepositoryProvider.overrideWithValue(null),
+          knownDiveSiteLocationsProvider.overrideWith((ref) async => const []),
+          mapReloadProvider.overrideWith(
+            (ref) => _FakeMapReloadNotifier(
+              ref,
+              onStart: (self) async {
+                // The last site has completed but the run has not torn down
+                // yet, so the progress card is still on screen with nothing
+                // left to wait for.
+                self.setTestState(
+                  self.state.copyWith(
+                    isRunning: true,
+                    total: 2,
+                    completed: 2,
+                    startedAt: DateTime.now().subtract(
+                      const Duration(seconds: 4),
+                    ),
+                  ),
+                );
+                await startGate.future;
+                self.setTestState(self.state.copyWith(isRunning: false));
+              },
+            ),
+          ),
+        ],
+      );
+
+      await tester.tap(find.text('Reload map data'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Reload'));
+      await tester.pump();
+
+      expect(find.text('2 of 2 dive sites'), findsOneWidget);
+      expect(find.text('about 1 second remaining'), findsNothing);
+      expect(find.textContaining('second remaining'), findsNothing);
+      expect(find.textContaining('seconds remaining'), findsNothing);
+
+      startGate.complete();
+      await tester.pumpAndSettle();
+    },
+  );
+
+  testWidgets(
     'shows the warming-phase text while lakes are being warmed, and a '
     'failure message when the reload throws',
     (tester) async {

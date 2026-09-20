@@ -29,11 +29,9 @@ void main() {
             home: Builder(
               builder: (context) => Scaffold(
                 body: Center(
-                  child: Consumer(
-                    builder: (context, ref, _) => ElevatedButton(
-                      onPressed: () => showMapReloadConfirmDialog(context, ref),
-                      child: const Text('open'),
-                    ),
+                  child: ElevatedButton(
+                    onPressed: () => showMapReloadConfirmDialog(context),
+                    child: const Text('open'),
                   ),
                 ),
               ),
@@ -81,13 +79,11 @@ void main() {
           home: Builder(
             builder: (context) => Scaffold(
               body: Center(
-                child: Consumer(
-                  builder: (context, ref, _) => ElevatedButton(
-                    onPressed: () async {
-                      result = await showMapReloadConfirmDialog(context, ref);
-                    },
-                    child: const Text('open'),
-                  ),
+                child: ElevatedButton(
+                  onPressed: () async {
+                    result = await showMapReloadConfirmDialog(context);
+                  },
+                  child: const Text('open'),
                 ),
               ),
             ),
@@ -124,11 +120,9 @@ void main() {
             home: Builder(
               builder: (context) => Scaffold(
                 body: Center(
-                  child: Consumer(
-                    builder: (context, ref, _) => ElevatedButton(
-                      onPressed: () => showMapReloadConfirmDialog(context, ref),
-                      child: const Text('open'),
-                    ),
+                  child: ElevatedButton(
+                    onPressed: () => showMapReloadConfirmDialog(context),
+                    child: const Text('open'),
                   ),
                 ),
               ),
@@ -167,11 +161,9 @@ void main() {
           home: Builder(
             builder: (context) => Scaffold(
               body: Center(
-                child: Consumer(
-                  builder: (context, ref, _) => ElevatedButton(
-                    onPressed: () => showMapReloadConfirmDialog(context, ref),
-                    child: const Text('open'),
-                  ),
+                child: ElevatedButton(
+                  onPressed: () => showMapReloadConfirmDialog(context),
+                  child: const Text('open'),
                 ),
               ),
             ),

@@ -102,7 +102,7 @@ class _ThreeDMapsPageState extends ConsumerState<ThreeDMapsPage> {
   }
 
   Future<void> _startReload() async {
-    final confirmed = await showMapReloadConfirmDialog(context, ref);
+    final confirmed = await showMapReloadConfirmDialog(context);
     if (confirmed != true || !mounted) return;
     await ref.read(mapReloadProvider.notifier).start();
     if (!mounted) return;
@@ -271,6 +271,12 @@ class _ReloadProgress extends ConsumerWidget {
 
   String? _formatRemaining(BuildContext context, Duration? remaining) {
     if (remaining == null) return null;
+    // Both estimators above report Duration.zero once their queue is
+    // empty, and the clamp below would round that up to "about 1 second
+    // remaining" -- reading as work still to come when there is none
+    // (found by code review). The clamp is there to stop a sub-second
+    // estimate showing as zero, not to invent a wait out of nothing.
+    if (remaining <= Duration.zero) return null;
     if (remaining.inMinutes >= 1) {
       return context.l10n.maps3d_reload_remainingMinutes(remaining.inMinutes);
     }

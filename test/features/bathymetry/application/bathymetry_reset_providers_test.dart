@@ -208,6 +208,46 @@ void main() {
       expect(state.completed, 0);
     });
 
+    test('refreshes the known-site list instead of reusing the one already '
+        'cached for the session, so a dive site added (or pulled in by sync) '
+        'after the list was last read is still reloaded (regression: found by '
+        'code review -- start() read the memoized value)', () async {
+      final source = TaggedSource('gmrt');
+      final repo = BathymetryRepository(
+        db: db,
+        resolver: BathymetryResolver(sources: [source]),
+      );
+      // Mutated between the priming read and start(), standing in for a
+      // dive site that appears while the app is already running.
+      final sites = <GeoPoint>[betlis];
+      final container = ProviderContainer(
+        overrides: [
+          bathymetryRepositoryProvider.overrideWithValue(repo),
+          swissBathyTileCacheRepositoryProvider.overrideWithValue(
+            SwissBathyTileCacheRepository(db),
+          ),
+          knownDiveSiteLocationsProvider.overrideWith(
+            (ref) async => List<GeoPoint>.of(sites),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      // Primes the provider's cache the way the confirmation dialog's own
+      // estimate does, before the diver ever presses Reload.
+      expect(await container.read(knownDiveSiteLocationsProvider.future), [
+        betlis,
+      ]);
+      sites.add(bonaire);
+
+      await container.read(mapReloadProvider.notifier).start();
+
+      final state = container.read(mapReloadProvider);
+      expect(state.total, 2);
+      expect(state.completed, 2);
+      expect(source.calls, 2);
+    });
+
     test('clears both caches, then re-fetches every known site', () async {
       final source = TaggedSource('gmrt');
       final repo = BathymetryRepository(

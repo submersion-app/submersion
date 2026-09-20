@@ -11,7 +11,11 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// the diver can back out with nothing changed.
 ///
 /// Returns `true` if the diver confirmed, `false`/`null` otherwise.
-Future<bool?> showMapReloadConfirmDialog(BuildContext context, WidgetRef ref) {
+///
+/// Takes no [WidgetRef]: the estimate is watched by the inner [Consumer],
+/// whose own ref is scoped to the dialog's route and so survives the
+/// caller being disposed while the dialog is still open.
+Future<bool?> showMapReloadConfirmDialog(BuildContext context) {
   return showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(

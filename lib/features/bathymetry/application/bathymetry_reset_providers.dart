@@ -248,7 +248,14 @@ class MapReloadNotifier extends StateNotifier<MapReloadState> {
         await _ref.read(swissBathyClearProvider)();
         await _ref.read(bathymetryOtherSourcesClearProvider)();
 
-        final sites = await _ref.read(knownDiveSiteLocationsProvider.future);
+        // refresh, not read: this FutureProvider memoizes its list for the
+        // whole app session, so a dive site added or pulled in by sync
+        // since the last read would be silently left out of the reload --
+        // the very sites a diver is most likely to be reloading for
+        // (found by code review). The sibling pre-cache path never had
+        // this problem: it calls the underlying query directly rather
+        // than through the memoizing wrapper.
+        final sites = await _ref.refresh(knownDiveSiteLocationsProvider.future);
         final repo = _ref.read(bathymetryRepositoryProvider);
         if (repo == null) {
           // The clears above and every getGrid() call below silently no-op
