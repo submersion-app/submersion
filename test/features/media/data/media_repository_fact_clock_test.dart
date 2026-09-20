@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -114,13 +115,29 @@ void main() {
     });
   }
 
-  test('republishForSync moves only the fact clocks', () async {
+  test('republishForSync moves the upload clock alone by default', () async {
+    // The one caller repairs lost upload stamps. Re-clocking verification
+    // too would hand this device's stale isOrphaned and lastVerifiedAt a
+    // brand-new clock and beat a peer's newer observation of the same file.
     final before = await clocks();
     await Future<void>.delayed(const Duration(milliseconds: 2));
     await repo.republishForSync([id]);
     final after = await clocks();
     expect(after['row'], before['row']);
     expect(later(after['upload'], before['upload']), isTrue);
+    expect(after['verify'], before['verify']);
+  });
+
+  test('republishForSync re-sends verification when asked for it', () async {
+    final before = await clocks();
+    await Future<void>.delayed(const Duration(milliseconds: 2));
+    await repo.republishForSync(
+      [id],
+      groups: const [SyncFactGroups.mediaVerification],
+    );
+    final after = await clocks();
+    expect(after['row'], before['row']);
+    expect(after['upload'], before['upload']);
     expect(later(after['verify'], before['verify']), isTrue);
   });
 
@@ -157,7 +174,10 @@ void main() {
     },
   );
 
-  test('a whole-row write stamps the fact groups it changed', () async {
+  test('a fact-only whole-row write leaves the row clock alone', () async {
+    // A poller flipping isOrphaned goes through updateMedia like any other
+    // caller. Moving the row clock would republish its whole snapshot of the
+    // row as a newer user edit and let its stale caption beat a peer's.
     final before = await clocks();
     await Future<void>.delayed(const Duration(milliseconds: 2));
     final row = (await repo.getMediaById(id))!;
@@ -165,12 +185,27 @@ void main() {
     await repo.updateMedia(row.copyWith(isOrphaned: true));
 
     final after = await clocks();
-    expect(later(after['row'], before['row']), isTrue);
+    expect(after['row'], before['row'], reason: 'no user field changed');
     expect(
       later(after['verify'], before['verify']),
       isTrue,
       reason: 'the verification facts changed, so they need a fresh clock',
     );
+    expect(after['upload'], before['upload'], reason: 'untouched group');
+  });
+
+  test('a write changing a user field and a fact moves both', () async {
+    final before = await clocks();
+    await Future<void>.delayed(const Duration(milliseconds: 2));
+    final row = (await repo.getMediaById(id))!;
+
+    await repo.updateMedia(
+      row.copyWith(isOrphaned: true, caption: 'a new caption'),
+    );
+
+    final after = await clocks();
+    expect(later(after['row'], before['row']), isTrue);
+    expect(later(after['verify'], before['verify']), isTrue);
     expect(after['upload'], before['upload'], reason: 'untouched group');
   });
 

@@ -417,77 +417,122 @@ class MediaRepository {
     return groups;
   }
 
+  /// The row with every fact column and the write stamp flattened, so two
+  /// of these compare equal exactly when a write touches nothing but facts.
+  ///
+  /// Errs towards "user edit": a field [updateMedia] does not even write
+  /// still counts as a difference, because an unnecessary row-clock bump
+  /// only costs a redundant republish, while a missing one loses a real
+  /// edit to a peer.
+  static domain.MediaItem _userFieldsOf(domain.MediaItem item) => item.copyWith(
+    contentHash: null,
+    contentSizeBytes: null,
+    remoteUploadedAt: null,
+    remoteThumbUploadedAt: null,
+    remoteCompressedUploadedAt: null,
+    compressedLevel: null,
+    compressedSizeBytes: null,
+    isOrphaned: false,
+    lastVerifiedAt: null,
+    updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
+  );
+
   Future<void> updateMedia(domain.MediaItem item) async {
     try {
       _log.info('Updating media: ${item.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
-      final previous = await getMediaById(item.id);
+      // One transaction over read, write and stamp. The row carries fact
+      // columns the upload worker writes concurrently; read outside it, a
+      // stamp landing between the read and this whole-row write would be
+      // rolled back while comparing equal on both sides, so the rollback
+      // would travel under an unchanged upload clock and lose to the very
+      // stamp it erased (media sync program spec 5.1).
+      await _db.transaction(() async {
+        final previous = await getMediaById(item.id);
 
-      await (_db.update(_db.media)..where((t) => t.id.equals(item.id))).write(
-        MediaCompanion(
-          diveId: Value(item.diveId),
-          siteId: Value(item.siteId),
-          equipmentId: Value(item.equipmentId),
-          filePath: Value(item.filePath ?? ''),
-          fileType: Value(mediaTypeToDbString(item.mediaType)),
-          platformAssetId: Value(item.platformAssetId),
-          originalFilename: Value(item.originalFilename),
-          latitude: Value(item.latitude),
-          longitude: Value(item.longitude),
-          takenAt: Value(item.takenAt.millisecondsSinceEpoch),
-          width: Value(item.width),
-          height: Value(item.height),
-          durationSeconds: Value(item.durationSeconds),
-          caption: Value(item.caption),
-          isFavorite: Value(item.isFavorite),
-          thumbnailGeneratedAt: Value(
-            item.thumbnailGeneratedAt?.millisecondsSinceEpoch,
+        await (_db.update(_db.media)..where((t) => t.id.equals(item.id))).write(
+          MediaCompanion(
+            diveId: Value(item.diveId),
+            siteId: Value(item.siteId),
+            equipmentId: Value(item.equipmentId),
+            filePath: Value(item.filePath ?? ''),
+            fileType: Value(mediaTypeToDbString(item.mediaType)),
+            platformAssetId: Value(item.platformAssetId),
+            originalFilename: Value(item.originalFilename),
+            latitude: Value(item.latitude),
+            longitude: Value(item.longitude),
+            takenAt: Value(item.takenAt.millisecondsSinceEpoch),
+            width: Value(item.width),
+            height: Value(item.height),
+            durationSeconds: Value(item.durationSeconds),
+            caption: Value(item.caption),
+            isFavorite: Value(item.isFavorite),
+            thumbnailGeneratedAt: Value(
+              item.thumbnailGeneratedAt?.millisecondsSinceEpoch,
+            ),
+            lastVerifiedAt: Value(item.lastVerifiedAt?.millisecondsSinceEpoch),
+            isOrphaned: Value(item.isOrphaned),
+            signerId: Value(item.signerId),
+            signerName: Value(item.signerName),
+            imageData: Value(item.imageData),
+            sourceType: Value(item.sourceType.name),
+            localPath: Value(item.localPath),
+            bookmarkRef: Value(item.bookmarkRef),
+            url: Value(item.url),
+            subscriptionId: Value(item.subscriptionId),
+            entryKey: Value(item.entryKey),
+            connectorAccountId: Value(item.connectorAccountId),
+            remoteAssetId: Value(item.remoteAssetId),
+            originDeviceId: Value(item.originDeviceId),
+            contentHash: Value(item.contentHash),
+            contentSizeBytes: Value(item.contentSizeBytes),
+            remoteUploadedAt: Value(
+              item.remoteUploadedAt?.millisecondsSinceEpoch,
+            ),
+            remoteThumbUploadedAt: Value(
+              item.remoteThumbUploadedAt?.millisecondsSinceEpoch,
+            ),
+            compressedLevel: Value(item.compressedLevel),
+            compressedSizeBytes: Value(item.compressedSizeBytes),
+            remoteCompressedUploadedAt: Value(
+              item.remoteCompressedUploadedAt?.millisecondsSinceEpoch,
+            ),
+            retainInLibrary: Value(item.retainInLibrary),
+            manualElapsedSeconds: Value(item.manualElapsedSeconds),
+            updatedAt: Value(now),
           ),
-          lastVerifiedAt: Value(item.lastVerifiedAt?.millisecondsSinceEpoch),
-          isOrphaned: Value(item.isOrphaned),
-          signerId: Value(item.signerId),
-          signerName: Value(item.signerName),
-          imageData: Value(item.imageData),
-          sourceType: Value(item.sourceType.name),
-          localPath: Value(item.localPath),
-          bookmarkRef: Value(item.bookmarkRef),
-          url: Value(item.url),
-          subscriptionId: Value(item.subscriptionId),
-          entryKey: Value(item.entryKey),
-          connectorAccountId: Value(item.connectorAccountId),
-          remoteAssetId: Value(item.remoteAssetId),
-          originDeviceId: Value(item.originDeviceId),
-          contentHash: Value(item.contentHash),
-          contentSizeBytes: Value(item.contentSizeBytes),
-          remoteUploadedAt: Value(
-            item.remoteUploadedAt?.millisecondsSinceEpoch,
-          ),
-          remoteThumbUploadedAt: Value(
-            item.remoteThumbUploadedAt?.millisecondsSinceEpoch,
-          ),
-          compressedLevel: Value(item.compressedLevel),
-          compressedSizeBytes: Value(item.compressedSizeBytes),
-          remoteCompressedUploadedAt: Value(
-            item.remoteCompressedUploadedAt?.millisecondsSinceEpoch,
-          ),
-          retainInLibrary: Value(item.retainInLibrary),
-          manualElapsedSeconds: Value(item.manualElapsedSeconds),
-          updatedAt: Value(now),
-        ),
-      );
+        );
 
-      // A whole-row write carries the fact columns too. Stamp the clock of
-      // any fact group whose values actually changed, or the new values
-      // would travel under an unchanged group clock and lose to a peer's
-      // older facts (media sync program spec 5.1). Groups that did not
-      // change keep their clock, so a caption edit stays a caption edit.
-      final changedGroups = _changedFactGroups(previous, item);
-      await _syncRepository.markRecordPending(
-        entityType: 'media',
-        recordId: item.id,
-        localUpdatedAt: now,
-        alsoStamp: changedGroups,
-      );
+        // A whole-row write carries the fact columns too. Stamp the clock of
+        // any fact group whose values actually changed, or the new values
+        // would travel under an unchanged group clock and lose to a peer's
+        // older facts (media sync program spec 5.1). Groups that did not
+        // change keep their clock, so a caption edit stays a caption edit.
+        final changedGroups = _changedFactGroups(previous, item);
+        // A fact-only patch (a poller flipping isOrphaned, say) must not move
+        // the row clock: that would republish this caller's whole snapshot of
+        // the row as a newer user edit and let its stale caption beat a peer's
+        // newer one. Only the groups move.
+        final userEdit =
+            previous == null || _userFieldsOf(previous) != _userFieldsOf(item);
+        if (userEdit || changedGroups.isEmpty) {
+          await _syncRepository.markRecordPending(
+            entityType: 'media',
+            recordId: item.id,
+            localUpdatedAt: now,
+            alsoStamp: changedGroups,
+          );
+        } else {
+          for (final group in changedGroups) {
+            await _syncRepository.markFactsPending(
+              entityType: 'media',
+              recordId: item.id,
+              localUpdatedAt: now,
+              group: group,
+            );
+          }
+        }
+      });
       SyncEventBus.notifyLocalChange();
       _log.info('Updated media: ${item.id}');
     } catch (e, stackTrace) {
@@ -923,15 +968,24 @@ class MediaRepository {
   /// Marks [ids] pending for sync without changing a column, so the next
   /// changeset carries the rows' facts exactly as they are. Returns how many.
   ///
-  /// Stamps the two fact clocks, never the row clock: the point is to re-send
-  /// upload and verification facts, and a row-clock bump would also make
-  /// this device's copy of every user field win on peers (spec 5.1).
+  /// Stamps fact clocks, never the row clock: the point is to re-send facts,
+  /// and a row-clock bump would also make this device's copy of every user
+  /// field win on peers (spec 5.1).
+  ///
+  /// [groups] defaults to the upload group alone, because a caller repairing
+  /// lost upload stamps has nothing to say about verification. Handing a
+  /// stale `isOrphaned` or `lastVerifiedAt` a brand-new clock would beat a
+  /// peer's newer observation of the same file. A caller that really means
+  /// to re-send verification facts asks for the group by name.
   ///
   /// One transaction: markFactsPending's own per-row transaction nests as a
   /// savepoint, so a library with thousands of stamped rows commits once.
-  Future<int> republishForSync(Iterable<String> ids) async {
+  Future<int> republishForSync(
+    Iterable<String> ids, {
+    List<SyncFactGroup> groups = const [SyncFactGroups.mediaUpload],
+  }) async {
     final list = ids.toList();
-    if (list.isEmpty) return 0;
+    if (list.isEmpty || groups.isEmpty) return 0;
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
       await _db.transaction(() async {
@@ -939,7 +993,7 @@ class MediaRepository {
           // Re-sends the facts without claiming a user edit: moving the
           // row clock would let this device's copy of every user field
           // win on peers (media sync program spec 5.1).
-          for (final group in SyncFactGroups.of('media')) {
+          for (final group in groups) {
             await _syncRepository.markFactsPending(
               entityType: 'media',
               recordId: id,

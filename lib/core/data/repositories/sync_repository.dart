@@ -540,11 +540,17 @@ class SyncRepository {
   // ============================================================================
 
   /// Mark a record as pending sync
+  /// Set [stampClock] false to open the pending gate without touching any
+  /// clock, for a caller that has already written the clocks it wants. The
+  /// retirement replay does this: it chose per-row whether the row clock
+  /// moves, and a stamp here would undo that choice and republish a stale
+  /// user field over a peer's newer edit (media sync program spec 5.1).
   Future<void> markRecordPending({
     required String entityType,
     required String recordId,
     required int localUpdatedAt,
     List<SyncFactGroup> alsoStamp = const [],
+    bool stampClock = true,
   }) async {
     try {
       // Mark-pending and the HLC stamp on the entity row are one logical write;
@@ -556,7 +562,10 @@ class SyncRepository {
         await _stampHlc(
           entityType,
           recordId,
-          columns: ['hlc', for (final g in alsoStamp) g.clockColumn],
+          columns: [
+            if (stampClock) 'hlc',
+            for (final g in alsoStamp) g.clockColumn,
+          ],
         );
       });
     } catch (e, stackTrace) {

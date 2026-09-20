@@ -3835,10 +3835,16 @@ class SyncService {
       for (final row in rows) {
         final id = row is Map<String, dynamic> ? row['id'] : null;
         if (id is! String) continue;
+        // No stamp: restampRowForReplay already chose this row's clocks and
+        // the apply above wrote them. Stamping here would bump the row clock
+        // even for a row that is pending on a fact write alone, republishing
+        // this device's whole snapshot of it over a peer's newer edit, which
+        // is exactly what that restamp avoids.
         await _syncRepository.markRecordPending(
           entityType: entry.key,
           recordId: id,
           localUpdatedAt: nowMillis,
+          stampClock: false,
         );
       }
     }

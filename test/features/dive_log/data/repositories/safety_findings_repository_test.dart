@@ -606,6 +606,7 @@ class _FailingSyncRepository extends SyncRepository {
     required String recordId,
     required int localUpdatedAt,
     List<SyncFactGroup> alsoStamp = const [],
+    bool stampClock = true,
   }) async {
     if (failAfter != null && _marks >= failAfter!) {
       throw StateError('sync bookkeeping failed');
@@ -616,6 +617,7 @@ class _FailingSyncRepository extends SyncRepository {
       recordId: recordId,
       localUpdatedAt: localUpdatedAt,
       alsoStamp: alsoStamp,
+      stampClock: stampClock,
     );
   }
 }
