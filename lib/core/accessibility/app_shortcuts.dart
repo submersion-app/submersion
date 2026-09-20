@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/accessibility/shortcut_registry.dart';
 import 'package:submersion/core/accessibility/shortcuts_help_dialog.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/divers/presentation/widgets/diver_switcher_sheet.dart';
 
 /// Creates a platform-appropriate shortcut activator.
@@ -97,6 +99,12 @@ class AppShortcuts {
         activator: platformShortcut(LogicalKeyboardKey.keyF),
         isGlobal: true,
       ),
+      ShortcutEntry(
+        label: 'Explore with a sentence',
+        category: 'Search',
+        activator: platformShortcut(LogicalKeyboardKey.keyE),
+        isGlobal: true,
+      ),
 
       // General
       const ShortcutEntry(
@@ -173,6 +181,13 @@ class AppShortcuts {
       // Search
       platformShortcut(LogicalKeyboardKey.keyF): () {
         context.push('/dives/search');
+      },
+      platformShortcut(LogicalKeyboardKey.keyE): () {
+        // The page is useless without a model, so the shortcut honours the
+        // same gate as the app bar action.
+        if (ProviderScope.containerOf(context).read(exploreEnabledProvider)) {
+          context.push('/dives/explore');
+        }
       },
 
       // Settings

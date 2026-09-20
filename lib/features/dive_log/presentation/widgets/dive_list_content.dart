@@ -39,6 +39,7 @@ import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chip_labels.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
@@ -1178,6 +1179,13 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
             onPressed: () => context.push('/dives/activity'),
           ),
+        // Only where an on-device model exists for the active locale.
+        if (ref.watch(exploreEnabledProvider))
+          IconButton(
+            icon: const Icon(Icons.auto_awesome),
+            tooltip: context.l10n.diveLog_listPage_tooltip_explore,
+            onPressed: () => context.push('/dives/explore'),
+          ),
         IconButton(
           icon: const Icon(Icons.search),
           tooltip: context.l10n.diveLog_listPage_tooltip_searchDives,
@@ -1387,6 +1395,12 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               icon: const Icon(Icons.map, size: 20),
               tooltip: context.l10n.diveLog_listPage_tooltip_mapView,
               onPressed: () => context.push('/dives/activity'),
+            ),
+          if (ref.watch(exploreEnabledProvider))
+            IconButton(
+              icon: const Icon(Icons.auto_awesome, size: 20),
+              tooltip: context.l10n.diveLog_listPage_tooltip_explore,
+              onPressed: () => context.push('/dives/explore'),
             ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),

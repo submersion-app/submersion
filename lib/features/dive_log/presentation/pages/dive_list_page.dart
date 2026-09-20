@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_log/presentation/providers/highlight_pr
 import 'package:submersion/features/dive_log/presentation/providers/view_config_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
+import 'package:submersion/features/explore/presentation/providers/explore_gate_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_list_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_map_content.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_numbering_dialog.dart';
@@ -233,6 +234,13 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
           onPressed: () => showTableColumnPicker(context),
         ),
         appBarActions: [
+          // Only where an on-device model exists for the active locale.
+          if (ref.watch(exploreEnabledProvider))
+            IconButton(
+              icon: const Icon(Icons.auto_awesome, size: 20),
+              tooltip: context.l10n.diveLog_listPage_tooltip_explore,
+              onPressed: () => context.push('/dives/explore'),
+            ),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
             tooltip: context.l10n.diveLog_listPage_tooltip_searchDives,
