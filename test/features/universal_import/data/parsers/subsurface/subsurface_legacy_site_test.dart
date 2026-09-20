@@ -349,6 +349,39 @@ ${[for (var n = 1; n <= dives; n++) "<dive number='$n' divesiteid='gone$n' date=
     });
   });
 
+  group('a declared site whose uuid looks like a minted one', () {
+    test('keeps its own id, and the inline site gets another', () async {
+      // Nothing stops a Subsurface uuid from reading 'inline-site-1'. If the
+      // minted id collided with it, the inline site would fold into a place
+      // it has nothing to do with and both dives would land on one site.
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<divesites>
+<site uuid='inline-site-1' name='Blue Hole' gps='18.465562 -66.084902'/>
+</divesites>
+<dives>
+<dive number='1' divesiteid='inline-site-1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'><depth max='20.0 m' mean='15.0 m' /></divecomputer>
+</dive>
+${legacyDive("<location gps='12.216667 -68.283333'>Karpata</location>", number: 2)}
+</dives>
+</divelog>
+'''),
+      );
+
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites.length, 2);
+      expect(siteNamed(sites, 'Blue Hole')['uddfId'], 'inline-site-1');
+      expect(siteNamed(sites, 'Karpata')['uddfId'], isNot('inline-site-1'));
+
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(siteRefOf(dives[0]), 'inline-site-1');
+      expect(siteRefOf(dives[1]), siteNamed(sites, 'Karpata')['uddfId']);
+      expect(result.warnings, isEmpty);
+    });
+  });
+
   group('a tag that names a kind of place', () {
     test('suggests a site type for an inline site too (#2205)', () async {
       // The tag-derived suggestion is keyed on the dive's resolved site id,
