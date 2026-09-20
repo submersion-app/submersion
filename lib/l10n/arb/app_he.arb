@@ -7006,6 +7006,7 @@
   "universalImport_error_stepFailed": "לא ניתן להמשיך בייבוא: {details}",
   "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{לא יובא דבר: לא ניתן היה לקרוא את התאריך בשורה אחת.} other{לא יובא דבר: לא ניתן היה לקרוא את התאריכים ב-{count} שורות.}}",
   "universalImport_error_unreadableDatesHint": "בדוק שעמודות התאריך והשעה ממופות בשלב זה ושהן מכילות תאריכים.",
+  "universalImport_error_unreadableDatesHintNoMapping": "בדוק שעמודת התאריך מכילה תאריכים בתבנית שמצוינת בכותרת שלה.",
   "universalImport_error_noDataInFile": "לא נמצאו בקובץ הזה נתונים שניתן לייבא.",
   "universalImport_error_noDataInFileWithDetails": "לא נמצאו בקובץ הזה נתונים שניתן לייבא: {details}",
   "universalImport_error_noDataInFiles": "לא נמצאו בקבצים שנבחרו נתונים שניתן לייבא.",

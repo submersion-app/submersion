@@ -38221,6 +38221,12 @@ abstract class AppLocalizations {
   /// **'Check that the date and time columns are mapped on this step, and that they hold dates.'**
   String get universalImport_error_unreadableDatesHint;
 
+  /// Last line of the unreadable-dates error for a self-describing format such as Submersion's own CSV, which has no Map Fields step; it points the user at the format the file's own date header names
+  ///
+  /// In en, this message translates to:
+  /// **'Check that the date column holds dates written the way its header names.'**
+  String get universalImport_error_unreadableDatesHintNoMapping;
+
   /// Error shown when a file produced nothing to import
   ///
   /// In en, this message translates to:

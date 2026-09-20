@@ -22599,6 +22599,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '请检查此步骤中是否已映射日期和时间列，以及这些列是否包含日期。';
 
   @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      '请检查日期列中的日期是否采用其列标题所指明的格式。';
+
+  @override
   String get universalImport_error_noDataInFile => '此文件中未找到可导入的数据。';
 
   @override

@@ -6898,6 +6898,7 @@
   "universalImport_error_stepFailed": "Impossibile continuare l'importazione: {details}",
   "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{Non è stato importato nulla: non è stato possibile leggere la data di 1 riga.} other{Non è stato importato nulla: non è stato possibile leggere le date di {count} righe.}}",
   "universalImport_error_unreadableDatesHint": "Controlla che le colonne di data e ora siano mappate in questo passaggio e che contengano date.",
+  "universalImport_error_unreadableDatesHintNoMapping": "Controlla che la colonna della data contenga date scritte nel formato indicato dalla sua intestazione.",
   "universalImport_error_noDataInFile": "Nessun dato importabile trovato in questo file.",
   "universalImport_error_noDataInFileWithDetails": "Nessun dato importabile trovato in questo file: {details}",
   "universalImport_error_noDataInFiles": "Nessun dato importabile trovato nei file selezionati.",
