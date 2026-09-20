@@ -1751,13 +1751,18 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
             ),
             const SizedBox(height: 12),
             Center(
-              child: SiteRatingStars(
-                rating: rating,
-                size: 36,
-                spacing: 8,
-                color: hasRating
-                    ? Colors.amber
-                    : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              // The 8 between stars plus 4 at each end is what this row
+              // measured when every star carried its own horizontal 4.
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: SiteRatingStars(
+                  rating: rating,
+                  size: 36,
+                  spacing: 8,
+                  color: hasRating
+                      ? Colors.amber
+                      : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                ),
               ),
             ),
             const SizedBox(height: 8),
