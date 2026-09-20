@@ -25,6 +25,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_s
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ascent_rate_bar_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_overlay.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_tooltip.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -913,6 +914,15 @@ void main() {
         // First sample at 10s and 20 m depth => 3 bar ambient. A ppO2 of
         // 0.63 bar there is 0.21 at the surface, so the lead-in readout must
         // compute it, not repeat 0.63. Temperature is held and marked.
+        //
+        // fl_chart's own tooltip builder used to be driven directly here
+        // (getTooltipItems), back when it built the readout text itself. It
+        // is now always suppressed (see the "tooltip placement" group
+        // above) and ProfileCursorTooltip renders the `!tooltipBelow` (the
+        // default here) in-chart readout instead, off the same row builder
+        // the tooltipBelow path uses -- so this drives it the same way
+        // those tests do, through touchCallback, and reads the rows off
+        // the rendered ProfileCursorTooltip.
         final profile = [
           for (var i = 1; i <= 8; i++)
             DiveProfilePoint(timestamp: i * 10, depth: 20.0, temperature: 25.0),
@@ -934,21 +944,40 @@ void main() {
         final depthBar = data.lineBarsData.first;
         expect(depthBar.spots.first, const FlSpot(0, 0));
 
-        // Drive fl_chart's own tooltip builder with the lead-in vertex.
-        final items = data.lineTouchData.touchTooltipData.getTooltipItems(
-          <LineBarSpot>[TouchLineBarSpot(depthBar, 0, depthBar.spots.first, 0)],
+        // ProfileCursorTooltip only renders once a cursor position is known
+        // (see [DiveProfileChart._lastPointerLocal]); a real hover gives it
+        // one. The exact position does not matter here -- the touchCallback
+        // call right after supplies the sample the rows are built from.
+        final chart = find.byType(LineChart).first;
+        final topLeft = tester.getTopLeft(chart);
+        final size = tester.getSize(chart);
+        final pointer = TestPointer(1, PointerDeviceKind.mouse);
+        await tester.sendEventToBinding(
+          pointer.hover(topLeft + Offset(size.width * 0.5, size.height * 0.5)),
         );
-        final plain = items
-            .whereType<LineTooltipItem>()
-            .expand(
-              (it) => [it.text, ...?it.children?.map((c) => c.toPlainText())],
-            )
-            .join();
+        await tester.pump();
 
-        expect(plain, contains('0:00')); // t=0, not 0:10
-        expect(plain, contains('0.21 bar')); // computed ppO2, not 0.63
-        expect(plain, isNot(contains('0.63 bar')));
-        expect(plain, contains('(interpolated)')); // temperature held
+        data.lineTouchData.touchCallback!(
+          FlPanDownEvent(DragDownDetails()),
+          LineTouchResponse(
+            touchLocation: Offset.zero,
+            touchChartCoordinate: Offset.zero,
+            lineBarSpots: <TouchLineBarSpot>[
+              TouchLineBarSpot(depthBar, 0, depthBar.spots.first, 0),
+            ],
+          ),
+        );
+        await tester.pump();
+
+        final tooltip = tester.widget<ProfileCursorTooltip>(
+          find.byType(ProfileCursorTooltip),
+        );
+        final byLabel = {for (final r in tooltip.rows) r.label: r.value};
+
+        expect(byLabel['Time'], '0:00'); // t=0, not 0:10
+        expect(byLabel['ppO2'], contains('0.21')); // computed, not 0.63
+        expect(byLabel['ppO2'], isNot(contains('0.63')));
+        expect(byLabel['Temp'], contains('(interpolated)')); // temp held
       },
     );
 
@@ -2159,8 +2188,10 @@ void main() {
   });
 
   group('DiveProfileChart - tooltip placement', () {
-    testWidgets('default keeps the bubble pinned above the chart box '
-        '(detail-page behavior)', (tester) async {
+    testWidgets('default suppresses fl_chart\'s own bubble '
+        '(detail-page behavior, ProfileCursorTooltip renders it instead)', (
+      tester,
+    ) async {
       await tester.pumpWidget(_buildChart());
       await tester.pumpAndSettle();
 
@@ -2169,9 +2200,17 @@ void main() {
           .data
           .lineTouchData
           .touchTooltipData;
-      expect(tooltip.showOnTopOfTheChartBoxArea, isTrue);
-      expect(tooltip.fitInsideVertically, isFalse);
-      expect(tooltip.tooltipMargin, 0);
+      // fl_chart's own bubble used to be pinned above the chart box
+      // (showOnTopOfTheChartBoxArea/fitInsideVertically: false), which
+      // could clip rows past the plot's top/bottom edge with many metrics
+      // enabled. It is now suppressed entirely -- transparent, no items --
+      // and ProfileCursorTooltip (a Stack layer, see profile_cursor_tooltip
+      // .dart) renders the in-chart readout instead, sized and clamped
+      // against the real plot rect.
+      final barData = LineChartBarData(spots: const [FlSpot(0, 0)]);
+      final barSpot = LineBarSpot(barData, 0, const FlSpot(0, 0));
+      expect(tooltip.getTooltipColor(barSpot), Colors.transparent);
+      expect(tooltip.getTooltipItems([barSpot]), [null]);
     });
   });
 
@@ -4320,6 +4359,12 @@ void main() {
       // Regression: with velocity colouring on, the depth line is drawn as
       // one bar per band. The tooltip builder only recognised barIndex 0, so
       // hovering any later segment produced no tooltip at all.
+      //
+      // fl_chart's own bubble is now always suppressed (see the "tooltip
+      // placement" group above); ProfileCursorTooltip renders the in-chart
+      // readout instead, off the same row builder, driven by touchCallback
+      // -- see [DiveProfileChart._resolveDepthTouch] and
+      // `_buildTooltipRowsForIndex`, both shared with the tooltipBelow path.
       final profile = _makeProfile(points: 12);
       await tester.pumpWidget(
         buildWithLegend(
@@ -4338,16 +4383,38 @@ void main() {
         reason: 'velocity colouring should split the depth line into bands',
       );
 
-      final getItems = data.lineTouchData.touchTooltipData.getTooltipItems;
+      // ProfileCursorTooltip only renders once a cursor position is known
+      // (see [DiveProfileChart._lastPointerLocal]); a real hover gives it
+      // one, same as the lead-in test above.
+      final chart = find.byType(LineChart).first;
+      final topLeft = tester.getTopLeft(chart);
+      final size = tester.getSize(chart);
+      final pointer = TestPointer(1, PointerDeviceKind.mouse);
+      await tester.sendEventToBinding(
+        pointer.hover(topLeft + Offset(size.width * 0.5, size.height * 0.5)),
+      );
+      await tester.pump();
+
       // Hover the second band (barIndex 1) at its first sample.
       final secondBar = bars[1];
-      final spot = LineBarSpot(secondBar, 1, secondBar.spots.first);
-      final items = getItems(<LineBarSpot>[spot]);
+      data.lineTouchData.touchCallback!(
+        FlPanDownEvent(DragDownDetails()),
+        LineTouchResponse(
+          touchLocation: Offset.zero,
+          touchChartCoordinate: Offset.zero,
+          lineBarSpots: <TouchLineBarSpot>[
+            TouchLineBarSpot(secondBar, 1, secondBar.spots.first, 0),
+          ],
+        ),
+      );
+      await tester.pump();
 
-      expect(items.length, 1);
+      final tooltip = tester.widget<ProfileCursorTooltip>(
+        find.byType(ProfileCursorTooltip),
+      );
       expect(
-        items.first,
-        isNotNull,
+        tooltip.rows,
+        isNotEmpty,
         reason: 'a hover on a non-first velocity band must show a tooltip',
       );
     });

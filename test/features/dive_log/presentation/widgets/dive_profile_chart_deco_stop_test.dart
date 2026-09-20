@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -109,7 +110,11 @@ void main() {
       final chart = tester.widget<LineChart>(find.byType(LineChart));
       final bars = chart.data.lineBarsData;
       final bandIndex = bars.indexWhere((b) => b.isStepLineChart);
-      final ceilingIndex = bars.indexWhere((b) => b.dashArray != null);
+      // The ceiling line is identified by its unique colour (issue #2228: it
+      // is solid now, no longer the dashed bar this test used to look for).
+      final ceilingIndex = bars.indexWhere(
+        (b) => b.color == ProfileMetricColors.ceiling,
+      );
 
       expect(bandIndex, isNonNegative, reason: 'deco stop band should render');
       expect(

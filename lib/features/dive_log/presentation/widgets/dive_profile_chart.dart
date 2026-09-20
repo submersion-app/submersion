@@ -45,6 +45,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dar
 import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_overlay.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_tooltip.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_line_hover.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_findings_overlay.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
@@ -230,6 +232,11 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Width of the border fl_chart draws around the plot. fl_chart lays the
   /// plot out inside it, so it counts toward the plot insets.
   static const double _plotBorderWidth = 1.0;
+
+  /// How much thicker the hovered/touched metric line is drawn than its
+  /// neighbours (issue #2228 follow-up: hover-highlight + axis auto-switch).
+  /// A small, deliberately subtle bump -- not meant to dominate the chart.
+  static const double hoverHighlightBarWidthDelta = 1.0;
 
   /// axisNameSize for the bottom (time) axis.
   static const double _bottomAxisNameSize = 14.0;
@@ -1049,9 +1056,67 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   // (this is what keeps Task 7's double-tap-hold pan single-finger-only).
   int _activePointerCount = 0;
 
-  // Tooltip memoization
-  int? _lastTooltipSpotIndex;
-  List<LineTooltipItem?> _lastTooltipItems = [];
+  // Rows for the in-chart cursor tooltip ([ProfileCursorTooltip]), the
+  // `!tooltipBelow` path's counterpart to onTooltipData. Populated from the
+  // same shared row builder as onTooltipData ([_buildTooltipRowsForIndex]),
+  // via the touch callback below, and cleared on touch end.
+  List<TooltipRow> _liveCursorTooltipRows = const [];
+
+  // Transient, non-persisted right-axis override: which metric's line is
+  // currently under the cursor/touch, so the axis briefly shows that
+  // metric's scale instead of the persisted preference (issue #2228
+  // follow-up). Null reverts the axis to [ProfileLegendState
+  // .getEffectiveRightAxisMetric]. Never written back to the provider --
+  // purely a per-frame visual state, reset whenever the touch/hover leaves
+  // every tagged line (see [lineMetricTags] and the touchCallback below).
+  ProfileRightAxisMetric? _hoverRightAxisMetric;
+
+  // barIndex (into the same list handed to lineBarsData, pre- or
+  // post-window -- windowing keeps a 1:1 index correspondence, see
+  // [_windowedBars]) of the line currently drawn slightly thicker because
+  // the cursor/touch is nearest to it. Null draws every line at its normal
+  // width.
+  int? _hoverHighlightedBarIndex;
+
+  /// Drops the cursor-following tooltip and the hover-driven highlight/axis
+  /// override. Called from every place a pointer stops actively hovering the
+  /// chart (mouse exit, pointer up, pointer cancel) -- each of these used to
+  /// only need to reset pan/gesture bookkeeping, before this state existed,
+  /// so unlike [Listener.onPointerMove] they do not already run inside a
+  /// `setState`; skip the call entirely when nothing would actually change,
+  /// so a plain pointer-up on a chart that was never hovered does not force
+  /// an unnecessary rebuild.
+  void _clearCursorHoverState() {
+    if (_lastPointerLocal == null &&
+        _liveCursorTooltipRows.isEmpty &&
+        _hoverRightAxisMetric == null &&
+        _hoverHighlightedBarIndex == null) {
+      return;
+    }
+    setState(() {
+      _lastPointerLocal = null;
+      _liveCursorTooltipRows = const [];
+      _hoverRightAxisMetric = null;
+      _hoverHighlightedBarIndex = null;
+    });
+  }
+
+  // Per-group parallel tag lists, mirroring [_barsCache]'s groups
+  // ('base'/'sac'/'ascent'/'analysis'/'markers'/'overlays'): each entry is
+  // the [ProfileRightAxisMetric] the bar at the same position in that
+  // group's bars list represents, or null when the bar has no matching
+  // right-axis metric (a fill/band, a marker, an overlay comparison trace,
+  // or ascent-rate -- which is drawn by [AscentRateBarOverlay], never an
+  // fl_chart line). Set as a side effect inside each group's
+  // `_barsCache.series` factory (see the 'base' group in [_buildChart]), so
+  // a tag list is only rebuilt exactly when its group's bars are -- never
+  // recomputed on a hover-only rebuild.
+  List<ProfileRightAxisMetric?> _baseTags = const [];
+  List<ProfileRightAxisMetric?> _sacTags = const [];
+  List<ProfileRightAxisMetric?> _ascentTags = const [];
+  List<ProfileRightAxisMetric?> _analysisTags = const [];
+  List<ProfileRightAxisMetric?> _markersTags = const [];
+  List<ProfileRightAxisMetric?> _overlaysTags = const [];
 
   // The readout last reported through onTooltipData, by either cursor. Lets
   // the external-cursor path skip a reading the pointer already reported,
@@ -1315,8 +1380,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     super.didUpdateWidget(oldWidget);
     final profileChanged = oldWidget.profile != widget.profile;
     if (profileChanged) {
-      _lastTooltipSpotIndex = null;
-      _lastTooltipItems = [];
+      _liveCursorTooltipRows = const [];
     }
     if (oldWidget.tankPressures != widget.tankPressures) {
       _scheduleTankPressureVisibilityInitialization();
@@ -1424,6 +1488,39 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     setState(() => _viewport = ChartViewport.reset);
   }
 
+  /// Resolve a touch callback's touched spots to the profile's global
+  /// sample index and whether that sample is the synthetic surface lead-in
+  /// vertex, or null when no touched spot lands on the depth line.
+  ///
+  /// The depth line may be split into per-band bars (velocity colouring), so
+  /// a touched spot's spotIndex is local to its bar; [starts] is the start
+  /// index of each bar (see [_depthBarStartIndices]). Shared by the touch
+  /// callback's own selection reporting and the in-chart cursor tooltip.
+  ({int index, bool onLeadIn})? _resolveDepthTouch(
+    List<TouchLineBarSpot> spots,
+    List<int> starts,
+  ) {
+    final depthBarCount = starts.length;
+    final depthSpot = spots
+        .where((s) => s.barIndex < depthBarCount)
+        .firstOrNull;
+    if (depthSpot == null) return null;
+    final index = DiveProfileChart.depthSpotProfileIndex(
+      profile: widget.profile,
+      depthBarStarts: starts,
+      barIndex: depthSpot.barIndex,
+      spotIndex: _sourceSpotIndex(depthSpot),
+      spotX: depthSpot.x,
+      multiComputer: false,
+    );
+    if (index < 0 || index >= widget.profile.length) return null;
+    final onLeadIn =
+        _sourceSpotIndex(depthSpot) == 0 &&
+        starts[depthSpot.barIndex] < 0 &&
+        shouldDrawSurfaceLeadIn(widget.profile);
+    return (index: index, onLeadIn: onLeadIn);
+  }
+
   /// Build and emit [TooltipRow] data for external rendering when
   /// [DiveProfileChart.tooltipBelow] is true.
   void _emitExternalTooltip(
@@ -1484,6 +1581,38 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }) {
     if (widget.onTooltipData == null) return;
     _lastEmittedCursor = (index: index, onLeadIn: onLeadIn);
+    widget.onTooltipData!(
+      _buildTooltipRowsForIndex(
+        index,
+        onLeadIn: onLeadIn,
+        units: units,
+        colorScheme: colorScheme,
+      ),
+    );
+  }
+
+  /// Build the readout rows describing profile sample [index], without
+  /// emitting them anywhere.
+  ///
+  /// The single row builder behind all three tooltip consumers: the
+  /// [DiveProfileChart.onTooltipData] external readout (via
+  /// [_emitTooltipRowsForIndex]), the in-chart cursor tooltip
+  /// ([ProfileCursorTooltip], via the touch callback below), and --
+  /// formerly -- fl_chart's own bubble, which this now fully replaces for
+  /// the `!tooltipBelow` path (see `getTooltipItems` below, which just
+  /// returns nulls). Keeping one builder is what keeps a played-back dive
+  /// and a hand-scrubbed one, and the in-chart and below-chart tooltips,
+  /// reading identically.
+  ///
+  /// [onLeadIn] marks the synthetic surface vertex drawn before the first
+  /// sample: the rows then describe t=0 and are flagged as interpolated,
+  /// rather than repeating the first sample's values.
+  List<TooltipRow> _buildTooltipRowsForIndex(
+    int index, {
+    required bool onLeadIn,
+    required UnitFormatter units,
+    required ColorScheme colorScheme,
+  }) {
     final spot = (spotIndex: index);
     final point = onLeadIn
         ? _surfaceReadoutPoint()
@@ -1553,15 +1682,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
-    // Ceiling
-    if (_showCeiling &&
-        widget.ceilingCurve != null &&
-        spot.spotIndex < widget.ceilingCurve!.length) {
-      final ceiling = widget.ceilingCurve![spot.spotIndex];
+    // Ceiling (always shown once enabled, even where the curve has no data
+    // for this sample -- a toggled-on row disappearing entirely reads as the
+    // toggle having silently failed, issue #2228 follow-up).
+    if (_showCeiling) {
+      final hasCeiling =
+          widget.ceilingCurve != null &&
+          spot.spotIndex < widget.ceilingCurve!.length;
+      final ceiling = hasCeiling ? widget.ceilingCurve![spot.spotIndex] : 0.0;
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_ceiling,
-          value: ceiling > 0 ? units.formatDepth(ceiling) : '-',
+          value: hasCeiling && ceiling > 0 ? units.formatDepth(ceiling) : '-',
           bulletColor: const Color(0xFF7B1FA2),
         ),
       );
@@ -1583,15 +1715,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
 
     // Deco stop. Mirrors the in-chart tooltip row so the panel and fullscreen
-    // readouts report the band they are already drawing.
-    if (_showDecoStops &&
-        widget.decoStopCurve != null &&
-        spot.spotIndex < widget.decoStopCurve!.length) {
-      final stop = widget.decoStopCurve![spot.spotIndex];
+    // readouts report the band they are already drawing. Unlike the other
+    // rows in this method, a null curve omits the row entirely rather than
+    // showing a placeholder: no deco-stop curve at all means the dive never
+    // had an obligation, and a permanent "-" row would be pure clutter on
+    // every recreational dive. An in-range-but-short curve (decimation edge
+    // case) still falls back to a placeholder, same as every other row.
+    if (_showDecoStops && widget.decoStopCurve != null) {
+      final hasStop = spot.spotIndex < widget.decoStopCurve!.length;
+      final stop = hasStop ? widget.decoStopCurve![spot.spotIndex] : 0.0;
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_decoStop,
-          value: stop > 0 ? units.formatDepth(stop) : '-',
+          value: hasStop && stop > 0 ? units.formatDepth(stop) : '-',
           bulletColor: decoStopBandColor,
         ),
       );
@@ -1677,20 +1813,24 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
-    // NDL
-    if (_showNdl &&
-        widget.ndlCurve != null &&
-        spot.spotIndex < widget.ndlCurve!.length) {
-      final ndl = widget.ndlCurve![spot.spotIndex];
+    // NDL (always shown once enabled; see the comment on the Ceiling row).
+    if (_showNdl) {
+      final hasNdl =
+          widget.ndlCurve != null && spot.spotIndex < widget.ndlCurve!.length;
       String ndlValue;
-      if (ndl < 0) {
-        ndlValue = l10n.diveLog_playbackStats_deco;
-      } else if (ndl < 3600) {
-        final min = ndl ~/ 60;
-        final sec = ndl % 60;
-        ndlValue = '$min:${sec.toString().padLeft(2, '0')}';
+      if (!hasNdl) {
+        ndlValue = '-';
       } else {
-        ndlValue = l10n.diveLog_tooltip_ndlOverMax;
+        final ndl = widget.ndlCurve![spot.spotIndex];
+        if (ndl < 0) {
+          ndlValue = l10n.diveLog_playbackStats_deco;
+        } else if (ndl < 3600) {
+          final min = ndl ~/ 60;
+          final sec = ndl % 60;
+          ndlValue = '$min:${sec.toString().padLeft(2, '0')}';
+        } else {
+          ndlValue = l10n.diveLog_tooltip_ndlOverMax;
+        }
       }
       rows.add(
         TooltipRow(
@@ -1726,17 +1866,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
-    // ppO2 (computer-supplied value or O2 cell average) plus each sensor cell.
-    if (_showPpO2 &&
-        widget.ppO2Curve != null &&
-        spot.spotIndex < widget.ppO2Curve!.length) {
+    // ppO2 (computer-supplied value or O2 cell average) plus each sensor
+    // cell. Always shown once enabled; see the comment on the Ceiling row.
+    if (_showPpO2) {
+      final hasPpO2 =
+          widget.ppO2Curve != null && spot.spotIndex < widget.ppO2Curve!.length;
       rows.add(
         TooltipRow(
           label: widget.ppO2FromSensorAverage
               ? '${context.l10n.diveLog_tooltip_ppO2} ${context.l10n.diveLog_tooltip_avgCalculated}'
               : context.l10n.diveLog_tooltip_ppO2,
-          value:
-              '${_readoutValue(widget.ppO2Curve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} ${l10n.units_pressure_bar}',
+          value: hasPpO2
+              ? '${_readoutValue(widget.ppO2Curve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} ${l10n.units_pressure_bar}'
+              : '-',
           bulletColor: const Color(0xFF00ACC1),
         ),
       );
@@ -1762,15 +1904,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       rows.addAll(_buildO2CellTooltipRows(spot.spotIndex));
     }
 
-    // ppN2
-    if (_showPpN2 &&
-        widget.ppN2Curve != null &&
-        spot.spotIndex < widget.ppN2Curve!.length) {
+    // ppN2 (always shown once enabled; see the comment on the Ceiling row).
+    if (_showPpN2) {
+      final hasPpN2 =
+          widget.ppN2Curve != null && spot.spotIndex < widget.ppN2Curve!.length;
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_ppN2,
-          value:
-              '${_readoutValue(widget.ppN2Curve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} ${l10n.units_pressure_bar}',
+          value: hasPpN2
+              ? '${_readoutValue(widget.ppN2Curve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} ${l10n.units_pressure_bar}'
+              : '-',
           bulletColor: Colors.indigo,
         ),
       );
@@ -1788,21 +1931,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
-    // ppHe
-    if (_showPpHe &&
-        widget.ppHeCurve != null &&
-        spot.spotIndex < widget.ppHeCurve!.length) {
-      final ppHe = widget.ppHeCurve![spot.spotIndex];
-      if (ppHe > 0.001) {
-        rows.add(
-          TooltipRow(
-            label: l10n.diveLog_tooltip_ppHe,
-            value:
-                '${_readoutValue(ppHe, onLeadIn).toStringAsFixed(2)} ${l10n.units_pressure_bar}',
-            bulletColor: Colors.pink.shade300,
-          ),
-        );
-      }
+    // ppHe (always shown once enabled, even on a non-trimix dive or where
+    // the curve has no data for this sample; see the Ceiling row comment).
+    if (_showPpHe) {
+      final hasPpHe =
+          widget.ppHeCurve != null && spot.spotIndex < widget.ppHeCurve!.length;
+      final ppHe = hasPpHe ? widget.ppHeCurve![spot.spotIndex] : 0.0;
+      rows.add(
+        TooltipRow(
+          label: l10n.diveLog_tooltip_ppHe,
+          value: hasPpHe && ppHe > 0.001
+              ? '${_readoutValue(ppHe, onLeadIn).toStringAsFixed(2)} ${l10n.units_pressure_bar}'
+              : '-',
+          bulletColor: Colors.pink.shade300,
+        ),
+      );
     }
     if (_showPpHe) {
       rows.addAll(
@@ -1818,20 +1961,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
-    // MOD
-    if (_showMod &&
-        widget.modCurve != null &&
-        spot.spotIndex < widget.modCurve!.length) {
-      final mod = widget.modCurve![spot.spotIndex];
-      if (mod > 0 && mod < 200) {
-        rows.add(
-          TooltipRow(
-            label: l10n.diveLog_tooltip_mod,
-            value: units.formatDepth(mod),
-            bulletColor: const Color(0xFFFFB300),
-          ),
-        );
-      }
+    // MOD (always shown once enabled; see the comment on the Ceiling row).
+    if (_showMod) {
+      final hasMod =
+          widget.modCurve != null && spot.spotIndex < widget.modCurve!.length;
+      final mod = hasMod ? widget.modCurve![spot.spotIndex] : 0.0;
+      rows.add(
+        TooltipRow(
+          label: l10n.diveLog_tooltip_mod,
+          value: hasMod && mod > 0 && mod < 200 ? units.formatDepth(mod) : '-',
+          bulletColor: const Color(0xFFFFB300),
+        ),
+      );
     }
     if (_showMod) {
       rows.addAll(
@@ -1846,15 +1987,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
-    // Gas density
-    if (_showDensity &&
-        widget.densityCurve != null &&
-        spot.spotIndex < widget.densityCurve!.length) {
+    // Gas density (always shown once enabled; see the Ceiling row comment).
+    if (_showDensity) {
+      final hasDensity =
+          widget.densityCurve != null &&
+          spot.spotIndex < widget.densityCurve!.length;
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_density,
-          value:
-              '${_readoutValue(widget.densityCurve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} ${l10n.units_profileMetric_gPerL}',
+          value: hasDensity
+              ? '${_readoutValue(widget.densityCurve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} ${l10n.units_profileMetric_gPerL}'
+              : '-',
           bulletColor: const Color(0xFF827717),
         ),
       );
@@ -1872,14 +2015,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
-    // GF%
-    if (_showGf &&
-        widget.gfCurve != null &&
-        spot.spotIndex < widget.gfCurve!.length) {
+    // GF% (always shown once enabled; see the Ceiling row comment).
+    if (_showGf) {
+      final hasGf =
+          widget.gfCurve != null && spot.spotIndex < widget.gfCurve!.length;
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_gfPercent,
-          value: '${widget.gfCurve![spot.spotIndex].toStringAsFixed(0)}%',
+          value: hasGf
+              ? '${widget.gfCurve![spot.spotIndex].toStringAsFixed(0)}%'
+              : '-',
           bulletColor: Colors.deepPurple,
         ),
       );
@@ -1896,15 +2041,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
-    // Surface GF
-    if (_showSurfaceGf &&
-        widget.surfaceGfCurve != null &&
-        spot.spotIndex < widget.surfaceGfCurve!.length) {
+    // Surface GF (always shown once enabled; see the Ceiling row comment).
+    if (_showSurfaceGf) {
+      final hasSurfaceGf =
+          widget.surfaceGfCurve != null &&
+          spot.spotIndex < widget.surfaceGfCurve!.length;
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_srfGf,
-          value:
-              '${widget.surfaceGfCurve![spot.spotIndex].toStringAsFixed(0)}%',
+          value: hasSurfaceGf
+              ? '${widget.surfaceGfCurve![spot.spotIndex].toStringAsFixed(0)}%'
+              : '-',
           bulletColor: Colors.purple.shade300,
         ),
       );
@@ -1921,14 +2068,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
-    // Mean depth
-    if (_showMeanDepth &&
-        widget.meanDepthCurve != null &&
-        spot.spotIndex < widget.meanDepthCurve!.length) {
+    // Mean depth (always shown once enabled; see the Ceiling row comment).
+    if (_showMeanDepth) {
+      final hasMeanDepth =
+          widget.meanDepthCurve != null &&
+          spot.spotIndex < widget.meanDepthCurve!.length;
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_mean,
-          value: units.formatDepth(widget.meanDepthCurve![spot.spotIndex]),
+          value: hasMeanDepth
+              ? units.formatDepth(widget.meanDepthCurve![spot.spotIndex])
+              : '-',
           bulletColor: Colors.blueGrey,
         ),
       );
@@ -1945,15 +2095,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
-    // TTS
-    if (_showTts &&
-        widget.ttsCurve != null &&
-        spot.spotIndex < widget.ttsCurve!.length) {
-      final tts = widget.ttsCurve![spot.spotIndex];
+    // TTS (always shown once enabled; see the Ceiling row comment).
+    if (_showTts) {
+      final hasTts =
+          widget.ttsCurve != null && spot.spotIndex < widget.ttsCurve!.length;
+      final tts = hasTts ? widget.ttsCurve![spot.spotIndex] : 0;
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_tts,
-          value: tts > 0
+          value: !hasTts
+              ? '-'
+              : tts > 0
               ? '${(tts / 60).ceil()} ${l10n.units_profileMetric_min}'
               : '0 ${l10n.units_profileMetric_min}',
           bulletColor: const Color(0xFFAD1457),
@@ -1978,15 +2130,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
-    // GTR
-    if (_showGtr &&
-        widget.gtrCurve != null &&
-        spot.spotIndex < widget.gtrCurve!.length) {
+    // GTR (always shown once enabled; see the Ceiling row comment).
+    if (_showGtr) {
+      final hasGtr =
+          widget.gtrCurve != null && spot.spotIndex < widget.gtrCurve!.length;
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_gtr,
+          // GTR's blank placeholder is '--' (formatGtrMinutes' own default),
+          // deliberately distinct from every other row's '-' -- pre-existing
+          // and test-verified, not something this refactor should change.
           value: formatGtrMinutes(
-            widget.gtrCurve![spot.spotIndex],
+            hasGtr ? widget.gtrCurve![spot.spotIndex] : null,
             minuteUnit: l10n.units_profileMetric_min,
           ),
           bulletColor: ProfileRightAxisMetric.gtr.color!,
@@ -2011,14 +2166,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
-    // CNS%
-    if (_showCns &&
-        widget.cnsCurve != null &&
-        spot.spotIndex < widget.cnsCurve!.length) {
+    // CNS% (always shown once enabled; see the Ceiling row comment).
+    if (_showCns) {
+      final hasCns =
+          widget.cnsCurve != null && spot.spotIndex < widget.cnsCurve!.length;
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_cns,
-          value: '${widget.cnsCurve![spot.spotIndex].toStringAsFixed(1)}%',
+          value: hasCns
+              ? '${widget.cnsCurve![spot.spotIndex].toStringAsFixed(1)}%'
+              : '-',
           bulletColor: const Color(0xFFE65100),
         ),
       );
@@ -2035,14 +2192,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
 
-    // OTU
-    if (_showOtu &&
-        widget.otuCurve != null &&
-        spot.spotIndex < widget.otuCurve!.length) {
+    // OTU (always shown once enabled; see the Ceiling row comment).
+    if (_showOtu) {
+      final hasOtu =
+          widget.otuCurve != null && spot.spotIndex < widget.otuCurve!.length;
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_otu,
-          value: widget.otuCurve![spot.spotIndex].toStringAsFixed(0),
+          value: hasOtu
+              ? widget.otuCurve![spot.spotIndex].toStringAsFixed(0)
+              : '-',
           bulletColor: const Color(0xFF6D4C41),
         ),
       );
@@ -2125,11 +2284,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
-    widget.onTooltipData!(
-      onLeadIn
-          ? _markInterpolatedRows(rows, _exactAtSurfaceLabels(context))
-          : rows,
-    );
+    return onLeadIn
+        ? _markInterpolatedRows(rows, _exactAtSurfaceLabels(context))
+        : rows;
   }
 
   /// The plot-rect insets (reserved axis gutters) for the current build: the
@@ -2143,11 +2300,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     double availableWidth,
     UnitFormatter units,
   ) {
+    // _hoverRightAxisMetric wins over the persisted preference here for the
+    // same reason as in build() -- so the plot rect (and so the gesture math
+    // keyed on it) never disagrees with what the axis is showing this frame.
+    // Still ref.read, per the note just below: this runs from gesture
+    // callbacks too, outside build.
     final legendNotifier = ref.read(profileLegendProvider.notifier);
     final preferredMetric = legendNotifier.getEffectiveRightAxisMetric();
-    final effectiveRightAxisMetric = preferredMetric != null
-        ? _getEffectiveRightAxisMetric(preferredMetric)
-        : null;
+    final effectiveRightAxisMetric =
+        _hoverRightAxisMetric ??
+        (preferredMetric != null
+            ? _getEffectiveRightAxisMetric(preferredMetric)
+            : null);
     final rightAxisRange = effectiveRightAxisMetric != null
         ? _getMetricRange(effectiveRightAxisMetric, units)
         : null;
@@ -2657,7 +2821,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               },
               onPointerUp: (event) {
                 if (_activePointerCount > 0) _activePointerCount--;
-                _lastPointerLocal = null;
+                _clearCursorHoverState();
                 if (event.kind == PointerDeviceKind.touch) {
                   _touchPositions.remove(event.pointer);
                   if (_pinchPointers.contains(event.pointer)) {
@@ -2684,7 +2848,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               },
               onPointerCancel: (event) {
                 if (_activePointerCount > 0) _activePointerCount--;
-                _lastPointerLocal = null;
+                _clearCursorHoverState();
                 _touchPositions.remove(event.pointer);
                 if (_pinchPointers.contains(event.pointer)) {
                   _touchPositions.length >= 2
@@ -2716,6 +2880,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               },
               onPointerHover: (event) {
                 _activePointerKind = PointerDeviceKind.mouse;
+                // Tracked for the in-chart cursor tooltip's position (see
+                // ProfileCursorTooltip below), which otherwise only moved on
+                // a drag: a plain mouse hover carries no PointerDownEvent or
+                // PointerMoveEvent through this Listener, only this one.
+                if (_lastPointerLocal != event.localPosition) {
+                  setState(() => _lastPointerLocal = event.localPosition);
+                }
                 // fl_chart's touch callback already handled this event; when
                 // it resolved a sample that sample is the selection, so this
                 // fallback only covers the cursor outside the plot rect or
@@ -2745,6 +2916,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     _lastHoverOnLeadIn = false;
                     _reportSelection(null);
                   }
+                  // The mouse leaving the chart entirely (not just panning
+                  // off the touched sample) must also drop the in-chart
+                  // tooltip and the hover-driven highlight/axis-override --
+                  // otherwise they freeze at their last position instead of
+                  // disappearing (issue #2228 follow-up).
+                  _clearCursorHoverState();
                 },
                 child: _buildChart(
                   context,
@@ -2966,7 +3143,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     required double totalMaxDepth,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    final display = ref.read(gasConsumptionDisplayProvider);
     const heartRateColor = ProfileMetricColors.heartRate;
 
     // Calculate full data bounds (all values stored in meters, convert for
@@ -3040,11 +3216,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     // Determine effective right axis metric using settings default and fallback chain.
     // getEffectiveRightAxisMetric() returns null when the user chose "None".
+    // A non-null _hoverRightAxisMetric (the cursor/touch sitting on a tagged
+    // line, see lineMetricTags below) takes priority over the persisted
+    // preference, purely for this render -- it is never written back to the
+    // provider (issue #2228 follow-up).
     final legendNotifier = ref.read(profileLegendProvider.notifier);
     final preferredMetric = legendNotifier.getEffectiveRightAxisMetric();
-    final effectiveRightAxisMetric = preferredMetric != null
-        ? _getEffectiveRightAxisMetric(preferredMetric)
-        : null;
+    final effectiveRightAxisMetric =
+        _hoverRightAxisMetric ??
+        (preferredMetric != null
+            ? _getEffectiveRightAxisMetric(preferredMetric)
+            : null);
     final rightAxisRange = effectiveRightAxisMetric != null
         ? _getMetricRange(effectiveRightAxisMetric, units)
         : null;
@@ -3087,6 +3269,355 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         maxSac = sacs.reduce(math.max) * 1.2; // Add 20% headroom
       }
     }
+
+    final combinedBars = _windowedBars(
+      visibleMinX: visibleMinX,
+      visibleRangeX: visibleRangeX,
+      chartMinY: -visibleMaxDepth,
+      _barsCache.series(
+        'combined',
+        _sigOf([
+          _baseSig,
+          _sacSig,
+          _ascentSig,
+          _analysisSig,
+          _markersSig,
+          _overlaysSig,
+        ]),
+        () => [
+          ..._barsCache.series('base', _baseSig, () {
+            // Depth line segments (colored by active gas if
+            // present). No right-axis metric represents depth
+            // (it is the chart's own primary/left axis), so these
+            // never highlight/drive the right axis.
+            final depthLines = _buildGasColoredDepthLines(colorScheme, units);
+
+            // Gas switch markers (if showing and data available).
+            // Zero-width dot markers, not a metric line.
+            final gasSwitchMarkers = _showGasSwitchMarkers
+                ? _buildGasSwitchMarkers(units)
+                : const <LineChartBarData>[];
+
+            // Temperature line (if showing).
+            final temperatureLines =
+                (_showTemperature &&
+                    hasTemperatureData &&
+                    minTemp != null &&
+                    maxTemp != null)
+                ? _buildTemperatureLines(
+                    colorScheme,
+                    metricBand,
+                    minTemp,
+                    maxTemp,
+                    units,
+                  )
+                : const <LineChartBarData>[];
+
+            // Multi-tank pressure lines (per-tank visibility
+            // controlled inside _buildMultiTankPressureLines via
+            // _showTankPressure).
+            final tankPressureLines = _hasMultiTankPressure
+                ? _buildMultiTankPressureLines(metricBand)
+                : const <LineChartBarData>[];
+
+            // Heart rate line (if showing)
+            final heartRateLines =
+                (_showHeartRate &&
+                    hasHeartRateData &&
+                    minHR != null &&
+                    maxHR != null)
+                ? [
+                    _buildHeartRateLine(
+                      heartRateColor,
+                      metricBand,
+                      minHR,
+                      maxHR,
+                    ),
+                  ]
+                : const <LineChartBarData>[];
+
+            _baseTags = [
+              ...List<ProfileRightAxisMetric?>.filled(depthLines.length, null),
+              ...List<ProfileRightAxisMetric?>.filled(
+                gasSwitchMarkers.length,
+                null,
+              ),
+              ...List<ProfileRightAxisMetric?>.filled(
+                temperatureLines.length,
+                ProfileRightAxisMetric.temperature,
+              ),
+              ...List<ProfileRightAxisMetric?>.filled(
+                tankPressureLines.length,
+                ProfileRightAxisMetric.pressure,
+              ),
+              ...List<ProfileRightAxisMetric?>.filled(
+                heartRateLines.length,
+                ProfileRightAxisMetric.heartRate,
+              ),
+            ];
+
+            return [
+              ...depthLines,
+              ...gasSwitchMarkers,
+              ...temperatureLines,
+              ...tankPressureLines,
+              ...heartRateLines,
+            ];
+          }),
+          ..._barsCache.series('sac', _sacSig, () {
+            // SAC curve line (if showing)
+            final sacLines =
+                (_showSac && hasSacData && minSac != null && maxSac != null)
+                ? [_buildSacLine(metricBand, minSac, maxSac)]
+                : const <LineChartBarData>[];
+            _sacTags = List<ProfileRightAxisMetric?>.filled(
+              sacLines.length,
+              ProfileRightAxisMetric.sac,
+            );
+            return sacLines;
+          }),
+          // Ascent-rate magnitude is drawn by [AscentRateBarOverlay], a
+          // widget layer below (bars from the plot's vertical centre,
+          // not an fl_chart line bar), so this cache series is empty.
+          // The signature stays wired so a rate-data change still
+          // invalidates the shared bars cache key. [_ascentTags] stays
+          // empty in lockstep -- ascentRate has no line to highlight.
+          ..._barsCache.series('ascent', _ascentSig, () {
+            _ascentTags = const [];
+            return const [];
+          }),
+          ..._barsCache.series('analysis', _analysisSig, () {
+            // Deco stop band, drawn before the ceiling line so the
+            // dashed curve stays legible on top of the fill. A
+            // fill/band, not a right-axis metric line.
+            final decoStopBand =
+                (_showDecoStops && widget.decoStopCurve != null)
+                ? [
+                    buildDecoStopBand(
+                      decoStopCurve: widget.decoStopCurve!,
+                      timestamps: [for (final p in widget.profile) p.timestamp],
+                      units: units,
+                    ),
+                  ]
+                : const <LineChartBarData>[];
+
+            // Ceiling line (if showing and data available). There is
+            // no ProfileRightAxisMetric.ceiling, so this never
+            // drives the right axis.
+            final ceilingLines = (_showCeiling && widget.ceilingCurve != null)
+                ? [_buildCeilingLine(units)]
+                : const <LineChartBarData>[];
+
+            // NDL line (if showing)
+            final ndlLines = (_showNdl && widget.ndlCurve != null)
+                ? [_buildNdlLine(metricBand)]
+                : const <LineChartBarData>[];
+
+            // ppO2 line (if showing)
+            final ppO2Lines = (_showPpO2 && widget.ppO2Curve != null)
+                ? [_buildPpO2Line(metricBand)]
+                : const <LineChartBarData>[];
+
+            // ppN2 line (if showing)
+            final ppN2Lines = (_showPpN2 && widget.ppN2Curve != null)
+                ? [_buildPpN2Line(metricBand)]
+                : const <LineChartBarData>[];
+
+            // ppHe line (if showing and has helium data)
+            final ppHeLines =
+                (_showPpHe &&
+                    widget.ppHeCurve != null &&
+                    widget.ppHeCurve!.any((v) => v > 0.001))
+                ? [_buildPpHeLine(metricBand)]
+                : const <LineChartBarData>[];
+
+            // O2 cell agreement rug: a per-run agreement strip, not
+            // the mV values themselves, so it is left untagged
+            // (null) rather than attributed to o2CellMv.
+            final o2CellRug = (_showO2CellMv && widget.o2CellMvCurves != null)
+                ? _buildO2CellRug(metricBand)
+                : const <LineChartBarData>[];
+
+            // One millivolt line per cell (if showing)
+            final o2CellMvLines =
+                (_showO2CellMv && widget.o2CellMvCurves != null)
+                ? _buildO2CellMvLines(metricBand, units)
+                : const <LineChartBarData>[];
+
+            // MOD line (if showing). There is no
+            // ProfileRightAxisMetric.mod, so this never drives the
+            // right axis.
+            final modLines = (_showMod && widget.modCurve != null)
+                ? [_buildModLine(units)]
+                : const <LineChartBarData>[];
+
+            // Gas density line (if showing)
+            final densityLines = (_showDensity && widget.densityCurve != null)
+                ? [_buildDensityLine(metricBand)]
+                : const <LineChartBarData>[];
+
+            // GF% line (if showing)
+            final gfLines = (_showGf && widget.gfCurve != null)
+                ? [_buildGfLine(metricBand)]
+                : const <LineChartBarData>[];
+
+            // Surface GF line (if showing)
+            final surfaceGfLines =
+                (_showSurfaceGf && widget.surfaceGfCurve != null)
+                ? [_buildSurfaceGfLine(metricBand)]
+                : const <LineChartBarData>[];
+
+            // Mean depth line (if showing)
+            final meanDepthLines =
+                (_showMeanDepth && widget.meanDepthCurve != null)
+                ? [_buildMeanDepthLine(units)]
+                : const <LineChartBarData>[];
+
+            // TTS line (if showing)
+            final ttsLines = (_showTts && widget.ttsCurve != null)
+                ? [_buildTtsLine(metricBand)]
+                : const <LineChartBarData>[];
+
+            // GTR line (if showing)
+            final gtrLines = (_showGtr && widget.gtrCurve != null)
+                ? [_buildGtrLine(metricBand)]
+                : const <LineChartBarData>[];
+
+            // CNS% curve (if showing)
+            final cnsLines = (_showCns && widget.cnsCurve != null)
+                ? [_buildCnsLine(metricBand)]
+                : const <LineChartBarData>[];
+
+            // OTU curve (if showing)
+            final otuLines = (_showOtu && widget.otuCurve != null)
+                ? [_buildOtuLine(metricBand)]
+                : const <LineChartBarData>[];
+
+            List<ProfileRightAxisMetric?> tagsFor(
+              List<LineChartBarData> lines,
+              ProfileRightAxisMetric? metric,
+            ) => List<ProfileRightAxisMetric?>.filled(lines.length, metric);
+
+            _analysisTags = [
+              ...tagsFor(decoStopBand, null),
+              ...tagsFor(ceilingLines, null),
+              ...tagsFor(ndlLines, ProfileRightAxisMetric.ndl),
+              ...tagsFor(ppO2Lines, ProfileRightAxisMetric.ppO2),
+              ...tagsFor(ppN2Lines, ProfileRightAxisMetric.ppN2),
+              ...tagsFor(ppHeLines, ProfileRightAxisMetric.ppHe),
+              ...tagsFor(o2CellRug, null),
+              ...tagsFor(o2CellMvLines, ProfileRightAxisMetric.o2CellMv),
+              ...tagsFor(modLines, null),
+              ...tagsFor(densityLines, ProfileRightAxisMetric.gasDensity),
+              ...tagsFor(gfLines, ProfileRightAxisMetric.gf),
+              ...tagsFor(surfaceGfLines, ProfileRightAxisMetric.surfaceGf),
+              ...tagsFor(meanDepthLines, ProfileRightAxisMetric.meanDepth),
+              ...tagsFor(ttsLines, ProfileRightAxisMetric.tts),
+              ...tagsFor(gtrLines, ProfileRightAxisMetric.gtr),
+              ...tagsFor(cnsLines, ProfileRightAxisMetric.cns),
+              ...tagsFor(otuLines, ProfileRightAxisMetric.otu),
+            ];
+
+            return [
+              ...decoStopBand,
+              ...ceilingLines,
+              ...ndlLines,
+              ...ppO2Lines,
+              ...ppN2Lines,
+              ...ppHeLines,
+              ...o2CellRug,
+              ...o2CellMvLines,
+              ...modLines,
+              ...densityLines,
+              ...gfLines,
+              ...surfaceGfLines,
+              ...meanDepthLines,
+              ...ttsLines,
+              ...gtrLines,
+              ...cnsLines,
+              ...otuLines,
+            ];
+          }),
+          ..._barsCache.series('markers', _markersSig, () {
+            // Profile markers (max depth, pressure thresholds):
+            // zero-width dot markers, not right-axis metric lines.
+            final markerLines = _buildMarkerLines(
+              units,
+              metricBand,
+              minPressure: minPressure,
+              maxPressure: maxPressure,
+            );
+            _markersTags = List<ProfileRightAxisMetric?>.filled(
+              markerLines.length,
+              null,
+            );
+            return markerLines;
+          }),
+          ..._barsCache.series('overlays', _overlaysSig, () {
+            // Overlaid comparison sources — LAST, so depth bars keep
+            // occupying the leading barIndex range (_depthBarCount).
+            //
+            // Left entirely untagged (null): a single overlay can
+            // contribute a data-dependent number of lines across
+            // several different metrics (depth, temperature, deco
+            // band, ceiling, NDL, TTS, ppO2, ...), each gated by its
+            // own nested "if data present" check inside
+            // _buildOverlayLines. Re-deriving, per overlay, which
+            // metric each returned bar corresponds to would mean
+            // duplicating that whole conditional chain a second
+            // time here, with every duplication a chance to
+            // miscount and mislabel a bar -- exactly the failure
+            // mode called out as higher-risk than simply not
+            // highlighting an overlay line.
+            final overlayLines = _buildOverlayLines(
+              units,
+              metricBand,
+              minTemp,
+              maxTemp,
+            );
+            _overlaysTags = List<ProfileRightAxisMetric?>.filled(
+              overlayLines.length,
+              null,
+            );
+            return overlayLines;
+          }),
+        ],
+      ),
+    );
+
+    // Parallel to combinedBars: the metric each bar represents, or null
+    // when it has none (see the per-group tag fields set as a side effect
+    // inside the _barsCache.series closures above). Windowing
+    // (_windowedBars) keeps a strict 1:1 index correspondence, so these
+    // indices stay valid against the windowed bars fl_chart is actually
+    // given.
+    final lineMetricTags = <ProfileRightAxisMetric?>[
+      ..._baseTags,
+      ..._sacTags,
+      ..._ascentTags,
+      ..._analysisTags,
+      ..._markersTags,
+      ..._overlaysTags,
+    ];
+
+    // The line under the cursor/touch (see the touchCallback below) is
+    // drawn slightly thicker than its neighbours.
+    final highlightedBarIndex = _hoverHighlightedBarIndex;
+    final displayedLineBars =
+        highlightedBarIndex != null &&
+            highlightedBarIndex >= 0 &&
+            highlightedBarIndex < combinedBars.length
+        ? [
+            for (var i = 0; i < combinedBars.length; i++)
+              i == highlightedBarIndex
+                  ? combinedBars[i].copyWith(
+                      barWidth:
+                          combinedBars[i].barWidth +
+                          DiveProfileChart.hoverHighlightBarWidthDelta,
+                    )
+                  : combinedBars[i],
+          ]
+        : combinedBars;
 
     return Stack(
       children: [
@@ -3266,192 +3797,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             // invalidation; the combined key memoizes the concatenation so a
             // playback-only rebuild returns the identical outer list (fl_chart
             // listEquals short-circuits on identity).
-            lineBarsData: _windowedBars(
-              visibleMinX: visibleMinX,
-              visibleRangeX: visibleRangeX,
-              chartMinY: -visibleMaxDepth,
-              _barsCache.series(
-                'combined',
-                _sigOf([
-                  _baseSig,
-                  _sacSig,
-                  _ascentSig,
-                  _analysisSig,
-                  _markersSig,
-                  _overlaysSig,
-                ]),
-                () => [
-                  ..._barsCache.series(
-                    'base',
-                    _baseSig,
-                    () => [
-                      // Depth line segments (colored by active gas if present)
-                      ..._buildGasColoredDepthLines(colorScheme, units),
-
-                      // Gas switch markers (if showing and data available)
-                      if (_showGasSwitchMarkers)
-                        ..._buildGasSwitchMarkers(units),
-
-                      // Temperature line(s) (if showing) — one per visible
-                      // computer when multi-computer profiles are present, else
-                      // a single curve from the primary profile.
-                      if (_showTemperature &&
-                          hasTemperatureData &&
-                          minTemp != null &&
-                          maxTemp != null)
-                        ..._buildTemperatureLines(
-                          colorScheme,
-                          metricBand,
-                          minTemp,
-                          maxTemp,
-                          units,
-                        ),
-
-                      // Multi-tank pressure lines (per-tank visibility controlled
-                      // inside _buildMultiTankPressureLines via _showTankPressure)
-                      if (_hasMultiTankPressure)
-                        ..._buildMultiTankPressureLines(metricBand),
-
-                      // Heart rate line (if showing)
-                      if (_showHeartRate &&
-                          hasHeartRateData &&
-                          minHR != null &&
-                          maxHR != null)
-                        _buildHeartRateLine(
-                          heartRateColor,
-                          metricBand,
-                          minHR,
-                          maxHR,
-                        ),
-                    ],
-                  ),
-                  ..._barsCache.series(
-                    'sac',
-                    _sacSig,
-                    () => [
-                      // SAC curve line (if showing)
-                      if (_showSac &&
-                          hasSacData &&
-                          minSac != null &&
-                          maxSac != null)
-                        _buildSacLine(metricBand, minSac, maxSac),
-                    ],
-                  ),
-                  // Ascent-rate magnitude is drawn by [AscentRateBarOverlay], a
-                  // widget layer below (bars from the plot's vertical centre,
-                  // not an fl_chart line bar), so this cache series is empty.
-                  // The signature stays wired so a rate-data change still
-                  // invalidates the shared bars cache key.
-                  ..._barsCache.series('ascent', _ascentSig, () => const []),
-                  ..._barsCache.series(
-                    'analysis',
-                    _analysisSig,
-                    () => [
-                      // Deco stop band, drawn before the ceiling line so the
-                      // dashed curve stays legible on top of the fill.
-                      if (_showDecoStops && widget.decoStopCurve != null)
-                        buildDecoStopBand(
-                          decoStopCurve: widget.decoStopCurve!,
-                          timestamps: [
-                            for (final p in widget.profile) p.timestamp,
-                          ],
-                          units: units,
-                        ),
-                      // Ceiling line (if showing and data available)
-                      if (_showCeiling && widget.ceilingCurve != null)
-                        _buildCeilingLine(units),
-
-                      // NDL line (if showing)
-                      if (_showNdl && widget.ndlCurve != null)
-                        _buildNdlLine(metricBand),
-
-                      // ppO2 line (if showing)
-                      if (_showPpO2 && widget.ppO2Curve != null)
-                        _buildPpO2Line(metricBand),
-
-                      // ppN2 line (if showing)
-                      if (_showPpN2 && widget.ppN2Curve != null)
-                        _buildPpN2Line(metricBand),
-
-                      // ppHe line (if showing and has helium data)
-                      if (_showPpHe &&
-                          widget.ppHeCurve != null &&
-                          widget.ppHeCurve!.any((v) => v > 0.001))
-                        _buildPpHeLine(metricBand),
-
-                      // O2 cell agreement rug plus one millivolt line per cell
-                      if (_showO2CellMv && widget.o2CellMvCurves != null) ...[
-                        ..._buildO2CellRug(metricBand),
-                        ..._buildO2CellMvLines(metricBand, units),
-                      ],
-
-                      // MOD line (if showing)
-                      if (_showMod && widget.modCurve != null)
-                        _buildModLine(units),
-
-                      // Gas density line (if showing)
-                      if (_showDensity && widget.densityCurve != null)
-                        _buildDensityLine(metricBand),
-
-                      // GF% line (if showing)
-                      if (_showGf && widget.gfCurve != null)
-                        _buildGfLine(metricBand),
-
-                      // Surface GF line (if showing)
-                      if (_showSurfaceGf && widget.surfaceGfCurve != null)
-                        _buildSurfaceGfLine(metricBand),
-
-                      // Mean depth line (if showing)
-                      if (_showMeanDepth && widget.meanDepthCurve != null)
-                        _buildMeanDepthLine(units),
-
-                      // TTS line (if showing)
-                      if (_showTts && widget.ttsCurve != null)
-                        _buildTtsLine(metricBand),
-
-                      // GTR line (if showing)
-                      if (_showGtr && widget.gtrCurve != null)
-                        _buildGtrLine(metricBand),
-
-                      // CNS% curve (if showing)
-                      if (_showCns && widget.cnsCurve != null)
-                        _buildCnsLine(metricBand),
-
-                      // OTU curve (if showing)
-                      if (_showOtu && widget.otuCurve != null)
-                        _buildOtuLine(metricBand),
-                    ],
-                  ),
-                  ..._barsCache.series(
-                    'markers',
-                    _markersSig,
-                    () => [
-                      // Profile markers (max depth, pressure thresholds)
-                      ..._buildMarkerLines(
-                        units,
-                        metricBand,
-                        minPressure: minPressure,
-                        maxPressure: maxPressure,
-                      ),
-                    ],
-                  ),
-                  ..._barsCache.series(
-                    'overlays',
-                    _overlaysSig,
-                    () => [
-                      // Overlaid comparison sources — LAST, so depth bars keep
-                      // occupying the leading barIndex range (_depthBarCount).
-                      ..._buildOverlayLines(
-                        units,
-                        metricBand,
-                        minTemp,
-                        maxTemp,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+            lineBarsData: displayedLineBars,
             rangeAnnotations: RangeAnnotations(
               verticalRangeAnnotations: _buildHighlightRangeAnnotations(
                 highlightSpan,
@@ -3561,32 +3907,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     // The depth line can be split into multiple bars (per
                     // velocity band); find the touched depth spot on any of
                     // them and map it back to the global profile index.
-                    final depthBarCount = starts.length;
-                    final depthSpot = spots
-                        .where((s) => s.barIndex < depthBarCount)
-                        .firstOrNull;
-                    final index = depthSpot == null
-                        ? -1
-                        : DiveProfileChart.depthSpotProfileIndex(
-                            profile: widget.profile,
-                            depthBarStarts: starts,
-                            barIndex: depthSpot.barIndex,
-                            spotIndex: _sourceSpotIndex(depthSpot),
-                            spotX: depthSpot.x,
-                            multiComputer: false,
-                          );
-                    if (depthSpot != null &&
-                        index >= 0 &&
-                        index < widget.profile.length) {
+                    final resolved = _resolveDepthTouch(spots, starts);
+                    if (resolved != null) {
                       _chartTouchSelecting = true;
                       // The lead-in vertex reads as t=0 in the tooltip, so
                       // report that time rather than the first sample's.
                       _reportSelection(
-                        index,
-                        onLeadIn:
-                            _sourceSpotIndex(depthSpot) == 0 &&
-                            starts[depthSpot.barIndex] < 0 &&
-                            shouldDrawSurfaceLeadIn(widget.profile),
+                        resolved.index,
+                        onLeadIn: resolved.onLeadIn,
                       );
                       if (widget.tooltipBelow) {
                         final settings = ref.read(settingsProvider);
@@ -3600,930 +3928,98 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     }
                   }
                 }
+                // The in-chart cursor tooltip's rows, the `!tooltipBelow`
+                // counterpart to onTooltipData above. Built regardless of
+                // whether any of the three external callbacks are wired
+                // (unlike the block above), since it is this widget's own
+                // Stack layer that reads it, mirroring how fl_chart's own
+                // bubble used to be filled from every touch unconditionally.
+                if (!widget.tooltipBelow) {
+                  final resolved = active
+                      ? _resolveDepthTouch(spots, starts)
+                      : null;
+                  final rows = resolved == null
+                      ? const <TooltipRow>[]
+                      : _buildTooltipRowsForIndex(
+                          resolved.index,
+                          onLeadIn: resolved.onLeadIn,
+                          units: UnitFormatter(ref.read(settingsProvider)),
+                          colorScheme: Theme.of(context).colorScheme,
+                        );
+                  if (rows.isNotEmpty || _liveCursorTooltipRows.isNotEmpty) {
+                    setState(() => _liveCursorTooltipRows = rows);
+                  }
+
+                  // Hover-highlight the touched line and auto-switch the
+                  // right axis to its metric (issue #2228 follow-up).
+                  // !tooltipBelow-only: that mode's right axis (when shown)
+                  // stays on the persisted preference, matching the external
+                  // tooltip it renders instead of this in-chart one.
+                  final cursor = _lastPointerLocal;
+                  int? nearestBarIndex;
+                  if (active && cursor != null) {
+                    final maxY = -visibleMinDepth;
+                    final minY = -visibleMaxDepth;
+                    final plotHeight =
+                        (availableHeight - plotInsets.top - plotInsets.bottom)
+                            .clamp(1.0, double.infinity);
+                    double toPixelY(double dataY) =>
+                        plotInsets.top +
+                        (maxY - dataY) / (maxY - minY) * plotHeight;
+                    nearestBarIndex = nearestHoveredBarIndex(
+                      spots: [
+                        for (final s in spots)
+                          (barIndex: s.barIndex, dataY: s.y),
+                      ],
+                      cursorPixelY: cursor.dy,
+                      toPixelY: toPixelY,
+                    );
+                  }
+                  // Never resurrect the right axis over an explicit "None":
+                  // the user hiding it is a deliberate choice, and hovering a
+                  // line must not silently reappear it and shift the plot
+                  // width for the duration of the hover.
+                  final rightAxisExplicitlyHidden = ref
+                      .read(profileLegendProvider)
+                      .rightAxisHidden;
+                  final newHoverMetric =
+                      !rightAxisExplicitlyHidden &&
+                          nearestBarIndex != null &&
+                          nearestBarIndex >= 0 &&
+                          nearestBarIndex < lineMetricTags.length
+                      ? lineMetricTags[nearestBarIndex]
+                      : null;
+                  // Only a bar tagged with a metric is ever highlighted --
+                  // the nearest reported spot can be an untagged bar (a
+                  // marker, a fill/band, an overlay trace) with a tagged
+                  // line further away, in which case nothing highlights and
+                  // the axis stays on the persisted preference.
+                  final newHighlightedBarIndex = newHoverMetric != null
+                      ? nearestBarIndex
+                      : null;
+                  if (newHoverMetric != _hoverRightAxisMetric ||
+                      newHighlightedBarIndex != _hoverHighlightedBarIndex) {
+                    setState(() {
+                      _hoverRightAxisMetric = newHoverMetric;
+                      _hoverHighlightedBarIndex = newHighlightedBarIndex;
+                    });
+                  }
+                }
               },
               touchTooltipData: LineTouchTooltipData(
-                // Wide enough for a tank row carrying the gas type, e.g.
-                // "Tank 1 (EAN32) 2064 psi", without wrapping. Narrower
-                // tooltips still size to their content (this is only a cap).
-                maxContentWidth: 320,
-                fitInsideHorizontally: true,
-                fitInsideVertically: false,
-                showOnTopOfTheChartBoxArea: true,
-                tooltipMargin: 0,
-                getTooltipColor: widget.tooltipBelow
-                    ? (_) => Colors.transparent
-                    : (spot) => colorScheme.inverseSurface,
-                getTooltipItems: (touchedSpots) {
-                  // When tooltipBelow, suppress the visual bubble.
-                  // Tooltip data is emitted via touchCallback instead.
-                  if (widget.tooltipBelow) {
-                    return touchedSpots.map((_) => null).toList();
-                  }
-                  // Resolve the touched depth spot to a global profile index.
-                  // Velocity colouring splits the depth line into per-band bars,
-                  // so the depth spot can land on any bar in [0, starts.length)
-                  // and its spotIndex is local to that bar.
-                  final depthBarStarts = _depthBarStartIndices();
-                  final depthBarCount = depthBarStarts.length;
-                  final depthSpot = touchedSpots
-                      .where((s) => s.barIndex < depthBarCount)
-                      .firstOrNull;
-                  final depthIndex = depthSpot == null
-                      ? -1
-                      : DiveProfileChart.depthSpotProfileIndex(
-                          profile: widget.profile,
-                          depthBarStarts: depthBarStarts,
-                          barIndex: depthSpot.barIndex,
-                          spotIndex: _sourceSpotIndex(depthSpot),
-                          spotX: depthSpot.x,
-                          multiComputer: false,
-                        );
-                  final hasDepth =
-                      depthSpot != null &&
-                      depthIndex >= 0 &&
-                      depthIndex < widget.profile.length;
-
-                  // The cursor is on the lead-in vertex when the resolved bar's
-                  // start is negative and the touched spot is its first: the
-                  // readout must describe t=0, not repeat the first sample.
-                  final onLeadIn =
-                      depthSpot != null &&
-                      _sourceSpotIndex(depthSpot) == 0 &&
-                      depthBarStarts[depthSpot.barIndex] < 0 &&
-                      shouldDrawSurfaceLeadIn(widget.profile);
-
-                  // Return cached result if the same sample is touched again.
-                  // The cache is keyed on the resolved depth index, but the
-                  // cached list length equals the number of touched bars when it
-                  // was built. fl_chart requires the returned list to match
-                  // touchedSpots.length, so the cache is only valid while the bar
-                  // count is unchanged -- the set of rendered lines can change
-                  // under a parked cursor (a metric toggled, or a data provider
-                  // refreshing), and a stale-length cached list throws
-                  // 'tooltipItems and touchedSpots size should be same'.
-                  if (hasDepth &&
-                      depthIndex == _lastTooltipSpotIndex &&
-                      _lastTooltipItems.length == touchedSpots.length) {
-                    return _lastTooltipItems;
-                  }
-
-                  // Build the combined tooltip from the resolved depth spot; all
-                  // other touched bars contribute a null entry so the returned
-                  // list still matches touchedSpots.length. `spot` is shadowed
-                  // with the global index so every metric row reads the right
-                  // sample.
-                  final result = touchedSpots.map((touched) {
-                    if (!hasDepth || !identical(touched, depthSpot)) {
-                      return null;
-                    }
-                    final spot = (spotIndex: depthIndex);
-
-                    final point = onLeadIn
-                        ? _surfaceReadoutPoint()
-                        : widget.profile[spot.spotIndex];
-                    final minutes = point.timestamp ~/ 60;
-                    final seconds = point.timestamp % 60;
-
-                    // Build tooltip with all enabled metrics
-                    // Text style constants for consistent column layout
-                    final onSurface = colorScheme.onInverseSurface;
-                    final l10n = context.l10n;
-                    final bar = l10n.units_pressure_bar;
-                    final gPerL = l10n.units_profileMetric_gPerL;
-                    final minUnit = l10n.units_profileMetric_min;
-                    final rowStyle = TextStyle(
-                      fontFamily: 'RobotoMono',
-                      fontSize: 14,
-                      color: onSurface,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    );
-
-                    // fl_chart tooltips are a single TextSpan tree, so columns
-                    // are aligned with monospace padding rather than layout
-                    // widgets. A fixed label column keeps the common rows
-                    // compact and within the tooltip's max content width; a
-                    // long label (e.g. "Tank 1 (EAN32)") overflows its own row
-                    // instead of widening every row.
-                    const labelWidth = 8;
-                    const valueWidth = 16;
-
-                    final tooltipRows =
-                        <
-                          ({
-                            String label,
-                            String value,
-                            Color bulletColor,
-                            String bullet,
-                            double bulletSize,
-                          })
-                        >[];
-
-                    void addRow(
-                      String label,
-                      String value,
-                      Color bulletColor, {
-                      String bullet = '●',
-                      double bulletSize = 12,
-                    }) {
-                      tooltipRows.add((
-                        label: label,
-                        value: value,
-                        bulletColor: bulletColor,
-                        bullet: bullet,
-                        bulletSize: bulletSize,
-                      ));
-                    }
-
-                    // Time (always shown)
-                    final timeValue =
-                        '$minutes:${seconds.toString().padLeft(2, '0')}';
-                    addRow(
-                      context.l10n.diveLog_tooltip_time,
-                      timeValue,
-                      onSurface.withValues(alpha: 0.5),
-                    );
-
-                    // Depth (always shown) - use same color as depth line
-                    addRow(
-                      context.l10n.diveLog_tooltip_depth,
-                      units.formatDepth(point.depth),
-                      AppColors.chartDepth,
-                    );
-
-                    // Overlaid sources' depth at this time, labeled with
-                    // the metric so the value is unambiguous.
-                    for (final overlay
-                        in widget.overlays ?? const <ChartSourceOverlay>[]) {
-                      final overlayPoint = _overlayPointAt(
-                        overlay,
-                        point.timestamp,
-                      );
-                      if (overlayPoint == null) continue;
-                      addRow(
-                        '${context.l10n.diveLog_tooltip_depth}'
-                        ' · ${overlay.name}',
-                        units.formatDepth(overlayPoint.depth),
-                        _overlayColor(overlay, ProfileMetricColors.depth),
-                      );
-                    }
-
-                    // Temperature (if enabled - always show row)
-                    if (_showTemperature) {
-                      final tempValue = point.temperature != null
-                          ? units.formatTemperature(point.temperature)
-                          : '—';
-                      addRow(
-                        context.l10n.diveLog_tooltip_temp,
-                        tempValue,
-                        colorScheme.tertiary,
-                      );
-                      for (final overlay
-                          in widget.overlays ?? const <ChartSourceOverlay>[]) {
-                        final overlayTemp = _overlayPointAt(
-                          overlay,
-                          point.timestamp,
-                        )?.temperature;
-                        if (overlayTemp == null) continue;
-                        addRow(
-                          '${context.l10n.diveLog_tooltip_temp}'
-                          ' · ${overlay.name}',
-                          units.formatTemperature(overlayTemp),
-                          _overlayColor(overlay, colorScheme.tertiary),
-                        );
-                      }
-                    }
-
-                    // Heart rate (if enabled - always show row)
-                    if (_showHeartRate) {
-                      final bpm = l10n.units_profileMetric_bpm;
-                      final hrValue = point.heartRate != null
-                          ? '${point.heartRate} $bpm'
-                          : '—';
-                      addRow(
-                        context.l10n.diveLog_tooltip_hr,
-                        hrValue,
-                        Colors.red,
-                      );
-                    }
-
-                    // Gas consumption (if enabled, always show the row)
-                    if (_showSac) {
-                      String sacValue = '—';
-                      String sacLabel = context.l10n.gasConsumption_sac;
-                      if (widget.sacCurve != null &&
-                          spot.spotIndex < widget.sacCurve!.length) {
-                        final sacBarPerMin = widget.sacCurve![spot.spotIndex];
-                        if (sacBarPerMin > 0) {
-                          final row = gasConsumptionTooltipRow(
-                            l10n: context.l10n,
-                            units: units,
-                            display: display,
-                            sacBarPerMin:
-                                sacBarPerMin * widget.sacNormalizationFactor,
-                            tankVolume: widget.tankVolume,
-                          );
-                          sacLabel = row.label;
-                          sacValue = row.value;
-                        }
-                      }
-                      addRow(sacLabel, sacValue, Colors.teal);
-                    }
-
-                    // Ceiling (if enabled - always show row)
-                    if (_showCeiling) {
-                      String ceilingValue = '—';
-                      if (widget.ceilingCurve != null &&
-                          spot.spotIndex < widget.ceilingCurve!.length) {
-                        final ceiling = widget.ceilingCurve![spot.spotIndex];
-                        if (ceiling > 0) {
-                          ceilingValue = units.formatDepth(ceiling);
-                        }
-                      }
-                      addRow(
-                        context.l10n.diveLog_tooltip_ceiling,
-                        ceilingValue,
-                        const Color(0xFF7B1FA2),
-                      );
-                    }
-                    if (_showCeiling) {
-                      for (final overlay
-                          in widget.overlays ?? const <ChartSourceOverlay>[]) {
-                        final idx = _overlayIndexAt(overlay, point.timestamp);
-                        final curve = overlay.analysis?.ceilingCurve;
-                        if (idx == null ||
-                            curve == null ||
-                            idx >= curve.length) {
-                          continue;
-                        }
-                        final ceiling = curve[idx];
-                        addRow(
-                          '${context.l10n.diveLog_tooltip_ceiling}'
-                          ' · ${overlay.name}',
-                          ceiling > 0 ? units.formatDepth(ceiling) : '—',
-                          _overlayColor(overlay, ProfileMetricColors.ceiling),
-                        );
-                      }
-                    }
-
-                    // Deco stop (if enabled - always show row)
-                    if (_showDecoStops) {
-                      String stopValue = '—';
-                      if (widget.decoStopCurve != null &&
-                          spot.spotIndex < widget.decoStopCurve!.length) {
-                        final stop = widget.decoStopCurve![spot.spotIndex];
-                        if (stop > 0) {
-                          stopValue = units.formatDepth(stop);
-                        }
-                      }
-                      addRow(
-                        context.l10n.diveLog_tooltip_decoStop,
-                        stopValue,
-                        decoStopBandColor,
-                      );
-                    }
-                    if (_showDecoStops) {
-                      for (final overlay
-                          in widget.overlays ?? const <ChartSourceOverlay>[]) {
-                        final idx = _overlayIndexAt(overlay, point.timestamp);
-                        final curve = overlay.analysis?.decoStopCurve;
-                        if (idx == null ||
-                            curve == null ||
-                            idx >= curve.length) {
-                          continue;
-                        }
-                        final stop = curve[idx];
-                        addRow(
-                          '${context.l10n.diveLog_tooltip_decoStop}'
-                          ' · ${overlay.name}',
-                          stop > 0 ? units.formatDepth(stop) : '—',
-                          _overlayColor(overlay, ProfileMetricColors.decoStops),
-                        );
-                      }
-                    }
-
-                    // Ascent rate (if enabled - always show row with fixed format)
-                    // Uses distinct colors that don't conflict with gas colors:
-                    // - Descent: cyan (distinct from air blue)
-                    // - Safe ascent: lime green (distinct from nitrox green)
-                    // - Warning/danger: orange/red (already distinct)
-                    if (_showAscentRateColors || _showAscentRateLine) {
-                      Color rateColor = Colors.grey;
-                      String arrow = '—';
-                      double convertedRate = 0.0;
-
-                      if (widget.ascentRates != null &&
-                          spot.spotIndex < widget.ascentRates!.length) {
-                        final ascentRate = widget.ascentRates![spot.spotIndex];
-                        final rate = ascentRate.rateMetersPerMin;
-                        convertedRate = units.convertDepth(rate.abs());
-                        if (rate > 0.5) {
-                          arrow = '↑';
-                          // Use lime for safe ascent (distinct from nitrox green)
-                          rateColor =
-                              ascentRate.category == AscentRateCategory.safe
-                              ? Colors.lime
-                              : _getAscentRateColor(ascentRate.category);
-                        } else if (rate < -0.5) {
-                          arrow = '↓';
-                          // Use cyan for descent (distinct from air blue)
-                          rateColor = Colors.cyan;
-                        }
-                      }
-                      final rateNum = convertedRate
-                          .toStringAsFixed(1)
-                          .padLeft(5);
-                      final rateValue =
-                          '$arrow$rateNum ${units.depthSymbol}/min';
-                      addRow(
-                        context.l10n.diveLog_tooltip_rate,
-                        rateValue,
-                        rateColor,
-                      );
-                    }
-
-                    // NDL (if enabled)
-                    if (_showNdl) {
-                      String ndlValue = '—';
-                      if (widget.ndlCurve != null &&
-                          spot.spotIndex < widget.ndlCurve!.length) {
-                        final ndl = widget.ndlCurve![spot.spotIndex];
-                        if (ndl < 0) {
-                          ndlValue = context.l10n.diveLog_playbackStats_deco;
-                        } else if (ndl < 3600) {
-                          final min = ndl ~/ 60;
-                          final sec = ndl % 60;
-                          ndlValue = '$min:${sec.toString().padLeft(2, '0')}';
-                        } else {
-                          ndlValue = l10n.diveLog_tooltip_ndlOverMax;
-                        }
-                      }
-                      addRow(
-                        context.l10n.diveLog_tooltip_ndl,
-                        ndlValue,
-                        Colors.yellow.shade700,
-                      );
-                    }
-                    if (_showNdl) {
-                      for (final overlay
-                          in widget.overlays ?? const <ChartSourceOverlay>[]) {
-                        final idx = _overlayIndexAt(overlay, point.timestamp);
-                        final curve = overlay.analysis?.ndlCurve;
-                        if (idx == null ||
-                            curve == null ||
-                            idx >= curve.length) {
-                          continue;
-                        }
-                        final ndl = curve[idx];
-                        String overlayNdlValue;
-                        if (ndl < 0) {
-                          overlayNdlValue =
-                              context.l10n.diveLog_playbackStats_deco;
-                        } else if (ndl < 3600) {
-                          final min = ndl ~/ 60;
-                          final sec = ndl % 60;
-                          overlayNdlValue =
-                              '$min:${sec.toString().padLeft(2, '0')}';
-                        } else {
-                          overlayNdlValue = l10n.diveLog_tooltip_ndlOverMax;
-                        }
-                        addRow(
-                          '${context.l10n.diveLog_tooltip_ndl}'
-                          ' · ${overlay.name}',
-                          overlayNdlValue,
-                          _overlayColor(overlay, ProfileMetricColors.ndl),
-                        );
-                      }
-                    }
-
-                    // ppO2 (computer value or O2 cell average) plus each sensor
-                    if (_showPpO2) {
-                      String ppO2Value = '—';
-                      if (widget.ppO2Curve != null &&
-                          spot.spotIndex < widget.ppO2Curve!.length) {
-                        final ppO2 = _readoutValue(
-                          widget.ppO2Curve![spot.spotIndex],
-                          onLeadIn,
-                        );
-                        ppO2Value = '${ppO2.toStringAsFixed(2)} $bar';
-                      }
-                      addRow(
-                        widget.ppO2FromSensorAverage
-                            ? '${context.l10n.diveLog_tooltip_ppO2} ${context.l10n.diveLog_tooltip_avgCalculated}'
-                            : context.l10n.diveLog_tooltip_ppO2,
-                        ppO2Value,
-                        const Color(0xFF00ACC1),
-                      );
-                    }
-                    if (_showPpO2) {
-                      for (final row in _overlayCurveRows<double>(
-                        timestamp: point.timestamp,
-                        curveOf: (a) => a.ppO2Curve,
-                        color: ProfileMetricColors.ppO2,
-                        label: context.l10n.diveLog_tooltip_ppO2,
-                        formatValue: (v) => '${v.toStringAsFixed(2)} $bar',
-                      )) {
-                        addRow(row.label, row.value, row.bulletColor);
-                      }
-                    }
-
-                    // Cell rows follow the cells' own toggles, not the ppO2
-                    // line: hiding the loop ppO2 must not hide the sensors.
-                    if (_showPpO2 || _showO2CellMv) {
-                      for (final row in _buildO2CellTooltipRows(
-                        spot.spotIndex,
-                      )) {
-                        addRow(row.label, row.value, row.bulletColor);
-                      }
-                    }
-
-                    // ppN2 (if enabled)
-                    if (_showPpN2) {
-                      String ppN2Value = '—';
-                      if (widget.ppN2Curve != null &&
-                          spot.spotIndex < widget.ppN2Curve!.length) {
-                        final ppN2 = _readoutValue(
-                          widget.ppN2Curve![spot.spotIndex],
-                          onLeadIn,
-                        );
-                        ppN2Value = '${ppN2.toStringAsFixed(2)} $bar';
-                      }
-                      addRow(
-                        context.l10n.diveLog_tooltip_ppN2,
-                        ppN2Value,
-                        Colors.indigo,
-                      );
-                    }
-                    if (_showPpN2) {
-                      for (final row in _overlayCurveRows<double>(
-                        timestamp: point.timestamp,
-                        curveOf: (a) => a.ppN2Curve,
-                        color: ProfileMetricColors.ppN2,
-                        label: context.l10n.diveLog_tooltip_ppN2,
-                        formatValue: (v) => '${v.toStringAsFixed(2)} $bar',
-                      )) {
-                        addRow(row.label, row.value, row.bulletColor);
-                      }
-                    }
-
-                    // ppHe (if enabled)
-                    if (_showPpHe) {
-                      String ppHeValue = '—';
-                      if (widget.ppHeCurve != null &&
-                          spot.spotIndex < widget.ppHeCurve!.length) {
-                        final ppHe = widget.ppHeCurve![spot.spotIndex];
-                        if (ppHe > 0.001) {
-                          ppHeValue =
-                              '${_readoutValue(ppHe, onLeadIn).toStringAsFixed(2)} $bar';
-                        }
-                      }
-                      addRow(
-                        context.l10n.diveLog_tooltip_ppHe,
-                        ppHeValue,
-                        Colors.pink.shade300,
-                      );
-                    }
-                    if (_showPpHe) {
-                      for (final row in _overlayCurveRows<double>(
-                        timestamp: point.timestamp,
-                        curveOf: (a) => a.ppHeCurve,
-                        color: ProfileMetricColors.ppHe,
-                        label: context.l10n.diveLog_tooltip_ppHe,
-                        formatValue: (v) => '${v.toStringAsFixed(2)} $bar',
-                        skip: (v) => v <= 0.001,
-                      )) {
-                        addRow(row.label, row.value, row.bulletColor);
-                      }
-                    }
-
-                    // MOD (if enabled)
-                    if (_showMod) {
-                      String modValue = '—';
-                      if (widget.modCurve != null &&
-                          spot.spotIndex < widget.modCurve!.length) {
-                        final mod = widget.modCurve![spot.spotIndex];
-                        if (mod > 0 && mod < 200) {
-                          modValue = units.formatDepth(mod);
-                        }
-                      }
-                      addRow(
-                        context.l10n.diveLog_tooltip_mod,
-                        modValue,
-                        const Color(0xFFFFB300),
-                      );
-                    }
-                    if (_showMod) {
-                      for (final row in _overlayCurveRows<double>(
-                        timestamp: point.timestamp,
-                        curveOf: (a) => a.modCurve,
-                        color: ProfileMetricColors.mod,
-                        label: context.l10n.diveLog_tooltip_mod,
-                        formatValue: units.formatDepth,
-                        skip: (v) => !(v > 0 && v < 200),
-                      )) {
-                        addRow(row.label, row.value, row.bulletColor);
-                      }
-                    }
-
-                    // Gas density (if enabled)
-                    if (_showDensity) {
-                      String densityValue = '—';
-                      if (widget.densityCurve != null &&
-                          spot.spotIndex < widget.densityCurve!.length) {
-                        final density = _readoutValue(
-                          widget.densityCurve![spot.spotIndex],
-                          onLeadIn,
-                        );
-                        densityValue = '${density.toStringAsFixed(2)} $gPerL';
-                      }
-                      addRow(
-                        context.l10n.diveLog_tooltip_density,
-                        densityValue,
-                        const Color(0xFF827717),
-                      );
-                    }
-                    if (_showDensity) {
-                      for (final row in _overlayCurveRows<double>(
-                        timestamp: point.timestamp,
-                        curveOf: (a) => a.densityCurve,
-                        color: ProfileMetricColors.density,
-                        label: context.l10n.diveLog_tooltip_density,
-                        formatValue: (v) => '${v.toStringAsFixed(2)} $gPerL',
-                      )) {
-                        addRow(row.label, row.value, row.bulletColor);
-                      }
-                    }
-
-                    // GF% (if enabled)
-                    if (_showGf) {
-                      String gfValue = '—';
-                      if (widget.gfCurve != null &&
-                          spot.spotIndex < widget.gfCurve!.length) {
-                        final gf = widget.gfCurve![spot.spotIndex];
-                        gfValue = '${gf.toStringAsFixed(0)}%';
-                      }
-                      addRow(
-                        context.l10n.diveLog_tooltip_gfPercent,
-                        gfValue,
-                        Colors.deepPurple,
-                      );
-                    }
-                    if (_showGf) {
-                      for (final row in _overlayCurveRows<double>(
-                        timestamp: point.timestamp,
-                        curveOf: (a) => a.gfCurve,
-                        color: ProfileMetricColors.gf,
-                        label: context.l10n.diveLog_tooltip_gfPercent,
-                        formatValue: (v) => '${v.toStringAsFixed(0)}%',
-                      )) {
-                        addRow(row.label, row.value, row.bulletColor);
-                      }
-                    }
-
-                    // Surface GF (if enabled)
-                    if (_showSurfaceGf) {
-                      String surfaceGfValue = '—';
-                      if (widget.surfaceGfCurve != null &&
-                          spot.spotIndex < widget.surfaceGfCurve!.length) {
-                        final surfaceGf =
-                            widget.surfaceGfCurve![spot.spotIndex];
-                        surfaceGfValue = '${surfaceGf.toStringAsFixed(0)}%';
-                      }
-                      addRow(
-                        context.l10n.diveLog_tooltip_srfGf,
-                        surfaceGfValue,
-                        Colors.purple.shade300,
-                      );
-                    }
-                    if (_showSurfaceGf) {
-                      for (final row in _overlayCurveRows<double>(
-                        timestamp: point.timestamp,
-                        curveOf: (a) => a.surfaceGfCurve,
-                        color: ProfileMetricColors.surfaceGf,
-                        label: context.l10n.diveLog_tooltip_srfGf,
-                        formatValue: (v) => '${v.toStringAsFixed(0)}%',
-                      )) {
-                        addRow(row.label, row.value, row.bulletColor);
-                      }
-                    }
-
-                    // Mean depth (if enabled)
-                    if (_showMeanDepth) {
-                      String meanDepthValue = '—';
-                      if (widget.meanDepthCurve != null &&
-                          spot.spotIndex < widget.meanDepthCurve!.length) {
-                        final meanDepth =
-                            widget.meanDepthCurve![spot.spotIndex];
-                        meanDepthValue = units.formatDepth(meanDepth);
-                      }
-                      addRow(
-                        context.l10n.diveLog_tooltip_mean,
-                        meanDepthValue,
-                        Colors.blueGrey,
-                      );
-                    }
-                    if (_showMeanDepth) {
-                      for (final row in _overlayCurveRows<double>(
-                        timestamp: point.timestamp,
-                        curveOf: (a) => a.meanDepthCurve,
-                        color: ProfileMetricColors.meanDepth,
-                        label: context.l10n.diveLog_tooltip_mean,
-                        formatValue: units.formatDepth,
-                      )) {
-                        addRow(row.label, row.value, row.bulletColor);
-                      }
-                    }
-
-                    // TTS (if enabled)
-                    if (_showTts) {
-                      String ttsValue = '—';
-                      if (widget.ttsCurve != null &&
-                          spot.spotIndex < widget.ttsCurve!.length) {
-                        final tts = widget.ttsCurve![spot.spotIndex];
-                        if (tts > 0) {
-                          final min = (tts / 60).ceil();
-                          ttsValue = '$min $minUnit';
-                        } else {
-                          ttsValue = '0 $minUnit';
-                        }
-                      }
-                      addRow(
-                        context.l10n.diveLog_tooltip_tts,
-                        ttsValue,
-                        const Color(0xFFAD1457),
-                      );
-                    }
-                    if (_showTts) {
-                      for (final overlay
-                          in widget.overlays ?? const <ChartSourceOverlay>[]) {
-                        final idx = _overlayIndexAt(overlay, point.timestamp);
-                        final curve = overlay.analysis?.ttsCurve;
-                        if (idx == null ||
-                            curve == null ||
-                            idx >= curve.length) {
-                          continue;
-                        }
-                        final tts = curve[idx];
-                        final overlayTtsValue = tts > 0
-                            ? '${(tts / 60).ceil()} $minUnit'
-                            : '0 $minUnit';
-                        addRow(
-                          '${context.l10n.diveLog_tooltip_tts}'
-                          ' · ${overlay.name}',
-                          overlayTtsValue,
-                          _overlayColor(overlay, ProfileMetricColors.tts),
-                        );
-                      }
-                    }
-
-                    // GTR (if enabled)
-                    if (_showGtr) {
-                      String gtrValue = '--';
-                      if (widget.gtrCurve != null &&
-                          spot.spotIndex < widget.gtrCurve!.length) {
-                        gtrValue = formatGtrMinutes(
-                          widget.gtrCurve![spot.spotIndex],
-                          minuteUnit: minUnit,
-                        );
-                      }
-                      addRow(
-                        context.l10n.diveLog_tooltip_gtr,
-                        gtrValue,
-                        ProfileRightAxisMetric.gtr.color!,
-                      );
-                    }
-                    if (_showGtr) {
-                      for (final overlay
-                          in widget.overlays ?? const <ChartSourceOverlay>[]) {
-                        final idx = _overlayIndexAt(overlay, point.timestamp);
-                        final curve = overlay.analysis?.gtrCurve;
-                        if (idx == null ||
-                            curve == null ||
-                            idx >= curve.length) {
-                          continue;
-                        }
-                        addRow(
-                          '${context.l10n.diveLog_tooltip_gtr}'
-                          ' · ${overlay.name}',
-                          formatGtrMinutes(curve[idx], minuteUnit: minUnit),
-                          _overlayColor(overlay, ProfileMetricColors.gtr),
-                        );
-                      }
-                    }
-
-                    // CNS% (if enabled)
-                    if (_showCns) {
-                      String cnsValue = '\u2014';
-                      if (widget.cnsCurve != null &&
-                          spot.spotIndex < widget.cnsCurve!.length) {
-                        final cns = widget.cnsCurve![spot.spotIndex];
-                        cnsValue = '${cns.toStringAsFixed(1)}%';
-                      }
-                      addRow(
-                        context.l10n.diveLog_tooltip_cns,
-                        cnsValue,
-                        const Color(0xFFE65100),
-                      );
-                    }
-                    if (_showCns) {
-                      for (final row in _overlayCurveRows<double>(
-                        timestamp: point.timestamp,
-                        curveOf: (a) => a.cnsCurve,
-                        color: ProfileMetricColors.cns,
-                        label: context.l10n.diveLog_tooltip_cns,
-                        formatValue: (v) => '${v.toStringAsFixed(1)}%',
-                      )) {
-                        addRow(row.label, row.value, row.bulletColor);
-                      }
-                    }
-
-                    // OTU (if enabled)
-                    if (_showOtu) {
-                      String otuValue = '\u2014';
-                      if (widget.otuCurve != null &&
-                          spot.spotIndex < widget.otuCurve!.length) {
-                        final otu = widget.otuCurve![spot.spotIndex];
-                        otuValue = otu.toStringAsFixed(0);
-                      }
-                      addRow(
-                        context.l10n.diveLog_tooltip_otu,
-                        otuValue,
-                        const Color(0xFF6D4C41),
-                      );
-                    }
-                    if (_showOtu) {
-                      for (final row in _overlayCurveRows<double>(
-                        timestamp: point.timestamp,
-                        curveOf: (a) => a.otuCurve,
-                        color: ProfileMetricColors.otu,
-                        label: context.l10n.diveLog_tooltip_otu,
-                        formatValue: (v) => v.toStringAsFixed(0),
-                      )) {
-                        addRow(row.label, row.value, row.bulletColor);
-                      }
-                    }
-
-                    // Per-tank pressure (if any tanks are enabled)
-                    if (widget.tankPressures != null) {
-                      final timestamp = point.timestamp;
-                      final sortedTankIds = _sortedTankIds(
-                        widget.tankPressures!.keys,
-                      );
-                      final tankComputerIds = _tankComputerIds();
-                      final contributingComputerIds =
-                          _contributingTankComputerIds(
-                            sortedTankIds,
-                            tankComputerIds,
-                          );
-
-                      for (var i = 0; i < sortedTankIds.length; i++) {
-                        final tankId = sortedTankIds[i];
-                        if (!(_showTankPressure[tankId] ?? true)) continue;
-                        if (!_isComputerVisible(tankComputerIds[tankId])) {
-                          continue;
-                        }
-
-                        final pressurePoints = widget.tankPressures![tankId];
-                        if (pressurePoints == null || pressurePoints.isEmpty) {
-                          continue;
-                        }
-
-                        final pressure = _interpolateTankPressure(
-                          pressurePoints,
-                          timestamp,
-                        );
-                        final tank = _getTankById(tankId);
-                        final color = tank != null
-                            ? GasColors.forGasMix(tank.gasMix)
-                            : _getTankColor(i);
-                        final tankLabel =
-                            DiveProfileChart.tankTooltipLabel(
-                              tank,
-                              context.l10n.diveLog_tank_title(i + 1),
-                            ) +
-                            _tankSourceSuffix(
-                              tankId,
-                              tankComputerIds,
-                              contributingComputerIds,
-                            ) +
-                            _estimatedSuffix(tankId);
-                        final pressValue = pressure != null
-                            ? units.formatPressure(pressure)
-                            : '—';
-                        addRow(tankLabel, pressValue, color);
-                      }
-                    }
-
-                    // Marker info (if touching near a marker)
-                    final markers = widget.markers;
-                    if (markers != null && markers.isNotEmpty) {
-                      final timestamp = point.timestamp;
-                      const timestampThreshold = 3;
-
-                      for (final marker in markers) {
-                        if (marker.type == ProfileMarkerType.maxDepth) {
-                          if (!widget.showMaxDepthMarker ||
-                              !_showMaxDepthMarkerLocal) {
-                            continue;
-                          }
-                        } else {
-                          if (!widget.showPressureThresholdMarkers ||
-                              !_showPressureMarkersLocal) {
-                            continue;
-                          }
-                        }
-
-                        if ((marker.timestamp - timestamp).abs() <=
-                            timestampThreshold) {
-                          final markerColor = marker.getColor();
-                          addRow(
-                            context.l10n.diveLog_tooltip_marker,
-                            marker.chartLabel,
-                            markerColor,
-                            bullet: '◆',
-                            bulletSize: 10,
-                          );
-                        }
-                      }
-                    }
-
-                    // On the lead-in, mark every carried-over value so a held
-                    // reading is never shown as measured. Exact and computed
-                    // rows (time, depth, the partial pressures, MOD, density)
-                    // are left untouched -- same set as the overlay readout.
-                    final displayRows = onLeadIn
-                        ? [
-                            for (final row in tooltipRows)
-                              if (_exactAtSurfaceLabels(
-                                    context,
-                                  ).contains(row.label) ||
-                                  row.label.startsWith(
-                                    context.l10n.diveLog_tooltip_depth,
-                                  ))
-                                row
-                              else
-                                (
-                                  label: row.label,
-                                  value: l10n.diveLog_tooltip_interpolated(
-                                    row.value,
-                                  ),
-                                  bulletColor: row.bulletColor,
-                                  bullet: row.bullet,
-                                  bulletSize: row.bulletSize,
-                                ),
-                          ]
-                        : tooltipRows;
-
-                    const rowWidth = labelWidth + valueWidth;
-                    final rowFiller = List.filled(rowWidth, '0').join();
-                    final lines = <TextSpan>[];
-                    for (final row in displayRows) {
-                      if (lines.isNotEmpty) {
-                        lines.add(const TextSpan(text: '\n'));
-                      }
-                      lines.add(
-                        TextSpan(
-                          text: '${row.bullet} ',
-                          style: TextStyle(
-                            color: row.bulletColor,
-                            fontSize: row.bulletSize,
-                          ),
-                        ),
-                      );
-                      final rowText = DiveProfileChart.tooltipRowText(
-                        row.label,
-                        row.value,
-                        labelWidth,
-                        valueWidth,
-                      );
-                      lines.add(TextSpan(text: rowText, style: rowStyle));
-                      final fillerCount = rowWidth - rowText.length;
-                      if (fillerCount > 0) {
-                        lines.add(
-                          TextSpan(
-                            text: rowFiller.substring(0, fillerCount),
-                            style: rowStyle.copyWith(color: Colors.transparent),
-                          ),
-                        );
-                      }
-                    }
-
-                    return LineTooltipItem(
-                      '', // Empty base text, using children instead
-                      TextStyle(color: onSurface),
-                      children: lines,
-                      textAlign: TextAlign.start,
-                    );
-                  }).toList();
-
-                  // Cache the result for next frame, keyed on the resolved
-                  // global depth index (see the resolution above).
-                  if (hasDepth) {
-                    _lastTooltipSpotIndex = depthIndex;
-                    _lastTooltipItems = result;
-                  }
-
-                  return result;
-                },
+                // fl_chart's own bubble is suppressed for both tooltip
+                // paths: tooltipBelow renders externally via
+                // widget.onTooltipData, and the in-chart path now renders
+                // its own ProfileCursorTooltip (a Stack layer below), which
+                // sizes and positions itself against the plot rect instead
+                // of being at the mercy of fl_chart's own bubble placement
+                // (which could not fit inside the chart vertically with
+                // many metrics enabled -- fitInsideVertically: false was
+                // set for exactly that reason, and rows were still
+                // getting clipped at the plot's top/bottom edge).
+                getTooltipColor: (_) => Colors.transparent,
+                getTooltipItems: (touchedSpots) =>
+                    touchedSpots.map((_) => null).toList(),
               ),
             ),
           ),
@@ -4633,10 +4129,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               visibleMaxSeconds: visibleMaxX,
               insets: plotInsets,
               maxAbsRateMetersPerMin:
-                  DiveProfileChart.ascentRateAxisRange(
-                    widget.ascentRates,
-                  )?.max ??
-                  0,
+                  _ascentRateAxisRange(widget.ascentRates)?.max ?? 0,
             ),
           ),
         // Photo markers: tappable camera chips at each photo's (time, depth).
@@ -4692,6 +4185,23 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               insets: plotInsets,
               onRangeChanged: widget.onRangeChanged ?? (_, _) {},
               onDragActiveChanged: (active) => _rangeDragActive = active,
+            ),
+          ),
+        // In-chart cursor tooltip: the `!tooltipBelow` path's own rendering
+        // of the touched/hovered sample, replacing fl_chart's built-in
+        // bubble (now fully suppressed -- see touchTooltipData above).
+        // IgnorePointer, like the other widget-layer overlays above, so it
+        // never steals the touch/hover that positions it.
+        if (!widget.tooltipBelow &&
+            _lastPointerLocal != null &&
+            _liveCursorTooltipRows.isNotEmpty)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: ProfileCursorTooltip(
+                rows: _liveCursorTooltipRows,
+                cursorLocal: _lastPointerLocal!,
+                insets: plotInsets,
+              ),
             ),
           ),
       ],
@@ -4786,7 +4296,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     for (final category in ProfileMetricCategory.values) {
       final metricsInCategory = category.metrics;
       final availableMetrics = metricsInCategory
-          .where((m) => _hasDataForMetric(m))
+          .where(
+            (m) =>
+                // Ascent rate is drawn by AscentRateBarOverlay (bars from the
+                // plot's centre, gated on its own legend toggle), not as a
+                // LineChartBarData against this axis's scale -- selecting it
+                // here would show a scale with no traceable line against it.
+                m != ProfileRightAxisMetric.ascentRate && _hasDataForMetric(m),
+          )
           .toList();
 
       if (availableMetrics.isEmpty) continue;
@@ -5962,6 +5479,31 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _seriesGetsLeadIn,
   );
 
+  List<AscentRatePoint>? _ascentRateAxisRangeSource;
+  ({double min, double max})? _ascentRateAxisRangeCached;
+  bool _ascentRateAxisRangeCacheValid = false;
+
+  /// [DiveProfileChart.ascentRateAxisRange], memoized on the source identity.
+  ///
+  /// Called every build/hover frame (both by [AscentRateBarOverlay]'s
+  /// saturation range and by the right-axis range lookup), and it is an O(n)
+  /// scan over every ascent-rate sample -- worth avoiding on a hot path for a
+  /// long technical dive with thousands of samples (issue #2228 follow-up).
+  ({double min, double max})? _ascentRateAxisRange(
+    List<AscentRatePoint>? ascentRates,
+  ) {
+    if (identical(_ascentRateAxisRangeSource, ascentRates) &&
+        _ascentRateAxisRangeCacheValid) {
+      return _ascentRateAxisRangeCached;
+    }
+    _ascentRateAxisRangeSource = ascentRates;
+    _ascentRateAxisRangeCached = DiveProfileChart.ascentRateAxisRange(
+      ascentRates,
+    );
+    _ascentRateAxisRangeCacheValid = true;
+    return _ascentRateAxisRangeCached;
+  }
+
   List<List<int?>>? _o2SpreadSource;
   List<double?>? _o2SpreadCached;
 
@@ -6598,7 +6140,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     cnsMaxScale: _getCnsMaxScale(),
     otuMaxScale: _getOtuMaxScale(),
     o2CellMvMax: _o2CellMvMax,
-    ascentRateAxisRange: DiveProfileChart.ascentRateAxisRange,
+    ascentRateAxisRange: _ascentRateAxisRange,
   );
 
   /// Format right axis tick values as plain numbers (units shown in axis label).
