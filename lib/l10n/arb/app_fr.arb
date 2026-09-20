@@ -11312,7 +11312,7 @@
   "explore_chip_timeRange": "{start} à {end}",
   "explore_chip_timeSince": "Depuis {start}",
   "explore_chip_timeBefore": "Avant {end}",
-  "explore_count": "{count, plural, =0{Aucune plongée} =1{1 plongée} other{{count} plongées}}",
+  "explore_count": "{count, plural, =0{Aucune plongée} =1{{count} plongée} other{{count} plongées}}",
   "explore_download_button": "Télécharger le modèle sur l'appareil",
   "explore_download_running": "Téléchargement du modèle",
   "explore_error_contextExceeded": "Cette phrase est trop longue pour le modèle sur l'appareil. Essayez une phrase plus courte.",
