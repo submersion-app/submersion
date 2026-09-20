@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,6 +15,8 @@ import 'package:submersion/features/explore/presentation/providers/explore_gate_
 import 'package:submersion/features/explore/presentation/providers/explore_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/l10n/arb/app_localizations_en.dart';
+import 'package:submersion/features/explore/data/recent_query_repository.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
@@ -21,6 +25,7 @@ class _Engine implements NlEngine {
   _Engine(this.json);
   final String json;
   bool prepared = false;
+  int compiled = 0;
 
   @override
   Future<NlAvailability> availability(String localeTag) async =>
@@ -33,8 +38,10 @@ class _Engine implements NlEngine {
   Stream<double> download() => const Stream.empty();
 
   @override
-  Future<String> compile(String sentence, {required String localeTag}) async =>
-      json;
+  Future<String> compile(String sentence, {required String localeTag}) async {
+    compiled++;
+    return json;
+  }
 }
 
 void main() {
@@ -51,7 +58,13 @@ void main() {
     sortTimestamp: 0,
   );
 
-  List<dynamic> commonOverrides(_Engine engine) => [
+  List<dynamic> commonOverrides(
+    _Engine engine, {
+    NlAvailability? availability,
+    List<RecentQuery> recent = const [],
+  }) => [
+    if (availability != null)
+      exploreAvailabilityProvider.overrideWith((ref) async => availability),
     nlEngineProvider.overrideWithValue(engine),
     explorePlatformSupportedProvider.overrideWithValue(true),
     localeProvider.overrideWithValue('en'),
@@ -83,7 +96,7 @@ void main() {
       ]),
     ),
     recentQueryRecorderProvider.overrideWithValue((s, l, p) async {}),
-    recentQueriesProvider.overrideWith((ref) async => const []),
+    recentQueriesProvider.overrideWith((ref) async => recent),
     exploreResultsProvider.overrideWith(
       (ref) async => ref.watch(exploreFilterProvider).hasActiveFilters
           ? [summary('d1'), summary('d2')]
@@ -144,7 +157,7 @@ void main() {
       final (container, engine) = await pump(tester);
       expect(engine.prepared, isTrue);
       await ask(tester);
-      expect(find.text('Depth over 20m'), findsOneWidget);
+      expect(find.text('Depth at least 20m'), findsOneWidget);
       expect(find.text('Bonaire'), findsOneWidget);
       expect(find.text('turtles'), findsOneWidget);
       expect(find.text('maybe'), findsOneWidget);
@@ -169,7 +182,7 @@ void main() {
   testWidgets('removing a chip recompiles', (tester) async {
     final (container, _) = await pump(tester);
     await ask(tester);
-    final chip = find.widgetWithText(InputChip, 'Depth over 20m');
+    final chip = find.widgetWithText(InputChip, 'Depth at least 20m');
     await tester.tap(
       find.descendant(of: chip, matching: find.byIcon(Icons.close)),
     );
@@ -211,6 +224,90 @@ void main() {
     await tester.tap(tile);
     await tester.pumpAndSettle();
     expect(find.text('dive d1'), findsOneWidget);
+  });
+
+  testWidgets('a downloadable model offers a download and then re-probes', (
+    tester,
+  ) async {
+    final engine = _Engine(turtles);
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        child: const ExplorePage(),
+        locale: const Locale('en'),
+        overrides: [
+          ...base,
+          ...commonOverrides(engine, availability: NlAvailability.downloadable),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    final en = AppLocalizationsEn();
+    expect(find.text(en.explore_download_button), findsOneWidget);
+    await tester.tap(find.text(en.explore_download_button));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('a download in flight shows progress instead of the button', (
+    tester,
+  ) async {
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        child: const ExplorePage(),
+        locale: const Locale('en'),
+        overrides: [
+          ...base,
+          ...commonOverrides(
+            _Engine(turtles),
+            availability: NlAvailability.downloading,
+          ),
+        ],
+      ),
+    );
+    // The progress spinner animates forever, so this never settles.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    final en = AppLocalizationsEn();
+    expect(find.text(en.explore_download_running), findsOneWidget);
+    expect(find.text(en.explore_download_button), findsNothing);
+  });
+
+  testWidgets('a recent query re-runs without calling the model', (
+    tester,
+  ) async {
+    final engine = _Engine(turtles);
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        child: const ExplorePage(),
+        locale: const Locale('en'),
+        overrides: [
+          ...base,
+          ...commonOverrides(
+            engine,
+            recent: [
+              RecentQuery(
+                sentence: 'deep dives in Bonaire',
+                locale: 'en',
+                parsed: ParsedQuery.fromDecoded(jsonDecode(turtles)),
+                lastUsedAt: DateTime(2026, 9, 1),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.text(AppLocalizationsEn().explore_recent_title),
+      findsOneWidget,
+    );
+    await tester.tap(find.text('deep dives in Bonaire'));
+    await tester.pumpAndSettle();
+    expect(find.text('Depth at least 20m'), findsOneWidget);
+    // The stored parse is reused, so the model is never asked again.
+    expect(engine.compiled, 0);
   });
 
   testWidgets('an engine error shows its message and keeps the field', (

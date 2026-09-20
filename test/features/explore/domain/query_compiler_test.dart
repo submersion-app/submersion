@@ -90,6 +90,14 @@ void main() {
     'unplaced': <String>[],
   });
 
+  test('a strict operator lowers to the inclusive bound it will apply', () {
+    final c = compile(turtlesQuery());
+    // The filter axis is `>= 20`, so a 20 m dive matches; the chip must not
+    // claim the query was strict.
+    expect(c.filter.minDepth, 20);
+    expect((c.chips.first.payload as ClauseChip).op, ClauseOp.gte);
+  });
+
   test(
     'the turtles sentence compiles to depth, visibility, species and sites',
     () {
@@ -137,7 +145,9 @@ void main() {
       expect(c.filter.maxWaterTemp, closeTo(15.56, 0.01));
       final chip = c.chips.first.payload as ClauseChip;
       expect(chip.field, ExploreDiveField.depth);
-      expect(chip.op, ClauseOp.lt);
+      // The bound is inclusive, so the chip says so rather than repeating
+      // the model's strict "shallower than".
+      expect(chip.op, ClauseOp.lte);
       expect(chip.value, closeTo(18.29, 0.01));
       expect(chip.dimension, FieldDimension.depth);
     },

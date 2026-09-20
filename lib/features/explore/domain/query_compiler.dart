@@ -299,9 +299,18 @@ abstract final class QueryCompiler {
     if (!_inRange(field, lo) || !_inRange(field, hi)) {
       return _fail('outOfRange');
     }
+    // The chip reports the op the filter ACTUALLY applies, not the one the
+    // model wrote. Every numeric axis is an inclusive bound, so a strict
+    // "deeper than 20" lowers to "at least 20": showing the diver "over 20 m"
+    // while matching a 20 m dive would make the chip a small lie, and the
+    // chip is the whole point of the feature.
     final chip = ClauseChip(
       field: field,
-      op: c.op,
+      op: switch (c.op) {
+        ClauseOp.gt => ClauseOp.gte,
+        ClauseOp.lt => ClauseOp.lte,
+        _ => c.op,
+      },
       value: chipValue,
       dimension: spec.dimension,
     );

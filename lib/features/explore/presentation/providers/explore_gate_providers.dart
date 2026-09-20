@@ -34,6 +34,11 @@ final exploreAvailabilityProvider = FutureProvider<NlAvailability>((ref) async {
 
 final exploreEnabledProvider = Provider<bool>((ref) {
   if (!ref.watch(explorePlatformSupportedProvider)) return false;
-  return ref.watch(exploreAvailabilityProvider).value ==
-      NlAvailability.available;
+  final availability = ref.watch(exploreAvailabilityProvider);
+  // Closed while a probe is in flight. A locale change reloads this provider,
+  // and AsyncValue retains the PREVIOUS answer during the reload, so reading
+  // `.value` alone would keep the entry point open on an English "available"
+  // while the new locale's probe is still running.
+  if (availability.isLoading) return false;
+  return availability.value == NlAvailability.available;
 });

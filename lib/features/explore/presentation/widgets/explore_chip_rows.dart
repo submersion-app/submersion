@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
 import 'package:submersion/features/explore/domain/compiled_query.dart';
 import 'package:submersion/features/explore/domain/name_index.dart';
 import 'package:submersion/features/explore/presentation/chip_labeler.dart';
@@ -37,16 +36,14 @@ class ExploreUnderstoodRow extends ConsumerWidget {
           runSpacing: 4,
           children: [
             for (final chip in compiled.chips)
+              // Removable, not editable in place. The sentence's parse is the
+              // single source of truth and the filter is derived from it, so
+              // an edit made in the filter sheet could not be reflected back
+              // into the chips and would be silently discarded by the next
+              // chip removal. Editing happens after a handoff, where the list
+              // owns its own filter.
               InputChip(
                 label: Text(labeler.label(chip.payload)),
-                onPressed: () => showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (_) => DiveFilterSheet(
-                    ref: ref,
-                    filterProvider: exploreFilterProvider,
-                  ),
-                ),
                 onDeleted: () =>
                     ref.read(exploreQueryProvider.notifier).removeChip(chip),
                 deleteIcon: const Icon(Icons.close, size: 16),

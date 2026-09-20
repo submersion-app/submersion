@@ -151,9 +151,7 @@ class ExploreQueryNotifier extends StateNotifier<ExploreState> {
       final json = await _ref
           .read(nlEngineProvider)
           .compile(trimmed, localeTag: locale);
-      final parsed = ParsedQuery.fromJson(
-        (jsonDecode(json) as Map).cast<String, Object?>(),
-      );
+      final parsed = ParsedQuery.fromDecoded(jsonDecode(json));
       await _compileAndPublish(parsed);
       await _ref.read(recentQueryRecorderProvider)(trimmed, locale, parsed);
     } on NlException catch (e) {

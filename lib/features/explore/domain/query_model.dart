@@ -116,6 +116,17 @@ class ParsedQuery {
     this.unplaced = const [],
   });
 
+  /// Parses whatever the adapter returned. [raw] is the decoded JSON root,
+  /// which a prompt-only adapter can make any type at all, so it is checked
+  /// rather than cast: a list or a bare string is a schema mismatch, not a
+  /// TypeError escaping to the caller.
+  factory ParsedQuery.fromDecoded(Object? raw) {
+    if (raw is! Map) {
+      throw QuerySchemaException('root is ${raw.runtimeType}, expected object');
+    }
+    return ParsedQuery.fromJson(raw.cast<String, Object?>());
+  }
+
   factory ParsedQuery.fromJson(Map<String, Object?> json) {
     final version = json['schemaVersion'];
     if (version != kQuerySchemaVersion) {

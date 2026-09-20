@@ -171,6 +171,30 @@ void main() {
     expect(q.clauses[3].value, ['salt', 'fresh']);
   });
 
+  test('a decoded root that is not an object is a schema mismatch', () {
+    // A prompt-only adapter can return any valid JSON at all; a list or a
+    // bare string must not escape as a TypeError.
+    for (final raw in <Object?>[
+      <Object?>[1, 2],
+      'turtles',
+      42,
+      null,
+    ]) {
+      expect(
+        () => ParsedQuery.fromDecoded(raw),
+        throwsA(isA<QuerySchemaException>()),
+        reason: '$raw',
+      );
+    }
+    expect(
+      ParsedQuery.fromDecoded(<String, Object?>{
+        'schemaVersion': 1,
+        'subject': 'dives',
+      }).subject,
+      QuerySubject.dives,
+    );
+  });
+
   test('missing optional lists default to empty', () {
     final q = ParsedQuery.fromJson({'schemaVersion': 1, 'subject': 'dives'});
     expect(q.clauses, isEmpty);

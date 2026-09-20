@@ -145,8 +145,11 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                     Expanded(
                       child: OutlinedButton(
                         onPressed: () {
-                          ref.read(diveFilterProvider.notifier).state =
-                              compiled.filter;
+                          // The live filter, not compiled.filter: they agree
+                          // today, and reading the published one keeps the
+                          // handoff correct if anything else ever writes it.
+                          ref.read(diveFilterProvider.notifier).state = ref
+                              .read(exploreFilterProvider);
                           // go, not push: the handoff moves to a shell tab.
                           context.go('/dives');
                         },
@@ -158,7 +161,7 @@ class _ExplorePageState extends ConsumerState<ExplorePage> {
                       child: FilledButton(
                         onPressed: () {
                           ref.read(statisticsFilterProvider.notifier).state =
-                              compiled.filter;
+                              ref.read(exploreFilterProvider);
                           context.go('/statistics');
                         },
                         child: Text(l10n.explore_handoff_statistics),

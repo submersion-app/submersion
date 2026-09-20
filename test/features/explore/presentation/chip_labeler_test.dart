@@ -33,6 +33,77 @@ void main() {
     expect(imperial.label(chip), 'Depth over 66ft');
   });
 
+  ClauseChip chip(
+    ExploreDiveField f,
+    Object v, {
+    FieldDimension d = FieldDimension.none,
+    ClauseOp op = ClauseOp.gte,
+  }) => ClauseChip(field: f, op: op, value: v, dimension: d);
+
+  test('every catalog field has a label', () {
+    for (final f in ExploreDiveField.values) {
+      expect(metric.fieldName(f), isNotEmpty, reason: f.name);
+    }
+  });
+
+  test('each dimension formats its own way', () {
+    expect(
+      metric.label(
+        chip(ExploreDiveField.bottomTime, 45.0, d: FieldDimension.minutes),
+      ),
+      'Bottom time at least 45 min',
+    );
+    expect(
+      metric.label(chip(ExploreDiveField.o2, 32.0, d: FieldDimension.percent)),
+      'Oxygen at least 32%',
+    );
+    expect(
+      metric.label(
+        chip(ExploreDiveField.diveNumber, 7.0, d: FieldDimension.count),
+      ),
+      'Dive number at least 7',
+    );
+    // A non-integer count keeps its fraction rather than rounding silently.
+    expect(
+      metric.label(chip(ExploreDiveField.rating, 3.5, d: FieldDimension.count)),
+      'Rating at least 3.5',
+    );
+  });
+
+  test('each operator has its own word', () {
+    for (final entry in {
+      ClauseOp.gt: 'over',
+      ClauseOp.gte: 'at least',
+      ClauseOp.lt: 'under',
+      ClauseOp.lte: 'at most',
+      ClauseOp.eq: 'of',
+    }.entries) {
+      expect(
+        metric.label(
+          chip(
+            ExploreDiveField.diveNumber,
+            3.0,
+            d: FieldDimension.count,
+            op: entry.key,
+          ),
+        ),
+        'Dive number ${entry.value} 3',
+        reason: entry.key.name,
+      );
+    }
+  });
+
+  test('the no-buddy flag and a single enum value', () {
+    expect(
+      metric.label(chip(ExploreDiveField.noBuddy, true, op: ClauseOp.eq)),
+      'No buddy',
+    );
+    expect(
+      metric.label(chip(ExploreDiveField.diveMode, 'ccr', op: ClauseOp.eq)),
+      'Dive mode: ccr',
+    );
+  });
+
   test('between, enum, not, flags and time', () {
     expect(
       metric.label(

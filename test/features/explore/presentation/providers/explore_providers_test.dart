@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/features/explore/domain/compiled_query.dart';
 import 'package:submersion/features/explore/domain/name_index.dart';
 import 'package:submersion/features/explore/domain/nl_engine.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
@@ -118,6 +119,93 @@ void main() {
     final c = make(_ThrowingEngine());
     await c.read(exploreQueryProvider.notifier).run('x');
     expect(c.read(exploreQueryProvider).error, NlError.contextExceeded);
+  });
+
+  test('a non-object JSON root is a schema mismatch, not a hang', () async {
+    // The Android adapter is prompt-only, so the model can return a list.
+    // The notifier must land on an error rather than stay running.
+    final c = make(_ScriptedEngine('[1, 2]'));
+    await c.read(exploreQueryProvider.notifier).run('x');
+    final s = c.read(exploreQueryProvider);
+    expect(s.error, NlError.schemaMismatch);
+    expect(s.running, isFalse);
+  });
+
+  test('text that is not JSON at all is a schema mismatch', () async {
+    final c = make(_ScriptedEngine('I could not answer that'));
+    await c.read(exploreQueryProvider.notifier).run('x');
+    expect(c.read(exploreQueryProvider).error, NlError.schemaMismatch);
+    expect(c.read(exploreQueryProvider).running, isFalse);
+  });
+
+  test('clear resets the state and the published filter', () async {
+    final c = make(_ScriptedEngine(turtles));
+    final n = c.read(exploreQueryProvider.notifier);
+    await n.run('x');
+    expect(c.read(exploreFilterProvider).hasActiveFilters, isTrue);
+    n.clear();
+    expect(c.read(exploreQueryProvider).compiled, isNull);
+    expect(c.read(exploreQueryProvider).sentence, isEmpty);
+    expect(c.read(exploreFilterProvider).hasActiveFilters, isFalse);
+  });
+
+  test('an empty sentence never reaches the model', () async {
+    final engine = _ScriptedEngine(turtles);
+    final c = make(engine);
+    await c.read(exploreQueryProvider.notifier).run('   ');
+    expect(engine.compileCalls, 0);
+    expect(c.read(exploreQueryProvider).compiled, isNull);
+  });
+
+  test('resolveWith swaps the mention and recompiles', () async {
+    final c = make(
+      _ScriptedEngine(
+        '{"schemaVersion":1,"subject":"dives","mentions":'
+        '[{"kind":"place","text":"bonar"}],"unplaced":[]}',
+      ),
+    );
+    final n = c.read(exploreQueryProvider.notifier);
+    await n.run('x');
+    final unresolved = c.read(exploreQueryProvider).compiled!.unresolved;
+    expect(unresolved, hasLength(1));
+    n.resolveWith(
+      0,
+      const NameEntry(
+        kind: MentionKind.place,
+        label: 'Bonaire',
+        ids: ['s1', 's2'],
+        target: NameTarget.sitePlace,
+      ),
+    );
+    expect(c.read(exploreFilterProvider).siteIds, ['s1', 's2']);
+    expect(c.read(exploreQueryProvider).compiled!.unresolved, isEmpty);
+  });
+
+  test('resolveWith on an out-of-range index is ignored', () async {
+    final c = make(_ScriptedEngine(turtles));
+    final n = c.read(exploreQueryProvider.notifier);
+    await n.run('x');
+    final before = c.read(exploreFilterProvider);
+    n.resolveWith(
+      99,
+      const NameEntry(
+        kind: MentionKind.place,
+        label: 'Bonaire',
+        ids: ['s1'],
+        target: NameTarget.sitePlace,
+      ),
+    );
+    expect(c.read(exploreFilterProvider), before);
+  });
+
+  test('removeChip before any query is a no-op', () {
+    final c = make(_ScriptedEngine(turtles));
+    c
+        .read(exploreQueryProvider.notifier)
+        .removeChip(
+          const QueryChip(ref: ChipRef.time, index: 0, payload: TimeChip()),
+        );
+    expect(c.read(exploreQueryProvider).compiled, isNull);
   });
 
   test('rerun with a stored parse skips the model', () async {
