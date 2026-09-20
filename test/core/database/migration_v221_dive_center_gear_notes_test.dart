@@ -80,7 +80,9 @@ void main() {
     expect(AppDatabase.migrationVersions, contains(221));
     expect(AppDatabase.migrationStepCount(220), greaterThanOrEqualTo(1));
     // Additive rung: the sync compatibility floor must not move.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 210);
+    // The floor moved to 223 with the media fact clocks; this rung
+    // still did not move it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 223);
   });
 
   test('adds the dive_center_gear_notes table', () async {

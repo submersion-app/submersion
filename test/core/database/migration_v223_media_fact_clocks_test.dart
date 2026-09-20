@@ -67,9 +67,11 @@ void main() {
     expect(AppDatabase.currentSchemaVersion, 223);
     expect(AppDatabase.migrationVersions, contains(223));
     expect(AppDatabase.migrationStepCount(221), 1);
-    // Additive rung: older readers ignore the two columns, so the sync
-    // compatibility floor must not move.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 210);
+    // This rung RAISES the floor: the columns are additive, but the
+    // semantics are not. A pre-v223 reader knows nothing of the fact clocks
+    // and blind-upserts media, so a fact-only export from this build would
+    // overwrite a caption that reader holds and we do not have.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 223);
   });
 
   test(

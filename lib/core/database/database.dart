@@ -4336,7 +4336,19 @@ class AppDatabase extends _$AppDatabase {
   /// are held until they update. Their own payloads still arrive here, and
   /// a live tank row still pointing at an item deleted here has its link
   /// cleared by [SyncService.parentRefs].
-  static const int minimumCompatibleSchemaVersion = 210;
+  ///
+  /// Raised 210 -> 223 by the media fact clocks: v223 splits a media row's
+  /// device-stamped facts (the upload stamps and the verification pair) onto
+  /// their own clocks, so this build publishes a media row whose ROW clock
+  /// did not move when only its facts changed. An older reader knows nothing
+  /// of the fact clocks and applies media as a blind upsert, so it would take
+  /// the whole row and overwrite a caption it holds that is newer than ours.
+  /// That is an old reader misapplying our payload, which is what this floor
+  /// exists to prevent. Peers below 223 are held until they update; their own
+  /// payloads still arrive here, and this build's merge reads a missing fact
+  /// clock as the row clock, so an old peer's writes still order correctly
+  /// (media sync program spec 5.1).
+  static const int minimumCompatibleSchemaVersion = 223;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
