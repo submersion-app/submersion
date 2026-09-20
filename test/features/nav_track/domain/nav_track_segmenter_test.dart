@@ -182,6 +182,17 @@ void main() {
       expect(result.fixEvents.length, 1);
     });
 
+    test('a jump between two rows stamped the same second is still a fix '
+        'event ("at most 5 s apart" is inclusive of 0 -- the parser keeps '
+        'equal consecutive timestamps, only a backwards one is rejected)', () {
+      final points = [
+        _p(t: 0, north: 0, east: 0, depth: 0),
+        _p(t: 0, north: 200, east: 0, depth: 0),
+      ];
+      final result = NavTrackSegmenter.classify(points);
+      expect(result.fixEvents.length, 1);
+    });
+
     test('a jump right at the start, before the diver ever descends, is a fix '
         'event like any other (item 3: no existing fixture shows this, but '
         'the segmenter must already support it generically)', () {

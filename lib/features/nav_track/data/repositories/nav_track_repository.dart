@@ -77,9 +77,25 @@ class NavTrackRepository {
       final now = DateTime.now().millisecondsSinceEpoch;
       final stats = NavTrackStats.of(points);
       final isPrimary = diveId == null || await _shouldBePrimary(diveId);
-      final siteLocation = siteId == null
+      var anchor = siteId == null
           ? null
           : (await _siteRepository.getSiteById(siteId))?.location;
+      // No site chosen on the review page but the route is being pre-linked
+      // to a dive: fall back to the dive's own entry fix, the same
+      // inheritance `link()`'s `_siteAndAnchorToInherit` already gives a
+      // route linked afterward. Without this, whether a route ends up
+      // anchored depends on which of the two otherwise-equivalent linking
+      // paths (pre-link at import vs. link after the fact) the diver used.
+      if (anchor == null && diveId != null) {
+        final diveRow = await (_db.select(
+          _db.dives,
+        )..where((t) => t.id.equals(diveId))).getSingleOrNull();
+        final entryLat = diveRow?.entryLatitude;
+        final entryLon = diveRow?.entryLongitude;
+        if (entryLat != null && entryLon != null) {
+          anchor = GeoPoint(entryLat, entryLon);
+        }
+      }
       await _db
           .into(_db.navTracks)
           .insert(
@@ -105,8 +121,8 @@ class NavTrackRepository {
               maxDepth: Value(stats.maxDepth),
               maxSpeed: Value(stats.maxSpeed),
               avgSpeed: Value(stats.avgSpeed),
-              anchorLatitude: Value(siteLocation?.latitude),
-              anchorLongitude: Value(siteLocation?.longitude),
+              anchorLatitude: Value(anchor?.latitude),
+              anchorLongitude: Value(anchor?.longitude),
               points: encodeNavTrackPoints(points),
               createdAt: now,
               updatedAt: now,

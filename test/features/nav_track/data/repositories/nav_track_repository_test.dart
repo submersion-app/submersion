@@ -158,6 +158,50 @@ void main() {
       expect(route!.anchor, isNull);
     });
 
+    test('falls back to the pre-linked dive\'s own entry fix when no site is '
+        'chosen (the same inheritance link() gives a route linked after the '
+        'fact via _siteAndAnchorToInherit, so pre-linking at import time is '
+        'not worse off)', () async {
+      await _insertDiveWithEntryLocation(
+        db,
+        'd1',
+        latitude: 47.2,
+        longitude: 8.4,
+      );
+
+      final id = await repo.insertImportedRoute(
+        points: _samplePoints(),
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: '008.DAT.csv',
+        diveId: 'd1',
+      );
+
+      final route = await repo.getById(id);
+      expect(route!.anchor, const GeoPoint(47.2, 8.4));
+    });
+
+    test('a site pin still wins over the pre-linked dive\'s entry fix when '
+        'both are available', () async {
+      await _insertDiveWithEntryLocation(
+        db,
+        'd1',
+        latitude: 47.2,
+        longitude: 8.4,
+      );
+      await _insertSite(db, 's1', latitude: 47.1, longitude: 8.3);
+
+      final id = await repo.insertImportedRoute(
+        points: _samplePoints(),
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: '008.DAT.csv',
+        diveId: 'd1',
+        siteId: 's1',
+      );
+
+      final route = await repo.getById(id);
+      expect(route!.anchor, const GeoPoint(47.1, 8.3));
+    });
+
     test('does not hydrate points on a list read', () async {
       await repo.insertImportedRoute(
         points: _samplePoints(),

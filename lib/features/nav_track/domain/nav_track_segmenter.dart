@@ -269,7 +269,11 @@ class NavTrackSegmenter {
       return false;
     }
     final dt = cur.timestamp - prev.timestamp;
-    if (dt <= 0 || dt > _fixEventMaxGapSeconds) return false;
+    // "at most 5 s apart" (design spec) is inclusive of dt == 0: the parser
+    // explicitly keeps equal consecutive timestamps (only a backwards jump
+    // is rejected), and the console can legitimately reacquire GPS between
+    // two rows stamped the same wall-clock second.
+    if (dt < 0 || dt > _fixEventMaxGapSeconds) return false;
     final speed = cur.speed;
     if (speed != null && speed > _fixEventMaxSpeedMetersPerSecond) {
       return false;
