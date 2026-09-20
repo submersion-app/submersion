@@ -281,65 +281,89 @@ class TerrainAppearanceSheet extends ConsumerWidget {
             l10n.dive3d_seascape_appearance_wallAngleNote,
             style: Theme.of(context).textTheme.bodySmall,
           ),
-          if (siteId != null) ..._exaggerationSection(context, ref, siteId!),
+          if (siteId != null) _ExaggerationSection(siteId: siteId!),
         ],
       ),
     );
   }
+}
 
-  /// Manual override of the site terrain's vertical exaggeration (issue
-  /// #2141 follow-up), starting from whatever value the terrain is
-  /// currently rendered with (automatic or already overridden).
-  List<Widget> _exaggerationSection(
-    BuildContext context,
-    WidgetRef ref,
-    String siteId,
-  ) {
+/// Manual override of the site terrain's vertical exaggeration (issue
+/// #2141 follow-up), starting from whatever value the terrain is
+/// currently rendered with (automatic or already overridden).
+///
+/// A separate stateful widget so it can remember the last READY exaggeration
+/// across the provider's own transient rebuilds: every drag writes the
+/// override, which [siteSeascapeProvider] watches, so it rebuilds on every
+/// tick. Reading `.valueOrNull` straight off that rebuild would drop to null
+/// while it is (re)computing and snap the slider to 1.0x and back (Copilot
+/// review) -- [_lastKnownAuto] bridges those gaps instead of depending on
+/// how long Riverpod happens to keep the previous AsyncValue around.
+class _ExaggerationSection extends ConsumerStatefulWidget {
+  final String siteId;
+
+  const _ExaggerationSection({required this.siteId});
+
+  @override
+  ConsumerState<_ExaggerationSection> createState() =>
+      _ExaggerationSectionState();
+}
+
+class _ExaggerationSectionState extends ConsumerState<_ExaggerationSection> {
+  double? _lastKnownAuto;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final override = ref.watch(
       settingsProvider.select(
-        (s) => s.seascapeVerticalExaggerationOverrides[siteId],
+        (s) => s.seascapeVerticalExaggerationOverrides[widget.siteId],
       ),
     );
-    final seascapeState = ref.watch(siteSeascapeProvider(siteId)).valueOrNull;
+    final seascapeState = ref
+        .watch(siteSeascapeProvider(widget.siteId))
+        .valueOrNull;
+    if (seascapeState is SiteSeascapeReady) {
+      _lastKnownAuto = seascapeState.axisInputs.verticalExaggeration;
+    }
     final effective =
-        override ??
-        (seascapeState is SiteSeascapeReady
-            ? seascapeState.axisInputs.verticalExaggeration
-            : minManualVerticalExaggeration);
+        override ?? _lastKnownAuto ?? minManualVerticalExaggeration;
     void setOverride(double? factor) => ref
         .read(settingsProvider.notifier)
-        .setSeascapeVerticalExaggerationOverride(siteId, factor);
+        .setSeascapeVerticalExaggerationOverride(widget.siteId, factor);
 
-    return [
-      _sectionRule,
-      ListTile(
-        contentPadding: EdgeInsets.zero,
-        title: Text(l10n.dive3d_seascape_verticalExaggeration),
-        subtitle: Slider(
-          key: const ValueKey('seascapeExaggerationSlider'),
-          min: minManualVerticalExaggeration,
-          max: maxManualVerticalExaggeration,
-          value: effective.clamp(
-            minManualVerticalExaggeration,
-            maxManualVerticalExaggeration,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TerrainAppearanceSheet._sectionRule,
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(l10n.dive3d_seascape_verticalExaggeration),
+          subtitle: Slider(
+            key: const ValueKey('seascapeExaggerationSlider'),
+            min: minManualVerticalExaggeration,
+            max: maxManualVerticalExaggeration,
+            value: effective.clamp(
+              minManualVerticalExaggeration,
+              maxManualVerticalExaggeration,
+            ),
+            label: '${effective.toStringAsFixed(1)}×',
+            onChanged: setOverride,
           ),
-          label: '${effective.toStringAsFixed(1)}×',
-          onChanged: setOverride,
+          trailing: Text('${effective.toStringAsFixed(1)}×'),
         ),
-        trailing: Text('${effective.toStringAsFixed(1)}×'),
-      ),
-      if (override != null)
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            key: const ValueKey('seascapeExaggerationReset'),
-            icon: const Icon(Icons.replay, size: 16),
-            label: Text(l10n.dive3d_seascape_verticalExaggerationReset),
-            onPressed: () => setOverride(null),
+        if (override != null)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              key: const ValueKey('seascapeExaggerationReset'),
+              icon: const Icon(Icons.replay, size: 16),
+              label: Text(l10n.dive3d_seascape_verticalExaggerationReset),
+              onPressed: () => setOverride(null),
+            ),
           ),
-        ),
-    ];
+      ],
+    );
   }
 }
 

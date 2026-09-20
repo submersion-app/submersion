@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,9 +7,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart' show Intl;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
+import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/terrain_appearance_sheet.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -677,5 +684,94 @@ void main() {
         findsNothing,
       );
     });
+
+    testWidgets(
+      'keeps the last known automatic value across a provider rebuild, '
+      "instead of snapping to 1.0x (Copilot review: every drag writes the "
+      "override the provider itself watches, so it rebuilds on every tick, "
+      "and reading valueOrNull straight off that rebuild would go through "
+      "null while it is (re)computing)",
+      (tester) async {
+        final grid = BathymetryGrid(
+          originLat: 0,
+          originLon: 0,
+          cellSizeLatDeg: 0.001,
+          cellSizeLonDeg: 0.001,
+          rows: 2,
+          cols: 2,
+          depthsMeters: const [10, 15, 12, 20],
+          sourceId: 'test',
+          resolutionMeters: 61,
+          fetchedAt: DateTime.utc(2026, 8, 15),
+        );
+        const center = GeoPoint(0, 0);
+        final box = BathymetryTerrainBuilder.enuBounds(grid, center);
+        final ready = SiteSeascapeReady(
+          scene: const Scene3d(
+            layers: [],
+            markers: [],
+            bounds: SceneBounds(durationSeconds: 1, maxDepthMeters: 1),
+          ),
+          sourceId: 'test',
+          resolutionMeters: 61,
+          grid: grid,
+          axisInputs: (
+            minEast: box.minEast,
+            maxEast: box.maxEast,
+            minNorth: box.minNorth,
+            maxNorth: box.maxNorth,
+            maxDepth: 20,
+            verticalExaggeration: 3.9,
+          ),
+        );
+
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        var callCount = 0;
+        final container = ProviderContainer(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            siteSeascapeProvider('site-1').overrideWith((ref) {
+              callCount++;
+              if (callCount == 1) return Future.value(ready);
+              // A rebuild in flight (e.g. triggered by the override write
+              // itself) that has not resolved yet -- exactly what a drag
+              // tick produces.
+              return Completer<SiteSeascapeState>().future;
+            }),
+          ],
+        );
+        addTearDown(container.dispose);
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: const MaterialApp(
+              locale: Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: TerrainAppearanceSheet(siteId: 'site-1'),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        Slider slider() => tester.widget<Slider>(
+          find.byKey(const ValueKey('seascapeExaggerationSlider')),
+        );
+        expect(slider().value, closeTo(3.9, 0.01));
+
+        // Force the provider to rebuild, landing on the never-resolving
+        // second future above -- the slider must still read the last known
+        // automatic value, not fall back to 1.0x.
+        container.invalidate(siteSeascapeProvider('site-1'));
+        await tester.pump();
+        expect(slider().value, closeTo(3.9, 0.01));
+      },
+    );
   });
 }

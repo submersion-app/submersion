@@ -27409,7 +27409,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Ripristina automatico';
 
   @override
-  String get dive3d_seascape_verticalExaggerationLabel => 'Profondita';
+  String get dive3d_seascape_verticalExaggerationLabel => 'Profondità';
 
   @override
   String get dive3d_seascape_appearance_surface => 'Superficie del terreno';
