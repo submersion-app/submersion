@@ -4258,7 +4258,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "استخدام العملة الافتراضية",
   "equipment_scheduleDialog_defaultCurrencyLabel": "عملة هذه المعدة",
   "equipment_service_snackbar_deleted": "تم حذف سجل الصيانة",
-  "equipment_service_totalCostLabel": "إجمالي تكلفة الصيانة ({currency})",
+  "equipment_service_totalCostLabel": "إجمالي تكلفة الصيانة",
   "equipment_setDetail_addEquipmentButton": "إضافة معدات",
   "equipment_setDetail_deleteDialog_cancel": "إلغاء",
   "equipment_setDetail_deleteDialog_confirm": "حذف",

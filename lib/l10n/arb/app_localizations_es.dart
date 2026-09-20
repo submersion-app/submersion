@@ -13209,9 +13209,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Registro de servicio eliminado';
 
   @override
-  String equipment_service_totalCostLabel(String currency) {
-    return 'Costo total de servicio ($currency)';
-  }
+  String get equipment_service_totalCostLabel => 'Costo total de servicio';
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'Agregar equipo';

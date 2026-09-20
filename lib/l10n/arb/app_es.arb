@@ -4258,7 +4258,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Usar la moneda predeterminada",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Moneda para este equipo",
   "equipment_service_snackbar_deleted": "Registro de servicio eliminado",
-  "equipment_service_totalCostLabel": "Costo total de servicio ({currency})",
+  "equipment_service_totalCostLabel": "Costo total de servicio",
   "equipment_setDetail_addEquipmentButton": "Agregar equipo",
   "equipment_setDetail_deleteDialog_cancel": "Cancelar",
   "equipment_setDetail_deleteDialog_confirm": "Eliminar",

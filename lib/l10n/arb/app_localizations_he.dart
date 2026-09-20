@@ -12917,9 +12917,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_service_snackbar_deleted => 'רשומת טיפול נמחקה';
 
   @override
-  String equipment_service_totalCostLabel(String currency) {
-    return 'סה\"כ עלות טיפול ($currency)';
-  }
+  String get equipment_service_totalCostLabel => 'סה\"כ עלות טיפול';
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'הוסף ציוד';

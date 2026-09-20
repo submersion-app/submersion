@@ -4258,7 +4258,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Standaardvaluta gebruiken",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Valuta voor dit item",
   "equipment_service_snackbar_deleted": "Servicerecord verwijderd",
-  "equipment_service_totalCostLabel": "Totale servicekosten ({currency})",
+  "equipment_service_totalCostLabel": "Totale servicekosten",
   "equipment_setDetail_addEquipmentButton": "Uitrusting toevoegen",
   "equipment_setDetail_deleteDialog_cancel": "Annuleren",
   "equipment_setDetail_deleteDialog_confirm": "Verwijderen",

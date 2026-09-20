@@ -4156,7 +4156,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Utiliser la devise par défaut",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Devise pour cet équipement",
   "equipment_service_snackbar_deleted": "Enregistrement de révision supprimé",
-  "equipment_service_totalCostLabel": "Cout total de révision ({currency})",
+  "equipment_service_totalCostLabel": "Cout total de révision",
   "equipment_setDetail_addEquipmentButton": "Ajouter un équipement",
   "equipment_setDetail_deleteDialog_cancel": "Annuler",
   "equipment_setDetail_deleteDialog_confirm": "Supprimer",

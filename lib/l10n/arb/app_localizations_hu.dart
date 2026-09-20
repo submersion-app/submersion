@@ -13184,9 +13184,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_service_snackbar_deleted => 'Szervizrekord törölve';
 
   @override
-  String equipment_service_totalCostLabel(String currency) {
-    return 'Összes szerviz költség ($currency)';
-  }
+  String get equipment_service_totalCostLabel => 'Összes szerviz költség';
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'Felszerelés hozzáadása';

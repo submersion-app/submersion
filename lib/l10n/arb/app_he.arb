@@ -4156,7 +4156,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "שימוש במטבע ברירת המחדל",
   "equipment_scheduleDialog_defaultCurrencyLabel": "מטבע לפריט זה",
   "equipment_service_snackbar_deleted": "רשומת טיפול נמחקה",
-  "equipment_service_totalCostLabel": "סה\"כ עלות טיפול ({currency})",
+  "equipment_service_totalCostLabel": "סה\"כ עלות טיפול",
   "equipment_setDetail_addEquipmentButton": "הוסף ציוד",
   "equipment_setDetail_deleteDialog_cancel": "ביטול",
   "equipment_setDetail_deleteDialog_confirm": "מחק",

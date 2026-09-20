@@ -13125,9 +13125,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get equipment_service_snackbar_deleted => 'Servicerecord verwijderd';
 
   @override
-  String equipment_service_totalCostLabel(String currency) {
-    return 'Totale servicekosten ($currency)';
-  }
+  String get equipment_service_totalCostLabel => 'Totale servicekosten';
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'Uitrusting toevoegen';

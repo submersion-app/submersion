@@ -4156,7 +4156,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Usa la valuta predefinita",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Valuta per questa attrezzatura",
   "equipment_service_snackbar_deleted": "Registro manutenzione eliminato",
-  "equipment_service_totalCostLabel": "Costo totale manutenzione ({currency})",
+  "equipment_service_totalCostLabel": "Costo totale manutenzione",
   "equipment_setDetail_addEquipmentButton": "Aggiungi attrezzatura",
   "equipment_setDetail_deleteDialog_cancel": "Annulla",
   "equipment_setDetail_deleteDialog_confirm": "Elimina",

@@ -4403,7 +4403,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "使用默认货币",
   "equipment_scheduleDialog_defaultCurrencyLabel": "此装备的货币",
   "equipment_service_snackbar_deleted": "维护记录已删除",
-  "equipment_service_totalCostLabel": "维护总费用 ({currency})",
+  "equipment_service_totalCostLabel": "维护总费用",
   "equipment_setDetail_addEquipmentButton": "添加装备",
   "equipment_setDetail_deleteDialog_cancel": "取消",
   "equipment_setDetail_deleteDialog_confirm": "删除",
