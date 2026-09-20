@@ -5181,6 +5181,12 @@ abstract class AppLocalizations {
   /// **'OK'**
   String get common_action_ok;
 
+  /// No description provided for @common_action_openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get common_action_openSettings;
+
   /// Generic save action
   ///
   /// In en, this message translates to:

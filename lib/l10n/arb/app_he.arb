@@ -1257,6 +1257,7 @@
   "common_action_delete": "מחיקה",
   "common_action_edit": "עריכה",
   "common_action_ok": "אישור",
+  "common_action_openSettings": "פתח הגדרות",
   "common_action_save": "שמירה",
   "common_action_search": "חיפוש",
   "common_label_error": "שגיאה",

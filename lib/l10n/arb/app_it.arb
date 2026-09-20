@@ -1257,6 +1257,7 @@
   "common_action_delete": "Elimina",
   "common_action_edit": "Modifica",
   "common_action_ok": "OK",
+  "common_action_openSettings": "Apri Impostazioni",
   "common_action_save": "Salva",
   "common_action_search": "Cerca",
   "common_label_error": "Errore",

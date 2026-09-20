@@ -3200,6 +3200,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get common_action_ok => 'OK';
 
   @override
+  String get common_action_openSettings => 'Beállítások megnyitása';
+
+  @override
   String get common_action_save => 'Mentés';
 
   @override

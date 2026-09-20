@@ -3207,6 +3207,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get common_action_ok => 'OK';
 
   @override
+  String get common_action_openSettings => 'Abrir Configuracoes';
+
+  @override
   String get common_action_save => 'Salvar';
 
   @override

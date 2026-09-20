@@ -1351,6 +1351,7 @@
   "common_action_delete": "删除",
   "common_action_edit": "编辑",
   "common_action_ok": "确定",
+  "common_action_openSettings": "打开设置",
   "common_action_save": "保存",
   "common_action_search": "搜索",
   "common_label_error": "错误",

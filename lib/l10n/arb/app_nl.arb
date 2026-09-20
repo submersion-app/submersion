@@ -1257,6 +1257,7 @@
   "common_action_delete": "Verwijderen",
   "common_action_edit": "Bewerken",
   "common_action_ok": "OK",
+  "common_action_openSettings": "Instellingen openen",
   "common_action_save": "Opslaan",
   "common_action_search": "Zoeken",
   "common_label_error": "Fout",

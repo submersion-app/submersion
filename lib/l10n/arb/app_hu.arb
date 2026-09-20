@@ -1257,6 +1257,7 @@
   "common_action_delete": "Törlés",
   "common_action_edit": "Szerkesztés",
   "common_action_ok": "OK",
+  "common_action_openSettings": "Beállítások megnyitása",
   "common_action_save": "Mentés",
   "common_action_search": "Keresés",
   "common_label_error": "Hiba",

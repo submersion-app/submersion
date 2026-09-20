@@ -3186,6 +3186,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get common_action_ok => 'OK';
 
   @override
+  String get common_action_openSettings => 'Instellingen openen';
+
+  @override
   String get common_action_save => 'Opslaan';
 
   @override

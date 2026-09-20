@@ -3209,6 +3209,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get common_action_ok => 'Aceptar';
 
   @override
+  String get common_action_openSettings => 'Abrir ajustes';
+
+  @override
   String get common_action_save => 'Guardar';
 
   @override

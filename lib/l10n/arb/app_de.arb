@@ -1269,6 +1269,7 @@
   "common_action_delete": "Löschen",
   "common_action_edit": "Bearbeiten",
   "common_action_ok": "OK",
+  "common_action_openSettings": "Einstellungen öffnen",
   "common_action_save": "Speichern",
   "common_action_search": "Suchen",
   "common_label_error": "Fehler",

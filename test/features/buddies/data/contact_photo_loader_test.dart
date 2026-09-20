@@ -32,7 +32,7 @@ Future<Uint8List?> _run(
               // Granted explicitly: these cases exercise photo selection, and
               // flutter_test reports defaultTargetPlatform as android, so the
               // real guard would reach the flutter_contacts platform channel.
-              ensureAccessOverride: () async => true,
+              ensureAccessOverride: () async => ContactAccessOutcome.granted,
               pickContactOverride: picker,
             );
           },
@@ -104,7 +104,10 @@ void main() {
     // implementation uses defaultTargetPlatform, which flutter_test reports as
     // android on every machine.
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-    await expectLater(ensureContactPropertyAccess(), completion(isTrue));
+    await expectLater(
+      ensureContactPropertyAccess(),
+      completion(ContactAccessOutcome.granted),
+    );
     debugDefaultTargetPlatformOverride = null;
   });
 
@@ -114,6 +117,9 @@ void main() {
     // Only Android can deny here, so the branch is unreachable on the test
     // host without a seam. Silence would read as a broken menu action: the
     // user taps "Choose from Contacts" and nothing happens.
+    //
+    // A plain denial, not a permanent one: Android will ask again on the next
+    // tap, so this case must NOT offer a trip to system settings.
     Uint8List? result;
     var pickerCalls = 0;
 
@@ -125,7 +131,7 @@ void main() {
             onPressed: () async {
               result = await loadContactPhoto(
                 context,
-                ensureAccessOverride: () async => false,
+                ensureAccessOverride: () async => ContactAccessOutcome.denied,
                 pickContactOverride: () async {
                   pickerCalls++;
                   return null;
@@ -155,5 +161,58 @@ void main() {
       findsNothing,
       reason: 'the buddy-import wording must not leak into the photo flow',
     );
+    expect(
+      find.widgetWithText(SnackBarAction, 'Open Settings'),
+      findsNothing,
+      reason:
+          'the system will prompt again next time, so sending the user to '
+          'settings would be noise',
+    );
+  });
+
+  testWidgets('a permanently denied permission offers a way to settings', (
+    tester,
+  ) async {
+    // Declaring READ_CONTACTS (#2191) made this state reachable for the first
+    // time: on Android 11 and above a second refusal denies for good, the
+    // request returns instantly, and without this action the user is left on
+    // an error they have no way to resolve from inside the app.
+    var settingsOpened = 0;
+
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () async {
+              await loadContactPhoto(
+                context,
+                ensureAccessOverride: () async =>
+                    ContactAccessOutcome.permanentlyDenied,
+                openSettingsOverride: () => settingsOpened++,
+                pickContactOverride: () async => null,
+              );
+            },
+            child: const Text('load'),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('load'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(
+      find.text('Contacts permission is required to choose a photo.'),
+      findsOneWidget,
+    );
+
+    final action = find.widgetWithText(SnackBarAction, 'Open Settings');
+    expect(action, findsOneWidget);
+
+    expect(settingsOpened, 0, reason: 'settings must not open unprompted');
+    await tester.tap(action);
+    await tester.pump();
+    expect(settingsOpened, 1);
   });
 }

@@ -3028,6 +3028,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_action_ok => '确定';
 
   @override
+  String get common_action_openSettings => '打开设置';
+
+  @override
   String get common_action_save => '保存';
 
   @override

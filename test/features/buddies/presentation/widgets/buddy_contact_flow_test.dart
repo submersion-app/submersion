@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image/image.dart' as img;
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/buddies/data/services/contact_photo_loader.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
@@ -50,8 +51,10 @@ Contact _contact({Uint8List? photo}) => Contact(
 /// and records what the destination received.
 Future<Map<String, dynamic>?> _runImport(
   WidgetTester tester,
-  Future<Contact?> Function() picker,
-) async {
+  Future<Contact?> Function() picker, {
+  ContactAccessProbeFn? ensureAccess,
+  VoidCallback? onOpenSettings,
+}) async {
   Map<String, dynamic>? received;
 
   final router = GoRouter(
@@ -59,8 +62,11 @@ Future<Map<String, dynamic>?> _runImport(
     routes: [
       GoRoute(
         path: '/buddies',
-        builder: (context, state) =>
-            BuddyListContent(pickContactOverride: picker),
+        builder: (context, state) => BuddyListContent(
+          pickContactOverride: picker,
+          ensureAccessOverride: ensureAccess,
+          openSettingsOverride: onOpenSettings,
+        ),
         routes: [
           GoRoute(
             path: 'new',
@@ -178,5 +184,69 @@ void main() {
       isA<Uint8List>(),
       reason: 'a PNG contact photo must not be discarded as undecodable',
     );
+  });
+
+  testWidgets('a denied permission blocks the import and explains itself', (
+    tester,
+  ) async {
+    // Before READ_CONTACTS was declared this branch was the only thing an
+    // Android user ever saw, and it was unresolvable (#2191). It is now a
+    // genuine "not this time": the system will ask again on the next tap, so
+    // there is nothing to send the user to settings for.
+    var pickerCalls = 0;
+
+    final received = await _runImport(tester, () async {
+      pickerCalls++;
+      return _contact();
+    }, ensureAccess: () async => ContactAccessOutcome.denied);
+
+    expect(pickerCalls, 0, reason: 'the picker must not open without access');
+    expect(received, isNull, reason: 'a refused import navigates nowhere');
+    expect(
+      find.text('Contact permission is required to import buddies'),
+      findsOneWidget,
+    );
+    expect(
+      find.widgetWithText(SnackBarAction, 'Open Settings'),
+      findsNothing,
+      reason: 'the system re-prompts next time, so settings would be noise',
+    );
+  });
+
+  testWidgets('a permanently denied import offers a way to settings', (
+    tester,
+  ) async {
+    // Buddy-import wording, not the photo sheet's: the same permission, but
+    // the user asked for a different thing.
+    var settingsOpened = 0;
+
+    await _runImport(
+      tester,
+      () async => _contact(),
+      ensureAccess: () async => ContactAccessOutcome.permanentlyDenied,
+      onOpenSettings: () => settingsOpened++,
+    );
+
+    expect(
+      find.text('Contact permission is required to import buddies'),
+      findsOneWidget,
+    );
+    expect(
+      find.textContaining('choose a photo'),
+      findsNothing,
+      reason: 'the photo-sheet wording must not leak into the import flow',
+    );
+
+    // _runImport pumps without advancing the clock, so the snackbar is in the
+    // tree but still below the viewport mid-slide, and a tap would miss it.
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final action = find.widgetWithText(SnackBarAction, 'Open Settings');
+    expect(action, findsOneWidget);
+
+    expect(settingsOpened, 0, reason: 'settings must not open unprompted');
+    await tester.tap(action);
+    await tester.pump();
+    expect(settingsOpened, 1);
   });
 }

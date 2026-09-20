@@ -1257,6 +1257,7 @@
   "common_action_delete": "Eliminar",
   "common_action_edit": "Editar",
   "common_action_ok": "Aceptar",
+  "common_action_openSettings": "Abrir ajustes",
   "common_action_save": "Guardar",
   "common_action_search": "Buscar",
   "common_label_error": "Error",

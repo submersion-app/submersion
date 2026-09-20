@@ -1257,6 +1257,7 @@
   "common_action_delete": "حذف",
   "common_action_edit": "تعديل",
   "common_action_ok": "موافق",
+  "common_action_openSettings": "فتح الإعدادات",
   "common_action_save": "حفظ",
   "common_action_search": "بحث",
   "common_label_error": "خطأ",

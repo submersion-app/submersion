@@ -3126,6 +3126,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_ok => 'אישור';
 
   @override
+  String get common_action_openSettings => 'פתח הגדרות';
+
+  @override
   String get common_action_save => 'שמירה';
 
   @override

@@ -1967,6 +1967,7 @@
   "common_action_delete": "Delete",
   "common_action_edit": "Edit",
   "common_action_ok": "OK",
+  "common_action_openSettings": "Open Settings",
   "common_action_save": "Save",
   "common_action_search": "Search",
   "common_action_share": "Share",

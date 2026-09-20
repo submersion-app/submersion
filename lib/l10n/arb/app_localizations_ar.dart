@@ -3148,6 +3148,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get common_action_ok => 'موافق';
 
   @override
+  String get common_action_openSettings => 'فتح الإعدادات';
+
+  @override
   String get common_action_save => 'حفظ';
 
   @override
