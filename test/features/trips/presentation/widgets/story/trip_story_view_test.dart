@@ -17,6 +17,7 @@ import 'package:submersion/features/trips/domain/services/trip_story_builder.dar
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_band.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_band_extents.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_docked_day.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
@@ -334,9 +335,7 @@ void main() {
     expect(markerOpacity('Site a'), lessThan(1.0));
   });
 
-  testWidgets('day header sticks below the collapsed map while scrolling', (
-    tester,
-  ) async {
+  testWidgets('the docked day replaces its full-width heading', (tester) async {
     final trip = _trip(
       start: DateTime(2026, 3, 25),
       end: DateTime(2026, 3, 30),
@@ -361,22 +360,107 @@ void main() {
     );
     await pumpView(tester, story, viewSize: const Size(500, 700));
 
-    // Scroll deep into the story so the map is fully collapsed and a later
-    // day's chapter is under the headers.
+    final scrollable = find.byType(CustomScrollView);
     for (var i = 0; i < 4; i++) {
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -400));
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    // The band names a day.
+    final panel = find.byType(TripStoryDockedDay);
+    expect(panel, findsOneWidget);
+    final dockedDate = tester.widget<TripStoryDockedDay>(panel).day.date;
+
+    // Nothing sticks below the band: that day's full-width heading has either
+    // scrolled off or sits below the band as ordinary content, never pinned
+    // against its bottom edge.
+    for (final element
+        in find
+            .byWidgetPredicate(
+              (w) =>
+                  w is TripStoryDayHeader &&
+                  !w.compact &&
+                  w.day.date == dockedDate,
+            )
+            .evaluate()) {
+      final top = tester.getTopLeft(find.byWidget(element.widget)).dy;
+      expect(
+        top,
+        lessThan(TripStoryBandExtents.dockedFloor),
+        reason: 'a full-width heading is pinned under the band',
+      );
+    }
+
+    // The first day is well out of view by now.
+    expect(find.textContaining('Mar 25'), findsNothing);
+  });
+
+  testWidgets('the docked day changes at the band edge, not mid-viewport', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    double? headingTop(int dayNumber) {
+      final matches = find
+          .byWidgetPredicate(
+            (w) =>
+                w is TripStoryDayHeader &&
+                !w.compact &&
+                w.day.dayNumber == dayNumber,
+          )
+          .evaluate();
+      if (matches.isEmpty) return null;
+      return tester.getTopLeft(find.byWidget(matches.first.widget)).dy;
+    }
+
+    int dockedDayNumber() => tester
+        .widget<TripStoryDockedDay>(find.byType(TripStoryDockedDay))
+        .day
+        .dayNumber;
+
+    // Creep down until day 2's heading sits in the middle of the gap between
+    // the band's bottom edge (96) and the old one-third threshold (233 at this
+    // viewport). In that gap the diver can still see the heading in mid-screen,
+    // so the band must still be showing day 1.
+    const oldThreshold = 700 / 3;
+    for (var i = 0; i < 40; i++) {
+      final top = headingTop(2);
+      if (top != null && top < 200 && top > 130) break;
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -60));
       await tester.pump(const Duration(milliseconds: 150));
     }
 
-    // Exactly one day header is pinned directly below the 180px map header;
-    // the first day's header has been pushed out by a later one.
-    final pinnedTops = [
-      for (final element in find.byType(TripStoryDayHeader).evaluate())
-        tester.getTopLeft(find.byWidget(element.widget)).dy,
-    ];
-    expect(pinnedTops, anyElement(closeTo(180.0, 1.0)));
-    // The first day's header (its badge shows "Mar 25") has been pushed out.
-    expect(find.textContaining('Mar 25'), findsNothing);
+    // _onScroll resolves on the first notification of a drag, so the last
+    // resolution so far reflects the position before the final drag. Nudge
+    // just past the touch slop to force one resolution at the settled
+    // position, which is what the assertions below are about.
+    await tester.pump(const Duration(milliseconds: 150));
+    await tester.drag(find.byType(CustomScrollView), const Offset(0, -19));
+    await tester.pump(const Duration(milliseconds: 150));
+
+    final settled = headingTop(2);
+    expect(
+      settled,
+      isNotNull,
+      reason: 'never found day 2 heading in the discriminating gap',
+    );
+    // Well inside the gap, so neither assertion rides on a pixel.
+    expect(settled, lessThan(oldThreshold - 20));
+    expect(settled, greaterThan(TripStoryBandExtents.dockedFloor + 20));
+    // The old viewport/3 threshold would have docked day 2 here.
+    expect(dockedDayNumber(), 1);
   });
 
   testWidgets('checklist and notes closers share the section title style', (

@@ -133,15 +133,21 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     if (now - _lastResolve < _scrollThrottle) return false;
     _lastResolve = now;
 
-    final viewportHeight = notification.metrics.viewportDimension;
     // Day positions come from localToGlobal (screen coordinates), so anchor the
-    // threshold to the scrollable's global top rather than 0 — the story may sit
+    // threshold to the scrollable's global top rather than 0: the story may sit
     // below the top of the screen (e.g. under an app bar).
     final scrollBox = notification.context?.findRenderObject() as RenderBox?;
     final viewportTop = (scrollBox != null && scrollBox.attached)
         ? scrollBox.localToGlobal(Offset.zero).dy
         : 0.0;
-    final threshold = viewportTop + viewportHeight / 3;
+    // The docked day is the last chapter whose heading has travelled above the
+    // band's bottom edge, which is the moment that heading disappears under the
+    // band. Resolving earlier (this was viewport/3) swapped the band's day
+    // while the diver could still see the full-width heading in mid-screen,
+    // which reads as a glitch rather than a hand-off.
+    final threshold =
+        viewportTop +
+        TripStoryBandExtents.forScaler(MediaQuery.textScalerOf(context)).docked;
     for (var i = _dayKeys.length - 1; i >= 0; i--) {
       final keyContext = _dayKeys[i].currentContext;
       if (keyContext == null) continue;
@@ -257,19 +263,29 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
       padding: EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverToBoxAdapter(child: _TodayDivider()),
     );
-    // Unconditional, even for the days whose card renders nothing (surface
-    // days, content-less planned days). It looks like dead weight there but is
-    // not: it carries _dayKeys[index], which _onScroll and _scrollToDay read
-    // positions from, and they skip days whose key context is unmounted -- so
-    // dropping it would quietly take those days out of active-day resolution.
-    // Its 8px bottom inset is also the gap between consecutive chapters; the
-    // headers carry a surfaceContainer tint, so the page-surface gap reads as
+    // Ordinary scrolling content, not a PinnedHeaderSliver: the band is the
+    // only pinned layer now, and it shows this same day in compact form once
+    // the heading passes under it. Unconditional, even for days whose card
+    // renders nothing (surface days, content-less planned days), because it
+    // carries _dayKeys[index], which _onScroll and _scrollToDay read positions
+    // from; dropping it would quietly take those days out of docked-day
+    // resolution.
+    final heading = SliverToBoxAdapter(
+      child: KeyedSubtree(
+        key: _dayKeys[index],
+        child: TripStoryDayHeader(
+          day: day,
+          storedWeather: stored?.toStoryWeather(),
+        ),
+      ),
+    );
+    // Its 8px bottom inset is the gap between consecutive chapters; the
+    // headings carry a surfaceContainer tint, so the page-surface gap reads as
     // air between one chapter's card and the next chapter's tinted band.
     final body = SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       sliver: SliverToBoxAdapter(
         child: Column(
-          key: _dayKeys[index],
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [TripStoryDayCard(day: day, tripId: story.trip.id)],
         ),
@@ -277,19 +293,7 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     );
 
     return SliverMainAxisGroup(
-      slivers: [
-        if (showTodayDivider) divider,
-        // PinnedHeaderSliver (not SliverPersistentHeader) so the header sizes
-        // itself: scaled accessibility text grows the band instead of being
-        // clipped by a fixed extent we would have to predict.
-        PinnedHeaderSliver(
-          child: TripStoryDayHeader(
-            day: day,
-            storedWeather: stored?.toStoryWeather(),
-          ),
-        ),
-        body,
-      ],
+      slivers: [if (showTodayDivider) divider, heading, body],
     );
   }
 
