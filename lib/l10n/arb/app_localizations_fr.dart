@@ -13264,7 +13264,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'Enregistrement de révision supprimé';
 
   @override
-  String get equipment_service_totalCostLabel => 'Cout total de révision';
+  String equipment_service_totalCostLabel(String currency) {
+    return 'Cout total de révision ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'Ajouter un équipement';

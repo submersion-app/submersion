@@ -4361,7 +4361,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Standardwährung verwenden",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Währung für dieses Teil",
   "equipment_service_snackbar_deleted": "Wartungseintrag gelöscht",
-  "equipment_service_totalCostLabel": "Gesamte Wartungskosten",
+  "equipment_service_totalCostLabel": "Gesamte Wartungskosten ({currency})",
   "equipment_setDetail_addEquipmentButton": "Ausrüstung hinzufügen",
   "equipment_setDetail_deleteDialog_cancel": "Abbrechen",
   "equipment_setDetail_deleteDialog_confirm": "Löschen",

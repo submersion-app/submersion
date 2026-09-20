@@ -13013,7 +13013,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipment_service_snackbar_deleted => 'Service record deleted';
 
   @override
-  String get equipment_service_totalCostLabel => 'Total Service Cost';
+  String equipment_service_totalCostLabel(String currency) {
+    return 'Total Service Cost ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'Add Equipment';

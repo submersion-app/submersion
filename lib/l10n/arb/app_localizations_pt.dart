@@ -13217,7 +13217,9 @@ class AppLocalizationsPt extends AppLocalizations {
       'Registro de manutencao excluido';
 
   @override
-  String get equipment_service_totalCostLabel => 'Custo Total de Manutencao';
+  String equipment_service_totalCostLabel(String currency) {
+    return 'Custo Total de Manutencao ($currency)';
+  }
 
   @override
   String get equipment_setDetail_addEquipmentButton => 'Adicionar Equipamento';

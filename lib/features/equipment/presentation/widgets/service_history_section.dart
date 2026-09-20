@@ -177,9 +177,10 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      context
-                                          .l10n
-                                          .equipment_service_totalCostLabel,
+                                      context.l10n
+                                          .equipment_service_totalCostLabel(
+                                            entry.key,
+                                          ),
                                       overflow: TextOverflow.ellipsis,
                                       style: Theme.of(
                                         context,
@@ -188,7 +189,7 @@ class _ServiceHistorySectionState extends ConsumerState<ServiceHistorySection> {
                                   ),
                                   const SizedBox(width: 8),
                                   Text(
-                                    formatMoney(entry.value, entry.key),
+                                    formatAmountOnly(entry.value, entry.key),
                                     style: Theme.of(context)
                                         .textTheme
                                         .titleMedium

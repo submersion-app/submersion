@@ -7557,6 +7557,13 @@
     }
   },
   "equipment_service_showFewer": "Show fewer",
+  "@equipment_service_totalCostLabel": {
+    "placeholders": {
+      "currency": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceKinds_defaultCategoryLabel": "Default category",
   "equipment_serviceKinds_defaultCategoryNone": "No default",
   "equipment_serviceKinds_defaultCostLabel": "Default price",
@@ -7572,7 +7579,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Use default currency",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Currency for this item",
   "equipment_service_snackbar_deleted": "Service record deleted",
-  "equipment_service_totalCostLabel": "Total Service Cost",
+  "equipment_service_totalCostLabel": "Total Service Cost ({currency})",
   "equipment_setDetail_addEquipmentButton": "Add Equipment",
   "equipment_setDetail_deleteDialog_cancel": "Cancel",
   "equipment_setDetail_deleteDialog_confirm": "Delete",

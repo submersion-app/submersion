@@ -4156,7 +4156,7 @@
   "equipment_serviceKinds_defaultCurrencyInherit": "Alapértelmezett pénznem használata",
   "equipment_scheduleDialog_defaultCurrencyLabel": "Pénznem ehhez a felszereléshez",
   "equipment_service_snackbar_deleted": "Szervizrekord törölve",
-  "equipment_service_totalCostLabel": "Összes szerviz költség",
+  "equipment_service_totalCostLabel": "Összes szerviz költség ({currency})",
   "equipment_setDetail_addEquipmentButton": "Felszerelés hozzáadása",
   "equipment_setDetail_deleteDialog_cancel": "Mégse",
   "equipment_setDetail_deleteDialog_confirm": "Törlés",

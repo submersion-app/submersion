@@ -21836,8 +21836,8 @@ abstract class AppLocalizations {
   /// No description provided for @equipment_service_totalCostLabel.
   ///
   /// In en, this message translates to:
-  /// **'Total Service Cost'**
-  String get equipment_service_totalCostLabel;
+  /// **'Total Service Cost ({currency})'**
+  String equipment_service_totalCostLabel(String currency);
 
   /// No description provided for @equipment_setDetail_addEquipmentButton.
   ///
