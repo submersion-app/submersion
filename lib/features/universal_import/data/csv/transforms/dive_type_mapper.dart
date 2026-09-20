@@ -46,6 +46,7 @@ const Set<String> kNonDiveTypeModes = {
 final RegExp _minesOrSumps = RegExp(r'\b(mines?|sumps?)\b');
 final RegExp _technical = RegExp(r'\btec');
 final RegExp _fun = RegExp(r'\bfun\b');
+final RegExp _hasWordCharacter = RegExp(r'[a-z0-9]');
 
 /// Maps a free-text dive type string to a dive type id (issue #2203).
 ///
@@ -62,8 +63,9 @@ final RegExp _fun = RegExp(r'\bfun\b');
 /// themselves. `DiveTypeExtractor` turns the preserved slug into a real
 /// custom dive type, so the id is never left dangling.
 ///
-/// Only a null, blank, or punctuation-only cell yields 'recreational'; a slug
-/// of nothing is not a usable id.
+/// Only a cell with no word in it yields 'recreational': null, blank, or
+/// punctuation alone. A slug carrying no letter or digit is not a usable id,
+/// and "-" is a common way for an export to write an empty cell.
 ///
 /// ## Ordering
 ///
@@ -145,8 +147,12 @@ String mapDiveType(String? raw) {
     return 'recreational';
   }
 
+  // `generateSlug` strips everything outside [a-z0-9\s-], so punctuation
+  // alone slugs to nothing. Hyphens survive it, though, so a slug can be
+  // non-empty and still carry no word: a CSV that writes "-" or "--" for an
+  // empty cell would mint a dive type named "-". Require a word character.
   final slug = DiveTypeEntity.generateSlug(s);
-  return slug.isEmpty ? 'recreational' : slug;
+  return _hasWordCharacter.hasMatch(slug) ? slug : 'recreational';
 }
 
 /// [mapDiveType] for a CSV cell, which two built-in presets fill from a

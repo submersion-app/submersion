@@ -102,6 +102,21 @@ void main() {
       expect(mapDiveType(''), 'recreational');
       expect(mapDiveType('!!!'), 'recreational');
     });
+
+    // generateSlug keeps hyphens, so a slug can be non-empty and still carry
+    // no word: a CSV that writes "-" for an empty cell would otherwise mint a
+    // dive type named "-".
+    test('returns recreational for a value with no letter or digit', () {
+      expect(mapDiveType('-'), 'recreational');
+      expect(mapDiveType('---'), 'recreational');
+      expect(mapDiveType(' - - '), 'recreational');
+      expect(mapDiveType('--!--'), 'recreational');
+    });
+
+    test('keeps a hyphen inside a value that does have a word', () {
+      expect(mapDiveType('Sidemount-CCR'), 'sidemount-ccr');
+      expect(mapDiveType('Free-dive'), 'freedive');
+    });
   });
 
   // Subsurface maps its `mode` column and Garmin its `Activity Type` to the
