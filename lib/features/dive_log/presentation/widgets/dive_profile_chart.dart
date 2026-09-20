@@ -3504,7 +3504,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     else if (!_isSpotAt(barData, index, _touchedIndicatorSpots))
                       null
                     else
-                      defaultTouchedIndicators(barData, [index]).first,
+                      _thinTouchedIndicator(barData, index),
                 ];
               },
               touchCallback: (event, response) {
@@ -4956,6 +4956,24 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return false;
   }
 
+  /// Same shape as fl_chart's own [defaultTouchedIndicators], but with a
+  /// thinner indicator line: the built-in default is 4px, competing with the
+  /// chart's own data lines after they were thinned to 1px (issue #2228).
+  /// The dot keeps fl_chart's own default styling untouched.
+  TouchedSpotIndicatorData _thinTouchedIndicator(
+    LineChartBarData barData,
+    int index,
+  ) {
+    const indicatorStrokeWidth = 2.0;
+    final defaultIndicator = defaultTouchedIndicators(barData, [index]).first;
+    return TouchedSpotIndicatorData(
+      defaultIndicator.indicatorBelowLine.copyWith(
+        strokeWidth: indicatorStrokeWidth,
+      ),
+      defaultIndicator.touchedSpotDotData,
+    );
+  }
+
   /// The bars fl_chart is handed: [bars] cut to the visible window when
   /// zoomed, so no path runs far off screen (see [windowBars]). Memoized on
   /// the source list and the snapped window: a horizontal pan that stays
@@ -5864,7 +5882,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [5, 3],
+      // Solid: see the comment on _buildNdlLine's dashArray removal. The
+      // overlaid source's own temperature line keeps its own, independent
+      // dash (see _buildOverlayLines), so this is unaffected either way.
     );
   }
 
@@ -5988,7 +6008,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [3, 2],
+      // Solid: see the comment on _buildNdlLine's dashArray removal. Heart
+      // rate has no overlay counterpart, so nothing relies on this dash.
     );
   }
 
@@ -6028,7 +6049,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [6, 3], // Distinctive dash pattern for SAC
+      // Solid: see the comment on _buildNdlLine's dashArray removal. SAC has
+      // no overlay counterpart, so nothing relies on this dash.
     );
   }
 
@@ -6063,7 +6085,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: const [5, 3],
+      // Solid: see the comment on _buildNdlLine's dashArray removal.
     );
   }
 
@@ -6126,7 +6148,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: [4, 4],
+      // Solid: see the comment on _buildNdlLine's dashArray removal. The
+      // overlaid source's own ceiling line keeps its own, independent dash
+      // (see _buildOverlayLines), so this is unaffected either way.
       // The shaded region runs from the ceiling UP to the surface, so it is an
       // aboveBarData. Negated depths put the surface (y = 0) above the ceiling
       // (y = -4.2), and a below-bar fill cannot express that: fl_chart's
@@ -6182,7 +6206,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: ProfileMetricBands.ndl.dashArray,
+      // Solid: the active line's colour is already unique among metrics, so
+      // the dash (kept for the overlay comparison of this same metric, see
+      // ProfileMetricBands) would only add visual noise here (issue #2228).
     );
   }
 
@@ -6225,7 +6251,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: ProfileMetricBands.ppO2.dashArray,
+      // Solid: see the comment on _buildNdlLine's dashArray removal.
     );
   }
 
@@ -6503,7 +6529,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: ProfileMetricBands.ppN2.dashArray,
+      // Solid: see the comment on _buildNdlLine's dashArray removal.
     );
   }
 
@@ -6549,7 +6575,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: ProfileMetricBands.ppHe.dashArray,
+      // Solid: see the comment on _buildNdlLine's dashArray removal.
     );
   }
 
@@ -6584,7 +6610,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: ProfileMetricBands.mod.dashArray,
+      // Solid: see the comment on _buildNdlLine's dashArray removal.
     );
   }
 
@@ -6628,7 +6654,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: ProfileMetricBands.density.dashArray,
+      // Solid: see the comment on _buildNdlLine's dashArray removal.
     );
   }
 
@@ -6662,7 +6688,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: ProfileMetricBands.gf.dashArray,
+      // Solid: see the comment on _buildNdlLine's dashArray removal.
     );
   }
 
@@ -6696,7 +6722,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: ProfileMetricBands.surfaceGf.dashArray,
+      // Solid: see the comment on _buildNdlLine's dashArray removal.
     );
   }
 
@@ -6728,7 +6754,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: ProfileMetricBands.meanDepth.dashArray,
+      // Solid: see the comment on _buildNdlLine's dashArray removal.
     );
   }
 
@@ -6762,7 +6788,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: ProfileMetricBands.tts.dashArray,
+      // Solid: see the comment on _buildNdlLine's dashArray removal.
     );
   }
 
@@ -6800,7 +6826,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: ProfileMetricBands.gtr.dashArray,
+      // Solid: see the comment on _buildNdlLine's dashArray removal.
     );
   }
 
@@ -6858,7 +6884,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: ProfileMetricBands.cns.dashArray,
+      // Solid: see the comment on _buildNdlLine's dashArray removal.
     );
   }
 
@@ -6890,7 +6916,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       barWidth: 1,
       isStrokeCapRound: true,
       dotData: const FlDotData(show: false),
-      dashArray: ProfileMetricBands.otu.dashArray,
+      // Solid: see the comment on _buildNdlLine's dashArray removal.
     );
   }
 

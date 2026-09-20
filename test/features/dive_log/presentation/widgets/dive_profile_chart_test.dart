@@ -1077,16 +1077,25 @@ void main() {
     LineChartData primaryChartData(WidgetTester tester) =>
         tester.widget<LineChart>(find.byType(LineChart).first).data;
 
-    List<LineChartBarData> temperatureLines(WidgetTester tester) =>
-        primaryChartData(tester).lineBarsData
-            .where(
-              (bar) =>
-                  bar.dashArray != null &&
-                  bar.dashArray!.length == 2 &&
-                  bar.dashArray![0] == 5 &&
-                  bar.dashArray![1] == 3,
-            )
-            .toList();
+    // The active temperature line is solid now (issue #2228: colour alone
+    // already distinguishes it from every other metric), so it is matched by
+    // its colour. The overlaid source's own temperature line keeps its own,
+    // independent dash and a tinted colour, so it is matched by the dash.
+    List<LineChartBarData> temperatureLines(WidgetTester tester) {
+      final colorScheme = Theme.of(
+        tester.element(find.byType(DiveProfileChart).first),
+      ).colorScheme;
+      return primaryChartData(tester).lineBarsData
+          .where(
+            (bar) =>
+                bar.color == colorScheme.tertiary ||
+                (bar.dashArray != null &&
+                    bar.dashArray!.length == 2 &&
+                    bar.dashArray![0] == 5 &&
+                    bar.dashArray![1] == 3),
+          )
+          .toList();
+    }
 
     List<DiveProfilePoint> profileWithTemp(double temperature) => List.generate(
       8,
@@ -4446,9 +4455,8 @@ void main() {
       );
     });
 
-    bool hasRateLine(WidgetTester t) => primaryChartData(
-      t,
-    ).lineBarsData.any((b) => b.color == Colors.lime && b.dashArray != null);
+    bool hasRateLine(WidgetTester t) =>
+        primaryChartData(t).lineBarsData.any((b) => b.color == Colors.lime);
 
     testWidgets('does not render the ascent-rate line by default', (
       tester,
@@ -4673,15 +4681,11 @@ void main() {
           reason: 'the depth trace must stay at full resolution',
         );
 
-        // The ceiling line is the dashed [4, 4] bar; it must be decimated
-        // to the point budget instead of emitting all 5,000 spots.
+        // The ceiling line is identified by its unique colour (issue #2228:
+        // it is solid now, no longer the dashed [4, 4] bar); it must be
+        // decimated to the point budget instead of emitting all 5,000 spots.
         final ceilingBars = bars.where(
-          (b) =>
-              b.dashArray != null &&
-              b.dashArray!.length == 2 &&
-              b.dashArray!.first == 4 &&
-              b.dashArray!.last == 4 &&
-              b.spots.isNotEmpty,
+          (b) => b.color == ProfileMetricColors.ceiling && b.spots.isNotEmpty,
         );
         expect(ceilingBars, isNotEmpty);
         for (final bar in ceilingBars) {
@@ -4780,12 +4784,7 @@ void main() {
 
       // The ceiling curve still decimates within the visible window.
       final ceilingBars = zoomed.lineBarsData.where(
-        (b) =>
-            b.dashArray != null &&
-            b.dashArray!.length == 2 &&
-            b.dashArray!.first == 4 &&
-            b.dashArray!.last == 4 &&
-            b.spots.isNotEmpty,
+        (b) => b.color == ProfileMetricColors.ceiling && b.spots.isNotEmpty,
       );
       expect(ceilingBars, isNotEmpty);
       for (final bar in ceilingBars) {
@@ -5355,19 +5354,12 @@ void main() {
       container.read(profileLegendProvider.notifier).toggleMod();
       await tester.pumpAndSettle();
 
-      // MOD is the deepOrange [8, 4] dashed line.
+      // MOD is the deepOrange line, solid now (issue #2228).
       final modBars = tester
           .widget<LineChart>(find.byType(LineChart).first)
           .data
           .lineBarsData
-          .where(
-            (b) =>
-                b.color == const Color(0xFFFFB300) &&
-                b.dashArray != null &&
-                b.dashArray!.length == 2 &&
-                b.dashArray!.first == 8 &&
-                b.dashArray!.last == 4,
-          );
+          .where((b) => b.color == const Color(0xFFFFB300));
       expect(modBars, isNotEmpty);
       for (final b in modBars) {
         expect(b.spots, isNotEmpty);

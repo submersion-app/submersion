@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/deco_stop_band.dart';
@@ -28,18 +27,19 @@ void main() {
     expect(bar.belowBarData.show, isFalse);
   });
 
-  test('draws no stroke, only the translucent filled region', () {
+  test('draws a thin stroke along the step edge, plus the translucent fill', () {
     final bar = buildDecoStopBand(
       decoStopCurve: [0.0, 3.0, 3.0, 0.0],
       timestamps: [0, 10, 20, 30],
       units: units,
     );
 
-    // The band is a background zone, not a second curve: no outline along its
-    // upper edge, and the fill is translucent so the depth track and the
-    // ceiling line stay readable through it.
-    expect(bar.barWidth, 0.0);
-    expect(bar.color, Colors.transparent);
+    // The step edge is now a visible line (issue #2228 follow-up): a computer
+    // that reports raw stop depths but no separately computed ceiling curve
+    // would otherwise show only a flat shaded region with no line at all.
+    // The fill stays translucent so the depth track stays readable through it.
+    expect(bar.barWidth, 1.0);
+    expect(bar.color, decoStopBandColor);
     expect(bar.dotData.show, isFalse);
     expect(bar.aboveBarData.show, isTrue);
     expect(bar.aboveBarData.color!.a, lessThan(1.0));
