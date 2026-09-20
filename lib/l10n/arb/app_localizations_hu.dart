@@ -3200,6 +3200,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get common_action_ok => 'OK';
 
   @override
+  String get common_action_openSettings => 'Beállítások megnyitása';
+
+  @override
   String get common_action_save => 'Mentés';
 
   @override
@@ -5132,9 +5135,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'Plafon';
 
   @override
-  String get diveLog_deco_label_leading => 'Vezető';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5247,9 +5247,6 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'Lejátszás';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'Tartomány stat.';
@@ -7786,47 +7783,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'DEKO';
 
   @override
-  String get diveLog_playbackStats_depth => 'Mélység';
-
-  @override
-  String get diveLog_playbackStats_header => 'Élő statisztikák';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'Pulzus';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'Nyomás';
-
-  @override
-  String get diveLog_playbackStats_temp => 'Hőm.';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'Lejátszási pozíció';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'Léptetett lejátszás';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => 'Vissza 10 másodpercet';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'Kilépés a lejátszás módból';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => 'Előre 10 másodpercet';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'Szünet';
 
   @override
@@ -8346,27 +8302,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Nincs';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'Plafon';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M-érték';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'Szovettelitodes';
@@ -23626,6 +23561,14 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Néhány merülésnek nincs merülőhelye';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Ezek a merülések olyan merülőhelyre hivatkoztak, amelyet a fájl nem ír le, ezért merülőhely nélkül lettek importálva. A merülés szerkesztésével megadhatsz egyet.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'A tanúsítványok és a szervizrekordok nincsenek a fájlban';
 
@@ -38720,6 +38663,85 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get startup_failure_showBackupsFolder => 'Biztonsági mentések mappája';
+
+  @override
+  String get startup_failure_moreWays_title => 'További visszautak';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'Merülési napló használata másik mappából';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'Váltson egy olyan merülési naplóra, amelyet már máshol tárol, például egy iCloud Drive- vagy Dropbox-mappában.';
+
+  @override
+  String get startup_failure_restoreFromFile =>
+      'Visszaállítás biztonsági mentésből';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'Válasszon egy Submersion biztonsági mentést bárhonnan az eszközről vagy egy szinkronizált mappából.';
+
+  @override
+  String get startup_failure_startFresh => 'Kezdés üres merülési naplóval';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'Tegye félre a sérült fájlt, és kezdje elölről. Semmi nem törlődik.';
+
+  @override
+  String get startup_recovery_adopt_title => 'Ezt a merülési naplót használja?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'A Submersion mostantól ezt a merülési naplót nyitja meg. A fájl, amely nem nyílt meg, ott marad, ahol van.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives merülés, $sites merülőhely';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'Ezt a naplót használom';
+
+  @override
+  String get startup_recovery_startFresh_title =>
+      'Kezdés üres merülési naplóval?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'A Submersion a sérült fájlt külön mappába helyezi, és új, üres merülési naplót nyit. Semmi nem törlődik, így később újra megpróbálhatja a régi fájlt, vagy elküldheti a támogatásnak.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'Kezdés elölről';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'A sérült merülési napló ide került:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'Ez nem sikerült';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'A(z) $folder mappában nincs $filename nevű fájl. Válassza azt a mappát, amely magát a merülési napló fájlt tartalmazza.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'A(z) $path helyen lévő merülési napló sérült, vagy nem Submersion merülési napló.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'Ez a fájl nem olyan biztonsági mentés, amelyet a Submersion vissza tud állítani: $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'Ez a biztonsági mentés titkosított. A Submersion csak megnyitott alkalmazásban tud titkosított mentést feloldani, ezért használja előbb az itteni másik utak egyikét, majd állítsa vissza a Beállításokban, a Biztonsági mentés és visszaállítás résznél.';
 
   @override
   String get startup_failure_downgrade_title => 'Visszatérés az előző verzióra';

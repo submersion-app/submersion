@@ -3209,6 +3209,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get common_action_ok => 'Aceptar';
 
   @override
+  String get common_action_openSettings => 'Abrir ajustes';
+
+  @override
   String get common_action_save => 'Guardar';
 
   @override
@@ -5144,9 +5147,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'Techo';
 
   @override
-  String get diveLog_deco_label_leading => 'Dominante';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5259,9 +5259,6 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'Reproducción';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'Stats de rango';
@@ -7803,47 +7800,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'DECO';
 
   @override
-  String get diveLog_playbackStats_depth => 'Profundidad';
-
-  @override
-  String get diveLog_playbackStats_header => 'Datos en vivo';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'Frecuencia cardíaca';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'Presión';
-
-  @override
-  String get diveLog_playbackStats_temp => 'Temp';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'Posición de reproducción';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'Reproducción paso a paso';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => 'Retroceder 10 segundos';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'Salir del modo de reproducción';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => 'Avanzar 10 segundos';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'Pausa';
 
   @override
@@ -8361,27 +8317,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Ninguno';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'Techo';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% valor M';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'Carga tisular';
@@ -23708,6 +23643,14 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Algunas inmersiones sin punto de buceo';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Estas inmersiones hacían referencia a un punto de buceo que el archivo no describe, así que se importaron sin él. Puedes asignar un punto de buceo editando la inmersión.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'Certificaciones y registros de servicio que no están en el archivo';
 
@@ -38911,6 +38854,85 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get startup_failure_showBackupsFolder => 'Mostrar carpeta de copias';
+
+  @override
+  String get startup_failure_moreWays_title => 'Otras formas de volver';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'Usar un cuaderno de buceo de otra carpeta';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'Cambia a un cuaderno de buceo que ya guardes en otro lugar, como una carpeta de iCloud Drive o Dropbox.';
+
+  @override
+  String get startup_failure_restoreFromFile =>
+      'Restaurar desde un archivo de copia de seguridad';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'Elige una copia de seguridad de Submersion desde cualquier lugar de este dispositivo o de una carpeta sincronizada.';
+
+  @override
+  String get startup_failure_startFresh => 'Empezar con un cuaderno vacío';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'Aparta el archivo dañado y empieza de nuevo. No se elimina nada.';
+
+  @override
+  String get startup_recovery_adopt_title => '¿Usar este cuaderno de buceo?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'Submersion abrirá este cuaderno de buceo a partir de ahora. El archivo que no se pudo abrir permanece donde está.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives inmersiones, $sites puntos de buceo';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'Usar este cuaderno';
+
+  @override
+  String get startup_recovery_startFresh_title =>
+      '¿Empezar con un cuaderno vacío?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion mueve el archivo dañado a una carpeta propia y abre un cuaderno de buceo nuevo y vacío. No se elimina nada, así que aún puedes volver a intentarlo con el archivo antiguo o enviarlo al servicio de asistencia.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'Empezar de nuevo';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'Tu cuaderno de buceo dañado se movió a:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'Eso no funcionó';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'No hay ningún archivo $filename en $folder. Elige la carpeta que contiene el propio archivo del cuaderno de buceo.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'El cuaderno de buceo de $path está dañado o no es un cuaderno de buceo de Submersion.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'Ese archivo no es una copia de seguridad que Submersion pueda restaurar: $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'Esa copia de seguridad está cifrada. Submersion solo puede desbloquear una copia cifrada con la app ya abierta, así que usa primero una de las otras opciones de aquí y luego restáurala desde Ajustes, en Copia de seguridad y restauración.';
 
   @override
   String get startup_failure_downgrade_title => 'Volver a la versión anterior';

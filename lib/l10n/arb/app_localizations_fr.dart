@@ -3215,6 +3215,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get common_action_ok => 'OK';
 
   @override
+  String get common_action_openSettings => 'Ouvrir les réglages';
+
+  @override
   String get common_action_save => 'Enregistrer';
 
   @override
@@ -5163,9 +5166,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'Plafond';
 
   @override
-  String get diveLog_deco_label_leading => 'Dominant';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5278,9 +5278,6 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'Lecture';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'Stats plage';
@@ -7840,47 +7837,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'DECO';
 
   @override
-  String get diveLog_playbackStats_depth => 'Profondeur';
-
-  @override
-  String get diveLog_playbackStats_header => 'Stats en direct';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'Fréquence cardiaque';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'Pression';
-
-  @override
-  String get diveLog_playbackStats_temp => 'Temp';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'Position de lecture';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'Lecture pas a pas';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => 'Reculer de 10 secondes';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'Quitter le mode lecture';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => 'Avancer de 10 secondes';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'Pause';
 
   @override
@@ -8401,27 +8357,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Aucun';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'Plafond';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M-value';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'Charge tissulaire';
@@ -23780,6 +23715,14 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Certaines plongées sans site de plongée';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Ces plongées faisaient référence à un site de plongée que le fichier ne décrit pas, elles ont donc été importées sans site. Vous pouvez en définir un en modifiant la plongée.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'Certifications et enregistrements de révision absents du fichier';
 
@@ -38973,6 +38916,85 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get startup_failure_showBackupsFolder =>
       'Afficher le dossier des sauvegardes';
+
+  @override
+  String get startup_failure_moreWays_title => 'Autres moyens de revenir';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'Utiliser un carnet de plongée dans un autre dossier';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'Basculez vers un carnet de plongée que vous conservez déjà ailleurs, par exemple dans un dossier iCloud Drive ou Dropbox.';
+
+  @override
+  String get startup_failure_restoreFromFile =>
+      'Restaurer depuis un fichier de sauvegarde';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'Choisissez une sauvegarde Submersion n\'importe où sur cet appareil ou dans un dossier synchronisé.';
+
+  @override
+  String get startup_failure_startFresh => 'Commencer avec un carnet vide';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'Mettez le fichier endommagé de côté et repartez de zéro. Rien n\'est supprimé.';
+
+  @override
+  String get startup_recovery_adopt_title => 'Utiliser ce carnet de plongée ?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'Submersion ouvrira désormais ce carnet de plongée. Le fichier qui ne s\'ouvrait pas reste à sa place.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives plongées, $sites sites de plongée';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'Utiliser ce carnet';
+
+  @override
+  String get startup_recovery_startFresh_title =>
+      'Commencer avec un carnet vide ?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion déplace le fichier endommagé dans un dossier qui lui est propre et ouvre un carnet de plongée neuf et vide. Rien n\'est supprimé : vous pourrez réessayer l\'ancien fichier ou l\'envoyer à l\'assistance.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'Repartir de zéro';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'Votre carnet de plongée endommagé a été déplacé vers :\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'Cela n\'a pas fonctionné';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'Il n\'y a aucun fichier $filename dans $folder. Choisissez le dossier qui contient le fichier du carnet de plongée lui-même.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'Le carnet de plongée situé dans $path est endommagé, ou ce n\'est pas un carnet de plongée Submersion.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'Ce fichier n\'est pas une sauvegarde que Submersion peut restaurer : $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'Cette sauvegarde est chiffrée. Submersion ne peut déverrouiller une sauvegarde chiffrée qu\'une fois l\'application ouverte : utilisez d\'abord l\'un des autres moyens proposés ici, puis restaurez-la depuis les Réglages, dans Sauvegarde et restauration.';
 
   @override
   String get startup_failure_downgrade_title =>

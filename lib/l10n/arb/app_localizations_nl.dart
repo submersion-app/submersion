@@ -3186,6 +3186,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get common_action_ok => 'OK';
 
   @override
+  String get common_action_openSettings => 'Instellingen openen';
+
+  @override
   String get common_action_save => 'Opslaan';
 
   @override
@@ -5106,9 +5109,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'Plafond';
 
   @override
-  String get diveLog_deco_label_leading => 'Leidend';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5220,9 +5220,6 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'Afspelen';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'Bereikstatistieken';
@@ -7745,47 +7742,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'DECO';
 
   @override
-  String get diveLog_playbackStats_depth => 'Diepte';
-
-  @override
-  String get diveLog_playbackStats_header => 'Live statistieken';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'Hartslag';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'Druk';
-
-  @override
-  String get diveLog_playbackStats_temp => 'Temp';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'Afspeelpositie';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'Stapsgewijs afspelen';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => '10 seconden terug';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'Afspeelmodus verlaten';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => '10 seconden vooruit';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'Pauzeren';
 
   @override
@@ -8299,27 +8255,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Geen';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'Plafond';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M-waarde';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'Weefselbelasting';
@@ -23505,6 +23440,14 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Sommige duiken zonder duikstek';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Deze duiken verwezen naar een duikstek die het bestand niet beschrijft en zijn daarom zonder duikstek geïmporteerd. Je kunt er een instellen door de duik te bewerken.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'Brevetten en servicerecords niet in het bestand';
 
@@ -38616,6 +38559,86 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get startup_failure_showBackupsFolder => 'Back-upmap tonen';
+
+  @override
+  String get startup_failure_moreWays_title =>
+      'Andere manieren om terug te komen';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'Een logboek in een andere map gebruiken';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'Schakel over naar een logboek dat je al ergens anders bewaart, bijvoorbeeld in een map van iCloud Drive of Dropbox.';
+
+  @override
+  String get startup_failure_restoreFromFile =>
+      'Herstellen vanaf een back-upbestand';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'Kies een Submersion-back-up ergens op dit apparaat of in een gesynchroniseerde map.';
+
+  @override
+  String get startup_failure_startFresh => 'Met een leeg logboek beginnen';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'Zet het beschadigde bestand opzij en begin opnieuw. Er wordt niets verwijderd.';
+
+  @override
+  String get startup_recovery_adopt_title => 'Dit logboek gebruiken?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'Submersion opent voortaan dit logboek. Het bestand dat niet geopend kon worden, blijft waar het staat.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives duiken, $sites duikstekken';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'Dit logboek gebruiken';
+
+  @override
+  String get startup_recovery_startFresh_title =>
+      'Met een leeg logboek beginnen?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion verplaatst het beschadigde bestand naar een eigen map en opent een nieuw, leeg logboek. Er wordt niets verwijderd, dus je kunt het oude bestand later opnieuw proberen of naar de ondersteuning sturen.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'Opnieuw beginnen';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'Je beschadigde logboek is verplaatst naar:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'Dat werkte niet';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'Er staat geen $filename in $folder. Kies de map waarin het logboekbestand zelf staat.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'Het logboek in $path is beschadigd of het is geen Submersion-logboek.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'Dat bestand is geen back-up die Submersion kan herstellen: $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'Die back-up is versleuteld. Submersion kan een versleutelde back-up pas ontgrendelen als de app open is, dus gebruik hier eerst een van de andere routes en herstel hem daarna via Instellingen, bij Back-up en herstel.';
 
   @override
   String get startup_failure_downgrade_title => 'Terug naar de vorige versie';
