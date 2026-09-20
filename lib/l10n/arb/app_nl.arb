@@ -6875,7 +6875,7 @@
   "trips_summary_stat_liveaboards": "Liveaboards",
   "trips_summary_stat_totalDives": "Totaal duiken",
   "trips_summary_stat_totalTrips": "Totaal reizen",
-  "trips_summary_upcomingSubtitle": "{date} • Over {days} dagen",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "Aankomend",
   "trips_type_dayTrip": "Dagtrip",
   "trips_type_liveaboard": "Liveaboard",

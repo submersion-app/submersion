@@ -50,8 +50,9 @@ TripWithStats _trip({
 Future<void> _pump(
   WidgetTester tester,
   DateFormatPreference format,
-  List<TripWithStats> trips,
-) async {
+  List<TripWithStats> trips, {
+  Locale locale = const Locale('en'),
+}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
@@ -62,11 +63,11 @@ Future<void> _pump(
           (ref) => MockSettingsNotifier(AppSettings(dateFormat: format)),
         ),
       ],
-      child: const MaterialApp(
-        locale: Locale('en'),
+      child: MaterialApp(
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: TripSummaryWidget(),
+        home: const TripSummaryWidget(),
       ),
     ),
   );
@@ -145,6 +146,47 @@ void main() {
       ]);
 
       expect(find.textContaining('In 5 days'), findsOneWidget);
+    });
+  });
+
+  group('TripSummaryWidget localises the next-trip countdown', () {
+    // #2218: the subtitle was a hardcoded English
+    // `'$date • In $days days'`, so it shipped English to every locale and
+    // disagreed with its own count at one day.
+    //
+    // Dated from the preamble's `upcoming`, which is today plus 30 calendar
+    // days: built field-by-field rather than with a Duration, because adding
+    // 30 days of elapsed time lands an hour short whenever the window crosses
+    // a DST change, which is the trap #2207 was.
+
+    testWidgets('a German diver reads the countdown in German', (tester) async {
+      await _pump(tester, DateFormatPreference.yyyymmdd, [
+        _trip(id: 't1', name: 'Palau Liveaboard', start: upcoming),
+      ], locale: const Locale('de'));
+
+      // de spells the plural's `other` branch "In {days} Tagen", so finding
+      // it proves both that the string resolved through l10n and that the
+      // count reached the plural as a number.
+      expect(find.textContaining('Tagen'), findsOneWidget);
+      expect(find.textContaining('days'), findsNothing);
+    });
+
+    // English renders byte-identically either side of the fix, so this one
+    // cannot go red on the old code. It is here to hold the composition in
+    // place: the date and the countdown stay in a single Text, separated by
+    // the bullet the translation supplies.
+    testWidgets('the English card keeps the date and countdown together', (
+      tester,
+    ) async {
+      await _pump(tester, DateFormatPreference.yyyymmdd, [
+        _trip(id: 't1', name: 'Palau Liveaboard', start: upcoming),
+      ]);
+
+      final iso =
+          '${upcoming.year}-'
+          '${upcoming.month.toString().padLeft(2, '0')}-'
+          '${upcoming.day.toString().padLeft(2, '0')}';
+      expect(find.textContaining('$iso • In '), findsOneWidget);
     });
   });
 }

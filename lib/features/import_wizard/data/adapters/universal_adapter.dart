@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
@@ -1874,5 +1875,8 @@ ImportRepositories universalImportRepositories(WidgetRef ref) {
     // Equipment tags (issue #1942); without it imported gear arrives with
     // none of its tags.
     equipmentTagRepository: ref.read(equipmentTagRepositoryProvider),
+    // Site features (issue #2200); without it every feature in the file is
+    // dropped and the site arrives with none of its markers.
+    siteFeatureRepository: ref.read(siteFeatureRepositoryProvider),
   );
 }

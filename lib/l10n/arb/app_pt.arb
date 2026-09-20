@@ -6875,7 +6875,7 @@
   "trips_summary_stat_liveaboards": "Liveaboards",
   "trips_summary_stat_totalDives": "Total de Mergulhos",
   "trips_summary_stat_totalTrips": "Total de Viagens",
-  "trips_summary_upcomingSubtitle": "{date} • Em {days} dias",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "Proximas",
   "trips_type_dayTrip": "Bate-volta",
   "trips_type_liveaboard": "Liveaboard",

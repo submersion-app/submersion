@@ -503,6 +503,64 @@ void main() {
     test('returns recreational for empty string', () {
       expect(converter.parseDiveType(''), 'recreational');
     });
+
+    // -------------------------------------------------------------------
+    // Issue #2203: overhead and configuration terms were silently recorded
+    // as recreational, which misrepresents an overhead dive as a
+    // recreational one.
+    test('maps sump to cave', () {
+      expect(converter.parseDiveType('sump'), 'cave');
+      expect(converter.parseDiveType('Sump dive'), 'cave');
+    });
+
+    test('maps mine to cave', () {
+      expect(converter.parseDiveType('mine'), 'cave');
+      expect(converter.parseDiveType('Flooded mine'), 'cave');
+    });
+
+    test('preserves an unrecognised type as its slug', () {
+      expect(converter.parseDiveType('Cenote'), 'cenote');
+      expect(converter.parseDiveType('Sidemount'), 'sidemount');
+      expect(converter.parseDiveType('Spring'), 'spring');
+      expect(converter.parseDiveType('Overhead'), 'overhead');
+      expect(converter.parseDiveType('Penetration'), 'penetration');
+    });
+
+    test('slugs a multi-word unrecognised type', () {
+      expect(converter.parseDiveType('Cenote Dive'), 'cenote_dive');
+      expect(converter.parseDiveType('Sidemount / CCR'), 'sidemount_ccr');
+    });
+
+    test('returns recreational when a value slugs to nothing', () {
+      expect(converter.parseDiveType('???'), 'recreational');
+      expect(converter.parseDiveType('   '), 'recreational');
+    });
+
+    test('maps recreational synonyms rather than slugging them', () {
+      expect(converter.parseDiveType('Recreational'), 'recreational');
+      expect(converter.parseDiveType('Fun dive'), 'recreational');
+      expect(converter.parseDiveType('Vacation'), 'recreational');
+      expect(converter.parseDiveType('Pleasure'), 'recreational');
+      expect(converter.parseDiveType('Leisure'), 'recreational');
+      expect(converter.parseDiveType('Open water'), 'recreational');
+    });
+
+    // A recreational synonym must never be tested before 'wreck': the word
+    // "wreck" contains "rec". Same hazard as cavern/cave below.
+    test('wreck wins over the recreational synonyms', () {
+      expect(converter.parseDiveType('Wreck'), 'wreck');
+      expect(converter.parseDiveType('Recreational wreck'), 'wreck');
+    });
+
+    // Regression guard for the cavern/cave ordering: 'cavern' contains the
+    // substring 'cave', so testing cave first misclassifies every cavern
+    // dive. A bare 'cavern' input passes either way once the slug fallback
+    // exists, so these cells must also contain the word "cave".
+    test('cavern wins over cave', () {
+      expect(converter.parseDiveType('Cavern'), 'cavern');
+      expect(converter.parseDiveType('Cavern / Cave'), 'cavern');
+      expect(converter.parseDiveType('Cavern dive, no cave'), 'cavern');
+    });
   });
 
   // ---------------------------------------------------------------------------
@@ -657,6 +715,19 @@ void main() {
           'wreck',
         );
         expect(result, 'wreck');
+      });
+
+      test('dispatches diveModeMap', () {
+        // The mode transform drops a breathing-loop name; the dive type
+        // transform beside it preserves the same value (#2203).
+        expect(
+          service.applyTransform(ValueTransform.diveModeMap, 'CCR'),
+          'recreational',
+        );
+        expect(
+          service.applyTransform(ValueTransform.diveTypeMap, 'CCR'),
+          'ccr',
+        );
       });
 
       test('dispatches ratingScale', () {

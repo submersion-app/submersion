@@ -22609,8 +22609,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_summary_stat_totalTrips => 'Total Trips';
 
   @override
-  String trips_summary_upcomingSubtitle(Object date, Object days) {
-    return '$date • In $days days';
+  String trips_summary_upcomingSubtitle(Object date, Object countdown) {
+    return '$date • $countdown';
   }
 
   @override

@@ -22677,8 +22677,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_summary_stat_totalTrips => 'إجمالي الرحلات';
 
   @override
-  String trips_summary_upcomingSubtitle(Object date, Object days) {
-    return '$date • بعد $days أيام';
+  String trips_summary_upcomingSubtitle(Object date, Object countdown) {
+    return '$date • $countdown';
   }
 
   @override

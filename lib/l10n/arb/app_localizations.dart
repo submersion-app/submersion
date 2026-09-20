@@ -36995,8 +36995,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_summary_upcomingSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'{date} • In {days} days'**
-  String trips_summary_upcomingSubtitle(Object date, Object days);
+  /// **'{date} • {countdown}'**
+  String trips_summary_upcomingSubtitle(Object date, Object countdown);
 
   /// No description provided for @trips_summary_upcomingTitle.
   ///

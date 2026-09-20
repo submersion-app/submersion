@@ -13835,7 +13835,7 @@
   "trips_summary_stat_liveaboards": "Liveaboards",
   "trips_summary_stat_totalDives": "Total Dives",
   "trips_summary_stat_totalTrips": "Total Trips",
-  "trips_summary_upcomingSubtitle": "{date} • In {days} days",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "Upcoming",
   "trips_type_shore": "Shore",
   "trips_type_liveaboard": "Liveaboard",
@@ -14190,7 +14190,7 @@
       "date": {
         "type": "Object"
       },
-      "days": {
+      "countdown": {
         "type": "Object"
       }
     }
