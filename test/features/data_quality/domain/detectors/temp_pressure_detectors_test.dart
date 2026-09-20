@@ -136,6 +136,44 @@ void main() {
       expect(out.single.params['seriesBar'], 215);
     });
 
+    test(
+      'a series that only starts logging long after the dive began is not flagged',
+      () {
+        // A rebreather O2 supply cylinder, logged only on addition: first
+        // sample at t=800s, well past pressureStartLookbackSeconds (#2222).
+        // The reported start pressure (200) comes from the source's own
+        // pairing/power-on metadata and has nothing to do with this sample.
+        final series = [
+          const QualityPressureSample(t: 800, bar: 180),
+          const QualityPressureSample(t: 6830, bar: 76),
+        ];
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 200, end: 76)]),
+          pressures: {'t1': series},
+        );
+        expect(
+          det.detect(ctx).where((f) => f.params['endpoint'] == 'start'),
+          isEmpty,
+        );
+      },
+    );
+
+    test('a mismatch within the start lookback window is still flagged', () {
+      final series = [
+        const QualityPressureSample(t: 60, bar: 215),
+        const QualityPressureSample(t: 2400, bar: 60),
+      ];
+      final ctx = makeContext(
+        dive: makeTestDive(tanks: [tank()]), // recorded start 200
+        pressures: {'t1': series},
+      );
+      final startMismatch = det
+          .detect(ctx)
+          .singleWhere((f) => f.params['endpoint'] == 'start');
+      expect(startMismatch.params['recordBar'], 200);
+      expect(startMismatch.params['seriesBar'], 215);
+    });
+
     test('mid-dive rise away from any switch is flagged', () {
       final series = [
         const QualityPressureSample(t: 0, bar: 200),

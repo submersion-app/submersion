@@ -52,6 +52,14 @@ abstract final class QualityThresholds {
   // sampled series without reaching back to an early-dive reading that says
   // nothing about surfacing.
   static const int pressureSurfacingLookbackSeconds = 120;
+  // How late into the dive a tank's first pressure sample may arrive and
+  // still be compared against the reported start pressure (#2222). A source
+  // that reports a cylinder's start pressure from its own metadata (e.g. a
+  // pairing/power-on reading) rather than the profile can leave a real gap
+  // before the first in-dive sample -- notably a rebreather's O2 supply,
+  // logged only on addition rather than continuously -- and that gap carries
+  // no data-quality signal.
+  static const int pressureStartLookbackSeconds = 120;
 
   // gas_mod
   static const double ppO2WarnBar = 1.6;

@@ -48,6 +48,7 @@ class PressureAnomalyDetector extends QualityDetector {
       if (series.length < 2) continue;
 
       if (sp != null &&
+          series.first.t <= QualityThresholds.pressureStartLookbackSeconds &&
           (sp - series.first.bar).abs() >
               QualityThresholds.pressureEndpointMismatchBar) {
         out.add(
