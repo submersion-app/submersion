@@ -163,7 +163,7 @@ class ValueConverter {
   /// reads a single free-text dive type cell uses. See that function for the
   /// keyword list, the orderings that are load-bearing, and why an
   /// unrecognised value is preserved rather than recorded as 'recreational'.
-  String parseDiveType(String? raw) => mapDiveType(raw);
+  String parseDiveType(String? raw) => mapCsvDiveType(raw);
 
   // ---------------------------------------------------------------------------
   /// Parse a dive's types from Submersion's CSV: the [names] cell ("Night;
@@ -451,7 +451,7 @@ class ValueTransformService {
   ///
   /// Delegates to the shared [mapDiveType] ladder; see [ValueConverter
   /// .parseDiveType].
-  String parseDiveType(String value) => mapDiveType(value);
+  String parseDiveType(String value) => mapCsvDiveType(value);
 
   /// Normalize rating from various scales to 1-5.
   int? normalizeRating(String value) {

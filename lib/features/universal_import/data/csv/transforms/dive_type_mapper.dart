@@ -28,7 +28,8 @@ const Set<String> kBuiltInDiveTypeIds = {
 /// Values that name a dive mode or a recording mode rather than a dive type.
 ///
 /// Compared against the whole trimmed, lower-cased cell, never as a
-/// substring. See the note in [mapDiveType] for why these exist.
+/// substring: "oc" sits inside "ocean" and "scr" inside "pscr". See
+/// [mapCsvDiveType] for why these exist and why they apply only there.
 const Set<String> kNonDiveTypeModes = {
   'oc',
   'open circuit',
@@ -144,14 +145,26 @@ String mapDiveType(String? raw) {
     return 'recreational';
   }
 
-  // Two built-in presets point this field at a column that is not a dive
-  // type: Subsurface maps its `mode` column and Garmin its `Activity Type`.
-  // Those describe the breathing loop or the recording mode, not the
-  // environment, so preserving them would give every Subsurface import a
-  // custom dive type called "Oc". Matched whole, since "oc" sits inside
-  // "ocean" and "scr" inside "pscr".
-  if (kNonDiveTypeModes.contains(s)) return 'recreational';
-
   final slug = DiveTypeEntity.generateSlug(s);
   return slug.isEmpty ? 'recreational' : slug;
+}
+
+/// [mapDiveType] for a CSV cell, which two built-in presets fill from a
+/// column that is not a dive type: Subsurface maps its `mode` column and
+/// Garmin its `Activity Type`. Those name the breathing loop or the
+/// recording mode, so preserving them would give every Subsurface import a
+/// custom dive type called "Oc".
+///
+/// Only the CSV importers use this. A UDDF `<divetype>` element is the file
+/// asserting a dive type, so "CCR" there is the diver's own classification
+/// and [mapDiveType] preserves it, as it does any other term it does not
+/// recognise.
+String mapCsvDiveType(String? raw) {
+  final mapped = mapDiveType(raw);
+  if (mapped == 'recreational' || kBuiltInDiveTypeIds.contains(mapped)) {
+    return mapped;
+  }
+  return kNonDiveTypeModes.contains(raw!.trim().toLowerCase())
+      ? 'recreational'
+      : mapped;
 }

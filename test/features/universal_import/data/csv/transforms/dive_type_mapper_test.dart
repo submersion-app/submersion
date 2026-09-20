@@ -51,25 +51,16 @@ void main() {
       expect(mapDiveType('Examine'), 'examine');
     });
 
-    // Subsurface maps its `mode` column and Garmin its `Activity Type` to
-    // this field, but those name the breathing loop or the recording mode,
-    // not the environment. Preserving them would give every Subsurface
-    // import a custom dive type called "Oc".
-    test('does not preserve a dive mode as a dive type', () {
-      expect(mapDiveType('OC'), 'recreational');
-      expect(mapDiveType('CCR'), 'recreational');
-      expect(mapDiveType('pSCR'), 'recreational');
-      expect(mapDiveType('Gauge Dive'), 'recreational');
-      expect(mapDiveType('Single-Gas Dive'), 'recreational');
+    // A UDDF <divetype> element is the file asserting a dive type, so a mode
+    // name there is the diver's own classification and is preserved. Only the
+    // CSV presets misroute a mode column, so only mapCsvDiveType drops them.
+    test('preserves a dive mode name outside the CSV presets', () {
+      expect(mapDiveType('CCR'), 'ccr');
+      expect(mapDiveType('OC'), 'oc');
     });
 
     test('still maps the dive modes that are real dive types', () {
       expect(mapDiveType('Freedive'), 'freedive');
-    });
-
-    // Matched whole, not as a substring: "oc" sits inside "ocean".
-    test('a dive mode name inside a longer value is not a dive mode', () {
-      expect(mapDiveType('Ocean'), 'ocean');
     });
 
     test('matches tec at a word start only', () {
@@ -106,10 +97,41 @@ void main() {
       expect(mapDiveType('Fundamentals'), 'fundamentals');
     });
 
-    test('returns recreational for a blank or unslugabble value', () {
+    test('returns recreational for a blank or unsluggable value', () {
       expect(mapDiveType(null), 'recreational');
       expect(mapDiveType(''), 'recreational');
       expect(mapDiveType('!!!'), 'recreational');
+    });
+  });
+
+  // Subsurface maps its `mode` column and Garmin its `Activity Type` to the
+  // dive type field, but those name the breathing loop or the recording
+  // mode. Preserving them would give every Subsurface import a custom dive
+  // type called "Oc". The exception is CSV-only: mapDiveType's own tests
+  // cover the UDDF behaviour, where such a value is the diver's own.
+  group('mapCsvDiveType', () {
+    test('does not preserve a dive mode as a dive type', () {
+      expect(mapCsvDiveType('OC'), 'recreational');
+      expect(mapCsvDiveType('CCR'), 'recreational');
+      expect(mapCsvDiveType('pSCR'), 'recreational');
+      expect(mapCsvDiveType('Gauge Dive'), 'recreational');
+      expect(mapCsvDiveType('Single-Gas Dive'), 'recreational');
+    });
+
+    test('still maps the dive modes that are real dive types', () {
+      expect(mapCsvDiveType('Freedive'), 'freedive');
+    });
+
+    // Matched whole, not as a substring: "oc" sits inside "ocean".
+    test('a dive mode name inside a longer value is not a dive mode', () {
+      expect(mapCsvDiveType('Ocean'), 'ocean');
+    });
+
+    test('otherwise behaves exactly as mapDiveType', () {
+      for (final v in ['Cenote', 'Sump', 'Cavern / Cave', 'Wreck', '', '!!!']) {
+        expect(mapCsvDiveType(v), mapDiveType(v), reason: 'for "$v"');
+      }
+      expect(mapCsvDiveType(null), mapDiveType(null));
     });
   });
 }
