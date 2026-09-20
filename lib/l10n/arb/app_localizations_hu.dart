@@ -5135,9 +5135,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'Plafon';
 
   @override
-  String get diveLog_deco_label_leading => 'Vezető';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5250,9 +5247,6 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'Lejátszás';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'Tartomány stat.';
@@ -7789,47 +7783,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'DEKO';
 
   @override
-  String get diveLog_playbackStats_depth => 'Mélység';
-
-  @override
-  String get diveLog_playbackStats_header => 'Élő statisztikák';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'Pulzus';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'Nyomás';
-
-  @override
-  String get diveLog_playbackStats_temp => 'Hőm.';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'Lejátszási pozíció';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'Léptetett lejátszás';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => 'Vissza 10 másodpercet';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'Kilépés a lejátszás módból';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => 'Előre 10 másodpercet';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'Szünet';
 
   @override
@@ -8349,27 +8302,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Nincs';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'Plafon';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M-érték';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'Szovettelitodes';
@@ -23627,6 +23559,14 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Néhány merülésnek nincs merülőhelye';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Ezek a merülések olyan merülőhelyre hivatkoztak, amelyet a fájl nem ír le, ezért merülőhely nélkül lettek importálva. A merülés szerkesztésével megadhatsz egyet.';
 
   @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>

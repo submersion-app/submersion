@@ -76,6 +76,12 @@ Made during the brainstorm on 2026-09-18, in this order:
 5. **Deleting a diver cascades their media** the way single dive, site and
    gear deletes already do. Originals are never touched.
 6. **The cloud identifier ships in this program**, not as a later slice.
+7. **Facts carry their own clocks** (decided 2026-09-19, while planning
+   Phase 1). Upload stamps are legitimately cleared (Verify Library, a
+   quality override, repair), so a "non-null always wins" rule would
+   resurrect cleared stamps. Instead `media` gains two synced clock columns,
+   one per fact group; fact writes stamp their group clock and never the
+   row clock, and each group merges last-writer-wins by its own clock.
 
 Product rules carried over unchanged: Submersion never deletes a user's
 original photo or video; a media row is attached to a dive or a site or it
@@ -277,40 +283,66 @@ same name.
 
 ### 5.1 Merge and keep pending
 
-`_mergeEntity` stops skipping a record whose id is pending. For every
-entity the inbound record is merged under the entity's policy, and the
-local pending mark is kept, so the merged row is what the next publish
-carries. A redundant publish is harmless: every peer applies the same
-deterministic rule, so the result converges.
+`_mergeEntity` stops skipping a record whose id is pending whenever both
+the local row and the peer's copy carry a clock: the entity's ordinary
+resolution orders them, and the local pending mark is kept, so this device
+still publishes whatever wins. Where either clock is missing nothing can
+order an unpublished local edit against the peer's, so the skip stays. Only
+three merged entities have no clock at all (`diveProfiles`,
+`tankPressureProfiles`, `equipmentFindings`); every other entity carries
+one. This fixes a divergence that is not specific to media: today a peer's
+newer edit to a dive, buddy or site is dropped while the local row is
+pending, and the peer then refuses this device's older copy.
 
-Entity registration gains an optional `factColumns` declaration beside
-`hasUpdatedAt`. A fact column is a device-stamped observation rather than a
-user edit, and it merges column by column instead of with the row:
+`media`, `mediaEnrichment`, `mediaSpecies` and `mediaStores` join the
+stale-copy guard the parent-gated children use: a copy strictly older than
+the local row is refused, a tie or a missing clock applies. They join
+through their own set, not `parentGatedChildEntities`, because that set also
+drives the pending-children export and media rows export on their own
+clock.
 
-| Group | Columns | Rule |
+A fact is a device-stamped observation rather than a user edit. Facts come
+in groups, and each group has its own synced clock column on the row:
+
+| Group | Clock column | Columns |
 | --- | --- | --- |
-| Upload facts | `contentHash`, `contentSizeBytes`, `remoteUploadedAt`, `remoteThumbUploadedAt`, `remoteCompressedUploadedAt` | Each of the three stamps merges on its own: a non-null stamp beats null, and when both sides are non-null the newer one wins. `contentHash` and `contentSizeBytes` travel together and follow whichever side holds the newest stamp overall (the maximum of its three); when only one side has a hash, that side wins; when neither side has a newer stamp (both have none, or the newest are equal) the side whose `contentHash` is greater by byte-wise comparison wins, so two replicas always agree regardless of apply order. A non-null value is never replaced by null. This gives a total order for the compressed-only case, where `remoteUploadedAt` stays null permanently. |
-| Verification facts | `isOrphaned`, `lastVerifiedAt` | The pair with the newer `lastVerifiedAt` wins. |
+| Upload facts | `upload_facts_hlc` | `contentHash`, `contentSizeBytes`, `remoteUploadedAt`, `remoteThumbUploadedAt`, `remoteCompressedUploadedAt`, `compressedLevel`, `compressedSizeBytes` |
+| Verification facts | `verify_facts_hlc` | `isOrphaned`, `lastVerifiedAt` |
 
-The rest of the media row (links, caption, `takenAt`, rating, source
-pointer and so on) merges last-writer-wins by `hlc`, which means `media`,
-`mediaEnrichment`, `mediaSpecies` and `mediaStores` join the clocked-child
-guard so the stale-copy check runs for them.
+- A fact write stamps its group clock and marks the row pending; it never
+  moves the row clock, so a stamp written after a caption edit cannot make a
+  stale caption win.
+- The rest of the row (links, caption, `takenAt`, source pointer and so on)
+  merges by the row clock as above. Each fact group then merges on its own:
+  the side with the newer group clock supplies every column of the group,
+  including explicit nulls, so a cleared stamp propagates.
+- A missing group clock falls back to that side's row clock. Rows written
+  by an older app version stamp facts through the row clock, so they still
+  order correctly against new ones, and rows that predate the columns behave
+  exactly as today.
+- The v223 rung backfills both clocks from the row clock for existing rows,
+  and a new row stamps both at creation, so later user edits do not move a
+  fact group's effective clock.
+- The media upsert drops explicit nulls (`nullToAbsent`), so the merge writes
+  each winning fact group with a targeted update that sets nulls too.
+- Export selects a media row when its row clock or either fact clock is past
+  the watermark, and the published watermark counts fact clocks, so a
+  fact-only change is published once and not again.
 
-For the roughly thirty other clockless entities, most of them junction and
-child tables where the whole row is the fact, `factColumns` is empty and the
-rule reduces to: apply the peer's row through the existing upsert with
-`nullToAbsent`, honour the child `hlc` guard where the entity has one, keep
-the local mark. The implementation plan enumerates every entity and the
-harness gains one scenario per distinct policy, not per table.
+The implementation plan enumerates every entity the pending change touches
+and the harness gains one scenario per distinct policy, not per table.
 
-`ChangesetReader` is unchanged: once nothing is skipped, advancing the
-cursor after `apply` is correct.
+`ChangesetReader` is unchanged: once nothing is skipped that can be ordered,
+advancing the cursor after `apply` is correct.
 
 ### 5.2 Quiet verification
 
-- `markVerified` and `stampVerification` bump `hlc` and mark pending only
-  when `isOrphaned` or `lastVerifiedAt` actually changes.
+- The verification writers publish only when `isOrphaned` actually moves.
+  `lastVerifiedAt` is set to "now" on every check, so including it would
+  mean every check publishes, which is the thing this section exists to
+  stop. The date is recorded locally without a clock and reaches peers on
+  the row's next sync-visible write. (Amended 2026-09-19, while planning
+  slice 4.)
 - Inconclusive verifier outcomes (`fromOtherDevice`, `accessDenied`, no
   resolver, throw) never write the row.
 - `MediaItemView` reconciles only when the resolver verdict is `notFound` on
@@ -318,10 +350,19 @@ cursor after `apply` is correct.
 
 ### 5.3 Hardening
 
-- `mediaStores` gets a `parentRefs` entry and the completeness test covers it.
-- `mediaEnrichment` and `mediaStores` deletions log a tombstone; applying the
-  parent's tombstone on a peer still cascades, so this only closes the
-  re-add on the next publish.
+- `mediaStores` needs no `parentRefs` entry: the table declares no foreign
+  keys, and `sync_parent_refs_completeness_test` reads the live schema, so
+  it already demands an entry the moment one appears. It needs no tombstone
+  either: no local path deletes a descriptor, and Disconnect deliberately
+  keeps it so other devices still learn the store exists. Both facts are
+  pinned by `media_stores_no_parent_refs_test`, which fails with the reason
+  if either changes. (Corrected 2026-09-19, while planning slice 4; the
+  original bullets described work that does not apply.)
+- `mediaEnrichment` deletions already log a tombstone wherever they are
+  deliberate. The gap is the FK cascade: a photo that survives a dive
+  deletion because a site still shows it loses its dive-scoped enrichment
+  silently, and a peer re-adds it on the next publish. The dive-unlink path
+  drops those rows explicitly, with tombstones, before the dive rows go.
 - Google Drive: `_forStatus` folds Google's `error.message` into the
   exception text when the body parses as that shape, otherwise the bare
   status (#2018). The S3, Dropbox and iCloud adapters are checked for the
@@ -465,10 +506,12 @@ becomes a sub-issue and one PR. Dependencies run top to bottom.
    where main is wrong. (4.1)
 2. Media health report with its three entry points, `LogCategory.media`,
    per-category file floor, named origin device. (4.2 to 4.4)
-3. Engine merge rule: merge and keep pending, `factColumns`, media tables
-   join the clocked-child guard, entity enumeration. Turns S1 and S3 green. (5.1)
-4. Quiet verification, `mediaStores` parent refs, child tombstones. Turns S2
-   green. (5.2, 5.3)
+3. Engine merge rule: merge and keep pending where both sides are clocked,
+   media tables join the stale-copy guard, two fact clocks (schema v223),
+   fact writers stamp their group clock. Turns S1 and S3 green. (5.1)
+4. Quiet verification: an inconclusive check writes nothing, and a
+   verification publishes only when the orphan flag moves. Tombstone the
+   enrichment a dive deletion takes with it. Turns S2 green. (5.2, 5.3)
 5. Google Drive error message and adapter audit. Closes #2018. (5.3)
 6. Diver delete media cascade. Turns S9 green. Closes #1954. (5.4)
 7. Origin-aware gallery verdicts on iOS, macOS and Android. Turns S5 green. (6.1)

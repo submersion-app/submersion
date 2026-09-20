@@ -5109,9 +5109,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'Plafond';
 
   @override
-  String get diveLog_deco_label_leading => 'Leidend';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5223,9 +5220,6 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'Afspelen';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'Bereikstatistieken';
@@ -7748,47 +7742,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'DECO';
 
   @override
-  String get diveLog_playbackStats_depth => 'Diepte';
-
-  @override
-  String get diveLog_playbackStats_header => 'Live statistieken';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'Hartslag';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'Druk';
-
-  @override
-  String get diveLog_playbackStats_temp => 'Temp';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'Afspeelpositie';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'Stapsgewijs afspelen';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => '10 seconden terug';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'Afspeelmodus verlaten';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => '10 seconden vooruit';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'Pauzeren';
 
   @override
@@ -8302,27 +8255,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Geen';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'Plafond';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M-waarde';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'Weefselbelasting';
@@ -23506,6 +23438,14 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Sommige duiken zonder duikstek';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Deze duiken verwezen naar een duikstek die het bestand niet beschrijft en zijn daarom zonder duikstek geïmporteerd. Je kunt er een instellen door de duik te bewerken.';
 
   @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>

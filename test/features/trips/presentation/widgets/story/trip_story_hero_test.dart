@@ -26,14 +26,11 @@ class _FakeItineraryRepo extends ItineraryDayRepository {
 
 DateTime _dayOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 
-/// Calendar days from [day], letting `DateTime` normalise the overflowing day
-/// field.
-///
-/// `day.add(Duration(days: n))` adds elapsed time, not calendar days, so a
-/// window crossing a daylight-saving transition lands an hour either side of
-/// midnight and shifts a whole calendar date: from 2026-09-20, `+43 days` is
-/// 2026-11-01 23:00, not 2026-11-02, because US DST ends on 2026-11-01. Every
-/// day count in this file is a calendar count, so the dates must be too.
+/// [days] calendar days from [day], which is not the same as adding a
+/// `Duration`. A `Duration` is elapsed time, so a window that crosses a
+/// daylight-saving change lands an hour short and loses a whole calendar day:
+/// from 2026-09-20, `add(Duration(days: 43))` gives 2026-11-01 23:00, not
+/// 2026-11-02, and a four-day trip becomes a three-day one.
 DateTime _daysFrom(DateTime day, int days) =>
     DateTime(day.year, day.month, day.day + days);
 

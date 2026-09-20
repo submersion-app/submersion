@@ -5050,9 +5050,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'السقف';
 
   @override
-  String get diveLog_deco_label_leading => 'الأنسجة الرائدة';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5164,9 +5161,6 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'تشغيل';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'إحصائيات النطاق';
@@ -7652,47 +7646,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'تخفيف ضغط';
 
   @override
-  String get diveLog_playbackStats_depth => 'العمق';
-
-  @override
-  String get diveLog_playbackStats_header => 'إحصائيات مباشرة';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'معدل نبض القلب';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'الضغط';
-
-  @override
-  String get diveLog_playbackStats_temp => 'الحرارة';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'موضع التشغيل';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'تشغيل خطوة بخطوة';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => 'رجوع 10 ثوانٍ';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'الخروج من وضع التشغيل';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => 'تقديم 10 ثوانٍ';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'إيقاف مؤقت';
 
   @override
@@ -8201,27 +8154,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'لا شيء';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'السقف';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M-value';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'تحميل الأنسجة';
@@ -23380,6 +23312,14 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'بعض الغطسات بلا موقع غوص';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'أشارت هذه الغطسات إلى موقع غوص لا يصفه الملف، فاستُوردت بدون موقع. يمكنك تعيين موقع بتحرير الغطسة.';
 
   @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>

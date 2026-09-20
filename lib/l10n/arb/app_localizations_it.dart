@@ -5146,9 +5146,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'Ceiling';
 
   @override
-  String get diveLog_deco_label_leading => 'Principale';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5261,9 +5258,6 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'Riproduzione';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'Stats intervallo';
@@ -7808,48 +7802,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'DECO';
 
   @override
-  String get diveLog_playbackStats_depth => 'Profondita';
-
-  @override
-  String get diveLog_playbackStats_header => 'Statistiche in tempo reale';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'Frequenza cardiaca';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO2';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'Pressione';
-
-  @override
-  String get diveLog_playbackStats_temp => 'Temp';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'Posizione riproduzione';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'Riproduzione passo-passo';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => 'Indietro 10 secondi';
-
-  @override
-  String get diveLog_playback_tooltip_exit =>
-      'Esci dalla modalita riproduzione';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => 'Avanti 10 secondi';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'Pausa';
 
   @override
@@ -8366,27 +8318,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Nessuno';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'Ceiling';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M-value';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'Carico tissutale';
@@ -23690,6 +23621,14 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Alcune immersioni senza sito di immersione';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Queste immersioni facevano riferimento a un sito di immersione che il file non descrive, quindi sono state importate senza sito. Puoi assegnarne uno modificando l\'immersione.';
 
   @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>

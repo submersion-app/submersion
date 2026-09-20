@@ -74,5 +74,6 @@ ImportNoticeKind? _kindFor(ImportWarningCode? code) => switch (code) {
     ImportNoticeKind.macdiveXmlOmitsCertsAndService,
   ImportWarningCode.macdiveLogbooksNotImported =>
     ImportNoticeKind.macdiveLogbooksNotImported,
+  ImportWarningCode.sitesUnresolved => ImportNoticeKind.sitesUnresolved,
   ImportWarningCode.diagnostic || null => null,
 };
