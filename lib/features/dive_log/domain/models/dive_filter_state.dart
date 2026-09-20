@@ -1,3 +1,4 @@
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
@@ -93,6 +94,26 @@ class DiveFilterState {
   /// ([EquipmentAttrCondition.suitThickness]).
   final List<EquipmentAttrCondition> equipmentAttrConditions;
 
+  /// Water temperature bounds in celsius against `dives.water_temp`. A dive
+  /// with no recorded temperature never matches a set bound.
+  final double? minWaterTemp;
+  final double? maxWaterTemp;
+
+  /// Visibility bounds in metres against `dives.visibility_meters` only; the
+  /// legacy `visibility` bucket column is read-only and ignored.
+  final double? minVisibility;
+  final double? maxVisibility;
+
+  /// Water types to keep (OR within the axis), matched on `dives.water_type`.
+  final List<WaterType> waterTypes;
+
+  /// Species ids: keep dives with a sighting of ANY listed species.
+  final List<String> speciesIds;
+
+  /// Site ids (OR within the axis), the set form of [siteId]; both apply when
+  /// both are set. Explore lowers a place mention ("Bonaire") to this.
+  final List<String> siteIds;
+
   const DiveFilterState({
     this.startDate,
     this.endDate,
@@ -121,6 +142,13 @@ class DiveFilterState {
     this.customFieldKey,
     this.customFieldValue,
     this.equipmentAttrConditions = const [],
+    this.minWaterTemp,
+    this.maxWaterTemp,
+    this.minVisibility,
+    this.maxVisibility,
+    this.waterTypes = const [],
+    this.speciesIds = const [],
+    this.siteIds = const [],
   });
 
   /// Inclusive lower bound for `dives.dive_date_time`, in the wall-clock-as-UTC
@@ -158,7 +186,18 @@ class DiveFilterState {
       (buddyNameFilter?.split(',').any((name) => name.trim().isNotEmpty) ??
           false);
 
+  /// Whether a filter reads the `sightings` junction, which changes without a
+  /// `dives` write, so a list filtered this way must follow that table too.
+  bool get readsSightings => speciesIds.isNotEmpty;
+
   bool get hasActiveFilters =>
+      minWaterTemp != null ||
+      maxWaterTemp != null ||
+      minVisibility != null ||
+      maxVisibility != null ||
+      waterTypes.isNotEmpty ||
+      speciesIds.isNotEmpty ||
+      siteIds.isNotEmpty ||
       startDate != null ||
       endDate != null ||
       diveTypeId != null ||
@@ -214,6 +253,13 @@ class DiveFilterState {
     String? customFieldKey,
     String? customFieldValue,
     List<EquipmentAttrCondition>? equipmentAttrConditions,
+    double? minWaterTemp,
+    double? maxWaterTemp,
+    double? minVisibility,
+    double? maxVisibility,
+    List<WaterType>? waterTypes,
+    List<String>? speciesIds,
+    List<String>? siteIds,
     bool clearStartDate = false,
     bool clearEndDate = false,
     bool clearDiveType = false,
@@ -241,8 +287,30 @@ class DiveFilterState {
     bool clearCustomFieldKey = false,
     bool clearCustomFieldValue = false,
     bool clearEquipmentAttrConditions = false,
+    bool clearMinWaterTemp = false,
+    bool clearMaxWaterTemp = false,
+    bool clearMinVisibility = false,
+    bool clearMaxVisibility = false,
+    bool clearWaterTypes = false,
+    bool clearSpeciesIds = false,
+    bool clearSiteIds = false,
   }) {
     return DiveFilterState(
+      minWaterTemp: clearMinWaterTemp
+          ? null
+          : (minWaterTemp ?? this.minWaterTemp),
+      maxWaterTemp: clearMaxWaterTemp
+          ? null
+          : (maxWaterTemp ?? this.maxWaterTemp),
+      minVisibility: clearMinVisibility
+          ? null
+          : (minVisibility ?? this.minVisibility),
+      maxVisibility: clearMaxVisibility
+          ? null
+          : (maxVisibility ?? this.maxVisibility),
+      waterTypes: clearWaterTypes ? const [] : (waterTypes ?? this.waterTypes),
+      speciesIds: clearSpeciesIds ? const [] : (speciesIds ?? this.speciesIds),
+      siteIds: clearSiteIds ? const [] : (siteIds ?? this.siteIds),
       startDate: clearStartDate ? null : (startDate ?? this.startDate),
       endDate: clearEndDate ? null : (endDate ?? this.endDate),
       diveTypeId: clearDiveType ? null : (diveTypeId ?? this.diveTypeId),
@@ -343,6 +411,9 @@ class DiveFilterState {
       if (siteId != null && dive.site?.id != siteId) {
         return false;
       }
+      if (siteIds.isNotEmpty && !siteIds.contains(dive.site?.id)) {
+        return false;
+      }
       if (tripId != null && dive.tripId != tripId) {
         return false;
       }
@@ -366,6 +437,32 @@ class DiveFilterState {
       }
       if (maxDepth != null &&
           (dive.maxDepth == null || dive.maxDepth! > maxDepth!)) {
+        return false;
+      }
+      if (minWaterTemp != null &&
+          (dive.waterTemp == null || dive.waterTemp! < minWaterTemp!)) {
+        return false;
+      }
+      if (maxWaterTemp != null &&
+          (dive.waterTemp == null || dive.waterTemp! > maxWaterTemp!)) {
+        return false;
+      }
+      if (minVisibility != null &&
+          (dive.visibilityMeters == null ||
+              dive.visibilityMeters! < minVisibility!)) {
+        return false;
+      }
+      if (maxVisibility != null &&
+          (dive.visibilityMeters == null ||
+              dive.visibilityMeters! > maxVisibility!)) {
+        return false;
+      }
+      if (waterTypes.isNotEmpty &&
+          (dive.waterType == null || !waterTypes.contains(dive.waterType))) {
+        return false;
+      }
+      if (speciesIds.isNotEmpty &&
+          !dive.sightings.any((s) => speciesIds.contains(s.speciesId))) {
         return false;
       }
       if (favoritesOnly == true && !dive.isFavorite) {

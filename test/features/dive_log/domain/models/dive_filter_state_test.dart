@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -23,11 +25,20 @@ Dive _makeDive({
   List<DiveCustomField> customFields = const [],
   List<EquipmentItem> equipment = const [],
   List<DiveProfilePoint> profile = const [],
+  double? waterTemp,
+  double? visibilityMeters,
+  WaterType? waterType,
+  List<MarineSighting> sightings = const [],
+  String? siteId,
 }) {
   return Dive(
     id: id,
     dateTime: dateTime ?? DateTime(2026, 3, 19),
     maxDepth: maxDepth,
+    waterTemp: waterTemp,
+    visibilityMeters: visibilityMeters,
+    waterType: waterType,
+    site: siteId == null ? null : DiveSite(id: siteId, name: siteId),
     diveTypeIds: [diveTypeId ?? 'recreational'],
     isFavorite: isFavorite,
     diveComputerSerial: diveComputerSerial,
@@ -40,7 +51,7 @@ Dive _makeDive({
     gear: looseGear(equipment),
     notes: '',
     photoIds: const [],
-    sightings: const [],
+    sightings: sightings,
     weights: const [],
     tags: const [],
     customFields: customFields,
@@ -946,6 +957,118 @@ void main() {
           final dives = [_makeDive(id: 'a'), _makeDive(id: 'b')];
           expect(filter.apply(dives).map((d) => d.id), ['a', 'b']);
         });
+      });
+    });
+
+    group('phase 1 explore axes', () {
+      MarineSighting s(String speciesId) => MarineSighting(
+        id: 'sight-$speciesId',
+        speciesId: speciesId,
+        speciesName: speciesId,
+      );
+
+      test('water temperature bounds exclude null and out-of-range dives', () {
+        final dives = [
+          _makeDive(id: 'cold', waterTemp: 8),
+          _makeDive(id: 'warm', waterTemp: 27),
+          _makeDive(id: 'none'),
+        ];
+        expect(
+          const DiveFilterState(maxWaterTemp: 15).apply(dives).map((d) => d.id),
+          ['cold'],
+        );
+        expect(
+          const DiveFilterState(minWaterTemp: 20).apply(dives).map((d) => d.id),
+          ['warm'],
+        );
+      });
+
+      test('visibility bounds read visibilityMeters only', () {
+        final dives = [
+          _makeDive(id: 'clear', visibilityMeters: 30),
+          _makeDive(id: 'murky', visibilityMeters: 4),
+          _makeDive(id: 'none'),
+        ];
+        expect(
+          const DiveFilterState(
+            minVisibility: 20,
+          ).apply(dives).map((d) => d.id),
+          ['clear'],
+        );
+        expect(
+          const DiveFilterState(maxVisibility: 5).apply(dives).map((d) => d.id),
+          ['murky'],
+        );
+      });
+
+      test('water types OR within the axis', () {
+        final dives = [
+          _makeDive(id: 'salt', waterType: WaterType.salt),
+          _makeDive(id: 'fresh', waterType: WaterType.fresh),
+          _makeDive(id: 'none'),
+        ];
+        expect(
+          const DiveFilterState(
+            waterTypes: [WaterType.salt, WaterType.fresh],
+          ).apply(dives).map((d) => d.id),
+          ['salt', 'fresh'],
+        );
+      });
+
+      test('species ids match any sighting', () {
+        final dives = [
+          _makeDive(id: 'turtle', sightings: [s('sp_green_turtle')]),
+          _makeDive(id: 'shark', sightings: [s('sp_nurse_shark')]),
+          _makeDive(id: 'none'),
+        ];
+        expect(
+          const DiveFilterState(
+            speciesIds: ['sp_green_turtle', 'sp_hawksbill_turtle'],
+          ).apply(dives).map((d) => d.id),
+          ['turtle'],
+        );
+      });
+
+      test('site ids match any listed site and AND with siteId', () {
+        final dives = [
+          _makeDive(id: 'a', siteId: 's1'),
+          _makeDive(id: 'b', siteId: 's2'),
+          _makeDive(id: 'c'),
+        ];
+        expect(
+          const DiveFilterState(
+            siteIds: ['s1', 's2'],
+          ).apply(dives).map((d) => d.id),
+          ['a', 'b'],
+        );
+        expect(
+          const DiveFilterState(
+            siteIds: ['s1', 's2'],
+            siteId: 's2',
+          ).apply(dives).map((d) => d.id),
+          ['b'],
+        );
+      });
+
+      test('the new axes count as active and clear through copyWith', () {
+        const f = DiveFilterState(
+          minWaterTemp: 1,
+          maxVisibility: 2,
+          waterTypes: [WaterType.salt],
+          speciesIds: ['x'],
+          siteIds: ['s'],
+        );
+        expect(f.hasActiveFilters, isTrue);
+        expect(f.readsSightings, isTrue);
+        final cleared = f.copyWith(
+          clearMinWaterTemp: true,
+          clearMaxVisibility: true,
+          clearWaterTypes: true,
+          clearSpeciesIds: true,
+          clearSiteIds: true,
+        );
+        expect(cleared.hasActiveFilters, isFalse);
+        expect(cleared.readsSightings, isFalse);
       });
     });
   });
