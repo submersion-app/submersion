@@ -8328,12 +8328,6 @@ abstract class AppLocalizations {
   /// **'Ceiling'**
   String get diveLog_deco_label_ceiling;
 
-  /// No description provided for @diveLog_deco_label_leading.
-  ///
-  /// In en, this message translates to:
-  /// **'Leading'**
-  String get diveLog_deco_label_leading;
-
   /// No description provided for @diveLog_deco_label_gf99.
   ///
   /// In en, this message translates to:
@@ -8511,12 +8505,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} {count, plural, =1{buddy} other{buddies}}'**
   String diveLog_detail_buddyCount(int count);
-
-  /// No description provided for @diveLog_detail_button_playback.
-  ///
-  /// In en, this message translates to:
-  /// **'Playback'**
-  String get diveLog_detail_button_playback;
 
   /// No description provided for @diveLog_detail_button_rangeAnalysis.
   ///
@@ -12681,84 +12669,6 @@ abstract class AppLocalizations {
   /// **'DECO'**
   String get diveLog_playbackStats_deco;
 
-  /// No description provided for @diveLog_playbackStats_depth.
-  ///
-  /// In en, this message translates to:
-  /// **'Depth'**
-  String get diveLog_playbackStats_depth;
-
-  /// No description provided for @diveLog_playbackStats_header.
-  ///
-  /// In en, this message translates to:
-  /// **'Live Stats'**
-  String get diveLog_playbackStats_header;
-
-  /// No description provided for @diveLog_playbackStats_heartRate.
-  ///
-  /// In en, this message translates to:
-  /// **'Heart Rate'**
-  String get diveLog_playbackStats_heartRate;
-
-  /// No description provided for @diveLog_playbackStats_ndl.
-  ///
-  /// In en, this message translates to:
-  /// **'NDL'**
-  String get diveLog_playbackStats_ndl;
-
-  /// No description provided for @diveLog_playbackStats_ppO2.
-  ///
-  /// In en, this message translates to:
-  /// **'ppO₂'**
-  String get diveLog_playbackStats_ppO2;
-
-  /// No description provided for @diveLog_playbackStats_pressure.
-  ///
-  /// In en, this message translates to:
-  /// **'Pressure'**
-  String get diveLog_playbackStats_pressure;
-
-  /// No description provided for @diveLog_playbackStats_temp.
-  ///
-  /// In en, this message translates to:
-  /// **'Temp'**
-  String get diveLog_playbackStats_temp;
-
-  /// No description provided for @diveLog_playback_sliderLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Playback position'**
-  String get diveLog_playback_sliderLabel;
-
-  /// No description provided for @diveLog_playback_speed_label.
-  ///
-  /// In en, this message translates to:
-  /// **'{speed}x'**
-  String diveLog_playback_speed_label(Object speed);
-
-  /// No description provided for @diveLog_playback_stepThrough.
-  ///
-  /// In en, this message translates to:
-  /// **'Step-through Playback'**
-  String get diveLog_playback_stepThrough;
-
-  /// No description provided for @diveLog_playback_tooltip_back10.
-  ///
-  /// In en, this message translates to:
-  /// **'Back 10 seconds'**
-  String get diveLog_playback_tooltip_back10;
-
-  /// No description provided for @diveLog_playback_tooltip_exit.
-  ///
-  /// In en, this message translates to:
-  /// **'Exit playback mode'**
-  String get diveLog_playback_tooltip_exit;
-
-  /// No description provided for @diveLog_playback_tooltip_forward10.
-  ///
-  /// In en, this message translates to:
-  /// **'Forward 10 seconds'**
-  String get diveLog_playback_tooltip_forward10;
-
   /// No description provided for @diveLog_playback_tooltip_pause.
   ///
   /// In en, this message translates to:
@@ -13694,48 +13604,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None'**
   String get diveLog_tank_regulatorNone;
-
-  /// No description provided for @diveLog_tissue_label_ceiling.
-  ///
-  /// In en, this message translates to:
-  /// **'Ceiling'**
-  String get diveLog_tissue_label_ceiling;
-
-  /// No description provided for @diveLog_tissue_label_gf.
-  ///
-  /// In en, this message translates to:
-  /// **'GF'**
-  String get diveLog_tissue_label_gf;
-
-  /// No description provided for @diveLog_tissue_label_ndl.
-  ///
-  /// In en, this message translates to:
-  /// **'NDL'**
-  String get diveLog_tissue_label_ndl;
-
-  /// No description provided for @diveLog_tissue_label_tts.
-  ///
-  /// In en, this message translates to:
-  /// **'TTS'**
-  String get diveLog_tissue_label_tts;
-
-  /// No description provided for @diveLog_tissue_legend_he.
-  ///
-  /// In en, this message translates to:
-  /// **'He'**
-  String get diveLog_tissue_legend_he;
-
-  /// No description provided for @diveLog_tissue_legend_mValue.
-  ///
-  /// In en, this message translates to:
-  /// **'100% M-value'**
-  String get diveLog_tissue_legend_mValue;
-
-  /// No description provided for @diveLog_tissue_legend_n2.
-  ///
-  /// In en, this message translates to:
-  /// **'N₂'**
-  String get diveLog_tissue_legend_n2;
 
   /// No description provided for @diveLog_tissue_title.
   ///

@@ -4879,9 +4879,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_deco_label_ceiling => '上升限制';
 
   @override
-  String get diveLog_deco_label_leading => '主导';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -4992,9 +4989,6 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => '回放';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => '范围统计';
@@ -7409,47 +7403,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_playbackStats_deco => '减压';
 
   @override
-  String get diveLog_playbackStats_depth => '深度';
-
-  @override
-  String get diveLog_playbackStats_header => '实时统计';
-
-  @override
-  String get diveLog_playbackStats_heartRate => '心率';
-
-  @override
-  String get diveLog_playbackStats_ndl => '免减压极限';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => '氧分压';
-
-  @override
-  String get diveLog_playbackStats_pressure => '压力';
-
-  @override
-  String get diveLog_playbackStats_temp => '温度';
-
-  @override
-  String get diveLog_playback_sliderLabel => '回放位置';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => '逐步回放';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => '后退 10 秒';
-
-  @override
-  String get diveLog_playback_tooltip_exit => '退出回放模式';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => '前进 10 秒';
-
-  @override
   String get diveLog_playback_tooltip_pause => '暂停';
 
   @override
@@ -7952,27 +7905,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => '无';
-
-  @override
-  String get diveLog_tissue_label_ceiling => '上升限制';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => '免减压极限';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M值';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => '组织饱和度';

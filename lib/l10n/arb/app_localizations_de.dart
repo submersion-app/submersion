@@ -5150,9 +5150,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'Ceiling';
 
   @override
-  String get diveLog_deco_label_leading => 'Leitgewebe';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5265,9 +5262,6 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'Wiedergabe';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'Bereichsstatistik';
@@ -7802,47 +7796,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'DEKO';
 
   @override
-  String get diveLog_playbackStats_depth => 'Tiefe';
-
-  @override
-  String get diveLog_playbackStats_header => 'Live-Statistiken';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'Herzfrequenz';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'Druck';
-
-  @override
-  String get diveLog_playbackStats_temp => 'Temp.';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'Wiedergabeposition';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'Schrittweise Wiedergabe';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => '10 Sekunden zurück';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'Wiedergabemodus beenden';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => '10 Sekunden vor';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'Pause';
 
   @override
@@ -8357,27 +8310,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Keiner';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'Ceiling';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M-Wert';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'Gewebesättigung';

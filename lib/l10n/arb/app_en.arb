@@ -3069,7 +3069,6 @@
   "diveLog_deco_badge_deco": "DECO",
   "diveLog_deco_badge_noDeco": "NO DECO",
   "diveLog_deco_label_ceiling": "Ceiling",
-  "diveLog_deco_label_leading": "Leading",
   "diveLog_deco_label_gf99": "GF99",
   "diveLog_deco_label_surfGf": "SurfGF",
   "diveLog_deco_label_ndl": "NDL",
@@ -3099,7 +3098,6 @@
   "diveLog_detail_badge_noDeco": "NO DECO",
   "diveLog_detail_badge_warning": "WARNING",
   "diveLog_detail_buddyCount": "{count} {count, plural, =1{buddy} other{buddies}}",
-  "diveLog_detail_button_playback": "Playback",
   "diveLog_detail_button_rangeAnalysis": "Range Stats",
   "diveLog_detail_button_showEnd": "Show end",
   "diveLog_detail_captureSignature": "Capture Instructor Signature",
@@ -4275,19 +4273,6 @@
   "diveLog_o2tox_startPercent": "Start: {value}%",
   "diveLog_o2tox_title": "Oxygen Toxicity",
   "diveLog_playbackStats_deco": "DECO",
-  "diveLog_playbackStats_depth": "Depth",
-  "diveLog_playbackStats_header": "Live Stats",
-  "diveLog_playbackStats_heartRate": "Heart Rate",
-  "diveLog_playbackStats_ndl": "NDL",
-  "diveLog_playbackStats_ppO2": "ppO₂",
-  "diveLog_playbackStats_pressure": "Pressure",
-  "diveLog_playbackStats_temp": "Temp",
-  "diveLog_playback_sliderLabel": "Playback position",
-  "diveLog_playback_speed_label": "{speed}x",
-  "diveLog_playback_stepThrough": "Step-through Playback",
-  "diveLog_playback_tooltip_back10": "Back 10 seconds",
-  "diveLog_playback_tooltip_exit": "Exit playback mode",
-  "diveLog_playback_tooltip_forward10": "Forward 10 seconds",
   "diveLog_playback_tooltip_pause": "Pause",
   "diveLog_playback_tooltip_play": "Play",
   "diveLog_playback_tooltip_skipEnd": "Skip to end",
@@ -4451,13 +4436,6 @@
   "diveLog_tank_tooltip_remove": "Remove tank",
   "diveLog_tank_regulatorLabel": "Regulator",
   "diveLog_tank_regulatorNone": "None",
-  "diveLog_tissue_label_ceiling": "Ceiling",
-  "diveLog_tissue_label_gf": "GF",
-  "diveLog_tissue_label_ndl": "NDL",
-  "diveLog_tissue_label_tts": "TTS",
-  "diveLog_tissue_legend_he": "He",
-  "diveLog_tissue_legend_mValue": "100% M-value",
-  "diveLog_tissue_legend_n2": "N₂",
   "diveLog_tissue_title": "Tissue Loading",
   "diveLog_tooltip_avgCalculated": "(avg, calculated)",
   "diveLog_tooltip_ceiling": "Ceiling",
@@ -5078,13 +5056,6 @@
   "@diveLog_o2tox_startPercent": {
     "placeholders": {
       "value": {
-        "type": "Object"
-      }
-    }
-  },
-  "@diveLog_playback_speed_label": {
-    "placeholders": {
-      "speed": {
         "type": "Object"
       }
     }

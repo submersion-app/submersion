@@ -5144,9 +5144,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'Techo';
 
   @override
-  String get diveLog_deco_label_leading => 'Dominante';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5259,9 +5256,6 @@ class AppLocalizationsEs extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'Reproducción';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'Stats de rango';
@@ -7803,47 +7797,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'DECO';
 
   @override
-  String get diveLog_playbackStats_depth => 'Profundidad';
-
-  @override
-  String get diveLog_playbackStats_header => 'Datos en vivo';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'Frecuencia cardíaca';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'Presión';
-
-  @override
-  String get diveLog_playbackStats_temp => 'Temp';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'Posición de reproducción';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'Reproducción paso a paso';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => 'Retroceder 10 segundos';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'Salir del modo de reproducción';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => 'Avanzar 10 segundos';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'Pausa';
 
   @override
@@ -8361,27 +8314,6 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Ninguno';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'Techo';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% valor M';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'Carga tisular';
