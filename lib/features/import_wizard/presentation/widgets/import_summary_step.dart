@@ -516,6 +516,11 @@ _FileNoticeWording? _fileNoticeWording(
       body: l10n.universalImport_summary_noticeMacdiveXmlCertsBody,
       action: null,
     ),
+    ImportNoticeKind.sitesUnresolved => (
+      title: l10n.universalImport_summary_noticeSitesUnresolvedTitle,
+      body: l10n.universalImport_summary_noticeSitesUnresolvedBody,
+      action: null,
+    ),
     ImportNoticeKind.macdiveLogbooksNotImported => (
       title: l10n.universalImport_summary_noticeMacdiveLogbooksTitle,
       body: l10n.universalImport_summary_noticeMacdiveLogbooksBody(names),

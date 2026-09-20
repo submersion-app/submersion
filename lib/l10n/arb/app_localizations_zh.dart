@@ -3028,6 +3028,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_action_ok => '确定';
 
   @override
+  String get common_action_openSettings => '打开设置';
+
+  @override
   String get common_action_save => '保存';
 
   @override
@@ -4879,9 +4882,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_deco_label_ceiling => '上升限制';
 
   @override
-  String get diveLog_deco_label_leading => '主导';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -4992,9 +4992,6 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => '回放';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => '范围统计';
@@ -7409,47 +7406,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_playbackStats_deco => '减压';
 
   @override
-  String get diveLog_playbackStats_depth => '深度';
-
-  @override
-  String get diveLog_playbackStats_header => '实时统计';
-
-  @override
-  String get diveLog_playbackStats_heartRate => '心率';
-
-  @override
-  String get diveLog_playbackStats_ndl => '免减压极限';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => '氧分压';
-
-  @override
-  String get diveLog_playbackStats_pressure => '压力';
-
-  @override
-  String get diveLog_playbackStats_temp => '温度';
-
-  @override
-  String get diveLog_playback_sliderLabel => '回放位置';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => '逐步回放';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => '后退 10 秒';
-
-  @override
-  String get diveLog_playback_tooltip_exit => '退出回放模式';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => '前进 10 秒';
-
-  @override
   String get diveLog_playback_tooltip_pause => '暂停';
 
   @override
@@ -7952,27 +7908,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => '无';
-
-  @override
-  String get diveLog_tissue_label_ceiling => '上升限制';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => '免减压极限';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M值';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => '组织饱和度';
@@ -22459,6 +22394,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle => '部分潜水没有潜水点';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      '这些潜水引用了文件中没有描述的潜水点，因此导入时没有潜水点。您可以通过编辑潜水来设置潜水点。';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       '文件中没有证书和维护记录';
 
@@ -36646,6 +36588,81 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get startup_failure_showBackupsFolder => '显示备份文件夹';
+
+  @override
+  String get startup_failure_moreWays_title => '其他恢复方式';
+
+  @override
+  String get startup_failure_useAnotherFolder => '使用其他文件夹中的潜水日志';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      '切换到你已经存放在别处的潜水日志，例如 iCloud 云盘或 Dropbox 文件夹中的日志。';
+
+  @override
+  String get startup_failure_restoreFromFile => '从备份文件恢复';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      '从本设备的任意位置或同步文件夹中选择一个 Submersion 备份。';
+
+  @override
+  String get startup_failure_startFresh => '以空白潜水日志开始';
+
+  @override
+  String get startup_failure_startFresh_subtitle => '将损坏的文件移到一旁，重新开始。不会删除任何内容。';
+
+  @override
+  String get startup_recovery_adopt_title => '使用这个潜水日志？';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'Submersion 今后将打开这个潜水日志。无法打开的那个文件会留在原处。';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives 次潜水，$sites 个潜点';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => '使用这个日志';
+
+  @override
+  String get startup_recovery_startFresh_title => '以空白潜水日志开始？';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion 会把损坏的文件移入单独的文件夹，并打开一个全新的空白潜水日志。不会删除任何内容，你之后仍可再试旧文件或将其发送给支持人员。';
+
+  @override
+  String get startup_recovery_startFresh_confirm => '重新开始';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return '你损坏的潜水日志已移至：\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => '这没有奏效';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return '$folder 中没有 $filename。请选择包含潜水日志文件本身的那个文件夹。';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return '$path 中的潜水日志已损坏，或者它不是 Submersion 的潜水日志。';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return '该文件不是 Submersion 能够恢复的备份：$path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      '该备份已加密。Submersion 只有在应用打开后才能解锁加密备份，因此请先使用这里的其他方式，然后在设置的备份与恢复中恢复它。';
 
   @override
   String get startup_failure_downgrade_title => '回到上一个版本';
