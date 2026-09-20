@@ -135,7 +135,9 @@ Surfaces:
   fullscreen profile): full scene, transport bar (reuse
   `profile_transport_controls`), lane toggle chips (persisted like 2D chart
   overlay prefs), camera preset buttons, fidelity badge, playback stats HUD
-  (reuse `playback_stats_panel`).
+  (`playback_stats_panel` was deleted as dead code in #2184, since the dive
+  detail page could no longer reach it; recover it from git history if it
+  still fits, or build the HUD against the 3D scene's own needs).
 
 ## Section 3: Architecture
 
