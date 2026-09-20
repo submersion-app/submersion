@@ -23780,6 +23780,14 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Certaines plongées sans site de plongée';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Ces plongées faisaient référence à un site de plongée que le fichier ne décrit pas, elles ont donc été importées sans site. Vous pouvez en définir un en modifiant la plongée.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'Certifications et enregistrements de révision absents du fichier';
 

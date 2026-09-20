@@ -7093,6 +7093,8 @@
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{1 Wert konnte nicht umgewandelt werden und wurde leer gelassen. Wenn ein Feld falsch aussieht, prüfen Sie die Spaltenzuordnung und importieren Sie erneut.} other{{count} Werte konnten nicht umgewandelt werden und wurden leer gelassen. Wenn ein Feld falsch aussieht, prüfen Sie die Spaltenzuordnung und importieren Sie erneut.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "Einige Fotos übersprungen",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{1 Foto hatte keinen Dateinamen und konnte nicht verknüpft werden.} other{{count} Fotos hatten keinen Dateinamen und konnten nicht verknüpft werden.}}",
+  "universalImport_summary_noticeSitesUnresolvedTitle": "Einige Tauchgänge ohne Tauchplatz",
+  "universalImport_summary_noticeSitesUnresolvedBody": "Diese Tauchgänge verwiesen auf einen Tauchplatz, den die Datei nicht beschreibt, und wurden daher ohne Tauchplatz importiert. Sie können den Tauchplatz beim Bearbeiten des Tauchgangs festlegen.",
   "universalImport_summary_noticeMacdiveXmlCertsTitle": "Zertifizierungen und Wartungseinträge nicht in der Datei",
   "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive lässt Zertifizierungen und Wartungseinträge der Ausrüstung in seinem XML-Export weg. Um sie zu übernehmen, importieren Sie Ihre MacDive.sqlite-Datenbank.",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "MacDive-Logbücher nicht importiert",

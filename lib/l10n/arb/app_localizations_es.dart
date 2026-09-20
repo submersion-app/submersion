@@ -23708,6 +23708,14 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Algunas inmersiones sin punto de buceo';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Estas inmersiones hacían referencia a un punto de buceo que el archivo no describe, así que se importaron sin él. Puedes asignar un punto de buceo editando la inmersión.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'Certificaciones y registros de servicio que no están en el archivo';
 

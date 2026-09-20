@@ -23626,6 +23626,14 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Néhány merülésnek nincs merülőhelye';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Ezek a merülések olyan merülőhelyre hivatkoztak, amelyet a fájl nem ír le, ezért merülőhely nélkül lettek importálva. A merülés szerkesztésével megadhatsz egyet.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'A tanúsítványok és a szervizrekordok nincsenek a fájlban';
 

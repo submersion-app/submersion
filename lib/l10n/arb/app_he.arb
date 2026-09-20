@@ -6989,6 +6989,8 @@
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{ערך אחד לא הומר ונשאר ריק. אם שדה נראה שגוי, יש לבדוק את מיפוי העמודות ולייבא שוב.} other{{count} ערכים לא הומרו ונשארו ריקים. אם שדה נראה שגוי, יש לבדוק את מיפוי העמודות ולייבא שוב.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "חלק מהתמונות דולגו",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{לתמונה אחת לא היה שם קובץ ולא ניתן היה לקשר אותה.} other{ל-{count} תמונות לא היה שם קובץ ולא ניתן היה לקשר אותן.}}",
+  "universalImport_summary_noticeSitesUnresolvedTitle": "לחלק מהצלילות אין אתר צלילה",
+  "universalImport_summary_noticeSitesUnresolvedBody": "צלילות אלה הפנו לאתר צלילה שהקובץ אינו מתאר, ולכן יובאו ללא אתר. אפשר להגדיר אתר בעריכת הצלילה.",
   "universalImport_summary_noticeMacdiveXmlCertsTitle": "הסמכות ורשומות טיפול לא נמצאות בקובץ",
   "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive משמיט הסמכות ורשומות טיפול בציוד מייצוא ה-XML שלו. כדי להביא אותן, יש לייבא את מסד הנתונים MacDive.sqlite.",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "יומני MacDive לא יובאו",

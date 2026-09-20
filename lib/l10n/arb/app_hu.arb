@@ -6887,6 +6887,8 @@
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{1 értéket nem sikerült átalakítani, ezért üresen maradt. Ha egy mező hibásnak tűnik, ellenőrizd az oszlopok hozzárendelését, és importáld újra.} other{{count} értéket nem sikerült átalakítani, ezért üresen maradtak. Ha egy mező hibásnak tűnik, ellenőrizd az oszlopok hozzárendelését, és importáld újra.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "Néhány fénykép kimaradt",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{1 fényképnek nem volt fájlneve, ezért nem lehetett csatolni.} other{{count} fényképnek nem volt fájlneve, ezért nem lehetett csatolni őket.}}",
+  "universalImport_summary_noticeSitesUnresolvedTitle": "Néhány merülésnek nincs merülőhelye",
+  "universalImport_summary_noticeSitesUnresolvedBody": "Ezek a merülések olyan merülőhelyre hivatkoztak, amelyet a fájl nem ír le, ezért merülőhely nélkül lettek importálva. A merülés szerkesztésével megadhatsz egyet.",
   "universalImport_summary_noticeMacdiveXmlCertsTitle": "A tanúsítványok és a szervizrekordok nincsenek a fájlban",
   "universalImport_summary_noticeMacdiveXmlCertsBody": "A MacDive az XML-exportból kihagyja a tanúsítványokat és a felszerelés szervizrekordjait. Az átvételükhöz importáld a MacDive.sqlite adatbázisodat.",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "A MacDive-naplók nem lettek importálva",

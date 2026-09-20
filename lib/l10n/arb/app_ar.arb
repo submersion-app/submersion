@@ -6989,6 +6989,8 @@
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{تعذّر تحويل قيمة واحدة فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.} other{تعذّر تحويل {count} قيم فتُركت فارغة. إذا بدا أحد الحقول خاطئًا، فتحقق من ربط الأعمدة ثم استورد مجددًا.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "تم تخطي بعض الصور",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{لم يكن لصورة واحدة اسم ملف فتعذّر ربطها.} other{لم يكن لـ {count} صور اسم ملف فتعذّر ربطها.}}",
+  "universalImport_summary_noticeSitesUnresolvedTitle": "بعض الغطسات بلا موقع غوص",
+  "universalImport_summary_noticeSitesUnresolvedBody": "أشارت هذه الغطسات إلى موقع غوص لا يصفه الملف، فاستُوردت بدون موقع. يمكنك تعيين موقع بتحرير الغطسة.",
   "universalImport_summary_noticeMacdiveXmlCertsTitle": "الشهادات وسجلات الصيانة غير موجودة في الملف",
   "universalImport_summary_noticeMacdiveXmlCertsBody": "يستبعد MacDive الشهادات وسجلات صيانة المعدات من تصدير XML. لاستيرادها، استورد قاعدة بيانات MacDive.sqlite الخاصة بك.",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "لم يتم استيراد دفاتر سجل MacDive",

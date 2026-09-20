@@ -23505,6 +23505,14 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Sommige duiken zonder duikstek';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Deze duiken verwezen naar een duikstek die het bestand niet beschrijft en zijn daarom zonder duikstek geïmporteerd. Je kunt er een instellen door de duik te bewerken.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'Brevetten en servicerecords niet in het bestand';
 

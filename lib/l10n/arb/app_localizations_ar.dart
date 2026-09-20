@@ -23379,6 +23379,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'بعض الغطسات بلا موقع غوص';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'أشارت هذه الغطسات إلى موقع غوص لا يصفه الملف، فاستُوردت بدون موقع. يمكنك تعيين موقع بتحرير الغطسة.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'الشهادات وسجلات الصيانة غير موجودة في الملف';
 

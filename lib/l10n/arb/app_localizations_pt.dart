@@ -23695,6 +23695,14 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Alguns mergulhos sem ponto de mergulho';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Estes mergulhos faziam referência a um ponto de mergulho que o arquivo não descreve, por isso foram importados sem um. Você pode definir um editando o mergulho.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'Certificações e registros de manutenção não estão no arquivo';
 

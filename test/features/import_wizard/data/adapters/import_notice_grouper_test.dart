@@ -161,6 +161,7 @@ void main() {
           ImportNoticeKind.macdiveXmlOmitsCertsAndService,
       ImportWarningCode.macdiveLogbooksNotImported:
           ImportNoticeKind.macdiveLogbooksNotImported,
+      ImportWarningCode.sitesUnresolved: ImportNoticeKind.sitesUnresolved,
     };
     // Every code but diagnostic must be listed, so a new code cannot be added
     // without deciding which notice it becomes.

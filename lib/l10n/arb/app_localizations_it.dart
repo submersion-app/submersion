@@ -23689,6 +23689,14 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Alcune immersioni senza sito di immersione';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Queste immersioni facevano riferimento a un sito di immersione che il file non descrive, quindi sono state importate senza sito. Puoi assegnarne uno modificando l\'immersione.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'Certificazioni e registri di manutenzione non presenti nel file';
 

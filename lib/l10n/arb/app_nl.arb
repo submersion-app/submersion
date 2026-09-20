@@ -6989,6 +6989,8 @@
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{1 waarde kon niet worden omgezet en is leeg gelaten. Als een veld er verkeerd uitziet, controleer dan de kolomtoewijzing en importeer opnieuw.} other{{count} waarden konden niet worden omgezet en zijn leeg gelaten. Als een veld er verkeerd uitziet, controleer dan de kolomtoewijzing en importeer opnieuw.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "Sommige foto's overgeslagen",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{1 foto had geen bestandsnaam en kon niet worden gekoppeld.} other{{count} foto's hadden geen bestandsnaam en konden niet worden gekoppeld.}}",
+  "universalImport_summary_noticeSitesUnresolvedTitle": "Sommige duiken zonder duikstek",
+  "universalImport_summary_noticeSitesUnresolvedBody": "Deze duiken verwezen naar een duikstek die het bestand niet beschrijft en zijn daarom zonder duikstek geïmporteerd. Je kunt er een instellen door de duik te bewerken.",
   "universalImport_summary_noticeMacdiveXmlCertsTitle": "Brevetten en servicerecords niet in het bestand",
   "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive laat brevetten en servicerecords van uitrusting weg uit de XML-export. Importeer je MacDive.sqlite-database om ze op te nemen.",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "MacDive-logboeken niet geïmporteerd",

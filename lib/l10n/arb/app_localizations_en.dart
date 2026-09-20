@@ -23303,6 +23303,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Some dives have no dive site';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'These dives referred to a dive site the file does not describe, so they were imported without one. You can set a site by editing the dive.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'Certifications and service records not in the file';
 

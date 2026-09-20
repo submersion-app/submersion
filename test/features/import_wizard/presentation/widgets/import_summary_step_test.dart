@@ -1509,6 +1509,18 @@ void main() {
       );
     });
 
+    testWidgets('says which dives lost the site the file named', (
+      tester,
+    ) async {
+      await expectCard(
+        tester,
+        const ImportNotice(kind: ImportNoticeKind.sitesUnresolved, count: 3),
+        title: 'Some dives have no dive site',
+        bodyFragment: 'referred to a dive site the file does not describe',
+        countLine: 'Affects 3 dives',
+      );
+    });
+
     testWidgets('points a MacDive XML import at the sqlite database', (
       tester,
     ) async {

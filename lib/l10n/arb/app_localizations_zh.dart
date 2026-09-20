@@ -22459,6 +22459,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle => '部分潜水没有潜水点';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      '这些潜水引用了文件中没有描述的潜水点，因此导入时没有潜水点。您可以通过编辑潜水来设置潜水点。';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       '文件中没有证书和维护记录';
 

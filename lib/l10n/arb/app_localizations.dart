@@ -38050,6 +38050,18 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{1 photo had no file name and could not be linked.} other{{count} photos had no file name and could not be linked.}}'**
   String universalImport_summary_noticePhotosSkippedBody(int count);
 
+  /// No description provided for @universalImport_summary_noticeSitesUnresolvedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some dives have no dive site'**
+  String get universalImport_summary_noticeSitesUnresolvedTitle;
+
+  /// No description provided for @universalImport_summary_noticeSitesUnresolvedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These dives referred to a dive site the file does not describe, so they were imported without one. You can set a site by editing the dive.'**
+  String get universalImport_summary_noticeSitesUnresolvedBody;
+
   /// No description provided for @universalImport_summary_noticeMacdiveXmlCertsTitle.
   ///
   /// In en, this message translates to:

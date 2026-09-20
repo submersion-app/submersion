@@ -6989,6 +6989,8 @@
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{1 valor no se pudo convertir y quedó en blanco. Si un campo parece incorrecto, revisa la asignación de columnas y vuelve a importar.} other{{count} valores no se pudieron convertir y quedaron en blanco. Si un campo parece incorrecto, revisa la asignación de columnas y vuelve a importar.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "Algunas fotos omitidas",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{1 foto no tenía nombre de archivo y no se pudo vincular.} other{{count} fotos no tenían nombre de archivo y no se pudieron vincular.}}",
+  "universalImport_summary_noticeSitesUnresolvedTitle": "Algunas inmersiones sin punto de buceo",
+  "universalImport_summary_noticeSitesUnresolvedBody": "Estas inmersiones hacían referencia a un punto de buceo que el archivo no describe, así que se importaron sin él. Puedes asignar un punto de buceo editando la inmersión.",
   "universalImport_summary_noticeMacdiveXmlCertsTitle": "Certificaciones y registros de servicio que no están en el archivo",
   "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive no incluye las certificaciones ni los registros de servicio del equipo en su exportación XML. Para traerlos, importa tu base de datos MacDive.sqlite.",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "Libros de registro de MacDive no importados",

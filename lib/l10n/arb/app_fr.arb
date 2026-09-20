@@ -6887,6 +6887,8 @@
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{{count} valeur n'a pas pu être convertie et a été laissée vide. Si un champ semble incorrect, vérifiez l'association des colonnes et importez à nouveau.} other{{count} valeurs n'ont pas pu être converties et ont été laissées vides. Si un champ semble incorrect, vérifiez l'association des colonnes et importez à nouveau.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "Certaines photos ignorées",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{{count} photo n'avait pas de nom de fichier et n'a pas pu être liée.} other{{count} photos n'avaient pas de nom de fichier et n'ont pas pu être liées.}}",
+  "universalImport_summary_noticeSitesUnresolvedTitle": "Certaines plongées sans site de plongée",
+  "universalImport_summary_noticeSitesUnresolvedBody": "Ces plongées faisaient référence à un site de plongée que le fichier ne décrit pas, elles ont donc été importées sans site. Vous pouvez en définir un en modifiant la plongée.",
   "universalImport_summary_noticeMacdiveXmlCertsTitle": "Certifications et enregistrements de révision absents du fichier",
   "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive omet les certifications et les enregistrements de révision de l'équipement dans son export XML. Pour les récupérer, importez votre base de données MacDive.sqlite.",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "Carnets MacDive non importés",

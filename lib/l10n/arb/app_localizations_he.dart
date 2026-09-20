@@ -23113,6 +23113,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'לחלק מהצלילות אין אתר צלילה';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'צלילות אלה הפנו לאתר צלילה שהקובץ אינו מתאר, ולכן יובאו ללא אתר. אפשר להגדיר אתר בעריכת הצלילה.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'הסמכות ורשומות טיפול לא נמצאות בקובץ';
 

@@ -23636,6 +23636,14 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Einige Tauchgänge ohne Tauchplatz';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Diese Tauchgänge verwiesen auf einen Tauchplatz, den die Datei nicht beschreibt, und wurden daher ohne Tauchplatz importiert. Sie können den Tauchplatz beim Bearbeiten des Tauchgangs festlegen.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'Zertifizierungen und Wartungseinträge nicht in der Datei';
 
