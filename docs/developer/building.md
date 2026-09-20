@@ -56,7 +56,7 @@ dart run build_runner build --delete-conflicting-outputs
 
 # Run on connected device or emulator
 flutter run
-```dart
+```
 ## Code Generation
 
 Submersion uses code generation for:
@@ -69,14 +69,14 @@ Submersion uses code generation for:
 
 ```bash
 dart run build_runner build --delete-conflicting-outputs
-```text
+```
 ### Watch Mode
 
 For active development, run in watch mode:
 
 ```bash
 dart run build_runner watch --delete-conflicting-outputs
-```dart
+```
 ### When to Regenerate
 
 Regenerate code after:
@@ -99,7 +99,7 @@ flutter run -d windows
 
 # Linux
 flutter run -d linux
-```text
+```
 
 On macOS, `flutter run` builds the Debug configuration, which is pinned to the
 maintainer's signing team. Without access to it, see
@@ -112,33 +112,33 @@ flutter run -d android
 
 # iOS (macOS only, device or simulator)
 flutter run -d ios
-```text
+```
 ### List Available Devices
 
 ```bash
 flutter devices
-```text
+```
 ## Building for Release
 
 ### macOS
 
 ```bash
 flutter build macos --release
-```text
+```
 Output: `build/macos/Build/Products/Release/Submersion.app`
 
 ### Windows
 
 ```bash
 flutter build windows --release
-```text
+```
 Output: `build/windows/x64/runner/Release/`
 
 ### Linux
 
 ```bash
 flutter build linux --release
-```text
+```
 Output: `build/linux/x64/release/bundle/`
 
 ### Android
@@ -149,7 +149,7 @@ flutter build apk --release
 
 # App Bundle (for Play Store)
 flutter build appbundle --release
-```text
+```
 Output:
 
 - APK: `build/app/outputs/flutter-apk/app-release.apk`
@@ -159,7 +159,7 @@ Output:
 
 ```bash
 flutter build ios --release
-```text
+```
 Then open in Xcode for archive and distribution.
 
 ## Development Commands
@@ -168,12 +168,12 @@ Then open in Xcode for archive and distribution.
 
 ```bash
 flutter analyze
-```text
+```
 ### Format Code
 
 ```bash
 dart format lib/
-```text
+```
 ### Run Tests
 
 ```bash
@@ -185,14 +185,14 @@ flutter test --coverage
 
 # Specific test file
 flutter test test/features/dive_log/dive_repository_test.dart
-```text
+```
 ### Clean Build
 
 ```bash
 flutter clean
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
-```typescript
+```
 ## Dependencies
 
 ### Core Dependencies
@@ -271,7 +271,7 @@ submersion/
 ├── linux/                     # Linux config
 └── pubspec.yaml               # Dependencies
 
-```text
+```
 ## Environment Variables
 
 No environment variables required for basic development.
@@ -288,7 +288,7 @@ flutter clean
 flutter pub get
 dart run build_runner clean
 dart run build_runner build --delete-conflicting-outputs
-```text
+```
 ### Build Fails on macOS
 
 ```bash
@@ -298,7 +298,7 @@ pod install
 cd ..
 flutter clean
 flutter pub get
-```text
+```
 ### Android SDK Issues
 
 Ensure ANDROID_HOME is set:
@@ -306,7 +306,7 @@ Ensure ANDROID_HOME is set:
 ```bash
 export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
-```sql
+```
 ### macOS Signing Issues
 
 A build that stops with:
