@@ -104,7 +104,7 @@ void main() {
     });
 
     test(
-      'locale data intl has no number symbols for falls back gracefully',
+      'falls back gracefully when intl has no number symbols for the locale',
       () {
         final previousLocale = Intl.defaultLocale;
         Intl.defaultLocale = 'xx_YY';
