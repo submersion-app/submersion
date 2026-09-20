@@ -409,6 +409,30 @@ subjects are a single count-per-entity bar chart.
 - Windows support before the Aion Instruct runtime ships.
 - Free-form answers: Explore never shows model-written prose.
 
+## Deviations recorded during implementation (phase 1)
+
+- Android ships prompt-only JSON validated by Dart; constrained decoding via
+  the ML Kit schema compiler is deferred until it leaves alpha. The
+  `genai-prompt` 1.0.0-beta4 API returns `download()` as a
+  `Flow<DownloadStatus>` and `checkStatus()` as an integer, not the callback
+  and enum the plan assumed; the adapter follows the real API.
+- The Apple schema declares clause values as strings because a
+  `DynamicGenerationSchema` property has one type; Dart coerces quoted
+  numbers, lists and booleans and strips `unit: "none"` (`_coerceValue`).
+  Apple's error families are mapped by case name so both the 26.x and 27.x
+  error types land on the documented channel codes.
+- ARB keys with several placeholders carry `@key` placeholder metadata in
+  the template file, because `flutter gen-l10n` orders untyped placeholders
+  alphabetically and the labels came out reversed without it.
+- The Drift generated files are gitignored in this repository and are
+  produced by codegen, so `local_cache_database.g.dart` is not committed.
+- The recent-query recorder provider carries the tick guard's `no-tick`
+  marker: it returns a write function, and the list provider follows the
+  table's own change stream.
+- The manual macOS and Android smoke of the model adapters is owed: both
+  platforms compile (Xcode 27, `genai-prompt` beta4), but neither model was
+  exercised on hardware during implementation.
+
 ## Open items for the implementation plans
 
 - Confirm with a device probe whether the Apple context is 4,096 or 8,192
