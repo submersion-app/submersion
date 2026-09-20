@@ -463,6 +463,48 @@ void main() {
     expect(dockedDayNumber(), 1);
   });
 
+  testWidgets('tapping the docked day scrolls its chapter back into view', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    final scrollable = find.byType(CustomScrollView);
+    for (var i = 0; i < 3; i++) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    final docked = tester
+        .widget<TripStoryDockedDay>(find.byType(TripStoryDockedDay))
+        .day
+        .date;
+
+    await tester.tap(find.byType(TripStoryDockedDay));
+    await tester.pumpAndSettle();
+
+    // Its full-width heading is back on screen, below the band.
+    final heading = find.byWidgetPredicate(
+      (w) => w is TripStoryDayHeader && !w.compact && w.day.date == docked,
+    );
+    expect(heading, findsOneWidget);
+    expect(
+      tester.getTopLeft(heading).dy,
+      greaterThanOrEqualTo(TripStoryBandExtents.dockedFloor - 1),
+    );
+  });
+
   testWidgets('checklist and notes closers share the section title style', (
     tester,
   ) async {
