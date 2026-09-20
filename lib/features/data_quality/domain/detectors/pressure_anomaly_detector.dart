@@ -11,7 +11,7 @@ class PressureAnomalyDetector extends QualityDetector {
   @override
   String get id => 'pressure_anomaly';
   @override
-  int get version => 1;
+  int get version => 2;
   @override
   QualityCategory get category => QualityCategory.pressure;
 
