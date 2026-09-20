@@ -337,8 +337,12 @@ advancing the cursor after `apply` is correct.
 
 ### 5.2 Quiet verification
 
-- `markVerified` and `stampVerification` bump `hlc` and mark pending only
-  when `isOrphaned` or `lastVerifiedAt` actually changes.
+- The verification writers publish only when `isOrphaned` actually moves.
+  `lastVerifiedAt` is set to "now" on every check, so including it would
+  mean every check publishes, which is the thing this section exists to
+  stop. The date is recorded locally without a clock and reaches peers on
+  the row's next sync-visible write. (Amended 2026-09-19, while planning
+  slice 4.)
 - Inconclusive verifier outcomes (`fromOtherDevice`, `accessDenied`, no
   resolver, throw) never write the row.
 - `MediaItemView` reconciles only when the resolver verdict is `notFound` on
@@ -346,10 +350,19 @@ advancing the cursor after `apply` is correct.
 
 ### 5.3 Hardening
 
-- `mediaStores` gets a `parentRefs` entry and the completeness test covers it.
-- `mediaEnrichment` and `mediaStores` deletions log a tombstone; applying the
-  parent's tombstone on a peer still cascades, so this only closes the
-  re-add on the next publish.
+- `mediaStores` needs no `parentRefs` entry: the table declares no foreign
+  keys, and `sync_parent_refs_completeness_test` reads the live schema, so
+  it already demands an entry the moment one appears. It needs no tombstone
+  either: no local path deletes a descriptor, and Disconnect deliberately
+  keeps it so other devices still learn the store exists. Both facts are
+  pinned by `media_stores_no_parent_refs_test`, which fails with the reason
+  if either changes. (Corrected 2026-09-19, while planning slice 4; the
+  original bullets described work that does not apply.)
+- `mediaEnrichment` deletions already log a tombstone wherever they are
+  deliberate. The gap is the FK cascade: a photo that survives a dive
+  deletion because a site still shows it loses its dive-scoped enrichment
+  silently, and a peer re-adds it on the next publish. The dive-unlink path
+  drops those rows explicitly, with tombstones, before the dive rows go.
 - Google Drive: `_forStatus` folds Google's `error.message` into the
   exception text when the body parses as that shape, otherwise the bare
   status (#2018). The S3, Dropbox and iCloud adapters are checked for the
@@ -496,8 +509,9 @@ becomes a sub-issue and one PR. Dependencies run top to bottom.
 3. Engine merge rule: merge and keep pending where both sides are clocked,
    media tables join the stale-copy guard, two fact clocks (schema v223),
    fact writers stamp their group clock. Turns S1 and S3 green. (5.1)
-4. Quiet verification, `mediaStores` parent refs, child tombstones. Turns S2
-   green. (5.2, 5.3)
+4. Quiet verification: an inconclusive check writes nothing, and a
+   verification publishes only when the orphan flag moves. Tombstone the
+   enrichment a dive deletion takes with it. Turns S2 green. (5.2, 5.3)
 5. Google Drive error message and adapter audit. Closes #2018. (5.3)
 6. Diver delete media cascade. Turns S9 green. Closes #1954. (5.4)
 7. Origin-aware gallery verdicts on iOS, macOS and Android. Turns S5 green. (6.1)
