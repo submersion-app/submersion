@@ -72,3 +72,102 @@ class DivingLogRawSample {
     this.setpoint,
   });
 }
+
+/// One cylinder, from the `Tank` table or the `Logbook` cylinder columns.
+class DivingLogRawTank {
+  final int tankId;
+  final double? sizeLiters;
+  final double? startPressureBar;
+  final double? endPressureBar;
+  final double? workingPressureBar;
+  final double? o2Percent;
+  final double? hePercent;
+
+  /// `DblTank` set means a twinset and [sizeLiters] is per cylinder, so the
+  /// imported volume doubles.
+  final bool isDouble;
+
+  const DivingLogRawTank({
+    required this.tankId,
+    this.sizeLiters,
+    this.startPressureBar,
+    this.endPressureBar,
+    this.workingPressureBar,
+    this.o2Percent,
+    this.hePercent,
+    this.isDouble = false,
+  });
+}
+
+/// One `Logbook` row with its cylinders and decoded samples.
+///
+/// Field units are the source's, not Submersion's: metres, minutes,
+/// degrees Celsius, kilograms, litres, bar. The mapper converts.
+class DivingLogRawDive {
+  final int id;
+  final String? uuid;
+  final int? number;
+  final String? diveDate;
+  final String? entryTime;
+  final String? country;
+  final String? city;
+  final String? place;
+  final String? buddy;
+  final String? divemaster;
+  final String? comments;
+  final double? depthMeters;
+  final int? diveTimeMinutes;
+  final double? airTempCelsius;
+  final double? waterTempCelsius;
+  final double? weightKg;
+  final String? divesuit;
+  final String? computer;
+
+  /// Diving Log's visibility code: 1 good, 2 medium, 3 bad. 0 and null mean
+  /// unset.
+  final int? visibilityCode;
+  final String? supplyType;
+  final List<DivingLogRawTank> tanks;
+  final List<DivingLogRawSample> samples;
+
+  const DivingLogRawDive({
+    required this.id,
+    this.uuid,
+    this.number,
+    this.diveDate,
+    this.entryTime,
+    this.country,
+    this.city,
+    this.place,
+    this.buddy,
+    this.divemaster,
+    this.comments,
+    this.depthMeters,
+    this.diveTimeMinutes,
+    this.airTempCelsius,
+    this.waterTempCelsius,
+    this.weightKg,
+    this.divesuit,
+    this.computer,
+    this.visibilityCode,
+    this.supplyType,
+    this.tanks = const [],
+    this.samples = const [],
+  });
+}
+
+/// Everything read from one Diving Log file.
+class DivingLogLogbook {
+  final List<DivingLogRawDive> dives;
+  final DivingLogCapabilities capabilities;
+
+  /// Human-readable notes about columns this file lacked, recorded once per
+  /// import as a diagnostic rather than shown per dive.
+  final List<String> missingColumnNotes;
+
+  const DivingLogLogbook({
+    required this.dives,
+    required this.capabilities,
+    this.missingColumnNotes = const [],
+  });
+}
