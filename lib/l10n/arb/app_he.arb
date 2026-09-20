@@ -259,6 +259,7 @@
   "o2Toxicity_thisDive": "צלילה זו",
   "o2Toxicity_weekly": "שבועי",
   "trips_story_dayLabel": "יום {number}",
+  "trips_story_dockedDay_goToDay": "מעבר ליום {number}",
   "trips_story_surfaceDay": "יום פני השטח",
   "trips_story_today": "היום",
   "trips_story_dayOfTrip": "יום {current} מתוך {total}",

@@ -281,6 +281,14 @@
       }
     }
   },
+  "trips_story_dockedDay_goToDay": "Go to day {number}",
+  "@trips_story_dockedDay_goToDay": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "trips_story_surfaceDay": "Surface day",
   "trips_story_today": "Today",
   "trips_story_dayOfTrip": "Day {current} of {total}",

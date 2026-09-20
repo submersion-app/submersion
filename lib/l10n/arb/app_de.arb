@@ -271,6 +271,7 @@
   "o2Toxicity_thisDive": "Dieser Tauchgang",
   "o2Toxicity_weekly": "Wochentlich",
   "trips_story_dayLabel": "Tag {number}",
+  "trips_story_dockedDay_goToDay": "Zu Tag {number} springen",
   "trips_story_surfaceDay": "Oberflächentag",
   "trips_story_today": "Heute",
   "trips_story_dayOfTrip": "Tag {current} von {total}",

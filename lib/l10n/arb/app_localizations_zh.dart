@@ -421,6 +421,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String trips_story_dockedDay_goToDay(int number) {
+    return '跳转到第 $number 天';
+  }
+
+  @override
   String get trips_story_surfaceDay => '水面日';
 
   @override

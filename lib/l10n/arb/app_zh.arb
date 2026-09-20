@@ -259,6 +259,7 @@
   "o2Toxicity_thisDive": "本次潜水",
   "o2Toxicity_weekly": "每周",
   "trips_story_dayLabel": "第 {number} 天",
+  "trips_story_dockedDay_goToDay": "跳转到第 {number} 天",
   "trips_story_surfaceDay": "水面日",
   "trips_story_today": "今天",
   "trips_story_dayOfTrip": "第 {current} 天，共 {total} 天",

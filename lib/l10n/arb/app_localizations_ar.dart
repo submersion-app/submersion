@@ -435,6 +435,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String trips_story_dockedDay_goToDay(int number) {
+    return 'الانتقال إلى اليوم $number';
+  }
+
+  @override
   String get trips_story_surfaceDay => 'يوم سطح';
 
   @override

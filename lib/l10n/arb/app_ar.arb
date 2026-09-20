@@ -259,6 +259,7 @@
   "o2Toxicity_thisDive": "هذه الغطسة",
   "o2Toxicity_weekly": "أسبوعي",
   "trips_story_dayLabel": "اليوم {number}",
+  "trips_story_dockedDay_goToDay": "الانتقال إلى اليوم {number}",
   "trips_story_surfaceDay": "يوم سطح",
   "trips_story_today": "اليوم",
   "trips_story_dayOfTrip": "اليوم {current} من {total}",

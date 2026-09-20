@@ -259,6 +259,7 @@
   "o2Toxicity_thisDive": "Ez a merülés",
   "o2Toxicity_weekly": "Heti",
   "trips_story_dayLabel": "{number}. nap",
+  "trips_story_dockedDay_goToDay": "Ugrás a(z) {number}. napra",
   "trips_story_surfaceDay": "Felszíni nap",
   "trips_story_today": "Ma",
   "trips_story_dayOfTrip": "{current}. nap a(z) {total} napból",

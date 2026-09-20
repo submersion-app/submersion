@@ -259,6 +259,7 @@
   "o2Toxicity_thisDive": "Cette plongée",
   "o2Toxicity_weekly": "Hebdomadaire",
   "trips_story_dayLabel": "Jour {number}",
+  "trips_story_dockedDay_goToDay": "Aller au jour {number}",
   "trips_story_surfaceDay": "Journée en surface",
   "trips_story_today": "Aujourd'hui",
   "trips_story_dayOfTrip": "Jour {current} sur {total}",

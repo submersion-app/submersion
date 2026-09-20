@@ -259,6 +259,7 @@
   "o2Toxicity_thisDive": "Deze duik",
   "o2Toxicity_weekly": "Wekelijks",
   "trips_story_dayLabel": "Dag {number}",
+  "trips_story_dockedDay_goToDay": "Ga naar dag {number}",
   "trips_story_surfaceDay": "Oppervlaktedag",
   "trips_story_today": "Vandaag",
   "trips_story_dayOfTrip": "Dag {current} van {total}",

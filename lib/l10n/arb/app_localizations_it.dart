@@ -440,6 +440,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String trips_story_dockedDay_goToDay(int number) {
+    return 'Vai al giorno $number';
+  }
+
+  @override
   String get trips_story_surfaceDay => 'Giorno di superficie';
 
   @override

@@ -438,6 +438,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String trips_story_dockedDay_goToDay(int number) {
+    return 'Ugrás a(z) $number. napra';
+  }
+
+  @override
   String get trips_story_surfaceDay => 'Felszíni nap';
 
   @override

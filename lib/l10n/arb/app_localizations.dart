@@ -715,6 +715,12 @@ abstract class AppLocalizations {
   /// **'Day {number}'**
   String trips_story_dayLabel(int number);
 
+  /// No description provided for @trips_story_dockedDay_goToDay.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to day {number}'**
+  String trips_story_dockedDay_goToDay(int number);
+
   /// No description provided for @trips_story_surfaceDay.
   ///
   /// In en, this message translates to:
