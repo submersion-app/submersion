@@ -174,6 +174,54 @@ void main() {
     },
   );
 
+  test('a fact-only write leaves a sibling null clock null', () async {
+    // The v223 beforeOpen backstop adds the two columns without backfilling,
+    // so a row can carry null fact clocks. Initialising the other group's
+    // clock on an upload write would hand this device's untouched
+    // verification facts a brand-new clock and beat a peer's newer
+    // observation; left null they fall back to the row clock.
+    await db.customStatement(
+      'UPDATE media SET upload_facts_hlc = NULL, verify_facts_hlc = NULL '
+      'WHERE id = ?',
+      [id],
+    );
+
+    await repo.stampRemoteUploaded(id, uploadedAt: DateTime(2026));
+
+    final after = await clocks();
+    expect(after['upload'], isNotNull, reason: 'the written group is stamped');
+    expect(
+      after['verify'],
+      isNull,
+      reason: 'an untouched group keeps its row-clock fallback',
+    );
+  });
+
+  test('a stale caller snapshot cannot roll back an upload stamp', () async {
+    // Every caller of updateMedia patches a row it read earlier. An upload
+    // completing in between is in the row but not in that snapshot, and
+    // writing the snapshot's columns back would both undo the upload and,
+    // because the values differ, hand the rollback a fresh upload clock.
+    final stale = (await repo.getMediaById(id))!;
+
+    await repo.stampContentIdentity(id, contentHash: 'h' * 64, sizeBytes: 42);
+    await repo.stampRemoteUploaded(id, uploadedAt: DateTime(2026, 8, 1));
+    final stamped = await clocks();
+
+    await repo.updateMedia(stale.copyWith(caption: 'a later caption'));
+
+    final row = (await repo.getMediaById(id))!;
+    expect(row.caption, 'a later caption', reason: 'the edit still lands');
+    expect(row.contentHash, 'h' * 64, reason: 'the upload fact survives');
+    expect(row.remoteUploadedAt, DateTime(2026, 8, 1));
+    final after = await clocks();
+    expect(
+      after['upload'],
+      stamped['upload'],
+      reason: 'and its clock does not move for a write that did not touch it',
+    );
+  });
+
   test('a fact-only whole-row write leaves the row clock alone', () async {
     // A poller flipping isOrphaned goes through updateMedia like any other
     // caller. Moving the row clock would republish its whole snapshot of the

@@ -806,10 +806,20 @@ class SyncRepository {
     // and the merge's fallback would then read a later caption edit's row
     // clock as a fresh write to every group and beat a peer's real facts
     // (media sync program spec 5.1). COALESCE, so an existing clock stands.
-    final factColumns = [
-      for (final g in SyncFactGroups.of(entityType))
-        if (!columns.contains(g.clockColumn)) g.clockColumn,
-    ];
+    //
+    // Only on a row-clock write, which is what that fallback is about. A
+    // fact-only write must leave the other groups' null clocks alone: the
+    // v223 beforeOpen backstop adds the columns without backfilling them,
+    // so on such a row an upload stamp would hand this device's untouched
+    // verification facts a brand-new clock and beat a peer's newer
+    // observation. Left null they keep falling back to the row clock, which
+    // is the honest answer for facts nobody has written yet.
+    final factColumns = !columns.contains('hlc')
+        ? const <String>[]
+        : [
+            for (final g in SyncFactGroups.of(entityType))
+              if (!columns.contains(g.clockColumn)) g.clockColumn,
+          ];
     final set = [
       ...columns.map((c) => '"$c" = ?'),
       ...factColumns.map((c) => '"$c" = COALESCE("$c", ?)'),

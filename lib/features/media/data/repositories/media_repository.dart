@@ -394,27 +394,21 @@ class MediaRepository {
   /// Fact groups whose columns differ between [previous] and [next]. Used by
   /// the whole-row writer so a changed fact travels under a fresh group
   /// clock, and an unchanged one does not (media sync program spec 5.1).
+  /// The fact groups a whole-row update actually changes.
+  ///
+  /// Verification only: [updateMedia] no longer writes the upload columns,
+  /// so a difference there is a stale caller snapshot rather than an intent,
+  /// and stamping the upload clock for it would endorse a rollback.
   List<SyncFactGroup> _changedFactGroups(
     domain.MediaItem? previous,
     domain.MediaItem next,
   ) {
     if (previous == null) return SyncFactGroups.of('media');
-    final groups = <SyncFactGroup>[];
-    if (previous.contentHash != next.contentHash ||
-        previous.contentSizeBytes != next.contentSizeBytes ||
-        previous.remoteUploadedAt != next.remoteUploadedAt ||
-        previous.remoteThumbUploadedAt != next.remoteThumbUploadedAt ||
-        previous.remoteCompressedUploadedAt !=
-            next.remoteCompressedUploadedAt ||
-        previous.compressedLevel != next.compressedLevel ||
-        previous.compressedSizeBytes != next.compressedSizeBytes) {
-      groups.add(SyncFactGroups.mediaUpload);
-    }
     if (previous.isOrphaned != next.isOrphaned ||
         previous.lastVerifiedAt != next.lastVerifiedAt) {
-      groups.add(SyncFactGroups.mediaVerification);
+      return const [SyncFactGroups.mediaVerification];
     }
-    return groups;
+    return const [];
   }
 
   /// The row with every fact column and the write stamp flattened, so two
@@ -484,19 +478,16 @@ class MediaRepository {
             connectorAccountId: Value(item.connectorAccountId),
             remoteAssetId: Value(item.remoteAssetId),
             originDeviceId: Value(item.originDeviceId),
-            contentHash: Value(item.contentHash),
-            contentSizeBytes: Value(item.contentSizeBytes),
-            remoteUploadedAt: Value(
-              item.remoteUploadedAt?.millisecondsSinceEpoch,
-            ),
-            remoteThumbUploadedAt: Value(
-              item.remoteThumbUploadedAt?.millisecondsSinceEpoch,
-            ),
-            compressedLevel: Value(item.compressedLevel),
-            compressedSizeBytes: Value(item.compressedSizeBytes),
-            remoteCompressedUploadedAt: Value(
-              item.remoteCompressedUploadedAt?.millisecondsSinceEpoch,
-            ),
+            // The upload facts are absent on purpose. They are written only
+            // by the narrow stampers the pipeline and the worker call, and
+            // every caller here patches a row it read earlier: a stamp
+            // landing in between is present in the row but absent from the
+            // caller's snapshot, so writing them back would roll the upload
+            // live back and, worse, hand the rollback a fresh upload clock
+            // that beats the stamp it erased (media sync program spec 5.1).
+            // A caller that really means to change them uses
+            // stampContentIdentity, stampRemoteUploaded and friends, or
+            // convertToCloudBacked.
             retainInLibrary: Value(item.retainInLibrary),
             manualElapsedSeconds: Value(item.manualElapsedSeconds),
             updatedAt: Value(now),
