@@ -452,6 +452,67 @@ void main() {
       );
     });
 
+    // WAL is not guaranteed: `PRAGMA journal_mode = WAL` can be declined (a
+    // network volume, a read-only mount) and applyMainDatabaseSetup then
+    // leaves the connection in rollback-journal mode. Left beside the new
+    // empty database, a stale -journal is replayed against it.
+    test('moves the rollback journal too', () async {
+      final live = makeTempDir('startup-recovery-live');
+      final dbPath = p.join(
+        live.path,
+        DatabaseLocationService.databaseFilename,
+      );
+      File(dbPath).writeAsStringSync('damaged');
+      File('$dbPath-journal').writeAsStringSync('journal');
+      final service = await serviceFor(live);
+
+      final movedTo = await service.setAsideUnreadableDatabase();
+
+      expect(File('$dbPath-journal').existsSync(), isFalse);
+      final moved = p.join(movedTo, DatabaseLocationService.databaseFilename);
+      expect(File('$moved-journal').readAsStringSync(), 'journal');
+    });
+
+    // A half-moved set is worse than not moving at all: the canonical path is
+    // empty, so the next launch creates a fresh database, and the diver's
+    // artifacts are split across two folders with no way to pair them again.
+    test('puts everything back when one move fails', () async {
+      final live = makeTempDir('startup-recovery-live');
+      final dbPath = p.join(
+        live.path,
+        DatabaseLocationService.databaseFilename,
+      );
+      File(dbPath).writeAsStringSync('damaged');
+      File('$dbPath-wal').writeAsStringSync('wal');
+      File('$dbPath-shm').writeAsStringSync('shm');
+      File(DatabaseSecuritySidecar.pathFor(dbPath)).writeAsStringSync('keys');
+      StartupRecoveryService.debugFailMoveFor = '$dbPath-shm';
+      addTearDown(() => StartupRecoveryService.debugFailMoveFor = null);
+      final service = await serviceFor(live);
+
+      await expectLater(
+        service.setAsideUnreadableDatabase(),
+        throwsA(anything),
+      );
+
+      expect(File(dbPath).readAsStringSync(), 'damaged');
+      expect(File('$dbPath-wal').readAsStringSync(), 'wal');
+      expect(File('$dbPath-shm').readAsStringSync(), 'shm');
+      expect(
+        File(DatabaseSecuritySidecar.pathFor(dbPath)).readAsStringSync(),
+        'keys',
+      );
+      // And no half-built set-aside folder left behind to confuse a retry.
+      expect(
+        live
+            .listSync()
+            .whereType<Directory>()
+            .where((d) => p.basename(d.path).startsWith('unreadable-'))
+            .toList(),
+        isEmpty,
+      );
+    });
+
     test('never deletes anything', () async {
       final live = makeTempDir('startup-recovery-live');
       final dbPath = p.join(

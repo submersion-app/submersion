@@ -38860,6 +38860,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'Diese Datei ist keine Sicherung, die Submersion wiederherstellen kann: $path';
+  }
+
+  @override
   String get startup_recovery_encryptedBackup_body =>
       'Diese Sicherung ist verschlüsselt. Submersion kann eine verschlüsselte Sicherung erst entsperren, wenn die App geöffnet ist. Nutzen Sie daher zuerst einen der anderen Wege hier und stellen Sie sie danach in den Einstellungen unter Sicherung und Wiederherstellung wieder her.';
 

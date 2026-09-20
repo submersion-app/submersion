@@ -11669,6 +11669,7 @@
   "startup_recovery_problem_title": "Non ha funzionato",
   "startup_recovery_noDiveLog_body": "In {folder} non c'è alcun file {filename}. Scegli la cartella che contiene il file del diario immersioni.",
   "startup_recovery_unusable_body": "Il diario immersioni in {path} è danneggiato oppure non è un diario immersioni di Submersion.",
+  "startup_recovery_unusableBackup_body": "Quel file non è un backup che Submersion può ripristinare: {path}",
   "startup_recovery_encryptedBackup_body": "Quel backup è cifrato. Submersion può sbloccare un backup cifrato solo ad app aperta, quindi usa prima una delle altre opzioni qui e poi ripristinalo dalle Impostazioni, in Backup e ripristino.",
   "startup_failure_downgrade_title": "Tornare alla versione precedente",
   "startup_failure_downgrade_body": "Se l'aggiornamento continua a fallire, installa la versione di Submersion che usavi prima e ripristina la copia di sicurezza da quella versione. Ripristinarla qui rieseguirebbe soltanto lo stesso aggiornamento. Submersion non torna da solo a versioni precedenti: spostarti automaticamente su build più vecchie ti terrebbe in silenzio su versioni con problemi noti.",

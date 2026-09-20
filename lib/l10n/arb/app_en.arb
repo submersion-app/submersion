@@ -23558,6 +23558,7 @@
   "startup_recovery_problem_title": "That did not work",
   "startup_recovery_noDiveLog_body": "There is no {filename} in {folder}. Choose the folder that holds the dive log file itself.",
   "startup_recovery_unusable_body": "The dive log at {path} is damaged, or it is not a Submersion dive log.",
+  "startup_recovery_unusableBackup_body": "That file is not a backup Submersion can restore: {path}",
   "startup_recovery_encryptedBackup_body": "That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings, under Backup and Restore.",
   "startup_failure_downgrade_title": "Going back to the previous version",
   "startup_failure_downgrade_body": "If the upgrade keeps failing, install the version of Submersion you were running before, then restore the safety copy from inside that version. Restoring it here would only run the same upgrade again. Submersion does not downgrade itself: moving you onto older builds automatically would quietly keep you on versions with known problems.",
@@ -23862,15 +23863,24 @@
   },
   "@startup_recovery_unusable_body": {
     "description": "Shown when the picked folder holds a dive log that cannot be read either.",
-  "@startup_recovery_encryptedBackup_body": {
-    "description": "Shown when the diver picks an encrypted backup on the startup failure screen, where the passphrase prompt that unlocks one is not reachable."
-  },
     "placeholders": {
       "path": {
         "type": "Object",
         "example": "/Users/me/Dropbox/Submersion/submersion.db"
       }
     }
+  },
+  "@startup_recovery_unusableBackup_body": {
+    "description": "Shown when a backup FILE the diver picked cannot be restored. Distinct from the unusable dive-log message, which calls the path a dive log.",
+    "placeholders": {
+      "path": {
+        "type": "Object",
+        "example": "/Users/me/Downloads/holiday.zip"
+      }
+    }
+  },
+  "@startup_recovery_encryptedBackup_body": {
+    "description": "Shown when the diver picks an encrypted backup on the startup failure screen, where the passphrase prompt that unlocks one is not reachable."
   },
   "@startup_failure_downgrade_title": {
     "description": "Heading of the guided-downgrade section on a failed schema upgrade."

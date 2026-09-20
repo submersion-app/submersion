@@ -11669,6 +11669,7 @@
   "startup_recovery_problem_title": "لم ينجح ذلك",
   "startup_recovery_noDiveLog_body": "لا يوجد ملف {filename} في {folder}. اختر المجلد الذي يحتوي على ملف سجل الغوص نفسه.",
   "startup_recovery_unusable_body": "سجل الغوص في {path} تالف، أو أنه ليس سجل غوص خاص بـ Submersion.",
+  "startup_recovery_unusableBackup_body": "هذا الملف ليس نسخة احتياطية يستطيع Submersion استعادتها: {path}",
   "startup_recovery_encryptedBackup_body": "هذه النسخة الاحتياطية مشفَّرة. لا يستطيع Submersion فتح نسخة مشفَّرة إلا بعد تشغيل التطبيق، لذا استخدم إحدى الطرق الأخرى هنا أولًا ثم استعِدها من الإعدادات ضمن النسخ الاحتياطي والاستعادة.",
   "startup_failure_downgrade_title": "العودة إلى الإصدار السابق",
   "startup_failure_downgrade_body": "إذا استمرت الترقية في الفشل، ثبّت إصدار Submersion الذي كنت تستخدمه سابقًا، ثم استرد النسخة الاحتياطية من داخل ذلك الإصدار. الاسترداد هنا سيعيد تشغيل الترقية نفسها فحسب. لا يخفّض Submersion إصداره تلقائيًا: نقلك تلقائيًا إلى نسخ أقدم سيبقيك بصمت على إصدارات ذات مشكلات معروفة.",

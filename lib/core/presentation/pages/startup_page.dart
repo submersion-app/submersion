@@ -1366,8 +1366,8 @@ class _StartupWrapperState extends State<StartupWrapper>
       case NoDiveLogInFolder():
         await _reportRecoveryProblem(
           (l10n) => l10n.startup_recovery_noDiveLog_body(
-            folder!,
             DatabaseLocationService.databaseFilename,
+            folder!,
           ),
         );
       case UnusableDiveLogInFolder():
@@ -1417,9 +1417,12 @@ class _StartupWrapperState extends State<StartupWrapper>
         await _reportRecoveryProblem(
           (l10n) => l10n.startup_recovery_encryptedBackup_body,
         );
+      // Its OWN message, not the unusable-dive-log one: that text calls the
+      // path a dive log, which is wrong for a backup and sends the diver
+      // looking at the wrong file.
       case UnusableBackupFile(:final path, :final reason):
         await _reportRecoveryProblem(
-          (l10n) => l10n.startup_recovery_unusable_body(path),
+          (l10n) => l10n.startup_recovery_unusableBackup_body(path),
           detail: reason,
         );
       case RestorableBackupFile(:final path):

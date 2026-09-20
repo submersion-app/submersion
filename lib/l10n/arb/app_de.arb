@@ -11773,6 +11773,7 @@
   "startup_recovery_problem_title": "Das hat nicht funktioniert",
   "startup_recovery_noDiveLog_body": "In {folder} gibt es keine Datei {filename}. Wählen Sie den Ordner, der die Logbuchdatei selbst enthält.",
   "startup_recovery_unusable_body": "Das Logbuch unter {path} ist beschädigt oder es ist kein Submersion-Logbuch.",
+  "startup_recovery_unusableBackup_body": "Diese Datei ist keine Sicherung, die Submersion wiederherstellen kann: {path}",
   "startup_recovery_encryptedBackup_body": "Diese Sicherung ist verschlüsselt. Submersion kann eine verschlüsselte Sicherung erst entsperren, wenn die App geöffnet ist. Nutzen Sie daher zuerst einen der anderen Wege hier und stellen Sie sie danach in den Einstellungen unter Sicherung und Wiederherstellung wieder her.",
   "startup_failure_downgrade_title": "Zurück zur vorherigen Version",
   "startup_failure_downgrade_body": "Wenn das Upgrade weiterhin fehlschlägt, installieren Sie die zuvor verwendete Version von Submersion und stellen Sie die Sicherungskopie aus dieser Version heraus wieder her. Eine Wiederherstellung hier würde nur dasselbe Upgrade erneut ausführen. Submersion führt kein automatisches Downgrade durch: Sie automatisch auf ältere Builds zurückzusetzen würde Sie stillschweigend auf Versionen mit bekannten Problemen halten.",

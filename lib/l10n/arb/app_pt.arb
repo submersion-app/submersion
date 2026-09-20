@@ -11669,6 +11669,7 @@
   "startup_recovery_problem_title": "Isso não resultou",
   "startup_recovery_noDiveLog_body": "Não existe nenhum {filename} em {folder}. Escolha a pasta que contém o próprio ficheiro do registo de mergulho.",
   "startup_recovery_unusable_body": "O registo de mergulho em {path} está danificado ou não é um registo de mergulho do Submersion.",
+  "startup_recovery_unusableBackup_body": "Esse ficheiro não é uma cópia de segurança que o Submersion consiga restaurar: {path}",
   "startup_recovery_encryptedBackup_body": "Essa cópia de segurança está cifrada. O Submersion só consegue desbloquear uma cópia cifrada com a aplicação aberta, por isso use primeiro uma das outras opções aqui e restaure-a depois nas Definições, em Cópia de segurança e restauro.",
   "startup_failure_downgrade_title": "Voltar à versão anterior",
   "startup_failure_downgrade_body": "Se a atualização continuar a falhar, instale a versão do Submersion que usava antes e restaure a cópia de segurança a partir dessa versão. Restaurá-la aqui apenas voltaria a executar a mesma atualização. O Submersion nunca regride sozinho: passá-lo automaticamente para compilações antigas mantê-lo-ia em silêncio em versões com problemas conhecidos.",

@@ -38654,6 +38654,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'هذا الملف ليس نسخة احتياطية يستطيع Submersion استعادتها: $path';
+  }
+
+  @override
   String get startup_recovery_encryptedBackup_body =>
       'هذه النسخة الاحتياطية مشفَّرة. لا يستطيع Submersion فتح نسخة مشفَّرة إلا بعد تشغيل التطبيق، لذا استخدم إحدى الطرق الأخرى هنا أولًا ثم استعِدها من الإعدادات ضمن النسخ الاحتياطي والاستعادة.';
 

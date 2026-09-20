@@ -38692,6 +38692,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'Dat bestand is geen back-up die Submersion kan herstellen: $path';
+  }
+
+  @override
   String get startup_recovery_encryptedBackup_body =>
       'Die back-up is versleuteld. Submersion kan een versleutelde back-up pas ontgrendelen als de app open is, dus gebruik hier eerst een van de andere routes en herstel hem daarna via Instellingen, bij Back-up en herstel.';
 

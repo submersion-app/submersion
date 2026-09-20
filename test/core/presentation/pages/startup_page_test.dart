@@ -2881,6 +2881,13 @@ void main() {
       await tester.tap(find.text('Restore from a backup file'));
       await tester.pumpAndSettle();
 
+      // A BACKUP-specific message. The unusable-dive-log wording calls the
+      // path a dive log, which would point the diver at the wrong file.
+      expect(
+        find.textContaining('not a backup Submersion can restore'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('is damaged, or it is not'), findsNothing);
       // The validator's own words, which name the problem better than any
       // paraphrase of them could.
       expect(find.textContaining('Invalid file extension'), findsOneWidget);
@@ -3103,14 +3110,16 @@ void main() {
       await tester.tap(find.text('Use a dive log in another folder'));
       await tester.pumpAndSettle();
 
-      // Naming the folder searched matters: picking the folder ABOVE the one
-      // holding submersion.db is the mistake this step invites.
+      // The WHOLE rendered sentence, not "both values appear somewhere":
+      // the two placeholders are interchangeable at the call site, and an
+      // assertion that only checks presence passes with them swapped, which
+      // renders "There is no <folder> in submersion.db".
       expect(
-        find.textContaining('/Users/diver/Library/Mobile Documents'),
-        findsOneWidget,
-      );
-      expect(
-        find.textContaining(DatabaseLocationService.databaseFilename),
+        find.text(
+          'There is no ${DatabaseLocationService.databaseFilename} in '
+          '/Users/diver/Library/Mobile Documents. Choose the folder that '
+          'holds the dive log file itself.',
+        ),
         findsOneWidget,
       );
       expect(recovery.adoptCalls, 0);

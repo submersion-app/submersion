@@ -11669,6 +11669,7 @@
   "startup_recovery_problem_title": "Eso no funcionó",
   "startup_recovery_noDiveLog_body": "No hay ningún archivo {filename} en {folder}. Elige la carpeta que contiene el propio archivo del cuaderno de buceo.",
   "startup_recovery_unusable_body": "El cuaderno de buceo de {path} está dañado o no es un cuaderno de buceo de Submersion.",
+  "startup_recovery_unusableBackup_body": "Ese archivo no es una copia de seguridad que Submersion pueda restaurar: {path}",
   "startup_recovery_encryptedBackup_body": "Esa copia de seguridad está cifrada. Submersion solo puede desbloquear una copia cifrada con la app ya abierta, así que usa primero una de las otras opciones de aquí y luego restáurala desde Ajustes, en Copia de seguridad y restauración.",
   "startup_failure_downgrade_title": "Volver a la versión anterior",
   "startup_failure_downgrade_body": "Si la actualización sigue fallando, instala la versión de Submersion que usabas antes y restaura la copia de seguridad desde esa versión. Restaurarla aquí solo volvería a ejecutar la misma actualización. Submersion no se degrada por sí solo: pasarte automáticamente a compilaciones antiguas te mantendría en silencio en versiones con problemas conocidos.",

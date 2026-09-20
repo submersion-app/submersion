@@ -39046,6 +39046,11 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'Ce fichier n\'est pas une sauvegarde que Submersion peut restaurer : $path';
+  }
+
+  @override
   String get startup_recovery_encryptedBackup_body =>
       'Cette sauvegarde est chiffrée. Submersion ne peut déverrouiller une sauvegarde chiffrée qu\'une fois l\'application ouverte : utilisez d\'abord l\'un des autres moyens proposés ici, puis restaurez-la depuis les Réglages, dans Sauvegarde et restauration.';
 

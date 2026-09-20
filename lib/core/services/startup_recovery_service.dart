@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
@@ -233,16 +235,72 @@ class StartupRecoveryService {
       destination,
       DatabaseLocationService.databaseFilename,
     );
-    await _moveIfExists(dbPath, movedName);
-    await _moveIfExists('$dbPath-wal', '$movedName-wal');
-    await _moveIfExists('$dbPath-shm', '$movedName-shm');
-    await _moveIfExists(
-      DatabaseSecuritySidecar.pathFor(dbPath),
-      DatabaseSecuritySidecar.pathFor(movedName),
-    );
+
+    // `-journal` belongs here as much as the WAL sidecars do. WAL is not
+    // guaranteed: `PRAGMA journal_mode = WAL` can be declined (a network
+    // volume, a read-only mount) and `applyMainDatabaseSetup` then leaves the
+    // connection in rollback-journal mode. A stale `-journal` left beside the
+    // new empty database is replayed against it.
+    final moves = <({String from, String to})>[
+      (from: dbPath, to: movedName),
+      (from: '$dbPath-wal', to: '$movedName-wal'),
+      (from: '$dbPath-shm', to: '$movedName-shm'),
+      (from: '$dbPath-journal', to: '$movedName-journal'),
+      (
+        from: DatabaseSecuritySidecar.pathFor(dbPath),
+        to: DatabaseSecuritySidecar.pathFor(movedName),
+      ),
+    ];
+
+    // All or nothing. A half-moved set is worse than not moving at all: the
+    // canonical path is empty, so the next launch creates a fresh database,
+    // and the diver's artifacts are split across two folders with no way to
+    // pair them up again.
+    final done = <({String from, String to})>[];
+    try {
+      for (final move in moves) {
+        if (await _moveIfExists(move.from, move.to)) done.add(move);
+      }
+    } catch (e) {
+      _log.warning('Could not set the dive log aside, putting it back: $e');
+      await _undoMoves(done);
+      await _deleteIfEmpty(destination);
+      rethrow;
+    }
 
     _log.info('Set the unreadable dive log aside in $destination');
     return destination;
+  }
+
+  /// Returns every file in [done] to where it came from.
+  ///
+  /// Best-effort per file and deliberately silent: this runs while an error is
+  /// already on its way up, and one file that will not go back must not stop
+  /// the rest from being restored.
+  static Future<void> _undoMoves(List<({String from, String to})> done) async {
+    for (final move in done.reversed) {
+      try {
+        await File(move.to).rename(move.from);
+      } catch (_) {
+        // Nothing better is available here: the original error is the one
+        // worth surfacing, and the files that did go back are still a strict
+        // improvement over leaving the set split.
+      }
+    }
+  }
+
+  /// Removes the set-aside folder if nothing ended up in it.
+  ///
+  /// Guarded on emptiness, never recursive: this path exists to clean up
+  /// after a rollback, and must not be capable of deleting a diver's data
+  /// however it is reached.
+  static Future<void> _deleteIfEmpty(String folder) async {
+    try {
+      final dir = Directory(folder);
+      if (await dir.exists() && await dir.list().isEmpty) await dir.delete();
+    } catch (_) {
+      // An empty folder left behind is litter, not a failure.
+    }
   }
 
   /// A folder that does not exist yet, named so a diver can tell what is in it.
@@ -268,9 +326,24 @@ class StartupRecoveryService {
         '-${two(now.hour)}${two(now.minute)}${two(now.second)}';
   }
 
-  static Future<void> _moveIfExists(String from, String to) async {
+  /// Test seam: makes the move of this exact path throw, so the rollback
+  /// above can be proven. Production leaves it null.
+  ///
+  /// Mirrors `DatabaseService.debugFailDeleteFor`. A seam rather than a real
+  /// filesystem failure because the conditions that cause one (a full disk, a
+  /// revoked permission mid-operation) cannot be staged from a test.
+  @visibleForTesting
+  static String? debugFailMoveFor;
+
+  /// Moves [from] to [to], reporting whether there was anything to move.
+  static Future<bool> _moveIfExists(String from, String to) async {
     final file = File(from);
-    if (await file.exists()) await file.rename(to);
+    if (!await file.exists()) return false;
+    if (from == debugFailMoveFor) {
+      throw FileSystemException('Simulated move failure', from);
+    }
+    await file.rename(to);
+    return true;
   }
 
   /// True when `PRAGMA quick_check` answers a single `ok`.

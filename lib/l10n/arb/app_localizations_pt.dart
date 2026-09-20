@@ -38966,6 +38966,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'Esse ficheiro não é uma cópia de segurança que o Submersion consiga restaurar: $path';
+  }
+
+  @override
   String get startup_recovery_encryptedBackup_body =>
       'Essa cópia de segurança está cifrada. O Submersion só consegue desbloquear uma cópia cifrada com a aplicação aberta, por isso use primeiro uma das outras opções aqui e restaure-a depois nas Definições, em Cópia de segurança e restauro.';
 

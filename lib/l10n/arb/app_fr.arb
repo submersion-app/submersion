@@ -11669,6 +11669,7 @@
   "startup_recovery_problem_title": "Cela n'a pas fonctionné",
   "startup_recovery_noDiveLog_body": "Il n'y a aucun fichier {filename} dans {folder}. Choisissez le dossier qui contient le fichier du carnet de plongée lui-même.",
   "startup_recovery_unusable_body": "Le carnet de plongée situé dans {path} est endommagé, ou ce n'est pas un carnet de plongée Submersion.",
+  "startup_recovery_unusableBackup_body": "Ce fichier n'est pas une sauvegarde que Submersion peut restaurer : {path}",
   "startup_recovery_encryptedBackup_body": "Cette sauvegarde est chiffrée. Submersion ne peut déverrouiller une sauvegarde chiffrée qu'une fois l'application ouverte : utilisez d'abord l'un des autres moyens proposés ici, puis restaurez-la depuis les Réglages, dans Sauvegarde et restauration.",
   "startup_failure_downgrade_title": "Revenir à la version précédente",
   "startup_failure_downgrade_body": "Si la mise à niveau échoue systématiquement, installez la version de Submersion que vous utilisiez auparavant, puis restaurez la copie de sécurité depuis cette version. La restaurer ici ne ferait que relancer la même mise à niveau. Submersion ne revient jamais tout seul à une version antérieure : vous basculer automatiquement sur d’anciennes versions vous maintiendrait discrètement sur des versions présentant des problèmes connus.",

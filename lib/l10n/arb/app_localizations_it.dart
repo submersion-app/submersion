@@ -38952,6 +38952,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'Quel file non è un backup che Submersion può ripristinare: $path';
+  }
+
+  @override
   String get startup_recovery_encryptedBackup_body =>
       'Quel backup è cifrato. Submersion può sbloccare un backup cifrato solo ad app aperta, quindi usa prima una delle altre opzioni qui e poi ripristinalo dalle Impostazioni, in Backup e ripristino.';
 

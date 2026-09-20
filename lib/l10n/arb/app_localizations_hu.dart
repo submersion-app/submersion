@@ -38795,6 +38795,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'Ez a fájl nem olyan biztonsági mentés, amelyet a Submersion vissza tud állítani: $path';
+  }
+
+  @override
   String get startup_recovery_encryptedBackup_body =>
       'Ez a biztonsági mentés titkosított. A Submersion csak megnyitott alkalmazásban tud titkosított mentést feloldani, ezért használja előbb az itteni másik utak egyikét, majd állítsa vissza a Beállításokban, a Biztonsági mentés és visszaállítás résznél.';
 

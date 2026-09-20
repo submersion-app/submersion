@@ -62763,7 +62763,13 @@ abstract class AppLocalizations {
   /// **'The dive log at {path} is damaged, or it is not a Submersion dive log.'**
   String startup_recovery_unusable_body(Object path);
 
-  /// No description provided for @startup_recovery_encryptedBackup_body.
+  /// Shown when a backup FILE the diver picked cannot be restored. Distinct from the unusable dive-log message, which calls the path a dive log.
+  ///
+  /// In en, this message translates to:
+  /// **'That file is not a backup Submersion can restore: {path}'**
+  String startup_recovery_unusableBackup_body(Object path);
+
+  /// Shown when the diver picks an encrypted backup on the startup failure screen, where the passphrase prompt that unlocks one is not reachable.
   ///
   /// In en, this message translates to:
   /// **'That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings, under Backup and Restore.'**

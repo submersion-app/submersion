@@ -11669,6 +11669,7 @@
   "startup_recovery_problem_title": "Ez nem sikerült",
   "startup_recovery_noDiveLog_body": "A(z) {folder} mappában nincs {filename} nevű fájl. Válassza azt a mappát, amely magát a merülési napló fájlt tartalmazza.",
   "startup_recovery_unusable_body": "A(z) {path} helyen lévő merülési napló sérült, vagy nem Submersion merülési napló.",
+  "startup_recovery_unusableBackup_body": "Ez a fájl nem olyan biztonsági mentés, amelyet a Submersion vissza tud állítani: {path}",
   "startup_recovery_encryptedBackup_body": "Ez a biztonsági mentés titkosított. A Submersion csak megnyitott alkalmazásban tud titkosított mentést feloldani, ezért használja előbb az itteni másik utak egyikét, majd állítsa vissza a Beállításokban, a Biztonsági mentés és visszaállítás résznél.",
   "startup_failure_downgrade_title": "Visszatérés az előző verzióra",
   "startup_failure_downgrade_body": "Ha a frissítés továbbra sem sikerül, telepítsd a Submersion korábban használt verzióját, majd abból a verzióból állítsd vissza a biztonsági másolatot. Itt visszaállítani csak ugyanazt a frissítést futtatná le újra. A Submersion soha nem vált magától régebbi verzióra: az automatikus visszaléptetés csendben ismert hibás verziókon tartana.",

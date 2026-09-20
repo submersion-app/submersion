@@ -38202,6 +38202,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'הקובץ הזה אינו גיבוי ש-Submersion יכול לשחזר: $path';
+  }
+
+  @override
   String get startup_recovery_encryptedBackup_body =>
       'הגיבוי הזה מוצפן. Submersion יכול לפתוח גיבוי מוצפן רק כשהאפליקציה פתוחה, ולכן השתמשו קודם באחת הדרכים האחרות כאן ואז שחזרו אותו מההגדרות, תחת גיבוי ושחזור.';
 

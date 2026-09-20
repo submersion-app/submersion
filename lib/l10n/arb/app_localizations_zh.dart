@@ -36716,6 +36716,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return '该文件不是 Submersion 能够恢复的备份：$path';
+  }
+
+  @override
   String get startup_recovery_encryptedBackup_body =>
       '该备份已加密。Submersion 只有在应用打开后才能解锁加密备份，因此请先使用这里的其他方式，然后在设置的备份与恢复中恢复它。';
 
