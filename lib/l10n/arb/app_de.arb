@@ -1752,8 +1752,6 @@
   "diveDetailSection_customFields_description": "Benutzerdefinierte Felder",
   "diveDetailSection_customFields_name": "Benutzerdefinierte Felder",
   "diveDetailSection_dataSources_description": "Verbundene Tauchcomputer, Quellenverwaltung",
-  "siteDetailSection_map_name": "Karte",
-  "siteDetailSection_map_description": "Kartenvorschau des Tauchplatzes",
   "siteDetailSection_diveStatistics_description": "Anzahl der Tauchgänge, erreichte Tiefen, längster und letzter Tauchgang",
   "siteDetailSection_description_description": "Beschreibung des Tauchplatzes",
   "siteDetailSection_location_description": "Land, Region, Gewässer, GPS-Koordinaten",

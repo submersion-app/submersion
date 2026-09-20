@@ -7167,8 +7167,6 @@
   "diveDetailSection_customFields_description": "Campi personalizzati definiti dall'utente",
   "diveDetailSection_customFields_name": "Campi personalizzati",
   "diveDetailSection_dataSources_description": "Computer subacquei collegati, gestione sorgenti",
-  "siteDetailSection_map_name": "Mappa",
-  "siteDetailSection_map_description": "Anteprima della mappa della posizione del sito",
   "siteDetailSection_diveStatistics_description": "Numero di immersioni, profondità raggiunte, immersioni più lunghe e più recenti",
   "siteDetailSection_description_description": "Descrizione del sito",
   "siteDetailSection_location_description": "Paese, regione, specchio d'acqua, coordinate GPS",

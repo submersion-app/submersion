@@ -17164,13 +17164,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Computadores de mergulho conectados, gerenciamento de fontes';
 
   @override
-  String get siteDetailSection_map_name => 'Mapa';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Pré-visualização do mapa da localização do ponto';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Número de mergulhos, profundidades alcançadas, mergulhos mais longos e mais recentes';
 

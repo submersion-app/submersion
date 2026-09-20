@@ -17035,13 +17035,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Verbonden duikcomputers, bronbeheer';
 
   @override
-  String get siteDetailSection_map_name => 'Kaart';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Kaartvoorbeeld van de duikstek';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Aantal duiken, bereikte diepten, langste en laatste duiken';
 

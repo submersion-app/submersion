@@ -7127,8 +7127,6 @@
   "diveDetailSection_customFields_description": "Champs personnalisés définis par l'utilisateur",
   "diveDetailSection_customFields_name": "Champs personnalisés",
   "diveDetailSection_dataSources_description": "Ordinateurs de plongée connectes, gestion des sources",
-  "siteDetailSection_map_name": "Carte",
-  "siteDetailSection_map_description": "Aperçu cartographique de l'emplacement du site",
   "siteDetailSection_diveStatistics_description": "Nombre de plongées, profondeurs atteintes, plongées les plus longues et les plus récentes",
   "siteDetailSection_description_description": "Description du site",
   "siteDetailSection_location_description": "Pays, région, plan d'eau, coordonnées GPS",

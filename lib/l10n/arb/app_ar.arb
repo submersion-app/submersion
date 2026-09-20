@@ -1606,8 +1606,6 @@
   "diveDetailSection_customFields_description": "حقول مخصصة يحددها المستخدم",
   "diveDetailSection_customFields_name": "الحقول المخصصة",
   "diveDetailSection_dataSources_description": "أجهزة الغوص المتصلة، إدارة المصادر",
-  "siteDetailSection_map_name": "الخريطة",
-  "siteDetailSection_map_description": "معاينة خريطة لموقع الغوص",
   "siteDetailSection_diveStatistics_description": "عدد الغوصات، الأعماق التي تم بلوغها، أطول الغوصات وأحدثها",
   "siteDetailSection_description_description": "وصف الموقع",
   "siteDetailSection_location_description": "الدولة، المنطقة، المسطح المائي، إحداثيات GPS",

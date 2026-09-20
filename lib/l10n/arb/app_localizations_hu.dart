@@ -17113,13 +17113,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Csatlakoztatott merülőszámítógépek, forráskezelés';
 
   @override
-  String get siteDetailSection_map_name => 'Térkép';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'A merülőhely helyének térképes előnézete';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Merülések száma, elért mélységek, leghosszabb és legutóbbi merülések';
 

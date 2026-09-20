@@ -16329,12 +16329,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_dataSources_description => '已连接的潜水电脑、数据源管理';
 
   @override
-  String get siteDetailSection_map_name => '地图';
-
-  @override
-  String get siteDetailSection_map_description => '潜水点位置的地图预览';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       '潜水次数、到达深度、最长和最近的潜水';
 

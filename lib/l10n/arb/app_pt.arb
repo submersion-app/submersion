@@ -1740,8 +1740,6 @@
   "diveDetailSection_customFields_description": "Campos personalizados definidos pelo usuario",
   "diveDetailSection_customFields_name": "Campos Personalizados",
   "diveDetailSection_dataSources_description": "Computadores de mergulho conectados, gerenciamento de fontes",
-  "siteDetailSection_map_name": "Mapa",
-  "siteDetailSection_map_description": "Pré-visualização do mapa da localização do ponto",
   "siteDetailSection_diveStatistics_description": "Número de mergulhos, profundidades alcançadas, mergulhos mais longos e mais recentes",
   "siteDetailSection_description_description": "Descrição do ponto",
   "siteDetailSection_location_description": "País, região, corpo de água, coordenadas GPS",

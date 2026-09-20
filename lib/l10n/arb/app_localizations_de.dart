@@ -17139,13 +17139,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Verbundene Tauchcomputer, Quellenverwaltung';
 
   @override
-  String get siteDetailSection_map_name => 'Karte';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Kartenvorschau des Tauchplatzes';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Anzahl der Tauchgänge, erreichte Tiefen, längster und letzter Tauchgang';
 

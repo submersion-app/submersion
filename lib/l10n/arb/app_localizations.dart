@@ -28062,18 +28062,6 @@ abstract class AppLocalizations {
   /// **'Connected dive computers, source management'**
   String get diveDetailSection_dataSources_description;
 
-  /// No description provided for @siteDetailSection_map_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Map'**
-  String get siteDetailSection_map_name;
-
-  /// No description provided for @siteDetailSection_map_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Map preview of the site location'**
-  String get siteDetailSection_map_description;
-
   /// No description provided for @siteDetailSection_diveStatistics_description.
   ///
   /// In en, this message translates to:

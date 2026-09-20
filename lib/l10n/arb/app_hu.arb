@@ -7127,8 +7127,6 @@
   "diveDetailSection_customFields_description": "Felhasználó által definiált egyéni mezők",
   "diveDetailSection_customFields_name": "Egyéni mezők",
   "diveDetailSection_dataSources_description": "Csatlakoztatott merülőszámítógépek, forráskezelés",
-  "siteDetailSection_map_name": "Térkép",
-  "siteDetailSection_map_description": "A merülőhely helyének térképes előnézete",
   "siteDetailSection_diveStatistics_description": "Merülések száma, elért mélységek, leghosszabb és legutóbbi merülések",
   "siteDetailSection_description_description": "A merülőhely leírása",
   "siteDetailSection_location_description": "Ország, régió, víztest, GPS-koordináták",

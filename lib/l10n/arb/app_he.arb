@@ -5081,8 +5081,6 @@
   "diveDetailSection_customFields_description": "שדות מותאמים אישית שהוגדרו על ידי המשתמש",
   "diveDetailSection_customFields_name": "שדות מותאמים אישית",
   "diveDetailSection_dataSources_description": "מחשבי צלילה מחוברים, ניהול מקורות",
-  "siteDetailSection_map_name": "מפה",
-  "siteDetailSection_map_description": "תצוגה מקדימה של מפת מיקום האתר",
   "siteDetailSection_diveStatistics_description": "מספר צלילות, עומקים שהושגו, הצלילות הארוכות והאחרונות",
   "siteDetailSection_description_description": "תיאור האתר",
   "siteDetailSection_location_description": "מדינה, אזור, מקווה מים, קואורדינטות GPS",

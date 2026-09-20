@@ -17159,13 +17159,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Computadoras de buceo conectadas, gestion de fuentes';
 
   @override
-  String get siteDetailSection_map_name => 'Mapa';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Vista previa del mapa de la ubicación del sitio';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Número de inmersiones, profundidades alcanzadas, inmersiones más largas y más recientes';
 

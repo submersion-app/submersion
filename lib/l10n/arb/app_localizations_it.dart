@@ -17163,13 +17163,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Computer subacquei collegati, gestione sorgenti';
 
   @override
-  String get siteDetailSection_map_name => 'Mappa';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Anteprima della mappa della posizione del sito';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Numero di immersioni, profondità raggiunte, immersioni più lunghe e più recenti';
 

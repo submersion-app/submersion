@@ -16889,13 +16889,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Connected dive computers, source management';
 
   @override
-  String get siteDetailSection_map_name => 'Map';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Map preview of the site location';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Dive count, depths reached, longest and latest dives';
 

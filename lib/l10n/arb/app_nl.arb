@@ -1740,8 +1740,6 @@
   "diveDetailSection_customFields_description": "Gebruikergedefinieerde aangepaste velden",
   "diveDetailSection_customFields_name": "Aangepaste velden",
   "diveDetailSection_dataSources_description": "Verbonden duikcomputers, bronbeheer",
-  "siteDetailSection_map_name": "Kaart",
-  "siteDetailSection_map_description": "Kaartvoorbeeld van de duikstek",
   "siteDetailSection_diveStatistics_description": "Aantal duiken, bereikte diepten, langste en laatste duiken",
   "siteDetailSection_description_description": "Beschrijving van de duikstek",
   "siteDetailSection_location_description": "Land, regio, wateroppervlak, GPS-coördinaten",

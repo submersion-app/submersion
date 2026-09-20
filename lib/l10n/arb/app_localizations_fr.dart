@@ -17225,13 +17225,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Ordinateurs de plongée connectes, gestion des sources';
 
   @override
-  String get siteDetailSection_map_name => 'Carte';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Aperçu cartographique de l\'emplacement du site';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Nombre de plongées, profondeurs atteintes, plongées les plus longues et les plus récentes';
 

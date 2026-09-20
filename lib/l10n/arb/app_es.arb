@@ -1740,8 +1740,6 @@
   "diveDetailSection_customFields_description": "Campos personalizados definidos por el usuario",
   "diveDetailSection_customFields_name": "Campos Personalizados",
   "diveDetailSection_dataSources_description": "Computadoras de buceo conectadas, gestion de fuentes",
-  "siteDetailSection_map_name": "Mapa",
-  "siteDetailSection_map_description": "Vista previa del mapa de la ubicación del sitio",
   "siteDetailSection_diveStatistics_description": "Número de inmersiones, profundidades alcanzadas, inmersiones más largas y más recientes",
   "siteDetailSection_description_description": "Descripción del sitio",
   "siteDetailSection_location_description": "País, región, masa de agua, coordenadas GPS",

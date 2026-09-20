@@ -1832,8 +1832,6 @@
   "diveDetailSection_customFields_description": "用户自定义字段",
   "diveDetailSection_customFields_name": "自定义字段",
   "diveDetailSection_dataSources_description": "已连接的潜水电脑、数据源管理",
-  "siteDetailSection_map_name": "地图",
-  "siteDetailSection_map_description": "潜水点位置的地图预览",
   "siteDetailSection_diveStatistics_description": "潜水次数、到达深度、最长和最近的潜水",
   "siteDetailSection_description_description": "潜水点描述",
   "siteDetailSection_location_description": "国家、地区、水域、GPS 坐标",

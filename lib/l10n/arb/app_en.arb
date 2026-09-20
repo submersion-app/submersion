@@ -10494,8 +10494,6 @@
   "diveDetailSection_customFields_description": "User-defined custom fields",
   "diveDetailSection_dataSources_name": "Data Sources",
   "diveDetailSection_dataSources_description": "Connected dive computers, source management",
-  "siteDetailSection_map_name": "Map",
-  "siteDetailSection_map_description": "Map preview of the site location",
   "siteDetailSection_diveStatistics_description": "Dive count, depths reached, longest and latest dives",
   "siteDetailSection_description_description": "Your description of the site",
   "siteDetailSection_location_description": "Country, region, body of water, GPS coordinates",
