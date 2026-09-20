@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -34,7 +36,19 @@ void main() {
     ),
   ];
 
-  Future<WidgetRef> openSheet(WidgetTester tester) async {
+  /// Pumps the host page and opens the filter sheet on it, returning the
+  /// launching page's ref so a test can read the applied filter back.
+  ///
+  /// [extraOverrides] seed a saved filter; [sitesFuture] lets a test hold the
+  /// site list unresolved while the sheet is already open, in which case
+  /// [settle] must be false - an unresolved list leaves an indeterminate
+  /// progress indicator running, which never settles.
+  Future<WidgetRef> openSheet(
+    WidgetTester tester, {
+    List<Override> extraOverrides = const [],
+    Future<List<DiveSite>>? sitesFuture,
+    bool settle = true,
+  }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     late WidgetRef capturedRef;
@@ -46,7 +60,10 @@ void main() {
           settingsProvider.overrideWith(
             (ref) => MockSettingsNotifier(const AppSettings()),
           ),
-          sitesProvider.overrideWith((ref) async => sites),
+          sitesProvider.overrideWith(
+            (ref) => sitesFuture ?? Future.value(sites),
+          ),
+          ...extraOverrides,
         ],
         child: MaterialApp(
           // Pinned: this suite drives the sheet by English label.
@@ -75,7 +92,14 @@ void main() {
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Open'));
-    await tester.pumpAndSettle();
+    if (settle) {
+      await tester.pumpAndSettle();
+    } else {
+      // Past the sheet's entrance animation without waiting for the
+      // never-ending progress indicator.
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+    }
     return capturedRef;
   }
 
@@ -242,52 +266,17 @@ void main() {
     'of silently staying applied',
     (tester) async {
       useTallSurface(tester);
-      SharedPreferences.setMockInitialValues({});
-      final prefs = await SharedPreferences.getInstance();
-      late WidgetRef capturedRef;
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            sharedPreferencesProvider.overrideWithValue(prefs),
-            settingsProvider.overrideWith(
-              (ref) => MockSettingsNotifier(const AppSettings()),
-            ),
-            sitesProvider.overrideWith((ref) async => sites),
-            // "Nowhere" was never among the offered sites (renamed/deleted
-            // between sessions) - the field must not silently show "All
-            // countries" while still holding this on Apply.
-            siteFilterProvider.overrideWith(
-              (ref) => const SiteFilterState(country: 'Nowhere'),
-            ),
-          ],
-          child: MaterialApp(
-            locale: const Locale('en'),
-            localizationsDelegates: AppLocalizations.localizationsDelegates,
-            supportedLocales: AppLocalizations.supportedLocales,
-            home: Scaffold(
-              body: Consumer(
-                builder: (context, ref, _) {
-                  capturedRef = ref;
-                  return Center(
-                    child: ElevatedButton(
-                      onPressed: () => showModalBottomSheet<void>(
-                        context: context,
-                        isScrollControlled: true,
-                        builder: (_) => SiteFilterSheet(ref: ref),
-                      ),
-                      child: const Text('Open'),
-                    ),
-                  );
-                },
-              ),
-            ),
+      // "Nowhere" was never among the offered sites (renamed/deleted between
+      // sessions) - the field must not silently show "All countries" while
+      // still holding this on Apply.
+      final ref = await openSheet(
+        tester,
+        extraOverrides: [
+          siteFilterProvider.overrideWith(
+            (ref) => const SiteFilterState(country: 'Nowhere'),
           ),
-        ),
+        ],
       );
-      await tester.pumpAndSettle();
-      await tester.tap(find.text('Open'));
-      await tester.pumpAndSettle();
 
       expect(find.text('Nowhere'), findsNothing);
       expect(find.text('All countries'), findsOneWidget);
@@ -295,7 +284,65 @@ void main() {
       await tester.tap(find.text('Apply Filters'));
       await tester.pumpAndSettle();
 
-      expect(capturedRef.read(siteFilterProvider).country, isNull);
+      expect(ref.read(siteFilterProvider).country, isNull);
+    },
+  );
+
+  testWidgets(
+    'a saved country differing only in case or spacing keeps filtering, '
+    'under the offered spelling',
+    (tester) async {
+      useTallSurface(tester);
+      // What the free-text field this replaces could leave behind: the same
+      // country as the "Egypt" option, loosely typed. It still selects
+      // exactly the same sites, so the dropdown adopts the offered spelling
+      // rather than treating the value as stale and dropping the filter.
+      final ref = await openSheet(
+        tester,
+        extraOverrides: [
+          siteFilterProvider.overrideWith(
+            (ref) =>
+                const SiteFilterState(country: '  eGyPt  ', region: 'sinai'),
+          ),
+        ],
+      );
+
+      expect(fieldShowing('Egypt'), findsOneWidget);
+      expect(fieldShowing('Sinai'), findsOneWidget);
+      expect(find.text('All countries'), findsNothing);
+      expect(find.text('All regions'), findsNothing);
+
+      await tester.tap(find.text('Apply Filters'));
+      await tester.pumpAndSettle();
+
+      final applied = ref.read(siteFilterProvider);
+      expect(applied.country, 'Egypt');
+      expect(applied.region, 'Sinai');
+    },
+  );
+
+  testWidgets(
+    'the dropdowns appear when the site list resolves after the sheet is '
+    'already open',
+    (tester) async {
+      useTallSurface(tester);
+      // The sheet lives in its own modal route, so it only leaves the
+      // loading state if the option providers are watched through the
+      // sheet's own ref; a watch registered on the launching page's ref
+      // rebuilds that page and leaves the sheet on its progress indicators.
+      final sitesReady = Completer<List<DiveSite>>();
+      await openSheet(tester, sitesFuture: sitesReady.future, settle: false);
+
+      expect(find.text('All countries'), findsNothing);
+      expect(find.byType(LinearProgressIndicator), findsNWidgets(2));
+
+      sitesReady.complete(sites);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.byType(LinearProgressIndicator), findsNothing);
+      expect(fieldShowing('All countries'), findsOneWidget);
+      expect(fieldShowing('All regions'), findsOneWidget);
     },
   );
 

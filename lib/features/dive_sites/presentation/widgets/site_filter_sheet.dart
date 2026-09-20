@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/searchable_filter_dropdown.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/utils/location_options.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
@@ -187,24 +188,49 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
     );
   }
 
-  /// Clears a filter value that no longer appears among [options] - the site
-  /// that won the dedup tie-break was renamed or deleted between sessions, or
-  /// (for region) the currently selected country no longer has it. Without
-  /// this, the field silently falls back to showing "All ..." while the
-  /// stale value is still held and would be reapplied verbatim on the next
-  /// Apply. Deferred to after this frame since build() must not call
-  /// setState synchronously.
-  void _resetIfStale(String? value, List<String> options, VoidCallback clear) {
-    if (value != null && !options.contains(value)) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) setState(clear);
-      });
+  /// Brings a filter value held from before into line with the [options] the
+  /// dropdown now offers, through [assign].
+  ///
+  /// A value the free-text field this replaces left behind can differ from
+  /// its canonical option in case or whitespace only - " egypt " selects the
+  /// same sites as "Egypt" ([locationDedupKey]), so it is adopted under the
+  /// offered spelling rather than discarded.
+  ///
+  /// A value no option matches at all is genuinely stale: the site that won
+  /// the dedup tie-break was renamed or deleted between sessions, or (for
+  /// region) the currently selected country does not have it. That is
+  /// cleared, since otherwise the field silently falls back to showing
+  /// "All ..." while the stale value is still held and would be reapplied
+  /// verbatim on the next Apply.
+  ///
+  /// Deferred to after this frame since build() must not call setState
+  /// synchronously.
+  void _reconcileWithOptions(
+    String? value,
+    List<String> options,
+    ValueChanged<String?> assign,
+  ) {
+    if (value == null || options.contains(value)) return;
+    final key = locationDedupKey(value);
+    String? canonical;
+    for (final option in options) {
+      if (locationDedupKey(option) == key) {
+        canonical = option;
+        break;
+      }
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) setState(() => assign(canonical));
+    });
   }
 
   Widget _buildLocationSection() {
-    final countryOptions = widget.ref.watch(siteCountryOptionsProvider);
-    final regionOptions = widget.ref.watch(siteRegionOptionsProvider(_country));
+    // The sheet's own ref, not widget.ref: the launching page's ref belongs
+    // to a different element, so a watch registered on it rebuilds that page
+    // while this sheet - built separately, in its own modal route - stays on
+    // the loading indicators when sitesProvider resolves.
+    final countryOptions = ref.watch(siteCountryOptionsProvider);
+    final regionOptions = ref.watch(siteRegionOptionsProvider(_country));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -216,7 +242,11 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
         const SizedBox(height: 12),
         countryOptions.when(
           data: (countries) {
-            _resetIfStale(_country, countries, () => _country = null);
+            _reconcileWithOptions(
+              _country,
+              countries,
+              (value) => _country = value,
+            );
             return SearchableFilterDropdown<String>(
               value: _country,
               allOptionLabel: context.l10n.diveSites_filter_allCountries,
@@ -238,7 +268,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
                   // above is still built from the country before this
                   // change.
                   final regionsForNewCountry =
-                      widget.ref.read(siteRegionOptionsProvider(value)).value ??
+                      ref.read(siteRegionOptionsProvider(value)).value ??
                       const [];
                   if (_region != null &&
                       !regionsForNewCountry.contains(_region)) {
@@ -254,7 +284,7 @@ class _SiteFilterSheetState extends ConsumerState<SiteFilterSheet> {
         const SizedBox(height: 12),
         regionOptions.when(
           data: (regions) {
-            _resetIfStale(_region, regions, () => _region = null);
+            _reconcileWithOptions(_region, regions, (value) => _region = value);
             return SearchableFilterDropdown<String>(
               value: _region,
               allOptionLabel: context.l10n.diveSites_filter_allRegions,
