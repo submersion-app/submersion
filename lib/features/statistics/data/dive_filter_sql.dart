@@ -1,5 +1,7 @@
+import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
+import 'package:submersion/features/explore/domain/derived_predicates.dart';
 
 /// Builds a self-contained SQL subquery `SELECT id FROM dives WHERE ...` that
 /// selects the ids of all dives matching [filter], mirroring
@@ -329,6 +331,94 @@ import 'package:submersion/features/equipment/domain/models/equipment_attr_condi
     'WHERE dt.dive_id = $diveIdRef AND dt.equipment_id IS NOT NULL))',
   );
   return (sql: sql.toString(), params: params);
+}
+
+/// SQL for one [DerivedPredicate]: a correlated EXISTS against the phase 2
+/// derived tables. [diveIdRef] names the outer dive id column (`dives.id` in
+/// [buildFilteredDiveIdSubquery], `d.id` in DiveRepository).
+///
+/// This is the ONLY implementation of the derived axis. It is shared by the
+/// statistics subquery, the paginated list and the id-set query, so those
+/// three cannot disagree about which dives match.
+({String sql, List<Object?> params}) derivedPredicateCondition(
+  DerivedPredicate predicate, {
+  required String diveIdRef,
+}) {
+  switch (predicate) {
+    case SacTrendIs(:final trend, :final flatBand):
+      final band = switch (trend) {
+        SacTrend.rising => 'm.sac_slope_bar_min_per_min > ?',
+        SacTrend.falling => 'm.sac_slope_bar_min_per_min < ?',
+        SacTrend.flat => 'm.sac_slope_bar_min_per_min BETWEEN ? AND ?',
+      };
+      final params = switch (trend) {
+        SacTrend.rising => <Object?>[flatBand],
+        SacTrend.falling => <Object?>[-flatBand],
+        SacTrend.flat => <Object?>[-flatBand, flatBand],
+      };
+      return (
+        sql:
+            'EXISTS (SELECT 1 FROM dive_derived_metrics m '
+            'WHERE m.dive_id = $diveIdRef '
+            'AND m.sac_slope_bar_min_per_min IS NOT NULL AND $band)',
+        params: params,
+      );
+
+    case SacRoseAfter(:final minutes, :final ratio):
+      // Two averages over the bucket table. A NULL average makes the whole
+      // comparison NULL, which SQL treats as not matching, so a dive that
+      // simply ended before the mark cannot look like a riser.
+      final bucket = (minutes * 60) ~/ kSacBucketSeconds;
+      return (
+        sql:
+            '(SELECT AVG(CASE WHEN b.bucket_index >= ? THEN b.sac_bar_min END) '
+            '> ? * AVG(CASE WHEN b.bucket_index < ? THEN b.sac_bar_min END) '
+            'FROM dive_sac_buckets b WHERE b.dive_id = $diveIdRef)',
+        params: <Object?>[bucket, ratio, bucket],
+      );
+
+    case FinalStopUnstable(:final thresholdMeters):
+      return (
+        sql:
+            'EXISTS (SELECT 1 FROM dive_derived_metrics m '
+            'WHERE m.dive_id = $diveIdRef '
+            "AND m.final_stop_kind <> 'none' "
+            'AND m.final_stop_max_excursion_m IS NOT NULL '
+            'AND m.final_stop_max_excursion_m > ?)',
+        params: <Object?>[thresholdMeters],
+      );
+
+    case FinalStopDuration(:final minSeconds, :final maxSeconds):
+      final clauses = <String>[];
+      final params = <Object?>[];
+      if (minSeconds != null) {
+        clauses.add('m.final_stop_duration_s >= ?');
+        params.add(minSeconds);
+      }
+      if (maxSeconds != null) {
+        clauses.add('m.final_stop_duration_s <= ?');
+        params.add(maxSeconds);
+      }
+      final extra = clauses.isEmpty ? '' : 'AND ${clauses.join(' AND ')}';
+      return (
+        sql:
+            'EXISTS (SELECT 1 FROM dive_derived_metrics m '
+            'WHERE m.dive_id = $diveIdRef '
+            'AND m.final_stop_duration_s IS NOT NULL $extra)',
+        params: params,
+      );
+
+    case HasFinding(:final rule):
+      // A dismissed finding is one the diver has answered, so it must not
+      // keep the dive in a filtered list.
+      return (
+        sql:
+            'EXISTS (SELECT 1 FROM dive_safety_findings f '
+            'WHERE f.dive_id = $diveIdRef AND f.rule_id = ? '
+            'AND f.dismissed_at IS NULL)',
+        params: <Object?>[rule.dbValue],
+      );
+  }
 }
 
 /// Recorded deco-signal SQL condition (no bind params), shared by
