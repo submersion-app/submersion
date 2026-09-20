@@ -65,12 +65,18 @@ from it. No code is copied.
 
 The database stores metric throughout. Diving Log's own documentation
 states that its raw table editor "supports only metric units when it is in
-edit mode" precisely because that is how the data sits on disk. Depth is
-centimetres, pressure is tenths of a bar, temperature is tenths of a degree
-Celsius, `TankSize` is litres, `Weight` is kilograms. There is no unit
-header to read and no imperial branch, which removes the class of bug the
-DL7 parser carries (see its note about the ZRH model code and the bogus ZDT
-minimum temperature).
+edit mode" precisely because that is how the data sits on disk. There is no
+unit header to read and no imperial branch, which removes the class of bug
+the DL7 parser carries (see its note about the ZRH model code and the bogus
+ZDT minimum temperature).
+
+Two different scales are in play and must not be confused. The `Logbook`
+scalar columns are plain metric: `Depth` in metres, `Divetime` in minutes,
+`Airtemp` and `Watertemp` in degrees Celsius, `Weight` in kilograms,
+`TankSize` in litres, `PresS`/`PresE`/`PresW` in bar. The packed profile
+columns use fixed-point integers instead: depth in centimetres, pressure in
+tenths of a bar, temperature in tenths of a degree. Only the profile codec
+applies those divisors.
 
 Display of these values still follows the active diver's unit settings, as
 everywhere else in the app. Storage is metric; that is all this section
@@ -162,10 +168,14 @@ Existing files touched:
   `SourceApp.divingLog`, and replace `SourceApp.divingLog.exportInstructions`
   (currently null) with instructions to export the logbook rather than DL7.
 - `parser_registry.dart`: route the new format.
-- `format_detector.dart`: `_detectSqliteApp` currently returns a generic
-  `ImportFormat.sqlite` at confidence 0.5 with "Further analysis is needed"
-  for every unknown SQLite file. Sniff for a `Logbook` table and return
-  `divingLogSqlite` at high confidence instead.
+- `universal_import_providers.dart`: `_detectFormat` is where SQLite
+  flavours are actually resolved. It probes the table set once via
+  `ShearwaterDbReader.probeSqliteTableNames` and then asks each reader's
+  synchronous `matchesTables`. Add a `DivingLogDbReader.matchesTables`
+  branch there. `format_detector.dart` is deliberately left alone: it works
+  on raw bytes and its own comment says it cannot query tables, so it
+  correctly returns the generic `ImportFormat.sqlite` that `_detectFormat`
+  then refines.
 
 ### Opening the file
 
@@ -196,7 +206,7 @@ and `PayloadDiverExpander` resolve them with no new plumbing.
 | `Depth`, `Divetime` | `maxDepth`, `duration` |
 | `Airtemp`, `Watertemp` | `airTemp`, `waterTemp` |
 | `Comments` | dive notes |
-| `Visibility` | visibility |
+| `Visibility` | `visibility`, mapping the source's 1/2/3 to `Visibility.good`/`moderate`/`poor`; 0 means unset and is omitted |
 | `Weight` | `weightUsed`, the key `MacDiveDiveMapper` already uses |
 | `Country`, `City`, `Place` | a `sites` entity, `uddfId` keyed on the whole triple, referenced from the dive by a nested `site` map |
 | `Buddy` | split into `buddies` entities, referenced by `buddyRefs` |
@@ -268,8 +278,9 @@ Tests first, per the repo's TDD rule.
   no database. Asserts site collapsing across repeated dives, `Divemaster`
   landing in `diveGuideRefs` and not `buddyRefs`, `DblTank` doubling the
   volume, `weightUsed` in kilograms, and the OTU warning being raised.
-- `format_detector_test.dart`: extend for the `Logbook` table sniff, and
-  assert an unrelated SQLite file still returns the generic result.
+- Detection: assert `DivingLogDbReader.matchesTables` accepts a Diving Log
+  table set and rejects a MacDive and a Shearwater one, so the three
+  SQLite flavours cannot claim each other's files.
 - `divinglog_real_sample_test.dart`: added when a real file arrives,
   mirroring `dan_dl7_real_sample_test.dart`.
 
