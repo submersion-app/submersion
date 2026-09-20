@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
@@ -195,6 +196,40 @@ void main() {
     expect(
       saved.gear.firstWhere((g) => g.item.id == 'fins').viaSetId,
       'winter',
+    );
+  });
+
+  testWidgets('a part added to the template after the dive was logged can '
+      'be pulled onto it (#1988)', (tester) async {
+    // The diver added a first stage to the reg afterwards and chose "from
+    // now on", so this dive still carries only the hose.
+    await EquipmentRepository().createEquipment(
+      const EquipmentItem(
+        id: 'first',
+        name: 'First stage',
+        type: EquipmentType.firstStage,
+      ),
+    );
+    final components = EquipmentComponentRepository();
+    await components.addComponent(parentId: 'reg', componentId: 'hose');
+    await components.addComponent(parentId: 'reg', componentId: 'first');
+
+    await open(tester);
+    expect(find.textContaining('1 of 2 components'), findsOneWidget);
+
+    await tapTooltip(tester, 'Add missing parts');
+    expect(find.textContaining('1 of 2'), findsNothing);
+    expect(find.textContaining('2 components'), findsOneWidget);
+    expect(find.byTooltip('Add missing parts'), findsNothing);
+
+    await save(tester);
+    final saved = await repository.getDiveById('dive-1');
+    final added = saved!.gear.firstWhere((g) => g.item.id == 'first');
+    expect(added.viaEquipmentId, 'reg');
+    expect(added.viaSetId, 'winter');
+    expect(
+      saved.gear.map((g) => g.item.id),
+      unorderedEquals(['mask', 'reg', 'hose', 'fins', 'first']),
     );
   });
 }

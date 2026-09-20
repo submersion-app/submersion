@@ -96,12 +96,10 @@ class TripGroupHeader extends ConsumerWidget {
             onTap: onToggle,
             child: Row(
               children: [
-                Container(
-                  width: 4,
-                  height: double.infinity,
-                  color: scheme.secondary,
-                ),
-                const SizedBox(width: 10),
+                // No accent stripe on the leading edge: it doubled up with
+                // the band's borders and read as clutter. The filled card,
+                // icon and kicker mark the header on their own.
+                const SizedBox(width: 12),
                 Icon(
                   Icons.card_travel,
                   size: 18,

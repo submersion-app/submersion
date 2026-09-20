@@ -75,7 +75,7 @@ void main() {
 
       expect(
         _rectOf(tester, SiteDetailSectionId.notes).top,
-        lessThan(_rectOf(tester, SiteDetailSectionId.map).top),
+        lessThan(_rectOf(tester, SiteDetailSectionId.diveStatistics).top),
       );
     });
 

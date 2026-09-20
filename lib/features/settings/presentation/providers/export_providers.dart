@@ -12,6 +12,7 @@ import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart'
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dive_relations.dart';
 import 'package:submersion/core/services/export/uddf/uddf_export_profiles.dart';
+import 'package:submersion/core/services/export/uddf/uddf_equipment_tag_source.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_source.dart';
 import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
@@ -27,6 +28,8 @@ import 'package:submersion/features/dive_log/presentation/providers/dive_compute
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -152,6 +155,21 @@ class ExportNotifier extends StateNotifier<ExportState> {
     ).namesByParent({for (final e in equipment) e.id: e});
   }
 
+  /// Each exported item's tag names, by name, for the Tags column of the
+  /// equipment CSV (issue #1942). One query for every item.
+  Future<Map<String, List<String>>> _equipmentTagNamesFor(
+    List<EquipmentItem> equipment,
+  ) async {
+    final byItem = await _ref
+        .read(equipmentTagRepositoryProvider)
+        .getTagsByEquipment();
+    return {
+      for (final item in equipment)
+        if (byItem[item.id] case final tags? when tags.isNotEmpty)
+          item.id: [for (final tag in tags) tag.name],
+    };
+  }
+
   /// The diver's dive types by id, so the CSV, Excel and PDF exports name each
   /// type as the diver did rather than rebuilding a name from its id (#1834).
   Future<Map<String, DiveTypeEntity>> _diveTypesById() =>
@@ -255,6 +273,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final path = await _exportService.exportEquipmentToCsv(
         equipment,
         componentNames: await _componentNamesFor(equipment),
+        tagNames: await _equipmentTagNamesFor(equipment),
         units: _csvUnits(unitMode),
       );
       state = state.copyWith(
@@ -562,6 +581,10 @@ class ExportNotifier extends StateNotifier<ExportState> {
       // The logbook is a document a human reads, so gear follows the diver's
       // arrangement (#1486, #1576).
       gearArrangement: _ref.read(equipmentArrangementProvider),
+      // Names the sets a dive's gear came from (#2031).
+      equipmentSetNamesById: await equipmentSetNamesOrEmpty(
+        _ref.read(equipmentSetRepositoryProvider),
+      ),
       pageSize: exportOptions.pageSize,
       dates: PdfDateFormatter(
         dateFormat: settings.dateFormat,
@@ -633,6 +656,12 @@ class ExportNotifier extends StateNotifier<ExportState> {
         siteClassification.customSiteTypes,
         (type) => type.id,
       );
+      // Equipment tags (issue #1942): each item's tag ids and the tags they
+      // name, resolved by id like the site tags above.
+      final equipmentTags = await loadEquipmentTagsForExport(
+        _ref.read(equipmentTagRepositoryProvider),
+        [for (final e in equipment) e.id],
+      );
       final customDiveRoles = (await _ref.read(
         allDiveRolesProvider.future,
       )).where((r) => !r.isBuiltIn).toList();
@@ -664,12 +693,17 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveBuddies: relations.diveBuddies,
         owner: currentDiver,
         trips: trips,
-        tags: mergeById(tags, siteClassification.siteTags, (tag) => tag.id),
+        tags: mergeById(
+          mergeById(tags, siteClassification.siteTags, (tag) => tag.id),
+          equipmentTags.tags,
+          (tag) => tag.id,
+        ),
         diveTags: relations.diveTags,
         customDiveTypes: customDiveTypes,
         customSiteTypes: customSiteTypes,
         siteTypeIdsBySite: siteClassification.typeIdsBySite,
         siteTagIdsBySite: siteClassification.tagIdsBySite,
+        equipmentTagIdsByItem: equipmentTags.tagIdsByItem,
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,
@@ -1165,6 +1199,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
       final path = await _exportService.saveEquipmentCsvToFile(
         equipment,
         componentNames: await _componentNamesFor(equipment),
+        tagNames: await _equipmentTagNamesFor(equipment),
         dialogTitle: _l10n.settings_export_saveEquipmentCsvDialogTitle,
         units: _csvUnits(unitMode),
       );
@@ -1246,6 +1281,12 @@ class ExportNotifier extends StateNotifier<ExportState> {
         siteClassification.customSiteTypes,
         (type) => type.id,
       );
+      // Equipment tags (issue #1942): each item's tag ids and the tags they
+      // name, resolved by id like the site tags above.
+      final equipmentTags = await loadEquipmentTagsForExport(
+        _ref.read(equipmentTagRepositoryProvider),
+        [for (final e in equipment) e.id],
+      );
       final customDiveRoles = (await _ref.read(
         allDiveRolesProvider.future,
       )).where((r) => !r.isBuiltIn).toList();
@@ -1277,12 +1318,17 @@ class ExportNotifier extends StateNotifier<ExportState> {
         diveBuddies: relations.diveBuddies,
         owner: currentDiver,
         trips: trips,
-        tags: mergeById(tags, siteClassification.siteTags, (tag) => tag.id),
+        tags: mergeById(
+          mergeById(tags, siteClassification.siteTags, (tag) => tag.id),
+          equipmentTags.tags,
+          (tag) => tag.id,
+        ),
         diveTags: relations.diveTags,
         customDiveTypes: customDiveTypes,
         customSiteTypes: customSiteTypes,
         siteTypeIdsBySite: siteClassification.typeIdsBySite,
         siteTagIdsBySite: siteClassification.tagIdsBySite,
+        equipmentTagIdsByItem: equipmentTags.tagIdsByItem,
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
         equipmentSets: equipmentSets,

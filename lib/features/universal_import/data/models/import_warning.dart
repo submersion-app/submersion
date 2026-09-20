@@ -74,6 +74,10 @@ enum ImportWarningCode {
   /// were imported. [ImportWarning.names] lists the logbooks.
   macdiveLogbooksNotImported,
 
+  /// Dives that pointed at a dive site the file never described, so they
+  /// were imported without one. [ImportWarning.count] is the number of dives.
+  sitesUnresolved,
+
   /// Recorded for logs and tests only; deliberately never shown to the diver.
   diagnostic,
 }

@@ -35,6 +35,32 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_rowLabel_identifier(Object identifier) {
+    return 'מזהה $identifier';
+  }
+
+  @override
+  String equipment_rowLabel_serial(Object serial) {
+    return 'מס׳ סידורי $serial';
+  }
+
+  @override
+  String equipment_rowLabel_purchased(Object date) {
+    return 'נרכש $date';
+  }
+
+  @override
+  String equipment_components_countOfTotal(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count מתוך $total רכיבים',
+      one: '$count מתוך רכיב אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'הפריט הזה כבר מכיל את זה, ולכן אי אפשר להוסיף אותו כרכיב.';
 
@@ -212,6 +238,14 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get equipment_setEdit_defaultSwitch_subtitle =>
       'מוחלת אוטומטית על צלילות חדשות שאין בהן ציוד עדיין';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'החל בעת ייבוא המחשב של סט זה';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'אם סט זה כולל מחשב צלילה, הסט כולו יתווסף אוטומטית לצלילה שהורדה או יובאה ממנו';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'גדרות גאוגרפיות';
@@ -2980,6 +3014,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get preDive_start_begin => 'התחל';
 
   @override
+  String get diveLog_gear_addMissingParts => 'הוספת חלקים חסרים';
+
+  @override
   String get diveLog_gear_collapse => 'הסתרת חלקים';
 
   @override
@@ -3087,6 +3124,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get common_action_ok => 'אישור';
+
+  @override
+  String get common_action_openSettings => 'פתח הגדרות';
 
   @override
   String get common_action_save => 'שמירה';
@@ -4982,9 +5022,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'תקרה';
 
   @override
-  String get diveLog_deco_label_leading => 'מוביל';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5096,9 +5133,6 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'הפעלה';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'סטטיסטיקת טווח';
@@ -7572,47 +7606,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'דקו';
 
   @override
-  String get diveLog_playbackStats_depth => 'עומק';
-
-  @override
-  String get diveLog_playbackStats_header => 'נתונים חיים';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'קצב לב';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'לחץ';
-
-  @override
-  String get diveLog_playbackStats_temp => 'טמפ\'';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'מיקום הפעלה';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'הפעלה צעד אחר צעד';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => '10 שניות אחורה';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'יציאה ממצב הפעלה';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => '10 שניות קדימה';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'השהייה';
 
   @override
@@ -8117,27 +8110,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'ללא';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'תקרה';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% ערך M';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'עומס רקמות';
@@ -11834,6 +11806,15 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_divesUsedAndLeft(
+    int used,
+    int remaining,
+    int total,
+  ) {
+    return '$used צלילות, נותרו $remaining מתוך $total';
+  }
+
+  @override
   String get cylinderConfigs_title => 'תצורות בלונים';
 
   @override
@@ -11923,8 +11904,26 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_hoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used שעות, נותרו $remaining מתוך $total';
+  }
+
+  @override
   String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
     return 'נותרו $remaining מתוך $total שעות במים מלוחים';
+  }
+
+  @override
+  String equipment_serviceClocks_saltHoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used שעות במים מלוחים, נותרו $remaining מתוך $total';
   }
 
   @override
@@ -11933,8 +11932,26 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_coldDivesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used צלילות במים קרים, נותרו $remaining מתוך $total';
+  }
+
+  @override
   String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
     return 'נותרו $remaining מתוך $total שעות בחמצן גבוה';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used שעות בחמצן גבוה, נותרו $remaining מתוך $total';
   }
 
   @override
@@ -11946,8 +11963,26 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_deepCyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used צלילות עמוקות, נותרו $remaining מתוך $total';
+  }
+
+  @override
   String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
     return 'נותרו $remaining מתוך $total מחזורי סוללה';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used מחזורי סוללה, נותרו $remaining מתוך $total';
   }
 
   @override
@@ -12710,6 +12745,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get equipment_serviceDialog_manageServiceTypes => 'ניהול סוגי טיפול';
 
   @override
+  String get equipment_serviceDialog_filterToConfiguredTypes =>
+      'הצג רק סוגי טיפול מוגדרים';
+
+  @override
   String get equipment_serviceDialog_categoryLabel => 'קטגוריה';
 
   @override
@@ -12812,6 +12851,20 @@ class AppLocalizationsHe extends AppLocalizations {
   String equipment_service_filterMatchCount(int count, int total) {
     return 'מוצגים $count מתוך $total';
   }
+
+  @override
+  String equipment_service_showMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'הצג עוד $count',
+      one: 'הצג עוד אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_service_showFewer => 'הצג פחות';
 
   @override
   String get equipment_serviceKinds_defaultCategoryLabel =>
@@ -16717,13 +16770,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'מחשבי צלילה מחוברים, ניהול מקורות';
 
   @override
-  String get siteDetailSection_map_name => 'מפה';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'תצוגה מקדימה של מפת מיקום האתר';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'מספר צלילות, עומקים שהושגו, הצלילות הארוכות והאחרונות';
 
@@ -19296,6 +19342,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => 'אין נתוני מגמה זמינים';
+
+  @override
+  String get statistics_chart_notRecorded => 'לא נרשם';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {
@@ -22999,6 +23048,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'לחלק מהצלילות אין אתר צלילה';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'צלילות אלה הפנו לאתר צלילה שהקובץ אינו מתאר, ולכן יובאו ללא אתר. אפשר להגדיר אתר בעריכת הצלילה.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'הסמכות ורשומות טיפול לא נמצאות בקובץ';
 
@@ -23146,6 +23203,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'בדוק שעמודות התאריך והשעה ממופות בשלב זה ושהן מכילות תאריכים.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'בדוק שעמודת התאריך מכילה תאריכים בתבנית שמצוינת בכותרת שלה.';
 
   @override
   String get universalImport_error_noDataInFile =>
@@ -29896,6 +29957,21 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get common_coordinates_invalidLatitude => 'קו רוחב לא תקין';
+
+  @override
+  String get common_coordinates_invalidLongitude => 'קו אורך לא תקין';
+
+  @override
+  String get common_coordinates_latitudeRequired => 'נדרש קו רוחב';
+
+  @override
+  String get common_coordinates_longitudeRequired => 'נדרש קו אורך';
+
+  @override
+  String get common_coordinates_invalid => 'קואורדינטות לא תקינות';
 
   @override
   String get marineLife_species_delete_confirmTitle => 'למחוק מין?';
@@ -38012,6 +38088,83 @@ class AppLocalizationsHe extends AppLocalizations {
   String get startup_failure_showBackupsFolder => 'הצג את תיקיית הגיבויים';
 
   @override
+  String get startup_failure_moreWays_title => 'דרכים נוספות לחזור';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'שימוש ביומן צלילה בתיקייה אחרת';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'עברו ליומן צלילה ששמור אצלכם כבר במקום אחר, למשל בתיקיית iCloud Drive או Dropbox.';
+
+  @override
+  String get startup_failure_restoreFromFile => 'שחזור מקובץ גיבוי';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'בחרו גיבוי של Submersion מכל מקום במכשיר הזה או בתיקייה מסונכרנת.';
+
+  @override
+  String get startup_failure_startFresh => 'התחלה עם יומן צלילה ריק';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'הניחו את הקובץ הפגום בצד והתחילו מחדש. שום דבר לא נמחק.';
+
+  @override
+  String get startup_recovery_adopt_title => 'להשתמש ביומן הצלילה הזה?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'מעכשיו Submersion יפתח את יומן הצלילה הזה. הקובץ שלא נפתח נשאר במקומו.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives צלילות, $sites אתרי צלילה';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'להשתמש ביומן הזה';
+
+  @override
+  String get startup_recovery_startFresh_title => 'להתחיל עם יומן צלילה ריק?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion מעביר את הקובץ הפגום לתיקייה נפרדת ופותח יומן צלילה חדש וריק. שום דבר לא נמחק, כך שתוכלו לנסות שוב את הקובץ הישן או לשלוח אותו לתמיכה.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'להתחיל מחדש';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'יומן הצלילה הפגום שלכם הועבר אל:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'זה לא עבד';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'אין קובץ $filename בתיקייה $folder. בחרו את התיקייה שמכילה את קובץ יומן הצלילה עצמו.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'יומן הצלילה שב-$path פגום, או שאינו יומן צלילה של Submersion.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'הקובץ הזה אינו גיבוי ש-Submersion יכול לשחזר: $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'הגיבוי הזה מוצפן. Submersion יכול לפתוח גיבוי מוצפן רק כשהאפליקציה פתוחה, ולכן השתמשו קודם באחת הדרכים האחרות כאן ואז שחזרו אותו מההגדרות, תחת גיבוי ושחזור.';
+
+  @override
   String get startup_failure_downgrade_title => 'חזרה לגרסה הקודמת';
 
   @override
@@ -40733,4 +40886,115 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get numberInput_invalidValue => 'הזן מספר תקין';
+
+  @override
+  String get diveCenters_rental_sectionTitle => 'ציוד מושכר';
+
+  @override
+  String diveCenters_rental_lastTimeAt(Object center) {
+    return 'בפעם הקודמת ב-$center';
+  }
+
+  @override
+  String diveCenters_rental_lastDiveOn(Object date) {
+    return 'הצלילה האחרונה כאן: $date';
+  }
+
+  @override
+  String get diveCenters_rental_noHistory =>
+      'עדיין לא נרשמו כאן צלילות נוספות.';
+
+  @override
+  String get diveCenters_rental_empty =>
+      'עדיין אין הערות על ציוד מושכר במרכז הזה.';
+
+  @override
+  String get diveCenters_rental_addNote => 'הוספת הערת השכרה';
+
+  @override
+  String get diveCenters_rental_applyLastDive => 'החלת הצלילה האחרונה';
+
+  @override
+  String get diveCenters_rental_applied =>
+      'המשקולות והמכלים הועתקו מהצלילה האחרונה שלך כאן.';
+
+  @override
+  String get diveCenters_rental_applyConfirmTitle => 'להחליף משקולות ומכלים?';
+
+  @override
+  String get diveCenters_rental_applyConfirmBody =>
+      'לצלילה הזו כבר יש משקולות או מכלים. להחליף אותם באלה מהצלילה האחרונה שלך כאן?';
+
+  @override
+  String get diveCenters_rental_applyConfirmReplace => 'החלפה';
+
+  @override
+  String diveCenters_rental_leadTotal(Object total) {
+    return 'משקולות: $total';
+  }
+
+  @override
+  String diveCenters_rental_feedbackOver(Object amount) {
+    return '$amount יותר מדי';
+  }
+
+  @override
+  String diveCenters_rental_feedbackUnder(Object amount) {
+    return '$amount פחות מדי';
+  }
+
+  @override
+  String get diveCenters_rental_tanksLabel => 'מכלים';
+
+  @override
+  String get diveCenters_rental_verdictWorked => 'התאים';
+
+  @override
+  String get diveCenters_rental_verdictAvoid => 'להימנע';
+
+  @override
+  String diveCenters_rental_extraLead(Object amount) {
+    return '$amount משקולות נוספות';
+  }
+
+  @override
+  String diveCenters_rental_lessLead(Object amount) {
+    return '$amount פחות משקולות';
+  }
+
+  @override
+  String diveCenters_rental_actualCapacity(Object volume) {
+    return 'קיבולת בפועל $volume';
+  }
+
+  @override
+  String get diveCenters_rental_sheetTitleNew => 'הערת השכרה חדשה';
+
+  @override
+  String get diveCenters_rental_sheetTitleEdit => 'עריכת הערת השכרה';
+
+  @override
+  String get diveCenters_rental_gearTypeLabel => 'סוג ציוד';
+
+  @override
+  String get diveCenters_rental_labelLabel => 'תווית או מספר';
+
+  @override
+  String get diveCenters_rental_sizeLabel => 'מידה';
+
+  @override
+  String diveCenters_rental_leadAdjustmentLabel(Object unit) {
+    return 'משקולות נוספות נדרשות ($unit)';
+  }
+
+  @override
+  String diveCenters_rental_volumeLabel(Object unit) {
+    return 'קיבולת בפועל ($unit)';
+  }
+
+  @override
+  String get diveCenters_rental_noteLabel => 'הערה';
+
+  @override
+  String get diveCenters_rental_deleteConfirm => 'למחוק את הערת ההשכרה הזו?';
 }

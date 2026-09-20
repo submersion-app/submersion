@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart'
     hide EquipmentSet, DiveSite;
 import 'package:submersion/core/providers/provider.dart';
@@ -37,12 +38,16 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<Widget> buildPage({String? setId, bool realEquipment = false}) async {
+  Future<Widget> buildPage({
+    String? setId,
+    bool realEquipment = false,
+    List<EquipmentItem> equipment = const [],
+  }) async {
     final overrides = await getBaseOverrides();
     overrides.addAll([
       validatedCurrentDiverIdProvider.overrideWith((ref) async => 'd1'),
       if (!realEquipment)
-        activeEquipmentProvider.overrideWith((ref) async => <EquipmentItem>[]),
+        activeEquipmentProvider.overrideWith((ref) async => equipment),
       sitesProvider.overrideWith(
         (ref) async => const [
           DiveSite(
@@ -74,6 +79,7 @@ void main() {
       overrides: overrides,
       child: MaterialApp.router(
         routerConfig: router,
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
       ),
@@ -91,6 +97,27 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('identical items are told apart (#1549)', (tester) async {
+    tester.view.physicalSize = const Size(900, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    EquipmentItem pouch(String id, String serial) => EquipmentItem(
+      id: id,
+      name: 'Pouches',
+      type: EquipmentType.other,
+      brand: 'Palantic',
+      model: 'Drop-Bottom',
+      serialNumber: serial,
+    );
+    // Descending serial order, so input order cannot produce the result.
+    await tester.pumpWidget(
+      await buildPage(equipment: [pouch('b', 'X2'), pouch('a', 'X1')]),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Palantic Drop-Bottom · S/N X1'), findsOneWidget);
+    expect(find.text('Palantic Drop-Bottom · S/N X2'), findsOneWidget);
+  });
+
   testWidgets('toggles default and manages geofences before saving', (
     tester,
   ) async {
@@ -100,11 +127,12 @@ void main() {
     // Name the set.
     await tester.enterText(find.byType(TextFormField).first, 'Cold Water');
 
-    // Toggle the Default switch on.
-    await tester.tap(find.byType(SwitchListTile));
+    // Toggle the Default switch on (the first of the two set-level
+    // switches; the second is the computer-auto-apply opt-in, issue #1020).
+    await tester.tap(find.byType(SwitchListTile).first);
     await tester.pump();
     expect(
-      tester.widget<SwitchListTile>(find.byType(SwitchListTile)).value,
+      tester.widget<SwitchListTile>(find.byType(SwitchListTile).first).value,
       isTrue,
     );
 
@@ -133,7 +161,7 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.enterText(find.byType(TextFormField).first, 'Cold Water');
-    await tester.tap(find.byType(SwitchListTile));
+    await tester.tap(find.byType(SwitchListTile).first);
     await tester.pump();
     await addGeofenceViaSheet(tester);
 
@@ -188,6 +216,14 @@ void main() {
     // Open the editor: the set provider caches all three members.
     await tester.pumpWidget(await buildPage(setId: 's1', realEquipment: true));
     await tester.pumpAndSettle();
+    // The equipment list sits below the fold of a lazily-built ListView
+    // (more so now, with the computer-auto-apply switch added, issue #1020),
+    // so scroll it into view before asserting on it.
+    await tester.scrollUntilVisible(
+      find.text('e2'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.text('e2'), findsOneWidget);
 
     // The diver deletes the BCD from the equipment tab -- through the same

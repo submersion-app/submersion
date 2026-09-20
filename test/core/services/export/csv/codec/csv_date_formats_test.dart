@@ -37,4 +37,64 @@ void main() {
     expect(parseCsvTime('noon', null), isNull);
     expect(parseCsvDate('', null), isNull);
   });
+
+  group('a spreadsheet rewrote the date column', () {
+    // Excel redisplays a date column in its own format when the file is
+    // saved, so a "MMM D, YYYY" export comes back as 29-Aug-26 (#2152).
+    // Every fallback spells the month, so it reads the same whatever the
+    // header names.
+    test('reads a month-name date whatever format the header names', () {
+      for (final f in [...DateFormatPreference.values, null]) {
+        final name = f?.name ?? 'no suffix';
+        expect(
+          parseCsvDate('29-Aug-26', f),
+          DateTime.utc(2026, 8, 29),
+          reason: name,
+        );
+        expect(
+          parseCsvDate('9-Sep-07', f),
+          DateTime.utc(2007, 9, 9),
+          reason: name,
+        );
+        expect(
+          parseCsvDate('29 Aug 2026', f),
+          DateTime.utc(2026, 8, 29),
+          reason: name,
+        );
+        expect(
+          parseCsvDate('August 29, 2026', f),
+          DateTime.utc(2026, 8, 29),
+          reason: name,
+        );
+        expect(
+          parseCsvDate('2026-08-29', f),
+          DateTime.utc(2026, 8, 29),
+          reason: name,
+        );
+      }
+    });
+
+    test('the format the header names still wins', () {
+      expect(
+        parseCsvDate('03/04/1991', DateFormatPreference.mmddyyyy),
+        DateTime.utc(1991, 3, 4),
+      );
+      expect(
+        parseCsvDate('03/04/1991', DateFormatPreference.ddmmyyyy),
+        DateTime.utc(1991, 4, 3),
+      );
+    });
+
+    test('no fallback reads a day as a month', () {
+      // The day and month of a numeric date can only be told apart by the
+      // header, so a cell that contradicts it stays unreadable rather than
+      // importing a dive on the wrong day.
+      expect(parseCsvDate('29/08/2026', DateFormatPreference.mmddyyyy), isNull);
+      expect(parseCsvDate('08/29/2026', DateFormatPreference.ddmmyyyy), isNull);
+      expect(parseCsvDate('29-08-26', DateFormatPreference.mmmDYYYY), isNull);
+      expect(parseCsvDate('26-08-29', DateFormatPreference.mmmDYYYY), isNull);
+      // A two-digit leading field is a day, never the year 29.
+      expect(parseCsvDate('29-08-26', null), isNull);
+    });
+  });
 }

@@ -8,6 +8,7 @@ import 'package:submersion/core/services/export/models/export_service_record.dar
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_tag_writers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
@@ -734,6 +735,8 @@ class UddfExportBuilders {
   static void buildApplicationData(
     XmlBuilder builder, {
     List<EquipmentItem>? equipment,
+    // Each item's tag ids (issue #1942); an item absent from it writes none.
+    Map<String, List<String>> equipmentTagIdsByItem = const {},
     List<Certification>? certifications,
     List<DiveCenter>? diveCenters,
     List<Species>? species,
@@ -905,6 +908,13 @@ class UddfExportBuilders {
                             },
                           );
                         }
+                        // Tags (issue #1942): a direct child of the item, so
+                        // the importer never reads a check-in's <tags>,
+                        // which sits inside <observations>.
+                        UddfTagWriters.writeTagRefs(
+                          builder,
+                          equipmentTagIdsByItem[item.id] ?? const [],
+                        );
                       },
                     );
                   }
@@ -1152,6 +1162,10 @@ class UddfExportBuilders {
                         builder.element(
                           'appliestosites',
                           nest: tag.appliesTo(TagScope.sites).toString(),
+                        );
+                        builder.element(
+                          'appliestoequipment',
+                          nest: tag.appliesTo(TagScope.equipment).toString(),
                         );
                       },
                     );

@@ -11,10 +11,11 @@ import 'package:submersion/features/universal_import/data/models/import_options.
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
+import 'package:submersion/features/universal_import/data/parsers/submersion_csv/equipment_csv_tags.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_csv_table.dart';
 
 /// Reads Submersion's equipment CSV export (either unit mode) back into
-/// equipment maps, attributes and assembly parts included.
+/// equipment maps, attributes, assembly parts and tags included.
 class SubmersionEquipmentCsvParser implements ImportParser {
   const SubmersionEquipmentCsvParser();
 
@@ -59,6 +60,7 @@ class SubmersionEquipmentCsvParser implements ImportParser {
     ];
     final items = <Map<String, dynamic>>[];
     final componentCells = <int, String>{};
+    final tags = EquipmentCsvTags();
 
     for (final (i, row) in table.rows.indexed) {
       final name = table.text(row, 'Name');
@@ -66,7 +68,9 @@ class SubmersionEquipmentCsvParser implements ImportParser {
         warnings.add(
           ImportWarning(
             severity: ImportWarningSeverity.error,
-            message: 'Row ${i + 2} has no equipment name and was skipped',
+            message:
+                'Row ${table.sourceRowOf(i)} has no equipment name and was '
+                'skipped',
             entityType: ImportEntityType.equipment,
             itemIndex: i,
             field: 'Name',
@@ -134,6 +138,8 @@ class SubmersionEquipmentCsvParser implements ImportParser {
 
       final components = table.text(row, 'Components');
       if (components != null) componentCells[items.length] = components;
+      // Tags (issue #1942): linked by the importer once the tags exist.
+      final tagRefs = tags.refsFor(table.text(row, 'Tags'));
 
       items.add(
         <String, dynamic>{
@@ -159,6 +165,7 @@ class SubmersionEquipmentCsvParser implements ImportParser {
           'isActive': active == 'yes' ? true : (active == 'no' ? false : null),
           'notes': table.text(row, 'Notes'),
           if (attributes.isNotEmpty) 'attributes': attributes,
+          if (tagRefs.isNotEmpty) 'tagRefs': tagRefs,
         }..removeWhere((_, value) => value == null),
       );
     }
@@ -166,7 +173,10 @@ class SubmersionEquipmentCsvParser implements ImportParser {
     _resolveComponents(items, componentCells, warnings);
 
     return ImportPayload(
-      entities: {if (items.isNotEmpty) ImportEntityType.equipment: items},
+      entities: {
+        if (items.isNotEmpty) ImportEntityType.equipment: items,
+        if (tags.tags.isNotEmpty) ImportEntityType.tags: tags.tags,
+      },
       warnings: warnings,
     );
   }

@@ -12,7 +12,10 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_a
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../helpers/mock_providers.dart';
 
 /// Equipment sets list the same gear as a dive does, so they follow the same
 /// arrangement (#1486, #1576). The edit page already grouped by type but
@@ -56,6 +59,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           equipmentSetProvider('set-1').overrideWith((ref) async => set),
           activeEquipmentProvider.overrideWith(
             (ref) async => const [zeagle, faber, apeks],

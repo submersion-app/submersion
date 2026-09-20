@@ -1,0 +1,74 @@
+<divelog program='subsurface' version='3'>
+<settings>
+ <divecomputerid model='Shearwater Petrel 3' deviceid='c4f2a1b7' serial='4a7d2c19' firmware='92' />
+</settings>
+<divesites>
+<site uuid='7e2a91c4' name='Dos Ojos' gps='20.323100 -87.392400'>
+  <geo cat='2' origin='0' value='Mexico'/>
+  <geo cat='3' origin='0' value='Quintana Roo'/>
+  <notes>Cenote entry, line starts at the jump.</notes>
+</site>
+<site uuid='b18d3f05' name='Dos Ojos' gps='20.323140 -87.392430'>
+  <geo cat='2' origin='0' value='Mexico'/>
+</site>
+<site uuid='3c66ae12' name='Chac Mool' gps='20.451200 -87.281900'>
+  <geo cat='2' origin='0' value='Mexico'/>
+  <geo cat='3' origin='0' value='Quintana Roo'/>
+</site>
+<site uuid='d4519b77' name='Escambron' gps='18.465562 -66.084902'>
+  <geo cat='2' origin='0' value='Puerto Rico'/>
+</site>
+</divesites>
+<dives>
+<dive number='1' tags='cave' divesiteid='7e2a91c4' date='2025-03-04' time='09:14:00' duration='68:00 min' sac='13.2 l/min'>
+  <notes>Barbie line to the jump, turned on thirds.</notes>
+  <suit>3mm shorty</suit>
+  <cylinder size='11.1 l' workpressure='207.0 bar' description='AL80' use='sidemount' o2='32.0%' start='210.0 bar' end='90.0 bar' />
+  <cylinder size='11.1 l' workpressure='207.0 bar' description='AL80' use='sidemount' o2='32.0%' start='208.0 bar' end='95.0 bar' />
+  <weightsystem weight='2.0 kg' description='belt' />
+  <divecomputer model='Shearwater Petrel 3' deviceid='c4f2a1b7' diveid='11a0e4c2'>
+  <depth max='14.6 m' mean='11.2 m' />
+  <temperature water='25.0 C' />
+  <sample time='0:00 min' depth='0.0 m' temp='25.0 C' />
+  <sample time='2:00 min' depth='11.8 m' ndl='99:00 min' />
+  <sample time='30:00 min' depth='14.6 m' ndl='42:00 min' />
+  <sample time='66:00 min' depth='3.0 m' ndl='99:00 min' />
+  <sample time='68:00 min' depth='0.0 m' />
+  </divecomputer>
+</dive>
+<dive number='2' tags='cavern, photo' divesiteid='3c66ae12' date='2025-03-05' time='11:02:00' duration='52:00 min'>
+  <notes>Light beams through the halocline.</notes>
+  <cylinder size='11.1 l' workpressure='207.0 bar' description='AL80' o2='32.0%' start='205.0 bar' end='80.0 bar' />
+  <divecomputer model='Shearwater Petrel 3' deviceid='c4f2a1b7' diveid='11a0e4c3'>
+  <depth max='12.1 m' mean='8.4 m' />
+  <temperature water='25.0 C' />
+  <sample time='0:00 min' depth='0.0 m' temp='25.0 C' />
+  <sample time='20:00 min' depth='12.1 m' ndl='99:00 min' />
+  <sample time='52:00 min' depth='0.0 m' />
+  </divecomputer>
+</dive>
+<dive number='3' tags='cave, deep' divesiteid='b18d3f05' date='2025-03-06' time='08:45:00' duration='74:00 min'>
+  <cylinder size='11.1 l' workpressure='207.0 bar' description='AL80' use='sidemount' o2='30.0%' start='212.0 bar' end='70.0 bar' />
+  <cylinder size='11.1 l' workpressure='207.0 bar' description='AL80' use='sidemount' o2='30.0%' start='211.0 bar' end='74.0 bar' />
+  <cylinder size='11.1 l' workpressure='207.0 bar' description='AL80 deco' use='deco' o2='50.0%' start='200.0 bar' end='180.0 bar' />
+  <divecomputer model='Shearwater Petrel 3' deviceid='c4f2a1b7' diveid='11a0e4c4'>
+  <depth max='32.4 m' mean='21.7 m' />
+  <temperature water='24.0 C' />
+  <sample time='0:00 min' depth='0.0 m' temp='24.0 C' />
+  <sample time='18:00 min' depth='32.4 m' ndl='4:00 min' />
+  <sample time='40:00 min' depth='28.0 m' stoptime='3:00 min' stopdepth='6.0 m' in_deco='1' />
+  <sample time='74:00 min' depth='0.0 m' />
+  </divecomputer>
+</dive>
+<dive number='4' tags='boat, night' divesiteid='d4519b77' date='2025-03-10' time='19:30:00' duration='44:00 min'>
+  <cylinder size='11.1 l' workpressure='207.0 bar' description='AL80' o2='21.0%' start='200.0 bar' end='60.0 bar' />
+  <divecomputer model='Shearwater Petrel 3' deviceid='c4f2a1b7' diveid='11a0e4c5'>
+  <depth max='18.2 m' mean='13.9 m' />
+  <temperature water='27.0 C' />
+  <sample time='0:00 min' depth='0.0 m' temp='27.0 C' />
+  <sample time='22:00 min' depth='18.2 m' ndl='21:00 min' />
+  <sample time='44:00 min' depth='0.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>

@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
 import 'package:submersion/features/dive_types/presentation/providers/dive_type_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/fab_clearance.dart';
 
 class DiveTypesPage extends ConsumerWidget {
   const DiveTypesPage({super.key});
@@ -39,6 +40,7 @@ class DiveTypesPage extends ConsumerWidget {
           final customTypes = diveTypes.where((t) => !t.isBuiltIn).toList();
 
           return ListView(
+            padding: kFabListPadding,
             children: [
               if (customTypes.isNotEmpty) ...[
                 _buildSectionHeader(

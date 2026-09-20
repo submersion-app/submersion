@@ -61,6 +61,28 @@ void main() {
       },
     );
 
+    test('getAllSpecies keeps categories grouped and folds case and accents '
+        'within each (issue #2038)', () async {
+      const mine = {'zebra moray', 'Écureuil fish', 'angelfish', 'Brain'};
+      for (final (name, category) in [
+        ('zebra moray', SpeciesCategory.fish),
+        ('Écureuil fish', SpeciesCategory.fish),
+        ('angelfish', SpeciesCategory.fish),
+        ('Brain', SpeciesCategory.coral),
+      ]) {
+        await repository.createSpecies(commonName: name, category: category);
+      }
+
+      final ordered = (await repository.getAllSpecies())
+          .map((s) => s.commonName)
+          .where(mine.contains)
+          .toList();
+
+      // SQL orders by category name first ("coral" < "fish"), which the
+      // Dart re-sort must preserve.
+      expect(ordered, ['Brain', 'angelfish', 'Écureuil fish', 'zebra moray']);
+    });
+
     group('CRUD operations', () {
       test(
         'createSpecies creates a custom species with generated ID',

@@ -6,6 +6,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
@@ -44,12 +45,12 @@ class TransmitterRepository {
 
   Future<List<Transmitter>> getForDiver(String? diverId) async {
     final query = _db.select(_db.transmitters)
-      ..orderBy([(t) => OrderingTerm.asc(t.label)]);
+      ..orderBy([(t) => OrderingTerm.asc(t.label.collate(Collate.noCase))]);
     if (diverId != null) {
       query.where((t) => t.diverId.equals(diverId));
     }
     final rows = await query.get();
-    return rows.map(_map).toList();
+    return sortedByText(rows, (r) => r.label).map(_map).toList();
   }
 
   Future<Transmitter?> getById(String id) async {

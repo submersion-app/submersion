@@ -1433,6 +1433,13 @@ class SyncService {
           // so a future read of this list still tells the dependency story.)
           (type: 'courses', records: data.courses, hasUpdatedAt: true),
           (type: 'dives', records: data.dives, hasUpdatedAt: true),
+          // Child of diveCenters, and of dives when noted on one; applied
+          // after both so the deferred-FK commit sees the parent rows.
+          (
+            type: 'diveCenterGearNotes',
+            records: data.diveCenterGearNotes,
+            hasUpdatedAt: false,
+          ),
           // Quality findings FK dives + diveComputers (both applied above);
           // deferred FKs cover ordering, but keep the logical sequence.
           (
@@ -2305,6 +2312,7 @@ class SyncService {
     'diverSettings': true,
     'buddies': true,
     'diveCenters': true,
+    'diveCenterGearNotes': false,
     'trips': true,
     'liveaboardDetails': true,
     'itineraryDays': true,
@@ -2433,8 +2441,14 @@ class SyncService {
   /// completeness (and column nullability) is asserted against the live schema
   /// by sync_parent_refs_completeness_test.dart, so a new FK to a deletable
   /// parent fails that test until it is added here. (diverId is intentionally
-  /// absent: diver deletion goes through DiverMergeRepository, which repoints
-  /// FKs rather than orphaning them.)
+  /// absent, because each of the diver's rows carries its own fate to a peer.
+  /// DiverRepository.deleteDiverWithReassignment tombstones every row it
+  /// deletes and stamps the ones it keeps (shared trips and sites handed to a
+  /// surviving diver, a service kind still in use); DiverMergeRepository
+  /// repoints them. A diverId still left dangling, such as a row a peer wrote
+  /// before the diver's tombstone reached it, is cleared by
+  /// SyncDataSerializer.repairDanglingForeignKeys, which drops the row
+  /// instead where the column is NOT NULL.)
   @visibleForTesting
   static const Map<String, List<ParentRef>> parentRefs = {
     'dives': [
@@ -2453,6 +2467,15 @@ class SyncService {
         nullable: true,
         alsoClear: [],
       ),
+    ],
+    'diveCenterGearNotes': [
+      (
+        field: 'diveCenterId',
+        parent: 'diveCenters',
+        nullable: false,
+        alsoClear: [],
+      ),
+      (field: 'diveId', parent: 'dives', nullable: true, alsoClear: []),
     ],
     'qualityFindings': [
       (field: 'diveId', parent: 'dives', nullable: false, alsoClear: []),

@@ -9,6 +9,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/models/log_entry.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/lv95_transform.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_resolver.dart';
 import 'package:submersion/features/bathymetry/data/sources/swiss_bathy_tile_cache_repository.dart';
@@ -230,13 +232,12 @@ void main() {
       () async {
         // Straddles the LV95 easting=2685000 tile boundary while a wide
         // northing margin keeps it inside a single northing tile (1245), so
-        // spanMeters=200 needs exactly two adjacent tiles east-west.
+        // spanMeters=200 needs exactly two adjacent tiles east-west. Both
+        // tiles are the same lake (Zürichsee), so since #1764's fix they
+        // share one items lookup and one asset href -- modeled here as one
+        // zip with each tile's own named entry, exactly like the real
+        // one-asset-per-lake shape (see the Bug 13/15 tests above).
         const boundaryPoint = GeoPoint(47.354865314, 8.563694834);
-        // West/east of this longitude tells the two tiles apart from the
-        // request's own bbox — bounded-concurrency fetches no longer
-        // guarantee which tile's HTTP request lands first, so the mock must
-        // route by content, not by call order.
-        final boundaryLon = Lv95Transform.toWgs84(2685000, 1245500).longitude;
 
         const tileAGrid = '''
 ncols 2
@@ -264,18 +265,13 @@ nodata_value -9999
         final source = buildSource((req) async {
           if (req.url.path.endsWith('/items')) {
             itemCalls++;
-            final bbox = _requestedBbox(req);
-            final centerLon = (bbox[0] + bbox[2]) / 2;
-            final href = centerLon < boundaryLon
-                ? 'https://example.org/tile_a.zip'
-                : 'https://example.org/tile_b.zip';
             return http.Response(
               jsonEncode({
                 'features': [
                   {
-                    'bbox': bbox,
+                    'bbox': _requestedBbox(req),
                     'assets': {
-                      'grid': {'href': href},
+                      'grid': {'href': 'https://example.org/shared_lake.zip'},
                     },
                   },
                 ],
@@ -284,16 +280,19 @@ nodata_value -9999
             );
           }
           downloadCalls++;
-          final body = req.url.path.endsWith('tile_a.zip')
-              ? tileAGrid
-              : tileBGrid;
-          return http.Response.bytes(_zipOf('tile.asc', body), 200);
+          return http.Response.bytes(
+            _zipOfMultiple({
+              'swissBATHY3D_CHLV95_LN02_2684_1245.asc': tileAGrid,
+              'swissBATHY3D_CHLV95_LN02_2685_1245.asc': tileBGrid,
+            }),
+            200,
+          );
         });
 
         final grid = await source.fetch(boundaryPoint, spanMeters: 200);
 
-        expect(itemCalls, 2);
-        expect(downloadCalls, 2);
+        expect(itemCalls, 1);
+        expect(downloadCalls, 1);
         expect(grid.rows, 2);
         expect(grid.cols, 4);
 
@@ -345,19 +344,19 @@ nodata_value -9999
             '400.0 400.0\n'
             '400.0 400.0\n';
 
+        // Since #1764's fix, the items lookup is queried once per LAKE (not
+        // once per tile) using that lake's own registered bbox -- see
+        // _findAssetCandidatesForLake. So the mock now tells Rotsee's and
+        // Vierwaldstättersee's requests apart by which lake's own bbox was
+        // actually requested, not by an ad-hoc per-tile latitude threshold.
+        final rotseeBox = swissLakeLevels.firstWhere((l) => l.name == 'Rotsee');
         final source = buildSource((req) async {
           if (req.url.path.endsWith('/items')) {
             final bbox = _requestedBbox(req);
-            final centerLat = (bbox[1] + bbox[3]) / 2;
-            final isVierwaldstaetterTile =
-                centerLat >
-                Lv95Transform.toWgs84(
-                  (rotseeTileE + 0.5) * 1000,
-                  (rotseeTileN + 1.5) * 1000,
-                ).latitude;
-            final href = isVierwaldstaetterTile
-                ? 'https://example.org/vw_tile.zip'
-                : 'https://example.org/rotsee_tile.zip';
+            final isRotseeQuery = (bbox[1] - rotseeBox.minLat).abs() < 1e-3;
+            final href = isRotseeQuery
+                ? 'https://example.org/rotsee_tile.zip'
+                : 'https://example.org/vw_tile.zip';
             return http.Response(
               jsonEncode({
                 'features': [
@@ -405,6 +404,11 @@ nodata_value -9999
       // matching what the server actually said) grid, but stops
       // re-downloading and re-parsing that same zip once per tile
       // coordinate.
+      //
+      // Since #1764's fix, the items lookup itself is ALSO memoized per
+      // lake (not just the download), so it now happens exactly once for
+      // this whole span too -- superseding the original Bug 12 fix's
+      // narrower "only the download is shared" scope.
       var itemCalls = 0;
       var downloadCalls = 0;
       final source = buildSource((req) async {
@@ -436,11 +440,8 @@ nodata_value -9999
 
       final grid = await source.fetch(zurichseePoint, spanMeters: 2500);
 
-      expect(
-        itemCalls,
-        greaterThan(1),
-      ); // each tile still resolves its own asset
-      expect(downloadCalls, 1); // but the shared href is fetched once
+      expect(itemCalls, 1); // one lake, one shared items lookup
+      expect(downloadCalls, 1); // and the shared href is fetched once
       expect(grid.sourceId, 'swissbathy3d');
     });
 
@@ -856,6 +857,53 @@ nodata_value -9999
       expect(grid.depthAt(0, 0), closeTo(referenceLevel - 408.0, 1e-9));
     });
 
+    test('skips a candidate whose OWN declared bbox does not reach the '
+        'requested tile without even downloading it (GitHub Copilot '
+        'review: since #1764 queries STAC per LAKE rather than per tile, '
+        'a genuinely different neighboring lake\'s asset can pass the '
+        'wider lake-level bbox check yet still declare a bbox that never '
+        'reaches this specific tile)', () async {
+      var farAwayDownloads = 0;
+      final source = buildSource((req) async {
+        if (req.url.path.endsWith('/items')) {
+          return http.Response(
+            jsonEncode({
+              'features': [
+                {
+                  // Inside Zürichsee's own registered bbox (lat
+                  // 47.19-47.36, lon 8.55-8.85) -- so it survives the
+                  // existing lake-level query-bbox check -- but nowhere
+                  // near zurichseePoint's own tile (lon ~8.569), at the
+                  // opposite edge of that same generous lake box.
+                  'bbox': [8.80, 47.30, 8.82, 47.32],
+                  'assets': {
+                    'grid': {'href': 'https://example.org/far_away.zip'},
+                  },
+                },
+                {
+                  'bbox': _requestedBbox(req),
+                  'assets': {
+                    'grid': {'href': 'https://example.org/real.zip'},
+                  },
+                },
+              ],
+            }),
+            200,
+          );
+        }
+        if (req.url.path.endsWith('far_away.zip')) {
+          farAwayDownloads++;
+          return http.Response.bytes(_zipOf('tile.asc', gridBody), 200);
+        }
+        return http.Response.bytes(_zipOf('tile.asc', gridBody), 200);
+      });
+
+      final grid = await source.fetch(zurichseePoint, spanMeters: 100);
+
+      expect(farAwayDownloads, 0);
+      expect(grid.depthAt(0, 0), closeTo(405.92 - 408.0, 1e-9));
+    });
+
     test('treats the tile as a genuine gap only once every candidate\'s real '
         'content has been checked and none of them overlap (Bug 14)', () async {
       const decoyGrid = '''
@@ -953,30 +1001,19 @@ nodata_value -9999
           ),
       };
 
-      // Bounded-concurrency fetches no longer guarantee which of the nine
-      // tiles' HTTP requests lands first, so the mock derives the tile key
-      // from the request's own bbox center (inverse of _tileBboxWgs84)
-      // instead of assuming a fixed nested-loop call order.
-      String keyForRequest(http.Request req) {
-        final bbox = _requestedBbox(req);
-        final centerLat = (bbox[1] + bbox[3]) / 2;
-        final centerLon = (bbox[0] + bbox[2]) / 2;
-        final lv95 = Lv95Transform.fromWgs84(centerLat, centerLon);
-        final tE = (lv95.easting / 1000).floor();
-        final tN = (lv95.northing / 1000).floor();
-        return '${tE}_$tN';
-      }
-
+      // All nine tiles are the same lake, so since #1764's fix they share
+      // one items lookup and one href -- modeled as one zip with each
+      // tile's own named entry, exactly like the real one-asset-per-lake
+      // shape (see the Bug 13/15 tests above).
       final source = buildSource((req) async {
         if (req.url.path.endsWith('/items')) {
-          final key = keyForRequest(req);
           return http.Response(
             jsonEncode({
               'features': [
                 {
                   'bbox': _requestedBbox(req),
                   'assets': {
-                    'grid': {'href': 'https://example.org/$key.zip'},
+                    'grid': {'href': 'https://example.org/shared_lake.zip'},
                   },
                 },
               ],
@@ -984,8 +1021,13 @@ nodata_value -9999
             200,
           );
         }
-        final key = req.url.pathSegments.last.replaceAll('.zip', '');
-        return http.Response.bytes(_zipOf('tile.asc', tileBodies[key]!), 200);
+        return http.Response.bytes(
+          _zipOfMultiple({
+            for (final key in tileKeys)
+              'swissBATHY3D_CHLV95_LN02_$key.asc': tileBodies[key]!,
+          }),
+          200,
+        );
       });
 
       final grid = await source.fetch(center, spanMeters: 2500);
@@ -1042,9 +1084,11 @@ nodata_value -9999
         source.fetch(zurichseePoint, spanMeters: 2000),
         throwsA(isA<BathymetryFetchException>()),
       );
-      // Every one of the 3x3 requested tiles queried STAC (and each was
-      // correctly recognized as not actually answering that tile)...
-      expect(itemCalls, 9);
+      // One shared items lookup for the whole lake (#1764) -- and even the
+      // unrelated item's own declared bbox does not overlap Zürichsee's
+      // registered bbox, so SwissStacClient's own client-side overlap
+      // check (_featureOverlaps) already rejects it...
+      expect(itemCalls, 1);
       // ...so the mismatched asset was never downloaded and spliced into
       // the mosaic at all.
       expect(downloadCalls, 0);
@@ -1057,54 +1101,54 @@ nodata_value -9999
         'but had one wet tile survive would otherwise pass every floor and '
         'get cached as "ok", permanently starving the failed tiles of a '
         'retry -- Copilot review)', () async {
-      // Same boundary point/span as the stitching test above: exactly two
-      // tiles. Tile A (west) always succeeds; tile B (east) always
-      // returns a server error, simulating the kind of one-off network
-      // hiccup that becomes likely once a single site view can span
-      // dozens of tiles. Routed by the request's own bbox rather than
-      // call order, since bounded-concurrency fetches no longer guarantee
-      // which tile's request lands first.
-      const boundaryPoint = GeoPoint(47.354865314, 8.563694834);
-      final boundaryLon = Lv95Transform.toWgs84(2685000, 1245500).longitude;
-      const tileAGrid = '''
-ncols 2
-nrows 2
-xllcorner 2684000
-yllcorner 1245000
-cellsize 500
-nodata_value -9999
-400.0 400.0
-400.0 400.0
-''';
-      const tileBGrid = '''
-ncols 2
-nrows 2
-xllcorner 2685000
-yllcorner 1245000
-cellsize 500
-nodata_value -9999
-410.0 410.0
-410.0 410.0
-''';
+      // Since #1764's fix shares one items lookup per LAKE (not per tile)
+      // within a single fetch() call, a mixed success/failure outcome
+      // across two tiles of the SAME lake can no longer happen at the
+      // network layer -- both would share the one lookup's single fate.
+      // This demonstrates the same regression across two different real
+      // lakes instead, reusing the Rotsee/Vierwaldstättersee geometry from
+      // the reference-level regression test above: Rotsee's shared lookup
+      // always succeeds; Vierwaldstättersee's fails once (a one-off
+      // hiccup that becomes likely once a single view can need several
+      // lakes' worth of lookups) and recovers on retry.
+      const rotseeTileE = 2666;
+      const rotseeTileN = 1213;
+      const vierwaldstaetterTileN = 1215;
+      final center = Lv95Transform.toWgs84(
+        (rotseeTileE + 0.5) * 1000,
+        (rotseeTileN + 0.5) * 1000,
+      );
+      final centerPoint = GeoPoint(center.latitude, center.longitude);
+      expect(findSwissLake(centerPoint)?.name, 'Rotsee');
 
-      var itemCalls = 0;
-      var tileAItemCalls = 0;
-      var tileBItemCalls = 0;
-      var tileADownloads = 0;
+      String tileAsc(int tileE, int tileN) =>
+          'ncols 2\n'
+          'nrows 2\n'
+          'xllcorner ${tileE * 1000}\n'
+          'yllcorner ${tileN * 1000}\n'
+          'cellsize 500\n'
+          'nodata_value -9999\n'
+          '400.0 400.0\n'
+          '400.0 400.0\n';
+
+      final rotseeBox = swissLakeLevels.firstWhere((l) => l.name == 'Rotsee');
+
+      var rotseeItemCalls = 0;
+      var vwItemCalls = 0;
+      var rotseeDownloads = 0;
       final source = buildSource((req) async {
         if (req.url.path.endsWith('/items')) {
-          itemCalls++;
           final bbox = _requestedBbox(req);
-          final centerLon = (bbox[0] + bbox[2]) / 2;
-          if (centerLon < boundaryLon) {
-            tileAItemCalls++;
+          final isRotseeQuery = (bbox[1] - rotseeBox.minLat).abs() < 1e-3;
+          if (isRotseeQuery) {
+            rotseeItemCalls++;
             return http.Response(
               jsonEncode({
                 'features': [
                   {
                     'bbox': bbox,
                     'assets': {
-                      'grid': {'href': 'https://example.org/tile_a.zip'},
+                      'grid': {'href': 'https://example.org/rotsee_tile.zip'},
                     },
                   },
                 ],
@@ -1112,17 +1156,17 @@ nodata_value -9999
               200,
             );
           }
-          tileBItemCalls++;
+          vwItemCalls++;
           // Fails only on the first attempt -- a one-off network hiccup
           // that has since recovered by the retry below.
-          if (tileBItemCalls == 1) return http.Response('server error', 500);
+          if (vwItemCalls == 1) return http.Response('server error', 500);
           return http.Response(
             jsonEncode({
               'features': [
                 {
                   'bbox': bbox,
                   'assets': {
-                    'grid': {'href': 'https://example.org/tile_b.zip'},
+                    'grid': {'href': 'https://example.org/vw_tile.zip'},
                   },
                 },
               ],
@@ -1130,29 +1174,71 @@ nodata_value -9999
             200,
           );
         }
-        if (req.url.path.endsWith('tile_b.zip')) {
-          return http.Response.bytes(_zipOf('tile.asc', tileBGrid), 200);
+        if (req.url.path.endsWith('vw_tile.zip')) {
+          return http.Response.bytes(
+            _zipOf('tile.asc', tileAsc(rotseeTileE, vierwaldstaetterTileN)),
+            200,
+          );
         }
-        tileADownloads++;
-        return http.Response.bytes(_zipOf('tile.asc', tileAGrid), 200);
+        rotseeDownloads++;
+        return http.Response.bytes(
+          _zipOf('tile.asc', tileAsc(rotseeTileE, rotseeTileN)),
+          200,
+        );
       });
 
       await expectLater(
-        source.fetch(boundaryPoint, spanMeters: 200),
+        source.fetch(centerPoint, spanMeters: 8000),
         throwsA(isA<BathymetryFetchException>()),
       );
-      expect(itemCalls, 2);
-      expect(tileADownloads, 1);
+      expect(rotseeItemCalls, 1);
+      expect(rotseeDownloads, 1);
 
-      // Tile A's own success is still durably cached even though the
-      // overall fetch threw -- a retry only re-queries the tile that
-      // actually failed, not a full re-download of the whole span.
-      final again = await source.fetch(boundaryPoint, spanMeters: 200);
-      expect(tileAItemCalls, 1);
-      expect(tileADownloads, 1);
-      expect(again.depthAt(0, 0), closeTo(405.92 - 400.0, 1e-6));
-      expect(again.depthAt(0, 2), closeTo(405.92 - 410.0, 1e-6));
+      // Rotsee's own success is still durably cached even though the
+      // overall fetch threw -- a retry only re-queries the LAKE that
+      // actually failed (Vierwaldstättersee), not every tile of the span.
+      final again = await source.fetch(centerPoint, spanMeters: 8000);
+      expect(rotseeItemCalls, 1);
+      expect(rotseeDownloads, 1);
+      final depths = again.depthsMeters.whereType<double>().toSet();
+      expect(depths, contains(closeTo(419.00 - 400.0, 1e-6)));
+      expect(depths, contains(closeTo(433.58 - 400.0, 1e-6)));
     });
+
+    test(
+      'a single shared metadata-lookup failure is logged once, not once '
+      'per tile sharing it (GitHub Copilot review: up to 81 tiles of the '
+      'same lake sharing one failed lookup used to each log their own '
+      'near-identical warning line, flooding the persistent log file)',
+      () async {
+        final source = buildSource((req) async {
+          if (req.url.path.endsWith('/items')) {
+            return http.Response('server error', 500);
+          }
+          return http.Response('', 404);
+        });
+
+        final failureWarnings = <LogEntry>[];
+        final subscription = LoggerService.logStream.listen((entry) {
+          if (entry.level == LogLevel.warning &&
+              entry.message.contains('failed')) {
+            failureWarnings.add(entry);
+          }
+        });
+
+        // A wide span over a single lake: every tile shares the SAME
+        // failed metadata lookup (#1764), so without deduplication this
+        // would log one warning per tile instead of one for the whole
+        // call.
+        await expectLater(
+          source.fetch(zurichseePoint, spanMeters: 8000),
+          throwsA(isA<BathymetryFetchException>()),
+        );
+        await subscription.cancel();
+
+        expect(failureWarnings, hasLength(1));
+      },
+    );
 
     test('throws when every tile in the span fails transiently, so the '
         'resolver falls through instead of caching a false negative', () async {
@@ -1167,18 +1253,112 @@ nodata_value -9999
         source.fetch(boundaryPoint, spanMeters: 200),
         throwsA(isA<BathymetryFetchException>()),
       );
-      expect(itemCalls, 2);
+      // One shared lake, so one shared (failed) items lookup for the whole
+      // span, not one per tile (#1764).
+      expect(itemCalls, 1);
+    });
+
+    test('two tiles of the SAME lake -- sharing one items lookup and one '
+        'download (#1764) -- can still fail independently at the '
+        'parse/slice stage: a corrupt entry for one tile does not take '
+        'down its neighbor, and only the corrupt tile\'s key is reported '
+        'failed', () async {
+      // A and B are 6 tiles apart in easting -- well outside
+      // extractGridZipTextsFiltered's own +/-1-tile filename-proximity
+      // window, so each tile's OWN _downloadAndParseFiltered call only
+      // ever decompresses its own entry, never its neighbor's (a smaller
+      // separation would fold both entries into BOTH tiles' filtered set
+      // and B's corrupt content would take A down too, defeating the
+      // point of this test).
+      const tileAE = 2684;
+      const tileBE = 2690;
+      const tileN = 1245;
+      final center = Lv95Transform.toWgs84(
+        (tileAE + tileBE) / 2 * 1000 + 500,
+        tileN * 1000 + 500,
+      );
+      final centerPoint = GeoPoint(center.latitude, center.longitude);
+      const tileAGrid = '''
+ncols 2
+nrows 2
+xllcorner 2684000
+yllcorner 1245000
+cellsize 500
+nodata_value -9999
+400.0 400.0
+400.0 400.0
+''';
+
+      var itemCalls = 0;
+      var downloadCalls = 0;
+      final source = buildSource((req) async {
+        if (req.url.path.endsWith('/items')) {
+          itemCalls++;
+          return http.Response(
+            jsonEncode({
+              'features': [
+                {
+                  'bbox': _requestedBbox(req),
+                  'assets': {
+                    'grid': {'href': 'https://example.org/shared_lake.zip'},
+                  },
+                },
+              ],
+            }),
+            200,
+          );
+        }
+        downloadCalls++;
+        return http.Response.bytes(
+          _zipOfMultiple({
+            'swissBATHY3D_CHLV95_LN02_${tileAE}_$tileN.asc': tileAGrid,
+            // Not a valid ESRI ASCII grid at all -- EsriAsciiGridParser
+            // throws FormatException('missing ESRI header: ncols') on it.
+            'swissBATHY3D_CHLV95_LN02_${tileBE}_$tileN.asc': 'not a grid',
+          }),
+          200,
+        );
+      });
+
+      // Wide enough to reach both A (2684) and B (2690) in one span.
+      await expectLater(
+        source.fetch(centerPoint, spanMeters: 7000),
+        throwsA(isA<BathymetryFetchException>()),
+      );
+      // Shared lake, so the items lookup and the zip download both still
+      // happened only once, even though one of the two tiles inside that
+      // shared zip failed to parse.
+      expect(itemCalls, 1);
+      expect(downloadCalls, 1);
+
+      // Tile A's own success is still durably cached despite the overall
+      // throw -- checked directly rather than via a second fetch() call,
+      // since tile B's corrupt entry is a deterministic parse failure
+      // (unlike a transient network error, retrying it would just fail
+      // again the exact same way).
+      final tileCache = SwissBathyTileCacheRepository(db);
+      final cachedA = await tileCache.read(
+        '${tileAE}_$tileN',
+        expectedReferenceLevelMeters: 405.92,
+      );
+      expect(cachedA, isNotNull);
+      expect(cachedA!.grid.depthAt(0, 0), closeTo(405.92 - 400.0, 1e-6));
+      final cachedB = await tileCache.read(
+        '${tileBE}_$tileN',
+        expectedReferenceLevelMeters: 405.92,
+      );
+      expect(cachedB, isNull);
     });
 
     test('a missing tile inside the span is a gap, not a crash, when at least '
         'one neighboring tile has data', () async {
-      // Same boundary point/span as above, but the east tile has no STAC
-      // item at all (empty feature list) — a genuine coverage gap. Routed
-      // by the request's own bbox rather than call order, since
-      // bounded-concurrency fetches no longer guarantee which tile's
-      // request lands first.
+      // Same boundary point/span as above, but this time the shared
+      // lake-wide asset's zip holds an entry for the west tile only -- the
+      // east tile is a genuine coverage gap within an asset that does
+      // otherwise cover the lake (since #1764's fix, both tiles share one
+      // items lookup and one href, so a per-tile gap can only come from
+      // the downloaded content itself, not from the items response).
       const boundaryPoint = GeoPoint(47.354865314, 8.563694834);
-      final boundaryLon = Lv95Transform.toWgs84(2685000, 1245500).longitude;
       const tileAGrid = '''
 ncols 2
 nrows 2
@@ -1194,90 +1374,86 @@ nodata_value -9999
       final source = buildSource((req) async {
         if (req.url.path.endsWith('/items')) {
           itemCalls++;
-          final bbox = _requestedBbox(req);
-          final centerLon = (bbox[0] + bbox[2]) / 2;
-          if (centerLon < boundaryLon) {
-            return http.Response(
-              jsonEncode({
-                'features': [
-                  {
-                    'bbox': bbox,
-                    'assets': {
-                      'grid': {'href': 'https://example.org/tile_a.zip'},
-                    },
+          return http.Response(
+            jsonEncode({
+              'features': [
+                {
+                  'bbox': _requestedBbox(req),
+                  'assets': {
+                    'grid': {'href': 'https://example.org/shared_lake.zip'},
                   },
-                ],
-              }),
-              200,
-            );
-          }
-          return http.Response(jsonEncode({'features': []}), 200);
+                },
+              ],
+            }),
+            200,
+          );
         }
-        return http.Response.bytes(_zipOf('tile.asc', tileAGrid), 200);
+        return http.Response.bytes(
+          _zipOfMultiple({'swissBATHY3D_CHLV95_LN02_2684_1245.asc': tileAGrid}),
+          200,
+        );
       });
 
       final grid = await source.fetch(boundaryPoint, spanMeters: 200);
 
-      expect(itemCalls, 2);
+      expect(itemCalls, 1);
       expect(grid.rows, 2);
       expect(grid.cols, 2);
       expect(grid.depthAt(0, 0), closeTo(405.92 - 400.0, 1e-6));
     });
 
-    test('caps concurrent tile requests at maxConcurrentTileRequests for a '
-        'span wide enough to need more tiles than the limit', () async {
+    test('a wide span never has more than one items request in flight at '
+        'once, since every one of its tiles shares the same lake\'s single '
+        'memoized lookup (#1764) -- superseding the old per-tile concurrency '
+        'cap, which this same 9-tile span used to exercise up to '
+        'maxConcurrentTileRequests before that fix', () async {
       // 3x3 = 9 tiles for spanMeters 2500 (matches the realistic-tile-
-      // count stitching test above), comfortably more than
-      // SwissBathy3dSource.maxConcurrentTileRequests so a bounded worker
-      // pool can be told apart from firing every tile's request at once.
+      // count stitching test above), all inside the same lake. Before
+      // #1764, each tile fired its own items request and a bounded worker
+      // pool capped how many ran at once; now every one of the 9 shares
+      // one memoized lookup, so at most one ever reaches the network
+      // regardless of maxConcurrentTileRequests. _runBounded's general
+      // boundedness for genuinely independent lookups is still exercised
+      // by the Rotsee/Vierwaldstättersee-style multi-lake tests elsewhere
+      // in this file.
       var active = 0;
       var peak = 0;
-      // Once true, later requests (the tiles picked up after the first
-      // release) resolve immediately instead of queuing a new gate --
-      // otherwise those late gates would never be completed and the fetch
-      // would hang forever, since the release loop below only runs once.
-      var released = false;
-      final pendingGates = <Completer<void>>[];
+      var calls = 0;
+      final gate = Completer<void>();
 
       final source = buildSource((req) async {
-        if (released) {
-          return http.Response(jsonEncode({'features': []}), 200);
-        }
+        calls++;
         active += 1;
         if (active > peak) peak = active;
-        final gate = Completer<void>();
-        pendingGates.add(gate);
         await gate.future;
         active -= 1;
-        // Every tile reports "no data here" once released, so the fetch
-        // fails cleanly once all nine are accounted for -- this test only
-        // cares about how many requests were in flight at once, not the
-        // resulting grid.
+        // Reports "no data here" once released, so the fetch fails
+        // cleanly -- this test only cares how many requests were ever in
+        // flight, not the resulting grid.
         return http.Response(jsonEncode({'features': []}), 200);
       });
 
       final pending = source.fetch(zurichseePoint, spanMeters: 2500);
 
-      // Yield repeatedly so the worker pool spins up to its limit before
-      // any gate is released.
+      // Yield repeatedly so every one of the 9 tile tasks gets a chance to
+      // reach the (shared) lookup before it is released.
       for (var i = 0; i < 10; i++) {
         await Future<void>.delayed(Duration.zero);
       }
-      expect(peak, SwissBathy3dSource.maxConcurrentTileRequests);
+      expect(peak, 1);
+      expect(calls, 1);
 
-      released = true;
-      for (final c in pendingGates) {
-        c.complete();
-      }
+      gate.complete();
       await expectLater(pending, throwsA(isA<BathymetryFetchException>()));
     });
 
     test('a tile already cached from an earlier fetch is served without a '
         'repeat network call when a later, wider fetch spans it alongside a '
         'genuinely new neighboring tile', () async {
-      // Same boundary point/span/tiles as the stitching test above.
+      // Same boundary point/span/tiles as the stitching test above: both
+      // tiles are the same lake, sharing one items lookup and one href
+      // (#1764), modeled as one zip with each tile's own named entry.
       const boundaryPoint = GeoPoint(47.354865314, 8.563694834);
-      final boundaryLon = Lv95Transform.toWgs84(2685000, 1245500).longitude;
       const tileAGrid = '''
 ncols 2
 nrows 2
@@ -1304,18 +1480,13 @@ nodata_value -9999
       final source = buildSource((req) async {
         if (req.url.path.endsWith('/items')) {
           itemCalls++;
-          final bbox = _requestedBbox(req);
-          final centerLon = (bbox[0] + bbox[2]) / 2;
-          final href = centerLon < boundaryLon
-              ? 'https://example.org/tile_a.zip'
-              : 'https://example.org/tile_b.zip';
           return http.Response(
             jsonEncode({
               'features': [
                 {
-                  'bbox': bbox,
+                  'bbox': _requestedBbox(req),
                   'assets': {
-                    'grid': {'href': href},
+                    'grid': {'href': 'https://example.org/shared_lake.zip'},
                   },
                 },
               ],
@@ -1324,10 +1495,13 @@ nodata_value -9999
           );
         }
         downloadCalls++;
-        final body = req.url.path.endsWith('tile_a.zip')
-            ? tileAGrid
-            : tileBGrid;
-        return http.Response.bytes(_zipOf('tile.asc', body), 200);
+        return http.Response.bytes(
+          _zipOfMultiple({
+            'swissBATHY3D_CHLV95_LN02_2684_1245.asc': tileAGrid,
+            'swissBATHY3D_CHLV95_LN02_2685_1245.asc': tileBGrid,
+          }),
+          200,
+        );
       });
 
       // Narrow fetch centered well inside tile A only (not at the
@@ -1351,6 +1525,503 @@ nodata_value -9999
       expect(grid.cols, 4);
     });
   });
+
+  group(
+    'SwissBathy3dSource pre-caching sibling dive sites (#1764 follow-up)',
+    () {
+      // Fire-and-forget (see fetch()'s own doc): pumpEventQueue drains the
+      // microtasks/timers the background pre-cache pass runs on, since
+      // fetch()'s own returned Future does not wait for it.
+      Future<void> settle() => pumpEventQueue();
+
+      String tileAsc(int tileE, int tileN, double value) =>
+          'ncols 2\n'
+          'nrows 2\n'
+          'xllcorner ${tileE * 1000}\n'
+          'yllcorner ${tileN * 1000}\n'
+          'cellsize 500\n'
+          'nodata_value -9999\n'
+          '$value $value\n'
+          '$value $value\n';
+
+      test('another known site on the SAME lake, outside the fetched span, '
+          'gets its own tile cached from the already-downloaded asset -- no '
+          'extra items lookup or download', () async {
+        // zurichseePoint's own tile is 2685_1240 (see file header); this
+        // sibling is a different, distant tile still inside Zürichsee's
+        // registered bbox, that a spanMeters: 100 fetch never touches on its
+        // own.
+        final siblingWgs84 = Lv95Transform.toWgs84(2690500, 1245500);
+        final siblingPoint = GeoPoint(
+          siblingWgs84.latitude,
+          siblingWgs84.longitude,
+        );
+        expect(findSwissLake(siblingPoint)?.name, 'Zürichsee');
+
+        var itemCalls = 0;
+        var downloadCalls = 0;
+        final source = SwissBathy3dSource(
+          tileCache: SwissBathyTileCacheRepository(db),
+          stacClient: SwissStacClient(
+            client: MockClient((req) async {
+              if (req.url.path.endsWith('/items')) {
+                itemCalls++;
+                return http.Response(
+                  jsonEncode({
+                    'features': [
+                      {
+                        'bbox': _requestedBbox(req),
+                        'assets': {
+                          'grid': {
+                            'href': 'https://example.org/shared_lake.zip',
+                          },
+                        },
+                      },
+                    ],
+                  }),
+                  200,
+                );
+              }
+              downloadCalls++;
+              return http.Response.bytes(
+                _zipOfMultiple({
+                  'swissBATHY3D_CHLV95_LN02_2685_1240.asc': tileAsc(
+                    2685,
+                    1240,
+                    100.0,
+                  ),
+                  'swissBATHY3D_CHLV95_LN02_2690_1245.asc': tileAsc(
+                    2690,
+                    1245,
+                    200.0,
+                  ),
+                }),
+                200,
+              );
+            }),
+          ),
+          knownSiteLocations: () async => [siblingPoint],
+        );
+
+        await source.fetch(zurichseePoint, spanMeters: 100);
+        await settle();
+
+        final tileCache = SwissBathyTileCacheRepository(db);
+        final cached = await tileCache.read(
+          '2690_1245',
+          expectedReferenceLevelMeters: 405.92,
+        );
+        expect(cached, isNotNull);
+        expect(cached!.grid.depthAt(0, 0), closeTo(405.92 - 200.0, 1e-9));
+        // The sibling's tile came out of the SAME lookup and download the
+        // requested tile already triggered -- neither count grew.
+        expect(itemCalls, 1);
+        expect(downloadCalls, 1);
+      });
+
+      test('a known site on a DIFFERENT lake is left untouched', () async {
+        // Rotsee, nowhere near Zürichsee -- see the reference-level
+        // regression test above for this coordinate's provenance.
+        const rotseeTileE = 2666;
+        const rotseeTileN = 1213;
+        final rotseeWgs84 = Lv95Transform.toWgs84(
+          (rotseeTileE + 0.5) * 1000,
+          (rotseeTileN + 0.5) * 1000,
+        );
+        final rotseePoint = GeoPoint(
+          rotseeWgs84.latitude,
+          rotseeWgs84.longitude,
+        );
+        expect(findSwissLake(rotseePoint)?.name, 'Rotsee');
+
+        final source = SwissBathy3dSource(
+          tileCache: SwissBathyTileCacheRepository(db),
+          stacClient: SwissStacClient(
+            client: MockClient((req) async {
+              if (req.url.path.endsWith('/items')) {
+                return http.Response(
+                  jsonEncode({
+                    'features': [
+                      {
+                        'bbox': _requestedBbox(req),
+                        'assets': {
+                          'grid': {
+                            'href': 'https://example.org/shared_lake.zip',
+                          },
+                        },
+                      },
+                    ],
+                  }),
+                  200,
+                );
+              }
+              return http.Response.bytes(
+                _zipOfMultiple({
+                  'swissBATHY3D_CHLV95_LN02_2685_1240.asc': tileAsc(
+                    2685,
+                    1240,
+                    100.0,
+                  ),
+                }),
+                200,
+              );
+            }),
+          ),
+          knownSiteLocations: () async => [rotseePoint],
+        );
+
+        await source.fetch(zurichseePoint, spanMeters: 100);
+        await settle();
+
+        final tileCache = SwissBathyTileCacheRepository(db);
+        final cached = await tileCache.read(
+          '${rotseeTileE}_$rotseeTileN',
+          expectedReferenceLevelMeters: 419.00,
+        );
+        expect(cached, isNull);
+      });
+
+      test('a sibling site still gets its own real data even though the '
+          'fetch-center tile itself resolved to no data (GitHub Copilot '
+          'review: candidates are shared per LAKE, but each tile -- '
+          'including every sibling -- still re-checks its OWN entry '
+          'proximity and content coverage independently)', () async {
+        // The fetched tile (2685_1240) has NO matching zip entry at all,
+        // so its own resolution is a genuine "no data" gap -- while the
+        // sibling (2690_1245), five tiles away, has a real entry. Sharing
+        // the (non-empty) asset CANDIDATES list between them must not
+        // make the sibling inherit the center tile's own "no data"
+        // verdict.
+        final siblingWgs84 = Lv95Transform.toWgs84(2690500, 1245500);
+        final siblingPoint = GeoPoint(
+          siblingWgs84.latitude,
+          siblingWgs84.longitude,
+        );
+
+        final source = SwissBathy3dSource(
+          tileCache: SwissBathyTileCacheRepository(db),
+          stacClient: SwissStacClient(
+            client: MockClient((req) async {
+              if (req.url.path.endsWith('/items')) {
+                return http.Response(
+                  jsonEncode({
+                    'features': [
+                      {
+                        'bbox': _requestedBbox(req),
+                        'assets': {
+                          'grid': {
+                            'href': 'https://example.org/shared_lake.zip',
+                          },
+                        },
+                      },
+                    ],
+                  }),
+                  200,
+                );
+              }
+              // Only the SIBLING's own tile has a matching entry -- the
+              // fetched tile (2685_1240) has none, so it must resolve to
+              // a genuine gap regardless of this non-empty candidates
+              // list.
+              return http.Response.bytes(
+                _zipOfMultiple({
+                  'swissBATHY3D_CHLV95_LN02_2690_1245.asc': tileAsc(
+                    2690,
+                    1245,
+                    200.0,
+                  ),
+                }),
+                200,
+              );
+            }),
+          ),
+          knownSiteLocations: () async => [siblingPoint],
+        );
+
+        // The fetch center's own tile is a genuine, single-tile gap (no
+        // entry at all), so fetch() itself throws -- fire-and-forget
+        // precaching is deliberately dispatched BEFORE that throw (see
+        // fetch()'s own doc) and must still run regardless.
+        await expectLater(
+          source.fetch(zurichseePoint, spanMeters: 100),
+          throwsA(isA<BathymetryFetchException>()),
+        );
+        await settle();
+
+        final tileCache = SwissBathyTileCacheRepository(db);
+        final siblingCached = await tileCache.read(
+          '2690_1245',
+          expectedReferenceLevelMeters: 405.92,
+        );
+        expect(siblingCached, isNotNull);
+        expect(
+          siblingCached!.grid.depthAt(0, 0),
+          closeTo(405.92 - 200.0, 1e-9),
+        );
+      });
+
+      test('a transient failure on the fetch-center tile does not trigger '
+          'pre-caching for its known siblings (GitHub Copilot review: '
+          'marking a lake "fresh" on a failed attempt let the precache '
+          'pass retry that same failing lookup once per known sibling, '
+          'instead of leaving it to the caller\'s own retry)', () async {
+        final siblingWgs84 = Lv95Transform.toWgs84(2690500, 1245500);
+        final siblingPoint = GeoPoint(
+          siblingWgs84.latitude,
+          siblingWgs84.longitude,
+        );
+
+        var itemCalls = 0;
+        final source = SwissBathy3dSource(
+          tileCache: SwissBathyTileCacheRepository(db),
+          stacClient: SwissStacClient(
+            client: MockClient((req) async {
+              if (req.url.path.endsWith('/items')) {
+                itemCalls++;
+                return http.Response('server error', 500);
+              }
+              return http.Response.bytes(
+                _zipOfMultiple({
+                  'swissBATHY3D_CHLV95_LN02_2690_1245.asc': tileAsc(
+                    2690,
+                    1245,
+                    200.0,
+                  ),
+                }),
+                200,
+              );
+            }),
+          ),
+          knownSiteLocations: () async => [siblingPoint],
+        );
+
+        await expectLater(
+          source.fetch(zurichseePoint, spanMeters: 100),
+          throwsA(isA<BathymetryFetchException>()),
+        );
+        await settle();
+
+        // The precache pass never fired: only the fetch-center tile's
+        // own (failed) attempt hit the metadata endpoint.
+        expect(itemCalls, 1);
+
+        final tileCache = SwissBathyTileCacheRepository(db);
+        final siblingCached = await tileCache.read(
+          '2690_1245',
+          expectedReferenceLevelMeters: 405.92,
+        );
+        expect(siblingCached, isNull);
+      });
+
+      test('a stale tile that actually re-downloads a changed asset also '
+          'triggers pre-caching for sibling sites, not just a first-ever '
+          'fetch (GitHub Copilot review)', () async {
+        final siblingWgs84 = Lv95Transform.toWgs84(2690500, 1245500);
+        final siblingPoint = GeoPoint(
+          siblingWgs84.latitude,
+          siblingWgs84.longitude,
+        );
+
+        var version = 1;
+        Future<http.Response> handler(http.Request req) async {
+          if (req.url.path.endsWith('/items')) {
+            return http.Response(
+              jsonEncode({
+                'features': [
+                  {
+                    'bbox': _requestedBbox(req),
+                    'properties': {
+                      'datetime': version == 1
+                          ? '2023-01-01T00:00:00Z'
+                          : '2024-06-01T00:00:00Z',
+                    },
+                    'assets': {
+                      'grid': {'href': 'https://example.org/shared_lake.zip'},
+                    },
+                  },
+                ],
+              }),
+              200,
+            );
+          }
+          return http.Response.bytes(
+            _zipOfMultiple({
+              'swissBATHY3D_CHLV95_LN02_2685_1240.asc': tileAsc(
+                2685,
+                1240,
+                version == 1 ? 100.0 : 150.0,
+              ),
+              'swissBATHY3D_CHLV95_LN02_2690_1245.asc': tileAsc(
+                2690,
+                1245,
+                200.0,
+              ),
+            }),
+            200,
+          );
+        }
+
+        // First fetch (no known sites yet) caches the tile normally.
+        final seedingSource = SwissBathy3dSource(
+          tileCache: SwissBathyTileCacheRepository(db),
+          stacClient: SwissStacClient(client: MockClient(handler)),
+        );
+        await seedingSource.fetch(zurichseePoint, spanMeters: 100);
+
+        // Backdate its check so the next fetch treats it as stale, and
+        // bump the served version so that stale check genuinely
+        // re-downloads and re-parses, not just confirms "unchanged".
+        await (db.update(
+          db.swissBathyTileCache,
+        )..where((t) => t.tileKey.equals('2685_1240'))).write(
+          SwissBathyTileCacheCompanion(
+            checkedAt: Value(
+              DateTime.now()
+                  .subtract(SwissBathy3dSource.staleCheckInterval * 2)
+                  .millisecondsSinceEpoch,
+            ),
+          ),
+        );
+        version = 2;
+
+        final source = SwissBathy3dSource(
+          tileCache: SwissBathyTileCacheRepository(db),
+          stacClient: SwissStacClient(client: MockClient(handler)),
+          knownSiteLocations: () async => [siblingPoint],
+        );
+
+        final grid = await source.fetch(zurichseePoint, spanMeters: 100);
+        await settle();
+
+        // The stale tile genuinely picked up the new version.
+        expect(grid.depthAt(0, 0), closeTo(405.92 - 150.0, 1e-9));
+
+        final tileCache = SwissBathyTileCacheRepository(db);
+        final siblingCached = await tileCache.read(
+          '2690_1245',
+          expectedReferenceLevelMeters: 405.92,
+        );
+        expect(siblingCached, isNotNull);
+        expect(
+          siblingCached!.grid.depthAt(0, 0),
+          closeTo(405.92 - 200.0, 1e-9),
+        );
+      });
+
+      test('a failing knownSiteLocations callback never affects the caller\'s '
+          'own result', () async {
+        final source = SwissBathy3dSource(
+          tileCache: SwissBathyTileCacheRepository(db),
+          stacClient: SwissStacClient(
+            client: MockClient((req) async {
+              if (req.url.path.endsWith('/items')) {
+                return http.Response(
+                  jsonEncode({
+                    'features': [
+                      {
+                        'bbox': _requestedBbox(req),
+                        'assets': {
+                          'grid': {
+                            'href': 'https://example.org/shared_lake.zip',
+                          },
+                        },
+                      },
+                    ],
+                  }),
+                  200,
+                );
+              }
+              return http.Response.bytes(
+                _zipOfMultiple({
+                  'swissBATHY3D_CHLV95_LN02_2685_1240.asc': tileAsc(
+                    2685,
+                    1240,
+                    100.0,
+                  ),
+                }),
+                200,
+              );
+            }),
+          ),
+          knownSiteLocations: () async =>
+              throw StateError('site database unavailable'),
+        );
+
+        final grid = await source.fetch(zurichseePoint, spanMeters: 100);
+        await settle();
+
+        expect(grid.depthAt(0, 0), closeTo(405.92 - 100.0, 1e-9));
+      });
+
+      test('one known site with corrupt coordinates does not abort '
+          'pre-caching for every OTHER known site in the same call', () async {
+        final siblingWgs84 = Lv95Transform.toWgs84(2690500, 1245500);
+        final siblingPoint = GeoPoint(
+          siblingWgs84.latitude,
+          siblingWgs84.longitude,
+        );
+        const corruptSite = GeoPoint(double.nan, double.nan);
+
+        var downloadCalls = 0;
+        final source = SwissBathy3dSource(
+          tileCache: SwissBathyTileCacheRepository(db),
+          stacClient: SwissStacClient(
+            client: MockClient((req) async {
+              if (req.url.path.endsWith('/items')) {
+                return http.Response(
+                  jsonEncode({
+                    'features': [
+                      {
+                        'bbox': _requestedBbox(req),
+                        'assets': {
+                          'grid': {
+                            'href': 'https://example.org/shared_lake.zip',
+                          },
+                        },
+                      },
+                    ],
+                  }),
+                  200,
+                );
+              }
+              downloadCalls++;
+              return http.Response.bytes(
+                _zipOfMultiple({
+                  'swissBATHY3D_CHLV95_LN02_2685_1240.asc': tileAsc(
+                    2685,
+                    1240,
+                    100.0,
+                  ),
+                  'swissBATHY3D_CHLV95_LN02_2690_1245.asc': tileAsc(
+                    2690,
+                    1245,
+                    200.0,
+                  ),
+                }),
+                200,
+              );
+            }),
+          ),
+          // The corrupt entry is listed FIRST, so a missing per-site
+          // guard would abort the loop before ever reaching the valid
+          // sibling after it.
+          knownSiteLocations: () async => [corruptSite, siblingPoint],
+        );
+
+        await source.fetch(zurichseePoint, spanMeters: 100);
+        await settle();
+
+        final tileCache = SwissBathyTileCacheRepository(db);
+        final cached = await tileCache.read(
+          '2690_1245',
+          expectedReferenceLevelMeters: 405.92,
+        );
+        expect(cached, isNotNull);
+        expect(cached!.grid.depthAt(0, 0), closeTo(405.92 - 200.0, 1e-9));
+        expect(downloadCalls, 1);
+      });
+    },
+  );
 
   group('SwissBathy3dSource periodic freshness check', () {
     Future<void> backdateCheckedAt(GeoPoint point, DateTime checkedAt) async {
@@ -1882,6 +2553,100 @@ nodata_value -9999
         expect(summary.updated, 0);
       },
     );
+
+    test('a transient metadata-check failure for a lake does not poison the '
+        'sweep\'s check for a LATER tile of the SAME lake, once the pool '
+        'has moved past the failed attempt (#1764 follow-up: the shared '
+        'per-lake candidates lookup must evict a failed attempt instead of '
+        'replaying it forever to every tile sharing it)', () async {
+      // maxConcurrentTileRequests + 1 tiles of the same lake, all sharing
+      // one STAC asset href: the first maxConcurrentTileRequests tiles'
+      // checks all start together and genuinely share ONE in-flight
+      // attempt (intended -- see _memoizeFuture's doc), so they fail
+      // together when it does. The pool only starts the LAST tile's
+      // check once one of those slots frees up, i.e. strictly after that
+      // shared attempt has already failed and (with the fix) evicted
+      // itself -- so this last tile must get its own fresh attempt
+      // rather than silently inheriting the others' failure.
+      const tileCount = SwissBathy3dSource.maxConcurrentTileRequests + 1;
+      const cellsPerTile = 10;
+      String row(double value) => List.filled(cellsPerTile, value).join(' ');
+      final wideGrid = () {
+        final buffer = StringBuffer()
+          ..writeln('ncols ${cellsPerTile * tileCount}')
+          ..writeln('nrows $cellsPerTile')
+          ..writeln('xllcorner 2685000')
+          ..writeln('yllcorner 1240000')
+          ..writeln('cellsize 100')
+          ..writeln('nodata_value -9999');
+        final dataRow = List.generate(
+          tileCount,
+          (i) => row(100.0 + i),
+        ).join(' ');
+        for (var r = 0; r < cellsPerTile; r++) {
+          buffer.writeln(dataRow);
+        }
+        return buffer.toString();
+      }();
+
+      var sweeping = false;
+      var sweepItemCalls = 0;
+      final source = buildSource((req) async {
+        if (req.url.path.endsWith('/items')) {
+          if (sweeping) {
+            sweepItemCalls++;
+            // Only the FIRST metadata lookup during the sweep fails.
+            // If the shared per-lake lookup wrongly kept that failure
+            // cached, every later tile's check would fail without ever
+            // issuing a second request.
+            if (sweepItemCalls == 1) {
+              return http.Response('server error', 500);
+            }
+          }
+          return http.Response(
+            jsonEncode({
+              'features': [
+                {
+                  'bbox': [8.0, 46.0, 10.0, 48.0],
+                  'properties': {'datetime': '2023-01-01T00:00:00Z'},
+                  'assets': {
+                    'grid': {'href': 'https://example.org/lake_wide.zip'},
+                  },
+                },
+              ],
+            }),
+            200,
+          );
+        }
+        return http.Response.bytes(_zipOf('lake.asc', wideGrid), 200);
+      });
+
+      for (var i = 0; i < tileCount; i++) {
+        final tileE = 2685 + i;
+        final center = Lv95Transform.toWgs84(tileE * 1000 + 500, 1240500);
+        await source.fetch(
+          GeoPoint(center.latitude, center.longitude),
+          spanMeters: 100,
+        );
+      }
+
+      sweeping = true;
+      final summary = await source.refreshAllCachedTiles();
+
+      expect(summary.total, tileCount);
+      // The first maxConcurrentTileRequests tiles' checks genuinely
+      // share -- and so all fail with -- the one in-flight attempt; the
+      // one tile the pool only starts afterward gets its own fresh,
+      // successful attempt instead of inheriting that failure.
+      expect(summary.failed, SwissBathy3dSource.maxConcurrentTileRequests);
+      expect(summary.upToDate, 1);
+      expect(summary.updated, 0);
+      // Exactly two metadata attempts for the whole sweep: the one
+      // shared (and failed) attempt, and the later tile's own fresh
+      // retry -- not one attempt per tile, and not the failure silently
+      // replayed to every tile sharing the cache entry.
+      expect(sweepItemCalls, 2);
+    });
 
     test(
       'caps concurrent freshness checks at maxConcurrentTileRequests when '

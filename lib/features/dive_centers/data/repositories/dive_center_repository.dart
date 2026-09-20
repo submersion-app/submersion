@@ -7,6 +7,7 @@ import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
 import 'package:submersion/features/dive_log/data/repositories/dive_parent_links.dart';
@@ -26,14 +27,17 @@ class DiveCenterRepository {
   Future<List<domain.DiveCenter>> getAllDiveCenters({String? diverId}) async {
     try {
       final query = _db.select(_db.diveCenters)
-        ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+        ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
       if (diverId != null) {
         query.where((t) => t.diverId.equals(diverId));
       }
 
       final rows = await query.get();
-      return rows.map(_mapRowToDiveCenter).toList();
+      return sortedByText(
+        rows,
+        (r) => r.name,
+      ).map(_mapRowToDiveCenter).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all dive centers',
@@ -81,10 +85,13 @@ class DiveCenterRepository {
          OR LOWER(city) LIKE ?
          OR LOWER(country) LIKE ?)
       $diverFilter
-      ORDER BY name ASC
+      ORDER BY name COLLATE NOCASE ASC
     ''', variables: variables).get();
 
-    return results.map(_mapCustomRowToDiveCenter).toList();
+    return sortedByText(
+      results,
+      (r) => r.data['name'] as String,
+    ).map(_mapCustomRowToDiveCenter).toList();
   }
 
   /// Get dive centers by country
@@ -94,14 +101,14 @@ class DiveCenterRepository {
   }) async {
     final query = _db.select(_db.diveCenters)
       ..where((t) => t.country.equals(country))
-      ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+      ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
     if (diverId != null) {
       query.where((t) => t.diverId.equals(diverId));
     }
 
     final rows = await query.get();
-    return rows.map(_mapRowToDiveCenter).toList();
+    return sortedByText(rows, (r) => r.name).map(_mapRowToDiveCenter).toList();
   }
 
   /// Get dive centers with coordinates (for map view)
@@ -110,14 +117,14 @@ class DiveCenterRepository {
   }) async {
     final query = _db.select(_db.diveCenters)
       ..where((t) => t.latitude.isNotNull() & t.longitude.isNotNull())
-      ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+      ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
     if (diverId != null) {
       query.where((t) => t.diverId.equals(diverId));
     }
 
     final rows = await query.get();
-    return rows.map(_mapRowToDiveCenter).toList();
+    return sortedByText(rows, (r) => r.name).map(_mapRowToDiveCenter).toList();
   }
 
   /// Create a new dive center
@@ -217,12 +224,18 @@ class DiveCenterRepository {
 
   /// Delete a dive center. The dives logged with it survive with the center
   /// cleared: `dives.dive_center_id` has no ON DELETE action, so a dive still
-  /// pointing at the center would fail the delete (issue #1952). One
-  /// transaction, so a failed delete leaves the dives linked.
+  /// pointing at the center would fail the delete (issue #1952). Its rental
+  /// gear notes cascade, and each is tombstoned by hand: SQLite cascades
+  /// write no deletion-log rows, so a peer would otherwise resurrect them
+  /// (issue #2075). One transaction, so a failed delete leaves the dives
+  /// linked and the notes in place.
   Future<void> deleteDiveCenter(String id) async {
     try {
       _log.info('Deleting dive center: $id');
       await _db.transaction(() async {
+        final notes = await (_db.select(
+          _db.diveCenterGearNotes,
+        )..where((t) => t.diveCenterId.equals(id))).get();
         await clearDiveCenterLinks(_db, _syncRepository, [
           id,
         ], now: DateTime.now().millisecondsSinceEpoch);
@@ -231,6 +244,12 @@ class DiveCenterRepository {
           entityType: 'diveCenters',
           recordId: id,
         );
+        for (final note in notes) {
+          await _syncRepository.logDeletion(
+            entityType: 'diveCenterGearNotes',
+            recordId: note.id,
+          );
+        }
       });
       SyncEventBus.notifyLocalChange();
       _log.info('Deleted dive center: $id');
@@ -270,6 +289,35 @@ class DiveCenterRepository {
         .getSingle();
 
     return result.data['count'] as int? ?? 0;
+  }
+
+  /// The newest real dive logged with [centerId], skipping planned dives
+  /// and [excludingDiveId] (the dive being edited), for the "last time
+  /// here" card (issue #2075). Null when the diver has no other dive there.
+  /// stats-scope-exempt: a displayed lookup, not a statistic; a dive the
+  /// diver excluded from their numbers still tells them what they wore.
+  Future<String?> latestDiveIdAtCenter(
+    String centerId, {
+    String? excludingDiveId,
+  }) async {
+    final rows = await _db
+        .customSelect(
+          '''
+      SELECT id FROM dives
+      WHERE dive_center_id = ?
+        AND is_planned = 0
+        AND (? IS NULL OR id <> ?)
+      ORDER BY dive_date_time DESC, id DESC
+      LIMIT 1
+    ''',
+          variables: [
+            Variable.withString(centerId),
+            Variable<String>(excludingDiveId),
+            Variable<String>(excludingDiveId),
+          ],
+        )
+        .get();
+    return rows.isEmpty ? null : rows.single.read<String>('id');
   }
 
   /// Get all unique countries

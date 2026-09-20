@@ -54,14 +54,17 @@ void main() {
   test('setSiteDetailSections applies and persists the order', () async {
     final reversed = [
       for (final id in SiteDetailSectionId.values.reversed)
-        SiteDetailSectionConfig(id: id, visible: id != SiteDetailSectionId.map),
+        SiteDetailSectionConfig(
+          id: id,
+          visible: id != SiteDetailSectionId.depth,
+        ),
     ];
     await notifier().setSiteDetailSections(reversed);
 
     final saved = (await stored()).siteDetailSections;
     expect([for (final s in saved) s.id], SiteDetailSectionId.values.reversed);
     expect(
-      saved.firstWhere((s) => s.id == SiteDetailSectionId.map).visible,
+      saved.firstWhere((s) => s.id == SiteDetailSectionId.depth).visible,
       isFalse,
     );
   });

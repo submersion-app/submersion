@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_favorite_button.dart';
 import 'package:submersion/shared/selection/selection_checkbox_slot.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
 
 /// Single-row flat tile for the buddy list (maximum density).
 ///
-/// Row: Buddy name (expanded) | Cert level (~100px) | Dive count (~40px) | Chevron
+/// Row: Buddy name (expanded) | Cert level (~100px) | Dive count (~40px) | Favorite star | Chevron
 /// No avatar, no agency. Uses a bottom border divider instead of a card wrapper.
 class DenseBuddyListTile extends StatelessWidget {
   final Buddy buddy;
@@ -105,6 +106,13 @@ class DenseBuddyListTile extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         )
                       : null,
+                ),
+                // Favoriting (issue #1336), independent of bulk selection.
+                BuddyFavoriteButton(
+                  buddyId: buddy.id,
+                  isFavorite: buddy.isFavorite,
+                  iconSize: 16,
+                  unselectedColor: secondaryTextColor,
                 ),
                 ExcludeSemantics(
                   child: Icon(

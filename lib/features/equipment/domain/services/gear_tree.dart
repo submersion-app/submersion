@@ -9,24 +9,23 @@ class GearNode {
   const GearNode({required this.link, this.children = const []});
 }
 
-/// The rows that came from one set (or none), with their top-level roots.
-class GearBucket {
-  final String? setId;
-  final List<GearNode> roots;
-  const GearBucket({required this.setId, required this.roots});
-}
-
 /// Where each row landed once every row was placed exactly once: the
 /// top-level ids in order, and each id's children in row order.
 typedef _Placement = ({List<String> roots, Map<String, List<String>> children});
 
-/// Turns a flat link list into set buckets and parent-child nesting, the
-/// shape both dive pages and the PDF render (issue #1487). Pure and
-/// cycle-safe: a row whose parent is absent, or part of a loop, is shown
-/// as a top-level row rather than dropped, and the two buoyancy helpers
-/// read the same placement so a loop never rolls up every row at once.
+/// Turns a flat link list into parent-child nesting, the shape both dive
+/// pages and the PDF render (issue #1487). Pure and cycle-safe: a row whose
+/// parent is absent, or part of a loop, is shown as a top-level row rather
+/// than dropped, and the two buoyancy helpers read the same placement so a
+/// loop never rolls up every row at once.
 abstract final class GearTree {
-  static List<GearBucket> build(List<GearLink> links) {
+  /// Every top-level row in link order, set and hand-added alike, each with
+  /// its parts nested beneath it.
+  ///
+  /// One list rather than a run per set so the diver's arrangement orders
+  /// the whole dive at once: a tank swapped in by hand must not trail the
+  /// set's gear as a separately sorted run (#2031). [setIds] names the sets.
+  static List<GearNode> build(List<GearLink> links) {
     final byId = {for (final l in links) l.item.id: l};
     final placement = _place([
       for (final l in links) (id: l.item.id, parent: l.viaEquipmentId),
@@ -35,17 +34,12 @@ abstract final class GearTree {
       link: byId[id]!,
       children: [for (final c in placement.children[id]!) node(c)],
     );
-
-    final buckets = <String?, List<GearNode>>{};
-    for (final id in placement.roots) {
-      buckets.putIfAbsent(byId[id]!.viaSetId, () => []).add(node(id));
-    }
-    final loose = buckets.remove(null);
-    return [
-      for (final e in buckets.entries) GearBucket(setId: e.key, roots: e.value),
-      if (loose != null) GearBucket(setId: null, roots: loose),
-    ];
+    return [for (final id in placement.roots) node(id)];
   }
+
+  /// The sets applied to the dive, each once, in first-seen link order.
+  static List<String> setIds(Iterable<GearLink> links) =>
+      {for (final l in links) ?l.viaSetId}.toList();
 
   /// Ids that have at least one child row once placed: an assembly's own
   /// attributes must not count toward buoyancy when its parts are on the

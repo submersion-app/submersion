@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_consumption_tooltip.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_series_cache.dart';
@@ -121,6 +122,12 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   final bool showPressure;
   final void Function(int? index)? onPointSelected;
 
+  /// Dive time in seconds under the cursor, reported with every
+  /// [onPointSelected]: the selected sample's timestamp, or 0 on the surface
+  /// lead-in vertex before the first sample (which has no profile index).
+  /// Null when the selection clears.
+  final void Function(int? seconds)? onTimeSelected;
+
   // Decompression visualization data (optional)
   /// Ceiling curve in meters, same length as profile
   final List<double>? ceilingCurve;
@@ -217,6 +224,10 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 
   /// fl_chart default axisNameSize used for left and right axes.
   static const double _leftRightAxisNameSize = 16.0;
+
+  /// Width of the border fl_chart draws around the plot. fl_chart lays the
+  /// plot out inside it, so it counts toward the plot insets.
+  static const double _plotBorderWidth = 1.0;
 
   /// axisNameSize for the bottom (time) axis.
   static const double _bottomAxisNameSize = 14.0;
@@ -562,6 +573,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.showTemperature = true,
     this.showPressure = false,
     this.onPointSelected,
+    this.onTimeSelected,
     this.ceilingCurve,
     this.decoStopCurve,
     this.ascentRates,
@@ -1019,6 +1031,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   // Index of the last sample reported via hover, to de-dupe onPointSelected.
   int? _lastHoverIndex;
+  bool _lastHoverOnLeadIn = false;
+
+  // Whether fl_chart's touch callback resolved a sample for the pointer's
+  // latest event. It runs before the pointer-hover fallback for the same
+  // event, and its sample is the one the tooltip and focus dot show.
+  bool _chartTouchSelecting = false;
 
   // Last raw pointer position during a drag; used to compute per-move deltas
   // in the Listener.onPointerMove mouse-pan path (bypasses gesture arena).
@@ -1032,6 +1050,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   // Tooltip memoization
   int? _lastTooltipSpotIndex;
   List<LineTooltipItem?> _lastTooltipItems = [];
+
+  // The readout last reported through onTooltipData, by either cursor. Lets
+  // the external-cursor path skip a reading the pointer already reported,
+  // which is every sample on a chart that feeds its own selection back in as
+  // highlightedTimestamp (the detail panel).
+  //
+  // Carries the lead-in flag, not just the index: on a profile whose first
+  // sample sits one interval in, the synthetic surface vertex and that first
+  // sample are BOTH index 0 but read differently (t=0 at the surface versus
+  // the sample's own time and depth). Keyed on the index alone, the crossing
+  // from one to the other would be swallowed and the card would sit at 0:00
+  // until the second sample.
+  ({int index, bool onLeadIn})? _lastEmittedCursor;
 
   // Depth-band touched spots whose built-in focus indicator is hidden, so
   // velocity colouring shows a single depth dot instead of one per band.
@@ -1280,7 +1311,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   @override
   void didUpdateWidget(covariant DiveProfileChart oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.profile != widget.profile) {
+    final profileChanged = oldWidget.profile != widget.profile;
+    if (profileChanged) {
       _lastTooltipSpotIndex = null;
       _lastTooltipItems = [];
     }
@@ -1290,6 +1322,71 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     if (oldWidget.events != widget.events) {
       _scheduleComputedEventsSeed();
     }
+    // The external cursor reports when it moves, and again when the profile
+    // under a stationary cursor is replaced: switching source keeps the
+    // timestamp but changes which reading it names, so the card would
+    // otherwise keep describing the source the user just switched away from.
+    // Gated on having reported something already, so a chart whose cursor is
+    // merely carried over (the detail panel's shared tracking index) does not
+    // open its tooltip on a source switch the user did not scrub.
+    final hadReadout = _lastEmittedCursor != null;
+    if (profileChanged) _lastEmittedCursor = null;
+    if (oldWidget.highlightedTimestamp != widget.highlightedTimestamp ||
+        (profileChanged && hadReadout)) {
+      _scheduleCursorReadout();
+    }
+  }
+
+  /// Report the sample under the external cursor through
+  /// [DiveProfileChart.onTooltipData].
+  ///
+  /// The cursor is whatever moves [DiveProfileChart.highlightedTimestamp]:
+  /// playback's ticker and the fullscreen minimap scrubber both do, and before
+  /// issue #2180 neither reached the readout, so its values sat frozen on the
+  /// last hovered sample while the cursor line swept the dive.
+  ///
+  /// Post-frame because the consumer rebuilds on these rows, and this runs
+  /// inside the parent's own build pass. Emitting only on a changed sample
+  /// keeps a chart whose cursor follows its own touch (the detail panel, which
+  /// feeds its tracking index straight back in) from reporting the same sample
+  /// twice per scrub tick.
+  ///
+  /// A cleared cursor emits nothing rather than null: null means "no reading"
+  /// and empties the panel's tooltip, whereas a paused or released cursor
+  /// should leave the last values standing.
+  void _scheduleCursorReadout() {
+    if (!widget.tooltipBelow || widget.onTooltipData == null) return;
+    final timestamp = widget.highlightedTimestamp;
+    if (timestamp == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // Re-read: several cursor moves can coalesce into one frame, and only
+      // the position the chart actually painted should be reported.
+      final current = widget.highlightedTimestamp;
+      if (current == null) return;
+      final index = indexForTimestamp(widget.profile, current);
+      if (index == null) return;
+      final onLeadIn =
+          current < widget.profile.first.timestamp &&
+          shouldDrawSurfaceLeadIn(widget.profile);
+      final last = _lastEmittedCursor;
+      if (last != null && last.index == index) {
+        // Same sample: only a change of lead-in state is worth restating,
+        // and not even that while the pointer is the thing that selected it.
+        // A chart that echoes its own selection back as the cursor (the
+        // detail panel, via its shared tracking index) can only echo a
+        // sample's timestamp, which for the synthetic surface vertex is the
+        // FIRST SAMPLE's timestamp; resolving that echo would overwrite the
+        // pointer's correct 0:00 surface rows with the first sample's.
+        if (last.onLeadIn == onLeadIn || _chartTouchSelecting) return;
+      }
+      _emitTooltipRowsForIndex(
+        index,
+        onLeadIn: onLeadIn,
+        units: UnitFormatter(ref.read(settingsProvider)),
+        colorScheme: Theme.of(context).colorScheme,
+      );
+    });
   }
 
   void _scheduleTankPressureVisibilityInitialization() {
@@ -1349,17 +1446,43 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         ? -1
         : math.max(0, starts[touched.barIndex] + _sourceSpotIndex(touched));
     if (touched == null || index < 0 || index >= widget.profile.length) {
+      _lastEmittedCursor = null;
       widget.onTooltipData!(null);
       return;
     }
-    final spot = (spotIndex: index);
-
     // On the lead-in vertex the cursor is before the first sample, so the
     // readout must describe t=0 rather than repeat the first sample's values.
-    final onLeadIn =
-        _sourceSpotIndex(touched) == 0 &&
-        starts[touched.barIndex] < 0 &&
-        shouldDrawSurfaceLeadIn(widget.profile);
+    _emitTooltipRowsForIndex(
+      index,
+      onLeadIn:
+          _sourceSpotIndex(touched) == 0 &&
+          starts[touched.barIndex] < 0 &&
+          shouldDrawSurfaceLeadIn(widget.profile),
+      units: units,
+      colorScheme: colorScheme,
+    );
+  }
+
+  /// Build and emit the readout rows describing profile sample [index].
+  ///
+  /// Shared by both cursors that can drive the external readout: a pointer on
+  /// the chart (via [_emitExternalTooltip]) and the external
+  /// [DiveProfileChart.highlightedTimestamp], which is what playback and the
+  /// fullscreen minimap move (issue #2180). One row builder for both is what
+  /// keeps a played-back dive and a hand-scrubbed one reading identically.
+  ///
+  /// [onLeadIn] marks the synthetic surface vertex drawn before the first
+  /// sample: the rows then describe t=0 and are flagged as interpolated,
+  /// rather than repeating the first sample's values.
+  void _emitTooltipRowsForIndex(
+    int index, {
+    required bool onLeadIn,
+    required UnitFormatter units,
+    required ColorScheme colorScheme,
+  }) {
+    if (widget.onTooltipData == null) return;
+    _lastEmittedCursor = (index: index, onLeadIn: onLeadIn);
+    final spot = (spotIndex: index);
     final point = onLeadIn
         ? _surfaceReadoutPoint()
         : widget.profile[spot.spotIndex];
@@ -2034,30 +2157,37 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       ref.read(profileLegendProvider).showGas,
     );
 
+    const border = DiveProfileChart._plotBorderWidth;
     return (
       left:
           DiveProfileChart._leftRightAxisNameSize +
-          DiveProfileChart.leftAxisSize(availableWidth),
-      top: 0,
+          DiveProfileChart.leftAxisSize(availableWidth) +
+          border,
+      top: border,
       // fl_chart reserves a side's tick gutter only while that side shows
       // titles, and the right axis shows none without a metric -- so with no
-      // right-axis metric the plot rect runs to the chart's right edge.
-      right: hasRightAxisName
-          ? DiveProfileChart._leftRightAxisNameSize +
-                DiveProfileChart.rightAxisSize(availableWidth)
-          : 0,
+      // right-axis metric the plot rect runs to the chart's border.
+      right:
+          (hasRightAxisName
+              ? DiveProfileChart._leftRightAxisNameSize +
+                    DiveProfileChart.rightAxisSize(availableWidth)
+              : 0) +
+          border,
       bottom:
           DiveProfileChart._bottomAxisNameSize +
           DiveProfileChart._bottomTickReservedSize +
           (hasGasStrip ? DiveProfileChart.gasTimelineHeight : 0) +
-          (_hasSafetyLane ? DiveProfileChart.safetyLaneHeight : 0),
+          (_hasSafetyLane ? DiveProfileChart.safetyLaneHeight : 0) +
+          border,
     );
   }
 
-  /// Nearest profile sample index under a hover at [localPos], or null if the
+  /// Nearest profile sample under a hover at [localPos], or null if the
   /// profile is empty. Maps the cursor X through the current viewport to a
-  /// timestamp, then finds the closest sample.
-  int? _hoverIndex(
+  /// timestamp, then finds the closest sample. [onLeadIn] is true when the
+  /// surface lead-in vertex at t=0 is closer than the first sample; [index]
+  /// is then 0.
+  ({int index, bool onLeadIn})? _hoverSelection(
     Offset localPos,
     Size box,
     ({double left, double top, double right, double bottom}) insets,
@@ -2077,6 +2207,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         .toDouble();
     final t =
         (_viewport.offsetX + focal.fx * _viewport.visibleWidth) * totalMaxTime;
+    if (shouldDrawSurfaceLeadIn(widget.profile) &&
+        t < widget.profile.first.timestamp / 2) {
+      return (index: 0, onLeadIn: true);
+    }
     var best = 0;
     var bestDist = double.infinity;
     for (var i = 0; i < widget.profile.length; i++) {
@@ -2086,7 +2220,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         best = i;
       }
     }
-    return best;
+    return (index: best, onLeadIn: false);
+  }
+
+  /// Reports a selection to [DiveProfileChart.onPointSelected] and
+  /// [DiveProfileChart.onTimeSelected]. [onLeadIn] marks the surface lead-in
+  /// vertex, whose time is 0 rather than the first sample's.
+  void _reportSelection(int? index, {bool onLeadIn = false}) {
+    widget.onPointSelected?.call(index);
+    final onTimeSelected = widget.onTimeSelected;
+    if (onTimeSelected == null) return;
+    if (index == null || index < 0 || index >= widget.profile.length) {
+      onTimeSelected(null);
+    } else {
+      onTimeSelected(onLeadIn ? 0 : widget.profile[index].timestamp);
+    }
   }
 
   // Buttons have no cursor, so they zoom about the visible center.
@@ -2566,21 +2714,34 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               },
               onPointerHover: (event) {
                 _activePointerKind = PointerDeviceKind.mouse;
-                final idx = _hoverIndex(
+                // fl_chart's touch callback already handled this event; when
+                // it resolved a sample that sample is the selection, so this
+                // fallback only covers the cursor outside the plot rect or
+                // with no sample within fl_chart's touch threshold. Reporting
+                // both let the two disagree by a sample on every move.
+                if (_chartTouchSelecting) {
+                  _lastHoverIndex = null;
+                  _lastHoverOnLeadIn = false;
+                  return;
+                }
+                final hit = _hoverSelection(
                   event.localPosition,
                   constraints.biggest,
                   _plotInsets(constraints.maxWidth, units),
                 );
-                if (idx != _lastHoverIndex) {
-                  _lastHoverIndex = idx;
-                  widget.onPointSelected?.call(idx);
+                if (hit?.index != _lastHoverIndex ||
+                    (hit?.onLeadIn ?? false) != _lastHoverOnLeadIn) {
+                  _lastHoverIndex = hit?.index;
+                  _lastHoverOnLeadIn = hit?.onLeadIn ?? false;
+                  _reportSelection(hit?.index, onLeadIn: _lastHoverOnLeadIn);
                 }
               },
               child: MouseRegion(
                 onExit: (_) {
                   if (_lastHoverIndex != null) {
                     _lastHoverIndex = null;
-                    widget.onPointSelected?.call(null);
+                    _lastHoverOnLeadIn = false;
+                    _reportSelection(null);
                   }
                 },
                 child: _buildChart(
@@ -2617,7 +2778,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   // sends the touch-end event that would clear that selection.
   void _onTouchDragClaimed() {
     _touchDragClaimed = true;
-    widget.onPointSelected?.call(null);
+    _reportSelection(null);
   }
 
   void _onTouchDragReleased() => _touchDragClaimed = false;
@@ -2635,7 +2796,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _pinchStartDistance = (p0 - p1).distance.clamp(1.0, double.infinity);
     _pinchStartFocal = (p0 + p1) / 2;
     _gestureStartViewport = _viewport;
-    widget.onPointSelected?.call(null);
+    _reportSelection(null);
   }
 
   /// Applies the live two-finger scale/pan against the gesture-start
@@ -3092,7 +3253,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             ),
             borderData: FlBorderData(
               show: true,
-              border: Border.all(color: colorScheme.outlineVariant),
+              border: Border.all(
+                color: colorScheme.outlineVariant,
+                width: DiveProfileChart._plotBorderWidth,
+              ),
             ),
             // Bar order is invariant: depth bars first (velocity suppression
             // and tooltip resolution key off the leading barIndex range),
@@ -3380,10 +3544,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       ], starts.length)
                     : const [];
 
+                _chartTouchSelecting = false;
                 if (widget.onPointSelected != null ||
+                    widget.onTimeSelected != null ||
                     widget.onTooltipData != null) {
                   if (isTouchEnd) {
-                    widget.onPointSelected?.call(null);
+                    _reportSelection(null);
                     if (widget.tooltipBelow) {
                       widget.onTooltipData?.call(null);
                     }
@@ -3408,7 +3574,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     if (depthSpot != null &&
                         index >= 0 &&
                         index < widget.profile.length) {
-                      widget.onPointSelected?.call(index);
+                      _chartTouchSelecting = true;
+                      // The lead-in vertex reads as t=0 in the tooltip, so
+                      // report that time rather than the first sample's.
+                      _reportSelection(
+                        index,
+                        onLeadIn:
+                            _sourceSpotIndex(depthSpot) == 0 &&
+                            starts[depthSpot.barIndex] < 0 &&
+                            shouldDrawSurfaceLeadIn(widget.profile),
+                      );
                       if (widget.tooltipBelow) {
                         final settings = ref.read(settingsProvider);
                         final units = UnitFormatter(settings);

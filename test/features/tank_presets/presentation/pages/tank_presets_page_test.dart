@@ -13,6 +13,7 @@ import 'package:submersion/features/tank_presets/presentation/pages/tank_presets
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/fab_clearance.dart';
 import '../../../../helpers/mock_providers.dart';
 
 void main() {
@@ -79,6 +80,47 @@ void main() {
       // listed alongside the 3000 psi aluminium tanks.
       expect(find.text('AL100'), findsOneWidget);
       expect(find.textContaining('3300 psi'), findsOneWidget);
+    });
+
+    testWidgets('the last preset clears the Add button (#2029)', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => const TankPresetsPage(),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            tankPresetListNotifierProvider.overrideWith(
+              (ref) => _MockTankPresetListNotifier(
+                TankPresets.all.map(TankPresetEntity.fromBuiltIn).toList(),
+              ),
+            ),
+          ].cast(),
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await expectLastRowClearOfFab(tester);
     });
 
     testWidgets('a custom preset whose slug collides with a built-in keeps its '

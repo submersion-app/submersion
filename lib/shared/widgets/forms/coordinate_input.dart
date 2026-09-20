@@ -5,6 +5,7 @@ import 'package:submersion/core/utils/coordinates/coordinate_formatter.dart';
 import 'package:submersion/core/utils/coordinates/coordinate_parser.dart';
 import 'package:submersion/core/utils/coordinates/mgrs_converter.dart';
 import 'package:submersion/core/utils/coordinates/utm_converter.dart';
+import 'package:submersion/shared/widgets/forms/coordinate_validation_messages.dart';
 
 /// What the input currently holds, in decimal degrees.
 ///
@@ -53,7 +54,7 @@ class CoordinateInput extends StatefulWidget {
     this.latitudeLabel,
     this.longitudeLabel,
     this.errorText,
-    this.invalidMessage,
+    this.messages,
   });
 
   final CoordinateFormat format;
@@ -67,8 +68,9 @@ class CoordinateInput extends StatefulWidget {
   final String? longitudeLabel;
   final String? errorText;
 
-  /// Shown, and used to fail form validation, while the entry is invalid.
-  final String? invalidMessage;
+  /// Shown, and used to fail form validation, while the entry is not a
+  /// position. Null disables the validation.
+  final CoordinateValidationMessages? messages;
 
   @override
   State<CoordinateInput> createState() => _CoordinateInputState();
@@ -246,7 +248,9 @@ class _CoordinateInputState extends State<CoordinateInput> {
     // active format. Text arrives from dive guides, messages and chartplotter
     // screens in whatever notation its author used, and refusing it because
     // it is not the selected format would be hostile.
-    final pasted = parseCoordinates(_controller(editedKey).text);
+    // A decimal comma is not a pasted pair, though '43,5' reads as one.
+    final text = _controller(editedKey).text;
+    final pasted = isDecimalCommaNumber(text) ? null : parseCoordinates(text);
     if (pasted != null) {
       _report(pasted.latitude, pasted.longitude);
       // Seed from what was parsed, not from the parent's stale values, and
@@ -292,10 +296,18 @@ class _CoordinateInputState extends State<CoordinateInput> {
     required bool withSeconds,
   }) {
     final prefix = isLatitude ? 'lat' : 'lon';
-    final degrees = _controller('${prefix}Deg').text.trim();
-    if (degrees.isEmpty) return null;
-    final minutes = _controller('${prefix}Min').text.trim();
-    final seconds = withSeconds ? _controller('${prefix}Sec').text.trim() : '';
+    final degrees = _plainNumber(
+      _controller('${prefix}Deg').text,
+      signed: true,
+    );
+    final minutes = _plainNumber(_controller('${prefix}Min').text);
+    final seconds = withSeconds
+        ? _plainNumber(_controller('${prefix}Sec').text)
+        : '';
+    // The parser pulls every number out of the text it is given, so a
+    // sub-field holding anything else would silently drop out of the sum.
+    if (degrees == null || degrees.isEmpty) return null;
+    if (minutes == null || seconds == null) return null;
     final hemisphere = isLatitude ? _latHemisphere : _lonHemisphere;
     return parseSingleAxis(
       '$degrees ${minutes.isEmpty ? '0' : minutes} '
@@ -303,6 +315,21 @@ class _CoordinateInputState extends State<CoordinateInput> {
       isLatitude: isLatitude,
     );
   }
+
+  /// [text] as a bare number with a decimal point, empty when blank, or null
+  /// when it holds anything else. A decimal comma is accepted and becomes a
+  /// point here, per sub-field, since two of them in one joined string would
+  /// read as five separate numbers.
+  static String? _plainNumber(String text, {bool signed = false}) {
+    final trimmed = text.trim();
+    if (trimmed.isEmpty) return '';
+    final shape = signed ? _signedNumberShape : _numberShape;
+    if (!shape.hasMatch(trimmed)) return null;
+    return trimmed.replaceFirst(',', '.');
+  }
+
+  static final RegExp _numberShape = RegExp(r'^\d+(?:[.,]\d+)?$');
+  static final RegExp _signedNumberShape = RegExp(r'^[+-]?\d+(?:[.,]\d+)?$');
 
   void _report(double? latitude, double? longitude) {
     // Half a coordinate is not a position: report nothing rather than let a
@@ -324,12 +351,66 @@ class _CoordinateInputState extends State<CoordinateInput> {
   bool _allFieldsEmpty() =>
       _controllers.values.every((c) => c.text.trim().isEmpty);
 
-  /// The message shown, and used to fail validation, while the entry is
-  /// neither blank nor a valid position.
-  String? _invalidError() {
+  /// Whether every one of [keys] is empty.
+  bool _blank(List<String> keys) =>
+      keys.every((key) => _controller(key).text.trim().isEmpty);
+
+  /// The error for one axis of the decimal-degree layout.
+  String? _decimalAxisError({required bool isLatitude}) {
+    final key = isLatitude ? 'lat' : 'lon';
+    return _axisError(
+      isLatitude: isLatitude,
+      isBlank: _blank([key]),
+      otherIsBlank: _blank([isLatitude ? 'lon' : 'lat']),
+      value: parseSingleAxis(_controller(key).text, isLatitude: isLatitude),
+    );
+  }
+
+  /// The error for one axis of a degrees-minutes(-seconds) layout.
+  String? _degreeAxisError({
+    required bool isLatitude,
+    required bool withSeconds,
+  }) {
+    List<String> keysOf({required bool latitude}) {
+      final prefix = latitude ? 'lat' : 'lon';
+      return ['${prefix}Deg', '${prefix}Min', if (withSeconds) '${prefix}Sec'];
+    }
+
+    return _axisError(
+      isLatitude: isLatitude,
+      isBlank: _blank(keysOf(latitude: isLatitude)),
+      otherIsBlank: _blank(keysOf(latitude: !isLatitude)),
+      value: _axisFromParts(isLatitude: isLatitude, withSeconds: withSeconds),
+    );
+  }
+
+  /// Names what is wrong with one axis, so the message sits under the field
+  /// that needs fixing and says which axis it is (issue #2035).
+  String? _axisError({
+    required bool isLatitude,
+    required bool isBlank,
+    required bool otherIsBlank,
+    required double? value,
+  }) {
+    final messages = widget.messages;
+    if (messages == null) return null;
+    if (isBlank) {
+      // Both axes empty is no coordinate at all, which is allowed. One empty
+      // beside a filled one is half a position.
+      if (otherIsBlank) return null;
+      return isLatitude
+          ? messages.latitudeRequired
+          : messages.longitudeRequired;
+    }
+    if (value != null) return null;
+    return isLatitude ? messages.invalidLatitude : messages.invalidLongitude;
+  }
+
+  /// The error for a UTM or MGRS entry, whose fields both axes share.
+  String? _gridError() {
     if (_isBlank) return null;
     if (_reportedLatitude != null && _reportedLongitude != null) return null;
-    return widget.invalidMessage;
+    return widget.messages?.invalidCoordinates;
   }
 
   @override
@@ -363,10 +444,15 @@ class _CoordinateInputState extends State<CoordinateInput> {
             'lat',
             widget.latitudeLabel ?? 'Latitude',
             signed: true,
-            carriesError: true,
+            error: () => _decimalAxisError(isLatitude: true),
           ),
           const SizedBox(height: 8),
-          _field('lon', widget.longitudeLabel ?? 'Longitude', signed: true),
+          _field(
+            'lon',
+            widget.longitudeLabel ?? 'Longitude',
+            signed: true,
+            error: () => _decimalAxisError(isLatitude: false),
+          ),
         ];
 
       case CoordinateFormat.degreesDecimalMinutes:
@@ -406,7 +492,7 @@ class _CoordinateInputState extends State<CoordinateInput> {
             children: [
               SizedBox(
                 width: 72,
-                child: _field('zone', 'Zone', carriesError: true),
+                child: _field('zone', 'Zone', error: _gridError),
               ),
               const SizedBox(width: 8),
               Expanded(child: _field('easting', 'Easting', numeric: true)),
@@ -417,7 +503,7 @@ class _CoordinateInputState extends State<CoordinateInput> {
         ];
 
       case CoordinateFormat.mgrs:
-        return [_field('grid', 'Grid reference', carriesError: true)];
+        return [_field('grid', 'Grid reference', error: _gridError)];
     }
   }
 
@@ -431,7 +517,16 @@ class _CoordinateInputState extends State<CoordinateInput> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: _field('${prefix}Deg', label, numeric: true, suffix: '°'),
+          child: _field(
+            '${prefix}Deg',
+            label,
+            numeric: true,
+            suffix: '°',
+            error: () => _degreeAxisError(
+              isLatitude: isLatitude,
+              withSeconds: withSeconds,
+            ),
+          ),
         ),
         const SizedBox(width: 8),
         Expanded(child: _field('${prefix}Min', '', numeric: true, suffix: "'")),
@@ -476,20 +571,23 @@ class _CoordinateInputState extends State<CoordinateInput> {
     bool numeric = false,
     bool signed = false,
     String? suffix,
-    bool carriesError = false,
+    String? Function()? error,
   }) {
     return TextFormField(
       controller: _controller(key),
       keyboardType: numeric || signed
           ? TextInputType.numberWithOptions(decimal: true, signed: signed)
           : TextInputType.text,
-      // Only one field carries the message: the group is validated as a
-      // whole, and repeating it under six sub-fields would be noise. Having
-      // any validator fail is what stops the form saving.
-      validator: carriesError ? (_) => _invalidError() : null,
-      autovalidateMode: carriesError
-          ? AutovalidateMode.onUserInteraction
-          : AutovalidateMode.disabled,
+      // One field per axis carries that axis's message (in a grid layout, one
+      // carries the whole entry's), since repeating it under every sub-field
+      // would be noise. Having any validator fail is what stops the form
+      // saving. Always, not on interaction: after typing a latitude, the
+      // longitude field that was never touched is the one that must say it
+      // is missing. A blank entry has no error, so a fresh form stays quiet.
+      validator: error == null ? null : (_) => error(),
+      autovalidateMode: error == null
+          ? AutovalidateMode.disabled
+          : AutovalidateMode.always,
       decoration: InputDecoration(
         labelText: label.isEmpty ? null : label,
         suffixText: suffix,

@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/buddies/presentation/widgets/dense_buddy_list_tile.dart';
 
 import '../../../../helpers/test_app.dart';
+import '../../helpers/fake_buddy_list_notifier.dart';
 
 Buddy _makeBuddy({
   String id = 'test-id',
@@ -125,8 +127,51 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byType(InkWell));
+      // The favorite star's own IconButton also builds an InkWell, so the
+      // row's is disambiguated by position: it wraps the whole tile and is
+      // therefore built first.
+      await tester.tap(find.byType(InkWell).first);
       expect(tapped, isTrue);
+    });
+
+    group('favorite star (issue #1336)', () {
+      testWidgets('shows a filled star for a favorite buddy', (tester) async {
+        await tester.pumpWidget(
+          testApp(
+            child: DenseBuddyListTile(
+              buddy: _makeBuddy().copyWith(isFavorite: true),
+            ),
+          ),
+        );
+
+        expect(find.byIcon(Icons.star), findsOneWidget);
+        expect(find.byIcon(Icons.star_border), findsNothing);
+      });
+
+      testWidgets(
+        'tapping the star toggles favorite without triggering onTap',
+        (tester) async {
+          final notifier = FakeBuddyListNotifier();
+          var tapped = false;
+          await tester.pumpWidget(
+            testApp(
+              overrides: [
+                buddyListNotifierProvider.overrideWith((ref) => notifier),
+              ],
+              child: DenseBuddyListTile(
+                buddy: _makeBuddy(id: 'dense-1'),
+                onTap: () => tapped = true,
+              ),
+            ),
+          );
+
+          await tester.tap(find.byIcon(Icons.star_border));
+          await tester.pump();
+
+          expect(notifier.toggledFavoriteIds, ['dense-1']);
+          expect(tapped, isFalse);
+        },
+      );
     });
   });
 }

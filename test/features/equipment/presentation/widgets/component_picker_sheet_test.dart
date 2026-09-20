@@ -14,7 +14,10 @@ import 'package:submersion/features/equipment/domain/entities/gear_history_rewri
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/component_picker_sheet.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
 
 class _FakeComponentRepository extends EquipmentComponentRepository {
   final added = <(String, String)>[];
@@ -132,6 +135,7 @@ void main() {
       ),
       diveRepositoryProvider.overrideWithValue(dives ?? _FakeDiveRepository()),
       activeEquipmentProvider.overrideWith((ref) async => gear ?? active),
+      settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
       equipmentComponentsIndexProvider.overrideWith(
         (ref) => index ?? Future.value(ComponentsIndex.fromRows(edges)),
       ),
@@ -149,6 +153,31 @@ void main() {
       ),
     ),
   );
+
+  testWidgets('identical candidates are told apart (#1549)', (tester) async {
+    EquipmentItem hose(String id, String serial) => EquipmentItem(
+      id: id,
+      name: 'Hose',
+      type: EquipmentType.hose,
+      brand: 'Miflex',
+      model: 'XT',
+      serialNumber: serial,
+    );
+    // Descending serial order, so input order cannot produce the result.
+    await tester.pumpWidget(
+      build(
+        _FakeComponentRepository(),
+        gear: [
+          item('reg', EquipmentType.regulator),
+          hose('b', 'X2'),
+          hose('a', 'X1'),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Miflex XT · S/N X1'), findsOneWidget);
+    expect(find.text('Miflex XT · S/N X2'), findsOneWidget);
+  });
 
   testWidgets('hides self, ancestors, and current parts', (tester) async {
     await tester.pumpWidget(build(_FakeComponentRepository()));
@@ -461,6 +490,7 @@ void main() {
           ),
           diveRepositoryProvider.overrideWithValue(_FakeDiveRepository()),
           activeEquipmentProvider.overrideWith((ref) async => active),
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
           equipmentComponentsIndexProvider.overrideWith(
             (ref) async => ComponentsIndex.fromRows(edges),
           ),

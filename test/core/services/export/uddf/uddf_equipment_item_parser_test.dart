@@ -36,4 +36,50 @@ void main() {
       expect(observed, DateTime.utc(2026, 3, 14, 11));
     });
   });
+
+  group('parseEquipmentItem tags (#1942)', () {
+    test("an item's own tag refs are read, never a check-in's tags", () {
+      final item = UddfImportParsers.parseEquipmentItem(
+        XmlDocument.parse('''
+<item id="equip_reg">
+  <name>Reg</name>
+  <observations>
+    <observation id="obs_1">
+      <date>2026-03-14T11:00:00Z</date>
+      <status>issue</status>
+      <tags><tag>freeFlow</tag></tags>
+    </observation>
+  </observations>
+  <tags><tagref>tag_t1</tagref><tagref> </tagref></tags>
+</item>
+''').rootElement,
+      );
+      expect(item['tagRefs'], ['tag_t1']);
+      expect((item['observations'] as List).single['tags'], ['freeFlow']);
+    });
+
+    test('an untagged item carries no refs', () {
+      final item = UddfImportParsers.parseEquipmentItem(
+        XmlDocument.parse(
+          '<item id="equip_fins"><name>Fins</name></item>',
+        ).rootElement,
+      );
+      expect(item.containsKey('tagRefs'), isFalse);
+    });
+  });
+
+  test('a tag definition reads its equipment flag, null when absent', () {
+    Map<String, dynamic> parse(String body) => UddfImportParsers.parseTag(
+      XmlDocument.parse(
+        '<tag id="tag_t1"><name>Rental</name>$body</tag>',
+      ).rootElement,
+    );
+    expect(
+      parse(
+        '<appliestoequipment>true</appliestoequipment>',
+      )['appliesToEquipment'],
+      isTrue,
+    );
+    expect(parse('')['appliesToEquipment'], isNull);
+  });
 }

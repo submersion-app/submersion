@@ -31,6 +31,15 @@ class _TestField implements EntityField {
   static const entityCount = _TestField._('entityCount', 'Count', 'Cnt', true);
   static const List<_TestField> values = [entityName, entityCount];
 
+  /// Not in [values]: a List value is not Comparable, so sorting by it
+  /// exercises the formatted-value fallback.
+  static const entityAliases = _TestField._(
+    'entityAliases',
+    'Aka',
+    'Aka',
+    false,
+  );
+
   @override
   final String name;
   @override
@@ -89,12 +98,15 @@ class _TestAdapter extends EntityFieldAdapter<_TestEntity, _TestField> {
         return entity.name;
       case _TestField.entityCount:
         return entity.count;
+      case _TestField.entityAliases:
+        return [entity.name];
     }
   }
 
   @override
   String formatValue(_TestField field, dynamic value, UnitFormatter units) {
     if (value == null) return '--';
+    if (value is List) return value.join(', ');
     return value.toString();
   }
 
@@ -415,6 +427,63 @@ void main() {
       expect(find.text('Alpha'), findsOneWidget);
       expect(find.text('Bravo'), findsOneWidget);
       expect(find.text('Charlie'), findsOneWidget);
+    });
+
+    testWidgets('text sort ignores case (issue #2038)', (tester) async {
+      final entities = [
+        const _TestEntity('z', 'Zebra', 1),
+        const _TestEntity('l', 'plage', 2),
+        const _TestEntity('a', 'anchor', 3),
+      ];
+
+      final configWithSort = EntityTableViewConfig<_TestField>(
+        columns: [
+          EntityTableColumnConfig(field: _TestField.entityName, isPinned: true),
+          EntityTableColumnConfig(field: _TestField.entityCount),
+        ],
+        sortField: _TestField.entityName,
+        sortAscending: true,
+      );
+
+      await tester.pumpWidget(
+        _buildTable(entities: entities, config: configWithSort),
+      );
+      await tester.pumpAndSettle();
+
+      double rowY(String name) => tester.getTopLeft(find.text(name)).dy;
+      expect(rowY('anchor'), lessThan(rowY('plage')));
+      expect(rowY('plage'), lessThan(rowY('Zebra')));
+    });
+
+    testWidgets('non-Comparable values sort by formatted text, ignoring case', (
+      tester,
+    ) async {
+      final entities = [
+        const _TestEntity('z', 'Zebra', 1),
+        const _TestEntity('l', 'plage', 2),
+        const _TestEntity('a', 'anchor', 3),
+      ];
+
+      final configWithSort = EntityTableViewConfig<_TestField>(
+        columns: [
+          EntityTableColumnConfig(
+            field: _TestField.entityCount,
+            isPinned: true,
+          ),
+          EntityTableColumnConfig(field: _TestField.entityAliases),
+        ],
+        sortField: _TestField.entityAliases,
+        sortAscending: true,
+      );
+
+      await tester.pumpWidget(
+        _buildTable(entities: entities, config: configWithSort),
+      );
+      await tester.pumpAndSettle();
+
+      double rowY(String text) => tester.getTopLeft(find.text(text)).dy;
+      expect(rowY('anchor'), lessThan(rowY('plage')));
+      expect(rowY('plage'), lessThan(rowY('Zebra')));
     });
 
     testWidgets('sorts descending when sortAscending is false', (tester) async {

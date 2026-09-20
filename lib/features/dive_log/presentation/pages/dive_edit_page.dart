@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart' hide Visibility;
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -17,6 +18,7 @@ import 'package:submersion/features/marine_life/presentation/utils/species_categ
 import 'package:submersion/features/marine_life/presentation/utils/species_category_icon.dart';
 import 'package:submersion/core/deco/altitude_calculator.dart';
 import 'package:submersion/core/services/location_service.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -46,8 +48,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/site_suggestio
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
+import 'package:submersion/features/dive_centers/domain/services/rental_memory_resolver.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_picker.dart';
+import 'package:submersion/features/dive_centers/presentation/widgets/rental_memory_card.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/dive_types/presentation/dive_type_display.dart';
@@ -94,6 +98,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipm
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/utils/entry_exit_autofill.dart';
 import 'package:submersion/features/dive_log/presentation/utils/water_type_autofill.dart';
+import 'package:submersion/features/dive_log/presentation/utils/dive_type_autofill.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/site_picker_sheet.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/species_picker_sheet.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -167,6 +172,15 @@ String _seedWeight(double displayValue) =>
 /// [parseUserInt]. Grouping is off, so this is digit-only text.
 String _seedInt(int value) => _seedDecimal(value.toDouble(), 0);
 
+/// Whether "Apply last dive" must ask before replacing the form's weights
+/// and tanks (issue #2075): whenever the form holds any. A weight row with
+/// no amount yet still carries its type and notes, so it counts.
+@visibleForTesting
+bool applyLastDiveNeedsConfirm({
+  required List<DiveWeight> weights,
+  required List<DiveTank> tanks,
+}) => weights.isNotEmpty || tanks.isNotEmpty;
+
 class DiveEditPage extends ConsumerStatefulWidget {
   final String? diveId;
 
@@ -208,6 +222,8 @@ class DiveEditPage extends ConsumerStatefulWidget {
 }
 
 class _DiveEditPageState extends ConsumerState<DiveEditPage> {
+  static final _log = LoggerService.forClass(DiveEditPage);
+
   final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _isSaving = false;
@@ -228,6 +244,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   final _nameController = TextEditingController();
 
   List<String> _selectedDiveTypeIds = const ['recreational'];
+
+  /// The dive types the assigned site added (issue #2037) and the diver has
+  /// not touched since: what the next site assignment may take back.
+  Set<String> _siteAddedDiveTypeIds = const {};
+
+  /// The site-to-dive-type snap still in flight, which a save waits for so
+  /// the types it adds are not lost to a quick tap on Save.
+  Future<void>? _pendingDiveTypeSnap;
   Visibility _selectedVisibility = Visibility.unknown;
   int _rating = 0;
   // Statistics exclusion (#526 / #1272). Kept independent: unticking the
@@ -2348,6 +2372,56 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     _exitMethod = entryExit.exit;
     _exitMethodLinked = entryExit.linked;
     unawaited(_maybeAutoFillAltitude());
+    final snap = _snapDiveTypesFromSite(site, markDirty: !_suppressDirty);
+    _pendingDiveTypeSnap = snap;
+    unawaited(snap);
+  }
+
+  /// Adds the dive types [site]'s types stand for, taking back what the
+  /// previous site added (see [diveTypesAfterSiteAssign]). The site's types
+  /// live in a junction table rather than on [DiveSite], so they are fetched;
+  /// a result that arrives after the diver picked another site is dropped.
+  /// [markDirty] is whether the assignment was the diver's rather than a
+  /// load or prefill, since the result lands after dirty tracking resumes.
+  Future<void> _snapDiveTypesFromSite(
+    DiveSite? site, {
+    required bool markDirty,
+  }) async {
+    final siteId = site?.id;
+    List<String> siteDiveTypeIds = const [];
+    if (siteId != null) {
+      try {
+        final siteTypes = await ref.read(
+          siteTypesForSiteProvider(siteId).future,
+        );
+        final diveTypes = await ref.read(diveTypesProvider.future);
+        siteDiveTypeIds = diveTypeIdsForSiteTypes(
+          siteTypes: siteTypes,
+          diveTypes: diveTypes,
+        );
+      } catch (e, stackTrace) {
+        // Leave the dive types as they are: the snap is a convenience, and
+        // the diver can still set them by hand.
+        _log.warning(
+          'Could not read the types of site $siteId',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return;
+      }
+    }
+    if (!mounted || _selectedSite?.id != siteId) return;
+    final result = diveTypesAfterSiteAssign(
+      currentTypeIds: _selectedDiveTypeIds,
+      previousSiteAddedIds: _siteAddedDiveTypeIds,
+      siteDiveTypeIds: siteDiveTypeIds,
+    );
+    final changed = !listEquals(result.typeIds, _selectedDiveTypeIds);
+    setState(() {
+      _selectedDiveTypeIds = result.typeIds;
+      _siteAddedDiveTypeIds = result.siteAddedIds;
+    });
+    if (changed && markDirty) _markDirty();
   }
 
   Future<void> _showSitePicker() async {
@@ -2423,6 +2497,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           : null,
       diveCenterName: _selectedDiveCenter?.name,
       centerCaption: _selectedDiveCenter?.displayLocation,
+      centerChild: _selectedDiveCenter == null || widget.isBulk
+          ? null
+          : RentalMemoryCard(
+              center: _selectedDiveCenter!,
+              currentDiveId: widget.diveId,
+              onApplyLastDive: _applyLastDiveAtCenter,
+            ),
       onPickDiveCenter: _showDiveCenterPicker,
       onClearDiveCenter: () {
         _markDirty();
@@ -3365,13 +3446,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Rendered through the diver's arrangement inside set bands,
-                // assemblies collapsed (#1486, #1576, #1487). Removals are
-                // by id, never by display index: a render position addresses
-                // a different item under an arrangement. _selectedEquipment
-                // keeps its own order as the source of truth for saving;
-                // sorting it would write a pointless reordering of
-                // dive_equipment on every save.
+                // Rendered through the diver's arrangement as one list, set
+                // gear and hand-added gear together, the sets as removable
+                // chips above it, assemblies collapsed (#1486, #1576, #1487,
+                // #2031). Removals are by id, never by display index: a
+                // render position addresses a different item under an
+                // arrangement. _selectedEquipment keeps its own order as the
+                // source of truth for saving; sorting it would write a
+                // pointless reordering of dive_equipment on every save.
                 DiveGearTreeView(
                   links: gearLinksFor(_selectedEquipment, _gearRows),
                   onRemoveSet: (setId) =>
@@ -3380,6 +3462,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                       _setGear(GearExpander.removeSubtree(_gearRows, id)),
                   onRemovePart: (id) =>
                       _setGear(GearExpander.removePart(_gearRows, id)),
+                  // Re-adding the assembly writes only what its template
+                  // gained since the dive was logged; the picker cannot
+                  // offer it again, since it is already on the dive (#1988).
+                  onUpdateAssembly: (link) =>
+                      _addGear([link.item], viaSetId: link.viaSetId),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -4039,7 +4126,13 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
         child: DiveTypeMultiSelectField(
           selectedTypeIds: _selectedDiveTypeIds,
-          onChanged: (ids) => setState(() => _selectedDiveTypeIds = ids),
+          onChanged: (ids) => setState(() {
+            _selectedDiveTypeIds = ids;
+            _siteAddedDiveTypeIds = siteAddedAfterManualEdit(
+              siteAddedIds: _siteAddedDiveTypeIds,
+              selectedTypeIds: ids,
+            );
+          }),
         ),
       ),
       Column(
@@ -4516,6 +4609,54 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
 
   /// Apply a saved weight preset (issue #1609): opens the picker and replaces
   /// the current weight rows with editable copies of the preset's entries.
+  /// Copies the weights and tanks of the diver's last dive at the selected
+  /// center into the form (issue #2075). Asks first when the form already
+  /// holds any, because the copy replaces them.
+  Future<void> _applyLastDiveAtCenter(LastDiveAtCenter last) async {
+    final l10n = context.l10n;
+    if (applyLastDiveNeedsConfirm(weights: _weights, tanks: _tanks)) {
+      final replace = await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: Text(l10n.diveCenters_rental_applyConfirmTitle),
+          content: Text(l10n.diveCenters_rental_applyConfirmBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: Text(l10n.common_action_cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: Text(l10n.diveCenters_rental_applyConfirmReplace),
+            ),
+          ],
+        ),
+      );
+      if (replace != true || !mounted) return;
+    }
+    final settings = ref.read(settingsProvider);
+    setState(() {
+      _markDirty();
+      _tanksDirty = true;
+      _weights = last.weightsForNewDive(
+        diveId: widget.diveId ?? '',
+        newId: _uuid.v4,
+      );
+      _tanks
+        ..clear()
+        ..addAll(
+          last.tanksForNewDive(
+            newId: _uuid.v4,
+            startPressure: settings.defaultStartPressure.toDouble(),
+            endPressure: 50.0,
+          ),
+        );
+    });
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.diveCenters_rental_applied)));
+  }
+
   Future<void> _applyWeightPreset() async {
     final preset = await showModalBottomSheet<WeightPreset>(
       context: context,
@@ -4950,6 +5091,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   }
 
   Future<void> _saveDive(UnitFormatter units) async {
+    final pendingSnap = _pendingDiveTypeSnap;
+    if (pendingSnap != null) {
+      await pendingSnap;
+      if (!mounted) return;
+    }
     // Collapsed sections un-mount their fields, hiding them from
     // Form.validate(); expand everything first so no error can hide.
     final anyCollapsed = [
@@ -5082,11 +5228,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         visibility: _selectedVisibility != Visibility.unknown
             ? _selectedVisibility
             : null,
-        visibilityMeters: _visibilityController.text.isNotEmpty
-            ? units.depthToMeters(
-                parseUserDecimal(_visibilityController.text) ?? 0,
-              )
-            : null,
+        visibilityMeters: _visibilityMetersInput(units),
         diveTypeIds: _selectedDiveTypeIds,
         notes: _notesController.text,
         rating: _rating > 0 ? _rating : null,

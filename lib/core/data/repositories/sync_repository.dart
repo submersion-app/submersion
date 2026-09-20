@@ -141,6 +141,7 @@ class SyncRepository {
     'diveTags': (table: 'dive_tags', pk: 'id'),
     'diveDiveTypes': (table: 'dive_dive_types', pk: 'id'),
     'weightPresetEntries': (table: 'weight_preset_entries', pk: 'id'),
+    'diveCenterGearNotes': (table: 'dive_center_gear_notes', pk: 'id'),
     'tideRecords': (table: 'tide_records', pk: 'id'),
     'sightings': (table: 'sightings', pk: 'id'),
     'diveCustomFields': (table: 'dive_custom_fields', pk: 'id'),
@@ -1230,6 +1231,68 @@ class SyncRepository {
       );
       rethrow;
     }
+  }
+
+  /// Ids per statement in [logDeletions], well under SQLite's bound-variable
+  /// limit.
+  static const _deletionChunkSize = 500;
+
+  /// [logDeletion] for many local deletes of one [entityType], in a single
+  /// transaction: for deletes that remove rows in bulk, where one
+  /// transaction per tombstone is thousands of round trips. Each record gets
+  /// its own clock, as [logDeletion] would give it.
+  Future<void> logDeletions({
+    required String entityType,
+    required Iterable<String> recordIds,
+  }) async {
+    final ids = recordIds.toSet().toList();
+    if (ids.isEmpty) return;
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      await ensureSyncClockConfigured();
+      await _db.transaction(() async {
+        for (var i = 0; i < ids.length; i += _deletionChunkSize) {
+          final chunk = ids.sublist(
+            i,
+            (i + _deletionChunkSize).clamp(0, ids.length),
+          );
+          await (_db.delete(_db.deletionLog)..where(
+                (t) => t.entityType.equals(entityType) & t.recordId.isIn(chunk),
+              ))
+              .go();
+          await _db.batch((batch) {
+            batch.insertAll(_db.deletionLog, [
+              for (final recordId in chunk)
+                _localTombstone(entityType, recordId, now),
+            ]);
+          });
+        }
+      });
+      _log.info('Logged ${ids.length} deletions: $entityType');
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to log ${ids.length} deletions: $entityType',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  DeletionLogCompanion _localTombstone(
+    String entityType,
+    String recordId,
+    int deletedAt,
+  ) {
+    final hlc = SyncClock.instance.issue();
+    return DeletionLogCompanion(
+      id: Value(_uuid.v4()),
+      entityType: Value(entityType),
+      recordId: Value(recordId),
+      deletedAt: Value(deletedAt),
+      hlc: Value(hlc),
+      originHlc: Value(hlc),
+    );
   }
 
   /// Get deletions since a given timestamp

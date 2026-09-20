@@ -36,12 +36,14 @@ import 'package:submersion/features/dive_log/domain/services/bottom_time_calcula
 import 'package:submersion/features/dive_log/domain/services/dive_altitude_enricher.dart';
 import 'package:submersion/features/dive_log/domain/services/tank_pressure_series.dart';
 import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
+import 'package:submersion/features/equipment/data/services/equipment_set_for_computer_linker.dart';
 import 'package:submersion/features/equipment/data/services/dive_computer_gear_resolver.dart';
 import 'package:submersion/features/equipment/data/services/dive_equipment_defaulter.dart';
 import 'package:submersion/features/pre_dive/data/services/checklist_dive_linker.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
@@ -104,7 +106,7 @@ class DiveComputerRepository {
       final query = _db.select(_db.diveComputers)
         ..orderBy([
           (t) => OrderingTerm.desc(t.isFavorite),
-          (t) => OrderingTerm.asc(t.name),
+          (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
 
       if (diverId != null) {
@@ -112,7 +114,11 @@ class DiveComputerRepository {
       }
 
       final rows = await query.get();
-      return rows.map((row) => _mapRowToComputer(row)).toList();
+      return sortedByText(
+        rows,
+        (r) => r.name,
+        groupOf: (r) => r.isFavorite,
+      ).map((row) => _mapRowToComputer(row)).toList();
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get all dive computers',
@@ -1429,6 +1435,13 @@ class DiveComputerRepository {
         // diver's default and geofenced sets.
         await DiveComputerGearLinker().linkComputerGearForDive(diveId: diveId);
 
+        // Apply every equipment set that lists this computer as a member
+        // (issue #1020), e.g. a CCR rig set that bundles the controller with
+        // drysuit and tec fins. Additive, independent of the defaulter above.
+        await EquipmentSetForComputerLinker().linkComputerSetsForDive(
+          diveId: diveId,
+        );
+
         // Auto-link a pre-dive checklist session started shortly before
         // this dive's entry time.
         await ChecklistDiveLinker().autoLinkForDive(
@@ -1779,6 +1792,11 @@ class DiveComputerRepository {
         // existing dive, but the computer did log it. Idempotent through
         // insertOnConflictUpdate.
         await DiveComputerGearLinker().linkComputerGearForDive(diveId: diveId);
+        // Apply every equipment set that lists this computer as a member
+        // (issue #1020). Additive, independent of the defaulter above.
+        await EquipmentSetForComputerLinker().linkComputerSetsForDive(
+          diveId: diveId,
+        );
       }
 
       // Note: Computer stats (incrementDiveCount, updateLastDownload) are

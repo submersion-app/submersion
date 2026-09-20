@@ -3,6 +3,7 @@ import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/performance/perf_timer.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/text/text_sort.dart';
 
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/view_config_repository.dart';
@@ -303,6 +304,7 @@ List<SiteWithDiveCount> applySiteSorting(
 ) {
   return PerfTimer.measureSync('applySiteSorting', () {
     final sorted = List<SiteWithDiveCount>.from(sites);
+    final collator = TextCollator();
 
     sorted.sort((a, b) {
       int comparison;
@@ -311,7 +313,7 @@ List<SiteWithDiveCount> applySiteSorting(
 
       switch (sort.field) {
         case SiteSortField.name:
-          comparison = a.site.name.compareTo(b.site.name);
+          comparison = collator.compare(a.site.name, b.site.name);
         case SiteSortField.rating:
           comparison = (a.site.rating ?? 0).compareTo(b.site.rating ?? 0);
         case SiteSortField.difficulty:
@@ -331,17 +333,13 @@ List<SiteWithDiveCount> applySiteSorting(
           final bDate = b.lastDivedAt;
           if (aDate == null || bDate == null) {
             if (aDate == null && bDate == null) {
-              return a.site.name.toLowerCase().compareTo(
-                b.site.name.toLowerCase(),
-              );
+              return collator.compare(a.site.name, b.site.name);
             }
             return aDate == null ? 1 : -1;
           }
           comparison = aDate.compareTo(bDate);
           if (comparison == 0) {
-            return a.site.name.toLowerCase().compareTo(
-              b.site.name.toLowerCase(),
-            );
+            return collator.compare(a.site.name, b.site.name);
           }
       }
 
@@ -907,15 +905,11 @@ final siteDetailedCardConfigProvider =
             EntityCardSlotConfig(slotId: 'stat1', field: SiteField.depthRange),
             EntityCardSlotConfig(slotId: 'stat2', field: SiteField.diveCount),
           ],
-          // The detailed card has room for a fuller picture than a count
-          // and a personal best. All four come from the same grouped
-          // aggregate the list already loads, so this costs no extra query.
-          extraFields: [
-            SiteField.lastDived,
-            SiteField.maxDepthReached,
-            SiteField.averageDepthReached,
-            SiteField.averageDuration,
-          ],
+          // No extra fields by default. The card leads with the site itself,
+          // and the personal aggregates (last dived, your max, your avg,
+          // avg time) read as clutter in a long list. They stay in the field
+          // catalogue, so a diver can add any of them back from card
+          // settings, and a diver who already did keeps their layout.
         ),
         fieldFromName: SiteFieldAdapter.instance.fieldFromName,
       );

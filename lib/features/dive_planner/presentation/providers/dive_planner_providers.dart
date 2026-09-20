@@ -789,12 +789,29 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     final stored = await repository.savePlan(plan, summary: summary);
     _loaded = stored;
     if (!mounted) return;
-    // The repository drops a site that no longer exists rather than failing
-    // the save (issue #1985), so adopt what it stored: otherwise the planner
-    // keeps offering a site the database no longer holds. Guarded on the id
-    // still being the one that was sent, because the diver can pick another
-    // site during the save's async gap and that newer choice wins.
+    // The repository drops a site or dive that no longer exists rather than
+    // failing the save (issues #1985 and #2006), so adopt what it stored:
+    // otherwise the planner keeps offering a row the database no longer holds.
+    // Each is guarded on the id still being the one that was sent, because the
+    // diver can pick another during the save's async gap and that newer choice
+    // wins. The references are independent, so one can go while another stays.
     final siteWentAway = stored.siteId == null && state.siteId == plan.siteId;
+    final sourceDiveWentAway =
+        stored.sourceDiveId == null && state.sourceDiveId == plan.sourceDiveId;
+    final linkedDiveWentAway =
+        stored.linkedDiveId == null && state.linkedDiveId == plan.linkedDiveId;
+    // A dropped source dive takes the context it seeded, as clearFollowedDive
+    // does. The tissues are never stored, so leaving them would keep seeding
+    // deco for a plan that no longer follows a dive, and the schedule would
+    // change silently on the next reload. The repository drops the surface
+    // interval with the dive. Each keeps the same guard: tissues or an
+    // interval the diver set during the async gap are a newer choice.
+    final tissuesWentAway =
+        sourceDiveWentAway &&
+        identical(state.initialTissueState, submitted.initialTissueState);
+    final surfaceIntervalWentAway =
+        stored.surfaceInterval == null &&
+        state.surfaceInterval == plan.surfaceInterval;
     // What was written describes the plan as it was submitted, so an edit made
     // during that async gap is not in the database and the plan is still
     // dirty. Clearing the flag unconditionally disables Save and strands the
@@ -805,6 +822,10 @@ class DivePlanNotifier extends StateNotifier<DivePlanState> {
     state = state.copyWith(
       isDirty: editedDuringSave,
       clearSiteId: siteWentAway,
+      clearSourceDiveId: sourceDiveWentAway,
+      clearInitialTissueState: tissuesWentAway,
+      clearSurfaceInterval: surfaceIntervalWentAway,
+      clearLinkedDiveId: linkedDiveWentAway,
     );
   }
 

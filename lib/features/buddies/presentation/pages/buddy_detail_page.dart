@@ -1,26 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:submersion/core/services/export/uddf/uddf_dives_extras.dart';
-import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
+import 'package:submersion/features/buddies/presentation/buddy_dive_share.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
-import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_favorite_button.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_shared_dives_section.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
 
 class BuddyDetailPage extends ConsumerStatefulWidget {
@@ -157,7 +154,7 @@ class _BuddyDetailContent extends ConsumerWidget {
           ],
 
           // Shared dives
-          _buildSharedDivesSection(context, ref),
+          BuddySharedDivesSection(buddyId: buddy.id),
         ],
       ),
     );
@@ -175,6 +172,7 @@ class _BuddyDetailContent extends ConsumerWidget {
       appBar: AppBar(
         title: Text(buddy.name),
         actions: [
+          BuddyFavoriteButton(buddyId: buddy.id, isFavorite: buddy.isFavorite),
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: context.l10n.buddies_action_edit,
@@ -267,6 +265,11 @@ class _BuddyDetailContent extends ConsumerWidget {
               ],
             ),
           ),
+          BuddyFavoriteButton(
+            buddyId: buddy.id,
+            isFavorite: buddy.isFavorite,
+            iconSize: 20,
+          ),
           IconButton(
             icon: const Icon(Icons.edit, size: 20),
             tooltip: context.l10n.common_action_edit,
@@ -332,107 +335,8 @@ class _BuddyDetailContent extends ConsumerWidget {
     }
   }
 
-  Future<void> _shareDivesWithBuddy(BuildContext context, WidgetRef ref) async {
-    // Capture the scaffold messenger and l10n before any async gaps
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final l10n = context.l10n;
-
-    final choice = await showExportDestinationSheetWithOptions(
-      context,
-      title: l10n.buddies_action_shareDives,
-      showRawDataToggle: true,
-      showDiveContentToggles: true,
-    );
-    if (choice == null) return;
-    final destination = choice.destination;
-    final options = choice.options;
-
-    // Show preparing message
-    scaffoldMessenger.showSnackBar(
-      SnackBar(
-        content: Text(l10n.buddies_message_preparingExport),
-        duration: const Duration(seconds: 1),
-      ),
-    );
-
-    // Get all dive IDs for this buddy
-    final diveIds = await ref.read(diveIdsForBuddyProvider(buddy.id).future);
-
-    if (diveIds.isEmpty) {
-      scaffoldMessenger.hideCurrentSnackBar();
-      scaffoldMessenger.showSnackBar(
-        SnackBar(content: Text(l10n.buddies_message_noDivesToShare)),
-      );
-      return;
-    }
-
-    try {
-      // Fetch all dives
-      final diveRepository = ref.read(diveRepositoryProvider);
-      final dives = <Dive>[];
-      for (final diveId in diveIds) {
-        final dive = await diveRepository.getDiveById(diveId);
-        if (dive != null) {
-          dives.add(dive);
-        }
-      }
-
-      if (dives.isEmpty) {
-        scaffoldMessenger.hideCurrentSnackBar();
-        scaffoldMessenger.showSnackBar(
-          SnackBar(content: Text(l10n.buddies_message_noDivesFound)),
-        );
-        return;
-      }
-
-      // Get unique sites from dives
-      final sites = dives
-          .where((d) => d.site != null)
-          .map((d) => d.site!)
-          .toSet()
-          .toList();
-
-      scaffoldMessenger.hideCurrentSnackBar();
-
-      // Hand the UDDF to the share sheet, or to a save panel on the user's
-      // request. Either way no success snackbar follows: the share sheet and
-      // the save panel each provide their own feedback.
-      final exportService = ref.read(exportServiceProvider);
-      final dataSources = await ref.read(uddfSourceFetchProvider)(
-        dives.map((d) => d.id).toList(growable: false),
-        options,
-      );
-      final extras = await ref.read(uddfDivesExtrasFetchProvider)(
-        dives.map((d) => d.id).toList(growable: false),
-        options,
-      );
-      switch (destination) {
-        case ExportDestination.share:
-          await exportService.exportDivesToUddf(
-            dives,
-            sites: sites,
-            dataSources: dataSources,
-            extras: extras,
-            options: options,
-          );
-        case ExportDestination.saveToFile:
-          await exportService.saveDivesToUddfFile(
-            dives,
-            sites: sites,
-            dataSources: dataSources,
-            extras: extras,
-            options: options,
-          );
-      }
-    } catch (e) {
-      scaffoldMessenger.hideCurrentSnackBar();
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text(l10n.buddies_message_exportFailed(e.toString())),
-        ),
-      );
-    }
-  }
+  Future<void> _shareDivesWithBuddy(BuildContext context, WidgetRef ref) =>
+      shareDivesWithBuddy(context, ref, buddy.id);
 
   Widget _buildProfileHeader(BuildContext context) {
     return Center(
@@ -616,182 +520,6 @@ class _BuddyDetailContent extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             Text(buddy.notes),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSharedDivesSection(BuildContext context, WidgetRef ref) {
-    final diveIdsAsync = ref.watch(diveIdsForBuddyProvider(buddy.id));
-    final divesAsync = ref.watch(divesForBuddyProvider(buddy.id));
-    final theme = Theme.of(context);
-    // Includes the year: shared dives routinely span several years, so a bare
-    // "Mar 28" is ambiguous (#982). Matches the stats card above.
-    final units = UnitFormatter(ref.watch(settingsProvider));
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  context.l10n.buddies_section_sharedDives,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                diveIdsAsync.when(
-                  data: (ids) => TextButton(
-                    onPressed: ids.isEmpty
-                        ? null
-                        : () {
-                            // Set filter to show only shared dives with this buddy
-                            ref
-                                .read(diveFilterProvider.notifier)
-                                .state = DiveFilterState(
-                              diveIds: ids,
-                              buddyId: buddy.id,
-                            );
-                            // Navigate to dive list
-                            context.go('/dives');
-                          },
-                    child: Text(
-                      context.l10n.buddies_action_viewAll(ids.length),
-                    ),
-                  ),
-                  loading: () => const SizedBox.shrink(),
-                  error: (e, st) => const SizedBox.shrink(),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            divesAsync.when(
-              data: (dives) {
-                if (dives.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    child: Center(
-                      child: Text(context.l10n.buddies_detail_noDivesTogether),
-                    ),
-                  );
-                }
-                // Show first 5 dives with same format as trip detail page
-                final displayDives = dives.take(5).toList();
-                return Column(
-                  children: displayDives.map((dive) {
-                    return Semantics(
-                      button: true,
-                      label:
-                          'View dive ${dive.diveNumber ?? ''} at ${dive.site?.name ?? 'Unknown Site'}',
-                      child: InkWell(
-                        onTap: () => context.push('/dives/${dive.id}'),
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 8,
-                            horizontal: 4,
-                          ),
-                          child: Row(
-                            children: [
-                              // Dive number badge
-                              Container(
-                                width: 40,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primaryContainer,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  '#${dive.diveNumber ?? '-'}',
-                                  style: theme.textTheme.labelMedium?.copyWith(
-                                    color: theme.colorScheme.onPrimaryContainer,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              // Dive details
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      dive.site?.name ?? 'Unknown Site',
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      units.formatDate(dive.dateTime),
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: theme
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              // Stats
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  if (dive.maxDepth != null)
-                                    Text(
-                                      '${dive.maxDepth!.toStringAsFixed(1)}m',
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w500,
-                                          ),
-                                    ),
-                                  if (dive.bottomTime != null)
-                                    Text(
-                                      '${dive.bottomTime!.inMinutes}min',
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: theme
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
-                                    ),
-                                ],
-                              ),
-                              const SizedBox(width: 4),
-                              ExcludeSemantics(
-                                child: Icon(
-                                  Icons.chevron_right,
-                                  color: theme.colorScheme.onSurfaceVariant,
-                                  size: 20,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                );
-              },
-              loading: () => const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: CircularProgressIndicator.adaptive(),
-                ),
-              ),
-              error: (e, st) =>
-                  Text(context.l10n.buddies_error_unableToLoadDives),
-            ),
           ],
         ),
       ),

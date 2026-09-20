@@ -85,6 +85,7 @@ void main() {
       final soloVsBuddy = await repository.getSoloVsBuddyCount();
       expect(soloVsBuddy.solo, equals(0));
       expect(soloVsBuddy.buddy, equals(0));
+      expect(soloVsBuddy.notRecorded, equals(0));
 
       final surfaceInterval = await repository.getSurfaceIntervalStats();
       expect(surfaceInterval.avgMinutes, isNull);

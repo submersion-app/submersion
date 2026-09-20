@@ -43,6 +43,58 @@ List<String> pdfTextTokens(List<int> bytes) {
   return tokens;
 }
 
+/// The text tokens of [bytes] paired with their baseline height, in document
+/// order, so a test can assert on vertical spacing.
+///
+/// A height is in points from the bottom of the page. The `pdf` package draws
+/// a word either with an absolute `Td` or with a relative `Td` inside a
+/// `q 1 0 0 1 x y cm ... Q` translation, so this follows `q`/`Q` and `cm`
+/// translations and accumulates `Td` offsets within each `BT`. It ignores
+/// scaling and rotation, so it only suits plain text pages without charts.
+/// Heights from different pages are not comparable.
+List<({String text, double y})> pdfTextBaselines(List<int> bytes) {
+  final result = <({String text, double y})>[];
+  for (final stream in _streamPayloads(bytes)) {
+    final stack = <double>[];
+    var translateY = 0.0;
+    var lineY = 0.0;
+    for (final op in _positionOp.allMatches(stream)) {
+      if (op.group(1) != null) {
+        // Six operands: a b c d e f cm. Only f, the y translation, is kept.
+        final f = double.parse(op.group(1)!.trim().split(RegExp(r'\s+')).last);
+        translateY += f;
+      } else if (op.group(2) != null) {
+        lineY += double.parse(op.group(2)!);
+      } else if (op.group(3) != null) {
+        for (final literal in _literal.allMatches(op.group(3)!)) {
+          final text = _unescape(literal.group(1)!);
+          if (text.isNotEmpty) result.add((text: text, y: translateY + lineY));
+        }
+      } else {
+        switch (op.group(0)) {
+          case 'BT':
+            lineY = 0;
+          case 'q':
+            stack.add(translateY);
+          case 'Q':
+            if (stack.isNotEmpty) translateY = stack.removeLast();
+        }
+      }
+    }
+  }
+  return result;
+}
+
+/// `cm` with its six operands, the y operand of `Td`, a `[...]TJ` array, or a
+/// bare `BT`, `q` or `Q`.
+final _positionOp = RegExp(
+  r'((?:-?[\d.]+\s+){6})cm'
+  r'|-?[\d.]+\s+(-?[\d.]+)\s+Td'
+  r'|\[(.*?)\]\s*TJ'
+  r'|\b(?:BT|q|Q)\b',
+  dotAll: true,
+);
+
 /// `[(word)]TJ` / `[(a) -20 (b)] TJ` text-showing operators.
 final _showTextArray = RegExp(r'\[(.*?)\]\s*TJ', dotAll: true);
 

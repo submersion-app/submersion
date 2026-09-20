@@ -228,26 +228,24 @@ void main() {
         containsAll([1800, 3600]),
       );
 
-      // Gas switch re-pointed to a NEW tank id belonging to the merged dive.
+      // Both halves breathed the same air cylinder, so the merged dive
+      // carries it once (#2036), and both gas switches re-point at that NEW
+      // tank id on the merged dive.
       final mergedTanks = await (db.select(
         db.diveTanks,
       )..where((t) => t.diveId.equals(mergedId))).get();
-      expect(mergedTanks, hasLength(2));
+      expect(mergedTanks, hasLength(1));
       final switches = await (db.select(
         db.gasSwitches,
       )..where((t) => t.diveId.equals(mergedId))).get();
       expect(switches, hasLength(2));
-      expect(
-        mergedTanks
-            .map((t) => t.id)
-            .toSet()
-            .containsAll(switches.map((s) => s.tankId)),
-        isTrue,
-      );
+      expect(switches.map((s) => s.tankId).toSet(), {mergedTanks.single.id});
 
-      // Tank pressures re-based and re-pointed.
+      // Tank pressures re-based, and both halves' series land on the one
+      // tank so its pressure line runs across the whole combined dive.
       final pressures = await tankSeries.getSeriesForDive(mergedId);
       expect(pressures, hasLength(2));
+      expect(pressures.map((s) => s.tankId).toSet(), {mergedTanks.single.id});
       expect(pressures.map((s) => s.samples.single.timestamp).toSet(), {
         60,
         3660,

@@ -4,6 +4,16 @@
   "equipment_components_add": "Add component",
   "equipment_components_containsSection": "Contains",
   "equipment_components_count": "{count, plural, =1{1 component} other{{count} components}}",
+  "equipment_rowLabel_identifier": "ID {identifier}",
+  "equipment_rowLabel_serial": "S/N {serial}",
+  "equipment_rowLabel_purchased": "Bought {date}",
+  "equipment_components_countOfTotal": "{total, plural, =1{{count} of 1 component} other{{count} of {total} components}}",
+  "@equipment_components_countOfTotal": {
+    "placeholders": {
+      "count": {"type": "int"},
+      "total": {"type": "int"}
+    }
+  },
   "equipment_components_cycleError": "That item already contains this one, so it cannot be added as a component.",
   "equipment_components_editRole": "Edit role",
   "equipment_components_empty": "No components. Add the parts this item is assembled from.",
@@ -78,6 +88,8 @@
   "common_action_dismiss": "Dismiss",
   "equipment_setEdit_defaultSwitch_title": "Default set",
   "equipment_setEdit_defaultSwitch_subtitle": "Auto-applied to new dives that have no equipment yet",
+  "equipment_setEdit_computerAutoApplySwitch_title": "Apply when this set's computer is imported",
+  "equipment_setEdit_computerAutoApplySwitch_subtitle": "If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it",
   "equipment_setEdit_geofencesTitle": "Geofences",
   "equipment_setEdit_geofencesSubtitle": "Auto-suggest this set for dives near these locations",
   "equipment_setEdit_addGeofence": "Add geofence",
@@ -1884,6 +1896,7 @@
   "preDive_start_noEquipmentSet": "None",
   "preDive_start_noEquipment": "None",
   "preDive_start_begin": "Begin",
+  "diveLog_gear_addMissingParts": "Add missing parts",
   "diveLog_gear_collapse": "Hide parts",
   "diveLog_gear_expand": "Show parts",
   "diveLog_gear_removeAssembly": "Remove assembly and its parts",
@@ -1954,6 +1967,7 @@
   "common_action_delete": "Delete",
   "common_action_edit": "Edit",
   "common_action_ok": "OK",
+  "common_action_openSettings": "Open Settings",
   "common_action_save": "Save",
   "common_action_search": "Search",
   "common_action_share": "Share",
@@ -3056,7 +3070,6 @@
   "diveLog_deco_badge_deco": "DECO",
   "diveLog_deco_badge_noDeco": "NO DECO",
   "diveLog_deco_label_ceiling": "Ceiling",
-  "diveLog_deco_label_leading": "Leading",
   "diveLog_deco_label_gf99": "GF99",
   "diveLog_deco_label_surfGf": "SurfGF",
   "diveLog_deco_label_ndl": "NDL",
@@ -3086,7 +3099,6 @@
   "diveLog_detail_badge_noDeco": "NO DECO",
   "diveLog_detail_badge_warning": "WARNING",
   "diveLog_detail_buddyCount": "{count} {count, plural, =1{buddy} other{buddies}}",
-  "diveLog_detail_button_playback": "Playback",
   "diveLog_detail_button_rangeAnalysis": "Range Stats",
   "diveLog_detail_button_showEnd": "Show end",
   "diveLog_detail_captureSignature": "Capture Instructor Signature",
@@ -4262,19 +4274,6 @@
   "diveLog_o2tox_startPercent": "Start: {value}%",
   "diveLog_o2tox_title": "Oxygen Toxicity",
   "diveLog_playbackStats_deco": "DECO",
-  "diveLog_playbackStats_depth": "Depth",
-  "diveLog_playbackStats_header": "Live Stats",
-  "diveLog_playbackStats_heartRate": "Heart Rate",
-  "diveLog_playbackStats_ndl": "NDL",
-  "diveLog_playbackStats_ppO2": "ppO₂",
-  "diveLog_playbackStats_pressure": "Pressure",
-  "diveLog_playbackStats_temp": "Temp",
-  "diveLog_playback_sliderLabel": "Playback position",
-  "diveLog_playback_speed_label": "{speed}x",
-  "diveLog_playback_stepThrough": "Step-through Playback",
-  "diveLog_playback_tooltip_back10": "Back 10 seconds",
-  "diveLog_playback_tooltip_exit": "Exit playback mode",
-  "diveLog_playback_tooltip_forward10": "Forward 10 seconds",
   "diveLog_playback_tooltip_pause": "Pause",
   "diveLog_playback_tooltip_play": "Play",
   "diveLog_playback_tooltip_skipEnd": "Skip to end",
@@ -4438,13 +4437,6 @@
   "diveLog_tank_tooltip_remove": "Remove tank",
   "diveLog_tank_regulatorLabel": "Regulator",
   "diveLog_tank_regulatorNone": "None",
-  "diveLog_tissue_label_ceiling": "Ceiling",
-  "diveLog_tissue_label_gf": "GF",
-  "diveLog_tissue_label_ndl": "NDL",
-  "diveLog_tissue_label_tts": "TTS",
-  "diveLog_tissue_legend_he": "He",
-  "diveLog_tissue_legend_mValue": "100% M-value",
-  "diveLog_tissue_legend_n2": "N₂",
   "diveLog_tissue_title": "Tissue Loading",
   "diveLog_tooltip_avgCalculated": "(avg, calculated)",
   "diveLog_tooltip_ceiling": "Ceiling",
@@ -5065,13 +5057,6 @@
   "@diveLog_o2tox_startPercent": {
     "placeholders": {
       "value": {
-        "type": "Object"
-      }
-    }
-  },
-  "@diveLog_playback_speed_label": {
-    "placeholders": {
-      "speed": {
         "type": "Object"
       }
     }
@@ -6937,6 +6922,20 @@
       }
     }
   },
+  "equipment_serviceClocks_divesUsedAndLeft": "{used} dives, {remaining} of {total} dives left",
+  "@equipment_serviceClocks_divesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "int"
+      },
+      "remaining": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
   "cylinderConfigs_title": "Cylinder configurations",
   "cylinderConfigs_empty": "No configurations yet",
   "cylinderConfigs_emptyBody": "Save a diluent and bailout setup once, then apply it to any dive.",
@@ -6984,9 +6983,37 @@
       }
     }
   },
+  "equipment_serviceClocks_hoursUsedAndLeft": "{used} hours, {remaining} of {total} hours left",
+  "@equipment_serviceClocks_hoursUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_saltHoursLeft": "{remaining} of {total} salt-water hours left",
   "@equipment_serviceClocks_saltHoursLeft": {
     "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_saltHoursUsedAndLeft": "{used} salt-water hours, {remaining} of {total} salt-water hours left",
+  "@equipment_serviceClocks_saltHoursUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
       "remaining": {
         "type": "String"
       },
@@ -7006,9 +7033,37 @@
       }
     }
   },
+  "equipment_serviceClocks_coldDivesUsedAndLeft": "{used} cold dives, {remaining} of {total} cold dives left",
+  "@equipment_serviceClocks_coldDivesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_o2HoursLeft": "{remaining} of {total} high-O2 hours left",
   "@equipment_serviceClocks_o2HoursLeft": {
     "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_o2HoursUsedAndLeft": "{used} high-O2 hours, {remaining} of {total} high-O2 hours left",
+  "@equipment_serviceClocks_o2HoursUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
       "remaining": {
         "type": "String"
       },
@@ -7028,9 +7083,37 @@
       }
     }
   },
+  "equipment_serviceClocks_deepCyclesUsedAndLeft": "{used} deep dives, {remaining} of {total} deep dives left",
+  "@equipment_serviceClocks_deepCyclesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
   "equipment_serviceClocks_cyclesLeft": "{remaining} of {total} battery cycles left",
   "@equipment_serviceClocks_cyclesLeft": {
     "placeholders": {
+      "remaining": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_serviceClocks_cyclesUsedAndLeft": "{used} battery cycles, {remaining} of {total} battery cycles left",
+  "@equipment_serviceClocks_cyclesUsedAndLeft": {
+    "placeholders": {
+      "used": {
+        "type": "String"
+      },
       "remaining": {
         "type": "String"
       },
@@ -7415,6 +7498,7 @@
   "equipment_serviceDialog_serviceTypeNotSet": "Not set",
   "equipment_serviceDialog_categoryHelper": "Used for filtering and export",
   "equipment_serviceDialog_manageServiceTypes": "Manage service types",
+  "equipment_serviceDialog_filterToConfiguredTypes": "Only show configured service types",
   "equipment_serviceDialog_categoryLabel": "Category",
   "equipment_serviceDialog_snackbar_added": "Service record added",
   "equipment_serviceDialog_snackbar_error": "Error: {error}",
@@ -7464,6 +7548,15 @@
       }
     }
   },
+  "equipment_service_showMore": "{count, plural, =1{Show 1 more} other{Show {count} more}}",
+  "@equipment_service_showMore": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "equipment_service_showFewer": "Show fewer",
   "@equipment_service_totalCostLabel": {
     "placeholders": {
       "currency": {
@@ -10481,8 +10574,6 @@
   "diveDetailSection_customFields_description": "User-defined custom fields",
   "diveDetailSection_dataSources_name": "Data Sources",
   "diveDetailSection_dataSources_description": "Connected dive computers, source management",
-  "siteDetailSection_map_name": "Map",
-  "siteDetailSection_map_description": "Map preview of the site location",
   "siteDetailSection_diveStatistics_description": "Dive count, depths reached, longest and latest dives",
   "siteDetailSection_description_description": "Your description of the site",
   "siteDetailSection_location_description": "Country, region, body of water, GPS coordinates",
@@ -11905,6 +11996,7 @@
   "statistics_chart_noBarData": "No data available",
   "statistics_chart_noDistributionData": "No distribution data available",
   "statistics_chart_noTrendData": "No trend data available",
+  "statistics_chart_notRecorded": "Not recorded",
   "statistics_chart_trendSemanticLabel": "Trend line chart showing {count} data points",
   "statistics_chart_trendSemanticLabelWithAxis": "Trend line chart showing {count} data points for {yAxisLabel}",
   "statistics_conditions_appBar_title": "Conditions",
@@ -14302,6 +14394,8 @@
       }
     }
   },
+  "universalImport_summary_noticeSitesUnresolvedTitle": "Some dives have no dive site",
+  "universalImport_summary_noticeSitesUnresolvedBody": "These dives referred to a dive site the file does not describe, so they were imported without one. You can set a site by editing the dive.",
   "universalImport_summary_noticeMacdiveXmlCertsTitle": "Certifications and service records not in the file",
   "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive leaves certifications and equipment service records out of its XML export. To bring them in, import your MacDive.sqlite database.",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "MacDive logbooks not imported",
@@ -14383,6 +14477,10 @@
   "universalImport_error_unreadableDatesHint": "Check that the date and time columns are mapped on this step, and that they hold dates.",
   "@universalImport_error_unreadableDatesHint": {
     "description": "Last line of the unreadable-dates error, pointing the user at the date column mapping on the Map Fields step"
+  },
+  "universalImport_error_unreadableDatesHintNoMapping": "Check that the date column holds dates written the way its header names.",
+  "@universalImport_error_unreadableDatesHintNoMapping": {
+    "description": "Last line of the unreadable-dates error for a self-describing format such as Submersion's own CSV, which has no Map Fields step; it points the user at the format the file's own date header names"
   },
   "universalImport_error_noDataInFile": "No importable data was found in this file.",
   "@universalImport_error_noDataInFile": {
@@ -19795,6 +19893,11 @@
       }
     }
   },
+  "common_coordinates_invalidLatitude": "Invalid latitude",
+  "common_coordinates_invalidLongitude": "Invalid longitude",
+  "common_coordinates_latitudeRequired": "Latitude is required",
+  "common_coordinates_longitudeRequired": "Longitude is required",
+  "common_coordinates_invalid": "Invalid coordinates",
   "marineLife_species_delete_confirmTitle": "Delete species?",
   "marineLife_species_delete_confirmBody": "Are you sure you want to delete \"{name}\"?",
   "marineLife_species_delete_inUseError": "Cannot delete \"{name}\" - it has sightings",
@@ -23429,6 +23532,26 @@
   "startup_failure_restoreFailed": "The backup could not be restored. Your dive log has been left exactly as it was.",
   "startup_failure_backupsFolder": "Your backups are in:",
   "startup_failure_showBackupsFolder": "Show backup folder",
+  "startup_failure_moreWays_title": "Other ways back in",
+  "startup_failure_useAnotherFolder": "Use a dive log in another folder",
+  "startup_failure_useAnotherFolder_subtitle": "Switch to a dive log you already keep somewhere else, such as an iCloud Drive or Dropbox folder.",
+  "startup_failure_restoreFromFile": "Restore from a backup file",
+  "startup_failure_restoreFromFile_subtitle": "Pick a Submersion backup from anywhere on this device or in a synced folder.",
+  "startup_failure_startFresh": "Start with an empty dive log",
+  "startup_failure_startFresh_subtitle": "Set the damaged file aside and begin again. Nothing is deleted.",
+  "startup_recovery_adopt_title": "Use this dive log?",
+  "startup_recovery_adopt_body": "Submersion will open this dive log from now on. The file that would not open stays where it is.",
+  "startup_recovery_adopt_contents": "{dives} dives, {sites} dive sites",
+  "startup_recovery_adopt_confirm": "Use this dive log",
+  "startup_recovery_startFresh_title": "Start with an empty dive log?",
+  "startup_recovery_startFresh_body": "Submersion moves the damaged file into a folder of its own and opens a new, empty dive log. Nothing is deleted, so you can still try the old file again or send it to support.",
+  "startup_recovery_startFresh_confirm": "Start fresh",
+  "startup_recovery_startFresh_done": "Your damaged dive log was moved to:\n{path}",
+  "startup_recovery_problem_title": "That did not work",
+  "startup_recovery_noDiveLog_body": "There is no {filename} in {folder}. Choose the folder that holds the dive log file itself.",
+  "startup_recovery_unusable_body": "The dive log at {path} is damaged, or it is not a Submersion dive log.",
+  "startup_recovery_unusableBackup_body": "That file is not a backup Submersion can restore: {path}",
+  "startup_recovery_encryptedBackup_body": "That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings, under Backup and Restore.",
   "startup_failure_downgrade_title": "Going back to the previous version",
   "startup_failure_downgrade_body": "If the upgrade keeps failing, install the version of Submersion you were running before, then restore the safety copy from inside that version. Restoring it here would only run the same upgrade again. Submersion does not downgrade itself: moving you onto older builds automatically would quietly keep you on versions with known problems.",
   "startup_failure_downgrade_action": "View previous releases",
@@ -23652,6 +23775,104 @@
   },
   "@startup_failure_showBackupsFolder": {
     "description": "Desktop-only button that opens the backups folder in the system file manager."
+  },
+  "@startup_failure_moreWays_title": {
+    "description": "Heading over the recovery routes offered when a startup failure left the diver's data reachable somewhere else."
+  },
+  "@startup_failure_useAnotherFolder": {
+    "description": "Action opening a folder picker so the diver can point Submersion at a dive log kept elsewhere, such as an iCloud Drive folder."
+  },
+  "@startup_failure_useAnotherFolder_subtitle": {
+    "description": "Explains what picking another folder does."
+  },
+  "@startup_failure_restoreFromFile": {
+    "description": "Action opening a file picker so the diver can restore a backup the app's own registry does not know about."
+  },
+  "@startup_failure_restoreFromFile_subtitle": {
+    "description": "Explains what picking a backup file does."
+  },
+  "@startup_failure_startFresh": {
+    "description": "Action that sets the unreadable database aside and starts an empty one. Last resort, shown below the two routes that keep existing data."
+  },
+  "@startup_failure_startFresh_subtitle": {
+    "description": "Explains that starting fresh moves the damaged file rather than deleting it."
+  },
+  "@startup_recovery_adopt_title": {
+    "description": "Title of the dialog confirming the dive log found in the picked folder."
+  },
+  "@startup_recovery_adopt_body": {
+    "description": "Explains that adopting the found dive log leaves the unreadable file untouched."
+  },
+  "@startup_recovery_adopt_contents": {
+    "description": "What the found dive log holds, so the diver can recognise it before committing. Object, not int, so counts are never group-separated inconsistently with the rest of the screen.",
+    "placeholders": {
+      "dives": {
+        "type": "Object",
+        "example": "412"
+      },
+      "sites": {
+        "type": "Object",
+        "example": "87"
+      }
+    }
+  },
+  "@startup_recovery_adopt_confirm": {
+    "description": "Confirm button of the adopt dialog."
+  },
+  "@startup_recovery_startFresh_title": {
+    "description": "Title of the dialog confirming an empty dive log."
+  },
+  "@startup_recovery_startFresh_body": {
+    "description": "Explains that the damaged file is moved aside, not deleted, and stays available for support."
+  },
+  "@startup_recovery_startFresh_confirm": {
+    "description": "Confirm button of the start-fresh dialog."
+  },
+  "@startup_recovery_startFresh_done": {
+    "description": "Tells the diver where the damaged dive log was moved to.",
+    "placeholders": {
+      "path": {
+        "type": "Object",
+        "example": "/Users/me/Documents/Submersion/unreadable-dive-log-20260919-183000"
+      }
+    }
+  },
+  "@startup_recovery_problem_title": {
+    "description": "Title shared by every dialog reporting that a recovery route did not get anywhere."
+  },
+  "@startup_recovery_noDiveLog_body": {
+    "description": "Shown when the picked folder holds no dive log. Names the file looked for and the folder searched, because picking the parent folder is the common mistake.",
+    "placeholders": {
+      "filename": {
+        "type": "Object",
+        "example": "submersion.db"
+      },
+      "folder": {
+        "type": "Object",
+        "example": "/Users/me/Library/Mobile Documents"
+      }
+    }
+  },
+  "@startup_recovery_unusable_body": {
+    "description": "Shown when the picked folder holds a dive log that cannot be read either.",
+    "placeholders": {
+      "path": {
+        "type": "Object",
+        "example": "/Users/me/Dropbox/Submersion/submersion.db"
+      }
+    }
+  },
+  "@startup_recovery_unusableBackup_body": {
+    "description": "Shown when a backup FILE the diver picked cannot be restored. Distinct from the unusable dive-log message, which calls the path a dive log.",
+    "placeholders": {
+      "path": {
+        "type": "Object",
+        "example": "/Users/me/Downloads/holiday.zip"
+      }
+    }
+  },
+  "@startup_recovery_encryptedBackup_body": {
+    "description": "Shown when the diver picks an encrypted backup on the startup failure screen, where the passphrase prompt that unlocks one is not reachable."
   },
   "@startup_failure_downgrade_title": {
     "description": "Heading of the guided-downgrade section on a failed schema upgrade."
@@ -25453,5 +25674,44 @@
   "plannerCanvas_compare_planned": "Plan",
   "plannerCanvas_compare_actual": "Actual",
   "plannerCanvas_compare_showOnChart": "Show on chart",
-  "numberInput_invalidValue": "Enter a valid number"
+  "numberInput_invalidValue": "Enter a valid number",
+  "diveCenters_rental_sectionTitle": "Rental gear",
+  "diveCenters_rental_lastTimeAt": "Last time at {center}",
+  "@diveCenters_rental_lastTimeAt": {"placeholders": {"center": {"type": "Object"}}},
+  "diveCenters_rental_lastDiveOn": "Last dive here: {date}",
+  "@diveCenters_rental_lastDiveOn": {"placeholders": {"date": {"type": "Object"}}},
+  "diveCenters_rental_noHistory": "No other dives logged here yet.",
+  "diveCenters_rental_empty": "No rental notes for this center yet.",
+  "diveCenters_rental_addNote": "Add rental note",
+  "diveCenters_rental_applyLastDive": "Apply last dive",
+  "diveCenters_rental_applied": "Weights and tanks copied from your last dive here.",
+  "diveCenters_rental_applyConfirmTitle": "Replace weights and tanks?",
+  "diveCenters_rental_applyConfirmBody": "This dive already has weights or tanks. Replace them with the ones from your last dive here?",
+  "diveCenters_rental_applyConfirmReplace": "Replace",
+  "diveCenters_rental_leadTotal": "Lead: {total}",
+  "@diveCenters_rental_leadTotal": {"placeholders": {"total": {"type": "Object"}}},
+  "diveCenters_rental_feedbackOver": "{amount} over",
+  "@diveCenters_rental_feedbackOver": {"placeholders": {"amount": {"type": "Object"}}},
+  "diveCenters_rental_feedbackUnder": "{amount} under",
+  "@diveCenters_rental_feedbackUnder": {"placeholders": {"amount": {"type": "Object"}}},
+  "diveCenters_rental_tanksLabel": "Tanks",
+  "diveCenters_rental_verdictWorked": "Worked",
+  "diveCenters_rental_verdictAvoid": "Avoid",
+  "diveCenters_rental_extraLead": "{amount} extra lead",
+  "@diveCenters_rental_extraLead": {"placeholders": {"amount": {"type": "Object"}}},
+  "diveCenters_rental_lessLead": "{amount} less lead",
+  "@diveCenters_rental_lessLead": {"placeholders": {"amount": {"type": "Object"}}},
+  "diveCenters_rental_actualCapacity": "Actual capacity {volume}",
+  "@diveCenters_rental_actualCapacity": {"placeholders": {"volume": {"type": "Object"}}},
+  "diveCenters_rental_sheetTitleNew": "New rental note",
+  "diveCenters_rental_sheetTitleEdit": "Edit rental note",
+  "diveCenters_rental_gearTypeLabel": "Gear type",
+  "diveCenters_rental_labelLabel": "Label or number",
+  "diveCenters_rental_sizeLabel": "Size",
+  "diveCenters_rental_leadAdjustmentLabel": "Extra lead needed ({unit})",
+  "@diveCenters_rental_leadAdjustmentLabel": {"placeholders": {"unit": {"type": "Object"}}},
+  "diveCenters_rental_volumeLabel": "Actual capacity ({unit})",
+  "@diveCenters_rental_volumeLabel": {"placeholders": {"unit": {"type": "Object"}}},
+  "diveCenters_rental_noteLabel": "Note",
+  "diveCenters_rental_deleteConfirm": "Delete this rental note?"
 }

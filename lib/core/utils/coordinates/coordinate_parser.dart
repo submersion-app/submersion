@@ -52,10 +52,36 @@ final RegExp _number = RegExp(r'\d+(?:\.\d+)?');
   return _parseDegreeFamily(trimmed);
 }
 
+/// One comma between two digits, and no other comma or point anywhere.
+final RegExp _decimalCommaShape = RegExp(r'^[^.,]*\d,\d[^.,]*$');
+
+/// One axis written with a decimal comma: an optional hemisphere letter on
+/// either side, an optional sign, a single number, an optional degree sign.
+final RegExp _decimalCommaAxis = RegExp(
+  r'^[NSEW]?\s*[+-]?\d+,\d+\s*°?\s*[NSEW]?$',
+  caseSensitive: false,
+);
+
+/// Whether [input] is a single axis written with a comma as its decimal
+/// separator, as divers in comma-decimal locales type it: '48,8566'.
+///
+/// A pasted pair always has a separator the digits cannot absorb: a space
+/// after the comma ('20, -87'), points in the halves ('20.5,87.3'), a second
+/// comma, or a second number ('16Q 496898,2251535'). A single number around
+/// one comma is therefore read as a decimal, which gives up the integer-only
+/// pair '43,5'. That pair is rare, and reading a decimal as one would
+/// silently overwrite the axis the diver did not touch (issue #2035).
+bool isDecimalCommaNumber(String input) =>
+    _decimalCommaAxis.hasMatch(input.trim());
+
 /// Parses a single axis, used by the per-axis sub-fields of the input widget.
 double? parseSingleAxis(String input, {required bool isLatitude}) {
-  final trimmed = input.trim();
+  var trimmed = input.trim();
   if (trimmed.isEmpty) return null;
+  // Without this, '4,5' reads as two numbers: 4 degrees 5 minutes.
+  if (_decimalCommaShape.hasMatch(trimmed)) {
+    trimmed = trimmed.replaceFirst(',', '.');
+  }
   final value = _parseAxisText(trimmed, isLatitude: isLatitude);
   if (value == null) return null;
   final limit = isLatitude ? 90.0 : 180.0;

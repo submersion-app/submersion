@@ -7,6 +7,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/edit_sections/merge_field_extras.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/coordinate_field_group.dart';
+import 'package:submersion/shared/widgets/forms/coordinate_validation_messages.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/altitude_group_label.dart';
@@ -94,10 +95,11 @@ class LocationSection extends StatelessWidget {
               errorText:
                   latValidator(latitudeController.text) ??
                   lonValidator(longitudeController.text),
-              // Shown while what is typed is not a position at all. The
-              // controllers keep the last good value in that state, so the
-              // range validators above have nothing to complain about.
-              invalidMessage: l10n.diveSites_edit_gps_latitude_validation,
+              // Shown, under the axis at fault, while what is typed is not a
+              // position at all. The controllers keep the last good value in
+              // that state, so the range validators above have nothing to
+              // complain about.
+              messages: CoordinateValidationMessages.of(context),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(14, 2, 14, 6),

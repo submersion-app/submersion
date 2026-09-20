@@ -37,16 +37,23 @@ void main() {
   ];
   final links = gearLinksFor(items, provenance);
 
-  test('buckets by set in first-seen order with loose gear last', () {
-    final buckets = GearTree.build(links);
-    expect(buckets.map((b) => b.setId), ['winter', 'photo', null]);
-    expect(buckets[0].roots.map((n) => n.link.item.id), ['kit']);
-    expect(buckets[1].roots.map((n) => n.link.item.id), ['cam']);
-    expect(buckets[2].roots.map((n) => n.link.item.id), ['mask']);
+  test('every top-level row is one root list, set and loose alike', () {
+    // One list so the diver's arrangement orders the whole dive at once: a
+    // hand-added tank must not trail a set's gear as its own run (#2031).
+    expect(GearTree.build(links).map((n) => n.link.item.id), [
+      'mask',
+      'kit',
+      'cam',
+    ]);
+  });
+
+  test('setIds lists each applied set once, in first-seen order', () {
+    expect(GearTree.setIds(links), ['winter', 'photo']);
+    expect(GearTree.setIds(looseGear(items)), isEmpty);
   });
 
   test('nests parts under their parent in link order', () {
-    final kit = GearTree.build(links)[0].roots.single;
+    final kit = GearTree.build(links)[1];
     expect(kit.children.map((n) => n.link.item.id), ['reg', 'fins']);
     expect(kit.children[0].children.map((n) => n.link.item.id), ['hose']);
   });
@@ -56,7 +63,7 @@ void main() {
       [item('hose', EquipmentType.hose)],
       const [GearProvenance(equipmentId: 'hose', viaEquipmentId: 'missing')],
     );
-    expect(GearTree.build(orphan).single.roots.single.link.item.id, 'hose');
+    expect(GearTree.build(orphan).single.link.item.id, 'hose');
   });
 
   test('rolledUpIds and leafItems agree', () {
@@ -77,7 +84,7 @@ void main() {
         GearProvenance(equipmentId: 'b', viaEquipmentId: 'a'),
       ],
     );
-    expect(GearTree.build(loop).single.roots, isNotEmpty);
+    expect(GearTree.build(loop), isNotEmpty);
   });
 
   test('a corrupt loop still rolls up one row and keeps one leaf', () {
@@ -95,7 +102,7 @@ void main() {
     ], loop);
     expect(GearTree.rolledUpIds(loop), {'a'});
     expect(GearTree.leafItems(links).map((i) => i.id), ['b']);
-    final root = GearTree.build(links).single.roots.single;
+    final root = GearTree.build(links).single;
     expect(root.link.item.id, 'a');
     expect(root.children.single.link.item.id, 'b');
   });

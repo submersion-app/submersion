@@ -35,6 +35,32 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String equipment_rowLabel_identifier(Object identifier) {
+    return 'ID $identifier';
+  }
+
+  @override
+  String equipment_rowLabel_serial(Object serial) {
+    return 'S/N $serial';
+  }
+
+  @override
+  String equipment_rowLabel_purchased(Object date) {
+    return 'Gekauft $date';
+  }
+
+  @override
+  String equipment_components_countOfTotal(int count, int total) {
+    String _temp0 = intl.Intl.pluralLogic(
+      total,
+      locale: localeName,
+      other: '$count von $total Komponenten',
+      one: '$count von 1 Komponente',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get equipment_components_cycleError =>
       'Dieser Gegenstand enthält diesen bereits, daher kann er nicht als Komponente hinzugefügt werden.';
 
@@ -215,6 +241,14 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get equipment_setEdit_defaultSwitch_subtitle =>
       'Wird automatisch auf neue Tauchgänge ohne Ausrüstung angewendet';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_title =>
+      'Anwenden, wenn dieser Tauchcomputer importiert wird';
+
+  @override
+  String get equipment_setEdit_computerAutoApplySwitch_subtitle =>
+      'Enthält dieses Set einen Tauchcomputer, wird das ganze Set automatisch zu einem von diesem heruntergeladenen oder importierten Tauchgang hinzugefügt';
 
   @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
@@ -3066,6 +3100,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get preDive_start_begin => 'Beginnen';
 
   @override
+  String get diveLog_gear_addMissingParts => 'Fehlende Teile hinzufügen';
+
+  @override
   String get diveLog_gear_collapse => 'Teile ausblenden';
 
   @override
@@ -3175,6 +3212,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get common_action_ok => 'OK';
+
+  @override
+  String get common_action_openSettings => 'Einstellungen öffnen';
 
   @override
   String get common_action_save => 'Speichern';
@@ -5113,9 +5153,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'Ceiling';
 
   @override
-  String get diveLog_deco_label_leading => 'Leitgewebe';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5228,9 +5265,6 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'Wiedergabe';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'Bereichsstatistik';
@@ -7765,47 +7799,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'DEKO';
 
   @override
-  String get diveLog_playbackStats_depth => 'Tiefe';
-
-  @override
-  String get diveLog_playbackStats_header => 'Live-Statistiken';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'Herzfrequenz';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'Druck';
-
-  @override
-  String get diveLog_playbackStats_temp => 'Temp.';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'Wiedergabeposition';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'Schrittweise Wiedergabe';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => '10 Sekunden zurück';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'Wiedergabemodus beenden';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => '10 Sekunden vor';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'Pause';
 
   @override
@@ -8320,27 +8313,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Keiner';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'Ceiling';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M-Wert';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'Gewebesättigung';
@@ -12094,6 +12066,15 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_divesUsedAndLeft(
+    int used,
+    int remaining,
+    int total,
+  ) {
+    return '$used Tauchgänge, $remaining von $total Tauchgängen übrig';
+  }
+
+  @override
   String get cylinderConfigs_title => 'Flaschenkonfigurationen';
 
   @override
@@ -12185,8 +12166,26 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_hoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used Stunden, $remaining von $total Stunden übrig';
+  }
+
+  @override
   String equipment_serviceClocks_saltHoursLeft(String remaining, String total) {
     return '$remaining von $total Salzwasserstunden übrig';
+  }
+
+  @override
+  String equipment_serviceClocks_saltHoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used Salzwasserstunden, $remaining von $total Salzwasserstunden übrig';
   }
 
   @override
@@ -12195,8 +12194,26 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_coldDivesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used Kaltwassertauchgänge, $remaining von $total Kaltwassertauchgängen übrig';
+  }
+
+  @override
   String equipment_serviceClocks_o2HoursLeft(String remaining, String total) {
     return '$remaining von $total Stunden mit hohem O2 übrig';
+  }
+
+  @override
+  String equipment_serviceClocks_o2HoursUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used Stunden mit hohem O2, $remaining von $total Stunden mit hohem O2 übrig';
   }
 
   @override
@@ -12208,8 +12225,26 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String equipment_serviceClocks_deepCyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used tiefe Tauchgänge, $remaining von $total tiefen Tauchgängen übrig';
+  }
+
+  @override
   String equipment_serviceClocks_cyclesLeft(String remaining, String total) {
     return '$remaining von $total Batteriezyklen übrig';
+  }
+
+  @override
+  String equipment_serviceClocks_cyclesUsedAndLeft(
+    String used,
+    String remaining,
+    String total,
+  ) {
+    return '$used Batteriezyklen, $remaining von $total Batteriezyklen übrig';
   }
 
   @override
@@ -12993,6 +13028,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Wartungsarten verwalten';
 
   @override
+  String get equipment_serviceDialog_filterToConfiguredTypes =>
+      'Nur konfigurierte Wartungsarten anzeigen';
+
+  @override
   String get equipment_serviceDialog_categoryLabel => 'Kategorie';
 
   @override
@@ -13098,6 +13137,20 @@ class AppLocalizationsDe extends AppLocalizations {
   String equipment_service_filterMatchCount(int count, int total) {
     return '$count von $total angezeigt';
   }
+
+  @override
+  String equipment_service_showMore(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weitere anzeigen',
+      one: '1 weiteren anzeigen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get equipment_service_showFewer => 'Weniger anzeigen';
 
   @override
   String get equipment_serviceKinds_defaultCategoryLabel => 'Standardkategorie';
@@ -17102,13 +17155,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Verbundene Tauchcomputer, Quellenverwaltung';
 
   @override
-  String get siteDetailSection_map_name => 'Karte';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Kartenvorschau des Tauchplatzes';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Anzahl der Tauchgänge, erreichte Tiefen, längster und letzter Tauchgang';
 
@@ -19753,6 +19799,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get statistics_chart_noTrendData => 'Keine Trenddaten verfügbar';
+
+  @override
+  String get statistics_chart_notRecorded => 'Nicht erfasst';
 
   @override
   String statistics_chart_trendSemanticLabel(Object count) {
@@ -23522,6 +23571,14 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Einige Tauchgänge ohne Tauchplatz';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Diese Tauchgänge verwiesen auf einen Tauchplatz, den die Datei nicht beschreibt, und wurden daher ohne Tauchplatz importiert. Sie können den Tauchplatz beim Bearbeiten des Tauchgangs festlegen.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'Zertifizierungen und Wartungseinträge nicht in der Datei';
 
@@ -23672,6 +23729,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'Prüfen Sie, ob die Datums- und Uhrzeitspalten in diesem Schritt zugeordnet sind und Datumsangaben enthalten.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Prüfen Sie, ob die Datumsspalte Datumsangaben in dem Format enthält, das ihre Überschrift nennt.';
 
   @override
   String get universalImport_error_noDataInFile =>
@@ -30573,6 +30634,23 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get common_coordinates_invalidLatitude => 'Ungültiger Breitengrad';
+
+  @override
+  String get common_coordinates_invalidLongitude => 'Ungültiger Längengrad';
+
+  @override
+  String get common_coordinates_latitudeRequired =>
+      'Breitengrad ist erforderlich';
+
+  @override
+  String get common_coordinates_longitudeRequired =>
+      'Längengrad ist erforderlich';
+
+  @override
+  String get common_coordinates_invalid => 'Ungültige Koordinaten';
 
   @override
   String get marineLife_species_delete_confirmTitle => 'Art löschen?';
@@ -38666,6 +38744,85 @@ class AppLocalizationsDe extends AppLocalizations {
   String get startup_failure_showBackupsFolder => 'Sicherungsordner anzeigen';
 
   @override
+  String get startup_failure_moreWays_title => 'Weitere Wege zurück';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'Logbuch in einem anderen Ordner verwenden';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'Wechseln Sie zu einem Logbuch, das Sie bereits anderswo aufbewahren, etwa in einem iCloud Drive- oder Dropbox-Ordner.';
+
+  @override
+  String get startup_failure_restoreFromFile =>
+      'Aus einer Sicherungsdatei wiederherstellen';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'Wählen Sie eine Submersion-Sicherung von einem beliebigen Ort auf diesem Gerät oder in einem synchronisierten Ordner.';
+
+  @override
+  String get startup_failure_startFresh => 'Mit leerem Logbuch beginnen';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'Die beschädigte Datei beiseitelegen und neu beginnen. Es wird nichts gelöscht.';
+
+  @override
+  String get startup_recovery_adopt_title => 'Dieses Logbuch verwenden?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'Submersion öffnet ab jetzt dieses Logbuch. Die Datei, die sich nicht öffnen ließ, bleibt, wo sie ist.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives Tauchgänge, $sites Tauchplätze';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'Dieses Logbuch verwenden';
+
+  @override
+  String get startup_recovery_startFresh_title =>
+      'Mit leerem Logbuch beginnen?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion verschiebt die beschädigte Datei in einen eigenen Ordner und öffnet ein neues, leeres Logbuch. Es wird nichts gelöscht; Sie können die alte Datei später erneut versuchen oder an den Support senden.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'Neu beginnen';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'Ihr beschädigtes Logbuch wurde verschoben nach:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'Das hat nicht funktioniert';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'In $folder gibt es keine Datei $filename. Wählen Sie den Ordner, der die Logbuchdatei selbst enthält.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'Das Logbuch unter $path ist beschädigt oder es ist kein Submersion-Logbuch.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'Diese Datei ist keine Sicherung, die Submersion wiederherstellen kann: $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'Diese Sicherung ist verschlüsselt. Submersion kann eine verschlüsselte Sicherung erst entsperren, wenn die App geöffnet ist. Nutzen Sie daher zuerst einen der anderen Wege hier und stellen Sie sie danach in den Einstellungen unter Sicherung und Wiederherstellung wieder her.';
+
+  @override
   String get startup_failure_downgrade_title => 'Zurück zur vorherigen Version';
 
   @override
@@ -41474,4 +41631,116 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get numberInput_invalidValue => 'Geben Sie eine gültige Zahl ein';
+
+  @override
+  String get diveCenters_rental_sectionTitle => 'Leihausrüstung';
+
+  @override
+  String diveCenters_rental_lastTimeAt(Object center) {
+    return 'Letztes Mal bei $center';
+  }
+
+  @override
+  String diveCenters_rental_lastDiveOn(Object date) {
+    return 'Letzter Tauchgang hier: $date';
+  }
+
+  @override
+  String get diveCenters_rental_noHistory =>
+      'Hier sind noch keine weiteren Tauchgänge eingetragen.';
+
+  @override
+  String get diveCenters_rental_empty =>
+      'Noch keine Notizen zur Leihausrüstung dieses Centers.';
+
+  @override
+  String get diveCenters_rental_addNote => 'Leihnotiz hinzufügen';
+
+  @override
+  String get diveCenters_rental_applyLastDive => 'Letzten Tauchgang übernehmen';
+
+  @override
+  String get diveCenters_rental_applied =>
+      'Blei und Flaschen vom letzten Tauchgang hier übernommen.';
+
+  @override
+  String get diveCenters_rental_applyConfirmTitle =>
+      'Blei und Flaschen ersetzen?';
+
+  @override
+  String get diveCenters_rental_applyConfirmBody =>
+      'Dieser Tauchgang hat bereits Blei oder Flaschen. Durch die vom letzten Tauchgang hier ersetzen?';
+
+  @override
+  String get diveCenters_rental_applyConfirmReplace => 'Ersetzen';
+
+  @override
+  String diveCenters_rental_leadTotal(Object total) {
+    return 'Blei: $total';
+  }
+
+  @override
+  String diveCenters_rental_feedbackOver(Object amount) {
+    return '$amount zu viel';
+  }
+
+  @override
+  String diveCenters_rental_feedbackUnder(Object amount) {
+    return '$amount zu wenig';
+  }
+
+  @override
+  String get diveCenters_rental_tanksLabel => 'Flaschen';
+
+  @override
+  String get diveCenters_rental_verdictWorked => 'Hat gepasst';
+
+  @override
+  String get diveCenters_rental_verdictAvoid => 'Meiden';
+
+  @override
+  String diveCenters_rental_extraLead(Object amount) {
+    return '$amount mehr Blei';
+  }
+
+  @override
+  String diveCenters_rental_lessLead(Object amount) {
+    return '$amount weniger Blei';
+  }
+
+  @override
+  String diveCenters_rental_actualCapacity(Object volume) {
+    return 'Tatsächliches Volumen $volume';
+  }
+
+  @override
+  String get diveCenters_rental_sheetTitleNew => 'Neue Leihnotiz';
+
+  @override
+  String get diveCenters_rental_sheetTitleEdit => 'Leihnotiz bearbeiten';
+
+  @override
+  String get diveCenters_rental_gearTypeLabel => 'Ausrüstungstyp';
+
+  @override
+  String get diveCenters_rental_labelLabel => 'Kennzeichnung oder Nummer';
+
+  @override
+  String get diveCenters_rental_sizeLabel => 'Größe';
+
+  @override
+  String diveCenters_rental_leadAdjustmentLabel(Object unit) {
+    return 'Zusätzlich benötigtes Blei ($unit)';
+  }
+
+  @override
+  String diveCenters_rental_volumeLabel(Object unit) {
+    return 'Tatsächliches Volumen ($unit)';
+  }
+
+  @override
+  String get diveCenters_rental_noteLabel => 'Notiz';
+
+  @override
+  String get diveCenters_rental_deleteConfirm => 'Diese Leihnotiz löschen?';
 }

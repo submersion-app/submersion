@@ -10,7 +10,9 @@ import 'package:submersion/features/universal_import/data/models/import_options.
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
-import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_site_folder.dart';
+import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_gps.dart';
+import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_site_resolver.dart';
+import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_tag_vocabulary.dart';
 import 'package:submersion/features/universal_import/data/services/suit_classifier.dart';
 
 /// Parser for Subsurface XML (.ssrf) dive log files.
@@ -73,25 +75,36 @@ class SubsurfaceXmlParser implements ImportParser {
       );
     }
 
-    // Parse sites, folding the duplicates a Subsurface logbook accumulates.
-    // The aliases the fold produces redirect each dive's divesiteid to the
-    // surviving site.
-    var siteAliases = const <String, String>{};
-    final divesitesElement = root.findElements('divesites').firstOrNull;
-    if (divesitesElement != null) {
-      final folded = foldSubsurfaceSites(_parseSites(divesitesElement));
-      siteAliases = folded.aliases;
-      if (folded.sites.isNotEmpty) {
-        entities[ImportEntityType.sites] = folded.sites;
-      }
-    }
-
     // Parse dives (with trip support)
     final divesElement = root.findElements('dives').firstOrNull;
+
+    // Sites are resolved before the dives are read. A dive whose site is
+    // inline, as Subsurface wrote it before 4.5, is folded in alongside the
+    // sites a modern file declares in `<divesites>`, so the duplicates a
+    // Subsurface logbook accumulates collapse across both layouts.
+    final divesitesElement = root.findElements('divesites').firstOrNull;
+    final resolver = SubsurfaceSiteResolver.of(
+      declaredSites: divesitesElement == null
+          ? const []
+          : _parseSites(divesitesElement),
+      dives: divesElement == null ? const [] : _diveElementsOf(divesElement),
+    );
+    if (resolver.sites.isNotEmpty) {
+      entities[ImportEntityType.sites] = resolver.sites;
+    }
+
+    // Dives that named a site the file never described, counted so the
+    // summary can say so rather than let the site vanish in silence.
+    var divesMissingSite = 0;
+
     if (divesElement != null) {
       final dives = <Map<String, dynamic>>[];
       final trips = <Map<String, dynamic>>[];
       final allTags = <String, Map<String, dynamic>>{};
+      // Site type suggestions a dive's tags imply, keyed by the site uuid the
+      // dive points at (already redirected through the fold's aliases).
+      // Applied to the surviving site maps once every dive has been read.
+      final siteTypeSuggestions = <String, Set<String>>{};
       final allBuddies = <String, Map<String, dynamic>>{};
       final allSuits = <String, Map<String, dynamic>>{};
       final allMedia = <Map<String, dynamic>>[];
@@ -105,10 +118,14 @@ class SubsurfaceXmlParser implements ImportParser {
         final tripDives = <Map<String, dynamic>>[];
         for (final diveElement in tripElement.findElements('dive')) {
           try {
-            final diveData = _parseDive(diveElement, siteAliases: siteAliases);
+            final diveData = _parseDive(
+              diveElement,
+              siteRef: resolver.refFor(diveElement),
+            );
             if (diveData != null) {
+              if (resolver.namesMissingSite(diveElement)) divesMissingSite++;
               diveData['tripRef'] = tripId;
-              _collectTags(diveElement, diveData, allTags);
+              _collectTags(diveElement, diveData, allTags, siteTypeSuggestions);
               _collectBuddies(diveElement, diveData, allBuddies);
               _collectSuit(diveElement, diveData, allSuits);
               // dives.length is this dive's index, because the pictures are
@@ -139,9 +156,13 @@ class SubsurfaceXmlParser implements ImportParser {
       // Process standalone dives (not inside a trip)
       for (final diveElement in divesElement.findElements('dive')) {
         try {
-          final diveData = _parseDive(diveElement, siteAliases: siteAliases);
+          final diveData = _parseDive(
+            diveElement,
+            siteRef: resolver.refFor(diveElement),
+          );
           if (diveData != null) {
-            _collectTags(diveElement, diveData, allTags);
+            if (resolver.namesMissingSite(diveElement)) divesMissingSite++;
+            _collectTags(diveElement, diveData, allTags, siteTypeSuggestions);
             _collectBuddies(diveElement, diveData, allBuddies);
             _collectSuit(diveElement, diveData, allSuits);
             _collectPictures(diveElement, dives.length, allMedia, warnings);
@@ -153,6 +174,11 @@ class SubsurfaceXmlParser implements ImportParser {
           warnings.add(_skippedDive(e));
         }
       }
+
+      _applySiteTypeSuggestions(
+        entities[ImportEntityType.sites],
+        siteTypeSuggestions,
+      );
 
       if (dives.isNotEmpty) entities[ImportEntityType.dives] = dives;
       if (trips.isNotEmpty) entities[ImportEntityType.trips] = trips;
@@ -168,11 +194,34 @@ class SubsurfaceXmlParser implements ImportParser {
       }
     }
 
+    if (divesMissingSite > 0) {
+      warnings.add(_sitesUnresolved(divesMissingSite));
+    }
+
     return ImportPayload(
       entities: entities,
       warnings: warnings,
       metadata: const {'source': 'subsurface_xml'},
     );
+  }
+
+  /// Dives that pointed at a dive site the file never described, so they were
+  /// imported without one. Aggregated into a single notice.
+  static ImportWarning _sitesUnresolved(int count) => ImportWarning(
+    severity: ImportWarningSeverity.warning,
+    code: ImportWarningCode.sitesUnresolved,
+    message: '$count dives referred to a dive site the file does not describe',
+    entityType: ImportEntityType.dives,
+    count: count,
+  );
+
+  /// Every `<dive>` in the file, trip-wrapped ones first, in the order the
+  /// parse loops below read them.
+  static Iterable<XmlElement> _diveElementsOf(XmlElement dives) sync* {
+    for (final trip in dives.findElements('trip')) {
+      yield* trip.findElements('dive');
+    }
+    yield* dives.findElements('dive');
   }
 
   /// A dive left out of the import, counted by the summary's "dives could not
@@ -186,10 +235,7 @@ class SubsurfaceXmlParser implements ImportParser {
 
   /// Returns null when the dive has no date, since it cannot be placed in the
   /// log without one.
-  Map<String, dynamic>? _parseDive(
-    XmlElement dive, {
-    Map<String, String> siteAliases = const {},
-  }) {
+  Map<String, dynamic>? _parseDive(XmlElement dive, {String? siteRef}) {
     final dateStr = dive.getAttribute('date');
     final timeStr = dive.getAttribute('time');
     final durationStr = dive.getAttribute('duration');
@@ -305,12 +351,10 @@ class SubsurfaceXmlParser implements ImportParser {
     }
     if (notesParts.isNotEmpty) result['notes'] = notesParts.join('\n');
 
-    // Site linking via divesiteid attribute, redirected to the surviving site
-    // when the referenced entry folded into a duplicate.
-    final siteId = dive.getAttribute('divesiteid')?.trim();
-    if (siteId != null && siteId.isNotEmpty) {
-      result['site'] = {'uddfId': siteAliases[siteId] ?? siteId};
-    }
+    // Site linking, already resolved by SubsurfaceSiteResolver: either the
+    // surviving site this dive's divesiteid points at, or the site read
+    // inline off the dive in a pre-4.5 file.
+    if (siteRef != null) result['site'] = {'uddfId': siteRef};
 
     // Profile samples — parsed before cylinders for pressure fallback
     final profilePoints = divecomputer != null
@@ -359,7 +403,7 @@ class SubsurfaceXmlParser implements ImportParser {
       if (name != null && name.isNotEmpty) siteData['name'] = name;
       final uuid = site.getAttribute('uuid')?.trim();
       if (uuid != null && uuid.isNotEmpty) siteData['uddfId'] = uuid;
-      final coordinates = _parseGps(site.getAttribute('gps'));
+      final coordinates = parseSubsurfaceGps(site.getAttribute('gps'));
       if (coordinates != null) {
         siteData['latitude'] = coordinates.$1;
         siteData['longitude'] = coordinates.$2;
@@ -382,28 +426,6 @@ class SubsurfaceXmlParser implements ImportParser {
       sites.add(siteData);
     }
     return sites;
-  }
-
-  /// Parses a Subsurface `gps` attribute: two decimal degrees separated by
-  /// whitespace or a comma, the same pair of separators Subsurface's own
-  /// `parse_location()` accepts.
-  ///
-  /// A pair that is short, unparseable, or off the globe yields null rather
-  /// than a half-set or nonsensical coordinate.
-  ///
-  /// The `isFinite` check is not redundant with the range check: `double`
-  /// parses 'NaN', and every comparison against NaN is false, so a range
-  /// check on its own would wave it straight through.
-  (double, double)? _parseGps(String? raw) {
-    if (raw == null) return null;
-    final parts = raw.trim().split(RegExp(r'[\s,]+'));
-    if (parts.length != 2) return null;
-    final lat = double.tryParse(parts[0]);
-    final lon = double.tryParse(parts[1]);
-    if (lat == null || lon == null) return null;
-    if (!lat.isFinite || !lon.isFinite) return null;
-    if (lat.abs() > 90 || lon.abs() > 180) return null;
-    return (lat, lon);
   }
 
   Map<String, dynamic> _parseTrip(XmlElement trip) {
@@ -490,10 +512,23 @@ class SubsurfaceXmlParser implements ImportParser {
     diveData['equipmentRefs'] = [name];
   }
 
+  /// Reads the `tags` attribute into the dive's tags and, where Subsurface's
+  /// own vocabulary says what kind of dive it was, into its dive types.
+  ///
+  /// Subsurface has no dive type field, so a cave dive is a dive tagged
+  /// 'cave'. Classifying from the tag is what keeps a cave logbook a cave
+  /// logbook: without it every dive fell back to 'recreational', or
+  /// 'technical' when its profile showed deco. The tags themselves are kept
+  /// either way: this adds a classification, it does not consume the tag.
+  ///
+  /// A tag that names a kind of place also suggests a type for the dive's
+  /// site, collected into [siteTypeSuggestions] and applied by
+  /// [_applySiteTypeSuggestions] once the fold's survivors are known.
   void _collectTags(
     XmlElement diveElement,
     Map<String, dynamic> diveData,
     Map<String, Map<String, dynamic>> allTags,
+    Map<String, Set<String>> siteTypeSuggestions,
   ) {
     final tagsAttr = diveElement.getAttribute('tags');
     if (tagsAttr == null || tagsAttr.isEmpty) return;
@@ -505,6 +540,44 @@ class SubsurfaceXmlParser implements ImportParser {
     diveData['tagRefs'] = tagNames;
     for (final tagName in tagNames) {
       allTags.putIfAbsent(tagName, () => {'name': tagName, 'uddfId': tagName});
+    }
+
+    // Insertion-ordered sets: the diver's tag order survives, and a logbook
+    // that tags both 'Boat' and 'boat' yields one type.
+    final diveTypeIds = <String>{
+      for (final tagName in tagNames) ?subsurfaceTagDiveType(tagName),
+    };
+    if (diveTypeIds.isNotEmpty) {
+      diveData['diveTypeIds'] = diveTypeIds.toList();
+    }
+
+    final siteTypeIds = <String>{
+      for (final tagName in tagNames) ?subsurfaceTagSiteType(tagName),
+    };
+    if (siteTypeIds.isEmpty) return;
+    final site = diveData['site'];
+    final siteId = site is Map<String, dynamic> ? site['uddfId'] : null;
+    if (siteId is! String || siteId.isEmpty) return;
+    siteTypeSuggestions
+        .putIfAbsent(siteId, () => <String>{})
+        .addAll(siteTypeIds);
+  }
+
+  /// Writes the tag-derived [suggestions] onto the sites they belong to.
+  ///
+  /// Always `suggestedSiteTypeRefs`, never `siteTypeRefs`: the importer
+  /// applies a suggestion only while the site carries no types of its own, so
+  /// one cavern dive can never reclassify a site the diver has already
+  /// described. A suggestion for a site the file never declared is dropped.
+  static void _applySiteTypeSuggestions(
+    List<Map<String, dynamic>>? sites,
+    Map<String, Set<String>> suggestions,
+  ) {
+    if (sites == null || suggestions.isEmpty) return;
+    for (final site in sites) {
+      final types = suggestions[site['uddfId']];
+      if (types == null || types.isEmpty) continue;
+      site['suggestedSiteTypeRefs'] = types.toList();
     }
   }
 
@@ -538,7 +611,7 @@ class SubsurfaceXmlParser implements ImportParser {
 
       // Same parser the <site> elements use: it accepts a comma
       // separator and rejects NaN and out-of-range pairs.
-      final gps = _parseGps(picture.getAttribute('gps'));
+      final gps = parseSubsurfaceGps(picture.getAttribute('gps'));
       allMedia.add({
         'filename': filename,
         'offsetSeconds': _parseSignedDurationSeconds(
@@ -859,6 +932,9 @@ class SubsurfaceXmlParser implements ImportParser {
     final tanks = <Map<String, dynamic>>[];
     var index = 0;
     var cylinderIndex = 0;
+    // Counts only the cylinders Subsurface marked 'sidemount' with no side,
+    // so the sides it does state never shift the ones it does not.
+    var sidelessSidemountIndex = 0;
     for (final cyl in dive.findElements('cylinder')) {
       final size = cyl.getAttribute('size');
       final description = cyl.getAttribute('description');
@@ -922,7 +998,11 @@ class SubsurfaceXmlParser implements ImportParser {
       if (description != null && description.isNotEmpty) {
         tank['name'] = description;
       }
-      final role = _mapTankRole(cyl.getAttribute('use'));
+      final use = cyl.getAttribute('use');
+      var role = _mapTankRole(use);
+      if (role == null && _isSidelessSidemount(use)) {
+        role = _sidemountSideByOrder(sidelessSidemountIndex++);
+      }
       if (role != null) tank['role'] = role;
       tank['order'] = index;
       tank['uddfTankId'] = _subsurfaceTankRef(cylinderIndex, description);
@@ -1134,6 +1214,8 @@ class SubsurfaceXmlParser implements ImportParser {
       'bailout' => TankRole.bailout,
       'stage' => TankRole.stage,
       'deco' => TankRole.deco,
+      // Side-less: handled by _sidemountSideByOrder, which reads the side
+      // from the order the cylinders appear in.
       'sidemount' => null,
       'sidemount-left' => TankRole.sidemountLeft,
       'sidemount-right' => TankRole.sidemountRight,
@@ -1142,6 +1224,22 @@ class SubsurfaceXmlParser implements ImportParser {
       _ => null,
     };
   }
+
+  /// Whether [use] is Subsurface's plain 'sidemount', which names no side.
+  static bool _isSidelessSidemount(String? use) =>
+      use?.trim().toLowerCase() == 'sidemount';
+
+  /// The side of the [index]th side-less sidemount cylinder on a dive.
+  ///
+  /// Subsurface writes one 'sidemount' value for both cylinders, so the side
+  /// can only come from the order they are logged in: first left, then right,
+  /// the order a sidemount diver's cylinders are listed. A dive carrying more
+  /// than two leaves the rest without a side rather than inventing one.
+  static TankRole? _sidemountSideByOrder(int index) => switch (index) {
+    0 => TankRole.sidemountLeft,
+    1 => TankRole.sidemountRight,
+    _ => null,
+  };
 
   /// Splits a comma-separated name string, trimming leading/trailing commas
   /// and whitespace from each name.

@@ -49,6 +49,8 @@ import 'package:submersion/features/equipment/presentation/widgets/bulk_equipmen
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/feature_accent.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 
 /// Content widget for the equipment list, used in master-detail layout.
 class EquipmentListContent extends ConsumerStatefulWidget {
@@ -315,6 +317,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     );
     final sortedVisible = [for (final group in visibleGroups) ...group.items];
     final visibleIds = sortedVisible.map((e) => e.id).toList();
+    // Labelled once per build, like the arrangement above and for the same
+    // reason: the list below is rebuilt on every check toggle.
+    final rowLabels = equipmentRowLabelsOf(context, ref, sortedVisible);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _selection.pruneTo(visibleIds);
@@ -339,6 +344,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 visibleGroups,
                 arrangement,
                 tagsByEquipment: tagsByEquipment,
+                labels: rowLabels,
               ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => _buildErrorState(context, error),
@@ -942,6 +948,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     List<EquipmentGroup> groups,
     EquipmentArrangement arrangement, {
     required Map<String, List<Tag>> tagsByEquipment,
+    required Map<String, EquipmentRowLabel> labels,
   }) {
     // One flat run of rows for the lazy builder: a heading before each group
     // when the arrangement groups, then that group's gear.
@@ -1014,6 +1021,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               tags: viewMode == ListViewMode.detailed
                   ? tagsByEquipment[item.id] ?? const []
                   : const [],
+              label: labels[item.id],
             ),
             ListViewMode.dense || ListViewMode.table => DenseEquipmentListTile(
               item: item,
@@ -1149,6 +1157,11 @@ class EquipmentListTile extends ConsumerWidget {
   /// three show, then a "+N" chip.
   final List<Tag> tags;
 
+  /// The row's label as its list computed it (issue #1549): telling identical
+  /// items apart takes the whole list. Null falls back to the item's own
+  /// brand and model, for a tile shown on its own.
+  final EquipmentRowLabel? label;
+
   const EquipmentListTile({
     super.key,
     required this.item,
@@ -1158,6 +1171,7 @@ class EquipmentListTile extends ConsumerWidget {
     this.isChecked = false,
     this.onCheckChanged,
     this.tags = const [],
+    this.label,
   });
 
   @override
@@ -1186,7 +1200,8 @@ class EquipmentListTile extends ConsumerWidget {
     final hasChips =
         index != null &&
         (index.isAssembly(item.id) || index.parentIdsOf(item.id).isNotEmpty);
-    final hasFullName = item.fullName != item.name;
+    final detail =
+        label?.subtitle ?? (item.fullName != item.name ? item.fullName : null);
     final hasTags = tags.isNotEmpty;
     final accent = resolveFeatureAccent(
       context,
@@ -1223,12 +1238,12 @@ class EquipmentListTile extends ConsumerWidget {
           ),
         ),
         title: Text(item.name),
-        subtitle: hasFullName || hasChips || hasTags
+        subtitle: detail != null || hasChips || hasTags
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (hasFullName) Text(item.fullName),
+                  if (detail != null) Text(detail),
                   if (hasChips) AssemblyChips(itemId: item.id),
                   if (hasTags)
                     Padding(
@@ -1403,15 +1418,23 @@ class EquipmentSearchDelegate extends SearchDelegate<EquipmentItem?> {
       query: query,
       watchProvider: (ref, q) => ref.watch(equipmentSearchProvider(q)),
       dataBuilder: (context, equipment) {
-        return ListView.builder(
-          itemCount: equipment.length,
-          itemBuilder: (context, index) {
-            final item = equipment[index];
-            return EquipmentListTile(
-              item: item,
-              onTap: () {
-                close(context, item);
-                context.push('/equipment/${item.id}');
+        // A Consumer for the ref the labels need: they are computed across
+        // the results, so two identical hits can be told apart (#1549).
+        return Consumer(
+          builder: (context, ref, _) {
+            final labels = equipmentRowLabelsOf(context, ref, equipment);
+            return ListView.builder(
+              itemCount: equipment.length,
+              itemBuilder: (context, index) {
+                final item = equipment[index];
+                return EquipmentListTile(
+                  item: item,
+                  label: labels[item.id],
+                  onTap: () {
+                    close(context, item);
+                    context.push('/equipment/${item.id}');
+                  },
+                );
               },
             );
           },

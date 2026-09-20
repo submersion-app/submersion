@@ -8,6 +8,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/core/text/text_sort.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart'
     as domain;
@@ -30,7 +31,7 @@ class ServiceKindRepository {
   /// [diverId] is null).
   Future<List<domain.ServiceKind>> getAllKinds({String? diverId}) async {
     final query = _db.select(_db.serviceKinds)
-      ..orderBy([(t) => OrderingTerm.asc(t.name)]);
+      ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
     if (diverId != null) {
       query.where(
         (t) =>
@@ -40,7 +41,7 @@ class ServiceKindRepository {
       );
     }
     final rows = await query.get();
-    return rows.map(_mapRow).toList();
+    return sortedByText(rows, (r) => r.name).map(_mapRow).toList();
   }
 
   Future<domain.ServiceKind?> getKindById(String id) async {

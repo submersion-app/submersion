@@ -39,9 +39,13 @@ class MediaLibraryRepository {
       coalesce<int>([_db.media.takenAt, _db.media.createdAt]);
 
   /// Filename key, falling back to file_path (NOT NULL) so the expression is
-  /// total.
-  Expression<String> get _nameKey =>
-      coalesce<String>([_db.media.originalFilename, _db.media.filePath]);
+  /// total. NOCASE so "IMG_1.jpg" and "img_2.jpg" sort together (#2038); the
+  /// cursor comparisons in [_afterCursor] use this same expression, so page
+  /// boundaries agree with the ORDER BY.
+  Expression<String> get _nameKey => coalesce<String>([
+    _db.media.originalFilename,
+    _db.media.filePath,
+  ]).collate(Collate.noCase);
 
   /// Size key. content_size_bytes is written only once the media store has
   /// hashed a row, so unhashed rows coalesce to -1 and sort as smallest.
