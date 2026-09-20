@@ -15,6 +15,45 @@ const _uddfMultiType = '''<uddf version="3.2.1">
   </profiledata>
 </uddf>''';
 
+/// A third-party file: an unrecognised type and a built-in one, and no
+/// `<submersion><divetypes>` block declaring either.
+const _uddfCustomType = '''<uddf version="3.2.1">
+  <profiledata>
+    <repetitiongroup id="g">
+      <dive id="d">
+        <informationbeforedive>
+          <datetime>2025-03-19T08:19:54</datetime>
+          <divetype>Cenote</divetype>
+          <divetype>night</divetype>
+        </informationbeforedive>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>''';
+
+/// The same unrecognised type, but declared by the file itself.
+const _uddfDeclaredType = '''<uddf version="3.2.1">
+  <profiledata>
+    <repetitiongroup id="g">
+      <dive id="d">
+        <informationbeforedive>
+          <datetime>2025-03-19T08:19:54</datetime>
+          <divetype>Cenote</divetype>
+        </informationbeforedive>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+  <applicationdata>
+    <submersion>
+      <divetypes>
+        <divetype id="cenote">
+          <name>Cenote dives</name>
+        </divetype>
+      </divetypes>
+    </submersion>
+  </applicationdata>
+</uddf>''';
+
 void main() {
   test('UDDF import collects multiple <divetype> elements', () async {
     final service = UddfFullImportService();
@@ -23,5 +62,39 @@ void main() {
 
     expect(ids.length, 2, reason: 'both <divetype> elements are collected');
     expect(ids, containsAll(['shore', 'wreck']));
+  });
+
+  // Issue #2203: a type the mapper does not recognise is preserved as its
+  // slug, so the file must also yield a custom dive type for it. Otherwise
+  // the junction row points at no dive_types row and the type is missing
+  // from the picker and from filters.
+  test('an unrecognised <divetype> yields a custom dive type', () async {
+    final service = UddfFullImportService();
+    final result = await service.importAllDataFromUddf(_uddfCustomType);
+
+    expect(result.dives.first['diveTypeIds'], containsAll(['cenote', 'night']));
+    expect(result.customDiveTypes, hasLength(1));
+    final type = result.customDiveTypes.single;
+    expect(type['id'], 'cenote');
+    // Named as the file spelled it, not as the slug reads.
+    expect(type['name'], 'Cenote');
+    expect(type['isBuiltIn'], isFalse);
+  });
+
+  test('a built-in <divetype> yields no custom dive type', () async {
+    final service = UddfFullImportService();
+    final result = await service.importAllDataFromUddf(_uddfMultiType);
+
+    expect(result.customDiveTypes, isEmpty);
+  });
+
+  test('a type the file already declares is not duplicated', () async {
+    final service = UddfFullImportService();
+    final result = await service.importAllDataFromUddf(_uddfDeclaredType);
+
+    expect(result.customDiveTypes, hasLength(1));
+    // The file's own declaration wins: the harvest must not overwrite the
+    // diver's name for the type with the element text.
+    expect(result.customDiveTypes.single['name'], 'Cenote dives');
   });
 }
