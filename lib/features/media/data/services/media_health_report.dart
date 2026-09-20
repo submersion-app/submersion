@@ -1,3 +1,5 @@
+import 'package:submersion/core/services/log_redactor.dart';
+
 /// One media row as the health report sees it: the synced facts, this
 /// device's local cache and resolver verdicts, the store verdict and the
 /// transfer queue entry, side by side. Every field is plain data so the
@@ -105,7 +107,7 @@ class MediaHealthRow {
   /// would read null for most of those types.
   final String? pointer;
 
-  Map<String, Object?> toJson() => {
+  Map<String, Object?> toJson() => _redacted({
     'media_id': mediaId,
     'source_type': sourceType,
     'original_filename': originalFilename,
@@ -141,7 +143,7 @@ class MediaHealthRow {
     'queue_next_attempt_at': _ts(queueNextAttemptAt),
     'queue_waiting': queueWaiting,
     'queue_error': queueError,
-  };
+  });
 
   String toText() {
     final origin = switch (originDeviceId) {
@@ -175,29 +177,31 @@ class MediaHealthRow {
               'waiting until ${_ts(queueNextAttemptAt)}',
             if (queueError != null) 'error: $queueError',
           ].join(', ');
-    return [
-      'media_id: $mediaId',
-      'source_type: $sourceType',
-      'original_filename: ${originalFilename ?? 'null'}',
-      'pointer: ${pointer ?? 'null'}',
-      'taken_at: ${_ts(takenAt)}',
-      'dive_id: ${diveId ?? 'null'}',
-      'site_id: ${siteId ?? 'null'}',
-      'origin_device: $origin',
-      'content_hash: ${contentHash ?? 'null'}',
-      'content_size_bytes: ${contentSizeBytes ?? 'null'}',
-      'remote_uploaded_at: ${_ts(remoteUploadedAt)}',
-      'remote_thumb_uploaded_at: ${_ts(remoteThumbUploadedAt)}',
-      'remote_compressed_uploaded_at: ${_ts(remoteCompressedUploadedAt)}',
-      'is_orphaned: $isOrphaned',
-      'last_verified_at: ${_ts(lastVerifiedAt)}',
-      'hlc: ${hlc ?? 'null'}',
-      'pending: $pending',
-      'cache: $cache',
-      'resolver_verdict: $resolverVerdict',
-      'store_object: $store',
-      'queue: $queue',
-    ].join('\n');
+    return redactSecrets(
+      [
+        'media_id: $mediaId',
+        'source_type: $sourceType',
+        'original_filename: ${originalFilename ?? 'null'}',
+        'pointer: ${pointer ?? 'null'}',
+        'taken_at: ${_ts(takenAt)}',
+        'dive_id: ${diveId ?? 'null'}',
+        'site_id: ${siteId ?? 'null'}',
+        'origin_device: $origin',
+        'content_hash: ${contentHash ?? 'null'}',
+        'content_size_bytes: ${contentSizeBytes ?? 'null'}',
+        'remote_uploaded_at: ${_ts(remoteUploadedAt)}',
+        'remote_thumb_uploaded_at: ${_ts(remoteThumbUploadedAt)}',
+        'remote_compressed_uploaded_at: ${_ts(remoteCompressedUploadedAt)}',
+        'is_orphaned: $isOrphaned',
+        'last_verified_at: ${_ts(lastVerifiedAt)}',
+        'hlc: ${hlc ?? 'null'}',
+        'pending: $pending',
+        'cache: $cache',
+        'resolver_verdict: $resolverVerdict',
+        'store_object: $store',
+        'queue: $queue',
+      ].join('\n'),
+    );
   }
 }
 
@@ -226,24 +230,45 @@ class MediaHealthReport {
   final List<MediaHealthRow> rows;
 
   Map<String, Object?> toJson() => {
-    'generated_at': _ts(generatedAt),
-    'device_id': deviceId,
-    'device_name': deviceName,
-    'attached_store_id': attachedStoreId,
-    'marker_store_id': markerStoreId,
+    ..._redacted({
+      'generated_at': _ts(generatedAt),
+      'device_id': deviceId,
+      'device_name': deviceName,
+      'attached_store_id': attachedStoreId,
+      'marker_store_id': markerStoreId,
+    }),
     'rows': [for (final r in rows) r.toJson()],
   };
 
   String toText() => [
-    'Submersion media health report',
-    'generated_at: ${_ts(generatedAt)}',
-    'device: $deviceId (${deviceName ?? 'unnamed'})',
-    'attached_store: ${attachedStoreId ?? 'none'}',
-    'marker_store: ${markerStoreId ?? 'none'}',
-    'rows: ${rows.length}',
+    redactSecrets(
+      [
+        'Submersion media health report',
+        'generated_at: ${_ts(generatedAt)}',
+        'device: $deviceId (${deviceName ?? 'unnamed'})',
+        'attached_store: ${attachedStoreId ?? 'none'}',
+        'marker_store: ${markerStoreId ?? 'none'}',
+        'rows: ${rows.length}',
+      ].join('\n'),
+    ),
     '',
     for (final r in rows) ...[r.toText(), ''],
   ].join('\n');
 }
+
+/// Every rendering of a report goes through [redactSecrets], the same
+/// backstop the persisted log uses.
+///
+/// The report is built to be pasted into a public bug thread, and it prints
+/// each row's source locator verbatim: a media or manifest URL can carry
+/// `?access_token=`, `?signature=` or `user:password@`, and a queue error is
+/// an exception's `toString()`, which can carry a request URL or a header
+/// nobody chose to log. The redactor recognises those by field name and
+/// shape, so the paths, device names and hashes the report exists to show
+/// pass through untouched.
+Map<String, Object?> _redacted(Map<String, Object?> row) => {
+  for (final e in row.entries)
+    e.key: e.value is String ? redactSecrets(e.value as String) : e.value,
+};
 
 String _ts(DateTime? t) => t?.toUtc().toIso8601String() ?? 'null';

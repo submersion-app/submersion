@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/services/log_redactor.dart';
 import 'package:submersion/features/media/data/services/media_health_report.dart';
 
 void main() {
@@ -133,5 +134,71 @@ void main() {
     expect(text, contains('device: dev-b (unnamed)'));
     expect(text, contains('attached_store: none'));
     expect(text, contains('marker_store: none'));
+  });
+
+  group('secrets never reach a rendered report', () {
+    // The report is built to be pasted into a public bug thread and it
+    // prints each row's locator verbatim, so it gets the same backstop the
+    // persisted log has. Paths, device names and hashes must survive it.
+    MediaHealthRow secretRow({String? pointer, String? queueError}) =>
+        MediaHealthRow(
+          mediaId: 'm9',
+          sourceType: 'networkUrl',
+          pointer: pointer,
+          filePath: '/Volumes/photos/reef.jpg',
+          takenAt: DateTime.utc(2026, 7, 1),
+          isOrphaned: false,
+          pending: false,
+          resolverVerdict: 'available',
+          queueError: queueError,
+        );
+
+    MediaHealthReport reportOf(MediaHealthRow row) => MediaHealthReport(
+      generatedAt: DateTime.utc(2026, 7, 1),
+      deviceId: 'dev-1',
+      deviceName: "Eric's MacBook",
+      rows: [row],
+    );
+
+    test('a signed URL pointer is masked in text and JSON', () {
+      final row = secretRow(
+        pointer: 'https://host/p.jpg?access_token=sk-live-abc123',
+      );
+
+      expect(row.toText(), isNot(contains('sk-live-abc123')));
+      expect(row.toText(), contains(redactedPlaceholder));
+      expect(row.toJson()['pointer'], isNot(contains('sk-live-abc123')));
+      expect(
+        reportOf(row).toText(),
+        isNot(contains('sk-live-abc123')),
+        reason: 'the whole-report rendering is what actually gets shared',
+      );
+    });
+
+    test('a credential in the URL host is masked', () {
+      final row = secretRow(pointer: 'https://eric:hunter2@host/p.jpg');
+
+      expect(row.toText(), isNot(contains('hunter2')));
+      expect(reportOf(row).toText(), isNot(contains('hunter2')));
+    });
+
+    test('a queue error carrying a token is masked', () {
+      final row = secretRow(
+        pointer: 'https://host/p.jpg',
+        queueError: 'HttpException: 401 for signature=deadbeefcafe',
+      );
+
+      expect(row.toText(), isNot(contains('deadbeefcafe')));
+    });
+
+    test('paths, device names and hashes survive redaction', () {
+      final text = reportOf(
+        secretRow(pointer: '/Volumes/photos/reef.jpg'),
+      ).toText();
+
+      expect(text, contains('/Volumes/photos/reef.jpg'));
+      expect(text, contains("Eric's MacBook"));
+      expect(text, contains('dev-1'));
+    });
   });
 }
