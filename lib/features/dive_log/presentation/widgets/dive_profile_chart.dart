@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/utils/gas_consumption_tooltip.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/chart_series_cache.dart';
@@ -1050,6 +1051,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   int? _lastTooltipSpotIndex;
   List<LineTooltipItem?> _lastTooltipItems = [];
 
+  // Profile sample last reported through onTooltipData, by either cursor.
+  // Lets the external-cursor path skip a sample the pointer already reported,
+  // which is every sample on a chart that feeds its own selection back in as
+  // highlightedTimestamp (the detail panel).
+  int? _lastEmittedCursorIndex;
+
   // Depth-band touched spots whose built-in focus indicator is hidden, so
   // velocity colouring shows a single depth dot instead of one per band.
   // Set from the touch response in the LineTouchData touchCallback and read by
@@ -1300,6 +1307,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     if (oldWidget.profile != widget.profile) {
       _lastTooltipSpotIndex = null;
       _lastTooltipItems = [];
+      _lastEmittedCursorIndex = null;
     }
     if (oldWidget.tankPressures != widget.tankPressures) {
       _scheduleTankPressureVisibilityInitialization();
@@ -1307,6 +1315,49 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     if (oldWidget.events != widget.events) {
       _scheduleComputedEventsSeed();
     }
+    if (oldWidget.highlightedTimestamp != widget.highlightedTimestamp) {
+      _scheduleCursorReadout();
+    }
+  }
+
+  /// Report the sample under the external cursor through
+  /// [DiveProfileChart.onTooltipData].
+  ///
+  /// The cursor is whatever moves [DiveProfileChart.highlightedTimestamp]:
+  /// playback's ticker and the fullscreen minimap scrubber both do, and before
+  /// issue #2180 neither reached the readout, so its values sat frozen on the
+  /// last hovered sample while the cursor line swept the dive.
+  ///
+  /// Post-frame because the consumer rebuilds on these rows, and this runs
+  /// inside the parent's own build pass. Emitting only on a changed sample
+  /// keeps a chart whose cursor follows its own touch (the detail panel, which
+  /// feeds its tracking index straight back in) from reporting the same sample
+  /// twice per scrub tick.
+  ///
+  /// A cleared cursor emits nothing rather than null: null means "no reading"
+  /// and empties the panel's tooltip, whereas a paused or released cursor
+  /// should leave the last values standing.
+  void _scheduleCursorReadout() {
+    if (!widget.tooltipBelow || widget.onTooltipData == null) return;
+    final timestamp = widget.highlightedTimestamp;
+    if (timestamp == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // Re-read: several cursor moves can coalesce into one frame, and only
+      // the position the chart actually painted should be reported.
+      final current = widget.highlightedTimestamp;
+      if (current == null) return;
+      final index = indexForTimestamp(widget.profile, current);
+      if (index == null || index == _lastEmittedCursorIndex) return;
+      _emitTooltipRowsForIndex(
+        index,
+        onLeadIn:
+            current < widget.profile.first.timestamp &&
+            shouldDrawSurfaceLeadIn(widget.profile),
+        units: UnitFormatter(ref.read(settingsProvider)),
+        colorScheme: Theme.of(context).colorScheme,
+      );
+    });
   }
 
   void _scheduleTankPressureVisibilityInitialization() {
@@ -1366,17 +1417,43 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         ? -1
         : math.max(0, starts[touched.barIndex] + _sourceSpotIndex(touched));
     if (touched == null || index < 0 || index >= widget.profile.length) {
+      _lastEmittedCursorIndex = null;
       widget.onTooltipData!(null);
       return;
     }
-    final spot = (spotIndex: index);
-
     // On the lead-in vertex the cursor is before the first sample, so the
     // readout must describe t=0 rather than repeat the first sample's values.
-    final onLeadIn =
-        _sourceSpotIndex(touched) == 0 &&
-        starts[touched.barIndex] < 0 &&
-        shouldDrawSurfaceLeadIn(widget.profile);
+    _emitTooltipRowsForIndex(
+      index,
+      onLeadIn:
+          _sourceSpotIndex(touched) == 0 &&
+          starts[touched.barIndex] < 0 &&
+          shouldDrawSurfaceLeadIn(widget.profile),
+      units: units,
+      colorScheme: colorScheme,
+    );
+  }
+
+  /// Build and emit the readout rows describing profile sample [index].
+  ///
+  /// Shared by both cursors that can drive the external readout: a pointer on
+  /// the chart (via [_emitExternalTooltip]) and the external
+  /// [DiveProfileChart.highlightedTimestamp], which is what playback and the
+  /// fullscreen minimap move (issue #2180). One row builder for both is what
+  /// keeps a played-back dive and a hand-scrubbed one reading identically.
+  ///
+  /// [onLeadIn] marks the synthetic surface vertex drawn before the first
+  /// sample: the rows then describe t=0 and are flagged as interpolated,
+  /// rather than repeating the first sample's values.
+  void _emitTooltipRowsForIndex(
+    int index, {
+    required bool onLeadIn,
+    required UnitFormatter units,
+    required ColorScheme colorScheme,
+  }) {
+    if (widget.onTooltipData == null) return;
+    _lastEmittedCursorIndex = index;
+    final spot = (spotIndex: index);
     final point = onLeadIn
         ? _surfaceReadoutPoint()
         : widget.profile[spot.spotIndex];
