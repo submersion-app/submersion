@@ -229,6 +229,18 @@ class DiveRepository {
       )
       .debounce(changeTickDebounce);
 
+  /// Change tick for a list filtered by species ([DiveFilterState.speciesIds]):
+  /// a sighting is written without a `dives` write, so the dives tick alone
+  /// would leave the list stale.
+  Stream<void> watchSightingsFilterChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.allOf([
+          TableUpdateQuery.onTable(_db.dives),
+          TableUpdateQuery.onTable(_db.sightings),
+        ]),
+      )
+      .debounce(changeTickDebounce);
+
   /// [watchDiveListChanges] plus the tables the buddy filters read
   /// ([DiveFilterState.readsBuddyLinks]), for a list filtered by buddy.
   /// See [_buddyLinkTables].
@@ -2548,6 +2560,13 @@ class DiveRepository {
       clauses.add('d.site_id = ?');
       args.add(Variable(filter.siteId!));
     }
+    if (filter.siteIds.isNotEmpty) {
+      final placeholders = List.filled(filter.siteIds.length, '?').join(', ');
+      clauses.add('d.site_id IN ($placeholders)');
+      for (final siteId in filter.siteIds) {
+        args.add(Variable(siteId));
+      }
+    }
     if (filter.tripId != null) {
       clauses.add('d.trip_id = ?');
       args.add(Variable(filter.tripId!));
@@ -2563,6 +2582,50 @@ class DiveRepository {
     if (filter.maxDepth != null) {
       clauses.add('d.max_depth <= ?');
       args.add(Variable(filter.maxDepth!));
+    }
+    // Null excluded when a bound is set, in step with Statistics and apply().
+    if (filter.minWaterTemp != null) {
+      clauses.add('d.water_temp IS NOT NULL AND d.water_temp >= ?');
+      args.add(Variable(filter.minWaterTemp!));
+    }
+    if (filter.maxWaterTemp != null) {
+      clauses.add('d.water_temp IS NOT NULL AND d.water_temp <= ?');
+      args.add(Variable(filter.maxWaterTemp!));
+    }
+    if (filter.minVisibility != null) {
+      clauses.add(
+        'd.visibility_meters IS NOT NULL AND d.visibility_meters >= ?',
+      );
+      args.add(Variable(filter.minVisibility!));
+    }
+    if (filter.maxVisibility != null) {
+      clauses.add(
+        'd.visibility_meters IS NOT NULL AND d.visibility_meters <= ?',
+      );
+      args.add(Variable(filter.maxVisibility!));
+    }
+    if (filter.waterTypes.isNotEmpty) {
+      final placeholders = List.filled(
+        filter.waterTypes.length,
+        '?',
+      ).join(', ');
+      clauses.add('d.water_type IN ($placeholders)');
+      for (final w in filter.waterTypes) {
+        args.add(Variable(w.name));
+      }
+    }
+    if (filter.speciesIds.isNotEmpty) {
+      final placeholders = List.filled(
+        filter.speciesIds.length,
+        '?',
+      ).join(', ');
+      clauses.add(
+        'EXISTS (SELECT 1 FROM sightings sg '
+        'WHERE sg.dive_id = d.id AND sg.species_id IN ($placeholders))',
+      );
+      for (final speciesId in filter.speciesIds) {
+        args.add(Variable(speciesId));
+      }
     }
     if (filter.favoritesOnly == true) {
       clauses.add('d.is_favorite = 1');

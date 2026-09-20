@@ -180,6 +180,10 @@ final orderedDiveIdsProvider = FutureProvider.autoDispose<List<String>>((
   if (filter.equipmentAttrConditions.isNotEmpty) {
     ref.invalidateSelfWhen(repository.watchEquipmentAttrFilterChanges());
   }
+  // A species filter makes the query read sightings.
+  if (filter.readsSightings) {
+    ref.invalidateSelfWhen(repository.watchSightingsFilterChanges());
+  }
   return repository.getOrderedDiveIds(
     diverId: diverId,
     filter: filter,
@@ -831,6 +835,7 @@ class PaginatedDiveListNotifier
     _ref.onDispose(() {
       _listTick.cancel();
       _attrFilterTick.cancel();
+      _sightingsFilterTick.cancel();
     });
     _ref.listen<SortState<DiveSortField>>(diveSortProvider, (previous, next) {
       if (previous != next) {
@@ -872,6 +877,14 @@ class PaginatedDiveListNotifier
     _silentReloadLoadedPages,
   );
 
+  /// [DiveRepository.watchSightingsFilterChanges], followed only while the
+  /// filter names species, so a sighting write never reloads an unfiltered
+  /// list and test fakes without the stream are never subscribed.
+  late final _sightingsFilterTick = _FilterTickFollower(
+    _repository.watchSightingsFilterChanges,
+    _silentReloadLoadedPages,
+  );
+
   /// Follows the tables only some filters read. The page and count read
   /// `dive_buddies`/`buddies` under a buddy filter (#1915) and the gear
   /// tables under an equipment-attribute condition (#1805), none of which the
@@ -882,6 +895,7 @@ class PaginatedDiveListNotifier
   void _followFilterTicks(DiveFilterState filter) {
     _listTick.follow(filter.readsBuddyLinks);
     _attrFilterTick.follow(filter.equipmentAttrConditions.isNotEmpty);
+    _sightingsFilterTick.follow(filter.readsSightings);
   }
 
   bool get _isDateSort {

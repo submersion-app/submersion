@@ -43,6 +43,12 @@ import 'package:submersion/features/equipment/domain/models/equipment_attr_condi
     conditions.add('site_id = ?');
     params.add(filter.siteId);
   }
+  // Site set (a place mention in Explore): ANY listed site, AND with siteId.
+  if (filter.siteIds.isNotEmpty) {
+    final ph = List.filled(filter.siteIds.length, '?').join(', ');
+    conditions.add('site_id IN ($ph)');
+    params.addAll(filter.siteIds);
+  }
   if (filter.tripId != null) {
     conditions.add('trip_id = ?');
     params.add(filter.tripId);
@@ -104,6 +110,38 @@ import 'package:submersion/features/equipment/domain/models/equipment_attr_condi
   if (filter.maxDepth != null) {
     conditions.add('max_depth IS NOT NULL AND max_depth <= ?');
     params.add(filter.maxDepth);
+  }
+
+  // Water temperature and visibility: null excluded when a bound is set,
+  // mirroring depth and DiveFilterState.apply.
+  if (filter.minWaterTemp != null) {
+    conditions.add('water_temp IS NOT NULL AND water_temp >= ?');
+    params.add(filter.minWaterTemp);
+  }
+  if (filter.maxWaterTemp != null) {
+    conditions.add('water_temp IS NOT NULL AND water_temp <= ?');
+    params.add(filter.maxWaterTemp);
+  }
+  if (filter.minVisibility != null) {
+    conditions.add('visibility_meters IS NOT NULL AND visibility_meters >= ?');
+    params.add(filter.minVisibility);
+  }
+  if (filter.maxVisibility != null) {
+    conditions.add('visibility_meters IS NOT NULL AND visibility_meters <= ?');
+    params.add(filter.maxVisibility);
+  }
+  if (filter.waterTypes.isNotEmpty) {
+    final ph = List.filled(filter.waterTypes.length, '?').join(', ');
+    conditions.add('water_type IN ($ph)');
+    params.addAll(filter.waterTypes.map((w) => w.name));
+  }
+  // Species: any sighting of a listed species.
+  if (filter.speciesIds.isNotEmpty) {
+    final ph = List.filled(filter.speciesIds.length, '?').join(', ');
+    conditions.add(
+      'id IN (SELECT dive_id FROM sightings WHERE species_id IN ($ph))',
+    );
+    params.addAll(filter.speciesIds);
   }
 
   if (filter.favoritesOnly == true) {

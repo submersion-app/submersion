@@ -198,6 +198,8 @@ void main() {
           DiveRepository().watchAnalysisInputChanges,
       'DiveRepository.watchEquipmentAttrFilterChanges':
           DiveRepository().watchEquipmentAttrFilterChanges,
+      'DiveRepository.watchSightingsFilterChanges':
+          DiveRepository().watchSightingsFilterChanges,
       'DiveRepository.watchDiveListChangesWithBuddyLinks':
           DiveRepository().watchDiveListChangesWithBuddyLinks,
       'DiveRepository.watchDivesChangesWithBuddyLinks':
