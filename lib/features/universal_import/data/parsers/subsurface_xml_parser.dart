@@ -11,6 +11,7 @@ import 'package:submersion/features/universal_import/data/models/import_payload.
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_site_folder.dart';
+import 'package:submersion/features/universal_import/data/parsers/subsurface/subsurface_tag_vocabulary.dart';
 import 'package:submersion/features/universal_import/data/services/suit_classifier.dart';
 
 /// Parser for Subsurface XML (.ssrf) dive log files.
@@ -92,6 +93,10 @@ class SubsurfaceXmlParser implements ImportParser {
       final dives = <Map<String, dynamic>>[];
       final trips = <Map<String, dynamic>>[];
       final allTags = <String, Map<String, dynamic>>{};
+      // Site type suggestions a dive's tags imply, keyed by the site uuid the
+      // dive points at (already redirected through the fold's aliases).
+      // Applied to the surviving site maps once every dive has been read.
+      final siteTypeSuggestions = <String, Set<String>>{};
       final allBuddies = <String, Map<String, dynamic>>{};
       final allSuits = <String, Map<String, dynamic>>{};
       final allMedia = <Map<String, dynamic>>[];
@@ -108,7 +113,7 @@ class SubsurfaceXmlParser implements ImportParser {
             final diveData = _parseDive(diveElement, siteAliases: siteAliases);
             if (diveData != null) {
               diveData['tripRef'] = tripId;
-              _collectTags(diveElement, diveData, allTags);
+              _collectTags(diveElement, diveData, allTags, siteTypeSuggestions);
               _collectBuddies(diveElement, diveData, allBuddies);
               _collectSuit(diveElement, diveData, allSuits);
               // dives.length is this dive's index, because the pictures are
@@ -141,7 +146,7 @@ class SubsurfaceXmlParser implements ImportParser {
         try {
           final diveData = _parseDive(diveElement, siteAliases: siteAliases);
           if (diveData != null) {
-            _collectTags(diveElement, diveData, allTags);
+            _collectTags(diveElement, diveData, allTags, siteTypeSuggestions);
             _collectBuddies(diveElement, diveData, allBuddies);
             _collectSuit(diveElement, diveData, allSuits);
             _collectPictures(diveElement, dives.length, allMedia, warnings);
@@ -153,6 +158,11 @@ class SubsurfaceXmlParser implements ImportParser {
           warnings.add(_skippedDive(e));
         }
       }
+
+      _applySiteTypeSuggestions(
+        entities[ImportEntityType.sites],
+        siteTypeSuggestions,
+      );
 
       if (dives.isNotEmpty) entities[ImportEntityType.dives] = dives;
       if (trips.isNotEmpty) entities[ImportEntityType.trips] = trips;
@@ -490,10 +500,23 @@ class SubsurfaceXmlParser implements ImportParser {
     diveData['equipmentRefs'] = [name];
   }
 
+  /// Reads the `tags` attribute into the dive's tags and, where Subsurface's
+  /// own vocabulary says what kind of dive it was, into its dive types.
+  ///
+  /// Subsurface has no dive type field, so a cave dive is a dive tagged
+  /// 'cave'. Classifying from the tag is what keeps a cave logbook a cave
+  /// logbook: without it every dive fell back to 'recreational', or
+  /// 'technical' when its profile showed deco. The tags themselves are kept
+  /// either way: this adds a classification, it does not consume the tag.
+  ///
+  /// A tag that names a kind of place also suggests a type for the dive's
+  /// site, collected into [siteTypeSuggestions] and applied by
+  /// [_applySiteTypeSuggestions] once the fold's survivors are known.
   void _collectTags(
     XmlElement diveElement,
     Map<String, dynamic> diveData,
     Map<String, Map<String, dynamic>> allTags,
+    Map<String, Set<String>> siteTypeSuggestions,
   ) {
     final tagsAttr = diveElement.getAttribute('tags');
     if (tagsAttr == null || tagsAttr.isEmpty) return;
@@ -505,6 +528,44 @@ class SubsurfaceXmlParser implements ImportParser {
     diveData['tagRefs'] = tagNames;
     for (final tagName in tagNames) {
       allTags.putIfAbsent(tagName, () => {'name': tagName, 'uddfId': tagName});
+    }
+
+    // Insertion-ordered sets: the diver's tag order survives, and a logbook
+    // that tags both 'Boat' and 'boat' yields one type.
+    final diveTypeIds = <String>{
+      for (final tagName in tagNames) ?subsurfaceTagDiveType(tagName),
+    };
+    if (diveTypeIds.isNotEmpty) {
+      diveData['diveTypeIds'] = diveTypeIds.toList();
+    }
+
+    final siteTypeIds = <String>{
+      for (final tagName in tagNames) ?subsurfaceTagSiteType(tagName),
+    };
+    if (siteTypeIds.isEmpty) return;
+    final site = diveData['site'];
+    final siteId = site is Map<String, dynamic> ? site['uddfId'] : null;
+    if (siteId is! String || siteId.isEmpty) return;
+    siteTypeSuggestions
+        .putIfAbsent(siteId, () => <String>{})
+        .addAll(siteTypeIds);
+  }
+
+  /// Writes the tag-derived [suggestions] onto the sites they belong to.
+  ///
+  /// Always `suggestedSiteTypeRefs`, never `siteTypeRefs`: the importer
+  /// applies a suggestion only while the site carries no types of its own, so
+  /// one cavern dive can never reclassify a site the diver has already
+  /// described. A suggestion for a site the file never declared is dropped.
+  static void _applySiteTypeSuggestions(
+    List<Map<String, dynamic>>? sites,
+    Map<String, Set<String>> suggestions,
+  ) {
+    if (sites == null || suggestions.isEmpty) return;
+    for (final site in sites) {
+      final types = suggestions[site['uddfId']];
+      if (types == null || types.isEmpty) continue;
+      site['suggestedSiteTypeRefs'] = types.toList();
     }
   }
 
@@ -859,6 +920,9 @@ class SubsurfaceXmlParser implements ImportParser {
     final tanks = <Map<String, dynamic>>[];
     var index = 0;
     var cylinderIndex = 0;
+    // Counts only the cylinders Subsurface marked 'sidemount' with no side,
+    // so the sides it does state never shift the ones it does not.
+    var sidelessSidemountIndex = 0;
     for (final cyl in dive.findElements('cylinder')) {
       final size = cyl.getAttribute('size');
       final description = cyl.getAttribute('description');
@@ -922,7 +986,11 @@ class SubsurfaceXmlParser implements ImportParser {
       if (description != null && description.isNotEmpty) {
         tank['name'] = description;
       }
-      final role = _mapTankRole(cyl.getAttribute('use'));
+      final use = cyl.getAttribute('use');
+      var role = _mapTankRole(use);
+      if (role == null && _isSidelessSidemount(use)) {
+        role = _sidemountSideByOrder(sidelessSidemountIndex++);
+      }
       if (role != null) tank['role'] = role;
       tank['order'] = index;
       tank['uddfTankId'] = _subsurfaceTankRef(cylinderIndex, description);
@@ -1134,6 +1202,8 @@ class SubsurfaceXmlParser implements ImportParser {
       'bailout' => TankRole.bailout,
       'stage' => TankRole.stage,
       'deco' => TankRole.deco,
+      // Side-less: handled by _sidemountSideByOrder, which reads the side
+      // from the order the cylinders appear in.
       'sidemount' => null,
       'sidemount-left' => TankRole.sidemountLeft,
       'sidemount-right' => TankRole.sidemountRight,
@@ -1142,6 +1212,22 @@ class SubsurfaceXmlParser implements ImportParser {
       _ => null,
     };
   }
+
+  /// Whether [use] is Subsurface's plain 'sidemount', which names no side.
+  static bool _isSidelessSidemount(String? use) =>
+      use?.trim().toLowerCase() == 'sidemount';
+
+  /// The side of the [index]th side-less sidemount cylinder on a dive.
+  ///
+  /// Subsurface writes one 'sidemount' value for both cylinders, so the side
+  /// can only come from the order they are logged in: first left, then right,
+  /// the order a sidemount diver's cylinders are listed. A dive carrying more
+  /// than two leaves the rest without a side rather than inventing one.
+  static TankRole? _sidemountSideByOrder(int index) => switch (index) {
+    0 => TankRole.sidemountLeft,
+    1 => TankRole.sidemountRight,
+    _ => null,
+  };
 
   /// Splits a comma-separated name string, trimming leading/trailing commas
   /// and whitespace from each name.
