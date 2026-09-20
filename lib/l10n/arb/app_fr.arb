@@ -7548,7 +7548,7 @@
   "maps3d_reload": "Reload map data",
   "maps3d_reload_subtitle": "Deletes all cached bathymetry data and downloads it again for every dive site",
   "maps3d_reload_confirmTitle": "Reload map data for every dive site?",
-  "maps3d_reload_confirm_siteCount": "{count, plural, =0{No dive sites have a location.} =1{1 dive site will be reloaded.} other{{count} dive sites will be reloaded.}}",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{Aucun site de plongée n'a de position.} =1{{count} site de plongée sera rechargé.} other{{count} sites de plongée seront rechargés.}}",
   "@maps3d_reload_confirm_siteCount": {
     "placeholders": {
       "count": {
@@ -7583,7 +7583,7 @@
   "maps3d_reload_cancelled": "Reload cancelled",
   "maps3d_reload_failed": "Reload failed; some dive sites may not have been reloaded",
   "maps3d_busy_notice": "Another 3D Maps action is running. Please wait until it finishes.",
-  "maps3d_reload_remainingSeconds": "about {count, plural, =1{1 second} other{{count} seconds}} remaining",
+  "maps3d_reload_remainingSeconds": "{count, plural, =1{environ {count} seconde restante} other{environ {count} secondes restantes}}",
   "@maps3d_reload_remainingSeconds": {
     "placeholders": {
       "count": {
@@ -7591,7 +7591,7 @@
       }
     }
   },
-  "maps3d_reload_remainingMinutes": "about {count, plural, =1{1 minute} other{{count} minutes}} remaining",
+  "maps3d_reload_remainingMinutes": "{count, plural, =1{environ {count} minute restante} other{environ {count} minutes restantes}}",
   "@maps3d_reload_remainingMinutes": {
     "placeholders": {
       "count": {
@@ -7613,7 +7613,7 @@
       }
     }
   },
-  "maps3d_reload_elapsedSeconds": "running for {count, plural, =1{1 second} other{{count} seconds}}",
+  "maps3d_reload_elapsedSeconds": "en cours depuis {count, plural, =1{{count} seconde} other{{count} secondes}}",
   "@maps3d_reload_elapsedSeconds": {
     "placeholders": {
       "count": {
@@ -7621,7 +7621,7 @@
       }
     }
   },
-  "maps3d_reload_elapsedMinutes": "running for {count, plural, =1{1 minute} other{{count} minutes}}",
+  "maps3d_reload_elapsedMinutes": "en cours depuis {count, plural, =1{{count} minute} other{{count} minutes}}",
   "@maps3d_reload_elapsedMinutes": {
     "placeholders": {
       "count": {

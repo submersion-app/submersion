@@ -26673,9 +26673,9 @@ class AppLocalizationsPt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dive sites will be reloaded.',
-      one: '1 dive site will be reloaded.',
-      zero: 'No dive sites have a location.',
+      other: '$count locais de mergulho serão recarregados.',
+      one: '$count local de mergulho será recarregado.',
+      zero: 'Nenhum local de mergulho tem uma localização.',
     );
     return '$_temp0';
   }
@@ -26722,10 +26722,10 @@ class AppLocalizationsPt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count seconds',
-      one: '1 second',
+      other: 'cerca de $count segundos restantes',
+      one: 'cerca de $count segundo restante',
     );
-    return 'about $_temp0 remaining';
+    return '$_temp0';
   }
 
   @override
@@ -26733,10 +26733,10 @@ class AppLocalizationsPt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count minutes',
-      one: '1 minute',
+      other: 'cerca de $count minutos restantes',
+      one: 'cerca de $count minuto restante',
     );
-    return 'about $_temp0 remaining';
+    return '$_temp0';
   }
 
   @override
@@ -26749,10 +26749,10 @@ class AppLocalizationsPt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count seconds',
-      one: '1 second',
+      other: 'em execução há $count segundos',
+      one: 'em execução há $count segundo',
     );
-    return 'running for $_temp0';
+    return '$_temp0';
   }
 
   @override
@@ -26760,10 +26760,10 @@ class AppLocalizationsPt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count minutes',
-      one: '1 minute',
+      other: 'em execução há $count minutos',
+      one: 'em execução há $count minuto',
     );
-    return 'running for $_temp0';
+    return '$_temp0';
   }
 
   @override

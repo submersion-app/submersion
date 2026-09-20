@@ -7548,7 +7548,7 @@
   "maps3d_reload": "Reload map data",
   "maps3d_reload_subtitle": "Deletes all cached bathymetry data and downloads it again for every dive site",
   "maps3d_reload_confirmTitle": "Reload map data for every dive site?",
-  "maps3d_reload_confirm_siteCount": "{count, plural, =0{No dive sites have a location.} =1{1 dive site will be reloaded.} other{{count} dive sites will be reloaded.}}",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{Nenhum local de mergulho tem uma localização.} =1{{count} local de mergulho será recarregado.} other{{count} locais de mergulho serão recarregados.}}",
   "@maps3d_reload_confirm_siteCount": {
     "placeholders": {
       "count": {
@@ -7583,7 +7583,7 @@
   "maps3d_reload_cancelled": "Reload cancelled",
   "maps3d_reload_failed": "Reload failed; some dive sites may not have been reloaded",
   "maps3d_busy_notice": "Another 3D Maps action is running. Please wait until it finishes.",
-  "maps3d_reload_remainingSeconds": "about {count, plural, =1{1 second} other{{count} seconds}} remaining",
+  "maps3d_reload_remainingSeconds": "{count, plural, =1{cerca de {count} segundo restante} other{cerca de {count} segundos restantes}}",
   "@maps3d_reload_remainingSeconds": {
     "placeholders": {
       "count": {
@@ -7591,7 +7591,7 @@
       }
     }
   },
-  "maps3d_reload_remainingMinutes": "about {count, plural, =1{1 minute} other{{count} minutes}} remaining",
+  "maps3d_reload_remainingMinutes": "{count, plural, =1{cerca de {count} minuto restante} other{cerca de {count} minutos restantes}}",
   "@maps3d_reload_remainingMinutes": {
     "placeholders": {
       "count": {
@@ -7613,7 +7613,7 @@
       }
     }
   },
-  "maps3d_reload_elapsedSeconds": "running for {count, plural, =1{1 second} other{{count} seconds}}",
+  "maps3d_reload_elapsedSeconds": "{count, plural, =1{em execução há {count} segundo} other{em execução há {count} segundos}}",
   "@maps3d_reload_elapsedSeconds": {
     "placeholders": {
       "count": {
@@ -7621,7 +7621,7 @@
       }
     }
   },
-  "maps3d_reload_elapsedMinutes": "running for {count, plural, =1{1 minute} other{{count} minutes}}",
+  "maps3d_reload_elapsedMinutes": "{count, plural, =1{em execução há {count} minuto} other{em execução há {count} minutos}}",
   "@maps3d_reload_elapsedMinutes": {
     "placeholders": {
       "count": {

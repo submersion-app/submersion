@@ -26764,9 +26764,9 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dive sites will be reloaded.',
-      one: '1 dive site will be reloaded.',
-      zero: 'No dive sites have a location.',
+      other: '$count sites de plongée seront rechargés.',
+      one: '$count site de plongée sera rechargé.',
+      zero: 'Aucun site de plongée n\'a de position.',
     );
     return '$_temp0';
   }
@@ -26813,10 +26813,10 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count seconds',
-      one: '1 second',
+      other: 'environ $count secondes restantes',
+      one: 'environ $count seconde restante',
     );
-    return 'about $_temp0 remaining';
+    return '$_temp0';
   }
 
   @override
@@ -26824,10 +26824,10 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count minutes',
-      one: '1 minute',
+      other: 'environ $count minutes restantes',
+      one: 'environ $count minute restante',
     );
-    return 'about $_temp0 remaining';
+    return '$_temp0';
   }
 
   @override
@@ -26840,10 +26840,10 @@ class AppLocalizationsFr extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count seconds',
-      one: '1 second',
+      other: '$count secondes',
+      one: '$count seconde',
     );
-    return 'running for $_temp0';
+    return 'en cours depuis $_temp0';
   }
 
   @override
@@ -26852,9 +26852,9 @@ class AppLocalizationsFr extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count minutes',
-      one: '1 minute',
+      one: '$count minute',
     );
-    return 'running for $_temp0';
+    return 'en cours depuis $_temp0';
   }
 
   @override
