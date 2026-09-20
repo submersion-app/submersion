@@ -12,6 +12,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/explore/data/explore_repository.dart';
 import 'package:submersion/features/explore/data/name_index_builder.dart';
+import 'package:submersion/features/explore/data/recent_query_repository.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/compiled_query.dart';
 import 'package:submersion/features/explore/domain/name_index.dart';
@@ -74,14 +75,30 @@ final nameIndexProvider = FutureProvider<NameIndex>((ref) async {
   return builder.build(diverId: diverId, l10n: l10nForLocaleTag(locale));
 });
 
+final recentQueryRepositoryProvider = Provider<RecentQueryRepository>(
+  (ref) => RecentQueryRepository(),
+);
+
 /// Recorded after a successful compile; overridable so provider tests need
-/// no local cache database. Wired to the recent-query repository later.
+/// no local cache database.
 typedef RecentQueryRecorder =
     Future<void> Function(String sentence, String locale, ParsedQuery parsed);
 
-final recentQueryRecorderProvider = Provider<RecentQueryRecorder>(
-  (ref) => (sentence, locale, parsed) async {},
-);
+// no-tick: the value is a write function, not data; nothing here is cached
+// and the list provider follows the table's own tick.
+final recentQueryRecorderProvider = Provider<RecentQueryRecorder>((ref) {
+  final repo = ref.watch(recentQueryRepositoryProvider);
+  return (sentence, locale, parsed) => repo.record(sentence, locale, parsed);
+});
+
+/// The diver's recent sentences for the active locale, newest first.
+final recentQueriesProvider = FutureProvider<List<RecentQuery>>((ref) async {
+  final repo = ref.watch(recentQueryRepositoryProvider);
+  ref.invalidateSelfWhen(repo.watchChanges());
+  final locale = ref.watch(localeProvider);
+  final all = await repo.list();
+  return all.where((q) => q.locale == locale).toList();
+});
 
 class ExploreState {
   final String sentence;
