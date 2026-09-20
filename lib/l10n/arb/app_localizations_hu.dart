@@ -37325,6 +37325,48 @@ class AppLocalizationsHu extends AppLocalizations {
   String get explore_field_weekday => 'Hét napja';
 
   @override
+  String get explore_field_sacTrend => 'SAC-trend';
+
+  @override
+  String get explore_field_sacRoseAfter => 'A SAC nőtt ezután';
+
+  @override
+  String get explore_field_finalStopUnstable => 'Instabil utolsó megálló';
+
+  @override
+  String get explore_field_finalStopDuration => 'Utolsó megálló hossza';
+
+  @override
+  String get explore_field_safetyFinding => 'Biztonsági észrevétel';
+
+  @override
+  String get explore_value_sacTrend_rising => 'növekvő';
+
+  @override
+  String get explore_value_sacTrend_falling => 'csökkenő';
+
+  @override
+  String get explore_value_sacTrend_flat => 'egyenletes';
+
+  @override
+  String get explore_value_finding_rapidAscent => 'gyors felmerülés';
+
+  @override
+  String get explore_value_finding_missedDecoStop =>
+      'kihagyott dekompressziós megálló';
+
+  @override
+  String get explore_value_finding_omittedSafetyStop =>
+      'elhagyott biztonsági megálló';
+
+  @override
+  String get explore_value_finding_sawtoothProfile => 'fűrészfog profil';
+
+  @override
+  String get explore_value_finding_highSurfaceGf =>
+      'magas felszíni gradiensfaktor';
+
+  @override
   String get explore_handoff_diveList => 'Megnyitás a merüléslistában';
 
   @override

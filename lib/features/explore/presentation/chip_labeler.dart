@@ -35,6 +35,34 @@ class ChipLabeler {
     ExploreDiveField.noBuddy => l10n.explore_chip_noBuddy,
     ExploreDiveField.weekday => l10n.explore_field_weekday,
     ExploreDiveField.diveType => l10n.explore_field_diveType,
+    ExploreDiveField.sacTrend => l10n.explore_field_sacTrend,
+    ExploreDiveField.sacRoseAfter => l10n.explore_field_sacRoseAfter,
+    ExploreDiveField.finalStopUnstable => l10n.explore_field_finalStopUnstable,
+    ExploreDiveField.finalStopDuration => l10n.explore_field_finalStopDuration,
+    ExploreDiveField.safetyFinding => l10n.explore_field_safetyFinding,
+  };
+
+  /// The diver's word for an enum value. Falls back to the raw name, which
+  /// is what the dive-type and entry-method values already show.
+  String _enumValue(ExploreDiveField field, String raw) => switch ((
+    field,
+    raw,
+  )) {
+    (ExploreDiveField.sacTrend, 'rising') => l10n.explore_value_sacTrend_rising,
+    (ExploreDiveField.sacTrend, 'falling') =>
+      l10n.explore_value_sacTrend_falling,
+    (ExploreDiveField.sacTrend, 'flat') => l10n.explore_value_sacTrend_flat,
+    (ExploreDiveField.safetyFinding, 'rapidAscent') =>
+      l10n.explore_value_finding_rapidAscent,
+    (ExploreDiveField.safetyFinding, 'missedDecoStop') =>
+      l10n.explore_value_finding_missedDecoStop,
+    (ExploreDiveField.safetyFinding, 'omittedSafetyStop') =>
+      l10n.explore_value_finding_omittedSafetyStop,
+    (ExploreDiveField.safetyFinding, 'sawtoothProfile') =>
+      l10n.explore_value_finding_sawtoothProfile,
+    (ExploreDiveField.safetyFinding, 'highSurfaceGf') =>
+      l10n.explore_value_finding_highSurfaceGf,
+    _ => raw,
   };
 
   String _op(ClauseOp op) => switch (op) {
@@ -63,6 +91,10 @@ class ChipLabeler {
         ExploreDiveField.deco =>
           v ? l10n.explore_chip_deco : l10n.explore_chip_noDeco,
         ExploreDiveField.noBuddy => l10n.explore_chip_noBuddy,
+        // An unstable stop is only ever set true (the compiler leaves the
+        // negation unplaced), so the field name alone says it.
+        ExploreDiveField.finalStopUnstable =>
+          l10n.explore_field_finalStopUnstable,
         _ => l10n.explore_chip_favorite,
       };
     }
@@ -74,15 +106,16 @@ class ChipLabeler {
       );
     }
     if (v is List) {
-      final values = v.map((e) => '$e').join(', ');
+      final values = v.map((e) => _enumValue(c.field, '$e')).join(', ');
       return c.op == ClauseOp.not
           ? l10n.explore_chip_enumNot(name, values)
           : l10n.explore_chip_enum(name, values);
     }
     if (v is String) {
+      final label = _enumValue(c.field, v);
       return c.op == ClauseOp.not
-          ? l10n.explore_chip_enumNot(name, v)
-          : l10n.explore_chip_enum(name, v);
+          ? l10n.explore_chip_enumNot(name, label)
+          : l10n.explore_chip_enum(name, label);
     }
     final number = (v as num).toDouble();
     if (c.field == ExploreDiveField.rating) {

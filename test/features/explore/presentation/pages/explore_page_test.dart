@@ -46,7 +46,7 @@ class _Engine implements NlEngine {
 
 void main() {
   const turtles =
-      '{"schemaVersion":1,"subject":"dives","clauses":[{"field":"depth",'
+      '{"schemaVersion":$kQuerySchemaVersion,"subject":"dives","clauses":[{"field":"depth",'
       '"op":"gt","value":20,"unit":"m","text":"below 20m"}],"mentions":'
       '[{"kind":"place","text":"Bonaire"},{"kind":"species","text":"turtles"}],'
       '"time":null,"unplaced":["maybe"]}';

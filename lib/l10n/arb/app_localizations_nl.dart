@@ -37213,6 +37213,47 @@ class AppLocalizationsNl extends AppLocalizations {
   String get explore_field_weekday => 'Weekdag';
 
   @override
+  String get explore_field_sacTrend => 'SAC-trend';
+
+  @override
+  String get explore_field_sacRoseAfter => 'SAC steeg na';
+
+  @override
+  String get explore_field_finalStopUnstable => 'Onstabiele laatste stop';
+
+  @override
+  String get explore_field_finalStopDuration => 'Duur laatste stop';
+
+  @override
+  String get explore_field_safetyFinding => 'Veiligheidsbevinding';
+
+  @override
+  String get explore_value_sacTrend_rising => 'stijgend';
+
+  @override
+  String get explore_value_sacTrend_falling => 'dalend';
+
+  @override
+  String get explore_value_sacTrend_flat => 'vlak';
+
+  @override
+  String get explore_value_finding_rapidAscent => 'snelle opstijging';
+
+  @override
+  String get explore_value_finding_missedDecoStop => 'gemiste decompressiestop';
+
+  @override
+  String get explore_value_finding_omittedSafetyStop =>
+      'overgeslagen veiligheidsstop';
+
+  @override
+  String get explore_value_finding_sawtoothProfile => 'zaagtandprofiel';
+
+  @override
+  String get explore_value_finding_highSurfaceGf =>
+      'hoge gradiëntfactor bij het opduiken';
+
+  @override
   String get explore_handoff_diveList => 'Openen in duiklijst';
 
   @override

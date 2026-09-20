@@ -37388,6 +37388,47 @@ class AppLocalizationsDe extends AppLocalizations {
   String get explore_field_weekday => 'Wochentag';
 
   @override
+  String get explore_field_sacTrend => 'AMV-Trend';
+
+  @override
+  String get explore_field_sacRoseAfter => 'AMV stieg nach';
+
+  @override
+  String get explore_field_finalStopUnstable => 'Instabiler letzter Stopp';
+
+  @override
+  String get explore_field_finalStopDuration => 'Dauer des letzten Stopps';
+
+  @override
+  String get explore_field_safetyFinding => 'Sicherheitsbefund';
+
+  @override
+  String get explore_value_sacTrend_rising => 'steigend';
+
+  @override
+  String get explore_value_sacTrend_falling => 'fallend';
+
+  @override
+  String get explore_value_sacTrend_flat => 'gleichbleibend';
+
+  @override
+  String get explore_value_finding_rapidAscent => 'schneller Aufstieg';
+
+  @override
+  String get explore_value_finding_missedDecoStop => 'ausgelassener Dekostopp';
+
+  @override
+  String get explore_value_finding_omittedSafetyStop =>
+      'ausgelassener Sicherheitsstopp';
+
+  @override
+  String get explore_value_finding_sawtoothProfile => 'Sägezahnprofil';
+
+  @override
+  String get explore_value_finding_highSurfaceGf =>
+      'hoher Gradientenfaktor beim Auftauchen';
+
+  @override
   String get explore_handoff_diveList => 'In der Tauchgangsliste öffnen';
 
   @override

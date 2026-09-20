@@ -60679,6 +60679,84 @@ abstract class AppLocalizations {
   /// **'Weekday'**
   String get explore_field_weekday;
 
+  /// No description provided for @explore_field_sacTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'SAC trend'**
+  String get explore_field_sacTrend;
+
+  /// No description provided for @explore_field_sacRoseAfter.
+  ///
+  /// In en, this message translates to:
+  /// **'SAC rose after'**
+  String get explore_field_sacRoseAfter;
+
+  /// No description provided for @explore_field_finalStopUnstable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unstable final stop'**
+  String get explore_field_finalStopUnstable;
+
+  /// No description provided for @explore_field_finalStopDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Final stop length'**
+  String get explore_field_finalStopDuration;
+
+  /// No description provided for @explore_field_safetyFinding.
+  ///
+  /// In en, this message translates to:
+  /// **'Safety finding'**
+  String get explore_field_safetyFinding;
+
+  /// No description provided for @explore_value_sacTrend_rising.
+  ///
+  /// In en, this message translates to:
+  /// **'rising'**
+  String get explore_value_sacTrend_rising;
+
+  /// No description provided for @explore_value_sacTrend_falling.
+  ///
+  /// In en, this message translates to:
+  /// **'falling'**
+  String get explore_value_sacTrend_falling;
+
+  /// No description provided for @explore_value_sacTrend_flat.
+  ///
+  /// In en, this message translates to:
+  /// **'flat'**
+  String get explore_value_sacTrend_flat;
+
+  /// No description provided for @explore_value_finding_rapidAscent.
+  ///
+  /// In en, this message translates to:
+  /// **'rapid ascent'**
+  String get explore_value_finding_rapidAscent;
+
+  /// No description provided for @explore_value_finding_missedDecoStop.
+  ///
+  /// In en, this message translates to:
+  /// **'missed decompression stop'**
+  String get explore_value_finding_missedDecoStop;
+
+  /// No description provided for @explore_value_finding_omittedSafetyStop.
+  ///
+  /// In en, this message translates to:
+  /// **'omitted safety stop'**
+  String get explore_value_finding_omittedSafetyStop;
+
+  /// No description provided for @explore_value_finding_sawtoothProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'sawtooth profile'**
+  String get explore_value_finding_sawtoothProfile;
+
+  /// No description provided for @explore_value_finding_highSurfaceGf.
+  ///
+  /// In en, this message translates to:
+  /// **'high surfacing gradient factor'**
+  String get explore_value_finding_highSurfaceGf;
+
   /// No description provided for @explore_handoff_diveList.
   ///
   /// In en, this message translates to:

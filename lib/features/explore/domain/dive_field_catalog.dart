@@ -1,3 +1,4 @@
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/explore/domain/query_model.dart';
 
 /// What a numeric clause measures, so bare numbers can take the diver's unit.
@@ -13,7 +14,7 @@ enum FieldDimension {
 
 enum FieldValueType { number, enumName, flag }
 
-/// The fields the native schema constrains a dive clause to (schema v1).
+/// The fields the native schema constrains a dive clause to (schema v2).
 ///
 /// Named `ExploreDiveField` because `DiveField` is the table-column enum.
 enum ExploreDiveField {
@@ -34,7 +35,14 @@ enum ExploreDiveField {
   deco('deco'),
   noBuddy('noBuddy'),
   weekday('weekday'),
-  diveType('diveType');
+  diveType('diveType'),
+  // Schema v2: the phase 2 derived fields. Each lowers to a
+  // DerivedPredicate rather than to a stored column.
+  sacTrend('sacTrend'),
+  sacRoseAfter('sacRoseAfter'),
+  finalStopUnstable('finalStopUnstable'),
+  finalStopDuration('finalStopDuration'),
+  safetyFinding('safetyFinding');
 
   final String jsonName;
   const ExploreDiveField(this.jsonName);
@@ -79,6 +87,21 @@ const FieldSpec _temperature = FieldSpec(
   valueType: FieldValueType.number,
   ops: _ordering,
 );
+
+/// The rule names the model may write for `safetyFinding`.
+///
+/// Spelled out because `enumValues` sits in a const map and
+/// `SafetyRuleId.values.map(...)` is not a constant. A guard test asserts
+/// this stays in step with [SafetyRuleId], so adding a rule without adding
+/// it here fails rather than silently making the rule unaskable.
+const List<String> safetyFindingNames = [
+  'rapidAscent',
+  'missedDecoStop',
+  'omittedSafetyStop',
+  'sawtoothProfile',
+  'highSurfaceGf',
+];
+
 const FieldSpec _flag = FieldSpec(
   dimension: FieldDimension.none,
   valueType: FieldValueType.flag,
@@ -151,6 +174,31 @@ abstract final class DiveFieldCatalog {
       dimension: FieldDimension.none,
       valueType: FieldValueType.enumName,
       ops: {ClauseOp.eq},
+    ),
+    ExploreDiveField.sacTrend: FieldSpec(
+      dimension: FieldDimension.none,
+      valueType: FieldValueType.enumName,
+      ops: {ClauseOp.eq},
+      enumValues: ['rising', 'falling', 'flat'],
+    ),
+    // "after 20 minutes" is a mark in the dive, so only a lower bound and
+    // equality make sense: there is no "rose before 20 minutes".
+    ExploreDiveField.sacRoseAfter: FieldSpec(
+      dimension: FieldDimension.minutes,
+      valueType: FieldValueType.number,
+      ops: {ClauseOp.eq, ClauseOp.gt, ClauseOp.gte},
+    ),
+    ExploreDiveField.finalStopUnstable: _flag,
+    ExploreDiveField.finalStopDuration: FieldSpec(
+      dimension: FieldDimension.minutes,
+      valueType: FieldValueType.number,
+      ops: _ordering,
+    ),
+    ExploreDiveField.safetyFinding: FieldSpec(
+      dimension: FieldDimension.none,
+      valueType: FieldValueType.enumName,
+      ops: {ClauseOp.eq, ClauseOp.inList},
+      enumValues: safetyFindingNames,
     ),
   };
 

@@ -36712,6 +36712,45 @@ class AppLocalizationsHe extends AppLocalizations {
   String get explore_field_weekday => 'יום בשבוע';
 
   @override
+  String get explore_field_sacTrend => 'מגמת צריכת אוויר';
+
+  @override
+  String get explore_field_sacRoseAfter => 'צריכת האוויר עלתה אחרי';
+
+  @override
+  String get explore_field_finalStopUnstable => 'עצירה אחרונה לא יציבה';
+
+  @override
+  String get explore_field_finalStopDuration => 'משך העצירה האחרונה';
+
+  @override
+  String get explore_field_safetyFinding => 'ממצא בטיחות';
+
+  @override
+  String get explore_value_sacTrend_rising => 'עולה';
+
+  @override
+  String get explore_value_sacTrend_falling => 'יורדת';
+
+  @override
+  String get explore_value_sacTrend_flat => 'יציבה';
+
+  @override
+  String get explore_value_finding_rapidAscent => 'עלייה מהירה';
+
+  @override
+  String get explore_value_finding_missedDecoStop => 'עצירת דקומפרסיה שהוחמצה';
+
+  @override
+  String get explore_value_finding_omittedSafetyStop => 'עצירת בטיחות שהושמטה';
+
+  @override
+  String get explore_value_finding_sawtoothProfile => 'פרופיל משונן';
+
+  @override
+  String get explore_value_finding_highSurfaceGf => 'מקדם גרדיאנט גבוה בעלייה';
+
+  @override
   String get explore_handoff_diveList => 'פתיחה ברשימת הצלילות';
 
   @override

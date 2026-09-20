@@ -9,7 +9,7 @@ void main() {
     for (final name in DiveFieldCatalog.jsonNames) {
       expect(text, contains(name), reason: name);
     }
-    expect(text, contains('"schemaVersion": 1'));
+    expect(text, contains('"schemaVersion": $kQuerySchemaVersion'));
     expect(text, contains('unplaced'));
     // Roughly 4 characters per token; the budget is 2,500 tokens for
     // instructions plus schema, so the text itself stays under 7,000 chars.

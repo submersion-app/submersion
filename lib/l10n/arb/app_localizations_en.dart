@@ -36950,6 +36950,47 @@ class AppLocalizationsEn extends AppLocalizations {
   String get explore_field_weekday => 'Weekday';
 
   @override
+  String get explore_field_sacTrend => 'SAC trend';
+
+  @override
+  String get explore_field_sacRoseAfter => 'SAC rose after';
+
+  @override
+  String get explore_field_finalStopUnstable => 'Unstable final stop';
+
+  @override
+  String get explore_field_finalStopDuration => 'Final stop length';
+
+  @override
+  String get explore_field_safetyFinding => 'Safety finding';
+
+  @override
+  String get explore_value_sacTrend_rising => 'rising';
+
+  @override
+  String get explore_value_sacTrend_falling => 'falling';
+
+  @override
+  String get explore_value_sacTrend_flat => 'flat';
+
+  @override
+  String get explore_value_finding_rapidAscent => 'rapid ascent';
+
+  @override
+  String get explore_value_finding_missedDecoStop =>
+      'missed decompression stop';
+
+  @override
+  String get explore_value_finding_omittedSafetyStop => 'omitted safety stop';
+
+  @override
+  String get explore_value_finding_sawtoothProfile => 'sawtooth profile';
+
+  @override
+  String get explore_value_finding_highSurfaceGf =>
+      'high surfacing gradient factor';
+
+  @override
   String get explore_handoff_diveList => 'Open in dive list';
 
   @override

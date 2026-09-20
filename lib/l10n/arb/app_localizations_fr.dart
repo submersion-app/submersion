@@ -37560,6 +37560,48 @@ class AppLocalizationsFr extends AppLocalizations {
   String get explore_field_weekday => 'Jour de la semaine';
 
   @override
+  String get explore_field_sacTrend => 'Tendance SAC';
+
+  @override
+  String get explore_field_sacRoseAfter => 'SAC a augmenté après';
+
+  @override
+  String get explore_field_finalStopUnstable => 'Dernier palier instable';
+
+  @override
+  String get explore_field_finalStopDuration => 'Durée du dernier palier';
+
+  @override
+  String get explore_field_safetyFinding => 'Constat de sécurité';
+
+  @override
+  String get explore_value_sacTrend_rising => 'en hausse';
+
+  @override
+  String get explore_value_sacTrend_falling => 'en baisse';
+
+  @override
+  String get explore_value_sacTrend_flat => 'stable';
+
+  @override
+  String get explore_value_finding_rapidAscent => 'remontée rapide';
+
+  @override
+  String get explore_value_finding_missedDecoStop =>
+      'palier de décompression manqué';
+
+  @override
+  String get explore_value_finding_omittedSafetyStop =>
+      'palier de sécurité omis';
+
+  @override
+  String get explore_value_finding_sawtoothProfile => 'profil en dents de scie';
+
+  @override
+  String get explore_value_finding_highSurfaceGf =>
+      'facteur de gradient élevé en surface';
+
+  @override
   String get explore_handoff_diveList => 'Ouvrir dans la liste des plongées';
 
   @override

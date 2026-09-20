@@ -37092,6 +37092,46 @@ class AppLocalizationsAr extends AppLocalizations {
   String get explore_field_weekday => 'يوم الأسبوع';
 
   @override
+  String get explore_field_sacTrend => 'اتجاه معدل استهلاك الهواء';
+
+  @override
+  String get explore_field_sacRoseAfter => 'ارتفع استهلاك الهواء بعد';
+
+  @override
+  String get explore_field_finalStopUnstable => 'توقف أخير غير مستقر';
+
+  @override
+  String get explore_field_finalStopDuration => 'مدة التوقف الأخير';
+
+  @override
+  String get explore_field_safetyFinding => 'ملاحظة سلامة';
+
+  @override
+  String get explore_value_sacTrend_rising => 'مرتفع';
+
+  @override
+  String get explore_value_sacTrend_falling => 'منخفض';
+
+  @override
+  String get explore_value_sacTrend_flat => 'ثابت';
+
+  @override
+  String get explore_value_finding_rapidAscent => 'صعود سريع';
+
+  @override
+  String get explore_value_finding_missedDecoStop => 'توقف تخفيف ضغط فائت';
+
+  @override
+  String get explore_value_finding_omittedSafetyStop => 'توقف أمان محذوف';
+
+  @override
+  String get explore_value_finding_sawtoothProfile => 'مخطط متعرج';
+
+  @override
+  String get explore_value_finding_highSurfaceGf =>
+      'عامل تدرج مرتفع عند الصعود';
+
+  @override
   String get explore_handoff_diveList => 'فتح في قائمة الغطسات';
 
   @override

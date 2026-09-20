@@ -1,9 +1,12 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/text/fuzzy_match.dart';
+import 'package:submersion/features/dive_log/domain/entities/derived_metrics.dart';
+import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 import 'package:submersion/features/explore/domain/chart_selection.dart';
 import 'package:submersion/features/explore/domain/compiled_query.dart';
+import 'package:submersion/features/explore/domain/derived_predicates.dart';
 import 'package:submersion/features/explore/domain/dive_field_catalog.dart';
 import 'package:submersion/features/explore/domain/entity_resolver.dart';
 import 'package:submersion/features/explore/domain/name_index.dart';
@@ -194,6 +197,19 @@ abstract final class QueryCompiler {
         if (on) next = f.copyWith(noBuddyOnly: true);
       case ExploreDiveField.deco:
         next = f.copyWith(decoOnly: on);
+      case ExploreDiveField.finalStopUnstable:
+        // Only the positive form is expressible: the axis is an EXISTS, and
+        // "the stop was stable" is its negation, which would also sweep in
+        // every dive with no stop at all. Leave it unplaced rather than
+        // quietly filtering for the opposite of what was asked.
+        if (on) {
+          next = f.copyWith(
+            derivedPredicates: [
+              ...f.derivedPredicates,
+              const FinalStopUnstable(),
+            ],
+          );
+        }
       default:
         break;
     }
@@ -245,6 +261,37 @@ abstract final class QueryCompiler {
         final days = chosen.map((v) => _weekdayNumbers[v]!).toList();
         return (
           filter: f.copyWith(weekdays: [...f.weekdays, ...days]),
+          chip: chip,
+          error: null,
+        );
+      case ExploreDiveField.sacTrend:
+        // One trend at a time: "rising or falling" is every dive with a
+        // slope, which is not a filter anyone means.
+        if (chosen.length != 1) return _fail('invalid');
+        return (
+          filter: f.copyWith(
+            derivedPredicates: [
+              ...f.derivedPredicates,
+              SacTrendIs(SacTrend.values.byName(chosen.single)),
+            ],
+          ),
+          chip: chip,
+          error: null,
+        );
+      case ExploreDiveField.safetyFinding:
+        final rules = <SafetyRuleId>[];
+        for (final v in chosen) {
+          final rule = SafetyRuleId.fromDbValue(v);
+          if (rule == null) return _fail('invalid');
+          rules.add(rule);
+        }
+        return (
+          filter: f.copyWith(
+            derivedPredicates: [
+              ...f.derivedPredicates,
+              for (final rule in rules) HasFinding(rule),
+            ],
+          ),
           chip: chip,
           error: null,
         );
@@ -352,6 +399,36 @@ abstract final class QueryCompiler {
         if (lo == null) return _fail('invalid');
         return (
           filter: f.copyWith(minRating: lo.round()),
+          chip: chip,
+          error: null,
+        );
+      case ExploreDiveField.sacRoseAfter:
+        // A mark in the dive, not a range: the catalog allows only eq/gt/gte,
+        // so a lower bound is always what arrives here.
+        if (lo == null) return _fail('invalid');
+        return (
+          filter: f.copyWith(
+            derivedPredicates: [
+              ...f.derivedPredicates,
+              SacRoseAfter(minutes: lo.round()),
+            ],
+          ),
+          chip: chip,
+          error: null,
+        );
+      case ExploreDiveField.finalStopDuration:
+        // The clause speaks in minutes; the stored column is seconds.
+        if (lo == null && hi == null) return _fail('invalid');
+        return (
+          filter: f.copyWith(
+            derivedPredicates: [
+              ...f.derivedPredicates,
+              FinalStopDuration(
+                minSeconds: lo == null ? null : (lo * 60).round(),
+                maxSeconds: hi == null ? null : (hi * 60).round(),
+              ),
+            ],
+          ),
           chip: chip,
           error: null,
         );

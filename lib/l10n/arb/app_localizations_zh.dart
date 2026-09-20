@@ -35380,6 +35380,45 @@ class AppLocalizationsZh extends AppLocalizations {
   String get explore_field_weekday => '星期';
 
   @override
+  String get explore_field_sacTrend => '耗气率趋势';
+
+  @override
+  String get explore_field_sacRoseAfter => '耗气率上升于';
+
+  @override
+  String get explore_field_finalStopUnstable => '最后停留不稳定';
+
+  @override
+  String get explore_field_finalStopDuration => '最后停留时长';
+
+  @override
+  String get explore_field_safetyFinding => '安全发现';
+
+  @override
+  String get explore_value_sacTrend_rising => '上升';
+
+  @override
+  String get explore_value_sacTrend_falling => '下降';
+
+  @override
+  String get explore_value_sacTrend_flat => '平稳';
+
+  @override
+  String get explore_value_finding_rapidAscent => '快速上升';
+
+  @override
+  String get explore_value_finding_missedDecoStop => '错过减压停留';
+
+  @override
+  String get explore_value_finding_omittedSafetyStop => '省略安全停留';
+
+  @override
+  String get explore_value_finding_sawtoothProfile => '锯齿形深度曲线';
+
+  @override
+  String get explore_value_finding_highSurfaceGf => '出水梯度因子偏高';
+
+  @override
   String get explore_handoff_diveList => '在潜水列表中打开';
 
   @override

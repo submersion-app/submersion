@@ -7,7 +7,7 @@ library;
 
 import 'dart:convert';
 
-const int kQuerySchemaVersion = 1;
+const int kQuerySchemaVersion = 2;
 
 enum QuerySubject { dives, equipment, sites, buddies, species, trips, centers }
 

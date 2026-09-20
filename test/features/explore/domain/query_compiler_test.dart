@@ -65,7 +65,7 @@ void main() {
       );
 
   ParsedQuery turtlesQuery() => ParsedQuery.fromJson({
-    'schemaVersion': 1,
+    'schemaVersion': kQuerySchemaVersion,
     'subject': 'dives',
     'clauses': [
       {
@@ -123,7 +123,7 @@ void main() {
     'a bare number takes the diver unit and the chip keeps the metric value',
     () {
       final q = ParsedQuery.fromJson({
-        'schemaVersion': 1,
+        'schemaVersion': kQuerySchemaVersion,
         'subject': 'dives',
         'clauses': [
           {
@@ -155,7 +155,7 @@ void main() {
 
   test('between, water types, flags, weekdays and time lower correctly', () {
     final q = ParsedQuery.fromJson({
-      'schemaVersion': 1,
+      'schemaVersion': kQuerySchemaVersion,
       'subject': 'dives',
       'clauses': [
         {
@@ -204,7 +204,7 @@ void main() {
 
   test('favorite eq false has no axis and is unplaced', () {
     final q = ParsedQuery.fromJson({
-      'schemaVersion': 1,
+      'schemaVersion': kQuerySchemaVersion,
       'subject': 'dives',
       'clauses': [
         {
@@ -222,7 +222,7 @@ void main() {
 
   test('gear attribute mentions become attribute conditions', () {
     final q = ParsedQuery.fromJson({
-      'schemaVersion': 1,
+      'schemaVersion': kQuerySchemaVersion,
       'subject': 'dives',
       'mentions': [
         {'kind': 'gear', 'text': 'trilaminate'},
@@ -238,7 +238,7 @@ void main() {
   test('unknown fields, bad ops, out-of-range values and unknown time are '
       'unplaced with reasons', () {
     final q = ParsedQuery.fromJson({
-      'schemaVersion': 1,
+      'schemaVersion': kQuerySchemaVersion,
       'subject': 'dives',
       'clauses': [
         {'field': 'salinity', 'op': 'gt', 'value': 3, 'text': 'salty'},
@@ -285,7 +285,7 @@ void main() {
 
   test('an unresolved mention carries candidates and lowers nothing', () {
     final q = ParsedQuery.fromJson({
-      'schemaVersion': 1,
+      'schemaVersion': kQuerySchemaVersion,
       'subject': 'dives',
       'mentions': [
         {'kind': 'species', 'text': 'turtles'},
@@ -302,7 +302,7 @@ void main() {
 
   test('a non-dive subject is one unplaced item and an empty filter', () {
     final q = ParsedQuery.fromJson({
-      'schemaVersion': 1,
+      'schemaVersion': kQuerySchemaVersion,
       'subject': 'equipment',
     });
     final c = compile(q);
