@@ -81,7 +81,6 @@ void main() {
   // daylight-saving transition lands an hour either side of midnight and
   // shifts the calendar date the countdown is asserted against.
   final upcoming = DateTime(now.year, now.month, now.day + 30);
-  final inFiveDays = DateTime(now.year, now.month, now.day + 5);
 
   group('TripSummaryWidget honours the diver date format', () {
     testWidgets('the recent-trips list is day-first', (tester) async {
@@ -125,6 +124,16 @@ void main() {
     // Counting from the current instant instead of today's date floors away
     // the rest of today, so a trip five calendar days out read "In 4 days" at
     // any hour past midnight; a spring-forward inside the window took another.
+    //
+    // The clock is read here rather than in the file's preamble, which runs
+    // before the tests above it: the widget reads its own clock while it
+    // builds, so the further apart the two readings are, the wider the window
+    // in which local midnight can pass between them and make the trip four
+    // days out instead of five. Reading it immediately before the pump leaves
+    // only the frame itself.
+    final today = DateTime.now();
+    final inFiveDays = DateTime(today.year, today.month, today.day + 5);
+
     await _pump(tester, DateFormatPreference.mmmDYYYY, [
       _trip(id: 't2', name: 'Palau Liveaboard', start: inFiveDays),
     ]);
