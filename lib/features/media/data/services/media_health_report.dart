@@ -81,7 +81,11 @@ class MediaHealthRow {
   /// When an `unresolved` cache entry next allows a gallery search.
   final DateTime? cacheNextRetryAt;
 
-  /// `available`, an `UnavailableKind` name, or `error: ...`.
+  /// `available`, an `UnavailableKind` name, `error: ...`, or `notProbed:`
+  /// with a reason for the source types the report reads from stored state
+  /// rather than checking live (see `MediaHealthReporter._skipReason`). For
+  /// those rows `is_orphaned`, `last_verified_at` and the cache block are
+  /// the verdict, written by the service that owns the live check.
   final String resolverVerdict;
 
   /// Null when the store was not probed.

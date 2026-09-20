@@ -156,13 +156,15 @@ class MediaHealthReporter {
 
     // verify(), never resolve(): resolve is the BYTES path, so a library
     // report would read every local file and decode every gallery asset.
-    // Cloud-backed rows skip the registry altogether, because their
-    // resolver reaches mediaStoreResolverProvider, which watches the
-    // runtime, and building that starts a transfer drain and a verify
-    // sweep. The store probe below is their verdict.
+    //
+    // And only for the source types whose verify() is a local read. The
+    // others are reported from stored state, which is not a lesser answer:
+    // each has a dedicated service that owns the live check, and the row
+    // already carries what that service last wrote.
+    final skip = _skipReason(item.sourceType);
     String verdict;
-    if (item.sourceType == MediaSourceType.mediaStore) {
-      verdict = 'mediaStore';
+    if (skip != null) {
+      verdict = skip;
     } else {
       try {
         verdict =
@@ -224,6 +226,38 @@ class MediaHealthReporter {
       queueError: entry?.errorMessage,
     );
   }
+
+  /// Why this source type is reported from stored state instead of a live
+  /// verify, or null when its verify() is a local read and runs.
+  ///
+  /// A report must not change what it observes, and must not phone home.
+  static String? _skipReason(MediaSourceType type) => switch (type) {
+    // The store resolver reaches mediaStoreResolverProvider, which watches
+    // the runtime, and building that starts a transfer drain and a verify
+    // sweep. The store probe is this row's verdict instead.
+    MediaSourceType.mediaStore => 'mediaStore',
+
+    // A gallery verify runs AssetResolutionService, which on a miss writes
+    // the local asset cache: the attempt count goes up and resolvedAt is
+    // reset to now, so the next automatic search moves from 24 hours out to
+    // 3 days and then a week. Producing a report would delay the recovery
+    // of the very photos it is describing. The cache block on this row is
+    // that service's state, reported rather than disturbed.
+    MediaSourceType.platformGallery => 'notProbed: gallery',
+
+    // These verify by fetching a byte range from the host, so a library
+    // report would make one request per row, serially, to third parties.
+    // NetworkScanService owns that check, with a per-host rate limiter and
+    // stored credentials; is_orphaned and last_verified_at below are its
+    // findings.
+    MediaSourceType.networkUrl ||
+    MediaSourceType.manifestEntry => 'notProbed: network',
+
+    // Local reads: a file stat, an account flag, the row's own bytes.
+    MediaSourceType.localFile ||
+    MediaSourceType.serviceConnector ||
+    MediaSourceType.signature => null,
+  };
 
   /// The pipeline stores an original under the object key, a compressed-only
   /// upload under the rendition key and a thumb under the thumb key, so the
