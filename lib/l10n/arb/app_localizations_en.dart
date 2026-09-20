@@ -36786,6 +36786,346 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_filter_sectionDiveComputer => 'Dive Computer';
 
   @override
+  String diveLog_filterChip_speciesCount(Object count) {
+    return '$count species';
+  }
+
+  @override
+  String diveLog_filterChip_siteCount(Object count) {
+    return '$count sites';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityRange(
+    Object max,
+    Object min,
+    Object unit,
+  ) {
+    return 'Visibility $min to $max $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMin(Object unit, Object value) {
+    return 'Visibility over $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMax(Object unit, Object value) {
+    return 'Visibility under $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempRange(
+    Object max,
+    Object min,
+    Object unit,
+  ) {
+    return 'Water $min to $max$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMin(Object unit, Object value) {
+    return 'Water over $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMax(Object unit, Object value) {
+    return 'Water under $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTypeCount(Object count) {
+    return '$count water types';
+  }
+
+  @override
+  String get diveLog_filter_sectionSpecies => 'Marine life';
+
+  @override
+  String diveLog_filter_sectionVisibilityUnit(Object unit) {
+    return 'Visibility ($unit)';
+  }
+
+  @override
+  String diveLog_filter_sectionWaterTempUnit(Object unit) {
+    return 'Water temperature ($unit)';
+  }
+
+  @override
+  String get diveLog_filter_sectionWaterType => 'Water type';
+
+  @override
+  String get diveLog_filter_speciesSearchHint => 'Search species';
+
+  @override
+  String get diveLog_listPage_tooltip_explore => 'Explore with a sentence';
+
+  @override
+  String get explore_chip_favorite => 'Favourite';
+
+  @override
+  String get explore_chip_deco => 'Decompression dive';
+
+  @override
+  String get explore_chip_noDeco => 'No decompression';
+
+  @override
+  String get explore_chip_noBuddy => 'No buddy';
+
+  @override
+  String explore_chip_rating(Object op, Object value) {
+    return 'Rating $op $value';
+  }
+
+  @override
+  String explore_chip_numeric(Object field, Object op, Object value) {
+    return '$field $op $value';
+  }
+
+  @override
+  String explore_chip_between(Object field, Object high, Object low) {
+    return '$field $low to $high';
+  }
+
+  @override
+  String explore_chip_enum(Object field, Object values) {
+    return '$field: $values';
+  }
+
+  @override
+  String explore_chip_enumNot(Object field, Object values) {
+    return '$field not $values';
+  }
+
+  @override
+  String explore_chip_timeRange(Object end, Object start) {
+    return '$start to $end';
+  }
+
+  @override
+  String explore_chip_timeSince(Object start) {
+    return 'Since $start';
+  }
+
+  @override
+  String explore_chip_timeBefore(Object end) {
+    return 'Before $end';
+  }
+
+  @override
+  String explore_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+      zero: 'No dives',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get explore_download_button => 'Download the on-device model';
+
+  @override
+  String get explore_download_running => 'Downloading the model';
+
+  @override
+  String get explore_error_contextExceeded =>
+      'That sentence is too long for the on-device model. Try a shorter one.';
+
+  @override
+  String get explore_error_decodingFailure =>
+      'The model did not produce a usable answer. Try rewording.';
+
+  @override
+  String get explore_error_guardrail => 'The model declined this sentence.';
+
+  @override
+  String get explore_error_modelNotReady =>
+      'The on-device model is not ready yet.';
+
+  @override
+  String get explore_error_quotaExceeded =>
+      'The on-device model is busy. Try again in a moment.';
+
+  @override
+  String get explore_error_refusal => 'The model declined this sentence.';
+
+  @override
+  String get explore_error_schemaMismatch =>
+      'Could not understand this. Update the app if this keeps happening.';
+
+  @override
+  String get explore_error_unknown =>
+      'Something went wrong asking the on-device model.';
+
+  @override
+  String get explore_error_unsupportedLocale =>
+      'The on-device model does not understand this language.';
+
+  @override
+  String get explore_field_airTemp => 'Air temperature';
+
+  @override
+  String get explore_field_avgDepth => 'Average depth';
+
+  @override
+  String get explore_field_bottomTime => 'Bottom time';
+
+  @override
+  String get explore_field_currentStrength => 'Current';
+
+  @override
+  String get explore_field_depth => 'Depth';
+
+  @override
+  String get explore_field_diveMode => 'Dive mode';
+
+  @override
+  String get explore_field_diveNumber => 'Dive number';
+
+  @override
+  String get explore_field_diveType => 'Dive type';
+
+  @override
+  String get explore_field_entryMethod => 'Entry';
+
+  @override
+  String get explore_field_o2 => 'Oxygen';
+
+  @override
+  String get explore_field_rating => 'Rating';
+
+  @override
+  String get explore_field_visibility => 'Visibility';
+
+  @override
+  String get explore_field_waterTemp => 'Water temperature';
+
+  @override
+  String get explore_field_waterType => 'Water type';
+
+  @override
+  String get explore_field_weekday => 'Weekday';
+
+  @override
+  String get explore_handoff_diveList => 'Open in dive list';
+
+  @override
+  String get explore_handoff_statistics => 'Open in Statistics';
+
+  @override
+  String get explore_hint =>
+      'Ask about your dives, for example turtles below 20 m in Bonaire';
+
+  @override
+  String get explore_needsAttention_title => 'Needs attention';
+
+  @override
+  String get explore_op_gt => 'over';
+
+  @override
+  String get explore_op_gte => 'at least';
+
+  @override
+  String get explore_op_lt => 'under';
+
+  @override
+  String get explore_op_lte => 'at most';
+
+  @override
+  String get explore_op_eq => 'of';
+
+  @override
+  String explore_pickCandidate_title(Object text) {
+    return 'Which did you mean by \"$text\"?';
+  }
+
+  @override
+  String get explore_recent_title => 'Recent';
+
+  @override
+  String get explore_results_title => 'Matching dives';
+
+  @override
+  String explore_results_truncated(Object count) {
+    return 'Showing the first $count. Open in the dive list for all of them.';
+  }
+
+  @override
+  String get explore_subjectNotSupported =>
+      'Only dives can be searched for now.';
+
+  @override
+  String get explore_title => 'Explore';
+
+  @override
+  String get explore_understood_title => 'Understood';
+
+  @override
+  String get explore_unplaced_reason_invalid => 'Could not read this value';
+
+  @override
+  String get explore_unplaced_reason_noAxis => 'Not searchable yet';
+
+  @override
+  String get explore_unplaced_reason_outOfRange => 'Value out of range';
+
+  @override
+  String get explore_unplaced_reason_unknownField => 'Unknown field';
+
+  @override
+  String get explore_unplaced_reason_unknownTime => 'Could not read this time';
+
+  @override
+  String get explore_unresolved_noCandidates => 'No match in your logbook';
+
+  @override
+  String get explore_chart_divesOverTime => 'Dives over time';
+
+  @override
+  String get explore_chart_depthTrend => 'Depth';
+
+  @override
+  String get explore_chart_waterTempTrend => 'Water temperature';
+
+  @override
+  String get explore_chart_bottomTimeTrend => 'Bottom time';
+
+  @override
+  String explore_chart_entityCounts(Object kind) {
+    return 'Dives per $kind';
+  }
+
+  @override
+  String get explore_kind_site => 'site';
+
+  @override
+  String get explore_kind_place => 'place';
+
+  @override
+  String get explore_kind_species => 'species';
+
+  @override
+  String get explore_kind_gear => 'gear';
+
+  @override
+  String get explore_kind_buddy => 'buddy';
+
+  @override
+  String get explore_kind_tag => 'tag';
+
+  @override
+  String get explore_kind_center => 'dive center';
+
+  @override
+  String get explore_kind_trip => 'trip';
+
+  @override
+  String get explore_kind_computer => 'computer';
+
+  @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Dive $diveNumber at $siteName';
   }

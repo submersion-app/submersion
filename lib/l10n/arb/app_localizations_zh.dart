@@ -35223,6 +35223,337 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_filter_sectionDiveComputer => '潜水电脑';
 
   @override
+  String diveLog_filterChip_speciesCount(Object count) {
+    return '$count 种物种';
+  }
+
+  @override
+  String diveLog_filterChip_siteCount(Object count) {
+    return '$count 个潜点';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityRange(
+    Object max,
+    Object min,
+    Object unit,
+  ) {
+    return '能见度 $min 至 $max $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMin(Object unit, Object value) {
+    return '能见度超过 $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMax(Object unit, Object value) {
+    return '能见度低于 $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempRange(
+    Object max,
+    Object min,
+    Object unit,
+  ) {
+    return '水温 $min 至 $max$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMin(Object unit, Object value) {
+    return '水温超过 $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMax(Object unit, Object value) {
+    return '水温低于 $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTypeCount(Object count) {
+    return '$count 种水体类型';
+  }
+
+  @override
+  String get diveLog_filter_sectionSpecies => '海洋生物';
+
+  @override
+  String diveLog_filter_sectionVisibilityUnit(Object unit) {
+    return '能见度（$unit）';
+  }
+
+  @override
+  String diveLog_filter_sectionWaterTempUnit(Object unit) {
+    return '水温（$unit）';
+  }
+
+  @override
+  String get diveLog_filter_sectionWaterType => '水体类型';
+
+  @override
+  String get diveLog_filter_speciesSearchHint => '搜索物种';
+
+  @override
+  String get diveLog_listPage_tooltip_explore => '用一句话探索';
+
+  @override
+  String get explore_chip_favorite => '收藏';
+
+  @override
+  String get explore_chip_deco => '减压潜水';
+
+  @override
+  String get explore_chip_noDeco => '无减压';
+
+  @override
+  String get explore_chip_noBuddy => '无潜伴';
+
+  @override
+  String explore_chip_rating(Object op, Object value) {
+    return '评分$op $value';
+  }
+
+  @override
+  String explore_chip_numeric(Object field, Object op, Object value) {
+    return '$field$op $value';
+  }
+
+  @override
+  String explore_chip_between(Object field, Object high, Object low) {
+    return '$field $low 至 $high';
+  }
+
+  @override
+  String explore_chip_enum(Object field, Object values) {
+    return '$field：$values';
+  }
+
+  @override
+  String explore_chip_enumNot(Object field, Object values) {
+    return '$field不是 $values';
+  }
+
+  @override
+  String explore_chip_timeRange(Object end, Object start) {
+    return '$start 至 $end';
+  }
+
+  @override
+  String explore_chip_timeSince(Object start) {
+    return '自 $start 起';
+  }
+
+  @override
+  String explore_chip_timeBefore(Object end) {
+    return '$end 之前';
+  }
+
+  @override
+  String explore_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '1 次潜水',
+      zero: '无潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get explore_download_button => '下载设备端模型';
+
+  @override
+  String get explore_download_running => '正在下载模型';
+
+  @override
+  String get explore_error_contextExceeded => '这句话对设备端模型来说太长了。请尝试更短的句子。';
+
+  @override
+  String get explore_error_decodingFailure => '模型没有给出可用的答案。请尝试换个说法。';
+
+  @override
+  String get explore_error_guardrail => '模型拒绝了这句话。';
+
+  @override
+  String get explore_error_modelNotReady => '设备端模型尚未就绪。';
+
+  @override
+  String get explore_error_quotaExceeded => '设备端模型正忙。请稍后再试。';
+
+  @override
+  String get explore_error_refusal => '模型拒绝了这句话。';
+
+  @override
+  String get explore_error_schemaMismatch => '无法理解此内容。如果持续出现，请更新应用。';
+
+  @override
+  String get explore_error_unknown => '向设备端模型提问时出错。';
+
+  @override
+  String get explore_error_unsupportedLocale => '设备端模型不理解这种语言。';
+
+  @override
+  String get explore_field_airTemp => '气温';
+
+  @override
+  String get explore_field_avgDepth => '平均深度';
+
+  @override
+  String get explore_field_bottomTime => '水底时间';
+
+  @override
+  String get explore_field_currentStrength => '水流';
+
+  @override
+  String get explore_field_depth => '深度';
+
+  @override
+  String get explore_field_diveMode => '潜水模式';
+
+  @override
+  String get explore_field_diveNumber => '潜水编号';
+
+  @override
+  String get explore_field_diveType => '潜水类型';
+
+  @override
+  String get explore_field_entryMethod => '入水方式';
+
+  @override
+  String get explore_field_o2 => '氧气';
+
+  @override
+  String get explore_field_rating => '评分';
+
+  @override
+  String get explore_field_visibility => '能见度';
+
+  @override
+  String get explore_field_waterTemp => '水温';
+
+  @override
+  String get explore_field_waterType => '水体类型';
+
+  @override
+  String get explore_field_weekday => '星期';
+
+  @override
+  String get explore_handoff_diveList => '在潜水列表中打开';
+
+  @override
+  String get explore_handoff_statistics => '在统计中打开';
+
+  @override
+  String get explore_hint => '询问你的潜水，例如博奈尔 20 米以下的海龟';
+
+  @override
+  String get explore_needsAttention_title => '需要注意';
+
+  @override
+  String get explore_op_gt => '超过';
+
+  @override
+  String get explore_op_gte => '至少';
+
+  @override
+  String get explore_op_lt => '低于';
+
+  @override
+  String get explore_op_lte => '至多';
+
+  @override
+  String get explore_op_eq => '为';
+
+  @override
+  String explore_pickCandidate_title(Object text) {
+    return '\"$text\" 指的是哪一个？';
+  }
+
+  @override
+  String get explore_recent_title => '最近';
+
+  @override
+  String get explore_results_title => '匹配的潜水';
+
+  @override
+  String explore_results_truncated(Object count) {
+    return '显示前 $count 条。在潜水列表中查看全部。';
+  }
+
+  @override
+  String get explore_subjectNotSupported => '目前只能搜索潜水记录。';
+
+  @override
+  String get explore_title => '探索';
+
+  @override
+  String get explore_understood_title => '已理解';
+
+  @override
+  String get explore_unplaced_reason_invalid => '无法读取此值';
+
+  @override
+  String get explore_unplaced_reason_noAxis => '尚不可搜索';
+
+  @override
+  String get explore_unplaced_reason_outOfRange => '值超出范围';
+
+  @override
+  String get explore_unplaced_reason_unknownField => '未知字段';
+
+  @override
+  String get explore_unplaced_reason_unknownTime => '无法读取此时间';
+
+  @override
+  String get explore_unresolved_noCandidates => '日志中没有匹配项';
+
+  @override
+  String get explore_chart_divesOverTime => '潜水随时间变化';
+
+  @override
+  String get explore_chart_depthTrend => '深度';
+
+  @override
+  String get explore_chart_waterTempTrend => '水温';
+
+  @override
+  String get explore_chart_bottomTimeTrend => '水底时间';
+
+  @override
+  String explore_chart_entityCounts(Object kind) {
+    return '每个$kind的潜水次数';
+  }
+
+  @override
+  String get explore_kind_site => '潜点';
+
+  @override
+  String get explore_kind_place => '地点';
+
+  @override
+  String get explore_kind_species => '物种';
+
+  @override
+  String get explore_kind_gear => '装备';
+
+  @override
+  String get explore_kind_buddy => '潜伴';
+
+  @override
+  String get explore_kind_tag => '标签';
+
+  @override
+  String get explore_kind_center => '潜水中心';
+
+  @override
+  String get explore_kind_trip => '行程';
+
+  @override
+  String get explore_kind_computer => '电脑';
+
+  @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return '第 $diveNumber 次潜水，地点 $siteName';
   }

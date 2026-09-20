@@ -37310,6 +37310,349 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_filter_sectionDiveComputer => 'Computer subacqueo';
 
   @override
+  String diveLog_filterChip_speciesCount(Object count) {
+    return '$count specie';
+  }
+
+  @override
+  String diveLog_filterChip_siteCount(Object count) {
+    return '$count siti';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityRange(
+    Object max,
+    Object min,
+    Object unit,
+  ) {
+    return 'Visibilità da $min a $max $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMin(Object unit, Object value) {
+    return 'Visibilità oltre $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMax(Object unit, Object value) {
+    return 'Visibilità sotto $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempRange(
+    Object max,
+    Object min,
+    Object unit,
+  ) {
+    return 'Acqua da $min a $max$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMin(Object unit, Object value) {
+    return 'Acqua oltre $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMax(Object unit, Object value) {
+    return 'Acqua sotto $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTypeCount(Object count) {
+    return '$count tipi di acqua';
+  }
+
+  @override
+  String get diveLog_filter_sectionSpecies => 'Vita marina';
+
+  @override
+  String diveLog_filter_sectionVisibilityUnit(Object unit) {
+    return 'Visibilità ($unit)';
+  }
+
+  @override
+  String diveLog_filter_sectionWaterTempUnit(Object unit) {
+    return 'Temperatura dell\'acqua ($unit)';
+  }
+
+  @override
+  String get diveLog_filter_sectionWaterType => 'Tipo di acqua';
+
+  @override
+  String get diveLog_filter_speciesSearchHint => 'Cerca specie';
+
+  @override
+  String get diveLog_listPage_tooltip_explore => 'Esplora con una frase';
+
+  @override
+  String get explore_chip_favorite => 'Preferito';
+
+  @override
+  String get explore_chip_deco => 'Immersione con decompressione';
+
+  @override
+  String get explore_chip_noDeco => 'Senza decompressione';
+
+  @override
+  String get explore_chip_noBuddy => 'Senza compagno';
+
+  @override
+  String explore_chip_rating(Object op, Object value) {
+    return 'Valutazione $op $value';
+  }
+
+  @override
+  String explore_chip_numeric(Object field, Object op, Object value) {
+    return '$field $op $value';
+  }
+
+  @override
+  String explore_chip_between(Object field, Object high, Object low) {
+    return '$field da $low a $high';
+  }
+
+  @override
+  String explore_chip_enum(Object field, Object values) {
+    return '$field: $values';
+  }
+
+  @override
+  String explore_chip_enumNot(Object field, Object values) {
+    return '$field non $values';
+  }
+
+  @override
+  String explore_chip_timeRange(Object end, Object start) {
+    return 'da $start a $end';
+  }
+
+  @override
+  String explore_chip_timeSince(Object start) {
+    return 'Da $start';
+  }
+
+  @override
+  String explore_chip_timeBefore(Object end) {
+    return 'Prima di $end';
+  }
+
+  @override
+  String explore_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '1 immersione',
+      zero: 'Nessuna immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get explore_download_button => 'Scarica il modello sul dispositivo';
+
+  @override
+  String get explore_download_running => 'Download del modello in corso';
+
+  @override
+  String get explore_error_contextExceeded =>
+      'Questa frase è troppo lunga per il modello sul dispositivo. Provane una più breve.';
+
+  @override
+  String get explore_error_decodingFailure =>
+      'Il modello non ha prodotto una risposta utilizzabile. Prova a riformulare.';
+
+  @override
+  String get explore_error_guardrail => 'Il modello ha rifiutato questa frase.';
+
+  @override
+  String get explore_error_modelNotReady =>
+      'Il modello sul dispositivo non è ancora pronto.';
+
+  @override
+  String get explore_error_quotaExceeded =>
+      'Il modello sul dispositivo è occupato. Riprova tra un momento.';
+
+  @override
+  String get explore_error_refusal => 'Il modello ha rifiutato questa frase.';
+
+  @override
+  String get explore_error_schemaMismatch =>
+      'Impossibile comprendere. Aggiorna l\'app se il problema persiste.';
+
+  @override
+  String get explore_error_unknown =>
+      'Qualcosa è andato storto interrogando il modello sul dispositivo.';
+
+  @override
+  String get explore_error_unsupportedLocale =>
+      'Il modello sul dispositivo non comprende questa lingua.';
+
+  @override
+  String get explore_field_airTemp => 'Temperatura dell\'aria';
+
+  @override
+  String get explore_field_avgDepth => 'Profondità media';
+
+  @override
+  String get explore_field_bottomTime => 'Tempo di fondo';
+
+  @override
+  String get explore_field_currentStrength => 'Corrente';
+
+  @override
+  String get explore_field_depth => 'Profondità';
+
+  @override
+  String get explore_field_diveMode => 'Modalità di immersione';
+
+  @override
+  String get explore_field_diveNumber => 'Numero immersione';
+
+  @override
+  String get explore_field_diveType => 'Tipo di immersione';
+
+  @override
+  String get explore_field_entryMethod => 'Ingresso';
+
+  @override
+  String get explore_field_o2 => 'Ossigeno';
+
+  @override
+  String get explore_field_rating => 'Valutazione';
+
+  @override
+  String get explore_field_visibility => 'Visibilità';
+
+  @override
+  String get explore_field_waterTemp => 'Temperatura dell\'acqua';
+
+  @override
+  String get explore_field_waterType => 'Tipo di acqua';
+
+  @override
+  String get explore_field_weekday => 'Giorno della settimana';
+
+  @override
+  String get explore_handoff_diveList => 'Apri nell\'elenco immersioni';
+
+  @override
+  String get explore_handoff_statistics => 'Apri in Statistiche';
+
+  @override
+  String get explore_hint =>
+      'Chiedi delle tue immersioni, ad esempio tartarughe oltre 20 m a Bonaire';
+
+  @override
+  String get explore_needsAttention_title => 'Da verificare';
+
+  @override
+  String get explore_op_gt => 'oltre';
+
+  @override
+  String get explore_op_gte => 'almeno';
+
+  @override
+  String get explore_op_lt => 'sotto';
+
+  @override
+  String get explore_op_lte => 'al massimo';
+
+  @override
+  String get explore_op_eq => 'di';
+
+  @override
+  String explore_pickCandidate_title(Object text) {
+    return 'Cosa intendevi con \"$text\"?';
+  }
+
+  @override
+  String get explore_recent_title => 'Recenti';
+
+  @override
+  String get explore_results_title => 'Immersioni corrispondenti';
+
+  @override
+  String explore_results_truncated(Object count) {
+    return 'Mostrate le prime $count. Apri l\'elenco immersioni per vederle tutte.';
+  }
+
+  @override
+  String get explore_subjectNotSupported =>
+      'Per ora è possibile cercare solo immersioni.';
+
+  @override
+  String get explore_title => 'Esplora';
+
+  @override
+  String get explore_understood_title => 'Compreso';
+
+  @override
+  String get explore_unplaced_reason_invalid =>
+      'Impossibile leggere questo valore';
+
+  @override
+  String get explore_unplaced_reason_noAxis => 'Non ancora ricercabile';
+
+  @override
+  String get explore_unplaced_reason_outOfRange => 'Valore fuori intervallo';
+
+  @override
+  String get explore_unplaced_reason_unknownField => 'Campo sconosciuto';
+
+  @override
+  String get explore_unplaced_reason_unknownTime =>
+      'Impossibile leggere questo periodo';
+
+  @override
+  String get explore_unresolved_noCandidates =>
+      'Nessuna corrispondenza nel tuo logbook';
+
+  @override
+  String get explore_chart_divesOverTime => 'Immersioni nel tempo';
+
+  @override
+  String get explore_chart_depthTrend => 'Profondità';
+
+  @override
+  String get explore_chart_waterTempTrend => 'Temperatura dell\'acqua';
+
+  @override
+  String get explore_chart_bottomTimeTrend => 'Tempo di fondo';
+
+  @override
+  String explore_chart_entityCounts(Object kind) {
+    return 'Immersioni per $kind';
+  }
+
+  @override
+  String get explore_kind_site => 'sito';
+
+  @override
+  String get explore_kind_place => 'luogo';
+
+  @override
+  String get explore_kind_species => 'specie';
+
+  @override
+  String get explore_kind_gear => 'attrezzatura';
+
+  @override
+  String get explore_kind_buddy => 'compagno';
+
+  @override
+  String get explore_kind_tag => 'tag';
+
+  @override
+  String get explore_kind_center => 'diving center';
+
+  @override
+  String get explore_kind_trip => 'viaggio';
+
+  @override
+  String get explore_kind_computer => 'computer';
+
+  @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Immersione $diveNumber presso $siteName';
   }

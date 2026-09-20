@@ -36929,6 +36929,343 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_filter_sectionDiveComputer => 'حاسوب الغوص';
 
   @override
+  String diveLog_filterChip_speciesCount(Object count) {
+    return '$count أنواع';
+  }
+
+  @override
+  String diveLog_filterChip_siteCount(Object count) {
+    return '$count مواقع';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityRange(
+    Object max,
+    Object min,
+    Object unit,
+  ) {
+    return 'الرؤية $min إلى $max $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMin(Object unit, Object value) {
+    return 'الرؤية أكثر من $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMax(Object unit, Object value) {
+    return 'الرؤية أقل من $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempRange(
+    Object max,
+    Object min,
+    Object unit,
+  ) {
+    return 'الماء $min إلى $max$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMin(Object unit, Object value) {
+    return 'الماء أكثر من $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMax(Object unit, Object value) {
+    return 'الماء أقل من $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTypeCount(Object count) {
+    return '$count أنواع مياه';
+  }
+
+  @override
+  String get diveLog_filter_sectionSpecies => 'الحياة البحرية';
+
+  @override
+  String diveLog_filter_sectionVisibilityUnit(Object unit) {
+    return 'الرؤية ($unit)';
+  }
+
+  @override
+  String diveLog_filter_sectionWaterTempUnit(Object unit) {
+    return 'درجة حرارة الماء ($unit)';
+  }
+
+  @override
+  String get diveLog_filter_sectionWaterType => 'نوع المياه';
+
+  @override
+  String get diveLog_filter_speciesSearchHint => 'البحث عن الأنواع';
+
+  @override
+  String get diveLog_listPage_tooltip_explore => 'استكشف بجملة';
+
+  @override
+  String get explore_chip_favorite => 'مفضل';
+
+  @override
+  String get explore_chip_deco => 'غطسة تخفيف ضغط';
+
+  @override
+  String get explore_chip_noDeco => 'بدون تخفيف ضغط';
+
+  @override
+  String get explore_chip_noBuddy => 'بدون رفيق';
+
+  @override
+  String explore_chip_rating(Object op, Object value) {
+    return 'التقييم $op $value';
+  }
+
+  @override
+  String explore_chip_numeric(Object field, Object op, Object value) {
+    return '$field $op $value';
+  }
+
+  @override
+  String explore_chip_between(Object field, Object high, Object low) {
+    return '$field $low إلى $high';
+  }
+
+  @override
+  String explore_chip_enum(Object field, Object values) {
+    return '$field: $values';
+  }
+
+  @override
+  String explore_chip_enumNot(Object field, Object values) {
+    return '$field ليس $values';
+  }
+
+  @override
+  String explore_chip_timeRange(Object end, Object start) {
+    return '$start إلى $end';
+  }
+
+  @override
+  String explore_chip_timeSince(Object start) {
+    return 'منذ $start';
+  }
+
+  @override
+  String explore_chip_timeBefore(Object end) {
+    return 'قبل $end';
+  }
+
+  @override
+  String explore_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسات',
+      one: 'غطسة واحدة',
+      zero: 'لا توجد غطسات',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get explore_download_button => 'تنزيل النموذج على الجهاز';
+
+  @override
+  String get explore_download_running => 'جارٍ تنزيل النموذج';
+
+  @override
+  String get explore_error_contextExceeded =>
+      'هذه الجملة طويلة جدًا على النموذج على الجهاز. جرّب جملة أقصر.';
+
+  @override
+  String get explore_error_decodingFailure =>
+      'لم ينتج النموذج إجابة قابلة للاستخدام. جرّب إعادة الصياغة.';
+
+  @override
+  String get explore_error_guardrail => 'رفض النموذج هذه الجملة.';
+
+  @override
+  String get explore_error_modelNotReady => 'النموذج على الجهاز غير جاهز بعد.';
+
+  @override
+  String get explore_error_quotaExceeded =>
+      'النموذج على الجهاز مشغول. حاول مرة أخرى بعد قليل.';
+
+  @override
+  String get explore_error_refusal => 'رفض النموذج هذه الجملة.';
+
+  @override
+  String get explore_error_schemaMismatch =>
+      'لم يتم فهم ذلك. حدّث التطبيق إذا استمر هذا.';
+
+  @override
+  String get explore_error_unknown => 'حدث خطأ أثناء سؤال النموذج على الجهاز.';
+
+  @override
+  String get explore_error_unsupportedLocale =>
+      'النموذج على الجهاز لا يفهم هذه اللغة.';
+
+  @override
+  String get explore_field_airTemp => 'درجة حرارة الهواء';
+
+  @override
+  String get explore_field_avgDepth => 'متوسط العمق';
+
+  @override
+  String get explore_field_bottomTime => 'وقت القاع';
+
+  @override
+  String get explore_field_currentStrength => 'التيار';
+
+  @override
+  String get explore_field_depth => 'العمق';
+
+  @override
+  String get explore_field_diveMode => 'وضع الغطس';
+
+  @override
+  String get explore_field_diveNumber => 'رقم الغطسة';
+
+  @override
+  String get explore_field_diveType => 'نوع الغطسة';
+
+  @override
+  String get explore_field_entryMethod => 'الدخول';
+
+  @override
+  String get explore_field_o2 => 'الأكسجين';
+
+  @override
+  String get explore_field_rating => 'التقييم';
+
+  @override
+  String get explore_field_visibility => 'الرؤية';
+
+  @override
+  String get explore_field_waterTemp => 'درجة حرارة الماء';
+
+  @override
+  String get explore_field_waterType => 'نوع المياه';
+
+  @override
+  String get explore_field_weekday => 'يوم الأسبوع';
+
+  @override
+  String get explore_handoff_diveList => 'فتح في قائمة الغطسات';
+
+  @override
+  String get explore_handoff_statistics => 'فتح في الإحصائيات';
+
+  @override
+  String get explore_hint =>
+      'اسأل عن غطساتك، مثلاً سلاحف أعمق من 20 م في بونير';
+
+  @override
+  String get explore_needsAttention_title => 'يحتاج إلى انتباه';
+
+  @override
+  String get explore_op_gt => 'أكثر من';
+
+  @override
+  String get explore_op_gte => 'على الأقل';
+
+  @override
+  String get explore_op_lt => 'أقل من';
+
+  @override
+  String get explore_op_lte => 'على الأكثر';
+
+  @override
+  String get explore_op_eq => 'يساوي';
+
+  @override
+  String explore_pickCandidate_title(Object text) {
+    return 'ماذا قصدت بـ \"$text\"؟';
+  }
+
+  @override
+  String get explore_recent_title => 'الأخيرة';
+
+  @override
+  String get explore_results_title => 'الغطسات المطابقة';
+
+  @override
+  String explore_results_truncated(Object count) {
+    return 'عرض أول $count. افتح قائمة الغطسات لرؤيتها كلها.';
+  }
+
+  @override
+  String get explore_subjectNotSupported => 'يمكن البحث في الغطسات فقط حاليًا.';
+
+  @override
+  String get explore_title => 'استكشاف';
+
+  @override
+  String get explore_understood_title => 'تم فهمه';
+
+  @override
+  String get explore_unplaced_reason_invalid => 'تعذّرت قراءة هذه القيمة';
+
+  @override
+  String get explore_unplaced_reason_noAxis => 'غير قابل للبحث بعد';
+
+  @override
+  String get explore_unplaced_reason_outOfRange => 'القيمة خارج النطاق';
+
+  @override
+  String get explore_unplaced_reason_unknownField => 'حقل غير معروف';
+
+  @override
+  String get explore_unplaced_reason_unknownTime => 'تعذّرت قراءة هذا الوقت';
+
+  @override
+  String get explore_unresolved_noCandidates => 'لا توجد مطابقة في سجلك';
+
+  @override
+  String get explore_chart_divesOverTime => 'الغطسات عبر الزمن';
+
+  @override
+  String get explore_chart_depthTrend => 'العمق';
+
+  @override
+  String get explore_chart_waterTempTrend => 'درجة حرارة الماء';
+
+  @override
+  String get explore_chart_bottomTimeTrend => 'وقت القاع';
+
+  @override
+  String explore_chart_entityCounts(Object kind) {
+    return 'الغطسات لكل $kind';
+  }
+
+  @override
+  String get explore_kind_site => 'موقع';
+
+  @override
+  String get explore_kind_place => 'مكان';
+
+  @override
+  String get explore_kind_species => 'نوع';
+
+  @override
+  String get explore_kind_gear => 'معدات';
+
+  @override
+  String get explore_kind_buddy => 'رفيق';
+
+  @override
+  String get explore_kind_tag => 'علامة';
+
+  @override
+  String get explore_kind_center => 'مركز غطس';
+
+  @override
+  String get explore_kind_trip => 'رحلة';
+
+  @override
+  String get explore_kind_computer => 'حاسوب';
+
+  @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'الغوصة $diveNumber في $siteName';
   }
