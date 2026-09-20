@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -88,7 +89,7 @@ class TripSummaryWidget extends ConsumerWidget {
     }
 
     // Find upcoming trips
-    final now = DateTime.now();
+    final now = clock.now();
     final upcomingTrips =
         trips.where((t) => t.trip.startDate.isAfter(now)).toList()
           ..sort((a, b) => a.trip.startDate.compareTo(b.trip.startDate));

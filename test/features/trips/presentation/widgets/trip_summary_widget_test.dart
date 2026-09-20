@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -125,19 +126,25 @@ void main() {
     // the rest of today, so a trip five calendar days out read "In 4 days" at
     // any hour past midnight; a spring-forward inside the window took another.
     //
-    // The clock is read here rather than in the file's preamble, which runs
-    // before the tests above it: the widget reads its own clock while it
-    // builds, so the further apart the two readings are, the wider the window
-    // in which local midnight can pass between them and make the trip four
-    // days out instead of five. Reading it immediately before the pump leaves
-    // only the frame itself.
-    final today = DateTime.now();
-    final inFiveDays = DateTime(today.year, today.month, today.day + 5);
+    // Both the widget's upcoming filter and Trip.daysUntilStart read the
+    // clock while the frame builds, so a real clock leaves a window in which
+    // local midnight passes between the test's reading and the widget's and
+    // makes the trip four days out. Pinning the clock removes the window and
+    // lets the range span a real transition: 2026-10-28 to 2026-11-02 crosses
+    // the fall-back on 2026-11-01.
+    //
+    // Midday, not midnight: a fall-back adds an hour to the range, so from
+    // 00:30 the elapsed total is exactly 120 hours and truncating it also
+    // gives 5. The assertion would then hold against the very implementation
+    // it exists to reject, in the one zone that crosses the transition. From
+    // midday the elapsed total is 108 or 109 hours, which truncates to 4
+    // whatever the zone does.
+    await withClock(Clock.fixed(DateTime(2026, 10, 28, 12)), () async {
+      await _pump(tester, DateFormatPreference.mmmDYYYY, [
+        _trip(id: 't2', name: 'Palau Liveaboard', start: DateTime(2026, 11, 2)),
+      ]);
 
-    await _pump(tester, DateFormatPreference.mmmDYYYY, [
-      _trip(id: 't2', name: 'Palau Liveaboard', start: inFiveDays),
-    ]);
-
-    expect(find.textContaining('In 5 days'), findsOneWidget);
+      expect(find.textContaining('In 5 days'), findsOneWidget);
+    });
   });
 }
