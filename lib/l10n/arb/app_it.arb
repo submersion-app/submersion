@@ -7531,24 +7531,24 @@
   "settings_appearance_bathymetryRefresh_resultUpToDate": "Tutti i dati sono aggiornati",
   "settings_appearance_bathymetryRefresh_resultFailed": "Impossibile controllare tutti i dati; i valori esistenti sono stati mantenuti",
   "settings_appearance_bathymetryRefresh_resultNothingCached": "Nessun dato di profondità dei laghi ancora memorizzato",
-  "maps3d_appBar_title": "3D Maps",
-  "maps3d_section_all": "All Providers",
+  "maps3d_appBar_title": "Mappe 3D",
+  "maps3d_section_all": "Tutti i fornitori",
   "maps3d_section_swissBathy": "swissBATHY3D",
-  "maps3d_swissBathy_delete": "Delete data",
-  "maps3d_swissBathy_delete_subtitle": "Removes cached swissBATHY3D depth tiles and lake grids",
-  "maps3d_swissBathy_delete_confirmTitle": "Delete swissBATHY3D data?",
-  "maps3d_swissBathy_delete_confirmMessage": "Cached depth data for Swiss lakes will be removed and reloaded the next time a dive site's 3D view is opened.",
-  "maps3d_swissBathy_delete_done": "swissBATHY3D data deleted",
-  "maps3d_section_other": "Other providers",
-  "maps3d_other_reset": "Reset remaining bathymetry data",
-  "maps3d_other_reset_subtitle": "Removes cached data from EMODnet, NOAA DEM, GMRT and ETOPO",
-  "maps3d_other_reset_confirmTitle": "Reset remaining bathymetry data?",
-  "maps3d_other_reset_confirmMessage": "Cached data from every provider other than swissBATHY3D will be removed and reloaded the next time a dive site's 3D view is opened.",
-  "maps3d_other_reset_done": "Remaining bathymetry data reset",
-  "maps3d_reload": "Reload map data",
-  "maps3d_reload_subtitle": "Deletes all cached bathymetry data and downloads it again for every dive site",
-  "maps3d_reload_confirmTitle": "Reload map data for every dive site?",
-  "maps3d_reload_confirm_siteCount": "{count, plural, =0{No dive sites have a location.} =1{1 dive site will be reloaded.} other{{count} dive sites will be reloaded.}}",
+  "maps3d_swissBathy_delete": "Elimina dati",
+  "maps3d_swissBathy_delete_subtitle": "Rimuove i tasselli di profondità e le griglie dei laghi swissBATHY3D dalla cache",
+  "maps3d_swissBathy_delete_confirmTitle": "Eliminare i dati swissBATHY3D?",
+  "maps3d_swissBathy_delete_confirmMessage": "I dati di profondità in cache dei laghi svizzeri verranno rimossi e ricaricati alla prossima apertura della vista 3D di un sito di immersione.",
+  "maps3d_swissBathy_delete_done": "Dati swissBATHY3D eliminati",
+  "maps3d_section_other": "Altri fornitori",
+  "maps3d_other_reset": "Ripristina i dati batimetrici rimanenti",
+  "maps3d_other_reset_subtitle": "Rimuove dalla cache i dati di EMODnet, NOAA DEM, GMRT ed ETOPO",
+  "maps3d_other_reset_confirmTitle": "Ripristinare i dati batimetrici rimanenti?",
+  "maps3d_other_reset_confirmMessage": "I dati in cache di tutti i fornitori diversi da swissBATHY3D verranno rimossi e ricaricati alla prossima apertura della vista 3D di un sito di immersione.",
+  "maps3d_other_reset_done": "Dati batimetrici rimanenti ripristinati",
+  "maps3d_reload": "Ricarica i dati delle mappe",
+  "maps3d_reload_subtitle": "Elimina tutti i dati batimetrici in cache e li scarica di nuovo per ogni sito di immersione",
+  "maps3d_reload_confirmTitle": "Ricaricare i dati delle mappe per tutti i siti di immersione?",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{Nessun sito di immersione ha una posizione.} =1{Verrà ricaricato 1 sito di immersione.} other{Verranno ricaricati {count} siti di immersione.}}",
   "@maps3d_reload_confirm_siteCount": {
     "placeholders": {
       "count": {
@@ -7556,7 +7556,7 @@
       }
     }
   },
-  "maps3d_reload_confirm_estimatedSize": "Estimated download: approx. {size}",
+  "maps3d_reload_confirm_estimatedSize": "Download stimato: circa {size}",
   "@maps3d_reload_confirm_estimatedSize": {
     "placeholders": {
       "size": {
@@ -7564,10 +7564,10 @@
       }
     }
   },
-  "maps3d_reload_confirm_duration": "This can take several minutes.",
-  "maps3d_reload_confirm_wifiHint": "A lot of data will be downloaded — a fast Wi-Fi connection is recommended.",
-  "maps3d_reload_start": "Reload",
-  "maps3d_reload_progress": "{completed} of {total} dive sites",
+  "maps3d_reload_confirm_duration": "L'operazione può richiedere diversi minuti.",
+  "maps3d_reload_confirm_wifiHint": "Verranno scaricati molti dati; si consiglia una connessione Wi-Fi veloce.",
+  "maps3d_reload_start": "Ricarica",
+  "maps3d_reload_progress": "{completed} di {total} siti di immersione",
   "@maps3d_reload_progress": {
     "placeholders": {
       "completed": {
@@ -7578,12 +7578,12 @@
       }
     }
   },
-  "maps3d_reload_cancel": "Cancel",
-  "maps3d_reload_done": "Map data reloaded for every dive site",
-  "maps3d_reload_cancelled": "Reload cancelled",
-  "maps3d_reload_failed": "Reload failed; some dive sites may not have been reloaded",
-  "maps3d_busy_notice": "Another 3D Maps action is running. Please wait until it finishes.",
-  "maps3d_reload_remainingSeconds": "about {count, plural, =1{1 second} other{{count} seconds}} remaining",
+  "maps3d_reload_cancel": "Annulla",
+  "maps3d_reload_done": "Dati delle mappe ricaricati per tutti i siti di immersione",
+  "maps3d_reload_cancelled": "Ricarica annullata",
+  "maps3d_reload_failed": "Ricarica non riuscita; alcuni siti di immersione potrebbero non essere stati ricaricati",
+  "maps3d_busy_notice": "È in corso un'altra azione Mappe 3D. Attendi il completamento.",
+  "maps3d_reload_remainingSeconds": "{count, plural, =1{circa 1 secondo rimanente} other{circa {count} secondi rimanenti}}",
   "@maps3d_reload_remainingSeconds": {
     "placeholders": {
       "count": {
@@ -7591,7 +7591,7 @@
       }
     }
   },
-  "maps3d_reload_remainingMinutes": "about {count, plural, =1{1 minute} other{{count} minutes}} remaining",
+  "maps3d_reload_remainingMinutes": "{count, plural, =1{circa 1 minuto rimanente} other{circa {count} minuti rimanenti}}",
   "@maps3d_reload_remainingMinutes": {
     "placeholders": {
       "count": {
@@ -7599,7 +7599,7 @@
       }
     }
   },
-  "maps3d_reload_warming": "Preparing: lake {index} of {total} ({name})",
+  "maps3d_reload_warming": "Preparazione: lago {index} di {total} ({name})",
   "@maps3d_reload_warming": {
     "placeholders": {
       "index": {
@@ -7613,7 +7613,7 @@
       }
     }
   },
-  "maps3d_reload_elapsedSeconds": "running for {count, plural, =1{1 second} other{{count} seconds}}",
+  "maps3d_reload_elapsedSeconds": "{count, plural, =1{in esecuzione da 1 secondo} other{in esecuzione da {count} secondi}}",
   "@maps3d_reload_elapsedSeconds": {
     "placeholders": {
       "count": {
@@ -7621,7 +7621,7 @@
       }
     }
   },
-  "maps3d_reload_elapsedMinutes": "running for {count, plural, =1{1 minute} other{{count} minutes}}",
+  "maps3d_reload_elapsedMinutes": "{count, plural, =1{in esecuzione da 1 minuto} other{in esecuzione da {count} minuti}}",
   "@maps3d_reload_elapsedMinutes": {
     "placeholders": {
       "count": {

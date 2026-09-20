@@ -7531,24 +7531,24 @@
   "settings_appearance_bathymetryRefresh_resultUpToDate": "כל הנתונים מעודכנים",
   "settings_appearance_bathymetryRefresh_resultFailed": "לא ניתן היה לבדוק את כל הנתונים; הערכים הקיימים נשמרו",
   "settings_appearance_bathymetryRefresh_resultNothingCached": "עדיין לא נשמרו נתוני עומק אגמים",
-  "maps3d_appBar_title": "3D Maps",
-  "maps3d_section_all": "All Providers",
+  "maps3d_appBar_title": "מפות תלת-ממד",
+  "maps3d_section_all": "כל הספקים",
   "maps3d_section_swissBathy": "swissBATHY3D",
-  "maps3d_swissBathy_delete": "Delete data",
-  "maps3d_swissBathy_delete_subtitle": "Removes cached swissBATHY3D depth tiles and lake grids",
-  "maps3d_swissBathy_delete_confirmTitle": "Delete swissBATHY3D data?",
-  "maps3d_swissBathy_delete_confirmMessage": "Cached depth data for Swiss lakes will be removed and reloaded the next time a dive site's 3D view is opened.",
-  "maps3d_swissBathy_delete_done": "swissBATHY3D data deleted",
-  "maps3d_section_other": "Other providers",
-  "maps3d_other_reset": "Reset remaining bathymetry data",
-  "maps3d_other_reset_subtitle": "Removes cached data from EMODnet, NOAA DEM, GMRT and ETOPO",
-  "maps3d_other_reset_confirmTitle": "Reset remaining bathymetry data?",
-  "maps3d_other_reset_confirmMessage": "Cached data from every provider other than swissBATHY3D will be removed and reloaded the next time a dive site's 3D view is opened.",
-  "maps3d_other_reset_done": "Remaining bathymetry data reset",
-  "maps3d_reload": "Reload map data",
-  "maps3d_reload_subtitle": "Deletes all cached bathymetry data and downloads it again for every dive site",
-  "maps3d_reload_confirmTitle": "Reload map data for every dive site?",
-  "maps3d_reload_confirm_siteCount": "{count, plural, =0{No dive sites have a location.} =1{1 dive site will be reloaded.} other{{count} dive sites will be reloaded.}}",
+  "maps3d_swissBathy_delete": "מחיקת נתונים",
+  "maps3d_swissBathy_delete_subtitle": "מסיר אריחי עומק ורשתות אגמים של swissBATHY3D מהמטמון",
+  "maps3d_swissBathy_delete_confirmTitle": "למחוק את נתוני swissBATHY3D?",
+  "maps3d_swissBathy_delete_confirmMessage": "נתוני העומק השמורים במטמון עבור אגמים בשווייץ יימחקו וייטענו מחדש בפעם הבאה שתיפתח תצוגת התלת-ממד של אתר צלילה.",
+  "maps3d_swissBathy_delete_done": "נתוני swissBATHY3D נמחקו",
+  "maps3d_section_other": "ספקים אחרים",
+  "maps3d_other_reset": "איפוס נתוני הבתימטריה הנותרים",
+  "maps3d_other_reset_subtitle": "מסיר נתונים שמורים במטמון מ-EMODnet, NOAA DEM, GMRT ו-ETOPO",
+  "maps3d_other_reset_confirmTitle": "לאפס את נתוני הבתימטריה הנותרים?",
+  "maps3d_other_reset_confirmMessage": "נתונים שמורים במטמון מכל הספקים מלבד swissBATHY3D יימחקו וייטענו מחדש בפעם הבאה שתיפתח תצוגת התלת-ממד של אתר צלילה.",
+  "maps3d_other_reset_done": "נתוני הבתימטריה הנותרים אופסו",
+  "maps3d_reload": "טעינת נתוני המפות מחדש",
+  "maps3d_reload_subtitle": "מוחק את כל נתוני הבתימטריה השמורים במטמון ומוריד אותם מחדש עבור כל אתר צלילה",
+  "maps3d_reload_confirmTitle": "לטעון מחדש את נתוני המפות עבור כל אתרי הצלילה?",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{לאף אתר צלילה אין מיקום.} =1{אתר צלילה אחד ייטען מחדש.} other{{count} אתרי צלילה ייטענו מחדש.}}",
   "@maps3d_reload_confirm_siteCount": {
     "placeholders": {
       "count": {
@@ -7556,7 +7556,7 @@
       }
     }
   },
-  "maps3d_reload_confirm_estimatedSize": "Estimated download: approx. {size}",
+  "maps3d_reload_confirm_estimatedSize": "הורדה משוערת: כ-{size}",
   "@maps3d_reload_confirm_estimatedSize": {
     "placeholders": {
       "size": {
@@ -7564,10 +7564,10 @@
       }
     }
   },
-  "maps3d_reload_confirm_duration": "This can take several minutes.",
-  "maps3d_reload_confirm_wifiHint": "A lot of data will be downloaded — a fast Wi-Fi connection is recommended.",
-  "maps3d_reload_start": "Reload",
-  "maps3d_reload_progress": "{completed} of {total} dive sites",
+  "maps3d_reload_confirm_duration": "הפעולה עשויה להימשך כמה דקות.",
+  "maps3d_reload_confirm_wifiHint": "יורדו נתונים רבים, ולכן מומלץ חיבור Wi-Fi מהיר.",
+  "maps3d_reload_start": "טעינה מחדש",
+  "maps3d_reload_progress": "{completed} מתוך {total} אתרי צלילה",
   "@maps3d_reload_progress": {
     "placeholders": {
       "completed": {
@@ -7578,12 +7578,12 @@
       }
     }
   },
-  "maps3d_reload_cancel": "Cancel",
-  "maps3d_reload_done": "Map data reloaded for every dive site",
-  "maps3d_reload_cancelled": "Reload cancelled",
-  "maps3d_reload_failed": "Reload failed; some dive sites may not have been reloaded",
-  "maps3d_busy_notice": "Another 3D Maps action is running. Please wait until it finishes.",
-  "maps3d_reload_remainingSeconds": "about {count, plural, =1{1 second} other{{count} seconds}} remaining",
+  "maps3d_reload_cancel": "ביטול",
+  "maps3d_reload_done": "נתוני המפות נטענו מחדש עבור כל אתרי הצלילה",
+  "maps3d_reload_cancelled": "הטעינה מחדש בוטלה",
+  "maps3d_reload_failed": "הטעינה מחדש נכשלה; ייתכן שחלק מאתרי הצלילה לא נטענו מחדש",
+  "maps3d_busy_notice": "פעולה אחרת של מפות תלת-ממד פועלת כעת. יש להמתין עד לסיומה.",
+  "maps3d_reload_remainingSeconds": "{count, plural, =1{נותרה כשנייה אחת} other{נותרו כ-{count} שניות}}",
   "@maps3d_reload_remainingSeconds": {
     "placeholders": {
       "count": {
@@ -7591,7 +7591,7 @@
       }
     }
   },
-  "maps3d_reload_remainingMinutes": "about {count, plural, =1{1 minute} other{{count} minutes}} remaining",
+  "maps3d_reload_remainingMinutes": "{count, plural, =1{נותרה כדקה אחת} other{נותרו כ-{count} דקות}}",
   "@maps3d_reload_remainingMinutes": {
     "placeholders": {
       "count": {
@@ -7599,7 +7599,7 @@
       }
     }
   },
-  "maps3d_reload_warming": "Preparing: lake {index} of {total} ({name})",
+  "maps3d_reload_warming": "בהכנה: אגם {index} מתוך {total} ({name})",
   "@maps3d_reload_warming": {
     "placeholders": {
       "index": {
@@ -7613,7 +7613,7 @@
       }
     }
   },
-  "maps3d_reload_elapsedSeconds": "running for {count, plural, =1{1 second} other{{count} seconds}}",
+  "maps3d_reload_elapsedSeconds": "{count, plural, =1{פועל כבר שנייה אחת} other{פועל כבר {count} שניות}}",
   "@maps3d_reload_elapsedSeconds": {
     "placeholders": {
       "count": {
@@ -7621,7 +7621,7 @@
       }
     }
   },
-  "maps3d_reload_elapsedMinutes": "running for {count, plural, =1{1 minute} other{{count} minutes}}",
+  "maps3d_reload_elapsedMinutes": "{count, plural, =1{פועל כבר דקה אחת} other{פועל כבר {count} דקות}}",
   "@maps3d_reload_elapsedMinutes": {
     "placeholders": {
       "count": {
