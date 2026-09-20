@@ -53,9 +53,10 @@ void main() {
 
       // Should find SiteDetailPage (or its content)
       expect(find.byType(SiteDetailPage), findsOneWidget);
-      // The embedded header names the site. The Basic Info card that used to
-      // repeat the name below it is gone, so exactly one copy is on screen.
-      expect(find.text('Test Site'), findsOneWidget);
+      // Twice: the embedded title bar names the site, and the pinned header
+      // at the top of the body opens on it in the page headline style, the
+      // way Dive Center Details does.
+      expect(find.text('Test Site'), findsNWidgets(2));
     });
 
     testWidgets(

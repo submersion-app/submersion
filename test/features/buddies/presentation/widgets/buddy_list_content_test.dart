@@ -67,6 +67,7 @@ BuddyWithDiveCount _makeBuddy({
   CertificationLevel? certLevel,
   CertificationAgency? certAgency,
   int diveCount = 0,
+  bool isFavorite = false,
 }) {
   return BuddyWithDiveCount(
     buddy: Buddy(
@@ -75,6 +76,7 @@ BuddyWithDiveCount _makeBuddy({
       email: email,
       certificationLevel: certLevel,
       certificationAgency: certAgency,
+      isFavorite: isFavorite,
       createdAt: _now,
       updatedAt: _now,
     ),
@@ -662,6 +664,62 @@ void main() {
 
       expect(find.byType(CompactBuddyListTile), findsOneWidget);
       expect(find.byType(BuddyListTile), findsNothing);
+    });
+  });
+
+  group('favorites pinned to top (issue #1336)', () {
+    testWidgets(
+      'a favorite sorts before non-favorites regardless of the alphabet',
+      (tester) async {
+        final overrides = await _buildPhoneOverrides(
+          buddies: [
+            _makeBuddy(id: 'b1', name: 'Aaa Buddy'),
+            _makeBuddy(id: 'b2', name: 'Bbb Buddy'),
+            _makeBuddy(id: 'b3', name: 'Zzz Favorite', isFavorite: true),
+          ],
+          viewMode: ListViewMode.dense,
+        );
+        await tester.pumpWidget(
+          testApp(overrides: overrides, child: const BuddyListContent()),
+        );
+        await tester.pumpAndSettle();
+
+        final order = tester
+            .widgetList<DenseBuddyListTile>(find.byType(DenseBuddyListTile))
+            .map((w) => w.buddy.name)
+            .toList();
+
+        expect(order, ['Zzz Favorite', 'Aaa Buddy', 'Bbb Buddy']);
+      },
+    );
+
+    testWidgets('does not pin favorites in table mode', (tester) async {
+      final overrides = await _buildOverrides(
+        buddies: [
+          _makeBuddy(id: 'b1', name: 'Aaa Buddy'),
+          _makeBuddy(id: 'b2', name: 'Bbb Buddy'),
+          _makeBuddy(id: 'b3', name: 'Zzz Favorite', isFavorite: true),
+        ],
+      );
+      await tester.pumpWidget(
+        testApp(overrides: overrides, child: const BuddyListContent()),
+      );
+      await tester.pumpAndSettle();
+
+      // Table mode is untouched by the favorites-pinning change (issue
+      // #1336): rows stay in the order the provider returned them, with the
+      // favorite ("Zzz Favorite") last rather than pinned to the top.
+      expect(
+        tester.getTopLeft(find.text('Aaa Buddy')).dy <
+            tester.getTopLeft(find.text('Bbb Buddy')).dy,
+        isTrue,
+      );
+      expect(
+        tester.getTopLeft(find.text('Bbb Buddy')).dy <
+            tester.getTopLeft(find.text('Zzz Favorite')).dy,
+        isTrue,
+        reason: 'the favorite must not be pinned to the top in table mode',
+      );
     });
   });
 }

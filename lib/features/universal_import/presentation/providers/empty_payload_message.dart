@@ -1,3 +1,4 @@
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -8,18 +9,23 @@ const _maxListedRows = 5;
 ///
 /// A CSV whose every row was skipped for an unreadable date, with no error
 /// recorded, gets a summary: how many rows, which ones, and where to look (the
-/// date mapping on the step the user is on). The raw per-row warnings are
-/// English transformer strings, and whichever came first used to be the whole
-/// message.
+/// date column, named the way [mapsColumns] decides). The raw per-row
+/// warnings are English transformer strings, and whichever came first used to
+/// be the whole message.
 ///
 /// Anything else leads with a localized sentence and keeps the parser's own
 /// warning as detail, since that text is what tells a user their file is
 /// truncated or malformed. An error is preferred over an earlier note, and a
 /// diagnostic is never shown.
+///
+/// [mapsColumns] is [ImportFormat.mapsColumns] for the file being read: a
+/// self-describing format has no Map Fields step, so its hint names the
+/// file's own date header rather than a mapping the diver cannot reach.
 String emptyPayloadMessage(
   AppLocalizations l10n,
-  List<ImportWarning> warnings,
-) {
+  List<ImportWarning> warnings, {
+  required bool mapsColumns,
+}) {
   // An error is what sank the file, so it wins over the row summary.
   final hasError = warnings.any(
     (w) => w.severity == ImportWarningSeverity.error,
@@ -34,7 +40,9 @@ String emptyPayloadMessage(
     return [
       l10n.universalImport_error_unreadableDatesHeadline(unreadable.length),
       if (rows.isNotEmpty) _rowsLine(l10n, rows),
-      l10n.universalImport_error_unreadableDatesHint,
+      mapsColumns
+          ? l10n.universalImport_error_unreadableDatesHint
+          : l10n.universalImport_error_unreadableDatesHintNoMapping,
     ].join('\n');
   }
 

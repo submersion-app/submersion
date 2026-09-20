@@ -61,6 +61,22 @@ void main() {
     expect(_table('Name\nA\n\n,\nB\n').rows.length, 2);
   });
 
+  test('an empty file is an empty table, not a crash', () {
+    // A truncated download or a file whose rows the diver deleted.
+    final t = _table('');
+    expect(t.rows, isEmpty);
+    expect(t.hasColumn('Date'), isFalse);
+  });
+
+  test('a row keeps the number the spreadsheet gives it', () {
+    // Clearing a row's cells leaves the row in the file, and dropping it
+    // must not renumber the rows below: a warning naming row 3 has to mean
+    // the row the diver sees as 3 (#2152).
+    final t = _table('Name\nA\n\n,\nB\n');
+    expect(t.sourceRowOf(0), 2);
+    expect(t.sourceRowOf(1), 5);
+  });
+
   test('text cells drop the export\'s formula guard, numbers stay intact', () {
     final t = _table("Name,Notes,Water Temp (°C)\n'=cmd,'-deep,-2\n");
     final row = t.rows.single;

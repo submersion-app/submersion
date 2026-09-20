@@ -559,6 +559,58 @@ void main() {
       expect(find.text(expected), findsOneWidget);
       expect(expected, contains('ZZZ'));
     });
+
+    // Retiring and reactivating go through the Edit page's Status field;
+    // the overflow menu only offers Delete, whatever the item's state.
+    for (final embedded in [false, true]) {
+      for (final isActive in [true, false]) {
+        final state = isActive ? 'an active' : 'a retired';
+        final layout = embedded ? 'embedded' : 'standalone';
+        testWidgets(
+          'the $layout overflow menu of $state item offers Delete only',
+          (tester) async {
+            final equipment = EquipmentItem(
+              id: 'equip-menu-$layout-$isActive',
+              name: 'Backup light',
+              type: EquipmentType.light,
+              isActive: isActive,
+              status: isActive
+                  ? EquipmentStatus.active
+                  : EquipmentStatus.retired,
+            );
+
+            await pumpWithEquipment(tester, equipment, embedded: embedded);
+
+            final menuButton = find.byType(PopupMenuButton<String>);
+            await tester.tap(
+              embedded
+                  ? menuButton.first
+                  : find.descendant(
+                      of: find.byType(AppBar),
+                      matching: menuButton,
+                    ),
+            );
+            await tester.pumpAndSettle();
+
+            expect(find.text('Delete'), findsOneWidget);
+            expect(find.text('Retire Equipment'), findsNothing);
+            expect(find.text('Reactivate'), findsNothing);
+            expect(find.byType(PopupMenuItem<String>), findsOneWidget);
+
+            // Selecting Delete still reaches the handler: it asks first,
+            // and cancelling leaves the item in place.
+            await tester.tap(find.text('Delete'));
+            await tester.pumpAndSettle();
+            expect(find.text('Delete Equipment'), findsOneWidget);
+
+            await tester.tap(find.text('Cancel'));
+            await tester.pumpAndSettle();
+            expect(find.text('Delete Equipment'), findsNothing);
+            expect(find.byType(EquipmentDetailPage), findsOneWidget);
+          },
+        );
+      }
+    }
   });
 
   group('ServiceRecordDialog date pickers (#765)', () {

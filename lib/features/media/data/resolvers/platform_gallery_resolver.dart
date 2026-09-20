@@ -1,9 +1,8 @@
 import 'dart:typed_data';
 import 'dart:ui' show Size;
 
-import 'package:photo_manager/photo_manager.dart';
-
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
+import 'package:submersion/features/media/data/services/gallery_asset_reader.dart';
 import 'package:submersion/features/media/data/services/gallery_thumbnail_cache.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
@@ -46,13 +45,20 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     kind: UnavailableKind.fromOtherDevice,
   );
 
+  ///
+  /// [assetReader] performs the byte and metadata reads once an id is
+  /// resolved. Production uses photo_manager; tests inject a fake library.
   PlatformGalleryResolver({
     required AssetResolutionService resolutionService,
     GalleryThumbnailCache? thumbnailCache,
     bool hasPhotoLibrary = true,
+    GalleryAssetReader? assetReader,
   }) : _resolutionService = resolutionService,
        _thumbnailCache = thumbnailCache ?? GalleryThumbnailCache(),
-       _hasPhotoLibrary = hasPhotoLibrary;
+       _hasPhotoLibrary = hasPhotoLibrary,
+       _reader = assetReader ?? const PhotoManagerAssetReader();
+
+  final GalleryAssetReader _reader;
 
   @override
   MediaSourceType get sourceType => MediaSourceType.platformGallery;
@@ -78,19 +84,11 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     if (resolvedId == null) {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
-    // photo_manager AssetEntity APIs require a real device gallery; the
-    // remaining branches are exercised on iOS/Android hosts only.
-    // coverage:ignore-start
-    final asset = await AssetEntity.fromId(resolvedId);
-    if (asset == null) {
-      return const UnavailableData(kind: UnavailableKind.notFound);
-    }
-    final bytes = await asset.originBytes;
+    final bytes = await _reader.originBytes(resolvedId);
     if (bytes == null) {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
     return BytesData(bytes: bytes, servedFrom: ServedFrom.platformGallery);
-    // coverage:ignore-end
   }
 
   @override
@@ -155,14 +153,8 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     return _thumbBytes(retryId, width, height);
   }
 
-  // coverage:ignore-start
-  // photo_manager AssetEntity APIs require a real device gallery.
-  Future<Uint8List?> _thumbBytes(String id, int width, int height) async {
-    final asset = await AssetEntity.fromId(id);
-    if (asset == null) return null;
-    return asset.thumbnailDataWithSize(ThumbnailSize(width, height));
-  }
-  // coverage:ignore-end
+  Future<Uint8List?> _thumbBytes(String id, int width, int height) =>
+      _reader.thumbnailBytes(id, width, height);
 
   @override
   Future<MediaSourceMetadata?> extractMetadata(MediaItem item) async {
@@ -170,20 +162,7 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     if (assetId == null || assetId.isEmpty || !_hasPhotoLibrary) return null;
     final resolvedId = await _resolveId(item);
     if (resolvedId == null) return null;
-    // coverage:ignore-start
-    final asset = await AssetEntity.fromId(resolvedId);
-    if (asset == null) return null;
-    final ll = await asset.latlngAsync();
-    return MediaSourceMetadata(
-      takenAt: asset.createDateTime,
-      latitude: (ll?.latitude == 0.0) ? null : ll?.latitude,
-      longitude: (ll?.longitude == 0.0) ? null : ll?.longitude,
-      width: asset.width,
-      height: asset.height,
-      durationSeconds: asset.duration > 0 ? asset.duration : null,
-      mimeType: asset.mimeType ?? 'application/octet-stream',
-    );
-    // coverage:ignore-end
+    return _reader.metadata(resolvedId);
   }
 
   @override
@@ -200,10 +179,9 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     }
     final resolvedId = resolution.localAssetId;
     if (resolvedId == null) return VerifyResult.notFound;
-    // coverage:ignore-start
-    final asset = await AssetEntity.fromId(resolvedId);
-    return asset == null ? VerifyResult.notFound : VerifyResult.available;
-    // coverage:ignore-end
+    return await _reader.exists(resolvedId)
+        ? VerifyResult.available
+        : VerifyResult.notFound;
   }
 
   /// Delegates to [AssetResolutionService] to obtain the local asset ID.

@@ -59,6 +59,15 @@ class BuddyListContent extends ConsumerStatefulWidget {
   /// when the user cancels. Mirrors [OcrScanPage.pickImageOverride].
   final ContactPickerFn? pickContactOverride;
 
+  /// Test seam: replaces the contacts permission probe, which talks to a
+  /// platform channel widget tests cannot answer. Supplying it also opts the
+  /// test into the permission branch, which [pickContactOverride] alone skips.
+  final ContactAccessProbeFn? ensureAccessOverride;
+
+  /// Test seam: replaces the trip to system settings offered after a
+  /// permanently denied permission.
+  final VoidCallback? openSettingsOverride;
+
   const BuddyListContent({
     super.key,
     this.onItemSelected,
@@ -66,6 +75,8 @@ class BuddyListContent extends ConsumerStatefulWidget {
     this.showAppBar = true,
     this.floatingActionButton,
     @visibleForTesting this.pickContactOverride,
+    @visibleForTesting this.ensureAccessOverride,
+    @visibleForTesting this.openSettingsOverride,
   });
 
   @override
@@ -354,18 +365,20 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
       // Only Android needs a permission here. The native picker itself is
       // permissionless on both platforms, and asking it for properties always
       // works on iOS, so the iOS build never shows an address-book prompt.
+      //
+      // An injected picker on its own skips the check, because the test host
+      // is a desktop where the real probe would short-circuit anyway. A test
+      // that wants the permission branch injects the probe as well.
       final override = widget.pickContactOverride;
-      if (override == null && !await ensureContactPropertyAccess()) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                context.l10n.buddies_message_contactPermissionRequired,
-              ),
-            ),
-          );
-        }
-        return;
+      final ensureAccess = widget.ensureAccessOverride;
+      if (override == null || ensureAccess != null) {
+        final allowed = await ensureContactAccessOrExplain(
+          context,
+          deniedMessage: context.l10n.buddies_message_contactPermissionRequired,
+          ensureAccessOverride: ensureAccess,
+          openSettingsOverride: widget.openSettingsOverride,
+        );
+        if (!allowed) return;
       }
 
       // One call: flutter_contacts 2.3.1's picker returns the contact with the
@@ -453,7 +466,10 @@ class _BuddyListContentState extends ConsumerState<BuddyListContent> {
     Widget buildContent() {
       return buddiesAsync.when(
         data: (buddies) {
-          final sorted = applyBuddyWithDiveCountSorting(buddies, sort);
+          // Favorites are pinned to the top regardless of the chosen sort
+          // field (issue #1336), matching the "Add buddy" picker sheet.
+          final (:favorites, :others) = pinFavoriteBuddiesToTop(buddies, sort);
+          final sorted = [...favorites, ...others];
           return sorted.isEmpty
               ? _buildEmptyState(context)
               : _buildBuddyList(context, ref, sorted);
@@ -1020,16 +1036,21 @@ class BuddySearchDelegate extends SearchDelegate<Buddy?> {
   }
 
   Widget _buildSearchResults(BuildContext context) {
-    return DebouncedSearchResults<Buddy>(
+    // Counted results, not bare buddies: the tile shows a dive count and a
+    // last-dive date, and a fabricated zero here reported every hit as having
+    // no dives (issue #2084). This is the same provider the "Add buddy"
+    // picker searches through, so both agree with the unfiltered list.
+    return DebouncedSearchResults<BuddyWithDiveCount>(
       query: query,
-      watchProvider: (ref, q) => ref.watch(buddySearchProvider(q)),
-      dataBuilder: (context, buddies) {
+      watchProvider: (ref, q) => ref.watch(buddySearchWithDiveCountProvider(q)),
+      dataBuilder: (context, entries) {
         return ListView.builder(
-          itemCount: buddies.length,
+          itemCount: entries.length,
           itemBuilder: (context, index) {
-            final buddy = buddies[index];
+            final entry = entries[index];
+            final buddy = entry.buddy;
             return BuddyListTile(
-              entry: BuddyWithDiveCount(buddy: buddy, diveCount: 0),
+              entry: entry,
               onTap: () {
                 close(context, buddy);
                 context.push('/buddies/${buddy.id}');
