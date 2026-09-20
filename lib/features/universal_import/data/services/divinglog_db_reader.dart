@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:sqlite3/sqlite3.dart';
 
+import 'package:submersion/features/universal_import/data/services/divinglog_id_list.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_profile_codec.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
 
@@ -124,6 +125,14 @@ class DivingLogDbReader {
     'Computer',
     'Visibility',
     'SupplyType',
+    'BuddyIDs',
+    'UsedEquip',
+    'Divetype',
+    'PlaceID',
+    'CityID',
+    'CountryID',
+    'ShopID',
+    'TripID',
     'ProfileInt',
     'Profile',
     'Profile2',
@@ -138,6 +147,93 @@ class DivingLogDbReader {
     'He',
     'DblTank',
   ];
+
+  static const _buddyColumns = [
+    'ID',
+    'FirstName',
+    'LastName',
+    'Email',
+    'Phone',
+    'Mobile',
+    'Comments',
+    'URL',
+  ];
+  static const _placeColumns = [
+    'ID',
+    'CountryID',
+    'Place',
+    'Lat',
+    'Lon',
+    'MaxDepth',
+    'WaterName',
+    'Difficulty',
+    'Comments',
+  ];
+  static const _cityColumns = ['ID', 'City'];
+  static const _countryColumns = ['ID', 'Country'];
+  static const _equipmentColumns = [
+    'ID',
+    'Object',
+    'Manufacturer',
+    'Serial',
+    'DateP',
+    'Price',
+    'Weight',
+    'Inactive',
+    'O2ServiceDate',
+    'Comments',
+  ];
+  static const _tripColumns = [
+    'ID',
+    'ShopID',
+    'TripName',
+    'StartDate',
+    'EndDate',
+    'Comments',
+  ];
+  static const _shopColumns = [
+    'ID',
+    'ShopName',
+    'ShopType',
+    'Street',
+    'City',
+    'State',
+    'Zip',
+    'Country',
+    'Phone',
+    'Email',
+    'URL',
+    'Comments',
+  ];
+  static const _diveTypeColumns = ['ID', 'Typename', 'SortOrd'];
+  static const _certificationColumns = [
+    'ID',
+    'Brevet',
+    'Org',
+    'CertDate',
+    'Number',
+    'Instructor',
+  ];
+  static const _speciesColumns = ['ID', 'CommonName', 'ScientificName'];
+  static const _speciesLinkColumns = ['LogID', 'FishID'];
+  static const _pictureColumns = ['ID', 'LogID', 'Path', 'Description'];
+
+  /// The reference tables, with the column each one is keyed by. A table
+  /// that is absent, or present without its key, is reported and skipped.
+  static const _referenceTables = <String, String>{
+    'Buddy': 'ID',
+    'Place': 'ID',
+    'City': 'ID',
+    'Country': 'ID',
+    'Equipment': 'ID',
+    'Trip': 'ID',
+    'Shop': 'ID',
+    'Divetype': 'ID',
+    'Brevets': 'ID',
+    'Fish': 'ID',
+    'FishRel': 'LogID',
+    'Pictures': 'LogID',
+  };
 
   static const _tankColumns = [
     'LogID',
@@ -206,6 +302,170 @@ class DivingLogDbReader {
 
       final tombstones = _readTombstones(db, caps);
       final tanksByLogId = _readTanks(db, caps);
+
+      for (final entry in _referenceTables.entries) {
+        if (!caps.hasTable(entry.key)) {
+          notes.add('No ${entry.key} table, so its records were not imported.');
+        } else if (!caps.hasColumn(entry.key, entry.value)) {
+          notes.add(
+            'The ${entry.key} table has no ${entry.value} column, so its '
+            'records could not be matched and were not imported.',
+          );
+        }
+      }
+
+      final buddies = _readReference(
+        db,
+        caps,
+        'Buddy',
+        _buddyColumns,
+        'ID',
+        (r) => DivingLogRawBuddy(
+          id: _int(r, 'ID')!,
+          firstName: _str(r, 'FirstName'),
+          lastName: _str(r, 'LastName'),
+          email: _str(r, 'Email'),
+          phone: _str(r, 'Phone'),
+          mobile: _str(r, 'Mobile'),
+          comments: _str(r, 'Comments'),
+          url: _str(r, 'URL'),
+        ),
+      );
+      final places = _readReference(
+        db,
+        caps,
+        'Place',
+        _placeColumns,
+        'ID',
+        (r) => DivingLogRawPlace(
+          id: _int(r, 'ID')!,
+          countryId: _int(r, 'CountryID'),
+          place: _str(r, 'Place'),
+          latitude: _double(r, 'Lat'),
+          longitude: _double(r, 'Lon'),
+          maxDepthMeters: _double(r, 'MaxDepth'),
+          waterName: _str(r, 'WaterName'),
+          difficulty: _str(r, 'Difficulty'),
+          comments: _str(r, 'Comments'),
+        ),
+      );
+      final cities = _readReference(
+        db,
+        caps,
+        'City',
+        _cityColumns,
+        'ID',
+        (r) => _str(r, 'City'),
+      );
+      final countries = _readReference(
+        db,
+        caps,
+        'Country',
+        _countryColumns,
+        'ID',
+        (r) => _str(r, 'Country'),
+      );
+      final equipment = _readReference(
+        db,
+        caps,
+        'Equipment',
+        _equipmentColumns,
+        'ID',
+        (r) => DivingLogRawEquipment(
+          id: _int(r, 'ID')!,
+          object: _str(r, 'Object'),
+          manufacturer: _str(r, 'Manufacturer'),
+          serial: _str(r, 'Serial'),
+          purchaseDate: _date(r, 'DateP'),
+          price: _double(r, 'Price'),
+          weightKg: _double(r, 'Weight'),
+          inactive: (_int(r, 'Inactive') ?? 0) > 0,
+          o2ServiceDate: _date(r, 'O2ServiceDate'),
+          comments: _str(r, 'Comments'),
+        ),
+      );
+      final trips = _readReference(
+        db,
+        caps,
+        'Trip',
+        _tripColumns,
+        'ID',
+        (r) => DivingLogRawTrip(
+          id: _int(r, 'ID')!,
+          name: _str(r, 'TripName'),
+          startDate: _date(r, 'StartDate'),
+          endDate: _date(r, 'EndDate'),
+          shopId: _int(r, 'ShopID'),
+          comments: _str(r, 'Comments'),
+        ),
+      );
+      final shops = _readReference(
+        db,
+        caps,
+        'Shop',
+        _shopColumns,
+        'ID',
+        (r) => DivingLogRawShop(
+          id: _int(r, 'ID')!,
+          name: _str(r, 'ShopName'),
+          shopType: _str(r, 'ShopType'),
+          street: _str(r, 'Street'),
+          city: _str(r, 'City'),
+          state: _str(r, 'State'),
+          zip: _str(r, 'Zip'),
+          country: _str(r, 'Country'),
+          phone: _str(r, 'Phone'),
+          email: _str(r, 'Email'),
+          url: _str(r, 'URL'),
+          comments: _str(r, 'Comments'),
+        ),
+      );
+      final diveTypes = _readReference(
+        db,
+        caps,
+        'Divetype',
+        _diveTypeColumns,
+        'ID',
+        (r) => DivingLogRawDiveType(
+          id: _int(r, 'ID')!,
+          name: _str(r, 'Typename'),
+          sortOrder: _int(r, 'SortOrd'),
+        ),
+      );
+      final certifications = _readReference(
+        db,
+        caps,
+        'Brevets',
+        _certificationColumns,
+        'ID',
+        (r) => DivingLogRawCertification(
+          id: _int(r, 'ID')!,
+          name: _str(r, 'Brevet'),
+          organisation: _str(r, 'Org'),
+          certDate: _date(r, 'CertDate'),
+          number: _str(r, 'Number'),
+          instructor: _str(r, 'Instructor'),
+        ),
+      );
+      final species = _readReference(
+        db,
+        caps,
+        'Fish',
+        _speciesColumns,
+        'ID',
+        (r) => DivingLogRawSpecies(
+          id: _int(r, 'ID')!,
+          commonName: _str(r, 'CommonName'),
+          scientificName: _str(r, 'ScientificName'),
+        ),
+      );
+      final speciesLinks = _readSpeciesLinks(db, caps);
+      final pictures = _readPictures(db, caps);
+
+      Map<int, String> named(Map<int, String?> raw) => {
+        for (final e in raw.entries)
+          if (e.value case final String v) e.key: v,
+      };
       final selectList = caps.selectList('Logbook', _logbookColumns);
       if (selectList.isEmpty) {
         // Another product's table can share the name. Saying so beats
@@ -250,6 +510,14 @@ class DivingLogDbReader {
             computer: _str(row, 'Computer'),
             visibilityCode: _int(row, 'Visibility'),
             supplyType: _str(row, 'SupplyType'),
+            buddyIds: parseDivingLogIdList(_str(row, 'BuddyIDs')),
+            equipmentIds: parseDivingLogIdList(_str(row, 'UsedEquip')),
+            diveTypeIds: parseDivingLogIdList(_str(row, 'Divetype')),
+            placeId: _int(row, 'PlaceID'),
+            cityId: _int(row, 'CityID'),
+            countryId: _int(row, 'CountryID'),
+            shopId: _int(row, 'ShopID'),
+            tripId: _int(row, 'TripID'),
             tanks: tanksByLogId[id] ?? (inline == null ? const [] : [inline]),
             samples: DivingLogProfileCodec.decode(
               intervalSeconds: _int(row, 'ProfileInt') ?? 0,
@@ -267,6 +535,18 @@ class DivingLogDbReader {
         dives: dives,
         capabilities: caps,
         schemaNotes: notes,
+        buddiesById: buddies,
+        placesById: places,
+        cityNamesById: named(cities),
+        countryNamesById: named(countries),
+        equipmentById: equipment,
+        tripsById: trips,
+        shopsById: shops,
+        diveTypesById: diveTypes,
+        certifications: certifications.values.toList(),
+        speciesById: species,
+        speciesIdsByLogId: speciesLinks,
+        picturesByLogId: pictures,
       );
     });
   }
@@ -352,6 +632,113 @@ class DivingLogDbReader {
 
   /// Reads a column that the SELECT may not have included at all, so a
   /// missing column and a null value are the same thing to callers.
+
+  /// Runs one reference table through [build], keyed by [keyOf].
+  ///
+  /// Returns an empty map when the table is missing or has lost its key
+  /// column; the caller has already recorded a note for that, so this does
+  /// not throw. Every read goes through `selectList`, which resolves the
+  /// file's own spelling of each column.
+  static Map<int, T> _readReference<T>(
+    Database db,
+    DivingLogCapabilities caps,
+    String table,
+    List<String> columns,
+    String keyColumn,
+    T Function(Row row) build,
+  ) {
+    if (!caps.hasTable(table) || !caps.hasColumn(table, keyColumn)) {
+      return const {};
+    }
+    final selectList = caps.selectList(table, columns);
+    if (selectList.isEmpty) return const {};
+    final actual = caps.actualTable(table)!;
+    final rows = db.select(
+      'SELECT $selectList FROM ${quoteSqlIdentifier(actual)}',
+    );
+    final out = <int, T>{};
+    for (final row in rows) {
+      final key = _int(row, keyColumn);
+      if (key == null) continue;
+      out[key] = build(row);
+    }
+    return out;
+  }
+
+  /// `FishRel` rows grouped by dive. Many rows share a `LogID`, so this
+  /// cannot go through [_readReference].
+  static Map<int, List<int>> _readSpeciesLinks(
+    Database db,
+    DivingLogCapabilities caps,
+  ) {
+    if (!caps.hasTable('FishRel') ||
+        !caps.hasColumn('FishRel', 'LogID') ||
+        !caps.hasColumn('FishRel', 'FishID')) {
+      return const {};
+    }
+    final selectList = caps.selectList('FishRel', _speciesLinkColumns);
+    final actual = caps.actualTable('FishRel')!;
+    final rows = db.select(
+      'SELECT $selectList FROM ${quoteSqlIdentifier(actual)}',
+    );
+    final out = <int, List<int>>{};
+    for (final row in rows) {
+      final logId = _int(row, 'LogID');
+      final fishId = _int(row, 'FishID');
+      if (logId == null || fishId == null) continue;
+      out[logId] = [...?out[logId], fishId];
+    }
+    return out;
+  }
+
+  /// `Pictures` rows grouped by dive.
+  static Map<int, List<DivingLogRawPicture>> _readPictures(
+    Database db,
+    DivingLogCapabilities caps,
+  ) {
+    if (!caps.hasTable('Pictures') || !caps.hasColumn('Pictures', 'LogID')) {
+      return const {};
+    }
+    final selectList = caps.selectList('Pictures', _pictureColumns);
+    final actual = caps.actualTable('Pictures')!;
+    final rows = db.select(
+      'SELECT $selectList FROM ${quoteSqlIdentifier(actual)}',
+    );
+    final out = <int, List<DivingLogRawPicture>>{};
+    for (final row in rows) {
+      final logId = _int(row, 'LogID');
+      if (logId == null) continue;
+      out[logId] = [
+        ...?out[logId],
+        DivingLogRawPicture(
+          id: _int(row, 'ID') ?? 0,
+          logId: logId,
+          path: _str(row, 'Path'),
+          description: _str(row, 'Description'),
+        ),
+      ];
+    }
+    return out;
+  }
+
+  /// Reads a `YYYY-MM-DD` date column as a wall clock, per the house
+  /// convention that stored dive times carry no zone.
+  static DateTime? _date(Row row, String column) {
+    final raw = _str(row, column);
+    if (raw == null) return null;
+    final digits = raw.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length < 8) return null;
+    final year = int.tryParse(digits.substring(0, 4));
+    final month = int.tryParse(digits.substring(4, 6));
+    final day = int.tryParse(digits.substring(6, 8));
+    if (year == null || month == null || day == null) return null;
+    final parsed = DateTime.utc(year, month, day);
+    if (parsed.year != year || parsed.month != month || parsed.day != day) {
+      return null;
+    }
+    return parsed;
+  }
+
   static Object? _cell(Row row, String column) {
     try {
       return row[column];
