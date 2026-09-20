@@ -9631,7 +9631,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveSites_filter_clearAll => 'Borrar todo';
 
   @override
-  String get diveSites_filter_allCountries => 'Todos los paises';
+  String get diveSites_filter_allCountries => 'Todos los países';
 
   @override
   String get diveSites_filter_allRegions => 'Todas las regiones';
@@ -9676,7 +9676,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveSites_filter_searchCountriesHint =>
-      'Escribe para buscar paises';
+      'Escribe para buscar países';
 
   @override
   String get diveSites_filter_searchRegionsHint =>
