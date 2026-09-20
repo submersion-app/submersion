@@ -8688,6 +8688,7 @@
   "diveLog_planned_bannerBody": "Búvárkomputer-adatokra vár. Jelöld naplózottnak, ha komputer nélkül merültél.",
   "diveLog_detail_menu_markLogged": "Naplózottnak jelölés",
   "diveLog_planned_markedLogged": "Naplózottnak jelölve",
+  "diveLog_planned_markLoggedFailed": "Nem sikerült naplózottként megjelölni a merülést.",
   "diveLog_mirror_dialogTitle": "Ezt a merülést egy másik profilban is naplózod?",
   "diveLog_mirror_dialogBody": "Ezeknek a búvártársaknak van profiljuk ezen az eszközön. A merülés tervezett merülésként kerül a naplójukba, amíg a saját búvárkomputerük adatai ki nem töltik.",
   "diveLog_mirror_log": "Naplózás",

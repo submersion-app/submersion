@@ -29244,6 +29244,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'Marquée comme enregistrée';
 
   @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Impossible de marquer la plongée comme enregistrée.';
+
+  @override
   String get diveLog_mirror_dialogTitle =>
       'Enregistrer aussi cette plongée dans un autre profil ?';
 

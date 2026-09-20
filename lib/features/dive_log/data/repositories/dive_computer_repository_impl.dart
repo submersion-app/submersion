@@ -788,12 +788,6 @@ class DiveComputerRepository {
     }
   }
 
-  /// The dive_data_sources row on [diveId] that describes [computerId], or
-  /// null when the dive has no source row for that computer yet.
-  ///
-  /// Used to stamp the series row's `sourceId` at insert time (issue #1149).
-  /// Primary first so a dive that somehow carries two rows for one computer
-  /// resolves to the one the rest of the app treats as canonical.
   /// The dive_data_sources row for one download: provenance, summary
   /// numbers, the raw blob and its fingerprint. Shared by the new-dive and
   /// existing-dive branches of [importProfile] so both leave a row the
@@ -859,6 +853,12 @@ class DiveComputerRepository {
     );
   }
 
+  /// The dive_data_sources row on [diveId] that describes [computerId], or
+  /// null when the dive has no source row for that computer yet.
+  ///
+  /// Used to stamp the series row's `sourceId` at insert time (issue #1149).
+  /// Primary first so a dive that somehow carries two rows for one computer
+  /// resolves to the one the rest of the app treats as canonical.
   Future<String?> _dataSourceIdFor(String diveId, String computerId) async {
     final row =
         await (_db.select(_db.diveDataSources)
@@ -1597,6 +1597,17 @@ class DiveComputerRepository {
       // re-download pass and the series had no owning source (issue #2002).
       // Primary when the dive had nothing yet; a secondary otherwise.
       if (!isNewDive && await _dataSourceIdFor(diveId, computerId) == null) {
+        // A dive can already hold a summary-only source row and no series:
+        // a UDDF import writes one for every dive it creates. The download
+        // is about to become this dive's profile, so it takes the primary
+        // flag and any older primary loses it. Readers resolve "the"
+        // primary with LIMIT 1, so two primaries would be ambiguous.
+        if (!hadSeries) {
+          await (_db.update(_db.diveDataSources)..where(
+                (t) => t.diveId.equals(diveId) & t.isPrimary.equals(true),
+              ))
+              .write(const DiveDataSourcesCompanion(isPrimary: Value(false)));
+        }
         final existingSampleTemps = points
             .map((p) => p.temperature)
             .whereType<double>()

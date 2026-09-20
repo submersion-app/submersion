@@ -25,6 +25,7 @@ void main() {
   Future<String? Function()> open(
     WidgetTester tester, {
     String? selectedId,
+    Set<String> unavailableIds = const {},
   }) async {
     String? picked;
     var returned = false;
@@ -39,6 +40,7 @@ void main() {
                 context,
                 plannedDives: plans,
                 selectedId: selectedId,
+                unavailableIds: unavailableIds,
               );
               returned = true;
             },
@@ -72,5 +74,18 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(result(), '');
+  });
+
+  testWidgets('a plan another download already fills is not offered', (
+    tester,
+  ) async {
+    await open(tester, unavailableIds: {'p2'});
+    expect(find.textContaining('Blue Hole'), findsOneWidget);
+    expect(find.textContaining('Reef'), findsNothing);
+  });
+
+  testWidgets('this row keeps its own target in the list', (tester) async {
+    await open(tester, selectedId: 'p2', unavailableIds: {'p2'});
+    expect(find.textContaining('Reef'), findsOneWidget);
   });
 }

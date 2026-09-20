@@ -240,6 +240,10 @@ class DiverMergeRepository {
     final touched = <({String rowId, String? priorHlc})>[];
     for (final row in rows) {
       final owner = row.diverId;
+      // A buddy in the keeper's own list would end up linking the profile
+      // that owns it, which BuddyProfileLinkRepository refuses. Clear it
+      // instead, as for a collision.
+      final wouldSelfLink = owner == keeperId;
       final clash =
           await (_db.select(_db.buddies)..where(
                 (t) =>
@@ -252,7 +256,9 @@ class DiverMergeRepository {
       touched.add((rowId: row.id, priorHlc: row.hlc));
       await (_db.update(_db.buddies)..where((t) => t.id.equals(row.id))).write(
         BuddiesCompanion(
-          linkedDiverId: Value(clash.isEmpty ? keeperId : null),
+          linkedDiverId: Value(
+            clash.isEmpty && !wouldSelfLink ? keeperId : null,
+          ),
           updatedAt: Value(now),
         ),
       );

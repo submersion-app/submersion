@@ -29094,6 +29094,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'Als protokolliert markiert';
 
   @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Der Tauchgang konnte nicht als protokolliert markiert werden.';
+
+  @override
   String get diveLog_mirror_dialogTitle =>
       'Diesen Tauchgang auch in einem anderen Profil protokollieren?';
 

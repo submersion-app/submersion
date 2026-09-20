@@ -29168,6 +29168,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'Marcada como registrada';
 
   @override
+  String get diveLog_planned_markLoggedFailed =>
+      'No se pudo marcar la inmersión como registrada.';
+
+  @override
   String get diveLog_mirror_dialogTitle =>
       '¿Registrar también esta inmersión en otro perfil?';
 

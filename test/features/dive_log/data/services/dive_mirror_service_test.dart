@@ -217,6 +217,37 @@ void main() {
     },
   );
 
+  test('undo makes a site the mirror shared private again', () async {
+    final site = await sites.createSite(
+      DiveSite(id: '', name: 'Blue Hole', diverId: eric),
+    );
+    final dive = await sourceDive(site: site);
+    final outcome = await service.mirror(
+      sourceDiveId: dive.id,
+      targetDiverIds: [chris],
+    );
+    expect((await sites.getSiteById(site.id))?.isShared, isTrue);
+
+    await service.undo(outcome);
+
+    expect((await sites.getSiteById(site.id))?.isShared, isFalse);
+  });
+
+  test('undo leaves a site that was already shared alone', () async {
+    final site = await sites.createSite(
+      DiveSite(id: '', name: 'Blue Hole', diverId: eric, isShared: true),
+    );
+    final dive = await sourceDive(site: site);
+    final outcome = await service.mirror(
+      sourceDiveId: dive.id,
+      targetDiverIds: [chris],
+    );
+
+    await service.undo(outcome);
+
+    expect((await sites.getSiteById(site.id))?.isShared, isTrue);
+  });
+
   test('undo removes the siblings and a minted outing id', () async {
     final dive = await sourceDive();
     final outcome = await service.mirror(

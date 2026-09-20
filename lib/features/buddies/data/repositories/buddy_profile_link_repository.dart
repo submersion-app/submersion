@@ -93,8 +93,10 @@ class BuddyProfileLinkRepository {
     return holder == null ? match : null;
   }
 
-  /// The buddy in [ownerDiverId]'s list that is [linkedDiverId], created
-  /// from the profile's name, email, phone and photo when absent.
+  /// The buddy in [ownerDiverId]'s list that is [linkedDiverId]. An unlinked
+  /// buddy of the same trimmed name is adopted and linked, since the owner
+  /// has been logging dives with that person by hand; otherwise one is
+  /// created from the profile's name, email, phone and photo.
   Future<Buddy> ensureReciprocalBuddy({
     required String ownerDiverId,
     required String linkedDiverId,
@@ -107,6 +109,21 @@ class BuddyProfileLinkRepository {
     final profile = await _divers.getDiverById(linkedDiverId);
     if (profile == null) {
       throw StateError('Diver $linkedDiverId does not exist');
+    }
+    final wanted = profile.name.trim();
+    for (final candidate in await _buddies.getAllBuddies(
+      diverId: ownerDiverId,
+    )) {
+      // Only a buddy free to be linked: one that already names another
+      // profile is a different person with the same name.
+      if (candidate.linkedDiverId != null) continue;
+      if (candidate.name.trim() != wanted) continue;
+      final adopted = candidate.copyWith(
+        linkedDiverId: linkedDiverId,
+        updatedAt: DateTime.now(),
+      );
+      await _buddies.updateBuddy(adopted);
+      return adopted;
     }
     final now = DateTime.now();
     return _buddies.createBuddy(

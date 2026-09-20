@@ -8688,6 +8688,7 @@
   "diveLog_planned_bannerBody": "En attente des données de l'ordinateur. Marquez-la comme enregistrée si vous avez plongé sans ordinateur.",
   "diveLog_detail_menu_markLogged": "Marquer comme enregistrée",
   "diveLog_planned_markedLogged": "Marquée comme enregistrée",
+  "diveLog_planned_markLoggedFailed": "Impossible de marquer la plongée comme enregistrée.",
   "diveLog_mirror_dialogTitle": "Enregistrer aussi cette plongée dans un autre profil ?",
   "diveLog_mirror_dialogBody": "Ces binômes ont un profil sur cet appareil. La plongée est ajoutée à leur carnet comme plongée planifiée jusqu'à ce que les données de leur propre ordinateur la complètent.",
   "diveLog_mirror_log": "Enregistrer",

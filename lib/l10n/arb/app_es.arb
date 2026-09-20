@@ -8688,6 +8688,7 @@
   "diveLog_planned_bannerBody": "A la espera de los datos del ordenador. Márcala como registrada si buceaste sin ordenador.",
   "diveLog_detail_menu_markLogged": "Marcar como registrada",
   "diveLog_planned_markedLogged": "Marcada como registrada",
+  "diveLog_planned_markLoggedFailed": "No se pudo marcar la inmersión como registrada.",
   "diveLog_mirror_dialogTitle": "¿Registrar también esta inmersión en otro perfil?",
   "diveLog_mirror_dialogBody": "Estos compañeros tienen perfiles en este dispositivo. La inmersión se añade a sus registros como inmersión planificada hasta que los datos de su propio ordenador la completen.",
   "diveLog_mirror_log": "Registrar",

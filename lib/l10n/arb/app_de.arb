@@ -8792,6 +8792,7 @@
   "diveLog_planned_bannerBody": "Wartet auf Tauchcomputerdaten. Als protokolliert markieren, wenn du ohne Computer getaucht bist.",
   "diveLog_detail_menu_markLogged": "Als protokolliert markieren",
   "diveLog_planned_markedLogged": "Als protokolliert markiert",
+  "diveLog_planned_markLoggedFailed": "Der Tauchgang konnte nicht als protokolliert markiert werden.",
   "diveLog_mirror_dialogTitle": "Diesen Tauchgang auch in einem anderen Profil protokollieren?",
   "diveLog_mirror_dialogBody": "Diese Tauchpartner haben Profile auf diesem Gerät. Der Tauchgang wird ihren Logbüchern als geplanter Tauchgang hinzugefügt, bis ihre eigenen Tauchcomputerdaten ihn ausfüllen.",
   "diveLog_mirror_log": "Protokollieren",

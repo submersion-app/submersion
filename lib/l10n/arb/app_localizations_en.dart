@@ -28683,6 +28683,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'Marked as logged';
 
   @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Couldn\'t mark the dive as logged.';
+
+  @override
   String get diveLog_mirror_dialogTitle =>
       'Also log this dive in another profile?';
 

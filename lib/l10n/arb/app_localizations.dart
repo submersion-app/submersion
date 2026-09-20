@@ -47040,6 +47040,12 @@ abstract class AppLocalizations {
   /// **'Marked as logged'**
   String get diveLog_planned_markedLogged;
 
+  /// No description provided for @diveLog_planned_markLoggedFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t mark the dive as logged.'**
+  String get diveLog_planned_markLoggedFailed;
+
   /// No description provided for @diveLog_mirror_dialogTitle.
   ///
   /// In en, this message translates to:

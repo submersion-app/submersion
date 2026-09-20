@@ -8688,6 +8688,7 @@
   "diveLog_planned_bannerBody": "ממתין לנתוני מחשב הצלילה. סמנו כנרשמה אם צללתם בלי מחשב.",
   "diveLog_detail_menu_markLogged": "סימון כנרשמה",
   "diveLog_planned_markedLogged": "סומנה כנרשמה",
+  "diveLog_planned_markLoggedFailed": "לא ניתן היה לסמן את הצלילה כרשומה.",
   "diveLog_mirror_dialogTitle": "לרשום את הצלילה הזו גם בפרופיל אחר?",
   "diveLog_mirror_dialogBody": "לחברי צוללים אלה יש פרופילים במכשיר זה. הצלילה מתווספת ליומן שלהם כצלילה מתוכננת עד שנתוני מחשב הצלילה שלהם ימלאו אותה.",
   "diveLog_mirror_log": "רישום",

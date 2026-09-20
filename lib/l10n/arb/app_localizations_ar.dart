@@ -28752,6 +28752,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'تم وضع علامة مسجلة';
 
   @override
+  String get diveLog_planned_markLoggedFailed =>
+      'تعذّر وضع علامة على الغوصة كمسجّلة.';
+
+  @override
   String get diveLog_mirror_dialogTitle =>
       'هل تريد تسجيل هذه الغوصة في ملف شخصي آخر أيضا؟';
 

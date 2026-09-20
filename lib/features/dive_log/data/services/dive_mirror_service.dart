@@ -31,11 +31,17 @@ class MirrorOutcome {
   final bool mintedOutingId;
   final List<String> createdDiveIds;
 
+  /// The site this action flipped to shared so the siblings could reference
+  /// it, or null when the site was already shared (or there is no site).
+  /// Undo makes it private again.
+  final String? sharedSiteId;
+
   const MirrorOutcome({
     required this.sourceDiveId,
     required this.outingId,
     required this.mintedOutingId,
     required this.createdDiveIds,
+    this.sharedSiteId,
   });
 }
 
@@ -122,6 +128,13 @@ class DiveMirrorService {
       if (minted) {
         await _dives.updateDive(source.copyWith(outingId: outingId));
       }
+      // Whether this action is the one that shares the site, decided before
+      // the first sibling flips the flag so undo can tell it apart from a
+      // site the diver had already shared.
+      final siteId = source.site?.id;
+      final site = siteId == null ? null : await _sites.getSiteById(siteId);
+      final flippedSiteId = site != null && !site.isShared ? site.id : null;
+
       final existingOwners = <String>{
         for (final d in await _dives.getDivesByOutingId(outingId))
           if (d.diverId != null) d.diverId!,
@@ -144,18 +157,21 @@ class DiveMirrorService {
         outingId: outingId,
         mintedOutingId: minted,
         createdDiveIds: created,
+        sharedSiteId: created.isEmpty ? null : flippedSiteId,
       );
     });
   }
 
-  /// Deletes the siblings this outcome created and clears the outing id
-  /// from the source when this action minted it. Buddy records stay.
+  /// Deletes the siblings this outcome created, clears the outing id from
+  /// the source when this action minted it, and makes the site private
+  /// again when this action shared it. Buddy records stay.
   Future<void> undo(MirrorOutcome outcome) async {
     final db = DatabaseService.instance.database;
     await db.transaction(() async {
       if (outcome.createdDiveIds.isNotEmpty) {
         await _dives.bulkDeleteDives(outcome.createdDiveIds);
       }
+      await _unshareSite(outcome.sharedSiteId);
       if (outcome.mintedOutingId) {
         final source = await _dives.getDiveById(outcome.sourceDiveId);
         if (source != null) {
@@ -222,6 +238,19 @@ class DiveMirrorService {
     }
     await _buddies.setBuddiesForDive(created.id, members);
     return created.id;
+  }
+
+  /// Reverses the share this mirror performed, unless another profile's
+  /// dive still references the site: those dives are the reason the flag
+  /// exists, and the siblings this undo deleted are already gone.
+  Future<void> _unshareSite(String? siteId) async {
+    if (siteId == null) return;
+    final site = await _sites.getSiteById(siteId);
+    if (site == null || !site.isShared) return;
+    for (final dive in await _dives.getDivesForSite(siteId)) {
+      if (dive.diverId != null && dive.diverId != site.diverId) return;
+    }
+    await _sites.setShared(siteId, false);
   }
 
   /// A site two profiles hold dives at is shared; flip the flag if needed.

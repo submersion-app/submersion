@@ -29146,6 +29146,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'Marcado como registrado';
 
   @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Não foi possível marcar o mergulho como registrado.';
+
+  @override
   String get diveLog_mirror_dialogTitle =>
       'Registrar este mergulho também em outro perfil?';
 

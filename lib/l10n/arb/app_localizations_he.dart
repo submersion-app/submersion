@@ -28452,6 +28452,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'סומנה כנרשמה';
 
   @override
+  String get diveLog_planned_markLoggedFailed =>
+      'לא ניתן היה לסמן את הצלילה כרשומה.';
+
+  @override
   String get diveLog_mirror_dialogTitle =>
       'לרשום את הצלילה הזו גם בפרופיל אחר?';
 

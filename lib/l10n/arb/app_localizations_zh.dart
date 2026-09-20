@@ -27641,6 +27641,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_planned_markedLogged => '已标记为已记录';
 
   @override
+  String get diveLog_planned_markLoggedFailed => '无法将该潜水标记为已记录。';
+
+  @override
   String get diveLog_mirror_dialogTitle => '也在其他个人资料中记录此次潜水？';
 
   @override

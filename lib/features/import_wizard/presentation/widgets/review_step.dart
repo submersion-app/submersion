@@ -390,10 +390,18 @@ class _EntityTab extends ConsumerWidget {
 
     Future<void> changeFillTarget(int index) async {
       final current = group.matchResults?[index]?.plannedDiveId;
+      // A plan takes one download: the ones other rows of this batch
+      // already fill are not on offer, or the second fill would find its
+      // target promoted and silently import as new instead.
+      final taken = <String>{
+        for (final entry in (group.matchResults ?? const {}).entries)
+          if (entry.key != index) ?entry.value.plannedDiveId,
+      };
       final picked = await showPlannedDivePicker(
         context,
         plannedDives: plannedDives,
         selectedId: current,
+        unavailableIds: taken,
       );
       if (picked == null) return;
       notifier.setPlannedFillTarget(index, picked.isEmpty ? null : picked);

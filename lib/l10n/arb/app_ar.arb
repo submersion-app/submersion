@@ -8688,6 +8688,7 @@
   "diveLog_planned_bannerBody": "في انتظار بيانات كمبيوتر الغوص. ضع علامة مسجلة إذا غصت بدون كمبيوتر.",
   "diveLog_detail_menu_markLogged": "وضع علامة مسجلة",
   "diveLog_planned_markedLogged": "تم وضع علامة مسجلة",
+  "diveLog_planned_markLoggedFailed": "تعذّر وضع علامة على الغوصة كمسجّلة.",
   "diveLog_mirror_dialogTitle": "هل تريد تسجيل هذه الغوصة في ملف شخصي آخر أيضا؟",
   "diveLog_mirror_dialogBody": "لدى هؤلاء الرفاق ملفات شخصية على هذا الجهاز. تضاف الغوصة إلى سجلاتهم كغوصة مخططة حتى تملأها بيانات كمبيوتر الغوص الخاص بهم.",
   "diveLog_mirror_log": "تسجيل",

@@ -10,10 +10,15 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Lets the diver pick which planned dive a download fills (issue #2002).
 /// Returns the dive id, an empty string for "import as new", or null when
 /// dismissed.
+///
+/// [unavailableIds] are plans another download in the same batch already
+/// fills. One plan can take only one download, so they are left out, except
+/// for [selectedId]: that is this row's own target.
 Future<String?> showPlannedDivePicker(
   BuildContext context, {
   required List<Dive> plannedDives,
   String? selectedId,
+  Set<String> unavailableIds = const {},
 }) {
   return showModalBottomSheet<String>(
     context: context,
@@ -33,15 +38,16 @@ Future<String?> showPlannedDivePicker(
                 ),
               ),
               for (final dive in plannedDives)
-                ListTile(
-                  key: Key('planned_dive_picker_${dive.id}'),
-                  leading: const Icon(Icons.event_available_outlined),
-                  title: Text(plannedDiveLabel(dive, units, l10n)),
-                  trailing: dive.id == selectedId
-                      ? const Icon(Icons.check)
-                      : null,
-                  onTap: () => Navigator.pop(sheetContext, dive.id),
-                ),
+                if (dive.id == selectedId || !unavailableIds.contains(dive.id))
+                  ListTile(
+                    key: Key('planned_dive_picker_${dive.id}'),
+                    leading: const Icon(Icons.event_available_outlined),
+                    title: Text(plannedDiveLabel(dive, units, l10n)),
+                    trailing: dive.id == selectedId
+                        ? const Icon(Icons.check)
+                        : null,
+                    onTap: () => Navigator.pop(sheetContext, dive.id),
+                  ),
               const Divider(),
               ListTile(
                 key: const Key('planned_dive_picker_import_as_new'),

@@ -183,6 +183,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// Track if we've already initiated a redirect to prevent multiple calls
   bool _hasRedirected = false;
 
+  /// A promotion of a planned dive is in flight (issue #2002), so a second
+  /// tap on the banner or the menu item is ignored rather than calling
+  /// convertPlanToActualDive on a dive that is no longer planned.
+  bool _promoting = false;
+
   /// Key for capturing the profile chart as an image for PNG export
   final GlobalKey _profileChartExportKey = GlobalKey();
   final GlobalKey _safetyReviewSectionKey = GlobalKey();
@@ -1632,8 +1637,24 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// the next dive number through the one path that does both. Invalidates
   /// through the container so the list refreshes even if this page is gone.
   Future<void> _markAsLogged(Dive dive) async {
+    // The button stays enabled while the promotion runs, and the same
+    // action sits in the overflow menu, so a second call can arrive after
+    // the flag is already cleared. convertPlanToActualDive throws then,
+    // and nothing awaits this callback, so it must not escape.
+    if (_promoting) return;
+    _promoting = true;
     final container = ProviderScope.containerOf(context, listen: false);
-    await ref.read(diveRepositoryProvider).convertPlanToActualDive(dive.id);
+    final messenger = ScaffoldMessenger.of(context);
+    final failureMessage = context.l10n.diveLog_planned_markLoggedFailed;
+    try {
+      await ref.read(diveRepositoryProvider).convertPlanToActualDive(dive.id);
+    } catch (_) {
+      _promoting = false;
+      container.invalidate(diveProvider(dive.id));
+      messenger.showSnackBar(SnackBar(content: Text(failureMessage)));
+      return;
+    }
+    _promoting = false;
     container.invalidate(diveProvider(dive.id));
     container.invalidate(paginatedDiveListProvider);
     container.invalidate(diveListNotifierProvider);

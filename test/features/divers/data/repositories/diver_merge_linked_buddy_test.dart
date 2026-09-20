@@ -69,6 +69,15 @@ void main() {
     },
   );
 
+  test('a link that would point at its own owner is cleared', () async {
+    // Chris's own list holds a buddy for the duplicate profile. Repointing
+    // it to the keeper would make the buddy link the profile that owns it,
+    // which BuddyProfileLinkRepository refuses everywhere else.
+    final own = await buddies.createBuddy(buddy(chris, 'Me', linked: chris2));
+    await merges.mergeDivers(keeperId: chris, duplicateId: chris2);
+    expect((await buddies.getBuddyById(own.id))?.linkedDiverId, isNull);
+  });
+
   test('undoMerge restores the links', () async {
     final moved = await buddies.createBuddy(
       buddy(eric, 'Chris', linked: chris2),

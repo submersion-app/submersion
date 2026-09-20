@@ -28937,6 +28937,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'Gemarkeerd als gelogd';
 
   @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Kon de duik niet als gelogd markeren.';
+
+  @override
   String get diveLog_mirror_dialogTitle =>
       'Deze duik ook in een ander profiel loggen?';
 

@@ -29041,6 +29041,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_planned_markedLogged => 'Naplózottnak jelölve';
 
   @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Nem sikerült naplózottként megjelölni a merülést.';
+
+  @override
   String get diveLog_mirror_dialogTitle =>
       'Ezt a merülést egy másik profilban is naplózod?';
 

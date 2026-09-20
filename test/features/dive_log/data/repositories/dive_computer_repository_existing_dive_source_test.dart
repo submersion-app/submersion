@@ -144,6 +144,43 @@ void main() {
       expect(byComputer[b], isFalse);
     });
 
+    test('a summary-only source is demoted, leaving one primary', () async {
+      // A UDDF-imported dive carries a primary source row and no samples.
+      // The download becomes the dive's profile, so it takes the primary
+      // flag and the older row must lose it: readers take the first
+      // primary row they find.
+      final computerId = await insertComputer();
+      final diveId = await insertDive(start: DateTime(2026, 6, 1, 9));
+      final now = DateTime.now();
+      await db
+          .into(db.diveDataSources)
+          .insert(
+            DiveDataSourcesCompanion.insert(
+              id: 'uddf-source',
+              diveId: diveId,
+              isPrimary: const Value(true),
+              sourceFileFormat: const Value('uddf'),
+              importedAt: now,
+              createdAt: now,
+            ),
+          );
+
+      await repository.importProfile(
+        computerId: computerId,
+        profileStartTime: DateTime(2026, 6, 1, 9, 2),
+        points: flatProfile(),
+        durationSeconds: 600,
+        maxDepth: 10,
+      );
+
+      final sources = await (db.select(
+        db.diveDataSources,
+      )..where((t) => t.diveId.equals(diveId))).get();
+      final primaries = sources.where((s) => s.isPrimary).toList();
+      expect(primaries, hasLength(1));
+      expect(primaries.single.computerId, computerId);
+    });
+
     test('a second import from the same computer adds no second row', () async {
       final computerId = await insertComputer();
       final diveId = await insertDive(start: DateTime(2026, 6, 1, 9));

@@ -8688,6 +8688,7 @@
   "diveLog_planned_bannerBody": "Wacht op duikcomputergegevens. Markeer als gelogd als je zonder computer hebt gedoken.",
   "diveLog_detail_menu_markLogged": "Markeren als gelogd",
   "diveLog_planned_markedLogged": "Gemarkeerd als gelogd",
+  "diveLog_planned_markLoggedFailed": "Kon de duik niet als gelogd markeren.",
   "diveLog_mirror_dialogTitle": "Deze duik ook in een ander profiel loggen?",
   "diveLog_mirror_dialogBody": "Deze buddy's hebben een profiel op dit apparaat. De duik wordt als geplande duik aan hun logboek toegevoegd tot hun eigen duikcomputergegevens hem invullen.",
   "diveLog_mirror_log": "Loggen",

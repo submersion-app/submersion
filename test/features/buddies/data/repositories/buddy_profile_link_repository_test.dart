@@ -178,6 +178,40 @@ void main() {
       expect(created.email, 'eric@example.com');
     });
 
+    test(
+      'adopts an unlinked buddy of the same name instead of a second one',
+      () async {
+        // Chris already logs dives with Eric by hand. The mirror must adopt
+        // that record rather than leave Chris with two buddies named Eric.
+        final existing = await buddies.createBuddy(buddy(chris, 'Eric'));
+
+        final result = await links.ensureReciprocalBuddy(
+          ownerDiverId: chris,
+          linkedDiverId: eric,
+        );
+
+        expect(result.id, existing.id);
+        expect(result.linkedDiverId, eric);
+        expect((await buddies.getAllBuddies(diverId: chris)).length, 1);
+      },
+    );
+
+    test(
+      'leaves a name-match that already links another profile alone',
+      () async {
+        final dana = await diver('Dana');
+        await buddies.createBuddy(buddy(chris, 'Eric', linked: dana));
+
+        final result = await links.ensureReciprocalBuddy(
+          ownerDiverId: chris,
+          linkedDiverId: eric,
+        );
+
+        expect(result.linkedDiverId, eric);
+        expect((await buddies.getAllBuddies(diverId: chris)).length, 2);
+      },
+    );
+
     test('is idempotent: a second call returns the same buddy', () async {
       final first = await links.ensureReciprocalBuddy(
         ownerDiverId: chris,

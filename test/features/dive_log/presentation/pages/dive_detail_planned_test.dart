@@ -118,6 +118,33 @@ void main() {
     expect(find.text('Marked as logged'), findsOneWidget);
   });
 
+  testWidgets('a second Mark as logged reports instead of throwing', (
+    tester,
+  ) async {
+    final planned = await repository.createPlannedDive(
+      Dive(id: '', dateTime: DateTime(2026, 6, 1, 9)),
+    );
+    // The override keeps serving the planned dive, so the banner stays up
+    // after the promotion, exactly as it does for the moment between a
+    // double tap and the refresh.
+    await pumpDetail(tester, dive: planned);
+    final button = find.widgetWithText(TextButton, 'Mark as logged');
+
+    await tester.tap(button);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(button);
+    await tester.pump();
+    // The messenger queues: the failure shows once "Marked as logged" has
+    // run its course.
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(tester.takeException(), isNull);
+    expect(find.text("Couldn't mark the dive as logged."), findsOneWidget);
+    expect((await repository.getDiveById(planned.id))?.diveNumber, 1);
+  });
+
   testWidgets('the embedded layout shows the banner too', (tester) async {
     final dive = createTestDiveWithBottomTime(
       diveNumber: null,
