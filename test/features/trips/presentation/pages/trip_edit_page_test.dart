@@ -434,10 +434,19 @@ void main() {
     testWidgets('duration counts calendar days across a spring-forward', (
       tester,
     ) async {
-      // The loaded trip runs 2027-03-12 to 2027-03-15. US DST starts on
-      // 2027-03-14, so that window is 71 elapsed hours, and the elapsed-time
-      // count this label used to do floored it to a 3-day trip while the
-      // itinerary generated from the same range correctly had 4 days.
+      // The loaded trip runs 2027-03-12 18:00 to 2027-03-15 09:00, four
+      // calendar days.
+      //
+      // The dates straddle the 2027-03-14 US spring-forward, which is the
+      // real-world shape of the bug: two local midnights 71 hours apart that
+      // the old elapsed-time count floored to a 3-day trip while the itinerary
+      // generated from the same range correctly had 4 days. That only
+      // reproduces in a DST-observing zone, so this file is replayed under one
+      // by the Timezone Tests job.
+      //
+      // The times carry the same distinction into UTC, where the runners sit:
+      // 63 elapsed hours over four calendar days floors to 3 whatever the zone
+      // does, so a revert to `Duration.inDays` fails here as well.
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -1930,15 +1939,17 @@ class _RecordingScanRepo extends _MockTripRepositoryWithTrip {
 
 /// Mock repository that returns a test trip
 /// Serves a trip whose range spans the 2027-03-14 spring-forward, pinned to
-/// explicit calendar dates so the window crosses a transition on every run.
+/// explicit calendar dates so the window crosses a transition on every run in
+/// a DST-observing zone, and carrying times of day so the calendar-versus-
+/// elapsed distinction survives in UTC too.
 class _MockTripRepositoryWithDstTrip extends _MockTripRepositoryWithTrip {
   @override
   Future<Trip?> getTripById(String id) async {
     return Trip(
       id: 'test-id',
       name: 'DST Trip',
-      startDate: DateTime(2027, 3, 12),
-      endDate: DateTime(2027, 3, 15),
+      startDate: DateTime(2027, 3, 12, 18),
+      endDate: DateTime(2027, 3, 15, 9),
       createdAt: DateTime(2027),
       updatedAt: DateTime(2027),
     );
