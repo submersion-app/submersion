@@ -329,6 +329,19 @@ in the README under
 
 ### iOS Signing Issues
 
+The **iOS Simulator needs no signing setup**. The iOS Debug configuration does
+not pin a signing identity, so the simulator SDK resolves `CODE_SIGN_IDENTITY`
+to `-` and signs ad-hoc without consulting a developer account.
+`flutter run -d ios` against a simulator works from a clean checkout.
+
+Building for a **physical device** does require a team, because the
+`iphoneos` SDK resolves `CODE_SIGN_IDENTITY` to `Apple Development` and
+`ios/Runner/Runner.entitlements` requests HealthKit, an iCloud container, push
+notifications and a team-prefixed ubiquity key-value store. Outside
+contributors cannot provision `app.submersion`, so use the simulator.
+
+With access to the team:
+
 1. Open `ios/Runner.xcworkspace` in Xcode
 2. Select the Runner target
 3. Set your development team

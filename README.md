@@ -257,11 +257,11 @@ dart run build_runner build --delete-conflicting-outputs
 flutter run -d macos    # or: windows, linux, ios, android
 ```
 
-> **Building on macOS or iOS without an Apple Developer account?** `flutter run`
+> **Building on macOS without an Apple Developer account?** `flutter run -d macos`
 > builds the Debug configuration, which is pinned to the maintainer's signing
 > team and will fail with `No profiles for 'app.submersion' were found`. See
 > [running a debug build without an Apple Developer account](#running-a-debug-build-without-an-apple-developer-account)
-> below. Linux, Windows and Android need no signing setup.
+> below. Linux, Windows, Android and the iOS Simulator need no signing setup.
 
 ## Building from Source
 
@@ -289,10 +289,10 @@ flutter build linux
 
 ### Running a debug build without an Apple Developer account
 
-`flutter run -d macos` and `flutter run -d ios` build the Debug configuration.
-That configuration is pinned to the maintainer's Apple Developer team, so
-without access to that team Xcode cannot issue a provisioning profile and the
-build stops with:
+`flutter run -d macos` builds the Debug configuration. On macOS that
+configuration pins `CODE_SIGN_IDENTITY` to `Apple Development` against the
+maintainer's Apple Developer team, so without access to that team Xcode cannot
+issue a provisioning profile and the build stops with:
 
 ```
 error: No profiles for 'app.submersion' were found: Xcode couldn't find any
@@ -371,8 +371,13 @@ import and export all work.
 > git restore macos/Runner.xcodeproj/project.pbxproj macos/Runner/DebugProfile.entitlements
 > ```
 
-Other platforms need no signing setup: Linux, Windows and Android build from a
-clean checkout as-is.
+Other platforms need no signing setup. Linux, Windows and Android build from a
+clean checkout as-is, and so does the **iOS Simulator**: the iOS Debug
+configuration does not pin a signing identity, so the simulator SDK signs
+ad-hoc and never consults a developer account. `flutter run -d ios` against a
+simulator works without any of the edits above. Building for a physical iPhone
+does need the maintainer's team and is not currently possible for outside
+contributors.
 
 For a *release* build without a certificate, no edits are needed. Use the
 no-sandbox script described under "macOS: building without a developer
