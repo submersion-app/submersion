@@ -325,6 +325,25 @@ void main() {
       expect(book.schemaNotes.join(' '), contains('Tank'));
     });
 
+    test('diagnoses a DeletedRecords table that has no UUID column', () async {
+      final dir = Directory.systemTemp.createTempSync('dl_keyless');
+      final path = '${dir.path}/logbook.sql';
+      final db = sqlite3.open(path);
+      db.execute(
+        'CREATE TABLE Logbook (ID INTEGER PRIMARY KEY, Divedate TEXT)',
+      );
+      db.execute('CREATE TABLE DeletedRecords (Something TEXT)');
+      db.close();
+      final bytes = File(path).readAsBytesSync();
+      dir.deleteSync(recursive: true);
+
+      final book = await DivingLogDbReader.readAll(bytes);
+      expect(
+        book.schemaNotes.join(' '),
+        contains('DeletedRecords table has no UUID column'),
+      );
+    });
+
     test('does not diagnose a table the file has', () async {
       final book = await DivingLogDbReader.readAll(buildDivingLogWithRows());
       expect(book.schemaNotes.join(' '), isNot(contains('Tank table')));

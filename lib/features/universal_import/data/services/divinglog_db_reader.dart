@@ -174,10 +174,18 @@ class DivingLogDbReader {
           'recorded on the dive row.',
         );
       }
+      // Both halves matter: the table can be present but keyless, and
+      // treating that as "nothing was deleted" quietly reimports dives the
+      // diver had removed.
       if (!caps.hasTable('DeletedRecords')) {
         notes.add(
           'No DeletedRecords table, so dives the logbook had marked deleted '
           'could not be excluded.',
+        );
+      } else if (!caps.hasColumn('DeletedRecords', 'UUID')) {
+        notes.add(
+          'The DeletedRecords table has no UUID column, so dives the logbook '
+          'had marked deleted could not be excluded.',
         );
       }
 
