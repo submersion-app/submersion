@@ -1,6 +1,8 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart' as db;
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
@@ -39,6 +41,7 @@ Widget _buildPicker(MockCurrentDiverIdNotifier diverIdNotifier) {
       validatedCurrentDiverIdProvider.overrideWith((ref) async => 'diver-1'),
     ],
     child: MaterialApp(
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -105,8 +108,22 @@ void main() {
       expect(find.text('Umberto'), findsOneWidget);
       expect(find.text('1 dive'), findsNothing);
 
-      // Link the buddy to a dive the same way the dive editor does.
-      await buddyRepo.addBuddyToDive('dive-1', buddy.id, DiveRole.buddyId);
+      // A sync pull applies a remote buddy link straight to dive_buddies and
+      // deliberately never restamps the parent dive (#1769/#1915) -- unlike
+      // buddyRepo.addBuddyToDive, which also touches `dives`, this is the
+      // write that actually exercises watchDivesChangesWithBuddyLinks'
+      // dive_buddies coverage.
+      await database
+          .into(database.diveBuddies)
+          .insert(
+            db.DiveBuddiesCompanion(
+              id: const Value('link-1'),
+              diveId: const Value('dive-1'),
+              buddyId: Value(buddy.id),
+              role: const Value(DiveRole.buddyId),
+              createdAt: Value(DateTime.now().millisecondsSinceEpoch),
+            ),
+          );
 
       // Interval matches watchDivesChangesWithBuddyLinks' debounce window.
       await pumpUntil(

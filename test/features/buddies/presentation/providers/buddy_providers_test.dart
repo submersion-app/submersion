@@ -217,9 +217,8 @@ void main() {
   });
 
   group('buddySearchWithDiveCountProvider (issue #2084)', () {
-    test('auto-refreshes when a buddy is linked to a dive, unlike '
-        'allBuddiesWithDiveCountProvider it never watched dives changes at '
-        'all', () async {
+    test('auto-refreshes on a dive_buddies-only write, e.g. a synced buddy '
+        'link that never restamps the parent dive (#1769/#1915)', () async {
       final diver = await seedCurrentDiver();
       final buddy = await buddyRepo.createBuddy(
         _makeBuddy(name: 'Umberto', diverId: diver.id),
@@ -242,14 +241,20 @@ void main() {
       );
       expect(results.single.diveCount, 0);
 
-      // addBuddyToDive touches dive_buddies (and, as a side effect, the
-      // parent dive's updated_at) but never the buddies table, so this
-      // still exercises the provider's missing dives-tick subscription.
-      await buddyRepo.addBuddyToDive(
-        'shared-dive-1',
-        buddy.id,
-        DiveRole.buddyId,
-      );
+      // A direct dive_buddies insert, not buddyRepo.addBuddyToDive, since
+      // that also restamps `dives` and would pass even against the old,
+      // buggy provider that watched only `dives` and `buddies`.
+      await database
+          .into(database.diveBuddies)
+          .insert(
+            db.DiveBuddiesCompanion(
+              id: const Value('search-link-1'),
+              diveId: const Value('shared-dive-1'),
+              buddyId: Value(buddy.id),
+              role: const Value(DiveRole.buddyId),
+              createdAt: Value(DateTime.now().millisecondsSinceEpoch),
+            ),
+          );
 
       await waitUntil(() async {
         results = await container.read(
