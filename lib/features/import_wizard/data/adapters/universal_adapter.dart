@@ -15,6 +15,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
@@ -1189,6 +1190,7 @@ class UniversalAdapter implements ImportSourceAdapter {
     // Queue a data-quality scan of the imported dives (fire-and-forget).
     scheduleQualityScan(netImportedDiveIds);
     scheduleSensorSummaryRefresh(netImportedDiveIds);
+    scheduleDerivedMetricsRefresh(netImportedDiveIds);
     // Check-ins ride inside imported equipment, with or without new dives;
     // merged into the batch above when there is one, so no extra pass.
     scheduleAllConditionFindingsRefresh();

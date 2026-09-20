@@ -18,6 +18,7 @@ import 'package:submersion/features/backup/domain/exceptions/backup_encrypted_ex
 import 'package:submersion/features/backup/domain/entities/backup_settings.dart';
 import 'package:submersion/features/backup/domain/entities/restore_mode.dart';
 import 'package:submersion/features/backup/presentation/providers/post_restore_safety_review.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -360,6 +361,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       // way a stale sweep brings them up to this build. Runs in the
       // background so the restore barrier does not wait on it.
       SensorSummaryScheduler.instance.scheduleStaleSweep();
+      DerivedMetricsScheduler.instance.scheduleStaleSweep();
       state = const BackupOperationState(
         status: BackupOperationStatus.restoreComplete,
       );
@@ -561,6 +563,7 @@ class BackupOperationNotifier extends StateNotifier<BackupOperationState> {
       // way a stale sweep brings them up to this build. Runs in the
       // background so the restore barrier does not wait on it.
       SensorSummaryScheduler.instance.scheduleStaleSweep();
+      DerivedMetricsScheduler.instance.scheduleStaleSweep();
       state = const BackupOperationState(
         status: BackupOperationStatus.restoreComplete,
       );

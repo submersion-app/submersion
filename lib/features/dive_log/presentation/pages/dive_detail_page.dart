@@ -11,6 +11,7 @@ import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:latlong2/latlong.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
@@ -5199,6 +5200,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       // Re-scan both the original and the newly split dive (fire-and-forget).
       scheduleQualityScan([dive.id, newDiveId]);
       scheduleSensorSummaryRefresh([dive.id, newDiveId]);
+      scheduleDerivedMetricsRefresh([dive.id, newDiveId]);
       if (!mounted) return;
       ref.invalidate(diveProvider(dive.id));
       ref.invalidate(diveProfileProvider(dive.id));
@@ -5249,6 +5251,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
       // Re-scan the surviving dive and every restored one (fire-and-forget).
       scheduleQualityScan([dive.id, ...newDiveIds]);
       scheduleSensorSummaryRefresh([dive.id, ...newDiveIds]);
+      scheduleDerivedMetricsRefresh([dive.id, ...newDiveIds]);
       if (!mounted) return;
       ref.invalidate(diveProvider(dive.id));
       ref.invalidate(diveProfileProvider(dive.id));

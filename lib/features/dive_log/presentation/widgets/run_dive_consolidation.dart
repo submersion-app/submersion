@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -50,6 +51,7 @@ Future<void> runDiveConsolidation({
   // Re-scan the surviving dive after the fold (fire-and-forget).
   scheduleQualityScan([targetDiveId, ...secondaryDiveIds]);
   scheduleSensorSummaryRefresh([targetDiveId, ...secondaryDiveIds]);
+  scheduleDerivedMetricsRefresh([targetDiveId, ...secondaryDiveIds]);
 
   scaffoldMessenger.clearSnackBars();
   scaffoldMessenger.showSnackBar(
@@ -68,6 +70,7 @@ Future<void> runDiveConsolidation({
             onConsolidated();
             scheduleQualityScan([targetDiveId, ...secondaryDiveIds]);
             scheduleSensorSummaryRefresh([targetDiveId, ...secondaryDiveIds]);
+            scheduleDerivedMetricsRefresh([targetDiveId, ...secondaryDiveIds]);
             scaffoldMessenger.showSnackBar(
               SnackBar(
                 content: Text(l10n.diveLog_consolidate_undone),

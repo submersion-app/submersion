@@ -46,6 +46,7 @@ import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/core/services/sync/sync_preferences.dart';
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
@@ -1346,6 +1347,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
           // after the launch sweep ran. Single-flight, a no-op when current;
           // the condition findings follow the batch it runs.
           SensorSummaryScheduler.instance.scheduleStaleSweep();
+          DerivedMetricsScheduler.instance.scheduleStaleSweep();
           // A straggler syncing into a backend another device moved away from
           // learns of the move here -- the moment it is actively writing into
           // the now-orphaned copy.

@@ -14,6 +14,7 @@ import 'package:submersion/features/dive_import/domain/services/dive_matcher.dar
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart'
     hide DiveMatchResult;
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/data/services/dive_consolidation_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/domain/services/unreadable_series_exception.dart';
@@ -415,6 +416,7 @@ class GarminCloudAdapter implements ImportSourceAdapter {
 
     scheduleQualityScan(importedDiveIds);
     scheduleSensorSummaryRefresh(importedDiveIds);
+    scheduleDerivedMetricsRefresh(importedDiveIds);
 
     final numberConflict = await diveNumberConflictNotice(
       retainSourceDiveNumbers: retainSourceDiveNumbers,

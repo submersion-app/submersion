@@ -10,6 +10,7 @@ import 'package:submersion/features/data_quality/domain/entities/quality_finding
 import 'package:submersion/features/data_quality/domain/repairs/repair_predicates.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
@@ -61,6 +62,7 @@ class QualityRepairExecutor {
   static void _rescan(Iterable<String> diveIds) {
     scheduleQualityScan(diveIds);
     scheduleSensorSummaryRefresh(diveIds, force: true);
+    scheduleDerivedMetricsRefresh(diveIds, force: true);
   }
 
   Future<void> _finish(String findingId, Iterable<String> affected) async {

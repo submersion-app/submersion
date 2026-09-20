@@ -21,6 +21,7 @@ import 'package:submersion/features/data_quality/presentation/widgets/dive_ident
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_card.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_finding_message.dart';
 import 'package:submersion/features/data_quality/presentation/widgets/quality_unit_formatters.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/reassign_tank_picker.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_dialog.dart';
@@ -236,6 +237,7 @@ class _DataQualityInboxPageState extends ConsumerState<DataQualityInboxPage> {
               .split(diveId: diveId, sourceId: sourceId);
           scheduleQualityScan([diveId, newId]);
           scheduleSensorSummaryRefresh([diveId, newId], force: true);
+          scheduleDerivedMetricsRefresh([diveId, newId], force: true);
         } catch (e) {
           messenger.showSnackBar(
             SnackBar(content: Text(l10n.diveLog_sources_splitFailed)),

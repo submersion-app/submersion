@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/core/app/app_exit.dart';
@@ -117,6 +118,10 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       // Fill the per-dive sensor summary cache for dives that predate it or
       // changed since. Single-flight, oldest first, no-op when current.
       SensorSummaryScheduler.instance.scheduleStaleSweep();
+      // Same for the Explore derived metrics (phase 2). A separate
+      // scheduler: the two engines version independently, so a bump to one
+      // must not rebuild the other's rows.
+      DerivedMetricsScheduler.instance.scheduleStaleSweep();
     });
   }
 

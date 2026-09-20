@@ -18,6 +18,7 @@ import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/services/export/pdf/diver_photo_loader.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
 import 'package:submersion/features/certifications/domain/entities/certification.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
@@ -625,6 +626,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
               // The originals are back and the merged dive is gone; the
               // condition engine reads their sensor summaries.
               scheduleSensorSummaryRefresh([
+                ...ids,
+                toUndo.mergedDive.id,
+              ], force: true);
+              scheduleDerivedMetricsRefresh([
                 ...ids,
                 toUndo.mergedDive.id,
               ], force: true);

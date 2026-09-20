@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 
 /// Global test harness config (run once per test file by `flutter test`).
@@ -25,6 +26,7 @@ import 'package:submersion/features/equipment/data/services/sensor_summary_sched
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   QualityScanScheduler.enabled = false;
   SensorSummaryScheduler.enabled = false;
+  DerivedMetricsScheduler.enabled = false;
   debugCanShareFiles = true;
   await testMain();
 }

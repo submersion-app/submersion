@@ -10,6 +10,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_series_repository.dart';
+import 'package:submersion/features/dive_log/data/services/derived_metrics_scheduler.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart'
     as codec;
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart'
@@ -490,7 +491,10 @@ class ReparseService {
 
     // The re-parse rewrote the profile strands; the sensor summary is
     // derived from them (condition phase 2).
-    if (sources.isNotEmpty) scheduleSensorSummaryRefresh([diveId]);
+    if (sources.isNotEmpty) {
+      scheduleSensorSummaryRefresh([diveId]);
+      scheduleDerivedMetricsRefresh([diveId]);
+    }
     return (errors: errors, profilesPreserved: profilesPreserved);
   }
 
