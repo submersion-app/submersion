@@ -30,12 +30,14 @@ import 'package:submersion/features/dive_log/presentation/widgets/chart_series_c
 import 'package:submersion/features/dive_log/presentation/widgets/chart_touch_recognizer.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/deco_stop_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_spread.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_decimator.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_bar_window.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_agreement.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_lines.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_line_builders.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_right_axis_metric_labels.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_selection_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
@@ -43,7 +45,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_s
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_findings_overlay.dart';
-import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/core/ui/chart_viewport.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_event_labels.dart';
@@ -3464,9 +3465,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             extraLinesData: ExtraLinesData(
               horizontalLines: _buildO2CellRugTrack(metricBand, colorScheme),
               verticalLines: [
-                ..._buildPlaybackCursor(colorScheme),
-                ..._buildHighlightCursor(colorScheme),
-                ..._buildHighlightRangeLines(highlightSpan),
+                ...buildPlaybackCursor(colorScheme, widget.playbackTimestamp),
+                ...buildHighlightCursor(
+                  colorScheme,
+                  widget.highlightedTimestamp,
+                ),
+                ...buildHighlightRangeLines(
+                  highlightSpan,
+                  widget.highlightRange?.color,
+                ),
                 if (_showEvents && widget.events != null)
                   ..._buildEventVerticalLines(
                     colorScheme,
@@ -5472,7 +5479,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             var previous = -1;
             for (final k in _decimatedOverlayCurveIndices(presentValues)) {
               final i = presentIndices[k];
-              if (previous >= 0 && _gtrGapBetween(curve, previous, i)) {
+              if (previous >= 0 && gtrGapBetween(curve, previous, i)) {
                 spots.add(FlSpot.nullSpot);
               }
               final normalized =
@@ -5776,43 +5783,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }
 
   /// Build gas switch marker dots on the profile
-  List<LineChartBarData> _buildGasSwitchMarkers(UnitFormatter units) {
-    final gasSwitches = widget.gasSwitches;
-    if (gasSwitches == null || gasSwitches.isEmpty) {
-      return [];
-    }
-
-    // A cylinder unchecked in the options dialog hides its switch markers,
-    // the same way an unchecked tank hides its pressure trace.
-    final visibleSwitches = gasSwitches.where(
-      (gs) => _showTankPressure[gs.gasSwitch.tankId] ?? true,
-    );
-
-    return visibleSwitches.map((gs) {
-      final color = GasColors.forMixFraction(gs.o2Fraction, gs.heFraction);
-
-      // Find the depth at this timestamp from profile
-      final depth = gs.depth ?? _findDepthAtTimestamp(gs.timestamp);
-
-      return LineChartBarData(
-        spots: [FlSpot(gs.timestamp.toDouble(), -units.convertDepth(depth))],
-        isCurved: false,
-        color: Colors.transparent,
-        barWidth: 0,
-        dotData: FlDotData(
-          show: true,
-          getDotPainter: (spot, percent, bar, index) {
-            return FlDotCirclePainter(
-              radius: 6,
-              color: color,
-              strokeWidth: 2,
-              strokeColor: Colors.white,
-            );
-          },
-        ),
+  List<LineChartBarData> _buildGasSwitchMarkers(UnitFormatter units) =>
+      buildGasSwitchMarkers(
+        units,
+        widget.gasSwitches,
+        _showTankPressure,
+        _findDepthAtTimestamp,
       );
-    }).toList();
-  }
 
   /// Find the depth at a given timestamp by interpolating profile data
   double _findDepthAtTimestamp(int timestamp) {
@@ -5889,371 +5866,97 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }
 
   /// Build multiple pressure lines for multi-tank visualization
-  List<LineChartBarData> _buildMultiTankPressureLines(MetricBand band) {
-    if (!_hasMultiTankPressure) return [];
-
-    final tankPressures = widget.tankPressures!;
-    final lines = <LineChartBarData>[];
-
-    // Calculate global min/max pressure across all tanks for consistent scaling
-    double? globalMinPressure;
-    double? globalMaxPressure;
-
-    for (final pressurePoints in tankPressures.values) {
-      for (final point in pressurePoints) {
-        if (globalMinPressure == null || point.pressure < globalMinPressure) {
-          globalMinPressure = point.pressure;
-        }
-        if (globalMaxPressure == null || point.pressure > globalMaxPressure) {
-          globalMaxPressure = point.pressure;
-        }
-      }
-    }
-
-    if (globalMinPressure == null || globalMaxPressure == null) return [];
-
-    // Add some padding to the pressure range
-    final pressureRange = globalMaxPressure - globalMinPressure;
-
-    // A zero span means every sample across every tank is identical -- in
-    // practice a computer that logged a pressure channel with no transmitter
-    // paired (all zeros). There is no pressure information to plot, and mapping
-    // a constant value through a zero-width range yields NaN spot coordinates
-    // that crash fl_chart's touch/tooltip painter (Offset NaN). Skip it.
-    if (pressureRange <= 0) return [];
-
-    final minPressure = globalMinPressure - (pressureRange * 0.05);
-    final maxPressure = globalMaxPressure + (pressureRange * 0.05);
-
-    final sortedTankIds = _sortedTankIds(tankPressures.keys);
-    final tankComputerIds = _tankComputerIds();
-
-    // Build a line for each visible tank
-    for (var i = 0; i < sortedTankIds.length; i++) {
-      final tankId = sortedTankIds[i];
-
-      // Skip if tank is hidden
-      if (_showTankPressure[tankId] == false) continue;
-
-      // Skip tanks attributed to a computer that's been toggled off.
-      if (!_isComputerVisible(tankComputerIds[tankId])) continue;
-
-      final pressurePoints = tankPressures[tankId]!;
-      if (pressurePoints.isEmpty) continue;
-
-      // Get tank for color
-      final tank = _getTankById(tankId);
-
-      // Use gas color or fallback
-      final color = tank != null
-          ? GasColors.forGasMix(tank.gasMix)
-          : _getTankColor(i);
-      final dashPattern = _getTankDashPattern(i);
-
-      // A tank first breathed mid-dive keeps its own start: the lead-in only
-      // bridges a series that begins at the dive's first sample. Built first so
-      // the smoothing flag below reflects whether THIS tank got one.
-      final tankSpots = pressurePoints
-          .map(
-            (p) => FlSpot(
-              p.timestamp.toDouble(),
-              -band.map(p.pressure, minPressure, maxPressure),
-            ),
-          )
-          .toList();
-      lines.add(
-        LineChartBarData(
-          spots: _withFlatSurfaceLeadIn(tankSpots),
-          // Synthesized estimates are straight (flat-drop-flat); curve
-          // smoothing would round their corners. Real AI data stays curved.
-          isCurved: !(widget.estimatedTankIds?.contains(tankId) ?? false),
-          curveSmoothness: 0.2,
-          // The lead-in vertex is a sharp direction change; without this the
-          // spline overshoots it and hooks below the curve at the left edge.
-          preventCurveOverShooting: _seriesGetsLeadIn(
-            tankSpots,
-            widget.profile,
-          ),
-          color: color,
-          barWidth: 1,
-          isStrokeCapRound: true,
-          dotData: const FlDotData(show: false),
-          dashArray: dashPattern,
-        ),
+  List<LineChartBarData> _buildMultiTankPressureLines(MetricBand band) =>
+      buildMultiTankPressureLines(
+        band,
+        hasMultiTankPressure: _hasMultiTankPressure,
+        tankPressures: widget.tankPressures,
+        showTankPressure: _showTankPressure,
+        estimatedTankIds: widget.estimatedTankIds,
+        profile: widget.profile,
+        sortedTankIds: _sortedTankIds,
+        tankComputerIds: _tankComputerIds,
+        isComputerVisible: _isComputerVisible,
+        getTankById: _getTankById,
+        getTankColor: _getTankColor,
+        getTankDashPattern: _getTankDashPattern,
+        withFlatSurfaceLeadIn: _withFlatSurfaceLeadIn,
+        seriesGetsLeadIn: _seriesGetsLeadIn,
       );
-    }
-
-    return lines;
-  }
 
   LineChartBarData _buildHeartRateLine(
     Color color,
     MetricBand band,
     double minHR,
     double maxHR,
-  ) {
-    return LineChartBarData(
-      spots: widget.profile
-          .where((p) => p.heartRate != null)
-          .map(
-            (p) => FlSpot(
-              p.timestamp.toDouble(),
-              -band.map(p.heartRate!.toDouble(), minHR, maxHR),
-            ),
-          )
-          .toList(),
-      isCurved: true,
-      curveSmoothness: 0.2,
-      color: color,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal. Heart
-      // rate has no overlay counterpart, so nothing relies on this dash.
-    );
-  }
+  ) => buildHeartRateLine(color, band, minHR, maxHR, widget.profile);
 
   /// Build SAC (Surface Air Consumption) curve line
   LineChartBarData _buildSacLine(
     MetricBand band,
     double minSac,
     double maxSac,
-  ) {
-    const sacColor = ProfileMetricColors.sac;
-    final sacCurve = widget.sacCurve!;
-
-    // Build spots for each profile point that has SAC data
-    final spots = <FlSpot>[];
-    for (final i in _decimatedCurveIndices(sacCurve)) {
-      final sac = sacCurve[i];
-      if (sac > 0) {
-        spots.add(
-          FlSpot(
-            widget.profile[i].timestamp.toDouble(),
-            -band.map(sac, minSac, maxSac),
-          ),
-        );
-      }
-    }
-
-    return LineChartBarData(
-      spots: _withFlatSurfaceLeadIn(spots),
-      isCurved: true,
-      curveSmoothness: 0.3,
-      // Only while a lead-in is drawn: that vertex is a sharp direction
-      // change and the spline would otherwise overshoot it and hook below
-      // the curve at the left edge. Dives already starting at t=0 keep
-      // their existing smoothing untouched.
-      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
-      color: sacColor,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal. SAC has
-      // no overlay counterpart, so nothing relies on this dash.
-    );
-  }
+  ) => buildSacLine(
+    band,
+    minSac,
+    maxSac,
+    widget.sacCurve!,
+    widget.profile,
+    _decimatedCurveIndices,
+    _withFlatSurfaceLeadIn,
+    _seriesGetsLeadIn,
+  );
 
   /// Build the separate ascent-rate magnitude line: signed rate (m/min) mapped
   /// into the depth plot area so ascents rise above and descents dip below the
   /// vertical mid-plot. Self-scaled via [DiveProfileChart.ascentRateAxisRange]
   /// so the line and the optional right-axis labels share one scale.
-  LineChartBarData _buildAscentRateLine(MetricBand band) {
-    final ascentRates = widget.ascentRates!;
-    final range = DiveProfileChart.ascentRateAxisRange(ascentRates)!;
-    final spots = <FlSpot>[];
-    for (var i = 0; i < widget.profile.length && i < ascentRates.length; i++) {
-      // Normalisation is unit-invariant, so map the stored m/min value
-      // directly; the right axis converts to the user's unit at label time.
-      spots.add(
-        FlSpot(
-          widget.profile[i].timestamp.toDouble(),
-          -band.map(ascentRates[i].rateMetersPerMin, range.min, range.max),
-        ),
-      );
-    }
-    return LineChartBarData(
-      spots: _withFlatSurfaceLeadIn(spots),
-      isCurved: true,
-      curveSmoothness: 0.2,
-      // Only while a lead-in is drawn: that vertex is a sharp direction
-      // change and the spline would otherwise overshoot it and hook below
-      // the curve at the left edge. Dives already starting at t=0 keep
-      // their existing smoothing untouched.
-      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
-      color: Colors.lime,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal.
-    );
-  }
+  LineChartBarData _buildAscentRateLine(MetricBand band) => buildAscentRateLine(
+    band,
+    widget.ascentRates!,
+    widget.profile,
+    DiveProfileChart.ascentRateAxisRange(widget.ascentRates)!,
+    _withFlatSurfaceLeadIn,
+    _seriesGetsLeadIn,
+  );
 
-  double _calculateDepthInterval(double maxDepth) {
-    if (maxDepth <= 10) return 2;
-    if (maxDepth <= 20) return 5;
-    if (maxDepth <= 50) return 10;
-    return 20;
-  }
+  double _calculateDepthInterval(double maxDepth) =>
+      calculateDepthInterval(maxDepth);
 
-  double _calculateTimeInterval(double maxTime) {
-    final minutes = maxTime / 60;
-    if (minutes <= 10) return 60; // 1 min intervals
-    if (minutes <= 30) return 300; // 5 min intervals
-    if (minutes <= 60) return 600; // 10 min intervals
-    return 900; // 15 min intervals
-  }
+  double _calculateTimeInterval(double maxTime) =>
+      calculateTimeInterval(maxTime);
 
   /// Build the ceiling line (decompression ceiling)
-  LineChartBarData _buildCeilingLine(UnitFormatter units) {
-    final ceilingData = widget.ceilingCurve!;
-    // Purple 700 - distinct from the red deco-stop band it sits beside.
-    const ceilingColor = ProfileMetricColors.ceiling;
-
-    // Build spots only where ceiling > 0, breaking the curve wherever the
-    // obligation clears. fl_chart splits a bar on null spots and gives each
-    // section its own fill, so without the break a profile that re-enters deco
-    // would join its two runs and shade the ceiling-free stretch between them.
-    // The break is deferred to the next real spot so no null leads or trails.
-    final spots = <FlSpot>[];
-    var pendingBreak = false;
-    for (final i in _decimatedCurveIndices(ceilingData)) {
-      final ceiling = ceilingData[i];
-      if (ceiling <= 0) {
-        if (spots.isNotEmpty) pendingBreak = true;
-        continue;
-      }
-      if (pendingBreak) {
-        spots.add(FlSpot.nullSpot);
-        pendingBreak = false;
-      }
-      spots.add(
-        FlSpot(
-          widget.profile[i].timestamp.toDouble(),
-          -units.convertDepth(ceiling), // Convert and negate for inverted axis
-        ),
-      );
-    }
-
-    return LineChartBarData(
-      spots: _withFlatSurfaceLeadIn(spots),
-      isCurved: true,
-      curveSmoothness: 0.2,
-      // Only while a lead-in is drawn: that vertex is a sharp direction
-      // change and the spline would otherwise overshoot it and hook below
-      // the curve at the left edge. Dives already starting at t=0 keep
-      // their existing smoothing untouched.
-      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
-      color: ceilingColor,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal. The
-      // overlaid source's own ceiling line keeps its own, independent dash
-      // (see _buildOverlayLines), so this is unaffected either way.
-      // The shaded region runs from the ceiling UP to the surface, so it is an
-      // aboveBarData. Negated depths put the surface (y = 0) above the ceiling
-      // (y = -4.2), and a below-bar fill cannot express that: fl_chart's
-      // painter draws the below-bar area and then erases the entire above-line
-      // region to clean up the cut-off overdraw, wiping exactly this fill. Same
-      // defect, and same fix, as the deco stop band in deco_stop_band.dart.
-      aboveBarData: BarAreaData(
-        show: true,
-        color: ceilingColor.withValues(alpha: ceilingFillAlpha),
-        cutOffY: 0, // Fill to surface
-        applyCutOffY: true,
-      ),
-    );
-  }
+  LineChartBarData _buildCeilingLine(UnitFormatter units) => buildCeilingLine(
+    units,
+    widget.ceilingCurve!,
+    widget.profile,
+    _decimatedCurveIndices,
+    _withFlatSurfaceLeadIn,
+    _seriesGetsLeadIn,
+  );
 
   /// Build NDL (No Decompression Limit) line
   /// NDL values are in seconds; shows time remaining before deco obligation
-  LineChartBarData _buildNdlLine(MetricBand band) {
-    final ndlData = widget.ndlCurve!;
-    const ndlColor = ProfileMetricColors.ndl;
-
-    // Map NDL to chart: max NDL (~60 min) at top, 0 at bottom
-    final maxNdlSeconds = ProfileMetricBands.ndl.fixedMax;
-
-    final spots = <FlSpot>[];
-    for (final i in _decimatedCurveIndices(ndlData)) {
-      // Draw NDL only while there is actually no-deco time left. Once it is
-      // spent (zero, or negative in deco) the line simply ends -- a flat line
-      // pinned at zero through the deco phase carries no information. A null
-      // spot breaks the series so it does not bridge straight across the gap.
-      if (ndlData[i] <= 0) {
-        if (spots.isNotEmpty && spots.last != FlSpot.nullSpot) {
-          spots.add(FlSpot.nullSpot);
-        }
-        continue;
-      }
-      // Clamp values > 60 min to the top of the display range.
-      final ndl = ndlData[i].clamp(0, maxNdlSeconds.toInt()).toDouble();
-      final normalized = ndl / maxNdlSeconds;
-      final yValue = band.mapNormalized(normalized);
-      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
-    }
-
-    return LineChartBarData(
-      // Held flat, not forced to maximum: on a repetitive dive the NDL at the
-      // surface is already cut short by residual loading, which the first
-      // sample reflects and a synthetic maximum would not.
-      spots: _withFlatSurfaceLeadIn(spots),
-      // Straight segments: a spline across the null-spot breaks would reach
-      // for the gap and overshoot.
-      isCurved: false,
-      color: ndlColor,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: the active line's colour is already unique among metrics, so
-      // the dash (kept for the overlay comparison of this same metric, see
-      // ProfileMetricBands) would only add visual noise here (issue #2228).
-    );
-  }
+  LineChartBarData _buildNdlLine(MetricBand band) => buildNdlLine(
+    band,
+    widget.ndlCurve!,
+    widget.profile,
+    _decimatedCurveIndices,
+    _withFlatSurfaceLeadIn,
+  );
 
   /// Build ppO2 (partial pressure of oxygen) line
   /// Values typically range from 0.21 (surface air) to 1.6+ (critical)
-  LineChartBarData _buildPpO2Line(MetricBand band) {
-    final ppO2Data = widget.ppO2Curve!;
-    const ppO2Color = ProfileMetricColors.ppO2;
-
-    // Map ppO2 to chart: 0 at top, 2.0 bar at bottom
-    final minPpO2 = ProfileMetricBands.ppO2.min;
-    final maxPpO2 = ProfileMetricBands.ppO2.fixedMax;
-
-    final spots = <FlSpot>[];
-    for (final i in _decimatedCurveIndices(ppO2Data)) {
-      final ppO2 = ppO2Data[i].clamp(minPpO2, maxPpO2);
-      final yValue = band.map(ppO2, minPpO2, maxPpO2);
-      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
-    }
-
-    return LineChartBarData(
-      // ppO2 scales with ambient pressure, so its surface value is computed,
-      // not held flat: at 1 bar it is simply the oxygen fraction.
-      spots: _withSurfaceLeadIn(
-        spots,
-        -band.map(
-          _surfaceValueOf(ppO2Data.first).clamp(minPpO2, maxPpO2),
-          minPpO2,
-          maxPpO2,
-        ),
-      ),
-      isCurved: true,
-      curveSmoothness: 0.2,
-      // Only while a lead-in is drawn: that vertex is a sharp direction
-      // change and the spline would otherwise overshoot it and hook below
-      // the curve at the left edge. Dives already starting at t=0 keep
-      // their existing smoothing untouched.
-      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
-      color: ppO2Color,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal.
-    );
-  }
+  LineChartBarData _buildPpO2Line(MetricBand band) => buildPpO2Line(
+    band,
+    widget.ppO2Curve!,
+    widget.profile,
+    _decimatedCurveIndices,
+    _withSurfaceLeadIn,
+    _surfaceValueOf,
+    _seriesGetsLeadIn,
+  );
 
   List<List<int?>>? _o2SpreadSource;
   List<double?>? _o2SpreadCached;
@@ -6261,19 +5964,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Smoothed cell spread (max minus min), memoized on the source identity.
   ///
   /// Both the ribbon and the axis need it, and a rolling median per frame would
-  /// be wasteful. Smoothed because millivolts are whole numbers: without it the
-  /// ribbon flickers a full millivolt wider and narrower on pure rounding.
+  /// be wasteful.
   List<double?> _o2CellSpread(List<List<int?>> mvCurves) {
     if (identical(_o2SpreadSource, mvCurves) && _o2SpreadCached != null) {
       return _o2SpreadCached!;
     }
-    final window = o2CellSpreadWindowSamples([
-      for (final p in widget.profile) p.timestamp,
-    ]);
     _o2SpreadSource = mvCurves;
-    _o2SpreadCached = smoothO2CellSpread([
-      computeO2CellRange(mvCurves),
-    ], windowSamples: window).single;
+    _o2SpreadCached = computeO2CellSpread(mvCurves, widget.profile);
     return _o2SpreadCached!;
   }
 
@@ -6282,37 +5979,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   double? _o2CellRangeAt(int sampleIndex) {
     final curves = widget.o2CellMvCurves;
     if (curves == null) return null;
-    final spread = _o2CellSpread(curves);
-    if (sampleIndex >= spread.length) return null;
-    return spread[sampleIndex];
-  }
-
-  /// Colour for one agreement level, traffic-light coded so the verdict reads
-  /// without decoding a legend. Tight is deliberately quiet despite being
-  /// green: a healthy rig is in that state for essentially the whole dive, so
-  /// it must read as background, not as a series demanding attention.
-  Color _agreementColor(O2CellAgreement level) => switch (level) {
-    O2CellAgreement.tight => const Color(0xFF66BB6A).withValues(alpha: 0.55),
-    O2CellAgreement.drifting => const Color(0xFFFFCA28),
-    O2CellAgreement.wide => const Color(0xFFE57373),
-  };
-
-  /// The rug's caption. Held here so the track and the tooltip cannot diverge.
-  String get _l10nO2CellSpreadLabel => context.l10n.diveLog_o2CellSpread_label;
-
-  String _agreementWord(O2CellAgreement level) => switch (level) {
-    O2CellAgreement.tight => context.l10n.diveLog_tooltip_o2CellsTight,
-    O2CellAgreement.drifting => context.l10n.diveLog_tooltip_o2CellsDrifting,
-    O2CellAgreement.wide => context.l10n.diveLog_tooltip_o2CellsWide,
-  };
-
-  /// "tight (1 mV)" -- a verdict backed by the number, rather than a number the
-  /// reader has to know how to judge.
-  String? _o2CellAgreementReadout(int sampleIndex) {
-    final spread = _o2CellRangeAt(sampleIndex);
-    if (spread == null) return null;
-    final level = o2CellAgreementFor(spread);
-    return '${_agreementWord(level)} (${spread.toStringAsFixed(0)} mV)';
+    return o2CellRangeAt(_o2CellSpread(curves), sampleIndex);
   }
 
   /// One row per physical cell -- ppO2 when the calibration is trustworthy,
@@ -6321,54 +5988,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// cannot drift apart; callers must gate this on `_showPpO2 || _showO2CellMv`
   /// themselves, since a mobile-vs-desktop caller may need to skip building an
   /// empty section wrapper when there is nothing to show.
-  List<TooltipRow> _buildO2CellTooltipRows(int spotIndex) {
-    final l10n = context.l10n;
-    final rows = <TooltipRow>[];
-    final cellCount = o2CellCount(
-      barCurves: widget.o2SensorCurves,
-      mvCurves: widget.o2CellMvCurves,
-    );
-    for (var cell = 0; cell < cellCount; cell++) {
-      final readout = formatO2CellReadout(
-        bar: valueAtSample(
-          curves: widget.o2SensorCurves,
-          cell: cell,
-          sampleIndex: spotIndex,
-        ),
-        millivolt: valueAtSample(
-          curves: widget.o2CellMvCurves,
-          cell: cell,
-          sampleIndex: spotIndex,
-        ),
-        barUnit: l10n.units_pressure_bar,
-        millivoltUnit: l10n.units_profileMetric_millivolts,
+  List<TooltipRow> _buildO2CellTooltipRows(int spotIndex) =>
+      buildO2CellTooltipRows(
+        spotIndex,
+        widget.o2SensorCurves,
+        widget.o2CellMvCurves,
+        _o2CellRangeAt(spotIndex),
+        context.l10n,
       );
-      if (readout == null) continue;
-      rows.add(
-        TooltipRow(
-          label: '${l10n.diveLog_tooltip_sensor} ${cell + 1}',
-          value: readout,
-          bulletColor: o2CellColor(cell),
-        ),
-      );
-    }
-    final agreement = _o2CellAgreementReadout(spotIndex);
-    if (agreement != null) {
-      rows.add(
-        TooltipRow(
-          label: _l10nO2CellSpreadLabel,
-          value: agreement,
-          bulletColor: _agreementColor(
-            o2CellAgreementFor(_o2CellRangeAt(spotIndex)!),
-          ),
-        ),
-      );
-    }
-    return rows;
-  }
-
-  /// Depth, in the band's units, at which the agreement rug sits.
-  double _o2CellRugDepth(MetricBand band) => band.top + band.span * 0.985;
 
   /// A faint full-width groove behind the rug, captioned with what it is.
   ///
@@ -6379,28 +6006,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   List<HorizontalLine> _buildO2CellRugTrack(
     MetricBand band,
     ColorScheme colorScheme,
-  ) {
-    if (!_showO2CellMv) return const [];
-    if (widget.o2CellMvCurves == null) return const [];
-
-    return [
-      HorizontalLine(
-        y: -_o2CellRugDepth(band),
-        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.18),
-        strokeWidth: 3,
-        label: HorizontalLineLabel(
-          show: true,
-          alignment: Alignment.topLeft,
-          padding: const EdgeInsets.only(left: 4, bottom: 2),
-          style: TextStyle(
-            fontSize: 9,
-            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
-          ),
-          labelResolver: (_) => _l10nO2CellSpreadLabel,
-        ),
-      ),
-    ];
-  }
+  ) => buildO2CellRugTrack(
+    band,
+    colorScheme,
+    showO2CellMv: _showO2CellMv,
+    o2CellMvCurves: widget.o2CellMvCurves,
+    l10n: context.l10n,
+  );
 
   /// Cell agreement over time, as a strip pinned to the bottom edge of the plot.
   ///
@@ -6411,40 +6023,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   ///
   /// One segment per run rather than per sample, so a steady dive is a single
   /// bar however long it is.
-  List<LineChartBarData> _buildO2CellRug(MetricBand band) {
-    final mvCurves = widget.o2CellMvCurves;
-    if (mvCurves == null) return const [];
-
-    final spread = _o2CellSpread(mvCurves);
-    final runs = o2CellAgreementRuns(spread);
-    if (runs.isEmpty) return const [];
-
-    final y = -_o2CellRugDepth(band);
-    final lastSample = widget.profile.length - 1;
-
-    final bars = <LineChartBarData>[];
-    for (final run in runs) {
-      if (run.startIndex > lastSample) continue;
-      final from = widget.profile[run.startIndex].timestamp.toDouble();
-      final to = widget.profile[math.min(run.endIndex, lastSample)].timestamp
-          .toDouble();
-      bars.add(
-        LineChartBarData(
-          // A run of one sample would be a zero-length line and draw nothing,
-          // so give it the width of one sampling interval.
-          spots: [FlSpot(from, y), FlSpot(to > from ? to : from + 1, y)],
-          isCurved: false,
-          color: _agreementColor(run.level),
-          // Exception marking: a wide gap is drawn heavier so it is visible
-          // without hunting for a colour change.
-          barWidth: run.level == O2CellAgreement.tight ? 3 : 6,
-          isStrokeCapRound: false,
-          dotData: const FlDotData(show: false),
-        ),
-      );
-    }
-    return bars;
-  }
+  List<LineChartBarData> _buildO2CellRug(MetricBand band) => buildO2CellRug(
+    band,
+    widget.o2CellMvCurves,
+    widget.profile,
+    _o2CellSpread,
+  );
 
   /// Per-cell millivolt lines, drawn alongside the agreement rug: the rug
   /// reads the whole dive at a glance, the lines give the detail behind it.
@@ -6453,394 +6037,113 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   List<LineChartBarData> _buildO2CellMvLines(
     MetricBand band,
     UnitFormatter units,
-  ) {
-    final mvCurves = widget.o2CellMvCurves;
-    if (mvCurves == null) return const [];
-    final range = _getMetricRange(ProfileRightAxisMetric.o2CellMv, units);
-    if (range == null || range.max <= range.min) return const [];
-
-    final lines = <LineChartBarData>[];
-    for (var cell = 0; cell < mvCurves.length; cell++) {
-      final curve = mvCurves[cell];
-      final spots = <FlSpot>[];
-      for (final i in _decimatedNullableCurveIndices(curve)) {
-        final mv = curve[i]!;
-        spots.add(
-          FlSpot(
-            widget.profile[i].timestamp.toDouble(),
-            -band.map(
-              mv.toDouble().clamp(range.min, range.max),
-              range.min,
-              range.max,
-            ),
-          ),
-        );
-      }
-      if (spots.isEmpty) continue;
-      lines.add(
-        LineChartBarData(
-          spots: spots,
-          isCurved: true,
-          curveSmoothness: 0.2,
-          color: o2CellColor(cell),
-          barWidth: 1.5,
-          isStrokeCapRound: true,
-          dotData: const FlDotData(show: false),
-        ),
-      );
-    }
-    return lines;
-  }
+  ) => buildO2CellMvLines(
+    band,
+    widget.o2CellMvCurves,
+    widget.profile,
+    _getMetricRange(ProfileRightAxisMetric.o2CellMv, units),
+    _decimatedNullableCurveIndices,
+  );
 
   /// Build ppN2 (partial pressure of nitrogen) line
-  LineChartBarData _buildPpN2Line(MetricBand band) {
-    final ppN2Data = widget.ppN2Curve!;
-    const ppN2Color = ProfileMetricColors.ppN2;
-
-    // Map ppN2 to chart: 0 at top, ~5 bar at bottom (deep dive)
-    final minPpN2 = ProfileMetricBands.ppN2.min;
-    final maxPpN2 = ProfileMetricBands.ppN2.fixedMax;
-
-    final spots = <FlSpot>[];
-    for (final i in _decimatedCurveIndices(ppN2Data)) {
-      final ppN2 = ppN2Data[i].clamp(minPpN2, maxPpN2);
-      final yValue = band.map(ppN2, minPpN2, maxPpN2);
-      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
-    }
-
-    return LineChartBarData(
-      // Computed, not held flat: at 1 bar ppN2 is the nitrogen fraction.
-      spots: _withSurfaceLeadIn(
-        spots,
-        -band.map(
-          _surfaceValueOf(ppN2Data.first).clamp(minPpN2, maxPpN2),
-          minPpN2,
-          maxPpN2,
-        ),
-      ),
-      isCurved: true,
-      curveSmoothness: 0.2,
-      // Only while a lead-in is drawn: that vertex is a sharp direction
-      // change and the spline would otherwise overshoot it and hook below
-      // the curve at the left edge. Dives already starting at t=0 keep
-      // their existing smoothing untouched.
-      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
-      color: ppN2Color,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal.
-    );
-  }
+  LineChartBarData _buildPpN2Line(MetricBand band) => buildPpN2Line(
+    band,
+    widget.ppN2Curve!,
+    widget.profile,
+    _decimatedCurveIndices,
+    _withSurfaceLeadIn,
+    _surfaceValueOf,
+    _seriesGetsLeadIn,
+  );
 
   /// Build ppHe (partial pressure of helium) line for trimix dives
-  LineChartBarData _buildPpHeLine(MetricBand band) {
-    final ppHeData = widget.ppHeCurve!;
-    const ppHeColor = ProfileMetricColors.ppHe;
-
-    // Map ppHe to chart: 0 at top, ~3 bar at bottom
-    final minPpHe = ProfileMetricBands.ppHe.min;
-    final maxPpHe = ProfileMetricBands.ppHe.fixedMax;
-
-    final spots = <FlSpot>[];
-    for (final i in _decimatedCurveIndices(ppHeData)) {
-      final ppHe = ppHeData[i];
-      if (ppHe > 0.001) {
-        final clamped = ppHe.clamp(minPpHe, maxPpHe);
-        final yValue = band.map(clamped, minPpHe, maxPpHe);
-        spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
-      }
-    }
-
-    return LineChartBarData(
-      // Computed, not held flat: at 1 bar ppHe is the helium fraction. The
-      // ppHe > 0.001 filter above means a non-trimix dive draws nothing at all,
-      // and the lead-in is skipped with it.
-      spots: _withSurfaceLeadIn(
-        spots,
-        -band.map(
-          _surfaceValueOf(ppHeData.first).clamp(minPpHe, maxPpHe),
-          minPpHe,
-          maxPpHe,
-        ),
-      ),
-      isCurved: true,
-      curveSmoothness: 0.2,
-      // Only while a lead-in is drawn: that vertex is a sharp direction
-      // change and the spline would otherwise overshoot it and hook below
-      // the curve at the left edge. Dives already starting at t=0 keep
-      // their existing smoothing untouched.
-      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
-      color: ppHeColor,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal.
-    );
-  }
+  LineChartBarData _buildPpHeLine(MetricBand band) => buildPpHeLine(
+    band,
+    widget.ppHeCurve!,
+    widget.profile,
+    _decimatedCurveIndices,
+    _withSurfaceLeadIn,
+    _surfaceValueOf,
+    _seriesGetsLeadIn,
+  );
 
   /// Build MOD (Maximum Operating Depth) line
   /// Shows the MOD limit as a horizontal reference line
-  LineChartBarData _buildModLine(UnitFormatter units) {
-    final modData = widget.modCurve!;
-    // Amber 600 - distinct from the CNS orange it often overlays.
-    const modColor = ProfileMetricColors.mod;
-
-    // MOD is typically constant for a given gas
-    final spots = <FlSpot>[];
-    for (final i in _decimatedCurveIndices(modData)) {
-      final mod = modData[i];
-      if (mod > 0 && mod < 200) {
-        spots.add(
-          FlSpot(
-            widget.profile[i].timestamp.toDouble(),
-            -units.convertDepth(mod),
-          ),
-        );
-      }
-    }
-
-    return LineChartBarData(
-      // Held flat, and that is the calculated value: MOD is a property of the
-      // gas, not of depth, so it does not change between the surface and the
-      // first sample. Only a gas switch moves it.
-      spots: _withFlatSurfaceLeadIn(spots),
-      isCurved: false,
-      color: modColor,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal.
-    );
-  }
+  LineChartBarData _buildModLine(UnitFormatter units) => buildModLine(
+    units,
+    widget.modCurve!,
+    widget.profile,
+    _decimatedCurveIndices,
+    _withFlatSurfaceLeadIn,
+  );
 
   /// Build gas density line (g/L)
   /// High density (>5.7 g/L) increases work of breathing
-  LineChartBarData _buildDensityLine(MetricBand band) {
-    final densityData = widget.densityCurve!;
-    // Lime 900 (olive) - distinct from the OTU brown.
-    const densityColor = ProfileMetricColors.density;
-
-    // Map density to chart: 0 at top, 8 g/L at bottom
-    final minDensity = ProfileMetricBands.density.min;
-    final maxDensity = ProfileMetricBands.density.fixedMax;
-
-    final spots = <FlSpot>[];
-    for (final i in _decimatedCurveIndices(densityData)) {
-      final density = densityData[i].clamp(minDensity, maxDensity);
-      final yValue = band.map(density, minDensity, maxDensity);
-      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
-    }
-
-    return LineChartBarData(
-      // Gas density scales with ambient pressure, so the surface value is
-      // computed rather than held flat.
-      spots: _withSurfaceLeadIn(
-        spots,
-        -band.map(
-          _surfaceValueOf(densityData.first).clamp(minDensity, maxDensity),
-          minDensity,
-          maxDensity,
-        ),
-      ),
-      isCurved: true,
-      curveSmoothness: 0.2,
-      // Only while a lead-in is drawn: that vertex is a sharp direction
-      // change and the spline would otherwise overshoot it and hook below
-      // the curve at the left edge. Dives already starting at t=0 keep
-      // their existing smoothing untouched.
-      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
-      color: densityColor,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal.
-    );
-  }
+  LineChartBarData _buildDensityLine(MetricBand band) => buildDensityLine(
+    band,
+    widget.densityCurve!,
+    widget.profile,
+    _decimatedCurveIndices,
+    _withSurfaceLeadIn,
+    _surfaceValueOf,
+    _seriesGetsLeadIn,
+  );
 
   /// Build GF% (Gradient Factor percentage) line at current depth
   /// Shows how close tissues are to M-value limit
-  LineChartBarData _buildGfLine(MetricBand band) {
-    final gfData = widget.gfCurve!;
-    const gfColor = ProfileMetricColors.gf;
-
-    // Map GF% to chart: 0% at top, 120% at bottom
-    final minGf = ProfileMetricBands.gf.min;
-    final maxGf = ProfileMetricBands.gf.fixedMax;
-
-    final spots = <FlSpot>[];
-    for (final i in _decimatedCurveIndices(gfData)) {
-      final gf = gfData[i].clamp(minGf, maxGf);
-      final yValue = band.map(gf, minGf, maxGf);
-      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
-    }
-
-    return LineChartBarData(
-      spots: _withFlatSurfaceLeadIn(spots),
-      isCurved: true,
-      curveSmoothness: 0.2,
-      // Only while a lead-in is drawn: that vertex is a sharp direction
-      // change and the spline would otherwise overshoot it and hook below
-      // the curve at the left edge. Dives already starting at t=0 keep
-      // their existing smoothing untouched.
-      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
-      color: gfColor,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal.
-    );
-  }
+  LineChartBarData _buildGfLine(MetricBand band) => buildGfLine(
+    band,
+    widget.gfCurve!,
+    widget.profile,
+    _decimatedCurveIndices,
+    _withFlatSurfaceLeadIn,
+    _seriesGetsLeadIn,
+  );
 
   /// Build Surface GF% line (what GF would be if surfaced now)
   /// Values >100% indicate deco obligation
-  LineChartBarData _buildSurfaceGfLine(MetricBand band) {
-    final surfaceGfData = widget.surfaceGfCurve!;
-    const surfaceGfColor = ProfileMetricColors.surfaceGf;
-
-    // Map Surface GF% to chart: 0% at top, 150% at bottom
-    final minGf = ProfileMetricBands.surfaceGf.min;
-    final maxGf = ProfileMetricBands.surfaceGf.fixedMax;
-
-    final spots = <FlSpot>[];
-    for (final i in _decimatedCurveIndices(surfaceGfData)) {
-      final gf = surfaceGfData[i].clamp(minGf, maxGf);
-      final yValue = band.map(gf, minGf, maxGf);
-      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
-    }
-
-    return LineChartBarData(
-      spots: _withFlatSurfaceLeadIn(spots),
-      isCurved: true,
-      curveSmoothness: 0.2,
-      // Only while a lead-in is drawn: that vertex is a sharp direction
-      // change and the spline would otherwise overshoot it and hook below
-      // the curve at the left edge. Dives already starting at t=0 keep
-      // their existing smoothing untouched.
-      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
-      color: surfaceGfColor,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal.
-    );
-  }
+  LineChartBarData _buildSurfaceGfLine(MetricBand band) => buildSurfaceGfLine(
+    band,
+    widget.surfaceGfCurve!,
+    widget.profile,
+    _decimatedCurveIndices,
+    _withFlatSurfaceLeadIn,
+    _seriesGetsLeadIn,
+  );
 
   /// Build mean depth line (running average from start)
-  LineChartBarData _buildMeanDepthLine(UnitFormatter units) {
-    final meanDepthData = widget.meanDepthCurve!;
-    const meanDepthColor = ProfileMetricColors.meanDepth;
-
-    final spots = <FlSpot>[];
-    for (final i in _decimatedCurveIndices(meanDepthData)) {
-      spots.add(
-        FlSpot(
-          widget.profile[i].timestamp.toDouble(),
-          -units.convertDepth(meanDepthData[i]),
-        ),
+  LineChartBarData _buildMeanDepthLine(UnitFormatter units) =>
+      buildMeanDepthLine(
+        units,
+        widget.meanDepthCurve!,
+        widget.profile,
+        _decimatedCurveIndices,
+        _withFlatSurfaceLeadIn,
+        _seriesGetsLeadIn,
       );
-    }
-
-    return LineChartBarData(
-      spots: _withFlatSurfaceLeadIn(spots),
-      isCurved: true,
-      curveSmoothness: 0.2,
-      // Only while a lead-in is drawn: that vertex is a sharp direction
-      // change and the spline would otherwise overshoot it and hook below
-      // the curve at the left edge. Dives already starting at t=0 keep
-      // their existing smoothing untouched.
-      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
-      color: meanDepthColor,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal.
-    );
-  }
 
   /// Build TTS (Time To Surface) line
   /// Shows total time including deco stops to reach surface
-  LineChartBarData _buildTtsLine(MetricBand band) {
-    final ttsData = widget.ttsCurve!;
-    const ttsColor = ProfileMetricColors.tts;
-
-    // Map TTS to chart: 0 at top, 60 min at bottom
-    final maxTtsSeconds = ProfileMetricBands.tts.fixedMax;
-
-    final spots = <FlSpot>[];
-    for (final i in _decimatedCurveIndices(ttsData)) {
-      final tts = ttsData[i].toDouble().clamp(0, maxTtsSeconds);
-      final normalized = tts / maxTtsSeconds;
-      final yValue = band.mapNormalized(normalized);
-      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
-    }
-
-    return LineChartBarData(
-      spots: _withFlatSurfaceLeadIn(spots),
-      isCurved: true,
-      curveSmoothness: 0.2,
-      // Only while a lead-in is drawn: that vertex is a sharp direction
-      // change and the spline would otherwise overshoot it and hook below
-      // the curve at the left edge. Dives already starting at t=0 keep
-      // their existing smoothing untouched.
-      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
-      color: ttsColor,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal.
-    );
-  }
+  LineChartBarData _buildTtsLine(MetricBand band) => buildTtsLine(
+    band,
+    widget.ttsCurve!,
+    widget.profile,
+    _decimatedCurveIndices,
+    _withFlatSurfaceLeadIn,
+    _seriesGetsLeadIn,
+  );
 
   /// Build the gas time remaining line.
   ///
   /// Null samples are where the computer (or the calculation) blanked the
   /// value, so the line breaks there instead of dropping to zero. No surface
   /// lead-in: GTR is blank on the surface by definition.
-  LineChartBarData _buildGtrLine(MetricBand band) {
-    final gtrData = widget.gtrCurve!;
-    // Same 0-60 min band as NDL and TTS so the three read on one scale.
-    final maxGtrSeconds = ProfileMetricBands.gtr.fixedMax;
-
-    // Gaps are excluded before decimation (a blank must never be sampled as
-    // a zero), then the line is broken wherever consecutive kept samples are
-    // not adjacent in the raw curve with only blanks between them.
-    final spots = <FlSpot>[];
-    var previous = -1;
-    for (final i in _decimatedNullableCurveIndices(gtrData)) {
-      if (previous >= 0 && _gtrGapBetween(gtrData, previous, i)) {
-        spots.add(FlSpot.nullSpot);
-      }
-      final normalized =
-          gtrData[i]!.toDouble().clamp(0, maxGtrSeconds) / maxGtrSeconds;
-      final yValue = band.mapNormalized(normalized);
-      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
-      previous = i;
-    }
-
-    return LineChartBarData(
-      spots: spots,
-      isCurved: true,
-      curveSmoothness: 0.2,
-      color: ProfileRightAxisMetric.gtr.color!,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal.
-    );
-  }
-
-  /// Whether every raw sample strictly between kept indices [from] and [to]
-  /// is blank, i.e. the line should break rather than bridge them. Decimation
-  /// also skips present samples, so a gap is only a gap when nothing present
-  /// was dropped in between.
-  static bool _gtrGapBetween(List<int?> curve, int from, int to) {
-    if (to - from < 2) return false;
-    for (var j = from + 1; j < to; j++) {
-      if (curve[j] != null) return false;
-    }
-    return true;
-  }
+  LineChartBarData _buildGtrLine(MetricBand band) => buildGtrLine(
+    band,
+    widget.gtrCurve!,
+    widget.profile,
+    _decimatedNullableCurveIndices,
+  );
 
   /// Compute dynamic max scale for CNS curve based on actual data.
   double _getCnsMaxScale() {
@@ -6857,123 +6160,26 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }
 
   /// Build cumulative CNS% line
-  LineChartBarData _buildCnsLine(MetricBand band) {
-    final cnsData = widget.cnsCurve!;
-    const cnsColor = ProfileMetricColors.cns;
-
-    final minCns = ProfileMetricBands.cns.min;
-    final maxCns = _getCnsMaxScale();
-
-    final spots = <FlSpot>[];
-    for (final i in _decimatedCurveIndices(cnsData)) {
-      final cns = cnsData[i].clamp(minCns, maxCns);
-      final yValue = band.map(cns, minCns, maxCns);
-      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
-    }
-
-    return LineChartBarData(
-      spots: _withFlatSurfaceLeadIn(spots),
-      isCurved: true,
-      curveSmoothness: 0.2,
-      // Only while a lead-in is drawn: that vertex is a sharp direction
-      // change and the spline would otherwise overshoot it and hook below
-      // the curve at the left edge. Dives already starting at t=0 keep
-      // their existing smoothing untouched.
-      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
-      color: cnsColor,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal.
-    );
-  }
+  LineChartBarData _buildCnsLine(MetricBand band) => buildCnsLine(
+    band,
+    widget.cnsCurve!,
+    _getCnsMaxScale(),
+    widget.profile,
+    _decimatedCurveIndices,
+    _withFlatSurfaceLeadIn,
+    _seriesGetsLeadIn,
+  );
 
   /// Build cumulative OTU line
-  LineChartBarData _buildOtuLine(MetricBand band) {
-    final otuData = widget.otuCurve!;
-    const otuColor = ProfileMetricColors.otu;
-
-    final minOtu = ProfileMetricBands.otu.min;
-    final maxOtu = _getOtuMaxScale();
-
-    final spots = <FlSpot>[];
-    for (final i in _decimatedCurveIndices(otuData)) {
-      final otu = otuData[i].clamp(minOtu, maxOtu);
-      final yValue = band.map(otu, minOtu, maxOtu);
-      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), -yValue));
-    }
-
-    return LineChartBarData(
-      spots: _withFlatSurfaceLeadIn(spots),
-      isCurved: true,
-      curveSmoothness: 0.2,
-      // Only while a lead-in is drawn: that vertex is a sharp direction
-      // change and the spline would otherwise overshoot it and hook below
-      // the curve at the left edge. Dives already starting at t=0 keep
-      // their existing smoothing untouched.
-      preventCurveOverShooting: _seriesGetsLeadIn(spots, widget.profile),
-      color: otuColor,
-      barWidth: 1,
-      isStrokeCapRound: true,
-      dotData: const FlDotData(show: false),
-      // Solid: see the comment on _buildNdlLine's dashArray removal.
-    );
-  }
-
-  /// Build vertical line for playback cursor
-  List<VerticalLine> _buildPlaybackCursor(ColorScheme colorScheme) {
-    final timestamp = widget.playbackTimestamp;
-    if (timestamp == null) {
-      return [];
-    }
-
-    // Convert timestamp to x position (seconds)
-    final xPosition = timestamp.toDouble();
-
-    return [
-      VerticalLine(
-        x: xPosition,
-        color: colorScheme.primary,
-        strokeWidth: 2,
-        dashArray: [4, 4],
-        label: VerticalLineLabel(
-          show: true,
-          alignment: Alignment.topCenter,
-          padding: const EdgeInsets.only(bottom: 4),
-          style: TextStyle(
-            color: colorScheme.onPrimaryContainer,
-            fontSize: 10,
-            fontWeight: FontWeight.bold,
-            backgroundColor: colorScheme.primaryContainer.withValues(
-              alpha: 0.9,
-            ),
-          ),
-          labelResolver: (line) {
-            final minutes = timestamp ~/ 60;
-            final seconds = timestamp % 60;
-            return ' ${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')} ';
-          },
-        ),
-      ),
-    ];
-  }
-
-  /// Build vertical line for external highlight (e.g. heat map hover)
-  List<VerticalLine> _buildHighlightCursor(ColorScheme colorScheme) {
-    final timestamp = widget.highlightedTimestamp;
-    if (timestamp == null) {
-      return [];
-    }
-
-    return [
-      VerticalLine(
-        x: timestamp.toDouble(),
-        color: colorScheme.onSurface.withValues(alpha: 0.5),
-        strokeWidth: 1,
-        dashArray: [3, 3],
-      ),
-    ];
-  }
+  LineChartBarData _buildOtuLine(MetricBand band) => buildOtuLine(
+    band,
+    widget.otuCurve!,
+    _getOtuMaxScale(),
+    widget.profile,
+    _decimatedCurveIndices,
+    _withFlatSurfaceLeadIn,
+    _seriesGetsLeadIn,
+  );
 
   /// Translucent band for the externally highlighted time range. [span] is
   /// precomputed by [_buildChart] via [highlightBandSpan]: clamped to the
@@ -7018,20 +6224,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       );
     }
     return annotations;
-  }
-
-  /// Edge lines at the highlight band's (possibly inflated) edges.
-  List<VerticalLine> _buildHighlightRangeLines(({double x1, double x2})? span) {
-    final range = widget.highlightRange;
-    if (range == null || span == null) return [];
-    return [
-      for (final x in [span.x1, span.x2])
-        VerticalLine(
-          x: x,
-          color: range.color.withValues(alpha: 0.7),
-          strokeWidth: 1,
-        ),
-    ];
   }
 
   /// Build vertical lines for event markers on the dive profile.
@@ -7342,51 +6534,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }
 
   /// Check if a specific metric has data available in this dive profile
-  bool _hasDataForMetric(ProfileRightAxisMetric metric) {
-    switch (metric) {
-      case ProfileRightAxisMetric.temperature:
-        return widget.profile.any((p) => p.temperature != null);
-      case ProfileRightAxisMetric.pressure:
-        return _hasMultiTankPressure;
-      case ProfileRightAxisMetric.heartRate:
-        return widget.profile.any((p) => p.heartRate != null);
-      case ProfileRightAxisMetric.sac:
-        return widget.sacCurve != null && widget.sacCurve!.any((s) => s > 0);
-      case ProfileRightAxisMetric.ascentRate:
-        return widget.ascentRates != null && widget.ascentRates!.isNotEmpty;
-      case ProfileRightAxisMetric.ndl:
-        return widget.ndlCurve != null && widget.ndlCurve!.isNotEmpty;
-      case ProfileRightAxisMetric.ppO2:
-        return widget.ppO2Curve != null && widget.ppO2Curve!.isNotEmpty;
-      case ProfileRightAxisMetric.ppN2:
-        return widget.ppN2Curve != null && widget.ppN2Curve!.isNotEmpty;
-      case ProfileRightAxisMetric.ppHe:
-        return widget.ppHeCurve != null &&
-            widget.ppHeCurve!.any((v) => v > 0.001);
-      case ProfileRightAxisMetric.gasDensity:
-        return widget.densityCurve != null && widget.densityCurve!.isNotEmpty;
-      case ProfileRightAxisMetric.gf:
-        return widget.gfCurve != null && widget.gfCurve!.isNotEmpty;
-      case ProfileRightAxisMetric.surfaceGf:
-        return widget.surfaceGfCurve != null &&
-            widget.surfaceGfCurve!.isNotEmpty;
-      case ProfileRightAxisMetric.meanDepth:
-        return widget.meanDepthCurve != null &&
-            widget.meanDepthCurve!.isNotEmpty;
-      case ProfileRightAxisMetric.tts:
-        return widget.ttsCurve != null && widget.ttsCurve!.isNotEmpty;
-      case ProfileRightAxisMetric.gtr:
-        return widget.gtrCurve != null &&
-            widget.gtrCurve!.any((v) => v != null);
-      case ProfileRightAxisMetric.cns:
-        return widget.cnsCurve != null && widget.cnsCurve!.isNotEmpty;
-      case ProfileRightAxisMetric.otu:
-        return widget.otuCurve != null && widget.otuCurve!.isNotEmpty;
-      case ProfileRightAxisMetric.o2CellMv:
-        return widget.o2CellMvCurves != null &&
-            widget.o2CellMvCurves!.any((c) => c.any((v) => v != null));
-    }
-  }
+  bool _hasDataForMetric(ProfileRightAxisMetric metric) => hasDataForMetric(
+    metric,
+    widget,
+    hasMultiTankPressure: _hasMultiTankPressure,
+  );
 
   /// Get the effective right axis metric using the fallback chain
   ProfileRightAxisMetric? _getEffectiveRightAxisMetric(
@@ -7434,95 +6586,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   ({double min, double max})? _getMetricRange(
     ProfileRightAxisMetric metric,
     UnitFormatter units,
-  ) {
-    switch (metric) {
-      case ProfileRightAxisMetric.temperature:
-        final temps = widget.profile
-            .where((p) => p.temperature != null)
-            .map((p) => units.convertTemperature(p.temperature!));
-        if (temps.isEmpty) return null;
-        return (
-          min: temps.reduce(math.min) - 1,
-          max: temps.reduce(math.max) + 1,
-        );
-
-      case ProfileRightAxisMetric.pressure:
-        if (!_hasMultiTankPressure || widget.tankPressures == null) return null;
-        double? pMin, pMax;
-        for (final points in widget.tankPressures!.values) {
-          for (final pt in points) {
-            if (pMin == null || pt.pressure < pMin) pMin = pt.pressure;
-            if (pMax == null || pt.pressure > pMax) pMax = pt.pressure;
-          }
-        }
-        if (pMin == null || pMax == null) return null;
-        return (min: pMin - 10, max: pMax + 10);
-
-      case ProfileRightAxisMetric.heartRate:
-        final hrs = widget.profile
-            .where((p) => p.heartRate != null)
-            .map((p) => p.heartRate!.toDouble());
-        if (hrs.isEmpty) return null;
-        return (min: hrs.reduce(math.min) - 5, max: hrs.reduce(math.max) + 5);
-
-      case ProfileRightAxisMetric.sac:
-        if (widget.sacCurve == null) return null;
-        final sacs = widget.sacCurve!.where((s) => s > 0);
-        if (sacs.isEmpty) return null;
-        return (min: 0.0, max: sacs.reduce(math.max) * 1.2);
-
-      case ProfileRightAxisMetric.ascentRate:
-        return DiveProfileChart.ascentRateAxisRange(widget.ascentRates);
-
-      case ProfileRightAxisMetric.ndl:
-        return (min: 0.0, max: 3600.0); // 0-60 minutes
-
-      case ProfileRightAxisMetric.ppO2:
-        return (min: 0.0, max: 2.0); // 0-2.0 bar
-
-      case ProfileRightAxisMetric.ppN2:
-        return (min: 0.0, max: 5.0); // 0-5.0 bar
-
-      case ProfileRightAxisMetric.ppHe:
-        return (min: 0.0, max: 3.0); // 0-3.0 bar
-
-      case ProfileRightAxisMetric.gasDensity:
-        return (min: 0.0, max: 8.0); // 0-8 g/L
-
-      case ProfileRightAxisMetric.gf:
-        return (min: 0.0, max: 120.0); // 0-120%
-
-      case ProfileRightAxisMetric.surfaceGf:
-        return (min: 0.0, max: 150.0); // 0-150%
-
-      case ProfileRightAxisMetric.meanDepth:
-        if (widget.meanDepthCurve == null) return null;
-        final depths = widget.meanDepthCurve!;
-        if (depths.isEmpty) return null;
-        return (min: 0.0, max: depths.reduce(math.max) * 1.1);
-
-      case ProfileRightAxisMetric.tts:
-      case ProfileRightAxisMetric.gtr:
-        return (min: 0.0, max: 3600.0); // 0-60 minutes
-
-      case ProfileRightAxisMetric.cns:
-        if (widget.cnsCurve == null || widget.cnsCurve!.isEmpty) return null;
-        return (min: 0.0, max: _getCnsMaxScale());
-
-      case ProfileRightAxisMetric.otu:
-        if (widget.otuCurve == null || widget.otuCurve!.isEmpty) return null;
-        return (min: 0.0, max: _getOtuMaxScale());
-
-      case ProfileRightAxisMetric.o2CellMv:
-        final curves = widget.o2CellMvCurves;
-        if (curves == null) return null;
-        // Zero-anchored and data-driven, so levels stay comparable across
-        // dives. Cells sit around 30-70 mV.
-        final maxMv = _o2CellMvMax(curves);
-        if (maxMv == null) return null;
-        return (min: 0.0, max: maxMv * 1.2);
-    }
-  }
+  ) => getMetricRange(
+    metric,
+    units,
+    widget,
+    hasMultiTankPressure: _hasMultiTankPressure,
+    cnsMaxScale: _getCnsMaxScale(),
+    otuMaxScale: _getOtuMaxScale(),
+    o2CellMvMax: _o2CellMvMax,
+    ascentRateAxisRange: DiveProfileChart.ascentRateAxisRange,
+  );
 
   /// Format right axis tick values as plain numbers (units shown in axis label).
   ///
@@ -7573,121 +6646,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }
 
   /// Build axis label text for the right axis (e.g. "Temp (°C)").
-  String _rightAxisLabel(ProfileRightAxisMetric metric, UnitFormatter units) {
-    final l10n = context.l10n;
-    final name = profileMetricShortName(l10n, metric);
-    final perMin = l10n.units_profileMetric_min;
-    switch (metric) {
-      case ProfileRightAxisMetric.temperature:
-        return '$name (${units.temperatureSymbol})';
-      case ProfileRightAxisMetric.pressure:
-        return '$name (${units.pressureSymbol})';
-      case ProfileRightAxisMetric.meanDepth:
-        return '$name (${units.depthSymbol})';
-      case ProfileRightAxisMetric.sac:
-        return '$name (${units.pressureSymbol}/$perMin)';
-      case ProfileRightAxisMetric.ascentRate:
-        return '$name (${units.depthSymbol}/$perMin)';
-      default:
-        final suffix = profileMetricUnitSuffix(l10n, metric);
-        if (suffix != null) return '$name ($suffix)';
-        return name;
-    }
-  }
+  String _rightAxisLabel(ProfileRightAxisMetric metric, UnitFormatter units) =>
+      rightAxisLabel(metric, units, context.l10n);
 }
-
-/// Localized display name for a right-axis metric.
-///
-/// [ProfileRightAxisMetric.displayName] is a hardcoded English literal baked
-/// into the enum, so the axis picker rendered English under every locale.
-/// The `enum_profileMetric_*` keys already ship translated.
-String profileMetricName(
-  AppLocalizations l10n,
-  ProfileRightAxisMetric metric,
-) => switch (metric) {
-  ProfileRightAxisMetric.temperature => l10n.enum_profileMetric_temperature,
-  ProfileRightAxisMetric.pressure => l10n.enum_profileMetric_pressure,
-  ProfileRightAxisMetric.heartRate => l10n.enum_profileMetric_heartRate,
-  ProfileRightAxisMetric.sac => l10n.enum_profileMetric_sacRate,
-  ProfileRightAxisMetric.ascentRate => l10n.enum_profileMetric_ascentRate,
-  ProfileRightAxisMetric.ndl => l10n.enum_profileMetric_ndl,
-  ProfileRightAxisMetric.ppO2 => l10n.enum_profileMetric_ppO2,
-  ProfileRightAxisMetric.ppN2 => l10n.enum_profileMetric_ppN2,
-  ProfileRightAxisMetric.ppHe => l10n.enum_profileMetric_ppHe,
-  ProfileRightAxisMetric.gasDensity => l10n.enum_profileMetric_gasDensity,
-  ProfileRightAxisMetric.gf => l10n.enum_profileMetric_gf,
-  ProfileRightAxisMetric.surfaceGf => l10n.enum_profileMetric_surfaceGf,
-  ProfileRightAxisMetric.meanDepth => l10n.enum_profileMetric_meanDepth,
-  ProfileRightAxisMetric.tts => l10n.enum_profileMetric_tts,
-  ProfileRightAxisMetric.gtr => l10n.enum_profileMetric_gtr,
-  ProfileRightAxisMetric.cns => l10n.enum_profileMetric_cns,
-  ProfileRightAxisMetric.otu => l10n.enum_profileMetric_otu,
-  ProfileRightAxisMetric.o2CellMv => l10n.enum_profileMetric_o2CellMv,
-};
-
-/// Localized short name for a right-axis metric, used on the axis itself
-/// where there is only room for an abbreviation.
-String profileMetricShortName(
-  AppLocalizations l10n,
-  ProfileRightAxisMetric metric,
-) => switch (metric) {
-  ProfileRightAxisMetric.temperature =>
-    l10n.enum_profileMetric_temperature_short,
-  ProfileRightAxisMetric.pressure => l10n.enum_profileMetric_pressure_short,
-  ProfileRightAxisMetric.heartRate => l10n.enum_profileMetric_heartRate_short,
-  ProfileRightAxisMetric.sac => l10n.enum_profileMetric_sacRate_short,
-  ProfileRightAxisMetric.ascentRate => l10n.enum_profileMetric_ascentRate_short,
-  ProfileRightAxisMetric.ndl => l10n.enum_profileMetric_ndl_short,
-  ProfileRightAxisMetric.ppO2 => l10n.enum_profileMetric_ppO2_short,
-  ProfileRightAxisMetric.ppN2 => l10n.enum_profileMetric_ppN2_short,
-  ProfileRightAxisMetric.ppHe => l10n.enum_profileMetric_ppHe_short,
-  ProfileRightAxisMetric.gasDensity => l10n.enum_profileMetric_gasDensity_short,
-  ProfileRightAxisMetric.gf => l10n.enum_profileMetric_gf_short,
-  ProfileRightAxisMetric.surfaceGf => l10n.enum_profileMetric_surfaceGf_short,
-  ProfileRightAxisMetric.meanDepth => l10n.enum_profileMetric_meanDepth_short,
-  ProfileRightAxisMetric.tts => l10n.enum_profileMetric_tts_short,
-  ProfileRightAxisMetric.gtr => l10n.enum_profileMetric_gtr_short,
-  ProfileRightAxisMetric.cns => l10n.enum_profileMetric_cns_short,
-  ProfileRightAxisMetric.otu => l10n.enum_profileMetric_otu_short,
-  ProfileRightAxisMetric.o2CellMv => l10n.enum_profileMetric_o2CellMv_short,
-};
-
-/// Localized unit suffix for the metrics whose unit is fixed rather than
-/// taken from the diver's unit settings. Metrics that go through
-/// [UnitFormatter] (temperature, pressure, mean depth, SAC, ascent rate)
-/// return null: the caller appends the formatter's own symbol.
-String? profileMetricUnitSuffix(
-  AppLocalizations l10n,
-  ProfileRightAxisMetric metric,
-) => switch (metric) {
-  ProfileRightAxisMetric.heartRate => l10n.units_profileMetric_bpm,
-  ProfileRightAxisMetric.ndl ||
-  ProfileRightAxisMetric.tts ||
-  ProfileRightAxisMetric.gtr => l10n.units_profileMetric_min,
-  ProfileRightAxisMetric.ppO2 ||
-  ProfileRightAxisMetric.ppN2 ||
-  ProfileRightAxisMetric.ppHe => l10n.units_pressure_bar,
-  ProfileRightAxisMetric.gasDensity => l10n.units_profileMetric_gPerL,
-  ProfileRightAxisMetric.gf ||
-  ProfileRightAxisMetric.surfaceGf ||
-  ProfileRightAxisMetric.cns => l10n.units_profileMetric_percent,
-  _ => null,
-};
-
-/// Localized header for a metric category in the right-axis picker.
-String profileMetricCategoryName(
-  AppLocalizations l10n,
-  ProfileMetricCategory category,
-) => switch (category) {
-  ProfileMetricCategory.primary => l10n.enum_profileMetricCategory_primary,
-  ProfileMetricCategory.decompression =>
-    l10n.enum_profileMetricCategory_decompression,
-  ProfileMetricCategory.gasAnalysis =>
-    l10n.enum_profileMetricCategory_gasAnalysis,
-  ProfileMetricCategory.gradientFactor =>
-    l10n.enum_profileMetricCategory_gradientFactor,
-  ProfileMetricCategory.other => l10n.enum_profileMetricCategory_other,
-};
 
 /// Compact version of the dive profile chart for list previews
 class DiveProfileMiniChart extends StatelessWidget {
