@@ -11,7 +11,9 @@ void main() {
   });
 
   test('large text grows the docked band', () {
-    final extents = TripStoryBandExtents.forScaler(TextScaler.linear(3.0));
+    final extents = TripStoryBandExtents.forScaler(
+      const TextScaler.linear(3.0),
+    );
 
     expect(extents.docked, greaterThan(TripStoryBandExtents.dockedFloor));
     // The expanded floor still dominates here: 119.88 + 100 is under 260.
@@ -20,7 +22,9 @@ void main() {
 
   test('once the docked band outgrows the floor, expanded tracks it', () {
     // At 5x the panel needs 191.8, so docked + headroom finally clears 260.
-    final extents = TripStoryBandExtents.forScaler(TextScaler.linear(5.0));
+    final extents = TripStoryBandExtents.forScaler(
+      const TextScaler.linear(5.0),
+    );
 
     expect(extents.expanded, greaterThan(TripStoryBandExtents.expandedFloor));
     expect(
