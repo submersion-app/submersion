@@ -38,7 +38,7 @@ TripWithStats _trip({
     id: id,
     name: name,
     startDate: start,
-    endDate: start.add(const Duration(days: 7)),
+    endDate: DateTime(start.year, start.month, start.day + 7),
     tripType: TripType.shore,
     createdAt: start,
     updatedAt: start,
@@ -76,7 +76,12 @@ void main() {
   // Anchored off "now" so the widget's own past/upcoming split holds whenever
   // the suite runs; only the month and day are asserted, never the year.
   final past = DateTime(DateTime.now().year - 1, 6, 1);
-  final upcoming = DateTime.now().add(const Duration(days: 30));
+  final now = DateTime.now();
+  // Calendar-day offsets, never `Duration`: adding elapsed time across a
+  // daylight-saving transition lands an hour either side of midnight and
+  // shifts the calendar date the countdown is asserted against.
+  final upcoming = DateTime(now.year, now.month, now.day + 30);
+  final inFiveDays = DateTime(now.year, now.month, now.day + 5);
 
   group('TripSummaryWidget honours the diver date format', () {
     testWidgets('the recent-trips list is day-first', (tester) async {
@@ -112,5 +117,18 @@ void main() {
           '${upcoming.day.toString().padLeft(2, '0')}';
       expect(find.textContaining(iso), findsWidgets);
     });
+  });
+
+  testWidgets('the next-trip card counts whole calendar days to departure', (
+    tester,
+  ) async {
+    // Counting from the current instant instead of today's date floors away
+    // the rest of today, so a trip five calendar days out read "In 4 days" at
+    // any hour past midnight; a spring-forward inside the window took another.
+    await _pump(tester, DateFormatPreference.mmmDYYYY, [
+      _trip(id: 't2', name: 'Palau Liveaboard', start: inFiveDays),
+    ]);
+
+    expect(find.textContaining('In 5 days'), findsOneWidget);
   });
 }

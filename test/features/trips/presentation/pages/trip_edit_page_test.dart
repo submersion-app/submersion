@@ -430,6 +430,36 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Existing Trip'), findsOneWidget);
     });
+
+    testWidgets('duration counts calendar days across a spring-forward', (
+      tester,
+    ) async {
+      // The loaded trip runs 2027-03-12 to 2027-03-15. US DST starts on
+      // 2027-03-14, so that window is 71 elapsed hours, and the elapsed-time
+      // count this label used to do floored it to a 3-day trip while the
+      // itinerary generated from the same range correctly had 4 days.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithDstTrip(),
+            ),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-id'),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('4 days'), findsOneWidget);
+    });
   });
 
   group('share toggle', () {
@@ -1899,6 +1929,22 @@ class _RecordingScanRepo extends _MockTripRepositoryWithTrip {
 }
 
 /// Mock repository that returns a test trip
+/// Serves a trip whose range spans the 2027-03-14 spring-forward, pinned to
+/// explicit calendar dates so the window crosses a transition on every run.
+class _MockTripRepositoryWithDstTrip extends _MockTripRepositoryWithTrip {
+  @override
+  Future<Trip?> getTripById(String id) async {
+    return Trip(
+      id: 'test-id',
+      name: 'DST Trip',
+      startDate: DateTime(2027, 3, 12),
+      endDate: DateTime(2027, 3, 15),
+      createdAt: DateTime(2027),
+      updatedAt: DateTime(2027),
+    );
+  }
+}
+
 class _MockTripRepositoryWithTrip implements TripRepository {
   @override
   Future<Trip> createTrip(Trip trip) async => trip;

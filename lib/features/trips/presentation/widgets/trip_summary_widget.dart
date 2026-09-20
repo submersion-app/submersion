@@ -259,7 +259,11 @@ class TripSummaryWidget extends ConsumerWidget {
   ) {
     final units = UnitFormatter(ref.watch(settingsProvider));
     final nextTrip = upcomingTrips.first;
-    final daysUntil = nextTrip.trip.startDate.difference(DateTime.now()).inDays;
+    // Whole calendar days to the start date. Subtracting the current instant
+    // instead would floor away the rest of today (a trip four calendar days
+    // out reads "In 3 days" at any hour past midnight), and would lose a
+    // further day whenever a spring-forward falls inside the window.
+    final daysUntil = nextTrip.trip.daysUntilStart;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
