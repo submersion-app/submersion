@@ -734,12 +734,36 @@ class UddfFullImportService {
       final ids = dive['diveTypeIds'];
       if (ids is! List) continue;
       final names = dive['diveTypeNames'];
+      String? nameOf(String id) {
+        final n = names is Map ? names[id] : null;
+        return n is String ? n : null;
+      }
+
+      // Relink an id the free-text mapper mangled. Submersion's own export
+      // writes `dive.diveTypeIds` into `<divetype>`, so the element text is
+      // a stored id, and `generateSlug` strips the underscores out of one:
+      // 'search_recovery_1a2b3c4d' would arrive as
+      // 'searchrecovery1a2b3c4d', no longer matching the type the file
+      // declares. Where the original text is a declared id, that is the id.
+      for (var i = 0; i < ids.length; i++) {
+        final id = ids[i];
+        if (id is! String) continue;
+        final original = nameOf(id)?.trim();
+        if (original != null && original != id && declared.contains(original)) {
+          ids[i] = original;
+          if (names is Map) {
+            names.remove(id);
+            names[original] = original;
+          }
+        }
+      }
+
       for (final id in ids.whereType<String>()) {
         if (kBuiltInDiveTypeIds.contains(id) || !declared.add(id)) continue;
-        final name = names is Map ? names[id] : null;
+        final name = nameOf(id);
         customDiveTypes.add({
           'id': id,
-          'name': name is String && name.isNotEmpty
+          'name': name != null && name.isNotEmpty
               ? name
               : Dive.diveTypeDisplayName(id),
           'isBuiltIn': false,

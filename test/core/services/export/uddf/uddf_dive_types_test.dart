@@ -54,6 +54,30 @@ const _uddfDeclaredType = '''<uddf version="3.2.1">
   </applicationdata>
 </uddf>''';
 
+/// Submersion's own export writes `dive.diveTypeIds` into `<divetype>`, so
+/// the element text is a stored id, and a custom id carries underscores.
+const _uddfOwnExport = '''<uddf version="3.2.1">
+  <profiledata>
+    <repetitiongroup id="g">
+      <dive id="d">
+        <informationbeforedive>
+          <datetime>2025-03-19T08:19:54</datetime>
+          <divetype>search_recovery_1a2b3c4d</divetype>
+        </informationbeforedive>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+  <applicationdata>
+    <submersion>
+      <divetypes>
+        <divetype id="search_recovery_1a2b3c4d">
+          <name>Search &amp; Recovery</name>
+        </divetype>
+      </divetypes>
+    </submersion>
+  </applicationdata>
+</uddf>''';
+
 void main() {
   test('UDDF import collects multiple <divetype> elements', () async {
     final service = UddfFullImportService();
@@ -96,5 +120,19 @@ void main() {
     // The file's own declaration wins: the harvest must not overwrite the
     // diver's name for the type with the element text.
     expect(result.customDiveTypes.single['name'], 'Cenote dives');
+  });
+
+  // DiveTypeEntity.generateSlug strips underscores, so running a stored id
+  // through the free-text mapper would turn 'search_recovery_1a2b3c4d' into
+  // 'searchrecovery1a2b3c4d': the dive would stop pointing at the type the
+  // file declares, and a duplicate custom type would be created beside it.
+  test('a declared custom type id survives its own export', () async {
+    final service = UddfFullImportService();
+    final result = await service.importAllDataFromUddf(_uddfOwnExport);
+
+    expect(result.dives.first['diveTypeIds'], ['search_recovery_1a2b3c4d']);
+    expect(result.customDiveTypes, hasLength(1));
+    expect(result.customDiveTypes.single['id'], 'search_recovery_1a2b3c4d');
+    expect(result.customDiveTypes.single['name'], 'Search & Recovery');
   });
 }

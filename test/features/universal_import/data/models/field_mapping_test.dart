@@ -4,8 +4,8 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 
 void main() {
   group('ValueTransform', () {
-    test('has nine values', () {
-      expect(ValueTransform.values, hasLength(9));
+    test('has ten values', () {
+      expect(ValueTransform.values, hasLength(10));
     });
 
     group('displayName', () {
@@ -35,6 +35,10 @@ void main() {
 
       test('visibilityScale', () {
         expect(ValueTransform.visibilityScale.displayName, 'Visibility');
+      });
+
+      test('diveModeMap', () {
+        expect(ValueTransform.diveModeMap.displayName, 'Dive Mode');
       });
 
       test('diveTypeMap', () {

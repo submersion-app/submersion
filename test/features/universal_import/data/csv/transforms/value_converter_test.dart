@@ -717,6 +717,19 @@ void main() {
         expect(result, 'wreck');
       });
 
+      test('dispatches diveModeMap', () {
+        // The mode transform drops a breathing-loop name; the dive type
+        // transform beside it preserves the same value (#2203).
+        expect(
+          service.applyTransform(ValueTransform.diveModeMap, 'CCR'),
+          'recreational',
+        );
+        expect(
+          service.applyTransform(ValueTransform.diveTypeMap, 'CCR'),
+          'ccr',
+        );
+      });
+
       test('dispatches ratingScale', () {
         final result = service.applyTransform(ValueTransform.ratingScale, '4');
         expect(result, 4);

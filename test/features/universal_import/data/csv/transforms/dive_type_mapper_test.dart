@@ -127,6 +127,15 @@ void main() {
       expect(mapCsvDiveType('Ocean'), 'ocean');
     });
 
+    // Only the Subsurface `mode` and Garmin `Activity Type` columns reach
+    // this, via ValueTransform.diveModeMap. MacDive's real `Dive Type`
+    // column keeps ValueTransform.diveTypeMap, so a logbook that genuinely
+    // types a dive "CCR" still has it preserved.
+    test('a real dive type column preserves a value this one drops', () {
+      expect(mapCsvDiveType('CCR'), 'recreational');
+      expect(mapDiveType('CCR'), 'ccr');
+    });
+
     test('otherwise behaves exactly as mapDiveType', () {
       for (final v in ['Cenote', 'Sump', 'Cavern / Cave', 'Wreck', '', '!!!']) {
         expect(mapCsvDiveType(v), mapDiveType(v), reason: 'for "$v"');
