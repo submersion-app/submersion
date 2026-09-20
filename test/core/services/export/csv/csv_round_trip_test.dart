@@ -11,6 +11,7 @@ import 'package:submersion/core/services/export/csv/csv_sites_writer.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
+import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
@@ -405,5 +406,56 @@ void main() {
     final tags = await classification.getTagsForSite(blue.id);
     expect(tags.map((t) => t.name), unorderedEquals(['To try', 'Night; dive']));
     expect(tags.every((t) => t.appliesTo(TagScope.sites)), isTrue);
+  });
+  test(
+    'a site type name repeated in one cell creates one custom type',
+    () async {
+      // Two spellings of one unknown name in the same cell. Each miss used to
+      // create its own row, because the name list was read once before the
+      // loop, leaving the site showing "Mine, Mine".
+      final diverId = await importCsv(
+        CsvSitesWriter(
+          CsvExportUnits.metric,
+          typeNamesBySite: const {
+            'site-1': ['Mine', 'MINE', 'Mine'],
+          },
+        ).write(goldenSites()),
+        ImportFormat.submersionSitesCsv,
+      );
+
+      final customs = [
+        for (final t in await SiteTypeRepository().getAllSiteTypes(
+          diverId: diverId,
+        ))
+          if (!t.isBuiltIn) t,
+      ];
+      expect(customs.map((t) => t.name), ['Mine']);
+
+      final sites = await SiteRepository().getAllSites(diverId: diverId);
+      final blue = sites.firstWhere((s) => s.name == 'Blue Hole');
+      final linked = await SiteClassificationRepository().getTypesForSite(
+        blue.id,
+      );
+      expect(linked.map((t) => t.name), ['Mine']);
+    },
+  );
+  test('a site tag name repeated in one cell creates one tag', () async {
+    // The sibling path: unlike the type lookup, getOrCreateTag re-queries
+    // per name, so it never had the duplicate. Pinned so the two cannot
+    // drift apart.
+    final diverId = await importCsv(
+      CsvSitesWriter(
+        CsvExportUnits.metric,
+        tagNamesBySite: const {
+          'site-1': ['To try', 'To try'],
+        },
+      ).write(goldenSites()),
+      ImportFormat.submersionSitesCsv,
+    );
+
+    final sites = await SiteRepository().getAllSites(diverId: diverId);
+    final blue = sites.firstWhere((s) => s.name == 'Blue Hole');
+    final tags = await SiteClassificationRepository().getTagsForSite(blue.id);
+    expect(tags.map((t) => t.name), ['To try']);
   });
 }

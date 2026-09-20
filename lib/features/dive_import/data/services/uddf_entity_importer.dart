@@ -1311,18 +1311,24 @@ class UddfEntityImporter {
 
     /// Type ids for the CSV's plain names, creating a custom type for a
     /// name this library does not know yet.
+    ///
+    /// [byName] is seeded from the library and then absorbs each type this
+    /// loop creates, because `createSiteType` mints a fresh id per call: a
+    /// name repeated in one cell, in any casing, would otherwise create a
+    /// row per occurrence and leave the site reading "Mine, Mine".
     Future<List<String>> resolveTypeNames(Object? names) async {
       if (types == null || names is! List) return const [];
-      final all = await types.getAllSiteTypes(diverId: diverId);
+      final byName = <String, String>{
+        for (final type in await types.getAllSiteTypes(diverId: diverId))
+          type.name.toLowerCase(): type.id,
+      };
       final out = <String>[];
       for (final name in names.whereType<String>()) {
         final trimmed = name.trim();
         if (trimmed.isEmpty) continue;
-        final existing = all
-            .where((t) => t.name.toLowerCase() == trimmed.toLowerCase())
-            .firstOrNull;
+        final existing = byName[trimmed.toLowerCase()];
         if (existing != null) {
-          out.add(existing.id);
+          out.add(existing);
           continue;
         }
         final created = await types.createSiteType(
@@ -1332,6 +1338,7 @@ class UddfEntityImporter {
             diverId: diverId,
           ),
         );
+        byName[trimmed.toLowerCase()] = created.id;
         out.add(created.id);
       }
       return out;
