@@ -28776,6 +28776,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_mirror_undone => 'تمت إزالة الغوصات المنسوخة';
 
   @override
+  String get diveLog_mirror_undoFailed => 'تعذّر إزالة الغوصات المنسوخة.';
+
+  @override
   String diveLog_mirror_failed(String names) {
     return 'تعذر التسجيل لـ $names';
   }

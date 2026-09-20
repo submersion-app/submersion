@@ -28477,6 +28477,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_mirror_undone => 'צלילות משוכפלות הוסרו';
 
   @override
+  String get diveLog_mirror_undoFailed =>
+      'לא ניתן היה להסיר את הצלילות המשוכפלות.';
+
+  @override
   String diveLog_mirror_failed(String names) {
     return 'לא ניתן היה לרשום עבור $names';
   }

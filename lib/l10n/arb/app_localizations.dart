@@ -47082,6 +47082,12 @@ abstract class AppLocalizations {
   /// **'Mirrored dives removed'**
   String get diveLog_mirror_undone;
 
+  /// No description provided for @diveLog_mirror_undoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t remove the mirrored dives.'**
+  String get diveLog_mirror_undoFailed;
+
   /// No description provided for @diveLog_mirror_failed.
   ///
   /// In en, this message translates to:

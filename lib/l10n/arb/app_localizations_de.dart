@@ -29119,6 +29119,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_mirror_undone => 'Gespiegelte Tauchgänge entfernt';
 
   @override
+  String get diveLog_mirror_undoFailed =>
+      'Die gespiegelten Tauchgänge konnten nicht entfernt werden.';
+
+  @override
   String diveLog_mirror_failed(String names) {
     return 'Konnte nicht protokolliert werden für $names';
   }

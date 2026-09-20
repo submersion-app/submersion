@@ -29066,6 +29066,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_mirror_undone => 'Tükrözött merülések eltávolítva';
 
   @override
+  String get diveLog_mirror_undoFailed =>
+      'Nem sikerült eltávolítani a tükrözött merüléseket.';
+
+  @override
   String diveLog_mirror_failed(String names) {
     return 'Nem sikerült naplózni: $names';
   }

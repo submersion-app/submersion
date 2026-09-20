@@ -28708,6 +28708,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_mirror_undone => 'Mirrored dives removed';
 
   @override
+  String get diveLog_mirror_undoFailed =>
+      'Couldn\'t remove the mirrored dives.';
+
+  @override
   String diveLog_mirror_failed(String names) {
     return 'Could not log for $names';
   }

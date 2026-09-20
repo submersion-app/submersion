@@ -29170,6 +29170,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_mirror_undone => 'Mergulhos espelhados removidos';
 
   @override
+  String get diveLog_mirror_undoFailed =>
+      'Não foi possível remover os mergulhos espelhados.';
+
+  @override
   String diveLog_mirror_failed(String names) {
     return 'Não foi possível registrar para $names';
   }

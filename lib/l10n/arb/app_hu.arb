@@ -8695,6 +8695,7 @@
   "diveLog_mirror_notNow": "Most nem",
   "diveLog_mirror_snackbar": "Naplózva: {names}",
   "diveLog_mirror_undone": "Tükrözött merülések eltávolítva",
+  "diveLog_mirror_undoFailed": "Nem sikerült eltávolítani a tükrözött merüléseket.",
   "diveLog_mirror_failed": "Nem sikerült naplózni: {names}",
   "diveLog_detail_menu_logForBuddy": "Naplózás egy búvártárs profiljába",
   "diveLog_detail_loggedWith": "Naplózva vele",

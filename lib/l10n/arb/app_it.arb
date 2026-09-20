@@ -8695,6 +8695,7 @@
   "diveLog_mirror_notNow": "Non ora",
   "diveLog_mirror_snackbar": "Registrata per {names}",
   "diveLog_mirror_undone": "Immersioni speculari rimosse",
+  "diveLog_mirror_undoFailed": "Impossibile rimuovere le immersioni speculari.",
   "diveLog_mirror_failed": "Impossibile registrare per {names}",
   "diveLog_detail_menu_logForBuddy": "Registra nel profilo di un compagno",
   "diveLog_detail_loggedWith": "Registrata con",

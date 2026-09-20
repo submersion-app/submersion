@@ -125,7 +125,18 @@ Future<void> runDiveMirror({
       action: SnackBarAction(
         label: l10n.diveLog_bulkDelete_undo,
         onPressed: () async {
-          await service.undo(outcome);
+          // The undo runs in a transaction that can fail (a constraint or an
+          // IO error). Without this guard the exception escapes the snackbar
+          // callback and reaches the framework instead of the diver.
+          try {
+            await service.undo(outcome);
+          } catch (_) {
+            refreshLists();
+            messenger.showSnackBar(
+              SnackBar(content: Text(l10n.diveLog_mirror_undoFailed)),
+            );
+            return;
+          }
           refreshLists();
           messenger.showSnackBar(
             SnackBar(content: Text(l10n.diveLog_mirror_undone)),

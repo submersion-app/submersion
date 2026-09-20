@@ -29268,6 +29268,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLog_mirror_undone => 'Plongées miroir supprimées';
 
   @override
+  String get diveLog_mirror_undoFailed =>
+      'Impossible de supprimer les plongées miroir.';
+
+  @override
   String diveLog_mirror_failed(String names) {
     return 'Impossible d\'enregistrer pour $names';
   }

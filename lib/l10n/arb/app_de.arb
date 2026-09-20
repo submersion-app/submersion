@@ -8799,6 +8799,7 @@
   "diveLog_mirror_notNow": "Später",
   "diveLog_mirror_snackbar": "Protokolliert für {names}",
   "diveLog_mirror_undone": "Gespiegelte Tauchgänge entfernt",
+  "diveLog_mirror_undoFailed": "Die gespiegelten Tauchgänge konnten nicht entfernt werden.",
   "diveLog_mirror_failed": "Konnte nicht protokolliert werden für {names}",
   "diveLog_detail_menu_logForBuddy": "Für das Profil eines Tauchpartners protokollieren",
   "diveLog_detail_loggedWith": "Protokolliert mit",

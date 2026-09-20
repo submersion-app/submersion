@@ -8695,6 +8695,7 @@
   "diveLog_mirror_notNow": "ليس الآن",
   "diveLog_mirror_snackbar": "تم التسجيل لـ {names}",
   "diveLog_mirror_undone": "تمت إزالة الغوصات المنسوخة",
+  "diveLog_mirror_undoFailed": "تعذّر إزالة الغوصات المنسوخة.",
   "diveLog_mirror_failed": "تعذر التسجيل لـ {names}",
   "diveLog_detail_menu_logForBuddy": "التسجيل في ملف رفيق",
   "diveLog_detail_loggedWith": "مسجلة مع",

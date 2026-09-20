@@ -8695,6 +8695,7 @@
   "diveLog_mirror_notNow": "לא עכשיו",
   "diveLog_mirror_snackbar": "נרשמה עבור {names}",
   "diveLog_mirror_undone": "צלילות משוכפלות הוסרו",
+  "diveLog_mirror_undoFailed": "לא ניתן היה להסיר את הצלילות המשוכפלות.",
   "diveLog_mirror_failed": "לא ניתן היה לרשום עבור {names}",
   "diveLog_detail_menu_logForBuddy": "רישום בפרופיל של חבר צוללים",
   "diveLog_detail_loggedWith": "נרשמה עם",

@@ -8695,6 +8695,7 @@
   "diveLog_mirror_notNow": "暂不",
   "diveLog_mirror_snackbar": "已为 {names} 记录",
   "diveLog_mirror_undone": "已移除镜像的潜水",
+  "diveLog_mirror_undoFailed": "无法移除镜像的潜水。",
   "diveLog_mirror_failed": "无法为 {names} 记录",
   "diveLog_detail_menu_logForBuddy": "记录到潜伴的个人资料",
   "diveLog_detail_loggedWith": "一同记录",

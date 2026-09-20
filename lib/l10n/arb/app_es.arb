@@ -8695,6 +8695,7 @@
   "diveLog_mirror_notNow": "Ahora no",
   "diveLog_mirror_snackbar": "Registrada para {names}",
   "diveLog_mirror_undone": "Inmersiones reflejadas eliminadas",
+  "diveLog_mirror_undoFailed": "No se pudieron eliminar las inmersiones reflejadas.",
   "diveLog_mirror_failed": "No se pudo registrar para {names}",
   "diveLog_detail_menu_logForBuddy": "Registrar en el perfil de un compañero",
   "diveLog_detail_loggedWith": "Registrada con",

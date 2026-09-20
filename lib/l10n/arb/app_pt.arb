@@ -8695,6 +8695,7 @@
   "diveLog_mirror_notNow": "Agora não",
   "diveLog_mirror_snackbar": "Registrado para {names}",
   "diveLog_mirror_undone": "Mergulhos espelhados removidos",
+  "diveLog_mirror_undoFailed": "Não foi possível remover os mergulhos espelhados.",
   "diveLog_mirror_failed": "Não foi possível registrar para {names}",
   "diveLog_detail_menu_logForBuddy": "Registrar no perfil de um companheiro",
   "diveLog_detail_loggedWith": "Registrado com",

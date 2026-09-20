@@ -29193,6 +29193,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_mirror_undone => 'Inmersiones reflejadas eliminadas';
 
   @override
+  String get diveLog_mirror_undoFailed =>
+      'No se pudieron eliminar las inmersiones reflejadas.';
+
+  @override
   String diveLog_mirror_failed(String names) {
     return 'No se pudo registrar para $names';
   }

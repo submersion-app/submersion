@@ -29176,6 +29176,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_mirror_undone => 'Immersioni speculari rimosse';
 
   @override
+  String get diveLog_mirror_undoFailed =>
+      'Impossibile rimuovere le immersioni speculari.';
+
+  @override
   String diveLog_mirror_failed(String names) {
     return 'Impossibile registrare per $names';
   }

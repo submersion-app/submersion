@@ -8695,6 +8695,7 @@
   "diveLog_mirror_notNow": "Niet nu",
   "diveLog_mirror_snackbar": "Gelogd voor {names}",
   "diveLog_mirror_undone": "Gespiegelde duiken verwijderd",
+  "diveLog_mirror_undoFailed": "Kon de gespiegelde duiken niet verwijderen.",
   "diveLog_mirror_failed": "Loggen voor {names} is mislukt",
   "diveLog_detail_menu_logForBuddy": "Loggen in het profiel van een buddy",
   "diveLog_detail_loggedWith": "Gelogd met",

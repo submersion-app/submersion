@@ -28962,6 +28962,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_mirror_undone => 'Gespiegelde duiken verwijderd';
 
   @override
+  String get diveLog_mirror_undoFailed =>
+      'Kon de gespiegelde duiken niet verwijderen.';
+
+  @override
   String diveLog_mirror_failed(String names) {
     return 'Loggen voor $names is mislukt';
   }

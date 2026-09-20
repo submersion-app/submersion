@@ -18714,6 +18714,7 @@
     }
   },
   "diveLog_mirror_undone": "Mirrored dives removed",
+  "diveLog_mirror_undoFailed": "Couldn't remove the mirrored dives.",
   "diveLog_mirror_failed": "Could not log for {names}",
   "@diveLog_mirror_failed": {
     "placeholders": {

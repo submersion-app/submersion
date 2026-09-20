@@ -27664,6 +27664,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_mirror_undone => '已移除镜像的潜水';
 
   @override
+  String get diveLog_mirror_undoFailed => '无法移除镜像的潜水。';
+
+  @override
   String diveLog_mirror_failed(String names) {
     return '无法为 $names 记录';
   }
