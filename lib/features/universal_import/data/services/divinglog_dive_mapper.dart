@@ -83,24 +83,18 @@ class DivingLogDiveMapper {
         map['site'] = <String, dynamic>{'uddfId': siteKey};
       }
 
-      final buddyNames = _names(raw.buddy);
-      final guideNames = _names(raw.divemaster);
-      for (final name in [...buddyNames, ...guideNames]) {
-        buddiesByName.putIfAbsent(
-          name.toLowerCase(),
-          () => <String, dynamic>{'name': name, 'uddfId': name},
-        );
-      }
-      if (buddyNames.isNotEmpty) map['buddyRefs'] = buddyNames;
-      if (guideNames.isNotEmpty) map['diveGuideRefs'] = guideNames;
+      // Refs carry the stored entity's id, never this row's spelling.
+      // The maps dedupe on lowercase, so a log holding both `Alice` and
+      // `alice` emits one buddy; a ref spelled the other way would then
+      // match nothing in the importer's id map and the dive would lose the
+      // link silently.
+      final buddyRefs = _refs(_names(raw.buddy), buddiesByName);
+      final guideRefs = _refs(_names(raw.divemaster), buddiesByName);
+      if (buddyRefs.isNotEmpty) map['buddyRefs'] = buddyRefs;
+      if (guideRefs.isNotEmpty) map['diveGuideRefs'] = guideRefs;
 
       if (raw.supplyType != null) {
-        final tag = raw.supplyType!;
-        tagsByName.putIfAbsent(
-          tag.toLowerCase(),
-          () => <String, dynamic>{'name': tag, 'uddfId': tag},
-        );
-        map['tagRefs'] = [tag];
+        map['tagRefs'] = _refs([raw.supplyType!], tagsByName);
       }
 
       // Built before the profile because the gas-switch builder resolves
@@ -128,7 +122,7 @@ class DivingLogDiveMapper {
         ),
       );
     }
-    for (final note in logbook.missingColumnNotes) {
+    for (final note in logbook.schemaNotes) {
       warnings.add(
         ImportWarning(
           severity: ImportWarningSeverity.info,
@@ -179,7 +173,19 @@ class DivingLogDiveMapper {
         minute = int.tryParse(timeDigits.substring(2, 4)) ?? 0;
       }
     }
-    return DateTime.utc(year, month, day, hour, minute);
+    // DateTime.utc normalises rather than rejects: 30 February becomes 1
+    // March and hour 25 becomes the next day. Round-tripping the components
+    // is what turns a malformed row into a skipped dive instead of one
+    // filed under a date the logbook never recorded.
+    final parsed = DateTime.utc(year, month, day, hour, minute);
+    if (parsed.year != year ||
+        parsed.month != month ||
+        parsed.day != day ||
+        parsed.hour != hour ||
+        parsed.minute != minute) {
+      return null;
+    }
+    return parsed;
   }
 
   /// Keyed on the whole country/city/place triple so 500 dives at a handful
@@ -193,6 +199,21 @@ class DivingLogDiveMapper {
     if (parts.isEmpty) return null;
     return 'divinglog_site_${parts.join('|').toLowerCase()}';
   }
+
+  /// Registers each of [names] in [registry] (keyed on lowercase) and
+  /// returns the canonical `uddfId` of each, so refs and entities always
+  /// agree regardless of how a given row spelled the name.
+  static List<String> _refs(
+    List<String> names,
+    Map<String, Map<String, dynamic>> registry,
+  ) => [
+    for (final name in names)
+      registry.putIfAbsent(
+            name.toLowerCase(),
+            () => <String, dynamic>{'name': name, 'uddfId': name},
+          )['uddfId']
+          as String,
+  ];
 
   /// Diving Log stores several buddies in one free-text column.
   static List<String> _names(String? raw) {

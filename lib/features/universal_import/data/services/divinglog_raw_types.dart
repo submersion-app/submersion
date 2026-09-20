@@ -200,13 +200,13 @@ class DivingLogLogbook {
   final List<DivingLogRawDive> dives;
   final DivingLogCapabilities capabilities;
 
-  /// Human-readable notes about columns this file lacked, recorded once per
-  /// import as a diagnostic rather than shown per dive.
-  final List<String> missingColumnNotes;
+  /// Human-readable notes about tables and columns this file lacked,
+  /// recorded once per import as diagnostics rather than shown per dive.
+  final List<String> schemaNotes;
 
   const DivingLogLogbook({
     required this.dives,
     required this.capabilities,
-    this.missingColumnNotes = const [],
+    this.schemaNotes = const [],
   });
 }

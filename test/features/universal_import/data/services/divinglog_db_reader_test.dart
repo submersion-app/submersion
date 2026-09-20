@@ -271,7 +271,7 @@ void main() {
           buildDivingLogBytes(extraLogbookColumns: false),
         );
         expect(book.dives, isEmpty);
-        expect(book.missingColumnNotes.join(' '), contains('Divemaster'));
+        expect(book.schemaNotes.join(' '), contains('Divemaster'));
       },
     );
   });
@@ -285,7 +285,22 @@ void main() {
       expect(tank.sizeLiters, closeTo(11.1, 1e-9));
       // The fixture legitimately lacks many columns, but the differently
       // cased one must not be among those reported missing.
-      expect(book.missingColumnNotes.join(' '), isNot(contains('TankSize')));
+      expect(book.schemaNotes.join(' '), isNot(contains('TankSize')));
+    });
+
+    test('diagnoses an absent optional table', () async {
+      // A missing Tank table costs multi-cylinder rows and a missing
+      // DeletedRecords table lets tombstoned dives back in, so neither
+      // may pass silently.
+      final book = await DivingLogDbReader.readAll(
+        buildDivingLogBytes(withTankTable: false),
+      );
+      expect(book.schemaNotes.join(' '), contains('Tank'));
+    });
+
+    test('does not diagnose a table the file has', () async {
+      final book = await DivingLogDbReader.readAll(buildDivingLogWithRows());
+      expect(book.schemaNotes.join(' '), isNot(contains('Tank table')));
     });
 
     test('matches a table whose case differs from ours', () {

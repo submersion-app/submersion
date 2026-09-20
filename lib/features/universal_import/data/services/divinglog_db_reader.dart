@@ -73,14 +73,20 @@ class DivingLogDbReader {
     return DivingLogCapabilities(tables: tables, columns: columns);
   }
 
-  /// Writes [bytes] to a temp file, opens read-only, runs [body], and
-  /// always deletes the temp file.
+  /// Writes [bytes] into a private temp directory, opens it read-only, runs
+  /// [body], and always removes the directory.
+  ///
+  /// The directory comes from `createTempSync`, which the OS guarantees to
+  /// be unique. A timestamp-derived name does not: two calls landing in the
+  /// same microsecond would share a path, and each would delete the file the
+  /// other was still reading.
   static Future<T> _withDb<T>(
     Uint8List bytes,
     T Function(Database db) body,
   ) async {
-    final tmpFile = File(_tmpPath());
+    final tmpDir = Directory.systemTemp.createTempSync('divinglog_import_');
     try {
+      final tmpFile = File('${tmpDir.path}/logbook.sqlite');
       await tmpFile.writeAsBytes(bytes);
       final db = sqlite3.open(tmpFile.path, mode: OpenMode.readOnly);
       try {
@@ -89,7 +95,7 @@ class DivingLogDbReader {
         db.close();
       }
     } finally {
-      _deleteTempFile(tmpFile);
+      _deleteTempDir(tmpDir);
     }
   }
 
@@ -159,6 +165,21 @@ class DivingLogDbReader {
       if (missing.isNotEmpty) {
         notes.add('Logbook is missing: ${missing.join(', ')}');
       }
+      // An absent optional table is not harmless: without Tank a
+      // multi-cylinder dive silently keeps only the Logbook cylinder, and
+      // without DeletedRecords tombstoned dives come back. Say so.
+      if (!caps.hasTable('Tank')) {
+        notes.add(
+          'No Tank table, so dives with several cylinders kept only the one '
+          'recorded on the dive row.',
+        );
+      }
+      if (!caps.hasTable('DeletedRecords')) {
+        notes.add(
+          'No DeletedRecords table, so dives the logbook had marked deleted '
+          'could not be excluded.',
+        );
+      }
 
       final tombstones = _readTombstones(db, caps);
       final tanksByLogId = _readTanks(db, caps);
@@ -212,7 +233,7 @@ class DivingLogDbReader {
       return DivingLogLogbook(
         dives: dives,
         capabilities: caps,
-        missingColumnNotes: notes,
+        schemaNotes: notes,
       );
     });
   }
@@ -320,13 +341,9 @@ class DivingLogDbReader {
     return v == null ? null : double.tryParse(v.toString().trim());
   }
 
-  static String _tmpPath() =>
-      '${Directory.systemTemp.path}/divinglog_import_'
-      '${DateTime.now().microsecondsSinceEpoch}.sqlite';
-
-  static void _deleteTempFile(File f) {
+  static void _deleteTempDir(Directory d) {
     try {
-      if (f.existsSync()) f.deleteSync();
+      if (d.existsSync()) d.deleteSync(recursive: true);
     } catch (_) {
       // Best-effort cleanup.
     }

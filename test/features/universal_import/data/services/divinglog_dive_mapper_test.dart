@@ -153,6 +153,68 @@ void main() {
       );
     });
 
+    test('refs a differently cased buddy by the canonical entity id', () {
+      final payload = DivingLogDiveMapper.toPayload(
+        book([
+          dive(id: 1, buddy: 'Alice'),
+          dive(id: 2, uuid: 'u2', buddy: 'alice'),
+        ]),
+      );
+      final buddies = payload.entitiesOf(ImportEntityType.buddies);
+      expect(buddies, hasLength(1));
+      final id = buddies.single['uddfId'];
+      for (final d in payload.entitiesOf(ImportEntityType.dives)) {
+        expect(d['buddyRefs'], [id]);
+      }
+    });
+
+    test('refs a differently cased tag by the canonical entity id', () {
+      final payload = DivingLogDiveMapper.toPayload(
+        book([
+          dive(id: 1, supplyType: 'Nitrox'),
+          dive(id: 2, uuid: 'u2', supplyType: 'nitrox'),
+        ]),
+      );
+      final tags = payload.entitiesOf(ImportEntityType.tags);
+      expect(tags, hasLength(1));
+      final id = tags.single['uddfId'];
+      for (final d in payload.entitiesOf(ImportEntityType.dives)) {
+        expect(d['tagRefs'], [id]);
+      }
+    });
+
+    test('skips an out-of-range date instead of rolling it over', () {
+      // DateTime.utc normalises 30 February to 1 March, which would file
+      // the dive under a date the log never recorded.
+      final payload = DivingLogDiveMapper.toPayload(
+        book([
+          const DivingLogRawDive(
+            id: 1,
+            diveDate: '2024-02-30',
+            entryTime: '09:30',
+          ),
+        ]),
+      );
+      expect(payload.entitiesOf(ImportEntityType.dives), isEmpty);
+      expect(
+        payload.warnings.where((w) => w.code == ImportWarningCode.divesSkipped),
+        hasLength(1),
+      );
+    });
+
+    test('skips an out-of-range entry time instead of rolling it over', () {
+      final payload = DivingLogDiveMapper.toPayload(
+        book([
+          const DivingLogRawDive(
+            id: 1,
+            diveDate: '2024-06-01',
+            entryTime: '25:00',
+          ),
+        ]),
+      );
+      expect(payload.entitiesOf(ImportEntityType.dives), isEmpty);
+    });
+
     test('maps weight to weightUsed in kilograms', () {
       final payload = DivingLogDiveMapper.toPayload(
         book([dive(weightKg: 5.0)]),
