@@ -55,13 +55,23 @@ class DivingLogSqliteParser implements ImportParser {
     try {
       final logbook = await DivingLogDbReader.readAll(fileBytes);
       if (logbook.dives.isEmpty) {
-        return const ImportPayload(
-          entities: {},
+        // Carry the schema notes through. They say which table or column was
+        // missing, which is the only thing that explains an empty import,
+        // and returning a bare error would drop them exactly when the diver
+        // needs them.
+        return ImportPayload(
+          entities: const {},
           warnings: [
-            ImportWarning(
+            const ImportWarning(
               severity: ImportWarningSeverity.error,
               message: 'Diving Log logbook contains no dives.',
             ),
+            for (final note in logbook.schemaNotes)
+              ImportWarning(
+                severity: ImportWarningSeverity.info,
+                code: ImportWarningCode.diagnostic,
+                message: note,
+              ),
           ],
         );
       }

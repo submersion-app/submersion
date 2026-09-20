@@ -349,6 +349,27 @@ void main() {
       expect(book.schemaNotes.join(' '), isNot(contains('Tank table')));
     });
 
+    test('survives a table name containing a quote', () async {
+      final dir = Directory.systemTemp.createTempSync('dl_quote');
+      final path = '${dir.path}/logbook.sql';
+      final db = sqlite3.open(path);
+      db.execute(
+        'CREATE TABLE Logbook (ID INTEGER PRIMARY KEY, Divedate TEXT)',
+      );
+      db.execute('INSERT INTO Logbook VALUES (1, \'2024-06-01\')');
+      // A hostile neighbour table must not break the schema probe.
+      // Creating a table literally named od"d needs the quote doubled,
+      // which is exactly the escaping the reader has to perform too.
+      db.execute('CREATE TABLE "od""d" (x TEXT)');
+      db.close();
+      final bytes = File(path).readAsBytesSync();
+      dir.deleteSync(recursive: true);
+
+      final book = await DivingLogDbReader.readAll(bytes);
+      expect(book.dives, hasLength(1));
+      expect(book.capabilities.hasColumn('od"d', 'x'), isTrue);
+    });
+
     test('matches a table whose case differs from ours', () {
       expect(DivingLogDbReader.matchesTables({'logbook'}), isTrue);
       expect(DivingLogDbReader.matchesTables({'LOGBOOK'}), isTrue);

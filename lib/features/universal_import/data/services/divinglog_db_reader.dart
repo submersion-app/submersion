@@ -64,7 +64,9 @@ class DivingLogDbReader {
     final columns = <String, Set<String>>{};
     for (final table in tables) {
       try {
-        final info = db.select('PRAGMA table_info("$table")');
+        final info = db.select(
+          'PRAGMA table_info(${quoteSqlIdentifier(table)})',
+        );
         columns[table] = info.map<String>((r) => r['name'] as String).toSet();
       } catch (_) {
         columns[table] = const <String>{};
@@ -201,7 +203,9 @@ class DivingLogDbReader {
         );
       }
       final table = caps.actualTable('Logbook')!;
-      final rows = db.select('SELECT $selectList FROM "$table"');
+      final rows = db.select(
+        'SELECT $selectList FROM ${quoteSqlIdentifier(table)}',
+      );
 
       final dives = <DivingLogRawDive>[];
       for (final row in rows) {
@@ -261,7 +265,10 @@ class DivingLogDbReader {
     }
     final table = caps.actualTable('DeletedRecords')!;
     final column = caps.actualColumn('DeletedRecords', 'UUID')!;
-    final rows = db.select('SELECT "$column" AS "UUID" FROM "$table"');
+    final rows = db.select(
+      'SELECT ${quoteSqlIdentifier(column)} AS "UUID" '
+      'FROM ${quoteSqlIdentifier(table)}',
+    );
     return {
       for (final r in rows)
         if (_str(r, 'UUID') case final String u) u,
@@ -278,8 +285,12 @@ class DivingLogDbReader {
     final selectList = caps.selectList('Tank', _tankColumns);
     final table = caps.actualTable('Tank')!;
     final tankId = caps.actualColumn('Tank', 'TankID');
-    final order = tankId == null ? '' : ' ORDER BY "$tankId"';
-    final rows = db.select('SELECT $selectList FROM "$table"$order');
+    final order = tankId == null
+        ? ''
+        : ' ORDER BY ${quoteSqlIdentifier(tankId)}';
+    final rows = db.select(
+      'SELECT $selectList FROM ${quoteSqlIdentifier(table)}$order',
+    );
 
     final out = <int, List<DivingLogRawTank>>{};
     for (final row in rows) {

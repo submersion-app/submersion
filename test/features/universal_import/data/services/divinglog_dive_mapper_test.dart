@@ -247,6 +247,106 @@ void main() {
       expect(d.containsKey('gasSwitches'), isFalse);
     });
 
+    test('routes a lone ppO2 reading to ppO2, not an O2 cell', () {
+      final payload = DivingLogDiveMapper.toPayload(
+        book([
+          dive(
+            samples: const [
+              DivingLogRawSample(
+                timeSeconds: 0,
+                depthMeters: 4.5,
+                ppO2Cell1: 0.23,
+              ),
+            ],
+          ),
+        ]),
+      );
+      final point =
+          (payload.entitiesOf(ImportEntityType.dives).single['profile'] as List)
+              .single;
+      expect(point['ppO2'], closeTo(0.23, 1e-9));
+      expect(point.containsKey('o2Sensor1'), isFalse);
+      expect(point.containsKey('setpoint'), isFalse);
+    });
+
+    test('keeps a real cell array on the o2Sensor fields', () {
+      final payload = DivingLogDiveMapper.toPayload(
+        book([
+          dive(
+            samples: const [
+              DivingLogRawSample(
+                timeSeconds: 0,
+                depthMeters: 20.0,
+                ppO2Cell1: 1.12,
+                ppO2Cell2: 1.13,
+                ppO2Cell3: 1.14,
+                setpoint: 1.1,
+              ),
+            ],
+          ),
+        ]),
+      );
+      final point =
+          (payload.entitiesOf(ImportEntityType.dives).single['profile'] as List)
+              .single;
+      expect(point['o2Sensor1'], closeTo(1.12, 1e-9));
+      expect(point['o2Sensor3'], closeTo(1.14, 1e-9));
+      expect(point.containsKey('ppO2'), isFalse);
+    });
+
+    test('resolves a one-based source tank id to its position', () {
+      // The reference logbook writes Tank.TankID = 1 while the profile's
+      // packed tank ids are 0-based, so a switch must resolve by position.
+      final payload = DivingLogDiveMapper.toPayload(
+        book([
+          dive(
+            tanks: const [
+              DivingLogRawTank(tankId: 1, o2Percent: 32.0),
+              DivingLogRawTank(tankId: 2, o2Percent: 50.0),
+            ],
+            samples: const [
+              DivingLogRawSample(
+                timeSeconds: 0,
+                depthMeters: 20.0,
+                tankId: 0,
+                pressureBar: 200.0,
+              ),
+              DivingLogRawSample(
+                timeSeconds: 20,
+                depthMeters: 6.0,
+                tankId: 1,
+                pressureBar: 150.0,
+              ),
+            ],
+          ),
+        ]),
+      );
+      final d = payload.entitiesOf(ImportEntityType.dives).single;
+      final switches = d['gasSwitches'] as List;
+      expect(switches, hasLength(1));
+      // Profile tank 1 is the second cylinder, whose source id is 2.
+      expect(switches.single['tankRef'], 'divinglog:2');
+      final profile = d['profile'] as List;
+      expect((profile[0]['allTankPressures'] as List).single['tankIndex'], 0);
+      expect((profile[1]['allTankPressures'] as List).single['tankIndex'], 1);
+    });
+
+    test('raises no OTU warning when the OTU field is all zeros', () {
+      final payload = DivingLogDiveMapper.toPayload(
+        book([
+          dive(
+            samples: const [
+              DivingLogRawSample(timeSeconds: 0, depthMeters: 4.5),
+            ],
+          ),
+        ]),
+      );
+      expect(
+        payload.warnings.where((w) => w.message.toLowerCase().contains('otu')),
+        isEmpty,
+      );
+    });
+
     test('maps weight to weightUsed in kilograms', () {
       final payload = DivingLogDiveMapper.toPayload(
         book([dive(weightKg: 5.0)]),

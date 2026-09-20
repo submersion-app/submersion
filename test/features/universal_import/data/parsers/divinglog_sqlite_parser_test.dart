@@ -126,6 +126,26 @@ void main() {
       },
     );
 
+    test('keeps the schema notes when no dive could be read', () async {
+      final dir = Directory.systemTemp.createTempSync('dl_parser_noid');
+      final path = '${dir.path}/logbook.sql';
+      final db = sqlite3.open(path);
+      // No ID column, so every row is skipped and the note is the only
+      // thing that explains the empty result.
+      db.execute('CREATE TABLE Logbook (Divedate TEXT, Depth REAL)');
+      db.execute("INSERT INTO Logbook VALUES ('2024-06-01', 18.5)");
+      db.close();
+      final bytes = Uint8List.fromList(File(path).readAsBytesSync());
+      dir.deleteSync(recursive: true);
+
+      final payload = await const DivingLogSqliteParser().parse(bytes);
+      expect(payload.entities, isEmpty);
+      expect(
+        payload.warnings.any((w) => w.message.contains('Logbook is missing')),
+        isTrue,
+      );
+    });
+
     test('is registered for its format', () {
       expect(
         parserForFormat(ImportFormat.divingLogSqlite),

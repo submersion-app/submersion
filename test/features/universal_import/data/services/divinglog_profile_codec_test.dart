@@ -106,6 +106,61 @@ void main() {
       expect(samples.single.heartRate, 72);
     });
 
+    test('treats zero-padded Profile5 fields as absent', () {
+      // The real export writes 0230000000000000000 on open-circuit dives:
+      // one calculated ppO2 and the rest padding. Emitting those zeros as
+      // readings would give the dive three O2 cells and a setpoint.
+      final s = DivingLogProfileCodec.decode(
+        intervalSeconds: 20,
+        profile: '004500000000',
+        profile5: '0230000000000000000',
+      ).single;
+      expect(s.ppO2Cell1, closeTo(0.23, 1e-9));
+      expect(s.ppO2Cell2, isNull);
+      expect(s.ppO2Cell3, isNull);
+      expect(s.setpoint, isNull);
+      expect(s.otu, isNull);
+      expect(s.cns, isNull);
+    });
+
+    test('treats a zero stop depth as no ceiling', () {
+      final s = DivingLogProfileCodec.decode(
+        intervalSeconds: 20,
+        profile: '004500000000',
+        profile4: '000000000',
+      ).single;
+      expect(s.stopDepthMeters, isNull);
+    });
+
+    test('still decodes a genuine multi-cell sample', () {
+      final s = DivingLogProfileCodec.decode(
+        intervalSeconds: 20,
+        profile: '004500000000',
+        profile5: '1121131141548026411',
+      ).single;
+      expect(s.ppO2Cell1, closeTo(1.12, 1e-9));
+      expect(s.ppO2Cell2, closeTo(1.13, 1e-9));
+      expect(s.ppO2Cell3, closeTo(1.14, 1e-9));
+      expect(s.setpoint, closeTo(1.1, 1e-9));
+    });
+
+    test('drops a sample whose depth cannot be read', () {
+      // Blank depth is padding, not a surface sample; keeping it would draw
+      // a spike to the surface mid-dive.
+      final samples = DivingLogProfileCodec.decode(
+        intervalSeconds: 20,
+        profile:
+            '010000000000'
+            '     0000000'
+            '015000000000',
+      );
+      expect(samples, hasLength(2));
+      expect(samples[0].depthMeters, closeTo(10.0, 1e-9));
+      // The dropped sample still consumed its slot, so timestamps hold.
+      expect(samples[1].timeSeconds, 40);
+      expect(samples[1].depthMeters, closeTo(15.0, 1e-9));
+    });
+
     test('returns no samples for a null or empty profile', () {
       expect(DivingLogProfileCodec.decode(intervalSeconds: 20), isEmpty);
       expect(

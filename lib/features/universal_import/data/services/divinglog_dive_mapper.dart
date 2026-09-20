@@ -102,7 +102,7 @@ class DivingLogDiveMapper {
       final tanks = _tanks(raw.tanks);
       if (tanks.isNotEmpty) map['tanks'] = tanks;
 
-      final profile = _profile(raw.samples);
+      final profile = _profile(raw.samples, tanks);
       if (profile.isNotEmpty) map['profile'] = profile;
       final switches = _gasSwitches(raw.samples, tanks);
       if (switches.isNotEmpty) map['gasSwitches'] = switches;
@@ -232,6 +232,11 @@ class DivingLogDiveMapper {
     _ => null,
   };
 
+  /// True when the sample carries a real multi-cell array, meaning a cell
+  /// beyond the first reported a reading.
+  static bool _hasCellArray(DivingLogRawSample s) =>
+      s.ppO2Cell2 != null || s.ppO2Cell3 != null;
+
   static List<Map<String, dynamic>> _tanks(List<DivingLogRawTank> tanks) => [
     for (var i = 0; i < tanks.length; i++)
       <String, dynamic>{
@@ -254,6 +259,26 @@ class DivingLogDiveMapper {
       },
   ];
 
+  /// The position in [tanks] that a profile tank id refers to, or null when
+  /// it refers to no cylinder we have.
+  ///
+  /// The two numbering schemes are not the same. `uddfTankId` carries the
+  /// source `Tank.TankID`, which the reference logbook writes as 1, while
+  /// the id packed into the profile is the computer's own 0-based slot.
+  /// Position therefore wins: on a logbook whose cylinders are TankID 1 and
+  /// 2, profile slot 1 means the second cylinder, and matching the number
+  /// against TankID would resolve it to the first. Where a logbook numbers
+  /// its cylinders from zero the two agree anyway, so this stays correct
+  /// for both shapes, and id matching is kept only for an id that is out of
+  /// range as a position.
+  static int? _tankPosition(int tankId, List<Map<String, dynamic>> tanks) {
+    if (tankId >= 0 && tankId < tanks.length) return tankId;
+    final byId = tanks.indexWhere(
+      (t) => t['uddfTankId'] == 'divinglog:$tankId',
+    );
+    return byId >= 0 ? byId : null;
+  }
+
   /// A change in the profile's tank id is the only gas-switch signal the
   /// format has; there is no event table. The first sample establishes the
   /// starting cylinder rather than counting as a switch.
@@ -268,14 +293,11 @@ class DivingLogDiveMapper {
       final tankId = s.tankId;
       if (tankId == null) continue;
       if (currentTankId != null && tankId != currentTankId) {
-        final ref = tanks.firstWhere(
-          (t) => t['uddfTankId'] == 'divinglog:$tankId',
-          orElse: () => const <String, dynamic>{},
-        );
-        if (ref['uddfTankId'] case final String id) {
+        final position = _tankPosition(tankId, tanks);
+        if (position != null) {
           switches.add(<String, dynamic>{
             'timestamp': s.timeSeconds,
-            'tankRef': id,
+            'tankRef': tanks[position]['uddfTankId'] as String,
           });
         }
       }
@@ -286,6 +308,7 @@ class DivingLogDiveMapper {
 
   static List<Map<String, dynamic>> _profile(
     List<DivingLogRawSample> samples,
+    List<Map<String, dynamic>> tanks,
   ) => [
     for (final s in samples)
       <String, dynamic>{
@@ -299,17 +322,29 @@ class DivingLogDiveMapper {
         if (s.rbtSeconds != null) 'rbt': s.rbtSeconds,
         if (s.stopDepthMeters != null) 'ceiling': s.stopDepthMeters,
         if (s.setpoint != null) 'setpoint': s.setpoint,
-        if (s.ppO2Cell1 != null) 'o2Sensor1': s.ppO2Cell1,
-        if (s.ppO2Cell2 != null) 'o2Sensor2': s.ppO2Cell2,
-        if (s.ppO2Cell3 != null) 'o2Sensor3': s.ppO2Cell3,
+        // Only a rebreather has several cells. When just the first slot is
+        // filled the value is the computer's single calculated ppO2 (0.23
+        // bar on air at the surface in the reference logbook), and writing
+        // it to o2Sensor1 would claim an open-circuit dive had an O2 cell.
+        if (_hasCellArray(s)) ...{
+          if (s.ppO2Cell1 != null) 'o2Sensor1': s.ppO2Cell1,
+          if (s.ppO2Cell2 != null) 'o2Sensor2': s.ppO2Cell2,
+          if (s.ppO2Cell3 != null) 'o2Sensor3': s.ppO2Cell3,
+        } else if (s.ppO2Cell1 != null)
+          'ppO2': s.ppO2Cell1,
         if (s.inDeco) 'decoType': 2,
         // Explicitly typed: the importer casts this with
         // `as List<Map<String, dynamic>>?`, and an inferred
         // `List<Map<String, Object>>` only survives that cast by
         // covariance. Spelling it out removes the dependence.
+        // tankIndex is read as a position in the tanks list, not as the
+        // source's tank id, so it is resolved the same way the gas switch is.
         if (s.pressureBar != null)
           'allTankPressures': <Map<String, dynamic>>[
-            {'pressure': s.pressureBar, 'tankIndex': s.tankId ?? 0},
+            {
+              'pressure': s.pressureBar,
+              'tankIndex': _tankPosition(s.tankId ?? 0, tanks) ?? 0,
+            },
           ],
       },
   ];

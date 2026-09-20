@@ -1,3 +1,9 @@
+/// Quotes [name] as a SQL identifier, doubling any embedded quote.
+///
+/// Table and column names here come out of a file someone else wrote, so
+/// interpolating them raw lets a crafted name change the statement.
+String quoteSqlIdentifier(String name) => '"${name.replaceAll('"', '""')}"';
+
 /// Which tables and columns a particular Diving Log file actually has.
 ///
 /// Diving Log 5.0, Diving Log 6.0 and DiveLogDT have drifted apart, so
@@ -49,7 +55,9 @@ class DivingLogCapabilities {
     final parts = <String>[];
     for (final c in wanted) {
       final actual = actualColumn(table, c);
-      if (actual != null) parts.add('"$actual" AS "$c"');
+      if (actual != null) {
+        parts.add('${quoteSqlIdentifier(actual)} AS ${quoteSqlIdentifier(c)}');
+      }
     }
     return parts.join(', ');
   }

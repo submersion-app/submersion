@@ -71,10 +71,21 @@ class DivingLogProfileCodec {
       final inDeco = _digit(p1, o1 + 5) == 1;
       final ndlOrTts = hasP4 ? _int(p4, o4, 3) : null;
 
+      // An unreadable depth is not a surface sample. Substituting 0 would
+      // draw a spike to the surface mid-dive and skew average depth and
+      // ascent-rate analysis, so the sample is dropped instead. The index
+      // still advances, so the remaining samples keep their timestamps.
+      final depthRaw = _int(p1, o1, 5);
+      if (depthRaw == null) {
+        index++;
+        o1 += _strideProfile;
+        continue;
+      }
+
       samples.add(
         DivingLogRawSample(
           timeSeconds: index * interval,
-          depthMeters: (_int(p1, o1, 5) ?? 0) / 100.0,
+          depthMeters: depthRaw / 100.0,
           inDeco: inDeco,
           ascentWarning: _digit(p1, o1 + 7) == 1,
           temperatureCelsius: hasP2 ? _scaled(p2, o2, 3, 10.0) : null,
@@ -84,13 +95,15 @@ class DivingLogProfileCodec {
           heartRate: hasP3 ? _int(p3, o3 + 8, 3) : null,
           ndlSeconds: inDeco ? null : _minutes(ndlOrTts),
           ttsSeconds: inDeco ? _minutes(ndlOrTts) : null,
-          stopDepthMeters: hasP4 ? _int(p4, o4 + 6, 3)?.toDouble() : null,
-          ppO2Cell1: hasP5 ? _scaled(p5, o5, 3, 100.0) : null,
-          ppO2Cell2: hasP5 ? _scaled(p5, o5 + 3, 3, 100.0) : null,
-          ppO2Cell3: hasP5 ? _scaled(p5, o5 + 6, 3, 100.0) : null,
-          otu: hasP5 ? _scaled(p5, o5 + 9, 4, 10.0) : null,
-          cns: hasP5 ? _scaled(p5, o5 + 13, 4, 10.0) : null,
-          setpoint: hasP5 ? _scaled(p5, o5 + 17, 2, 10.0) : null,
+          stopDepthMeters: hasP4
+              ? _nonZero(_int(p4, o4 + 6, 3))?.toDouble()
+              : null,
+          ppO2Cell1: hasP5 ? _scaledNonZero(p5, o5, 3, 100.0) : null,
+          ppO2Cell2: hasP5 ? _scaledNonZero(p5, o5 + 3, 3, 100.0) : null,
+          ppO2Cell3: hasP5 ? _scaledNonZero(p5, o5 + 6, 3, 100.0) : null,
+          otu: hasP5 ? _scaledNonZero(p5, o5 + 9, 4, 10.0) : null,
+          cns: hasP5 ? _scaledNonZero(p5, o5 + 13, 4, 10.0) : null,
+          setpoint: hasP5 ? _scaledNonZero(p5, o5 + 17, 2, 10.0) : null,
         ),
       );
 
@@ -112,10 +125,39 @@ class DivingLogProfileCodec {
     return raw == null ? null : raw / divisor;
   }
 
+  /// Like [_scaled], but a zero reads as absent rather than as a measurement.
+  ///
+  /// Every stride carries all of its fields whether the computer recorded
+  /// them or not, and the unused ones are written as zeros. Emitting those
+  /// as values is not a harmless default: a 0.00 bar O2 cell asserts that a
+  /// sensor was fitted and read zero, which turns an open-circuit dive into
+  /// a rebreather one, and a 0 m stop depth asserts a deco ceiling at the
+  /// surface.
+  static double? _scaledNonZero(
+    String s,
+    int offset,
+    int width,
+    double divisor,
+  ) {
+    final raw = _nonZero(_int(s, offset, width));
+    return raw == null ? null : raw / divisor;
+  }
+
+  static int? _nonZero(int? value) =>
+      value == null || value == 0 ? null : value;
+
   static int? _digit(String s, int offset) => _int(s, offset, 1);
 
   /// A zero here means "not recorded" rather than "zero minutes", which is
   /// why it collapses to null instead of Duration.zero.
+  ///
+  /// The format cannot distinguish the two, so this is a judgement call, but
+  /// the reference logbook settles it: `000` appears in the RBT and NDL
+  /// fields of the very first stride of a dive, alongside the sentinel
+  /// `255`. A dive whose surface sample genuinely had zero remaining bottom
+  /// time and zero no-decompression time is not a real reading, so treating
+  /// these zeros as data would raise a false alarm on the opening sample of
+  /// almost every dive.
   static int? _minutes(int? value) =>
       value == null || value == 0 ? null : value * 60;
 }
