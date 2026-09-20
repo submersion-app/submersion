@@ -10,8 +10,11 @@ class PressureAnomalyDetector extends QualityDetector {
 
   @override
   String get id => 'pressure_anomaly';
+  // Bumped for the endmismatch/startmismatch surfacing-lookback logic
+  // (#2220, #2222): divers who already ran a full scan at v1 need the
+  // "new checks available" prompt so their stale false positives retire.
   @override
-  int get version => 1;
+  int get version => 2;
   @override
   QualityCategory get category => QualityCategory.pressure;
 
