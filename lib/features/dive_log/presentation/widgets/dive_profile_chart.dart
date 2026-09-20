@@ -1051,11 +1051,18 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   int? _lastTooltipSpotIndex;
   List<LineTooltipItem?> _lastTooltipItems = [];
 
-  // Profile sample last reported through onTooltipData, by either cursor.
-  // Lets the external-cursor path skip a sample the pointer already reported,
+  // The readout last reported through onTooltipData, by either cursor. Lets
+  // the external-cursor path skip a reading the pointer already reported,
   // which is every sample on a chart that feeds its own selection back in as
   // highlightedTimestamp (the detail panel).
-  int? _lastEmittedCursorIndex;
+  //
+  // Carries the lead-in flag, not just the index: on a profile whose first
+  // sample sits one interval in, the synthetic surface vertex and that first
+  // sample are BOTH index 0 but read differently (t=0 at the surface versus
+  // the sample's own time and depth). Keyed on the index alone, the crossing
+  // from one to the other would be swallowed and the card would sit at 0:00
+  // until the second sample.
+  ({int index, bool onLeadIn})? _lastEmittedCursor;
 
   // Depth-band touched spots whose built-in focus indicator is hidden, so
   // velocity colouring shows a single depth dot instead of one per band.
@@ -1304,10 +1311,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   @override
   void didUpdateWidget(covariant DiveProfileChart oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.profile != widget.profile) {
+    final profileChanged = oldWidget.profile != widget.profile;
+    if (profileChanged) {
       _lastTooltipSpotIndex = null;
       _lastTooltipItems = [];
-      _lastEmittedCursorIndex = null;
     }
     if (oldWidget.tankPressures != widget.tankPressures) {
       _scheduleTankPressureVisibilityInitialization();
@@ -1315,7 +1322,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     if (oldWidget.events != widget.events) {
       _scheduleComputedEventsSeed();
     }
-    if (oldWidget.highlightedTimestamp != widget.highlightedTimestamp) {
+    // The external cursor reports when it moves, and again when the profile
+    // under a stationary cursor is replaced: switching source keeps the
+    // timestamp but changes which reading it names, so the card would
+    // otherwise keep describing the source the user just switched away from.
+    // Gated on having reported something already, so a chart whose cursor is
+    // merely carried over (the detail panel's shared tracking index) does not
+    // open its tooltip on a source switch the user did not scrub.
+    final hadReadout = _lastEmittedCursor != null;
+    if (profileChanged) _lastEmittedCursor = null;
+    if (oldWidget.highlightedTimestamp != widget.highlightedTimestamp ||
+        (profileChanged && hadReadout)) {
       _scheduleCursorReadout();
     }
   }
@@ -1348,12 +1365,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       final current = widget.highlightedTimestamp;
       if (current == null) return;
       final index = indexForTimestamp(widget.profile, current);
-      if (index == null || index == _lastEmittedCursorIndex) return;
+      if (index == null) return;
+      final onLeadIn =
+          current < widget.profile.first.timestamp &&
+          shouldDrawSurfaceLeadIn(widget.profile);
+      final last = _lastEmittedCursor;
+      if (last != null && last.index == index && last.onLeadIn == onLeadIn) {
+        return;
+      }
       _emitTooltipRowsForIndex(
         index,
-        onLeadIn:
-            current < widget.profile.first.timestamp &&
-            shouldDrawSurfaceLeadIn(widget.profile),
+        onLeadIn: onLeadIn,
         units: UnitFormatter(ref.read(settingsProvider)),
         colorScheme: Theme.of(context).colorScheme,
       );
@@ -1417,7 +1439,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         ? -1
         : math.max(0, starts[touched.barIndex] + _sourceSpotIndex(touched));
     if (touched == null || index < 0 || index >= widget.profile.length) {
-      _lastEmittedCursorIndex = null;
+      _lastEmittedCursor = null;
       widget.onTooltipData!(null);
       return;
     }
@@ -1452,7 +1474,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     required ColorScheme colorScheme,
   }) {
     if (widget.onTooltipData == null) return;
-    _lastEmittedCursorIndex = index;
+    _lastEmittedCursor = (index: index, onLeadIn: onLeadIn);
     final spot = (spotIndex: index);
     final point = onLeadIn
         ? _surfaceReadoutPoint()

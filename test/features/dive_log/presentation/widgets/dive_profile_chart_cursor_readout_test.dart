@@ -20,25 +20,47 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-List<DiveProfilePoint> _profile({int points = 10}) => List.generate(
-  points,
+List<DiveProfilePoint> _profile({int points = 10, double depthScale = 3.0}) =>
+    List.generate(
+      points,
+      (i) => DiveProfilePoint(
+        timestamp: i * 30,
+        depth: (i < points / 2 ? i * depthScale : (points - i) * depthScale),
+        temperature: 20,
+      ),
+    );
+
+/// A profile whose first sample sits exactly one interval in, which is what
+/// [shouldDrawSurfaceLeadIn] requires: the chart then draws a synthetic
+/// surface vertex at t=0 ahead of it.
+List<DiveProfilePoint> _leadInProfile() => List.generate(
+  10,
   (i) => DiveProfilePoint(
-    timestamp: i * 30,
-    depth: i < points / 2 ? i * 3.0 : (points - i) * 3.0,
+    timestamp: (i + 1) * 10,
+    depth: i * 2.0,
     temperature: 20,
   ),
 );
+
+/// One instance, reused across pumps. The chart treats a new list as a new
+/// profile (identity, as the detail page and fullscreen page both rely on,
+/// since they pass a cached provider value), so a harness that rebuilt this
+/// per pump would look like a source switch on every frame.
+final _standardProfile = _profile();
 
 Widget _chart({
   required void Function(List<TooltipRow>? rows) onTooltipData,
   int? highlightedTimestamp,
   bool tooltipBelow = true,
+  List<DiveProfilePoint>? profile,
 }) {
+  final points = profile ?? _standardProfile;
   return ProviderScope(
     overrides: [
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
     ],
     child: MaterialApp(
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(
@@ -46,8 +68,8 @@ Widget _chart({
           width: 400,
           height: 300,
           child: DiveProfileChart(
-            profile: _profile(),
-            diveDurationSeconds: 270,
+            profile: points,
+            diveDurationSeconds: points.last.timestamp,
             tooltipBelow: tooltipBelow,
             onTooltipData: onTooltipData,
             highlightedTimestamp: highlightedTimestamp,
@@ -181,6 +203,95 @@ void main() {
     }
 
     expect(emissions, 1);
+  });
+
+  testWidgets('crossing off the surface lead-in re-emits at the same index', (
+    tester,
+  ) async {
+    // The synthetic surface vertex and the first real sample are both index 0
+    // on a lead-in profile, so a dedupe keyed on the index alone would strand
+    // the card at 0:00 until the second sample.
+    List<TooltipRow>? rows;
+    final profile = _leadInProfile();
+    await tester.pumpWidget(
+      _chart(onTooltipData: (r) => rows = r, profile: profile),
+    );
+    await tester.pumpAndSettle();
+
+    // Before the first sample: the readout describes the surface at t=0.
+    await tester.pumpWidget(
+      _chart(
+        onTooltipData: (r) => rows = r,
+        profile: profile,
+        highlightedTimestamp: 5,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(_rowValue(rows, 'Time'), '0:00');
+
+    // On the first sample: same index, different reading.
+    await tester.pumpWidget(
+      _chart(
+        onTooltipData: (r) => rows = r,
+        profile: profile,
+        highlightedTimestamp: 10,
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(_rowValue(rows, 'Time'), '0:10');
+  });
+
+  testWidgets('replacing the profile under a still cursor re-reports it', (
+    tester,
+  ) async {
+    // Switching source in fullscreen keeps the review timestamp but changes
+    // which reading it names; the card must not keep describing the old one.
+    List<TooltipRow>? rows;
+    await tester.pumpWidget(_chart(onTooltipData: (r) => rows = r));
+    await tester.pumpAndSettle();
+
+    await tester.pumpWidget(
+      _chart(onTooltipData: (r) => rows = r, highlightedTimestamp: 150),
+    );
+    await tester.pumpAndSettle();
+    final firstDepth = _rowValue(rows, 'Depth');
+    expect(firstDepth, isNotNull);
+
+    // Same cursor, deeper profile: the depth at 150s must be restated.
+    await tester.pumpWidget(
+      _chart(
+        onTooltipData: (r) => rows = r,
+        highlightedTimestamp: 150,
+        profile: _profile(depthScale: 6.0),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(_rowValue(rows, 'Time'), '2:30');
+    expect(_rowValue(rows, 'Depth'), isNot(firstDepth));
+  });
+
+  testWidgets('a profile swap with nothing reported yet stays silent', (
+    tester,
+  ) async {
+    // The detail panel carries a shared tracking index across pages; a source
+    // switch there must not open a tooltip the user never asked for.
+    var emissions = 0;
+    await tester.pumpWidget(
+      _chart(onTooltipData: (_) => emissions++, highlightedTimestamp: 150),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.pumpWidget(
+      _chart(
+        onTooltipData: (_) => emissions++,
+        highlightedTimestamp: 150,
+        profile: _profile(depthScale: 6.0),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(emissions, 0);
   });
 
   testWidgets('no external emission when the chart paints its own tooltip', (
