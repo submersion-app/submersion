@@ -1613,6 +1613,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
 
   /// Log this dive into a linked buddy's profile from the overflow menu.
   Future<void> _logForBuddy(Dive dive) async {
+    // The dialog and the mirror transaction both take time, and the diver
+    // can leave in between. Everything after the first await goes through
+    // the container, which outlives this State, rather than through ref.
+    final container = ProviderScope.containerOf(context, listen: false);
     final candidates = await ref.read(mirrorCandidatesProvider(dive.id).future);
     if (!mounted || candidates.isEmpty) return;
     final chosenIds = await showMirrorDiveDialog(
@@ -1622,15 +1626,15 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     if (chosenIds == null || chosenIds.isEmpty || !mounted) return;
     await runDiveMirror(
       context: context,
-      container: ProviderScope.containerOf(context, listen: false),
+      container: container,
       sourceDiveId: dive.id,
       chosen: [
         for (final c in candidates)
           if (chosenIds.contains(c.diver.id)) c,
       ],
     );
-    ref.invalidate(mirrorCandidatesProvider(dive.id));
-    ref.invalidate(siblingDivesProvider(dive.id));
+    container.invalidate(mirrorCandidatesProvider(dive.id));
+    container.invalidate(siblingDivesProvider(dive.id));
   }
 
   /// Promote a planned dive by hand (issue #2002): clears the flag and takes
