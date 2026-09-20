@@ -226,7 +226,7 @@ Submersion requests the following permissions only as needed for specific featur
 | **Location** | Tag dive sites with GPS coordinates; required for BLE scanning on Android 11 and below |
 | **Photos and media** | Attach photos and videos to dive entries |
 | **Media location** | Read GPS data from photo EXIF metadata to suggest dive site locations |
-| **Contacts** (iOS only) | Select dive buddies from your device contacts. Contact import is currently unavailable on Android: the app offers it, but the permission it needs is not declared, so the request always fails. This is a known defect |
+| **Contacts** | Select dive buddies from your device contacts |
 | **Notifications** | Send gear maintenance service reminders |
 | **Exact alarms** | Schedule precise gear maintenance reminders |
 

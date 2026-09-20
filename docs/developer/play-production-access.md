@@ -379,7 +379,7 @@ Do **not** tick "Data is end-to-end encrypted" on any row. See 3.4.
 | **Audio files** | No | Not collected |
 | **Files and docs** | Yes | `ImportedFiles.bytes` retains every imported dive log file verbatim (`database.dart:3365`) and is in the sync payload, as is `RawDiveData.rawData`, the raw bytes libdivecomputer returned from the dive computer. Encrypted database envelopes are written to the user's chosen cloud storage |
 | **Calendar** | No | Not accessed |
-| **Contacts** | Yes | Not from the Android address book: `READ_CONTACTS` is declared nowhere, so that path cannot run on Android (see 5.8). Declared Yes because buddy records are contact information by Play's definition (names, email addresses, phone numbers) and they ride the encrypted sync payload however they were entered |
+| **Contacts** | Yes | Buddy records are contact information by Play's definition (names, email addresses, phone numbers) and they ride the sync payload however they were entered. They can also come from the device address book on either platform: `READ_CONTACTS` is declared on Android by #2192 (see 5.8) |
 | **App activity** | No | No analytics. Verified: no Firebase, Sentry, Crashlytics, Amplitude, Mixpanel or any analytics SDK in `pubspec.yaml` |
 | **Web browsing** | No | Not collected |
 | **App info and performance: Crash logs** | No | No crash reporting SDK |
@@ -721,6 +721,7 @@ link it in the declaration.
 | `SCHEDULE_EXACT_ALARM` | Gear maintenance reminders | Medium. See 5.4 |
 | `RECEIVE_BOOT_COMPLETED` | Re-arm reminders after reboot | None |
 | `POST_NOTIFICATIONS` | Maintenance reminders | None |
+| `READ_CONTACTS` | Selecting a dive buddy from the address book. Declared by #2192; absent from this branch until that merges | Low. Dangerous but not restricted, so no Permissions Declaration Form. It is a declared permission every review will see |
 
 **Absent and worth noting:** no `ACCESS_BACKGROUND_LOCATION`, no
 `QUERY_ALL_PACKAGES`, no `MANAGE_EXTERNAL_STORAGE`, no `REQUEST_INSTALL_PACKAGES`,
@@ -799,43 +800,37 @@ Worth mentioning in the application as evidence of good faith: a reviewer can
 verify every claim about data handling by reading the code, which is a
 stronger position than most applicants can offer.
 
-### 5.8 Contacts access is declared nowhere, and the feature is broken
+### 5.8 Contacts access on Android
 
-Found during the egress sweep rather than looked for. Flagging it here because
-it touches a Data safety row, and because it is a live defect.
+Found during the egress sweep rather than looked for. Recorded because it
+touches a Data safety row and adds a permission.
 
-`ensureContactPropertyAccess` in
-`lib/features/buddies/data/services/contact_photo_loader.dart:23` calls
-`FlutterContacts.permissions.request(PermissionType.read)` on Android, and its
-own doc comment explains why:
-
-> Asking it for properties always works on iOS, and on Android throws a
-> PlatformException without READ_CONTACTS.
-
-But `READ_CONTACTS` is not declared. Not in
+`READ_CONTACTS` was declared nowhere: not in
 `android/app/src/main/AndroidManifest.xml`, and not in the merged manifest
-either: `flutter_contacts` 2.3.1 ships an Android manifest containing no
-`uses-permission` elements at all. Android denies a runtime request for an
-undeclared permission immediately, without showing a dialog, and the
-permission does not appear in system settings, so the user cannot grant it.
+either, since `flutter_contacts` 2.3.1 ships an Android manifest containing no
+`uses-permission` elements at all. Meanwhile `isContactImportSupported` in
+`lib/shared/utils/contact_import_support.dart` returned true for Android, so
+the UI offered the feature. Android denies a runtime request for an undeclared
+permission immediately, without showing a dialog, and the permission never
+appears in system settings, so the user could not grant it. The feature had
+never run on Android.
 
-Meanwhile `isContactImportSupported` in
-`lib/shared/utils/contact_import_support.dart` returns true for Android, so
-the UI offers the feature.
+Fixed in #2192, which closes #2191. It declares the permission, adds a test
+pairing the Dart platform gate to the manifest in both directions so they
+cannot drift apart again, and routes the user to system settings after a
+permanent denial.
 
-Net effect on Android: the user taps "Choose from Contacts", the permission
-request is denied silently, and they get a permission error with no way to
-resolve it.
+**Merge order:** #2192 is a separate PR. Until it merges, this branch's tree
+does not contain the declaration, so the 5.2 inventory row and the 3.2
+justification describe the post-merge state. If #2192 is closed without
+merging, revert those two and restore the iOS-only wording in `PRIVACY.md`.
 
-**For this application:** no action needed, and nothing to declare. An absent
-permission is a smaller review surface, not a larger one. The Contacts row in
-3.2 stays Yes for a different reason, which is that buddy records are contact
-information regardless of how they were entered.
-
-**Separately:** this should be fixed, either by declaring `READ_CONTACTS` or
-by dropping Android from `isContactImportSupported`. Declaring the permission
-adds a sensitive permission to every future Play review, so the second option
-is worth considering on its merits. Tracked outside this document.
+**For this application:** the Data safety answer does not change. The Contacts
+row in 3.2 was already Yes for a reason independent of the address book, which
+is that buddy records are contact information by Play's definition however they
+were entered. `READ_CONTACTS` is a dangerous permission but not a restricted
+one, so it needs no Permissions Declaration Form, though it does add one more
+declared permission that every review will see.
 
 ---
 
