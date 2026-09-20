@@ -23,17 +23,24 @@ in "After approval" at the bottom.
 
 ## 1. Before you open the form
 
-Four blockers to clear first. The first one is the only genuinely urgent one.
+Four items to clear first. The first has been done in this repository and
+needs publishing; the rest are yours to confirm.
 
-### 1.1 The privacy policy contradicts the app (blocker)
+### 1.1 The privacy policy contradicted the app (rewritten here, still to publish)
 
-`PRIVACY.md` was last updated 2026-03-06 and describes an app that talks to
-exactly one remote service. The shipped app talks to many. Google's reviewers
-compare the Data safety declaration against the hosted privacy policy, and a
-declaration that discloses transfers the policy denies is a documented
-rejection cause.
+**Status:** the rewrite is done. `PRIVACY.md` in this repository now discloses
+everything below. What remains is publishing it at a public HTTPS URL, which
+is tracked in the open items.
 
-What the policy currently says:
+The rest of this section records what was wrong and why, because the Data
+safety answers in section 3 have to stay consistent with it.
+
+As of 2026-03-06, `PRIVACY.md` described an app that talked to exactly one
+remote service. The shipped app talks to many. Google's reviewers compare the
+Data safety declaration against the hosted privacy policy, and a declaration
+that discloses transfers the policy denies is a documented rejection cause.
+
+What the policy said before the rewrite:
 
 > Submersion does not operate any remote servers, and your data is not
 > transmitted to any server owned or operated by Submersion.
@@ -62,20 +69,28 @@ GitHub update check.
 Every one of these is user-initiated and optional, which is a strong story.
 It just has to be the story the policy tells.
 
-A second gap, traced after the first draft of this document: the policy also
-does not disclose that data belonging to *other people* leaves the device. Dive
-buddy photos, phone numbers and email addresses, certification card scans and
-handwritten signature images are all carried in the encrypted sync payload.
-See 3.2.1 for the evidence. A user reading the current policy would not expect
-their buddy's face and phone number to be uploaded on their behalf.
+A second gap: the policy did not disclose that data belonging to *other
+people* leaves the device. Dive buddy photos, phone numbers and email
+addresses, certification card scans and handwritten signature images are all
+carried in the sync payload. See 3.2.1. A user reading the old policy would
+not expect their buddy's face and phone number to be uploaded on their behalf.
 
-**Action:** revise `PRIVACY.md` to enumerate the table above, add the
-third-party data disclosure, and state plainly that dive gallery photos and
-video are referenced in place and never uploaded, which is true and is the
-strongest line in the policy. Then confirm it is served at a stable public
-HTTPS URL. Play requires a URL, not a file. Note that the app has no in-app
-privacy policy link at all right now (nothing in `lib/` launches one), so there
-is no existing URL to reuse.
+A third gap, found when this PR was reviewed: **the encryption the policy
+implied is optional and off by default.** `syncEncryptionEnabled` and
+`dbEncryptionEnabled` both read `?? false`, and the media store has no
+encryption at all. An interim draft of this document asserted end-to-end
+encryption as a property of the app and recommended ticking it on the Data
+safety form. That would have been a false security declaration. See 3.4.
+
+**Done:** `PRIVACY.md` now enumerates the destinations above, discloses the
+third-party data, separates the encrypted and unencrypted upload paths, and
+states plainly which encryption settings are off by default. It also keeps the
+strongest true line in the policy: dive gallery photos and video are referenced
+in place and are never uploaded unless a media store is attached.
+
+**Still to do:** serve it at a stable public HTTPS URL. Play requires a URL,
+not a file. The app has no in-app privacy policy link at all (nothing in
+`lib/` launches one), so there is no existing URL to reuse.
 
 **VERIFY:** is `https://submersion.app/privacy` live? The domain is in use
 (`adobe_ims_auth_manager.dart:53` uses `https://submersion.app/lightroom/callback`
@@ -137,11 +152,13 @@ them as written.
 > It also plans dives: multi-segment open-circuit, CCR, SCR and PSCR profiles,
 > bailout validation, gas blending and MOD calculations.
 >
-> The application is local-first. Dive data lives in an encrypted SQLite
-> database on the user's own device. There is no Submersion server, no
-> account, no subscription and no advertising. Optional synchronisation
-> between a user's own devices runs end-to-end encrypted through storage the
-> user already owns: Google Drive, Dropbox, iCloud or S3-compatible storage.
+> The application is local-first. Dive data lives in a SQLite database on the
+> user's own device, which can optionally be encrypted at rest and unlocked
+> with a passphrase or biometrics. There is no Submersion server, no account,
+> no subscription and no advertising. Optional synchronisation between a
+> user's own devices runs through storage the user already owns (Google Drive,
+> Dropbox, iCloud or S3-compatible storage) and can optionally be end-to-end
+> encrypted.
 >
 > Submersion is free and open source under GPL-3.0. The full source is at
 > github.com/submersion-app/submersion.
@@ -167,9 +184,9 @@ them as written.
 >
 > Submersion is the same application on Android, iOS, macOS, Windows and
 > Linux, with identical detail and analysis on each, in 11 languages. The dive
-> log is an SQLite database the diver owns, encrypted at rest, exportable at
-> any time to UDDF 3.2, CSV, Excel, KML, GPX and PDF. Nothing is locked in and
-> nothing depends on a service continuing to exist.
+> log is an SQLite database the diver owns, optionally encrypted at rest, and
+> exportable at any time to UDDF 3.2, CSV, Excel, KML, GPX and PDF. Nothing is
+> locked in and nothing depends on a service continuing to exist.
 >
 > For technical divers specifically, the decompression instrumentation (16
 > tissue compartments for nitrogen and helium, user-set gradient factors, CNS
@@ -298,10 +315,23 @@ Google's definitions, which decide every answer below:
 
 ### 3.1 The one genuinely ambiguous call
 
-End-to-end encrypted sync to the user's own Google Drive, Dropbox, iCloud or
-S3 bucket. The payload is AES-256-GCM sealed on device with a key that never
-leaves it (`lib/core/services/sync/crypto/sync_envelope.dart`), so no third
-party, including Google, can read it. Two defensible readings:
+Sync and backup to the user's own Google Drive, Dropbox, iCloud or S3 bucket.
+
+**Encryption here is opt-in and off by default.** `SyncPreferences`
+(`lib/core/services/sync/sync_preferences.dart:44`) reads
+`syncEncryptionEnabled` as `?? false`, and the provider wiring in
+`lib/features/settings/presentation/providers/sync_providers.dart:483` is
+explicit about the consequence: "No session (disabled, or enabled-but-locked)
+resolves to the raw provider." A user who enables sync without enabling
+encryption uploads a readable dive log. When encryption is on, the payload is
+AES-256-GCM sealed on device with a key that never leaves it
+(`sync_envelope.dart`), and no third party can read it.
+
+The same is true of the database itself: `SecurityPreferences.dbEncryptionEnabled`
+(`lib/core/services/security/security_preferences.dart:22`) is also `?? false`,
+so encryption at rest is a Settings option rather than a property of the app.
+
+Two defensible readings of the collection question:
 
 1. **Declare it collected.** The bytes leave the device, so by the literal
    definition it is collection. Tick "Data is end-to-end encrypted".
@@ -312,8 +342,11 @@ party, including Google, can read it. Two defensible readings:
 Under-declaring is a policy violation that can suspend the app, and if a
 reviewer decompiles the app and finds Dropbox and S3 upload paths against a
 declaration of "no data collected", that is exactly the finding that triggers
-one. The "end-to-end encrypted" tick is visible on your store listing and is a
-selling point rather than a cost.
+one.
+
+Reading 2 is also much weaker than it first appears, precisely because
+encryption is off by default. The argument "no third party can read it"
+applies only to users who went looking for the setting.
 
 The table below follows reading 1.
 
@@ -324,7 +357,10 @@ required user data types?").
 
 For every row marked Collected: **Shared = No**, **Ephemeral = No**,
 **Required or optional = Optional (users can choose whether to provide it)**,
-**Purpose = App functionality**, and tick **Data is encrypted in transit**.
+**Purpose = App functionality**, and tick **Data is encrypted in transit**,
+which is true everywhere because every destination is HTTPS.
+
+Do **not** tick "Data is end-to-end encrypted" on any row. See 3.4.
 
 | Data type | Collected | Why |
 |---|---|---|
@@ -361,8 +397,8 @@ never leave the device. That is wrong, and the error mattered enough to call
 out rather than quietly patch. There are two upload paths, not one, and only
 one of them is encrypted.
 
-**Path 1, the sync payload, encrypted end to end.** Dive gallery photos and
-video are *not* in it. They are stored as references: `Media.filePath` plus
+**Path 1, the sync payload, encrypted only if the user turned encryption on.**
+Dive gallery photos and video are *not* in it. They are stored as references: `Media.filePath` plus
 `Media.platformAssetId` point at the asset in the operating system's own photo
 library, and those bytes are never copied into app storage. That part of the
 original claim holds.
@@ -380,9 +416,10 @@ It is genuinely opt-in: `MediaStoreAttachState.attachedStoreId()` returns null
 until the user attaches a store, so nothing uploads by default.
 
 **Consequence for the form:** answer Yes for Photos and videos, and do **not**
-tick "Data is end-to-end encrypted" on that row. The tick would be false for
-the media store path, and a false security declaration is a worse finding than
-a missing one.
+tick "Data is end-to-end encrypted" on that row. The media store has no
+encryption at all, and sync encryption is off by default, so the tick would be
+false twice over. A false security declaration is a worse finding than a
+missing one.
 
 **Leaves the device when sync or backup is enabled.** Five blob columns hold
 real image bytes and all five are in the sync payload:
@@ -411,9 +448,11 @@ certification card scan is closer to an identity document than to a photo,
 since it carries a full name, a certification number, an issuing agency and a
 date.
 
-None of this is a policy problem. It is all end-to-end encrypted with a key
-that never leaves the device, and it goes only to storage the user already
-controls. It is a *disclosure* problem: the current `PRIVACY.md` does not
+None of this is a policy problem in itself: it goes only to storage the user
+already controls. But it is not protected the way an earlier draft of this
+document claimed. Sync encryption is off unless the user enables it, so by
+default a buddy's face, phone number and signature are uploaded in readable
+form. It is a *disclosure* problem: the original `PRIVACY.md` did not
 mention that buddy photos, buddy contact details or certification card images
 are transmitted anywhere, and a user reading it would not expect a third
 party's data to be uploaded on their behalf. Add it to the revision in 1.1.
@@ -423,29 +462,47 @@ party's data to be uploaded on their behalf. Add it to the revision in 1.1.
 | Question | Answer | Basis |
 |---|---|---|
 | Is all user data encrypted in transit? | **Yes** | Every network destination is HTTPS. Verified across `lib/`: no plain `http://` endpoints other than XML namespace URIs, which are identifiers rather than requests |
+| Is data end-to-end encrypted? | **No** | Available but off by default on all three paths. See 3.4 |
 | Do you provide a way for users to request data deletion? | **Yes** | Data can be deleted in-app at any time, uninstalling removes the local database, and cloud sync files are in storage the user controls directly |
 | Have you committed to the Play Families Policy? | **No** | Target audience is adults; see 4.4 |
 | Has your app been independently validated against a global security standard? | **No** | Do not claim this without a completed MASA audit |
 
-### 3.4 The end-to-end encryption tick
+### 3.4 The end-to-end encryption tick: do not use it
 
-On every row you declare as collected **except Photos and videos**, tick
-**"Data is end-to-end encrypted"**. Photos and videos are the one exception,
-because the media store uploads them unencrypted (see 3.2.1); ticking it there
-would be a false declaration.
+**Leave "Data is end-to-end encrypted" unticked on every row.**
 
-For every other row the tick is true and verifiable: `sync_envelope.dart`
-seals with
-AES-256-GCM using a key held only on device, with the logical filename as
-additional authenticated data. Be ready to point at
-`lib/core/services/sync/crypto/` if a reviewer asks; the source is public.
+An earlier draft of this document said the opposite, and the reasoning is
+worth keeping so the mistake is not repeated. Reading
+`lib/core/services/sync/crypto/sync_envelope.dart` shows AES-256-GCM sealing
+with a device-held key and a doc comment describing "the byte form of every
+encrypted sync file". That is accurate, and it says nothing about whether the
+encrypting layer is in the chain at all.
 
-Note the two boundaries. The tick applies to the sync and backup payloads
-only. Coordinates sent to Nominatim and the map tile servers are TLS-encrypted
-in transit but are plaintext to those services, which is disclosure-worthy in
-the privacy policy without changing the form answers. And media store uploads
-are plaintext at rest in the user's cloud, which does change a form answer:
-see the Photos and videos exception above.
+It often is not. Three separate switches, all defaulting to off:
+
+| Setting | Default | Source |
+|---|---|---|
+| `syncEncryptionEnabled` | `false` | `sync_preferences.dart:44` |
+| `dbEncryptionEnabled` | `false` | `security_preferences.dart:22` |
+| Media store encryption | Does not exist | `lib/features/media_store/` |
+
+`sync_providers.dart:483` decides whether to wrap the cloud provider, and its
+comment states the outcome plainly: "No session (disabled, or
+enabled-but-locked) resolves to the raw provider."
+
+Play's tick asserts that the data **is** end-to-end encrypted, not that it can
+be. For a user who never opened Settings, none of it is. Ticking it would be a
+false security declaration, which is a materially worse finding than a missing
+one, and it is trivially checkable by anyone who installs the app and syncs.
+
+**What to tick instead:** "Data is encrypted in transit", on every collected
+row. That one is unconditionally true. Every destination in Appendix A is
+HTTPS, verified across `lib/`: no plain `http://` request endpoints, only XML
+namespace URIs, which are identifiers rather than requests.
+
+**What to say if asked:** end-to-end encryption is available for sync and for
+the database at rest, and users are encouraged to enable it. That is an honest
+description of an optional feature, and it is what `PRIVACY.md` now says.
 
 ---
 
@@ -511,8 +568,8 @@ Ten pages of analysis: totals, progression, conditions, gas and more. Personal r
 
 YOUR DATA, ENCRYPTED
 No server. No account. No lock-in.
-- SQLite database encrypted at rest, opened with your fingerprint, face or a passphrase
-- End-to-end encrypted sync between your own devices through your own Google Drive, Dropbox or S3 storage
+- Optional encryption at rest, opened with your fingerprint, face or a passphrase
+- Optional end-to-end encrypted sync between your own devices through your own Google Drive, Dropbox or S3 storage
 - Encrypted backups, one taken automatically before every database upgrade
 - Export to UDDF 3.2, CSV, Excel, KML, GPX and printable PDF
 
@@ -830,10 +887,10 @@ user opens a feature or connects an account.
 
 | Destination | Sends | Encrypted by Submersion |
 |---|---|---|
-| Google Drive | Sync and backup payload; media store uploads | Payload yes; **media no** |
-| Dropbox | Sync and backup payload; media store uploads | Payload yes; **media no** |
-| iCloud | Sync and backup payload; media store uploads | Payload yes; **media no** |
-| S3-compatible storage | Sync and backup payload; media store uploads | Payload yes; **media no** |
+| Google Drive | Sync and backup payload; media store uploads | Payload **only if the user enabled encryption**, off by default; media never |
+| Dropbox | Sync and backup payload; media store uploads | Payload **only if the user enabled encryption**, off by default; media never |
+| iCloud | Sync and backup payload; media store uploads | Payload **only if the user enabled encryption**, off by default; media never |
+| S3-compatible storage | Sync and backup payload; media store uploads | Payload **only if the user enabled encryption**, off by default; media never |
 | `sso.garmin.com`, `connectapi.garmin.com` | Garmin credentials, then dive downloads | Provider TLS only |
 | `api.sports-tracker.com` | Suunto Cloud credentials, then dive downloads | Provider TLS only |
 | `ims-na1.adobelogin.com`, `lr.adobe.io` | Adobe OAuth, then Lightroom library queries | Provider TLS only |
@@ -894,7 +951,10 @@ Checked because each one looked like it might be, and was not:
 
 Collected from the **[FILL]** and **VERIFY** markers above:
 
-- [ ] Revise `PRIVACY.md` to disclose all network destinations (1.1)
+- [x] ~~Revise `PRIVACY.md` to disclose all network destinations~~ Done (1.1)
+- [x] ~~Correct the encryption claims~~ Done: sync, database and media
+      encryption are each optional or absent, and the Data safety form must
+      not claim end-to-end encryption (1.1, 3.4)
 - [ ] Confirm the privacy policy is served at a public HTTPS URL (1.1)
 - [ ] Confirm 12 testers stayed opted in for 14 continuous days (1.2)
 - [ ] Write the tester recruitment answer (2)
@@ -912,8 +972,8 @@ Collected from the **[FILL]** and **VERIFY** markers above:
       "Information About Other People" section and corrected the contradictory
       claims (1.1, 3.2.1)
 - [x] ~~Enumerate every egress path~~ Done: Appendix A
-- [ ] Disclose the coordinate fan-out (roughly fifteen third parties) in
-      `PRIVACY.md`. This is the remaining half of the 1.1 revision (A.3)
+- [x] ~~Disclose the coordinate fan-out (roughly fifteen third parties) in
+      `PRIVACY.md`~~ Done (A.3)
 - [ ] Complete the Foreground service permissions declaration and record the
       video (5.1)
 - [ ] Resolve `flutter.targetSdkVersion` against Play's current floor (5.6)

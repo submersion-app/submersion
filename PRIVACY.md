@@ -17,10 +17,16 @@ Submersion is a local-first dive logging application. All data you enter is stor
 
 ## Data Storage
 
-All data is stored locally on your device in a SQLite database, encrypted at
-rest. Submersion does not operate any remote servers. No data is ever
-transmitted to a server owned or operated by Submersion, because no such
-server exists.
+All data is stored locally on your device in a SQLite database. Submersion
+does not operate any remote servers. No data is ever transmitted to a server
+owned or operated by Submersion, because no such server exists.
+
+**Encrypting that database is optional and is off unless you turn it on.**
+You can enable encryption at rest in Settings, under Security, which protects
+the database with a passphrase and can unlock it with your fingerprint or
+face. Until you do, the database is an ordinary unencrypted file on your
+device, protected by your device's own lock screen and storage encryption but
+not by Submersion.
 
 Data can leave your device only to storage you already own, and only when you
 choose to set that up. There are two separate features that do this, and they
@@ -35,18 +41,31 @@ Backup and sync write your dive log to cloud storage you control: Google
 Drive, Dropbox, iCloud, or S3-compatible storage. You choose the provider and
 connect your own account.
 
-- **Encrypted before it leaves your device.** The dive log is sealed with
-  AES-256-GCM using a key derived on your device. The key is never uploaded
-  and is never sent to Submersion or to your storage provider.
-- **Unreadable by your storage provider.** Google, Dropbox, Apple and any S3
-  operator see only encrypted files. They cannot read your dive log, your
-  notes, your locations, or anything else inside it.
-- **Stored in your own account,** under your own control, subject to that
-  provider's own privacy policy for the fact that files exist.
-- **Transmitted over HTTPS.**
+Whatever you choose, the data is stored in your own account, under your own
+control, and is transmitted over HTTPS. Submersion has no access to your cloud
+storage beyond the files the app itself creates there.
 
-Submersion has no access to your cloud storage beyond the files the app itself
-creates there.
+### Encryption is optional here too, and off by default
+
+Sync offers end-to-end encryption, which you turn on in Settings by setting a
+passphrase. You are given a recovery code at that point, because without the
+passphrase or the recovery code the data cannot be recovered by anyone,
+including us.
+
+**With end-to-end encryption on:** the dive log is sealed with AES-256-GCM
+before it leaves your device, using a key derived from your passphrase. The
+key is never uploaded and is never sent to Submersion or to your storage
+provider. Google, Dropbox, Apple and any S3 operator see only encrypted files
+and cannot read your dive log, your notes or your locations.
+
+**With end-to-end encryption off, which is the default:** your dive log is
+uploaded as ordinary readable files. It is protected in transit by HTTPS and
+by whatever security your storage provider applies, but your storage provider
+can access its contents in the same way it can access any other file you keep
+there.
+
+If your dive log matters to you, turning on end-to-end encryption before you
+enable sync is worth the minute it takes.
 
 ## Photo and Video Upload
 
@@ -60,8 +79,8 @@ storage, in an account you connect.
 **Photos and videos uploaded this way are not encrypted by Submersion.** They
 are transmitted over HTTPS and stored as ordinary files in your cloud account,
 which means your storage provider can access them in the same way it can
-access any other photo you keep there. This is different from backup and sync,
-which is encrypted end to end.
+access any other photo you keep there. Turning on end-to-end encryption for
+sync does not cover them: media upload has no encryption option.
 
 If you do not attach a media store, your photos and videos are never uploaded.
 Dive media is otherwise referenced in place: Submersion points at the photo in
@@ -82,10 +101,14 @@ the people you dive with, and Submersion may hold the following about them:
 You may have imported some of this from your device's contacts.
 
 **If you enable backup and sync, this information leaves your device along
-with the rest of your dive log.** It is encrypted end to end before it is
-uploaded, so your storage provider cannot read it, and it goes only to storage
-you control. But it does leave your device, and the people it describes have
-not agreed to that, because they were never asked.
+with the rest of your dive log.** It goes only to storage you control. If you
+have also turned on end-to-end encryption, your storage provider cannot read
+it; if you have not, which is the default, it is uploaded in readable form.
+Either way it does leave your device, and the people it describes have not
+agreed to that, because they were never asked.
+
+This is the strongest reason to turn on end-to-end encryption. The data you
+are uploading is not all yours to expose.
 
 **If you attach a media store, photos and videos containing other people are
 uploaded without encryption,** as described above, and your storage provider
@@ -203,7 +226,7 @@ Submersion requests the following permissions only as needed for specific featur
 | **Location** | Tag dive sites with GPS coordinates; required for BLE scanning on Android 11 and below |
 | **Photos and media** | Attach photos and videos to dive entries |
 | **Media location** | Read GPS data from photo EXIF metadata to suggest dive site locations |
-| **Contacts** (iOS only) | Select dive buddies from your device contacts. Submersion does not request contacts access on Android |
+| **Contacts** (iOS only) | Select dive buddies from your device contacts. Contact import is currently unavailable on Android: the app offers it, but the permission it needs is not declared, so the request always fails. This is a known defect |
 | **Notifications** | Send gear maintenance service reminders |
 | **Exact alarms** | Schedule precise gear maintenance reminders |
 
