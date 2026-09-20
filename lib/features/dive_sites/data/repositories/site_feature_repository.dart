@@ -73,6 +73,27 @@ class SiteFeatureRepository {
     return rows.map(_toDomain).toList();
   }
 
+  /// Every feature on [siteIds], grouped by site, in one query.
+  ///
+  /// The export writes a whole library's sites at once, so reading them one
+  /// site at a time would be a query per site. Sites with no features are
+  /// absent from the result rather than mapped to an empty list.
+  Future<Map<String, List<domain.SiteFeature>>> getFeaturesForSites(
+    List<String> siteIds,
+  ) async {
+    if (siteIds.isEmpty) return const {};
+    final rows =
+        await (_db.select(_db.siteFeatures)
+              ..where((t) => t.siteId.isIn(siteIds))
+              ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+            .get();
+    final bySite = <String, List<domain.SiteFeature>>{};
+    for (final row in rows) {
+      (bySite[row.siteId] ??= []).add(_toDomain(row));
+    }
+    return bySite;
+  }
+
   Future<void> updateFeature(domain.SiteFeature feature) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await (_db.update(

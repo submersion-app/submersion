@@ -38,6 +38,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -505,6 +506,8 @@ class ExportService {
     List<SiteTypeEntity>? customSiteTypes,
     Map<String, List<String>> siteTypeIdsBySite = const {},
     Map<String, List<String>> siteTagIdsBySite = const {},
+    // Each exported site's own features (issue #2200).
+    Map<String, List<SiteFeature>> siteFeaturesBySite = const {},
     // Each exported item's tag ids (issue #1942).
     Map<String, List<String>> equipmentTagIdsByItem = const {},
     List<DiveRole>? customDiveRoles,
@@ -538,6 +541,7 @@ class ExportService {
     customSiteTypes: customSiteTypes,
     siteTypeIdsBySite: siteTypeIdsBySite,
     siteTagIdsBySite: siteTagIdsBySite,
+    siteFeaturesBySite: siteFeaturesBySite,
     equipmentTagIdsByItem: equipmentTagIdsByItem,
     customDiveRoles: customDiveRoles,
     diveComputers: diveComputers,
@@ -572,6 +576,8 @@ class ExportService {
     List<SiteTypeEntity>? customSiteTypes,
     Map<String, List<String>> siteTypeIdsBySite = const {},
     Map<String, List<String>> siteTagIdsBySite = const {},
+    // Each exported site's own features (issue #2200).
+    Map<String, List<SiteFeature>> siteFeaturesBySite = const {},
     // Each exported item's tag ids (issue #1942).
     Map<String, List<String>> equipmentTagIdsByItem = const {},
     List<DiveRole>? customDiveRoles,
@@ -605,6 +611,7 @@ class ExportService {
     customSiteTypes: customSiteTypes,
     siteTypeIdsBySite: siteTypeIdsBySite,
     siteTagIdsBySite: siteTagIdsBySite,
+    siteFeaturesBySite: siteFeaturesBySite,
     equipmentTagIdsByItem: equipmentTagIdsByItem,
     customDiveRoles: customDiveRoles,
     diveComputers: diveComputers,

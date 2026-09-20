@@ -43,6 +43,7 @@ import 'package:submersion/features/dive_sites/data/repositories/site_repository
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
@@ -123,6 +124,10 @@ class ImportRepositories {
   /// equipment is not linked to its tags (issue #1942).
   final EquipmentTagRepository? equipmentTagRepository;
 
+  /// Optional for the same reason; when null, the site features in the
+  /// source are skipped rather than failing the import (issue #2200).
+  final SiteFeatureRepository? siteFeatureRepository;
+
   const ImportRepositories({
     required this.tripRepository,
     required this.equipmentRepository,
@@ -144,6 +149,7 @@ class ImportRepositories {
     this.siteTypeRepository,
     this.siteClassificationRepository,
     this.equipmentTagRepository,
+    this.siteFeatureRepository,
   });
 }
 
@@ -544,13 +550,16 @@ class UddfEntityImporter {
       diverId,
       siteIdMapping,
       onProgress,
-      linkClassification: (siteData, siteId) => _linkSiteClassification(
-        siteData,
-        siteId,
-        siteTypeIdMapping,
-        tagIdMapping,
-        repositories,
-      ),
+      restoreSiteChildren: (siteData, siteId) async {
+        await _linkSiteClassification(
+          siteData,
+          siteId,
+          siteTypeIdMapping,
+          tagIdMapping,
+          repositories,
+        );
+        await _restoreSiteFeatures(siteData, siteId, repositories);
+      },
     );
 
     final equipmentSetsCount = await _importEquipmentSets(
@@ -1159,14 +1168,69 @@ class UddfEntityImporter {
     return count;
   }
 
+  // -- Site features (issue #2200) --
+
+  /// Restores the features carried on [siteData] onto [siteId].
+  ///
+  /// A union, never a replacement, for the same reason the classification
+  /// link is one: an import must not take away a marker the diver placed
+  /// here. A feature already on the site with the same type at the same
+  /// point is left alone, so importing the same file twice does not double
+  /// its markers. Points are compared at the six decimals every exporter
+  /// writes, which is finer than a diver can place a marker.
+  ///
+  /// The type is restored as the raw name the file carried, never parsed
+  /// through the enum, so a type from a newer build survives.
+  Future<void> _restoreSiteFeatures(
+    Map<String, dynamic> siteData,
+    String siteId,
+    ImportRepositories repos,
+  ) async {
+    final repository = repos.siteFeatureRepository;
+    if (repository == null) return;
+    final incoming = siteData['siteFeatures'];
+    if (incoming is! List) return;
+
+    String keyOf(String typeName, double latitude, double longitude) =>
+        '$typeName@${latitude.toStringAsFixed(6)}'
+        ',${longitude.toStringAsFixed(6)}';
+
+    final seen = {
+      for (final feature in await repository.getFeaturesForSite(siteId))
+        keyOf(feature.typeName, feature.latitude, feature.longitude),
+    };
+
+    for (final entry in incoming.whereType<Map<String, dynamic>>()) {
+      final typeName = (entry['typeName'] as String?)?.trim();
+      final latitude = (entry['latitude'] as num?)?.toDouble();
+      final longitude = (entry['longitude'] as num?)?.toDouble();
+      if (typeName == null || typeName.isEmpty) continue;
+      if (latitude == null || longitude == null) continue;
+      if (!seen.add(keyOf(typeName, latitude, longitude))) continue;
+      await repository.addFeature(
+        siteId: siteId,
+        typeName: typeName,
+        name: entry['name'] as String? ?? '',
+        latitude: latitude,
+        longitude: longitude,
+        bearingDeg: (entry['bearingDeg'] as num?)?.toDouble(),
+        depthMeters: (entry['depthMeters'] as num?)?.toDouble(),
+        notes: entry['notes'] as String? ?? '',
+      );
+    }
+  }
+
   // -- Site types and site tags (issue #1765) --
 
-  /// Whether [siteData] carries any type or tag reference to link. Most
-  /// sources carry none, and they should not pay for classification reads.
-  static bool _hasClassificationRefs(Map<String, dynamic> siteData) =>
+  /// Whether [siteData] carries any child data to restore alongside the
+  /// site itself: a type or tag reference (issue #1765) or a site feature
+  /// (issue #2200). Most sources carry none, and they should not pay for
+  /// the classification and feature reads.
+  static bool _hasSiteChildData(Map<String, dynamic> siteData) =>
       siteData['siteTypeRefs'] is List ||
       siteData['suggestedSiteTypeRefs'] is List ||
-      siteData['tagRefs'] is List;
+      siteData['tagRefs'] is List ||
+      siteData['siteFeatures'] is List;
 
   /// Resolves the file's custom site types to local ids: an existing custom
   /// type of the same name is reused, otherwise one is created. Returns file
@@ -1471,7 +1535,7 @@ class UddfEntityImporter {
     ImportProgressCallback? onProgress, {
     // Links a written site to its types and tags (issue #1765).
     Future<void> Function(Map<String, dynamic> siteData, String siteId)?
-    linkClassification,
+    restoreSiteChildren,
   }) async {
     // For deselected sites (duplicates the user chose not to re-import),
     // resolve their UDDF IDs to existing database sites so that dives
@@ -1609,8 +1673,8 @@ class UddfEntityImporter {
       );
 
       if (uddfId != null) idMapping[uddfId] = overwrittenSite;
-      if (_hasClassificationRefs(siteData)) {
-        await linkClassification?.call(siteData, overwrittenSite.id);
+      if (_hasSiteChildData(siteData)) {
+        await restoreSiteChildren?.call(siteData, overwrittenSite.id);
       }
       count++;
       onProgress?.call(ImportPhase.sites, count, totalWork);
@@ -1694,8 +1758,8 @@ class UddfEntityImporter {
       }
 
       if (uddfId != null) idMapping[uddfId] = createdSite;
-      if (_hasClassificationRefs(siteData)) {
-        await linkClassification?.call(siteData, createdSite.id);
+      if (_hasSiteChildData(siteData)) {
+        await restoreSiteChildren?.call(siteData, createdSite.id);
       }
       count++;
       onProgress?.call(ImportPhase.sites, count, totalWork);

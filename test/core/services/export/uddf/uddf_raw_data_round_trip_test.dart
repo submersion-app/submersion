@@ -21,6 +21,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain_dive;
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
 import 'package:submersion/features/dive_types/data/repositories/dive_type_repository.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
@@ -52,6 +53,7 @@ ImportRepositories buildRepositories() => ImportRepositories(
   diveComputerRepository: DiveComputerRepository(),
   siteTypeRepository: SiteTypeRepository(),
   siteClassificationRepository: SiteClassificationRepository(),
+  siteFeatureRepository: SiteFeatureRepository(),
 );
 
 Future<String> createTestDiver() async {

@@ -25,6 +25,7 @@ import 'package:submersion/features/signatures/data/services/signature_storage_s
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -656,6 +657,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
         siteClassification.customSiteTypes,
         (type) => type.id,
       );
+      // Each site's own features (issue #2200), read for every exported
+      // site in one query rather than one query per site.
+      final siteFeaturesBySite = await _ref
+          .read(siteFeatureRepositoryProvider)
+          .getFeaturesForSites([for (final s in sites) s.id]);
       // Equipment tags (issue #1942): each item's tag ids and the tags they
       // name, resolved by id like the site tags above.
       final equipmentTags = await loadEquipmentTagsForExport(
@@ -703,6 +709,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         customSiteTypes: customSiteTypes,
         siteTypeIdsBySite: siteClassification.typeIdsBySite,
         siteTagIdsBySite: siteClassification.tagIdsBySite,
+        siteFeaturesBySite: siteFeaturesBySite,
         equipmentTagIdsByItem: equipmentTags.tagIdsByItem,
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,
@@ -1281,6 +1288,11 @@ class ExportNotifier extends StateNotifier<ExportState> {
         siteClassification.customSiteTypes,
         (type) => type.id,
       );
+      // Each site's own features (issue #2200), read for every exported
+      // site in one query rather than one query per site.
+      final siteFeaturesBySite = await _ref
+          .read(siteFeatureRepositoryProvider)
+          .getFeaturesForSites([for (final s in sites) s.id]);
       // Equipment tags (issue #1942): each item's tag ids and the tags they
       // name, resolved by id like the site tags above.
       final equipmentTags = await loadEquipmentTagsForExport(
@@ -1328,6 +1340,7 @@ class ExportNotifier extends StateNotifier<ExportState> {
         customSiteTypes: customSiteTypes,
         siteTypeIdsBySite: siteClassification.typeIdsBySite,
         siteTagIdsBySite: siteClassification.tagIdsBySite,
+        siteFeaturesBySite: siteFeaturesBySite,
         equipmentTagIdsByItem: equipmentTags.tagIdsByItem,
         customDiveRoles: customDiveRoles,
         diveComputers: diveComputers,

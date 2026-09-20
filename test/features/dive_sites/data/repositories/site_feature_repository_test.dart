@@ -100,4 +100,58 @@ void main() {
     final forSite1 = await repo.getFeaturesForSite('site-1');
     expect(forSite1.map((f) => f.id), [first.id, second.id]);
   });
+  test('getFeaturesForSites reads every site in one query', () async {
+    await db
+        .into(db.diveSites)
+        .insert(
+          DiveSitesCompanion.insert(
+            id: 'site-2',
+            name: 'Lake wreck',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await repo.addFeature(
+      siteId: 'site-1',
+      typeName: 'mooring',
+      latitude: 12.151,
+      longitude: -68.299,
+    );
+    await repo.addFeature(
+      siteId: 'site-2',
+      typeName: 'wreck',
+      latitude: 36.1,
+      longitude: -5.6,
+    );
+
+    final bySite = await repo.getFeaturesForSites(['site-1', 'site-2']);
+    expect(bySite['site-1']!.single.typeName, 'mooring');
+    expect(bySite['site-2']!.single.typeName, 'wreck');
+  });
+
+  test('getFeaturesForSites omits a site with no features', () async {
+    await db
+        .into(db.diveSites)
+        .insert(
+          DiveSitesCompanion.insert(
+            id: 'site-2',
+            name: 'Lake wreck',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await repo.addFeature(
+      siteId: 'site-1',
+      typeName: 'mooring',
+      latitude: 12.151,
+      longitude: -68.299,
+    );
+
+    final bySite = await repo.getFeaturesForSites(['site-1', 'site-2']);
+    expect(bySite.keys, ['site-1']);
+  });
+
+  test('getFeaturesForSites returns nothing for no sites', () async {
+    expect(await repo.getFeaturesForSites(const []), isEmpty);
+  });
 }
