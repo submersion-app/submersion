@@ -85,6 +85,30 @@ void main() {
     );
   });
 
+  test('a peer that clears its name is forgotten on the next pull', () async {
+    switchTo(dbA);
+    await seedDiver(dbA);
+    await SyncRepository().markRecordPending(
+      entityType: 'divers',
+      recordId: 'diver1',
+      localUpdatedAt: 0,
+    );
+    final deviceA = await SyncRepository().getDeviceId();
+    await service().performSync();
+    await restampPeerDeviceName(cloud, deviceA, deviceName: "Eric's MacBook");
+
+    switchTo(dbB);
+    await service().performSync();
+    expect(names.nameFor(deviceA), "Eric's MacBook");
+
+    // A republishes without a name: a rename to empty, or a downgrade to a
+    // version that publishes none. The stale label must not outlive it.
+    await restampPeerDeviceName(cloud, deviceA, deviceName: null);
+    await service().performSync();
+
+    expect(names.nameFor(deviceA), isNull);
+  });
+
   test('a manifest without a name records nothing', () async {
     switchTo(dbA);
     await seedDiver(dbA);

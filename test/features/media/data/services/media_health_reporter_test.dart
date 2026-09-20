@@ -5,6 +5,8 @@ import 'package:submersion/core/services/media_store/media_store_attach_state.da
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/features/media/data/services/media_health_reporter.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 import '../../../../helpers/two_device_media_harness.dart';
 
@@ -69,6 +71,61 @@ void main() {
       isNull,
       reason: 'the library report does not probe the store',
     );
+  });
+
+  test('each source type reports the locator it actually uses', () async {
+    // The row carries only three path columns, so deriving the pointer from
+    // them printed null for every type that keeps its locator elsewhere: a
+    // network row's URL, a connector row's remote asset id, a store row's
+    // content hash. The reporter now takes the pointer from the one
+    // exhaustive selection, OriginFacts.
+    await h.a.activate();
+    MediaItem item(
+      MediaSourceType type, {
+      String? url,
+      String? remoteAssetId,
+      String? contentHash,
+      String? bookmarkRef,
+      String? platformAssetId,
+    }) => MediaItem(
+      id: 'probe-${type.name}',
+      mediaType: MediaType.photo,
+      sourceType: type,
+      url: url,
+      remoteAssetId: remoteAssetId,
+      contentHash: contentHash,
+      bookmarkRef: bookmarkRef,
+      platformAssetId: platformAssetId,
+      takenAt: DateTime(2026, 7, 1),
+      createdAt: DateTime(2026, 7, 1),
+      updatedAt: DateTime(2026, 7, 1),
+    );
+
+    final expected = <MediaItem, String?>{
+      item(MediaSourceType.networkUrl, url: 'https://example.com/a.jpg'):
+          'https://example.com/a.jpg',
+      item(MediaSourceType.manifestEntry, url: 'https://example.com/b.jpg'):
+          'https://example.com/b.jpg',
+      item(MediaSourceType.serviceConnector, remoteAssetId: 'asset-7'):
+          'asset-7',
+      item(MediaSourceType.mediaStore, contentHash: 'h' * 64): 'h' * 64,
+      item(MediaSourceType.localFile, bookmarkRef: 'bm://scoped'):
+          'bm://scoped',
+      item(MediaSourceType.platformGallery, platformAssetId: 'PH-1'): 'PH-1',
+      item(MediaSourceType.signature): null,
+    };
+
+    for (final entry in expected.entries) {
+      final row = (await h.a.onThisDisk(
+        () => reporterFor(h.a).forItem(entry.key),
+      )).rows.single;
+      expect(row.pointer, entry.value, reason: entry.key.sourceType.name);
+      expect(
+        row.toJson()['pointer'],
+        entry.value,
+        reason: '${entry.key.sourceType.name} in JSON',
+      );
+    }
   });
 
   test('the origin device names itself and sees its queue entry', () async {

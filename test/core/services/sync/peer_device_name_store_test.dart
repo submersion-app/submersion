@@ -26,9 +26,48 @@ void main() {
     expect(store.nameFor('dev-a'), 'new');
   });
 
-  test('ignores an empty name', () async {
+  test('an empty name for an unknown peer stores nothing', () async {
     await store.record('dev-a', '');
     expect(store.nameFor('dev-a'), isNull);
+  });
+
+  test('a peer that stops publishing a name is forgotten', () async {
+    await store.record('dev-a', 'A');
+    await store.record('dev-b', 'B');
+
+    // The manifest is the only place a name lives, so a manifest that
+    // carries none means the peer no longer has one.
+    await store.record('dev-a', null);
+
+    expect(store.nameFor('dev-a'), isNull);
+    expect(store.all(), {'dev-b': 'B'}, reason: 'other peers are untouched');
+  });
+
+  test('an emptied name is forgotten too', () async {
+    await store.record('dev-a', 'A');
+    await store.record('dev-a', '');
+    expect(store.nameFor('dev-a'), isNull);
+  });
+
+  test('forgetting emits the map, forgetting twice emits nothing', () async {
+    await store.record('dev-a', 'A');
+    final seen = <Map<String, String>>[];
+    final sub = store.changes.listen(seen.add);
+
+    await store.record('dev-a', null);
+    await store.record('dev-a', null);
+    await Future<void>.delayed(Duration.zero);
+    await sub.cancel();
+
+    expect(seen, [<String, String>{}]);
+  });
+
+  test('a forgotten name does not survive a new instance', () async {
+    await store.record('dev-a', 'A');
+    await store.record('dev-a', null);
+    final again = PeerDeviceNameStore(await SharedPreferences.getInstance());
+    addTearDown(again.dispose);
+    expect(again.nameFor('dev-a'), isNull);
   });
 
   test('survives a new instance over the same preferences', () async {

@@ -4175,10 +4175,9 @@ class SyncService {
       } catch (_) {
         continue;
       }
-      final publishedName = manifest.deviceName;
-      if (publishedName != null && publishedName.isNotEmpty) {
-        await _peerNames?.record(deviceId, publishedName);
-      }
+      // Recorded unconditionally: the manifest parsed, so a missing name is
+      // the peer's current state and clears any name it published before.
+      await _peerNames?.record(deviceId, manifest.deviceName);
       if (manifest.epochId != epochId) continue;
       final baseSeq = manifest.baseSeq;
       if (baseSeq == null) continue;

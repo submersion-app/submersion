@@ -173,8 +173,11 @@ class ChangesetReader {
         final manifestName = manifest.deviceName;
         if (manifestName != null && manifestName.isNotEmpty) {
           peerName = manifestName;
-          await peerNames?.record(peerId, manifestName);
         }
+        // Recorded unconditionally: the manifest read succeeded, so a
+        // missing name is the peer's current state and must clear any name
+        // it published before, not leave a stale label behind.
+        await peerNames?.record(peerId, manifestName);
 
         // Stale-epoch filter: once this device is on a library epoch, a peer
         // stamped with a different epoch (including an unstamped legacy peer)

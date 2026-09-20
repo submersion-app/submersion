@@ -8,6 +8,7 @@ import 'package:submersion/features/media/data/repositories/media_repository.dar
 import 'package:submersion/features/media/data/services/media_health_report.dart';
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_provenance.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 
@@ -190,6 +191,7 @@ class MediaHealthReporter {
       filePath: item.filePath,
       localPath: item.localPath,
       platformAssetId: item.platformAssetId,
+      pointer: OriginFacts.from(item).pointer,
       takenAt: item.takenAt,
       diveId: item.diveId,
       siteId: item.siteId,

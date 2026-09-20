@@ -39,13 +39,28 @@ class PeerDeviceNameStore {
 
   String? nameFor(String deviceId) => all()[deviceId];
 
-  /// Remembers [name] for [deviceId]. An empty name and an unchanged name
-  /// are no-ops, so a sync that sees the same manifests emits nothing.
-  Future<void> record(String deviceId, String name) async {
-    if (name.isEmpty) return;
+  /// Remembers [name] for [deviceId], or forgets the peer when [name] is
+  /// null or empty. An unchanged entry is a no-op, so a sync that sees the
+  /// same manifests emits nothing.
+  ///
+  /// A nameless manifest is not missing information: the manifest is the
+  /// only place a peer's name lives, so a peer that clears its name, or
+  /// downgrades to a version that publishes none, must stop being labelled
+  /// with the name it used to publish. Callers pass whatever the manifest
+  /// carried, including null, and only skip the call when they could not
+  /// read the manifest at all.
+  Future<void> record(String deviceId, String? name) async {
     final current = all();
+    if (name == null || name.isEmpty) {
+      if (!current.containsKey(deviceId)) return;
+      await _write({...current}..remove(deviceId));
+      return;
+    }
     if (current[deviceId] == name) return;
-    final next = {...current, deviceId: name};
+    await _write({...current, deviceId: name});
+  }
+
+  Future<void> _write(Map<String, String> next) async {
     await _prefs.setString(prefsKey, jsonEncode(next));
     _changes.add(next);
   }

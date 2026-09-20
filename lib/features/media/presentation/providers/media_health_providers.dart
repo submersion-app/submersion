@@ -28,7 +28,11 @@ final mediaHealthReporterProvider = Provider<MediaHealthReporter>((ref) {
     localDeviceId: () => SyncRepository().getDeviceId(),
     localDeviceName: () async =>
         (await SyncDeviceMetadata(SyncRepository()).resolve()).name,
-    deviceName: (id) => ref.read(peerDeviceNamesProvider).value?[id],
+    // The store, not the stream: on the Media Storage page and the debug
+    // log export nothing has started peerDeviceNamesProvider before the
+    // report is built, so its value would still be loading and every
+    // foreign row would lose a name the store already holds.
+    deviceName: (id) => ref.read(peerDeviceNameStoreProvider).nameFor(id),
   );
 });
 

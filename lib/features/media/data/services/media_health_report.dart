@@ -10,6 +10,7 @@ class MediaHealthRow {
     this.filePath,
     this.localPath,
     this.platformAssetId,
+    this.pointer,
     required this.takenAt,
     this.diveId,
     this.siteId,
@@ -95,8 +96,14 @@ class MediaHealthRow {
   final bool? queueWaiting;
   final String? queueError;
 
-  /// The source pointer this row's type uses.
-  String? get pointer => filePath ?? localPath ?? platformAssetId;
+  /// The locator this row's source type actually uses, chosen by
+  /// `OriginFacts._pointerFor`: the asset id for a gallery row, a path or
+  /// bookmark for a local file, the URL for a network or manifest row, the
+  /// remote asset id for a connector row, the content hash for a store row,
+  /// and null for a signature, which references nothing a reader could act
+  /// on. Derived from the three path columns this row happens to carry, it
+  /// would read null for most of those types.
+  final String? pointer;
 
   Map<String, Object?> toJson() => {
     'media_id': mediaId,
@@ -105,6 +112,7 @@ class MediaHealthRow {
     'file_path': filePath,
     'local_path': localPath,
     'platform_asset_id': platformAssetId,
+    'pointer': pointer,
     'taken_at': _ts(takenAt),
     'dive_id': diveId,
     'site_id': siteId,
