@@ -56,6 +56,9 @@ Future<List<dynamic>> _overrides({required int diveCount}) async => [
 Future<void> _openSearch(WidgetTester tester, {required int diveCount}) async {
   await tester.pumpWidget(
     testApp(
+      // Pinned: the assertions below read English labels, and the count is the
+      // whole point of the test, so it must not depend on the runner's locale.
+      locale: const Locale('en'),
       overrides: await _overrides(diveCount: diveCount),
       child: Consumer(
         builder: (context, ref, _) => ElevatedButton(
