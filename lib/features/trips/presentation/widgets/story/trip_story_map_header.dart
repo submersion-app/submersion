@@ -54,66 +54,18 @@ class MapCameraAnimator {
   }
 }
 
-/// Pinned header hosting the story map.
-class TripStoryMapHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final TripStoryMapGeometry geometry;
-  final int activeDayIndex;
-  final MapController mapController;
-  final ValueChanged<int> onDaySelected;
-  final double maxExtentValue;
-  final double minExtentValue;
-
-  const TripStoryMapHeaderDelegate({
-    required this.geometry,
-    required this.activeDayIndex,
-    required this.mapController,
-    required this.onDaySelected,
-    required this.maxExtentValue,
-    this.minExtentValue = 180,
-  });
-
-  @override
-  double get maxExtent => maxExtentValue;
-
-  @override
-  double get minExtent => minExtentValue;
-
-  @override
-  bool shouldRebuild(TripStoryMapHeaderDelegate oldDelegate) =>
-      oldDelegate.geometry != geometry ||
-      oldDelegate.activeDayIndex != activeDayIndex ||
-      oldDelegate.mapController != mapController ||
-      oldDelegate.onDaySelected != onDaySelected ||
-      oldDelegate.maxExtentValue != maxExtentValue ||
-      oldDelegate.minExtentValue != minExtentValue;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return Material(
-      elevation: overlapsContent ? 2 : 0,
-      child: geometry.hasPoints
-          ? _StoryMap(
-              geometry: geometry,
-              activeDayIndex: activeDayIndex,
-              mapController: mapController,
-              onDaySelected: onDaySelected,
-            )
-          : const _MapFallback(),
-    );
-  }
-}
-
-class _StoryMap extends ConsumerWidget {
+/// The story map: the trip's route and its day pins.
+///
+/// It renders the gradient fallback itself when the trip has no mappable
+/// points, so the band can hold one map instance either way.
+class TripStoryMap extends ConsumerWidget {
   final TripStoryMapGeometry geometry;
   final int activeDayIndex;
   final MapController mapController;
   final ValueChanged<int> onDaySelected;
 
-  const _StoryMap({
+  const TripStoryMap({
+    super.key,
     required this.geometry,
     required this.activeDayIndex,
     required this.mapController,
@@ -122,6 +74,8 @@ class _StoryMap extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (!geometry.hasPoints) return const _MapFallback();
+
     final colorScheme = Theme.of(context).colorScheme;
     final points = geometry.points
         .map((p) => LatLng(p.latitude, p.longitude))

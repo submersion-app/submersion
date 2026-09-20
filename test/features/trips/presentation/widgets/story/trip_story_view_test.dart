@@ -15,6 +15,8 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_band.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_band_extents.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
@@ -180,7 +182,7 @@ void main() {
     expect(find.byType(TripVesselSection), findsOneWidget);
   });
 
-  testWidgets('wide layout docks the map beside the story', (tester) async {
+  testWidgets('one band serves every width', (tester) async {
     final trip = _trip(
       start: DateTime(2026, 3, 27),
       end: DateTime(2026, 3, 28),
@@ -188,9 +190,53 @@ void main() {
     final story = _story(trip, today: DateTime(2026, 6, 1));
     await pumpView(tester, story, viewSize: const Size(1400, 900));
 
-    expect(find.byKey(const Key('trip-story-wide-layout')), findsOneWidget);
-    // Wide layout keeps the strip fixed in the side panel.
-    expect(find.byType(TripStatStrip), findsOneWidget);
+    // The 380px map column and its 900px breakpoint are gone.
+    expect(find.byKey(const Key('trip-story-wide-layout')), findsNothing);
+    expect(find.byKey(TripStoryBandDelegate.bandKey), findsOneWidget);
+    expect(find.byType(CustomScrollView), findsOneWidget);
+  });
+
+  testWidgets('the story does not stretch across a wide window', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 27),
+      end: DateTime(2026, 3, 28),
+    );
+    final story = _story(trip, today: DateTime(2026, 6, 1));
+    await pumpView(tester, story, viewSize: const Size(1400, 900));
+
+    expect(
+      tester.getSize(find.byType(CustomScrollView)).width,
+      lessThanOrEqualTo(900.0),
+    );
+  });
+
+  testWidgets('the band parks at the docked extent', (tester) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    final scrollable = find.byType(CustomScrollView);
+    for (var i = 0; i < 4; i++) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(
+      tester.getSize(find.byKey(TripStoryBandDelegate.bandKey)).height,
+      closeTo(TripStoryBandExtents.dockedFloor, 1.0),
+    );
   });
 
   testWidgets('stat strip scrolls away in the narrow layout', (tester) async {

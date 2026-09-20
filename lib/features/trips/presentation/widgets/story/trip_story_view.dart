@@ -11,6 +11,8 @@ import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart'
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_flight_countdown_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_band.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_band_extents.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_stat_strip.dart';
@@ -18,11 +20,14 @@ import 'package:submersion/features/trips/presentation/widgets/story/trip_story_
 import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-const double _wideBreakpoint = 900;
-const double _mapHeaderMaxExtent = 260;
+/// The story stops widening here so a very wide window does not stretch the
+/// chapters into unreadable lines. The band is constrained with them, so the
+/// map and the day panel stay the same width as the story they describe.
+const double _maxContentWidth = 900;
 const Duration _scrollThrottle = Duration(milliseconds: 100);
 
-/// The assembled trip story: pinned map + hero + day chapters.
+/// The assembled trip story: one pinned band (docked day plus map), hero and
+/// day chapters.
 class TripStoryView extends ConsumerStatefulWidget {
   final TripStory story;
   final TripWithStats stats;
@@ -157,8 +162,8 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
   @override
   Widget build(BuildContext context) {
     final tripId = widget.story.trip.id;
-    // One read for the whole story. Watched here rather than inside the
-    // LayoutBuilder below, whose builder runs at layout time, not build time.
+    // One read for the whole story, shared by the band's docked panel and
+    // every chapter heading.
     final storedWeather =
         ref.watch(tripDayWeatherProvider(tripId)).asData?.value ??
         const <int, TripDayWeather>{};
@@ -166,55 +171,57 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     // above via the table tick, so a row landing re-renders its day header.
     ref.watch(tripDayWeatherBackfillProvider(tripId));
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= _wideBreakpoint;
-        if (!wide) {
-          return NotificationListener<ScrollUpdateNotification>(
-            onNotification: _onScroll,
-            child: CustomScrollView(
-              slivers: [
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: _mapHeaderDelegate(),
-                ),
-                SliverToBoxAdapter(
-                  child: TripStatStrip(
-                    stats: widget.stats,
-                    siteCount: _siteCount,
-                  ),
-                ),
-                ..._contentSlivers(storedWeather),
-              ],
-            ),
-          );
-        }
-        return Row(
-          key: const Key('trip-story-wide-layout'),
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              width: 380,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: _mapHeaderDelegate().build(context, 0, false),
-                  ),
-                  TripStatStrip(stats: widget.stats, siteCount: _siteCount),
-                ],
-              ),
-            ),
-            Expanded(
-              child: NotificationListener<ScrollUpdateNotification>(
-                onNotification: _onScroll,
-                child: CustomScrollView(
-                  slivers: _contentSlivers(storedWeather),
+    final extents = TripStoryBandExtents.forScaler(
+      MediaQuery.textScalerOf(context),
+    );
+    // Built here rather than inside the delegate so a scroll that changes only
+    // the band's shrink offset re-runs layout without rebuilding the map's
+    // subtree. Its identity changes when the active day does, which is once
+    // per chapter, not once per frame.
+    final map = TripStoryMap(
+      geometry: widget.story.mapGeometry,
+      activeDayIndex: _activeDayIndex,
+      mapController: _mapController,
+      onDaySelected: _onPinSelected,
+    );
+    final days = widget.story.days;
+    final dockedDay = days.isEmpty
+        ? null
+        : days[_activeDayIndex.clamp(0, days.length - 1)];
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _maxContentWidth),
+        child: NotificationListener<ScrollUpdateNotification>(
+          onNotification: _onScroll,
+          child: CustomScrollView(
+            slivers: [
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: TripStoryBandDelegate(
+                  extents: extents,
+                  map: map,
+                  dockedDay: dockedDay,
+                  dockedWeather: dockedDay == null
+                      ? null
+                      : storedWeather[tripDayMillis(dockedDay.date)]
+                            ?.toStoryWeather(),
+                  onDockedDayTap: dockedDay == null
+                      ? null
+                      : () => _scrollToDay(_activeDayIndex),
                 ),
               ),
-            ),
-          ],
-        );
-      },
+              SliverToBoxAdapter(
+                child: TripStatStrip(
+                  stats: widget.stats,
+                  siteCount: _siteCount,
+                ),
+              ),
+              ..._contentSlivers(storedWeather),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -228,16 +235,6 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
       }
     }
     return ids.length;
-  }
-
-  TripStoryMapHeaderDelegate _mapHeaderDelegate() {
-    return TripStoryMapHeaderDelegate(
-      geometry: widget.story.mapGeometry,
-      activeDayIndex: _activeDayIndex,
-      mapController: _mapController,
-      onDaySelected: _onPinSelected,
-      maxExtentValue: _mapHeaderMaxExtent,
-    );
   }
 
   /// One day chapter: a SliverMainAxisGroup whose pinned header sticks below
