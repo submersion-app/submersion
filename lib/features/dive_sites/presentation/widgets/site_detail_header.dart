@@ -5,6 +5,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_rating_stars.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -122,6 +123,10 @@ class SiteDetailHeader extends ConsumerWidget {
 }
 
 /// Five stars and the value, the way the Dive Center header shows a rating.
+///
+/// Wrapped rather than a plain row: the stars are fixed-size icons while the
+/// value grows with the diver's text scale, so on a narrow pane the value
+/// drops below the stars instead of overflowing.
 class _Rating extends StatelessWidget {
   const _Rating({required this.rating});
 
@@ -129,15 +134,12 @@ class _Rating extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Wrap(
+      spacing: 8,
+      runSpacing: 4,
+      crossAxisAlignment: WrapCrossAlignment.center,
       children: [
-        for (var index = 0; index < 5; index++)
-          Icon(
-            index < rating.round() ? Icons.star : Icons.star_border,
-            size: 20,
-            color: Colors.amber.shade700,
-          ),
-        const SizedBox(width: 8),
+        SiteRatingStars(rating: rating, size: 20, color: Colors.amber.shade700),
         Text(
           rating.toStringAsFixed(1),
           style: Theme.of(context).textTheme.bodyMedium,

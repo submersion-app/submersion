@@ -22,6 +22,7 @@ void main() {
     WidgetTester tester,
     DiveSite site, {
     List<SiteTypeEntity> types = const [],
+    double? width,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -32,7 +33,14 @@ void main() {
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: SiteDetailHeader(site: site)),
+          home: Scaffold(
+            body: width == null
+                ? SiteDetailHeader(site: site)
+                : SizedBox(
+                    width: width,
+                    child: SiteDetailHeader(site: site),
+                  ),
+          ),
         ),
       ),
     );
@@ -57,6 +65,31 @@ void main() {
     expect(find.byIcon(Icons.star), findsNWidgets(4));
     expect(find.byIcon(Icons.star_border), findsOneWidget);
     expect(find.text('4.0'), findsOneWidget);
+  });
+
+  testWidgets('a fraction of a star counts the way the Rating card does', (
+    tester,
+  ) async {
+    // The Rating card fills a star for any part of one (index < rating), so
+    // an imported 4.4 reads as five there. The summary must not contradict
+    // the card it summarizes.
+    await pumpHeader(tester, bare.copyWith(rating: 4.4));
+
+    expect(find.byIcon(Icons.star), findsNWidgets(5));
+    expect(find.byIcon(Icons.star_border), findsNothing);
+  });
+
+  testWidgets('the rating gives way instead of overflowing when squeezed', (
+    tester,
+  ) async {
+    // Narrower than any pane the app lays out, so the stars and the value
+    // cannot all sit on one line: the row has to wrap rather than paint an
+    // overflow stripe. Guards the fixed-size star icons against a future
+    // layout, or a large text scale, that leaves them less room.
+    await pumpHeader(tester, bare.copyWith(rating: 4), width: 150);
+
+    expect(tester.takeException(), isNull);
+    expect(find.byIcon(Icons.star), findsNWidgets(4));
   });
 
   testWidgets('an unrated site shows no stars at all', (tester) async {

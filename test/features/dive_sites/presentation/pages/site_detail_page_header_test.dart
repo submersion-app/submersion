@@ -151,6 +151,24 @@ void main() {
     expect(find.byType(FlutterMap), findsOneWidget);
   });
 
+  testWidgets('the header and the Rating card fill the same stars', (
+    tester,
+  ) async {
+    await pumpPage(tester, site: dry.copyWith(rating: 4.4));
+
+    // An imported fraction fills the star in both places, so neither can
+    // contradict the other. Counted inside the header, since the Rating
+    // card's own title icon is a star too.
+    expect(
+      find.descendant(
+        of: find.byType(SiteDetailHeader),
+        matching: find.byIcon(Icons.star),
+      ),
+      findsNWidgets(5),
+    );
+    expect(find.byIcon(Icons.star_border), findsNothing);
+  });
+
   testWidgets('the map is no longer a card the diver can fold', (tester) async {
     await pumpPage(tester, site: located, layout: DiveDetailLayout.list);
 

@@ -31,6 +31,7 @@ import 'package:submersion/features/site_types/presentation/site_type_display.da
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_header.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_properties_menu.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_rating_stars.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_section_list.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
@@ -1749,20 +1750,15 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               ],
             ),
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Icon(
-                    index < rating ? Icons.star : Icons.star_border,
-                    color: hasRating
-                        ? Colors.amber
-                        : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                    size: 36,
-                  ),
-                );
-              }),
+            Center(
+              child: SiteRatingStars(
+                rating: rating,
+                size: 36,
+                spacing: 8,
+                color: hasRating
+                    ? Colors.amber
+                    : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+              ),
             ),
             const SizedBox(height: 8),
             Center(
