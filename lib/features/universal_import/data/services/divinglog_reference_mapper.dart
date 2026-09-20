@@ -1,0 +1,171 @@
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
+import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
+
+/// Builds the payload entities that come from Diving Log's reference
+/// tables, each keyed by the `uddfId` the dive maps reference.
+class DivingLogReferenceMapper {
+  const DivingLogReferenceMapper._();
+
+  /// The site key for [dive], byte-identical to the one phase 1 built from
+  /// the free-text columns.
+  ///
+  /// Phase 1 is already in main, so its key is the one to match: a
+  /// re-import must fold onto the same site rather than creating a second.
+  /// The parts are the country, city and place names in that order, joined
+  /// with a pipe and lowercased, skipping any that are missing.
+  static String? siteKeyFor(DivingLogLogbook book, DivingLogRawDive dive) {
+    final parts = [
+      dive.countryId == null ? null : book.countryNamesById[dive.countryId],
+      dive.cityId == null ? null : book.cityNamesById[dive.cityId],
+      dive.placeId == null ? null : book.placesById[dive.placeId]?.place,
+    ].whereType<String>().where((p) => p.trim().isNotEmpty).toList();
+    if (parts.isEmpty) return null;
+    return 'divinglog_site_${parts.join('|').toLowerCase()}';
+  }
+
+  /// Sites, built from the dives so a `Place` nobody dived is left out and
+  /// the key matches what the dive will reference.
+  static Map<String, Map<String, dynamic>> sites(DivingLogLogbook book) {
+    final out = <String, Map<String, dynamic>>{};
+    for (final dive in book.dives) {
+      final key = siteKeyFor(book, dive);
+      if (key == null || out.containsKey(key)) continue;
+      final place = dive.placeId == null ? null : book.placesById[dive.placeId];
+      final city = dive.cityId == null ? null : book.cityNamesById[dive.cityId];
+      final country = dive.countryId == null
+          ? null
+          : book.countryNamesById[dive.countryId];
+      final name = place?.place ?? city ?? country;
+      if (name == null) continue;
+      final map = <String, dynamic>{'uddfId': key, 'name': name};
+      if (country != null) map['country'] = country;
+      if (city != null) map['region'] = city;
+      if (place?.latitude != null) map['latitude'] = place!.latitude;
+      if (place?.longitude != null) map['longitude'] = place!.longitude;
+      if (place?.maxDepthMeters != null) {
+        map['maxDepth'] = place!.maxDepthMeters;
+      }
+      final notes = [
+        if (place?.waterName != null) 'Water: ${place!.waterName}',
+        if (place?.difficulty != null) 'Difficulty: ${place!.difficulty}',
+        if (place?.comments != null) place!.comments!,
+      ].join('\n');
+      if (notes.isNotEmpty) map['description'] = notes;
+      out[key] = map;
+    }
+    return out;
+  }
+
+  /// Buddies, keyed by their display name so the id maps resolve.
+  static Map<String, Map<String, dynamic>> buddies(DivingLogLogbook book) {
+    final out = <String, Map<String, dynamic>>{};
+    for (final buddy in book.buddiesById.values) {
+      final name = buddy.fullName;
+      if (name == null) continue;
+      final map = <String, dynamic>{'name': name, 'uddfId': name};
+      if (buddy.email != null) map['email'] = buddy.email;
+      final phone = buddy.phone ?? buddy.mobile;
+      if (phone != null) map['phone'] = phone;
+      if (buddy.comments != null) map['notes'] = buddy.comments;
+      out[name] = map;
+    }
+    return out;
+  }
+
+  static Map<String, Map<String, dynamic>> trips(DivingLogLogbook book) {
+    final out = <String, Map<String, dynamic>>{};
+    for (final trip in book.tripsById.values) {
+      final name = trip.name;
+      if (name == null) continue;
+      final key = 'divinglog_trip_${trip.id}';
+      final map = <String, dynamic>{'name': name, 'uddfId': key};
+      if (trip.startDate != null) map['startDate'] = trip.startDate;
+      if (trip.endDate != null) map['endDate'] = trip.endDate;
+      if (trip.comments != null) map['notes'] = trip.comments;
+      out[key] = map;
+    }
+    return out;
+  }
+
+  static Map<String, Map<String, dynamic>> diveCenters(DivingLogLogbook book) {
+    final out = <String, Map<String, dynamic>>{};
+    for (final shop in book.shopsById.values) {
+      final name = shop.name;
+      if (name == null) continue;
+      final key = 'divinglog_shop_${shop.id}';
+      final map = <String, dynamic>{'name': name, 'uddfId': key};
+      if (shop.street != null) map['street'] = shop.street;
+      if (shop.city != null) map['city'] = shop.city;
+      if (shop.state != null) map['stateProvince'] = shop.state;
+      if (shop.zip != null) map['postalCode'] = shop.zip;
+      if (shop.country != null) map['country'] = shop.country;
+      if (shop.phone != null) map['phone'] = shop.phone;
+      if (shop.email != null) map['email'] = shop.email;
+      if (shop.url != null) map['website'] = shop.url;
+      final notes = [
+        if (shop.shopType != null) 'Type: ${shop.shopType}',
+        if (shop.comments != null) shop.comments!,
+      ].join('\n');
+      if (notes.isNotEmpty) map['notes'] = notes;
+      out[key] = map;
+    }
+    return out;
+  }
+
+  /// Dive types, keyed by the slug the importer matches on.
+  ///
+  /// MacDive already establishes the convention: the entity's `id` and
+  /// `uddfId` are both `DiveTypeEntity.generateSlug(name)`, and a dive
+  /// references them through `diveTypeIds` holding the same slugs. A name
+  /// used as the key would reach nothing.
+  static Map<String, Map<String, dynamic>> diveTypes(DivingLogLogbook book) {
+    final out = <String, Map<String, dynamic>>{};
+    for (final type in book.diveTypesById.values) {
+      final name = type.name?.trim();
+      if (name == null || name.isEmpty) continue;
+      final slug = DiveTypeEntity.generateSlug(name);
+      if (slug.isEmpty || out.containsKey(slug)) continue;
+      out[slug] = <String, dynamic>{
+        'id': slug,
+        'name': name,
+        'uddfId': slug,
+        'isBuiltIn': false,
+        if (type.sortOrder != null) 'sortOrder': type.sortOrder,
+      };
+    }
+    return out;
+  }
+
+  /// The `diveTypeIds` for [dive]: slugs, matching [diveTypes].
+  static List<String> diveTypeIdsFor(
+    DivingLogLogbook book,
+    DivingLogRawDive dive,
+  ) {
+    final out = <String>[];
+    for (final id in dive.diveTypeIds) {
+      final name = book.diveTypesById[id]?.name?.trim();
+      if (name == null || name.isEmpty) continue;
+      final slug = DiveTypeEntity.generateSlug(name);
+      if (slug.isNotEmpty && !out.contains(slug)) out.add(slug);
+    }
+    return out;
+  }
+
+  static Map<String, Map<String, dynamic>> certifications(
+    DivingLogLogbook book,
+  ) {
+    final out = <String, Map<String, dynamic>>{};
+    for (final cert in book.certifications) {
+      final name = cert.name;
+      if (name == null) continue;
+      final key = 'divinglog_cert_${cert.id}';
+      final map = <String, dynamic>{'name': name, 'uddfId': key, 'level': name};
+      if (cert.organisation != null) map['agency'] = cert.organisation;
+      if (cert.certDate != null) map['issueDate'] = cert.certDate;
+      if (cert.number != null) map['cardNumber'] = cert.number;
+      if (cert.instructor != null) map['instructorName'] = cert.instructor;
+      out[key] = map;
+    }
+    return out;
+  }
+}
