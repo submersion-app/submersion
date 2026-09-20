@@ -60488,40 +60488,40 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Visibility {min} to {max} {unit}'**
   String diveLog_filterChip_visibilityRange(
-    Object max,
-    Object min,
-    Object unit,
+    String min,
+    String max,
+    String unit,
   );
 
   /// No description provided for @diveLog_filterChip_visibilityMin.
   ///
   /// In en, this message translates to:
   /// **'Visibility over {value} {unit}'**
-  String diveLog_filterChip_visibilityMin(Object unit, Object value);
+  String diveLog_filterChip_visibilityMin(String value, String unit);
 
   /// No description provided for @diveLog_filterChip_visibilityMax.
   ///
   /// In en, this message translates to:
   /// **'Visibility under {value} {unit}'**
-  String diveLog_filterChip_visibilityMax(Object unit, Object value);
+  String diveLog_filterChip_visibilityMax(String value, String unit);
 
   /// No description provided for @diveLog_filterChip_waterTempRange.
   ///
   /// In en, this message translates to:
   /// **'Water {min} to {max}{unit}'**
-  String diveLog_filterChip_waterTempRange(Object max, Object min, Object unit);
+  String diveLog_filterChip_waterTempRange(String min, String max, String unit);
 
   /// No description provided for @diveLog_filterChip_waterTempMin.
   ///
   /// In en, this message translates to:
   /// **'Water over {value}{unit}'**
-  String diveLog_filterChip_waterTempMin(Object unit, Object value);
+  String diveLog_filterChip_waterTempMin(String value, String unit);
 
   /// No description provided for @diveLog_filterChip_waterTempMax.
   ///
   /// In en, this message translates to:
   /// **'Water under {value}{unit}'**
-  String diveLog_filterChip_waterTempMax(Object unit, Object value);
+  String diveLog_filterChip_waterTempMax(String value, String unit);
 
   /// No description provided for @diveLog_filterChip_waterTypeCount.
   ///
@@ -60593,37 +60593,37 @@ abstract class AppLocalizations {
   ///
   /// In en, this message translates to:
   /// **'Rating {op} {value}'**
-  String explore_chip_rating(Object op, Object value);
+  String explore_chip_rating(String op, String value);
 
   /// No description provided for @explore_chip_numeric.
   ///
   /// In en, this message translates to:
   /// **'{field} {op} {value}'**
-  String explore_chip_numeric(Object field, Object op, Object value);
+  String explore_chip_numeric(String field, String op, String value);
 
   /// No description provided for @explore_chip_between.
   ///
   /// In en, this message translates to:
   /// **'{field} {low} to {high}'**
-  String explore_chip_between(Object field, Object high, Object low);
+  String explore_chip_between(String field, String low, String high);
 
   /// No description provided for @explore_chip_enum.
   ///
   /// In en, this message translates to:
   /// **'{field}: {values}'**
-  String explore_chip_enum(Object field, Object values);
+  String explore_chip_enum(String field, String values);
 
   /// No description provided for @explore_chip_enumNot.
   ///
   /// In en, this message translates to:
   /// **'{field} not {values}'**
-  String explore_chip_enumNot(Object field, Object values);
+  String explore_chip_enumNot(String field, String values);
 
   /// No description provided for @explore_chip_timeRange.
   ///
   /// In en, this message translates to:
   /// **'{start} to {end}'**
-  String explore_chip_timeRange(Object end, Object start);
+  String explore_chip_timeRange(String start, String end);
 
   /// No description provided for @explore_chip_timeSince.
   ///

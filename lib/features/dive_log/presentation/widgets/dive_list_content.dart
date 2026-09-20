@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'dart:async';
 import 'dart:typed_data';
 
@@ -36,6 +37,10 @@ import 'package:submersion/shared/widgets/master_detail/map_view_toggle_button.d
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chip_labels.dart';
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
+import 'package:submersion/features/marine_life/presentation/species_display.dart';
 import 'package:submersion/features/settings/presentation/providers/csv_unit_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/export_providers.dart';
@@ -2214,6 +2219,31 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
             clearMinDepth: true,
             clearMaxDepth: true,
           );
+        }),
+      );
+    }
+
+    // Every axis the blocks above do not cover (Explore adds several), so a
+    // handoff never lands on a list whose filter is invisible.
+    for (final extra in activeFilterChipLabels(
+      filter,
+      context.l10n,
+      settings,
+      siteName: (id) => ref.watch(siteProvider(id)).value?.name,
+      speciesName: (id) => ref
+          .watch(speciesProvider(id))
+          .value
+          ?.localizedCommonName(context.l10n),
+      computerName: (id) => ref
+          .watch(allDiveComputersProvider)
+          .value
+          ?.where((c) => c.id == id)
+          .firstOrNull
+          ?.name,
+    )) {
+      chips.add(
+        _buildFilterChip(context, extra.label, () {
+          ref.read(diveFilterProvider.notifier).state = extra.clear(filter);
         }),
       );
     }

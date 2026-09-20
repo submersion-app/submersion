@@ -293,7 +293,12 @@ void main() {
     final ref = await openSheet(tester);
 
     final depthFields = find.byWidgetPredicate(
-      (w) => w is TextField && w.decoration?.suffixText == 'm',
+      // Visibility also renders in metres; the depth fields alone carry the
+      // downward arrow.
+      (w) =>
+          w is TextField &&
+          w.decoration?.suffixText == 'm' &&
+          (w.decoration?.prefixIcon as Icon?)?.icon == Icons.arrow_downward,
     );
     final durationFields = find.byWidgetPredicate(
       (w) => w is TextField && w.decoration?.suffixText == 'min',
@@ -306,13 +311,11 @@ void main() {
     await tester.enterText(depthFields.last, '30');
     await tester.pumpAndSettle();
 
-    await scrollTo(tester, find.byType(TextField).at(2));
-    await tester.enterText(
-      find.byWidgetPredicate(
-        (w) => w is TextField && w.decoration?.labelText == 'Buddy Name',
-      ),
-      'Alex',
+    final buddyField = find.byWidgetPredicate(
+      (w) => w is TextField && w.decoration?.labelText == 'Buddy Name',
     );
+    await scrollTo(tester, buddyField);
+    await tester.enterText(buddyField, 'Alex');
     await tester.pumpAndSettle();
 
     await scrollTo(tester, find.text('Duration (minutes)'));

@@ -37235,39 +37235,39 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String diveLog_filterChip_visibilityRange(
-    Object max,
-    Object min,
-    Object unit,
+    String min,
+    String max,
+    String unit,
   ) {
     return 'Sicht $min bis $max $unit';
   }
 
   @override
-  String diveLog_filterChip_visibilityMin(Object unit, Object value) {
+  String diveLog_filterChip_visibilityMin(String value, String unit) {
     return 'Sicht über $value $unit';
   }
 
   @override
-  String diveLog_filterChip_visibilityMax(Object unit, Object value) {
+  String diveLog_filterChip_visibilityMax(String value, String unit) {
     return 'Sicht unter $value $unit';
   }
 
   @override
   String diveLog_filterChip_waterTempRange(
-    Object max,
-    Object min,
-    Object unit,
+    String min,
+    String max,
+    String unit,
   ) {
     return 'Wasser $min bis $max$unit';
   }
 
   @override
-  String diveLog_filterChip_waterTempMin(Object unit, Object value) {
+  String diveLog_filterChip_waterTempMin(String value, String unit) {
     return 'Wasser über $value$unit';
   }
 
   @override
-  String diveLog_filterChip_waterTempMax(Object unit, Object value) {
+  String diveLog_filterChip_waterTempMax(String value, String unit) {
     return 'Wasser unter $value$unit';
   }
 
@@ -37311,32 +37311,32 @@ class AppLocalizationsDe extends AppLocalizations {
   String get explore_chip_noBuddy => 'Ohne Buddy';
 
   @override
-  String explore_chip_rating(Object op, Object value) {
+  String explore_chip_rating(String op, String value) {
     return 'Bewertung $op $value';
   }
 
   @override
-  String explore_chip_numeric(Object field, Object op, Object value) {
+  String explore_chip_numeric(String field, String op, String value) {
     return '$field $op $value';
   }
 
   @override
-  String explore_chip_between(Object field, Object high, Object low) {
+  String explore_chip_between(String field, String low, String high) {
     return '$field $low bis $high';
   }
 
   @override
-  String explore_chip_enum(Object field, Object values) {
+  String explore_chip_enum(String field, String values) {
     return '$field: $values';
   }
 
   @override
-  String explore_chip_enumNot(Object field, Object values) {
+  String explore_chip_enumNot(String field, String values) {
     return '$field nicht $values';
   }
 
   @override
-  String explore_chip_timeRange(Object end, Object start) {
+  String explore_chip_timeRange(String start, String end) {
     return '$start bis $end';
   }
 
