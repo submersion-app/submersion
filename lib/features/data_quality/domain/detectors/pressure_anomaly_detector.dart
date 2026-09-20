@@ -1,5 +1,5 @@
 import 'package:submersion/core/profile/surfacing_pressure.dart'
-    show kSurfaceThresholdMeters;
+    show lastTimeBelowSurfaceThreshold;
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
@@ -18,7 +18,9 @@ class PressureAnomalyDetector extends QualityDetector {
   @override
   List<QualityFinding> detect(DiveQualityContext ctx) {
     final out = <QualityFinding>[];
-    final surfacingTime = _surfacingTimeSeconds(ctx.primarySamples);
+    final surfacingTime = lastTimeBelowSurfaceThreshold(
+      ctx.primarySamples.map((s) => (t: s.t, depth: s.depth)),
+    );
     for (final tank in ctx.tanks) {
       final series = ctx.pressuresByTankId[tank.id] ?? const [];
       final sp = tank.startPressure;
@@ -154,21 +156,6 @@ class PressureAnomalyDetector extends QualityDetector {
       }
     }
     return out;
-  }
-
-  /// The last dive-computer second the primary series was still below
-  /// [kSurfaceThresholdMeters], or null when it never went below it. Mirrors
-  /// the surfacing moment `trimEndPressureBar` uses at import time, so a
-  /// tank's post-surfacing recording tail is measured the same way.
-  int? _surfacingTimeSeconds(List<QualitySample> samples) {
-    int? surfacingTime;
-    for (final s in samples) {
-      if (s.depth > kSurfaceThresholdMeters &&
-          (surfacingTime == null || s.t > surfacingTime)) {
-        surfacingTime = s.t;
-      }
-    }
-    return surfacingTime;
   }
 
   /// The pressure to treat as this tank's end-of-dive reading.
