@@ -366,14 +366,20 @@ final FutureProvider<bool> mediaStoreAttachedProvider = FutureProvider<bool>((
 
 /// Call after any media store attach change (connect or disconnect).
 ///
-/// Two providers cache attachment state: [mediaStoreRuntimeProvider] holds
-/// the store itself, and [mediaStoreAttachedProvider] holds the cheap
+/// Three providers cache attachment state:
+/// [attachedMediaObjectStoreProvider] holds the store adapter,
+/// [mediaStoreRuntimeProvider] holds the runtime built from it, and
+/// [mediaStoreAttachedProvider] holds the cheap
 /// boolean the tile badge reads. Refreshing only the runtime leaves the
 /// badge answering from a stale cache, so a freshly attached store shows
 /// no not-backed-up badges until the app restarts, and a disconnected one
 /// keeps showing them. Invalidating both together is the whole point of
 /// this helper: keep new call sites from having to remember the second.
 void invalidateMediaStoreAttachment(WidgetRef ref) {
+  // The adapter first: the runtime is built from it, so invalidating the
+  // runtime alone would rebuild it around the old store, and a diagnostics
+  // report would keep probing a store this device just disconnected from.
+  ref.invalidate(attachedMediaObjectStoreProvider);
   ref.invalidate(mediaStoreRuntimeProvider);
   ref.invalidate(mediaStoreAttachedProvider);
 }

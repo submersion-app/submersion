@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/features/media/data/services/media_health_reporter.dart';
 
 import '../../../../helpers/two_device_media_harness.dart';
@@ -104,6 +105,48 @@ void main() {
 
     expect(row.linkedHere, isNull);
     expect(row.toText(), contains('origin_device: unknown'));
+  });
+
+  test('a cloud-backed row never reaches the store resolver', () async {
+    // Its registry resolver reads mediaStoreResolverProvider, which watches
+    // the runtime, and building that starts a drain and a verify sweep. The
+    // store probe is the verdict for these rows instead.
+    final dive = await h.a.createDive();
+    final id = await h.a.linkFile(bytes, diveId: dive);
+    await h.a.activate();
+    await h.a.db.customStatement(
+      "UPDATE media SET source_type = 'mediaStore' WHERE id = ?",
+      [id],
+    );
+    final row = (await h.a.media(id))!;
+
+    final report = await h.a.onThisDisk(() => reporterFor(h.a).forItem(row));
+
+    expect(report.rows.single.resolverVerdict, 'mediaStore');
+  });
+
+  test('a video rendition is probed under the compressed extension', () async {
+    final dive = await h.a.createDive();
+    final id = await h.a.linkFile(bytes, diveId: dive, name: 'reef.mov');
+    await h.a.activate();
+    // Compressed-only, as an upload-quality override leaves a row.
+    const hash =
+        'abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234abcd1234';
+    await h.a.db.customStatement(
+      "UPDATE media SET content_hash = '$hash', "
+      'remote_compressed_uploaded_at = 1 WHERE id = ?',
+      [id],
+    );
+    // The pipeline writes a video rendition as mp4, never as .mov.
+    h.bucket.objects[StoreKeys.renditionKey(hash, ext: 'mp4')] = [1, 2, 3];
+    final row = (await h.a.media(id))!;
+
+    final report = await h.a.onThisDisk(
+      () => reporterFor(h.a).forItem(row, probeStore: true),
+    );
+
+    expect(report.rows.single.storeObjectExists, isTrue);
+    expect(report.rows.single.storeObjectTier, 'rendition');
   });
 
   test('an unresolved cache entry reports its next retry by attempt', () async {

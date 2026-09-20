@@ -9,7 +9,6 @@ import 'package:submersion/features/media/data/services/media_health_report.dart
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
-import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 
 /// Assembles [MediaHealthReport]s from everything this device knows about a
@@ -154,12 +153,22 @@ class MediaHealthReporter {
           );
     final hlc = await _mediaRepository.getSyncHlc(item.id);
 
+    // verify(), never resolve(): resolve is the BYTES path, so a library
+    // report would read every local file and decode every gallery asset.
+    // Cloud-backed rows skip the registry altogether, because their
+    // resolver reaches mediaStoreResolverProvider, which watches the
+    // runtime, and building that starts a transfer drain and a verify
+    // sweep. The store probe below is their verdict.
     String verdict;
-    try {
-      final data = await _registry.resolverFor(item.sourceType).resolve(item);
-      verdict = data is UnavailableData ? data.kind.name : 'available';
-    } catch (e) {
-      verdict = 'error: $e';
+    if (item.sourceType == MediaSourceType.mediaStore) {
+      verdict = 'mediaStore';
+    } else {
+      try {
+        verdict =
+            (await _registry.resolverFor(item.sourceType).verify(item)).name;
+      } catch (e) {
+        verdict = 'error: $e';
+      }
     }
 
     final probe = probeStore ? await _probeStore(item) : null;
@@ -225,11 +234,16 @@ class MediaHealthReporter {
     final store = await _store();
     if (store == null) return (exists: null, tier: null);
     final ext = StoreKeys.extensionFor(item.originalFilename);
+    // A rendition is written under the COMPRESSED extension the pipeline
+    // produces (jpg for an image, mp4 for a video), not the original's, so
+    // probing with the original's would report a .heic or .mov rendition
+    // missing (media_upload_pipeline.dart).
+    final renditionExt = item.mediaType == MediaType.video ? 'mp4' : 'jpg';
     final stamped = <(String, String)>[
       if (item.remoteUploadedAt != null)
         ('original', StoreKeys.objectKey(hash, extension: ext)),
       if (item.remoteCompressedUploadedAt != null)
-        ('rendition', StoreKeys.renditionKey(hash, ext: ext)),
+        ('rendition', StoreKeys.renditionKey(hash, ext: renditionExt)),
       if (item.remoteThumbUploadedAt != null)
         ('thumbnail', StoreKeys.thumbKey(hash)),
     ];
@@ -237,7 +251,7 @@ class MediaHealthReporter {
         ? stamped
         : <(String, String)>[
             ('original', StoreKeys.objectKey(hash, extension: ext)),
-            ('rendition', StoreKeys.renditionKey(hash, ext: ext)),
+            ('rendition', StoreKeys.renditionKey(hash, ext: renditionExt)),
             ('thumbnail', StoreKeys.thumbKey(hash)),
           ];
     try {
