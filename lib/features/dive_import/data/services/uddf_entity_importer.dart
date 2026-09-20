@@ -557,6 +557,7 @@ class UddfEntityImporter {
           siteTypeIdMapping,
           tagIdMapping,
           repositories,
+          diverId,
         );
         await _restoreSiteFeatures(siteData, siteId, repositories);
       },
@@ -1230,6 +1231,8 @@ class UddfEntityImporter {
       siteData['siteTypeRefs'] is List ||
       siteData['suggestedSiteTypeRefs'] is List ||
       siteData['tagRefs'] is List ||
+      siteData['siteTypeNames'] is List ||
+      siteData['siteTagNames'] is List ||
       siteData['siteFeatures'] is List;
 
   /// Resolves the file's custom site types to local ids: an existing custom
@@ -1274,12 +1277,19 @@ class UddfEntityImporter {
   /// that infer a type, such as Shearwater's Environment) apply only while
   /// the site has no types, so they never override the diver's own choice.
   /// A tag a site references is widened to sites.
+  ///
+  /// `siteTypeNames` and `siteTagNames` are the sites CSV's form of the same
+  /// two links (issue #2201). A flat CSV has nowhere to declare definitions,
+  /// so it carries names and they are resolved here: a name matching a
+  /// built-in type uses the built-in, and anything else reuses this diver's
+  /// custom type or tag of that name, or creates one.
   Future<void> _linkSiteClassification(
     Map<String, dynamic> siteData,
     String siteId,
     Map<String, String> siteTypeIdMapping,
     Map<String, String> tagIdMapping,
     ImportRepositories repos,
+    String diverId,
   ) async {
     final classification = repos.siteClassificationRepository;
     if (classification == null) return;
@@ -1299,10 +1309,38 @@ class UddfEntityImporter {
       return out;
     }
 
-    await classification.addTypes(
-      siteId,
-      await resolveTypes(siteData['siteTypeRefs']),
-    );
+    /// Type ids for the CSV's plain names, creating a custom type for a
+    /// name this library does not know yet.
+    Future<List<String>> resolveTypeNames(Object? names) async {
+      if (types == null || names is! List) return const [];
+      final all = await types.getAllSiteTypes(diverId: diverId);
+      final out = <String>[];
+      for (final name in names.whereType<String>()) {
+        final trimmed = name.trim();
+        if (trimmed.isEmpty) continue;
+        final existing = all
+            .where((t) => t.name.toLowerCase() == trimmed.toLowerCase())
+            .firstOrNull;
+        if (existing != null) {
+          out.add(existing.id);
+          continue;
+        }
+        final created = await types.createSiteType(
+          SiteTypeEntity.create(
+            id: SiteTypeEntity.generateSlug(trimmed),
+            name: trimmed,
+            diverId: diverId,
+          ),
+        );
+        out.add(created.id);
+      }
+      return out;
+    }
+
+    await classification.addTypes(siteId, [
+      ...await resolveTypes(siteData['siteTypeRefs']),
+      ...await resolveTypeNames(siteData['siteTypeNames']),
+    ]);
 
     final suggested = await resolveTypes(siteData['suggestedSiteTypeRefs']);
     if (suggested.isNotEmpty &&
@@ -1316,6 +1354,20 @@ class UddfEntityImporter {
           in tagRefs is List ? tagRefs.whereType<String>() : const <String>[])
         ?tagIdMapping[ref],
     ];
+    // The sites CSV's plain tag names (issue #2201): reuse this diver's tag
+    // of that name or create it, scoped to sites either way.
+    final tagNames = siteData['siteTagNames'];
+    for (final name
+        in tagNames is List ? tagNames.whereType<String>() : const <String>[]) {
+      final trimmed = name.trim();
+      if (trimmed.isEmpty) continue;
+      final tag = await repos.tagRepository.getOrCreateTag(
+        trimmed,
+        diverId: diverId,
+        scope: TagScope.sites,
+      );
+      tagIds.add(tag.id);
+    }
     for (final tagId in tagIds) {
       final tag = await repos.tagRepository.getTagById(tagId);
       if (tag != null && !tag.appliesTo(TagScope.sites)) {
@@ -1654,6 +1706,9 @@ class UddfEntityImporter {
         parkingInfo: siteData['parkingInfo'] as String?,
         altitude: siteData['altitude'] as double?,
         entryMethod: _parseEnum(siteData['entryMethod'], EntryMethod.values),
+        // A site's typical way out (issue #2201); null means the
+        // same as the entry, so an absent cell stays null.
+        exitMethod: _parseEnum(siteData['exitMethod'], EntryMethod.values),
       );
 
       // Core fields and the importer-only metadata columns go out as one
@@ -1735,6 +1790,9 @@ class UddfEntityImporter {
         parkingInfo: siteData['parkingInfo'] as String?,
         altitude: siteData['altitude'] as double?,
         entryMethod: _parseEnum(siteData['entryMethod'], EntryMethod.values),
+        // A site's typical way out (issue #2201); null means the
+        // same as the entry, so an absent cell stays null.
+        exitMethod: _parseEnum(siteData['exitMethod'], EntryMethod.values),
       );
 
       final createdSite = await repository.createSite(newSite);

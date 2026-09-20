@@ -91,7 +91,16 @@ class ExportService {
   Future<String> exportSitesToCsv(
     List<DiveSite> sites, {
     CsvExportUnits units = CsvExportUnits.metric,
-  }) => _csv.exportSitesToCsv(sites, units: units);
+    Map<String, List<SiteFeature>> featuresBySite = const {},
+    Map<String, List<String>> typeNamesBySite = const {},
+    Map<String, List<String>> tagNamesBySite = const {},
+  }) => _csv.exportSitesToCsv(
+    sites,
+    units: units,
+    featuresBySite: featuresBySite,
+    typeNamesBySite: typeNamesBySite,
+    tagNamesBySite: tagNamesBySite,
+  );
 
   Future<String> exportEquipmentToCsv(
     List<EquipmentItem> equipment, {
@@ -121,7 +130,16 @@ class ExportService {
   String generateSitesCsvContent(
     List<DiveSite> sites, {
     CsvExportUnits units = CsvExportUnits.metric,
-  }) => _csv.generateSitesCsvContent(sites, units: units);
+    Map<String, List<SiteFeature>> featuresBySite = const {},
+    Map<String, List<String>> typeNamesBySite = const {},
+    Map<String, List<String>> tagNamesBySite = const {},
+  }) => _csv.generateSitesCsvContent(
+    sites,
+    units: units,
+    featuresBySite: featuresBySite,
+    typeNamesBySite: typeNamesBySite,
+    tagNamesBySite: tagNamesBySite,
+  );
 
   String generateEquipmentCsvContent(
     List<EquipmentItem> equipment, {
@@ -153,7 +171,17 @@ class ExportService {
     List<DiveSite> sites, {
     required String dialogTitle,
     CsvExportUnits units = CsvExportUnits.metric,
-  }) => _csv.saveSitesCsvToFile(sites, dialogTitle: dialogTitle, units: units);
+    Map<String, List<SiteFeature>> featuresBySite = const {},
+    Map<String, List<String>> typeNamesBySite = const {},
+    Map<String, List<String>> tagNamesBySite = const {},
+  }) => _csv.saveSitesCsvToFile(
+    sites,
+    dialogTitle: dialogTitle,
+    units: units,
+    featuresBySite: featuresBySite,
+    typeNamesBySite: typeNamesBySite,
+    tagNamesBySite: tagNamesBySite,
+  );
 
   Future<String?> saveEquipmentCsvToFile(
     List<EquipmentItem> equipment, {

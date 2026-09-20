@@ -25,6 +25,7 @@ import 'package:submersion/features/signatures/data/services/signature_storage_s
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
@@ -222,6 +223,37 @@ class ExportNotifier extends StateNotifier<ExportState> {
     }
   }
 
+  /// The features on [siteIds], by site id (issue #2200), in one query
+  /// rather than one per site.
+  Future<Map<String, List<SiteFeature>>> _siteFeaturesFor(
+    List<String> siteIds,
+  ) => _ref.read(siteFeatureRepositoryProvider).getFeaturesForSites(siteIds);
+
+  /// The sites CSV's classification columns (issue #2201): each site's type
+  /// and tag NAMES, narrowed to [siteIds].
+  ///
+  /// Names, because a flat CSV cannot declare the definitions an id would
+  /// need. Both maps come from one read each, not one per site.
+  Future<({Map<String, List<String>> types, Map<String, List<String>> tags})>
+  _siteClassificationNamesFor(List<String> siteIds) async {
+    final classification = _ref.read(siteClassificationRepositoryProvider);
+    final wanted = siteIds.toSet();
+    final typesBySite = await classification.getTypesBySite();
+    final tagsBySite = await classification.getTagsBySite();
+    return (
+      types: {
+        for (final entry in typesBySite.entries)
+          if (wanted.contains(entry.key) && entry.value.isNotEmpty)
+            entry.key: [for (final type in entry.value) type.name],
+      },
+      tags: {
+        for (final entry in tagsBySite.entries)
+          if (wanted.contains(entry.key) && entry.value.isNotEmpty)
+            entry.key: [for (final tag in entry.value) tag.name],
+      },
+    );
+  }
+
   Future<void> exportSitesToCsv({
     CsvUnitMode unitMode = CsvUnitMode.metric,
   }) async {
@@ -238,9 +270,14 @@ class ExportNotifier extends StateNotifier<ExportState> {
         );
         return;
       }
+      final siteIds = [for (final s in sites) s.id];
+      final names = await _siteClassificationNamesFor(siteIds);
       final path = await _exportService.exportSitesToCsv(
         sites,
         units: _csvUnits(unitMode),
+        featuresBySite: await _siteFeaturesFor(siteIds),
+        typeNamesBySite: names.types,
+        tagNamesBySite: names.tags,
       );
       state = state.copyWith(
         status: ExportStatus.success,
@@ -1155,10 +1192,15 @@ class ExportNotifier extends StateNotifier<ExportState> {
       state = state.copyWith(
         message: _l10n.settings_export_progress_chooseLocation,
       );
+      final siteIds = [for (final s in sites) s.id];
+      final names = await _siteClassificationNamesFor(siteIds);
       final path = await _exportService.saveSitesCsvToFile(
         sites,
         dialogTitle: _l10n.settings_export_saveSitesCsvDialogTitle,
         units: _csvUnits(unitMode),
+        featuresBySite: await _siteFeaturesFor(siteIds),
+        typeNamesBySite: names.types,
+        tagNamesBySite: names.tags,
       );
 
       if (path == null) {

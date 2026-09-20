@@ -15,6 +15,7 @@ import 'package:submersion/core/services/export/excel/observations_excel_export_
 import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -59,8 +60,17 @@ class CsvExportService {
   Future<String> exportSitesToCsv(
     List<DiveSite> sites, {
     CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, List<SiteFeature>> featuresBySite = const {},
+    Map<String, List<String>> typeNamesBySite = const {},
+    Map<String, List<String>> tagNamesBySite = const {},
   }) async {
-    final csvData = generateSitesCsvContent(sites, units: units);
+    final csvData = generateSitesCsvContent(
+      sites,
+      units: units,
+      featuresBySite: featuresBySite,
+      typeNamesBySite: typeNamesBySite,
+      tagNamesBySite: tagNamesBySite,
+    );
     return saveAndShareFile(csvData, 'sites_export.csv', 'text/csv');
   }
 
@@ -185,7 +195,15 @@ class CsvExportService {
   String generateSitesCsvContent(
     List<DiveSite> sites, {
     CsvExportUnits units = CsvExportUnits.metric,
-  }) => CsvSitesWriter(units).write(sites);
+    Map<String, List<SiteFeature>> featuresBySite = const {},
+    Map<String, List<String>> typeNamesBySite = const {},
+    Map<String, List<String>> tagNamesBySite = const {},
+  }) => CsvSitesWriter(
+    units,
+    featuresBySite: featuresBySite,
+    typeNamesBySite: typeNamesBySite,
+    tagNamesBySite: tagNamesBySite,
+  ).write(sites);
 
   /// Generate CSV content for equipment (without sharing).
   /// [componentNames] maps an assembly's id to its parts' names in template
@@ -234,8 +252,17 @@ class CsvExportService {
     List<DiveSite> sites, {
     required String dialogTitle,
     CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, List<SiteFeature>> featuresBySite = const {},
+    Map<String, List<String>> typeNamesBySite = const {},
+    Map<String, List<String>> tagNamesBySite = const {},
   }) async {
-    final csvContent = generateSitesCsvContent(sites, units: units);
+    final csvContent = generateSitesCsvContent(
+      sites,
+      units: units,
+      featuresBySite: featuresBySite,
+      typeNamesBySite: typeNamesBySite,
+      tagNamesBySite: tagNamesBySite,
+    );
     final dateStr = _dateFormat.format(DateTime.now());
     final fileName = 'sites_export_$dateStr.csv';
 
