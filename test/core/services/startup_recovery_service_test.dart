@@ -9,6 +9,7 @@ import 'package:sqlite3/sqlite3.dart' as sqlite3;
 import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
+import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
 import 'package:submersion/core/services/startup_recovery_service.dart';
 
 /// Writes a file that looks enough like a Submersion dive log to be adopted.
@@ -46,10 +47,18 @@ void main() {
   late List<String> bookmarkCalls;
 
   setUp(() {
-    // Adopting a folder creates a security-scoped bookmark on Apple
-    // platforms, over a channel with no host implementation under test. The
-    // binary messenger is process-global, so the handler is removed again
-    // after each test rather than leaking into later ones.
+    // State the platform rather than inheriting the host's. Bookmarks exist
+    // only on macOS and iOS, so without this the bookmark expectations below
+    // pass on a developer's Mac and fail on the Linux CI shards.
+    SecurityScopedBookmarkService.debugSupportedOverride = true;
+    addTearDown(
+      () => SecurityScopedBookmarkService.debugSupportedOverride = null,
+    );
+
+    // Adopting a folder creates a security-scoped bookmark, over a channel
+    // with no host implementation under test. The binary messenger is
+    // process-global, so the handler is removed again after each test rather
+    // than leaking into later ones.
     bookmarkCalls = <String>[];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(bookmarkChannel, (call) async {
@@ -240,6 +249,38 @@ void main() {
           await service.inspectFolder(candidate.path) as AdoptableDiveLog;
       await service.adopt(found);
 
+      expect(
+        (await locationService.getStorageConfig()).customFolderPath,
+        candidate.path,
+      );
+    });
+
+    // Windows, Linux and Android have no security-scoped bookmarks at all, so
+    // the folder stays reachable by path and there is nothing to store. The
+    // adoption itself must be identical.
+    test('adopts without a bookmark where bookmarks do not exist', () async {
+      SecurityScopedBookmarkService.debugSupportedOverride = false;
+      final live = makeTempDir('startup-recovery-live');
+      final candidate = makeTempDir('startup-recovery-candidate');
+      _writeDiveLog(
+        p.join(candidate.path, DatabaseLocationService.databaseFilename),
+      );
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final locationService = DatabaseLocationService(prefs);
+      await locationService.saveStorageConfig(
+        StorageConfig(
+          mode: StorageLocationMode.customFolder,
+          customFolderPath: live.path,
+        ),
+      );
+      final service = StartupRecoveryService(locationService);
+
+      final found =
+          await service.inspectFolder(candidate.path) as AdoptableDiveLog;
+      await service.adopt(found);
+
+      expect(bookmarkCalls, isEmpty);
       expect(
         (await locationService.getStorageConfig()).customFolderPath,
         candidate.path,
