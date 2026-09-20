@@ -175,6 +175,19 @@ class DivingLogDbReader {
           'No Tank table, so dives with several cylinders kept only the one '
           'recorded on the dive row.',
         );
+      } else if (!caps.hasColumn('Tank', 'LogID')) {
+        // Without the join key the table cannot be attached to any dive, so
+        // it is read as if absent. Saying only "no Tank table" would be
+        // wrong, and saying nothing loses every extra cylinder silently.
+        notes.add(
+          'The Tank table has no LogID column, so its cylinders could not be '
+          'matched to dives and only the cylinder on each dive row was kept.',
+        );
+      } else {
+        final missingTank = caps.missingColumns('Tank', _tankColumns);
+        if (missingTank.isNotEmpty) {
+          notes.add('Tank is missing: ${missingTank.join(', ')}');
+        }
       }
       // Both halves matter: the table can be present but keyless, and
       // treating that as "nothing was deleted" quietly reimports dives the

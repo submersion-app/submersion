@@ -344,6 +344,42 @@ void main() {
       );
     });
 
+    test('diagnoses a Tank table with no LogID column', () async {
+      final dir = Directory.systemTemp.createTempSync('dl_tank_nokey');
+      final path = '${dir.path}/logbook.sql';
+      final db = sqlite3.open(path);
+      db.execute(
+        'CREATE TABLE Logbook (ID INTEGER PRIMARY KEY, Divedate TEXT)',
+      );
+      db.execute('CREATE TABLE Tank (TankID INTEGER, Tanksize REAL)');
+      db.close();
+      final bytes = File(path).readAsBytesSync();
+      dir.deleteSync(recursive: true);
+
+      final book = await DivingLogDbReader.readAll(bytes);
+      expect(
+        book.schemaNotes.join(' '),
+        contains('Tank table has no LogID column'),
+      );
+    });
+
+    test('diagnoses Tank columns the file has dropped', () async {
+      final dir = Directory.systemTemp.createTempSync('dl_tank_thin');
+      final path = '${dir.path}/logbook.sql';
+      final db = sqlite3.open(path);
+      db.execute(
+        'CREATE TABLE Logbook (ID INTEGER PRIMARY KEY, Divedate TEXT)',
+      );
+      db.execute('CREATE TABLE Tank (LogID INTEGER, TankID INTEGER)');
+      db.close();
+      final bytes = File(path).readAsBytesSync();
+      dir.deleteSync(recursive: true);
+
+      final book = await DivingLogDbReader.readAll(bytes);
+      expect(book.schemaNotes.join(' '), contains('Tank is missing'));
+      expect(book.schemaNotes.join(' '), contains('TankSize'));
+    });
+
     test('does not diagnose a table the file has', () async {
       final book = await DivingLogDbReader.readAll(buildDivingLogWithRows());
       expect(book.schemaNotes.join(' '), isNot(contains('Tank table')));
