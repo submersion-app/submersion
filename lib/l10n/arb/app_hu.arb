@@ -6773,7 +6773,7 @@
   "trips_summary_stat_liveaboards": "Hajoszallasok",
   "trips_summary_stat_totalDives": "Összes merülés",
   "trips_summary_stat_totalTrips": "Összes út",
-  "trips_summary_upcomingSubtitle": "{date} • {days} nap múlva",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "Közelgő",
   "trips_type_dayTrip": "Napi túra",
   "trips_type_liveaboard": "Hajós",

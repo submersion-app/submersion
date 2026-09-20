@@ -10,6 +10,7 @@ import 'package:submersion/features/dive_log/data/repositories/tank_pressure_rep
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_roles/data/repositories/dive_role_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
@@ -173,6 +174,32 @@ void main() {
         expect(source.siteTags.map((t) => t.id), ['t1']);
       },
     );
+
+    test("loads the exported sites' own features (issue #2200)", () async {
+      await SiteFeatureRepository().addFeature(
+        siteId: 's1',
+        typeName: 'wreck',
+        name: 'Bow section',
+        latitude: 36.1,
+        longitude: -5.6,
+      );
+
+      final extras = await resolveDivesExtras(
+        BuddyRepository(),
+        EquipmentComponentRepository(),
+        DiveRoleRepository(),
+        TankPressureRepository(),
+        null,
+        ['d1'],
+        const UddfExportOptions(includeParticipants: false, includeGear: false),
+        classification: SiteClassificationRepository(),
+        siteTypes: SiteTypeRepository(),
+        siteFeatures: SiteFeatureRepository(),
+      );
+
+      expect(extras.siteFeaturesBySite.keys, ['s1']);
+      expect(extras.siteFeaturesBySite['s1']!.single.name, 'Bow section');
+    });
 
     test(
       "loads only the exported dives' sites and their definitions",

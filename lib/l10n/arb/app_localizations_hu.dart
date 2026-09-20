@@ -22930,8 +22930,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_summary_stat_totalTrips => 'Összes út';
 
   @override
-  String trips_summary_upcomingSubtitle(Object date, Object days) {
-    return '$date • $days nap múlva';
+  String trips_summary_upcomingSubtitle(Object date, Object countdown) {
+    return '$date • $countdown';
   }
 
   @override

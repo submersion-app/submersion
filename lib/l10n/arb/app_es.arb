@@ -6875,7 +6875,7 @@
   "trips_summary_stat_liveaboards": "Vida a bordo",
   "trips_summary_stat_totalDives": "Total de inmersiones",
   "trips_summary_stat_totalTrips": "Total de viajes",
-  "trips_summary_upcomingSubtitle": "{date} • En {days} dias",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "Proximos",
   "trips_type_dayTrip": "Salida de un día",
   "trips_type_liveaboard": "Crucero",

@@ -1247,6 +1247,35 @@ void main() {
       final dive = result.entitiesOf(ImportEntityType.dives).single;
       expect(dive['tagRefs'], [tags.single['id']]);
     });
+
+    // Issue #2203: a dive type the mapper does not recognise is preserved as
+    // its slug, which is only safe if the matching custom dive type is
+    // created. That needs the dive types entity type in scope, so a mapped
+    // dive type column has to add it the way a buddy column adds buddies.
+    test('a mapped dive type column adds the dive types entity type', () async {
+      const csv =
+          'my_date,my_time,my_depth,my_type\n'
+          '2024-01-15,10:00,25.5,Cenote\n';
+
+      const customMapping = FieldMapping(
+        name: 'Unknown Source',
+        columns: [
+          ColumnMapping(sourceColumn: 'my_date', targetField: 'date'),
+          ColumnMapping(sourceColumn: 'my_time', targetField: 'time'),
+          ColumnMapping(sourceColumn: 'my_depth', targetField: 'maxDepth'),
+          ColumnMapping(sourceColumn: 'my_type', targetField: 'diveType'),
+        ],
+      );
+
+      final result = await parser.parse(
+        csvBytes(csv),
+        customMappingOverride: customMapping,
+      );
+
+      final diveTypes = result.entitiesOf(ImportEntityType.diveTypes);
+      expect(diveTypes.map((t) => t['id']), ['cenote']);
+      expect(diveTypes.map((t) => t['name']), ['Cenote']);
+    });
   });
 
   group('entity types follow the mapped site and buddy columns (#1830)', () {

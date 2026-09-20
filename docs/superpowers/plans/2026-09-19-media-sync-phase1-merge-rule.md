@@ -40,9 +40,9 @@
 | `lib/core/services/sync/sync_service.dart` | Modify `_mergeEntity` (around lines 2669-2900 on main at 1eb59813be4) | Pending rule; stale-copy guard for the media tables; fact-group merge and targeted fact writes. |
 | `lib/core/services/sync/sync_data_serializer.dart` | Modify | `clockGuardedEntities`; batched `fetchRecords` case for `media`; `_exportMedia` filter; `_maxHlcInData` counts fact clocks; `writeFactGroup`. |
 | `lib/core/services/sync/sync_fact_groups.dart` | Create | `SyncFactGroup`, `SyncFactGroups` registry, and the pure `mergeFactGroups` resolution. |
-| `lib/core/data/repositories/sync_repository.dart` | Modify | `markFactsPending`; `markRecordPending(alsoStamp:)`; `_stampHlc(columns:)`; `_maxRowHlc` includes fact clocks. |
+| `lib/core/data/repositories/sync_repository.dart` | Modify | `markFactsPending`; `markRecordPending(alsoStamp:, stampClock:)`; `_stampHlc(columns:)`; `_maxRowHlc` includes fact clocks. |
 | `lib/core/database/database.dart` | Modify | Two `media` columns, v223 rung with backfill, `_assertMediaFactClockColumns` backstop, ladder. |
-| `lib/features/media/data/repositories/media_repository.dart` | Modify | Fact writers stamp their group clock; `createMedia` stamps both; mixed writers stamp the verification clock too; `republishForSync` stamps fact clocks only. |
+| `lib/features/media/data/repositories/media_repository.dart` | Modify | Fact writers stamp their group clock; `createMedia` stamps both; mixed writers stamp the verification clock too; `republishForSync` stamps fact clocks only, and only the groups it is asked for. |
 | `test/core/services/sync/pending_merge_test.dart` | Create | Rule 1. |
 | `test/core/services/sync/media_clock_guard_test.dart` | Create | Rule 2. |
 | `test/core/database/migration_v223_media_fact_clocks_test.dart` | Create | Rung and backstop. |
@@ -782,7 +782,7 @@ abstract final class SyncFactGroups {
 // SyncRepository
 Future<void> markRecordPending({required String entityType,
     required String recordId, required int localUpdatedAt,
-    List<SyncFactGroup> alsoStamp = const []});
+    List<SyncFactGroup> alsoStamp = const [], bool stampClock = true});
 Future<void> markFactsPending({required String entityType,
     required String recordId, required int localUpdatedAt,
     required SyncFactGroup group});
@@ -1746,9 +1746,9 @@ The writers and the call each gets (method names from main at 1eb59813be4; line 
 | `applyRepairWrites` | pointer + verification | `markRecordPending(alsoStamp: [SyncFactGroups.mediaVerification])` |
 | `convertToCloudBacked` | pointer + verification | `markRecordPending(alsoStamp: [SyncFactGroups.mediaVerification])` |
 | `createMedia` | whole new row | `markRecordPending(alsoStamp: SyncFactGroups.of('media'))` |
-| `republishForSync` | no column change; re-sends stamps | `markFactsPending` for both groups, in its existing transaction |
+| `republishForSync` | no column change; re-sends stamps | `markFactsPending` for each group in its new `groups` parameter, in its existing transaction |
 
-| `updateMedia` | whole row, fact columns included | `markRecordPending(alsoStamp: _changedFactGroups(previous, item))` |
+| `updateMedia` | whole row, fact columns included | a user edit: `markRecordPending(alsoStamp: _changedFactGroups(previous, item))`; a fact-only write: `markFactsPending` per changed group |
 
 `setManualElapsedSeconds` and every unlink or link write stay on plain
 `markRecordPending`: they are user edits that touch no fact column.
@@ -1784,6 +1784,43 @@ List<SyncFactGroup> _changedFactGroups(
   return groups;
 }
 ```
+
+Stamping the changed groups is not enough on its own, because the row clock
+still moves. Callers use `updateMedia` for fact-only patches too, a poller
+flipping `isOrphaned` for instance, and a row-clock bump there republishes
+that caller's whole snapshot of the row as a newer user edit, so its stale
+caption beats a peer's newer one. Decide whether the write is a user edit
+and take `markFactsPending` when it is not:
+
+```dart
+/// The row with every fact column and the write stamp flattened, so two
+/// of these compare equal exactly when a write touches nothing but facts.
+///
+/// Errs towards "user edit": a field [updateMedia] does not even write
+/// still counts as a difference, because an unnecessary row-clock bump
+/// only costs a redundant republish, while a missing one loses a real
+/// edit to a peer.
+static domain.MediaItem _userFieldsOf(domain.MediaItem item) =>
+    item.copyWith(
+      contentHash: null,
+      contentSizeBytes: null,
+      remoteUploadedAt: null,
+      remoteThumbUploadedAt: null,
+      remoteCompressedUploadedAt: null,
+      compressedLevel: null,
+      compressedSizeBytes: null,
+      isOrphaned: false,
+      lastVerifiedAt: null,
+      updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
+    );
+```
+
+The read, the whole-row write and the stamp all run inside one
+`_db.transaction`. The row carries fact columns the upload worker writes
+concurrently: read outside the transaction, a stamp landing between the read
+and the write is rolled back by it while comparing equal on both sides, so
+the rollback travels under an unchanged upload clock and beats the very
+stamp it erased.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1888,14 +1925,14 @@ void main() {
     });
   }
 
-  test('republishForSync moves only the fact clocks', () async {
+  test('republishForSync moves the upload clock alone by default', () async {
     final before = await clocks();
     await Future<void>.delayed(const Duration(milliseconds: 2));
     await repo.republishForSync([id]);
     final after = await clocks();
     expect(after['row'], before['row']);
     expect(after['upload']!.compareTo(before['upload']!), greaterThan(0));
-    expect(after['verify']!.compareTo(before['verify']!), greaterThan(0));
+    expect(after['verify'], before['verify']);
   });
 
   test('a user edit moves only the row clock', () async {
@@ -1940,7 +1977,7 @@ with
     );
 ```
 
-keeping each method's own id variable name. In `createMedia`, `applyRepairWrites` and `convertToCloudBacked` add the `alsoStamp:` argument from the table. In `republishForSync`, replace its per-id `markRecordPending` with two `markFactsPending` calls (upload, then verification) inside the existing transaction, and update its doc comment: it re-sends the facts without claiming a user edit. Import `package:submersion/core/services/sync/sync_fact_groups.dart`.
+keeping each method's own id variable name. In `createMedia`, `applyRepairWrites` and `convertToCloudBacked` add the `alsoStamp:` argument from the table. In `republishForSync`, replace its per-id `markRecordPending` with a `markFactsPending` call per group inside the existing transaction, and give the method a `groups` parameter defaulting to `[SyncFactGroups.mediaUpload]`. Its one caller, `MediaOriginRepublishSweep`, selects rows because their upload stamps need recovery and has nothing to say about verification: re-clocking a stale `isOrphaned` or `lastVerifiedAt` there would beat a peer's newer observation of the same file. Update the doc comment: it re-sends the facts it is asked for, without claiming a user edit. Import `package:submersion/core/services/sync/sync_fact_groups.dart`.
 
 Then find fact writes outside the repository:
 
@@ -1979,6 +2016,31 @@ Part of #2090, refs #2097"
 ```
 
 ---
+
+### The retirement replay must not re-stamp a fact-only row
+
+Not a task of its own, but the one place outside the repository where a fact
+write can still move a row clock, so it belongs with Task 7.
+
+A retirement rejoin replays the pre-fence pending snapshot with fresh clocks,
+because the adopted watermark sits at or above the snapshot's original
+stamps. `SyncService.restampRowForReplay` already refreshes a media row's
+row clock only when that clock is the newest on the row, which is exactly
+when the last local write was a user edit. The facts republish either way,
+because the export selects a row on any of its clocks.
+
+The replay then re-marks every restored row pending, to reopen the publish
+gate the fence's `resetSyncState` closed. That mark stamps the row clock,
+which undoes the choice above for a row pending on a fact write alone. Pass
+`stampClock: false` there: the apply has already written the clocks the
+restamp chose, and the marks only need to open the gate.
+
+Test it end to end rather than on `restampRowForReplay` alone, since the
+function was already right and the bug was downstream of it. Publish a media
+row, make a fact-only write, retire the device, rejoin, and assert the row
+clock is unchanged. Seed a peer log first: with no library in the cloud the
+fence re-establishes from local and never reaches the replay, so the test
+passes without the fix.
 
 ### Task 8: Verify and open the PR
 

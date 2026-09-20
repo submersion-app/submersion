@@ -22420,8 +22420,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_summary_stat_totalTrips => 'סה\"כ טיולים';
 
   @override
-  String trips_summary_upcomingSubtitle(Object date, Object days) {
-    return '$date • בעוד $days ימים';
+  String trips_summary_upcomingSubtitle(Object date, Object countdown) {
+    return '$date • $countdown';
   }
 
   @override

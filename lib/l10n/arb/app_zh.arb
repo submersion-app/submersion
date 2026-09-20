@@ -7061,7 +7061,7 @@
   "trips_summary_stat_liveaboards": "船宿",
   "trips_summary_stat_totalDives": "总计潜水",
   "trips_summary_stat_totalTrips": "总计旅行",
-  "trips_summary_upcomingSubtitle": "{date} • {days} 天后",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "即将到来",
   "trips_type_dayTrip": "一日游",
   "trips_type_liveaboard": "船宿",

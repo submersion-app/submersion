@@ -679,6 +679,96 @@ void main() {
       expect(result.rows[0]['diveType'], 'wreck');
     });
 
+    // Issue #2203: an unrecognised dive type is preserved as its slug, and
+    // the row carries it as a diveTypeIds entry so DiveTypeExtractor creates
+    // a real custom dive type for it. Without that the junction row would
+    // reference a dive_types row that does not exist.
+    test('promotes an unrecognised diveType to a custom type reference', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Dive Type'],
+        rows: [
+          ['2024-06-15', 'Cenote'],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Dive Type', targetField: 'diveType'),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows[0]['diveType'], 'cenote');
+      expect(result.rows[0]['diveTypeIds'], ['cenote']);
+    });
+
+    // The extractor names a type from its slug when the row does not name it,
+    // which would store "Cenote Dive" as "Cenote dive". The diver's own
+    // spelling is available here, so the row carries it.
+    test('names a promoted dive type as the diver spelled it', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Dive Type'],
+        rows: [
+          ['2024-06-15', 'Sidemount / CCR'],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Dive Type', targetField: 'diveType'),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows[0]['diveTypeIds'], ['sidemount_ccr']);
+      expect(result.rows[0]['diveTypeNames'], {
+        'sidemount_ccr': 'Sidemount / CCR',
+      });
+    });
+
+    // A built-in needs no custom dive type, so the row must not gain a
+    // diveTypeIds entry: that would put every ordinary import's built-in
+    // types on the review step as though they were new.
+    test('does not promote a built-in diveType', () {
+      const csv = ParsedCsv(
+        headers: ['Date', 'Dive Type'],
+        rows: [
+          ['2024-06-15', 'Wreck'],
+        ],
+      );
+
+      const config = ImportConfiguration(
+        mappings: {
+          'primary': FieldMapping(
+            name: 'Test',
+            columns: [
+              ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+              ColumnMapping(sourceColumn: 'Dive Type', targetField: 'diveType'),
+            ],
+          ),
+        },
+      );
+
+      final result = transformer.transform(csv, config);
+
+      expect(result.rows[0]['diveType'], 'wreck');
+      expect(result.rows[0].containsKey('diveTypeIds'), isFalse);
+    });
+
     test('emits warning when explicit transform fails on malformed value', () {
       const csv = ParsedCsv(
         headers: ['Date', 'Duration'],

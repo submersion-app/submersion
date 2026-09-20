@@ -6773,7 +6773,7 @@
   "trips_summary_stat_liveaboards": "Croisières",
   "trips_summary_stat_totalDives": "Total des plongées",
   "trips_summary_stat_totalTrips": "Total des voyages",
-  "trips_summary_upcomingSubtitle": "{date} - Dans {days} jours",
+  "trips_summary_upcomingSubtitle": "{date} - {countdown}",
   "trips_summary_upcomingTitle": "A venir",
   "trips_type_dayTrip": "Sortie journée",
   "trips_type_liveaboard": "Croisière",

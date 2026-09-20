@@ -6769,7 +6769,7 @@
   "trips_summary_stat_liveaboards": "Crociere subacquee",
   "trips_summary_stat_totalDives": "Immersioni totali",
   "trips_summary_stat_totalTrips": "Viaggi totali",
-  "trips_summary_upcomingSubtitle": "{date} • Tra {days} giorni",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "In programma",
   "trips_type_dayTrip": "Gita giornaliera",
   "trips_type_liveaboard": "Barca",

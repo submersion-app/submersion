@@ -22,6 +22,19 @@ abstract final class CsvColumns {
     CsvQuantity.depth,
     metricDecimals: 1,
   );
+  static const minDepth = CsvColumn(
+    'Min Depth',
+    CsvQuantity.depth,
+    metricDecimals: 1,
+  );
+
+  /// Height above sea level, for altitude diving. A depth quantity because
+  /// it is the same length unit the diver already chose.
+  static const altitude = CsvColumn(
+    'Altitude',
+    CsvQuantity.depth,
+    metricDecimals: 1,
+  );
   static const avgDepth = CsvColumn(
     'Avg Depth',
     CsvQuantity.depth,

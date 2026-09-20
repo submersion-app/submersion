@@ -8,6 +8,7 @@ import 'package:submersion/core/services/export/models/export_service_record.dar
 import 'package:submersion/core/services/export/uddf/uddf_gear_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_participant_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_site_classification_writers.dart';
+import 'package:submersion/core/services/export/uddf/uddf_site_feature_writers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_tag_writers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
@@ -21,6 +22,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_component.dart';
@@ -44,6 +46,7 @@ class UddfExportBuilders {
     DiveSite site, {
     List<String> siteTypeIds = const [],
     List<String> tagIds = const [],
+    List<SiteFeature> siteFeatures = const [],
   }) {
     builder.element(
       'site',
@@ -109,6 +112,7 @@ class UddfExportBuilders {
           siteTypeIds: siteTypeIds,
           tagIds: tagIds,
         );
+        UddfSiteFeatureWriters.writeSiteFeatures(builder, siteFeatures);
       },
     );
   }

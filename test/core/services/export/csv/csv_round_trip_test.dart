@@ -10,13 +10,18 @@ import 'package:submersion/core/services/export/csv/csv_equipment_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_sites_writer.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
+import 'package:submersion/features/site_types/data/repositories/site_type_repository.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/import_wizard/data/adapters/universal_adapter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/parsers/parser_registry.dart';
 import 'package:submersion/features/universal_import/data/services/format_detector.dart';
@@ -90,6 +95,18 @@ void main() {
         expect(blue.rating, goldenSite.rating);
         expect(blue.description, goldenSite.description);
         expect(blue.notes, goldenSite.notes.replaceAll('\n', ' '));
+        // Issue #2201: every remaining site field the writer used to drop.
+        near(blue.minDepth, goldenSite.minDepth, 0.06, 'minDepth');
+        expect(blue.difficulty, goldenSite.difficulty);
+        near(blue.altitude, goldenSite.altitude, 0.6, 'altitude');
+        expect(blue.city, goldenSite.city);
+        expect(blue.island, goldenSite.island);
+        expect(blue.bodyOfWater, goldenSite.bodyOfWater);
+        expect(blue.hazards, goldenSite.hazards);
+        expect(blue.accessNotes, goldenSite.accessNotes);
+        expect(blue.mooringNumber, goldenSite.mooringNumber);
+        expect(blue.parkingInfo, goldenSite.parkingInfo);
+        expect(blue.exitMethod, goldenSite.exitMethod);
         expect(sites.map((s) => s.name), contains('House Reef'));
       });
 
@@ -314,5 +331,131 @@ void main() {
       stored['Reg']!.id,
     );
     expect(parts.single.componentEquipmentId, stored['Hose; long']!.id);
+  });
+  test('a site feature survives the sites CSV (issue #2200)', () async {
+    // Separators in the free text: the cell packs many features into one
+    // column, so the escaping has to survive both of its delimiters.
+    const bow = SiteFeature(
+      id: 'f1',
+      siteId: 'site-1',
+      typeName: 'wreck',
+      name: 'Bow; section',
+      latitude: 17.316,
+      longitude: -87.535,
+      bearingDeg: 135,
+      depthMeters: 18.5,
+      notes: 'Swim-through | at the break',
+    );
+    const mooring = SiteFeature(
+      id: 'f2',
+      siteId: 'site-1',
+      typeName: 'mooring',
+      latitude: 17.32,
+      longitude: -87.54,
+    );
+
+    final diverId = await importCsv(
+      CsvSitesWriter(
+        CsvExportUnits.metric,
+        featuresBySite: const {
+          'site-1': [bow, mooring],
+        },
+      ).write(goldenSites()),
+      ImportFormat.submersionSitesCsv,
+    );
+
+    final sites = await SiteRepository().getAllSites(diverId: diverId);
+    final blue = sites.firstWhere((s) => s.name == 'Blue Hole');
+    final features = await SiteFeatureRepository().getFeaturesForSite(blue.id);
+    expect(features.map((f) => f.typeName), ['wreck', 'mooring']);
+    final restoredBow = features.first;
+    expect(restoredBow.name, 'Bow; section');
+    expect(restoredBow.notes, 'Swim-through | at the break');
+    expect(restoredBow.latitude, closeTo(17.316, 0.000001));
+    expect(restoredBow.longitude, closeTo(-87.535, 0.000001));
+    expect(restoredBow.bearingDeg, closeTo(135, 0.001));
+    expect(restoredBow.depthMeters, closeTo(18.5, 0.001));
+    // The featureless site keeps an empty cell and gains nothing.
+    final reef = sites.firstWhere((s) => s.name == 'House Reef');
+    expect(await SiteFeatureRepository().getFeaturesForSite(reef.id), isEmpty);
+  });
+  test('site types and tags survive the sites CSV (issue #2201)', () async {
+    final diverId = await importCsv(
+      CsvSitesWriter(
+        CsvExportUnits.metric,
+        typeNamesBySite: const {
+          'site-1': ['Wreck', 'Mine'],
+        },
+        tagNamesBySite: const {
+          'site-1': ['To try', 'Night; dive'],
+        },
+      ).write(goldenSites()),
+      ImportFormat.submersionSitesCsv,
+    );
+
+    final sites = await SiteRepository().getAllSites(diverId: diverId);
+    final blue = sites.firstWhere((s) => s.name == 'Blue Hole');
+    final classification = SiteClassificationRepository();
+
+    // 'Wreck' is a built-in and must resolve to the built-in, not a copy.
+    final types = await classification.getTypesForSite(blue.id);
+    expect(types.map((t) => t.name), ['Wreck', 'Mine']);
+    expect(types.first.isBuiltIn, isTrue);
+    expect(types.last.isBuiltIn, isFalse, reason: 'Mine is created custom');
+
+    final tags = await classification.getTagsForSite(blue.id);
+    expect(tags.map((t) => t.name), unorderedEquals(['To try', 'Night; dive']));
+    expect(tags.every((t) => t.appliesTo(TagScope.sites)), isTrue);
+  });
+  test(
+    'a site type name repeated in one cell creates one custom type',
+    () async {
+      // Two spellings of one unknown name in the same cell. Each miss used to
+      // create its own row, because the name list was read once before the
+      // loop, leaving the site showing "Mine, Mine".
+      final diverId = await importCsv(
+        CsvSitesWriter(
+          CsvExportUnits.metric,
+          typeNamesBySite: const {
+            'site-1': ['Mine', 'MINE', 'Mine'],
+          },
+        ).write(goldenSites()),
+        ImportFormat.submersionSitesCsv,
+      );
+
+      final customs = [
+        for (final t in await SiteTypeRepository().getAllSiteTypes(
+          diverId: diverId,
+        ))
+          if (!t.isBuiltIn) t,
+      ];
+      expect(customs.map((t) => t.name), ['Mine']);
+
+      final sites = await SiteRepository().getAllSites(diverId: diverId);
+      final blue = sites.firstWhere((s) => s.name == 'Blue Hole');
+      final linked = await SiteClassificationRepository().getTypesForSite(
+        blue.id,
+      );
+      expect(linked.map((t) => t.name), ['Mine']);
+    },
+  );
+  test('a site tag name repeated in one cell creates one tag', () async {
+    // The sibling path: unlike the type lookup, getOrCreateTag re-queries
+    // per name, so it never had the duplicate. Pinned so the two cannot
+    // drift apart.
+    final diverId = await importCsv(
+      CsvSitesWriter(
+        CsvExportUnits.metric,
+        tagNamesBySite: const {
+          'site-1': ['To try', 'To try'],
+        },
+      ).write(goldenSites()),
+      ImportFormat.submersionSitesCsv,
+    );
+
+    final sites = await SiteRepository().getAllSites(diverId: diverId);
+    final blue = sites.firstWhere((s) => s.name == 'Blue Hole');
+    final tags = await SiteClassificationRepository().getTagsForSite(blue.id);
+    expect(tags.map((t) => t.name), ['To try']);
   });
 }
