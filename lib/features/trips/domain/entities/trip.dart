@@ -51,7 +51,7 @@ class Trip extends Equatable {
   /// spring-forward isn't undercounted: `Duration.inDays` floors elapsed hours,
   /// and a 23-hour calendar day would otherwise drop a day (e.g. Mar 7-10 is
   /// 71 local hours -> 3 instead of 4).
-  int get durationDays => _calendarDaysBetween(startDate, endDate) + 1;
+  int get durationDays => calendarDaysBetween(startDate, endDate) + 1;
 
   /// Check if this is a liveaboard trip
   bool get isLiveaboard => tripType == TripType.liveaboard;
@@ -122,7 +122,7 @@ class Trip extends Equatable {
   /// start date can't shave a day off the countdown (a local 23-hour day would
   /// make `Duration.inDays` truncate 47 hours to 1 day instead of 2).
   int get daysUntilStart {
-    final diff = _calendarDaysBetween(DateTime.now(), startDate);
+    final diff = calendarDaysBetween(DateTime.now(), startDate);
     return diff < 0 ? 0 : diff;
   }
 
@@ -201,7 +201,12 @@ const _undefined = Object();
 /// Whole calendar days from [from] to [to], computed in UTC date-only so the
 /// result is DST-immune (UTC has no daylight-saving transitions, so every day
 /// is exactly 24 hours). Negative when [to] is before [from].
-int _calendarDaysBetween(DateTime from, DateTime to) {
+///
+/// Public so screens that count days over a trip range (the edit page's
+/// duration label) share one implementation with [Trip.durationDays] rather
+/// than reaching for `Duration.inDays`, which floors elapsed hours and so
+/// loses a day whenever the range spans a local spring-forward.
+int calendarDaysBetween(DateTime from, DateTime to) {
   final a = DateTime.utc(from.year, from.month, from.day);
   final b = DateTime.utc(to.year, to.month, to.day);
   return b.difference(a).inDays;

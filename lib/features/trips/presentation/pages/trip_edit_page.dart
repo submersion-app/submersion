@@ -293,7 +293,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                     padding: const EdgeInsetsDirectional.only(start: 40),
                     child: Text(
                       context.l10n.trips_edit_durationDays(
-                        _endDate.difference(_startDate).inDays + 1,
+                        // Calendar days, not elapsed hours: `Duration.inDays`
+                        // floors, so a trip spanning a spring-forward is 71
+                        // hours and would read a day short of the itinerary
+                        // the same range generates.
+                        calendarDaysBetween(_startDate, _endDate) + 1,
                       ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.primary,
