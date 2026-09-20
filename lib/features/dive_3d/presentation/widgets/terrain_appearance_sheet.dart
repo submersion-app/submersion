@@ -326,8 +326,13 @@ class _ExaggerationSectionState extends ConsumerState<_ExaggerationSection> {
     if (seascapeState is SiteSeascapeReady) {
       _lastKnownAuto = seascapeState.axisInputs.verticalExaggeration;
     }
-    final effective =
-        override ?? _lastKnownAuto ?? minManualVerticalExaggeration;
+    // Clamped once, here, so the thumb, the drag label and the trailing
+    // readout can never disagree: an out-of-range stored override used to
+    // move the thumb to the end of the track while both texts printed the
+    // raw value (Copilot review).
+    final effective = clampManualVerticalExaggeration(
+      override ?? _lastKnownAuto ?? minManualVerticalExaggeration,
+    );
     void setOverride(double? factor) => ref
         .read(settingsProvider.notifier)
         .setSeascapeVerticalExaggerationOverride(widget.siteId, factor);
@@ -343,10 +348,7 @@ class _ExaggerationSectionState extends ConsumerState<_ExaggerationSection> {
             key: const ValueKey('seascapeExaggerationSlider'),
             min: minManualVerticalExaggeration,
             max: maxManualVerticalExaggeration,
-            value: effective.clamp(
-              minManualVerticalExaggeration,
-              maxManualVerticalExaggeration,
-            ),
+            value: effective,
             label: '${effective.toStringAsFixed(1)}×',
             onChanged: setOverride,
           ),

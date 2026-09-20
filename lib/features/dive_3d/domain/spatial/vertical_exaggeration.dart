@@ -40,3 +40,21 @@ double computeVerticalExaggeration({
 /// value picked.
 const double minManualVerticalExaggeration = 1.0;
 const double maxManualVerticalExaggeration = 10.0;
+
+/// Constrains a stored per-site override to the range the slider can
+/// actually produce (Copilot review). The override travels from settings
+/// to [SpatialProjection] without passing through the slider again, so a
+/// row that was corrupted, hand-edited, or written by a client with a
+/// different range would otherwise scale the entire scene by an arbitrary
+/// factor and make it unusable.
+///
+/// A NaN is treated as "no usable value" rather than clamped: `num.clamp`
+/// propagates NaN (every comparison against it is false), and
+/// [SpatialProjection.depthScale] multiplies every vertex, so a single NaN
+/// factor leaves nothing to render at all instead of merely distorting it.
+double clampManualVerticalExaggeration(double factor) => factor.isNaN
+    ? minManualVerticalExaggeration
+    : factor.clamp(
+        minManualVerticalExaggeration,
+        maxManualVerticalExaggeration,
+      );

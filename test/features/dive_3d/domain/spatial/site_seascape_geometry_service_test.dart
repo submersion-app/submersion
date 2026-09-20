@@ -8,6 +8,7 @@ import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_bu
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/site_seascape_geometry_service.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/vertical_exaggeration.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
@@ -412,6 +413,63 @@ void main() {
           (box.maxNorth - box.minNorth).abs(),
         ].reduce((a, b) => a > b ? a : b);
     expect(result.scene.bounds.sceneMinY, closeTo(-25 * horizScale, 1e-9));
+  });
+
+  test('an out-of-range verticalExaggerationOverride is clamped to the '
+      'slider range before it reaches the projection (Copilot review: a '
+      'corrupted or synced settings row would otherwise scale the whole '
+      'scene by an arbitrary factor)', () {
+    final wideGrid = BathymetryGrid(
+      originLat: 0,
+      originLon: 0,
+      cellSizeLatDeg: 3000.0 / 110540.0,
+      cellSizeLonDeg: 3000.0 / 111320.0,
+      rows: 2,
+      cols: 2,
+      depthsMeters: const [15, 20, 20, 25],
+      sourceId: 'test',
+      resolutionMeters: 3000,
+      fetchedAt: DateTime.utc(2026, 8, 15),
+    );
+    SiteSeascapeInput inputWith(double override) => SiteSeascapeInput(
+      grid: wideGrid,
+      center: const GeoPoint(0, 0),
+      siteName: 'Wide Flat Lake',
+      divePaths: const [],
+      nearbySites: const [],
+      verticalExaggerationOverride: override,
+    );
+
+    const service = SiteSeascapeGeometryService();
+    expect(
+      service.buildWithLabels(inputWith(100)).verticalExaggeration,
+      maxManualVerticalExaggeration,
+    );
+    expect(
+      service.buildWithLabels(inputWith(0.2)).verticalExaggeration,
+      minManualVerticalExaggeration,
+    );
+    expect(
+      service.buildWithLabels(inputWith(double.nan)).verticalExaggeration,
+      minManualVerticalExaggeration,
+    );
+
+    // The clamp has to land before SpatialProjection, not merely on the
+    // reported number: the scene floor must match the clamped factor.
+    final box = BathymetryTerrainBuilder.enuBounds(
+      wideGrid,
+      const GeoPoint(0, 0),
+    );
+    final horizScale =
+        SceneBounds.xSpan /
+        [
+          (box.maxEast - box.minEast).abs(),
+          (box.maxNorth - box.minNorth).abs(),
+        ].reduce((a, b) => a > b ? a : b);
+    expect(
+      service.buildWithLabels(inputWith(100)).scene.bounds.sceneMinY,
+      closeTo(-25 * horizScale * maxManualVerticalExaggeration, 1e-6),
+    );
   });
 
   test('fewer than 2 wet cells: the fallback span is the tile\'s narrower '

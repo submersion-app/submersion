@@ -72,4 +72,58 @@ void main() {
       expect(e, closeTo(10.0, 1e-9));
     });
   });
+
+  // Copilot review: a stored per-site override reaches the projection
+  // straight from settings, so a value that never came from the slider
+  // (a corrupted row, or a future/foreign client writing through sync)
+  // must not be applied verbatim.
+  group('clampManualVerticalExaggeration', () {
+    test('a value inside the slider range is returned unchanged', () {
+      expect(clampManualVerticalExaggeration(3.5), 3.5);
+      expect(
+        clampManualVerticalExaggeration(minManualVerticalExaggeration),
+        minManualVerticalExaggeration,
+      );
+      expect(
+        clampManualVerticalExaggeration(maxManualVerticalExaggeration),
+        maxManualVerticalExaggeration,
+      );
+    });
+
+    test('a value below true scale is raised to the floor', () {
+      // Below 1.0 the terrain would be FLATTER than reality, which no
+      // slider position can produce and which reads as a bug, not a
+      // preference.
+      expect(
+        clampManualVerticalExaggeration(0.2),
+        minManualVerticalExaggeration,
+      );
+      expect(clampManualVerticalExaggeration(0), minManualVerticalExaggeration);
+      expect(
+        clampManualVerticalExaggeration(-4),
+        minManualVerticalExaggeration,
+      );
+    });
+
+    test('a value above the slider maximum is lowered to the cap', () {
+      expect(
+        clampManualVerticalExaggeration(100),
+        maxManualVerticalExaggeration,
+      );
+      expect(
+        clampManualVerticalExaggeration(double.infinity),
+        maxManualVerticalExaggeration,
+      );
+    });
+
+    test('a NaN falls back to true scale rather than propagating', () {
+      // num.clamp passes NaN through (every comparison against NaN is
+      // false), and depthScale multiplies EVERY vertex: one NaN factor
+      // makes the whole mesh unrenderable rather than merely distorted.
+      expect(
+        clampManualVerticalExaggeration(double.nan),
+        minManualVerticalExaggeration,
+      );
+    });
+  });
 }

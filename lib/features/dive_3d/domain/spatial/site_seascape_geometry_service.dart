@@ -161,12 +161,17 @@ class SiteSeascapeGeometryService {
           input.center,
         ) ??
         math.min(box.maxEast - box.minEast, box.maxNorth - box.minNorth);
-    final verticalExaggeration =
-        input.verticalExaggerationOverride ??
-        computeVerticalExaggeration(
-          maxDepthMeters: maxDepth,
-          narrowSpanMeters: narrowSpan,
-        );
+    // Clamped, not trusted as stored: the override reaches here straight
+    // from settings without passing back through the slider, so a
+    // corrupted or foreign-written row would otherwise scale the whole
+    // scene by an arbitrary factor (Copilot review).
+    final override = input.verticalExaggerationOverride;
+    final verticalExaggeration = override != null
+        ? clampManualVerticalExaggeration(override)
+        : computeVerticalExaggeration(
+            maxDepthMeters: maxDepth,
+            narrowSpanMeters: narrowSpan,
+          );
     final proj = SpatialProjection(
       minEast: box.minEast,
       maxEast: box.maxEast,

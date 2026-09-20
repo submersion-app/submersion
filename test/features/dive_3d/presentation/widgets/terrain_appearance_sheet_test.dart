@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/vertical_exaggeration.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/terrain_appearance_sheet.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -684,6 +685,29 @@ void main() {
         findsNothing,
       );
     });
+
+    testWidgets(
+      'an out-of-range stored override reads the same on the thumb, the '
+      'label and the trailing text (Copilot review: the slider clamped '
+      'its own value while the readouts printed the raw one)',
+      (tester) async {
+        await pumpSheet(
+          tester,
+          siteId: 'site-1',
+          initial: const AppSettings(
+            seascapeVerticalExaggerationOverrides: {'site-1': 100},
+          ),
+        );
+
+        final slider = tester.widget<Slider>(
+          find.byKey(const ValueKey('seascapeExaggerationSlider')),
+        );
+        expect(slider.value, maxManualVerticalExaggeration);
+        expect(slider.label, '10.0\u00d7');
+        expect(find.text('10.0\u00d7'), findsOneWidget);
+        expect(find.text('100.0\u00d7'), findsNothing);
+      },
+    );
 
     testWidgets(
       'keeps the last known automatic value across a provider rebuild, '
