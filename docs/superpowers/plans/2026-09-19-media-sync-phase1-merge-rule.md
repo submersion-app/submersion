@@ -415,7 +415,33 @@ void main() {
     }
     expect(SyncDataSerializer.clockGuardedEntities, {
       'media', 'mediaEnrichment', 'mediaSpecies', 'mediaStores',
+      'species', 'importedFiles', 'fieldPresets',
     });
+  });
+
+  // The media-only assertions below pin the rule, but the set changes merge
+  // behaviour for three more media tables, each with its own fetch and upsert
+  // arm. Seed one row per table, stamp its clock the way a local edit would,
+  // publish it so the pending rule cannot be what refuses the peer, then
+  // assert both directions. Without these, a missing arm on any of the three
+  // ships green.
+  group('the guard covers every clock-guarded media table', () {
+    // Seed 'e1' in media_enrichment, 'ms1' in media_species and 'st1' in
+    // media_stores, each with a text column set to 'mine':
+    // match_confidence, notes and display_hint respectively.
+    // For each table:
+    //   test('<table> refuses a strictly older copy'):
+    //     stamp the clock, fetchRecord it, stamp again (the local row moves
+    //     on after the peer's snapshot), apply the snapshot with the text
+    //     column set to 'theirs', expect the column still reads 'mine'.
+    //   test('<table> applies a strictly newer copy'):
+    //     stamp, fetchRecord, apply with the column set to 'theirs' and
+    //     'hlc': SyncClock.instance.issue(), expect 'theirs'.
+    // Drive each table through its own SyncData field: SyncData(
+    // mediaEnrichment: [row]), SyncData(mediaSpecies: [row]) and
+    // SyncData(mediaStores: [row]). media_enrichment needs a dives row and
+    // media_species needs a species row; species has no created_at or
+    // updated_at column.
   });
 
   test('a strictly older copy does not overwrite a newer local edit',
@@ -1271,7 +1297,8 @@ Future<void> writeFactGroup(String entityType, String recordId,
 2. With no local row, every group comes from the peer.
 3. The peer wins a group when its effective clock is non-null and either the local effective clock is null or the peer's is strictly greater (canonical HLC strings compare with `String.compareTo`, as `_maxHlc` does). A tie or an older peer clock keeps local.
 4. Both effective clocks null: the group follows `base` (the side that won the row), which is today's behaviour.
-5. The winner supplies every column of the group, including explicit nulls, and its effective clock is written into `clockKey`, so a legacy peer's row clock becomes the local fact clock.
+5. The winner supplies every column of the group its row actually carries, explicit nulls included, and its effective clock is written into `clockKey`, so a legacy peer's row clock becomes the local fact clock.
+6. An omitted key is not a clear. A peer that predates a column sends no key for it, so the merge keeps the local value for any group column the winner's row does not contain, and writes a clear only for a key that is present with a null value. Without this, a legacy peer winning the group on its row clock would blank every column it has never heard of.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1721,7 +1748,42 @@ The writers and the call each gets (method names from main at 1eb59813be4; line 
 | `createMedia` | whole new row | `markRecordPending(alsoStamp: SyncFactGroups.of('media'))` |
 | `republishForSync` | no column change; re-sends stamps | `markFactsPending` for both groups, in its existing transaction |
 
-`updateMedia`, `setManualElapsedSeconds` and every unlink or link write stay on plain `markRecordPending`: they are user edits.
+| `updateMedia` | whole row, fact columns included | `markRecordPending(alsoStamp: _changedFactGroups(previous, item))` |
+
+`setManualElapsedSeconds` and every unlink or link write stay on plain
+`markRecordPending`: they are user edits that touch no fact column.
+
+`updateMedia` cannot, because it writes the whole row and callers use it to
+set `contentHash`, `contentSizeBytes`, the three `remoteUploadedAt` stamps,
+`compressedLevel`, `compressedSizeBytes`, `isOrphaned` and `lastVerifiedAt`.
+Left on a bare `markRecordPending` it would move those columns while their
+fact clocks stayed behind, and the next merge would resurrect the old stamps
+over them. It reads the row first and stamps only the groups whose columns
+actually changed, so a caption edit still moves nothing but the row clock:
+
+```dart
+List<SyncFactGroup> _changedFactGroups(
+  domain.MediaItem? previous,
+  domain.MediaItem next,
+) {
+  if (previous == null) return SyncFactGroups.of('media');
+  final groups = <SyncFactGroup>[];
+  if (previous.contentHash != next.contentHash ||
+      previous.contentSizeBytes != next.contentSizeBytes ||
+      previous.remoteUploadedAt != next.remoteUploadedAt ||
+      previous.remoteThumbUploadedAt != next.remoteThumbUploadedAt ||
+      previous.remoteCompressedUploadedAt != next.remoteCompressedUploadedAt ||
+      previous.compressedLevel != next.compressedLevel ||
+      previous.compressedSizeBytes != next.compressedSizeBytes) {
+    groups.add(SyncFactGroups.mediaUpload);
+  }
+  if (previous.isOrphaned != next.isOrphaned ||
+      previous.lastVerifiedAt != next.lastVerifiedAt) {
+    groups.add(SyncFactGroups.mediaVerification);
+  }
+  return groups;
+}
+```
 
 - [ ] **Step 1: Write the failing tests**
 
