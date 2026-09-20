@@ -102,8 +102,9 @@ class ChipLabeler {
         units.formatDate(end),
       );
     }
-    if (start != null)
+    if (start != null) {
       return l10n.explore_chip_timeSince(units.formatDate(start));
+    }
     return l10n.explore_chip_timeBefore(units.formatDate(end));
   }
 }

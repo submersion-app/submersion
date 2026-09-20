@@ -11,11 +11,11 @@ import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 void main() {
   final l10n = AppLocalizationsEn();
-  final metric = ChipLabeler(l10n, UnitFormatter(const AppSettings()));
+  final metric = ChipLabeler(l10n, const UnitFormatter(AppSettings()));
   final imperial = ChipLabeler(
     l10n,
-    UnitFormatter(
-      const AppSettings(
+    const UnitFormatter(
+      AppSettings(
         depthUnit: DepthUnit.feet,
         temperatureUnit: TemperatureUnit.fahrenheit,
       ),
