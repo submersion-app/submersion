@@ -79,6 +79,49 @@ void main() {
     expect(c['verify'], c['hlc']);
   });
 
+  test('any insert path gets fact clocks on its first pending mark', () async {
+    // The network fetch pipeline and the signature inserts mark a row
+    // pending without naming the groups; without initialisation their rows
+    // keep null fact clocks, and a later caption edit's row clock would
+    // then read as a fresh write to every group.
+    await db.customStatement(
+      "INSERT INTO media (id, file_path, created_at, updated_at) "
+      "VALUES ('m2', '/y.jpg', 0, 0)",
+    );
+
+    await SyncRepository().markRecordPending(
+      entityType: 'media',
+      recordId: 'm2',
+      localUpdatedAt: 0,
+    );
+
+    final c = await clocksOf('m2');
+    expect(c['upload'], c['hlc']);
+    expect(c['verify'], c['hlc']);
+  });
+
+  test('a later mark leaves an existing fact clock alone', () async {
+    await SyncRepository().markFactsPending(
+      entityType: 'media',
+      recordId: 'm1',
+      localUpdatedAt: 1,
+      group: SyncFactGroups.mediaUpload,
+    );
+    final stamped = (await clocksOf('m1'))['upload'];
+
+    await SyncRepository().markRecordPending(
+      entityType: 'media',
+      recordId: 'm1',
+      localUpdatedAt: 2,
+    );
+
+    expect(
+      (await clocksOf('m1'))['upload'],
+      stamped,
+      reason: 'a user edit must not claim the facts are new',
+    );
+  });
+
   test('the clock seed counts fact clocks', () async {
     await SyncRepository().markFactsPending(
       entityType: 'media',

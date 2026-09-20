@@ -791,8 +791,24 @@ class SyncRepository {
     await ensureSyncClockConfigured();
     final hlc = SyncClock.instance.issue();
     if (hlc == null) return;
-    final set = columns.map((c) => '"$c" = ?').join(', ');
-    final values = [for (final _ in columns) hlc];
+    // Every fact group starts life with a clock, whichever path inserted the
+    // row (createMedia, the network fetch pipeline, a signature insert).
+    // Without this a row keeps null fact clocks until its first fact write,
+    // and the merge's fallback would then read a later caption edit's row
+    // clock as a fresh write to every group and beat a peer's real facts
+    // (media sync program spec 5.1). COALESCE, so an existing clock stands.
+    final factColumns = [
+      for (final g in SyncFactGroups.of(entityType))
+        if (!columns.contains(g.clockColumn)) g.clockColumn,
+    ];
+    final set = [
+      ...columns.map((c) => '"$c" = ?'),
+      ...factColumns.map((c) => '"$c" = COALESCE("$c", ?)'),
+    ].join(', ');
+    final values = [
+      for (final _ in columns) hlc,
+      for (final _ in factColumns) hlc,
+    ];
     final second = compositeHlcKeys[entityType];
     if (second != null) {
       final parts = recordId.split('|');

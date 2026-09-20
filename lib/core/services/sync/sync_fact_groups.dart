@@ -67,6 +67,9 @@ abstract final class SyncFactGroups {
 }
 
 /// The resolved row and the groups the peer won.
+///
+/// A fact column neither side carries is ABSENT from [row], never null, so
+/// a caller writing the groups back can tell "no value" from "cleared".
 typedef FactResolution = ({
   Map<String, dynamic> row,
   List<SyncFactGroup> fromRemote,
@@ -121,9 +124,17 @@ FactResolution mergeFactGroups({
       winner = local;
       clock = localClock;
     }
+    // An OMITTED column is not a clear. A peer on an older build sends no
+    // key for a column it does not know, and writing null for it would
+    // erase a fact this device legitimately holds; an explicit null IS a
+    // clear and must travel. Same distinction the row overlay makes.
     row = {
       ...row,
-      for (final key in g.columns.keys) key: winner[key],
+      for (final key in g.columns.keys)
+        if (winner.containsKey(key))
+          key: winner[key]
+        else if (local != null && local.containsKey(key))
+          key: local[key],
       g.clockKey: clock,
     };
   }

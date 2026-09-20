@@ -161,6 +161,41 @@ void main() {
       expect(r.row['isOrphaned'], isTrue);
     });
 
+    test('a column the peer omits keeps the local value', () {
+      // An older build sends no key for a column it does not know. That is
+      // not a clear, and writing null for it would erase a fact this device
+      // holds; an explicit null still clears (the test above).
+      final local = row(hlc: 'H1', upload: 'H1', uploadedAt: 50, hash: 'h');
+      final remote = row(hlc: 'H9', upload: 'H9')
+        ..remove('remoteUploadedAt')
+        ..remove('contentHash');
+      final r = mergeFactGroups(
+        entityType: 'media',
+        base: remote,
+        local: local,
+        remote: remote,
+      );
+      expect(r.row['remoteUploadedAt'], 50);
+      expect(r.row['contentHash'], 'h');
+      expect(r.row['uploadFactsHlc'], 'H9');
+    });
+
+    test('a column neither side carries stays absent, never null', () {
+      final local = row(upload: 'H1')..remove('remoteUploadedAt');
+      final remote = row(upload: 'H2')..remove('remoteUploadedAt');
+      final r = mergeFactGroups(
+        entityType: 'media',
+        base: remote,
+        local: local,
+        remote: remote,
+      );
+      expect(
+        r.row.containsKey('remoteUploadedAt'),
+        isFalse,
+        reason: 'the writer must not clear what nobody sent',
+      );
+    });
+
     test('an entity without groups returns base untouched', () {
       final base = {'id': 'd1', 'hlc': 'H1'};
       final r = mergeFactGroups(

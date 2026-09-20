@@ -1533,7 +1533,17 @@ class SyncDataSerializer {
   ) async {
     final target = SyncFactGroups.tables[entityType];
     if (target == null) return;
-    final assignments = {...group.columns, group.clockKey: group.clockColumn};
+    // Only the keys the merge resolved: a column absent from [values] is one
+    // neither side carried, and writing null for it would clear a fact
+    // nobody asked to clear (an explicit null IS present and does clear).
+    final assignments = {
+      for (final e in {
+        ...group.columns,
+        group.clockKey: group.clockColumn,
+      }.entries)
+        if (values.containsKey(e.key)) e.key: e.value,
+    };
+    if (assignments.isEmpty) return;
     final set = assignments.values.map((c) => '"$c" = ?').join(', ');
     final args = [
       for (final key in assignments.keys)
