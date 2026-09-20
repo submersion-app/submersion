@@ -19,6 +19,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/wait_until.dart';
 
 Buddy _makeBuddy({
   String id = '',
@@ -213,6 +214,116 @@ void main() {
         );
       },
     );
+  });
+
+  group('buddySearchWithDiveCountProvider (issue #2084)', () {
+    test('auto-refreshes on a dive_buddies-only write, e.g. a synced buddy '
+        'link that never restamps the parent dive (#1769/#1915)', () async {
+      final diver = await seedCurrentDiver();
+      final buddy = await buddyRepo.createBuddy(
+        _makeBuddy(name: 'Umberto', diverId: diver.id),
+      );
+      await _insertDive(database, id: 'shared-dive-1');
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      // Keep the search family instance alive, mirroring the "Add buddy"
+      // picker sheet staying open while the search query does not change.
+      final sub = container.listen(
+        buddySearchWithDiveCountProvider('umb'),
+        (_, _) {},
+      );
+      addTearDown(sub.close);
+
+      var results = await container.read(
+        buddySearchWithDiveCountProvider('umb').future,
+      );
+      expect(results.single.diveCount, 0);
+
+      // A direct dive_buddies insert, not buddyRepo.addBuddyToDive, since
+      // that also restamps `dives` and would pass even against the old,
+      // buggy provider that watched only `dives` and `buddies`.
+      await database
+          .into(database.diveBuddies)
+          .insert(
+            db.DiveBuddiesCompanion(
+              id: const Value('search-link-1'),
+              diveId: const Value('shared-dive-1'),
+              buddyId: Value(buddy.id),
+              role: const Value(DiveRole.buddyId),
+              createdAt: Value(DateTime.now().millisecondsSinceEpoch),
+            ),
+          );
+
+      await waitUntil(() async {
+        results = await container.read(
+          buddySearchWithDiveCountProvider('umb').future,
+        );
+        return results.single.diveCount == 1;
+      });
+    });
+  });
+
+  group('buddyStatsProvider / diveIdsForBuddyProvider (issue #2084)', () {
+    test('both auto-refresh on a dive_buddies-only write, e.g. a synced buddy '
+        'link that never restamps the parent dive (#1769/#1915)', () async {
+      final diver = await seedCurrentDiver();
+      final buddy = await buddyRepo.createBuddy(
+        _makeBuddy(name: 'Stats Buddy', diverId: diver.id),
+      );
+      await _insertDive(database, id: 'stats-dive-1');
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      final statsSub = container.listen(
+        buddyStatsProvider(buddy.id),
+        (_, _) {},
+      );
+      addTearDown(statsSub.close);
+      final idsSub = container.listen(
+        diveIdsForBuddyProvider(buddy.id),
+        (_, _) {},
+      );
+      addTearDown(idsSub.close);
+
+      expect(
+        (await container.read(buddyStatsProvider(buddy.id).future)).totalDives,
+        0,
+      );
+      expect(
+        await container.read(diveIdsForBuddyProvider(buddy.id).future),
+        isEmpty,
+      );
+
+      // A sync pull applies a remote buddy link straight to dive_buddies
+      // and deliberately never restamps the parent dive row (#1769), so
+      // this -- unlike buddyRepo.addBuddyToDive, which also touches
+      // `dives` -- is the write that actually exercises the old
+      // watchDivesChanges()-only subscription's blind spot.
+      await database
+          .into(database.diveBuddies)
+          .insert(
+            db.DiveBuddiesCompanion(
+              id: const Value('link-1'),
+              diveId: const Value('stats-dive-1'),
+              buddyId: Value(buddy.id),
+              role: const Value(DiveRole.buddyId),
+              createdAt: Value(DateTime.now().millisecondsSinceEpoch),
+            ),
+          );
+
+      await waitUntil(() async {
+        final totalDives = (await container.read(
+          buddyStatsProvider(buddy.id).future,
+        )).totalDives;
+        final diveIds = await container.read(
+          diveIdsForBuddyProvider(buddy.id).future,
+        );
+        return totalDives == 1 && diveIds.singleOrNull == 'stats-dive-1';
+      });
+    });
   });
 
   group('BuddyListNotifier', () {
