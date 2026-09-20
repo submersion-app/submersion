@@ -60,6 +60,7 @@ class StartupFailureView extends StatelessWidget {
     this.onUseAnotherFolder,
     this.onRestoreFromFile,
     this.onStartFresh,
+    this.recoveryBusy = false,
   });
 
   /// Where the diver can pick an earlier build. Deliberately the releases
@@ -127,6 +128,15 @@ class StartupFailureView extends StatelessWidget {
   /// because an app that opens at all puts Settings, Backup & Restore and
   /// Database Storage back within reach.
   final VoidCallback? onStartFresh;
+
+  /// Whether one of the routes out is already running.
+  ///
+  /// Every route here acts on the diver's ONE database: a restore copies over
+  /// it, an adoption repoints at a different file, starting fresh moves it
+  /// away. Two at once race the same files, so while any is in flight they are
+  /// all shown disabled rather than hidden, including the restore card's own
+  /// action.
+  final bool recoveryBusy;
 
   bool get _canRestore =>
       kind.dataIsAtRisk && recoveryBackup != null && onRestoreBackup != null;
@@ -250,7 +260,7 @@ class StartupFailureView extends StatelessWidget {
               record: recoveryBackup!,
               title: context.l10n.startup_failure_backupAvailable_title,
               actionLabel: context.l10n.startup_failure_restoreAction,
-              onRestore: onRestoreBackup!,
+              onRestore: recoveryBusy ? null : onRestoreBackup!,
               status: restoreStatus,
               error: restoreError,
               textColor: textColor,
@@ -305,7 +315,7 @@ class StartupFailureView extends StatelessWidget {
                 label: context.l10n.startup_failure_useAnotherFolder,
                 description:
                     context.l10n.startup_failure_useAnotherFolder_subtitle,
-                onPressed: onUseAnotherFolder!,
+                onPressed: recoveryBusy ? null : onUseAnotherFolder!,
                 textColor: textColor,
                 subtitleColor: subtitleColor,
               ),
@@ -315,7 +325,7 @@ class StartupFailureView extends StatelessWidget {
                 label: context.l10n.startup_failure_restoreFromFile,
                 description:
                     context.l10n.startup_failure_restoreFromFile_subtitle,
-                onPressed: onRestoreFromFile!,
+                onPressed: recoveryBusy ? null : onRestoreFromFile!,
                 textColor: textColor,
                 subtitleColor: subtitleColor,
               ),
@@ -324,7 +334,7 @@ class StartupFailureView extends StatelessWidget {
                 icon: Icons.note_add_outlined,
                 label: context.l10n.startup_failure_startFresh,
                 description: context.l10n.startup_failure_startFresh_subtitle,
-                onPressed: onStartFresh!,
+                onPressed: recoveryBusy ? null : onStartFresh!,
                 textColor: textColor,
                 subtitleColor: subtitleColor,
               ),
@@ -392,7 +402,9 @@ class _RecoveryRoute extends StatelessWidget {
   final IconData icon;
   final String label;
   final String description;
-  final VoidCallback onPressed;
+
+  /// Null renders the route disabled rather than removing it.
+  final VoidCallback? onPressed;
   final Color textColor;
   final Color subtitleColor;
 

@@ -2945,6 +2945,65 @@ void main() {
       expect(restoreCalls, 0, reason: 'nothing may be swapped');
     });
 
+    // The race the guard exists for: a restore leaves the failure screen on
+    // display the whole time it copies (it sets _restoreStatus, not _state),
+    // so without a guard the diver can set the database aside from under it.
+    testWidgets('a second route cannot start while a restore is copying', (
+      tester,
+    ) async {
+      final recovery = _FakeStartupRecoveryService();
+      final neverFinishes = Completer<void>();
+
+      await pumpUnreadableDatabase(
+        tester,
+        recoveryServiceOverride: recovery,
+        pickBackupFileOverride: () async => '/Volumes/iCloud/submersion.db',
+        restoreOverride: (_, _) => neverFinishes.future,
+        initializer: (_) async {
+          throw Exception('database disk image is malformed');
+        },
+      );
+
+      await tester.ensureVisible(find.text('Restore from a backup file'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Restore from a backup file'));
+      await tester.pump();
+      await tester.pump();
+
+      // The restore is now in flight and this screen is still up.
+      expect(recovery.classifiedPath, '/Volumes/iCloud/submersion.db');
+
+      await tester.tap(
+        find.text('Start with an empty dive log'),
+        warnIfMissed: false,
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        recovery.setAsideCalls,
+        0,
+        reason: 'starting fresh must not move the file being restored onto',
+      );
+      expect(find.text('Start fresh'), findsNothing);
+
+      // Now past the button, straight to the callback. The disabled button is
+      // the affordance; the guard inside the handler is the actual barrier,
+      // and it is what protects a tap that lands before the rebuild disables
+      // anything. Without it this call sets the database aside mid-restore.
+      final view = tester.widget<StartupFailureView>(
+        find.byType(StartupFailureView),
+      );
+      view.onStartFresh!();
+      await tester.pumpAndSettle();
+
+      expect(
+        recovery.setAsideCalls,
+        0,
+        reason: 'the handler guard must hold even when the callback is called',
+      );
+      expect(find.text('Start fresh'), findsNothing);
+    });
+
     testWidgets('cancelling the backup-file picker changes nothing', (
       tester,
     ) async {

@@ -1207,8 +1207,10 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// Safe here precisely because startup failed: the database is closed, so
   /// [DatabaseService.restore] does its staged swap without contending with an
   /// open connection, and it rolls the original file back if the swap fails.
-  Future<void> _restoreFromStartupBackup() =>
-      _restoreAtStartup(_recoveryBackup?.localPath);
+  Future<void> _restoreFromStartupBackup() {
+    if (_recoveryBusy) return Future<void>.value();
+    return _restoreAtStartup(_recoveryBackup?.localPath);
+  }
 
   /// Shared body of both startup restores: swap [record] in, then resume
   /// startup from the top.
@@ -1323,6 +1325,34 @@ class _StartupWrapperState extends State<StartupWrapper>
         _restoreStatus = StartupRestoreStatus.failed;
         _restoreError = '$e';
       });
+    }
+  }
+
+  /// True while one of the routes out of the failure screen is running.
+  ///
+  /// Not cosmetic. Every route acts on the diver's ONE database: a restore
+  /// copies over it, an adoption repoints at a different file, starting fresh
+  /// moves it and its sidecars away. Nothing stops a diver tapping a second
+  /// route while the first is still copying, because a restore leaves the
+  /// failure screen on display the whole time it runs (it sets
+  /// [_restoreStatus], not [_state]). Two routes racing the same files can
+  /// move one the other is mid-copy.
+  bool _recoveryBusy = false;
+
+  /// Whether any route, new or the restore card's, is in flight.
+  bool get _recoveryRoutesBusy =>
+      _recoveryBusy || _restoreStatus == StartupRestoreStatus.running;
+
+  /// Runs [action] as the one recovery route allowed to be in flight.
+  Future<void> _runRecoveryRoute(Future<void> Function() action) async {
+    if (_recoveryRoutesBusy) return;
+    setState(() => _recoveryBusy = true);
+    try {
+      await action();
+    } finally {
+      // The screen is often gone by now (a successful route relaunches
+      // startup), so the mounted check is the normal case, not the edge one.
+      if (mounted) setState(() => _recoveryBusy = false);
     }
   }
 
@@ -1859,9 +1889,10 @@ class _StartupWrapperState extends State<StartupWrapper>
           ? _showBackupsFolder
           : null,
       onViewPreviousReleases: _openPreviousReleases,
-      onUseAnotherFolder: _useAnotherFolder,
-      onRestoreFromFile: _restoreFromPickedFile,
-      onStartFresh: _startFresh,
+      onUseAnotherFolder: () => _runRecoveryRoute(_useAnotherFolder),
+      onRestoreFromFile: () => _runRecoveryRoute(_restoreFromPickedFile),
+      onStartFresh: () => _runRecoveryRoute(_startFresh),
+      recoveryBusy: _recoveryRoutesBusy,
       onClose: _closeApp,
     );
   }

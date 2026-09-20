@@ -39,6 +39,7 @@ Widget _host({
   VoidCallback? onUseAnotherFolder,
   VoidCallback? onRestoreFromFile,
   VoidCallback? onStartFresh,
+  bool recoveryBusy = false,
   VoidCallback? onClose,
 }) {
   return MaterialApp(
@@ -61,6 +62,7 @@ Widget _host({
         onUseAnotherFolder: onUseAnotherFolder,
         onRestoreFromFile: onRestoreFromFile,
         onStartFresh: onStartFresh,
+        recoveryBusy: recoveryBusy,
         onClose: onClose ?? () {},
       ),
     ),
@@ -487,6 +489,64 @@ void main() {
       expect(find.text('Use a dive log in another folder'), findsOneWidget);
       expect(find.text('Restore from a backup file'), findsNothing);
       expect(find.text('Start with an empty dive log'), findsNothing);
+    });
+
+    // Every route acts on the diver's ONE database, so a second one started
+    // while the first is still copying races the same files.
+    testWidgets('every route is disabled while one is running', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          kind: StartupFailureKind.dataUnreadable,
+          recoveryBackup: _preMigrationRecord(),
+          onRestoreBackup: () {},
+          onUseAnotherFolder: () {},
+          onRestoreFromFile: () {},
+          onStartFresh: () {},
+          recoveryBusy: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      for (final label in [
+        'Use a dive log in another folder',
+        'Restore from a backup file',
+        'Start with an empty dive log',
+        'Restore this backup',
+      ]) {
+        // byWidgetPredicate, not byType: ButtonStyleButton is abstract and
+        // byType matches the exact runtime type, so it finds nothing.
+        final button = tester.widget<ButtonStyleButton>(
+          find.ancestor(
+            of: find.text(label),
+            matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+          ),
+        );
+        expect(button.onPressed, isNull, reason: '$label must be disabled');
+      }
+    });
+
+    // Disabled, NOT hidden. A card or a route vanishing mid-action would read
+    // as the option having been taken away.
+    testWidgets('the routes stay on screen while one is running', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          kind: StartupFailureKind.dataUnreadable,
+          recoveryBackup: _preMigrationRecord(),
+          onRestoreBackup: () {},
+          onUseAnotherFolder: () {},
+          onRestoreFromFile: () {},
+          onStartFresh: () {},
+          recoveryBusy: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Use a dive log in another folder'), findsOneWidget);
+      expect(find.text('Restore from a backup file'), findsOneWidget);
+      expect(find.text('Start with an empty dive log'), findsOneWidget);
+      expect(find.text('Restore this backup'), findsOneWidget);
     });
 
     testWidgets('the section heading is gone when no route is wired', (

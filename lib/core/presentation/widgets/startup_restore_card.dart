@@ -30,7 +30,11 @@ class StartupRestoreCard extends StatelessWidget {
   final BackupRecord record;
   final String title;
   final String actionLabel;
-  final VoidCallback onRestore;
+
+  /// Null disables the action while KEEPING the card on screen, which is what
+  /// another recovery route running needs: hiding the card mid-action would
+  /// make the diver think their backup had gone.
+  final VoidCallback? onRestore;
   final StartupRestoreStatus status;
   final String? error;
   final Color textColor;
