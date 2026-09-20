@@ -104,6 +104,13 @@ import 'package:submersion/features/explore/domain/derived_predicates.dart';
     params.addAll(c.params);
   }
 
+  // Derived metrics: one condition per predicate, so they AND.
+  for (final predicate in filter.derivedPredicates) {
+    final c = derivedPredicateCondition(predicate, diveIdRef: 'dives.id');
+    conditions.add(c.sql);
+    params.addAll(c.params);
+  }
+
   // Depth: null depth excluded when a bound is set.
   if (filter.minDepth != null) {
     conditions.add('max_depth IS NOT NULL AND max_depth >= ?');

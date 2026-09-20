@@ -40,6 +40,7 @@ import 'package:submersion/features/dive_log/domain/services/profile_series_merg
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/explore/domain/derived_predicates.dart';
 import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
@@ -237,6 +238,21 @@ class DiveRepository {
         TableUpdateQuery.allOf([
           TableUpdateQuery.onTable(_db.dives),
           TableUpdateQuery.onTable(_db.sightings),
+        ]),
+      )
+      .debounce(changeTickDebounce);
+
+  /// Change tick for a list filtered by a derived predicate
+  /// ([DiveFilterState.readsDerivedMetrics]): the sweep writes those tables
+  /// without a `dives` write, so the dives tick alone would leave the list
+  /// stale until something else changed.
+  Stream<void> watchDerivedMetricsFilterChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.allOf([
+          TableUpdateQuery.onTable(_db.dives),
+          TableUpdateQuery.onTable(_db.diveDerivedMetricsRows),
+          TableUpdateQuery.onTable(_db.diveSacBuckets),
+          TableUpdateQuery.onTable(_db.diveSafetyFindings),
         ]),
       )
       .debounce(changeTickDebounce);
@@ -2494,6 +2510,58 @@ class DiveRepository {
     }
   }
 
+  /// The ids of every dive matching [predicates], for the entity-backed
+  /// surfaces that cannot evaluate a derived axis: the metrics live in
+  /// their own tables and never reach the entity. Uses the same
+  /// `derivedPredicateCondition` as Statistics and the paginated list.
+  ///
+  /// Only called while at least one predicate is set; an empty list is an
+  /// empty result rather than every dive, so a caller that forgets the
+  /// guard narrows to nothing instead of silently widening.
+  // stats-scope-exempt: backs a view-filter axis; consumers apply the scope themselves
+  Future<Set<String>> getDiveIdsMatchingDerived(
+    List<DerivedPredicate> predicates, {
+    String? diverId,
+  }) async {
+    if (predicates.isEmpty) return const {};
+    try {
+      return await PerfTimer.measure('getDiveIdsMatchingDerived', () async {
+        final whereClauses = <String>[];
+        final args = <Variable<Object>>[];
+        for (final predicate in predicates) {
+          final c = derivedPredicateCondition(predicate, diveIdRef: 'd.id');
+          whereClauses.add(c.sql);
+          args.addAll(c.params.map((p) => Variable<Object>(p)));
+        }
+        if (diverId != null) {
+          whereClauses.add('d.diver_id = ?');
+          args.add(Variable(diverId));
+        }
+        final rows = await _db
+            .customSelect(
+              'SELECT d.id AS id FROM dives d '
+              'WHERE ${whereClauses.join(' AND ')}',
+              variables: args,
+              readsFrom: {
+                _db.dives,
+                _db.diveDerivedMetricsRows,
+                _db.diveSacBuckets,
+                _db.diveSafetyFindings,
+              },
+            )
+            .get();
+        return rows.map((r) => r.read<String>('id')).toSet();
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to resolve derived-metric dive ids',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Build SQL WHERE clauses from a [DiveFilterState].
   ///
   /// Builds the SQL ORDER BY clause from the sort state.
@@ -2692,6 +2760,13 @@ class DiveRepository {
     // Suit thickness filter that the table view and Statistics applied.
     for (final condition in filter.equipmentAttrConditions) {
       final c = equipmentAttrConditionSql(condition, diveIdRef: 'd.id');
+      clauses.add(c.sql);
+      args.addAll(c.params.map((p) => Variable<Object>(p)));
+    }
+    // Derived metrics: the same conditions Statistics uses, one per
+    // predicate, so the list and its count cannot disagree with it.
+    for (final predicate in filter.derivedPredicates) {
+      final c = derivedPredicateCondition(predicate, diveIdRef: 'd.id');
       clauses.add(c.sql);
       args.addAll(c.params.map((p) => Variable<Object>(p)));
     }

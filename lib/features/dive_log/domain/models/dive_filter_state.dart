@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
+import 'package:submersion/features/explore/domain/derived_predicates.dart';
 
 /// Filter state for dive list.
 ///
@@ -114,6 +115,11 @@ class DiveFilterState {
   /// both are set. Explore lowers a place mention ("Bonaire") to this.
   final List<String> siteIds;
 
+  /// Questions only the phase 2 derived tables can answer, combined with
+  /// AND. SQL-only, like [decoOnly]: [apply] skips them and callers
+  /// intersect `derivedFilteredDiveIdsProvider`.
+  final List<DerivedPredicate> derivedPredicates;
+
   const DiveFilterState({
     this.startDate,
     this.endDate,
@@ -149,6 +155,7 @@ class DiveFilterState {
     this.waterTypes = const [],
     this.speciesIds = const [],
     this.siteIds = const [],
+    this.derivedPredicates = const [],
   });
 
   /// Inclusive lower bound for `dives.dive_date_time`, in the wall-clock-as-UTC
@@ -190,6 +197,11 @@ class DiveFilterState {
   /// `dives` write, so a list filtered this way must follow that table too.
   bool get readsSightings => speciesIds.isNotEmpty;
 
+  /// Whether a filter reads the derived-metric tables, which the sweep
+  /// writes without a `dives` write, so a list filtered this way must
+  /// follow those tables too.
+  bool get readsDerivedMetrics => derivedPredicates.isNotEmpty;
+
   bool get hasActiveFilters =>
       minWaterTemp != null ||
       maxWaterTemp != null ||
@@ -198,6 +210,7 @@ class DiveFilterState {
       waterTypes.isNotEmpty ||
       speciesIds.isNotEmpty ||
       siteIds.isNotEmpty ||
+      derivedPredicates.isNotEmpty ||
       startDate != null ||
       endDate != null ||
       diveTypeId != null ||
@@ -260,6 +273,7 @@ class DiveFilterState {
     List<WaterType>? waterTypes,
     List<String>? speciesIds,
     List<String>? siteIds,
+    List<DerivedPredicate>? derivedPredicates,
     bool clearStartDate = false,
     bool clearEndDate = false,
     bool clearDiveType = false,
@@ -294,6 +308,7 @@ class DiveFilterState {
     bool clearWaterTypes = false,
     bool clearSpeciesIds = false,
     bool clearSiteIds = false,
+    bool clearDerivedPredicates = false,
   }) {
     return DiveFilterState(
       minWaterTemp: clearMinWaterTemp
@@ -310,6 +325,9 @@ class DiveFilterState {
           : (maxVisibility ?? this.maxVisibility),
       waterTypes: clearWaterTypes ? const [] : (waterTypes ?? this.waterTypes),
       speciesIds: clearSpeciesIds ? const [] : (speciesIds ?? this.speciesIds),
+      derivedPredicates: clearDerivedPredicates
+          ? const []
+          : (derivedPredicates ?? this.derivedPredicates),
       siteIds: clearSiteIds ? const [] : (siteIds ?? this.siteIds),
       startDate: clearStartDate ? null : (startDate ?? this.startDate),
       endDate: clearEndDate ? null : (endDate ?? this.endDate),
@@ -383,6 +401,12 @@ class DiveFilterState {
   /// anyway would silently match no dive at all. Callers that honour the deco
   /// axis intersect this result with `decoFilteredDiveIdsProvider`, which
   /// resolves it through the same SQL condition the paginated list uses.
+  ///
+  /// [derivedPredicates]: the derived metrics live in their own tables and
+  /// never reach the entity, so only SQL can see them. Callers intersect
+  /// this result with `derivedFilteredDiveIdsProvider`, which resolves the
+  /// axis through the same `derivedPredicateCondition` the paginated list
+  /// uses.
   List<Dive> apply(List<Dive> dives) {
     final startBound = startDateBoundMs;
     final endBound = endDateBoundMs;

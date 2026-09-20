@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
+import 'package:submersion/features/explore/domain/derived_predicates.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 
@@ -98,6 +99,25 @@ final equipmentAttrFilteredDiveIdsProvider =
       );
     });
 
+/// The ids of every dive matching the derived predicates.
+///
+/// Like [equipmentAttrFilteredDiveIdsProvider], this exists because the
+/// in-memory path cannot evaluate the axis: the derived metrics live in
+/// their own tables and never reach the entity. Keyed on
+/// [DerivedConditionsKey], which compares the list element by element, so a
+/// changed predicate set lands on a fresh instance rather than briefly
+/// reusing the previous set's ids.
+final derivedFilteredDiveIdsProvider =
+    FutureProvider.family<Set<String>, DerivedConditionsKey>((ref, key) async {
+      final diverId = ref.watch(currentDiverIdProvider);
+      final repository = ref.watch(diveRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchDerivedMetricsFilterChanges());
+      return repository.getDiveIdsMatchingDerived(
+        key.predicates,
+        diverId: diverId,
+      );
+    });
+
 /// Filtered dives provider - applies current filter to dive list
 final filteredDivesProvider = Provider<AsyncValue<List<domain.Dive>>>((ref) {
   final divesAsync = ref.watch(diveListNotifierProvider);
@@ -112,6 +132,12 @@ final filteredDivesProvider = Provider<AsyncValue<List<domain.Dive>>>((ref) {
       ref.watch(
         equipmentAttrFilteredDiveIdsProvider(
           EquipmentAttrConditionsKey(filter.equipmentAttrConditions),
+        ),
+      ),
+    if (filter.derivedPredicates.isNotEmpty)
+      ref.watch(
+        derivedFilteredDiveIdsProvider(
+          DerivedConditionsKey(filter.derivedPredicates),
         ),
       ),
   ];
@@ -183,6 +209,11 @@ final orderedDiveIdsProvider = FutureProvider.autoDispose<List<String>>((
   // A species filter makes the query read sightings.
   if (filter.readsSightings) {
     ref.invalidateSelfWhen(repository.watchSightingsFilterChanges());
+  }
+  // A derived predicate makes the query read the phase 2 metric tables,
+  // which the sweep writes without a `dives` write.
+  if (filter.readsDerivedMetrics) {
+    ref.invalidateSelfWhen(repository.watchDerivedMetricsFilterChanges());
   }
   return repository.getOrderedDiveIds(
     diverId: diverId,
@@ -836,6 +867,7 @@ class PaginatedDiveListNotifier
       _listTick.cancel();
       _attrFilterTick.cancel();
       _sightingsFilterTick.cancel();
+      _derivedFilterTick.cancel();
     });
     _ref.listen<SortState<DiveSortField>>(diveSortProvider, (previous, next) {
       if (previous != next) {
@@ -885,6 +917,14 @@ class PaginatedDiveListNotifier
     _silentReloadLoadedPages,
   );
 
+  /// [DiveRepository.watchDerivedMetricsFilterChanges], followed only while
+  /// the filter names a derived predicate, so a sweep write never reloads an
+  /// unfiltered list and test fakes without the stream are never subscribed.
+  late final _derivedFilterTick = _FilterTickFollower(
+    _repository.watchDerivedMetricsFilterChanges,
+    _silentReloadLoadedPages,
+  );
+
   /// Follows the tables only some filters read. The page and count read
   /// `dive_buddies`/`buddies` under a buddy filter (#1915) and the gear
   /// tables under an equipment-attribute condition (#1805), none of which the
@@ -896,6 +936,7 @@ class PaginatedDiveListNotifier
     _listTick.follow(filter.readsBuddyLinks);
     _attrFilterTick.follow(filter.equipmentAttrConditions.isNotEmpty);
     _sightingsFilterTick.follow(filter.readsSightings);
+    _derivedFilterTick.follow(filter.readsDerivedMetrics);
   }
 
   bool get _isDateSort {
