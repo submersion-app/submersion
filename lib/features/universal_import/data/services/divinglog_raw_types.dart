@@ -10,10 +10,37 @@ class DivingLogCapabilities {
 
   const DivingLogCapabilities({required this.tables, required this.columns});
 
-  bool hasTable(String table) => tables.contains(table);
+  /// This file's spelling of [table], or null when it has no such table.
+  ///
+  /// Matching ignores case on purpose. The real DiveLogDT export writes
+  /// `Tanksize` where we say `TankSize`, and an exact-case miss drops the
+  /// column from the SELECT silently: every dive keeps its cylinder but
+  /// loses its volume, and with it gas consumption and SAC. That is the
+  /// same silent-loss failure this importer exists to fix, so the lookup
+  /// resolves the file's own spelling rather than assuming ours.
+  String? actualTable(String table) {
+    final wanted = table.toLowerCase();
+    for (final t in tables) {
+      if (t.toLowerCase() == wanted) return t;
+    }
+    return null;
+  }
+
+  /// This file's spelling of [column] in [table], or null when absent.
+  String? actualColumn(String table, String column) {
+    final t = actualTable(table);
+    if (t == null) return null;
+    final wanted = column.toLowerCase();
+    for (final c in columns[t] ?? const <String>{}) {
+      if (c.toLowerCase() == wanted) return c;
+    }
+    return null;
+  }
+
+  bool hasTable(String table) => actualTable(table) != null;
 
   bool hasColumn(String table, String column) =>
-      columns[table]?.contains(column) ?? false;
+      actualColumn(table, column) != null;
 
   /// The subset of [wanted] that this file actually has, in the given
   /// order, so a SELECT can be built from it directly.
@@ -21,6 +48,18 @@ class DivingLogCapabilities {
     for (final c in wanted)
       if (hasColumn(table, c)) c,
   ];
+
+  /// A SELECT column list that aliases each of [wanted] the file has from
+  /// its own spelling to ours, so row lookups use our canonical names.
+  /// Returns an empty string when none are present.
+  String selectList(String table, List<String> wanted) {
+    final parts = <String>[];
+    for (final c in wanted) {
+      final actual = actualColumn(table, c);
+      if (actual != null) parts.add('"$actual" AS "$c"');
+    }
+    return parts.join(', ');
+  }
 
   /// The subset of [wanted] this file lacks, for the diagnostic warning.
   List<String> missingColumns(String table, List<String> wanted) => [
@@ -116,7 +155,7 @@ class DivingLogRawDive {
   final String? divemaster;
   final String? comments;
   final double? depthMeters;
-  final int? diveTimeMinutes;
+  final double? diveTimeMinutes;
   final double? airTempCelsius;
   final double? waterTempCelsius;
   final double? weightKg;

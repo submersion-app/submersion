@@ -136,6 +136,23 @@ void main() {
       expect(payload.entitiesOf(ImportEntityType.buddies), hasLength(1));
     });
 
+    test('rounds a fractional Divetime to whole seconds', () {
+      final payload = DivingLogDiveMapper.toPayload(
+        book([
+          const DivingLogRawDive(
+            id: 1,
+            diveDate: '2024-06-01',
+            entryTime: '09:30',
+            diveTimeMinutes: 80.733333,
+          ),
+        ]),
+      );
+      expect(
+        payload.entitiesOf(ImportEntityType.dives).single['duration'],
+        const Duration(seconds: 4844),
+      );
+    });
+
     test('maps weight to weightUsed in kilograms', () {
       final payload = DivingLogDiveMapper.toPayload(
         book([dive(weightKg: 5.0)]),

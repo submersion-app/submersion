@@ -103,6 +103,29 @@ INSERT INTO Logbook VALUES (
   return bytes;
 }
 
+/// A logbook spelled the way the real DiveLogDT export spells it:
+/// `Tanksize`, not `TankSize`, and a fractional `Divetime`.
+Uint8List buildRealSpellingLogbook() {
+  final dir = Directory.systemTemp.createTempSync('dl_case');
+  final path = '${dir.path}/logbook.sql';
+  final db = sqlite3.open(path);
+  db.execute('''
+CREATE TABLE Logbook (
+  ID INTEGER PRIMARY KEY, UUID TEXT, Number INTEGER,
+  Divedate TEXT, Entrytime TEXT, Divetime REAL, Depth REAL,
+  Tanksize REAL, PresS REAL, PresE REAL, PresW REAL,
+  O2 REAL, He REAL, DblTank INTEGER
+)''');
+  db.execute(
+    "INSERT INTO Logbook VALUES (1, 'u1', 1, '2024-06-01', '09:30', "
+    '80.733333, 18.5, 11.1, 210.0, 70.0, 232.0, 32.0, 0.0, 0)',
+  );
+  db.close();
+  final bytes = File(path).readAsBytesSync();
+  dir.deleteSync(recursive: true);
+  return bytes;
+}
+
 void main() {
   group('DivingLogDbReader.matchesTables', () {
     test('accepts a Diving Log table set', () {
@@ -251,5 +274,29 @@ void main() {
         expect(book.missingColumnNotes.join(' '), contains('Divemaster'));
       },
     );
+  });
+
+  group('real-world spelling and precision', () {
+    test('matches a column whose case differs from ours', () async {
+      // The real export writes `Tanksize`; dropping it silently cost every
+      // dive its cylinder volume, and with it SAC and gas consumption.
+      final book = await DivingLogDbReader.readAll(buildRealSpellingLogbook());
+      final tank = book.dives.single.tanks.single;
+      expect(tank.sizeLiters, closeTo(11.1, 1e-9));
+      // The fixture legitimately lacks many columns, but the differently
+      // cased one must not be among those reported missing.
+      expect(book.missingColumnNotes.join(' '), isNot(contains('TankSize')));
+    });
+
+    test('matches a table whose case differs from ours', () {
+      expect(DivingLogDbReader.matchesTables({'logbook'}), isTrue);
+      expect(DivingLogDbReader.matchesTables({'LOGBOOK'}), isTrue);
+    });
+
+    test('keeps the fractional part of Divetime', () async {
+      // 393 of 444 dives in the real file have a non-integer Divetime.
+      final book = await DivingLogDbReader.readAll(buildRealSpellingLogbook());
+      expect(book.dives.single.diveTimeMinutes, closeTo(80.733333, 1e-6));
+    });
   });
 }

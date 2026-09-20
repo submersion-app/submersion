@@ -31,9 +31,10 @@ class DivingLogDbReader {
   /// principle carry a `Logbook` table, so those markers are excluded here
   /// too.
   static bool matchesTables(Set<String> tables) {
-    const foreignMarkers = ['ZDIVE', 'dive_details'];
-    if (foreignMarkers.any(tables.contains)) return false;
-    return _requiredTables.every(tables.contains);
+    final lower = tables.map((t) => t.toLowerCase()).toSet();
+    const foreignMarkers = ['zdive', 'dive_details'];
+    if (foreignMarkers.any(lower.contains)) return false;
+    return _requiredTables.every((t) => lower.contains(t.toLowerCase()));
   }
 
   /// True when [bytes] is a SQLite database shaped like a Diving Log
@@ -161,9 +162,9 @@ class DivingLogDbReader {
 
       final tombstones = _readTombstones(db, caps);
       final tanksByLogId = _readTanks(db, caps);
-      final available = caps.availableColumns('Logbook', _logbookColumns);
-      final quoted = available.map((c) => '"$c"').join(', ');
-      final rows = db.select('SELECT $quoted FROM Logbook');
+      final selectList = caps.selectList('Logbook', _logbookColumns);
+      final table = caps.actualTable('Logbook')!;
+      final rows = db.select('SELECT $selectList FROM "$table"');
 
       final dives = <DivingLogRawDive>[];
       for (final row in rows) {
@@ -187,7 +188,7 @@ class DivingLogDbReader {
             divemaster: _str(row, 'Divemaster'),
             comments: _str(row, 'Comments'),
             depthMeters: _double(row, 'Depth'),
-            diveTimeMinutes: _int(row, 'Divetime'),
+            diveTimeMinutes: _double(row, 'Divetime'),
             airTempCelsius: _double(row, 'Airtemp'),
             waterTempCelsius: _double(row, 'Watertemp'),
             weightKg: _double(row, 'Weight'),
@@ -221,7 +222,9 @@ class DivingLogDbReader {
         !caps.hasColumn('DeletedRecords', 'UUID')) {
       return const {};
     }
-    final rows = db.select('SELECT UUID FROM DeletedRecords');
+    final table = caps.actualTable('DeletedRecords')!;
+    final column = caps.actualColumn('DeletedRecords', 'UUID')!;
+    final rows = db.select('SELECT "$column" AS "UUID" FROM "$table"');
     return {
       for (final r in rows)
         if (_str(r, 'UUID') case final String u) u,
@@ -235,10 +238,11 @@ class DivingLogDbReader {
     if (!caps.hasTable('Tank') || !caps.hasColumn('Tank', 'LogID')) {
       return const {};
     }
-    final available = caps.availableColumns('Tank', _tankColumns);
-    final quoted = available.map((c) => '"$c"').join(', ');
-    final order = caps.hasColumn('Tank', 'TankID') ? ' ORDER BY TankID' : '';
-    final rows = db.select('SELECT $quoted FROM Tank$order');
+    final selectList = caps.selectList('Tank', _tankColumns);
+    final table = caps.actualTable('Tank')!;
+    final tankId = caps.actualColumn('Tank', 'TankID');
+    final order = tankId == null ? '' : ' ORDER BY "$tankId"';
+    final rows = db.select('SELECT $selectList FROM "$table"$order');
 
     final out = <int, List<DivingLogRawTank>>{};
     for (final row in rows) {

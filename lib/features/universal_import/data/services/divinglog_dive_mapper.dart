@@ -42,7 +42,12 @@ class DivingLogDiveMapper {
       if (raw.number != null) map['diveNumber'] = raw.number;
       if (raw.depthMeters != null) map['maxDepth'] = raw.depthMeters;
       if (raw.diveTimeMinutes != null) {
-        map['duration'] = Duration(minutes: raw.diveTimeMinutes!);
+        // Divetime is fractional minutes in real files (393 of 444 dives in
+        // the reference logbook), so truncating to whole minutes would drop
+        // up to 59 seconds from nearly every dive.
+        map['duration'] = Duration(
+          seconds: (raw.diveTimeMinutes! * 60).round(),
+        );
       }
       if (raw.airTempCelsius != null) map['airTemp'] = raw.airTempCelsius;
       if (raw.waterTempCelsius != null) {

@@ -287,6 +287,42 @@ Tests first, per the repo's TDD rule.
 Architecture guard tests scan all of `lib/`, so they run after the new
 files land rather than relying on an affected-directory run.
 
+## Verified against a real logbook
+
+A 444-dive DiveLogDT logbook was supplied by the reporter of discussion
+#2144 on 2026-09-19. It is personal data and is not committed to this
+repository; the facts below are what it established.
+
+Confirmed: `Logbook.Depth` is metres, `Weight` is kilograms, `Divedate` is
+`YYYY-MM-DD` with `Entrytime` as `HH:MM`, `Visibility` codes are 1, 2 and 3
+with null for unset, and `ProfileInt` is 5 for most dives and 1 for one.
+The 41 dives with `ProfileInt` of 0 carry no profile at all, so the codec's
+fallback interval never distorts real samples.
+
+Two defects it exposed, both now fixed and covered by tests:
+
+- **Column matching must ignore case.** The file spells the column
+  `Tanksize`; phase 1 asked for `TankSize`. The exact-case miss dropped it
+  from the SELECT and every dive kept its cylinder while silently losing
+  its volume, and with it gas consumption and SAC. 396 dives were affected.
+  Table and column lookups now resolve the file's own spelling.
+- **`Divetime` is fractional minutes, not whole ones.** 393 of the 444
+  dives have a non-integer value, so truncating cost nearly every dive up
+  to 59 seconds. Durations are now rounded to whole seconds.
+
+Full-file result after the fixes: 444 dives, 403 with profiles, 283,384
+samples, 262 sites, parsed in about 0.5 seconds.
+
+The file also settles phase 2's schema. The relational tables are `Buddy`,
+`Place`, `City`, `Country`, `Equipment`, `Trip`, `Shop`, `Divetype`,
+`Pictures`, `Fish` with `FishRel`, and `Brevets` for certifications. More
+usefully, `Logbook` carries real foreign keys that phase 1 ignores in
+favour of the free-text columns: `PlaceID`, `CityID`, `CountryID`,
+`BuddyIDs`, `ShopID`, `TripID` and `UsedEquip`. Phase 2 should prefer those
+over splitting text, which is why phase 1 produced 68 buddies from a
+`Buddy` table holding 16 people. `Place` also carries `Lat` and `Lon`, so
+sites gain coordinates that the text path cannot supply.
+
 ## Out of scope
 
 - Phase 2: the buddy, equipment, trip and shop tables. Gated on a real
