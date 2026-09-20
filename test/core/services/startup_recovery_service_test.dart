@@ -10,7 +10,10 @@ import 'package:submersion/core/domain/entities/storage_config.dart';
 import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
 import 'package:submersion/core/services/security_scoped_bookmark_service.dart';
+import 'package:submersion/core/services/sync/crypto/sync_envelope.dart';
 import 'package:submersion/core/services/startup_recovery_service.dart';
+import 'package:submersion/features/backup/data/services/backup_crypto.dart';
+import 'package:submersion/features/backup/data/services/backup_service.dart';
 
 /// Writes a file that looks enough like a Submersion dive log to be adopted.
 void _writeDiveLog(
@@ -306,6 +309,100 @@ void main() {
 
       expect(File(livePath).readAsStringSync(), 'damaged');
     });
+  });
+
+  group('classifyBackupFile', () {
+    late SharedPreferences prefs;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+    });
+
+    Future<StartupRecoveryService> service() async {
+      final live = makeTempDir('startup-recovery-live');
+      return serviceFor(live);
+    }
+
+    test('accepts a backup that validates', () async {
+      final dir = makeTempDir('startup-recovery-backup');
+      final path = p.join(dir.path, 'submersion-backup.db');
+      _writeDiveLog(path, dives: 5);
+
+      final choice = await (await service()).classifyBackupFile(
+        path,
+        prefs,
+        validate: (_) async => const BackupValidationResult.valid(),
+      );
+
+      expect(choice, isA<RestorableBackupFile>());
+      expect((choice as RestorableBackupFile).path, path);
+    });
+
+    // The validator's own words name the actual problem (wrong extension,
+    // empty file, missing Submersion tables) far better than a paraphrase.
+    test('carries the validator reason through when it refuses', () async {
+      final dir = makeTempDir('startup-recovery-backup');
+      final path = p.join(dir.path, 'notes.txt');
+      File(path).writeAsStringSync('not a backup');
+
+      final choice = await (await service()).classifyBackupFile(
+        path,
+        prefs,
+        validate: (_) async =>
+            const BackupValidationResult.invalid('Invalid file extension'),
+      );
+
+      expect(choice, isA<UnusableBackupFile>());
+      expect((choice as UnusableBackupFile).reason, 'Invalid file extension');
+    });
+
+    // Running the REAL validator, not the seam: a hand-picked file has never
+    // been checked, and restore() leaves a file that fails its reopen live.
+    test(
+      'refuses a file that is not a database, through the real validator',
+      () async {
+        final dir = makeTempDir('startup-recovery-backup');
+        final path = p.join(dir.path, 'pretend.db');
+        File(path).writeAsStringSync('this is not a database');
+
+        final choice = await (await service()).classifyBackupFile(path, prefs);
+
+        expect(choice, isA<UnusableBackupFile>());
+      },
+    );
+
+    test('refuses a file that is not there', () async {
+      final dir = makeTempDir('startup-recovery-backup');
+
+      final choice = await (await service()).classifyBackupFile(
+        p.join(dir.path, 'gone.db'),
+        prefs,
+      );
+
+      expect(choice, isA<UnusableBackupFile>());
+    });
+
+    // An encrypted backup is a VALID artifact that cannot be opened from a
+    // screen with no passphrase prompt. Reporting it as damaged would send a
+    // diver looking for a corruption that does not exist.
+    test(
+      'recognises an encrypted backup rather than calling it damaged',
+      () async {
+        final dir = makeTempDir('startup-recovery-backup');
+        final path = p.join(dir.path, 'backup${BackupCrypto.fileExtension}');
+        // The real SBE1 magic and a plausible header length, rather than a full
+        // encryption run: what is under test is the classification, and taking
+        // the magic from SyncEnvelope means this cannot drift from the format.
+        File(
+          path,
+        ).writeAsBytesSync([...SyncEnvelope.magic, ...List<int>.filled(32, 7)]);
+
+        final choice = await (await service()).classifyBackupFile(path, prefs);
+
+        expect(choice, isA<EncryptedBackupFile>());
+      },
+    );
   });
 
   group('setAsideUnreadableDatabase', () {

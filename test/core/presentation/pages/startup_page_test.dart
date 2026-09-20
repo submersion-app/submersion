@@ -24,6 +24,7 @@ import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/restore_journal.dart';
 import 'package:submersion/core/services/startup_recovery_service.dart';
+import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
 import 'package:submersion/features/backup/data/services/pre_downgrade_backup_service.dart';
 import 'package:submersion/features/backup/data/services/pre_migration_backup_service.dart';
@@ -214,6 +215,7 @@ Widget _buildStartupWrapper({
   restoreOverride,
   RestoreJournal Function(String dbPath)? restoreJournalFactory,
   StartupRecoveryService? recoveryServiceOverride,
+  Future<String?> Function()? pickBackupFileOverride,
 }) {
   return StartupWrapper(
     prefs: prefs,
@@ -235,6 +237,7 @@ Widget _buildStartupWrapper({
     restoreJournalFactory:
         restoreJournalFactory ?? (_) => _FakeRestoreJournal(),
     recoveryServiceOverride: recoveryServiceOverride,
+    pickBackupFileOverride: pickBackupFileOverride,
   );
 }
 
@@ -2773,6 +2776,12 @@ void main() {
       WidgetTester tester, {
       required ServiceInitializer initializer,
       StartupRecoveryService? recoveryServiceOverride,
+      Future<String?> Function()? pickBackupFileOverride,
+      Future<void> Function(
+        String backupPath,
+        void Function(int currentStep, int totalSteps) onMigrationProgress,
+      )?
+      restoreOverride,
     }) async {
       await tester.pumpWidget(
         _buildStartupWrapper(
@@ -2783,6 +2792,8 @@ void main() {
               (needsMigration: false, totalSteps: 0),
           initializerOverride: initializer,
           recoveryServiceOverride: recoveryServiceOverride,
+          pickBackupFileOverride: pickBackupFileOverride,
+          restoreOverride: restoreOverride,
         ),
       );
       await tester.pump(const Duration(seconds: 2));
@@ -2804,6 +2815,153 @@ void main() {
       expect(find.text('Use a dive log in another folder'), findsOneWidget);
       expect(find.text('Restore from a backup file'), findsOneWidget);
       expect(find.text('Start with an empty dive log'), findsOneWidget);
+    });
+
+    testWidgets('a picked backup file is validated, then restored', (
+      tester,
+    ) async {
+      final recovery = _FakeStartupRecoveryService();
+      String? restoredFrom;
+      var initializerCalls = 0;
+      final secondAttempt = Completer<void>();
+
+      await pumpUnreadableDatabase(
+        tester,
+        recoveryServiceOverride: recovery,
+        pickBackupFileOverride: () async => '/Volumes/iCloud/submersion.db',
+        restoreOverride: (path, _) async => restoredFrom = path,
+        initializer: (_) async {
+          initializerCalls++;
+          if (initializerCalls == 1) {
+            throw Exception('database disk image is malformed');
+          }
+          await secondAttempt.future;
+        },
+      );
+
+      await tester.ensureVisible(find.text('Restore from a backup file'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Restore from a backup file'));
+      await tester.pump();
+      await tester.pump();
+      await tester.pump();
+
+      expect(recovery.classifiedPath, '/Volumes/iCloud/submersion.db');
+      expect(restoredFrom, '/Volumes/iCloud/submersion.db');
+      expect(initializerCalls, 2, reason: 'startup must resume after restore');
+
+      await tester.pump(const Duration(seconds: 2));
+    });
+
+    // restore() leaves a file that fails its reopen in place, so a file that
+    // does not validate must never reach the swap.
+    testWidgets('a picked file that is not a backup is never swapped in', (
+      tester,
+    ) async {
+      final recovery = _FakeStartupRecoveryService(
+        backupChoice: const UnusableBackupFile(
+          '/Downloads/holiday.zip',
+          'Invalid file extension ".zip"',
+        ),
+      );
+      var restoreCalls = 0;
+
+      await pumpUnreadableDatabase(
+        tester,
+        recoveryServiceOverride: recovery,
+        pickBackupFileOverride: () async => '/Downloads/holiday.zip',
+        restoreOverride: (_, _) async => restoreCalls++,
+        initializer: (_) async {
+          throw Exception('database disk image is malformed');
+        },
+      );
+
+      await tester.ensureVisible(find.text('Restore from a backup file'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Restore from a backup file'));
+      await tester.pumpAndSettle();
+
+      // The validator's own words, which name the problem better than any
+      // paraphrase of them could.
+      expect(find.textContaining('Invalid file extension'), findsOneWidget);
+
+      // Dismiss BEFORE asserting nothing was swapped. The report is a modal
+      // dialog, so an assertion taken while it is still up passes even if the
+      // handler goes on to swap the file the moment it closes.
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(restoreCalls, 0, reason: 'nothing may be swapped');
+      expect(find.text('Your dive log could not be read'), findsOneWidget);
+    });
+
+    // An encrypted backup is a VALID artifact that cannot be opened here.
+    // Calling it damaged would send a diver hunting a corruption that does
+    // not exist.
+    testWidgets('an encrypted backup is explained, not called damaged', (
+      tester,
+    ) async {
+      final recovery = _FakeStartupRecoveryService(
+        backupChoice: const EncryptedBackupFile(),
+      );
+      var restoreCalls = 0;
+
+      await pumpUnreadableDatabase(
+        tester,
+        recoveryServiceOverride: recovery,
+        pickBackupFileOverride: () async => '/Downloads/backup.sbe',
+        restoreOverride: (_, _) async => restoreCalls++,
+        initializer: (_) async {
+          throw Exception('database disk image is malformed');
+        },
+      );
+
+      await tester.ensureVisible(find.text('Restore from a backup file'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Restore from a backup file'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('That backup is encrypted'), findsOneWidget);
+      // Specifically NOT the unusable-file wording. ("damaged" on its own is
+      // no good here: the failure screen behind the dialog uses the word too.)
+      expect(
+        find.textContaining('is damaged, or it is not'),
+        findsNothing,
+        reason: 'an encrypted backup is valid, just not openable from here',
+      );
+
+      // Dismissed first, for the same reason as above: a modal dialog masks
+      // whatever the handler does after it closes.
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      expect(restoreCalls, 0, reason: 'nothing may be swapped');
+    });
+
+    testWidgets('cancelling the backup-file picker changes nothing', (
+      tester,
+    ) async {
+      final recovery = _FakeStartupRecoveryService();
+      var restoreCalls = 0;
+
+      await pumpUnreadableDatabase(
+        tester,
+        recoveryServiceOverride: recovery,
+        pickBackupFileOverride: () async => null,
+        restoreOverride: (_, _) async => restoreCalls++,
+        initializer: (_) async {
+          throw Exception('database disk image is malformed');
+        },
+      );
+
+      await tester.ensureVisible(find.text('Restore from a backup file'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Restore from a backup file'));
+      await tester.pumpAndSettle();
+
+      expect(recovery.classifiedPath, isNull);
+      expect(restoreCalls, 0);
+      expect(find.text('Your dive log could not be read'), findsOneWidget);
     });
 
     testWidgets('starting fresh sets the damaged log aside and relaunches', (
@@ -3037,14 +3195,18 @@ class _FakeStartupRecoveryService implements StartupRecoveryService {
   _FakeStartupRecoveryService({
     this.setAsideResult = '/aside',
     this.inspection = const NoDiveLogInFolder(),
+    this.backupChoice,
   });
 
   final String setAsideResult;
   final FolderInspection inspection;
 
+  final BackupFileChoice? backupChoice;
+
   int setAsideCalls = 0;
   int adoptCalls = 0;
   String? inspectedFolder;
+  String? classifiedPath;
 
   @override
   Future<String> setAsideUnreadableDatabase() async {
@@ -3060,6 +3222,16 @@ class _FakeStartupRecoveryService implements StartupRecoveryService {
 
   @override
   Future<void> adopt(AdoptableDiveLog found) async => adoptCalls++;
+
+  @override
+  Future<BackupFileChoice> classifyBackupFile(
+    String path,
+    SharedPreferences prefs, {
+    Future<BackupValidationResult> Function(String path)? validate,
+  }) async {
+    classifiedPath = path;
+    return backupChoice ?? RestorableBackupFile(path);
+  }
 }
 
 /// A location service whose folder picker answers without a host picker.

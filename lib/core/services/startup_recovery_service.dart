@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqlite3/sqlite3.dart' as sqlite3;
 
 import 'package:submersion/core/domain/entities/storage_config.dart';
@@ -8,6 +9,9 @@ import 'package:submersion/core/services/database_location_service.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/security/database_security_sidecar.dart';
+import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
+import 'package:submersion/features/backup/data/services/backup_crypto.dart';
+import 'package:submersion/features/backup/data/services/backup_service.dart';
 
 /// What a folder turned out to hold when the diver offered it as a dive log.
 sealed class FolderInspection {
@@ -44,6 +48,33 @@ class AdoptableDiveLog extends FolderInspection {
 
   /// The folder the storage config points at, which is what gets adopted.
   String get folderPath => p.dirname(path);
+}
+
+/// What a file the diver picked turned out to be.
+sealed class BackupFileChoice {
+  const BackupFileChoice();
+}
+
+/// The file is a backup this screen can swap in.
+class RestorableBackupFile extends BackupFileChoice {
+  const RestorableBackupFile(this.path);
+
+  final String path;
+}
+
+/// The file is an encrypted backup. It cannot be restored from here: the
+/// passphrase prompt that unlocks one lives behind the router.
+class EncryptedBackupFile extends BackupFileChoice {
+  const EncryptedBackupFile();
+}
+
+/// The file is not a backup Submersion can use. [reason] is the validator's
+/// own words, which name the actual problem better than a paraphrase would.
+class UnusableBackupFile extends BackupFileChoice {
+  const UnusableBackupFile(this.path, this.reason);
+
+  final String path;
+  final String? reason;
 }
 
 /// The ways out of the terminal startup screen.
@@ -139,6 +170,44 @@ class StartupRecoveryService {
       }
     } catch (e) {
       _log.warning('Could not bookmark ${found.folderPath}: $e');
+    }
+  }
+
+  /// Decides what [path] is before anything is swapped in.
+  ///
+  /// The registry's own records were checked when they were written; a file
+  /// the diver picked by hand has never been checked at all, and
+  /// `DatabaseService.restore` leaves a file that fails its reopen in place.
+  /// So the check has to happen here, before the swap, not after it.
+  ///
+  /// [prefs] only feeds `BackupPreferences`, which this validation path never
+  /// reads; it is required because [BackupService] cannot be built without
+  /// one. [validate] is a seam for tests.
+  Future<BackupFileChoice> classifyBackupFile(
+    String path,
+    SharedPreferences prefs, {
+    Future<BackupValidationResult> Function(String path)? validate,
+  }) async {
+    try {
+      // Checked first and on its own: an encrypted backup is a VALID artifact
+      // that simply cannot be opened here, and reporting it as damaged would
+      // send a diver looking for a corruption that does not exist.
+      if (await BackupCrypto.isEncryptedBackup(path)) {
+        return const EncryptedBackupFile();
+      }
+
+      final validator =
+          validate ??
+          BackupService(
+            dbAdapter: DefaultBackupDatabaseAdapter(DatabaseService.instance),
+            preferences: BackupPreferences(prefs),
+          ).validateBackupFile;
+      final result = await validator(path);
+      if (!result.isValid) return UnusableBackupFile(path, result.error);
+      return RestorableBackupFile(path);
+    } catch (e) {
+      _log.warning('Could not check the backup file at $path: $e');
+      return UnusableBackupFile(path, '$e');
     }
   }
 

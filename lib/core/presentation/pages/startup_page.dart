@@ -52,7 +52,6 @@ import 'package:submersion/core/services/restore_journal.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/features/backup/data/repositories/backup_preferences.dart';
-import 'package:submersion/features/backup/data/services/backup_crypto.dart';
 import 'package:submersion/features/backup/data/services/backup_service.dart';
 import 'package:submersion/features/backup/data/services/backup_schema_probe.dart';
 import 'package:submersion/features/backup/data/services/backup_target.dart';
@@ -182,6 +181,11 @@ class StartupWrapper extends StatefulWidget {
   @visibleForTesting
   final RestoreJournal Function(String dbPath)? restoreJournalFactory;
 
+  /// Optional override for the backup-file picker offered by the failure
+  /// screen (used in tests, which have no host file picker).
+  @visibleForTesting
+  final Future<String?> Function()? pickBackupFileOverride;
+
   /// Optional override for the recovery routes offered by the failure screen
   /// (used in tests).
   ///
@@ -208,6 +212,7 @@ class StartupWrapper extends StatefulWidget {
     this.restoreOverride,
     this.restoreJournalFactory,
     this.recoveryServiceOverride,
+    this.pickBackupFileOverride,
   });
 
   @override
@@ -1391,44 +1396,43 @@ class _StartupWrapperState extends State<StartupWrapper>
   /// which on a fresh machine is none. A copy carried over from another
   /// device is invisible to it however plainly it belongs to the diver.
   Future<void> _restoreFromPickedFile() async {
-    final PlatformFile? picked;
+    final String? path;
     try {
-      picked = await FilePicker.pickFile(type: FileType.any);
+      path = await _pickBackupFile();
     } catch (e) {
       await _reportRecoveryProblem(null, detail: '$e');
       return;
     }
-
-    final path = picked?.path;
     if (path == null) return;
 
-    // An encrypted backup needs the passphrase prompt, which lives behind the
-    // router. Saying so is the point: the swap below would otherwise copy
-    // ciphertext over the database and fail in a way that looks like a second
-    // corruption rather than a missing passphrase.
-    if (await BackupCrypto.isEncryptedBackup(path)) {
-      await _reportRecoveryProblem(
-        (l10n) => l10n.startup_recovery_encryptedBackup_body,
-      );
-      return;
+    final choice = await _recoveryService.classifyBackupFile(
+      path,
+      widget.prefs,
+    );
+    switch (choice) {
+      // An encrypted backup is a VALID artifact that simply cannot be opened
+      // from here, so it gets its own message. Calling it damaged would send
+      // a diver looking for a corruption that does not exist.
+      case EncryptedBackupFile():
+        await _reportRecoveryProblem(
+          (l10n) => l10n.startup_recovery_encryptedBackup_body,
+        );
+      case UnusableBackupFile(:final path, :final reason):
+        await _reportRecoveryProblem(
+          (l10n) => l10n.startup_recovery_unusable_body(path),
+          detail: reason,
+        );
+      case RestorableBackupFile(:final path):
+        await _restoreAtStartup(path);
     }
+  }
 
-    // Validate BEFORE the swap. The registry's own records were checked when
-    // they were written; a hand-picked file has never been checked at all,
-    // and restore() leaves a file that fails its reopen in place.
-    final validation = await BackupService(
-      dbAdapter: DefaultBackupDatabaseAdapter(DatabaseService.instance),
-      preferences: BackupPreferences(widget.prefs),
-    ).validateBackupFile(path);
-    if (!validation.isValid) {
-      await _reportRecoveryProblem(
-        (l10n) => l10n.startup_recovery_unusable_body(path),
-        detail: validation.error,
-      );
-      return;
-    }
-
-    await _restoreAtStartup(path);
+  /// The picked file's path, or null when the diver cancelled.
+  Future<String?> _pickBackupFile() async {
+    final override = widget.pickBackupFileOverride;
+    if (override != null) return override();
+    final picked = await FilePicker.pickFile(type: FileType.any);
+    return picked?.path;
   }
 
   /// Sets the database that will not open aside and starts an empty one.
