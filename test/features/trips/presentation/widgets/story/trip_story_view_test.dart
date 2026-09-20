@@ -708,6 +708,66 @@ void main() {
     expect(find.text('Surface day'), findsOneWidget);
   });
 
+  testWidgets('the docked day carries its stored weather into the band', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    final now = DateTime(2026, 3, 31);
+
+    // Weather for every day of the trip, each at a distinct temperature, so
+    // the badge in the band can only come from the day actually docked.
+    await pumpView(
+      tester,
+      story,
+      viewSize: const Size(500, 700),
+      tripDayWeather: {
+        for (var i = 0; i < 6; i++)
+          tripDayMillis(DateTime(2026, 3, 25 + i)): TripDayWeather(
+            id: 'w$i',
+            tripId: trip.id,
+            date: DateTime(2026, 3, 25 + i),
+            latitude: 12.10,
+            longitude: -68.20,
+            airTemp: 20.0 + i,
+            cloudCover: CloudCover.clear,
+            fetchedAt: now,
+            createdAt: now,
+            updatedAt: now,
+          ),
+      },
+    );
+
+    final scrollable = find.byType(CustomScrollView);
+    for (var i = 0; i < 4; i++) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    final panel = find.byType(TripStoryDockedDay);
+    final dockedDay = tester.widget<TripStoryDockedDay>(panel).day;
+    final expectedTemp = 20 + (dockedDay.dayNumber - 1);
+
+    expect(
+      find.descendant(
+        of: panel,
+        matching: find.textContaining('$expectedTemp'),
+      ),
+      findsOneWidget,
+      reason: 'the band shows the docked day\'s own weather',
+    );
+  });
+
   testWidgets('the surface day renders stored weather', (tester) async {
     final trip = _trip(
       start: DateTime(2026, 3, 25),
