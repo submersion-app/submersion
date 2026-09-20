@@ -351,6 +351,10 @@ class DiveRepository {
           // sweep and the scheduler outside any notifier, read by the
           // chart host through diveSensorSummaryProvider.
           TableUpdateQuery.onTable(_db.diveSensorSummaries),
+          // The Explore derived metrics (phase 2): same reasoning, written
+          // by their own sweep and read through diveDerivedMetricsProvider.
+          TableUpdateQuery.onTable(_db.diveDerivedMetricsRows),
+          TableUpdateQuery.onTable(_db.diveSacBuckets),
         ]),
       )
       .debounce(changeTickDebounce);

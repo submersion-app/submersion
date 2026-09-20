@@ -433,6 +433,46 @@ subjects are a single count-per-entity bar chart.
   platforms compile (Xcode 27, `genai-prompt` beta4), but neither model was
   exercised on hardware during implementation.
 
+## Deviations recorded during implementation (phase 2)
+
+- The engine computes SAC itself rather than calling
+  `GasAnalysisService.calculateCylinderSac`. That method takes a hydrated
+  `Dive`, and this work runs on a worker isolate from undecoded blobs, so the
+  spec's "reuses the existing SAC segmentation" is honoured in rule, not in
+  code path.
+- A level run at the final stop is judged by the run's SPREAD, not by each
+  sample's distance from a running median. A diver alternating above and
+  below the median moves it on every sample, which ended the run at the first
+  swing even though the whole swing sat inside the band.
+- Engine constants, none of which the spec fixed: a final stop is a level run
+  under 7.0 m lasting at least 60 s, with a level window of 1.5 m either side
+  (so a spread of 3.0 m). SAC buckets are 300 s wide.
+- A bucket whose tank pressure ROSE is skipped, not recorded as zero. A tank
+  change or a sensor glitch would otherwise drag both the mean and the slope
+  toward zero and read as a falling trend.
+- A tank can carry one pressure series per computer that logged it. The
+  repository picks the longest series, with the row id as tie-break, so the
+  stored metrics do not depend on the order the query returned rows in.
+- Both derived tables are children of `dives` with `ON DELETE CASCADE` and no
+  `hlc` column. Schema rung v222; `migrationVersions` gained 222 beside the
+  bump, and the v221 rung test handed over its exact-version assertions.
+- The SQL table is named `dive_derived_metrics` via a `tableName` override,
+  because the Drift class has to be `DiveDerivedMetricsRows` to avoid
+  colliding with the `DiveDerivedMetrics` domain type.
+- Two derived clauses are deliberately not expressible and stay unplaced. A
+  stable final stop is the negation of an EXISTS, which would also match
+  every dive with no stop at all, and a multi-valued SAC trend matches every
+  dive with any slope.
+- `safetyFindingNames` is spelled out in the field catalog rather than
+  derived from `SafetyRuleId.values`, because `enumValues` sits in a const
+  map. A guard test asserts the two stay in step.
+- The prompt interpolates `kQuerySchemaVersion` instead of repeating the
+  number, so the schema version can never drift from the constant again.
+- German uses AMV, not SAC: a repo guard enforces that across the German ARB
+  file, and the first draft of the new strings tripped it.
+- The manual macOS and Android smoke owed from phase 1 is still owed, and now
+  also covers whether the model reaches for the five new fields.
+
 ## Open items for the implementation plans
 
 - Confirm with a device probe whether the Apple context is 4,096 or 8,192
