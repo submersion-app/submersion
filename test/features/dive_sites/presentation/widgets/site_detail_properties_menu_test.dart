@@ -129,7 +129,7 @@ void main() {
         SiteDetailSectionConfig(
           id: id,
           visible:
-              id != SiteDetailSectionId.map && id != SiteDetailSectionId.tide,
+              id != SiteDetailSectionId.depth && id != SiteDetailSectionId.tide,
         ),
     ];
     final notifier = _FakeSettingsNotifier(

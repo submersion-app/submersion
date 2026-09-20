@@ -255,11 +255,13 @@ class EquipmentSummaryWidget extends ConsumerWidget {
                   item.type.localizedName(context.l10n),
                 ),
                 child: ListTile(
-                  // A solid accent badge, so it stands out on the tinted
-                  // card; the container-colored glyph holds 3:1 on it.
+                  // A solid accent badge, so it stands out on the card; the
+                  // onAccent-colored glyph holds 3:1 on it. Not container:
+                  // that only read as a glyph while light containers were
+                  // pale, and it would vanish now they are solid.
                   leading: CircleAvatar(
                     backgroundColor: swatch.accent,
-                    child: Icon(Icons.build, color: swatch.container, size: 20),
+                    child: Icon(Icons.build, color: swatch.onAccent, size: 20),
                   ),
                   title: Text(
                     item.name,

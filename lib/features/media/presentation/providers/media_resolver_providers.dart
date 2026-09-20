@@ -29,6 +29,7 @@ import 'package:submersion/features/media/data/services/subscription_poller_sche
 import 'package:submersion/features/media/data/services/video_thumbnail_service.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/data/resolvers/media_store_source_resolver.dart';
+import 'package:submersion/features/media/data/services/gallery_asset_reader.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
@@ -49,6 +50,7 @@ final platformGalleryResolverProvider = Provider<PlatformGalleryResolver>(
     hasPhotoLibrary: ref
         .watch(photoPickerServiceProvider)
         .supportsGalleryBrowsing,
+    assetReader: const PhotoManagerAssetReader(),
   ),
 );
 

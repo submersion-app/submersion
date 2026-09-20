@@ -17251,13 +17251,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Csatlakoztatott merülőszámítógépek, forráskezelés';
 
   @override
-  String get siteDetailSection_map_name => 'Térkép';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'A merülőhely helyének térképes előnézete';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Merülések száma, elért mélységek, leghosszabb és legutóbbi merülések';
 
@@ -23835,6 +23828,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'Ellenőrizd, hogy ebben a lépésben meg vannak-e feleltetve a dátum- és időoszlopok, és hogy dátumokat tartalmaznak-e.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Ellenőrizd, hogy a dátumoszlop a fejlécében megadott formátumban tartalmaz-e dátumokat.';
 
   @override
   String get universalImport_error_noDataInFile =>

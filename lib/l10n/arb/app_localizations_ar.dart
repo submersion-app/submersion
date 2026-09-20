@@ -17013,12 +17013,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'أجهزة الغوص المتصلة، إدارة المصادر';
 
   @override
-  String get siteDetailSection_map_name => 'الخريطة';
-
-  @override
-  String get siteDetailSection_map_description => 'معاينة خريطة لموقع الغوص';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'عدد الغوصات، الأعماق التي تم بلوغها، أطول الغوصات وأحدثها';
 
@@ -23586,6 +23580,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'تحقق من ربط عمودي التاريخ والوقت في هذه الخطوة، ومن أنهما يحتويان على تواريخ.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'تحقق من أن عمود التاريخ يحتوي على تواريخ مكتوبة بالصيغة التي يذكرها عنوانه.';
 
   @override
   String get universalImport_error_noDataInFile =>

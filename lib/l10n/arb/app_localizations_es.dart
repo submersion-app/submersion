@@ -17298,13 +17298,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Computadoras de buceo conectadas, gestion de fuentes';
 
   @override
-  String get siteDetailSection_map_name => 'Mapa';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Vista previa del mapa de la ubicación del sitio';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Número de inmersiones, profundidades alcanzadas, inmersiones más largas y más recientes';
 
@@ -23918,6 +23911,10 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'Comprueba que las columnas de fecha y hora estén asignadas en este paso y que contengan fechas.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Comprueba que la columna de fecha contenga fechas escritas en el formato que indica su encabezado.';
 
   @override
   String get universalImport_error_noDataInFile =>

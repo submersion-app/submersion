@@ -16461,12 +16461,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_dataSources_description => '已连接的潜水电脑、数据源管理';
 
   @override
-  String get siteDetailSection_map_name => '地图';
-
-  @override
-  String get siteDetailSection_map_description => '潜水点位置的地图预览';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       '潜水次数、到达深度、最长和最近的潜水';
 
@@ -22650,6 +22644,10 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       '请检查此步骤中是否已映射日期和时间列，以及这些列是否包含日期。';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      '请检查日期列中的日期是否采用其列标题所指明的格式。';
 
   @override
   String get universalImport_error_noDataInFile => '此文件中未找到可导入的数据。';

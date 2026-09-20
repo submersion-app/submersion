@@ -29,7 +29,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count componentes',
-      one: '1 componente',
+      one: '$count componente',
     );
     return '$_temp0';
   }
@@ -55,7 +55,7 @@ class AppLocalizationsPt extends AppLocalizations {
       total,
       locale: localeName,
       other: '$count de $total componentes',
-      one: '$count de 1 componente',
+      one: '$count de $total componente',
     );
     return '$_temp0';
   }
@@ -81,7 +81,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Atualizar também $count mergulhos',
-      one: 'Atualizar também 1 mergulho',
+      one: 'Atualizar também $count mergulho',
     );
     return '$_temp0';
   }
@@ -107,7 +107,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Este conjunto está em $count mergulhos registados.',
-      one: 'Este conjunto está em 1 mergulho registado.',
+      one: 'Este conjunto está em $count mergulho registado.',
     );
     return '$_temp0';
   }
@@ -127,7 +127,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Parte de $count conjuntos',
-      one: 'Parte de 1 conjunto',
+      one: 'Parte de $count conjunto',
     );
     return '$_temp0';
   }
@@ -146,7 +146,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Adicionar $count',
-      one: 'Adicionar 1',
+      one: 'Adicionar $count',
       zero: 'Adicionar',
     );
     return '$_temp0';
@@ -455,7 +455,7 @@ class AppLocalizationsPt extends AppLocalizations {
       days,
       locale: localeName,
       other: '$days dias até a partida',
-      one: '1 dia até a partida',
+      one: '$days dia até a partida',
     );
     return '$_temp0';
   }
@@ -507,7 +507,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos anteriores aqui',
-      one: '1 mergulho anterior aqui',
+      one: '$count mergulho anterior aqui',
     );
     return '$_temp0';
   }
@@ -639,7 +639,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other:
           '$count mergulhos selecionados não têm cilindros e serão ignorados.',
-      one: '1 mergulho selecionado não tem cilindros e será ignorado.',
+      one: '$count mergulho selecionado não tem cilindros e será ignorado.',
     );
     return '$_temp0';
   }
@@ -656,7 +656,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Adicionando a todos os $count mergulhos',
-      one: 'Adicionando a 1 mergulho',
+      one: 'Adicionando a $count mergulho',
     );
     return '$_temp0';
   }
@@ -667,7 +667,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Removendo de todos os $count mergulhos',
-      one: 'Removendo de 1 mergulho',
+      one: 'Removendo de $count mergulho',
     );
     return '$_temp0';
   }
@@ -1523,7 +1523,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
     );
     return '$_temp0';
   }
@@ -1563,7 +1563,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Vincular $count',
-      one: 'Vincular 1',
+      one: 'Vincular $count',
     );
     return '$_temp0';
   }
@@ -1574,7 +1574,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count companheiros vinculados',
-      one: '1 companheiro vinculado',
+      one: '$count companheiro vinculado',
     );
     return '$_temp0';
   }
@@ -1609,7 +1609,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Vincular $count mergulhos',
-      one: 'Vincular 1 mergulho',
+      one: 'Vincular $count mergulho',
     );
     return '$_temp0';
   }
@@ -1620,7 +1620,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Companheiros vinculados em $count mergulhos',
-      one: 'Companheiros vinculados em 1 mergulho',
+      one: 'Companheiros vinculados em $count mergulho',
     );
     return '$_temp0';
   }
@@ -1635,7 +1635,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
     );
     return '$_temp0';
   }
@@ -1646,7 +1646,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count companheiros existentes',
-      one: '1 companheiro existente',
+      one: '$count companheiro existente',
     );
     return '$_temp0';
   }
@@ -1657,7 +1657,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count companheiros novos',
-      one: '1 companheiro novo',
+      one: '$count companheiro novo',
     );
     return '$_temp0';
   }
@@ -1699,7 +1699,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count companheiros chamados $name',
-      one: '1 companheiro chamado $name',
+      one: '$count companheiro chamado $name',
     );
     return '$_temp0';
   }
@@ -2711,7 +2711,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count itens removidos',
-      one: '1 item removido',
+      one: '$count item removido',
     );
     return '$_temp0';
   }
@@ -2729,7 +2729,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count itens',
-      one: '1 item',
+      one: '$count item',
     );
     return '$_temp0';
   }
@@ -2740,13 +2740,13 @@ class AppLocalizationsPt extends AppLocalizations {
       added,
       locale: localeName,
       other: '$added itens serão adicionados',
-      one: '1 item será adicionado',
+      one: '$added item será adicionado',
     );
     String _temp1 = intl.Intl.pluralLogic(
       skipped,
       locale: localeName,
       other: '$skipped duplicatas ignoradas',
-      one: '1 duplicata ignorada',
+      one: '$skipped duplicata ignorada',
       zero: 'nenhuma duplicata ignorada',
     );
     return '$_temp0, $_temp1.';
@@ -2758,7 +2758,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count itens adicionados',
-      one: '1 item adicionado',
+      one: '$count item adicionado',
       zero: 'Nenhum item novo adicionado',
     );
     return '$_temp0';
@@ -4034,7 +4034,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count problemas de dados',
-      one: '1 problema de dados',
+      one: '$count problema de dados',
     );
     return '$_temp0';
   }
@@ -4402,7 +4402,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos registrados',
-      one: '1 mergulho registrado',
+      one: '$count mergulho registrado',
     );
     return '$_temp0';
   }
@@ -4420,7 +4420,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos ficarão sem centro de mergulho.',
-      one: '1 mergulho ficará sem centro de mergulho.',
+      one: '$count mergulho ficará sem centro de mergulho.',
     );
     return '$_temp0';
   }
@@ -4618,7 +4618,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
     );
     return '$_temp0';
   }
@@ -5361,8 +5361,8 @@ class AppLocalizationsPt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count fields',
-      one: '1 field',
+      other: '$count campos',
+      one: '$count campo',
     );
     return '$_temp0';
   }
@@ -5524,7 +5524,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count fotos',
-      one: '1 foto',
+      one: '$count foto',
     );
     return '$_temp0';
   }
@@ -5877,7 +5877,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count possiveis valores atipicos detectados',
-      one: '1 possivel valor atipico detectado',
+      one: '$count possivel valor atipico detectado',
     );
     return '$_temp0';
   }
@@ -5888,7 +5888,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count pontos',
-      one: '1 ponto',
+      one: '$count ponto',
     );
     return '$_temp0';
   }
@@ -6083,7 +6083,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count itens',
-      one: '1 item',
+      one: '$count item',
     );
     return '$_temp0';
   }
@@ -6097,7 +6097,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count espécies',
-      one: '1 espécie',
+      one: '$count espécie',
     );
     return '$_temp0';
   }
@@ -6108,7 +6108,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count cilindros',
-      one: '1 cilindro',
+      one: '$count cilindro',
     );
     return '$_temp0';
   }
@@ -6203,7 +6203,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count pesos · $total',
-      one: '1 peso · $total',
+      one: '$count peso · $total',
     );
     return '$_temp0';
   }
@@ -6302,7 +6302,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count itens',
-      one: '1 item',
+      one: '$count item',
     );
     return '$_temp0: $names';
   }
@@ -6803,7 +6803,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos estão sem condições.',
-      one: '1 mergulho está sem condições.',
+      one: '$count mergulho está sem condições.',
     );
     return '$_temp0 Apenas os campos vazios são preenchidos, por isso nada do que já introduziu será alterado.';
   }
@@ -6832,7 +6832,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos atualizados',
-      one: '1 mergulho atualizado',
+      one: '$count mergulho atualizado',
     );
     return '$_temp0';
   }
@@ -6843,7 +6843,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos sem dados disponíveis',
-      one: '1 mergulho sem dados disponíveis',
+      one: '$count mergulho sem dados disponíveis',
     );
     return '$_temp0';
   }
@@ -6854,7 +6854,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos sem nada para preencher',
-      one: '1 mergulho sem nada para preencher',
+      one: '$count mergulho sem nada para preencher',
     );
     return '$_temp0';
   }
@@ -6865,7 +6865,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Interrompido antes do fim; $count mergulhos foram processados.',
-      one: 'Interrompido antes do fim; 1 mergulho foi processado.',
+      one: 'Interrompido antes do fim; $count mergulho foi processado.',
     );
     return '$_temp0';
   }
@@ -7053,7 +7053,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count problemas',
-      one: '1 problema',
+      one: '$count problema',
     );
     return '$_temp0';
   }
@@ -7422,7 +7422,8 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other:
           '\"$name\" é usado por $count pontos. Eliminá-lo remove-o desses pontos.',
-      one: '\"$name\" é usado por 1 ponto. Eliminá-lo remove-o desse ponto.',
+      one:
+          '\"$name\" é usado por $count ponto. Eliminá-lo remove-o desse ponto.',
     );
     return '$_temp0';
   }
@@ -7454,7 +7455,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count pontos',
-      one: '1 ponto',
+      one: '$count ponto',
       zero: 'Nenhum ponto',
     );
     return '$_temp0';
@@ -7625,7 +7626,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
     );
     return '$_temp0';
   }
@@ -8567,7 +8568,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count min',
-      one: '1 min',
+      one: '$count min',
     );
     return '$_temp0';
   }
@@ -8634,7 +8635,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos restaurados',
-      one: '1 mergulho restaurado',
+      one: '$count mergulho restaurado',
     );
     return '$_temp0';
   }
@@ -9040,7 +9041,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos ficarão sem ponto de mergulho.',
-      one: '1 mergulho ficará sem ponto de mergulho.',
+      one: '$count mergulho ficará sem ponto de mergulho.',
     );
     return '$_temp0';
   }
@@ -9051,7 +9052,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count planos salvos ficarão sem ponto de mergulho.',
-      one: '1 plano salvo ficará sem ponto de mergulho.',
+      one: '$count plano salvo ficará sem ponto de mergulho.',
     );
     return '$_temp0';
   }
@@ -9231,7 +9232,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Ver todos os $count mergulhos',
-      one: 'Ver 1 mergulho',
+      one: 'Ver $count mergulho',
     );
     return '$_temp0';
   }
@@ -10030,13 +10031,13 @@ class AppLocalizationsPt extends AppLocalizations {
       other:
           '$count locais com coordenadas não têm país, região, cidade ou corpo de água.',
       one:
-          '1 local com coordenadas não tem país, região, cidade ou corpo de água.',
+          '$count local com coordenadas não tem país, região, cidade ou corpo de água.',
     );
     String _temp1 = intl.Intl.pluralLogic(
       minutes,
       locale: localeName,
       other: '$minutes minutos',
-      one: '1 minuto',
+      one: '$minutes minuto',
     );
     return '$_temp0 O Submersion consultará cada um no OpenStreetMap e preencherá apenas os campos vazios. Demora cerca de $_temp1.';
   }
@@ -10087,13 +10088,13 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count locais com coordenadas serão consultados de novo.',
-      one: '1 local com coordenadas será consultado de novo.',
+      one: '$count local com coordenadas será consultado de novo.',
     );
     String _temp1 = intl.Intl.pluralLogic(
       minutes,
       locale: localeName,
       other: '$minutes minutos',
-      one: '1 minuto',
+      one: '$minutes minuto',
     );
     return '$_temp0 O país, a região, a localidade e a massa de água serão substituídos sempre que diferirem do idioma dos nomes de lugares ($language), incluindo os valores que escreveu. Demora cerca de $_temp1.';
   }
@@ -10158,7 +10159,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
     );
     return '$_temp0';
   }
@@ -10278,7 +10279,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
     );
     return '$_temp0';
   }
@@ -11903,7 +11904,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Etiquetas atualizadas em $count itens',
-      one: 'Etiquetas atualizadas em 1 item',
+      one: 'Etiquetas atualizadas em $count item',
     );
     return '$_temp0';
   }
@@ -11914,7 +11915,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Adicionando a todos os $count equipamentos',
-      one: 'Adicionando a 1 equipamento',
+      one: 'Adicionando a $count equipamento',
     );
     return '$_temp0';
   }
@@ -11925,7 +11926,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Removendo de todos os $count equipamentos',
-      one: 'Removendo de 1 equipamento',
+      one: 'Removendo de $count equipamento',
     );
     return '$_temp0';
   }
@@ -11964,7 +11965,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Editar etiquetas de $count itens',
-      one: 'Editar etiquetas de 1 item',
+      one: 'Editar etiquetas de $count item',
     );
     return '$_temp0';
   }
@@ -12258,7 +12259,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count garrafas adicionadas',
-      one: '1 garrafa adicionada',
+      one: '$count garrafa adicionada',
     );
     return '$_temp0';
   }
@@ -12269,7 +12270,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mantidas',
-      one: '1 mantida',
+      one: '$count mantida',
     );
     return '$_temp0';
   }
@@ -12530,7 +12531,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count equipamentos precisam de manutenção antes desta viagem',
-      one: '1 equipamento precisa de manutenção antes desta viagem',
+      one: '$count equipamento precisa de manutenção antes desta viagem',
     );
     return '$_temp0';
   }
@@ -12936,7 +12937,7 @@ class AppLocalizationsPt extends AppLocalizations {
       days,
       locale: localeName,
       other: 'Manutencao em $days dias',
-      one: 'Manutencao em 1 dia',
+      one: 'Manutencao em $days dia',
     );
     return '$_temp0';
   }
@@ -12965,7 +12966,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Alterar o tipo de $count itens',
-      one: 'Alterar o tipo de 1 item',
+      one: 'Alterar o tipo de $count item',
     );
     return '$_temp0';
   }
@@ -13001,7 +13002,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Não foi possível alterar o tipo de $count itens',
-      one: 'Não foi possível alterar o tipo de 1 item',
+      one: 'Não foi possível alterar o tipo de $count item',
     );
     return '$_temp0';
   }
@@ -13016,7 +13017,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Tipo alterado em $count itens',
-      one: 'Tipo alterado em 1 item',
+      one: 'Tipo alterado em $count item',
     );
     return '$_temp0';
   }
@@ -13038,7 +13039,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Não foi possível restaurar $count itens',
-      one: 'Não foi possível restaurar 1 item',
+      one: 'Não foi possível restaurar $count item',
     );
     return '$_temp0';
   }
@@ -13049,7 +13050,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count itens mudaram desde então e foram mantidos como estão',
-      one: '1 item mudou desde então e foi mantido como está',
+      one: '$count item mudou desde então e foi mantido como está',
     );
     return '$_temp0';
   }
@@ -13274,7 +13275,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Mostrar mais $count',
-      one: 'Mostrar mais 1',
+      one: 'Mostrar mais $count',
     );
     return '$_temp0';
   }
@@ -14660,7 +14661,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count observações',
-      one: '1 observação',
+      one: '$count observação',
     );
     return '$_temp0';
   }
@@ -14705,7 +14706,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count fotos adicionadas',
-      one: '1 foto adicionada',
+      one: '$count foto adicionada',
     );
     return '$_temp0';
   }
@@ -14716,7 +14717,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count ignoradas',
-      one: '1 ignorada',
+      one: '$count ignorada',
     );
     return '$_temp0';
   }
@@ -14727,7 +14728,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count com falha',
-      one: '1 com falha',
+      one: '$count com falha',
     );
     return '$_temp0';
   }
@@ -14752,7 +14753,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Marcar $count fotos',
-      one: 'Marcar 1 foto',
+      one: 'Marcar $count foto',
     );
     return '$_temp0';
   }
@@ -14763,7 +14764,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count fotos marcadas',
-      one: '1 foto marcada',
+      one: '$count foto marcada',
     );
     return '$_temp0';
   }
@@ -14808,7 +14809,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count espécies',
-      one: '1 espécie',
+      one: '$count espécie',
     );
     return '$_temp0';
   }
@@ -14819,7 +14820,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count avistamentos',
-      one: '1 avistamento',
+      one: '$count avistamento',
     );
     return '$_temp0';
   }
@@ -14830,7 +14831,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
     );
     return '$_temp0';
   }
@@ -15086,7 +15087,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Encontradas $count fotos',
-      one: 'Encontrada 1 foto',
+      one: 'Encontrada $count foto',
     );
     return '$_temp0 perto deste mergulho. Vincular?';
   }
@@ -15160,7 +15161,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count fotos ja vinculadas a este mergulho',
-      one: '1 foto ja vinculada a este mergulho',
+      one: '$count foto ja vinculada a este mergulho',
     );
     return '$_temp0';
   }
@@ -15176,7 +15177,7 @@ class AppLocalizationsPt extends AppLocalizations {
       imported,
       locale: localeName,
       other: '$imported fotos importadas',
-      one: '1 foto importada',
+      one: '$imported foto importada',
     );
     return '$_temp0 ($skipped ja vinculadas)';
   }
@@ -15319,7 +15320,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Vincular $count itens',
-      one: 'Vincular 1 item',
+      one: 'Vincular $count item',
     );
     return '$_temp0';
   }
@@ -15330,7 +15331,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Anexar $count itens a este ponto',
-      one: 'Anexar 1 item a este ponto',
+      one: 'Anexar $count item a este ponto',
     );
     return '$_temp0';
   }
@@ -15345,13 +15346,13 @@ class AppLocalizationsPt extends AppLocalizations {
       fileCount,
       locale: localeName,
       other: '$fileCount arquivos',
-      one: '1 arquivo',
+      one: '$fileCount arquivo',
     );
     String _temp1 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
       other: '$diveCount mergulhos',
-      one: '1 mergulho',
+      one: '$diveCount mergulho',
     );
     return '$_temp0, $_temp1, $unmatchedCount sem associação';
   }
@@ -15362,7 +15363,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count itens',
-      one: '1 item',
+      one: '$count item',
     );
     return '$_temp0';
   }
@@ -15378,7 +15379,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count arquivos',
-      one: '1 arquivo',
+      one: '$count arquivo',
     );
     return '$_temp0';
   }
@@ -15392,7 +15393,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Adicionar todos os $count a este mergulho',
-      one: 'Adicionar 1 a este mergulho',
+      one: 'Adicionar $count a este mergulho',
     );
     return '$_temp0';
   }
@@ -15468,7 +15469,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count itens vinculados',
-      one: '1 item vinculado',
+      one: '$count item vinculado',
     );
     return '$_temp0';
   }
@@ -15479,7 +15480,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count itens anexados a este ponto',
-      one: '1 item anexado a este ponto',
+      one: '$count item anexado a este ponto',
     );
     return '$_temp0';
   }
@@ -16186,7 +16187,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count problemas',
-      one: '1 problema',
+      one: '$count problema',
     );
     return '$_temp0';
   }
@@ -16799,7 +16800,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count observações',
-      one: '1 observação',
+      one: '$count observação',
     );
     return '$_temp0';
   }
@@ -16878,7 +16879,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count observações dispensadas',
-      one: '1 observação dispensada',
+      one: '$count observação dispensada',
       zero: 'Nenhuma observação para dispensar',
     );
     return '$_temp0';
@@ -16890,14 +16891,14 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count observações dispensadas',
-      one: '1 observação dispensada',
+      one: '$count observação dispensada',
       zero: 'Nenhuma observação dispensada',
     );
     String _temp1 = intl.Intl.pluralLogic(
       failed,
       locale: localeName,
       other: '$failed mergulhos não puderam ser atualizados',
-      one: '1 mergulho não pôde ser atualizado',
+      one: '$failed mergulho não pôde ser atualizado',
     );
     return '$_temp0, $_temp1';
   }
@@ -16922,7 +16923,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count observações de segurança',
-      one: '1 observação de segurança',
+      one: '$count observação de segurança',
     );
     return '$_temp0';
   }
@@ -16983,7 +16984,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Não foi possível analisar $count mergulhos',
-      one: 'Não foi possível analisar 1 mergulho',
+      one: 'Não foi possível analisar $count mergulho',
     );
     return 'Análise concluída — $_temp0';
   }
@@ -16994,7 +16995,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Mostrar $count dispensadas',
-      one: 'Mostrar 1 dispensada',
+      one: 'Mostrar $count dispensada',
     );
     return '$_temp0';
   }
@@ -17083,7 +17084,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count pontos',
-      one: '1 ponto',
+      one: '$count ponto',
     );
     return '$_temp0';
   }
@@ -17300,13 +17301,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveDetailSection_dataSources_description =>
       'Computadores de mergulho conectados, gerenciamento de fontes';
-
-  @override
-  String get siteDetailSection_map_name => 'Mapa';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Pré-visualização do mapa da localização do ponto';
 
   @override
   String get siteDetailSection_diveStatistics_description =>
@@ -17647,7 +17641,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count itens precisam de atencao',
-      one: '1 item precisa de atencao',
+      one: '$count item precisa de atencao',
     );
     return '$_temp0';
   }
@@ -17710,7 +17704,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other:
           'A biblioteca na nuvem é apagada e substituída pelos $diveCount mergulhos deste dispositivo.',
       one:
-          'A biblioteca na nuvem é apagada e substituída pelo 1 mergulho deste dispositivo.',
+          'A biblioteca na nuvem é apagada e substituída pelo $diveCount mergulho deste dispositivo.',
     );
     return '$_temp0';
   }
@@ -17723,7 +17717,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other:
           'Será pedido a $peerCount outros dispositivos que a adotem; até lá, as suas alterações não são combinadas.',
       one:
-          'Será pedido a 1 outro dispositivo que a adote; até lá, as suas alterações não são combinadas.',
+          'Será pedido a $peerCount outro dispositivo que a adote; até lá, as suas alterações não são combinadas.',
       zero:
           'Nenhum outro dispositivo sincroniza ainda, portanto não há nada para adotar.',
     );
@@ -17844,7 +17838,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count alteracoes pendentes',
-      one: '1 alteracao pendente',
+      one: '$count alteracao pendente',
     );
     return '$_temp0';
   }
@@ -18112,7 +18106,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count dias atras',
-      one: '1 dia atras',
+      one: '$count dia atras',
     );
     return '$_temp0';
   }
@@ -18123,7 +18117,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count horas atras',
-      one: '1 hora atras',
+      one: '$count hora atras',
     );
     return '$_temp0';
   }
@@ -18137,7 +18131,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count minutos atras',
-      one: '1 minuto atras',
+      one: '$count minuto atras',
     );
     return '$_temp0';
   }
@@ -18328,7 +18322,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count conflitos resolvidos',
-      one: '1 conflito resolvido',
+      one: '$count conflito resolvido',
     );
     return '$_temp0';
   }
@@ -19127,7 +19121,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count contatos configurados',
-      one: '1 contato configurado',
+      one: '$count contato configurado',
       zero: 'Nao configurado',
     );
     return '$_temp0';
@@ -20215,7 +20209,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
     );
     return '$_temp0';
   }
@@ -20812,7 +20806,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
     );
     return '$_temp0';
   }
@@ -21267,7 +21261,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Adicionar $count etiquetas',
-      one: 'Adicionar 1 etiqueta',
+      one: 'Adicionar $count etiqueta',
       zero: 'Adicionar etiquetas',
     );
     return '$_temp0';
@@ -21307,7 +21301,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count fotos referenciadas neste diário',
-      one: '1 foto referenciada neste diário',
+      one: '$count foto referenciada neste diário',
     );
     return '$_temp0';
   }
@@ -21340,7 +21334,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count fotos incluídas no arquivo',
-      one: '1 foto incluída no arquivo',
+      one: '$count foto incluída no arquivo',
     );
     return '$_temp0';
   }
@@ -21364,7 +21358,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other:
           '$count mergulhos mais antigos ignorados — já estão no seu registo',
-      one: '1 mergulho mais antigo ignorado — já está no seu registo',
+      one: '$count mergulho mais antigo ignorado — já está no seu registo',
     );
     return '$_temp0';
   }
@@ -21394,7 +21388,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
       zero: '0 mergulhos',
     );
     return '$_temp0';
@@ -21432,7 +21426,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other:
           'Esta etiqueta está em $count mergulhos. Desativar \"Usar em mergulhos\" remove-a desses mergulhos.',
       one:
-          'Esta etiqueta está em 1 mergulho. Desativar \"Usar em mergulhos\" remove-a desse mergulho.',
+          'Esta etiqueta está em $count mergulho. Desativar \"Usar em mergulhos\" remove-a desse mergulho.',
     );
     return '$_temp0';
   }
@@ -21445,7 +21439,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other:
           'Esta etiqueta está em $count equipamentos. Desativar \"Usar em equipamentos\" remove-a desses equipamentos.',
       one:
-          'Esta etiqueta está em 1 equipamento. Desativar \"Usar em equipamentos\" remove-a desse equipamento.',
+          'Esta etiqueta está em $count equipamento. Desativar \"Usar em equipamentos\" remove-a desse equipamento.',
     );
     return '$_temp0';
   }
@@ -21458,7 +21452,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other:
           'Esta etiqueta está em $count pontos. Desativar \"Usar em pontos\" remove-a desses pontos.',
       one:
-          'Esta etiqueta está em 1 ponto. Desativar \"Usar em pontos\" remove-a desse ponto.',
+          'Esta etiqueta está em $count ponto. Desativar \"Usar em pontos\" remove-a desse ponto.',
     );
     return '$_temp0';
   }
@@ -21486,7 +21480,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count pontos',
-      one: '1 ponto',
+      one: '$count ponto',
       zero: '0 pontos',
     );
     return '$_temp0';
@@ -21498,7 +21492,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count equipamentos',
-      one: '1 equipamento',
+      one: '$count equipamento',
       zero: '0 equipamentos',
     );
     return '$_temp0';
@@ -21525,7 +21519,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
       zero: '0 mergulhos',
     );
     return '\"$tagName\" sera removida de $_temp0. Esta acao nao pode ser desfeita.';
@@ -21537,7 +21531,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count pontos',
-      one: '1 ponto',
+      one: '$count ponto',
     );
     return '\"$tagName\" será removida de $_temp0. Esta ação não pode ser desfeita.';
   }
@@ -21552,13 +21546,13 @@ class AppLocalizationsPt extends AppLocalizations {
       diveCount,
       locale: localeName,
       other: '$diveCount mergulhos',
-      one: '1 mergulho',
+      one: '$diveCount mergulho',
     );
     String _temp1 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
       other: '$siteCount pontos',
-      one: '1 ponto',
+      one: '$siteCount ponto',
     );
     return '\"$tagName\" será removida de $_temp0 e $_temp1. Esta ação não pode ser desfeita.';
   }
@@ -21569,7 +21563,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count equipamentos',
-      one: '1 equipamento',
+      one: '$count equipamento',
     );
     return '\"$tagName\" será removida de $_temp0. Esta ação não pode ser desfeita.';
   }
@@ -21584,13 +21578,13 @@ class AppLocalizationsPt extends AppLocalizations {
       diveCount,
       locale: localeName,
       other: '$diveCount mergulhos',
-      one: '1 mergulho',
+      one: '$diveCount mergulho',
     );
     String _temp1 = intl.Intl.pluralLogic(
       equipmentCount,
       locale: localeName,
       other: '$equipmentCount equipamentos',
-      one: '1 equipamento',
+      one: '$equipmentCount equipamento',
     );
     return '\"$tagName\" será removida de $_temp0 e $_temp1. Esta ação não pode ser desfeita.';
   }
@@ -21605,13 +21599,13 @@ class AppLocalizationsPt extends AppLocalizations {
       siteCount,
       locale: localeName,
       other: '$siteCount pontos',
-      one: '1 ponto',
+      one: '$siteCount ponto',
     );
     String _temp1 = intl.Intl.pluralLogic(
       equipmentCount,
       locale: localeName,
       other: '$equipmentCount equipamentos',
-      one: '1 equipamento',
+      one: '$equipmentCount equipamento',
     );
     return '\"$tagName\" será removida de $_temp0 e $_temp1. Esta ação não pode ser desfeita.';
   }
@@ -21627,19 +21621,19 @@ class AppLocalizationsPt extends AppLocalizations {
       diveCount,
       locale: localeName,
       other: '$diveCount mergulhos',
-      one: '1 mergulho',
+      one: '$diveCount mergulho',
     );
     String _temp1 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
       other: '$siteCount pontos',
-      one: '1 ponto',
+      one: '$siteCount ponto',
     );
     String _temp2 = intl.Intl.pluralLogic(
       equipmentCount,
       locale: localeName,
       other: '$equipmentCount equipamentos',
-      one: '1 equipamento',
+      one: '$equipmentCount equipamento',
     );
     return '\"$tagName\" será removida de $_temp0, $_temp1 e $_temp2. Esta ação não pode ser desfeita.';
   }
@@ -21660,7 +21654,7 @@ class AppLocalizationsPt extends AppLocalizations {
       diveCount,
       locale: localeName,
       other: '$diveCount mergulhos',
-      one: '1 mergulho',
+      one: '$diveCount mergulho',
       zero: '0 mergulhos',
     );
     return 'Estas etiquetas serao removidas de $_temp0 no total. Esta acao nao pode ser desfeita.';
@@ -21672,7 +21666,7 @@ class AppLocalizationsPt extends AppLocalizations {
       siteCount,
       locale: localeName,
       other: '$siteCount pontos',
-      one: '1 ponto',
+      one: '$siteCount ponto',
     );
     return 'Estas etiquetas serão removidas de $_temp0 no total. Esta ação não pode ser desfeita.';
   }
@@ -21686,13 +21680,13 @@ class AppLocalizationsPt extends AppLocalizations {
       diveCount,
       locale: localeName,
       other: '$diveCount mergulhos',
-      one: '1 mergulho',
+      one: '$diveCount mergulho',
     );
     String _temp1 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
       other: '$siteCount pontos',
-      one: '1 ponto',
+      one: '$siteCount ponto',
     );
     return 'Estas etiquetas serão removidas de $_temp0 e $_temp1 no total. Esta ação não pode ser desfeita.';
   }
@@ -21703,7 +21697,7 @@ class AppLocalizationsPt extends AppLocalizations {
       equipmentCount,
       locale: localeName,
       other: '$equipmentCount equipamentos',
-      one: '1 equipamento',
+      one: '$equipmentCount equipamento',
     );
     return 'Estas etiquetas serão removidas de $_temp0 no total. Esta ação não pode ser desfeita.';
   }
@@ -21717,13 +21711,13 @@ class AppLocalizationsPt extends AppLocalizations {
       diveCount,
       locale: localeName,
       other: '$diveCount mergulhos',
-      one: '1 mergulho',
+      one: '$diveCount mergulho',
     );
     String _temp1 = intl.Intl.pluralLogic(
       equipmentCount,
       locale: localeName,
       other: '$equipmentCount equipamentos',
-      one: '1 equipamento',
+      one: '$equipmentCount equipamento',
     );
     return 'Estas etiquetas serão removidas de $_temp0 e $_temp1 no total. Esta ação não pode ser desfeita.';
   }
@@ -21737,13 +21731,13 @@ class AppLocalizationsPt extends AppLocalizations {
       siteCount,
       locale: localeName,
       other: '$siteCount pontos',
-      one: '1 ponto',
+      one: '$siteCount ponto',
     );
     String _temp1 = intl.Intl.pluralLogic(
       equipmentCount,
       locale: localeName,
       other: '$equipmentCount equipamentos',
-      one: '1 equipamento',
+      one: '$equipmentCount equipamento',
     );
     return 'Estas etiquetas serão removidas de $_temp0 e $_temp1 no total. Esta ação não pode ser desfeita.';
   }
@@ -21758,19 +21752,19 @@ class AppLocalizationsPt extends AppLocalizations {
       diveCount,
       locale: localeName,
       other: '$diveCount mergulhos',
-      one: '1 mergulho',
+      one: '$diveCount mergulho',
     );
     String _temp1 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
       other: '$siteCount pontos',
-      one: '1 ponto',
+      one: '$siteCount ponto',
     );
     String _temp2 = intl.Intl.pluralLogic(
       equipmentCount,
       locale: localeName,
       other: '$equipmentCount equipamentos',
-      one: '1 equipamento',
+      one: '$equipmentCount equipamento',
     );
     return 'Estas etiquetas serão removidas de $_temp0, $_temp1 e $_temp2 no total. Esta ação não pode ser desfeita.';
   }
@@ -21796,7 +21790,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
       zero: '0 mergulhos',
     );
     return 'Isso afetara $_temp0 no total.';
@@ -21808,7 +21802,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count pontos',
-      one: '1 ponto',
+      one: '$count ponto',
     );
     return 'Isso afetará $_temp0 no total.';
   }
@@ -21819,13 +21813,13 @@ class AppLocalizationsPt extends AppLocalizations {
       diveCount,
       locale: localeName,
       other: '$diveCount mergulhos',
-      one: '1 mergulho',
+      one: '$diveCount mergulho',
     );
     String _temp1 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
       other: '$siteCount pontos',
-      one: '1 ponto',
+      one: '$siteCount ponto',
     );
     return 'Isso afetará $_temp0 e $_temp1 no total.';
   }
@@ -21836,7 +21830,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count equipamentos',
-      one: '1 equipamento',
+      one: '$count equipamento',
     );
     return 'Isso afetará $_temp0 no total.';
   }
@@ -21850,13 +21844,13 @@ class AppLocalizationsPt extends AppLocalizations {
       diveCount,
       locale: localeName,
       other: '$diveCount mergulhos',
-      one: '1 mergulho',
+      one: '$diveCount mergulho',
     );
     String _temp1 = intl.Intl.pluralLogic(
       equipmentCount,
       locale: localeName,
       other: '$equipmentCount equipamentos',
-      one: '1 equipamento',
+      one: '$equipmentCount equipamento',
     );
     return 'Isso afetará $_temp0 e $_temp1 no total.';
   }
@@ -21870,13 +21864,13 @@ class AppLocalizationsPt extends AppLocalizations {
       siteCount,
       locale: localeName,
       other: '$siteCount pontos',
-      one: '1 ponto',
+      one: '$siteCount ponto',
     );
     String _temp1 = intl.Intl.pluralLogic(
       equipmentCount,
       locale: localeName,
       other: '$equipmentCount equipamentos',
-      one: '1 equipamento',
+      one: '$equipmentCount equipamento',
     );
     return 'Isso afetará $_temp0 e $_temp1 no total.';
   }
@@ -21891,19 +21885,19 @@ class AppLocalizationsPt extends AppLocalizations {
       diveCount,
       locale: localeName,
       other: '$diveCount mergulhos',
-      one: '1 mergulho',
+      one: '$diveCount mergulho',
     );
     String _temp1 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
       other: '$siteCount pontos',
-      one: '1 ponto',
+      one: '$siteCount ponto',
     );
     String _temp2 = intl.Intl.pluralLogic(
       equipmentCount,
       locale: localeName,
       other: '$equipmentCount equipamentos',
-      one: '1 equipamento',
+      one: '$equipmentCount equipamento',
     );
     return 'Isso afetará $_temp0, $_temp1 e $_temp2 no total.';
   }
@@ -22200,7 +22194,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
     );
     return '$_temp0';
   }
@@ -22223,7 +22217,7 @@ class AppLocalizationsPt extends AppLocalizations {
       hours,
       locale: localeName,
       other: 'há $hours horas',
-      one: 'há 1 hora',
+      one: 'há $hours hora',
     );
     return '$_temp0';
   }
@@ -22949,7 +22943,7 @@ class AppLocalizationsPt extends AppLocalizations {
       days,
       locale: localeName,
       other: 'Em $days dias',
-      one: 'Em 1 dia',
+      one: 'Em $days dia',
       zero: 'Começa hoje',
     );
     return '$_temp0';
@@ -23387,8 +23381,8 @@ class AppLocalizationsPt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dives',
-      one: '1 dive',
+      other: '$count mergulhos',
+      one: '$count mergulho',
     );
     return '$_temp0';
   }
@@ -23538,7 +23532,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count arquivos prontos para importar',
-      one: '1 arquivo pronto para importar',
+      one: '$count arquivo pronto para importar',
     );
     return '$_temp0';
   }
@@ -23549,7 +23543,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count arquivos selecionados',
-      one: '1 arquivo selecionado',
+      one: '$count arquivo selecionado',
     );
     return '$_temp0';
   }
@@ -23604,7 +23598,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
     );
     return '$_temp0';
   }
@@ -23615,7 +23609,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count certificações',
-      one: '1 certificação',
+      one: '$count certificação',
     );
     return '$_temp0';
   }
@@ -23667,7 +23661,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Afeta $count mergulhos',
-      one: 'Afeta 1 mergulho',
+      one: 'Afeta $count mergulho',
     );
     return '$_temp0';
   }
@@ -23686,7 +23680,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos ignorados',
-      one: '1 mergulho ignorado',
+      one: '$count mergulho ignorado',
     );
     return '$_temp0';
   }
@@ -23736,7 +23730,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other:
           '$count valores não puderam ser convertidos e ficaram em branco. Se um campo parecer errado, verifique o mapeamento de colunas e importe novamente.',
       one:
-          '1 valor não pôde ser convertido e ficou em branco. Se um campo parecer errado, verifique o mapeamento de colunas e importe novamente.',
+          '$count valor não pôde ser convertido e ficou em branco. Se um campo parecer errado, verifique o mapeamento de colunas e importe novamente.',
     );
     return '$_temp0';
   }
@@ -23752,7 +23746,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other:
           '$count fotos não tinham nome de arquivo e não puderam ser vinculadas.',
-      one: '1 foto não tinha nome de arquivo e não pôde ser vinculada.',
+      one: '$count foto não tinha nome de arquivo e não pôde ser vinculada.',
     );
     return '$_temp0';
   }
@@ -23788,7 +23782,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count linhas não importadas',
-      one: '1 linha não importada',
+      one: '$count linha não importada',
     );
     return '$_temp0';
   }
@@ -23813,7 +23807,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Linhas $rows e mais $count',
-      one: 'Linhas $rows e mais 1',
+      one: 'Linhas $rows e mais $count',
     );
     return '$_temp0';
   }
@@ -23824,7 +23818,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos importados',
-      one: '1 mergulho importado',
+      one: '$count mergulho importado',
     );
     return '$_temp0';
   }
@@ -23895,7 +23889,7 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other:
           'Nada foi importado: não foi possível ler as datas de $count linhas.',
-      one: 'Nada foi importado: não foi possível ler a data de 1 linha.',
+      one: 'Nada foi importado: não foi possível ler a data de $count linha.',
     );
     return '$_temp0';
   }
@@ -23903,6 +23897,10 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'Verifique se as colunas de data e hora estão mapeadas nesta etapa e se contêm datas.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Verifique se a coluna de data contém datas escritas no formato indicado por seu cabeçalho.';
 
   @override
   String get universalImport_error_noDataInFile =>
@@ -24720,7 +24718,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Importar $count mergulhos baixados',
-      one: 'Importar 1 mergulho baixado',
+      one: 'Importar $count mergulho baixado',
     );
     return '$_temp0';
   }
@@ -25777,7 +25775,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count pontos',
-      one: '1 ponto',
+      one: '$count ponto',
     );
     return '$_temp0';
   }
@@ -26766,7 +26764,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count blocos atualizados',
-      one: '1 bloco atualizado',
+      one: '$count bloco atualizado',
     );
     return '$_temp0';
   }
@@ -27283,19 +27281,19 @@ class AppLocalizationsPt extends AppLocalizations {
       originals,
       locale: localeName,
       other: '$originals originais',
-      one: '1 original',
+      one: '$originals original',
     );
     String _temp1 = intl.Intl.pluralLogic(
       thumbs,
       locale: localeName,
       other: '$thumbs miniaturas',
-      one: '1 miniatura',
+      one: '$thumbs miniatura',
     );
     String _temp2 = intl.Intl.pluralLogic(
       renditions,
       locale: localeName,
       other: '$renditions versões comprimidas',
-      one: '1 versão comprimida',
+      one: '$renditions versão comprimida',
     );
     return '$checked objetos na nuvem verificados ($_temp0, $_temp1, $_temp2): $removed órfãos removidos, $repaired reparos na fila, $aborted envios obsoletos cancelados';
   }
@@ -28941,7 +28939,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count câmaras',
-      one: '1 câmara',
+      one: '$count câmara',
     );
     return '$_temp0';
   }
@@ -29195,7 +29193,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count quase acidentes vinculados a este mergulho',
-      one: '1 quase acidente vinculado a este mergulho',
+      one: '$count quase acidente vinculado a este mergulho',
     );
     return '$_temp0';
   }
@@ -29241,7 +29239,7 @@ class AppLocalizationsPt extends AppLocalizations {
       days,
       locale: localeName,
       other: 'há $days dias',
-      one: 'há 1 dia',
+      one: 'há $days dia',
       zero: 'hoje',
     );
     return '$_temp0';
@@ -29253,7 +29251,7 @@ class AppLocalizationsPt extends AppLocalizations {
       months,
       locale: localeName,
       other: 'há $months meses',
-      one: 'há 1 mês',
+      one: 'há $months mês',
     );
     return '$_temp0';
   }
@@ -29301,7 +29299,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count constatações',
-      one: '1 constatação',
+      one: '$count constatação',
     );
     return '$_temp0';
   }
@@ -29321,7 +29319,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Mostrar $count dispensadas',
-      one: 'Mostrar 1 dispensada',
+      one: 'Mostrar $count dispensada',
     );
     return '$_temp0';
   }
@@ -29391,7 +29389,7 @@ class AppLocalizationsPt extends AppLocalizations {
       n,
       locale: localeName,
       other: '$n mergulhos',
-      one: '1 mergulho',
+      one: '$n mergulho',
     );
     return '$_temp0, $range';
   }
@@ -29402,7 +29400,7 @@ class AppLocalizationsPt extends AppLocalizations {
       n,
       locale: localeName,
       other: '$n mergulhos',
-      one: '1 mergulho',
+      one: '$n mergulho',
     );
     return '$_temp0';
   }
@@ -29423,7 +29421,7 @@ class AppLocalizationsPt extends AppLocalizations {
       n,
       locale: localeName,
       other: '$n mergulhos frios',
-      one: '1 mergulho frio',
+      one: '$n mergulho frio',
     );
     return '$_temp0';
   }
@@ -29439,7 +29437,7 @@ class AppLocalizationsPt extends AppLocalizations {
       n,
       locale: localeName,
       other: '$n mergulhos profundos',
-      one: '1 mergulho profundo',
+      one: '$n mergulho profundo',
     );
     return '$_temp0';
   }
@@ -29450,7 +29448,7 @@ class AppLocalizationsPt extends AppLocalizations {
       n,
       locale: localeName,
       other: '$n ciclos de bateria',
-      one: '1 ciclo de bateria',
+      one: '$n ciclo de bateria',
     );
     return '$_temp0';
   }
@@ -29547,7 +29545,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count incidentes referem este item',
-      one: '1 incidente refere este item',
+      one: '$count incidente refere este item',
     );
     return '$_temp0';
   }
@@ -29558,7 +29556,7 @@ class AppLocalizationsPt extends AppLocalizations {
       n,
       locale: localeName,
       other: '$n mergulhos',
-      one: '1 mergulho',
+      one: '$n mergulho',
     );
     return '$_temp0, $range';
   }
@@ -29622,13 +29620,13 @@ class AppLocalizationsPt extends AppLocalizations {
       dives,
       locale: localeName,
       other: '$dives mergulhos não puderam ser resumidos',
-      one: '1 mergulho não pôde ser resumido',
+      one: '$dives mergulho não pôde ser resumido',
     );
     String _temp1 = intl.Intl.pluralLogic(
       items,
       locale: localeName,
       other: '$items equipamentos',
-      one: '1 equipamento',
+      one: '$items equipamento',
     );
     return '$_temp0; não foi possível atualizar as constatações de estado de $_temp1';
   }
@@ -29639,7 +29637,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos não puderam ser resumidos',
-      one: '1 mergulho não pôde ser resumido',
+      one: '$count mergulho não pôde ser resumido',
     );
     return 'Resumos de sensores reconstruídos; $_temp0';
   }
@@ -29650,7 +29648,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count equipamentos',
-      one: '1 equipamento',
+      one: '$count equipamento',
     );
     return 'Resumos de sensores reconstruídos; não foi possível atualizar as constatações de estado de $_temp0';
   }
@@ -29938,7 +29936,7 @@ class AppLocalizationsPt extends AppLocalizations {
       minutes,
       locale: localeName,
       other: 'Após $minutes minutos',
-      one: 'Após 1 minuto',
+      one: 'Após $minutes minuto',
     );
     return '$_temp0';
   }
@@ -30101,7 +30099,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Análise concluída - $count itens para revisar',
-      one: 'Análise concluída - 1 item para revisar',
+      one: 'Análise concluída - $count item para revisar',
       zero: 'Análise concluída - nenhuma nova constatação',
     );
     return '$_temp0';
@@ -30251,7 +30249,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count lacunas nas amostras',
-      one: '1 lacuna nas amostras',
+      one: '$count lacuna nas amostras',
     );
     return '$_temp0, a maior $longest';
   }
@@ -30400,7 +30398,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count equipamentos',
-      one: '1 equipamento',
+      one: '$count equipamento',
     );
     return '$_temp0';
   }
@@ -30411,7 +30409,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count lastros',
-      one: '1 lastro',
+      one: '$count lastro',
     );
     return '$_temp0';
   }
@@ -30422,7 +30420,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count parceiros',
-      one: '1 parceiro',
+      one: '$count parceiro',
     );
     return '$_temp0';
   }
@@ -30433,7 +30431,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count etiquetas',
-      one: '1 etiqueta',
+      one: '$count etiqueta',
     );
     return '$_temp0';
   }
@@ -30444,7 +30442,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count fotos ou vídeos',
-      one: '1 foto ou vídeo',
+      one: '$count foto ou vídeo',
     );
     return '$_temp0';
   }
@@ -30455,7 +30453,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count anexos',
-      one: '1 anexo',
+      one: '$count anexo',
     );
     return '$_temp0';
   }
@@ -30466,7 +30464,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count campos personalizados',
-      one: '1 campo personalizado',
+      one: '$count campo personalizado',
     );
     return '$_temp0';
   }
@@ -30553,7 +30551,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count itens assinalados para revisão',
-      one: '1 item assinalado para revisão',
+      one: '$count item assinalado para revisão',
     );
     return '$_temp0';
   }
@@ -37273,7 +37271,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos em $year',
-      one: '1 mergulho em $year',
+      one: '$count mergulho em $year',
     );
     return '$_temp0';
   }
@@ -37893,7 +37891,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other:
           'Isto exclui $count arquivos ($size) pertencentes a $name.\n\nEsse dispositivo ainda faz parte desta sincronização. Se voltar a ficar online, ele será reconstruído a partir do provedor em vez de ressuscitar dados antigos, mas quaisquer alterações que ele ainda não tenha publicado serão perdidas. Seus dados de mergulho NESTE dispositivo não são afetados.',
       one:
-          'Isto exclui 1 arquivo ($size) pertencentes a $name.\n\nEsse dispositivo ainda faz parte desta sincronização. Se voltar a ficar online, ele será reconstruído a partir do provedor em vez de ressuscitar dados antigos, mas quaisquer alterações que ele ainda não tenha publicado serão perdidas. Seus dados de mergulho NESTE dispositivo não são afetados.',
+          'Isto exclui $count arquivo ($size) pertencentes a $name.\n\nEsse dispositivo ainda faz parte desta sincronização. Se voltar a ficar online, ele será reconstruído a partir do provedor em vez de ressuscitar dados antigos, mas quaisquer alterações que ele ainda não tenha publicado serão perdidas. Seus dados de mergulho NESTE dispositivo não são afetados.',
     );
     return '$_temp0';
   }
@@ -37910,7 +37908,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other:
           'Isto exclui $count arquivos ($size) pertencentes a $name. São restos de uma biblioteca da qual nenhum dispositivo sincroniza mais. Seus dados de mergulho não são afetados.',
       one:
-          'Isto exclui 1 arquivo ($size) pertencentes a $name. São restos de uma biblioteca da qual nenhum dispositivo sincroniza mais. Seus dados de mergulho não são afetados.',
+          'Isto exclui $count arquivo ($size) pertencentes a $name. São restos de uma biblioteca da qual nenhum dispositivo sincroniza mais. Seus dados de mergulho não são afetados.',
     );
     return '$_temp0';
   }
@@ -37956,13 +37954,13 @@ class AppLocalizationsPt extends AppLocalizations {
       deviceCount,
       locale: localeName,
       other: '$deviceCount dispositivos',
-      one: '1 dispositivo',
+      one: '$deviceCount dispositivo',
     );
     String _temp1 = intl.Intl.pluralLogic(
       fileCount,
       locale: localeName,
       other: '$fileCount arquivos',
-      one: '1 arquivo',
+      one: '$fileCount arquivo',
     );
     return '$_temp0, $_temp1, $size';
   }
@@ -37975,7 +37973,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other:
           '$count restantes de uma biblioteca substituída ou aposentada, ocupando $size.',
       one:
-          '1 restante de uma biblioteca substituída ou aposentada, ocupando $size.',
+          '$count restante de uma biblioteca substituída ou aposentada, ocupando $size.',
     );
     return '$_temp0';
   }
@@ -37986,7 +37984,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count arquivos',
-      one: '1 arquivo',
+      one: '$count arquivo',
     );
     return '$_temp0, $size';
   }
@@ -38001,7 +37999,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count arquivos',
-      one: '1 arquivo',
+      one: '$count arquivo',
     );
     return '$_temp0, $size · $when';
   }
@@ -38064,7 +38062,7 @@ class AppLocalizationsPt extends AppLocalizations {
       total,
       locale: localeName,
       other: '$done de $total arquivos',
-      one: '$done de 1 arquivo',
+      one: '$done de $total arquivo',
     );
     return '$_temp0';
   }
@@ -38075,7 +38073,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count arquivos removidos',
-      one: '1 arquivo removido',
+      one: '$count arquivo removido',
     );
     return '$_temp0';
   }
@@ -38091,7 +38089,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other:
           '$count arquivos removidos, mas $trouble. Tente novamente enquanto estiver online.',
       one:
-          '1 arquivo removido, mas $trouble. Tente novamente enquanto estiver online.',
+          '$count arquivo removido, mas $trouble. Tente novamente enquanto estiver online.',
     );
     return '$_temp0';
   }
@@ -38102,7 +38100,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count não puderam ser excluídos',
-      one: '1 não pôde ser excluído',
+      one: '$count não pôde ser excluído',
     );
     return '$_temp0';
   }
@@ -38117,7 +38115,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count arquivos apagados',
-      one: '1 arquivo apagado',
+      one: '$count arquivo apagado',
     );
     return '$_temp0';
   }
@@ -38130,7 +38128,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other:
           '$count arquivos apagados, mas $trouble. Tente novamente enquanto estiver online.',
       one:
-          '1 arquivo apagado, mas $trouble. Tente novamente enquanto estiver online.',
+          '$count arquivo apagado, mas $trouble. Tente novamente enquanto estiver online.',
     );
     return '$_temp0';
   }
@@ -38401,7 +38399,7 @@ class AppLocalizationsPt extends AppLocalizations {
       minutes,
       locale: localeName,
       other: 'Tempo de fundo: $minutes minutos',
-      one: 'Tempo de fundo: 1 minuto',
+      one: 'Tempo de fundo: $minutes minuto',
     );
     return '$_temp0';
   }
@@ -38663,7 +38661,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count cabeçalhos de assinatura do arquivo atual',
-      one: '1 cabeçalho de assinatura do arquivo atual',
+      one: '$count cabeçalho de assinatura do arquivo atual',
     );
     return '$_temp0';
   }
@@ -38812,7 +38810,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count duplicatas',
-      one: '1 duplicata',
+      one: '$count duplicata',
     );
     return '$_temp0';
   }
@@ -38871,7 +38869,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos encontrados',
-      one: '1 mergulho encontrado',
+      one: '$count mergulho encontrado',
     );
     return '$_temp0';
   }
@@ -39600,7 +39598,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other:
           'Arquivo KML exportado com sucesso ($count pontos sem coordenadas ignorados)',
       one:
-          'Arquivo KML exportado com sucesso (1 ponto sem coordenadas ignorado)',
+          'Arquivo KML exportado com sucesso ($count ponto sem coordenadas ignorado)',
       zero: 'Arquivo KML exportado com sucesso',
     );
     return '$_temp0';
@@ -39616,7 +39614,8 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other:
           'Arquivo KML salvo com sucesso ($count pontos sem coordenadas ignorados)',
-      one: 'Arquivo KML salvo com sucesso (1 ponto sem coordenadas ignorado)',
+      one:
+          'Arquivo KML salvo com sucesso ($count ponto sem coordenadas ignorado)',
       zero: 'Arquivo KML salvo com sucesso',
     );
     return '$_temp0';
@@ -39729,13 +39728,13 @@ class AppLocalizationsPt extends AppLocalizations {
       diveCount,
       locale: localeName,
       other: '$diveCount mergulhos',
-      one: '1 mergulho',
+      one: '$diveCount mergulho',
     );
     String _temp1 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
       other: '$siteCount pontos',
-      one: '1 ponto',
+      one: '$siteCount ponto',
     );
     return '$_temp0, $_temp1';
   }
@@ -39896,7 +39895,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count registros não puderam ser aplicados',
-      one: '1 registro não pôde ser aplicado',
+      one: '$count registro não pôde ser aplicado',
     );
     return '$_temp0';
   }
@@ -39921,7 +39920,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count alterações locais para enviar',
-      one: '1 alteração local para enviar',
+      one: '$count alteração local para enviar',
     );
     return '$_temp0';
   }
@@ -40462,7 +40461,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos excluídos das estatísticas',
-      one: '1 mergulho excluído das estatísticas',
+      one: '$count mergulho excluído das estatísticas',
     );
     return '$_temp0';
   }
@@ -40517,7 +40516,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'A listar mergulhos… ($count encontrados até agora)',
-      one: 'A listar mergulhos… (1 encontrado até agora)',
+      one: 'A listar mergulhos… ($count encontrado até agora)',
       zero: 'A listar mergulhos…',
     );
     return '$_temp0';
@@ -40547,7 +40546,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos encontrados',
-      one: '1 mergulho encontrado',
+      one: '$count mergulho encontrado',
       zero: 'Nenhum mergulho encontrado',
     );
     return '$_temp0';
@@ -40559,7 +40558,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos não puderam ser convertidos e foram ignorados.',
-      one: '1 mergulho não pôde ser convertido e foi ignorado.',
+      one: '$count mergulho não pôde ser convertido e foi ignorado.',
     );
     return '$_temp0';
   }
@@ -40625,7 +40624,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'A listar mergulhos… ($count encontrados até agora)',
-      one: 'A listar mergulhos… (1 encontrado até agora)',
+      one: 'A listar mergulhos… ($count encontrado até agora)',
       zero: 'A listar mergulhos…',
     );
     return '$_temp0';
@@ -40652,7 +40651,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos encontrados',
-      one: '1 mergulho encontrado',
+      one: '$count mergulho encontrado',
       zero: 'Nenhum mergulho encontrado',
     );
     return '$_temp0';
@@ -40664,7 +40663,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos não puderam ser convertidos e foram ignorados.',
-      one: '1 mergulho não pôde ser convertido e foi ignorado.',
+      one: '$count mergulho não pôde ser convertido e foi ignorado.',
     );
     return '$_temp0';
   }
@@ -40873,7 +40872,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos passarão para o registro mantido.',
-      one: '1 mergulho passará para o registro mantido.',
+      one: '$count mergulho passará para o registro mantido.',
       zero: 'Nenhum mergulho está vinculado aos outros registros.',
     );
     return '$_temp0';
@@ -40892,7 +40891,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count registros mesclados em $name',
-      one: '1 registro mesclado em $name',
+      one: '$count registro mesclado em $name',
     );
     return '$_temp0';
   }
@@ -40986,13 +40985,13 @@ class AppLocalizationsPt extends AppLocalizations {
       diveCount,
       locale: localeName,
       other: '$diveCount mergulhos',
-      one: '1 mergulho',
+      one: '$diveCount mergulho',
     );
     String _temp1 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
       other: '$siteCount locais',
-      one: '1 local',
+      one: '$siteCount local',
     );
     return '$_temp0, $_temp1 - $size';
   }
@@ -41007,13 +41006,13 @@ class AppLocalizationsPt extends AppLocalizations {
       diveCount,
       locale: localeName,
       other: '$diveCount mergulhos',
-      one: '1 mergulho',
+      one: '$diveCount mergulho',
     );
     String _temp1 = intl.Intl.pluralLogic(
       siteCount,
       locale: localeName,
       other: '$siteCount locais',
-      one: '1 local',
+      one: '$siteCount local',
     );
     return '$_temp0, $_temp1 - $size (automático)';
   }
@@ -41095,7 +41094,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count mergulhos',
-      one: '1 mergulho',
+      one: '$count mergulho',
     );
     return '$_temp0';
   }
@@ -41179,7 +41178,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: '$count leituras',
-      one: '1 leitura',
+      one: '$count leitura',
     );
     return '$_temp0';
   }
@@ -41261,7 +41260,7 @@ class AppLocalizationsPt extends AppLocalizations {
       count,
       locale: localeName,
       other: 'Excluir $count ficheiros ($size)',
-      one: 'Excluir 1 ficheiro ($size)',
+      one: 'Excluir $count ficheiro ($size)',
     );
     return '$_temp0';
   }
@@ -41278,7 +41277,7 @@ class AppLocalizationsPt extends AppLocalizations {
       other:
           '$count ficheiros de cópia de segurança serão excluídos permanentemente. Não é possível anular.',
       one:
-          '1 ficheiro de cópia de segurança será excluído permanentemente. Não é possível anular.',
+          '$count ficheiro de cópia de segurança será excluído permanentemente. Não é possível anular.',
     );
     return '$_temp0';
   }
@@ -41299,7 +41298,8 @@ class AppLocalizationsPt extends AppLocalizations {
       locale: localeName,
       other:
           '$count ficheiros que não estão no seu histórico de cópias de segurança',
-      one: '1 ficheiro que não está no seu histórico de cópias de segurança',
+      one:
+          '$count ficheiro que não está no seu histórico de cópias de segurança',
     );
     return '$_temp0';
   }

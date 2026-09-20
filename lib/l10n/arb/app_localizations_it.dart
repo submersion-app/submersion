@@ -17302,13 +17302,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Computer subacquei collegati, gestione sorgenti';
 
   @override
-  String get siteDetailSection_map_name => 'Mappa';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Anteprima della mappa della posizione del sito';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Numero di immersioni, profondità raggiunte, immersioni più lunghe e più recenti';
 
@@ -23901,6 +23894,10 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'Controlla che le colonne di data e ora siano mappate in questo passaggio e che contengano date.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Controlla che la colonna della data contenga date scritte nel formato indicato dalla sua intestazione.';
 
   @override
   String get universalImport_error_noDataInFile =>

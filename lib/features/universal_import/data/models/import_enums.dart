@@ -42,6 +42,11 @@ enum ImportFormat {
     unknown => 'Unknown',
   };
 
+  /// Whether the wizard asks the diver to map this format's columns.
+  /// A self-describing format has no Map Fields step to send them back to,
+  /// so a message about the file's columns cannot point at one (#2152).
+  bool get mapsColumns => this == csv;
+
   /// Whether this format has a parser implemented in v1.5.
   bool get isSupported => switch (this) {
     csv ||

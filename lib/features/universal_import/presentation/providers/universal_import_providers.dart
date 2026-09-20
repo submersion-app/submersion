@@ -916,7 +916,13 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     // The per-row warnings are English transformer strings, so a CSV whose
     // every row was skipped is summarised rather than shown its first one.
     if (payload.isEmpty) {
-      throw _fail(emptyPayloadMessage(_l10n, payload.warnings));
+      throw _fail(
+        emptyPayloadMessage(
+          _l10n,
+          payload.warnings,
+          mapsColumns: opts.format.mapsColumns,
+        ),
+      );
     }
 
     final dupResult = await _checkDuplicatesOrEmpty(payload);

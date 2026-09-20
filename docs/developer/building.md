@@ -56,7 +56,7 @@ dart run build_runner build --delete-conflicting-outputs
 
 # Run on connected device or emulator
 flutter run
-```dart
+```
 ## Code Generation
 
 Submersion uses code generation for:
@@ -69,14 +69,14 @@ Submersion uses code generation for:
 
 ```bash
 dart run build_runner build --delete-conflicting-outputs
-```text
+```
 ### Watch Mode
 
 For active development, run in watch mode:
 
 ```bash
 dart run build_runner watch --delete-conflicting-outputs
-```dart
+```
 ### When to Regenerate
 
 Regenerate code after:
@@ -99,7 +99,11 @@ flutter run -d windows
 
 # Linux
 flutter run -d linux
-```text
+```
+
+On macOS, `flutter run` builds the Debug configuration, which is pinned to the
+maintainer's signing team. Without access to it, see
+[macOS Signing Issues](#macos-signing-issues).
 ### Mobile
 
 ```bash
@@ -108,33 +112,33 @@ flutter run -d android
 
 # iOS (macOS only, device or simulator)
 flutter run -d ios
-```text
+```
 ### List Available Devices
 
 ```bash
 flutter devices
-```text
+```
 ## Building for Release
 
 ### macOS
 
 ```bash
 flutter build macos --release
-```text
+```
 Output: `build/macos/Build/Products/Release/Submersion.app`
 
 ### Windows
 
 ```bash
 flutter build windows --release
-```text
+```
 Output: `build/windows/x64/runner/Release/`
 
 ### Linux
 
 ```bash
 flutter build linux --release
-```text
+```
 Output: `build/linux/x64/release/bundle/`
 
 ### Android
@@ -145,7 +149,7 @@ flutter build apk --release
 
 # App Bundle (for Play Store)
 flutter build appbundle --release
-```text
+```
 Output:
 
 - APK: `build/app/outputs/flutter-apk/app-release.apk`
@@ -155,7 +159,7 @@ Output:
 
 ```bash
 flutter build ios --release
-```text
+```
 Then open in Xcode for archive and distribution.
 
 ## Development Commands
@@ -164,12 +168,12 @@ Then open in Xcode for archive and distribution.
 
 ```bash
 flutter analyze
-```text
+```
 ### Format Code
 
 ```bash
 dart format lib/
-```text
+```
 ### Run Tests
 
 ```bash
@@ -181,14 +185,14 @@ flutter test --coverage
 
 # Specific test file
 flutter test test/features/dive_log/dive_repository_test.dart
-```text
+```
 ### Clean Build
 
 ```bash
 flutter clean
 flutter pub get
 dart run build_runner build --delete-conflicting-outputs
-```typescript
+```
 ## Dependencies
 
 ### Core Dependencies
@@ -267,7 +271,7 @@ submersion/
 ├── linux/                     # Linux config
 └── pubspec.yaml               # Dependencies
 
-```text
+```
 ## Environment Variables
 
 No environment variables required for basic development.
@@ -284,7 +288,7 @@ flutter clean
 flutter pub get
 dart run build_runner clean
 dart run build_runner build --delete-conflicting-outputs
-```text
+```
 ### Build Fails on macOS
 
 ```bash
@@ -294,7 +298,7 @@ pod install
 cd ..
 flutter clean
 flutter pub get
-```text
+```
 ### Android SDK Issues
 
 Ensure ANDROID_HOME is set:
@@ -302,8 +306,41 @@ Ensure ANDROID_HOME is set:
 ```bash
 export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
-```sql
+```
+### macOS Signing Issues
+
+A build that stops with:
+
+```
+error: No profiles for 'app.submersion' were found: Xcode couldn't find any
+Mac App Development provisioning profiles matching 'app.submersion'.
+```
+
+means the Debug configuration's pinned signing team is unavailable to you.
+`flutter run -d macos` builds Debug, which sets `CODE_SIGN_IDENTITY` to
+`Apple Development` against the maintainer's `DEVELOPMENT_TEAM`, and
+`macos/Runner/DebugProfile.entitlements` requests an iCloud container, push
+notifications, an app group and a keychain access group that are bound to that
+account. Release builds do not pin an identity, so they are unaffected.
+
+Without access to that team, sign the debug build ad-hoc. The full procedure is
+in the README under
+[Running a debug build without an Apple Developer account](../../README.md#running-a-debug-build-without-an-apple-developer-account).
+
 ### iOS Signing Issues
+
+The **iOS Simulator needs no signing setup**. The iOS Debug configuration does
+not pin a signing identity, so the simulator SDK resolves `CODE_SIGN_IDENTITY`
+to `-` and signs ad-hoc without consulting a developer account.
+`flutter run -d ios` against a simulator works from a clean checkout.
+
+Building for a **physical device** does require a team, because the
+`iphoneos` SDK resolves `CODE_SIGN_IDENTITY` to `Apple Development` and
+`ios/Runner/Runner.entitlements` requests HealthKit, an iCloud container, push
+notifications and a team-prefixed ubiquity key-value store. Outside
+contributors cannot provision `app.submersion`, so use the simulator.
+
+With access to the team:
 
 1. Open `ios/Runner.xcworkspace` in Xcode
 2. Select the Runner target

@@ -17027,13 +17027,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Connected dive computers, source management';
 
   @override
-  String get siteDetailSection_map_name => 'Map';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Map preview of the site location';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Dive count, depths reached, longest and latest dives';
 
@@ -23512,6 +23505,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'Check that the date and time columns are mapped on this step, and that they hold dates.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Check that the date column holds dates written the way its header names.';
 
   @override
   String get universalImport_error_noDataInFile =>

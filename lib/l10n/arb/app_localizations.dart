@@ -28246,18 +28246,6 @@ abstract class AppLocalizations {
   /// **'Connected dive computers, source management'**
   String get diveDetailSection_dataSources_description;
 
-  /// No description provided for @siteDetailSection_map_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Map'**
-  String get siteDetailSection_map_name;
-
-  /// No description provided for @siteDetailSection_map_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Map preview of the site location'**
-  String get siteDetailSection_map_description;
-
   /// No description provided for @siteDetailSection_diveStatistics_description.
   ///
   /// In en, this message translates to:
@@ -38316,6 +38304,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Check that the date and time columns are mapped on this step, and that they hold dates.'**
   String get universalImport_error_unreadableDatesHint;
+
+  /// Last line of the unreadable-dates error for a self-describing format such as Submersion's own CSV, which has no Map Fields step; it points the user at the format the file's own date header names
+  ///
+  /// In en, this message translates to:
+  /// **'Check that the date column holds dates written the way its header names.'**
+  String get universalImport_error_unreadableDatesHintNoMapping;
 
   /// Error shown when a file produced nothing to import
   ///

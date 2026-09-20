@@ -17277,13 +17277,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Verbundene Tauchcomputer, Quellenverwaltung';
 
   @override
-  String get siteDetailSection_map_name => 'Karte';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Kartenvorschau des Tauchplatzes';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Anzahl der Tauchgänge, erreichte Tiefen, längster und letzter Tauchgang';
 
@@ -23847,6 +23840,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'Prüfen Sie, ob die Datums- und Uhrzeitspalten in diesem Schritt zugeordnet sind und Datumsangaben enthalten.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Prüfen Sie, ob die Datumsspalte Datumsangaben in dem Format enthält, das ihre Überschrift nennt.';
 
   @override
   String get universalImport_error_noDataInFile =>

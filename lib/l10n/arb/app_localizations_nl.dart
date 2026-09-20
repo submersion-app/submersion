@@ -17173,13 +17173,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Verbonden duikcomputers, bronbeheer';
 
   @override
-  String get siteDetailSection_map_name => 'Kaart';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Kaartvoorbeeld van de duikstek';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Aantal duiken, bereikte diepten, langste en laatste duiken';
 
@@ -23716,6 +23709,10 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'Controleer of de datum- en tijdkolommen in deze stap zijn toegewezen en of ze datums bevatten.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Controleer of de datumkolom datums bevat in de notatie die de kolomkop aangeeft.';
 
   @override
   String get universalImport_error_noDataInFile =>

@@ -583,6 +583,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'service-types',
                 name: 'manageServiceTypes',
+                // The service record dialog links here and is shown with
+                // showDialog (root navigator by default); on the shell's
+                // nested navigator this page would open behind that dialog.
+                parentNavigatorKey: rootNavigatorKey,
                 builder: (context, state) => const ServiceKindListPage(),
               ),
               // Must precede the ':equipmentId' catch-all below, which would

@@ -16892,13 +16892,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'מחשבי צלילה מחוברים, ניהול מקורות';
 
   @override
-  String get siteDetailSection_map_name => 'מפה';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'תצוגה מקדימה של מפת מיקום האתר';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'מספר צלילות, עומקים שהושגו, הצלילות הארוכות והאחרונות';
 
@@ -23321,6 +23314,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'בדוק שעמודות התאריך והשעה ממופות בשלב זה ושהן מכילות תאריכים.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'בדוק שעמודת התאריך מכילה תאריכים בתבנית שמצוינת בכותרת שלה.';
 
   @override
   String get universalImport_error_noDataInFile =>
