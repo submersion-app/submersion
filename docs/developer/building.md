@@ -100,6 +100,10 @@ flutter run -d windows
 # Linux
 flutter run -d linux
 ```text
+
+On macOS, `flutter run` builds the Debug configuration, which is pinned to the
+maintainer's signing team. Without access to it, see
+[macOS Signing Issues](#macos-signing-issues).
 ### Mobile
 
 ```bash
@@ -303,6 +307,26 @@ Ensure ANDROID_HOME is set:
 export ANDROID_HOME=$HOME/Android/Sdk
 export PATH=$PATH:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
 ```sql
+### macOS Signing Issues
+
+A build that stops with:
+
+```
+error: No profiles for 'app.submersion' were found: Xcode couldn't find any
+Mac App Development provisioning profiles matching 'app.submersion'.
+```
+
+means the Debug configuration's pinned signing team is unavailable to you.
+`flutter run -d macos` builds Debug, which sets `CODE_SIGN_IDENTITY` to
+`Apple Development` against the maintainer's `DEVELOPMENT_TEAM`, and
+`macos/Runner/DebugProfile.entitlements` requests an iCloud container, push
+notifications, an app group and a keychain access group that are bound to that
+account. Release builds do not pin an identity, so they are unaffected.
+
+Without access to that team, sign the debug build ad-hoc. The full procedure is
+in the README under
+[Running a debug build without an Apple Developer account](../../README.md#running-a-debug-build-without-an-apple-developer-account).
+
 ### iOS Signing Issues
 
 1. Open `ios/Runner.xcworkspace` in Xcode
