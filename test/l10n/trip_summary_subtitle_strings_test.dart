@@ -8,7 +8,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// a trip starting tomorrow read "In 1 days" in English too.
 ///
 /// `trips_summary_upcomingSubtitle` is the composition template: it owns the
-/// separator and the order of the two parts, both of which differ per locale.
+/// separator, which differs per locale (fr uses a hyphen where the rest use
+/// the bullet). The date leads in every locale.
 /// The countdown itself is not restated here. It comes from the shared
 /// `trips_list_countdown`, which the upcoming-trip banner already uses, so the
 /// wording and its plural categories live in exactly one place.
@@ -49,9 +50,22 @@ void main() {
     expect(subtitle(l10n, 0), "2026-06-03 - Départ aujourd'hui");
   });
 
-  test('Hungarian puts the count first', () async {
-    final l10n = await load('hu');
+  // The date leads in every locale, hu included. What differs is where the
+  // numeral sits inside the countdown clause, and that lives in
+  // trips_list_countdown rather than in this template: hu leads the clause
+  // with it ("4 nap múlva"), en and de trail it after "In".
+  test(
+    'Hungarian keeps the date first and leads its clause with the numeral',
+    () async {
+      final l10n = await load('hu');
 
-    expect(subtitle(l10n, 4), '2026-06-03 • 4 nap múlva');
+      expect(subtitle(l10n, 4), '2026-06-03 • 4 nap múlva');
+    },
+  );
+
+  test('Chinese keeps the date first too', () async {
+    final l10n = await load('zh');
+
+    expect(subtitle(l10n, 4), '2026-06-03 • 4 天后出发');
   });
 }

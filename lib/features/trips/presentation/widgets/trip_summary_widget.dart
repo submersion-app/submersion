@@ -291,11 +291,13 @@ class TripSummaryWidget extends ConsumerWidget {
               ),
             ),
             subtitle: Text(
-              // The separator and the order of the two parts belong to the
-              // translation: fr uses a hyphen, hu and zh lead with the count.
-              // The countdown itself is the shared trips_list_countdown the
-              // upcoming-trip banner already uses, so its wording and plural
-              // categories live in one place.
+              // The separator belongs to the translation: fr joins the two
+              // parts with a hyphen where every other locale uses the bullet.
+              // The date leads in every locale. Where the numeral sits is a
+              // property of the countdown clause, not of this template, and
+              // so belongs to trips_list_countdown: hu and zh lead that
+              // clause with the numeral, en and de trail it after "In".
+              // One more reason not to restate that wording here.
               context.l10n.trips_summary_upcomingSubtitle(
                 units.formatDate(nextTrip.trip.startDate),
                 context.l10n.trips_list_countdown(daysUntil),
