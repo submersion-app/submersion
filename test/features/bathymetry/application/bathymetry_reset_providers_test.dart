@@ -345,4 +345,12 @@ void main() {
     expect(estimate!.averageBytesPerSite, isNull);
     expect(estimate.formattedEstimatedSize, isNull);
   });
+
+  test('MapReloadEstimate omits a size when siteCount is 0, even with a '
+      'non-null average (regression: found by code review -- multiplying by '
+      'a 0 siteCount produced a fabricated "0 B" instead of no estimate)', () {
+    const estimate = MapReloadEstimate(siteCount: 0, averageBytesPerSite: 1024);
+    expect(estimate.estimatedBytes, isNull);
+    expect(estimate.formattedEstimatedSize, isNull);
+  });
 }

@@ -93,8 +93,13 @@ class MapReloadEstimate {
 
   const MapReloadEstimate({required this.siteCount, this.averageBytesPerSite});
 
-  int? get estimatedBytes =>
-      averageBytesPerSite == null ? null : averageBytesPerSite! * siteCount;
+  // siteCount == 0 must also read as "no estimate", not as a fabricated
+  // "0 B" -- the cached average can be non-null (e.g. from a location the
+  // diver viewed without saving a dive site there) even while there is
+  // nothing to reload (found by code review).
+  int? get estimatedBytes => averageBytesPerSite == null || siteCount == 0
+      ? null
+      : averageBytesPerSite! * siteCount;
 
   String? get formattedEstimatedSize {
     final bytes = estimatedBytes;
