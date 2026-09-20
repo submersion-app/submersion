@@ -169,6 +169,54 @@ void main() {
     expect(find.text('Hover or scrub the profile'), findsNothing);
   });
 
+  testWidgets('playback fills the readout card and keeps it moving', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_wrap(_defaultOverrides(), size: _desktopSize));
+    await tester.pumpAndSettle();
+
+    // Never hovered: the card starts on its hint (issue #2180 left it there
+    // for the whole dive).
+    expect(find.text('Hover or scrub the profile'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.play_arrow));
+    await tester.pump();
+    // One wall-second at the default 30x replays 30 dive-seconds.
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+
+    expect(find.text('Hover or scrub the profile'), findsNothing);
+    expect(find.textContaining('0:30'), findsWidgets);
+
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump();
+
+    expect(find.textContaining('1:00'), findsWidgets);
+
+    // Leave no ticker running into the next test.
+    await tester.tap(find.byIcon(Icons.pause));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('scrubbing the minimap slider updates the readout card', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_wrap(_defaultOverrides(), size: _desktopSize));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hover or scrub the profile'), findsOneWidget);
+
+    final slider = find.byType(Slider);
+    expect(slider, findsOneWidget);
+    final track = tester.getRect(slider);
+    // Halfway along a 600s dive.
+    await tester.tapAt(Offset(track.center.dx, track.center.dy));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Hover or scrub the profile'), findsNothing);
+    expect(find.textContaining('5:00'), findsWidgets);
+  });
+
   testWidgets('dragging the card persists a clamped fraction to settings', (
     tester,
   ) async {

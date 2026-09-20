@@ -349,6 +349,30 @@ ${[for (var n = 1; n <= dives; n++) "<dive number='$n' divesiteid='gone$n' date=
     });
   });
 
+  group('a tag that names a kind of place', () {
+    test('suggests a site type for an inline site too (#2205)', () async {
+      // The tag-derived suggestion is keyed on the dive's resolved site id,
+      // so it has to reach a site synthesised from a legacy <location> the
+      // same way it reaches one declared in <divesites>.
+      final result = await parser.parse(
+        xmlBytes(
+          legacyDivelog('''
+<dive number='1' date='2011-06-18' time='09:11:00' duration='47:30 min' tags='cave, deep'>
+  <location gps='30.101000 -85.201000'>Vortex Spring</location>
+  <divecomputer model='Suunto Vyper'>
+  <depth max='28.3 m' mean='16.7 m' />
+  </divecomputer>
+</dive>
+'''),
+        ),
+      );
+
+      final site = result.entitiesOf(ImportEntityType.sites).single;
+      expect(site['name'], 'Vortex Spring');
+      expect(site['suggestedSiteTypeRefs'], ['cave']);
+    });
+  });
+
   group('a real pre-4.5 Subsurface export', () {
     test('brings across every site the file carries', () async {
       final bytes = await File(legacyFixturePath).readAsBytes();

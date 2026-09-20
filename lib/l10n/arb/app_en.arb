@@ -1967,6 +1967,7 @@
   "common_action_delete": "Delete",
   "common_action_edit": "Edit",
   "common_action_ok": "OK",
+  "common_action_openSettings": "Open Settings",
   "common_action_save": "Save",
   "common_action_search": "Search",
   "common_action_share": "Share",
@@ -23544,6 +23545,26 @@
   "startup_failure_restoreFailed": "The backup could not be restored. Your dive log has been left exactly as it was.",
   "startup_failure_backupsFolder": "Your backups are in:",
   "startup_failure_showBackupsFolder": "Show backup folder",
+  "startup_failure_moreWays_title": "Other ways back in",
+  "startup_failure_useAnotherFolder": "Use a dive log in another folder",
+  "startup_failure_useAnotherFolder_subtitle": "Switch to a dive log you already keep somewhere else, such as an iCloud Drive or Dropbox folder.",
+  "startup_failure_restoreFromFile": "Restore from a backup file",
+  "startup_failure_restoreFromFile_subtitle": "Pick a Submersion backup from anywhere on this device or in a synced folder.",
+  "startup_failure_startFresh": "Start with an empty dive log",
+  "startup_failure_startFresh_subtitle": "Set the damaged file aside and begin again. Nothing is deleted.",
+  "startup_recovery_adopt_title": "Use this dive log?",
+  "startup_recovery_adopt_body": "Submersion will open this dive log from now on. The file that would not open stays where it is.",
+  "startup_recovery_adopt_contents": "{dives} dives, {sites} dive sites",
+  "startup_recovery_adopt_confirm": "Use this dive log",
+  "startup_recovery_startFresh_title": "Start with an empty dive log?",
+  "startup_recovery_startFresh_body": "Submersion moves the damaged file into a folder of its own and opens a new, empty dive log. Nothing is deleted, so you can still try the old file again or send it to support.",
+  "startup_recovery_startFresh_confirm": "Start fresh",
+  "startup_recovery_startFresh_done": "Your damaged dive log was moved to:\n{path}",
+  "startup_recovery_problem_title": "That did not work",
+  "startup_recovery_noDiveLog_body": "There is no {filename} in {folder}. Choose the folder that holds the dive log file itself.",
+  "startup_recovery_unusable_body": "The dive log at {path} is damaged, or it is not a Submersion dive log.",
+  "startup_recovery_unusableBackup_body": "That file is not a backup Submersion can restore: {path}",
+  "startup_recovery_encryptedBackup_body": "That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings, under Backup and Restore.",
   "startup_failure_downgrade_title": "Going back to the previous version",
   "startup_failure_downgrade_body": "If the upgrade keeps failing, install the version of Submersion you were running before, then restore the safety copy from inside that version. Restoring it here would only run the same upgrade again. Submersion does not downgrade itself: moving you onto older builds automatically would quietly keep you on versions with known problems.",
   "startup_failure_downgrade_action": "View previous releases",
@@ -23767,6 +23788,104 @@
   },
   "@startup_failure_showBackupsFolder": {
     "description": "Desktop-only button that opens the backups folder in the system file manager."
+  },
+  "@startup_failure_moreWays_title": {
+    "description": "Heading over the recovery routes offered when a startup failure left the diver's data reachable somewhere else."
+  },
+  "@startup_failure_useAnotherFolder": {
+    "description": "Action opening a folder picker so the diver can point Submersion at a dive log kept elsewhere, such as an iCloud Drive folder."
+  },
+  "@startup_failure_useAnotherFolder_subtitle": {
+    "description": "Explains what picking another folder does."
+  },
+  "@startup_failure_restoreFromFile": {
+    "description": "Action opening a file picker so the diver can restore a backup the app's own registry does not know about."
+  },
+  "@startup_failure_restoreFromFile_subtitle": {
+    "description": "Explains what picking a backup file does."
+  },
+  "@startup_failure_startFresh": {
+    "description": "Action that sets the unreadable database aside and starts an empty one. Last resort, shown below the two routes that keep existing data."
+  },
+  "@startup_failure_startFresh_subtitle": {
+    "description": "Explains that starting fresh moves the damaged file rather than deleting it."
+  },
+  "@startup_recovery_adopt_title": {
+    "description": "Title of the dialog confirming the dive log found in the picked folder."
+  },
+  "@startup_recovery_adopt_body": {
+    "description": "Explains that adopting the found dive log leaves the unreadable file untouched."
+  },
+  "@startup_recovery_adopt_contents": {
+    "description": "What the found dive log holds, so the diver can recognise it before committing. Object, not int, so counts are never group-separated inconsistently with the rest of the screen.",
+    "placeholders": {
+      "dives": {
+        "type": "Object",
+        "example": "412"
+      },
+      "sites": {
+        "type": "Object",
+        "example": "87"
+      }
+    }
+  },
+  "@startup_recovery_adopt_confirm": {
+    "description": "Confirm button of the adopt dialog."
+  },
+  "@startup_recovery_startFresh_title": {
+    "description": "Title of the dialog confirming an empty dive log."
+  },
+  "@startup_recovery_startFresh_body": {
+    "description": "Explains that the damaged file is moved aside, not deleted, and stays available for support."
+  },
+  "@startup_recovery_startFresh_confirm": {
+    "description": "Confirm button of the start-fresh dialog."
+  },
+  "@startup_recovery_startFresh_done": {
+    "description": "Tells the diver where the damaged dive log was moved to.",
+    "placeholders": {
+      "path": {
+        "type": "Object",
+        "example": "/Users/me/Documents/Submersion/unreadable-dive-log-20260919-183000"
+      }
+    }
+  },
+  "@startup_recovery_problem_title": {
+    "description": "Title shared by every dialog reporting that a recovery route did not get anywhere."
+  },
+  "@startup_recovery_noDiveLog_body": {
+    "description": "Shown when the picked folder holds no dive log. Names the file looked for and the folder searched, because picking the parent folder is the common mistake.",
+    "placeholders": {
+      "filename": {
+        "type": "Object",
+        "example": "submersion.db"
+      },
+      "folder": {
+        "type": "Object",
+        "example": "/Users/me/Library/Mobile Documents"
+      }
+    }
+  },
+  "@startup_recovery_unusable_body": {
+    "description": "Shown when the picked folder holds a dive log that cannot be read either.",
+    "placeholders": {
+      "path": {
+        "type": "Object",
+        "example": "/Users/me/Dropbox/Submersion/submersion.db"
+      }
+    }
+  },
+  "@startup_recovery_unusableBackup_body": {
+    "description": "Shown when a backup FILE the diver picked cannot be restored. Distinct from the unusable dive-log message, which calls the path a dive log.",
+    "placeholders": {
+      "path": {
+        "type": "Object",
+        "example": "/Users/me/Downloads/holiday.zip"
+      }
+    }
+  },
+  "@startup_recovery_encryptedBackup_body": {
+    "description": "Shown when the diver picks an encrypted backup on the startup failure screen, where the passphrase prompt that unlocks one is not reachable."
   },
   "@startup_failure_downgrade_title": {
     "description": "Heading of the guided-downgrade section on a failed schema upgrade."

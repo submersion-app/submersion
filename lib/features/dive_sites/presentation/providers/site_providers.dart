@@ -905,15 +905,11 @@ final siteDetailedCardConfigProvider =
             EntityCardSlotConfig(slotId: 'stat1', field: SiteField.depthRange),
             EntityCardSlotConfig(slotId: 'stat2', field: SiteField.diveCount),
           ],
-          // The detailed card has room for a fuller picture than a count
-          // and a personal best. All four come from the same grouped
-          // aggregate the list already loads, so this costs no extra query.
-          extraFields: [
-            SiteField.lastDived,
-            SiteField.maxDepthReached,
-            SiteField.averageDepthReached,
-            SiteField.averageDuration,
-          ],
+          // No extra fields by default. The card leads with the site itself,
+          // and the personal aggregates (last dived, your max, your avg,
+          // avg time) read as clutter in a long list. They stay in the field
+          // catalogue, so a diver can add any of them back from card
+          // settings, and a diver who already did keeps their layout.
         ),
         fieldFromName: SiteFieldAdapter.instance.fieldFromName,
       );

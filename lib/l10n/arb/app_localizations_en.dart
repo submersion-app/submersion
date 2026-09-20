@@ -3151,6 +3151,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_action_ok => 'OK';
 
   @override
+  String get common_action_openSettings => 'Open Settings';
+
+  @override
   String get common_action_save => 'Save';
 
   @override
@@ -38323,6 +38326,84 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startup_failure_showBackupsFolder => 'Show backup folder';
+
+  @override
+  String get startup_failure_moreWays_title => 'Other ways back in';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'Use a dive log in another folder';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'Switch to a dive log you already keep somewhere else, such as an iCloud Drive or Dropbox folder.';
+
+  @override
+  String get startup_failure_restoreFromFile => 'Restore from a backup file';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'Pick a Submersion backup from anywhere on this device or in a synced folder.';
+
+  @override
+  String get startup_failure_startFresh => 'Start with an empty dive log';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'Set the damaged file aside and begin again. Nothing is deleted.';
+
+  @override
+  String get startup_recovery_adopt_title => 'Use this dive log?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'Submersion will open this dive log from now on. The file that would not open stays where it is.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives dives, $sites dive sites';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'Use this dive log';
+
+  @override
+  String get startup_recovery_startFresh_title =>
+      'Start with an empty dive log?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion moves the damaged file into a folder of its own and opens a new, empty dive log. Nothing is deleted, so you can still try the old file again or send it to support.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'Start fresh';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'Your damaged dive log was moved to:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'That did not work';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'There is no $filename in $folder. Choose the folder that holds the dive log file itself.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'The dive log at $path is damaged, or it is not a Submersion dive log.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'That file is not a backup Submersion can restore: $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings, under Backup and Restore.';
 
   @override
   String get startup_failure_downgrade_title =>

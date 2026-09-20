@@ -8,7 +8,6 @@ import 'package:submersion/features/dive_log/presentation/widgets/environment_en
 import 'package:submersion/features/dive_sites/domain/constants/site_field.dart';
 import 'package:submersion/features/dive_sites/domain/entities/site_with_dive_count.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
-import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
@@ -28,8 +27,8 @@ import 'package:submersion/shared/widgets/feature_accent.dart';
 /// Detailed list card for one dive site.
 ///
 /// Configurable slots (title, subtitle, stat1, stat2, extra fields) come from
-/// [siteDetailedCardConfigProvider]; the rating, shared badge, difficulty,
-/// water type and feature chips are fixed identity elements. Hand-rolled
+/// [siteDetailedCardConfigProvider]; the rating, shared badge, water type and
+/// feature chips are fixed identity elements. Hand-rolled
 /// rather than a ListTile so the title keeps its font role under every theme
 /// preset and nothing text-bearing sits in the trailing slot.
 class SiteListTile extends ConsumerStatefulWidget {
@@ -121,7 +120,7 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
 
     Widget stat(SiteField field) {
       // A count of zero reads as noise on a card; the site simply has no
-      // dives yet, which the missing "Last dived" already says.
+      // dives yet, and the empty card already says so.
       if (field == SiteField.diveCount && entry.diveCount == 0) {
         return const SizedBox.shrink();
       }
@@ -140,13 +139,6 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
     final shownTags = entry.tags.take(3).toList();
     final hiddenTagCount = entry.tags.length - shownTags.length;
     final chips = <Widget>[
-      if (site.difficulty != null)
-        _SiteChip(
-          icon: Icons.signal_cellular_alt,
-          label: site.difficulty!.localizedName(l10n),
-          color: statColor,
-          textColor: chipTextColor,
-        ),
       if (site.waterType != null)
         _SiteChip(
           icon: Icons.water_drop,
@@ -414,7 +406,7 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
 }
 
 /// A small outlined chip with an icon, used for the fixed identity row
-/// (difficulty, water type, site features).
+/// (water type, site types, features and tags).
 class _SiteChip extends StatelessWidget {
   final IconData icon;
   final String label;

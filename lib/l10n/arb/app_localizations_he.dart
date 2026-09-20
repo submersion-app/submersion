@@ -3126,6 +3126,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_ok => 'אישור';
 
   @override
+  String get common_action_openSettings => 'פתח הגדרות';
+
+  @override
   String get common_action_save => 'שמירה';
 
   @override
@@ -38137,6 +38140,83 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get startup_failure_showBackupsFolder => 'הצג את תיקיית הגיבויים';
+
+  @override
+  String get startup_failure_moreWays_title => 'דרכים נוספות לחזור';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'שימוש ביומן צלילה בתיקייה אחרת';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'עברו ליומן צלילה ששמור אצלכם כבר במקום אחר, למשל בתיקיית iCloud Drive או Dropbox.';
+
+  @override
+  String get startup_failure_restoreFromFile => 'שחזור מקובץ גיבוי';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'בחרו גיבוי של Submersion מכל מקום במכשיר הזה או בתיקייה מסונכרנת.';
+
+  @override
+  String get startup_failure_startFresh => 'התחלה עם יומן צלילה ריק';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'הניחו את הקובץ הפגום בצד והתחילו מחדש. שום דבר לא נמחק.';
+
+  @override
+  String get startup_recovery_adopt_title => 'להשתמש ביומן הצלילה הזה?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'מעכשיו Submersion יפתח את יומן הצלילה הזה. הקובץ שלא נפתח נשאר במקומו.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives צלילות, $sites אתרי צלילה';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'להשתמש ביומן הזה';
+
+  @override
+  String get startup_recovery_startFresh_title => 'להתחיל עם יומן צלילה ריק?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion מעביר את הקובץ הפגום לתיקייה נפרדת ופותח יומן צלילה חדש וריק. שום דבר לא נמחק, כך שתוכלו לנסות שוב את הקובץ הישן או לשלוח אותו לתמיכה.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'להתחיל מחדש';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'יומן הצלילה הפגום שלכם הועבר אל:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'זה לא עבד';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'אין קובץ $filename בתיקייה $folder. בחרו את התיקייה שמכילה את קובץ יומן הצלילה עצמו.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'יומן הצלילה שב-$path פגום, או שאינו יומן צלילה של Submersion.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'הקובץ הזה אינו גיבוי ש-Submersion יכול לשחזר: $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'הגיבוי הזה מוצפן. Submersion יכול לפתוח גיבוי מוצפן רק כשהאפליקציה פתוחה, ולכן השתמשו קודם באחת הדרכים האחרות כאן ואז שחזרו אותו מההגדרות, תחת גיבוי ושחזור.';
 
   @override
   String get startup_failure_downgrade_title => 'חזרה לגרסה הקודמת';
