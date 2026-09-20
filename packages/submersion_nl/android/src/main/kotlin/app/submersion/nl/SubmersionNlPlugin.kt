@@ -1,6 +1,6 @@
 package app.submersion.nl
 
-import com.google.mlkit.genai.common.DownloadCallback
+import com.google.mlkit.genai.common.DownloadStatus
 import com.google.mlkit.genai.common.FeatureStatus
 import com.google.mlkit.genai.common.GenAiException
 import com.google.mlkit.genai.prompt.Generation
@@ -13,6 +13,7 @@ import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -23,10 +24,10 @@ private const val DOWNLOAD_CHANNEL = "submersion_nl/download"
 private val SUPPORTED_LANGUAGES = setOf("en", "ko")
 
 /**
- * Gemini Nano through the ML Kit GenAI Prompt API. Prompt-only JSON; the
- * Dart side validates the payload against schema v1. The Prompt API is
- * validated for English and Korean only, so other locales are reported as
- * unsupported and the feature stays hidden.
+ * Gemini Nano through the ML Kit GenAI Prompt API (genai-prompt 1.0.0-beta4).
+ * Prompt-only JSON; the Dart side validates the payload against schema v1.
+ * The Prompt API is validated for English and Korean only, so other locales
+ * are reported as unsupported and the feature stays hidden.
  */
 class SubmersionNlPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, EventChannel.StreamHandler {
 
@@ -35,6 +36,7 @@ class SubmersionNlPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Event
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
     private var model: GenerativeModel? = null
     private var instructions: String = ""
+    private var downloadJob: Job? = null
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(binding.binaryMessenger, CHANNEL)
@@ -50,40 +52,41 @@ class SubmersionNlPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Event
         scope.cancel()
     }
 
+    private fun client(): GenerativeModel = model ?: Generation.getClient().also { model = it }
+
     override fun onListen(arguments: Any?, events: EventChannel.EventSink) {
-        val m = model ?: Generation.getClient().also { model = it }
-        scope.launch {
+        val m = client()
+        downloadJob = scope.launch {
             try {
-                m.download(object : DownloadCallback {
-                    override fun onDownloadStarted(bytesToDownload: Long) {
-                        events.success(0.0)
+                m.download().collect { status ->
+                    when (status) {
+                        is DownloadStatus.DownloadStarted -> events.success(0.0)
+                        is DownloadStatus.DownloadProgress -> {}
+                        is DownloadStatus.DownloadCompleted -> {
+                            events.success(1.0)
+                            events.endOfStream()
+                        }
+                        is DownloadStatus.DownloadFailed ->
+                            events.error("model_not_ready", status.e.message, null)
                     }
-
-                    override fun onDownloadProgress(totalBytesDownloaded: Long) {}
-
-                    override fun onDownloadCompleted() {
-                        events.success(1.0)
-                        events.endOfStream()
-                    }
-
-                    override fun onDownloadFailed(e: GenAiException) {
-                        events.error("model_not_ready", e.message, null)
-                    }
-                })
+                }
             } catch (e: Exception) {
                 events.error("model_not_ready", e.message, null)
             }
         }
     }
 
-    override fun onCancel(arguments: Any?) {}
+    override fun onCancel(arguments: Any?) {
+        downloadJob?.cancel()
+        downloadJob = null
+    }
 
     override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "availability" -> availability(call.argument<String>("locale") ?: "en", result)
             "prepare" -> {
                 instructions = call.argument<String>("instructions") ?: ""
-                if (model == null) model = Generation.getClient()
+                client()
                 result.success(null)
             }
             "compile" -> {
@@ -104,7 +107,7 @@ class SubmersionNlPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Event
             result.success("unsupportedLocale")
             return
         }
-        val m = model ?: Generation.getClient().also { model = it }
+        val m = client()
         scope.launch {
             try {
                 val status = withContext(Dispatchers.IO) { m.checkStatus() }
@@ -123,17 +126,16 @@ class SubmersionNlPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Event
     }
 
     private fun compile(sentence: String, result: MethodChannel.Result) {
-        val m = model ?: Generation.getClient().also { model = it }
+        val m = client()
         scope.launch {
             try {
                 val prompt = instructions + "\n\nSentence: " + sentence + "\n"
-                val response = withContext(Dispatchers.IO) {
-                    m.generateContent(generateContentRequest(TextPart(prompt)) { maxOutputTokens = 512 })
-                }
+                val request = generateContentRequest(TextPart(prompt)) { maxOutputTokens = 512 }
+                val response = withContext(Dispatchers.IO) { m.generateContent(request) }
                 val text = response.candidates.firstOrNull()?.text ?: ""
                 result.success(stripFences(text))
             } catch (e: GenAiException) {
-                result.error(mapCode(e), e.message, null)
+                result.error(mapCode(e.errorCode), e.message, null)
             } catch (e: Exception) {
                 result.error("unknown", e.message, null)
             }
@@ -146,14 +148,17 @@ class SubmersionNlPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, Event
         return trimmed.removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
     }
 
-    private fun mapCode(e: GenAiException): String {
-        val name = e.errorCode.toString()
-        return when {
-            name.contains("REQUEST_TOO_LARGE") -> "context_exceeded"
-            name.contains("QUOTA") || name.contains("BUSY") -> "quota_exceeded"
-            name.contains("NOT_AVAILABLE") || name.contains("NOT_READY") || name.contains("DOWNLOAD") -> "model_not_ready"
-            name.contains("SAFETY") || name.contains("BLOCKED") -> "guardrail"
-            else -> "unknown"
-        }
+    private fun mapCode(code: Int): String = when (code) {
+        GenAiException.ErrorCode.REQUEST_TOO_LARGE -> "context_exceeded"
+        GenAiException.ErrorCode.BUSY,
+        GenAiException.ErrorCode.PER_APP_BATTERY_USE_QUOTA_EXCEEDED -> "quota_exceeded"
+        GenAiException.ErrorCode.NOT_AVAILABLE,
+        GenAiException.ErrorCode.NOT_SUPPORTED,
+        GenAiException.ErrorCode.NEEDS_SYSTEM_UPDATE,
+        GenAiException.ErrorCode.AICORE_INCOMPATIBLE,
+        GenAiException.ErrorCode.NOT_ENOUGH_DISK_SPACE -> "model_not_ready"
+        GenAiException.ErrorCode.RESPONSE_PROCESSING_ERROR,
+        GenAiException.ErrorCode.RESPONSE_GENERATION_ERROR -> "decoding_failure"
+        else -> "unknown"
     }
 }
