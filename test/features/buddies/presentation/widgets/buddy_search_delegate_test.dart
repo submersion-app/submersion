@@ -81,8 +81,8 @@ Future<void> _openSearch(WidgetTester tester, {required int diveCount}) async {
 void main() {
   // Issue #2084: the search results fabricated `BuddyWithDiveCount(diveCount:
   // 0)` because `buddySearchProvider` carries no counts, so every hit claimed
-  // the buddy had no dives -- rendered as "1 plongee" in French, where zero
-  // falls in the CLDR `one` plural category.
+  // the buddy had no dives. French renders that zero as "1 plongée", because
+  // zero falls in the CLDR `one` plural category there.
   testWidgets('search results show the buddy real dive count', (tester) async {
     await _openSearch(tester, diveCount: 2);
 

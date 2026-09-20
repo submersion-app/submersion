@@ -5,9 +5,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// Flutter's `gen-l10n` compiles an ARB `=1{...}` branch into the CLDR **`one`
 /// plural category**, not an exact-value match. French and Portuguese put zero
 /// in that category (`one: i = 0,1`), so a singular branch that spells the
-/// digit out ("1 plongee") reports one item when the real count is zero.
+/// digit out ("1 plongée") reports one item when the real count is zero.
 ///
-/// Issue #2084: a buddy with no dives read "1 plongee" in French.
+/// Issue #2084: a buddy with no dives read "1 plongée" in French.
 void main() {
   Future<AppLocalizations> load(String languageCode) =>
       AppLocalizations.delegate.load(Locale(languageCode));
