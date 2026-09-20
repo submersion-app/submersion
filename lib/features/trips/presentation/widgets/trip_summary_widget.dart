@@ -291,7 +291,15 @@ class TripSummaryWidget extends ConsumerWidget {
               ),
             ),
             subtitle: Text(
-              '${units.formatDate(nextTrip.trip.startDate)} • In $daysUntil days',
+              // The separator and the order of the two parts belong to the
+              // translation: fr uses a hyphen, hu and zh lead with the count.
+              // The countdown itself is the shared trips_list_countdown the
+              // upcoming-trip banner already uses, so its wording and plural
+              // categories live in one place.
+              context.l10n.trips_summary_upcomingSubtitle(
+                units.formatDate(nextTrip.trip.startDate),
+                context.l10n.trips_list_countdown(daysUntil),
+              ),
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),
