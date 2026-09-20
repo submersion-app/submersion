@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -8,9 +9,11 @@ import 'package:submersion/features/dive_3d/application/site_seascape_providers.
 import 'package:submersion/features/dive_3d/domain/entities/mesh_data.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/site_scape/presentation/site_terrain_pane.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import 'site_terrain_pane_test_support.dart';
@@ -37,6 +40,23 @@ BathymetryGrid _stubPatchGrid() => BathymetryGrid(
   depthsMeters: const [20, 30, 25, 35],
   sourceId: 'gmrt',
   resolutionMeters: 5,
+  fetchedAt: DateTime.utc(2026, 7, 28),
+);
+
+/// A patch grid whose provenance deliberately differs from the base
+/// square's (`gmrt` at 61 m, see readyState in the shared test support), so
+/// an assertion on the provenance chip cannot pass just because the two
+/// happen to agree.
+BathymetryGrid _finerPatchGrid() => BathymetryGrid(
+  originLat: 12.15,
+  originLon: -68.30,
+  cellSizeLatDeg: 0.0001,
+  cellSizeLonDeg: 0.0001,
+  rows: 2,
+  cols: 2,
+  depthsMeters: const [20, 30, 25, 35],
+  sourceId: 'swissbathy3d',
+  resolutionMeters: 2,
   fetchedAt: DateTime.utc(2026, 7, 28),
 );
 
@@ -307,6 +327,126 @@ void main() {
           isFalse,
           reason: 'detail-limit hint $hint overlaps the control card $card',
         );
+      },
+    );
+  });
+
+  group('the provenance chip follows the visible surface', () {
+    // The base square and the active patch can resolve to different
+    // sources at different native resolutions, so a chip hardwired to the
+    // base metadata describes data that is no longer what the diver sees.
+    testWidgets(
+      'the chip reports the base square before any patch is active, and the '
+      'patch grid once a finer stage is showing',
+      (tester) async {
+        await tester.pumpWidget(
+          page(
+            readyState(),
+            extraOverrides: [
+              siteSeascapePatchLayerProvider.overrideWith((ref, request) async {
+                if (request.stage != BathymetryLodStage.medium) return null;
+                return SiteSeascapePatchLayer(
+                  layers: [_stubPatchLayer()],
+                  grid: _finerPatchGrid(),
+                  stage: BathymetryLodStage.medium,
+                  detailLimitReached: false,
+                );
+              }),
+            ],
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        expect(find.textContaining('Seafloor: GMRT (~61 m)'), findsOneWidget);
+
+        tester
+            .widget<Dive3dInteractiveViewport>(
+              find.byType(Dive3dInteractiveViewport),
+            )
+            .onZoomSettled!(3.0);
+        await tester.pump();
+        await tester.pump();
+
+        expect(
+          find.textContaining(
+            'Seafloor: swissBATHY3D (\u00a9 swisstopo) (~2 m)',
+          ),
+          findsOneWidget,
+        );
+        expect(find.textContaining('Seafloor: GMRT'), findsNothing);
+      },
+    );
+  });
+
+  group('the patch survives a dependency-driven reload', () {
+    // A settings change (depth unit here) reloads every provider that
+    // watches settings, including the patch layer provider, and Riverpod
+    // parks it in a loading state with its previous value still attached.
+    //
+    // Reading that through the project's `.valueOrNull` extension drops the
+    // previous value and makes the rendered patch flicker away until the new
+    // mesh arrives. The extension is written with `when()`, whose
+    // `skipLoadingOnReload` defaults to false, so a DEPENDENCY reload takes
+    // the `loading` branch and returns null. Note that a manual
+    // `ref.invalidate` would NOT reproduce this: `skipLoadingOnRefresh`
+    // defaults to true, so `when()` keeps showing the previous data there.
+    testWidgets(
+      'a settings change keeps the previously built patch rendered while the '
+      'reload is in flight',
+      (tester) async {
+        var calls = 0;
+        await tester.pumpWidget(
+          page(
+            readyState(),
+            extraOverrides: [
+              siteSeascapePatchLayerProvider.overrideWith((ref, request) async {
+                if (request.stage != BathymetryLodStage.medium) return null;
+                // Mirrors the real provider's settings dependency, which is
+                // what makes the reload a dependency reload rather than a
+                // plain refresh.
+                ref.watch(settingsProvider.select((s) => s.depthUnit));
+                calls++;
+                // The reload never resolves, so anything still on screen is
+                // there because the previous value was retained.
+                if (calls > 1) {
+                  return Completer<SiteSeascapePatchLayer?>().future;
+                }
+                return SiteSeascapePatchLayer(
+                  layers: [_stubPatchLayer()],
+                  grid: _stubPatchGrid(),
+                  stage: BathymetryLodStage.medium,
+                  detailLimitReached: false,
+                );
+              }),
+            ],
+          ),
+        );
+        await tester.pump();
+        await tester.pump();
+
+        Dive3dInteractiveViewport viewport() =>
+            tester.widget<Dive3dInteractiveViewport>(
+              find.byType(Dive3dInteractiveViewport),
+            );
+        final baseLayerCount = readyState().scene.layers.length;
+
+        viewport().onZoomSettled!(3.0);
+        await tester.pump();
+        await tester.pump();
+        expect(viewport().scene.layers.length, baseLayerCount + 1);
+
+        final container = ProviderScope.containerOf(
+          tester.element(find.byType(SiteTerrainPane)),
+        );
+        (container.read(settingsProvider.notifier) as TestSettingsNotifier)
+            .publish(const AppSettings(depthUnit: DepthUnit.feet));
+        await tester.pump();
+        await tester.pump();
+
+        expect(calls, 2);
+        expect(viewport().scene.layers.length, baseLayerCount + 1);
+        expect(viewport().scene.layers[1].mesh.indices, [0, 1, 2]);
       },
     );
   });

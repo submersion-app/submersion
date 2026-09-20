@@ -27,6 +27,12 @@ class TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   TestSettingsNotifier([super.initial = const AppSettings()]);
 
+  /// Publishes a new settings value from outside the notifier, which
+  /// `StateNotifier.state` alone does not allow (its setter is protected).
+  /// A widget test needs this to drive a settings change and so trigger a
+  /// dependency-driven reload in every provider that watches settings.
+  void publish(AppSettings next) => state = next;
+
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
