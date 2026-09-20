@@ -3,7 +3,7 @@
 Date: 2026-09-19
 Status: approved design, implementation plan pending
 Branch: ericgriffin/github-issue-2144-5c6603
-Issue: to be filed (draft body in Appendix A); the PR body must say `Closes #<n>`
+Issue: #2187 (a phase 1 PR must say `Refs #2187`; only the phase 2 PR closes it)
 Source: discussion #2144
 
 ## Problem
@@ -305,33 +305,3 @@ files land rather than relying on an affected-directory run.
 - 500 dives with full profiles is the real workload. The reader must stream
   rather than build the entire sample set in memory at once, and the import
   should be measured at that size before shipping rather than assumed fine.
-
-## Appendix A: issue draft
-
-Title: `feat(import): Diving Log / DiveLogDT SQLite logbook import`
-
-Body:
-
-> Reported in discussion #2144. A diver with around 500 dives in DiveLogDT
-> migrated via DL7 and lost every site, buddy, equipment item, weight, tank
-> and trip.
->
-> DL7 cannot carry that data. It was built by DAN for decompression research
-> and the vendor's own export page calls it "lacking in much information
-> desired by logbook users". Our DL7 parser skips all non-spec segments by
-> design and only recovers rich data from the Aqualung ZAR dialect, which
-> DiveLogDT does not write.
->
-> DiveLogDT's logbook is a SQLite database it exports directly, and it is the
-> same format Diving Log uses on Windows. That file holds the missing data.
-> Adding an importer for it gives DiveLogDT users a real migration path and
-> serves Diving Log users at the same time. It also gives the already
-> declared but unimplemented `ImportFormat.sqlite` and `divingLogXml` enum
-> values something behind them.
->
-> Design: `docs/superpowers/specs/2026-09-19-divinglog-sqlite-import-design.md`
->
-> Phase 1: dives, profiles, tanks, weights, sites and buddies from the
-> `Logbook` and `Tank` tables.
-> Phase 2: the buddy, equipment, trip and shop tables, once a sample file is
-> available to map against.
