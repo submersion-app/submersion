@@ -34,6 +34,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_decima
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_band.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_bar_window.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/ascent_rate_bar_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_agreement.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_lines.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_line_builders.dart';
@@ -3336,16 +3337,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         _buildSacLine(metricBand, minSac, maxSac),
                     ],
                   ),
-                  ..._barsCache.series(
-                    'ascent',
-                    _ascentSig,
-                    () => [
-                      // Ascent-rate magnitude line (separate overlay; signed
-                      // m/min)
-                      if (_showAscentRateLine && widget.ascentRates != null)
-                        _buildAscentRateLine(metricBand),
-                    ],
-                  ),
+                  // Ascent-rate magnitude is drawn by [AscentRateBarOverlay], a
+                  // widget layer below (bars from the plot's vertical centre,
+                  // not an fl_chart line bar), so this cache series is empty.
+                  // The signature stays wired so a rate-data change still
+                  // invalidates the shared bars cache key.
+                  ..._barsCache.series('ascent', _ascentSig, () => const []),
                   ..._barsCache.series(
                     'analysis',
                     _analysisSig,
@@ -4621,6 +4618,26 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             availableWidth: availableWidth,
             visibleMinX: visibleMinX,
             visibleMaxX: visibleMaxX,
+          ),
+        // Ascent/descent rate bars: a widget layer (not an fl_chart line),
+        // so its variable bar length and colour intensity are painted
+        // directly rather than forced through LineChartBarData. Replaces the
+        // old lime rate line under the same legend toggle (issue #2228
+        // follow-up): a bar from the plot's fixed vertical centre reads the
+        // signed rate more directly than a scaled curve does.
+        if (_showAscentRateLine && widget.ascentRates != null)
+          Positioned.fill(
+            child: AscentRateBarOverlay(
+              ascentRates: widget.ascentRates!,
+              visibleMinSeconds: visibleMinX,
+              visibleMaxSeconds: visibleMaxX,
+              insets: plotInsets,
+              maxAbsRateMetersPerMin:
+                  DiveProfileChart.ascentRateAxisRange(
+                    widget.ascentRates,
+                  )?.max ??
+                  0,
+            ),
           ),
         // Photo markers: tappable camera chips at each photo's (time, depth).
         // A widget layer (not an fl_chart element) so its taps never enter
@@ -5903,19 +5920,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     widget.sacCurve!,
     widget.profile,
     _decimatedCurveIndices,
-    _withFlatSurfaceLeadIn,
-    _seriesGetsLeadIn,
-  );
-
-  /// Build the separate ascent-rate magnitude line: signed rate (m/min) mapped
-  /// into the depth plot area so ascents rise above and descents dip below the
-  /// vertical mid-plot. Self-scaled via [DiveProfileChart.ascentRateAxisRange]
-  /// so the line and the optional right-axis labels share one scale.
-  LineChartBarData _buildAscentRateLine(MetricBand band) => buildAscentRateLine(
-    band,
-    widget.ascentRates!,
-    widget.profile,
-    DiveProfileChart.ascentRateAxisRange(widget.ascentRates)!,
     _withFlatSurfaceLeadIn,
     _seriesGetsLeadIn,
   );

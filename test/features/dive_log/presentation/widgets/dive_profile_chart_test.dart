@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_metric
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_timeline_strip.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/ascent_rate_bar_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_overlay.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -4455,8 +4456,18 @@ void main() {
       );
     });
 
-    bool hasRateLine(WidgetTester t) =>
-        primaryChartData(t).lineBarsData.any((b) => b.color == Colors.lime);
+    // Ascent rate is drawn by AscentRateBarOverlay, a widget layer (bars from
+    // the plot's vertical centre), not an fl_chart line bar (issue #2228
+    // follow-up), so it is found by widget type rather than a bar colour.
+    bool hasRateLine(WidgetTester t) => find
+        .descendant(
+          of: find.byType(AscentRateBarOverlay),
+          matching: find.byWidgetPredicate(
+            (w) => w is CustomPaint && w.painter != null,
+          ),
+        )
+        .evaluate()
+        .isNotEmpty;
 
     testWidgets('does not render the ascent-rate line by default', (
       tester,

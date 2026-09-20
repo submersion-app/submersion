@@ -1,7 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
-import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
@@ -253,46 +252,6 @@ LineChartBarData buildSacLine(
     dotData: const FlDotData(show: false),
     // Solid: see the comment on buildNdlLine's dashArray removal. SAC has
     // no overlay counterpart, so nothing relies on this dash.
-  );
-}
-
-/// Build the separate ascent-rate magnitude line: signed rate (m/min) mapped
-/// into the depth plot area so ascents rise above and descents dip below the
-/// vertical mid-plot. Self-scaled via the ascent-rate axis range so the line
-/// and the optional right-axis labels share one scale.
-LineChartBarData buildAscentRateLine(
-  MetricBand band,
-  List<AscentRatePoint> ascentRates,
-  List<DiveProfilePoint> profile,
-  ({double min, double max}) range,
-  WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
-  SeriesGetsLeadIn seriesGetsLeadIn,
-) {
-  final spots = <FlSpot>[];
-  for (var i = 0; i < profile.length && i < ascentRates.length; i++) {
-    // Normalisation is unit-invariant, so map the stored m/min value
-    // directly; the right axis converts to the user's unit at label time.
-    spots.add(
-      FlSpot(
-        profile[i].timestamp.toDouble(),
-        -band.map(ascentRates[i].rateMetersPerMin, range.min, range.max),
-      ),
-    );
-  }
-  return LineChartBarData(
-    spots: withFlatSurfaceLeadIn(spots),
-    isCurved: true,
-    curveSmoothness: 0.2,
-    // Only while a lead-in is drawn: that vertex is a sharp direction
-    // change and the spline would otherwise overshoot it and hook below
-    // the curve at the left edge. Dives already starting at t=0 keep
-    // their existing smoothing untouched.
-    preventCurveOverShooting: seriesGetsLeadIn(spots, profile),
-    color: Colors.lime,
-    barWidth: 1,
-    isStrokeCapRound: true,
-    dotData: const FlDotData(show: false),
-    // Solid: see the comment on buildNdlLine's dashArray removal.
   );
 }
 
