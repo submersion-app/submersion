@@ -154,6 +154,119 @@ void main() {
     expect(await captionOf(), 'legacy peer');
   });
 
+  group('the guard covers every clock-guarded media table', () {
+    // The clock-guarded set changes merge behaviour for four tables, each
+    // with its own fetch and upsert arm, so a media-only test would let a
+    // regression in any of the other three through.
+    setUp(() async {
+      await db.customStatement(
+        "INSERT INTO dives (id, dive_date_time, created_at, updated_at) "
+        "VALUES ('d1', 0, 0, 0)",
+      );
+      await db.customStatement(
+        "INSERT INTO species (id, common_name, category) "
+        "VALUES ('sp1', 'Grouper', 'fish')",
+      );
+      await db.customStatement(
+        "INSERT INTO media_enrichment (id, media_id, dive_id, "
+        "match_confidence, created_at) VALUES ('e1', ?, 'd1', 'mine', 0)",
+        [id],
+      );
+      await db.customStatement(
+        "INSERT INTO media_species (id, media_id, species_id, notes, "
+        "created_at) VALUES ('ms1', ?, 'sp1', 'mine', 0)",
+        [id],
+      );
+      await db.customStatement(
+        "INSERT INTO media_stores (id, provider_type, display_hint, "
+        "created_at, updated_at) VALUES ('st1', 's3', 'mine', 0, 0)",
+      );
+    });
+
+    /// Stamps the row's clock the way a local edit would, then publishes it
+    /// so the pending rule cannot be what refuses the peer's copy.
+    Future<void> stampLocally(String entityType, String recordId) async {
+      await SyncRepository().markRecordPending(
+        entityType: entityType,
+        recordId: recordId,
+        localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+      );
+      await SyncRepository().clearPendingRecords();
+    }
+
+    Future<void> applyOne(String entityType, Map<String, dynamic> row) {
+      final data = switch (entityType) {
+        'mediaEnrichment' => SyncData(mediaEnrichment: [row]),
+        'mediaSpecies' => SyncData(mediaSpecies: [row]),
+        'mediaStores' => SyncData(mediaStores: [row]),
+        _ => throw ArgumentError.value(entityType, 'entityType'),
+      };
+      return SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+      ).debugApplyPayload(
+        SyncPayload(
+          version: 1,
+          exportedAt: 0,
+          deviceId: 'peer',
+          checksum: '',
+          data: data,
+          deletions: const {},
+        ),
+      );
+    }
+
+    Future<String?> readValue(String sql) async =>
+        (await db.customSelect(sql).getSingle()).data.values.first as String?;
+
+    final cases = <({String type, String id, String field, String sql})>[
+      (
+        type: 'mediaEnrichment',
+        id: 'e1',
+        field: 'matchConfidence',
+        sql: "SELECT match_confidence FROM media_enrichment WHERE id = 'e1'",
+      ),
+      (
+        type: 'mediaSpecies',
+        id: 'ms1',
+        field: 'notes',
+        sql: "SELECT notes FROM media_species WHERE id = 'ms1'",
+      ),
+      (
+        type: 'mediaStores',
+        id: 'st1',
+        field: 'displayHint',
+        sql: "SELECT display_hint FROM media_stores WHERE id = 'st1'",
+      ),
+    ];
+
+    for (final c in cases) {
+      test('${c.type} refuses a strictly older copy', () async {
+        await stampLocally(c.type, c.id);
+        final theirs = (await SyncDataSerializer().fetchRecord(c.type, c.id))!;
+        // The local row moves on after the peer took its snapshot.
+        await stampLocally(c.type, c.id);
+
+        await applyOne(c.type, {...theirs, c.field: 'theirs'});
+
+        expect(await readValue(c.sql), 'mine', reason: c.type);
+      });
+
+      test('${c.type} applies a strictly newer copy', () async {
+        await stampLocally(c.type, c.id);
+        final local = (await SyncDataSerializer().fetchRecord(c.type, c.id))!;
+
+        await applyOne(c.type, {
+          ...local,
+          c.field: 'theirs',
+          'hlc': SyncClock.instance.issue(),
+        });
+
+        expect(await readValue(c.sql), 'theirs', reason: c.type);
+      });
+    }
+  });
+
   test('the batched fetch serves media rows', () async {
     final rows = await SyncDataSerializer().fetchRecords('media', [id, 'none']);
     expect(rows.keys, [id]);
