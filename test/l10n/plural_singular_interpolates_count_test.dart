@@ -5,8 +5,12 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
-/// Guards French and Portuguese against spelling a count out as the digit `1`
-/// in a plural's singular branch.
+/// Guards French and Portuguese against spelling the pluralised value out as
+/// the digit `1` in a plural's singular branch.
+///
+/// The branch must interpolate the argument it is pluralised on, which is not
+/// always named `count`: `{total, plural, =1{{count} sur 1 composant}}` has to
+/// become `=1{{count} sur {total} composant}`, not `{count}`.
 ///
 /// Flutter's `gen-l10n` compiles an ARB `=1{...}` branch into the CLDR **`one`
 /// plural category**, not an exact-value match. French and Portuguese both put
@@ -22,9 +26,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 void main() {
   const affectedLocales = ['fr', 'pt'];
 
-  group('ARB singular branches interpolate the count', () {
+  group('ARB singular branches interpolate their plural argument', () {
     for (final locale in affectedLocales) {
-      test('app_$locale.arb spells no count out as a literal 1', () {
+      test('app_$locale.arb spells no plural argument out as a literal 1', () {
         final arb =
             jsonDecode(File('lib/l10n/arb/app_$locale.arb').readAsStringSync())
                 as Map<String, dynamic>;
@@ -36,9 +40,10 @@ void main() {
             for (final selector in const ['=1', 'one']) {
               final branch = branches[selector];
               if (branch == null) continue;
-              // A literal `1` is only a bug when it stands in for the count.
-              // A branch that already interpolates its own argument is using
-              // the digit for something else, such as "Étape 1 sur {count}".
+              // A literal `1` is only a bug when it stands in for the value
+              // being pluralised. A branch that already interpolates its own
+              // argument is using the digit for something else, such as
+              // "Étape 1 sur {count}".
               if (containsBareOne(branch) && !branch.contains('{$argument}')) {
                 offenders.add('$key [$argument] $selector{$branch}');
               }
@@ -52,8 +57,10 @@ void main() {
           reason:
               '${offenders.length} singular branch(es) in app_$locale.arb '
               'hardcode the digit 1, so a count of zero renders as "1". '
-              'Interpolate the placeholder instead of spelling the digit out: '
-              r'"=1{1 plongee}" becomes "=1{{count} plongee}".'
+              'Interpolate the branch\'s own plural argument, which is not '
+              'always named count: "=1{1 plongee}" pluralised on count becomes '
+              '"=1{{count} plongee}", and "=1{{count} sur 1 composant}" '
+              'pluralised on total becomes "=1{{count} sur {total} composant}".'
               '\n'
               '${offenders.take(20).join('\n')}'
               '${offenders.length > 20 ? '\n...and ${offenders.length - 20} more' : ''}',
