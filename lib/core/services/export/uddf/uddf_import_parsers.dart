@@ -654,9 +654,6 @@ class UddfImportParsers {
     _ => null,
   };
 
-  /// The `<tagref>` values of [parent]'s own `<tags>` child (issues #1765,
-  /// #1942). `findElements` matches direct children only, so a check-in's
-  /// `<tags>` inside an item's `<observations>` is never read as the item's.
   /// Every `<sitefeature>` inside a `<site>` (issue #2200), as the maps the
   /// importer restores. Carried on the site map for the same reason the
   /// classification refs are: the import wizard keeps only entity lists.
@@ -692,6 +689,9 @@ class UddfImportParsers {
     return features;
   }
 
+  /// The `<tagref>` values of [parent]'s own `<tags>` child (issues #1765,
+  /// #1942). `findElements` matches direct children only, so a check-in's
+  /// `<tags>` inside an item's `<observations>` is never read as the item's.
   static List<String> _tagRefsOf(XmlElement parent) => [
     for (final ref
         in parent.findElements('tags').expand((s) => s.findElements('tagref')))

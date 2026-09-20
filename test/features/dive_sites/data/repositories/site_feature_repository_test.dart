@@ -154,4 +154,41 @@ void main() {
   test('getFeaturesForSites returns nothing for no sites', () async {
     expect(await repo.getFeaturesForSites(const []), isEmpty);
   });
+  test('getFeaturesForSites reads past SQLite\'s bound-variable limit and '
+      'merges across chunks', () async {
+    // One variable is bound per id, and SQLite refuses a statement past its
+    // limit, so a library with enough sites would fail the export outright
+    // rather than load its features. 40000 is over the limit of every
+    // build: without chunking this throws "too many SQL variables".
+    const count = 40000;
+    final ids = [for (var i = 0; i < count; i++) 'bulk-site-$i'];
+    await db.batch((batch) {
+      batch.insertAll(db.diveSites, [
+        for (final id in ids)
+          DiveSitesCompanion.insert(
+            id: id,
+            name: 'Site $id',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+      ]);
+    });
+    // Three sites that cannot share a chunk, so a merge that kept only one
+    // chunk's rows would lose two of them.
+    final marked = [ids.first, ids[count ~/ 2], ids.last];
+    for (final id in marked) {
+      await repo.addFeature(
+        siteId: id,
+        typeName: 'mooring',
+        latitude: 1,
+        longitude: 2,
+      );
+    }
+
+    final bySite = await repo.getFeaturesForSites(ids);
+    expect(bySite.keys, unorderedEquals(marked));
+    for (final id in marked) {
+      expect(bySite[id]!.single.typeName, 'mooring');
+    }
+  });
 }
