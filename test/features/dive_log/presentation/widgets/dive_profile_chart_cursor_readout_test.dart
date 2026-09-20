@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -292,6 +293,75 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(emissions, 0);
+  });
+
+  testWidgets('a panel-style echo does not overwrite a surface-hover readout', (
+    tester,
+  ) async {
+    // The detail panel feeds onPointSelected back in as highlightedTimestamp,
+    // and an index can only echo as a sample's timestamp. For the synthetic
+    // surface vertex that is the FIRST SAMPLE's timestamp, so resolving the
+    // echo would turn a surface hover into a sample hover.
+    final profile = _leadInProfile();
+    List<TooltipRow>? rows;
+    int? trackedIndex;
+
+    Widget build() => ProviderScope(
+      overrides: [
+        settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+      ],
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SizedBox(
+            width: 400,
+            height: 300,
+            child: DiveProfileChart(
+              profile: profile,
+              diveDurationSeconds: profile.last.timestamp,
+              tooltipBelow: true,
+              onTooltipData: (r) {
+                if (r != null && r.isNotEmpty) rows = r;
+              },
+              onPointSelected: (i) => trackedIndex = i,
+              highlightedTimestamp:
+                  trackedIndex != null && trackedIndex! < profile.length
+                  ? profile[trackedIndex!].timestamp
+                  : null,
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pumpWidget(build());
+    await tester.pumpAndSettle();
+
+    // The lead-in vertex is at t=0 and depth 0: the top-left of the plot, not
+    // its centre, since this profile descends left to right.
+    final plot = tester.getRect(find.byType(LineChart).first);
+    final gesture = await tester.startGesture(
+      Offset(plot.left + 50, plot.top + 15),
+    );
+    await tester.pump(const Duration(milliseconds: 600));
+    await gesture.moveBy(const Offset(1, 0));
+    await tester.pump();
+
+    // Rebuild with the echoed cursor, exactly as the panel would.
+    await tester.pumpWidget(build());
+    await tester.pumpAndSettle();
+
+    expect(trackedIndex, 0, reason: 'the lead-in vertex selects index 0');
+    expect(
+      _rowValue(rows, 'Time'),
+      '0:00',
+      reason: 'the echo must not restate the surface hover as sample 1',
+    );
+
+    await gesture.up();
+    await tester.pumpAndSettle();
   });
 
   testWidgets('no external emission when the chart paints its own tooltip', (

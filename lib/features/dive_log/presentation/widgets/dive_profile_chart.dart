@@ -1370,8 +1370,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           current < widget.profile.first.timestamp &&
           shouldDrawSurfaceLeadIn(widget.profile);
       final last = _lastEmittedCursor;
-      if (last != null && last.index == index && last.onLeadIn == onLeadIn) {
-        return;
+      if (last != null && last.index == index) {
+        // Same sample: only a change of lead-in state is worth restating,
+        // and not even that while the pointer is the thing that selected it.
+        // A chart that echoes its own selection back as the cursor (the
+        // detail panel, via its shared tracking index) can only echo a
+        // sample's timestamp, which for the synthetic surface vertex is the
+        // FIRST SAMPLE's timestamp; resolving that echo would overwrite the
+        // pointer's correct 0:00 surface rows with the first sample's.
+        if (last.onLeadIn == onLeadIn || _chartTouchSelecting) return;
       }
       _emitTooltipRowsForIndex(
         index,
