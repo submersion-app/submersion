@@ -4,7 +4,7 @@ import 'package:submersion/features/universal_import/data/models/import_enums.da
 void main() {
   group('ImportFormat', () {
     test('has all expected values', () {
-      expect(ImportFormat.values, hasLength(19));
+      expect(ImportFormat.values, hasLength(20));
     });
 
     test('displayName for each format', () {
