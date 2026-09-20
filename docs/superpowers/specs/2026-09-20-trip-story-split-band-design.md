@@ -3,7 +3,7 @@
 Date: 2026-09-20
 Status: approved design, implementation plan pending
 Branch: ericgriffin/trips-map-screen-space-f72bd0
-Issue: none yet. Open one before the PR and link it with `Closes #N`.
+Issue: #2230 (the PR body must say `Closes #2230`)
 
 ## Problem
 
