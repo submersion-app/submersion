@@ -157,6 +157,39 @@ void main() {
     },
   );
 
+  test('a whole-row write stamps the fact groups it changed', () async {
+    final before = await clocks();
+    await Future<void>.delayed(const Duration(milliseconds: 2));
+    final row = (await repo.getMediaById(id))!;
+
+    await repo.updateMedia(row.copyWith(isOrphaned: true));
+
+    final after = await clocks();
+    expect(later(after['row'], before['row']), isTrue);
+    expect(
+      later(after['verify'], before['verify']),
+      isTrue,
+      reason: 'the verification facts changed, so they need a fresh clock',
+    );
+    expect(after['upload'], before['upload'], reason: 'untouched group');
+  });
+
+  test(
+    'a whole-row write that changes no fact leaves the fact clocks',
+    () async {
+      final before = await clocks();
+      await Future<void>.delayed(const Duration(milliseconds: 2));
+      final row = (await repo.getMediaById(id))!;
+
+      await repo.updateMedia(row.copyWith(caption: 'a new caption'));
+
+      final after = await clocks();
+      expect(later(after['row'], before['row']), isTrue);
+      expect(after['upload'], before['upload']);
+      expect(after['verify'], before['verify']);
+    },
+  );
+
   test('a user edit moves only the row clock', () async {
     final before = await clocks();
     await Future<void>.delayed(const Duration(milliseconds: 2));

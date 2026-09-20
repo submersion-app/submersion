@@ -3749,6 +3749,41 @@ class SyncService {
     return null;
   }
 
+  /// One snapshot row with fresh clocks for the replay.
+  ///
+  /// Fact groups (media sync program spec 5.1) carry their own clocks, and a
+  /// row can be pending because of a fact write alone. Restamping the ROW
+  /// clock for such a row would republish this device's whole snapshot of it
+  /// and let a stale caption beat a peer's newer edit, so the row clock is
+  /// refreshed only when it is already the newest clock on the row, which is
+  /// exactly when the last local write was a user edit. The facts republish
+  /// either way: the export selects a row on any of its clocks.
+  @visibleForTesting
+  static Map<String, dynamic> restampRowForReplay(
+    String entityType,
+    Map<String, dynamic> row,
+  ) {
+    final groups = SyncFactGroups.of(entityType);
+    if (groups.isEmpty) {
+      return {...row, 'hlc': SyncClock.instance.issue()};
+    }
+    final rowClock = row['hlc'];
+    var rowIsNewest = true;
+    for (final g in groups) {
+      final factClock = row[g.clockKey];
+      if (factClock is String &&
+          (rowClock is! String || factClock.compareTo(rowClock) > 0)) {
+        rowIsNewest = false;
+      }
+    }
+    return {
+      ...row,
+      if (rowIsNewest) 'hlc': SyncClock.instance.issue(),
+      for (final g in groups)
+        if (row[g.clockKey] is String) g.clockKey: SyncClock.instance.issue(),
+    };
+  }
+
   /// Re-applies the pre-fence pending snapshot with FRESH HLC stamps. The
   /// adopted watermark (maxRowHlc after the rebuild) is at or above the
   /// snapshot's original stamps, so without re-stamping the rows would sort
@@ -3770,7 +3805,7 @@ class SyncService {
       restamped[entry.key] = [
         for (final row in rows)
           if (row is Map<String, dynamic> && row.containsKey('hlc'))
-            {...row, 'hlc': SyncClock.instance.issue()}
+            restampRowForReplay(entry.key, row)
           else
             row,
       ];

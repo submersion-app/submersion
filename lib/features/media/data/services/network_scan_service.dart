@@ -212,12 +212,16 @@ class NetworkScanService {
     }
   }
 
+  /// The narrow verification write, never [MediaRepository.updateMedia]:
+  /// [row] is this scan's snapshot, and an upload that finished since it was
+  /// taken has stamped the row, so a whole-row write would roll those stamps
+  /// back. It also keeps the verification facts under their own clock.
   Future<void> _persistResult(MediaItem row, {required bool reachable}) {
-    final updated = row.copyWith(
+    return _repository.markVerified(
+      row.id,
       isOrphaned: !reachable,
-      lastVerifiedAt: clock.now(),
+      verifiedAt: clock.now(),
     );
-    return _repository.updateMedia(updated);
   }
 
   Future<Map<String, String>> _resolveAuthHeaders(

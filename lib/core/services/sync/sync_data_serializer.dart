@@ -1505,6 +1505,9 @@ class SyncDataSerializer {
     'mediaEnrichment',
     'mediaSpecies',
     'mediaStores',
+    'species',
+    'importedFiles',
+    'fieldPresets',
   };
 
   /// Writes one fact group's columns and clock with explicit values, nulls
@@ -2803,6 +2806,26 @@ class SyncDataSerializer {
         return {
           for (final r in rows) r.id: r.toJson(serializer: _syncBlobSerializer),
         };
+      case 'mediaSpecies':
+        final rows = await (_db.select(
+          _db.mediaSpecies,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'species':
+        final rows = await (_db.select(
+          _db.species,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'importedFiles':
+        final rows = await (_db.select(
+          _db.importedFiles,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'fieldPresets':
+        final rows = await (_db.select(
+          _db.fieldPresets,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
       case 'mediaStores':
         final rows = await (_db.select(
           _db.mediaStores,

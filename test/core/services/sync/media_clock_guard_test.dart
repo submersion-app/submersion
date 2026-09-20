@@ -78,6 +78,34 @@ void main() {
     SyncClock.instance.reset();
   });
 
+  test('every clocked blind-upsert entity is guarded', () {
+    // A blind-upsert entity that carries its own clock must be guarded, or
+    // its local row is never fetched: the stale-copy check cannot run and a
+    // pending row still skips the peer's copy (media sync program spec 5.1).
+    final unguarded = [
+      for (final entry in SyncService.entityHasUpdatedAt.entries)
+        if (!entry.value &&
+            SyncRepository.hlcTargets.containsKey(entry.key) &&
+            !SyncDataSerializer.parentGatedChildEntities.contains(entry.key) &&
+            !SyncDataSerializer.clockGuardedEntities.contains(entry.key))
+          entry.key,
+    ];
+    expect(
+      unguarded,
+      isEmpty,
+      reason: 'add each to SyncDataSerializer.clockGuardedEntities',
+    );
+  });
+
+  test('every clock-guarded entity has a batched fetch', () async {
+    // The merge fetches local rows for every guarded entity; without an arm
+    // in fetchRecords each row costs its own SELECT.
+    for (final type in SyncDataSerializer.clockGuardedEntities) {
+      final rows = await SyncDataSerializer().fetchRecords(type, const []);
+      expect(rows, isEmpty, reason: type);
+    }
+  });
+
   test('every clock-guarded entity is a stamped HLC target', () {
     for (final type in SyncDataSerializer.clockGuardedEntities) {
       expect(SyncRepository.hlcTargets[type], isNotNull, reason: type);
@@ -92,6 +120,9 @@ void main() {
       'mediaEnrichment',
       'mediaSpecies',
       'mediaStores',
+      'species',
+      'importedFiles',
+      'fieldPresets',
     });
   });
 

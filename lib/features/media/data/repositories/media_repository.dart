@@ -390,10 +390,38 @@ class MediaRepository {
   }
 
   /// Update existing media
+
+  /// Fact groups whose columns differ between [previous] and [next]. Used by
+  /// the whole-row writer so a changed fact travels under a fresh group
+  /// clock, and an unchanged one does not (media sync program spec 5.1).
+  List<SyncFactGroup> _changedFactGroups(
+    domain.MediaItem? previous,
+    domain.MediaItem next,
+  ) {
+    if (previous == null) return SyncFactGroups.of('media');
+    final groups = <SyncFactGroup>[];
+    if (previous.contentHash != next.contentHash ||
+        previous.contentSizeBytes != next.contentSizeBytes ||
+        previous.remoteUploadedAt != next.remoteUploadedAt ||
+        previous.remoteThumbUploadedAt != next.remoteThumbUploadedAt ||
+        previous.remoteCompressedUploadedAt !=
+            next.remoteCompressedUploadedAt ||
+        previous.compressedLevel != next.compressedLevel ||
+        previous.compressedSizeBytes != next.compressedSizeBytes) {
+      groups.add(SyncFactGroups.mediaUpload);
+    }
+    if (previous.isOrphaned != next.isOrphaned ||
+        previous.lastVerifiedAt != next.lastVerifiedAt) {
+      groups.add(SyncFactGroups.mediaVerification);
+    }
+    return groups;
+  }
+
   Future<void> updateMedia(domain.MediaItem item) async {
     try {
       _log.info('Updating media: ${item.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
+      final previous = await getMediaById(item.id);
 
       await (_db.update(_db.media)..where((t) => t.id.equals(item.id))).write(
         MediaCompanion(
@@ -448,10 +476,17 @@ class MediaRepository {
         ),
       );
 
+      // A whole-row write carries the fact columns too. Stamp the clock of
+      // any fact group whose values actually changed, or the new values
+      // would travel under an unchanged group clock and lose to a peer's
+      // older facts (media sync program spec 5.1). Groups that did not
+      // change keep their clock, so a caption edit stays a caption edit.
+      final changedGroups = _changedFactGroups(previous, item);
       await _syncRepository.markRecordPending(
         entityType: 'media',
         recordId: item.id,
         localUpdatedAt: now,
+        alsoStamp: changedGroups,
       );
       SyncEventBus.notifyLocalChange();
       _log.info('Updated media: ${item.id}');
