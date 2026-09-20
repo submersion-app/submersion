@@ -1,3 +1,3 @@
-Name,Country,Region,Latitude,Longitude,Max Depth (m),Water Type,Current,Entry Type,Rating,Description,Notes
-Blue Hole,Belize,Lighthouse Reef,17.316000,-87.535000,40.5,Salt Water,,Boat Entry,4.5,Sinkhole with an arch,Line 1 Line 2
-House Reef,,,,,,,,,,,
+Name,Country,Region,Latitude,Longitude,Max Depth (m),Water Type,Current,Entry Type,Rating,Description,Notes,Min Depth (m),Difficulty,Altitude (m),City,Island,Body of Water,Hazards,Access Notes,Mooring Number,Parking Info,Exit Type,Site Types,Site Tags,Site Features
+Blue Hole,Belize,Lighthouse Reef,17.316000,-87.535000,40.5,Salt Water,,Boat Entry,4.5,Sinkhole with an arch,Line 1 Line 2,8.2,Advanced,1200.5,San Pedro,Lighthouse Atoll,Caribbean Sea,Strong down-current on the wall,"Boat only, 90 minutes out",M-14,"Marina lot, pay and display",Shore Entry,,,
+House Reef,,,,,,,,,,,,,,,,,,,,,,,,,

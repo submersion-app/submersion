@@ -9,6 +9,12 @@ import 'csv_test_fixtures.dart';
 /// The goldens were written by the unchanged exporter; regenerate ONLY with
 /// `flutter test <this file> --dart-define=WRITE_CSV_GOLDENS=true`, and only
 /// when a deliberate format change has been agreed.
+///
+/// The sites golden moved once since, for issue #2201: the export used to
+/// drop twelve of a site's fields, so a CSV round trip was lossy. The
+/// restored columns are APPENDED after the historical twelve, which keep
+/// their order and position, so a consumer reading this file by column
+/// offset or by header name is unaffected.
 const _write = bool.fromEnvironment('WRITE_CSV_GOLDENS');
 const _dir = 'test/core/services/export/csv/goldens';
 

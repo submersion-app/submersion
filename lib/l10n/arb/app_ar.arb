@@ -6875,7 +6875,7 @@
   "trips_summary_stat_liveaboards": "سفن الغوص",
   "trips_summary_stat_totalDives": "إجمالي الغوصات",
   "trips_summary_stat_totalTrips": "إجمالي الرحلات",
-  "trips_summary_upcomingSubtitle": "{date} • بعد {days} أيام",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "القادمة",
   "trips_type_dayTrip": "رحلة يومية",
   "trips_type_liveaboard": "قارب إقامة",

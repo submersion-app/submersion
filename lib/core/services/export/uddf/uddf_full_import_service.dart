@@ -11,6 +11,7 @@ import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
+import 'package:submersion/features/universal_import/data/csv/transforms/dive_type_mapper.dart';
 
 /// Handles comprehensive UDDF import including all application data.
 ///
@@ -554,6 +555,8 @@ class UddfFullImportService {
       if (entries.isNotEmpty) dive['dataSources'] = entries;
     }
 
+    _harvestCustomDiveTypes(dives, customDiveTypes);
+
     return UddfImportResult(
       dataSourcesByDiveRef: sources.byDiveRef,
       unpairedDumps: sources.unpaired,
@@ -706,6 +709,67 @@ class UddfFullImportService {
     }
 
     return (byDiveRef: entries, unpaired: unpaired);
+  }
+
+  /// Creates a custom dive type for every id in [dives] that is neither a
+  /// built-in nor already declared in the file (#2203).
+  ///
+  /// [_parseDiveType] preserves a type it does not recognise as its slug
+  /// rather than recording it as 'recreational'. Only Submersion's own export
+  /// carries a `<submersion><divetypes>` block, so without this a third-party
+  /// file's "Cenote" would leave a `dive_dive_types` row pointing at no
+  /// `dive_types` row: the dive would still show the name, but the type would
+  /// be missing from the picker and from filters, and editing the dive would
+  /// drop it.
+  static void _harvestCustomDiveTypes(
+    List<Map<String, dynamic>> dives,
+    List<Map<String, dynamic>> customDiveTypes,
+  ) {
+    final declared = {
+      for (final t in customDiveTypes)
+        if (t['id'] is String) t['id'] as String,
+    };
+
+    for (final dive in dives) {
+      final ids = dive['diveTypeIds'];
+      if (ids is! List) continue;
+      final names = dive['diveTypeNames'];
+      String? nameOf(String id) {
+        final n = names is Map ? names[id] : null;
+        return n is String ? n : null;
+      }
+
+      // Relink an id the free-text mapper mangled. Submersion's own export
+      // writes `dive.diveTypeIds` into `<divetype>`, so the element text is
+      // a stored id, and `generateSlug` strips the underscores out of one:
+      // 'search_recovery_1a2b3c4d' would arrive as
+      // 'searchrecovery1a2b3c4d', no longer matching the type the file
+      // declares. Where the original text is a declared id, that is the id.
+      for (var i = 0; i < ids.length; i++) {
+        final id = ids[i];
+        if (id is! String) continue;
+        final original = nameOf(id)?.trim();
+        if (original != null && original != id && declared.contains(original)) {
+          ids[i] = original;
+          if (names is Map) {
+            names.remove(id);
+            names[original] = original;
+          }
+        }
+      }
+
+      for (final id in ids.whereType<String>()) {
+        if (kBuiltInDiveTypeIds.contains(id) || !declared.add(id)) continue;
+        final name = nameOf(id);
+        customDiveTypes.add({
+          'id': id,
+          'name': name != null && name.isNotEmpty
+              ? name
+              : Dive.diveTypeDisplayName(id),
+          'isBuiltIn': false,
+        });
+      }
+    }
   }
 
   /// One `<source>` element as a map keyed by `dive_data_sources` field name.
@@ -1050,9 +1114,18 @@ class UddfFullImportService {
 
       final diveTypeElements = beforeElement.findElements('divetype').toList();
       if (diveTypeElements.isNotEmpty) {
-        diveData['diveTypeIds'] = {
-          for (final e in diveTypeElements) _parseDiveType(e.innerText),
-        }.toList();
+        // The element text alongside the id it mapped to. A type the mapper
+        // did not recognise is preserved as its slug (#2203), and
+        // _harvestCustomDiveTypes needs the diver's own spelling to name the
+        // custom type it creates for it.
+        final named = <String, String>{};
+        for (final e in diveTypeElements) {
+          final text = e.innerText.trim();
+          final id = _parseDiveType(text);
+          if (!named.containsKey(id)) named[id] = text;
+        }
+        diveData['diveTypeIds'] = named.keys.toList();
+        diveData['diveTypeNames'] = named;
       }
 
       final entryType = UddfImportParsers.getElementText(
@@ -2737,39 +2810,11 @@ class UddfFullImportService {
     }
   }
 
-  String _parseDiveType(String value) {
-    final lower = value.toLowerCase();
-    if (lower.contains('training') || lower.contains('course')) {
-      return 'training';
-    } else if (lower.contains('night')) {
-      return 'night';
-    } else if (lower.contains('deep')) {
-      return 'deep';
-    } else if (lower.contains('wreck')) {
-      return 'wreck';
-    } else if (lower.contains('drift')) {
-      return 'drift';
-    } else if (lower.contains('cavern')) {
-      return 'cavern';
-    } else if (lower.contains('cave')) {
-      return 'cave';
-    } else if (lower.contains('tech')) {
-      return 'technical';
-    } else if (lower.contains('free')) {
-      return 'freedive';
-    } else if (lower.contains('ice')) {
-      return 'ice';
-    } else if (lower.contains('altitude')) {
-      return 'altitude';
-    } else if (lower.contains('shore')) {
-      return 'shore';
-    } else if (lower.contains('boat')) {
-      return 'boat';
-    } else if (lower.contains('liveaboard')) {
-      return 'liveaboard';
-    }
-    return 'recreational';
-  }
+  /// Maps a UDDF dive type string to a dive type id.
+  ///
+  /// Delegates to the shared [mapDiveType] ladder, so this importer and the
+  /// CSV one cannot drift apart again (issue #2203).
+  String _parseDiveType(String value) => mapDiveType(value);
 
   /// UDDF 3.2 standard equipment child elements that appear under
   /// `<diver><owner><equipment>`. Each element represents one gear item and

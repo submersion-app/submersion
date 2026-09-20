@@ -22940,8 +22940,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_summary_stat_totalTrips => 'Reisen gesamt';
 
   @override
-  String trips_summary_upcomingSubtitle(Object date, Object days) {
-    return '$date • In $days Tagen';
+  String trips_summary_upcomingSubtitle(Object date, Object countdown) {
+    return '$date • $countdown';
   }
 
   @override
