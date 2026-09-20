@@ -109,6 +109,42 @@ void main() {
     expect(names.nameFor(deviceA), isNull);
   });
 
+  test('a failing name store costs the peer nothing', () async {
+    // A name is optional metadata. Left unguarded, the write threw into the
+    // per-peer catch, which marks the peer read-failed and drops its
+    // changesets for the whole cycle.
+    switchTo(dbA);
+    await seedDiver(dbA);
+    await SyncRepository().markRecordPending(
+      entityType: 'divers',
+      recordId: 'diver1',
+      localUpdatedAt: 0,
+    );
+    final deviceA = await SyncRepository().getDeviceId();
+    await service().performSync();
+    await restampPeerDeviceName(cloud, deviceA, deviceName: "Eric's MacBook");
+
+    switchTo(dbB);
+    final failing = _FailingNameStore(await SharedPreferences.getInstance());
+    addTearDown(failing.dispose);
+    final result = await SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+      cloudProvider: cloud,
+      peerNames: failing,
+    ).performSync();
+
+    expect(result.isSuccess, isTrue);
+    final merged = await dbB
+        .customSelect("SELECT id FROM divers WHERE id = 'diver1'")
+        .getSingleOrNull();
+    expect(
+      merged?.read<String>('id'),
+      'diver1',
+      reason: "the peer's records must still merge",
+    );
+  });
+
   test('a manifest without a name records nothing', () async {
     switchTo(dbA);
     await seedDiver(dbA);
@@ -126,4 +162,15 @@ void main() {
 
     expect(names.nameFor(deviceA), isNull);
   });
+}
+
+/// A store whose write always fails, standing in for a preferences backend
+/// that is full, locked or unavailable.
+class _FailingNameStore extends PeerDeviceNameStore {
+  _FailingNameStore(super.prefs);
+
+  @override
+  Future<void> record(String deviceId, String? name) async {
+    throw StateError('preferences unavailable');
+  }
 }

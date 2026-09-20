@@ -4177,7 +4177,15 @@ class SyncService {
       }
       // Recorded unconditionally: the manifest parsed, so a missing name is
       // the peer's current state and clears any name it published before.
-      await _peerNames?.record(deviceId, manifest.deviceName);
+      //
+      // Guarded on its own: nothing above catches here, so a failed
+      // preferences write would abort the whole scan and with it the
+      // library adoption, over optional metadata.
+      try {
+        await _peerNames?.record(deviceId, manifest.deviceName);
+      } catch (e) {
+        _log.warning('Could not record the name for peer $deviceId', error: e);
+      }
       if (manifest.epochId != epochId) continue;
       final baseSeq = manifest.baseSeq;
       if (baseSeq == null) continue;

@@ -177,7 +177,16 @@ class ChangesetReader {
         // Recorded unconditionally: the manifest read succeeded, so a
         // missing name is the peer's current state and must clear any name
         // it published before, not leave a stale label behind.
-        await peerNames?.record(peerId, manifestName);
+        //
+        // Guarded on its own: a name is optional metadata, and a failed
+        // preferences write is not a failed peer read. Left to the catch
+        // below it would mark this peer read-failed and cost its changesets
+        // for the whole cycle.
+        try {
+          await peerNames?.record(peerId, manifestName);
+        } catch (e) {
+          _log.warning('Could not record the name for peer $peerId', error: e);
+        }
 
         // Stale-epoch filter: once this device is on a library epoch, a peer
         // stamped with a different epoch (including an unstamped legacy peer)
