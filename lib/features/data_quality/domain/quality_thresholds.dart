@@ -47,6 +47,11 @@ abstract final class QualityThresholds {
   static const double sacSurfaceLpmMax = 100.0;
   static const int sacMinSeriesSeconds = 300;
   static const int switchProximitySeconds = 60;
+  // How close a tank-pressure sample must sit to the depth-based surfacing
+  // moment to stand in for it (#2220). Wide enough to cover a coarsely
+  // sampled series without reaching back to an early-dive reading that says
+  // nothing about surfacing.
+  static const int pressureSurfacingLookbackSeconds = 120;
 
   // gas_mod
   static const double ppO2WarnBar = 1.6;
