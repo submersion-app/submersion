@@ -233,10 +233,12 @@ class SiteSeascapePatchLayer {
   /// stage carries the same information the base square does -- not just a
   /// sharper terrain color ramp. None are `drapedOnTerrain`: sharing the
   /// base terrain's depth-sort group is what caused the original
-  /// z-fighting (see the terrain layer's own doc below), and these ride
-  /// the PATCH terrain, not the base's, so they paint correctly on top of
-  /// it purely by being later entries in [Scene3d.layers] -- no shared
-  /// depth sort needed for a mesh painted strictly after the one it rides.
+  /// z-fighting (see the terrain layer's own doc below). Instead they all
+  /// share one [SceneLayer.localMergeGroup] key, so the renderer batches
+  /// and depth-sorts them TOGETHER against the patch's own terrain -- far
+  /// side of a steep patch wall still hides behind the near side, and a
+  /// contour riding the back of a ridge still hides behind it -- without
+  /// ever joining the base terrain's separate merge group.
   final List<SceneLayer> layers;
   final BathymetryLodStage stage;
   final bool detailLimitReached;
@@ -295,10 +297,13 @@ class _PatchSceneInput {
 /// the base scene; that flag is what pulls a layer into the shared,
 /// depth-sorted merge group, and that merge is exactly what z-fights when
 /// the patch's own near-coplanar terrain shares it with the base terrain's
-/// -- see [SiteSeascapePatchLayer]'s own doc). Riding the patch and simply
-/// painting after it (patch terrain is always layers[0] in the returned
-/// list) is enough: a later, separate `_paintMeshes` call always paints on
-/// top of an earlier one, with no shared depth sort required.
+/// -- see [SiteSeascapePatchLayer]'s own doc). Instead every layer here
+/// carries the same [_patchMergeGroup] key, so the renderer's own local
+/// merge group depth-sorts the patch's terrain, contours and wall highlight
+/// together -- correct occlusion on the patch's own steep terrain -- while
+/// staying out of the base terrain's separate merge group entirely.
+const Object _patchMergeGroup = 'lodPatch';
+
 List<SceneLayer> _buildPatchLayers(_PatchSceneInput input) {
   final terrain = BathymetryTerrainBuilder.build(
     grid: input.grid,
@@ -309,7 +314,9 @@ List<SceneLayer> _buildPatchLayers(_PatchSceneInput input) {
     surfaceMode: input.appearance.surfaceMode,
     imageryFrame: input.imageryFrame,
   );
-  final layers = <SceneLayer>[SceneLayer(terrain.terrain)];
+  final layers = <SceneLayer>[
+    SceneLayer(terrain.terrain, localMergeGroup: _patchMergeGroup),
+  ];
 
   final contours = buildContourLayers(
     grid: input.grid,
@@ -320,7 +327,13 @@ List<SceneLayer> _buildPatchLayers(_PatchSceneInput input) {
     depthSymbol: input.depthSymbol,
   );
   for (final layer in contours.layers) {
-    layers.add(SceneLayer(layer.mesh, overlay: layer.overlay));
+    layers.add(
+      SceneLayer(
+        layer.mesh,
+        overlay: layer.overlay,
+        localMergeGroup: _patchMergeGroup,
+      ),
+    );
   }
 
   final wallMesh = buildWallHighlightMesh(
@@ -330,7 +343,13 @@ List<SceneLayer> _buildPatchLayers(_PatchSceneInput input) {
     thresholdDeg: input.appearance.wallAngleDeg,
   );
   if (wallMesh != null) {
-    layers.add(SceneLayer(wallMesh, overlay: SceneOverlay.steepWalls));
+    layers.add(
+      SceneLayer(
+        wallMesh,
+        overlay: SceneOverlay.steepWalls,
+        localMergeGroup: _patchMergeGroup,
+      ),
+    );
   }
 
   return layers;

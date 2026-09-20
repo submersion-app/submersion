@@ -75,23 +75,34 @@ class Dive3dScenePainter extends CustomPainter {
   /// and the rest. The group is the first visible layer (the terrain) plus
   /// every visible [SceneLayer.drapedOnTerrain] layer: their triangles are
   /// depth-sorted TOGETHER so far-side contours and walls hide behind
-  /// hills. Everything else keeps plain back-to-front layer order.
+  /// hills. Everything else keeps plain back-to-front layer order, except
+  /// that consecutive layers sharing the same non-null
+  /// [SceneLayer.localMergeGroup] collapse into one [restGroups] entry,
+  /// depth-sorted together instead of each painted as its own flat pass.
   @visibleForTesting
-  static ({List<MeshData> merged, List<MeshData> rest}) partitionLayers(
-    Scene3d scene,
-    Set<SceneOverlay>? visibleOverlays,
-  ) {
+  static ({List<MeshData> merged, List<List<MeshData>> restGroups})
+  partitionLayers(Scene3d scene, Set<SceneOverlay>? visibleOverlays) {
     final merged = <MeshData>[];
-    final rest = <MeshData>[];
+    final restGroups = <List<MeshData>>[];
+    Object? openGroupKey;
     for (final layer in scene.layers) {
       if (!_overlayVisible(layer.overlay, visibleOverlays)) continue;
       if (merged.isEmpty || layer.drapedOnTerrain) {
         merged.add(layer.mesh);
+        openGroupKey = null;
+        continue;
+      }
+      final groupKey = layer.localMergeGroup;
+      if (groupKey != null &&
+          groupKey == openGroupKey &&
+          restGroups.isNotEmpty) {
+        restGroups.last.add(layer.mesh);
       } else {
-        rest.add(layer.mesh);
+        restGroups.add([layer.mesh]);
+        openGroupKey = groupKey;
       }
     }
-    return (merged: merged, rest: rest);
+    return (merged: merged, restGroups: restGroups);
   }
 
   @override
@@ -119,11 +130,11 @@ class Dive3dScenePainter extends CustomPainter {
       imagery: terrainImagery,
       whiteTexel: imageryWhiteTexel,
     );
-    for (final mesh in parts.rest) {
+    for (final group in parts.restGroups) {
       _paintMeshes(
         canvas,
         projector,
-        [mesh],
+        group,
         imagery: terrainImagery,
         whiteTexel: imageryWhiteTexel,
       );

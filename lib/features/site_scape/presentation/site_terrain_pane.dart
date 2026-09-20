@@ -201,6 +201,13 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
               // detail-limit hint chip below can read the same value without
               // a second, possibly out-of-sync watch.
               final stage = bathymetryLodStageForZoom(_settledZoom);
+              // Uses AsyncValue.value (not the project's .valueOrNull
+              // extension) on purpose: .value retains the previous patch
+              // while a dependency-driven reload (base seascape or
+              // settings change) is in flight, whereas .valueOrNull's
+              // when()-based implementation returns null for every
+              // loading state and would otherwise make the patch flicker
+              // away and reappear on each reload.
               final patch = ref
                   .watch(
                     siteSeascapePatchLayerProvider((
@@ -208,7 +215,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                       stage: stage,
                     )),
                   )
-                  .valueOrNull;
+                  .value;
               // scene.layers can legitimately be empty (e.g. right after a
               // source switch, before the terrain layer has been added);
               // there is then no base layer to insert the patch ahead of,
@@ -319,8 +326,8 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                           left: 8,
                           right: 8,
                           child: _sourceChip(
-                            sourceId,
-                            resolutionMeters,
+                            patch?.grid.sourceId ?? sourceId,
+                            patch?.grid.resolutionMeters ?? resolutionMeters,
                             stage,
                             depthUnit,
                           ),
