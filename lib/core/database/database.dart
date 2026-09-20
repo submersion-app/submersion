@@ -3536,6 +3536,60 @@ class DiveSensorSummaries extends Table {
   Set<Column> get primaryKey => {diveId};
 }
 
+/// What only a profile decode can answer about a dive, computed once per
+/// dive version by DerivedMetricsService so the Explore filter can ask about
+/// SAC trend and final-stop stability in SQL (phase 2, issue #2195).
+///
+/// Device-local, never synced: no `hlc` column, and a restore rebuilds it by
+/// sweep rather than inheriting another device's numbers. The Drift class is
+/// `DiveDerivedMetricsRows` because `DiveDerivedMetrics` is the domain type
+/// this row maps to; the SQL table keeps the unsuffixed name.
+@DataClassName('DiveDerivedMetricsRow')
+class DiveDerivedMetricsRows extends Table {
+  @override
+  String get tableName => 'dive_derived_metrics';
+
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  IntColumn get engineVersion => integer()();
+  IntColumn get sourceUpdatedAt => integer()();
+  IntColumn get computedAt => integer()();
+
+  /// `FinalStopKind.name`, defaulting to none so a row always classifies.
+  TextColumn get finalStopKind => text().withDefault(const Constant('none'))();
+  IntColumn get finalStopStartS => integer().nullable()();
+  IntColumn get finalStopDurationS => integer().nullable()();
+  RealColumn get finalStopDepthStddevM => real().nullable()();
+  RealColumn get finalStopMaxExcursionM => real().nullable()();
+
+  RealColumn get sacMeanBarMin => real().nullable()();
+  RealColumn get sacSlopeBarMinPerMin => real().nullable()();
+  IntColumn get runtimeS => integer().nullable()();
+
+  /// `UnsupportedReason.name` when a metric could not be derived. A row with
+  /// a reason still exists, so the sweep never revisits the dive.
+  TextColumn get unsupportedReason => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {diveId};
+}
+
+/// SAC per five-minute bucket, so "SAC increased after 20 minutes" is two
+/// averages in SQL for any N rather than a profile decode per dive. Same
+/// device-local rules as dive_derived_metrics.
+@DataClassName('DiveSacBucketRow')
+class DiveSacBuckets extends Table {
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  IntColumn get bucketIndex => integer()();
+
+  /// Bar per minute at surface pressure.
+  RealColumn get sacBarMin => real()();
+
+  @override
+  Set<Column> get primaryKey => {diveId, bucketIndex};
+}
+
 /// v202: a diver's post-dive gear check-in (phase 3). Synced aggregate root.
 @DataClassName('EquipmentObservationRow')
 class EquipmentObservations extends Table {
@@ -4184,6 +4238,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     EmergencyChambers,
     Incidents,
     DiveSensorSummaries,
+    DiveDerivedMetricsRows,
+    DiveSacBuckets,
     EquipmentObservations,
     EquipmentFindings,
     EquipmentConditionReviews,
@@ -4261,7 +4317,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 221;
+  static const int currentSchemaVersion = 222;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4881,6 +4937,11 @@ class AppDatabase extends _$AppDatabase {
     // compatibility floor stays. Sits above v220 (#1980), which shipped
     // while this was in review.
     221,
+    // v222: Explore phase 2 derived metrics (issue #2195).
+    // dive_derived_metrics and dive_sac_buckets, both children of dives.
+    // Device-local by construction (no hlc column), table-only rung, no
+    // backfill: the sweep fills them, so the compatibility floor stays.
+    222,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5037,6 +5098,30 @@ class AppDatabase extends _$AppDatabase {
           : 'TEXT',
     );
   }
+
+  /// v222: the Explore phase 2 derived-metric tables (issue #2195).
+  /// Idempotent; called from the v222 onUpgrade block and the beforeOpen
+  /// backstop, so a ladder-version collision or a restored database cannot
+  /// strand a diver without them.
+  ///
+  /// Self-guarding when `dives` is absent: both tables reference it, and
+  /// with foreign keys on, SQLite refuses every insert into a table whose
+  /// FK parent is missing. Minimal migration-test fixtures hit that.
+  Future<void> _assertDerivedMetricsSchema() async {
+    if (!await _tableExists('dives')) return;
+    final m = createMigrator();
+    await m.createTable(diveDerivedMetricsRows);
+    await m.createTable(diveSacBuckets);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_sac_buckets_dive '
+      'ON dive_sac_buckets (dive_id)',
+    );
+  }
+
+  /// Test hook: re-assert the v222 tables on demand so tests can prove the
+  /// stranded-database self-heal path is idempotent.
+  Future<void> assertDerivedMetricsSchemaForTest() =>
+      _assertDerivedMetricsSchema();
 
   /// v202: equipment condition intelligence, phase 1. Idempotent; called
   /// from the v202 onUpgrade block and the beforeOpen backstop.
@@ -12367,6 +12452,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertDiveCenterGearNotesSchema();
         }
         if (from < 221) await reportProgress();
+        // v222: Explore phase 2 derived metrics (issue #2195). Table-only
+        // rung, no backfill: the sweep fills both tables on next launch.
+        if (from < 222) {
+          await _assertDerivedMetricsSchema();
+        }
+        if (from < 222) await reportProgress();
       },
       beforeOpen: (details) async {
         // v220 backstop: the computer-set auto-apply opt-in column.
@@ -12494,6 +12585,9 @@ class AppDatabase extends _$AppDatabase {
         // v221 backstop: the rental gear notes table (parallel-branch
         // version-collision self-heal; createTable is idempotent).
         await _assertDiveCenterGearNotesSchema();
+
+        // v222 backstop: the Explore derived-metric tables.
+        await _assertDerivedMetricsSchema();
 
         // v122 backstop: re-assert service ledger schema + built-in kinds.
         // The legacy backfill is NOT here (onUpgrade only) -- re-running it
