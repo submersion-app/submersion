@@ -215,6 +215,38 @@ void main() {
       expect(payload.entitiesOf(ImportEntityType.dives), isEmpty);
     });
 
+    test('surfaces the reader schema notes as diagnostics', () {
+      final payload = DivingLogDiveMapper.toPayload(
+        DivingLogLogbook(
+          dives: [dive()],
+          capabilities: const DivingLogCapabilities(tables: {}, columns: {}),
+          schemaNotes: const ['No Tank table, so something was lost.'],
+        ),
+      );
+      expect(
+        payload.warnings
+            .where((w) => w.message.contains('No Tank table'))
+            .length,
+        1,
+      );
+    });
+
+    test('ignores a profile tank id that matches no cylinder', () {
+      final payload = DivingLogDiveMapper.toPayload(
+        book([
+          dive(
+            tanks: const [DivingLogRawTank(tankId: 0, o2Percent: 32.0)],
+            samples: const [
+              DivingLogRawSample(timeSeconds: 0, depthMeters: 20.0, tankId: 0),
+              DivingLogRawSample(timeSeconds: 20, depthMeters: 6.0, tankId: 7),
+            ],
+          ),
+        ]),
+      );
+      final d = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(d.containsKey('gasSwitches'), isFalse);
+    });
+
     test('maps weight to weightUsed in kilograms', () {
       final payload = DivingLogDiveMapper.toPayload(
         book([dive(weightKg: 5.0)]),

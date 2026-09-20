@@ -184,6 +184,14 @@ class DivingLogDbReader {
       final tombstones = _readTombstones(db, caps);
       final tanksByLogId = _readTanks(db, caps);
       final selectList = caps.selectList('Logbook', _logbookColumns);
+      if (selectList.isEmpty) {
+        // Another product's table can share the name. Saying so beats
+        // emitting `SELECT  FROM Logbook` and surfacing a SQL syntax error
+        // to a diver who only wanted to import their dives.
+        throw const FormatException(
+          'Logbook table has none of the expected columns',
+        );
+      }
       final table = caps.actualTable('Logbook')!;
       final rows = db.select('SELECT $selectList FROM "$table"');
 

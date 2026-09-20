@@ -126,6 +126,33 @@ CREATE TABLE Logbook (
   return bytes;
 }
 
+/// A table that shares the `Logbook` name but none of its columns, and a
+/// logbook whose numbers are stored as TEXT (SQLite is dynamically typed,
+/// so a column declared REAL can still hold a string).
+Uint8List buildOddLogbook({required bool unrecognisable}) {
+  final dir = Directory.systemTemp.createTempSync('dl_odd');
+  final path = '${dir.path}/logbook.sql';
+  final db = sqlite3.open(path);
+  if (unrecognisable) {
+    db.execute('CREATE TABLE Logbook (Foo TEXT, Bar INTEGER)');
+    db.execute("INSERT INTO Logbook VALUES ('x', 1)");
+  } else {
+    db.execute(
+      'CREATE TABLE Logbook (ID INTEGER PRIMARY KEY, Number TEXT, '
+      'Divedate TEXT, Entrytime TEXT, Divetime TEXT, Depth TEXT, '
+      'Weight TEXT)',
+    );
+    db.execute(
+      "INSERT INTO Logbook VALUES (1, '42', '2024-06-01', '09:30', "
+      "'47.5', '18.5', '5.5')",
+    );
+  }
+  db.close();
+  final bytes = File(path).readAsBytesSync();
+  dir.deleteSync(recursive: true);
+  return bytes;
+}
+
 void main() {
   group('DivingLogDbReader.matchesTables', () {
     test('accepts a Diving Log table set', () {
@@ -312,6 +339,27 @@ void main() {
       // 393 of 444 dives in the real file have a non-integer Divetime.
       final book = await DivingLogDbReader.readAll(buildRealSpellingLogbook());
       expect(book.dives.single.diveTimeMinutes, closeTo(80.733333, 1e-6));
+    });
+  });
+
+  group('hostile and loosely typed files', () {
+    test('rejects a Logbook table that shares only the name', () async {
+      expect(
+        () => DivingLogDbReader.readAll(buildOddLogbook(unrecognisable: true)),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('reads numbers stored as TEXT', () async {
+      // SQLite is dynamically typed, so a REAL column can hold a string.
+      final book = await DivingLogDbReader.readAll(
+        buildOddLogbook(unrecognisable: false),
+      );
+      final d = book.dives.single;
+      expect(d.number, 42);
+      expect(d.diveTimeMinutes, closeTo(47.5, 1e-9));
+      expect(d.depthMeters, closeTo(18.5, 1e-9));
+      expect(d.weightKg, closeTo(5.5, 1e-9));
     });
   });
 }

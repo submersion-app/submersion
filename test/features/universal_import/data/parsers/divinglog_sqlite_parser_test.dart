@@ -96,6 +96,36 @@ void main() {
       );
     });
 
+    test('declares the format it handles', () {
+      expect(const DivingLogSqliteParser().supportedFormats, [
+        ImportFormat.divingLogSqlite,
+      ]);
+    });
+
+    test(
+      'reports a Logbook table that shares only the name as an error',
+      () async {
+        final dir = Directory.systemTemp.createTempSync('dl_parser_odd');
+        final path = '${dir.path}/logbook.sql';
+        final db = sqlite3.open(path);
+        db.execute('CREATE TABLE Logbook (Foo TEXT)');
+        db.close();
+        final bytes = Uint8List.fromList(File(path).readAsBytesSync());
+        dir.deleteSync(recursive: true);
+
+        final payload = await const DivingLogSqliteParser().parse(bytes);
+        expect(payload.entities, isEmpty);
+        expect(
+          payload.warnings.any(
+            (w) =>
+                w.severity == ImportWarningSeverity.error &&
+                w.message.contains('Failed to read Diving Log logbook'),
+          ),
+          isTrue,
+        );
+      },
+    );
+
     test('is registered for its format', () {
       expect(
         parserForFormat(ImportFormat.divingLogSqlite),

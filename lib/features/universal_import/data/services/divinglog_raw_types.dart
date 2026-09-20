@@ -42,13 +42,6 @@ class DivingLogCapabilities {
   bool hasColumn(String table, String column) =>
       actualColumn(table, column) != null;
 
-  /// The subset of [wanted] that this file actually has, in the given
-  /// order, so a SELECT can be built from it directly.
-  List<String> availableColumns(String table, List<String> wanted) => [
-    for (final c in wanted)
-      if (hasColumn(table, c)) c,
-  ];
-
   /// A SELECT column list that aliases each of [wanted] the file has from
   /// its own spelling to ours, so row lookups use our canonical names.
   /// Returns an empty string when none are present.
