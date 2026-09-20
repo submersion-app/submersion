@@ -17,6 +17,7 @@ import 'package:submersion/features/trips/domain/services/trip_story_builder.dar
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_band.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_band_extents.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_map_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_docked_day.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
@@ -82,6 +83,7 @@ Future<void> pumpView(
   Size viewSize = const Size(800, 2600),
   http.Client? weatherHttpClient,
   Map<int, TripDayWeather>? tripDayWeather,
+  Locale locale = const Locale('en'),
 }) async {
   tester.view.physicalSize = viewSize;
   tester.view.devicePixelRatio = 1.0;
@@ -106,7 +108,7 @@ Future<void> pumpView(
     ProviderScope(
       overrides: [...overrides, ...extra].cast(),
       child: MaterialApp.router(
-        locale: const Locale('en'),
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         routerConfig: router,
@@ -503,6 +505,133 @@ void main() {
       tester.getTopLeft(heading).dy,
       greaterThanOrEqualTo(TripStoryBandExtents.dockedFloor - 1),
     );
+  });
+
+  testWidgets('the docked day sits at the start edge in both directions', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+
+    Future<double> panelRelativeToMap(Locale locale) async {
+      await pumpView(
+        tester,
+        story,
+        viewSize: const Size(500, 700),
+        locale: locale,
+      );
+      final scrollable = find.byType(CustomScrollView);
+      for (var i = 0; i < 4; i++) {
+        await tester.drag(scrollable, const Offset(0, -400));
+        await tester.pump(const Duration(milliseconds: 150));
+      }
+      await tester.pump(const Duration(milliseconds: 500));
+      return tester.getCenter(find.byType(TripStoryDockedDay)).dx -
+          tester.getCenter(find.byType(TripStoryMap)).dx;
+    }
+
+    expect(await panelRelativeToMap(const Locale('en')), lessThan(0));
+    expect(await panelRelativeToMap(const Locale('he')), greaterThan(0));
+  });
+
+  testWidgets('large text does not overflow the docked panel', (tester) async {
+    // 2x is the common accessibility setting, and 96px has enough slack to
+    // absorb it: the band does not grow here, it just must not clip.
+    tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    final scrollable = find.byType(CustomScrollView);
+    for (var i = 0; i < 4; i++) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    // No RenderFlex overflow from the scaled date and subtitle.
+    expect(tester.takeException(), isNull);
+    expect(find.byType(TripStoryDockedDay), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(TripStoryBandDelegate.bandKey)).height,
+      closeTo(TripStoryBandExtents.dockedFloor, 1.0),
+    );
+  });
+
+  testWidgets('text past the floor grows the band rather than clipping it', (
+    tester,
+  ) async {
+    // Above roughly 2.3x the panel outgrows the 96px floor, and the band has
+    // to grow with it: a fixed extent would clip the date instead.
+    tester.platformDispatcher.textScaleFactorTestValue = 3.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    final scrollable = find.byType(CustomScrollView);
+    for (var i = 0; i < 4; i++) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(
+      tester.getSize(find.byKey(TripStoryBandDelegate.bandKey)).height,
+      greaterThan(TripStoryBandExtents.dockedFloor),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('a trip with no mappable points still renders the band', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 27),
+    );
+    // Dives without sites: the geometry has no points at all.
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 3; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    expect(find.byKey(TripStoryBandDelegate.bandKey), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('checklist and notes closers share the section title style', (
