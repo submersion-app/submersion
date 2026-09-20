@@ -42,7 +42,7 @@ void main() {
     final pair = kSiteDetailSectionPairs.first;
     expect(pair.partnerOf(pair.left), pair.right);
     expect(pair.partnerOf(pair.right), pair.left);
-    expect(pair.partnerOf(SiteDetailSectionId.map), isNull);
+    expect(pair.partnerOf(SiteDetailSectionId.notes), isNull);
   });
 
   test('pairs sit side by side from 700px', () {

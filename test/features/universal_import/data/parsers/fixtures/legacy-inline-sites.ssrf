@@ -1,0 +1,47 @@
+<divelog program='subsurface' version='2'>
+<settings>
+<divecomputerid model='Suunto Vyper' deviceid='12345678' serial='1234' firmware='1.2.3' />
+</settings>
+<dives>
+<trip date='2011-06-18' time='09:11:00' location='Bonaire'>
+<dive number='1' date='2011-06-18' time='09:11:00' duration='47:30 min'>
+  <location gps='12.216667 -68.283333'>Karpata</location>
+  <notes>Drifted north along the wall.</notes>
+  <divecomputer model='Suunto Vyper'>
+  <depth max='28.3 m' mean='16.7 m' />
+  <temperature water='27.0 C' />
+  </divecomputer>
+</dive>
+<dive number='2' date='2011-06-18' time='14:02:00' duration='52:10 min'>
+  <location gps='12.216700 -68.283300'>Karpata</location>
+  <divecomputer model='Suunto Vyper'>
+  <depth max='21.0 m' mean='13.2 m' />
+  </divecomputer>
+</dive>
+</trip>
+<dive number='3' date='2011-06-19' time='10:30:00' duration='44:00 min'>
+  <location>1000 Steps</location>
+  <gps>12.207500 -68.287500</gps>
+  <divecomputer model='Suunto Vyper'>
+  <depth max='18.0 m' mean='11.0 m' />
+  </divecomputer>
+</dive>
+<dive number='4' date='2011-06-20' time='09:45:00' duration='39:00 min'>
+  <location>Salt Pier</location>
+  <divecomputer model='Suunto Vyper'>
+  <depth max='15.0 m' mean='9.0 m' />
+  </divecomputer>
+</dive>
+<dive number='5' date='2011-06-21' time='11:00:00' duration='40:00 min'>
+  <location gps='12.190000 -68.300000'/>
+  <divecomputer model='Suunto Vyper'>
+  <depth max='12.0 m' mean='8.0 m' />
+  </divecomputer>
+</dive>
+<dive number='6' date='2011-06-22' time='08:15:00' duration='35:00 min'>
+  <divecomputer model='Suunto Vyper'>
+  <depth max='9.0 m' mean='6.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>

@@ -279,7 +279,7 @@ void main() {
   });
 
   group('site card config providers', () {
-    test('detailed config defaults to the enriched slots', () {
+    test('detailed config defaults to slots only, no extra fields', () {
       final container = ProviderContainer(
         overrides: [
           currentDiverIdProvider.overrideWith(
@@ -298,14 +298,10 @@ void main() {
         'stat1': SiteField.depthRange,
         'stat2': SiteField.diveCount,
       });
-      // A diver who never opens the card settings still sees what the
-      // grouped aggregate now knows, not just the count and a personal best.
-      expect(config.extraFields, [
-        SiteField.lastDived,
-        SiteField.maxDepthReached,
-        SiteField.averageDepthReached,
-        SiteField.averageDuration,
-      ]);
+      // The detailed card leads with the site itself, not a wall of personal
+      // aggregates. Last dived, your max, your avg and avg time stay in the
+      // field catalogue for a diver who wants them back from card settings.
+      expect(config.extraFields, isEmpty);
       expect(
         container.read(siteDetailedCardConfigProvider.notifier),
         isA<EntityCardConfigNotifier<SiteField>>(),

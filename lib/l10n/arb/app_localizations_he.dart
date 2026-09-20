@@ -3126,6 +3126,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_ok => 'אישור';
 
   @override
+  String get common_action_openSettings => 'פתח הגדרות';
+
+  @override
   String get common_action_save => 'שמירה';
 
   @override
@@ -5019,9 +5022,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'תקרה';
 
   @override
-  String get diveLog_deco_label_leading => 'מוביל';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5133,9 +5133,6 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'הפעלה';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'סטטיסטיקת טווח';
@@ -7609,47 +7606,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'דקו';
 
   @override
-  String get diveLog_playbackStats_depth => 'עומק';
-
-  @override
-  String get diveLog_playbackStats_header => 'נתונים חיים';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'קצב לב';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'לחץ';
-
-  @override
-  String get diveLog_playbackStats_temp => 'טמפ\'';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'מיקום הפעלה';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'הפעלה צעד אחר צעד';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => '10 שניות אחורה';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'יציאה ממצב הפעלה';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => '10 שניות קדימה';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'השהייה';
 
   @override
@@ -8154,27 +8110,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'ללא';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'תקרה';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% ערך M';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'עומס רקמות';
@@ -16835,13 +16770,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'מחשבי צלילה מחוברים, ניהול מקורות';
 
   @override
-  String get siteDetailSection_map_name => 'מפה';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'תצוגה מקדימה של מפת מיקום האתר';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'מספר צלילות, עומקים שהושגו, הצלילות הארוכות והאחרונות';
 
@@ -23118,6 +23046,14 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'לחלק מהצלילות אין אתר צלילה';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'צלילות אלה הפנו לאתר צלילה שהקובץ אינו מתאר, ולכן יובאו ללא אתר. אפשר להגדיר אתר בעריכת הצלילה.';
 
   @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
@@ -38136,6 +38072,83 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get startup_failure_showBackupsFolder => 'הצג את תיקיית הגיבויים';
+
+  @override
+  String get startup_failure_moreWays_title => 'דרכים נוספות לחזור';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'שימוש ביומן צלילה בתיקייה אחרת';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'עברו ליומן צלילה ששמור אצלכם כבר במקום אחר, למשל בתיקיית iCloud Drive או Dropbox.';
+
+  @override
+  String get startup_failure_restoreFromFile => 'שחזור מקובץ גיבוי';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'בחרו גיבוי של Submersion מכל מקום במכשיר הזה או בתיקייה מסונכרנת.';
+
+  @override
+  String get startup_failure_startFresh => 'התחלה עם יומן צלילה ריק';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'הניחו את הקובץ הפגום בצד והתחילו מחדש. שום דבר לא נמחק.';
+
+  @override
+  String get startup_recovery_adopt_title => 'להשתמש ביומן הצלילה הזה?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'מעכשיו Submersion יפתח את יומן הצלילה הזה. הקובץ שלא נפתח נשאר במקומו.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives צלילות, $sites אתרי צלילה';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'להשתמש ביומן הזה';
+
+  @override
+  String get startup_recovery_startFresh_title => 'להתחיל עם יומן צלילה ריק?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion מעביר את הקובץ הפגום לתיקייה נפרדת ופותח יומן צלילה חדש וריק. שום דבר לא נמחק, כך שתוכלו לנסות שוב את הקובץ הישן או לשלוח אותו לתמיכה.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'להתחיל מחדש';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'יומן הצלילה הפגום שלכם הועבר אל:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'זה לא עבד';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'אין קובץ $filename בתיקייה $folder. בחרו את התיקייה שמכילה את קובץ יומן הצלילה עצמו.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'יומן הצלילה שב-$path פגום, או שאינו יומן צלילה של Submersion.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'הקובץ הזה אינו גיבוי ש-Submersion יכול לשחזר: $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'הגיבוי הזה מוצפן. Submersion יכול לפתוח גיבוי מוצפן רק כשהאפליקציה פתוחה, ולכן השתמשו קודם באחת הדרכים האחרות כאן ואז שחזרו אותו מההגדרות, תחת גיבוי ושחזור.';
 
   @override
   String get startup_failure_downgrade_title => 'חזרה לגרסה הקודמת';

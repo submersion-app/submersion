@@ -5181,6 +5181,12 @@ abstract class AppLocalizations {
   /// **'OK'**
   String get common_action_ok;
 
+  /// No description provided for @common_action_openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get common_action_openSettings;
+
   /// Generic save action
   ///
   /// In en, this message translates to:
@@ -8328,12 +8334,6 @@ abstract class AppLocalizations {
   /// **'Ceiling'**
   String get diveLog_deco_label_ceiling;
 
-  /// No description provided for @diveLog_deco_label_leading.
-  ///
-  /// In en, this message translates to:
-  /// **'Leading'**
-  String get diveLog_deco_label_leading;
-
   /// No description provided for @diveLog_deco_label_gf99.
   ///
   /// In en, this message translates to:
@@ -8511,12 +8511,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} {count, plural, =1{buddy} other{buddies}}'**
   String diveLog_detail_buddyCount(int count);
-
-  /// No description provided for @diveLog_detail_button_playback.
-  ///
-  /// In en, this message translates to:
-  /// **'Playback'**
-  String get diveLog_detail_button_playback;
 
   /// No description provided for @diveLog_detail_button_rangeAnalysis.
   ///
@@ -12681,84 +12675,6 @@ abstract class AppLocalizations {
   /// **'DECO'**
   String get diveLog_playbackStats_deco;
 
-  /// No description provided for @diveLog_playbackStats_depth.
-  ///
-  /// In en, this message translates to:
-  /// **'Depth'**
-  String get diveLog_playbackStats_depth;
-
-  /// No description provided for @diveLog_playbackStats_header.
-  ///
-  /// In en, this message translates to:
-  /// **'Live Stats'**
-  String get diveLog_playbackStats_header;
-
-  /// No description provided for @diveLog_playbackStats_heartRate.
-  ///
-  /// In en, this message translates to:
-  /// **'Heart Rate'**
-  String get diveLog_playbackStats_heartRate;
-
-  /// No description provided for @diveLog_playbackStats_ndl.
-  ///
-  /// In en, this message translates to:
-  /// **'NDL'**
-  String get diveLog_playbackStats_ndl;
-
-  /// No description provided for @diveLog_playbackStats_ppO2.
-  ///
-  /// In en, this message translates to:
-  /// **'ppO₂'**
-  String get diveLog_playbackStats_ppO2;
-
-  /// No description provided for @diveLog_playbackStats_pressure.
-  ///
-  /// In en, this message translates to:
-  /// **'Pressure'**
-  String get diveLog_playbackStats_pressure;
-
-  /// No description provided for @diveLog_playbackStats_temp.
-  ///
-  /// In en, this message translates to:
-  /// **'Temp'**
-  String get diveLog_playbackStats_temp;
-
-  /// No description provided for @diveLog_playback_sliderLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Playback position'**
-  String get diveLog_playback_sliderLabel;
-
-  /// No description provided for @diveLog_playback_speed_label.
-  ///
-  /// In en, this message translates to:
-  /// **'{speed}x'**
-  String diveLog_playback_speed_label(Object speed);
-
-  /// No description provided for @diveLog_playback_stepThrough.
-  ///
-  /// In en, this message translates to:
-  /// **'Step-through Playback'**
-  String get diveLog_playback_stepThrough;
-
-  /// No description provided for @diveLog_playback_tooltip_back10.
-  ///
-  /// In en, this message translates to:
-  /// **'Back 10 seconds'**
-  String get diveLog_playback_tooltip_back10;
-
-  /// No description provided for @diveLog_playback_tooltip_exit.
-  ///
-  /// In en, this message translates to:
-  /// **'Exit playback mode'**
-  String get diveLog_playback_tooltip_exit;
-
-  /// No description provided for @diveLog_playback_tooltip_forward10.
-  ///
-  /// In en, this message translates to:
-  /// **'Forward 10 seconds'**
-  String get diveLog_playback_tooltip_forward10;
-
   /// No description provided for @diveLog_playback_tooltip_pause.
   ///
   /// In en, this message translates to:
@@ -13694,48 +13610,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None'**
   String get diveLog_tank_regulatorNone;
-
-  /// No description provided for @diveLog_tissue_label_ceiling.
-  ///
-  /// In en, this message translates to:
-  /// **'Ceiling'**
-  String get diveLog_tissue_label_ceiling;
-
-  /// No description provided for @diveLog_tissue_label_gf.
-  ///
-  /// In en, this message translates to:
-  /// **'GF'**
-  String get diveLog_tissue_label_gf;
-
-  /// No description provided for @diveLog_tissue_label_ndl.
-  ///
-  /// In en, this message translates to:
-  /// **'NDL'**
-  String get diveLog_tissue_label_ndl;
-
-  /// No description provided for @diveLog_tissue_label_tts.
-  ///
-  /// In en, this message translates to:
-  /// **'TTS'**
-  String get diveLog_tissue_label_tts;
-
-  /// No description provided for @diveLog_tissue_legend_he.
-  ///
-  /// In en, this message translates to:
-  /// **'He'**
-  String get diveLog_tissue_legend_he;
-
-  /// No description provided for @diveLog_tissue_legend_mValue.
-  ///
-  /// In en, this message translates to:
-  /// **'100% M-value'**
-  String get diveLog_tissue_legend_mValue;
-
-  /// No description provided for @diveLog_tissue_legend_n2.
-  ///
-  /// In en, this message translates to:
-  /// **'N₂'**
-  String get diveLog_tissue_legend_n2;
 
   /// No description provided for @diveLog_tissue_title.
   ///
@@ -28150,18 +28024,6 @@ abstract class AppLocalizations {
   /// **'Connected dive computers, source management'**
   String get diveDetailSection_dataSources_description;
 
-  /// No description provided for @siteDetailSection_map_name.
-  ///
-  /// In en, this message translates to:
-  /// **'Map'**
-  String get siteDetailSection_map_name;
-
-  /// No description provided for @siteDetailSection_map_description.
-  ///
-  /// In en, this message translates to:
-  /// **'Map preview of the site location'**
-  String get siteDetailSection_map_description;
-
   /// No description provided for @siteDetailSection_diveStatistics_description.
   ///
   /// In en, this message translates to:
@@ -38061,6 +37923,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 photo had no file name and could not be linked.} other{{count} photos had no file name and could not be linked.}}'**
   String universalImport_summary_noticePhotosSkippedBody(int count);
+
+  /// No description provided for @universalImport_summary_noticeSitesUnresolvedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some dives have no dive site'**
+  String get universalImport_summary_noticeSitesUnresolvedTitle;
+
+  /// No description provided for @universalImport_summary_noticeSitesUnresolvedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These dives referred to a dive site the file does not describe, so they were imported without one. You can set a site by editing the dive.'**
+  String get universalImport_summary_noticeSitesUnresolvedBody;
 
   /// No description provided for @universalImport_summary_noticeMacdiveXmlCertsTitle.
   ///
@@ -62660,6 +62534,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show backup folder'**
   String get startup_failure_showBackupsFolder;
+
+  /// Heading over the recovery routes offered when a startup failure left the diver's data reachable somewhere else.
+  ///
+  /// In en, this message translates to:
+  /// **'Other ways back in'**
+  String get startup_failure_moreWays_title;
+
+  /// Action opening a folder picker so the diver can point Submersion at a dive log kept elsewhere, such as an iCloud Drive folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a dive log in another folder'**
+  String get startup_failure_useAnotherFolder;
+
+  /// Explains what picking another folder does.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to a dive log you already keep somewhere else, such as an iCloud Drive or Dropbox folder.'**
+  String get startup_failure_useAnotherFolder_subtitle;
+
+  /// Action opening a file picker so the diver can restore a backup the app's own registry does not know about.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from a backup file'**
+  String get startup_failure_restoreFromFile;
+
+  /// Explains what picking a backup file does.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a Submersion backup from anywhere on this device or in a synced folder.'**
+  String get startup_failure_restoreFromFile_subtitle;
+
+  /// Action that sets the unreadable database aside and starts an empty one. Last resort, shown below the two routes that keep existing data.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with an empty dive log'**
+  String get startup_failure_startFresh;
+
+  /// Explains that starting fresh moves the damaged file rather than deleting it.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the damaged file aside and begin again. Nothing is deleted.'**
+  String get startup_failure_startFresh_subtitle;
+
+  /// Title of the dialog confirming the dive log found in the picked folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this dive log?'**
+  String get startup_recovery_adopt_title;
+
+  /// Explains that adopting the found dive log leaves the unreadable file untouched.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion will open this dive log from now on. The file that would not open stays where it is.'**
+  String get startup_recovery_adopt_body;
+
+  /// What the found dive log holds, so the diver can recognise it before committing. Object, not int, so counts are never group-separated inconsistently with the rest of the screen.
+  ///
+  /// In en, this message translates to:
+  /// **'{dives} dives, {sites} dive sites'**
+  String startup_recovery_adopt_contents(Object dives, Object sites);
+
+  /// Confirm button of the adopt dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this dive log'**
+  String get startup_recovery_adopt_confirm;
+
+  /// Title of the dialog confirming an empty dive log.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with an empty dive log?'**
+  String get startup_recovery_startFresh_title;
+
+  /// Explains that the damaged file is moved aside, not deleted, and stays available for support.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion moves the damaged file into a folder of its own and opens a new, empty dive log. Nothing is deleted, so you can still try the old file again or send it to support.'**
+  String get startup_recovery_startFresh_body;
+
+  /// Confirm button of the start-fresh dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Start fresh'**
+  String get startup_recovery_startFresh_confirm;
+
+  /// Tells the diver where the damaged dive log was moved to.
+  ///
+  /// In en, this message translates to:
+  /// **'Your damaged dive log was moved to:\n{path}'**
+  String startup_recovery_startFresh_done(Object path);
+
+  /// Title shared by every dialog reporting that a recovery route did not get anywhere.
+  ///
+  /// In en, this message translates to:
+  /// **'That did not work'**
+  String get startup_recovery_problem_title;
+
+  /// Shown when the picked folder holds no dive log. Names the file looked for and the folder searched, because picking the parent folder is the common mistake.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no {filename} in {folder}. Choose the folder that holds the dive log file itself.'**
+  String startup_recovery_noDiveLog_body(Object filename, Object folder);
+
+  /// Shown when the picked folder holds a dive log that cannot be read either.
+  ///
+  /// In en, this message translates to:
+  /// **'The dive log at {path} is damaged, or it is not a Submersion dive log.'**
+  String startup_recovery_unusable_body(Object path);
+
+  /// Shown when a backup FILE the diver picked cannot be restored. Distinct from the unusable dive-log message, which calls the path a dive log.
+  ///
+  /// In en, this message translates to:
+  /// **'That file is not a backup Submersion can restore: {path}'**
+  String startup_recovery_unusableBackup_body(Object path);
+
+  /// Shown when the diver picks an encrypted backup on the startup failure screen, where the passphrase prompt that unlocks one is not reachable.
+  ///
+  /// In en, this message translates to:
+  /// **'That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings, under Backup and Restore.'**
+  String get startup_recovery_encryptedBackup_body;
 
   /// Heading of the guided-downgrade section on a failed schema upgrade.
   ///

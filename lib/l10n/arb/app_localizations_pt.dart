@@ -3207,6 +3207,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get common_action_ok => 'OK';
 
   @override
+  String get common_action_openSettings => 'Abrir Configuracoes';
+
+  @override
   String get common_action_save => 'Salvar';
 
   @override
@@ -5146,9 +5149,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'Teto';
 
   @override
-  String get diveLog_deco_label_leading => 'Predominante';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5261,9 +5261,6 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'Reproducao';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'Stats de Intervalo';
@@ -7806,47 +7803,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'DECO';
 
   @override
-  String get diveLog_playbackStats_depth => 'Profundidade';
-
-  @override
-  String get diveLog_playbackStats_header => 'Estatisticas ao Vivo';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'Frequencia Cardiaca';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'Pressao';
-
-  @override
-  String get diveLog_playbackStats_temp => 'Temp';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'Posicao de reproducao';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'Reproducao Passo a Passo';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => 'Voltar 10 segundos';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'Sair do modo de reproducao';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => 'Avancar 10 segundos';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'Pausar';
 
   @override
@@ -8363,27 +8319,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Nenhum';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'Teto';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M-value';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'Carga Tissular';
@@ -17246,13 +17181,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Computadores de mergulho conectados, gerenciamento de fontes';
 
   @override
-  String get siteDetailSection_map_name => 'Mapa';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Pré-visualização do mapa da localização do ponto';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Número de mergulhos, profundidades alcançadas, mergulhos mais longos e mais recentes';
 
@@ -23700,6 +23628,14 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Alguns mergulhos sem ponto de mergulho';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Estes mergulhos faziam referência a um ponto de mergulho que o arquivo não descreve, por isso foram importados sem um. Você pode definir um editando o mergulho.';
 
   @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
@@ -38899,6 +38835,85 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get startup_failure_showBackupsFolder => 'Mostrar pasta das cópias';
+
+  @override
+  String get startup_failure_moreWays_title => 'Outras formas de voltar';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'Usar um registo de mergulho noutra pasta';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'Mude para um registo de mergulho que já guarde noutro local, como uma pasta do iCloud Drive ou da Dropbox.';
+
+  @override
+  String get startup_failure_restoreFromFile =>
+      'Restaurar a partir de um ficheiro de cópia de segurança';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'Escolha uma cópia de segurança do Submersion em qualquer local deste dispositivo ou numa pasta sincronizada.';
+
+  @override
+  String get startup_failure_startFresh => 'Começar com um registo vazio';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'Ponha o ficheiro danificado de parte e comece de novo. Nada é eliminado.';
+
+  @override
+  String get startup_recovery_adopt_title => 'Usar este registo de mergulho?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'A partir de agora o Submersion abre este registo de mergulho. O ficheiro que não abria fica onde está.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives mergulhos, $sites locais de mergulho';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'Usar este registo';
+
+  @override
+  String get startup_recovery_startFresh_title =>
+      'Começar com um registo vazio?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'O Submersion move o ficheiro danificado para uma pasta própria e abre um registo de mergulho novo e vazio. Nada é eliminado, por isso ainda pode tentar o ficheiro antigo mais tarde ou enviá-lo para o suporte.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'Começar de novo';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'O seu registo de mergulho danificado foi movido para:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'Isso não resultou';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'Não existe nenhum $filename em $folder. Escolha a pasta que contém o próprio ficheiro do registo de mergulho.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'O registo de mergulho em $path está danificado ou não é um registo de mergulho do Submersion.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'Esse ficheiro não é uma cópia de segurança que o Submersion consiga restaurar: $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'Essa cópia de segurança está cifrada. O Submersion só consegue desbloquear uma cópia cifrada com a aplicação aberta, por isso use primeiro uma das outras opções aqui e restaure-a depois nas Definições, em Cópia de segurança e restauro.';
 
   @override
   String get startup_failure_downgrade_title => 'Voltar à versão anterior';

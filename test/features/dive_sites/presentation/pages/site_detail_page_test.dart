@@ -915,13 +915,17 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      // Intermediate difficulty label should be rendered somewhere.
+      // Intermediate difficulty label should be rendered somewhere. The
+      // header's chip carries it too, so scroll to the card's own copy:
+      // scrollUntilVisible needs a finder that matches one widget.
       await tester.scrollUntilVisible(
-        find.text('Intermediate'),
+        find.text('Intermediate').last,
         200,
         scrollable: find.byType(Scrollable).first,
       );
-      expect(find.text('Intermediate'), findsOneWidget);
+      // Twice: the header summarizes the difficulty as a chip, and the
+      // Difficulty card still carries it further down the page.
+      expect(find.text('Intermediate'), findsNWidgets(2));
     });
 
     testWidgets('hides hazards section when hazards are empty', (tester) async {
