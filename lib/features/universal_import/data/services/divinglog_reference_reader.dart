@@ -190,8 +190,10 @@ class DivingLogReferenceReader {
           id: rowInt(r, 'ID')!,
           countryId: rowInt(r, 'CountryID'),
           place: rowString(r, 'Place'),
-          latitude: rowDouble(r, 'Lat'),
-          longitude: rowDouble(r, 'Lon'),
+          // Stored as degrees, minutes and seconds text in the real
+          // export, not as a decimal, so this cannot be rowDouble.
+          latitude: rowCoordinate(r, 'Lat'),
+          longitude: rowCoordinate(r, 'Lon'),
           maxDepthMeters: rowDouble(r, 'MaxDepth'),
           waterName: rowString(r, 'WaterName'),
           difficulty: rowString(r, 'Difficulty'),

@@ -59,3 +59,47 @@ DateTime? rowDate(Row row, String column) {
   }
   return parsed;
 }
+
+/// Reads a Diving Log coordinate column.
+///
+/// The real export stores these as TEXT in degrees, minutes and seconds
+/// with a hemisphere letter, for example `16°27'59.74"S`, not as a decimal
+/// number. Reading them as a double returns null and every site silently
+/// loses its position, so the DMS form is parsed here and the hemisphere
+/// decides the sign. A plain decimal is accepted too, since other versions
+/// may store one.
+///
+/// Returns null beyond plus or minus 180. The caller does not say whether
+/// this is a latitude or a longitude, so that is the only bound that can be
+/// applied without discarding valid longitudes.
+double? parseDivingLogCoordinate(String? raw) {
+  if (raw == null) return null;
+  final text = raw.trim();
+  if (text.isEmpty) return null;
+
+  final dms = RegExp(
+    r'''^\s*(\d+(?:\.\d+)?)\s*[°d]\s*(\d+(?:\.\d+)?)\s*['m]?\s*'''
+    r'''(?:(\d+(?:\.\d+)?)\s*["s]?)?\s*([NSEW])\s*$''',
+    caseSensitive: false,
+  ).firstMatch(text);
+  if (dms != null) {
+    final degrees = double.tryParse(dms.group(1)!);
+    final minutes = double.tryParse(dms.group(2)!);
+    final seconds = double.tryParse(dms.group(3) ?? '0') ?? 0;
+    if (degrees == null || minutes == null) return null;
+    final magnitude = degrees + minutes / 60 + seconds / 3600;
+    final hemisphere = dms.group(4)!.toUpperCase();
+    final signed = (hemisphere == 'S' || hemisphere == 'W')
+        ? -magnitude
+        : magnitude;
+    return signed.abs() > 180 ? null : signed;
+  }
+
+  final decimal = double.tryParse(text);
+  if (decimal == null) return null;
+  return decimal.abs() > 180 ? null : decimal;
+}
+
+/// [parseDivingLogCoordinate] applied to a column.
+double? rowCoordinate(Row row, String column) =>
+    parseDivingLogCoordinate(rowString(row, column));

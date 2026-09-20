@@ -578,6 +578,32 @@ void main() {
       expect(book.buddiesById[2]!.fullName, 'Bob');
     });
 
+    test('reads coordinates stored as degrees minutes seconds', () async {
+      final dir = Directory.systemTemp.createTempSync('dl_dms');
+      final path = '${dir.path}/logbook.sql';
+      final db = sqlite3.open(path);
+      db.execute(
+        'CREATE TABLE Logbook (ID INTEGER PRIMARY KEY, Divedate TEXT)',
+      );
+      db.execute(
+        'CREATE TABLE Place (ID INTEGER PRIMARY KEY, Place TEXT, Lat TEXT, '
+        'Lon TEXT)',
+      );
+      // The real export writes this form, not a decimal.
+      db.execute(
+        'INSERT INTO Place VALUES '
+        '(1, \'Arch Cave\', \'19°38\'\'27.80"N\', \'156°0\'\'31.98"W\')',
+      );
+      db.close();
+      final bytes = File(path).readAsBytesSync();
+      dir.deleteSync(recursive: true);
+
+      final book = await DivingLogDbReader.readAll(bytes);
+      final place = book.placesById[1]!;
+      expect(place.latitude, closeTo(19 + 38 / 60 + 27.80 / 3600, 1e-9));
+      expect(place.longitude, closeTo(-(156 + 0 / 60 + 31.98 / 3600), 1e-9));
+    });
+
     test('reads places with coordinates', () async {
       final book = await DivingLogDbReader.readAll(buildReferenceLogbook());
       final place = book.placesById[10]!;
