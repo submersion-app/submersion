@@ -18,12 +18,29 @@ import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 /// Sharing the sort has a catch, though: a drape that is much smaller than
 /// the terrain triangle it rides loses the centroid comparison on rough
 /// ground. Thin drapes fix that by declaring [MeshData.sortHeights].
+///
+/// [localMergeGroup] is a second, narrower version of the same idea for
+/// layers that must NOT join the base terrain's merge group (e.g. because
+/// their own terrain is near-coplanar with the base and would z-fight with
+/// it -- see the LOD patch in site_seascape_providers.dart) but still need
+/// their own draped overlays (contours, wall highlights) depth-sorted
+/// against THEIR OWN terrain rather than painted as a flat, later pass.
+/// Layers sharing the same non-null key are batched into one soup, sorted
+/// together, and painted in a single call at that group's position among
+/// the plain "rest" layers; every other layer keeps today's one-mesh-per-call
+/// behavior.
 class SceneLayer {
   final MeshData mesh;
   final SceneOverlay? overlay;
   final bool drapedOnTerrain;
+  final Object? localMergeGroup;
 
-  const SceneLayer(this.mesh, {this.overlay, this.drapedOnTerrain = false});
+  const SceneLayer(
+    this.mesh, {
+    this.overlay,
+    this.drapedOnTerrain = false,
+    this.localMergeGroup,
+  });
 }
 
 /// The path the scrub cursor follows, as scene-space (x, y) nodes keyed by

@@ -12,6 +12,7 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_apply_progress.dart';
@@ -236,6 +237,11 @@ class SyncService {
   /// Keyslot self-heal after publish (encrypted libraries). Nullable so
   /// existing constructions keep working; heal runs only when provided.
   final SyncEncryptionService? _encryptionService;
+
+  /// Where the names peers publish on their manifests are remembered, so
+  /// labels such as "From Eric's MacBook" need no cloud read. Optional:
+  /// the legacy tests build the service without one.
+  final PeerDeviceNameStore? _peerNames;
   final _log = LoggerService.forClass(SyncService);
   final _uuid = const Uuid();
 
@@ -299,12 +305,14 @@ class SyncService {
     LibraryEpochStore? epochStore,
     SyncEncryptionService? encryptionService,
     AppLocalizations Function()? localizations,
+    PeerDeviceNameStore? peerNames,
   }) : _syncRepository = syncRepository,
        _serializer = serializer,
        _cloudProvider = cloudProvider,
        _syncInitializer = syncInitializer,
        _epochStore = epochStore,
        _encryptionService = encryptionService,
+       _peerNames = peerNames,
        _localizations = localizations ?? _englishLocalizations;
 
   /// Set a callback to receive progress updates during sync
@@ -612,6 +620,7 @@ class SyncService {
         // Reuse the fence check's listing (null after a rejoin, which mutates
         // the folder and needs a fresh view).
         preListedFiles: fence.files,
+        peerNames: _peerNames,
         apply: (payload) async {
           final r = await _applyRemotePayload(payload, lastSyncTime);
           recordsSynced += r.recordsApplied;
@@ -3758,12 +3767,19 @@ class SyncService {
   /// One snapshot row with fresh clocks for the replay.
   ///
   /// Fact groups (media sync program spec 5.1) carry their own clocks, and a
-  /// row can be pending because of a fact write alone. Restamping the ROW
-  /// clock for such a row would republish this device's whole snapshot of it
-  /// and let a stale caption beat a peer's newer edit, so the row clock is
-  /// refreshed only when it is already the newest clock on the row, which is
-  /// exactly when the last local write was a user edit. The facts republish
-  /// either way: the export selects a row on any of its clocks.
+  /// row can be pending because of a fact write alone. Only the newest clock
+  /// on the row is refreshed, because only it identifies what this device
+  /// wrote last and therefore has something to say.
+  ///
+  /// Refreshing the others would fabricate freshness: a row pending on an
+  /// upload write whose verification clock is older would come back with a
+  /// brand-new verification clock too, and this device's untouched
+  /// verification facts would then beat a peer's newer observation. So when
+  /// the row clock is newest the row alone is restamped, and otherwise only
+  /// the fact clocks that are themselves newer than the row. Everything
+  /// else travels with its original clock, which is exactly what the
+  /// per-group merge needs to leave a peer's newer facts alone. The row
+  /// still exports either way: the export selects it on any of its clocks.
   @visibleForTesting
   static Map<String, dynamic> restampRowForReplay(
     String entityType,
@@ -3774,19 +3790,16 @@ class SyncService {
       return {...row, 'hlc': SyncClock.instance.issue()};
     }
     final rowClock = row['hlc'];
-    var rowIsNewest = true;
-    for (final g in groups) {
-      final factClock = row[g.clockKey];
-      if (factClock is String &&
-          (rowClock is! String || factClock.compareTo(rowClock) > 0)) {
-        rowIsNewest = false;
-      }
-    }
+    bool newerThanRow(Object? factClock) =>
+        factClock is String &&
+        (rowClock is! String || factClock.compareTo(rowClock) > 0);
+    final rowIsNewest = !groups.any((g) => newerThanRow(row[g.clockKey]));
     return {
       ...row,
       if (rowIsNewest) 'hlc': SyncClock.instance.issue(),
       for (final g in groups)
-        if (row[g.clockKey] is String) g.clockKey: SyncClock.instance.issue(),
+        if (newerThanRow(row[g.clockKey]))
+          g.clockKey: SyncClock.instance.issue(),
     };
   }
 
@@ -4282,6 +4295,7 @@ class SyncService {
     final cursors = <({String deviceId, int baseSeq, int appliedThrough})>[];
     final newerSchemaPeerDeviceIds = <String>{};
     final newerSchemaPeerNames = <String, String>{};
+    final selfDeviceId = await _syncRepository.getDeviceId();
     for (final deviceId in deviceIds) {
       if (excludeDeviceIds.contains(deviceId)) continue;
       final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
@@ -4293,6 +4307,28 @@ class SyncService {
         );
       } catch (_) {
         continue;
+      }
+      // Recorded unconditionally: the manifest parsed, so a missing name is
+      // the peer's current state and clears any name it published before.
+      //
+      // Never for this device, though. Unlike a pull, this scan reads every
+      // manifest in the folder including its own, and PeerDeviceNameStore
+      // documents that this device is not in it: the device identity
+      // service already knows its own name, and a self entry would show up
+      // as a peer to anything that lists the map.
+      //
+      // Guarded on its own: nothing above catches here, so a failed
+      // preferences write would abort the whole scan and with it the
+      // library adoption, over optional metadata.
+      if (deviceId != selfDeviceId) {
+        try {
+          await _peerNames?.record(deviceId, manifest.deviceName);
+        } catch (e) {
+          _log.warning(
+            'Could not record the name for peer $deviceId',
+            error: e,
+          );
+        }
       }
       if (manifest.epochId != epochId) continue;
       final baseSeq = manifest.baseSeq;

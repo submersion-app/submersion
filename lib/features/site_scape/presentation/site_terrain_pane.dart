@@ -5,9 +5,11 @@ import 'package:submersion/core/constants/map_tile_config.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
+import 'package:submersion/features/bathymetry/domain/bathymetry_lod.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_labels.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
+import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_info_sheet.dart';
@@ -18,6 +20,7 @@ import 'package:submersion/features/dive_3d/domain/tissue/tissue_surface_picker.
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_3d/presentation/seascape_chrome.dart';
 import 'package:submersion/features/dive_3d/presentation/renderer/hover_picker.dart';
+import 'package:submersion/features/dive_3d/presentation/renderer/scene_projector.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/dive_3d_interactive_viewport.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_depth_legend.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/seascape_hover_tooltip.dart';
@@ -53,6 +56,20 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
   // No timeline at site level: the scrub cursor stays parked.
   final ValueNotifier<double> _scrub = ValueNotifier(0);
   final ValueNotifier<ScenePick?> _hoverPick = ValueNotifier(null);
+
+  /// Which grid the CURRENT [_hoverPick] value's row/col indices refer to
+  /// -- the base grid, or the finer LOD patch grid when the cursor is over
+  /// its footprint (see [_PatchAwareHoverPicker]). A ValueNotifier, not a
+  /// plain field: _hoverTooltip's rebuild is scoped to a listener so a
+  /// hover event doesn't force a full pane rebuild, and a plain field
+  /// mutated by the picker would never be seen by that listener unless the
+  /// pane happened to rebuild for some unrelated reason -- the tooltip
+  /// would then show whichever grid was current as of the LAST full
+  /// rebuild, not the grid the CURRENT pick actually came from. Set
+  /// synchronously by the picker itself, before Dive3dInteractiveViewport
+  /// (which calls the picker then assigns [_hoverPick].value right after,
+  /// with no await in between) publishes the pick.
+  final ValueNotifier<BathymetryGrid?> _hoverPickGrid = ValueNotifier(null);
   final Set<SceneOverlay> _visible = {
     SceneOverlay.markers,
     SceneOverlay.paths,
@@ -61,10 +78,32 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
   };
   bool _chartMode = false;
 
+  /// The viewport's own camera zoom is a private widget state (see
+  /// Dive3dInteractiveViewport), so the pane tracks a DEBOUNCED copy here,
+  /// updated only via onZoomSettled, purely to key the LOD patch provider.
+  /// Starts at 1.0, the viewport's own default zoom -- below the `medium`
+  /// threshold, so no patch fetch fires before the diver actually zooms in.
+  double _settledZoom = 1.0;
+
+  @override
+  void didUpdateWidget(SiteTerrainPane oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // SiteTerrainPane is instantiated without a Key keyed to siteId, so
+    // switching the displayed site (without leaving 3D mode) reuses this
+    // State instead of recreating it. Without this reset, the zoom settled
+    // for the PREVIOUS site would keep keying the new site's LOD patch
+    // provider, fetching (or displaying) the wrong detail stage until the
+    // diver zooms again.
+    if (widget.siteId != oldWidget.siteId) {
+      _settledZoom = 1.0;
+    }
+  }
+
   @override
   void dispose() {
     _scrub.dispose();
     _hoverPick.dispose();
+    _hoverPickGrid.dispose();
     super.dispose();
   }
 
@@ -159,113 +198,210 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
           :final contourLabels,
           :final imagery,
         ) =>
-          Column(
-            children: [
-              Expanded(
-                child: Stack(
-                  children: [
-                    Positioned.fill(
-                      child: Builder(
-                        builder: (context) {
-                          final axes = _buildAxes(axisInputs);
-                          return Dive3dInteractiveViewport(
-                            scene: scene,
-                            scrubPosition: _scrub,
-                            visibleOverlays: {
-                              ..._visible,
-                              if (!_chartMode) SceneOverlay.water,
+          Builder(
+            builder: (context) {
+              // Watched at this level (not inside the inner Builder) so the
+              // detail-limit hint chip below can read the same value without
+              // a second, possibly out-of-sync watch.
+              final stage = bathymetryLodStageForZoom(_settledZoom);
+              // Uses AsyncValue.value (not the project's .valueOrNull
+              // extension) on purpose: .value retains the previous patch
+              // while a dependency-driven reload (base seascape or
+              // settings change) is in flight, whereas .valueOrNull's
+              // when()-based implementation returns null for every
+              // loading state and would otherwise make the patch flicker
+              // away and reappear on each reload.
+              final patch = ref
+                  .watch(
+                    siteSeascapePatchLayerProvider((
+                      siteId: widget.siteId,
+                      stage: stage,
+                    )),
+                  )
+                  .value;
+              // scene.layers can legitimately be empty (e.g. right after a
+              // source switch, before the terrain layer has been added);
+              // there is then no base layer to insert the patch ahead of,
+              // so fall back to the scene unchanged instead of crashing on
+              // .first (mirrors the picker guard below).
+              final displayScene = patch == null || scene.layers.isEmpty
+                  ? scene
+                  : Scene3d(
+                      layers: [
+                        scene.layers.first,
+                        ...patch.layers,
+                        ...scene.layers.skip(1),
+                      ],
+                      markers: scene.markers,
+                      bounds: scene.bounds,
+                      scrubPath: scene.scrubPath,
+                    );
+              return Column(
+                children: [
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: Builder(
+                            builder: (context) {
+                              final axes = _buildAxes(axisInputs);
+                              return Dive3dInteractiveViewport(
+                                // Keyed on siteId: the pane itself is reused
+                                // across an in-place site switch (see
+                                // didUpdateWidget above), and so is this
+                                // viewport unless forced to remount here.
+                                // Without this key the viewport's own
+                                // internal camera zoom/pan/pose survived a
+                                // site switch even after _settledZoom reset
+                                // to the overview stage, so the LOD patch
+                                // logic thought the diver was zoomed out
+                                // while the camera was still showing the
+                                // previous site's close-up view.
+                                key: ValueKey(widget.siteId),
+                                scene: displayScene,
+                                scrubPosition: _scrub,
+                                visibleOverlays: {
+                                  ..._visible,
+                                  if (!_chartMode) SceneOverlay.water,
+                                },
+                                chartMode: _chartMode,
+                                contourLabels: contourLabels,
+                                axisFrame: axes.frame,
+                                axisLabels: axes.labels,
+                                chromeStyle: seascapeChromeStyle(context),
+                                chromeMode: SceneChromeMode.axesOnly,
+                                // scene.layers can legitimately be empty (e.g.
+                                // right after a source switch, before the terrain
+                                // layer has been added); hover picking has nothing
+                                // to pick against then, so this disables the
+                                // picker instead of crashing on .first.
+                                //
+                                // When a finer LOD patch is showing, its own
+                                // grid/mesh is tried FIRST: it visually covers
+                                // the base terrain in that area, so a hover
+                                // there should read the patch's own depth, not
+                                // the coarser base grid underneath it. Outside
+                                // the patch's footprint the patch picker finds
+                                // nothing within its threshold and returns
+                                // null, falling through to the base grid.
+                                picker: scene.layers.isEmpty
+                                    ? null
+                                    : _PatchAwareHoverPicker(
+                                        patchPicker: patch == null
+                                            ? null
+                                            : GridHoverPicker(
+                                                seascapePickGrid(
+                                                  patch.grid,
+                                                  patch.layers.first.mesh,
+                                                ),
+                                              ),
+                                        patchGrid: patch?.grid,
+                                        basePicker: GridHoverPicker(
+                                          seascapePickGrid(
+                                            grid,
+                                            scene.layers.first.mesh,
+                                          ),
+                                        ),
+                                        baseGrid: grid,
+                                        onGridUsed: (g) =>
+                                            _hoverPickGrid.value = g,
+                                      ),
+                                hoverPick: _hoverPick,
+                                onMarkerTap: _onMarkerTap,
+                                terrainImagery: imagery?.image,
+                                imageryWhiteTexel: imagery == null
+                                    ? null
+                                    : (
+                                        u: imagery.frame.whiteU,
+                                        v: imagery.frame.whiteV,
+                                      ),
+                                onZoomSettled: (zoom) {
+                                  if (mounted) {
+                                    setState(() => _settledZoom = zoom);
+                                  }
+                                },
+                              );
                             },
-                            chartMode: _chartMode,
-                            contourLabels: contourLabels,
-                            axisFrame: axes.frame,
-                            axisLabels: axes.labels,
-                            chromeStyle: seascapeChromeStyle(context),
-                            chromeMode: SceneChromeMode.axesOnly,
-                            // scene.layers can legitimately be empty (e.g.
-                            // right after a source switch, before the terrain
-                            // layer has been added); hover picking has nothing
-                            // to pick against then, so this disables the
-                            // picker instead of crashing on .first.
-                            picker: scene.layers.isEmpty
-                                ? null
-                                : GridHoverPicker(
-                                    seascapePickGrid(
-                                      grid,
-                                      scene.layers.first.mesh,
-                                    ),
-                                  ),
-                            hoverPick: _hoverPick,
-                            onMarkerTap: _onMarkerTap,
-                            terrainImagery: imagery?.image,
-                            imageryWhiteTexel: imagery == null
-                                ? null
-                                : (
-                                    u: imagery.frame.whiteU,
-                                    v: imagery.frame.whiteV,
-                                  ),
-                          );
-                        },
-                      ),
-                    ),
-                    Positioned(
-                      top: 56,
-                      left: 8,
-                      right: 8,
-                      child: _sourceChip(sourceId, resolutionMeters),
-                    ),
-                    // The legend describes the depth ramp; a photographed
-                    // surface has no ramp to explain. It sits LEFT because the
-                    // viewport's zoom column owns the right edge, and on a
-                    // phone-sized pane a right-hand legend covers the +/-
-                    // buttons outright (issue #1188).
-                    if (appearance.surfaceMode != SeascapeSurfaceMode.imagery)
-                      Positioned(
-                        top: 96,
-                        left: 8,
-                        child: SeascapeDepthLegend(
-                          maxDepthMeters: axisInputs.maxDepth,
-                          hasLand: grid.depthsMeters.any(
-                            (d) => d == null || d <= 0,
                           ),
-                          appearance: appearance,
-                          displayUnitInMeters: depthUnit == DepthUnit.feet
-                              ? 0.3048
-                              : 1.0,
-                          depthSymbol: depthUnit.symbol,
                         ),
-                      ),
-                    if (imagery != null)
-                      Positioned(
-                        bottom: 8,
-                        right: 8,
-                        child: _attributionChip(
-                          MapTileConfig.attribution(
-                            ref.watch(
-                              settingsProvider.select((s) => s.mapStyle),
+                        Positioned(
+                          top: 8,
+                          left: 8,
+                          right: 8,
+                          child: _sourceChip(
+                            patch?.grid.sourceId ?? sourceId,
+                            patch?.grid.resolutionMeters ?? resolutionMeters,
+                            stage,
+                            depthUnit,
+                          ),
+                        ),
+                        // top: 8, right: 8 is already the pane's docked
+                        // appearance/chart-mode card (see build() above),
+                        // which paints over anything at that same position
+                        // in this inner Stack -- so this sits a row below
+                        // it instead, on the right edge under the card.
+                        if (patch?.detailLimitReached ?? false)
+                          Positioned(
+                            top: 56,
+                            right: 8,
+                            child: _detailLimitHint(context),
+                          ),
+                        // The legend describes the depth ramp; a photographed
+                        // surface has no ramp to explain. It sits LEFT because the
+                        // viewport's zoom column owns the right edge, and on a
+                        // phone-sized pane a right-hand legend covers the +/-
+                        // buttons outright (issue #1188).
+                        if (appearance.surfaceMode !=
+                            SeascapeSurfaceMode.imagery)
+                          Positioned(
+                            top: 72,
+                            left: 8,
+                            child: SeascapeDepthLegend(
+                              maxDepthMeters: axisInputs.maxDepth,
+                              hasLand: grid.depthsMeters.any(
+                                (d) => d == null || d <= 0,
+                              ),
+                              appearance: appearance,
+                              displayUnitInMeters: depthUnit == DepthUnit.feet
+                                  ? 0.3048
+                                  : 1.0,
+                              depthSymbol: depthUnit.symbol,
                             ),
                           ),
+                        if (imagery != null)
+                          Positioned(
+                            bottom: 8,
+                            right: 8,
+                            child: _attributionChip(
+                              MapTileConfig.attribution(
+                                ref.watch(
+                                  settingsProvider.select((s) => s.mapStyle),
+                                ),
+                              ),
+                            ),
+                          ),
+                        // Sits clear of the compass rose the chrome painter
+                        // draws in the bottom-left corner (center at (36,
+                        // height-36), radius 18, so its right edge is at x=54)
+                        // -- issue #2141 follow-up: the adjustable slider
+                        // itself moved into the terrain-appearance sheet; this
+                        // stays as a compact read-out of whatever value is
+                        // currently in effect, automatic or overridden.
+                        Positioned(
+                          left: 72,
+                          bottom: 24,
+                          child: _exaggerationBadge(
+                            axisInputs.verticalExaggeration,
+                          ),
                         ),
-                      ),
-                    // Sits clear of the compass rose the chrome painter
-                    // draws in the bottom-left corner (center at (36,
-                    // height-36), radius 18, so its right edge is at x=54)
-                    // -- issue #2141 follow-up: the adjustable slider
-                    // itself moved into the terrain-appearance sheet; this
-                    // stays as a compact read-out of whatever value is
-                    // currently in effect, automatic or overridden.
-                    Positioned(
-                      left: 72,
-                      bottom: 24,
-                      child: _exaggerationBadge(
-                        axisInputs.verticalExaggeration,
-                      ),
+                        _hoverTooltip(grid),
+                      ],
                     ),
-                    _hoverTooltip(grid),
-                  ],
-                ),
-              ),
-              SafeArea(top: false, child: _overlayChips()),
-            ],
+                  ),
+                  SafeArea(top: false, child: _overlayChips()),
+                ],
+              );
+            },
           ),
       },
     );
@@ -287,19 +423,30 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
 
   /// The hover readout, clamped inside the viewport by the shared layout
   /// delegate and transparent to pointer events so it never steals hover.
-  Widget _hoverTooltip(BathymetryGrid grid) {
+  /// [baseGrid] is only the fallback for when nothing has been picked yet
+  /// (the tooltip itself renders nothing then); once a pick lands, which
+  /// grid to read its row/col against comes from [_hoverPickGrid], NOT a
+  /// value closed over at the pane's last full rebuild -- a hover crossing
+  /// between the base terrain and a finer LOD patch does not by itself
+  /// trigger a full pane rebuild, only _hoverPick/_hoverPickGrid notify, so
+  /// this listens to both directly instead of receiving a plain parameter.
+  Widget _hoverTooltip(BathymetryGrid baseGrid) {
     return Positioned.fill(
       child: IgnorePointer(
-        child: ValueListenableBuilder<ScenePick?>(
-          valueListenable: _hoverPick,
-          builder: (context, pick, _) {
+        child: ListenableBuilder(
+          listenable: Listenable.merge([_hoverPick, _hoverPickGrid]),
+          builder: (context, _) {
+            final pick = _hoverPick.value;
             final payload = pick?.payload;
             if (pick == null || payload is! TissuePick) {
               return const SizedBox.shrink();
             }
             return CustomSingleChildLayout(
               delegate: TissueTooltipLayoutDelegate(pick.screenPos),
-              child: SeascapeHoverTooltip(pick: payload, grid: grid),
+              child: SeascapeHoverTooltip(
+                pick: payload,
+                grid: _hoverPickGrid.value ?? baseGrid,
+              ),
             );
           },
         ),
@@ -331,7 +478,30 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
     );
   }
 
-  Widget _sourceChip(String sourceId, double resolutionMeters) {
+  Widget _sourceChip(
+    String sourceId,
+    double resolutionMeters,
+    BathymetryLodStage stage,
+    DepthUnit depthUnit,
+  ) {
+    // Surfaces the active LOD stage (see bathymetry_lod.dart) so a diver
+    // can tell why the terrain just got sharper (or why it stopped
+    // getting sharper) without needing to know the underlying zoom
+    // threshold. The span respects the diver's own depth unit, like every
+    // other measurement on this pane (legend, axes).
+    final stageName = switch (stage) {
+      BathymetryLodStage.overview =>
+        context.l10n.dive3d_seascape_lodStageOverview,
+      BathymetryLodStage.medium => context.l10n.dive3d_seascape_lodStageMedium,
+      BathymetryLodStage.fine => context.l10n.dive3d_seascape_lodStageFine,
+      BathymetryLodStage.superFine =>
+        context.l10n.dive3d_seascape_lodStageSuperFine,
+    };
+    final spanDisplay = DepthUnit.meters.convert(stage.spanMeters, depthUnit);
+    final stageLabelText = context.l10n.dive3d_seascape_lodStageLabel(
+      stageName,
+      '${spanDisplay.round()} ${depthUnit.symbol}',
+    );
     return Align(
       alignment: Alignment.topLeft,
       child: Container(
@@ -348,14 +518,29 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
             const SizedBox(width: 4),
             Flexible(
               child: Text(
-                context.l10n.dive3d_seascape_seafloorSource(
-                  bathymetrySourceDisplayName(sourceId),
-                  resolutionMeters.round().toString(),
-                ),
+                '${context.l10n.dive3d_seascape_seafloorSource(bathymetrySourceDisplayName(sourceId), resolutionMeters.round().toString())} · $stageLabelText',
                 style: Theme.of(context).textTheme.labelSmall,
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// A quiet "no more detail here" hint: shown only at the `fine` LOD stage
+  /// when the patch grid came back no meaningfully sharper than the base
+  /// grid (see [SiteSeascapePatchLayer.detailLimitReached]'s doc for the
+  /// heuristic), so the diver does not keep zooming in expecting more.
+  Widget _detailLimitHint(BuildContext context) {
+    return Tooltip(
+      message: context.l10n.dive3d_seascape_detailLimitReached,
+      child: Material(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+        shape: const CircleBorder(),
+        child: const Padding(
+          padding: EdgeInsets.all(6),
+          child: Icon(Icons.search_off, size: 16),
         ),
       ),
     );
@@ -428,5 +613,47 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
         ],
       ),
     );
+  }
+}
+
+/// Tries the finer LOD patch grid first, falling back to the coarser base
+/// grid. The patch visually covers the base terrain in its footprint, so a
+/// hover there should read the patch's own depth, not the base grid
+/// underneath it; outside the patch's footprint [patchPicker] finds nothing
+/// within its own threshold and returns null, falling through to the base
+/// grid exactly like there was no patch at all.
+///
+/// [onGridUsed] reports which grid actually produced the hit -- a
+/// [TissuePick]'s row/col indices are only meaningful against the SAME
+/// grid the picker that found it was built from, so the caller must track
+/// this alongside the pick itself to build a correct [SeascapeHoverTooltip].
+class _PatchAwareHoverPicker implements HoverPicker {
+  final HoverPicker? patchPicker;
+  final BathymetryGrid? patchGrid;
+  final HoverPicker basePicker;
+  final BathymetryGrid baseGrid;
+  final ValueChanged<BathymetryGrid> onGridUsed;
+
+  const _PatchAwareHoverPicker({
+    required this.patchPicker,
+    required this.patchGrid,
+    required this.basePicker,
+    required this.baseGrid,
+    required this.onGridUsed,
+  });
+
+  @override
+  ScenePick? pick(SceneProjector projector, Offset cursor) {
+    final patch = patchPicker;
+    if (patch != null) {
+      final hit = patch.pick(projector, cursor);
+      if (hit != null) {
+        onGridUsed(patchGrid!);
+        return hit;
+      }
+    }
+    final hit = basePicker.pick(projector, cursor);
+    if (hit != null) onGridUsed(baseGrid);
+    return hit;
   }
 }

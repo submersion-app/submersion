@@ -73,14 +73,30 @@ void main() {
     expect(out['verifyFactsHlc'], isNull, reason: 'absent stays absent');
   });
 
-  test('a row whose last write was a user edit is restamped', () {
+  test('a row whose last write was a user edit is restamped alone', () {
     final row = mediaRow(hlc: later, upload: earlier);
     final out = SyncService.restampRowForReplay('media', row);
 
     expect((out['hlc'] as String).compareTo(later), greaterThan(0));
     expect(
-      (out['uploadFactsHlc'] as String).compareTo(earlier),
-      greaterThan(0),
+      out['uploadFactsHlc'],
+      earlier,
+      reason:
+          'an older fact keeps its clock, or it would fabricate freshness '
+          'and beat a peer that really did write it',
+    );
+  });
+
+  test('only the fact group that is newer than the row is restamped', () {
+    final row = mediaRow(hlc: earlier, upload: later, verify: earlier);
+    final out = SyncService.restampRowForReplay('media', row);
+
+    expect(out['hlc'], earlier, reason: 'the row clock is not the newest');
+    expect((out['uploadFactsHlc'] as String).compareTo(later), greaterThan(0));
+    expect(
+      out['verifyFactsHlc'],
+      earlier,
+      reason: 'this device wrote no verification fact to republish',
     );
   });
 

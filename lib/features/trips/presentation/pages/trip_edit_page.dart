@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -55,9 +56,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   String? _vesselType;
   LiveaboardDetails? _originalLiveaboardDetails;
 
-  DateTime _startDate = DateTime.now();
+  late DateTime _startDate;
   DateTime? _returnFlightAt;
-  DateTime _endDate = DateTime.now().add(const Duration(days: 7));
+  late DateTime _endDate;
   // Controls where the end-date picker opens, not whether _endDate still
   // holds the placeholder value -- _endDate can also get auto-synced to
   // _startDate (below) while this stays false. False until the diver
@@ -76,6 +77,23 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
   @override
   void initState() {
     super.initState();
+    // A new trip defaults to a week, counted in calendar days from a single
+    // clock read.
+    //
+    // `now.add(Duration(days: 7))` adds elapsed time, which shifts the wall
+    // clock by an hour across a daylight-saving change. That only crosses a
+    // date boundary when the trip is started within an hour of midnight, but
+    // then it does: opening the page at 00:30 in the week before a fall-back
+    // defaulted the end to 23:30 on the sixth day, so the new trip was a day
+    // short, and the duration label and the generated itinerary agreed with
+    // each other on the wrong number. Before a spring-forward the same
+    // arithmetic at 23:30 hands out an extra day.
+    //
+    // Reading the clock once also keeps the two defaults consistent: separate
+    // reads could straddle midnight and set them six days apart.
+    final now = clock.now();
+    _startDate = now;
+    _endDate = now.copyWith(day: now.day + 7);
     if (isEditing) {
       _loadTrip();
     } else {
@@ -293,7 +311,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                     padding: const EdgeInsetsDirectional.only(start: 40),
                     child: Text(
                       context.l10n.trips_edit_durationDays(
-                        _endDate.difference(_startDate).inDays + 1,
+                        // Calendar days, not elapsed hours: `Duration.inDays`
+                        // floors, so a trip spanning a spring-forward is 71
+                        // hours and would read a day short of the itinerary
+                        // the same range generates.
+                        calendarDaysBetween(_startDate, _endDate) + 1,
                       ),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: Theme.of(context).colorScheme.primary,

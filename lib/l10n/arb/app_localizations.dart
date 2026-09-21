@@ -19558,6 +19558,12 @@ abstract class AppLocalizations {
   /// **'Database'**
   String get enum_logCategory_database;
 
+  /// No description provided for @enum_logCategory_media.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get enum_logCategory_media;
+
   /// No description provided for @enum_visibility_excellent.
   ///
   /// In en, this message translates to:
@@ -43606,6 +43612,30 @@ abstract class AppLocalizations {
   /// **'{count} waiting to retry'**
   String settings_mediaStorage_transfers_waitingRetry(int count);
 
+  /// No description provided for @settings_mediaStorage_report_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Export media report'**
+  String get settings_mediaStorage_report_action;
+
+  /// No description provided for @settings_mediaStorage_report_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Media report exported'**
+  String get settings_mediaStorage_report_done;
+
+  /// No description provided for @settings_mediaStorage_report_note.
+  ///
+  /// In en, this message translates to:
+  /// **'The report lists file paths and device names. Nothing is sent anywhere.'**
+  String get settings_mediaStorage_report_note;
+
+  /// No description provided for @settings_mediaStorage_report_running.
+  ///
+  /// In en, this message translates to:
+  /// **'Building the media report...'**
+  String get settings_mediaStorage_report_running;
+
   /// No description provided for @settings_mediaStorage_verify_action.
   ///
   /// In en, this message translates to:
@@ -44363,6 +44393,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This site has no GPS coordinates'**
   String get dive3d_seascape_noCoordinates;
+
+  /// No description provided for @dive3d_seascape_detailLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the most detail available for this location'**
+  String get dive3d_seascape_detailLimitReached;
+
+  /// No description provided for @dive3d_seascape_lodStageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level of detail: {stage} ({span})'**
+  String dive3d_seascape_lodStageLabel(String stage, String span);
+
+  /// No description provided for @dive3d_seascape_lodStageOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get dive3d_seascape_lodStageOverview;
+
+  /// No description provided for @dive3d_seascape_lodStageMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get dive3d_seascape_lodStageMedium;
+
+  /// No description provided for @dive3d_seascape_lodStageFine.
+  ///
+  /// In en, this message translates to:
+  /// **'Fine'**
+  String get dive3d_seascape_lodStageFine;
+
+  /// No description provided for @dive3d_seascape_lodStageSuperFine.
+  ///
+  /// In en, this message translates to:
+  /// **'Super-fine'**
+  String get dive3d_seascape_lodStageSuperFine;
 
   /// No description provided for @dive3d_seascape_noData.
   ///
@@ -64647,11 +64713,23 @@ abstract class AppLocalizations {
   /// **'Show in file manager'**
   String get media_info_actionReveal;
 
+  /// No description provided for @media_info_actionCopyDiagnostics.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy diagnostics'**
+  String get media_info_actionCopyDiagnostics;
+
   /// Media info panel, Origin block: copies the source reference to the clipboard
   ///
   /// In en, this message translates to:
   /// **'Copy reference'**
   String get media_info_actionCopyPath;
+
+  /// No description provided for @media_info_diagnosticsCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics copied'**
+  String get media_info_diagnosticsCopied;
 
   /// Confirmation shown after copying the source reference
   ///

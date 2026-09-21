@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -88,7 +89,7 @@ class TripSummaryWidget extends ConsumerWidget {
     }
 
     // Find upcoming trips
-    final now = DateTime.now();
+    final now = clock.now();
     final upcomingTrips =
         trips.where((t) => t.trip.startDate.isAfter(now)).toList()
           ..sort((a, b) => a.trip.startDate.compareTo(b.trip.startDate));
@@ -259,7 +260,11 @@ class TripSummaryWidget extends ConsumerWidget {
   ) {
     final units = UnitFormatter(ref.watch(settingsProvider));
     final nextTrip = upcomingTrips.first;
-    final daysUntil = nextTrip.trip.startDate.difference(DateTime.now()).inDays;
+    // Whole calendar days to the start date. Subtracting the current instant
+    // instead would floor away the rest of today (a trip four calendar days
+    // out reads "In 3 days" at any hour past midnight), and would lose a
+    // further day whenever a spring-forward falls inside the window.
+    final daysUntil = nextTrip.trip.daysUntilStart;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

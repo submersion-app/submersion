@@ -33,6 +33,7 @@ import 'package:submersion/features/media/data/services/gallery_asset_reader.dar
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/url_tab_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -51,6 +52,10 @@ final platformGalleryResolverProvider = Provider<PlatformGalleryResolver>(
         .watch(photoPickerServiceProvider)
         .supportsGalleryBrowsing,
     assetReader: const PhotoManagerAssetReader(),
+    // read, not watch: a resolver answers per resolution, so the current
+    // map is right there; widgets already on screen watch the live stream.
+    deviceLabel: (id) async =>
+        ref.read(peerDeviceNameStoreProvider).nameFor(id),
   ),
 );
 
@@ -114,6 +119,8 @@ final localFileResolverProvider = Provider<LocalFileResolver>((ref) {
     // and memoized by the resolver; the provider itself never touches the
     // database.
     localDeviceId: () => SyncRepository().getDeviceId(),
+    deviceLabel: (id) async =>
+        ref.read(peerDeviceNameStoreProvider).nameFor(id),
   );
   // The resolver's fetch gate holds timers that outlive the fetch they bound,
   // so a rebuild or a container teardown with a tile still resolving would

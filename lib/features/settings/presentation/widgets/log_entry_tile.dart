@@ -98,6 +98,7 @@ class LogEntryTile extends StatelessWidget {
       LogCategory.serial => Colors.teal,
       LogCategory.libdc => Colors.deepPurple,
       LogCategory.database => Colors.green,
+      LogCategory.media => Colors.cyan,
     };
   }
 }

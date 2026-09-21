@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:submersion/features/media/data/services/media_health_report.dart';
+import 'package:submersion/features/media/data/services/media_health_reporter.dart';
 import 'package:submersion/features/media/data/services/media_item_verifier.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
@@ -11,6 +15,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_provenance.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
+import 'package:submersion/features/media/presentation/providers/media_health_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_provenance_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
@@ -23,6 +28,7 @@ import 'package:submersion/features/media/presentation/widgets/set_media_time_di
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
 import '../../../../helpers/l10n_test_helpers.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -82,6 +88,26 @@ class _FakeVerifier implements MediaItemVerifier {
       throw UnimplementedError('${invocation.memberName} is not stubbed');
 }
 
+/// Answers a fixed one-row report for whatever item it is asked about.
+class _FakeReporter implements MediaHealthReporter {
+  _FakeReporter(this.report);
+  final MediaHealthReport report;
+  final List<String> asked = [];
+
+  @override
+  Future<MediaHealthReport> forItem(
+    MediaItem item, {
+    bool probeStore = false,
+  }) async {
+    asked.add('${item.id}:$probeStore');
+    return report;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName} is not stubbed');
+}
+
 class _CapturingQueue implements MediaTransferQueueRepository {
   final List<String> repairEnqueued = [];
 
@@ -131,6 +157,7 @@ void main() {
     QueueFacts? queue,
     MediaStoreIdentity? identity,
     String thisDevice = 'device-here',
+    Stream<Map<String, String>>? peerNames,
     List<dynamic> extra = const [],
 
     /// Single-element holder so a test can swap the stored row mid-flight,
@@ -155,6 +182,9 @@ void main() {
           ),
           mediaStoreIdentityProvider.overrideWith((ref) async => identity),
           currentDeviceIdProvider.overrideWith((ref) async => thisDevice),
+          peerDeviceNamesProvider.overrideWith(
+            (ref) => peerNames ?? Stream.value(const {}),
+          ),
           mediaServingRecorderProvider.overrideWithValue(recorder),
           // UnitFormatter reads the diver's date and time preferences, and
           // the real notifier wants SharedPreferences.
@@ -256,6 +286,60 @@ void main() {
       expect(find.text('This device'), findsOneWidget);
     });
 
+    testWidgets('Copy diagnostics puts the one-row report on the clipboard', (
+      tester,
+    ) async {
+      final copied = <String>[];
+      tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        SystemChannels.platform,
+        (MethodCall call) async {
+          if (call.method == 'Clipboard.setData') {
+            copied.add((call.arguments as Map)['text'] as String);
+          }
+          return null;
+        },
+      );
+      addTearDown(
+        () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          SystemChannels.platform,
+          null,
+        ),
+      );
+      final reporter = _FakeReporter(
+        MediaHealthReport(
+          generatedAt: DateTime.utc(2026, 7, 1),
+          deviceId: 'dev-a',
+          attachedStoreId: 'store-1',
+          markerStoreId: 'store-1',
+          rows: [
+            MediaHealthRow(
+              mediaId: 'm1',
+              sourceType: 'localFile',
+              takenAt: DateTime.utc(2026, 7, 1),
+              isOrphaned: false,
+              pending: false,
+              resolverVerdict: 'available',
+            ),
+          ],
+        ),
+      );
+      await pump(
+        tester,
+        _item(sourceType: MediaSourceType.localFile, originDeviceId: 'dev-a'),
+        thisDevice: 'dev-a',
+        extra: [mediaHealthReporterProvider.overrideWithValue(reporter)],
+      );
+
+      await tester.ensureVisible(find.text('Copy diagnostics'));
+      await tester.tap(find.text('Copy diagnostics'));
+      await tester.pumpAndSettle();
+
+      expect(reporter.asked, ['m1:true']);
+      expect(copied.single, contains('attached_store: store-1'));
+      expect(copied.single, contains('media_id: m1'));
+      expect(find.text('Diagnostics copied'), findsOneWidget);
+    });
+
     testWidgets('names another device when the ids differ', (tester) async {
       await pump(
         tester,
@@ -264,6 +348,38 @@ void main() {
       );
 
       expect(find.text('Another device'), findsOneWidget);
+    });
+
+    testWidgets('shows the peer\'s published name when it is known', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _item(sourceType: MediaSourceType.localFile, originDeviceId: 'dev-b'),
+        thisDevice: 'dev-a',
+        peerNames: Stream.value(const {'dev-b': "Eric's MacBook"}),
+      );
+
+      expect(find.text("Eric's MacBook"), findsOneWidget);
+      expect(find.text('Another device'), findsNothing);
+    });
+
+    testWidgets('updates in place when a sync learns the name', (tester) async {
+      final names = StreamController<Map<String, String>>();
+      addTearDown(names.close);
+      await pump(
+        tester,
+        _item(sourceType: MediaSourceType.localFile, originDeviceId: 'dev-b'),
+        thisDevice: 'dev-a',
+        peerNames: names.stream,
+      );
+      expect(find.text('Another device'), findsOneWidget);
+
+      names.add(const {'dev-b': "Eric's MacBook"});
+      await tester.pumpAndSettle();
+
+      expect(find.text("Eric's MacBook"), findsOneWidget);
+      expect(find.text('Another device'), findsNothing);
     });
   });
 
