@@ -389,11 +389,18 @@ class MediaRepository {
     }
   }
 
-  /// Update existing media
-
-  /// Fact groups whose columns differ between [previous] and [next]. Used by
-  /// the whole-row writer so a changed fact travels under a fresh group
-  /// clock, and an unchanged one does not (media sync program spec 5.1).
+  /// Writes [item]'s user fields over the stored row and takes the row
+  /// clock, which is what a user edit is.
+  ///
+  /// Writes no fact column at all: not the upload stamps, not the
+  /// verification flag or date. Every caller patches a row it read earlier,
+  /// so a stamp or a verdict landing in between would be rolled back by
+  /// this write, and the rollback would then travel under a fresh group
+  /// clock and beat the observation it erased (media sync program spec
+  /// 5.1). Those columns belong to the narrow writers:
+  /// [stampContentIdentity], [stampRemoteUploaded] and friends for the
+  /// upload group, [markOrphaned], [markAsVerified] and [stampVerification]
+  /// for the verification group.
   Future<void> updateMedia(domain.MediaItem item) async {
     try {
       _log.info('Updating media: ${item.id}');
