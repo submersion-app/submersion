@@ -829,6 +829,58 @@ void main() {
     expect(find.text('Media report exported'), findsOneWidget);
   });
 
+  testWidgets('export media report is offered with no store attached', (
+    tester,
+  ) async {
+    // The report describes local file and gallery rows too, which is the
+    // whole library a user with no store has. Gating it on a connection
+    // hid the media diagnostic from exactly the people diagnosing media.
+    tester.view.physicalSize = const Size(800, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final exported = <(String content, String fileName, String mimeType)>[];
+    final reporter = _FakeLibraryReporter(
+      MediaHealthReport(
+        generatedAt: DateTime.utc(2026, 7, 1),
+        deviceId: 'dev-a',
+        deviceName: 'Device A',
+        attachedStoreId: null,
+        markerStoreId: null,
+        rows: const [],
+      ),
+    );
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        app(
+          extraOverrides: [
+            mediaHealthReporterProvider.overrideWithValue(reporter),
+            textFileExporterProvider.overrideWithValue((
+              content,
+              fileName,
+              mimeType, {
+              Rect? sharePositionOrigin,
+            }) async {
+              exported.add((content, fileName, mimeType));
+              return fileName;
+            }),
+          ],
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    await tester.ensureVisible(find.byKey(const Key('media-export-report')));
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('media-export-report')));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    expect(reporter.libraryCalls, 1);
+    expect(exported.single.$2, 'submersion-media-report.txt');
+  });
+
   testWidgets('verify library runs the sweep and reports the summary', (
     tester,
   ) async {

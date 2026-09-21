@@ -860,23 +860,6 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
                   padding: EdgeInsets.only(top: 8),
                   child: LinearProgressIndicator(),
                 ),
-              const SizedBox(height: 8),
-              FilledButton.tonal(
-                key: const Key('media-export-report'),
-                onPressed: _actionInFlight ? null : _exportReport,
-                child: Text(
-                  _exporting
-                      ? l10n.settings_mediaStorage_report_running
-                      : l10n.settings_mediaStorage_report_action,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  l10n.settings_mediaStorage_report_note,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ),
               const MediaTransferSummaryRow(),
               ListTile(
                 key: const Key('media-s3-transfers'),
@@ -892,6 +875,29 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
                 child: Text(l10n.settings_mediaStorage_action_disconnect),
               ),
             ],
+            // Outside the connected branch on purpose. The report describes
+            // local file and gallery rows as well as stored ones, and a
+            // device with no store attached is the one most likely to be
+            // diagnosing why its photos are not arriving. With nothing
+            // attached the store header and the per-row probe read "none"
+            // and "not probed", which is an answer, not a gap.
+            const SizedBox(height: 8),
+            FilledButton.tonal(
+              key: const Key('media-export-report'),
+              onPressed: _actionInFlight ? null : _exportReport,
+              child: Text(
+                _exporting
+                    ? l10n.settings_mediaStorage_report_running
+                    : l10n.settings_mediaStorage_report_action,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                l10n.settings_mediaStorage_report_note,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
           ],
         ),
       ),

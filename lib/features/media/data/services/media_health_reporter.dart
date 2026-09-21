@@ -74,18 +74,25 @@ class MediaHealthReporter {
     bool probeStore = false,
   }) async {
     final me = await _localDeviceId();
+    final myName = await _localDeviceName();
     final pending = await _pendingMediaIds();
     final row = await _row(
       item,
       me: me,
+      myName: myName,
       pending: pending.contains(item.id),
       probeStore: probeStore,
     );
-    return _report(me, [row]);
+    return _report(me, myName, [row]);
   }
 
   Future<MediaHealthReport> forLibrary({bool probeStore = false}) async {
     final me = await _localDeviceId();
+    // Resolved once, then carried: the injected lookup rebuilds the answer
+    // from a database read and two uncached platform channels every call,
+    // and a library is mostly rows linked here, so asking per row turned
+    // one export into thousands of round trips.
+    final myName = await _localDeviceName();
     final pending = await _pendingMediaIds();
     final items = await _mediaRepository.getAllBySourceTypes(
       MediaSourceType.values.toSet(),
@@ -95,11 +102,12 @@ class MediaHealthReporter {
         await _row(
           item,
           me: me,
+          myName: myName,
           pending: pending.contains(item.id),
           probeStore: probeStore,
         ),
     ];
-    return _report(me, rows);
+    return _report(me, myName, rows);
   }
 
   Future<Set<String>> _pendingMediaIds() async {
@@ -112,6 +120,7 @@ class MediaHealthReporter {
 
   Future<MediaHealthReport> _report(
     String me,
+    String? myName,
     List<MediaHealthRow> rows,
   ) async {
     final attached = await _attachState.attachedStoreId();
@@ -131,7 +140,7 @@ class MediaHealthReporter {
     return MediaHealthReport(
       generatedAt: _now(),
       deviceId: me,
-      deviceName: await _localDeviceName(),
+      deviceName: myName,
       attachedStoreId: attached,
       markerStoreId: marker,
       rows: rows,
@@ -141,6 +150,7 @@ class MediaHealthReporter {
   Future<MediaHealthRow> _row(
     MediaItem item, {
     required String me,
+    required String? myName,
     required bool pending,
     required bool probeStore,
   }) async {
@@ -212,7 +222,7 @@ class MediaHealthReporter {
     final origin = item.originDeviceId;
     final originName = origin == null
         ? null
-        : (origin == me ? await _localDeviceName() : _deviceName(origin));
+        : (origin == me ? myName : _deviceName(origin));
 
     return MediaHealthRow(
       mediaId: item.id,
@@ -292,35 +302,47 @@ class MediaHealthReporter {
   /// namespace follows the stamps. With no stamps at all (the lost-stamp
   /// case) every namespace is tried, in that order, so the row stays
   /// diagnosable. A throw reads as "not probed" rather than "missing".
+  ///
+  /// Each namespace is LISTED by its key prefix rather than headed by one
+  /// exact key. `StoreKeys.extensionFor` is not injective over content, as
+  /// `objectKeyPrefix` says: `photo.JPG` and `photo.jpeg` hash identically
+  /// but key differently, and a row with no filename lands on `.bin`. The
+  /// device that uploaded first fixed the spelling, and every other device
+  /// skips the upload once the stamp syncs, so heading this row's own
+  /// spelling reported a stored original missing everywhere else, which
+  /// reads as store corruption in a support thread. A list is dearer than a
+  /// head, and this runs only for the single-row clipboard report; the
+  /// library export does not probe the store at all.
   Future<({bool? exists, String? tier})> _probeStore(MediaItem item) async {
     final hash = item.contentHash;
     if (hash == null) return (exists: null, tier: null);
     final store = await _store();
     if (store == null) return (exists: null, tier: null);
-    final ext = StoreKeys.extensionFor(item.originalFilename);
-    // A rendition is written under the COMPRESSED extension the pipeline
-    // produces (jpg for an image, mp4 for a video), not the original's, so
-    // probing with the original's would report a .heic or .mov rendition
-    // missing (media_upload_pipeline.dart).
-    final renditionExt = item.mediaType == MediaType.video ? 'mp4' : 'jpg';
+    // The thumb key carries no variants (always .jpg), so it stands as its
+    // own prefix. The other two end in the dot that keeps one 64-hex hash
+    // from prefix-matching a longer one.
     final stamped = <(String, String)>[
       if (item.remoteUploadedAt != null)
-        ('original', StoreKeys.objectKey(hash, extension: ext)),
+        ('original', StoreKeys.objectKeyPrefix(hash)),
       if (item.remoteCompressedUploadedAt != null)
-        ('rendition', StoreKeys.renditionKey(hash, ext: renditionExt)),
+        ('rendition', StoreKeys.renditionKeyPrefix(hash)),
       if (item.remoteThumbUploadedAt != null)
         ('thumbnail', StoreKeys.thumbKey(hash)),
     ];
     final probes = stamped.isNotEmpty
         ? stamped
         : <(String, String)>[
-            ('original', StoreKeys.objectKey(hash, extension: ext)),
-            ('rendition', StoreKeys.renditionKey(hash, ext: renditionExt)),
+            ('original', StoreKeys.objectKeyPrefix(hash)),
+            ('rendition', StoreKeys.renditionKeyPrefix(hash)),
             ('thumbnail', StoreKeys.thumbKey(hash)),
           ];
     try {
-      for (final (tier, key) in probes) {
-        if (await store.head(key) != null) return (exists: true, tier: tier);
+      for (final (tier, prefix) in probes) {
+        // isEmpty cancels on the first element, so a paged listing stops
+        // after one page rather than enumerating the namespace.
+        if (!await store.list(prefix).isEmpty) {
+          return (exists: true, tier: tier);
+        }
       }
       return (exists: false, tier: null);
     } catch (_) {
