@@ -140,22 +140,40 @@ void main() {
       );
       expect(position.dx.isFinite, isTrue);
     });
+
+    test('growUpward pins the box\'s bottom edge above the plot top edge, '
+        'unclamped, regardless of the cursor\'s vertical position', () {
+      for (final cursorY in [10.0, 100.0, 195.0]) {
+        final position = computeTooltipBoxPosition(
+          cursorLocal: Offset(50, cursorY),
+          boxSize: const Size(80, 40),
+          plotRect: _plotRect,
+          gap: 8,
+          growUpward: true,
+        );
+        expect(position.dy, _plotRect.top - tooltipTopMargin - 40);
+      }
+    });
   });
 
   group('ProfileCursorTooltip widget', () {
     Widget harness({
       required List<TooltipRow> rows,
       Offset cursorLocal = const Offset(100, 100),
+      bool growUpward = false,
     }) {
       return MaterialApp(
         home: Scaffold(
-          body: SizedBox(
-            width: 300,
-            height: 200,
-            child: ProfileCursorTooltip(
-              rows: rows,
-              cursorLocal: cursorLocal,
-              insets: _insets,
+          body: Center(
+            child: SizedBox(
+              width: 300,
+              height: 200,
+              child: ProfileCursorTooltip(
+                rows: rows,
+                cursorLocal: cursorLocal,
+                insets: _insets,
+                growUpward: growUpward,
+              ),
             ),
           ),
         ),
@@ -165,6 +183,30 @@ void main() {
     testWidgets('renders nothing for an empty row list', (tester) async {
       await tester.pumpWidget(harness(rows: const []));
       expect(find.byType(DecoratedBox), findsNothing);
+    });
+
+    testWidgets('growUpward renders the box above its own top edge without '
+        'throwing', (tester) async {
+      await tester.pumpWidget(
+        harness(
+          rows: const [
+            TooltipRow(
+              label: 'Time',
+              value: '1:23',
+              bulletColor: AppColors.chartDepth,
+            ),
+          ],
+          growUpward: true,
+        ),
+      );
+      await tester.pump();
+      expect(tester.takeException(), isNull);
+
+      final ownBoxTop = tester.getTopLeft(find.byType(ProfileCursorTooltip)).dy;
+      final decoratedBoxTop = tester
+          .getTopLeft(find.byType(DecoratedBox).first)
+          .dy;
+      expect(decoratedBoxTop, lessThan(ownBoxTop));
     });
 
     testWidgets('renders each row\'s label and value', (tester) async {

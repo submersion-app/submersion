@@ -370,6 +370,18 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// (e.g., below the chart in the profile panel).
   final bool tooltipBelow;
 
+  /// Anchors the cursor-following in-chart tooltip's bottom edge at the
+  /// plot's top edge and lets it grow upward, instead of anchoring its top
+  /// edge there and growing downward into the plotted data. On a narrow
+  /// screen with many active metrics the box can be tall enough to cover
+  /// most of a small embedded chart; growing upward lets it spill into the
+  /// space above the chart (the legend row, and whatever the page scrolls
+  /// into view above that) instead of over the data. Used by the dive
+  /// detail page's embedded chart specifically -- the fullscreen page has
+  /// no space above it to grow into and keeps the default downward growth.
+  /// Ignored when [tooltipBelow] is true (nothing is drawn in-chart then).
+  final bool tooltipAboveChart;
+
   /// Called with structured tooltip row data whenever a point is touched,
   /// independent of [tooltipBelow] -- a caller can consume this for its own
   /// external rendering (the dive-list panel's fixed-below overlay, or the
@@ -649,6 +661,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.activeComputerId,
     this.computerNames,
     this.tooltipBelow = false,
+    this.tooltipAboveChart = false,
     this.onTooltipData,
     this.legendLeading,
   });
@@ -3638,6 +3651,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         : combinedBars;
 
     return Stack(
+      // Clip.none: the cursor tooltip (below) can grow upward past this
+      // Stack's own top edge on narrow screens (see
+      // [DiveProfileChart.tooltipAboveChart]) -- it needs both this Stack
+      // and its own inner one to not clip that overflow.
+      clipBehavior: Clip.none,
       children: [
         LineChart(
           LineChartData(
@@ -4265,6 +4283,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 rows: _liveCursorTooltipRows,
                 cursorLocal: _lastPointerLocal!,
                 insets: plotInsets,
+                growUpward: widget.tooltipAboveChart,
               ),
             ),
           ),

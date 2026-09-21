@@ -6,7 +6,6 @@ import 'package:submersion/features/dive_log/data/services/gas_usage_segments_se
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/readout_card_placement.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart';
 import 'package:submersion/features/dive_log/domain/services/source_name_resolver.dart';
 import 'package:submersion/features/dive_log/presentation/providers/active_source_provider.dart';
@@ -20,7 +19,6 @@ import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/draggable_readout_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_transport_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_highlight.dart';
@@ -61,43 +59,6 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
   /// asked for (and the 25ms ticker doesn't keep running in the background).
   late final bool _wasPlaybackActiveOnEntry;
   bool _isPlaybackActiveNow = false;
-
-  /// Last non-null tooltip rows; the readout card keeps showing these after
-  /// the hover ends (sticky values).
-  List<TooltipRow>? _readoutRows;
-
-  void _onTooltipData(List<TooltipRow>? rows) {
-    if (rows == null || rows.isEmpty) return; // sticky: keep last values
-    setState(() => _readoutRows = rows);
-  }
-
-  /// Memoized default corner for the readout card, recomputed only when the
-  /// profile identity changes (the page rebuilds per playback tick).
-  Offset? _autoCorner;
-  List<DiveProfilePoint>? _autoCornerProfile;
-
-  /// Default readout-card corner: the chart corner the profile occupies
-  /// least (a saved dragged position always overrides this). Strided
-  /// sampling keeps this O(200) regardless of profile size.
-  Offset _defaultCardCorner(List<DiveProfilePoint> profile) {
-    if (!identical(profile, _autoCornerProfile)) {
-      _autoCornerProfile = profile;
-      final maxT = profile.isEmpty
-          ? 0.0
-          : profile
-                .map((p) => p.timestamp)
-                .reduce((a, b) => a > b ? a : b)
-                .toDouble();
-      final maxD = profile.fold(0.0, (m, p) => m > p.depth ? m : p.depth);
-      final stride = profile.length <= 200 ? 1 : profile.length ~/ 200;
-      _autoCorner = leastOccupiedReadoutCorner([
-        if (maxT > 0 && maxD > 0)
-          for (var i = 0; i < profile.length; i += stride)
-            Offset(profile[i].timestamp / maxT, profile[i].depth / maxD),
-      ]);
-    }
-    return _autoCorner!;
-  }
 
   @override
   void initState() {
@@ -238,17 +199,6 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     final showPressureThresholdMarkers = ref.watch(
       showPressureThresholdMarkersProvider,
     );
-    // Select only the readout-card fields: watching all of settings would
-    // rebuild the whole page on every unrelated settings write.
-    final settings = ref.watch(
-      settingsProvider.select(
-        (s) => (
-          fullscreenReadoutCardX: s.fullscreenReadoutCardX,
-          fullscreenReadoutCardY: s.fullscreenReadoutCardY,
-        ),
-      ),
-    );
-
     final photoMedia =
         ref.watch(mediaForDiveProvider(widget.diveId)).value ?? const [];
 
@@ -422,7 +372,6 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           // clipping concern that used to justify
                           // tooltipBelow here no longer applies.
                           tooltipBelow: false,
-                          onTooltipData: _onTooltipData,
                           legendLeading: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
@@ -559,33 +508,6 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                             }
                           },
                         ),
-                      ),
-                      DraggableReadoutCard(
-                        // Re-key on the saved position so a settings load
-                        // that lands after first build still seeds the card.
-                        key: ValueKey(
-                          'readout-card-seed-'
-                          '${settings.fullscreenReadoutCardX}-'
-                          '${settings.fullscreenReadoutCardY}',
-                        ),
-                        rows: _readoutRows,
-                        placementInsets: isPhone
-                            ? const EdgeInsets.fromLTRB(12, 56, 12, 12)
-                            : const EdgeInsets.all(12),
-                        initialFraction:
-                            settings.fullscreenReadoutCardX != null &&
-                                settings.fullscreenReadoutCardY != null
-                            ? Offset(
-                                settings.fullscreenReadoutCardX!,
-                                settings.fullscreenReadoutCardY!,
-                              )
-                            : _defaultCardCorner(chartProfile),
-                        onDragEnd: (fraction) => ref
-                            .read(settingsProvider.notifier)
-                            .setFullscreenReadoutCardPosition(
-                              fraction.dx,
-                              fraction.dy,
-                            ),
                       ),
                     ],
                   ),

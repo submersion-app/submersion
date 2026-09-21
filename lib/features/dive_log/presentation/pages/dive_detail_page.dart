@@ -2024,6 +2024,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               // both at once instead of replacing it; the cursor-following
               // tooltip alone is what the user actually wants in both
               // places).
+              //
+              // Unlike fullscreen, this embedded chart can be short on a
+              // narrow screen, so the tooltip is allowed to grow upward past
+              // the chart's own top edge rather than cover the plotted data.
+              tooltipAboveChart: true,
             ),
             // Profile point count (bottom-right, inline with x-axis)
             Align(
