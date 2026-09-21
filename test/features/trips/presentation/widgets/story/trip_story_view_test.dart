@@ -199,7 +199,7 @@ void main() {
     expect(find.byType(CustomScrollView), findsOneWidget);
   });
 
-  testWidgets('the story does not stretch across a wide window', (
+  testWidgets('the story fills a wide window rather than sitting in gutters', (
     tester,
   ) async {
     final trip = _trip(
@@ -209,9 +209,12 @@ void main() {
     final story = _story(trip, today: DateTime(2026, 6, 1));
     await pumpView(tester, story, viewSize: const Size(1400, 900));
 
+    // Edge to edge: a centred maximum width left blank space either side,
+    // which reads as a broken page rather than a deliberate measure.
+    expect(tester.getSize(find.byType(CustomScrollView)).width, 1400.0);
     expect(
-      tester.getSize(find.byType(CustomScrollView)).width,
-      lessThanOrEqualTo(900.0),
+      tester.getSize(find.byKey(TripStoryBandDelegate.bandKey)).width,
+      1400.0,
     );
   });
 

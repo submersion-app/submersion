@@ -20,10 +20,6 @@ import 'package:submersion/features/trips/presentation/widgets/story/trip_story_
 import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The story stops widening here so a very wide window does not stretch the
-/// chapters into unreadable lines. The band is constrained with them, so the
-/// map and the day panel stay the same width as the story they describe.
-const double _maxContentWidth = 900;
 const Duration _scrollThrottle = Duration(milliseconds: 100);
 
 /// The assembled trip story: one pinned band (docked day plus map), hero and
@@ -202,38 +198,30 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
         ? null
         : days[_activeDayIndex.clamp(0, days.length - 1)];
 
-    return Center(
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: _maxContentWidth),
-        child: NotificationListener<ScrollUpdateNotification>(
-          onNotification: _onScroll,
-          child: CustomScrollView(
-            slivers: [
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: TripStoryBandDelegate(
-                  extents: extents,
-                  map: map,
-                  dockedDay: dockedDay,
-                  dockedWeather: dockedDay == null
-                      ? null
-                      : storedWeather[tripDayMillis(dockedDay.date)]
-                            ?.toStoryWeather(),
-                  onDockedDayTap: dockedDay == null
-                      ? null
-                      : () => _scrollToDay(_activeDayIndex),
-                ),
-              ),
-              SliverToBoxAdapter(
-                child: TripStatStrip(
-                  stats: widget.stats,
-                  siteCount: _siteCount,
-                ),
-              ),
-              ..._contentSlivers(storedWeather),
-            ],
+    return NotificationListener<ScrollUpdateNotification>(
+      onNotification: _onScroll,
+      child: CustomScrollView(
+        slivers: [
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: TripStoryBandDelegate(
+              extents: extents,
+              map: map,
+              dockedDay: dockedDay,
+              dockedWeather: dockedDay == null
+                  ? null
+                  : storedWeather[tripDayMillis(dockedDay.date)]
+                        ?.toStoryWeather(),
+              onDockedDayTap: dockedDay == null
+                  ? null
+                  : () => _scrollToDay(_activeDayIndex),
+            ),
           ),
-        ),
+          SliverToBoxAdapter(
+            child: TripStatStrip(stats: widget.stats, siteCount: _siteCount),
+          ),
+          ..._contentSlivers(storedWeather),
+        ],
       ),
     );
   }
