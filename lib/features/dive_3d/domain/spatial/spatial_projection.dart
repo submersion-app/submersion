@@ -19,12 +19,17 @@ class SpatialProjection {
   final double horizScale;
   final double maxDepth;
 
+  /// Auto-computed per site (see [computeVerticalExaggeration]); 1.0
+  /// keeps depth true to scale with the horizontal axes.
+  final double verticalExaggeration;
+
   SpatialProjection({
     required double minEast,
     required double maxEast,
     required double minNorth,
     required double maxNorth,
     required this.maxDepth,
+    this.verticalExaggeration = 1.0,
   }) : centerEast = (minEast + maxEast) / 2,
        centerNorth = (minNorth + maxNorth) / 2,
        eastSpan = (maxEast - minEast).abs(),
@@ -49,13 +54,23 @@ class SpatialProjection {
 
   double northAt(double z) => -z / horizScale + centerNorth;
 
-  /// True to scale with [xOf]/[zOf]: depth uses the same meters-per-unit
-  /// factor as the horizontal axes, so the rendered terrain is genuinely
-  /// proportional rather than independently stretched to fill a fixed
-  /// scene height (issue: depth read as a near-vertical plunge regardless
-  /// of how shallow the site actually was, because the old formula always
-  /// normalized whatever the max depth was to fill the full scene height).
-  double yOf(double depth) => -depth * horizScale;
+  /// The depth axis's real-world-to-scene factor: [horizScale], the same
+  /// meters-per-unit factor as the horizontal axes, times
+  /// [verticalExaggeration]. Anything that lifts geometry a fixed
+  /// real-world amount off the terrain (contour ribbons, wall highlights)
+  /// must scale by this too, not by [horizScale] alone, so the lift stays
+  /// proportional once a site is exaggerated.
+  double get depthScale => horizScale * verticalExaggeration;
+
+  /// Depth uses [depthScale] rather than independently stretching to fill
+  /// a fixed scene height (issue: depth read as a near-vertical plunge
+  /// regardless of how shallow the site actually was, because the old
+  /// formula always normalized whatever the max depth was to fill the
+  /// full scene height). With [verticalExaggeration] at its default of
+  /// 1.0 this is genuinely true to scale; auto-computed exaggeration
+  /// (issue #2141) scales depth further for sites that would otherwise
+  /// read as flat.
+  double yOf(double depth) => -depth * depthScale;
 
   /// Half-extent of the projected northing axis (for the scene Z range).
   double get zHalfExtent => (northSpan / 2) * horizScale;

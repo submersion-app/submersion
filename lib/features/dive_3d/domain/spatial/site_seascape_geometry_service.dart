@@ -16,6 +16,7 @@ import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_path_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/vertical_exaggeration.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/wall_highlight_builder.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -86,6 +87,11 @@ class SiteSeascapeInput {
   /// still crosses compute().
   final TerrainImageryFrame? imageryFrame;
 
+  /// Overrides the auto-computed [computeVerticalExaggeration] (issue
+  /// #2141) when the diver has adjusted the terrain's vertical
+  /// exaggeration slider; null uses the automatic value.
+  final double? verticalExaggerationOverride;
+
   const SiteSeascapeInput({
     required this.grid,
     required this.center,
@@ -98,6 +104,7 @@ class SiteSeascapeInput {
     this.displayUnitInMeters = 1.0,
     this.depthSymbol = 'm',
     this.imageryFrame,
+    this.verticalExaggerationOverride,
   });
 }
 
@@ -113,9 +120,16 @@ class SiteSeascapeGeometryService {
 
   Scene3d build(SiteSeascapeInput input) => buildWithLabels(input).scene;
 
-  ({Scene3d scene, List<ContourLabelSpec> contourLabels}) buildWithLabels(
-    SiteSeascapeInput input,
-  ) {
+  /// [verticalExaggeration] is the auto-computed factor actually applied to
+  /// the terrain's depth axis (issue #2141): callers that rebuild a
+  /// [SpatialProjection] elsewhere (e.g. for axis labels) must pass it
+  /// through too, or their depth axis disagrees with the terrain it labels.
+  ({
+    Scene3d scene,
+    List<ContourLabelSpec> contourLabels,
+    double verticalExaggeration,
+  })
+  buildWithLabels(SiteSeascapeInput input) {
     final box = BathymetryTerrainBuilder.enuBounds(input.grid, input.center);
     // Scaled from the MEASURED grid alone: input.siteMaxDepth is the site's
     // recorded max depth, which can come from anywhere in a large lake and
@@ -127,12 +141,44 @@ class SiteSeascapeGeometryService {
     // visible terrain; only the scene's overall vertical scale stays tied
     // to what the grid actually measured.
     final maxDepth = math.max(input.grid.maxDepthMeters, 1.0);
+    // Sized off the site's actual wet footprint, not the fetched tile's
+    // fixed span: the tile always spans BathymetryResolver.defaultSpanMeters
+    // regardless of the site's real shape, so a narrow lake inside a wide
+    // tile must not be treated as if it were that wide (issue #2141). The
+    // width comes from the wet cells' own principal axes (orientation-
+    // independent), not an axis-aligned bounding box, which reads a
+    // diagonally oriented narrow lake -- the common case for alpine
+    // valleys -- as far wider than it really is (issue #2141 follow-up).
+    //
+    // Fallback (fewer than 2 wet cells, so no meaningful shape to measure):
+    // the tile's own NARROWER side, not the wider one -- the wider side
+    // would drive the ratio toward zero and force the exaggeration to its
+    // maximum for a site with essentially no real data to justify it,
+    // exactly the failure this whole computation exists to avoid.
+    final narrowSpan =
+        BathymetryTerrainBuilder.wetPrincipalAxisWidth(
+          input.grid,
+          input.center,
+        ) ??
+        math.min(box.maxEast - box.minEast, box.maxNorth - box.minNorth);
+    // Clamped, not trusted as stored: the override reaches here straight
+    // from settings without passing back through the slider, so a
+    // corrupted or foreign-written row would otherwise scale the whole
+    // scene by an arbitrary factor (Copilot review).
+    final override = input.verticalExaggerationOverride;
+    final verticalExaggeration = override != null
+        ? clampManualVerticalExaggeration(override)
+        : computeVerticalExaggeration(
+            maxDepthMeters: maxDepth,
+            narrowSpanMeters: narrowSpan,
+          );
     final proj = SpatialProjection(
       minEast: box.minEast,
       maxEast: box.maxEast,
       minNorth: box.minNorth,
       maxNorth: box.maxNorth,
       maxDepth: maxDepth,
+      verticalExaggeration: verticalExaggeration,
     );
 
     final terrain = BathymetryTerrainBuilder.build(
@@ -257,7 +303,11 @@ class SiteSeascapeGeometryService {
         sceneMaxZ: zHalf,
       ),
     );
-    return (scene: scene, contourLabels: contours.labels);
+    return (
+      scene: scene,
+      contourLabels: contours.labels,
+      verticalExaggeration: verticalExaggeration,
+    );
   }
 
   /// Scene y for a feature with no recorded depth: the measured seafloor

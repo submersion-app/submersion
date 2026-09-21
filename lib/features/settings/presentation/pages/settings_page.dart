@@ -27,7 +27,6 @@ import 'package:submersion/features/settings/presentation/widgets/visibility_sca
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/settings/presentation/pages/home_appearance_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
-import 'package:submersion/features/settings/presentation/widgets/bathymetry_refresh_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/nav_customization_tile.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
@@ -2031,8 +2030,6 @@ class _AppearanceSectionContentState
                   ),
                 ),
                 const Divider(height: 1),
-                const BathymetryRefreshTile(leading: Icon(Icons.refresh)),
-                const Divider(height: 1),
                 const NavCustomizationTile(),
               ],
             ),
@@ -2912,6 +2909,16 @@ class _DataSectionContent extends ConsumerWidget {
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/offline-maps'),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.terrain),
+                  title: Text(context.l10n.settings_data_threeDMaps),
+                  subtitle: Text(
+                    context.l10n.settings_data_threeDMaps_subtitle,
+                  ),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push('/settings/3d-maps'),
                 ),
               ],
             ),

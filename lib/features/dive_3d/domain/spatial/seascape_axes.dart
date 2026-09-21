@@ -12,6 +12,7 @@ typedef SeascapeAxisInputs = ({
   double minNorth,
   double maxNorth,
   double maxDepth,
+  double verticalExaggeration,
 });
 
 /// The seascape's measurement chrome: a map-frame at the waterline (two

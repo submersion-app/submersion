@@ -13,7 +13,7 @@ const Color _wallColor = Color(0xFFEF4444);
 const double _wallOpacity = 0.45;
 
 /// Real-world lift above the terrain surface, scaled by
-/// [SpatialProjection.horizScale] at the call site below -- see
+/// [SpatialProjection.depthScale] at the call site below -- see
 /// contour_builder.dart's contourLiftMeters doc for why a fixed
 /// scene-unit lift is unsafe now that [SpatialProjection.yOf] is true to
 /// scale (Copilot review).
@@ -88,7 +88,7 @@ MeshData? buildWallHighlightMesh({
         final liftMeters = math.min(_wallLiftMeters, depth / 2);
         positions
           ..add(projection.xOf(east))
-          ..add(projection.yOf(depth) + liftMeters * projection.horizScale)
+          ..add(projection.yOf(depth) + liftMeters * projection.depthScale)
           ..add(projection.zOf(north));
       }
 

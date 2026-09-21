@@ -352,7 +352,9 @@ void main() {
         kinds: [kind('disinfect', 'Disinfect')],
       );
 
-      // Mixed currencies never sum into one figure.
+      // Mixed currencies never sum into one figure, and each total keeps
+      // its own currency in the label so two rows whose amounts render with
+      // the same symbol (e.g. USD and CAD both show '$') stay distinguishable.
       expect(find.textContaining('45'), findsWidgets);
       expect(find.textContaining('12'), findsWidgets);
       expect(find.text('Total Service Cost (EUR)'), findsOneWidget);
@@ -389,8 +391,11 @@ void main() {
         ],
       );
 
-      // Unfiltered: both records count toward the total.
-      expect(find.text(formatMoney(75, 'EUR')), findsOneWidget);
+      // Unfiltered: both records count toward the total. The total row
+      // shows a plain number (its currency is already stated in the label),
+      // distinct from r1's own row, which still shows the full formatted
+      // amount with its currency.
+      expect(find.text(formatAmountOnly(75, 'EUR')), findsOneWidget);
 
       await tester.tap(find.text('All tasks'));
       await tester.pumpAndSettle();
@@ -398,10 +403,9 @@ void main() {
       await tester.pumpAndSettle();
 
       // Filtered down to r1: the total must shrink with the visible list,
-      // not keep counting the hidden scrubber-repack record. Exactly two
-      // occurrences: r1's own row and the total row.
-      expect(find.text(formatMoney(45, 'EUR')), findsNWidgets(2));
-      expect(find.text(formatMoney(75, 'EUR')), findsNothing);
+      // not keep counting the hidden scrubber-repack record.
+      expect(find.text(formatAmountOnly(45, 'EUR')), findsOneWidget);
+      expect(find.text(formatAmountOnly(75, 'EUR')), findsNothing);
     });
 
     testWidgets('shows a spinner while records load', (tester) async {

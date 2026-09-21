@@ -73,9 +73,9 @@ void main() {
     return rows.isEmpty ? null : rows.single.read<String?>('sql');
   }
 
-  test('v221 is in the ladder', () {
-    // Relaxed once v222 (buddy profile dive links) landed on top; the
-    // newest rung owns the exact assertions.
+  test('v221 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v222 (per-site vertical exaggeration overrides) landed
+    // on top; the newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(221));
     expect(AppDatabase.migrationVersions, contains(221));
     expect(AppDatabase.migrationStepCount(220), greaterThanOrEqualTo(1));

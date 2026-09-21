@@ -95,6 +95,45 @@ void main() {
     expect(selection.maxSeconds, 180);
   });
 
+  testWidgets('the range-analysis button toggles range mode and shows it', (
+    tester,
+  ) async {
+    // The button used to be hidden while playback mode was active. Playback
+    // was unreachable from this page, so that condition was always true and
+    // is gone (issue #2184); the button is simply always offered, and this
+    // is the only path that drives it rather than the provider directly.
+    await pumpPage(tester);
+    final container = containerOf(tester);
+
+    IconButton rangeButton() => tester.widget<IconButton>(
+      find
+          .ancestor(
+            of: find.byIcon(Icons.straighten),
+            matching: find.byType(IconButton),
+          )
+          .first,
+    );
+
+    expect(container.read(rangeSelectionProvider(dive.id)).isEnabled, isFalse);
+    expect(rangeButton().isSelected, isFalse);
+
+    await tester.tap(find.byIcon(Icons.straighten).first, warnIfMissed: false);
+    await tester.pump();
+
+    expect(container.read(rangeSelectionProvider(dive.id)).isEnabled, isTrue);
+    expect(
+      rangeButton().isSelected,
+      isTrue,
+      reason: 'an on toggle has to look on',
+    );
+
+    await tester.tap(find.byIcon(Icons.straighten).first, warnIfMissed: false);
+    await tester.pump();
+
+    expect(container.read(rangeSelectionProvider(dive.id)).isEnabled, isFalse);
+    expect(rangeButton().isSelected, isFalse);
+  });
+
   testWidgets('a dragged window is written back to the provider', (
     tester,
   ) async {

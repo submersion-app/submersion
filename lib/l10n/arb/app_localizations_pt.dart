@@ -3250,6 +3250,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get common_action_ok => 'OK';
 
   @override
+  String get common_action_openSettings => 'Abrir Configuracoes';
+
+  @override
   String get common_action_save => 'Salvar';
 
   @override
@@ -5189,9 +5192,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'Teto';
 
   @override
-  String get diveLog_deco_label_leading => 'Predominante';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5304,9 +5304,6 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'Reproducao';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'Stats de Intervalo';
@@ -7863,47 +7860,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'DECO';
 
   @override
-  String get diveLog_playbackStats_depth => 'Profundidade';
-
-  @override
-  String get diveLog_playbackStats_header => 'Estatisticas ao Vivo';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'Frequencia Cardiaca';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'Pressao';
-
-  @override
-  String get diveLog_playbackStats_temp => 'Temp';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'Posicao de reproducao';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'Reproducao Passo a Passo';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => 'Voltar 10 segundos';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'Sair do modo de reproducao';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => 'Avancar 10 segundos';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'Pausar';
 
   @override
@@ -8420,27 +8376,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Nenhum';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'Teto';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M-value';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'Carga Tissular';
@@ -9693,7 +9628,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveSites_filter_clearAll => 'Limpar Tudo';
 
   @override
-  String get diveSites_filter_country_hint => 'ex., Tailandia';
+  String get diveSites_filter_allCountries => 'Todos os países';
+
+  @override
+  String get diveSites_filter_allRegions => 'Todas as regiões';
 
   @override
   String get diveSites_filter_country_label => 'Pais';
@@ -9731,10 +9669,14 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => 'ex., Phuket';
+  String get diveSites_filter_region_label => 'Regiao';
 
   @override
-  String get diveSites_filter_region_label => 'Regiao';
+  String get diveSites_filter_searchCountriesHint =>
+      'Digite para buscar países';
+
+  @override
+  String get diveSites_filter_searchRegionsHint => 'Digite para buscar regiões';
 
   @override
   String get diveSites_filter_section_depthRange =>
@@ -18382,6 +18324,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'Baixar mapas para uso offline';
 
   @override
+  String get settings_data_threeDMaps => '3D Maps';
+
+  @override
+  String get settings_data_threeDMaps_subtitle =>
+      'Manage cached swissBATHY3D and other bathymetry data';
+
+  @override
   String get settings_data_restore => 'Restaurar';
 
   @override
@@ -23121,8 +23070,8 @@ class AppLocalizationsPt extends AppLocalizations {
   String get trips_summary_stat_totalTrips => 'Total de Viagens';
 
   @override
-  String trips_summary_upcomingSubtitle(Object date, Object days) {
-    return '$date • Em $days dias';
+  String trips_summary_upcomingSubtitle(Object date, Object countdown) {
+    return '$date • $countdown';
   }
 
   @override
@@ -23750,6 +23699,14 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Alguns mergulhos sem ponto de mergulho';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Estes mergulhos faziam referência a um ponto de mergulho que o arquivo não descreve, por isso foram importados sem um. Você pode definir um editando o mergulho.';
 
   @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
@@ -26782,6 +26739,166 @@ class AppLocalizationsPt extends AppLocalizations {
       'Ainda não há dados de profundidade de lagos armazenados';
 
   @override
+  String get maps3d_appBar_title => 'Mapas 3D';
+
+  @override
+  String get maps3d_section_all => 'Todos os provedores';
+
+  @override
+  String get maps3d_section_swissBathy => 'swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete => 'Excluir dados';
+
+  @override
+  String get maps3d_swissBathy_delete_subtitle =>
+      'Remove os blocos de profundidade e as grades de lagos do swissBATHY3D em cache';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmTitle =>
+      'Excluir os dados do swissBATHY3D?';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      'Os dados de profundidade em cache dos lagos suíços serão removidos e carregados novamente na próxima vez que a vista 3D de um ponto de mergulho for aberta.';
+
+  @override
+  String get maps3d_swissBathy_delete_done => 'Dados do swissBATHY3D excluídos';
+
+  @override
+  String get maps3d_section_other => 'Outros provedores';
+
+  @override
+  String get maps3d_other_reset => 'Restaurar os dados batimétricos restantes';
+
+  @override
+  String get maps3d_other_reset_subtitle =>
+      'Remove os dados em cache de EMODnet, NOAA DEM, GMRT e ETOPO';
+
+  @override
+  String get maps3d_other_reset_confirmTitle =>
+      'Restaurar os dados batimétricos restantes?';
+
+  @override
+  String get maps3d_other_reset_confirmMessage =>
+      'Os dados em cache de todos os provedores exceto o swissBATHY3D serão removidos e carregados novamente na próxima vez que a vista 3D de um ponto de mergulho for aberta.';
+
+  @override
+  String get maps3d_other_reset_done =>
+      'Dados batimétricos restantes restaurados';
+
+  @override
+  String get maps3d_reload => 'Recarregar os dados de mapas';
+
+  @override
+  String get maps3d_reload_subtitle =>
+      'Exclui todos os dados batimétricos em cache e os baixa novamente para cada ponto de mergulho';
+
+  @override
+  String get maps3d_reload_confirmTitle =>
+      'Recarregar os dados de mapas de todos os pontos de mergulho?';
+
+  @override
+  String maps3d_reload_confirm_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count pontos de mergulho serão recarregados.',
+      one: '$count ponto de mergulho será recarregado.',
+      zero: 'Nenhum ponto de mergulho tem localização.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_confirm_estimatedSize(String size) {
+    return 'Download estimado: aprox. $size';
+  }
+
+  @override
+  String get maps3d_reload_confirm_duration =>
+      'Isso pode levar vários minutos.';
+
+  @override
+  String get maps3d_reload_confirm_wifiHint =>
+      'Muitos dados serão baixados; recomenda-se uma conexão Wi-Fi rápida.';
+
+  @override
+  String get maps3d_reload_start => 'Recarregar';
+
+  @override
+  String maps3d_reload_progress(int completed, int total) {
+    return '$completed de $total pontos de mergulho';
+  }
+
+  @override
+  String get maps3d_reload_cancel => 'Cancelar';
+
+  @override
+  String get maps3d_reload_done =>
+      'Dados de mapas recarregados para todos os pontos de mergulho';
+
+  @override
+  String get maps3d_reload_cancelled => 'Recarga cancelada';
+
+  @override
+  String get maps3d_reload_failed =>
+      'Falha ao recarregar; alguns pontos de mergulho podem não ter sido recarregados';
+
+  @override
+  String get maps3d_busy_notice =>
+      'Outra ação de Mapas 3D está em execução. Aguarde até que termine.';
+
+  @override
+  String maps3d_reload_remainingSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'restam aprox. $count segundos',
+      one: 'resta aprox. $count segundo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_remainingMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'restam aprox. $count minutos',
+      one: 'resta aprox. $count minuto',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_warming(int index, int total, String name) {
+    return 'Preparando: lago $index de $total ($name)';
+  }
+
+  @override
+  String maps3d_reload_elapsedSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'em execução há $count segundos',
+      one: 'em execução há $count segundo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_elapsedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'em execução há $count minutos',
+      one: 'em execução há $count minuto',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get common_action_reparse => 'Reanalisar';
 
   @override
@@ -27578,6 +27695,16 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get dive3d_seascape_orbitView => 'Vista 3D';
+
+  @override
+  String get dive3d_seascape_verticalExaggeration => 'Exagero vertical';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationReset =>
+      'Repor para automático';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationLabel => 'Profundidade';
 
   @override
   String get dive3d_seascape_appearance_surface => 'Superfície do terreno';
@@ -39054,6 +39181,85 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get startup_failure_showBackupsFolder => 'Mostrar pasta das cópias';
+
+  @override
+  String get startup_failure_moreWays_title => 'Outras formas de voltar';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'Usar um registo de mergulho noutra pasta';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'Mude para um registo de mergulho que já guarde noutro local, como uma pasta do iCloud Drive ou da Dropbox.';
+
+  @override
+  String get startup_failure_restoreFromFile =>
+      'Restaurar a partir de um ficheiro de cópia de segurança';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'Escolha uma cópia de segurança do Submersion em qualquer local deste dispositivo ou numa pasta sincronizada.';
+
+  @override
+  String get startup_failure_startFresh => 'Começar com um registo vazio';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'Ponha o ficheiro danificado de parte e comece de novo. Nada é eliminado.';
+
+  @override
+  String get startup_recovery_adopt_title => 'Usar este registo de mergulho?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'A partir de agora o Submersion abre este registo de mergulho. O ficheiro que não abria fica onde está.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives mergulhos, $sites locais de mergulho';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'Usar este registo';
+
+  @override
+  String get startup_recovery_startFresh_title =>
+      'Começar com um registo vazio?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'O Submersion move o ficheiro danificado para uma pasta própria e abre um registo de mergulho novo e vazio. Nada é eliminado, por isso ainda pode tentar o ficheiro antigo mais tarde ou enviá-lo para o suporte.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'Começar de novo';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'O seu registo de mergulho danificado foi movido para:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'Isso não resultou';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'Não existe nenhum $filename em $folder. Escolha a pasta que contém o próprio ficheiro do registo de mergulho.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'O registo de mergulho em $path está danificado ou não é um registo de mergulho do Submersion.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'Esse ficheiro não é uma cópia de segurança que o Submersion consiga restaurar: $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'Essa cópia de segurança está cifrada. O Submersion só consegue desbloquear uma cópia cifrada com a aplicação aberta, por isso use primeiro uma das outras opções aqui e restaure-a depois nas Definições, em Cópia de segurança e restauro.';
 
   @override
   String get startup_failure_downgrade_title => 'Voltar à versão anterior';

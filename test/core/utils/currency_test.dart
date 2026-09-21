@@ -76,6 +76,47 @@ void main() {
     });
   });
 
+  group('formatAmountOnly', () {
+    test('formats the number without a currency symbol or code', () {
+      expect(formatAmountOnly(1234.5, 'USD'), '1,234.50');
+    });
+
+    test('never differs between currencies that share a display symbol', () {
+      // The whole point of formatAmountOnly: USD and CAD both render '$' via
+      // formatMoney, so a caller that labels the currency separately must
+      // not have that label contradicted by the amount.
+      expect(formatAmountOnly(45, 'USD'), isNot(contains(r'$')));
+      expect(formatAmountOnly(45, 'USD'), isNot(contains('USD')));
+      expect(formatAmountOnly(45, 'CAD'), isNot(contains('CAD')));
+    });
+
+    test('formats zero and negative amounts', () {
+      expect(formatAmountOnly(0, 'USD'), '0.00');
+      expect(formatAmountOnly(-5, 'USD'), '-5.00');
+    });
+
+    test('uses the currency\'s own decimal precision, e.g. none for JPY', () {
+      expect(formatAmountOnly(1234, 'JPY'), '1,234');
+    });
+
+    test('unrecognised code still formats with two decimal digits', () {
+      expect(formatAmountOnly(12.5, 'ZZZ'), '12.50');
+    });
+
+    test(
+      'falls back gracefully when intl has no number symbols for the locale',
+      () {
+        final previousLocale = Intl.defaultLocale;
+        Intl.defaultLocale = 'xx_YY';
+        try {
+          expect(formatAmountOnly(12.5, 'EUR'), '12.50');
+        } finally {
+          Intl.defaultLocale = previousLocale;
+        }
+      },
+    );
+  });
+
   group('locale data failures', () {
     // intl throws ArgumentError when Intl.defaultLocale names a locale it has
     // no number symbols for. These helpers are called from build methods, so

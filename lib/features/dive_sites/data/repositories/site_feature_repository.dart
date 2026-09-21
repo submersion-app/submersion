@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -71,6 +73,43 @@ class SiteFeatureRepository {
               ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
             .get();
     return rows.map(_toDomain).toList();
+  }
+
+  /// How many site ids one `IN` clause carries.
+  ///
+  /// Each id binds a variable, and SQLite refuses a statement past its
+  /// limit, so a big enough library would fail the export outright instead
+  /// of loading its features. The cap is the one the sync serializer uses
+  /// for the same reason: comfortably under the oldest limit still in the
+  /// field (999) rather than under whatever the current build happens to
+  /// allow.
+  static const _idsPerQuery = 900;
+
+  /// Every feature on [siteIds], grouped by site.
+  ///
+  /// The export writes a whole library's sites at once, so reading them one
+  /// site at a time would be a query per site. Sites with no features are
+  /// absent from the result rather than mapped to an empty list.
+  Future<Map<String, List<domain.SiteFeature>>> getFeaturesForSites(
+    List<String> siteIds,
+  ) async {
+    if (siteIds.isEmpty) return const {};
+    final bySite = <String, List<domain.SiteFeature>>{};
+    for (var i = 0; i < siteIds.length; i += _idsPerQuery) {
+      final chunk = siteIds.sublist(
+        i,
+        math.min(i + _idsPerQuery, siteIds.length),
+      );
+      final rows =
+          await (_db.select(_db.siteFeatures)
+                ..where((t) => t.siteId.isIn(chunk))
+                ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+              .get();
+      for (final row in rows) {
+        (bySite[row.siteId] ??= []).add(_toDomain(row));
+      }
+    }
+    return bySite;
   }
 
   Future<void> updateFeature(domain.SiteFeature feature) async {

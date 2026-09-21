@@ -82,7 +82,10 @@ void main() {
     expect(find.text('5-50m'), findsOneWidget);
     expect(find.text('14 dives'), findsOneWidget);
     expect(find.text('4.5'), findsOneWidget);
-    expect(find.text('Advanced'), findsOneWidget);
+    // Difficulty no longer earns a chip on the card; it stays on the site
+    // detail page and in the table view.
+    expect(find.text('Advanced'), findsNothing);
+    expect(find.byIcon(Icons.signal_cellular_alt), findsNothing);
     expect(find.text('Salt Water'), findsOneWidget);
     expect(find.text('Wreck'), findsOneWidget);
     expect(find.text('Mooring'), findsOneWidget);

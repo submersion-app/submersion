@@ -18,8 +18,18 @@ class SecurityScopedBookmarkService {
     'app.submersion/security_scoped_bookmark',
   );
 
+  /// Test seam overriding the platform-support check. Production leaves null
+  /// so the real `Platform` check is used. Mirrors
+  /// `BackupBookmarkService.debugSupportedOverride`.
+  ///
+  /// Without it a test of the bookmark path passes on a developer's Mac and
+  /// fails on the Linux CI shards, where every method here is a no-op.
+  @visibleForTesting
+  static bool? debugSupportedOverride;
+
   /// Whether security-scoped bookmarks are supported on this platform
-  static bool get isSupported => Platform.isMacOS || Platform.isIOS;
+  static bool get isSupported =>
+      debugSupportedOverride ?? (Platform.isMacOS || Platform.isIOS);
 
   /// Creates a security-scoped bookmark for the given folder path.
   ///

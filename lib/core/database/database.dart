@@ -2055,6 +2055,13 @@ class DiverSettings extends Table {
   /// and has never held a value, which is what lets a device adopt its
   /// legacy device-local pref exactly once (see SettingsNotifier).
   TextColumn get seascapeAppearance => text().nullable()();
+
+  /// v222: per-site manual override of the site terrain's vertical
+  /// exaggeration (issue #2141 follow-up), keyed by dive site id, JSON
+  /// object of `siteId` to `factor`. Per-diver so it syncs, like
+  /// [seascapeAppearance]. Null/missing key means "use the automatic
+  /// value" for that site.
+  TextColumn get seascapeVerticalExaggerationOverrides => text().nullable()();
   // Time/Date format settings
   TextColumn get timeFormat =>
       text().withDefault(const Constant('twelveHour'))();
@@ -4272,7 +4279,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 222;
+  static const int currentSchemaVersion = 223;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4892,13 +4899,18 @@ class AppDatabase extends _$AppDatabase {
     // compatibility floor stays. Sits above v220 (#1980), which shipped
     // while this was in review.
     221,
-    // v222: buddies.linked_diver_id (a buddy that IS a local profile) and
+    // v222: diver_settings.seascape_vertical_exaggeration_overrides (issue
+    // #2141 follow-up). Additive column, default null. Compatibility floor
+    // stays: an older reader simply never sees the per-site overrides.
+    222,
+    // v223: buddies.linked_diver_id (a buddy that IS a local profile) and
     // dives.outing_id (sibling dives mirrored from one save), issue #2002.
     // Additive nullable columns, no backfill, so the floor stays at 210.
-    // Renumbered three times: equipment tags took 219, the computer-set
-    // auto-apply column took 220 and rental gear memory took 221 while this
-    // branch was open, and a rung at or below the shipped version never runs.
-    222,
+    // Renumbered four times: equipment tags took 219, the computer-set
+    // auto-apply column took 220, rental gear memory took 221 and the
+    // per-site vertical exaggeration overrides took 222 while this branch
+    // was open, and a rung at or below the shipped version never runs.
+    223,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6372,7 +6384,25 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// v222: buddies.linked_diver_id and dives.outing_id (issue #2002).
+  /// v222: diver_settings.seascape_vertical_exaggeration_overrides (issue
+  /// #2141 follow-up). Additive column, default null, so a diver with no
+  /// per-site overrides keeps today's fully-automatic behavior. Idempotent,
+  /// so it is safe to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertSeascapeVerticalExaggerationOverridesColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('seascape_vertical_exaggeration_overrides')) {
+      await customStatement(
+        'ALTER TABLE diver_settings '
+        'ADD COLUMN seascape_vertical_exaggeration_overrides TEXT',
+      );
+    }
+  }
+
+  /// v223: buddies.linked_diver_id and dives.outing_id (issue #2002).
   /// Idempotent, so it is safe from both onUpgrade and the beforeOpen
   /// backstop, and a no-op for either table when it does not exist yet.
   /// SQLite lets ADD COLUMN carry a REFERENCES clause only for a nullable
@@ -12410,15 +12440,25 @@ class AppDatabase extends _$AppDatabase {
           await _assertDiveCenterGearNotesSchema();
         }
         if (from < 221) await reportProgress();
-
-        // v222: buddy profile links and dive outings (issue #2002). Column-only
-        // rung, no backfill: null reads back as "not linked" and "no siblings".
+        // v222: diver_settings.seascape_vertical_exaggeration_overrides
+        // (issue #2141 follow-up). Column-only rung, no backfill: null
+        // reads back as fully automatic for every site.
         if (from < 222) {
-          await _assertBuddyProfileDiveLinkColumns();
+          await _assertSeascapeVerticalExaggerationOverridesColumn();
         }
         if (from < 222) await reportProgress();
+
+        // v223: buddy profile links and dive outings (issue #2002). Column-only
+        // rung, no backfill: null reads back as "not linked" and "no siblings".
+        if (from < 223) {
+          await _assertBuddyProfileDiveLinkColumns();
+        }
+        if (from < 223) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v222 backstop: the per-site vertical exaggeration overrides.
+        await _assertSeascapeVerticalExaggerationOverridesColumn();
+
         // v220 backstop: the computer-set auto-apply opt-in column.
         await _assertEquipmentSetComputerAutoApplyColumn();
 
@@ -12791,7 +12831,7 @@ class AppDatabase extends _$AppDatabase {
         // arrives by restore or sync-adopt without them would throw on the
         // first read.
         await _assertSiteDetailColumns();
-        // v222 backstop: re-assert the buddy link and outing columns. The
+        // v223 backstop: re-assert the buddy link and outing columns. The
         // buddy and dive mappers read the whole row, so a database that
         // arrives by restore or sync-adopt without them would throw on the
         // first read.

@@ -15,6 +15,7 @@ enum ValueTransform {
   hmsToSeconds,
   visibilityScale,
   diveTypeMap,
+  diveModeMap,
   ratingScale;
 
   String get displayName => switch (this) {
@@ -26,6 +27,7 @@ enum ValueTransform {
     hmsToSeconds => 'H:M:S -> sec',
     visibilityScale => 'Visibility',
     diveTypeMap => 'Dive Type',
+    diveModeMap => 'Dive Mode',
     ratingScale => 'Rating',
   };
 }

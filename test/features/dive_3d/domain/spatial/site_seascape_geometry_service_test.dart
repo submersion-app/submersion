@@ -4,9 +4,11 @@ import 'package:submersion/features/bathymetry/domain/terrain_imagery_frame.dart
 import 'package:submersion/features/dive_3d/domain/geometry/marker_layout.dart';
 import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
 import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/reckoned_path.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/site_seascape_geometry_service.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/vertical_exaggeration.dart';
 import 'package:submersion/features/dive_3d/presentation/scene_overlay.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 
@@ -326,5 +328,187 @@ void main() {
       result.scene.markers.where((m) => m.kind == SceneMarkerKind.siteFeature),
       isEmpty,
     );
+  });
+
+  test('a wide, shallow site is vertically exaggerated beyond true scale '
+      '(issue #2141)', () {
+    // 3 km cell spacing, shallow (15-25 m) depths: a true-to-scale
+    // rendering of this footprint would read as nearly flat.
+    const wideCenter = GeoPoint(0, 0);
+    final wideGrid = BathymetryGrid(
+      originLat: 0,
+      originLon: 0,
+      cellSizeLatDeg: 3000.0 / 110540.0,
+      cellSizeLonDeg: 3000.0 / 111320.0,
+      rows: 2,
+      cols: 2,
+      depthsMeters: const [15, 20, 20, 25],
+      sourceId: 'test',
+      resolutionMeters: 3000,
+      fetchedAt: DateTime.utc(2026, 8, 15),
+    );
+    final scene = const SiteSeascapeGeometryService().build(
+      SiteSeascapeInput(
+        grid: wideGrid,
+        center: wideCenter,
+        siteName: 'Wide Flat Lake',
+        divePaths: const [],
+        nearbySites: const [],
+      ),
+    );
+
+    final box = BathymetryTerrainBuilder.enuBounds(wideGrid, wideCenter);
+    final horizScale =
+        SceneBounds.xSpan /
+        [
+          (box.maxEast - box.minEast).abs(),
+          (box.maxNorth - box.minNorth).abs(),
+        ].reduce((a, b) => a > b ? a : b);
+    final trueScaleFloor = -25 * horizScale;
+
+    // The exaggerated floor must sit well below (more negative than)
+    // what true-to-scale rendering would produce for the same site.
+    expect(scene.bounds.sceneMinY, lessThan(trueScaleFloor));
+  });
+
+  test('a manual verticalExaggerationOverride wins over the automatic value '
+      '(issue #2141 follow-up: the diver-adjustable slider)', () {
+    final wideGrid = BathymetryGrid(
+      originLat: 0,
+      originLon: 0,
+      cellSizeLatDeg: 3000.0 / 110540.0,
+      cellSizeLonDeg: 3000.0 / 111320.0,
+      rows: 2,
+      cols: 2,
+      depthsMeters: const [15, 20, 20, 25],
+      sourceId: 'test',
+      resolutionMeters: 3000,
+      fetchedAt: DateTime.utc(2026, 8, 15),
+    );
+    final result = const SiteSeascapeGeometryService().buildWithLabels(
+      SiteSeascapeInput(
+        grid: wideGrid,
+        center: const GeoPoint(0, 0),
+        siteName: 'Wide Flat Lake',
+        divePaths: const [],
+        nearbySites: const [],
+        verticalExaggerationOverride: 1.0,
+      ),
+    );
+
+    // The automatic value for this footprint is well above 1.0 (see the
+    // test above); an override of exactly 1.0 must win, i.e. the diver
+    // gets true-to-scale depth even though the automatic pick would have
+    // exaggerated it.
+    expect(result.verticalExaggeration, 1.0);
+
+    final box = BathymetryTerrainBuilder.enuBounds(
+      wideGrid,
+      const GeoPoint(0, 0),
+    );
+    final horizScale =
+        SceneBounds.xSpan /
+        [
+          (box.maxEast - box.minEast).abs(),
+          (box.maxNorth - box.minNorth).abs(),
+        ].reduce((a, b) => a > b ? a : b);
+    expect(result.scene.bounds.sceneMinY, closeTo(-25 * horizScale, 1e-9));
+  });
+
+  test('an out-of-range verticalExaggerationOverride is clamped to the '
+      'slider range before it reaches the projection (Copilot review: a '
+      'corrupted or synced settings row would otherwise scale the whole '
+      'scene by an arbitrary factor)', () {
+    final wideGrid = BathymetryGrid(
+      originLat: 0,
+      originLon: 0,
+      cellSizeLatDeg: 3000.0 / 110540.0,
+      cellSizeLonDeg: 3000.0 / 111320.0,
+      rows: 2,
+      cols: 2,
+      depthsMeters: const [15, 20, 20, 25],
+      sourceId: 'test',
+      resolutionMeters: 3000,
+      fetchedAt: DateTime.utc(2026, 8, 15),
+    );
+    SiteSeascapeInput inputWith(double override) => SiteSeascapeInput(
+      grid: wideGrid,
+      center: const GeoPoint(0, 0),
+      siteName: 'Wide Flat Lake',
+      divePaths: const [],
+      nearbySites: const [],
+      verticalExaggerationOverride: override,
+    );
+
+    const service = SiteSeascapeGeometryService();
+    expect(
+      service.buildWithLabels(inputWith(100)).verticalExaggeration,
+      maxManualVerticalExaggeration,
+    );
+    expect(
+      service.buildWithLabels(inputWith(0.2)).verticalExaggeration,
+      minManualVerticalExaggeration,
+    );
+    expect(
+      service.buildWithLabels(inputWith(double.nan)).verticalExaggeration,
+      minManualVerticalExaggeration,
+    );
+
+    // The clamp has to land before SpatialProjection, not merely on the
+    // reported number: the scene floor must match the clamped factor.
+    final box = BathymetryTerrainBuilder.enuBounds(
+      wideGrid,
+      const GeoPoint(0, 0),
+    );
+    final horizScale =
+        SceneBounds.xSpan /
+        [
+          (box.maxEast - box.minEast).abs(),
+          (box.maxNorth - box.minNorth).abs(),
+        ].reduce((a, b) => a > b ? a : b);
+    expect(
+      service.buildWithLabels(inputWith(100)).scene.bounds.sceneMinY,
+      closeTo(-25 * horizScale * maxManualVerticalExaggeration, 1e-6),
+    );
+  });
+
+  test('fewer than 2 wet cells: the fallback span is the tile\'s narrower '
+      'side, not its wider one (code review: reusing the wider side forced '
+      'max exaggeration on a site with essentially no real data to justify '
+      'it -- the exact failure issue #2141 exists to avoid)', () {
+    // A rectangular tile: 5 columns 1000 m apart (east span 4000 m), 2
+    // rows 100 m apart (north span 100 m). Only ONE wet cell (so
+    // wetPrincipalAxisWidth has too few points and returns null), but
+    // that one cell still gives the grid a real 30 m max depth.
+    final oneWetCellGrid = BathymetryGrid(
+      originLat: 0,
+      originLon: 0,
+      cellSizeLatDeg: 100.0 / 110540.0,
+      cellSizeLonDeg: 1000.0 / 111320.0,
+      rows: 2,
+      cols: 5,
+      depthsMeters: const [
+        -2, -2, -2, -2, -2, //
+        -2, -2, 30, -2, -2, //
+      ],
+      sourceId: 'test',
+      resolutionMeters: 100,
+      fetchedAt: DateTime.utc(2026, 8, 15),
+    );
+    final result = const SiteSeascapeGeometryService().buildWithLabels(
+      SiteSeascapeInput(
+        grid: oneWetCellGrid,
+        center: const GeoPoint(0, 0),
+        siteName: 'Sparse Grid',
+        divePaths: const [],
+        nearbySites: const [],
+      ),
+    );
+
+    // Using the wider (east, ~4000 m) side would force the automatic
+    // maximum (8x) regardless of the real 30 m depth; using the
+    // narrower (north, ~100 m) side keeps it modest and unclamped.
+    expect(result.verticalExaggeration, lessThan(8.0));
+    expect(result.verticalExaggeration, closeTo(1.17, 0.05));
   });
 }

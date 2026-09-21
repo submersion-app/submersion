@@ -13,6 +13,9 @@ import 'package:submersion/features/dive_roles/data/repositories/dive_role_repos
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_component_repository.dart';
@@ -50,6 +53,10 @@ class UddfDivesExtras {
   final Map<String, List<String>> siteTypeIdsBySite;
   final Map<String, List<String>> siteTagIdsBySite;
 
+  /// Each exported site's own features (issue #2200). Features are not
+  /// hydrated on a site, so like the tank pressures they travel here.
+  final Map<String, List<SiteFeature>> siteFeaturesBySite;
+
   /// The definitions those references need: the custom site types and the
   /// tags the exported sites carry. Built-in types go by slug alone.
   final List<SiteTypeEntity> customSiteTypes;
@@ -62,6 +69,7 @@ class UddfDivesExtras {
     this.diveTankPressures = const {},
     this.siteTypeIdsBySite = const {},
     this.siteTagIdsBySite = const {},
+    this.siteFeaturesBySite = const {},
     this.customSiteTypes = const [],
     this.siteTags = const [],
   });
@@ -93,6 +101,7 @@ final uddfDivesExtrasFetchProvider = Provider<UddfDivesExtrasFetch>((ref) {
     options,
     classification: ref.read(siteClassificationRepositoryProvider),
     siteTypes: ref.read(siteTypeRepositoryProvider),
+    siteFeatures: ref.read(siteFeatureRepositoryProvider),
   );
 });
 
@@ -118,6 +127,7 @@ Future<UddfDivesExtras> resolveDivesExtras(
   UddfExportOptions options, {
   SiteClassificationRepository? classification,
   SiteTypeRepository? siteTypes,
+  SiteFeatureRepository? siteFeatures,
 }) async {
   // The lean list-view load leaves certifications out, and every <buddy>
   // declaration carries one, so this path reads them too.
@@ -140,10 +150,11 @@ Future<UddfDivesExtras> resolveDivesExtras(
     );
   }
 
+  final siteIds = await classification.getSiteIdsForDives(diveIds);
   final source = await loadSiteClassificationForExport(
     classification,
     siteTypes,
-    await classification.getSiteIdsForDives(diveIds),
+    siteIds,
   );
 
   return UddfDivesExtras(
@@ -153,6 +164,10 @@ Future<UddfDivesExtras> resolveDivesExtras(
     diveTankPressures: diveTankPressures,
     siteTypeIdsBySite: source.typeIdsBySite,
     siteTagIdsBySite: source.tagIdsBySite,
+    // Features describe the exported sites, so like the types and tags they
+    // are not behind a checkbox (issue #2200).
+    siteFeaturesBySite:
+        await siteFeatures?.getFeaturesForSites(siteIds) ?? const {},
     customSiteTypes: source.customSiteTypes,
     siteTags: source.siteTags,
   );

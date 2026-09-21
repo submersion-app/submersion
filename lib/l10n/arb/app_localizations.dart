@@ -5253,6 +5253,12 @@ abstract class AppLocalizations {
   /// **'OK'**
   String get common_action_ok;
 
+  /// No description provided for @common_action_openSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get common_action_openSettings;
+
   /// Generic save action
   ///
   /// In en, this message translates to:
@@ -8400,12 +8406,6 @@ abstract class AppLocalizations {
   /// **'Ceiling'**
   String get diveLog_deco_label_ceiling;
 
-  /// No description provided for @diveLog_deco_label_leading.
-  ///
-  /// In en, this message translates to:
-  /// **'Leading'**
-  String get diveLog_deco_label_leading;
-
   /// No description provided for @diveLog_deco_label_gf99.
   ///
   /// In en, this message translates to:
@@ -8583,12 +8583,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} {count, plural, =1{buddy} other{buddies}}'**
   String diveLog_detail_buddyCount(int count);
-
-  /// No description provided for @diveLog_detail_button_playback.
-  ///
-  /// In en, this message translates to:
-  /// **'Playback'**
-  String get diveLog_detail_button_playback;
 
   /// No description provided for @diveLog_detail_button_rangeAnalysis.
   ///
@@ -12777,84 +12771,6 @@ abstract class AppLocalizations {
   /// **'DECO'**
   String get diveLog_playbackStats_deco;
 
-  /// No description provided for @diveLog_playbackStats_depth.
-  ///
-  /// In en, this message translates to:
-  /// **'Depth'**
-  String get diveLog_playbackStats_depth;
-
-  /// No description provided for @diveLog_playbackStats_header.
-  ///
-  /// In en, this message translates to:
-  /// **'Live Stats'**
-  String get diveLog_playbackStats_header;
-
-  /// No description provided for @diveLog_playbackStats_heartRate.
-  ///
-  /// In en, this message translates to:
-  /// **'Heart Rate'**
-  String get diveLog_playbackStats_heartRate;
-
-  /// No description provided for @diveLog_playbackStats_ndl.
-  ///
-  /// In en, this message translates to:
-  /// **'NDL'**
-  String get diveLog_playbackStats_ndl;
-
-  /// No description provided for @diveLog_playbackStats_ppO2.
-  ///
-  /// In en, this message translates to:
-  /// **'ppO₂'**
-  String get diveLog_playbackStats_ppO2;
-
-  /// No description provided for @diveLog_playbackStats_pressure.
-  ///
-  /// In en, this message translates to:
-  /// **'Pressure'**
-  String get diveLog_playbackStats_pressure;
-
-  /// No description provided for @diveLog_playbackStats_temp.
-  ///
-  /// In en, this message translates to:
-  /// **'Temp'**
-  String get diveLog_playbackStats_temp;
-
-  /// No description provided for @diveLog_playback_sliderLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Playback position'**
-  String get diveLog_playback_sliderLabel;
-
-  /// No description provided for @diveLog_playback_speed_label.
-  ///
-  /// In en, this message translates to:
-  /// **'{speed}x'**
-  String diveLog_playback_speed_label(Object speed);
-
-  /// No description provided for @diveLog_playback_stepThrough.
-  ///
-  /// In en, this message translates to:
-  /// **'Step-through Playback'**
-  String get diveLog_playback_stepThrough;
-
-  /// No description provided for @diveLog_playback_tooltip_back10.
-  ///
-  /// In en, this message translates to:
-  /// **'Back 10 seconds'**
-  String get diveLog_playback_tooltip_back10;
-
-  /// No description provided for @diveLog_playback_tooltip_exit.
-  ///
-  /// In en, this message translates to:
-  /// **'Exit playback mode'**
-  String get diveLog_playback_tooltip_exit;
-
-  /// No description provided for @diveLog_playback_tooltip_forward10.
-  ///
-  /// In en, this message translates to:
-  /// **'Forward 10 seconds'**
-  String get diveLog_playback_tooltip_forward10;
-
   /// No description provided for @diveLog_playback_tooltip_pause.
   ///
   /// In en, this message translates to:
@@ -13790,48 +13706,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'None'**
   String get diveLog_tank_regulatorNone;
-
-  /// No description provided for @diveLog_tissue_label_ceiling.
-  ///
-  /// In en, this message translates to:
-  /// **'Ceiling'**
-  String get diveLog_tissue_label_ceiling;
-
-  /// No description provided for @diveLog_tissue_label_gf.
-  ///
-  /// In en, this message translates to:
-  /// **'GF'**
-  String get diveLog_tissue_label_gf;
-
-  /// No description provided for @diveLog_tissue_label_ndl.
-  ///
-  /// In en, this message translates to:
-  /// **'NDL'**
-  String get diveLog_tissue_label_ndl;
-
-  /// No description provided for @diveLog_tissue_label_tts.
-  ///
-  /// In en, this message translates to:
-  /// **'TTS'**
-  String get diveLog_tissue_label_tts;
-
-  /// No description provided for @diveLog_tissue_legend_he.
-  ///
-  /// In en, this message translates to:
-  /// **'He'**
-  String get diveLog_tissue_legend_he;
-
-  /// No description provided for @diveLog_tissue_legend_mValue.
-  ///
-  /// In en, this message translates to:
-  /// **'100% M-value'**
-  String get diveLog_tissue_legend_mValue;
-
-  /// No description provided for @diveLog_tissue_legend_n2.
-  ///
-  /// In en, this message translates to:
-  /// **'N₂'**
-  String get diveLog_tissue_legend_n2;
 
   /// No description provided for @diveLog_tissue_title.
   ///
@@ -15927,11 +15801,17 @@ abstract class AppLocalizations {
   /// **'Clear All'**
   String get diveSites_filter_clearAll;
 
-  /// No description provided for @diveSites_filter_country_hint.
+  /// No description provided for @diveSites_filter_allCountries.
   ///
   /// In en, this message translates to:
-  /// **'e.g., Thailand'**
-  String get diveSites_filter_country_hint;
+  /// **'All countries'**
+  String get diveSites_filter_allCountries;
+
+  /// No description provided for @diveSites_filter_allRegions.
+  ///
+  /// In en, this message translates to:
+  /// **'All regions'**
+  String get diveSites_filter_allRegions;
 
   /// No description provided for @diveSites_filter_country_label.
   ///
@@ -15993,17 +15873,23 @@ abstract class AppLocalizations {
   /// **'{count}+ stars'**
   String diveSites_filter_rating_starsPlus(Object count);
 
-  /// No description provided for @diveSites_filter_region_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., Phuket'**
-  String get diveSites_filter_region_hint;
-
   /// No description provided for @diveSites_filter_region_label.
   ///
   /// In en, this message translates to:
   /// **'Region'**
   String get diveSites_filter_region_label;
+
+  /// No description provided for @diveSites_filter_searchCountriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to search countries'**
+  String get diveSites_filter_searchCountriesHint;
+
+  /// No description provided for @diveSites_filter_searchRegionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to search regions'**
+  String get diveSites_filter_searchRegionsHint;
 
   /// No description provided for @diveSites_filter_section_depthRange.
   ///
@@ -29917,6 +29803,18 @@ abstract class AppLocalizations {
   /// **'Download maps for offline use'**
   String get settings_data_offlineMaps_subtitle;
 
+  /// No description provided for @settings_data_threeDMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'3D Maps'**
+  String get settings_data_threeDMaps;
+
+  /// No description provided for @settings_data_threeDMaps_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage cached swissBATHY3D and other bathymetry data'**
+  String get settings_data_threeDMaps_subtitle;
+
   /// No description provided for @settings_data_restore.
   ///
   /// In en, this message translates to:
@@ -37217,8 +37115,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_summary_upcomingSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'{date} • In {days} days'**
-  String trips_summary_upcomingSubtitle(Object date, Object days);
+  /// **'{date} • {countdown}'**
+  String trips_summary_upcomingSubtitle(Object date, Object countdown);
 
   /// No description provided for @trips_summary_upcomingTitle.
   ///
@@ -38145,6 +38043,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 photo had no file name and could not be linked.} other{{count} photos had no file name and could not be linked.}}'**
   String universalImport_summary_noticePhotosSkippedBody(int count);
+
+  /// No description provided for @universalImport_summary_noticeSitesUnresolvedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some dives have no dive site'**
+  String get universalImport_summary_noticeSitesUnresolvedTitle;
+
+  /// No description provided for @universalImport_summary_noticeSitesUnresolvedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These dives referred to a dive site the file does not describe, so they were imported without one. You can set a site by editing the dive.'**
+  String get universalImport_summary_noticeSitesUnresolvedBody;
 
   /// No description provided for @universalImport_summary_noticeMacdiveXmlCertsTitle.
   ///
@@ -42921,7 +42831,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_appearance_bathymetryRefresh.
   ///
   /// In en, this message translates to:
-  /// **'Reload Map Data'**
+  /// **'Update Existing Map Data'**
   String get settings_appearance_bathymetryRefresh;
 
   /// No description provided for @settings_appearance_bathymetryRefresh_subtitle.
@@ -42953,6 +42863,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No lake depth data cached yet'**
   String get settings_appearance_bathymetryRefresh_resultNothingCached;
+
+  /// No description provided for @maps3d_appBar_title.
+  ///
+  /// In en, this message translates to:
+  /// **'3D Maps'**
+  String get maps3d_appBar_title;
+
+  /// No description provided for @maps3d_section_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All Providers'**
+  String get maps3d_section_all;
+
+  /// No description provided for @maps3d_section_swissBathy.
+  ///
+  /// In en, this message translates to:
+  /// **'swissBATHY3D'**
+  String get maps3d_section_swissBathy;
+
+  /// No description provided for @maps3d_swissBathy_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete data'**
+  String get maps3d_swissBathy_delete;
+
+  /// No description provided for @maps3d_swissBathy_delete_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes cached swissBATHY3D depth tiles and lake grids'**
+  String get maps3d_swissBathy_delete_subtitle;
+
+  /// No description provided for @maps3d_swissBathy_delete_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete swissBATHY3D data?'**
+  String get maps3d_swissBathy_delete_confirmTitle;
+
+  /// No description provided for @maps3d_swissBathy_delete_confirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached depth data for Swiss lakes will be removed and reloaded the next time a dive site\'s 3D view is opened.'**
+  String get maps3d_swissBathy_delete_confirmMessage;
+
+  /// No description provided for @maps3d_swissBathy_delete_done.
+  ///
+  /// In en, this message translates to:
+  /// **'swissBATHY3D data deleted'**
+  String get maps3d_swissBathy_delete_done;
+
+  /// No description provided for @maps3d_section_other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other providers'**
+  String get maps3d_section_other;
+
+  /// No description provided for @maps3d_other_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset remaining bathymetry data'**
+  String get maps3d_other_reset;
+
+  /// No description provided for @maps3d_other_reset_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes cached data from EMODnet, NOAA DEM, GMRT and ETOPO'**
+  String get maps3d_other_reset_subtitle;
+
+  /// No description provided for @maps3d_other_reset_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset remaining bathymetry data?'**
+  String get maps3d_other_reset_confirmTitle;
+
+  /// No description provided for @maps3d_other_reset_confirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached data from every provider other than swissBATHY3D will be removed and reloaded the next time a dive site\'s 3D view is opened.'**
+  String get maps3d_other_reset_confirmMessage;
+
+  /// No description provided for @maps3d_other_reset_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining bathymetry data reset'**
+  String get maps3d_other_reset_done;
+
+  /// No description provided for @maps3d_reload.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload map data'**
+  String get maps3d_reload;
+
+  /// No description provided for @maps3d_reload_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletes all cached bathymetry data and downloads it again for every dive site'**
+  String get maps3d_reload_subtitle;
+
+  /// No description provided for @maps3d_reload_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload map data for every dive site?'**
+  String get maps3d_reload_confirmTitle;
+
+  /// No description provided for @maps3d_reload_confirm_siteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No dive sites have a location.} =1{1 dive site will be reloaded.} other{{count} dive sites will be reloaded.}}'**
+  String maps3d_reload_confirm_siteCount(int count);
+
+  /// No description provided for @maps3d_reload_confirm_estimatedSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated download: approx. {size}'**
+  String maps3d_reload_confirm_estimatedSize(String size);
+
+  /// No description provided for @maps3d_reload_confirm_duration.
+  ///
+  /// In en, this message translates to:
+  /// **'This can take several minutes.'**
+  String get maps3d_reload_confirm_duration;
+
+  /// No description provided for @maps3d_reload_confirm_wifiHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A lot of data will be downloaded — a fast Wi-Fi connection is recommended.'**
+  String get maps3d_reload_confirm_wifiHint;
+
+  /// No description provided for @maps3d_reload_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload'**
+  String get maps3d_reload_start;
+
+  /// No description provided for @maps3d_reload_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'{completed} of {total} dive sites'**
+  String maps3d_reload_progress(int completed, int total);
+
+  /// No description provided for @maps3d_reload_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get maps3d_reload_cancel;
+
+  /// No description provided for @maps3d_reload_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Map data reloaded for every dive site'**
+  String get maps3d_reload_done;
+
+  /// No description provided for @maps3d_reload_cancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload cancelled'**
+  String get maps3d_reload_cancelled;
+
+  /// No description provided for @maps3d_reload_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload failed; some dive sites may not have been reloaded'**
+  String get maps3d_reload_failed;
+
+  /// No description provided for @maps3d_busy_notice.
+  ///
+  /// In en, this message translates to:
+  /// **'Another 3D Maps action is running. Please wait until it finishes.'**
+  String get maps3d_busy_notice;
+
+  /// No description provided for @maps3d_reload_remainingSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'about {count, plural, =1{1 second} other{{count} seconds}} remaining'**
+  String maps3d_reload_remainingSeconds(int count);
+
+  /// No description provided for @maps3d_reload_remainingMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'about {count, plural, =1{1 minute} other{{count} minutes}} remaining'**
+  String maps3d_reload_remainingMinutes(int count);
+
+  /// No description provided for @maps3d_reload_warming.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing: lake {index} of {total} ({name})'**
+  String maps3d_reload_warming(int index, int total, String name);
+
+  /// No description provided for @maps3d_reload_elapsedSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'running for {count, plural, =1{1 second} other{{count} seconds}}'**
+  String maps3d_reload_elapsedSeconds(int count);
+
+  /// No description provided for @maps3d_reload_elapsedMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'running for {count, plural, =1{1 minute} other{{count} minutes}}'**
+  String maps3d_reload_elapsedMinutes(int count);
 
   /// Generic re-parse action label
   ///
@@ -44177,6 +44285,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'3D view'**
   String get dive3d_seascape_orbitView;
+
+  /// No description provided for @dive3d_seascape_verticalExaggeration.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical exaggeration'**
+  String get dive3d_seascape_verticalExaggeration;
+
+  /// No description provided for @dive3d_seascape_verticalExaggerationReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to automatic'**
+  String get dive3d_seascape_verticalExaggerationReset;
+
+  /// No description provided for @dive3d_seascape_verticalExaggerationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get dive3d_seascape_verticalExaggerationLabel;
 
   /// No description provided for @dive3d_seascape_appearance_surface.
   ///
@@ -62912,6 +63038,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show backup folder'**
   String get startup_failure_showBackupsFolder;
+
+  /// Heading over the recovery routes offered when a startup failure left the diver's data reachable somewhere else.
+  ///
+  /// In en, this message translates to:
+  /// **'Other ways back in'**
+  String get startup_failure_moreWays_title;
+
+  /// Action opening a folder picker so the diver can point Submersion at a dive log kept elsewhere, such as an iCloud Drive folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Use a dive log in another folder'**
+  String get startup_failure_useAnotherFolder;
+
+  /// Explains what picking another folder does.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch to a dive log you already keep somewhere else, such as an iCloud Drive or Dropbox folder.'**
+  String get startup_failure_useAnotherFolder_subtitle;
+
+  /// Action opening a file picker so the diver can restore a backup the app's own registry does not know about.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore from a backup file'**
+  String get startup_failure_restoreFromFile;
+
+  /// Explains what picking a backup file does.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a Submersion backup from anywhere on this device or in a synced folder.'**
+  String get startup_failure_restoreFromFile_subtitle;
+
+  /// Action that sets the unreadable database aside and starts an empty one. Last resort, shown below the two routes that keep existing data.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with an empty dive log'**
+  String get startup_failure_startFresh;
+
+  /// Explains that starting fresh moves the damaged file rather than deleting it.
+  ///
+  /// In en, this message translates to:
+  /// **'Set the damaged file aside and begin again. Nothing is deleted.'**
+  String get startup_failure_startFresh_subtitle;
+
+  /// Title of the dialog confirming the dive log found in the picked folder.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this dive log?'**
+  String get startup_recovery_adopt_title;
+
+  /// Explains that adopting the found dive log leaves the unreadable file untouched.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion will open this dive log from now on. The file that would not open stays where it is.'**
+  String get startup_recovery_adopt_body;
+
+  /// What the found dive log holds, so the diver can recognise it before committing. Object, not int, so counts are never group-separated inconsistently with the rest of the screen.
+  ///
+  /// In en, this message translates to:
+  /// **'{dives} dives, {sites} dive sites'**
+  String startup_recovery_adopt_contents(Object dives, Object sites);
+
+  /// Confirm button of the adopt dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Use this dive log'**
+  String get startup_recovery_adopt_confirm;
+
+  /// Title of the dialog confirming an empty dive log.
+  ///
+  /// In en, this message translates to:
+  /// **'Start with an empty dive log?'**
+  String get startup_recovery_startFresh_title;
+
+  /// Explains that the damaged file is moved aside, not deleted, and stays available for support.
+  ///
+  /// In en, this message translates to:
+  /// **'Submersion moves the damaged file into a folder of its own and opens a new, empty dive log. Nothing is deleted, so you can still try the old file again or send it to support.'**
+  String get startup_recovery_startFresh_body;
+
+  /// Confirm button of the start-fresh dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Start fresh'**
+  String get startup_recovery_startFresh_confirm;
+
+  /// Tells the diver where the damaged dive log was moved to.
+  ///
+  /// In en, this message translates to:
+  /// **'Your damaged dive log was moved to:\n{path}'**
+  String startup_recovery_startFresh_done(Object path);
+
+  /// Title shared by every dialog reporting that a recovery route did not get anywhere.
+  ///
+  /// In en, this message translates to:
+  /// **'That did not work'**
+  String get startup_recovery_problem_title;
+
+  /// Shown when the picked folder holds no dive log. Names the file looked for and the folder searched, because picking the parent folder is the common mistake.
+  ///
+  /// In en, this message translates to:
+  /// **'There is no {filename} in {folder}. Choose the folder that holds the dive log file itself.'**
+  String startup_recovery_noDiveLog_body(Object filename, Object folder);
+
+  /// Shown when the picked folder holds a dive log that cannot be read either.
+  ///
+  /// In en, this message translates to:
+  /// **'The dive log at {path} is damaged, or it is not a Submersion dive log.'**
+  String startup_recovery_unusable_body(Object path);
+
+  /// Shown when a backup FILE the diver picked cannot be restored. Distinct from the unusable dive-log message, which calls the path a dive log.
+  ///
+  /// In en, this message translates to:
+  /// **'That file is not a backup Submersion can restore: {path}'**
+  String startup_recovery_unusableBackup_body(Object path);
+
+  /// Shown when the diver picks an encrypted backup on the startup failure screen, where the passphrase prompt that unlocks one is not reachable.
+  ///
+  /// In en, this message translates to:
+  /// **'That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings, under Backup and Restore.'**
+  String get startup_recovery_encryptedBackup_body;
 
   /// Heading of the guided-downgrade section on a failed schema upgrade.
   ///

@@ -25,11 +25,15 @@ final linkBuddyNamesDataProvider =
 
 /// Refreshes everything a conversion or its undo can change (#1831).
 ///
-/// Explicit, because the table-change streams miss it: the paginated dive
-/// list's stream does not watch `dive_buddies`, and the buddy count
-/// providers tick only on `buddies` and `dives`, which a links-only
-/// conversion never writes. Takes the [ProviderContainer], not a
-/// `WidgetRef`, because Undo can run after the page that converted is gone.
+/// Explicit, because the paginated dive list's stream does not watch
+/// `dive_buddies`. The buddy count providers (`buddyStatsProvider`,
+/// `diveIdsForBuddyProvider`, `allBuddiesWithDiveCountProvider`) invalidating
+/// them here is belt-and-suspenders for immediacy, not a workaround for a
+/// gap: they self-invalidate on `dive_buddies` writes too as of #2084, just
+/// on a debounced tick, so a links-only conversion no longer needs this to
+/// eventually refresh them, only to do so without the debounce's delay.
+/// Takes the [ProviderContainer], not a `WidgetRef`, because Undo can run
+/// after the page that converted is gone.
 ///
 /// The paginated list's buddy filters and the detail page's neighbor ids
 /// read `dive_buddies`. The list reloads in place rather than being
