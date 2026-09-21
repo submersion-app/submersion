@@ -9388,7 +9388,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_filter_clearAll => 'مسح الكل';
 
   @override
-  String get diveSites_filter_country_hint => 'مثال: تايلاند';
+  String get diveSites_filter_allCountries => 'جميع الدول';
+
+  @override
+  String get diveSites_filter_allRegions => 'جميع المناطق';
 
   @override
   String get diveSites_filter_country_label => 'الدولة';
@@ -9426,10 +9429,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => 'مثال: فوكيت';
+  String get diveSites_filter_region_label => 'المنطقة';
 
   @override
-  String get diveSites_filter_region_label => 'المنطقة';
+  String get diveSites_filter_searchCountriesHint => 'اكتب للبحث عن الدول';
+
+  @override
+  String get diveSites_filter_searchRegionsHint => 'اكتب للبحث عن المناطق';
 
   @override
   String get diveSites_filter_section_depthRange => 'نطاق أقصى عمق';
@@ -17946,6 +17952,13 @@ class AppLocalizationsAr extends AppLocalizations {
       'تنزيل الخرائط للاستخدام بدون اتصال';
 
   @override
+  String get settings_data_threeDMaps => '3D Maps';
+
+  @override
+  String get settings_data_threeDMaps_subtitle =>
+      'Manage cached swissBATHY3D and other bathymetry data';
+
+  @override
   String get settings_data_restore => 'استعادة';
 
   @override
@@ -26267,6 +26280,165 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد بيانات أعماق بحيرات مخزّنة بعد';
 
   @override
+  String get maps3d_appBar_title => 'خرائط ثلاثية الأبعاد';
+
+  @override
+  String get maps3d_section_all => 'كل المزوّدين';
+
+  @override
+  String get maps3d_section_swissBathy => 'swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete => 'حذف البيانات';
+
+  @override
+  String get maps3d_swissBathy_delete_subtitle =>
+      'يزيل بلاطات العمق وشبكات البحيرات المخزَّنة مؤقتًا من swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmTitle =>
+      'حذف بيانات swissBATHY3D؟';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      'ستتم إزالة بيانات العمق المخزَّنة مؤقتًا للبحيرات السويسرية وإعادة تحميلها عند فتح العرض ثلاثي الأبعاد لموقع غوص في المرة القادمة.';
+
+  @override
+  String get maps3d_swissBathy_delete_done => 'تم حذف بيانات swissBATHY3D';
+
+  @override
+  String get maps3d_section_other => 'المزوّدون الآخرون';
+
+  @override
+  String get maps3d_other_reset => 'إعادة تعيين بيانات قياس الأعماق المتبقية';
+
+  @override
+  String get maps3d_other_reset_subtitle =>
+      'يزيل البيانات المخزَّنة مؤقتًا من EMODnet وNOAA DEM وGMRT وETOPO';
+
+  @override
+  String get maps3d_other_reset_confirmTitle =>
+      'إعادة تعيين بيانات قياس الأعماق المتبقية؟';
+
+  @override
+  String get maps3d_other_reset_confirmMessage =>
+      'ستتم إزالة البيانات المخزَّنة مؤقتًا من جميع المزوّدين باستثناء swissBATHY3D وإعادة تحميلها عند فتح العرض ثلاثي الأبعاد لموقع غوص في المرة القادمة.';
+
+  @override
+  String get maps3d_other_reset_done =>
+      'تمت إعادة تعيين بيانات قياس الأعماق المتبقية';
+
+  @override
+  String get maps3d_reload => 'إعادة تحميل بيانات الخرائط';
+
+  @override
+  String get maps3d_reload_subtitle =>
+      'يحذف جميع بيانات قياس الأعماق المخزَّنة مؤقتًا ويعيد تنزيلها لكل موقع غوص';
+
+  @override
+  String get maps3d_reload_confirmTitle =>
+      'إعادة تحميل بيانات الخرائط لكل مواقع الغوص؟';
+
+  @override
+  String maps3d_reload_confirm_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'سيُعاد تحميل $count موقع غوص.',
+      one: 'سيُعاد تحميل موقع غوص واحد.',
+      zero: 'لا يوجد موقع غوص له إحداثيات.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_confirm_estimatedSize(String size) {
+    return 'التنزيل المقدَّر: حوالي $size';
+  }
+
+  @override
+  String get maps3d_reload_confirm_duration => 'قد يستغرق ذلك عدة دقائق.';
+
+  @override
+  String get maps3d_reload_confirm_wifiHint =>
+      'سيتم تنزيل كمية كبيرة من البيانات، لذا يُنصح باتصال Wi-Fi سريع.';
+
+  @override
+  String get maps3d_reload_start => 'إعادة تحميل';
+
+  @override
+  String maps3d_reload_progress(int completed, int total) {
+    return '$completed من $total موقع غوص';
+  }
+
+  @override
+  String get maps3d_reload_cancel => 'إلغاء';
+
+  @override
+  String get maps3d_reload_done =>
+      'تمت إعادة تحميل بيانات الخرائط لكل مواقع الغوص';
+
+  @override
+  String get maps3d_reload_cancelled => 'تم إلغاء إعادة التحميل';
+
+  @override
+  String get maps3d_reload_failed =>
+      'فشلت إعادة التحميل؛ قد لا تكون بعض مواقع الغوص قد أُعيد تحميلها';
+
+  @override
+  String get maps3d_busy_notice =>
+      'هناك إجراء آخر في الخرائط ثلاثية الأبعاد قيد التنفيذ. يُرجى الانتظار حتى ينتهي.';
+
+  @override
+  String maps3d_reload_remainingSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'يتبقّى حوالي $count ثانية',
+      one: 'يتبقّى حوالي ثانية واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_remainingMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'يتبقّى حوالي $count دقيقة',
+      one: 'يتبقّى حوالي دقيقة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_warming(int index, int total, String name) {
+    return 'التحضير: البحيرة $index من $total ($name)';
+  }
+
+  @override
+  String maps3d_reload_elapsedSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'قيد التشغيل منذ $count ثانية',
+      one: 'قيد التشغيل منذ ثانية واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_elapsedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'قيد التشغيل منذ $count دقيقة',
+      one: 'قيد التشغيل منذ دقيقة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get common_action_reparse => 'إعادة التحليل';
 
   @override
@@ -27048,6 +27220,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dive3d_seascape_orbitView => 'عرض ثلاثي الأبعاد';
+
+  @override
+  String get dive3d_seascape_verticalExaggeration => 'المبالغة الرأسية';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationReset =>
+      'إعادة التعيين إلى تلقائي';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationLabel => 'العمق';
 
   @override
   String get dive3d_seascape_appearance_surface => 'سطح التضاريس';

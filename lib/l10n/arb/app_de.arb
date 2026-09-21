@@ -3198,7 +3198,8 @@
   "diveSites_filter_apply": "Filter anwenden",
   "diveSites_filter_cancel": "Abbrechen",
   "diveSites_filter_clearAll": "Alle löschen",
-  "diveSites_filter_country_hint": "z. B. Thailand",
+  "diveSites_filter_allCountries": "Alle Länder",
+  "diveSites_filter_allRegions": "Alle Regionen",
   "diveSites_filter_country_label": "Land",
   "diveSites_filter_depth_max_label": "Max",
   "diveSites_filter_depth_min_label": "Min",
@@ -3209,8 +3210,9 @@
   "diveSites_filter_option_hasDives_subtitle": "Nur Plätze mit eingetragenen Tauchgängen anzeigen",
   "diveSites_filter_option_hasDives_title": "Hat Tauchgänge",
   "diveSites_filter_rating_starsPlus": "{count}+ Sterne",
-  "diveSites_filter_region_hint": "z. B. Phuket",
   "diveSites_filter_region_label": "Region",
+  "diveSites_filter_searchCountriesHint": "Tippen, um Länder zu suchen",
+  "diveSites_filter_searchRegionsHint": "Tippen, um Regionen zu suchen",
   "diveSites_filter_section_depthRange": "Max. Tiefenbereich",
   "diveSites_filter_section_difficulty": "Schwierigkeitsgrad",
   "diveSites_filter_section_location": "Standort",
@@ -5514,6 +5516,8 @@
   "settings_data_import_failed": "Vorgang fehlgeschlagen: {error}",
   "settings_data_offlineMaps": "Offline-Karten",
   "settings_data_offlineMaps_subtitle": "Karten für die Offline-Nutzung herunterladen",
+  "settings_data_threeDMaps": "3D-Karten",
+  "settings_data_threeDMaps_subtitle": "Gecachte swissBATHY3D- und andere Bathymetrie-Daten verwalten",
   "settings_data_restore": "Wiederherstellen",
   "settings_data_restoreDialog_cancel": "Abbrechen",
   "settings_data_restoreDialog_content": "Warnung: Das Wiederherstellen aus einer Sicherung ersetzt ALLE aktuellen Daten durch die Sicherungsdaten. Diese Aktion kann nicht rückgängig gemacht werden.\n\nSind Sie sicher, dass Sie fortfahren möchten?",
@@ -7610,7 +7614,7 @@
   "diveLog_detail_reparseProfilePreserved": "Quelldetails aktualisiert. Dieser Tauchgang wurde aus mehreren Tauchgängen zusammengeführt, daher blieb sein Profil unverändert.",
   "settings_appearance_mapStyle": "Kartenstil",
   "settings_appearance_mapStyle_esriSatellite": "Satellit",
-  "settings_appearance_bathymetryRefresh": "Kartendaten aktualisieren",
+  "settings_appearance_bathymetryRefresh": "Bestehende Kartendaten aktualisieren",
   "settings_appearance_bathymetryRefresh_subtitle": "Prüft swissBATHY3D-Tiefendaten auf Aktualisierungen",
   "settings_appearance_bathymetryRefresh_resultUpdated": "{count, plural, =1{1 Kachel aktualisiert} other{{count} Kacheln aktualisiert}}",
   "@settings_appearance_bathymetryRefresh_resultUpdated": {
@@ -7623,6 +7627,104 @@
   "settings_appearance_bathymetryRefresh_resultUpToDate": "Alle Daten sind aktuell",
   "settings_appearance_bathymetryRefresh_resultFailed": "Nicht alle Daten konnten geprüft werden; bestehende Werte wurden beibehalten",
   "settings_appearance_bathymetryRefresh_resultNothingCached": "Noch keine Seetiefendaten gespeichert",
+  "maps3d_appBar_title": "3D-Karten",
+  "maps3d_section_all": "Alle Anbieter",
+  "maps3d_section_swissBathy": "swissBATHY3D",
+  "maps3d_swissBathy_delete": "Daten löschen",
+  "maps3d_swissBathy_delete_subtitle": "Entfernt gecachte swissBATHY3D-Tiefenkacheln und Seenetze",
+  "maps3d_swissBathy_delete_confirmTitle": "swissBATHY3D-Daten löschen?",
+  "maps3d_swissBathy_delete_confirmMessage": "Gecachte Tiefendaten für Schweizer Seen werden entfernt und beim nächsten Öffnen der 3D-Ansicht eines Tauchplatzes neu geladen.",
+  "maps3d_swissBathy_delete_done": "swissBATHY3D-Daten gelöscht",
+  "maps3d_section_other": "Übrige Anbieter",
+  "maps3d_other_reset": "Übrige Bathymetrie-Daten zurücksetzen",
+  "maps3d_other_reset_subtitle": "Entfernt gecachte Daten von EMODnet, NOAA DEM, GMRT und ETOPO",
+  "maps3d_other_reset_confirmTitle": "Übrige Bathymetrie-Daten zurücksetzen?",
+  "maps3d_other_reset_confirmMessage": "Gecachte Daten aller Anbieter ausser swissBATHY3D werden entfernt und beim nächsten Öffnen der 3D-Ansicht eines Tauchplatzes neu geladen.",
+  "maps3d_other_reset_done": "Übrige Bathymetrie-Daten zurückgesetzt",
+  "maps3d_reload": "Kartendaten neu laden",
+  "maps3d_reload_subtitle": "Löscht alle gecachten Bathymetrie-Daten und lädt sie für jeden Tauchplatz neu herunter",
+  "maps3d_reload_confirmTitle": "Kartendaten für alle Tauchplätze neu laden?",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{Kein Tauchplatz hat eine Koordinate.} =1{1 Tauchplatz wird neu geladen.} other{{count} Tauchplätze werden neu geladen.}}",
+  "@maps3d_reload_confirm_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_confirm_estimatedSize": "Geschätzter Download: ca. {size}",
+  "@maps3d_reload_confirm_estimatedSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_confirm_duration": "Dies kann mehrere Minuten dauern.",
+  "maps3d_reload_confirm_wifiHint": "Es werden viele Daten heruntergeladen — ein schnelles WLAN wird empfohlen.",
+  "maps3d_reload_start": "Neu laden",
+  "maps3d_reload_progress": "{completed} von {total} Tauchplätzen",
+  "@maps3d_reload_progress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_cancel": "Abbrechen",
+  "maps3d_reload_done": "Kartendaten für alle Tauchplätze neu geladen",
+  "maps3d_reload_cancelled": "Neu laden abgebrochen",
+  "maps3d_reload_failed": "Neu laden fehlgeschlagen; einige Tauchplätze wurden evtl. nicht neu geladen",
+  "maps3d_busy_notice": "Eine andere 3D-Karten-Aktion läuft gerade. Bitte warten, bis sie abgeschlossen ist.",
+  "maps3d_reload_remainingSeconds": "noch ca. {count, plural, =1{1 Sekunde} other{{count} Sekunden}}",
+  "@maps3d_reload_remainingSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_remainingMinutes": "noch ca. {count, plural, =1{1 Minute} other{{count} Minuten}}",
+  "@maps3d_reload_remainingMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_warming": "Bereite vor: See {index} von {total} ({name})",
+  "@maps3d_reload_warming": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_elapsedSeconds": "läuft seit {count, plural, =1{1 Sekunde} other{{count} Sekunden}}",
+  "@maps3d_reload_elapsedSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_elapsedMinutes": "läuft seit {count, plural, =1{1 Minute} other{{count} Minuten}}",
+  "@maps3d_reload_elapsedMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settings_appearance_mapStyle_openStreetMap": "Straßenkarte",
   "settings_appearance_mapStyle_openTopoMap": "Topografisch",
   "universalImport_bulk_replaceSourceAll": "Alle ersetzen ({count})",
@@ -7855,6 +7957,12 @@
   "@dive3d_seascape_chartView": {},
   "dive3d_seascape_orbitView": "3D-Ansicht",
   "@dive3d_seascape_orbitView": {},
+  "dive3d_seascape_verticalExaggeration": "Vertikale Überhöhung",
+  "@dive3d_seascape_verticalExaggeration": {},
+  "dive3d_seascape_verticalExaggerationReset": "Auf automatisch zurücksetzen",
+  "@dive3d_seascape_verticalExaggerationReset": {},
+  "dive3d_seascape_verticalExaggerationLabel": "Tiefe",
+  "@dive3d_seascape_verticalExaggerationLabel": {},
   "dive3d_seascape_appearance_surface": "Geländeoberfläche",
   "@dive3d_seascape_appearance_surface": {},
   "dive3d_seascape_appearance_surfaceDepth": "Tiefenfarben",

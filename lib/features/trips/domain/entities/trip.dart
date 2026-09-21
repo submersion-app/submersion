@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 
@@ -101,7 +102,7 @@ class Trip extends Equatable {
   /// Whether this trip is upcoming or currently underway (date-only
   /// comparison, same normalization as [containsDate]).
   bool get isUpcoming {
-    final now = DateTime.now();
+    final now = clock.now();
     final today = DateTime(now.year, now.month, now.day);
     final end = DateTime(endDate.year, endDate.month, endDate.day);
     return !end.isBefore(today);
@@ -109,7 +110,7 @@ class Trip extends Equatable {
 
   /// Whether the trip has started but not yet ended (date-only).
   bool get isInProgress {
-    final now = DateTime.now();
+    final now = clock.now();
     final today = DateTime(now.year, now.month, now.day);
     final start = DateTime(startDate.year, startDate.month, startDate.day);
     final end = DateTime(endDate.year, endDate.month, endDate.day);
@@ -122,7 +123,7 @@ class Trip extends Equatable {
   /// start date can't shave a day off the countdown (a local 23-hour day would
   /// make `Duration.inDays` truncate 47 hours to 1 day instead of 2).
   int get daysUntilStart {
-    final diff = calendarDaysBetween(DateTime.now(), startDate);
+    final diff = calendarDaysBetween(clock.now(), startDate);
     return diff < 0 ? 0 : diff;
   }
 

@@ -9554,7 +9554,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_filter_clearAll => 'Összes törlése';
 
   @override
-  String get diveSites_filter_country_hint => 'pl. Thaiföld';
+  String get diveSites_filter_allCountries => 'Összes ország';
+
+  @override
+  String get diveSites_filter_allRegions => 'Összes régió';
 
   @override
   String get diveSites_filter_country_label => 'Ország';
@@ -9591,10 +9594,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => 'pl. Phuket';
+  String get diveSites_filter_region_label => 'Régió';
 
   @override
-  String get diveSites_filter_region_label => 'Régió';
+  String get diveSites_filter_searchCountriesHint =>
+      'Gépelj az országok kereséséhez';
+
+  @override
+  String get diveSites_filter_searchRegionsHint =>
+      'Gépelj a régiók kereséséhez';
 
   @override
   String get diveSites_filter_section_depthRange => 'Max mélység tartomány';
@@ -18209,6 +18217,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Térképek letöltése offline használathoz';
 
   @override
+  String get settings_data_threeDMaps => '3D Maps';
+
+  @override
+  String get settings_data_threeDMaps_subtitle =>
+      'Manage cached swissBATHY3D and other bathymetry data';
+
+  @override
   String get settings_data_restore => 'Visszaállítás';
 
   @override
@@ -26542,6 +26557,165 @@ class AppLocalizationsHu extends AppLocalizations {
       'Még nincsenek tárolt tómélységadatok';
 
   @override
+  String get maps3d_appBar_title => '3D térképek';
+
+  @override
+  String get maps3d_section_all => 'Összes szolgáltató';
+
+  @override
+  String get maps3d_section_swissBathy => 'swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete => 'Adatok törlése';
+
+  @override
+  String get maps3d_swissBathy_delete_subtitle =>
+      'Törli a gyorsítótárazott swissBATHY3D mélységi csempéket és tórácsokat';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmTitle =>
+      'Törli a swissBATHY3D adatokat?';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      'A svájci tavak gyorsítótárazott mélységi adatai törlődnek, és egy merülőhely 3D nézetének következő megnyitásakor újratöltődnek.';
+
+  @override
+  String get maps3d_swissBathy_delete_done => 'A swissBATHY3D adatok törölve';
+
+  @override
+  String get maps3d_section_other => 'Egyéb szolgáltatók';
+
+  @override
+  String get maps3d_other_reset => 'A többi batimetriai adat visszaállítása';
+
+  @override
+  String get maps3d_other_reset_subtitle =>
+      'Törli az EMODnet, NOAA DEM, GMRT és ETOPO gyorsítótárazott adatait';
+
+  @override
+  String get maps3d_other_reset_confirmTitle =>
+      'Visszaállítja a többi batimetriai adatot?';
+
+  @override
+  String get maps3d_other_reset_confirmMessage =>
+      'A swissBATHY3D kivételével minden szolgáltató gyorsítótárazott adata törlődik, és egy merülőhely 3D nézetének következő megnyitásakor újratöltődik.';
+
+  @override
+  String get maps3d_other_reset_done =>
+      'A többi batimetriai adat visszaállítva';
+
+  @override
+  String get maps3d_reload => 'Térképadatok újratöltése';
+
+  @override
+  String get maps3d_reload_subtitle =>
+      'Törli az összes gyorsítótárazott batimetriai adatot, és minden merülőhelyhez újra letölti őket';
+
+  @override
+  String get maps3d_reload_confirmTitle =>
+      'Újratölti a térképadatokat minden merülőhelyhez?';
+
+  @override
+  String maps3d_reload_confirm_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülőhely töltődik újra.',
+      one: '1 merülőhely töltődik újra.',
+      zero: 'Egyetlen merülőhelynek sincs koordinátája.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_confirm_estimatedSize(String size) {
+    return 'Becsült letöltés: kb. $size';
+  }
+
+  @override
+  String get maps3d_reload_confirm_duration => 'Ez több percig is eltarthat.';
+
+  @override
+  String get maps3d_reload_confirm_wifiHint =>
+      'Sok adat letöltésére kerül sor, ezért gyors Wi-Fi kapcsolat ajánlott.';
+
+  @override
+  String get maps3d_reload_start => 'Újratöltés';
+
+  @override
+  String maps3d_reload_progress(int completed, int total) {
+    return '$completed/$total merülőhely';
+  }
+
+  @override
+  String get maps3d_reload_cancel => 'Mégse';
+
+  @override
+  String get maps3d_reload_done =>
+      'A térképadatok minden merülőhelyhez újratöltve';
+
+  @override
+  String get maps3d_reload_cancelled => 'Az újratöltés megszakítva';
+
+  @override
+  String get maps3d_reload_failed =>
+      'Az újratöltés sikertelen; előfordulhat, hogy egyes merülőhelyek nem töltődtek újra';
+
+  @override
+  String get maps3d_busy_notice =>
+      'Egy másik művelet fut a 3D térképek oldalon. Kérjük, várja meg, amíg befejeződik.';
+
+  @override
+  String maps3d_reload_remainingSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'kb. $count másodperc van hátra',
+      one: 'kb. 1 másodperc van hátra',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_remainingMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'kb. $count perc van hátra',
+      one: 'kb. 1 perc van hátra',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_warming(int index, int total, String name) {
+    return 'Előkészítés: $index/$total. tó ($name)';
+  }
+
+  @override
+  String maps3d_reload_elapsedSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count másodperce fut',
+      one: '1 másodperce fut',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_elapsedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count perce fut',
+      one: '1 perce fut',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get common_action_reparse => 'Újraelemzés';
 
   @override
@@ -27318,6 +27492,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dive3d_seascape_orbitView => '3D nézet';
+
+  @override
+  String get dive3d_seascape_verticalExaggeration => 'Függőleges túlzás';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationReset =>
+      'Visszaállítás automatikusra';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationLabel => 'Mélység';
 
   @override
   String get dive3d_seascape_appearance_surface => 'Terepfelszín';

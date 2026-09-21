@@ -62,6 +62,139 @@ void main() {
     expect(b.maxNorth - b.minNorth, closeTo(0.001 * 110540, 5));
   });
 
+  group('wetEnuBounds', () {
+    test('returns null for a grid with no wet cells', () {
+      final dryGrid = BathymetryGrid(
+        originLat: 12.15,
+        originLon: -68.30,
+        cellSizeLatDeg: 0.001,
+        cellSizeLonDeg: 0.001,
+        rows: 2,
+        cols: 2,
+        depthsMeters: const [-5, -3, null, -1],
+        sourceId: 'gmrt',
+        resolutionMeters: 61,
+        fetchedAt: DateTime.utc(2026, 7, 28),
+      );
+      expect(BathymetryTerrainBuilder.wetEnuBounds(dryGrid, center), isNull);
+    });
+
+    test('shrinks to the wet cells alone, excluding land/nodata margins '
+        '(issue #2141: a narrow lake inside a wide tile must not be read '
+        'as if it were as wide as the whole tile)', () {
+      // A 1x5 strip: land, wet, wet, nodata, land. Only the middle two
+      // wet columns should bound the wet box.
+      final stripGrid = BathymetryGrid(
+        originLat: 12.15,
+        originLon: -68.30,
+        cellSizeLatDeg: 0.001,
+        cellSizeLonDeg: 0.001,
+        rows: 1,
+        cols: 5,
+        depthsMeters: const [-2, 20, 25, null, -4],
+        sourceId: 'gmrt',
+        resolutionMeters: 61,
+        fetchedAt: DateTime.utc(2026, 7, 28),
+      );
+      final full = BathymetryTerrainBuilder.enuBounds(stripGrid, center);
+      final wet = BathymetryTerrainBuilder.wetEnuBounds(stripGrid, center)!;
+
+      // The wet strip (columns 1-2) spans one cell width, far narrower
+      // than the full 4-cell-wide tile.
+      expect(wet.maxEast - wet.minEast, lessThan(full.maxEast - full.minEast));
+      expect(wet.minEast, greaterThan(full.minEast));
+      expect(wet.maxEast, lessThan(full.maxEast));
+    });
+  });
+
+  group('wetPrincipalAxisWidth', () {
+    // A synthetic, roughly square grid so 1 row step and 1 col step are
+    // both exactly 50 m -- makes the geometry below easy to reason about.
+    const squareCenter = GeoPoint(0, 0);
+    BathymetryGrid squareGrid(List<List<double?>> rowsSouthToNorth) {
+      final rows = rowsSouthToNorth.length;
+      final cols = rowsSouthToNorth.first.length;
+      return BathymetryGrid(
+        originLat: 0,
+        originLon: 0,
+        cellSizeLatDeg: 50.0 / 110540.0,
+        cellSizeLonDeg: 50.0 / 111320.0,
+        rows: rows,
+        cols: cols,
+        depthsMeters: [for (final r in rowsSouthToNorth) ...r],
+        sourceId: 'test',
+        resolutionMeters: 50,
+        fetchedAt: DateTime.utc(2026, 8, 15),
+      );
+    }
+
+    test('returns null for fewer than 2 wet cells', () {
+      final grid = squareGrid([
+        [20, null],
+        [-2, -3],
+      ]);
+      expect(
+        BathymetryTerrainBuilder.wetPrincipalAxisWidth(grid, squareCenter),
+        isNull,
+      );
+    });
+
+    test('an axis-aligned band reports its own (narrow) row span, not the '
+        'much wider column span', () {
+      // 21 columns x 21 rows; only the 3 middle rows are wet, all
+      // columns -- an east-west band 100 m tall and 1000 m long.
+      final rows = List.generate(
+        21,
+        (r) => List<double?>.generate(21, (c) => (r - 10).abs() <= 1 ? 20 : -5),
+      );
+      final width = BathymetryTerrainBuilder.wetPrincipalAxisWidth(
+        squareGrid(rows),
+        squareCenter,
+      )!;
+      expect(width, greaterThan(50));
+      expect(width, lessThan(300)); // nowhere near the ~1000 m length
+    });
+
+    test('a DIAGONALLY oriented band of the same real width is read the same '
+        'as the axis-aligned one, unlike an axis-aligned bounding box '
+        '(issue #2141 follow-up: alpine lakes rarely run exactly '
+        'north-south or east-west)', () {
+      final axisAligned = List.generate(
+        21,
+        (r) => List<double?>.generate(21, (c) => (r - 10).abs() <= 1 ? 20 : -5),
+      );
+      final diagonal = List.generate(
+        21,
+        (r) => List<double?>.generate(21, (c) => (r - c).abs() <= 1 ? 20 : -5),
+      );
+      final axisWidth = BathymetryTerrainBuilder.wetPrincipalAxisWidth(
+        squareGrid(axisAligned),
+        squareCenter,
+      )!;
+      final diagonalWidth = BathymetryTerrainBuilder.wetPrincipalAxisWidth(
+        squareGrid(diagonal),
+        squareCenter,
+      )!;
+
+      // The two bands have the same real cross-axis thickness; the
+      // principal-axis width must land in the same ballpark for both.
+      expect(diagonalWidth / axisWidth, closeTo(1.0, 0.5));
+
+      // Whereas the axis-aligned bounding box's own narrower side is
+      // fooled by the rotation: for the diagonal band it comes out
+      // close to the FULL grid extent, many times too wide.
+      final diagonalBox = BathymetryTerrainBuilder.wetEnuBounds(
+        squareGrid(diagonal),
+        squareCenter,
+      )!;
+      final diagonalBoxNarrowSide = [
+        diagonalBox.maxEast - diagonalBox.minEast,
+        diagonalBox.maxNorth - diagonalBox.minNorth,
+      ].reduce((a, b) => a < b ? a : b);
+      expect(diagonalBoxNarrowSide, greaterThan(diagonalWidth * 3));
+    });
+  });
+
   test('terrain has one vertex per cell and full quad indices', () {
     final t = BathymetryTerrainBuilder.build(
       grid: grid,

@@ -6,7 +6,6 @@ import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/database/database.dart'
     show DiveDataSourcesCompanion, DiveSitesCompanion, DivesCompanion;
 import 'package:submersion/core/services/export/export_service.dart';
-import 'package:submersion/core/utils/deco_dive_detector.dart';
 import 'package:submersion/features/dive_import/data/repositories/imported_file_repository.dart';
 import 'package:submersion/features/dive_import/data/services/import_map_readers.dart';
 import 'package:submersion/features/dive_import/data/services/parsed_profile_event_mapper.dart';
@@ -2532,38 +2531,13 @@ class UddfEntityImporter {
       final parsedEntryTime = diveData['entryTime'] as DateTime?;
       final entryTime = parsedEntryTime ?? dateTime;
       final exitTime = runtime != null ? dateTime.add(runtime) : null;
-      // Parser-emitted profile events; consumed below for the deco default
-      // and persisted as ProfileEvents after the dive row is created.
+      // Parser-emitted profile events; persisted as ProfileEvents after the
+      // dive row is created.
       final eventMaps = (diveData['events'] as List?)
           ?.cast<Map<String, dynamic>>();
-      // UDDF sources emit events under 'profileEvents' instead of 'events'
-      // (see the NOTE ON UDDF DIVERGENCE below). Only 'events' is persisted
-      // as ProfileEvents, but both shapes should count toward deco detection.
-      final decoDetectionEventMaps =
-          eventMaps ??
-          (diveData['profileEvents'] as List?)?.cast<Map<String, dynamic>>();
-      // Sources without an explicit dive type used to land every dive on
-      // 'recreational', including dives whose samples show mandatory deco
-      // (ceiling, deco stops, exhausted NDL). Default those to the built-in
-      // 'technical' type instead.
-      final defaultDiveType =
-          DecoDiveDetector.isDecoDive(
-            samples: profile.map(
-              (p) => DecoDiveSample(
-                depth: p.depth,
-                ndl: p.ndl,
-                ceiling: p.ceiling,
-                decoType: p.decoType,
-                tts: p.tts,
-              ),
-            ),
-            eventMaps: decoDetectionEventMaps,
-          )
-          ? 'technical'
-          : 'recreational';
       final diveTypeIds = _resolveDiveTypeIds(
         (diveData['diveTypeIds'] as List?)?.cast<String>() ??
-            [diveData['diveType'] as String? ?? defaultDiveType],
+            [diveData['diveType'] as String? ?? 'recreational'],
         diveTypeIdMapping,
       );
 

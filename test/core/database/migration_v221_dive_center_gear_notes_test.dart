@@ -73,12 +73,12 @@ void main() {
     return rows.isEmpty ? null : rows.single.read<String?>('sql');
   }
 
-  test('v221 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 221);
+  test('v221 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v222 (per-site vertical exaggeration overrides) landed
+    // on top; the newest rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(221));
     expect(AppDatabase.migrationVersions, contains(221));
-    expect(AppDatabase.migrationStepCount(220), 1);
+    expect(AppDatabase.migrationStepCount(220), greaterThanOrEqualTo(1));
     // Additive rung: the sync compatibility floor must not move.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 210);
   });

@@ -536,6 +536,11 @@ class AppSettings {
   /// per-diver.
   final SeascapeAppearance seascapeAppearance;
 
+  /// Per-site manual override of the site terrain's vertical exaggeration
+  /// (issue #2141 follow-up), keyed by dive site id. A site with no entry
+  /// uses the automatically computed value. Per-diver, so it syncs.
+  final Map<String, double> seascapeVerticalExaggerationOverrides;
+
   const AppSettings({
     this.depthUnit = DepthUnit.meters,
     this.temperatureUnit = TemperatureUnit.celsius,
@@ -679,6 +684,7 @@ class AppSettings {
     this.perdixOverlayX,
     this.perdixOverlayY,
     this.seascapeAppearance = const SeascapeAppearance(),
+    this.seascapeVerticalExaggerationOverrides = const {},
   });
 
   /// Compute the current unit preset based on actual unit values
@@ -857,6 +863,7 @@ class AppSettings {
     double? perdixOverlayX,
     double? perdixOverlayY,
     SeascapeAppearance? seascapeAppearance,
+    Map<String, double>? seascapeVerticalExaggerationOverrides,
   }) {
     return AppSettings(
       depthUnit: depthUnit ?? this.depthUnit,
@@ -1044,6 +1051,9 @@ class AppSettings {
       perdixOverlayX: perdixOverlayX ?? this.perdixOverlayX,
       perdixOverlayY: perdixOverlayY ?? this.perdixOverlayY,
       seascapeAppearance: seascapeAppearance ?? this.seascapeAppearance,
+      seascapeVerticalExaggerationOverrides:
+          seascapeVerticalExaggerationOverrides ??
+          this.seascapeVerticalExaggerationOverrides,
     );
   }
 }
@@ -1957,6 +1967,23 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setSeascapeAppearance(SeascapeAppearance appearance) async {
     state = state.copyWith(seascapeAppearance: appearance);
+    await _saveSettings();
+  }
+
+  /// Sets or clears this site's manual vertical-exaggeration override
+  /// (issue #2141 follow-up). [factor] null removes the entry, reverting
+  /// the site to the automatically computed value.
+  Future<void> setSeascapeVerticalExaggerationOverride(
+    String siteId,
+    double? factor,
+  ) async {
+    final overrides = {...state.seascapeVerticalExaggerationOverrides};
+    if (factor == null) {
+      overrides.remove(siteId);
+    } else {
+      overrides[siteId] = factor;
+    }
+    state = state.copyWith(seascapeVerticalExaggerationOverrides: overrides);
     await _saveSettings();
   }
 

@@ -174,6 +174,11 @@ final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
         .valueOrNull;
   }
 
+  final exaggerationOverride = ref.watch(
+    settingsProvider.select(
+      (s) => s.seascapeVerticalExaggerationOverrides[siteId],
+    ),
+  );
   final input = SiteSeascapeInput(
     grid: grid,
     center: center,
@@ -186,6 +191,7 @@ final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
     displayUnitInMeters: depthUnit == DepthUnit.feet ? 0.3048 : 1.0,
     depthSymbol: depthUnit.symbol,
     imageryFrame: imagery?.frame,
+    verticalExaggerationOverride: exaggerationOverride,
   );
   final built = grid.rows * grid.cols > _isolateCellThreshold
       ? await compute(_buildScene, input)
@@ -207,10 +213,15 @@ final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
       minNorth: box.minNorth,
       maxNorth: box.maxNorth,
       maxDepth: maxDepth,
+      verticalExaggeration: built.verticalExaggeration,
     ),
   );
 });
 
-({Scene3d scene, List<ContourLabelSpec> contourLabels}) _buildScene(
-  SiteSeascapeInput input,
-) => const SiteSeascapeGeometryService().buildWithLabels(input);
+({
+  Scene3d scene,
+  List<ContourLabelSpec> contourLabels,
+  double verticalExaggeration,
+})
+_buildScene(SiteSeascapeInput input) =>
+    const SiteSeascapeGeometryService().buildWithLabels(input);
