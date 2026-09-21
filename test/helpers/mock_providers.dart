@@ -572,13 +572,6 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
   }
 
   @override
-  Future<void> setFullscreenReadoutCardPosition(double x, double y) async =>
-      state = state.copyWith(
-        fullscreenReadoutCardX: x,
-        fullscreenReadoutCardY: y,
-      );
-
-  @override
   Future<void> setProfileMetricsFollowViewport(bool value) async =>
       state = state.copyWith(profileMetricsFollowViewport: value);
 

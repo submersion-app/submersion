@@ -100,9 +100,6 @@ class SettingsKeys {
   static const String homeCardOrder = 'home_card_order';
   static const String hiddenHomeCards = 'hidden_home_cards';
 
-  static const String fullscreenReadoutCardX = 'fullscreen_readout_card_x';
-  static const String fullscreenReadoutCardY = 'fullscreen_readout_card_y';
-
   // Whether profile-chart metric overlays follow the visible depth window when
   // zoomed (device-local, stored directly in SharedPreferences rather than
   // per-diver in the DB).
@@ -512,11 +509,6 @@ class AppSettings {
   /// values). Device-local, not per-diver.
   final Set<String> hiddenHomeCards;
 
-  /// Fullscreen readout card position as fractions (0..1) of the movable
-  /// range; null means the default corner. See DraggableReadoutCard.
-  final double? fullscreenReadoutCardX;
-  final double? fullscreenReadoutCardY;
-
   /// Whether the dive profile chart's secondary-axis metric overlays (NDL,
   /// ppO2, GF, ...) follow the visible depth window when zoomed instead of
   /// magnifying with the depth axis and scrolling out of view. Device-local,
@@ -672,8 +664,6 @@ class AppSettings {
     this.hiddenHomeChips = const <String>{},
     this.homeCardOrder = const <String>[],
     this.hiddenHomeCards = const <String>{},
-    this.fullscreenReadoutCardX,
-    this.fullscreenReadoutCardY,
     this.profileMetricsFollowViewport = false,
     this.perdixOverlayEnabled = false,
     this.perdixOverlayX,
@@ -850,8 +840,6 @@ class AppSettings {
     Set<String>? hiddenHomeChips,
     List<String>? homeCardOrder,
     Set<String>? hiddenHomeCards,
-    double? fullscreenReadoutCardX,
-    double? fullscreenReadoutCardY,
     bool? profileMetricsFollowViewport,
     bool? perdixOverlayEnabled,
     double? perdixOverlayX,
@@ -1034,10 +1022,6 @@ class AppSettings {
       hiddenHomeChips: hiddenHomeChips ?? this.hiddenHomeChips,
       homeCardOrder: homeCardOrder ?? this.homeCardOrder,
       hiddenHomeCards: hiddenHomeCards ?? this.hiddenHomeCards,
-      fullscreenReadoutCardX:
-          fullscreenReadoutCardX ?? this.fullscreenReadoutCardX,
-      fullscreenReadoutCardY:
-          fullscreenReadoutCardY ?? this.fullscreenReadoutCardY,
       profileMetricsFollowViewport:
           profileMetricsFollowViewport ?? this.profileMetricsFollowViewport,
       perdixOverlayEnabled: perdixOverlayEnabled ?? this.perdixOverlayEnabled,
@@ -1205,12 +1189,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         homeCardOrder = const [];
         hiddenHomeCards = const <String>{};
       }
-      final fullscreenReadoutCardX = prefs.getDouble(
-        SettingsKeys.fullscreenReadoutCardX,
-      );
-      final fullscreenReadoutCardY = prefs.getDouble(
-        SettingsKeys.fullscreenReadoutCardY,
-      );
       // pSCR ratio is a device-local planning preference (kept out of the
       // per-diver settings table), so it is read straight from SharedPreferences
       // like the fullscreen tile prefs above.
@@ -1239,8 +1217,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
           hiddenHomeChips: hiddenHomeChips,
           homeCardOrder: homeCardOrder,
           hiddenHomeCards: hiddenHomeCards,
-          fullscreenReadoutCardX: fullscreenReadoutCardX,
-          fullscreenReadoutCardY: fullscreenReadoutCardY,
           pscrRatio: pscrRatio ?? 100.0,
           profileMetricsFollowViewport: profileMetricsFollowViewport,
           perdixOverlayEnabled: perdixOverlayEnabled,
@@ -1270,8 +1246,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         hiddenHomeChips: hiddenHomeChips,
         homeCardOrder: homeCardOrder,
         hiddenHomeCards: hiddenHomeCards,
-        fullscreenReadoutCardX: fullscreenReadoutCardX,
-        fullscreenReadoutCardY: fullscreenReadoutCardY,
         pscrRatio: pscrRatio,
         profileMetricsFollowViewport: profileMetricsFollowViewport,
         perdixOverlayEnabled: perdixOverlayEnabled,
@@ -1339,14 +1313,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       SettingsKeys.hiddenHomeCards,
       state.hiddenHomeCards.toList()..sort(),
     );
-    final readoutCardX = state.fullscreenReadoutCardX;
-    if (readoutCardX != null) {
-      await prefs.setDouble(SettingsKeys.fullscreenReadoutCardX, readoutCardX);
-    }
-    final readoutCardY = state.fullscreenReadoutCardY;
-    if (readoutCardY != null) {
-      await prefs.setDouble(SettingsKeys.fullscreenReadoutCardY, readoutCardY);
-    }
     await prefs.setDouble(SettingsKeys.pscrRatio, state.pscrRatio);
     await prefs.setBool(
       SettingsKeys.profileMetricsFollowViewport,
@@ -2207,21 +2173,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  Future<void> setFullscreenReadoutCardPosition(double x, double y) async {
-    // Positions are fractions of the card's movable range; clamp so
-    // persisted values always honor the 0..1 contract (an out-of-range
-    // value would seed the card off-screen on next launch). Dart's clamp
-    // already maps non-finite values in-range (compareTo orders NaN after
-    // all values, so NaN.clamp(0, 1) is 1.0), but canonicalize them to the
-    // default top-right corner (1, 0) explicitly rather than rely on that
-    // ordering accident. Matches DraggableReadoutCard.defaultFraction.
-    state = state.copyWith(
-      fullscreenReadoutCardX: x.isFinite ? x.clamp(0.0, 1.0) : 1.0,
-      fullscreenReadoutCardY: y.isFinite ? y.clamp(0.0, 1.0) : 0.0,
-    );
-    await _saveSettings();
-  }
-
   Future<void> setProfileMetricsFollowViewport(bool value) async {
     state = state.copyWith(profileMetricsFollowViewport: value);
     await _saveSettings();
@@ -2233,8 +2184,13 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   Future<void> setPerdixOverlayPosition(double x, double y) async {
-    // Same 0..1 fraction contract and non-finite canonicalization as
-    // setFullscreenReadoutCardPosition; default corner is top-right (1, 0).
+    // Positions are fractions of the overlay's movable range; clamp so
+    // persisted values always honor the 0..1 contract (an out-of-range value
+    // would seed the overlay off-screen on next launch). Dart's clamp
+    // already maps non-finite values in-range (compareTo orders NaN after
+    // all values, so NaN.clamp(0, 1) is 1.0), but canonicalize them to the
+    // default top-right corner (1, 0) explicitly rather than rely on that
+    // ordering accident.
     state = state.copyWith(
       perdixOverlayX: x.isFinite ? x.clamp(0.0, 1.0) : 1.0,
       perdixOverlayY: y.isFinite ? y.clamp(0.0, 1.0) : 0.0,

@@ -465,10 +465,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     return '$base (${tank.gasMix.name})';
   }
 
-  /// Shared column widths for [tooltipRowText], so every tooltip
-  /// presentation (this widget's own legacy bubble, [ProfileCursorTooltip],
-  /// and the fullscreen page's `DraggableReadoutCard`) aligns identically
-  /// instead of each guessing its own.
+  /// Column widths for [tooltipRowText], used by this widget's own native
+  /// bubble (`tooltipNativeBubble`) to align its monospace label/value
+  /// columns.
   static const tooltipLabelChars = 8;
   static const tooltipValueChars = 16;
 

@@ -10,11 +10,8 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
     : super(settings ?? const AppSettings());
 
   @override
-  Future<void> setFullscreenReadoutCardPosition(double x, double y) async {
-    state = state.copyWith(
-      fullscreenReadoutCardX: x,
-      fullscreenReadoutCardY: y,
-    );
+  Future<void> setPerdixOverlayPosition(double x, double y) async {
+    state = state.copyWith(perdixOverlayX: x, perdixOverlayY: y);
   }
 
   @override
@@ -24,7 +21,7 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
 void main() {
   group('ProfileLegend survives unrelated settings writes', () {
     test(
-      'session toggles persist when the readout card position is saved',
+      'session toggles persist when an unrelated position setting is saved',
       () async {
         final stub = _StubSettingsNotifier();
         final container = ProviderContainer(
@@ -41,8 +38,8 @@ void main() {
         notifier.toggleSac();
         expect(container.read(profileLegendProvider).showSac, isTrue);
 
-        // What dragging the readout card does: an unrelated settings write.
-        await stub.setFullscreenReadoutCardPosition(0.5, 0.5);
+        // What dragging the Perdix overlay does: an unrelated settings write.
+        await stub.setPerdixOverlayPosition(0.5, 0.5);
         await Future<void>.delayed(Duration.zero);
 
         expect(
