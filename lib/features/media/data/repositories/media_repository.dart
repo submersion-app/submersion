@@ -533,16 +533,20 @@ class MediaRepository {
       _log.info('Marking media as orphaned: $id');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
-        MediaCompanion(isOrphaned: const Value(true), updatedAt: Value(now)),
-      );
+      // One transaction: the flag and the clock that orders it must
+      // not be able to come apart (media sync program spec 5.1).
+      await _db.transaction(() async {
+        await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
+          MediaCompanion(isOrphaned: const Value(true), updatedAt: Value(now)),
+        );
 
-      await _syncRepository.markFactsPending(
-        entityType: 'media',
-        recordId: id,
-        localUpdatedAt: now,
-        group: SyncFactGroups.mediaVerification,
-      );
+        await _syncRepository.markFactsPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+          group: SyncFactGroups.mediaVerification,
+        );
+      });
       SyncEventBus.notifyLocalChange();
       _log.info('Marked media as orphaned: $id');
     } catch (e, stackTrace) {
@@ -561,20 +565,24 @@ class MediaRepository {
       _log.info('Marking media as verified: $id');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
-        MediaCompanion(
-          isOrphaned: const Value(false),
-          lastVerifiedAt: Value(now),
-          updatedAt: Value(now),
-        ),
-      );
+      // One transaction: the flag and the clock that orders it must
+      // not be able to come apart (media sync program spec 5.1).
+      await _db.transaction(() async {
+        await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
+          MediaCompanion(
+            isOrphaned: const Value(false),
+            lastVerifiedAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
 
-      await _syncRepository.markFactsPending(
-        entityType: 'media',
-        recordId: id,
-        localUpdatedAt: now,
-        group: SyncFactGroups.mediaVerification,
-      );
+        await _syncRepository.markFactsPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+          group: SyncFactGroups.mediaVerification,
+        );
+      });
       SyncEventBus.notifyLocalChange();
       _log.info('Marked media as verified: $id');
     } catch (e, stackTrace) {
@@ -708,30 +716,42 @@ class MediaRepository {
       _log.info('Setting isOrphaned=$isOrphaned for media: $id');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      final rowsWritten =
-          await (_db.update(_db.media)..where(
-                // Matching on the OPPOSITE flag makes this a no-op when the
-                // row already agrees. SubscriptionPoller calls this for
-                // every entry on every poll, so without the guard a healthy
-                // library would take a fresh verification clock each time
-                // and re-export its snapshot over a peer's newer
-                // observation (media sync program spec 5.1).
-                (t) => t.id.equals(id) & t.isOrphaned.equals(!isOrphaned),
-              ))
-              .write(
-                MediaCompanion(
-                  isOrphaned: Value(isOrphaned),
-                  updatedAt: Value(now),
-                ),
-              );
-      if (rowsWritten == 0) return;
+      // Hoisted: the early return below leaves the transaction, not the
+      // method, and a row that was not written must not announce a
+      // local change. SubscriptionPoller calls markOrphaned for every
+      // entry on every poll, so a notification per healthy row would
+      // wake the sync check each time for nothing.
+      var wrote = false;
+      // One transaction: the flag and the clock that orders it must
+      // not be able to come apart (media sync program spec 5.1).
+      await _db.transaction(() async {
+        final rowsWritten =
+            await (_db.update(_db.media)..where(
+                  // Matching on the OPPOSITE flag makes this a no-op when the
+                  // row already agrees. SubscriptionPoller calls this for
+                  // every entry on every poll, so without the guard a healthy
+                  // library would take a fresh verification clock each time
+                  // and re-export its snapshot over a peer's newer
+                  // observation (media sync program spec 5.1).
+                  (t) => t.id.equals(id) & t.isOrphaned.equals(!isOrphaned),
+                ))
+                .write(
+                  MediaCompanion(
+                    isOrphaned: Value(isOrphaned),
+                    updatedAt: Value(now),
+                  ),
+                );
+        if (rowsWritten == 0) return;
+        wrote = true;
 
-      await _syncRepository.markFactsPending(
-        entityType: 'media',
-        recordId: id,
-        localUpdatedAt: now,
-        group: SyncFactGroups.mediaVerification,
-      );
+        await _syncRepository.markFactsPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+          group: SyncFactGroups.mediaVerification,
+        );
+      });
+      if (!wrote) return;
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
@@ -776,28 +796,40 @@ class MediaRepository {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      final rowsWritten =
-          await (_db.update(_db.media)..where(
-                // Matching on the OPPOSITE flag is what makes this a no-op
-                // when the row already agrees.
-                (t) => t.id.equals(id) & t.isOrphaned.equals(!isOrphaned),
-              ))
-              .write(
-                MediaCompanion(
-                  isOrphaned: Value(isOrphaned),
-                  lastVerifiedAt: Value(verifiedAt.millisecondsSinceEpoch),
-                  updatedAt: Value(now),
-                ),
-              );
-      if (rowsWritten == 0) return;
-      _log.info('Marked media verified: $id (isOrphaned=$isOrphaned)');
+      // Hoisted: the early return below leaves the transaction, not the
+      // method, and a row that was not written must not announce a
+      // local change. SubscriptionPoller calls markOrphaned for every
+      // entry on every poll, so a notification per healthy row would
+      // wake the sync check each time for nothing.
+      var wrote = false;
+      // One transaction: the flag and the clock that orders it must
+      // not be able to come apart (media sync program spec 5.1).
+      await _db.transaction(() async {
+        final rowsWritten =
+            await (_db.update(_db.media)..where(
+                  // Matching on the OPPOSITE flag is what makes this a no-op
+                  // when the row already agrees.
+                  (t) => t.id.equals(id) & t.isOrphaned.equals(!isOrphaned),
+                ))
+                .write(
+                  MediaCompanion(
+                    isOrphaned: Value(isOrphaned),
+                    lastVerifiedAt: Value(verifiedAt.millisecondsSinceEpoch),
+                    updatedAt: Value(now),
+                  ),
+                );
+        if (rowsWritten == 0) return;
+        wrote = true;
+        _log.info('Marked media verified: $id (isOrphaned=$isOrphaned)');
 
-      await _syncRepository.markFactsPending(
-        entityType: 'media',
-        recordId: id,
-        localUpdatedAt: now,
-        group: SyncFactGroups.mediaVerification,
-      );
+        await _syncRepository.markFactsPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+          group: SyncFactGroups.mediaVerification,
+        );
+      });
+      if (!wrote) return;
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
@@ -830,23 +862,35 @@ class MediaRepository {
   }) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      final rowsWritten =
-          await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
-            MediaCompanion(
-              isOrphaned: isOrphaned == null
-                  ? const Value.absent()
-                  : Value(isOrphaned),
-              lastVerifiedAt: Value(verifiedAt.millisecondsSinceEpoch),
-              updatedAt: Value(now),
-            ),
-          );
-      if (rowsWritten == 0) return;
-      await _syncRepository.markFactsPending(
-        entityType: 'media',
-        recordId: id,
-        localUpdatedAt: now,
-        group: SyncFactGroups.mediaVerification,
-      );
+      // Hoisted: the early return below leaves the transaction, not the
+      // method, and a row that was not written must not announce a
+      // local change. SubscriptionPoller calls markOrphaned for every
+      // entry on every poll, so a notification per healthy row would
+      // wake the sync check each time for nothing.
+      var wrote = false;
+      // One transaction: the flag and the clock that orders it must
+      // not be able to come apart (media sync program spec 5.1).
+      await _db.transaction(() async {
+        final rowsWritten =
+            await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
+              MediaCompanion(
+                isOrphaned: isOrphaned == null
+                    ? const Value.absent()
+                    : Value(isOrphaned),
+                lastVerifiedAt: Value(verifiedAt.millisecondsSinceEpoch),
+                updatedAt: Value(now),
+              ),
+            );
+        if (rowsWritten == 0) return;
+        wrote = true;
+        await _syncRepository.markFactsPending(
+          entityType: 'media',
+          recordId: id,
+          localUpdatedAt: now,
+          group: SyncFactGroups.mediaVerification,
+        );
+      });
+      if (!wrote) return;
       SyncEventBus.notifyLocalChange();
     } catch (e, stackTrace) {
       _log.error(
@@ -1578,19 +1622,26 @@ class MediaRepository {
     required int sizeBytes,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-      MediaCompanion(
-        contentHash: Value(contentHash),
-        contentSizeBytes: Value(sizeBytes),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markFactsPending(
-      entityType: 'media',
-      recordId: mediaId,
-      localUpdatedAt: now,
-      group: SyncFactGroups.mediaUpload,
-    );
+    // One transaction: a fact column and the clock that orders it must not
+    // be able to come apart. Written separately, a crash between them left
+    // the new value under the PREVIOUS group clock and with no pending
+    // record, so a later row edit exported it under that stale clock and a
+    // peer's older fact beat it (media sync program spec 5.1).
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+        MediaCompanion(
+          contentHash: Value(contentHash),
+          contentSizeBytes: Value(sizeBytes),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markFactsPending(
+        entityType: 'media',
+        recordId: mediaId,
+        localUpdatedAt: now,
+        group: SyncFactGroups.mediaUpload,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 
@@ -1601,18 +1652,25 @@ class MediaRepository {
     required DateTime uploadedAt,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-      MediaCompanion(
-        remoteUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markFactsPending(
-      entityType: 'media',
-      recordId: mediaId,
-      localUpdatedAt: now,
-      group: SyncFactGroups.mediaUpload,
-    );
+    // One transaction: a fact column and the clock that orders it must not
+    // be able to come apart. Written separately, a crash between them left
+    // the new value under the PREVIOUS group clock and with no pending
+    // record, so a later row edit exported it under that stale clock and a
+    // peer's older fact beat it (media sync program spec 5.1).
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+        MediaCompanion(
+          remoteUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markFactsPending(
+        entityType: 'media',
+        recordId: mediaId,
+        localUpdatedAt: now,
+        group: SyncFactGroups.mediaUpload,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 
@@ -2213,18 +2271,25 @@ class MediaRepository {
   /// [clearRemoteUploaded].
   Future<void> clearRemoteThumbUploaded(String mediaId) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-      MediaCompanion(
-        remoteThumbUploadedAt: const Value<int?>(null),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markFactsPending(
-      entityType: 'media',
-      recordId: mediaId,
-      localUpdatedAt: now,
-      group: SyncFactGroups.mediaUpload,
-    );
+    // One transaction: a fact column and the clock that orders it must not
+    // be able to come apart. Written separately, a crash between them left
+    // the new value under the PREVIOUS group clock and with no pending
+    // record, so a later row edit exported it under that stale clock and a
+    // peer's older fact beat it (media sync program spec 5.1).
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+        MediaCompanion(
+          remoteThumbUploadedAt: const Value<int?>(null),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markFactsPending(
+        entityType: 'media',
+        recordId: mediaId,
+        localUpdatedAt: now,
+        group: SyncFactGroups.mediaUpload,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 
@@ -2289,18 +2354,25 @@ class MediaRepository {
     required DateTime uploadedAt,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-      MediaCompanion(
-        remoteThumbUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markFactsPending(
-      entityType: 'media',
-      recordId: mediaId,
-      localUpdatedAt: now,
-      group: SyncFactGroups.mediaUpload,
-    );
+    // One transaction: a fact column and the clock that orders it must not
+    // be able to come apart. Written separately, a crash between them left
+    // the new value under the PREVIOUS group clock and with no pending
+    // record, so a later row edit exported it under that stale clock and a
+    // peer's older fact beat it (media sync program spec 5.1).
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+        MediaCompanion(
+          remoteThumbUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markFactsPending(
+        entityType: 'media',
+        recordId: mediaId,
+        localUpdatedAt: now,
+        group: SyncFactGroups.mediaUpload,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 
@@ -2313,20 +2385,27 @@ class MediaRepository {
     required int sizeBytes,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-      MediaCompanion(
-        remoteCompressedUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
-        compressedLevel: Value(level),
-        compressedSizeBytes: Value(sizeBytes),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markFactsPending(
-      entityType: 'media',
-      recordId: mediaId,
-      localUpdatedAt: now,
-      group: SyncFactGroups.mediaUpload,
-    );
+    // One transaction: a fact column and the clock that orders it must not
+    // be able to come apart. Written separately, a crash between them left
+    // the new value under the PREVIOUS group clock and with no pending
+    // record, so a later row edit exported it under that stale clock and a
+    // peer's older fact beat it (media sync program spec 5.1).
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+        MediaCompanion(
+          remoteCompressedUploadedAt: Value(uploadedAt.millisecondsSinceEpoch),
+          compressedLevel: Value(level),
+          compressedSizeBytes: Value(sizeBytes),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markFactsPending(
+        entityType: 'media',
+        recordId: mediaId,
+        localUpdatedAt: now,
+        group: SyncFactGroups.mediaUpload,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 
@@ -2334,38 +2413,52 @@ class MediaRepository {
   /// switches an item from original to compressed).
   Future<void> clearRemoteUploaded(String mediaId) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-      MediaCompanion(
-        remoteUploadedAt: const Value<int?>(null),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markFactsPending(
-      entityType: 'media',
-      recordId: mediaId,
-      localUpdatedAt: now,
-      group: SyncFactGroups.mediaUpload,
-    );
+    // One transaction: a fact column and the clock that orders it must not
+    // be able to come apart. Written separately, a crash between them left
+    // the new value under the PREVIOUS group clock and with no pending
+    // record, so a later row edit exported it under that stale clock and a
+    // peer's older fact beat it (media sync program spec 5.1).
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+        MediaCompanion(
+          remoteUploadedAt: const Value<int?>(null),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markFactsPending(
+        entityType: 'media',
+        recordId: mediaId,
+        localUpdatedAt: now,
+        group: SyncFactGroups.mediaUpload,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 
   /// Clears the compressed-rendition stamps (override switching to original).
   Future<void> clearRemoteCompressed(String mediaId) async {
     final now = DateTime.now().millisecondsSinceEpoch;
-    await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
-      MediaCompanion(
-        remoteCompressedUploadedAt: const Value<int?>(null),
-        compressedLevel: const Value<String?>(null),
-        compressedSizeBytes: const Value<int?>(null),
-        updatedAt: Value(now),
-      ),
-    );
-    await _syncRepository.markFactsPending(
-      entityType: 'media',
-      recordId: mediaId,
-      localUpdatedAt: now,
-      group: SyncFactGroups.mediaUpload,
-    );
+    // One transaction: a fact column and the clock that orders it must not
+    // be able to come apart. Written separately, a crash between them left
+    // the new value under the PREVIOUS group clock and with no pending
+    // record, so a later row edit exported it under that stale clock and a
+    // peer's older fact beat it (media sync program spec 5.1).
+    await _db.transaction(() async {
+      await (_db.update(_db.media)..where((t) => t.id.equals(mediaId))).write(
+        MediaCompanion(
+          remoteCompressedUploadedAt: const Value<int?>(null),
+          compressedLevel: const Value<String?>(null),
+          compressedSizeBytes: const Value<int?>(null),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markFactsPending(
+        entityType: 'media',
+        recordId: mediaId,
+        localUpdatedAt: now,
+        group: SyncFactGroups.mediaUpload,
+      );
+    });
     SyncEventBus.notifyLocalChange();
   }
 

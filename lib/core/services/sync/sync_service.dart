@@ -2188,7 +2188,7 @@ class SyncService {
           // edited after the peer deleted it, which reached us before the
           // delete did, is kept. Either clock missing: the rules below.
           final localHlc =
-              SyncDataSerializer.parentGatedChildEntities.contains(entityType)
+              SyncDataSerializer.ownClockEntities.contains(entityType)
               ? _extractHlc(local)
               : null;
           final deletionHlc = _parseHlc(deletion.hlc);
@@ -2714,15 +2714,13 @@ class SyncService {
     // A child exported through its parent is applied as a blind upsert, but
     // carries its own clock (v210), so its local copy is read too: one batch
     // for the stale-copy guard below.
-    final childClocked = SyncDataSerializer.parentGatedChildEntities.contains(
-      entityType,
-    );
-    // The media tables join the same stale-copy guard (media sync program
-    // spec 5.1) through their own set; childClocked alone still selects the
-    // tombstone clocks below.
-    final clockGuarded =
-        childClocked ||
-        SyncDataSerializer.clockGuardedEntities.contains(entityType);
+    // One predicate for every row that carries its own clock, whether it
+    // reaches a peer through a parent or on its own (media sync program
+    // spec 5.1). The stale-copy guard, the tombstone comparison and the
+    // revival check below all read it, so a row cannot be guarded in the
+    // merge and compared by timestamp when a delete arrives.
+    final ownClocked = SyncDataSerializer.ownClockEntities.contains(entityType);
+    final clockGuarded = ownClocked;
     final factGroups = SyncFactGroups.of(entityType);
     final localById = hasUpdatedAt || clockGuarded || factGroups.isNotEmpty
         ? await _serializer.fetchRecords(entityType, [
@@ -2840,7 +2838,7 @@ class SyncService {
             // A child with its own clock, against the clock of our delete:
             // only an edit made after the delete revives it. Either clock
             // missing: the timestamps below.
-            final deleteClock = childClocked
+            final deleteClock = ownClocked
                 ? selfTombstoneClocks[recordId]
                 : null;
             final remoteClock = deleteClock == null

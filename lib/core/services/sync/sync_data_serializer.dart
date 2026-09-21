@@ -1521,6 +1521,20 @@ class SyncDataSerializer {
     'fieldPresets',
   };
 
+  /// Every entity whose rows carry their own HLC, whether they reach a peer
+  /// through a parent ([parentGatedChildEntities]) or on their own clock
+  /// ([clockGuardedEntities]).
+  ///
+  /// Tombstone and revival decisions read this, not the parent-gated set
+  /// alone. The media tables joined the stale-copy guard through their own
+  /// set, and the deletion paths were left comparing them by `updatedAt`:
+  /// `mediaSpecies` has no such column, so a local edit made after a peer's
+  /// delete was treated as ageless and deleted as stale.
+  static final Set<String> ownClockEntities = {
+    ...parentGatedChildEntities,
+    ...clockGuardedEntities,
+  };
+
   /// Writes one fact group's columns and clock with explicit values, nulls
   /// included. The media upsert builds its insert with nullToAbsent, so a
   /// cleared stamp would never land through it (media sync program spec

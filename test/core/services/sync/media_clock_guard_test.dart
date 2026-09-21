@@ -395,6 +395,61 @@ void main() {
     );
   });
 
+  test('a local edit after a peer delete survives the tombstone', () async {
+    // The media tables joined the stale-copy guard through their own set,
+    // and the deletion path was left comparing them by updatedAt.
+    // mediaSpecies has no such column, so a row edited here after a peer
+    // deleted it was ageless and deleted as stale.
+    await db.customStatement(
+      "INSERT INTO species (id, common_name, category) "
+      "VALUES ('sp1', 'Grouper', 'fish')",
+    );
+    await db.customStatement(
+      'INSERT INTO media_species (id, media_id, species_id, notes, '
+      "created_at) VALUES ('ms1', ?, 'sp1', 'mine', 0)",
+      [id],
+    );
+    // The peer's delete happens first; this device edits afterwards.
+    final deletedAtHlc = SyncClock.instance.issue()!;
+    await SyncRepository().markRecordPending(
+      entityType: 'mediaSpecies',
+      recordId: 'ms1',
+      localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+    );
+    await SyncRepository().clearPendingRecords();
+
+    await SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+    ).debugApplyPayload(
+      SyncPayload(
+        version: 1,
+        exportedAt: 0,
+        deviceId: 'peer',
+        checksum: '',
+        data: const SyncData(),
+        deletions: {
+          'mediaSpecies': [
+            SyncDeletion(
+              id: 'ms1',
+              deletedAt: DateTime.now().millisecondsSinceEpoch,
+              hlc: deletedAtHlc,
+            ),
+          ],
+        },
+      ),
+    );
+
+    final rows = await db
+        .customSelect("SELECT id FROM media_species WHERE id = 'ms1'")
+        .get();
+    expect(
+      rows,
+      hasLength(1),
+      reason: 'the local edit is newer than the delete that reached us',
+    );
+  });
+
   test('the batched fetch serves media rows', () async {
     final rows = await SyncDataSerializer().fetchRecords('media', [id, 'none']);
     expect(rows.keys, [id]);
