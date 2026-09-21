@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -96,15 +97,9 @@ bool hasDataForMetric(
 
     case ProfileRightAxisMetric.pressure:
       if (!hasMultiTankPressure || config.tankPressures == null) return null;
-      double? pMin, pMax;
-      for (final points in config.tankPressures!.values) {
-        for (final pt in points) {
-          if (pMin == null || pt.pressure < pMin) pMin = pt.pressure;
-          if (pMax == null || pt.pressure > pMax) pMax = pt.pressure;
-        }
-      }
-      if (pMin == null || pMax == null) return null;
-      return (min: pMin - 10, max: pMax + 10);
+      final range = tankPressureRange(config.tankPressures!);
+      if (range == null) return null;
+      return (min: range.min - 10, max: range.max + 10);
 
     case ProfileRightAxisMetric.heartRate:
       final hrs = config.profile

@@ -4,6 +4,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/services/profile_position.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show ceilingFillAlpha;
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
@@ -98,22 +99,11 @@ List<LineChartBarData> buildMultiTankPressureLines(
   final tanks = tankPressures!;
   final lines = <LineChartBarData>[];
 
-  // Calculate global min/max pressure across all tanks for consistent scaling
-  double? globalMinPressure;
-  double? globalMaxPressure;
-
-  for (final pressurePoints in tanks.values) {
-    for (final point in pressurePoints) {
-      if (globalMinPressure == null || point.pressure < globalMinPressure) {
-        globalMinPressure = point.pressure;
-      }
-      if (globalMaxPressure == null || point.pressure > globalMaxPressure) {
-        globalMaxPressure = point.pressure;
-      }
-    }
-  }
-
-  if (globalMinPressure == null || globalMaxPressure == null) return [];
+  // Global min/max pressure across all tanks, for consistent scaling.
+  final range = tankPressureRange(tanks);
+  if (range == null) return [];
+  final globalMinPressure = range.min;
+  final globalMaxPressure = range.max;
 
   // Add some padding to the pressure range
   final pressureRange = globalMaxPressure - globalMinPressure;
