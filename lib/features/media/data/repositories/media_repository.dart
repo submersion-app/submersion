@@ -591,9 +591,16 @@ class MediaRepository {
       _log.info('Marking media as orphaned: $id');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
-        MediaCompanion(isOrphaned: const Value(true), updatedAt: Value(now)),
-      );
+      final rowsWritten =
+          await (_db.update(
+            _db.media,
+          )..where((t) => t.id.equals(id) & t.isOrphaned.equals(false))).write(
+            MediaCompanion(
+              isOrphaned: const Value(true),
+              updatedAt: Value(now),
+            ),
+          );
+      if (rowsWritten == 0) return;
 
       await _syncRepository.markFactsPending(
         entityType: 'media',
@@ -619,13 +626,25 @@ class MediaRepository {
       _log.info('Marking media as verified: $id');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
-        MediaCompanion(
-          isOrphaned: const Value(false),
-          lastVerifiedAt: Value(now),
-          updatedAt: Value(now),
-        ),
-      );
+      final flagMoved =
+          await (_db.update(
+            _db.media,
+          )..where((t) => t.id.equals(id) & t.isOrphaned.equals(true))).write(
+            MediaCompanion(
+              isOrphaned: const Value(false),
+              lastVerifiedAt: Value(now),
+              updatedAt: Value(now),
+            ),
+          ) >
+          0;
+      if (!flagMoved) {
+        final rowsWritten =
+            await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
+              MediaCompanion(lastVerifiedAt: Value(now), updatedAt: Value(now)),
+            );
+        if (rowsWritten > 0) SyncEventBus.notifyLocalChange();
+        return;
+      }
 
       await _syncRepository.markFactsPending(
         entityType: 'media',
@@ -766,9 +785,20 @@ class MediaRepository {
       _log.info('Setting isOrphaned=$isOrphaned for media: $id');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
-        MediaCompanion(isOrphaned: Value(isOrphaned), updatedAt: Value(now)),
-      );
+      final rowsWritten =
+          await (_db.update(_db.media)..where(
+                // Matching on the OPPOSITE flag makes this a no-op when the
+                // row already agrees, so a poller that re-reports the same
+                // state publishes nothing.
+                (t) => t.id.equals(id) & t.isOrphaned.equals(!isOrphaned),
+              ))
+              .write(
+                MediaCompanion(
+                  isOrphaned: Value(isOrphaned),
+                  updatedAt: Value(now),
+                ),
+              );
+      if (rowsWritten == 0) return;
 
       await _syncRepository.markFactsPending(
         entityType: 'media',
@@ -863,10 +893,11 @@ class MediaRepository {
   /// write from the snapshot ([updateMedia]) would roll that stamp back to
   /// null, and the pending mark would then sync the rollback fleet-wide.
   ///
-  /// Unlike [markVerified] this always writes: the user asked for a check
-  /// and the date of that check is the answer, whether or not the flag moved.
-  /// Like it, a row that is gone by the time the check lands (deleted during
-  /// a Check all media pass) gets no pending record pointing at nothing.
+  /// Always records the date, but publishes only when the flag moves: the
+  /// date is this device's own observation and reaches peers on the row's
+  /// next sync-visible write (spec 5.2). Like [markVerified], a row that is
+  /// gone by the time the check lands (deleted during a Check all media
+  /// pass) gets no pending record pointing at nothing.
   Future<void> stampVerification(
     String id, {
     required DateTime verifiedAt,
@@ -874,17 +905,39 @@ class MediaRepository {
   }) async {
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      final rowsWritten =
-          await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
-            MediaCompanion(
-              isOrphaned: isOrphaned == null
-                  ? const Value.absent()
-                  : Value(isOrphaned),
-              lastVerifiedAt: Value(verifiedAt.millisecondsSinceEpoch),
-              updatedAt: Value(now),
-            ),
-          );
-      if (rowsWritten == 0) return;
+      // Two writes, because they mean different things (media sync program
+      // spec 5.2). The flag is a synced fact and is guarded on actually
+      // moving: a Check all pass over a healthy library would otherwise
+      // publish every row it confirmed. The date is this device's own
+      // observation of when it last looked, so it is recorded without a
+      // clock and rides along on the row's next sync-visible write.
+      var flagMoved = false;
+      if (isOrphaned != null) {
+        flagMoved =
+            await (_db.update(_db.media)..where(
+                  (t) => t.id.equals(id) & t.isOrphaned.equals(!isOrphaned),
+                ))
+                .write(
+                  MediaCompanion(
+                    isOrphaned: Value(isOrphaned),
+                    lastVerifiedAt: Value(verifiedAt.millisecondsSinceEpoch),
+                    updatedAt: Value(now),
+                  ),
+                ) >
+            0;
+      }
+      if (!flagMoved) {
+        final rowsWritten =
+            await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
+              MediaCompanion(
+                lastVerifiedAt: Value(verifiedAt.millisecondsSinceEpoch),
+                updatedAt: Value(now),
+              ),
+            );
+        // A row deleted while a Check all pass was running gets nothing.
+        if (rowsWritten > 0) SyncEventBus.notifyLocalChange();
+        return;
+      }
       await _syncRepository.markFactsPending(
         entityType: 'media',
         recordId: id,

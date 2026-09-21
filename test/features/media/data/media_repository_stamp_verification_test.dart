@@ -109,13 +109,17 @@ void main() {
     expect(await SyncRepository().getPendingRecords(), isEmpty);
   });
 
-  test('the write is sync-visible', () async {
+  test('a flag change is sync-visible', () async {
     final photo = await stampedPhoto();
     // createMedia and the stamps above already queued the row; clear that
     // so the assertion is about this write alone.
     await SyncRepository().clearPendingRecords();
 
-    await repo.stampVerification(photo.id, verifiedAt: DateTime(2026, 3));
+    await repo.stampVerification(
+      photo.id,
+      verifiedAt: DateTime(2026, 3),
+      isOrphaned: true,
+    );
 
     final pending = await SyncRepository().getPendingRecords();
     expect(
@@ -123,4 +127,30 @@ void main() {
       contains(('media', photo.id)),
     );
   });
+
+  test(
+    'a check that confirms what the row already says publishes nothing',
+    () async {
+      final photo = await stampedPhoto();
+      await SyncRepository().clearPendingRecords();
+
+      // The row is not orphaned and the check agrees.
+      await repo.stampVerification(
+        photo.id,
+        verifiedAt: DateTime(2026, 3),
+        isOrphaned: false,
+      );
+
+      expect(
+        await SyncRepository().getPendingRecords(),
+        isEmpty,
+        reason: 'a library at rest stays at rest',
+      );
+      expect(
+        (await repo.getMediaById(photo.id))!.lastVerifiedAt,
+        DateTime(2026, 3),
+        reason: 'the date is still recorded locally',
+      );
+    },
+  );
 }
