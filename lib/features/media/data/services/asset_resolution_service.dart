@@ -160,7 +160,7 @@ class AssetResolutionService {
       return _withoutGallery(item);
     }
 
-    _log.info('Resolving asset for media ${item.id}');
+    _log.debug('Resolving asset for media ${item.id}');
 
     // Step 2: Try original platformAssetId
     final originalWorks = await _verifyAssetLoadable(item.platformAssetId!);
@@ -170,7 +170,7 @@ class AssetResolutionService {
         localAssetId: item.platformAssetId!,
         method: 'original_id',
       );
-      _log.info('Resolved via original ID: ${item.platformAssetId}');
+      _log.debug('Resolved via original ID: ${item.platformAssetId}');
       return ResolutionResult(
         localAssetId: item.platformAssetId,
         status: ResolutionStatus.resolved,
@@ -244,7 +244,7 @@ class AssetResolutionService {
         localAssetId: tier1Match,
         method: 'filename_timestamp',
       );
-      _log.info('Resolved via filename+timestamp: $tier1Match');
+      _log.debug('Resolved via filename+timestamp: $tier1Match');
       return ResolutionResult(
         localAssetId: tier1Match,
         status: ResolutionStatus.resolved,
@@ -269,7 +269,7 @@ class AssetResolutionService {
         localAssetId: exactMatch,
         method: 'exact_timestamp_dimensions',
       );
-      _log.info('Resolved via exact timestamp+dimensions: $exactMatch');
+      _log.debug('Resolved via exact timestamp+dimensions: $exactMatch');
       return ResolutionResult(
         localAssetId: exactMatch,
         status: ResolutionStatus.resolved,
@@ -286,7 +286,7 @@ class AssetResolutionService {
         localAssetId: tier3Match,
         method: 'timestamp_dimensions',
       );
-      _log.info('Resolved via timestamp+dimensions: $tier3Match');
+      _log.debug('Resolved via timestamp+dimensions: $tier3Match');
       return ResolutionResult(
         localAssetId: tier3Match,
         status: ResolutionStatus.resolved,

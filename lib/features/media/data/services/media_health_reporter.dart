@@ -10,6 +10,7 @@ import 'package:submersion/features/media/data/services/media_source_resolver_re
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_provenance.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/services/diagnostic_probe.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 
 /// Assembles [MediaHealthReport]s from everything this device knows about a
@@ -115,13 +116,17 @@ class MediaHealthReporter {
   ) async {
     final attached = await _attachState.attachedStoreId();
     String? marker;
-    final store = await _store();
-    if (store != null) {
-      try {
+    // Inside the try as well: a store whose stored credentials no longer
+    // parse throws while being BUILT, and every other field in the report
+    // is exactly what such a misconfiguration needs. A store that cannot be
+    // reached reads as "not probed", never as no report at all.
+    try {
+      final store = await _store();
+      if (store != null) {
         marker = (await StoreMarkerStore(store: store).read())?.storeId;
-      } catch (_) {
-        marker = null;
       }
+    } catch (_) {
+      marker = null;
     }
     return MediaHealthReport(
       generatedAt: _now(),
@@ -140,9 +145,22 @@ class MediaHealthReporter {
     required bool probeStore,
   }) async {
     final cache = await _assetCache.getCacheEntry(item.id);
+    // Computed from the entry already in hand, not through isExpired, which
+    // would fetch the same row again: a library report pays that twice per
+    // photo. Same rule as LocalAssetCacheRepository.isExpired, off the same
+    // ladder, which the reporter test pins at both ends.
     final cacheExpired = cache == null
         ? null
-        : await _assetCache.isExpired(item.id);
+        : cache.localAssetId != null
+        ? false
+        : _now().isAfter(
+            DateTime.fromMillisecondsSinceEpoch(cache.resolvedAt).add(
+              _backoffLadder[cache.attemptCount.clamp(
+                0,
+                _backoffLadder.length - 1,
+              )],
+            ),
+          );
     final cacheNextRetryAt =
         (cache == null || cache.resolutionMethod != 'unresolved')
         ? null
@@ -167,8 +185,18 @@ class MediaHealthReporter {
       verdict = skip;
     } else {
       try {
-        verdict =
-            (await _registry.resolverFor(item.sourceType).verify(item)).name;
+        final resolver = _registry.resolverFor(item.sourceType);
+        // The probe where a resolver offers one: LocalFileResolver's verify
+        // answers by resolving, and resolve returns the file's whole
+        // contents on the bookmark path, so a library report would read
+        // every bookmark-backed photo into memory for a one-word verdict.
+        // A probe that cannot answer without reading says so.
+        if (resolver is DiagnosticProbe) {
+          final probed = await (resolver as DiagnosticProbe).probe(item);
+          verdict = probed?.name ?? 'notProbed: needs a read';
+        } else {
+          verdict = (await resolver.verify(item)).name;
+        }
       } catch (e) {
         verdict = 'error: $e';
       }

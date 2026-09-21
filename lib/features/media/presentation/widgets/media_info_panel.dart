@@ -634,13 +634,22 @@ class _CopyDiagnosticsButton extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) => TextButton(
     onPressed: () async {
       final messenger = ScaffoldMessenger.of(context);
-      final copied = context.l10n.media_info_diagnosticsCopied;
-      final report = await ref
-          .read(mediaHealthReporterProvider)
-          .forItem(item, probeStore: true);
-      await Clipboard.setData(ClipboardData(text: report.toText()));
+      final l10n = context.l10n;
+      // Guarded like the other two entry points. Unhandled, a report that
+      // throws (a store whose credentials no longer parse, say) left the
+      // button looking dead: no clipboard write, no snack bar, nothing.
+      String message;
+      try {
+        final report = await ref
+            .read(mediaHealthReporterProvider)
+            .forItem(item, probeStore: true);
+        await Clipboard.setData(ClipboardData(text: report.toText()));
+        message = l10n.media_info_diagnosticsCopied;
+      } catch (e) {
+        message = l10n.settings_diagnostics_copyFailed(e);
+      }
       if (!context.mounted) return;
-      messenger.showSnackBar(SnackBar(content: Text(copied)));
+      messenger.showSnackBar(SnackBar(content: Text(message)));
     },
     child: Text(context.l10n.media_info_actionCopyDiagnostics),
   );

@@ -4163,6 +4163,7 @@ class SyncService {
     final cursors = <({String deviceId, int baseSeq, int appliedThrough})>[];
     final newerSchemaPeerDeviceIds = <String>{};
     final newerSchemaPeerNames = <String, String>{};
+    final selfDeviceId = await _syncRepository.getDeviceId();
     for (final deviceId in deviceIds) {
       if (excludeDeviceIds.contains(deviceId)) continue;
       final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
@@ -4178,13 +4179,24 @@ class SyncService {
       // Recorded unconditionally: the manifest parsed, so a missing name is
       // the peer's current state and clears any name it published before.
       //
+      // Never for this device, though. Unlike a pull, this scan reads every
+      // manifest in the folder including its own, and PeerDeviceNameStore
+      // documents that this device is not in it: the device identity
+      // service already knows its own name, and a self entry would show up
+      // as a peer to anything that lists the map.
+      //
       // Guarded on its own: nothing above catches here, so a failed
       // preferences write would abort the whole scan and with it the
       // library adoption, over optional metadata.
-      try {
-        await _peerNames?.record(deviceId, manifest.deviceName);
-      } catch (e) {
-        _log.warning('Could not record the name for peer $deviceId', error: e);
+      if (deviceId != selfDeviceId) {
+        try {
+          await _peerNames?.record(deviceId, manifest.deviceName);
+        } catch (e) {
+          _log.warning(
+            'Could not record the name for peer $deviceId',
+            error: e,
+          );
+        }
       }
       if (manifest.epochId != epochId) continue;
       final baseSeq = manifest.baseSeq;

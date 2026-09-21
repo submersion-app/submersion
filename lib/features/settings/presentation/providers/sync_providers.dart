@@ -500,12 +500,22 @@ final peerDeviceNameStoreProvider = Provider<PeerDeviceNameStore>((ref) {
 
 /// The live name map: the store's contents now, then every change, so a
 /// label already on screen updates when a sync learns a name.
-final peerDeviceNamesProvider = StreamProvider<Map<String, String>>((
-  ref,
-) async* {
+final peerDeviceNamesProvider = StreamProvider<Map<String, String>>((ref) {
   final store = ref.watch(peerDeviceNameStoreProvider);
-  yield store.all();
-  yield* store.changes;
+  // Subscribe first, then snapshot. Yielding the snapshot and subscribing
+  // afterwards drops a name recorded in between, and the store emits only
+  // when a name CHANGES, so a peer that keeps publishing the same name
+  // would never produce another event and the label would stay generic.
+  // Nothing can interleave between these two lines: all() reads the
+  // already-loaded preferences synchronously.
+  final out = StreamController<Map<String, String>>();
+  final sub = store.changes.listen(out.add, onError: out.addError);
+  out.add(store.all());
+  ref.onDispose(() {
+    sub.cancel();
+    out.close();
+  });
+  return out.stream;
 });
 
 /// Sync service provider

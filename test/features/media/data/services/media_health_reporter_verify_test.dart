@@ -17,6 +17,7 @@ import 'package:submersion/features/media/data/services/media_health_reporter.da
 import 'package:submersion/features/media/data/services/media_source_resolver_registry.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/services/diagnostic_probe.dart';
 import 'package:submersion/features/media/domain/services/media_source_resolver.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
@@ -113,6 +114,131 @@ void main() {
     });
   }
 
+  group('a resolver that offers a read-free probe', () {
+    late _ProbeResolver probeResolver;
+
+    MediaHealthReporter reporterWith(_ProbeResolver r) => MediaHealthReporter(
+      mediaRepository: MediaRepository(),
+      syncRepository: SyncRepository(),
+      assetCache: LocalAssetCacheRepository(),
+      queue: MediaTransferQueueRepository(),
+      registry: MediaSourceResolverRegistry({
+        for (final t in MediaSourceType.values) t: r,
+      }),
+      attachState: MediaStoreAttachState(),
+      store: () async => null,
+      localDeviceId: () async => 'dev-1',
+      localDeviceName: () async => 'This device',
+      deviceName: (_) => null,
+    );
+
+    setUp(() => probeResolver = _ProbeResolver());
+
+    test('is probed, never verified', () async {
+      final report = await reporterWith(
+        probeResolver,
+      ).forItem(row(MediaSourceType.localFile));
+
+      expect(report.rows.single.resolverVerdict, VerifyResult.available.name);
+      expect(probeResolver.probed, 1);
+      expect(
+        probeResolver.verified,
+        0,
+        reason: 'verify reads the bytes on the bookmark path',
+      );
+    });
+
+    test('a probe that cannot answer reports notProbed', () async {
+      probeResolver.answer = null;
+
+      final report = await reporterWith(
+        probeResolver,
+      ).forItem(row(MediaSourceType.localFile));
+
+      expect(report.rows.single.resolverVerdict, 'notProbed: needs a read');
+      expect(probeResolver.verified, 0, reason: 'never fall back to a read');
+    });
+  });
+
+  test('a store that cannot be built still yields a report', () async {
+    // Its credentials no longer parse, so building it throws. Every other
+    // field is exactly what that misconfiguration needs.
+    final reporter = MediaHealthReporter(
+      mediaRepository: MediaRepository(),
+      syncRepository: SyncRepository(),
+      assetCache: LocalAssetCacheRepository(),
+      queue: MediaTransferQueueRepository(),
+      registry: MediaSourceResolverRegistry({
+        for (final t in MediaSourceType.values) t: spy,
+      }),
+      attachState: MediaStoreAttachState(),
+      store: () async => throw StateError('bad credentials'),
+      localDeviceId: () async => 'dev-1',
+      localDeviceName: () async => 'This device',
+      deviceName: (_) => null,
+    );
+
+    final report = await reporter.forItem(row(MediaSourceType.localFile));
+
+    expect(report.markerStoreId, isNull);
+    expect(report.rows.single.mediaId, 'm-localFile');
+  });
+
+  group('cache expiry is read from the entry in hand', () {
+    Future<void> seed({
+      required String method,
+      String? assetId,
+      required int attempts,
+      required DateTime resolvedAt,
+    }) => LocalAssetCacheRepository()
+        .cacheResolution(
+          mediaId: 'm-localFile',
+          localAssetId: assetId,
+          method: method,
+        )
+        .then(
+          (_) => LocalCacheDatabaseService.instance.database.customStatement(
+            'UPDATE local_asset_cache SET attempt_count = ?, resolved_at = ? '
+            'WHERE media_id = ?',
+            [attempts, resolvedAt.millisecondsSinceEpoch, 'm-localFile'],
+          ),
+        );
+
+    Future<bool?> expiredFor(MediaSourceType type) async =>
+        (await reporter.forItem(row(type))).rows.single.cacheExpired;
+
+    test('a resolved entry never expires', () async {
+      await seed(
+        method: 'original_id',
+        assetId: 'PH-1',
+        attempts: 9,
+        resolvedAt: DateTime(2020),
+      );
+
+      expect(await expiredFor(MediaSourceType.localFile), isFalse);
+    });
+
+    test('an unresolved entry past its backoff is expired', () async {
+      await seed(
+        method: 'unresolved',
+        attempts: 0,
+        resolvedAt: DateTime.now().subtract(const Duration(hours: 25)),
+      );
+
+      expect(await expiredFor(MediaSourceType.localFile), isTrue);
+    });
+
+    test('an unresolved entry inside its backoff is fresh', () async {
+      await seed(
+        method: 'unresolved',
+        attempts: 0,
+        resolvedAt: DateTime.now().subtract(const Duration(hours: 1)),
+      );
+
+      expect(await expiredFor(MediaSourceType.localFile), isFalse);
+    });
+  });
+
   test('a library report verifies only the local-read types', () async {
     for (final type in MediaSourceType.values) {
       await verdictFor(type);
@@ -140,6 +266,45 @@ class _SpyResolver implements MediaSourceResolver {
   @override
   Future<VerifyResult> verify(MediaItem item) async {
     verified.add(item.sourceType);
+    return VerifyResult.available;
+  }
+
+  @override
+  Future<MediaSourceData> resolve(MediaItem item) async =>
+      throw StateError('a report must never take the bytes path');
+
+  @override
+  Future<MediaSourceData> resolveThumbnail(
+    MediaItem item, {
+    required Size target,
+  }) => throw StateError('a report must never take the bytes path');
+
+  @override
+  Future<MediaSourceMetadata?> extractMetadata(MediaItem item) async => null;
+}
+
+/// Answers the read-free probe and records whether anything fell back to
+/// the byte-reading verify.
+class _ProbeResolver implements MediaSourceResolver, DiagnosticProbe {
+  VerifyResult? answer = VerifyResult.available;
+  int probed = 0;
+  int verified = 0;
+
+  @override
+  Future<VerifyResult?> probe(MediaItem item) async {
+    probed++;
+    return answer;
+  }
+
+  @override
+  MediaSourceType get sourceType => MediaSourceType.localFile;
+
+  @override
+  bool canResolveOnThisDevice(MediaItem item) => true;
+
+  @override
+  Future<VerifyResult> verify(MediaItem item) async {
+    verified++;
     return VerifyResult.available;
   }
 

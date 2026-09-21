@@ -192,13 +192,29 @@ void main() {
     });
 
     test('paths, device names and hashes survive redaction', () {
-      final text = reportOf(
-        secretRow(pointer: '/Volumes/photos/reef.jpg'),
-      ).toText();
+      // The hash is the key the store names its objects by and the field a
+      // backup investigation turns on, and it is a long high-entropy run,
+      // which is the shape a future redactor rule could reach for.
+      const hash =
+          'a1b2c3d4e5f60718293a4b5c6d7e8f90'
+          'a1b2c3d4e5f60718293a4b5c6d7e8f90';
+      final row = MediaHealthRow(
+        mediaId: 'm9',
+        sourceType: 'localFile',
+        pointer: '/Volumes/photos/reef.jpg',
+        contentHash: hash,
+        takenAt: DateTime.utc(2026, 7, 1),
+        isOrphaned: false,
+        pending: false,
+        resolverVerdict: 'available',
+      );
+      final text = reportOf(row).toText();
 
       expect(text, contains('/Volumes/photos/reef.jpg'));
       expect(text, contains("Eric's MacBook"));
       expect(text, contains('dev-1'));
+      expect(text, contains(hash), reason: 'the content hash must survive');
+      expect(row.toJson()['content_hash'], hash);
     });
   });
 }
