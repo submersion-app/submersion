@@ -370,21 +370,12 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// (e.g., below the chart in the profile panel).
   final bool tooltipBelow;
 
-  /// Renders fl_chart's own tooltip bubble -- positioned above the touched
-  /// point and sized by fl_chart itself -- instead of the cursor-following
-  /// [ProfileCursorTooltip] that is otherwise the `!tooltipBelow` default.
-  /// The dive detail page's long-standing tooltip presentation, restored as
-  /// an explicit opt-in (issue #2228 follow-up) once the cursor-following
-  /// design became the unconditional default for every `!tooltipBelow`
-  /// caller. Ignored when [tooltipBelow] is true.
-  final bool useLegacyTooltipBubble;
-
   /// Called with structured tooltip row data whenever a point is touched,
-  /// independent of [tooltipBelow]/[useLegacyTooltipBubble] -- a caller can
-  /// consume this for its own external rendering (the dive-list panel's
-  /// fixed-below overlay, or the fullscreen page's sticky draggable readout
-  /// card) alongside whichever in-chart tooltip presentation is also active.
-  /// Null clears it (an active touch ending).
+  /// independent of [tooltipBelow] -- a caller can consume this for its own
+  /// external rendering (the dive-list panel's fixed-below overlay, or the
+  /// fullscreen page's sticky draggable readout card) alongside the
+  /// cursor-following in-chart tooltip. Null clears it (an active touch
+  /// ending).
   final void Function(List<TooltipRow>? rows)? onTooltipData;
 
   /// Optional widget rendered at the start of the legend row (e.g. a close
@@ -658,7 +649,6 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.activeComputerId,
     this.computerNames,
     this.tooltipBelow = false,
-    this.useLegacyTooltipBubble = false,
     this.onTooltipData,
     this.legendLeading,
   });
@@ -3956,11 +3946,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   }
                 }
                 // The in-chart cursor tooltip's rows: only the
-                // ProfileCursorTooltip path (`!tooltipBelow &&
-                // !useLegacyTooltipBubble`) reads _liveCursorTooltipRows, so
-                // building it elsewhere would be wasted work every pointer
-                // move.
-                if (!widget.tooltipBelow && !widget.useLegacyTooltipBubble) {
+                // ProfileCursorTooltip path (`!tooltipBelow`) reads
+                // _liveCursorTooltipRows, so building it elsewhere would be
+                // wasted work every pointer move.
+                if (!widget.tooltipBelow) {
                   final rows = resolvedTouch == null
                       ? const <TooltipRow>[]
                       : _buildTooltipRowsForIndex(
@@ -3976,9 +3965,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
                 // Hover-highlight the touched line and auto-switch the right
                 // axis to its metric (issue #2228 follow-up). Independent of
-                // tooltipBelow/useLegacyTooltipBubble: it highlights the
-                // chart's own lines regardless of which tooltip surface is
-                // showing their values.
+                // tooltipBelow: it highlights the chart's own lines
+                // regardless of which tooltip surface is showing their
+                // values.
                 final cursor = _lastPointerLocal;
                 int? nearestBarIndex;
                 if (active && cursor != null) {
@@ -4030,108 +4019,69 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
                 // Ascent/descent rate bars have no fl_chart bar of their own
                 // (see AscentRateBarOverlay), so they cannot be tagged into
-                // lineMetricTags above; light up the touched sample's own
-                // bar directly from the resolved profile index instead.
-                final hoveredTimestamp = resolvedTouch == null
-                    ? null
-                    : widget.profile[resolvedTouch.index].timestamp;
-                if (hoveredTimestamp != _hoveredAscentRateTimestamp) {
+                // lineMetricTags above; light up only when the cursor is
+                // actually over the bar drawn for the touched sample's rate
+                // -- otherwise every hover anywhere in the chart would light
+                // them up regardless of position, and they would stay lit
+                // while hovering an unrelated line.
+                int? hoveredAscentRateTimestamp;
+                final ascentRates = widget.ascentRates;
+                if (_showAscentRateLine &&
+                    ascentRates != null &&
+                    resolvedTouch != null &&
+                    cursor != null &&
+                    resolvedTouch.index < ascentRates.length) {
+                  final rate =
+                      ascentRates[resolvedTouch.index].rateMetersPerMin;
+                  final maxAbsRate =
+                      _ascentRateAxisRange(ascentRates)?.max ?? 0;
+                  if (maxAbsRate > 0 && rate != 0) {
+                    final barPlotHeight =
+                        (availableHeight - plotInsets.top - plotInsets.bottom)
+                            .clamp(1.0, double.infinity);
+                    final baselineY = plotInsets.top + barPlotHeight / 2;
+                    final halfBand = barPlotHeight / 2;
+                    final magnitude = (rate.abs() / maxAbsRate).clamp(0.0, 1.0);
+                    final barLength = magnitude * halfBand;
+                    final descending = rate < 0;
+                    final endY = descending
+                        ? baselineY + barLength
+                        : baselineY - barLength;
+                    final barTop = descending ? baselineY : endY;
+                    final barBottom = descending ? endY : baselineY;
+                    // A little slack around the drawn bar: matching it
+                    // pixel-for-pixel would make short (low-rate) bars
+                    // nearly impossible to hover.
+                    const hitTolerance = 10.0;
+                    if (cursor.dy >= barTop - hitTolerance &&
+                        cursor.dy <= barBottom + hitTolerance) {
+                      hoveredAscentRateTimestamp =
+                          widget.profile[resolvedTouch.index].timestamp;
+                    }
+                  }
+                }
+                if (hoveredAscentRateTimestamp != _hoveredAscentRateTimestamp) {
                   setState(
-                    () => _hoveredAscentRateTimestamp = hoveredTimestamp,
+                    () => _hoveredAscentRateTimestamp =
+                        hoveredAscentRateTimestamp,
                   );
                 }
               },
               touchTooltipData: LineTouchTooltipData(
-                // fl_chart's own bubble is suppressed except for
-                // [DiveProfileChart.useLegacyTooltipBubble] callers (the dive
-                // detail page, restoring its long-standing tooltip
-                // presentation): tooltipBelow renders externally via
-                // widget.onTooltipData, and the default in-chart path renders
-                // its own ProfileCursorTooltip (a Stack layer below), which
-                // sizes and positions itself against the plot rect instead
-                // of being at the mercy of fl_chart's own bubble placement
-                // (which could not fit inside the chart vertically with
-                // many metrics enabled -- fitInsideVertically: false was
-                // set for exactly that reason, and rows were still
-                // getting clipped at the plot's top/bottom edge).
-                maxContentWidth: 320,
-                fitInsideHorizontally: true,
-                fitInsideVertically: false,
-                showOnTopOfTheChartBoxArea: true,
-                tooltipMargin: 0,
-                getTooltipColor: (_) =>
-                    !widget.tooltipBelow && widget.useLegacyTooltipBubble
-                    ? colorScheme.inverseSurface
-                    : Colors.transparent,
-                getTooltipItems: (touchedSpots) {
-                  if (widget.tooltipBelow || !widget.useLegacyTooltipBubble) {
-                    return touchedSpots.map((_) => null).toList();
-                  }
-                  final starts = _depthBarStartIndices();
-                  final depthBarCount = starts.length;
-                  final depthSpot = touchedSpots
-                      .where((s) => s.barIndex < depthBarCount)
-                      .firstOrNull;
-                  final resolved = _resolveDepthTouch(touchedSpots, starts);
-                  if (depthSpot == null || resolved == null) {
-                    return touchedSpots.map((_) => null).toList();
-                  }
-                  final onSurface = colorScheme.onInverseSurface;
-                  final rows = _buildTooltipRowsForIndex(
-                    resolved.index,
-                    onLeadIn: resolved.onLeadIn,
-                    units: UnitFormatter(ref.read(settingsProvider)),
-                    colorScheme: colorScheme,
-                  );
-                  const labelWidth = DiveProfileChart.tooltipLabelChars;
-                  const valueWidth = DiveProfileChart.tooltipValueChars;
-                  const rowWidth = labelWidth + valueWidth;
-                  final rowFiller = List.filled(rowWidth, '0').join();
-                  final lines = <TextSpan>[];
-                  for (final row in rows) {
-                    if (lines.isNotEmpty) lines.add(const TextSpan(text: '\n'));
-                    lines.add(
-                      TextSpan(
-                        text: '● ',
-                        style: TextStyle(color: row.bulletColor, fontSize: 12),
-                      ),
-                    );
-                    final rowStyle = TextStyle(
-                      fontFamily: 'RobotoMono',
-                      fontSize: 14,
-                      color: onSurface,
-                      fontFeatures: const [FontFeature.tabularFigures()],
-                    );
-                    final rowText = DiveProfileChart.tooltipRowText(
-                      row.label,
-                      row.value,
-                      labelWidth,
-                      valueWidth,
-                    );
-                    lines.add(TextSpan(text: rowText, style: rowStyle));
-                    final fillerCount = rowWidth - rowText.length;
-                    if (fillerCount > 0) {
-                      lines.add(
-                        TextSpan(
-                          text: rowFiller.substring(0, fillerCount),
-                          style: rowStyle.copyWith(color: Colors.transparent),
-                        ),
-                      );
-                    }
-                  }
-                  return touchedSpots
-                      .map(
-                        (s) => identical(s, depthSpot)
-                            ? LineTooltipItem(
-                                '',
-                                TextStyle(color: onSurface),
-                                children: lines,
-                                textAlign: TextAlign.start,
-                              )
-                            : null,
-                      )
-                      .toList();
-                },
+                // fl_chart's own bubble is suppressed unconditionally: the
+                // tooltipBelow path renders externally via
+                // widget.onTooltipData, and the default in-chart path
+                // renders its own ProfileCursorTooltip (a Stack layer
+                // below), which sizes and positions itself against the plot
+                // rect instead of being at the mercy of fl_chart's own
+                // bubble placement (which could not fit inside the chart
+                // vertically with many metrics enabled --
+                // fitInsideVertically: false was set for exactly that
+                // reason, and rows were still getting clipped at the plot's
+                // top/bottom edge).
+                getTooltipColor: (_) => Colors.transparent,
+                getTooltipItems: (touchedSpots) =>
+                    touchedSpots.map((_) => null).toList(),
               ),
             ),
           ),
@@ -4303,12 +4253,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         // In-chart cursor tooltip: the `!tooltipBelow` path's own rendering
         // of the touched/hovered sample, replacing fl_chart's built-in
         // bubble (now fully suppressed for this path -- see
-        // touchTooltipData above) -- unless the caller opted back into that
-        // legacy bubble via useLegacyTooltipBubble (the dive detail page).
-        // IgnorePointer, like the other widget-layer overlays above, so it
-        // never steals the touch/hover that positions it.
+        // touchTooltipData above). IgnorePointer, like the other
+        // widget-layer overlays above, so it never steals the touch/hover
+        // that positions it.
         if (!widget.tooltipBelow &&
-            !widget.useLegacyTooltipBubble &&
             _lastPointerLocal != null &&
             _liveCursorTooltipRows.isNotEmpty)
           Positioned.fill(

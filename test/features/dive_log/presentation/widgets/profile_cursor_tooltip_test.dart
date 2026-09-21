@@ -69,8 +69,8 @@ void main() {
   });
 
   group('computeTooltipBoxPosition', () {
-    test('anchors the box bottom-left gap pixels up-and-right of the cursor '
-        'when there is room', () {
+    test('anchors the box gap pixels to the right of the cursor when there '
+        'is room', () {
       final position = computeTooltipBoxPosition(
         cursorLocal: const Offset(50, 100),
         boxSize: const Size(80, 40),
@@ -78,32 +78,20 @@ void main() {
         gap: 8,
       );
       expect(position.dx, 50 + 8);
-      expect(position.dy, 100 - 8 - 40);
     });
 
-    test('pins to the plot top edge instead of overflowing above it', () {
-      final position = computeTooltipBoxPosition(
-        cursorLocal: const Offset(50, 10),
-        boxSize: const Size(80, 40),
-        plotRect: _plotRect,
-        gap: 8,
-      );
-      // Natural top would be 10 - 8 - 40 = -38, well above plotRect.top (0).
-      expect(position.dy, 0);
-    });
-
-    test('pins to the plot bottom edge instead of overflowing below it', () {
-      final position = computeTooltipBoxPosition(
-        cursorLocal: const Offset(50, 195),
-        boxSize: const Size(80, 190),
-        plotRect: _plotRect,
-        gap: 8,
-      );
-      // Natural top would be 195 - 8 - 190 = -3; clamped to >= plotRect.top,
-      // and the box's bottom (top + height = 190) must stay <= plotRect
-      // .bottom (200), i.e. top <= 10.
-      expect(position.dy, lessThanOrEqualTo(_plotRect.bottom - 190));
-      expect(position.dy, greaterThanOrEqualTo(_plotRect.top));
+    test('pins to the plot top edge (plus the fixed top margin) regardless of '
+        'the cursor\'s vertical position -- it never tracks the cursor '
+        'vertically, so it never lands on top of the data it describes', () {
+      for (final cursorY in [10.0, 100.0, 195.0]) {
+        final position = computeTooltipBoxPosition(
+          cursorLocal: Offset(50, cursorY),
+          boxSize: const Size(80, 40),
+          plotRect: _plotRect,
+          gap: 8,
+        );
+        expect(position.dy, _plotRect.top + tooltipTopMargin);
+      }
     });
 
     test('flips to the cursor\'s left side when the right edge overflows', () {

@@ -3,12 +3,20 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show TooltipRow;
 
-/// Gap, in logical pixels, between the touch/hover cursor (the vertical
-/// indicator line fl_chart draws at the touched sample) and the tooltip
-/// box's nearest corner. 40, not the original 8, per direct feedback once
-/// the tooltip was actually tried live: 8px read as touching the cursor
-/// line rather than sitting clearly beside it.
+/// Horizontal gap, in logical pixels, between the touch/hover cursor (the
+/// vertical indicator line fl_chart draws at the touched sample) and the
+/// tooltip box's nearest edge. 40, not the original 8, per direct feedback
+/// once the tooltip was actually tried live: 8px read as touching the
+/// cursor line rather than sitting clearly beside it.
 const double tooltipCursorGap = 40;
+
+/// Fixed gap between the plot's top edge and the tooltip box's top edge.
+/// The box's vertical position does not track the cursor at all (issue
+/// #2228 follow-up, matching the mobile app's long-standing placement): a
+/// box that also tracked the cursor's Y could land mid-chart, on top of the
+/// very data it is describing, whereas pinning it to the top keeps it clear
+/// of the plotted lines the way fl_chart's own bubble used to.
+const double tooltipTopMargin = 8;
 
 /// Cap on the tooltip box's content width, carried over from the old
 /// fl_chart bubble's `maxContentWidth: 320` -- wide enough for a tank row
@@ -52,17 +60,18 @@ double computeTooltipScaleFactor({
 }
 
 /// Computes the tooltip box's top-left position given the cursor position it
-/// anchors to and the plot rect it must stay inside.
+/// anchors to horizontally and the plot rect it must stay inside.
 ///
-/// The box's bottom-left corner is nominally placed [gap] logical pixels up
-/// and to the right of [cursorLocal] (so the box sits above-and-right of the
-/// cursor by default, clear of the vertical indicator line fl_chart draws
-/// through it). That placement is then clamped so the box:
-/// - never extends above [plotRect.top] or below [plotRect.bottom]
-///   (pinned to whichever edge it would otherwise cross), and
-/// - never extends past [plotRect.right] -- flipped to the cursor's left
-///   side first, then clamped, so it only touches the right edge when even
-///   the flipped placement would not fit.
+/// Horizontally, the box is nominally placed [gap] logical pixels to the
+/// right of [cursorLocal] (clear of the vertical indicator line fl_chart
+/// draws through it), flipped to the cursor's left side first if it would
+/// otherwise overflow [plotRect.right], then clamped so it never extends
+/// past either horizontal edge.
+///
+/// Vertically, the box does not track the cursor at all: it is pinned
+/// [tooltipTopMargin] below [plotRect.top], so it stays clear of the
+/// plotted data instead of landing on top of it mid-chart (see the doc
+/// comment on [tooltipTopMargin]).
 Offset computeTooltipBoxPosition({
   required Offset cursorLocal,
   required Size boxSize,
@@ -79,10 +88,7 @@ Offset computeTooltipBoxPosition({
   }
   left = left.clamp(minLeft, minLeft > maxLeft ? minLeft : maxLeft);
 
-  final maxTop = plotRect.bottom - boxSize.height;
-  final minTop = plotRect.top;
-  var top = cursorLocal.dy - gap - boxSize.height;
-  top = top.clamp(minTop, minTop > maxTop ? minTop : maxTop);
+  final top = plotRect.top + tooltipTopMargin;
 
   return Offset(left, top);
 }
@@ -98,8 +104,9 @@ Offset computeTooltipBoxPosition({
 /// could overflow the chart's top/bottom edge and clip rows rather than fit
 /// (`fitInsideVertically: false` was set because fl_chart's own vertical
 /// fitting pushed the box somewhere worse). This widget instead:
-/// - anchors its bottom-left corner near the cursor (see
-///   [computeTooltipBoxPosition]),
+/// - tracks the cursor horizontally, pinned near the plot's top edge
+///   vertically (see [computeTooltipBoxPosition]) -- it never sits over the
+///   data it describes, matching the mobile app's classic placement,
 /// - clamps to the plot rect so it can never overflow it, and
 /// - shrinks its text (never clips) when the rows would not otherwise fit
 ///   in the available vertical space (see [computeTooltipScaleFactor]).
