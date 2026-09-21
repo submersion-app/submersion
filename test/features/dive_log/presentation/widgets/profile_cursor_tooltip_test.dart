@@ -266,6 +266,40 @@ void main() {
       expect(find.text('Metric 0'), findsOneWidget);
     });
 
+    testWidgets('shrinks the box width along with the text once row count '
+        'outgrows the available height, instead of staying as wide as the '
+        'whole plot while only the text shrinks (issue #2228 follow-up)', (
+      tester,
+    ) async {
+      final fewRows = [
+        for (var i = 0; i < 2; i++)
+          TooltipRow(
+            label: 'Metric $i',
+            value: '$i.0',
+            bulletColor: AppColors.chartDepth,
+          ),
+      ];
+      await tester.pumpWidget(harness(rows: fewRows));
+      await tester.pump();
+      final unshrunkWidth = tester
+          .getRect(find.byType(DecoratedBox).first)
+          .width;
+
+      final manyRows = [
+        for (var i = 0; i < 40; i++)
+          TooltipRow(
+            label: 'Metric $i',
+            value: '$i.0',
+            bulletColor: AppColors.chartDepth,
+          ),
+      ];
+      await tester.pumpWidget(harness(rows: manyRows));
+      await tester.pump();
+      final shrunkWidth = tester.getRect(find.byType(DecoratedBox).first).width;
+
+      expect(shrunkWidth, lessThan(unshrunkWidth));
+    });
+
     testWidgets('bolds the label of the row matching highlightedMetric, leaves '
         'others normal', (tester) async {
       await tester.pumpWidget(

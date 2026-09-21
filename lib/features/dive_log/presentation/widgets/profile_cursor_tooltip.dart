@@ -176,9 +176,16 @@ class ProfileCursorTooltip extends StatelessWidget {
           naturalHeight: naturalHeight,
           availableHeight: plotRect.height,
         );
-        final boxWidth = tooltipMaxContentWidth < plotRect.width
-            ? tooltipMaxContentWidth
-            : plotRect.width;
+        // Shrinks with the same factor as the text (issue #2228 follow-up):
+        // on a small window, capping only the row count's height left the
+        // box as wide as the whole plot while the text inside it kept
+        // shrinking, so the box visually dominated the chart instead of
+        // shrinking down with it.
+        final boxWidth =
+            (tooltipMaxContentWidth < plotRect.width
+                ? tooltipMaxContentWidth
+                : plotRect.width) *
+            scale;
         final boxHeight = naturalHeight * scale;
 
         final position = computeTooltipBoxPosition(
