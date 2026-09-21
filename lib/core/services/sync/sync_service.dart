@@ -4081,9 +4081,42 @@ class SyncService {
       for (final record in entry.value.values) {
         await _serializer.upsertRecord(entry.key, record);
       }
+      await _landAdoptedFactClears(entry.key, entry.value.values);
     }
 
     await _serializer.repairDanglingForeignKeys();
+  }
+
+  /// Lands the explicit fact clears an adopt's upsert would drop.
+  ///
+  /// Adopt applies rows straight through the serializer's upsert, which
+  /// builds with nullToAbsent, so a cleared stamp in the library being
+  /// adopted leaves this device's own value in place and the adopted
+  /// library is not the one the cloud holds (media sync program spec 5.1).
+  /// The merge path solves this with a targeted write; adopt needs the same
+  /// one.
+  ///
+  /// Only rows that carry an explicit null: adopt is a wholesale replace
+  /// applied in sequence, so a non-null value already landed through the
+  /// upsert and re-writing it would cost an UPDATE per media row for
+  /// nothing. There is no per-group clock resolution to do either, because
+  /// there is no local side to resolve against; the sequence is the answer.
+  Future<void> _landAdoptedFactClears(
+    String entityType,
+    Iterable<Map<String, dynamic>> rows,
+  ) async {
+    final groups = SyncFactGroups.of(entityType);
+    if (groups.isEmpty) return;
+    for (final row in rows) {
+      final id = recordIdForEntity(entityType, row);
+      if (id == null) continue;
+      for (final g in groups) {
+        final clears = g.columns.keys.any(
+          (k) => row.containsKey(k) && row[k] == null,
+        );
+        if (clears) await _serializer.writeFactGroup(entityType, id, g, row);
+      }
+    }
   }
 
   /// Test seam: in-memory adopt of [payloads] (the parity reference). Captures
@@ -4151,6 +4184,7 @@ class SyncService {
       ];
       if (valid.isEmpty) return;
       await _serializer.upsertRecords(table, valid);
+      await _landAdoptedFactClears(table, valid);
     }
 
     // Apply units: each base file and each changeset, ascending by exportedAt

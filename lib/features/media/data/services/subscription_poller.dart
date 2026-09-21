@@ -194,13 +194,17 @@ class SubscriptionPoller {
         width: entry.width ?? existingRow.width,
         height: entry.height ?? existingRow.height,
         durationSeconds: entry.durationSeconds ?? existingRow.durationSeconds,
-        // A row that was previously orphaned (because the manifest had
-        // dropped it) is no longer orphaned now that it reappeared.
-        isOrphaned: false,
       );
       if (patched != existingRow) {
         await mediaRepo.updateMedia(patched);
       }
+      // A row that was previously orphaned (because the manifest had dropped
+      // it) is no longer orphaned now that it reappeared. Its own writer,
+      // not a field on the patch above: updateMedia writes user fields from
+      // a snapshot read before this poll's network round-trip, so it must
+      // not carry verification facts. markOrphaned is a no-op, and publishes
+      // nothing, when the row already agrees.
+      await mediaRepo.markOrphaned(existingRow.id, false);
     }
 
     // Removed entries: present in DB, absent from the new manifest body.
