@@ -78,7 +78,7 @@ void main() {
         plotRect: _plotRect,
         gap: 8,
       );
-      expect(position.dx, 50 + 8);
+      expect(position.left, 50 + 8);
     });
 
     test('returns the box\'s bottom edge at the cursor\'s Y (the caller '
@@ -90,7 +90,7 @@ void main() {
         plotRect: _plotRect,
         gap: 8,
       );
-      expect(position.dy, 100);
+      expect(position.bottom, 100);
     });
 
     test('still tracks the cursor near the plot\'s top edge for an '
@@ -102,15 +102,18 @@ void main() {
         plotRect: _plotRect,
         gap: 8,
       );
-      expect(position.dy, 50);
+      expect(position.bottom, 50);
     });
 
-    test('detaches from the cursor once the box is tall enough that its '
-        'real height would push its top past local y = 0 -- the '
-        'container\'s own top edge -- instead of continuing to grow off the '
-        'top of the container entirely (issue #2228 follow-up: an earlier '
-        'version had no ceiling at all here, which let the box wander '
-        'arbitrarily far above the chart)', () {
+    test('returns a null bottom once the box is tall enough that tracking '
+        'the cursor would push its top past local y = 0 -- the container\'s '
+        'own top edge -- so the caller pins its top instead of deriving a '
+        'bottom from the box\'s merely estimated height (issue #2228 '
+        'follow-up: an earlier version kept deriving a bottom from that '
+        'estimate regardless, which either had no ceiling at all -- letting '
+        'the box wander arbitrarily far above the chart -- or, once that '
+        'was added back, left a gap between the box and the container\'s '
+        'top exactly as wide as the estimate\'s own overshoot)', () {
       const boxHeight = 400.0;
       final position = computeTooltipBoxPosition(
         cursorLocal: const Offset(50, 10),
@@ -118,7 +121,7 @@ void main() {
         plotRect: _plotRect,
         gap: 8,
       );
-      expect(position.dy, boxHeight);
+      expect(position.bottom, isNull);
     });
 
     test('stops following the cursor once it goes low enough that the '
@@ -131,7 +134,7 @@ void main() {
         gap: 8,
       );
       final maxBottom = _plotRect.bottom - tooltipTopMargin;
-      expect(position.dy, maxBottom);
+      expect(position.bottom, maxBottom);
     });
 
     test('flips to the cursor\'s left side when the right edge overflows', () {
@@ -143,7 +146,7 @@ void main() {
       );
       // Natural left (280 + 8 = 288) overflows the 300-wide plot; flipped
       // left is 280 - 8 - 80 = 192, which fits.
-      expect(position.dx, 280 - 8 - 80);
+      expect(position.left, 280 - 8 - 80);
     });
 
     test(
@@ -157,7 +160,7 @@ void main() {
         );
         // Flipped left (40 - 8 - 280 = -248) is off the left edge too, so
         // the box must clamp to the plot's right edge instead.
-        expect(position.dx, _plotRect.right - 280);
+        expect(position.left, _plotRect.right - 280);
       },
     );
 
@@ -168,7 +171,7 @@ void main() {
         plotRect: _plotRect,
         gap: 8,
       );
-      expect(position.dx, greaterThanOrEqualTo(_plotRect.left));
+      expect(position.left, greaterThanOrEqualTo(_plotRect.left));
     });
 
     test('a box wider than the plot rect still returns a finite position', () {
@@ -178,7 +181,7 @@ void main() {
         plotRect: _plotRect,
         gap: 8,
       );
-      expect(position.dx.isFinite, isTrue);
+      expect(position.left.isFinite, isTrue);
     });
   });
 
@@ -357,11 +360,13 @@ void main() {
       final containerTop = tester
           .getTopLeft(find.byType(ProfileCursorTooltip))
           .dy;
-      final boxBottom = tester.getRect(find.byType(DecoratedBox).first).bottom;
-      // Had it kept tracking the cursor, the bottom would sit right at
-      // containerTop + 10; the ceiling instead holds it well below that
-      // (bottom = ceiling + box height), clear evidence it detached.
-      expect(boxBottom, greaterThan(containerTop + 50));
+      final boxTop = tester.getRect(find.byType(DecoratedBox).first).top;
+      // Pinned tooltipCeilingMargin clear of the container's own top edge,
+      // not merely "somewhere well below" where tracking the cursor would
+      // have put it (containerTop + 10) -- exact, because the box is pinned
+      // by its real (as-laid-out) top here, not by a bottom offset derived
+      // from an estimated height (issue #2228 follow-up).
+      expect(boxTop, closeTo(containerTop + tooltipCeilingMargin, 0.5));
     });
 
     testWidgets('bolds the label of the row matching highlightedMetric, leaves '

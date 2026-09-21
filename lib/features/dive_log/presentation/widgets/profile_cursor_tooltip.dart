@@ -16,6 +16,12 @@ const double tooltipCursorGap = 40;
 /// below the plot (see [computeTooltipBoxPosition]).
 const double tooltipTopMargin = 8;
 
+/// Margin the box's top edge keeps clear of local y = 0 (the container's
+/// own top) once it can no longer track the cursor at all -- the same size
+/// as [tooltipTopMargin] on the opposite edge, so the box reads as sitting
+/// just inside the chart on either side it detaches from the cursor at.
+const double tooltipCeilingMargin = 8;
+
 /// Cap on the tooltip box's content width, carried over from the old
 /// fl_chart bubble's `maxContentWidth: 320` -- wide enough for a tank row
 /// carrying the gas type (e.g. "Tank 1 (EAN32) 2064 psi") without wrapping.
@@ -110,9 +116,9 @@ double computeTooltipScaleFactor({
   return scale.clamp(minScale, 1.0);
 }
 
-/// Computes the tooltip box's horizontal position and its bottom edge's Y,
-/// given the cursor position it anchors to and the plot rect it must stay
-/// inside.
+/// Computes the tooltip box's horizontal position and, while it can still
+/// track the cursor, its bottom edge's Y -- given the cursor position it
+/// anchors to and the plot rect it must stay inside.
 ///
 /// Horizontally, the box is nominally placed [gap] logical pixels to the
 /// right of [cursorLocal] (clear of the vertical indicator line fl_chart
@@ -120,31 +126,33 @@ double computeTooltipScaleFactor({
 /// otherwise overflow [plotRect.right], then clamped so it never extends
 /// past either horizontal edge.
 ///
-/// Vertically, the returned Y is the box's bottom edge, at the cursor's Y --
-/// the caller positions the box with a `bottom` (not `top`) offset derived
-/// from it, so the box grows upward from exactly the cursor's height
-/// regardless of the box's own real (as-laid-out) height. It tracks the
-/// cursor this way except at its two edges:
+/// Vertically, [bottom] is the box's bottom edge, at the cursor's Y -- the
+/// caller positions the box with a `bottom` (not `top`) offset derived from
+/// it, so the box grows upward from exactly the cursor's height regardless
+/// of the box's own real (as-laid-out) height. It tracks the cursor this way
+/// except at its two edges:
 /// - low: it stops following once the cursor goes low enough that the
 ///   bottom edge would otherwise pass `plotRect.bottom - tooltipTopMargin`
 ///   (so it never trails into the safety-lane area below the plot);
 /// - high: with enough active metrics the box can be taller than the room
-///   between the cursor and the plot's top edge. [boxSize] lets it grow
-///   above the plot (the caller's Clip.none allows this), but never past
-///   local y = 0 -- the container's own top edge. Above that is not the
-///   chart at all (the legend, in Vollbild even the window chrome), and
-///   `_plotInsets`'s own top gutter is just a hairline border, so there is
-///   essentially no room inside the chart itself to grow into; past that
-///   hard ceiling the box stops rising and its bottom edge detaches from the
-///   cursor rather than the box continuing to grow off the top of the
-///   container entirely (issue #2228 follow-up: an earlier version of this
-///   clamp used a height estimate inflated enough that it triggered long
-///   before the box was actually that tall, which read as the tooltip
-///   getting stuck instead of following the pointer; a later one keyed the
-///   ceiling off `plotRect.top` with a generous fixed headroom, which let a
-///   tall box overshoot past the whole container once `plotRect.top` was, as
-///   it always is in practice, itself small).
-Offset computeTooltipBoxPosition({
+///   between the cursor and local y = 0 -- the container's own top edge.
+///   Above that is not the chart at all (the legend, in Vollbild even the
+///   window chrome), and `_plotInsets`'s own top gutter is just a hairline
+///   border, so there is essentially no room inside the chart itself to
+///   grow into. Past that point [bottom] comes back null instead: a `bottom`
+///   offset derived from [boxSize]'s merely *estimated* height would leave a
+///   gap should the box's real height come out smaller than the estimate
+///   (which happens routinely -- the estimate deliberately overestimates a
+///   little to avoid clipping, see `_measuredRowHeight`), so the caller
+///   pins the box's `top` instead ([tooltipCeilingMargin] clear of local y =
+///   0) and lets its real height determine where the bottom ends up (issue
+///   #2228 follow-up: earlier versions of this clamp kept deriving a
+///   `bottom` from the height estimate regardless, which either triggered
+///   long before the box was actually that tall -- read as the tooltip
+///   getting stuck -- or, once that was fixed, left a gap between the box
+///   and the container's top exactly as wide as the estimate's own
+///   overshoot).
+({double left, double? bottom}) computeTooltipBoxPosition({
   required Offset cursorLocal,
   required Size boxSize,
   required Rect plotRect,
@@ -161,14 +169,12 @@ Offset computeTooltipBoxPosition({
   left = left.clamp(minLeft, minLeft > maxLeft ? minLeft : maxLeft);
 
   final maxBottom = plotRect.bottom - tooltipTopMargin;
-  var bottom = cursorLocal.dy > maxBottom ? maxBottom : cursorLocal.dy;
+  final bottom = cursorLocal.dy > maxBottom ? maxBottom : cursorLocal.dy;
 
-  // Hard ceiling: the box's top edge never rises above local y = 0 (the
-  // container's own top), whatever its real height turns out to be.
-  final minBottom = boxSize.height;
-  if (bottom < minBottom) bottom = minBottom;
-
-  return Offset(left, bottom);
+  if (bottom < boxSize.height + tooltipCeilingMargin) {
+    return (left: left, bottom: null);
+  }
+  return (left: left, bottom: bottom);
 }
 
 /// The fullscreen profile chart's own in-chart, cursor-following tooltip
@@ -252,13 +258,19 @@ class ProfileCursorTooltip extends StatelessWidget {
           boxSize: Size(boxWidth, boxHeight),
           plotRect: plotRect,
         );
-        // position.dy is the box's bottom edge, not its top: a `bottom`
+        // position.bottom is the box's bottom edge, not its top: a `bottom`
         // Positioned offset places the actual (as-laid-out) box there
         // exactly, regardless of any mismatch between boxHeight's estimate
         // and the real rendered height -- a `top` offset combined with that
         // estimate previously left the bottom edge adrift from the cursor by
-        // however much the estimate was off (issue #2228 follow-up).
-        final bottomOffset = constraints.maxHeight - position.dy;
+        // however much the estimate was off (issue #2228 follow-up). Null
+        // once the ceiling clamp engages: the box is then pinned by `top`
+        // instead, for the same reason in reverse (see
+        // [computeTooltipBoxPosition]).
+        final bottom = position.bottom;
+        final bottomOffset = bottom == null
+            ? null
+            : constraints.maxHeight - bottom;
 
         final fontSize = tooltipBaseFontSize * scale;
         final rowStyle = TextStyle(
@@ -279,7 +291,8 @@ class ProfileCursorTooltip extends StatelessWidget {
           clipBehavior: Clip.none,
           children: [
             Positioned(
-              left: position.dx,
+              left: position.left,
+              top: bottomOffset == null ? tooltipCeilingMargin : null,
               bottom: bottomOffset,
               width: boxWidth,
               child: DecoratedBox(
