@@ -186,6 +186,7 @@ Widget _buildChart({
   List<GasUsageSegment>? gasSegments,
   int? diveDurationSeconds,
   bool tooltipBelow = false,
+  bool tooltipNativeBubble = false,
   void Function(List<TooltipRow>? rows)? onTooltipData,
   void Function(int? index)? onPointSelected,
   int? playbackTimestamp,
@@ -239,6 +240,7 @@ Widget _buildChart({
             gasSegments: gasSegments,
             diveDurationSeconds: diveDurationSeconds,
             tooltipBelow: tooltipBelow,
+            tooltipNativeBubble: tooltipNativeBubble,
             onTooltipData: onTooltipData,
             onPointSelected: onPointSelected,
             playbackTimestamp: playbackTimestamp,
@@ -3485,7 +3487,7 @@ void main() {
       'getTooltipItems never returns a cached list whose length differs from '
       'touchedSpots (fl_chart size-match contract)',
       (tester) async {
-        await tester.pumpWidget(_buildChart());
+        await tester.pumpWidget(_buildChart(tooltipNativeBubble: true));
         await tester.pumpAndSettle();
 
         final getItems = primaryChartData(
@@ -3516,6 +3518,35 @@ void main() {
           getItems(fewerBars).length,
           fewerBars.length,
           reason: 'cache must invalidate when the touched-bar count changes',
+        );
+      },
+    );
+
+    testWidgets(
+      'getTooltipItems returns the same cached list for a second call at '
+      'the same sample, instead of rebuilding it (issue #2228 follow-up: '
+      'this memoization existed before the tooltip-building code was '
+      'consolidated and was silently dropped along the way)',
+      (tester) async {
+        await tester.pumpWidget(_buildChart(tooltipNativeBubble: true));
+        await tester.pumpAndSettle();
+
+        final getItems = primaryChartData(
+          tester,
+        ).lineTouchData.touchTooltipData.getTooltipItems;
+        final depthBar = primaryChartData(tester).lineBarsData.first;
+        const spotIndex = 3;
+        final depthSpot = LineBarSpot(depthBar, 0, depthBar.spots[spotIndex]);
+        final touched = <LineBarSpot>[depthSpot];
+
+        final first = getItems(touched);
+        final second = getItems(touched);
+        expect(
+          identical(first, second),
+          isTrue,
+          reason:
+              'same sample, same touched-bar count, same highlight state -- '
+              'nothing the built items depend on changed',
         );
       },
     );

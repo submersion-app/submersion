@@ -1136,6 +1136,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   // via the touch callback below, and cleared on touch end.
   List<TooltipRow> _liveCursorTooltipRows = const [];
 
+  // Memoizes the native bubble's getTooltipItems result (tooltipNativeBubble)
+  // so a pointer sitting still over the same sample -- fl_chart calls this on
+  // every touch/hover event, including repeated ones with nothing changed --
+  // rebuilds nothing. Keyed on everything the built rows/styling actually
+  // depend on: the resolved sample, whether it's the surface lead-in vertex,
+  // and which metric renders bold (added after this cache existed originally,
+  // so it must invalidate the cache too, or hovering a different line at the
+  // same sample would keep showing a stale bold row).
+  int? _lastTooltipSpotIndex;
+  bool _lastTooltipOnLeadIn = false;
+  Object? _lastTooltipHighlightedMetric;
+  List<LineTooltipItem?> _lastTooltipItems = const [];
+
   // Transient, non-persisted right-axis override: which metric's line is
   // currently under the cursor/touch, so the axis briefly shows that
   // metric's scale instead of the persisted preference (issue #2228
@@ -1498,6 +1511,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final profileChanged = oldWidget.profile != widget.profile;
     if (profileChanged) {
       _liveCursorTooltipRows = const [];
+      _lastTooltipSpotIndex = null;
+      _lastTooltipItems = const [];
     }
     if (oldWidget.tankPressures != widget.tankPressures) {
       _scheduleTankPressureVisibilityInitialization();
@@ -4357,6 +4372,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   if (depthSpot == null || resolvedTouch == null) {
                     return touchedSpots.map((_) => null).toList();
                   }
+                  final highlightedMetric = _highlightedTooltipMetric;
+                  // Same sample, same lead-in state, same highlighted metric,
+                  // same touched-bar count as last time: nothing the built
+                  // items depend on has changed, so return the cached list
+                  // rather than rebuilding every row and TextSpan again. The
+                  // length check matters because fl_chart requires the
+                  // returned list to match touchedSpots.length, and that can
+                  // change under a parked cursor (a metric toggled, a data
+                  // provider refreshing) even while the sample doesn't.
+                  if (resolvedTouch.index == _lastTooltipSpotIndex &&
+                      resolvedTouch.onLeadIn == _lastTooltipOnLeadIn &&
+                      highlightedMetric == _lastTooltipHighlightedMetric &&
+                      _lastTooltipItems.length == touchedSpots.length) {
+                    return _lastTooltipItems;
+                  }
                   final colorScheme = Theme.of(context).colorScheme;
                   final rows = _buildTooltipRowsForIndex(
                     resolvedTouch.index,
@@ -4379,7 +4409,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       DiveProfileChart.tooltipLabelChars +
                       DiveProfileChart.tooltipValueChars;
                   final rowFiller = List.filled(rowWidth, '0').join();
-                  final highlightedMetric = _highlightedTooltipMetric;
                   final lines = <TextSpan>[];
                   for (final row in rows) {
                     if (lines.isNotEmpty) {
@@ -4420,7 +4449,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       );
                     }
                   }
-                  return touchedSpots.map((touched) {
+                  final result = touchedSpots.map((touched) {
                     if (!identical(touched, depthSpot)) return null;
                     return LineTooltipItem(
                       '', // Empty base text, using children instead.
@@ -4429,6 +4458,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       textAlign: TextAlign.start,
                     );
                   }).toList();
+                  _lastTooltipSpotIndex = resolvedTouch.index;
+                  _lastTooltipOnLeadIn = resolvedTouch.onLeadIn;
+                  _lastTooltipHighlightedMetric = highlightedMetric;
+                  _lastTooltipItems = result;
+                  return result;
                 },
               ),
             ),
