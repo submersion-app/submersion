@@ -2770,8 +2770,21 @@ class SyncService {
         // peer's, so the skip stays. Entities whose local rows are not
         // fetched (the clockless blind upserts) have no local clock here and
         // keep the skip too.
-        if (pendingRecordIds.contains(recordId) &&
-            !_orderable(localById[recordId], record)) {
+        //
+        // A fact-carrying row is the exception. A media row's first local
+        // write can be a fact write, which stamps the group clock and
+        // deliberately leaves the row clock null, so a legacy row can be
+        // pending and unorderable while its FACTS are perfectly ordered by
+        // their own clocks. Skipping it outright threw away the peer's
+        // facts for good. Such a row keeps its local user fields, exactly
+        // as the skip intends, and falls through to the per-group merge
+        // below, which takes only the groups the peer's clocks win.
+        final pendingUnorderable =
+            pendingRecordIds.contains(recordId) &&
+            !_orderable(localById[recordId], record);
+        if (pendingUnorderable &&
+            (localById[recordId] == null ||
+                SyncFactGroups.of(entityType).isEmpty)) {
           continue;
         }
 
@@ -2875,6 +2888,9 @@ class SyncService {
               rowFromRemote = false;
             }
           }
+          // An unorderable pending row keeps its own user fields; only its
+          // fact groups are open to the peer (see the gate above).
+          if (pendingUnorderable) rowFromRemote = false;
           if (factGroups.isEmpty) {
             if (!rowFromRemote) continue;
             toUpsert.add(recordToApply);

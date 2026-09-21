@@ -355,6 +355,46 @@ void main() {
     });
   });
 
+  test('a fact-only pending row still takes the peer\'s facts', () async {
+    // A media row's first local write can be a fact write, which stamps the
+    // group clock and leaves the row clock null. The row is then pending
+    // and unorderable, and skipping it outright threw the peer's facts
+    // away for good, because the reader advances its cursor regardless.
+    await db.customStatement('UPDATE media SET hlc = NULL WHERE id = ?', [id]);
+    await MediaRepository().stampRemoteUploaded(
+      id,
+      uploadedAt: DateTime(2026, 8),
+    );
+    final local = (await SyncDataSerializer().fetchRecord('media', id))!;
+    expect(local['hlc'], isNull, reason: 'a fact write leaves the row clock');
+
+    // The peer has a newer verification fact and its own row clock.
+    await apply({
+      ...local,
+      'caption': 'theirs',
+      'hlc': SyncClock.instance.issue(),
+      'isOrphaned': true,
+      'verifyFactsHlc': SyncClock.instance.issue(),
+    });
+
+    final row = await db
+        .customSelect(
+          'SELECT caption, is_orphaned FROM media WHERE id = ?',
+          variables: [Variable.withString(id)],
+        )
+        .getSingle();
+    expect(
+      row.read<int>('is_orphaned'),
+      1,
+      reason: "the peer's verification fact is ordered and wins",
+    );
+    expect(
+      row.read<String?>('caption'),
+      isNot('theirs'),
+      reason: 'the unpublished local row is still protected',
+    );
+  });
+
   test('the batched fetch serves media rows', () async {
     final rows = await SyncDataSerializer().fetchRecords('media', [id, 'none']);
     expect(rows.keys, [id]);

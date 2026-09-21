@@ -708,9 +708,23 @@ class MediaRepository {
       _log.info('Setting isOrphaned=$isOrphaned for media: $id');
       final now = DateTime.now().millisecondsSinceEpoch;
 
-      await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
-        MediaCompanion(isOrphaned: Value(isOrphaned), updatedAt: Value(now)),
-      );
+      final rowsWritten =
+          await (_db.update(_db.media)..where(
+                // Matching on the OPPOSITE flag makes this a no-op when the
+                // row already agrees. SubscriptionPoller calls this for
+                // every entry on every poll, so without the guard a healthy
+                // library would take a fresh verification clock each time
+                // and re-export its snapshot over a peer's newer
+                // observation (media sync program spec 5.1).
+                (t) => t.id.equals(id) & t.isOrphaned.equals(!isOrphaned),
+              ))
+              .write(
+                MediaCompanion(
+                  isOrphaned: Value(isOrphaned),
+                  updatedAt: Value(now),
+                ),
+              );
+      if (rowsWritten == 0) return;
 
       await _syncRepository.markFactsPending(
         entityType: 'media',
