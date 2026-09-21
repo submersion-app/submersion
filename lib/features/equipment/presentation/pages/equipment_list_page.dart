@@ -14,6 +14,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_sort_sheet.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_section_toggle.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_set_list_content.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_summary_widget.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_detail_page.dart';
@@ -203,58 +204,30 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   }
 
   Widget _buildMobileLayout(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return Scaffold(
       appBar: AppBar(
+        // The toggle rides as an action rather than off `bottom`, which cost a
+        // third stacked bar and left the page title and the list's own title
+        // both reading "Equipment" (issue #2256). As an action it keeps its
+        // natural width and the title yields, which is the right priority: the
+        // toggle is a control, the title is a label the toggle already repeats.
         title: FeatureAppBarTitle(
           featureId: 'equipment',
           title: context.l10n.equipment_appBar_title,
         ),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: [
-            Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.backpack, size: 20),
-                  const SizedBox(width: 8),
-                  Text(context.l10n.equipment_tab_equipment),
-                ],
-              ),
-            ),
-            Tab(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.folder_special, size: 20),
-                  const SizedBox(width: 8),
-                  Text(context.l10n.equipment_tab_sets),
-                ],
-              ),
-            ),
-          ],
-          indicatorSize: TabBarIndicatorSize.tab,
-          indicator: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            color: colorScheme.primaryContainer,
-          ),
-          indicatorPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 6,
-          ),
-          labelColor: colorScheme.onPrimaryContainer,
-          labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-          unselectedLabelColor: colorScheme.onSurfaceVariant,
-          splashBorderRadius: BorderRadius.circular(24),
-        ),
+        actions: [
+          // Flexible because AppBar hands its actions row unbounded main-axis
+          // constraints: without it a long translation on a small phone
+          // overflows the bar instead of ellipsising.
+          Flexible(child: _buildSectionToggle(context, showIcons: true)),
+          const SizedBox(width: 8),
+        ],
       ),
       body: TabBarView(
         controller: _tabController,
-        children: [
-          const EquipmentListContent(showAppBar: false),
-          const EquipmentSetListContent(showAppBar: false),
+        children: const [
+          EquipmentListContent(showAppBar: false),
+          EquipmentSetListContent(showAppBar: false),
         ],
       ),
       floatingActionButton: _buildFab(context),
@@ -267,43 +240,14 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         : _buildSetsMasterDetail();
   }
 
-  Widget _buildMasterTabBar(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return TabBar(
+  /// The Equipment / Sets toggle, for whichever header bar is hosting it.
+  ///
+  /// The same [TabController] drives it everywhere, so the phone layout keeps
+  /// the swipe gesture its `TabBarView` provides.
+  Widget _buildSectionToggle(BuildContext context, {required bool showIcons}) {
+    return EquipmentSectionToggle(
       controller: _tabController,
-      tabs: [
-        Tab(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.backpack, size: 20),
-              const SizedBox(width: 8),
-              Text(context.l10n.equipment_tab_equipment),
-            ],
-          ),
-        ),
-        Tab(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.folder_special, size: 20),
-              const SizedBox(width: 8),
-              Text(context.l10n.equipment_tab_sets),
-            ],
-          ),
-        ),
-      ],
-      indicatorSize: TabBarIndicatorSize.tab,
-      indicator: BoxDecoration(
-        borderRadius: BorderRadius.circular(24),
-        color: colorScheme.primaryContainer,
-      ),
-      indicatorPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      labelColor: colorScheme.onPrimaryContainer,
-      labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-      unselectedLabelColor: colorScheme.onSurfaceVariant,
-      splashBorderRadius: BorderRadius.circular(24),
+      showIcons: showIcons,
     );
   }
 
@@ -316,7 +260,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             onItemSelected: onItemSelected,
             selectedId: selectedId,
             showAppBar: false,
-            headerExtension: _buildMasterTabBar(context),
+            toggleBuilder: _buildSectionToggle,
           ),
       detailBuilder: (context, id) => EquipmentDetailPage(
         equipmentId: id,
@@ -355,7 +299,7 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
             onItemSelected: onItemSelected,
             selectedId: selectedId,
             showAppBar: false,
-            headerExtension: _buildMasterTabBar(context),
+            toggleBuilder: _buildSectionToggle,
           ),
       detailBuilder: (context, id) => EquipmentSetDetailPage(setId: id),
       summaryBuilder: (context) => _buildSetsSummary(context),
