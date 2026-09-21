@@ -267,6 +267,94 @@ void main() {
     }
   });
 
+  group('an older peer that omits a column does not erase it', () {
+    // A peer on an older schema sends no key for a column it has never
+    // heard of. Winning the row decides whose values stand where both sides
+    // have one; the winner's silence is not an answer.
+    //
+    // These arms get that for free, without the _overlayOntoLocal the LWW
+    // path uses, because they build their insert with nullToAbsent: an
+    // absent key is simply not written. It is the same property that stops
+    // a peer's explicit clear from landing through the upsert, which is why
+    // writeFactGroup exists. Pinned here because the merge reads as though
+    // it were taking the peer's whole map.
+    test('a winning media row keeps a column the peer omitted', () async {
+      await captionLocally('mine');
+      await db.customStatement(
+        "UPDATE media SET original_filename = 'reef.jpg' WHERE id = ?",
+        [id],
+      );
+      final local = (await SyncDataSerializer().fetchRecord('media', id))!;
+
+      // The peer's row is newer, changes a column it does know, and
+      // predates the one it omits.
+      final older = {
+        ...local,
+        'caption': 'theirs',
+        'hlc': SyncClock.instance.issue(),
+      }..remove('originalFilename');
+      await apply(older);
+
+      expect(await captionOf(), 'theirs', reason: 'the peer row did win');
+
+      final after =
+          (await db
+                  .customSelect(
+                    'SELECT original_filename FROM media WHERE id = ?',
+                    variables: [Variable.withString(id)],
+                  )
+                  .getSingle())
+              .read<String?>('original_filename');
+      expect(after, 'reef.jpg');
+    });
+
+    test('a guarded child with no fact groups keeps it too', () async {
+      await db.customStatement(
+        "INSERT INTO species (id, common_name, scientific_name, category) "
+        "VALUES ('sp1', 'Grouper', 'Epinephelus', 'fish')",
+      );
+      await SyncRepository().markRecordPending(
+        entityType: 'species',
+        recordId: 'sp1',
+        localUpdatedAt: 0,
+      );
+      await SyncRepository().clearPendingRecords();
+      final local = (await SyncDataSerializer().fetchRecord('species', 'sp1'))!;
+
+      final older = {
+        ...local,
+        'commonName': 'Snapper',
+        'hlc': SyncClock.instance.issue(),
+      }..remove('scientificName');
+      await SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+      ).debugApplyPayload(
+        SyncPayload(
+          version: 1,
+          exportedAt: 0,
+          deviceId: 'peer',
+          checksum: '',
+          data: SyncData(species: [older]),
+          deletions: const {},
+        ),
+      );
+
+      final after = await db
+          .customSelect(
+            'SELECT common_name, scientific_name FROM species '
+            "WHERE id = 'sp1'",
+          )
+          .getSingle();
+      expect(
+        after.read<String?>('common_name'),
+        'Snapper',
+        reason: 'the peer row did win',
+      );
+      expect(after.read<String?>('scientific_name'), 'Epinephelus');
+    });
+  });
+
   test('the batched fetch serves media rows', () async {
     final rows = await SyncDataSerializer().fetchRecords('media', [id, 'none']);
     expect(rows.keys, [id]);

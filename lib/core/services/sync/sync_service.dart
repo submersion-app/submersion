@@ -2884,6 +2884,13 @@ class SyncService {
           // Facts resolve per group by their own clocks (spec 5.1): a stale
           // row still hands over newer facts, and a newer row does not take
           // older ones.
+          //
+          // No _overlayOntoLocal here, unlike the LWW path below, and it is
+          // not needed: these arms build their insert with nullToAbsent, so
+          // a column an older peer omits is simply not written and the local
+          // value stands. That is the same property writeFactGroup exists to
+          // work around, since it is what stops a peer's explicit clear from
+          // landing through the upsert. media_clock_guard_test pins it.
           final resolved = mergeFactGroups(
             entityType: entityType,
             base: rowFromRemote ? recordToApply : local!,
