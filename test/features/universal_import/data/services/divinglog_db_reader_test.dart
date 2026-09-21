@@ -581,6 +581,28 @@ void main() {
       );
     });
 
+    test('diagnoses a FishRel table missing its second join column', () async {
+      // FishRel needs both LogID and FishID. Requiring only LogID let a
+      // drifted table drop every marine-life link with no diagnostic.
+      final dir = Directory.systemTemp.createTempSync('dl_fishrel');
+      final path = '${dir.path}/logbook.sql';
+      final db = sqlite3.open(path);
+      db.execute(
+        'CREATE TABLE Logbook (ID INTEGER PRIMARY KEY, Divedate TEXT)',
+      );
+      db.execute(
+        'CREATE TABLE FishRel (ID INTEGER PRIMARY KEY, LogID INTEGER)',
+      );
+      db.close();
+      final bytes = File(path).readAsBytesSync();
+      dir.deleteSync(recursive: true);
+
+      final book = await DivingLogDbReader.readAll(bytes);
+      expect(book.speciesIdsByLogId, isEmpty);
+      expect(book.schemaNotes.join(' '), contains('FishRel'));
+      expect(book.schemaNotes.join(' '), contains('FishID'));
+    });
+
     test('reads the id columns off the dive row', () async {
       final book = await DivingLogDbReader.readAll(buildReferenceLogbook());
       final d = book.dives.single;

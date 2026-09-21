@@ -112,9 +112,12 @@ class DivingLogDiveMapper {
         for (final id in raw.buddyIds)
           if (logbook.buddiesById[id]?.fullName case final String name) name,
       ];
-      final buddyRefs = idBuddyRefs.isNotEmpty
-          ? idBuddyRefs
-          : _refs(_names(raw.buddy), buddiesByName);
+      // Keyed on whether the dive HAS ids, not on whether they resolved.
+      // Falling back when none resolve would recreate the phase 1
+      // duplicates exactly when the relational data is incomplete.
+      final buddyRefs = raw.buddyIds.isEmpty
+          ? _refs(_names(raw.buddy), buddiesByName)
+          : idBuddyRefs;
       final guideRefs = _refs(_names(raw.divemaster), buddiesByName);
       if (buddyRefs.isNotEmpty) map['buddyRefs'] = buddyRefs;
       if (guideRefs.isNotEmpty) map['diveGuideRefs'] = guideRefs;
@@ -158,19 +161,19 @@ class DivingLogDiveMapper {
       // An id pointing at a row the file does not contain is skipped above.
       // Counting it here turns a silent drop into one diagnostic per kind,
       // which is how this importer's earlier data losses went unnoticed.
+      // Requested minus resolved, so a row that exists but yields no
+      // entity (a blank equipment name, a nameless buddy) is counted too.
+      // Testing containsKey alone would call those resolved and hide them.
       unresolved['buddy'] =
-          (unresolved['buddy'] ?? 0) +
-          raw.buddyIds.where((i) => !logbook.buddiesById.containsKey(i)).length;
+          (unresolved['buddy'] ?? 0) + raw.buddyIds.length - idBuddyRefs.length;
       unresolved['equipment'] =
           (unresolved['equipment'] ?? 0) +
-          raw.equipmentIds
-              .where((i) => !logbook.equipmentById.containsKey(i))
-              .length;
+          raw.equipmentIds.length -
+          gearRefs.length;
       unresolved['dive type'] =
           (unresolved['dive type'] ?? 0) +
-          raw.diveTypeIds
-              .where((i) => !logbook.diveTypesById.containsKey(i))
-              .length;
+          raw.diveTypeIds.length -
+          typeIds.length;
 
       dives.add(map);
     }

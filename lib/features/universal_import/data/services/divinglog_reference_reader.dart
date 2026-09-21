@@ -115,35 +115,50 @@ class DivingLogReferenceReader {
   static const _speciesLinkColumns = ['LogID', 'FishID'];
   static const _pictureColumns = ['ID', 'LogID', 'Path', 'Description'];
 
-  /// The reference tables, with the column each one is keyed by. A table
-  /// that is absent, or present without its key, is reported and skipped.
-  static const _tables = <String, String>{
-    'Buddy': 'ID',
-    'Place': 'ID',
-    'City': 'ID',
-    'Country': 'ID',
-    'Equipment': 'ID',
-    'Trip': 'ID',
-    'Shop': 'ID',
-    'Divetype': 'ID',
-    'Brevets': 'ID',
-    'Fish': 'ID',
-    'FishRel': 'LogID',
-    'Pictures': 'LogID',
+  /// The reference tables, with the columns each one cannot be read
+  /// without. A table that is absent, or present without one of these, is
+  /// reported and skipped. `FishRel` needs both halves of its join: with
+  /// `LogID` alone every marine-life link is dropped, so listing only that
+  /// would lose them without a word.
+  static const _tables = <String, List<String>>{
+    'Buddy': ['ID'],
+    'Place': ['ID'],
+    'City': ['ID'],
+    'Country': ['ID'],
+    'Equipment': ['ID'],
+    'Trip': ['ID'],
+    'Shop': ['ID'],
+    'Divetype': ['ID'],
+    'Brevets': ['ID'],
+    'Fish': ['ID'],
+    'FishRel': ['LogID', 'FishID'],
+    'Pictures': ['LogID'],
   };
 
   /// One schema note per reference table this file cannot use, naming what
   /// the diver loses. A table that is present but keyless is a different
   /// message from one that is absent, because "no Buddy table" would be
   /// factually wrong for a table that exists.
-  static List<String> schemaNotes(DivingLogCapabilities caps) => [
-    for (final entry in _tables.entries)
-      if (!caps.hasTable(entry.key))
-        'No ${entry.key} table, so its records were not imported.'
-      else if (!caps.hasColumn(entry.key, entry.value))
-        'The ${entry.key} table has no ${entry.value} column, so its '
-            'records could not be matched and were not imported.',
-  ];
+  static List<String> schemaNotes(DivingLogCapabilities caps) {
+    final notes = <String>[];
+    for (final entry in _tables.entries) {
+      if (!caps.hasTable(entry.key)) {
+        notes.add('No ${entry.key} table, so its records were not imported.');
+        continue;
+      }
+      final missing = [
+        for (final column in entry.value)
+          if (!caps.hasColumn(entry.key, column)) column,
+      ];
+      if (missing.isNotEmpty) {
+        notes.add(
+          'The ${entry.key} table has no ${missing.join(' or ')} column, so '
+          'its records could not be matched and were not imported.',
+        );
+      }
+    }
+    return notes;
+  }
 
   static DivingLogReferences read(Database db, DivingLogCapabilities caps) {
     final cities = _read(

@@ -602,6 +602,30 @@ void main() {
       expect(messages, contains('1 equipment reference(s)'));
     });
 
+    test('an unresolvable BuddyIDs does not fall back to the text', () {
+      // Ids win means ids win. Falling back here would recreate the phase 1
+      // duplicates precisely when the relational data is incomplete.
+      const book = DivingLogLogbook(
+        dives: [
+          DivingLogRawDive(
+            id: 1,
+            diveDate: '2024-06-01',
+            buddy: 'Alice, Bob',
+            buddyIds: [99],
+          ),
+        ],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+      );
+      final payload = DivingLogDiveMapper.toPayload(book);
+      final d = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(d.containsKey('buddyRefs'), isFalse);
+      expect(payload.entitiesOf(ImportEntityType.buddies), isEmpty);
+      expect(
+        payload.warnings.map((w) => w.message).join(' '),
+        contains('1 buddy reference(s)'),
+      );
+    });
+
     test('still uses the text column when a dive has no BuddyIDs', () {
       const book = DivingLogLogbook(
         dives: [

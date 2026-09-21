@@ -1,4 +1,5 @@
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_type_from_name.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
 
@@ -29,11 +30,24 @@ class DivingLogEquipmentMapper {
       if (read?.thickness != null) map['thickness'] = read!.thickness;
       if (item.manufacturer != null) map['brand'] = item.manufacturer;
       if (item.serial != null) map['serialNumber'] = item.serial;
-      if (item.weightKg != null) map['weight'] = item.weightKg;
+      // EquipmentItem has no weight field. The importer builds it from the
+      // direct keys plus `attributes`, so a top-level `weight` would be
+      // read by nobody and the value would be lost on the way in.
+      if (item.weightKg != null) {
+        map['attributes'] = <Map<String, dynamic>>[
+          {'key': EquipmentAttrKeys.dryWeightKg, 'valueNum': item.weightKg},
+        ];
+      }
       // The importer reads `purchasePrice`; `price` is silently dropped.
       if (item.price != null) map['purchasePrice'] = item.price;
       if (item.purchaseDate != null) map['purchaseDate'] = item.purchaseDate;
-      if (item.inactive) map['isRetired'] = true;
+      // Diving Log's inactive gear is retired gear, and the importer reads
+      // `status` and `isActive`, not `isRetired`. Both markers, as MacDive
+      // sets them, or every retired item imports as active.
+      if (item.inactive) {
+        map['status'] = EquipmentStatus.retired.name;
+        map['isActive'] = false;
+      }
       final notes = [
         if (item.o2ServiceDate != null)
           'O2 service: '
@@ -46,11 +60,19 @@ class DivingLogEquipmentMapper {
     return out;
   }
 
+  /// Whether [item] becomes an entity, which is also what decides whether a
+  /// dive may reference it. [entities] drops a row with a blank name, so a
+  /// ref to one would dangle: the importer skips it in silence and the
+  /// unresolved count never sees it.
+  static bool _isImportable(DivingLogRawEquipment item) =>
+      (item.object?.trim().isNotEmpty) ?? false;
+
   /// The `equipmentRefs` for [dive], in the order the source listed them.
-  /// An id with no matching row is skipped rather than producing a ref the
-  /// importer cannot resolve.
+  /// An id with no importable row is skipped, and the caller counts the
+  /// difference as unresolved.
   static List<String> refsFor(DivingLogLogbook book, DivingLogRawDive dive) => [
     for (final id in dive.equipmentIds)
-      if (book.equipmentById.containsKey(id)) _uddfId(id),
+      if (book.equipmentById[id] case final item? when _isImportable(item))
+        _uddfId(id),
   ];
 }

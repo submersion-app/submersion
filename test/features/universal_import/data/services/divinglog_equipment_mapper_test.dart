@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_equipment_mapper.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
 
@@ -27,7 +29,10 @@ void main() {
       expect(item['name'], 'Go Sport Fins');
       expect(item['brand'], 'ScubaPro');
       expect(item['serialNumber'], 'SN1');
-      expect(item['weight'], closeTo(1.4968, 1e-9));
+      // Weight rides as a curated attribute, not a top-level key: the
+      // importer has no weight field and would drop it.
+      final attrs = item['attributes'] as List;
+      expect((attrs.single as Map)['valueNum'], closeTo(1.4968, 1e-9));
       expect(item['type'], 'fins');
     });
 
@@ -39,18 +44,6 @@ void main() {
         DivingLogEquipmentMapper.entities(book).values.single['type'],
         'other',
       );
-    });
-
-    test('marks an inactive item retired', () {
-      final book = logbook({
-        7: const DivingLogRawEquipment(
-          id: 7,
-          object: 'Wet Suit (5mm full body)',
-          inactive: true,
-        ),
-      });
-      final item = DivingLogEquipmentMapper.entities(book).values.single;
-      expect(item['isRetired'], isTrue);
     });
 
     test('keeps the O2 service date in the item notes', () {
@@ -65,6 +58,57 @@ void main() {
       final item = DivingLogEquipmentMapper.entities(book).values.single;
       expect(item['notes'], contains('2024-03-17'));
       expect(item['notes'], contains('annual service due'));
+    });
+
+    test('carries weight as the curated dry weight attribute', () {
+      // EquipmentItem has no weight field: the importer reads only the
+      // direct fields plus `attributes`, so a top-level `weight` key is
+      // dropped on the way in.
+      final book = logbook({
+        4: const DivingLogRawEquipment(
+          id: 4,
+          object: 'SeaHawk 2 w/BPI',
+          weightKg: 3.6287,
+        ),
+      });
+      final item = DivingLogEquipmentMapper.entities(book).values.single;
+      final attrs = item['attributes'] as List;
+      final weight = attrs.singleWhere(
+        (a) => (a as Map)['key'] == EquipmentAttrKeys.dryWeightKg,
+      );
+      expect((weight as Map)['valueNum'], closeTo(3.6287, 1e-9));
+    });
+
+    test('marks an inactive item retired the way the importer reads it', () {
+      // The importer reads `status` and `isActive`; `isRetired` reaches
+      // nothing, so an inactive item would import as active.
+      final book = logbook({
+        7: const DivingLogRawEquipment(
+          id: 7,
+          object: 'Wet Suit (5mm full body)',
+          inactive: true,
+        ),
+      });
+      final item = DivingLogEquipmentMapper.entities(book).values.single;
+      expect(item['status'], EquipmentStatus.retired.name);
+      expect(item['isActive'], isFalse);
+    });
+
+    test('emits no ref for a row that produces no entity', () {
+      // A blank Object is skipped by entities(), so a ref to it would
+      // dangle: the importer silently drops it and nothing counts the loss.
+      final book = logbook(
+        {
+          3: const DivingLogRawEquipment(id: 3, object: 'Go Sport Fins'),
+          8: const DivingLogRawEquipment(id: 8, object: '   '),
+        },
+        dives: [
+          const DivingLogRawDive(id: 1, equipmentIds: [3, 8]),
+        ],
+      );
+      expect(DivingLogEquipmentMapper.refsFor(book, book.dives.single), [
+        'divinglog_gear_3',
+      ]);
     });
 
     test('skips an item with no name', () {
