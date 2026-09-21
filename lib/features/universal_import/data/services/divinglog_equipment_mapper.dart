@@ -68,11 +68,22 @@ class DivingLogEquipmentMapper {
       (item.object?.trim().isNotEmpty) ?? false;
 
   /// The `equipmentRefs` for [dive], in the order the source listed them.
-  /// An id with no importable row is skipped, and the caller counts the
-  /// difference as unresolved.
+  /// An id with no importable row is skipped and counted by
+  /// [unresolvedCount].
   static List<String> refsFor(DivingLogLogbook book, DivingLogRawDive dive) => [
     for (final id in dive.equipmentIds)
       if (book.equipmentById[id] case final item? when _isImportable(item))
         _uddfId(id),
   ];
+
+  /// How many of [dive]'s equipment ids reach no importable row.
+  ///
+  /// Counted per id against the same predicate [refsFor] uses, rather than
+  /// by subtracting the number of refs: the two must agree, and a count
+  /// derived from list lengths would also report deduplication as a gap.
+  static int unresolvedCount(DivingLogLogbook book, DivingLogRawDive dive) =>
+      dive.equipmentIds.where((id) {
+        final item = book.equipmentById[id];
+        return item == null || !_isImportable(item);
+      }).length;
 }

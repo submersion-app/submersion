@@ -626,6 +626,63 @@ void main() {
       );
     });
 
+    test('does not call a deduplicated dive type reference unresolved', () {
+      // diveTypeIdsFor collapses two ids that share a name into one slug,
+      // so counting requested minus resolved would report a record missing
+      // when nothing is missing at all.
+      const book = DivingLogLogbook(
+        dives: [
+          DivingLogRawDive(id: 1, diveDate: '2024-06-01', diveTypeIds: [5, 6]),
+        ],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+        diveTypesById: {
+          5: DivingLogRawDiveType(id: 5, name: 'Wreck'),
+          6: DivingLogRawDiveType(id: 6, name: 'Wreck'),
+        },
+      );
+      final payload = DivingLogDiveMapper.toPayload(book);
+      expect(
+        payload.entitiesOf(ImportEntityType.dives).single['diveTypeIds'],
+        hasLength(1),
+      );
+      expect(
+        payload.warnings.map((w) => w.message).join(' '),
+        isNot(contains('dive type reference')),
+      );
+    });
+
+    test('counts a repeated valid id once per id, not as a gap', () {
+      const book = DivingLogLogbook(
+        dives: [
+          DivingLogRawDive(id: 1, diveDate: '2024-06-01', diveTypeIds: [5, 5]),
+        ],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+        diveTypesById: {5: DivingLogRawDiveType(id: 5, name: 'Wreck')},
+      );
+      final payload = DivingLogDiveMapper.toPayload(book);
+      expect(
+        payload.warnings.map((w) => w.message).join(' '),
+        isNot(contains('dive type reference')),
+      );
+    });
+
+    test('says references could not be resolved, not that rows are absent', () {
+      // The count includes rows that exist but yield no entity, such as an
+      // equipment row with a blank name, so "the file does not contain
+      // them" would be untrue.
+      const book = DivingLogLogbook(
+        dives: [
+          DivingLogRawDive(id: 1, diveDate: '2024-06-01', equipmentIds: [8]),
+        ],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+        equipmentById: {8: DivingLogRawEquipment(id: 8, object: '   ')},
+      );
+      final payload = DivingLogDiveMapper.toPayload(book);
+      final messages = payload.warnings.map((w) => w.message).join(' ');
+      expect(messages, contains('could not be resolved'));
+      expect(messages, isNot(contains('does not contain')));
+    });
+
     test('still uses the text column when a dive has no BuddyIDs', () {
       const book = DivingLogLogbook(
         dives: [

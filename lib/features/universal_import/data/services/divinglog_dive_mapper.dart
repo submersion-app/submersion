@@ -161,19 +161,19 @@ class DivingLogDiveMapper {
       // An id pointing at a row the file does not contain is skipped above.
       // Counting it here turns a silent drop into one diagnostic per kind,
       // which is how this importer's earlier data losses went unnoticed.
-      // Requested minus resolved, so a row that exists but yields no
-      // entity (a blank equipment name, a nameless buddy) is counted too.
-      // Testing containsKey alone would call those resolved and hide them.
+      // Each count comes from the mapper that owns the resolution, applied
+      // per id. Subtracting list lengths instead would report deduplication
+      // as a gap, since two dive type ids sharing a name collapse to one
+      // slug and nothing is actually missing.
       unresolved['buddy'] =
-          (unresolved['buddy'] ?? 0) + raw.buddyIds.length - idBuddyRefs.length;
+          (unresolved['buddy'] ?? 0) +
+          DivingLogReferenceMapper.unresolvedBuddyCount(logbook, raw);
       unresolved['equipment'] =
           (unresolved['equipment'] ?? 0) +
-          raw.equipmentIds.length -
-          gearRefs.length;
+          DivingLogEquipmentMapper.unresolvedCount(logbook, raw);
       unresolved['dive type'] =
           (unresolved['dive type'] ?? 0) +
-          raw.diveTypeIds.length -
-          typeIds.length;
+          DivingLogReferenceMapper.unresolvedDiveTypeCount(logbook, raw);
 
       dives.add(map);
     }
@@ -205,9 +205,12 @@ class DivingLogDiveMapper {
         ImportWarning(
           severity: ImportWarningSeverity.info,
           code: ImportWarningCode.diagnostic,
+          // Not "the file does not contain them": the count also covers
+          // rows that are present but cannot yield an entity, such as an
+          // equipment row with a blank name.
           message:
-              '${entry.value} ${entry.key} reference(s) pointed at records '
-              'the file does not contain and were skipped.',
+              '${entry.value} ${entry.key} reference(s) could not be resolved '
+              'to importable records and were skipped.',
           count: entry.value,
         ),
       );

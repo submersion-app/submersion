@@ -151,6 +151,27 @@ class DivingLogReferenceMapper {
     return out;
   }
 
+  /// How many of [dive]'s dive type ids reach no usable name.
+  ///
+  /// Counted per id, not by comparing list lengths: [diveTypeIdsFor]
+  /// collapses two ids that share a name into one slug, so a length
+  /// comparison would call a perfectly resolved duplicate a missing record.
+  static int unresolvedDiveTypeCount(
+    DivingLogLogbook book,
+    DivingLogRawDive dive,
+  ) => dive.diveTypeIds.where((id) {
+    final name = book.diveTypesById[id]?.name?.trim();
+    return name == null || name.isEmpty;
+  }).length;
+
+  /// How many of [dive]'s buddy ids reach no named row.
+  static int unresolvedBuddyCount(
+    DivingLogLogbook book,
+    DivingLogRawDive dive,
+  ) => dive.buddyIds
+      .where((id) => book.buddiesById[id]?.fullName == null)
+      .length;
+
   static Map<String, Map<String, dynamic>> certifications(
     DivingLogLogbook book,
   ) {
