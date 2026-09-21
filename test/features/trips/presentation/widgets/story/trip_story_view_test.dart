@@ -613,6 +613,99 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('a subtitled day at 3x text does not clip the docked panel', (
+    tester,
+  ) async {
+    // Dives with sites, so the docked panel carries a subtitle under the date.
+    // Two scaled lines are what the band's extents have to reserve for; a day
+    // without a subtitle needs less and would not catch an under-estimate.
+    tester.platformDispatcher.textScaleFactorTestValue = 3.0;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final labels = ['a', 'b', 'c', 'd', 'e', 'f'];
+    final story = buildTripStory(
+      trip: trip,
+      dives: [
+        for (var i = 0; i < labels.length; i++)
+          _diveAt(
+            labels[i],
+            DateTime(2026, 3, 25 + i, 9),
+            12.10 + i * 0.002,
+            -68.20 + i * 0.002,
+          ),
+      ],
+      itineraryDays: [],
+      mediaByDiveId: {},
+      sightingsByDiveId: {},
+      checklistItems: [],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    final scrollable = find.byType(CustomScrollView);
+    for (var i = 0; i < 4; i++) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byType(TripStoryDockedDay), findsOneWidget);
+    expect(
+      tester.takeException(),
+      isNull,
+      reason: 'the docked panel overflowed the band it was given',
+    );
+  });
+
+  testWidgets('tapping the docked day clears the chapter of the band', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    // Stop mid-story, so the reveal is not clamped by the end of the scroll
+    // extent: that clamp is what hides an alignment that ignores the band.
+    final scrollable = find.byType(CustomScrollView);
+    for (var i = 0; i < 2; i++) {
+      await tester.drag(scrollable, const Offset(0, -400));
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+
+    final docked = tester
+        .widget<TripStoryDockedDay>(find.byType(TripStoryDockedDay))
+        .day
+        .date;
+
+    await tester.tap(find.byType(TripStoryDockedDay));
+    await tester.pumpAndSettle();
+
+    final heading = find.byWidgetPredicate(
+      (w) => w is TripStoryDayHeader && !w.compact && w.day.date == docked,
+    );
+    expect(heading, findsOneWidget);
+    // Fully clear of the pinned band, not tucked underneath it.
+    expect(
+      tester.getTopLeft(heading).dy,
+      greaterThanOrEqualTo(TripStoryBandExtents.dockedFloor),
+      reason: 'the revealed heading is hidden behind the band',
+    );
+  });
+
   testWidgets('a trip with no mappable points still renders the band', (
     tester,
   ) async {

@@ -145,9 +145,7 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     // band. Resolving earlier (this was viewport/3) swapped the band's day
     // while the diver could still see the full-width heading in mid-screen,
     // which reads as a glitch rather than a hand-off.
-    final threshold =
-        viewportTop +
-        TripStoryBandExtents.forScaler(MediaQuery.textScalerOf(context)).docked;
+    final threshold = viewportTop + _bandExtents(context).docked;
     for (var i = _dayKeys.length - 1; i >= 0; i--) {
       final keyContext = _dayKeys[i].currentContext;
       if (keyContext == null) continue;
@@ -165,6 +163,17 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     return false;
   }
 
+  /// The band's heights for the current text scale, measured against the
+  /// styles the docked panel actually renders with rather than assumed ones.
+  TripStoryBandExtents _bandExtents(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return TripStoryBandExtents.forScaler(
+      MediaQuery.textScalerOf(context),
+      title: textTheme.titleMedium,
+      subtitle: textTheme.bodySmall,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final tripId = widget.story.trip.id;
@@ -177,9 +186,7 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     // above via the table tick, so a row landing re-renders its day header.
     ref.watch(tripDayWeatherBackfillProvider(tripId));
 
-    final extents = TripStoryBandExtents.forScaler(
-      MediaQuery.textScalerOf(context),
-    );
+    final extents = _bandExtents(context);
     // Built here rather than inside the delegate so a scroll that changes only
     // the band's shrink offset re-runs layout without rebuilding the map's
     // subtree. Its identity changes when the active day does, which is once

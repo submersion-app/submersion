@@ -21,11 +21,13 @@ class TripStoryBandExtents {
   /// to morph no matter how tall the docked band grows.
   static const double expandedHeadroom = 100;
 
-  /// Title line (titleMedium, 16px) and subtitle (bodySmall, 12px) with their
-  /// line-height factors, plus the band's vertical padding.
+  /// Fallbacks matching Material 3 titleMedium (16px, 1.50) and bodySmall
+  /// (12px, 1.33), used only when a theme hands over a style with no explicit
+  /// size or height. The real numbers come from the theme: guessing them is
+  /// how this under-reserved 12px at 3x text and clipped the panel.
   static const double _titleFontSize = 16;
   static const double _subtitleFontSize = 12;
-  static const double _titleLineFactor = 1.25;
+  static const double _titleLineFactor = 1.50;
   static const double _subtitleLineFactor = 1.33;
   static const double _verticalPadding = 12;
 
@@ -37,11 +39,29 @@ class TripStoryBandExtents {
 
   const TripStoryBandExtents({required this.docked, required this.expanded});
 
-  factory TripStoryBandExtents.forScaler(TextScaler scaler) {
+  /// [title] and [subtitle] are the styles the docked panel actually renders
+  /// with (titleMedium and bodySmall from the ambient theme). Pass them
+  /// wherever a theme is in reach: a theme that changes either style moves the
+  /// band with it instead of silently clipping the panel.
+  factory TripStoryBandExtents.forScaler(
+    TextScaler scaler, {
+    TextStyle? title,
+    TextStyle? subtitle,
+  }) {
+    double line(TextStyle? style, double fallbackSize, double fallbackFactor) {
+      final size = style?.fontSize ?? fallbackSize;
+      final factor = style?.height ?? fallbackFactor;
+      return scaler.scale(size) * factor;
+    }
+
     final lines =
-        scaler.scale(_titleFontSize) * _titleLineFactor +
-        scaler.scale(_subtitleFontSize) * _subtitleLineFactor;
-    final panel = math.max(_badgeMinimum, lines) + _verticalPadding;
+        line(title, _titleFontSize, _titleLineFactor) +
+        line(subtitle, _subtitleFontSize, _subtitleLineFactor);
+    // Rounded up: text layout lands on whole pixels, so a height computed to
+    // the fraction can sit a tenth of a pixel under what the panel actually
+    // paints and overflow by that much.
+    final panel = (math.max(_badgeMinimum, lines) + _verticalPadding)
+        .ceilToDouble();
     final docked = math.max(dockedFloor, panel);
     return TripStoryBandExtents(
       docked: docked,

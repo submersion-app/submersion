@@ -6,7 +6,11 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Horizontal trip-level stat strip pinned under the map.
+/// Horizontal trip-level stat strip.
+///
+/// Ordinary story content, not chrome: it sits under the band at the top of
+/// the story and scrolls away with the hero, so the trip's totals cost screen
+/// space only while the diver is at the top of the page.
 class TripStatStrip extends ConsumerWidget {
   final TripWithStats stats;
 
@@ -31,7 +35,7 @@ class TripStatStrip extends ConsumerWidget {
     ];
 
     return Container(
-      // One tonal step above the page surface: welds the strip to the map
+      // One tonal step above the page surface: welds the strip to the band
       // above it so the two read as a single trip-summary region.
       color: theme.colorScheme.surfaceContainerLow,
       padding: const EdgeInsets.symmetric(vertical: 8),
