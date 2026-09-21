@@ -125,12 +125,21 @@ double computeTooltipScaleFactor({
 /// Vertically, the returned Y is the box's bottom edge, at the cursor's Y --
 /// the caller positions the box with a `bottom` (not `top`) offset derived
 /// from it, so the box grows upward from exactly the cursor's height
-/// regardless of the box's own real (as-laid-out) height, which
-/// [boxSize] only estimates. Clamped, with the same [tooltipTopMargin] on
-/// both ends, so it never rises above `plotRect.top + tooltipTopMargin` when
-/// the cursor is high, and stops following once the cursor goes low enough
-/// that the bottom edge would otherwise pass
-/// `plotRect.bottom - tooltipTopMargin`.
+/// regardless of the box's own real (as-laid-out) height. It always tracks
+/// the cursor this way, with one exception: it stops following once the
+/// cursor goes low enough that the bottom edge would otherwise pass
+/// `plotRect.bottom - tooltipTopMargin` (so it never trails into the
+/// safety-lane area below the plot).
+///
+/// There is deliberately no matching clamp on the *high* side: with enough
+/// active metrics the box can be taller than the room between the cursor
+/// and the plot's top edge, and a clamp that pushed the bottom down to
+/// compensate would leave the box no longer at the cursor's height at all
+/// (issue #2228 follow-up -- this was tried and reads as the tooltip
+/// getting stuck instead of following the pointer). Letting it grow above
+/// the plot instead (the caller's Clip.none) keeps the one thing that
+/// matters here true unconditionally: the bottom edge is always exactly
+/// where the cursor is.
 Offset computeTooltipBoxPosition({
   required Offset cursorLocal,
   required Size boxSize,
@@ -148,9 +157,7 @@ Offset computeTooltipBoxPosition({
   left = left.clamp(minLeft, minLeft > maxLeft ? minLeft : maxLeft);
 
   final maxBottom = plotRect.bottom - tooltipTopMargin;
-  var bottom = cursorLocal.dy > maxBottom ? maxBottom : cursorLocal.dy;
-  final minBottom = plotRect.top + tooltipTopMargin + boxSize.height;
-  if (bottom < minBottom) bottom = minBottom;
+  final bottom = cursorLocal.dy > maxBottom ? maxBottom : cursorLocal.dy;
 
   return Offset(left, bottom);
 }

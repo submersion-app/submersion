@@ -93,16 +93,19 @@ void main() {
       expect(position.dy, 100);
     });
 
-    test('clamps the bottom edge to plotRect.top + tooltipTopMargin + '
-        'boxSize.height when the cursor is high enough that following it '
-        'would push the box above the plot', () {
+    test('keeps tracking the cursor even when the cursor is high enough '
+        'that the box (at its own real height) would rise above the plot '
+        '-- there is deliberately no clamp on this side, so the bottom '
+        'edge is always exactly at the cursor (issue #2228 follow-up: a '
+        'clamp here once pushed the bottom away from the cursor instead, '
+        'which read as the tooltip getting stuck)', () {
       final position = computeTooltipBoxPosition(
         cursorLocal: const Offset(50, 10),
-        boxSize: const Size(80, 40),
+        boxSize: const Size(80, 400),
         plotRect: _plotRect,
         gap: 8,
       );
-      expect(position.dy, _plotRect.top + tooltipTopMargin + 40);
+      expect(position.dy, 10);
     });
 
     test('stops following the cursor once it goes low enough that the '
@@ -301,12 +304,13 @@ void main() {
     });
 
     testWidgets(
-      'the box\'s real top edge never rises above the top clamp, even '
-      'with enough rows that the row-height estimate matters (issue #2228 '
-      'follow-up: a guessed row height once let the real box grow taller '
-      'than the clamp accounted for, overlapping whatever sits above the '
-      'chart)',
+      'the box\'s bottom edge stays exactly at the cursor even with enough '
+      'rows that it must grow above the container to do so (issue #2228 '
+      'follow-up: clamping the top instead pushed the bottom away from the '
+      'cursor, which read as the tooltip getting stuck instead of '
+      'following the pointer)',
       (tester) async {
+        const cursorLocal = Offset(100, 10);
         final rows = [
           for (var i = 0; i < 20; i++)
             TooltipRow(
@@ -315,16 +319,16 @@ void main() {
               bulletColor: AppColors.chartDepth,
             ),
         ];
-        await tester.pumpWidget(
-          harness(rows: rows, cursorLocal: const Offset(100, 10)),
-        );
+        await tester.pumpWidget(harness(rows: rows, cursorLocal: cursorLocal));
         await tester.pump();
 
         final containerTop = tester
             .getTopLeft(find.byType(ProfileCursorTooltip))
             .dy;
-        final boxTop = tester.getRect(find.byType(DecoratedBox).first).top;
-        expect(boxTop, greaterThanOrEqualTo(containerTop + tooltipTopMargin));
+        final boxBottom = tester
+            .getRect(find.byType(DecoratedBox).first)
+            .bottom;
+        expect(boxBottom, closeTo(containerTop + cursorLocal.dy, 0.5));
       },
     );
 
