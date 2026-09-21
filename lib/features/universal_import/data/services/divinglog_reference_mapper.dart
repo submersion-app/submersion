@@ -15,13 +15,32 @@ class DivingLogReferenceMapper {
   /// with a pipe and lowercased, skipping any that are missing.
   static String? siteKeyFor(DivingLogLogbook book, DivingLogRawDive dive) {
     final parts = [
-      dive.countryId == null ? null : book.countryNamesById[dive.countryId],
-      dive.cityId == null ? null : book.cityNamesById[dive.cityId],
-      dive.placeId == null ? null : book.placesById[dive.placeId]?.place,
+      countryNameFor(book, dive),
+      cityNameFor(book, dive),
+      placeNameFor(book, dive),
     ].whereType<String>().where((p) => p.trim().isNotEmpty).toList();
     if (parts.isEmpty) return null;
     return 'divinglog_site_${parts.join('|').toLowerCase()}';
   }
+
+  /// Each component resolves through its id, falling back to the free text
+  /// the dive row still carries.
+  ///
+  /// An id pointing at a row the file does not have would otherwise drop
+  /// that component entirely, which both renames the site and breaks the
+  /// fold with phase 1: a dive with a dangling `PlaceID` would key on
+  /// country and city alone and land somewhere new.
+  static String? placeNameFor(DivingLogLogbook book, DivingLogRawDive dive) =>
+      (dive.placeId == null ? null : book.placesById[dive.placeId]?.place) ??
+      dive.place;
+
+  static String? cityNameFor(DivingLogLogbook book, DivingLogRawDive dive) =>
+      (dive.cityId == null ? null : book.cityNamesById[dive.cityId]) ??
+      dive.city;
+
+  static String? countryNameFor(DivingLogLogbook book, DivingLogRawDive dive) =>
+      (dive.countryId == null ? null : book.countryNamesById[dive.countryId]) ??
+      dive.country;
 
   /// Sites, built from the dives so a `Place` nobody dived is left out and
   /// the key matches what the dive will reference.
@@ -31,11 +50,10 @@ class DivingLogReferenceMapper {
       final key = siteKeyFor(book, dive);
       if (key == null || out.containsKey(key)) continue;
       final place = dive.placeId == null ? null : book.placesById[dive.placeId];
-      final city = dive.cityId == null ? null : book.cityNamesById[dive.cityId];
-      final country = dive.countryId == null
-          ? null
-          : book.countryNamesById[dive.countryId];
-      final name = place?.place ?? city ?? country;
+      final placeName = placeNameFor(book, dive);
+      final city = cityNameFor(book, dive);
+      final country = countryNameFor(book, dive);
+      final name = placeName ?? city ?? country;
       if (name == null) continue;
       final map = <String, dynamic>{'uddfId': key, 'name': name};
       if (country != null) map['country'] = country;

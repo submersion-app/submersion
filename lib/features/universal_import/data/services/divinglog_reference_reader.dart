@@ -115,6 +115,28 @@ class DivingLogReferenceReader {
   static const _speciesLinkColumns = ['LogID', 'FishID'];
   static const _pictureColumns = ['ID', 'LogID', 'Path', 'Description'];
 
+  /// The column groups a table needs before its rows can produce anything.
+  ///
+  /// Each entry is a set of alternatives: the table is usable when it has
+  /// at least one of them. A `Buddy` row with neither name part yields no
+  /// entity, so a table carrying only `ID` and `Email` loses the whole
+  /// buddy list, and reporting nothing because the key is present would
+  /// hide that. Listed separately from [_tables] because a missing key is a
+  /// different loss from a missing payload column.
+  static const _payloadColumns = <String, List<String>>{
+    'Buddy': ['FirstName', 'LastName'],
+    'Place': ['Place'],
+    'City': ['City'],
+    'Country': ['Country'],
+    'Equipment': ['Object'],
+    'Trip': ['TripName'],
+    'Shop': ['ShopName'],
+    'Divetype': ['Typename'],
+    'Brevets': ['Brevet'],
+    'Fish': ['CommonName'],
+    'Pictures': ['Path'],
+  };
+
   /// The reference tables, with the columns each one cannot be read
   /// without. A table that is absent, or present without one of these, is
   /// reported and skipped. `FishRel` needs both halves of its join: with
@@ -155,7 +177,17 @@ class DivingLogReferenceReader {
           'The ${entry.key} table has no ${missing.join(' or ')} column, so '
           'its records could not be matched and were not imported.',
         );
+        continue;
       }
+      // The key is there, so the rows can be read; whether they can become
+      // anything is a separate question.
+      final payload = _payloadColumns[entry.key];
+      if (payload == null) continue;
+      if (payload.any((column) => caps.hasColumn(entry.key, column))) continue;
+      notes.add(
+        'The ${entry.key} table has no ${payload.join(' or ')} column, so its '
+        'records carried nothing to import.',
+      );
     }
     return notes;
   }

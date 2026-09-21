@@ -34,6 +34,17 @@ void main() {
       expect(parseDivingLogCoordinate('-68.28'), closeTo(-68.28, 1e-9));
     });
 
+    test('rejects minutes or seconds outside their range', () {
+      // 99 minutes is not a coordinate. Folding it in silently yields a
+      // plausible looking 20.65 that the outer 180 check cannot catch.
+      expect(parseDivingLogCoordinate('19°99\'0.00"N'), isNull);
+      expect(parseDivingLogCoordinate('19°30\'99.00"N'), isNull);
+      expect(
+        parseDivingLogCoordinate('19°59\'59.99"N'),
+        closeTo(19 + 59 / 60 + 59.99 / 3600, 1e-9),
+      );
+    });
+
     test('returns null for null, blank and unreadable text', () {
       expect(parseDivingLogCoordinate(null), isNull);
       expect(parseDivingLogCoordinate(''), isNull);

@@ -25,8 +25,9 @@ that, not add a second set of records beside it.
 Taken during brainstorming and fixed for this spec.
 
 - One pull request covering every remaining table, closing #2187.
-- Marine life is included. It needs no new `ImportEntityType`: sightings ride
-  on the dive map and the entity importer already reads them.
+- Marine life is included. It needs no new `ImportEntityType`, but it does
+  need a persistence step: see below. The first reading of this, that the
+  entity importer "already reads them", was wrong.
 - Photos are included, through the existing media contract.
 - Dive references come from the id columns, not the free text. The text path
   stays only as a per-dive fallback.
@@ -98,12 +99,29 @@ and this spec does not pretend otherwise.
 
 ### Marine life
 
-No new entity type. `MarineSighting` is built by the entity importer from
-`dive['sightings']`, each entry `{speciesRef, count, notes}`. The ref follows
-the existing `species_<snake_case>` convention so `_speciesNameFromRef`
-recovers the display name. The sighting record holds only a name, so the
-`Fish` taxonomy has no home; the scientific name goes into the sighting's
-`notes` rather than being dropped.
+No new entity type, but the payload alone is not enough, and the first draft
+of this spec was wrong to imply it was.
+
+`UddfEntityImporter` does build a `MarineSighting` from each entry of
+`dive['sightings']`, which is what made the path look complete. Those objects
+then go nowhere: sightings are a child row rather than a column, `createDive`
+writes the dive with its tanks, weights, custom fields and gear and nothing
+else persists `Dive.sightings`, and `updateDive` does not either. On top of
+that `sightings.species_id` is a foreign key to `species`, so even a write
+would have failed with no species rows emitted.
+
+The importer therefore persists them itself, after the dive exists, through
+`SpeciesRepository.getOrCreateSpecies` and `addSighting` so the sync marking
+is correct. `getOrCreateSpecies` matches on the lowercased common name, which
+keeps an import from minting a twin of a species already in the bundled
+catalogue. Each sighting carries `speciesName` and `speciesScientificName`
+alongside the `species_<snake_case>` ref, because deriving the name back out
+of the ref loses its spelling and punctuation. A sighting that cannot be read
+is skipped rather than failing its dive.
+
+Out of scope and worth its own issue: `UddfImportResult` also carries
+top-level `species` and `sightings` lists that the entity importer never
+consumes, so Submersion's own UDDF backups parse marine life and drop it.
 
 ### Photos
 

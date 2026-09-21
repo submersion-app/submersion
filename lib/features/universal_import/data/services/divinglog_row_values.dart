@@ -87,6 +87,10 @@ double? parseDivingLogCoordinate(String? raw) {
     final minutes = double.tryParse(dms.group(2)!);
     final seconds = double.tryParse(dms.group(3) ?? '0') ?? 0;
     if (degrees == null || minutes == null) return null;
+    // A minute or second at 60 or above is not a coordinate. The outer
+    // range check cannot catch it: 19 deg 99' folds into a perfectly
+    // plausible 20.65 that would be stored as a real position.
+    if (minutes >= 60 || seconds >= 60) return null;
     final magnitude = degrees + minutes / 60 + seconds / 3600;
     final hemisphere = dms.group(4)!.toUpperCase();
     final signed = (hemisphere == 'S' || hemisphere == 'W')

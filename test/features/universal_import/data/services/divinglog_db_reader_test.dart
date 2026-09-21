@@ -603,6 +603,29 @@ void main() {
       expect(book.schemaNotes.join(' '), contains('FishID'));
     });
 
+    test(
+      'diagnoses a reference table with no usable payload columns',
+      () async {
+        // A Buddy table with an ID and no name parts yields rows the mapper
+        // discards, so the diver loses their buddy list with nothing said.
+        final dir = Directory.systemTemp.createTempSync('dl_no_names');
+        final path = '${dir.path}/logbook.sql';
+        final db = sqlite3.open(path);
+        db.execute(
+          'CREATE TABLE Logbook (ID INTEGER PRIMARY KEY, Divedate TEXT)',
+        );
+        db.execute('CREATE TABLE Buddy (ID INTEGER PRIMARY KEY, Email TEXT)');
+        db.close();
+        final bytes = File(path).readAsBytesSync();
+        dir.deleteSync(recursive: true);
+
+        final book = await DivingLogDbReader.readAll(bytes);
+        final notes = book.schemaNotes.join(' ');
+        expect(notes, contains('Buddy'));
+        expect(notes, contains('FirstName'));
+      },
+    );
+
     test('reads the id columns off the dive row', () async {
       final book = await DivingLogDbReader.readAll(buildReferenceLogbook());
       final d = book.dives.single;

@@ -72,6 +72,38 @@ void main() {
     });
   });
 
+  group('site fallback', () {
+    test('falls back per component when a referenced row is missing', () {
+      // PlaceID points at a row the file does not have. Dropping the
+      // component would key the site on country and city alone, which no
+      // longer matches the phase 1 key and names the site wrongly.
+      const book = DivingLogLogbook(
+        dives: [
+          DivingLogRawDive(
+            id: 1,
+            placeId: 999,
+            cityId: 20,
+            countryId: 30,
+            place: 'Salt Pier',
+            city: 'Kralendijk',
+            country: 'Bonaire',
+          ),
+        ],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+        cityNamesById: {20: 'Kralendijk'},
+        countryNamesById: {30: 'Bonaire'},
+      );
+      expect(
+        DivingLogReferenceMapper.sites(book).keys.single,
+        'divinglog_site_bonaire|kralendijk|salt pier',
+      );
+      expect(
+        DivingLogReferenceMapper.sites(book).values.single['name'],
+        'Salt Pier',
+      );
+    });
+  });
+
   group('buddies', () {
     test('joins the name parts and keeps contact details', () {
       final book = logbook(
