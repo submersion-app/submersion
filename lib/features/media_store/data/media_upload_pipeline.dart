@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_upload_quality_policy.dart';
@@ -64,7 +65,10 @@ class MediaUploadPipeline {
   final MediaCompressor _imageCompressor;
   final VideoTranscoder? _videoTranscoder;
   final DateTime Function() _now;
-  final _log = LoggerService.forClass(MediaUploadPipeline);
+  final _log = LoggerService.forClass(
+    MediaUploadPipeline,
+    category: LogCategory.media,
+  );
 
   /// Connector videos never download their original in v1 (Lightroom spec:
   /// match + thumbnail only). The store carries just the thumb, derived

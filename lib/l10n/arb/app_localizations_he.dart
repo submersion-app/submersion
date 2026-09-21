@@ -11469,6 +11469,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get enum_logCategory_database => 'מסד נתונים';
 
   @override
+  String get enum_logCategory_media => 'מדיה';
+
+  @override
   String get enum_visibility_excellent => 'מצוינת (>30m / >100ft)';
 
   @override
@@ -26616,6 +26619,19 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_report_action => 'ייצוא דוח מדיה';
+
+  @override
+  String get settings_mediaStorage_report_done => 'דוח המדיה יוצא';
+
+  @override
+  String get settings_mediaStorage_report_note =>
+      'הדוח מפרט נתיבי קבצים ושמות מכשירים. שום דבר לא נשלח.';
+
+  @override
+  String get settings_mediaStorage_report_running => 'בונה את דוח המדיה...';
+
+  @override
   String get settings_mediaStorage_verify_action => 'אימות הספרייה';
 
   @override
@@ -27053,6 +27069,27 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dive3d_seascape_noCoordinates => 'לאתר זה אין נקודות ציון GPS';
+
+  @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
+  String dive3d_seascape_lodStageLabel(String stage, String span) {
+    return 'Level of detail: $stage ($span)';
+  }
+
+  @override
+  String get dive3d_seascape_lodStageOverview => 'Overview';
+
+  @override
+  String get dive3d_seascape_lodStageMedium => 'Medium';
+
+  @override
+  String get dive3d_seascape_lodStageFine => 'Fine';
+
+  @override
+  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
 
   @override
   String get dive3d_seascape_noData => 'אין נתוני עומק זמינים למיקום זה';
@@ -39436,7 +39473,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_info_actionReveal => 'הצג במנהל הקבצים';
 
   @override
+  String get media_info_actionCopyDiagnostics => 'העתק אבחון';
+
+  @override
   String get media_info_actionCopyPath => 'העתק הפניה';
+
+  @override
+  String get media_info_diagnosticsCopied => 'האבחון הועתק';
 
   @override
   String get media_info_referenceCopied => 'ההפניה הועתקה';

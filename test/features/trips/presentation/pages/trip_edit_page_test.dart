@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -429,6 +430,84 @@ void main() {
 
       await tester.pumpAndSettle();
       expect(find.text('Existing Trip'), findsOneWidget);
+    });
+
+    testWidgets('a new trip defaults to eight calendar days near midnight', (
+      tester,
+    ) async {
+      // The default end date was `now.add(Duration(days: 7))`. Elapsed time
+      // shifts the wall clock by an hour across a transition, which only
+      // crosses a date boundary when the page is opened within an hour of
+      // midnight: at 00:30 on 2026-10-26, a week later by elapsed time is
+      // 2026-11-01 23:30, a day earlier than the 2026-11-02 the diver means,
+      // and the label read "7 days" for what should be an eight-day default.
+      //
+      // The clock is pinned but the zone is not: an hour of drift needs a real
+      // transition, so this case only rejects the old arithmetic where one
+      // exists. It passes either way under UTC, which is why this file is
+      // listed in the Timezone Tests job.
+      await withClock(Clock.fixed(DateTime(2026, 10, 26, 0, 30)), () async {
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              tripRepositoryProvider.overrideWithValue(
+                _MockTripRepositoryWithTrip(),
+              ),
+              tripListNotifierProvider.overrideWith((ref) {
+                return _MockTripListNotifier([]);
+              }),
+            ],
+            child: const MaterialApp(
+              locale: Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: TripEditPage(),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(find.text('8 days'), findsOneWidget);
+      });
+    });
+
+    testWidgets('duration counts calendar days across a spring-forward', (
+      tester,
+    ) async {
+      // The loaded trip runs 2027-03-12 18:00 to 2027-03-15 09:00, four
+      // calendar days.
+      //
+      // The dates straddle the 2027-03-14 US spring-forward, which is the
+      // real-world shape of the bug: two local midnights 71 hours apart that
+      // the old elapsed-time count floored to a 3-day trip while the itinerary
+      // generated from the same range correctly had 4 days. That only
+      // reproduces in a DST-observing zone, so this file is replayed under one
+      // by the Timezone Tests job.
+      //
+      // The times carry the same distinction into UTC, where the runners sit:
+      // 63 elapsed hours over four calendar days floors to 3 whatever the zone
+      // does, so a revert to `Duration.inDays` fails here as well.
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            tripRepositoryProvider.overrideWithValue(
+              _MockTripRepositoryWithDstTrip(),
+            ),
+            tripListNotifierProvider.overrideWith((ref) {
+              return _MockTripListNotifier([]);
+            }),
+          ],
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: TripEditPage(tripId: 'test-id'),
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.text('4 days'), findsOneWidget);
     });
   });
 
@@ -1899,6 +1978,24 @@ class _RecordingScanRepo extends _MockTripRepositoryWithTrip {
 }
 
 /// Mock repository that returns a test trip
+/// Serves a trip whose range spans the 2027-03-14 spring-forward, pinned to
+/// explicit calendar dates so the window crosses a transition on every run in
+/// a DST-observing zone, and carrying times of day so the calendar-versus-
+/// elapsed distinction survives in UTC too.
+class _MockTripRepositoryWithDstTrip extends _MockTripRepositoryWithTrip {
+  @override
+  Future<Trip?> getTripById(String id) async {
+    return Trip(
+      id: 'test-id',
+      name: 'DST Trip',
+      startDate: DateTime(2027, 3, 12, 18),
+      endDate: DateTime(2027, 3, 15, 9),
+      createdAt: DateTime(2027),
+      updatedAt: DateTime(2027),
+    );
+  }
+}
+
 class _MockTripRepositoryWithTrip implements TripRepository {
   @override
   Future<Trip> createTrip(Trip trip) async => trip;

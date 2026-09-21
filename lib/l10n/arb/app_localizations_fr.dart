@@ -11777,6 +11777,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get enum_logCategory_database => 'Base de données';
 
   @override
+  String get enum_logCategory_media => 'Médias';
+
+  @override
   String get enum_visibility_excellent => 'Excellente (>30m / >100ft)';
 
   @override
@@ -27370,6 +27373,21 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_report_action =>
+      'Exporter le rapport des médias';
+
+  @override
+  String get settings_mediaStorage_report_done => 'Rapport des médias exporté';
+
+  @override
+  String get settings_mediaStorage_report_note =>
+      'Le rapport contient des chemins de fichiers et des noms d\'appareils. Rien n\'est envoyé.';
+
+  @override
+  String get settings_mediaStorage_report_running =>
+      'Création du rapport des médias...';
+
+  @override
   String get settings_mediaStorage_verify_action => 'Vérifier la bibliothèque';
 
   @override
@@ -27820,6 +27838,27 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get dive3d_seascape_noCoordinates =>
       'Ce site n\'a pas de coordonnées GPS';
+
+  @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
+  String dive3d_seascape_lodStageLabel(String stage, String span) {
+    return 'Level of detail: $stage ($span)';
+  }
+
+  @override
+  String get dive3d_seascape_lodStageOverview => 'Overview';
+
+  @override
+  String get dive3d_seascape_lodStageMedium => 'Medium';
+
+  @override
+  String get dive3d_seascape_lodStageFine => 'Fine';
+
+  @override
+  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
 
   @override
   String get dive3d_seascape_noData =>
@@ -40333,7 +40372,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Afficher dans le gestionnaire de fichiers';
 
   @override
+  String get media_info_actionCopyDiagnostics => 'Copier le diagnostic';
+
+  @override
   String get media_info_actionCopyPath => 'Copier la référence';
+
+  @override
+  String get media_info_diagnosticsCopied => 'Diagnostic copié';
 
   @override
   String get media_info_referenceCopied => 'Référence copiée';

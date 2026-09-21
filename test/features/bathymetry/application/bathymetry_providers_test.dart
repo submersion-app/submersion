@@ -45,6 +45,23 @@ void main() {
     },
   );
 
+  test(
+    'patch grid provider yields null (not an error) without a repository',
+    () async {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+      final grid = await container.read(
+        bathymetryPatchGridProvider((
+          lat: 12.16,
+          lon: -68.29,
+          spanMeters: 500,
+          maxDim: 120,
+        )).future,
+      );
+      expect(grid, isNull);
+    },
+  );
+
   group('transient nulls are not memoized for the session', () {
     BathymetryGrid wetGrid() => BathymetryGrid(
       originLat: 12.14,
@@ -95,6 +112,98 @@ void main() {
       expect(retried, isNotNull);
       expect(calls, 2);
     });
+
+    test(
+      'a failed patch-grid fetch retries on the next read after the backoff',
+      () async {
+        final db = LocalCacheDatabase(NativeDatabase.memory());
+        addTearDown(db.close);
+        LocalCacheDatabaseService.instance.setTestDatabase(db);
+        var calls = 0;
+        final source = FlakySource(() {
+          calls++;
+          if (calls == 1) throw const BathymetryFetchException('offline');
+          return wetGrid();
+        });
+        final container = ProviderContainer(
+          overrides: [
+            bathymetryRepositoryProvider.overrideWith(
+              (ref) => BathymetryRepository(
+                db: db,
+                resolver: BathymetryResolver(sources: [source]),
+              ),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+        const request = (
+          lat: 12.16,
+          lon: -68.29,
+          spanMeters: 500.0,
+          maxDim: 120,
+        );
+
+        expect(
+          await container.read(bathymetryPatchGridProvider(request).future),
+          isNull,
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        final retried = await container.read(
+          bathymetryPatchGridProvider(request).future,
+        );
+        expect(retried, isNotNull);
+        expect(calls, 2);
+      },
+    );
+
+    test(
+      'a definitive empty for a patch span stays memoized (no refetch churn)',
+      () async {
+        final db = LocalCacheDatabase(NativeDatabase.memory());
+        addTearDown(db.close);
+        LocalCacheDatabaseService.instance.setTestDatabase(db);
+        var calls = 0;
+        final dry = List<double?>.filled(10, -1.0);
+        final source = FlakySource(() {
+          calls++;
+          return BathymetryGrid(
+            originLat: 0,
+            originLon: 0,
+            cellSizeLatDeg: 0.004,
+            cellSizeLonDeg: 0.004,
+            rows: 1,
+            cols: 10,
+            depthsMeters: dry,
+            sourceId: 'gmrt',
+            resolutionMeters: 61,
+            fetchedAt: DateTime.utc(2026, 7, 28),
+          );
+        });
+        final container = ProviderContainer(
+          overrides: [
+            bathymetryRepositoryProvider.overrideWith(
+              (ref) => BathymetryRepository(
+                db: db,
+                resolver: BathymetryResolver(sources: [source]),
+              ),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+        const request = (lat: 38.5, lon: -98.0, spanMeters: 500.0, maxDim: 120);
+
+        expect(
+          await container.read(bathymetryPatchGridProvider(request).future),
+          isNull,
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 20));
+        expect(
+          await container.read(bathymetryPatchGridProvider(request).future),
+          isNull,
+        );
+        expect(calls, 1); // definitive answer cached, not re-fetched
+      },
+    );
 
     test('a definitive empty stays memoized (no refetch churn)', () async {
       final db = LocalCacheDatabase(NativeDatabase.memory());

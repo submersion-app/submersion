@@ -32,6 +32,28 @@ void main() {
         expect(logger, isA<LoggerService>());
       });
 
+      test('can pin a default category for every call', () async {
+        final seen = <LogEntry>[];
+        final sub = LoggerService.logStream.listen(seen.add);
+        addTearDown(sub.cancel);
+
+        final logger = LoggerService.forClass(
+          Object,
+          category: LogCategory.media,
+        );
+        logger.info('pinned');
+        logger.warning('overridden', category: LogCategory.database);
+        await Future<void>.delayed(Duration.zero);
+
+        expect(
+          seen.map((e) => (e.message, e.category)),
+          containsAll([
+            ('pinned', LogCategory.media),
+            ('overridden', LogCategory.database),
+          ]),
+        );
+      });
+
       test('created logger does not throw when logging', () {
         final logger = LoggerService.forClass(String);
         expect(() => logger.info('test'), returnsNormally);
@@ -479,6 +501,69 @@ void main() {
         ]);
       },
     );
+
+    group('per-category file floor', () {
+      test(
+        'media info lines reach the file when verbose logging is off',
+        () async {
+          LoggerService.configureFileLogging(fileService, verbose: false);
+          const logger = LoggerService('TestLogger');
+          logger.info('resolver breadcrumb', category: LogCategory.media);
+          logger.info('app breadcrumb');
+          await flushLogs();
+
+          final messages = (await fileService.readEntries())
+              .map((e) => e.message)
+              .toList();
+          expect(messages, contains('resolver breadcrumb'));
+          expect(messages, isNot(contains('app breadcrumb')));
+        },
+      );
+
+      test(
+        'media debug lines stay out of the file when verbose is off',
+        () async {
+          LoggerService.configureFileLogging(fileService, verbose: false);
+          const logger = LoggerService('TestLogger');
+          logger.debug('media chatter', category: LogCategory.media);
+          await flushLogs();
+
+          final messages = (await fileService.readEntries())
+              .map((e) => e.message)
+              .toList();
+          expect(messages, isNot(contains('media chatter')));
+        },
+      );
+
+      test('a category floor never raises the verbose floor', () async {
+        LoggerService.configureFileLogging(fileService, verbose: true);
+        const logger = LoggerService('TestLogger');
+        logger.debug('media debug', category: LogCategory.media);
+        await flushLogs();
+
+        final messages = (await fileService.readEntries())
+            .map((e) => e.message)
+            .toList();
+        expect(messages, contains('media debug'));
+      });
+
+      test('infoInOrder honours the media floor too', () async {
+        LoggerService.configureFileLogging(fileService, verbose: false);
+        const logger = LoggerService('TestLogger');
+        logger.infoInOrder(
+          Future.value('ordered media line'),
+          category: LogCategory.media,
+        );
+        logger.infoInOrder(Future.value('ordered app line'));
+        await flushLogs();
+
+        final messages = (await fileService.readEntries())
+            .map((e) => e.message)
+            .toList();
+        expect(messages, contains('ordered media line'));
+        expect(messages, isNot(contains('ordered app line')));
+      });
+    });
 
     test('minimumFileLevel reports the configured floor', () {
       LoggerService.configureFileLogging(fileService, verbose: false);

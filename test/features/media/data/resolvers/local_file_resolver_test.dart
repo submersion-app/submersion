@@ -131,6 +131,40 @@ Future<Directory> _bootVolumeTemp(String prefix) async {
 }
 
 void main() {
+  group('probe answers without reading the file', () {
+    test('an existing readable file reads available', () async {
+      final dir = await _bootVolumeTemp('probe_test_');
+      addTearDown(() => dir.delete(recursive: true));
+      final file = File('${dir.path}/reef.jpg')..writeAsBytesSync([1, 2, 3]);
+
+      final result = await _resolver().probe(_localFile(localPath: file.path));
+
+      expect(result, VerifyResult.available);
+    });
+
+    test('a missing file with no bookmark reads notFound', () async {
+      final dir = await _bootVolumeTemp('probe_test_');
+      addTearDown(() => dir.delete(recursive: true));
+
+      final result = await _resolver().probe(
+        _localFile(localPath: '${dir.path}/gone.jpg'),
+      );
+
+      expect(result, VerifyResult.notFound);
+    });
+
+    test('a bookmark-only row answers null rather than guessing', () async {
+      // Opening the security scope IS the read, so this is the one case a
+      // probe cannot settle. Claiming available on the strength of the
+      // bookmark existing would be a guess.
+      final result = await _resolver().probe(
+        _localFile(bookmarkRef: 'bm://scoped'),
+      );
+
+      expect(result, isNull);
+    });
+  });
+
   late Directory tempDir;
 
   setUp(() async {
@@ -866,6 +900,38 @@ void main() {
     test('verify reports fromOtherDevice for that row', () async {
       expect(await phone().verify(desktopRow()), VerifyResult.fromOtherDevice);
     });
+
+    test(
+      'a foreign-origin miss names the device when a label is known',
+      () async {
+        final labelled = LocalFileResolver(
+          bookmarkStorage: _NullBookmarkStorage(),
+          platform: LocalMediaPlatform(),
+          exifExtractor: ExifExtractor(),
+          localDeviceId: () async => 'phone',
+          deviceLabel: (id) async => id == 'desktop' ? "Eric's MacBook" : null,
+        );
+        final data = await labelled.resolve(desktopRow()) as UnavailableData;
+        expect(data.kind, UnavailableKind.fromOtherDevice);
+        expect(data.originDeviceLabel, "Eric's MacBook");
+      },
+    );
+
+    test(
+      'a label lookup that throws leaves the placeholder anonymous',
+      () async {
+        final throwing = LocalFileResolver(
+          bookmarkStorage: _NullBookmarkStorage(),
+          platform: LocalMediaPlatform(),
+          exifExtractor: ExifExtractor(),
+          localDeviceId: () async => 'phone',
+          deviceLabel: (id) async => throw StateError('no prefs'),
+        );
+        final data = await throwing.resolve(desktopRow()) as UnavailableData;
+        expect(data.kind, UnavailableKind.fromOtherDevice);
+        expect(data.originDeviceLabel, isNull);
+      },
+    );
 
     test('a file another device imported still reads when the path exists '
         'here (shared volume)', () async {

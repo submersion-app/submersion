@@ -161,6 +161,32 @@ void main() {
     test('extractMetadata returns null', () async {
       expect(await resolver().extractMetadata(_gallery(assetId: 'A')), isNull);
     });
+
+    test('names the origin device when a label is known', () async {
+      final labelled = PlatformGalleryResolver(
+        resolutionService: _UnconsultedResolutionService(),
+        hasPhotoLibrary: false,
+        deviceLabel: (id) async => id == 'phone-id' ? 'iPhone 16 Pro' : null,
+      );
+      final data =
+          await labelled.resolve(
+                _gallery(assetId: 'A', originDeviceId: 'phone-id'),
+              )
+              as UnavailableData;
+      expect(data.kind, UnavailableKind.fromOtherDevice);
+      expect(data.originDeviceLabel, 'iPhone 16 Pro');
+    });
+
+    test('a null origin gets the anonymous placeholder', () async {
+      final labelled = PlatformGalleryResolver(
+        resolutionService: _UnconsultedResolutionService(),
+        hasPhotoLibrary: false,
+        deviceLabel: (id) async => 'never called',
+      );
+      final data =
+          await labelled.resolve(_gallery(assetId: 'A')) as UnavailableData;
+      expect(data.originDeviceLabel, isNull);
+    });
   });
 
   test('resolve returns Unavailable.notFound when assetId missing', () async {

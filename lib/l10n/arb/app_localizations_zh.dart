@@ -11204,6 +11204,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get enum_logCategory_database => '数据库';
 
   @override
+  String get enum_logCategory_media => '媒体';
+
+  @override
   String get enum_visibility_excellent => '极好 (>30m / >100ft)';
 
   @override
@@ -25853,6 +25856,18 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_report_action => '导出媒体报告';
+
+  @override
+  String get settings_mediaStorage_report_done => '媒体报告已导出';
+
+  @override
+  String get settings_mediaStorage_report_note => '报告包含文件路径和设备名称。不会向任何地方发送。';
+
+  @override
+  String get settings_mediaStorage_report_running => '正在生成媒体报告...';
+
+  @override
   String get settings_mediaStorage_verify_action => '验证媒体库';
 
   @override
@@ -26268,6 +26283,27 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dive3d_seascape_noCoordinates => '该潜点没有GPS坐标';
+
+  @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
+  String dive3d_seascape_lodStageLabel(String stage, String span) {
+    return 'Level of detail: $stage ($span)';
+  }
+
+  @override
+  String get dive3d_seascape_lodStageOverview => 'Overview';
+
+  @override
+  String get dive3d_seascape_lodStageMedium => 'Medium';
+
+  @override
+  String get dive3d_seascape_lodStageFine => 'Fine';
+
+  @override
+  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
 
   @override
   String get dive3d_seascape_noData => '该位置没有可用的水深数据';
@@ -37885,7 +37921,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_info_actionReveal => '在文件管理器中显示';
 
   @override
+  String get media_info_actionCopyDiagnostics => '复制诊断信息';
+
+  @override
   String get media_info_actionCopyPath => '复制引用';
+
+  @override
+  String get media_info_diagnosticsCopied => '诊断信息已复制';
 
   @override
   String get media_info_referenceCopied => '引用已复制';

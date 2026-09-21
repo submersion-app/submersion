@@ -36,6 +36,7 @@ import 'package:submersion/core/services/sync/established_provider_store.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
 import 'package:submersion/core/services/sync/library_replace_intent.dart';
+import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/sync_device_metadata.dart';
 import 'package:submersion/core/services/sync/library_moved.dart';
 import 'package:submersion/core/services/sync/library_moved_store.dart';
@@ -489,6 +490,34 @@ final cloudStorageProviderProvider = Provider<CloudStorageProvider?>((ref) {
   );
 });
 
+/// Names peers published on their manifests, for labels that must not wait
+/// on a cloud listing.
+final peerDeviceNameStoreProvider = Provider<PeerDeviceNameStore>((ref) {
+  final store = PeerDeviceNameStore(ref.watch(sharedPreferencesProvider));
+  ref.onDispose(store.dispose);
+  return store;
+});
+
+/// The live name map: the store's contents now, then every change, so a
+/// label already on screen updates when a sync learns a name.
+final peerDeviceNamesProvider = StreamProvider<Map<String, String>>((ref) {
+  final store = ref.watch(peerDeviceNameStoreProvider);
+  // Subscribe first, then snapshot. Yielding the snapshot and subscribing
+  // afterwards drops a name recorded in between, and the store emits only
+  // when a name CHANGES, so a peer that keeps publishing the same name
+  // would never produce another event and the label would stay generic.
+  // Nothing can interleave between these two lines: all() reads the
+  // already-loaded preferences synchronously.
+  final out = StreamController<Map<String, String>>();
+  final sub = store.changes.listen(out.add, onError: out.addError);
+  out.add(store.all());
+  ref.onDispose(() {
+    sub.cancel();
+    out.close();
+  });
+  return out.stream;
+});
+
 /// Sync service provider
 final syncServiceProvider = Provider<SyncService>((ref) {
   return SyncService(
@@ -499,6 +528,7 @@ final syncServiceProvider = Provider<SyncService>((ref) {
     epochStore: ref.watch(libraryEpochStoreProvider),
     encryptionService: ref.watch(syncEncryptionServiceProvider),
     localizations: () => l10nForLocaleTag(ref.read(localeProvider)),
+    peerNames: ref.watch(peerDeviceNameStoreProvider),
   );
 });
 

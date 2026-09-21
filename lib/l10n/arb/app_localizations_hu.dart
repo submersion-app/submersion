@@ -11707,6 +11707,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_logCategory_database => 'Adatbázis';
 
   @override
+  String get enum_logCategory_media => 'Média';
+
+  @override
   String get enum_visibility_excellent => 'Kitűnő (>30m / >100ft)';
 
   @override
@@ -27194,6 +27197,20 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_report_action => 'Médiajelentés exportálása';
+
+  @override
+  String get settings_mediaStorage_report_done => 'Médiajelentés exportálva';
+
+  @override
+  String get settings_mediaStorage_report_note =>
+      'A jelentés fájlútvonalakat és eszközneveket tartalmaz. Semmi sem kerül elküldésre.';
+
+  @override
+  String get settings_mediaStorage_report_running =>
+      'Médiajelentés készítése...';
+
+  @override
   String get settings_mediaStorage_verify_action => 'Könyvtár ellenőrzése';
 
   @override
@@ -27621,6 +27638,27 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get dive3d_seascape_noCoordinates =>
       'Ennek a helyszínnek nincsenek GPS-koordinátái';
+
+  @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
+  String dive3d_seascape_lodStageLabel(String stage, String span) {
+    return 'Level of detail: $stage ($span)';
+  }
+
+  @override
+  String get dive3d_seascape_lodStageOverview => 'Overview';
+
+  @override
+  String get dive3d_seascape_lodStageMedium => 'Medium';
+
+  @override
+  String get dive3d_seascape_lodStageFine => 'Fine';
+
+  @override
+  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
 
   @override
   String get dive3d_seascape_noData =>
@@ -40072,7 +40110,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_info_actionReveal => 'Megjelenítés a fájlkezelőben';
 
   @override
+  String get media_info_actionCopyDiagnostics => 'Diagnosztika másolása';
+
+  @override
   String get media_info_actionCopyPath => 'Hivatkozás másolása';
+
+  @override
+  String get media_info_diagnosticsCopied => 'Diagnosztika másolva';
 
   @override
   String get media_info_referenceCopied => 'Hivatkozás másolva';
