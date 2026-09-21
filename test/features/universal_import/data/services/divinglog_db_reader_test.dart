@@ -558,6 +558,29 @@ void main() {
   });
 
   group('reference tables', () {
+    test('diagnoses a reference table that has lost its key column', () async {
+      // The same shape as the keyless DeletedRecords and Tank cases: the
+      // table is present, so "no Buddy table" would be wrong, but without
+      // its id nothing in it can be matched to a dive.
+      final dir = Directory.systemTemp.createTempSync('dl_keyless_ref');
+      final path = '${dir.path}/logbook.sql';
+      final db = sqlite3.open(path);
+      db.execute(
+        'CREATE TABLE Logbook (ID INTEGER PRIMARY KEY, Divedate TEXT)',
+      );
+      db.execute('CREATE TABLE Buddy (FirstName TEXT, LastName TEXT)');
+      db.close();
+      final bytes = File(path).readAsBytesSync();
+      dir.deleteSync(recursive: true);
+
+      final book = await DivingLogDbReader.readAll(bytes);
+      expect(book.buddiesById, isEmpty);
+      expect(
+        book.schemaNotes.join(' '),
+        contains('Buddy table has no ID column'),
+      );
+    });
+
     test('reads the id columns off the dive row', () async {
       final book = await DivingLogDbReader.readAll(buildReferenceLogbook());
       final d = book.dives.single;

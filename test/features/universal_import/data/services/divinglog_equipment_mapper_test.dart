@@ -53,6 +53,20 @@ void main() {
       expect(item['isRetired'], isTrue);
     });
 
+    test('keeps the O2 service date in the item notes', () {
+      final book = logbook({
+        5: DivingLogRawEquipment(
+          id: 5,
+          object: 'S620Ti Regulator',
+          o2ServiceDate: DateTime.utc(2024, 3, 17),
+          comments: 'annual service due',
+        ),
+      });
+      final item = DivingLogEquipmentMapper.entities(book).values.single;
+      expect(item['notes'], contains('2024-03-17'));
+      expect(item['notes'], contains('annual service due'));
+    });
+
     test('skips an item with no name', () {
       final book = logbook({1: const DivingLogRawEquipment(id: 1)});
       expect(DivingLogEquipmentMapper.entities(book), isEmpty);
