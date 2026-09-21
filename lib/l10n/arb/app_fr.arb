@@ -8789,7 +8789,6 @@
   "diveLog_detail_menu_logForBuddy": "Enregistrer dans le profil d'un binôme",
   "diveLog_detail_loggedWith": "Enregistrée avec",
   "diveLog_detail_loggedWithPlanned": "en attente de leur ordinateur de plongée",
-  "diveLog_detail_linkedIncidents": "{count, plural, =1{1 presque-accident lié à cette plongée} other{{count} presque-accidents liés à cette plongée}}",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{{count} presque-accident lié à cette plongée} other{{count} presque-accidents liés à cette plongée}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {
