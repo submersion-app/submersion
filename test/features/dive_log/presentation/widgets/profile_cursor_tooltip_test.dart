@@ -81,27 +81,28 @@ void main() {
       expect(position.dx, 50 + 8);
     });
 
-    test('places the box\'s bottom edge at the cursor\'s Y, growing upward '
-        'from it', () {
+    test('returns the box\'s bottom edge at the cursor\'s Y (the caller '
+        'positions it with a `bottom` offset, so it grows upward from '
+        'there using its real, as-laid-out height)', () {
       final position = computeTooltipBoxPosition(
         cursorLocal: const Offset(50, 100),
         boxSize: const Size(80, 40),
         plotRect: _plotRect,
         gap: 8,
       );
-      expect(position.dy, 100 - 40);
+      expect(position.dy, 100);
     });
 
-    test('clamps the top edge to plotRect.top + tooltipTopMargin when the '
-        'cursor is high enough that following it would push the box above '
-        'the plot', () {
+    test('clamps the bottom edge to plotRect.top + tooltipTopMargin + '
+        'boxSize.height when the cursor is high enough that following it '
+        'would push the box above the plot', () {
       final position = computeTooltipBoxPosition(
         cursorLocal: const Offset(50, 10),
         boxSize: const Size(80, 40),
         plotRect: _plotRect,
         gap: 8,
       );
-      expect(position.dy, _plotRect.top + tooltipTopMargin);
+      expect(position.dy, _plotRect.top + tooltipTopMargin + 40);
     });
 
     test('stops following the cursor once it goes low enough that the '
@@ -114,7 +115,7 @@ void main() {
         gap: 8,
       );
       final maxBottom = _plotRect.bottom - tooltipTopMargin;
-      expect(position.dy, maxBottom - 40);
+      expect(position.dy, maxBottom);
     });
 
     test('flips to the cursor\'s left side when the right edge overflows', () {
@@ -190,6 +191,38 @@ void main() {
     testWidgets('renders nothing for an empty row list', (tester) async {
       await tester.pumpWidget(harness(rows: const []));
       expect(find.byType(DecoratedBox), findsNothing);
+    });
+
+    testWidgets('the rendered box\'s actual bottom edge lands exactly at the '
+        'cursor\'s Y, not merely at top + an estimated height (issue #2228 '
+        'follow-up: the estimate can differ from the real, as-laid-out '
+        'height, leaving the bottom edge adrift from the cursor)', (
+      tester,
+    ) async {
+      const cursorLocal = Offset(100, 120);
+      await tester.pumpWidget(
+        harness(
+          rows: const [
+            TooltipRow(
+              label: 'Time',
+              value: '1:23',
+              bulletColor: AppColors.chartDepth,
+            ),
+            TooltipRow(
+              label: 'Depth',
+              value: '12.3 m',
+              bulletColor: AppColors.chartDepth,
+            ),
+          ],
+          cursorLocal: cursorLocal,
+        ),
+      );
+
+      final containerTop = tester
+          .getTopLeft(find.byType(ProfileCursorTooltip))
+          .dy;
+      final boxBottom = tester.getRect(find.byType(DecoratedBox).first).bottom;
+      expect(boxBottom, closeTo(containerTop + cursorLocal.dy, 0.5));
     });
 
     testWidgets('renders each row\'s label and value', (tester) async {

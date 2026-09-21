@@ -6039,26 +6039,28 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   /// Compute dynamic max scale for GF% based on actual data. Floors at the
   /// usual 0-120% band so a normal dive looks the same as before; a dive
-  /// whose GF genuinely exceeds that (an over-pressure excursion) gets
-  /// headroom instead of clipping to the axis and, on the chart itself,
-  /// spilling past the plot's own top edge (issue #2228 follow-up).
+  /// whose GF genuinely exceeds that (an over-pressure excursion) scales the
+  /// axis to that exact peak instead of clipping to it and, on the chart
+  /// itself, spilling past the plot's own top edge (issue #2228 follow-up).
+  /// No headroom multiplier: the peak sample sits exactly at the plot's top
+  /// edge, same as every other sample sits at its own real value.
   double _getGfMaxScale() {
     final curve = widget.gfCurve;
     if (curve == null || curve.isEmpty) return ProfileMetricBands.gf.fixedMax;
     final actualMax = curve.reduce(math.max);
-    return math.max(actualMax * 1.1, ProfileMetricBands.gf.fixedMax);
+    return math.max(actualMax, ProfileMetricBands.gf.fixedMax);
   }
 
   /// Compute dynamic max scale for Surface GF% based on actual data. See
   /// [_getGfMaxScale] -- surface GF routinely runs past 100% and can exceed
-  /// even the usual 150% headroom on a demanding dive.
+  /// even the usual 150% floor on a demanding dive.
   double _getSurfaceGfMaxScale() {
     final curve = widget.surfaceGfCurve;
     if (curve == null || curve.isEmpty) {
       return ProfileMetricBands.surfaceGf.fixedMax;
     }
     final actualMax = curve.reduce(math.max);
-    return math.max(actualMax * 1.1, ProfileMetricBands.surfaceGf.fixedMax);
+    return math.max(actualMax, ProfileMetricBands.surfaceGf.fixedMax);
   }
 
   /// Build cumulative CNS% line

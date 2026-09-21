@@ -69,8 +69,9 @@ double computeTooltipScaleFactor({
   return scale.clamp(minScale, 1.0);
 }
 
-/// Computes the tooltip box's top-left position given the cursor position it
-/// anchors to horizontally and the plot rect it must stay inside.
+/// Computes the tooltip box's horizontal position and its bottom edge's Y,
+/// given the cursor position it anchors to and the plot rect it must stay
+/// inside.
 ///
 /// Horizontally, the box is nominally placed [gap] logical pixels to the
 /// right of [cursorLocal] (clear of the vertical indicator line fl_chart
@@ -78,12 +79,15 @@ double computeTooltipScaleFactor({
 /// otherwise overflow [plotRect.right], then clamped so it never extends
 /// past either horizontal edge.
 ///
-/// Vertically, the box's bottom edge sits at the cursor's Y, so it grows
-/// upward from wherever the cursor is -- clamped, with the same
-/// [tooltipTopMargin] on both ends, so it never rises above
-/// `plotRect.top + tooltipTopMargin` when the cursor is high, and stops
-/// following once the cursor goes low enough that the bottom edge would
-/// otherwise pass `plotRect.bottom - tooltipTopMargin`.
+/// Vertically, the returned Y is the box's bottom edge, at the cursor's Y --
+/// the caller positions the box with a `bottom` (not `top`) offset derived
+/// from it, so the box grows upward from exactly the cursor's height
+/// regardless of the box's own real (as-laid-out) height, which
+/// [boxSize] only estimates. Clamped, with the same [tooltipTopMargin] on
+/// both ends, so it never rises above `plotRect.top + tooltipTopMargin` when
+/// the cursor is high, and stops following once the cursor goes low enough
+/// that the bottom edge would otherwise pass
+/// `plotRect.bottom - tooltipTopMargin`.
 Offset computeTooltipBoxPosition({
   required Offset cursorLocal,
   required Size boxSize,
@@ -101,12 +105,11 @@ Offset computeTooltipBoxPosition({
   left = left.clamp(minLeft, minLeft > maxLeft ? minLeft : maxLeft);
 
   final maxBottom = plotRect.bottom - tooltipTopMargin;
-  final bottom = cursorLocal.dy > maxBottom ? maxBottom : cursorLocal.dy;
-  final minTop = plotRect.top + tooltipTopMargin;
-  final desiredTop = bottom - boxSize.height;
-  final top = desiredTop < minTop ? minTop : desiredTop;
+  var bottom = cursorLocal.dy > maxBottom ? maxBottom : cursorLocal.dy;
+  final minBottom = plotRect.top + tooltipTopMargin + boxSize.height;
+  if (bottom < minBottom) bottom = minBottom;
 
-  return Offset(left, top);
+  return Offset(left, bottom);
 }
 
 /// The fullscreen profile chart's own in-chart, cursor-following tooltip
@@ -183,6 +186,13 @@ class ProfileCursorTooltip extends StatelessWidget {
           boxSize: Size(boxWidth, boxHeight),
           plotRect: plotRect,
         );
+        // position.dy is the box's bottom edge, not its top: a `bottom`
+        // Positioned offset places the actual (as-laid-out) box there
+        // exactly, regardless of any mismatch between boxHeight's estimate
+        // and the real rendered height -- a `top` offset combined with that
+        // estimate previously left the bottom edge adrift from the cursor by
+        // however much the estimate was off (issue #2228 follow-up).
+        final bottomOffset = constraints.maxHeight - position.dy;
 
         final fontSize = tooltipBaseFontSize * scale;
         final rowStyle = TextStyle(
@@ -197,7 +207,7 @@ class ProfileCursorTooltip extends StatelessWidget {
           children: [
             Positioned(
               left: position.dx,
-              top: position.dy,
+              bottom: bottomOffset,
               width: boxWidth,
               child: DecoratedBox(
                 decoration: BoxDecoration(
