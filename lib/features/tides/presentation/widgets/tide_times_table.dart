@@ -165,9 +165,17 @@ class TideTimesTable extends StatelessWidget {
       UnitFormatter.weekdayMonthDayPattern(dateFormat),
     );
     final isToday = _isSameDay(extreme.time, reference);
+    // Tomorrow's calendar date, not the instant 24 hours from now:
+    // `reference` is a local instant and a `Duration` is elapsed time, so
+    // on the two days a year that are not 24 hours long the two disagree.
+    // A fall-back day runs 25 hours, so from 00:30 the offset instant is
+    // still that same date and the next day stops being "tomorrow"; the
+    // evening before a spring-forward it overshoots to the day after,
+    // which both drops the label from the real tomorrow and hands it to
+    // the wrong row (issue #2242).
     final isTomorrow = _isSameDay(
       extreme.time,
-      reference.add(const Duration(days: 1)),
+      DateTime(reference.year, reference.month, reference.day + 1),
     );
 
     String dateLabel;

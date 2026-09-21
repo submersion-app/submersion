@@ -458,6 +458,7 @@ jobs:
             test/features/trips/domain/entities/trip_upcoming_test.dart
             test/features/equipment/presentation/widgets/children_card_test.dart
             test/features/notifications/service_ledger_scheduler_test.dart
+            test/features/tides/presentation/widgets/tide_date_format_test.dart
           )
           # Guard against a rename silently emptying the list: with no paths,
           # `flutter test` would run the ENTIRE suite twice and look green.
