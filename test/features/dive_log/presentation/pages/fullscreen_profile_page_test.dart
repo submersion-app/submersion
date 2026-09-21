@@ -134,16 +134,20 @@ void main() {
     expect(find.text('Hover or scrub the profile'), findsOneWidget);
   });
 
-  testWidgets('chart runs in external-tooltip mode (no painted bubble)', (
-    tester,
-  ) async {
+  testWidgets('chart runs its cursor-following in-chart tooltip, alongside the '
+      'external readout card', (tester) async {
     await tester.pumpWidget(_wrap(_defaultOverrides()));
     await tester.pumpAndSettle();
 
     final chart = tester.widget<DiveProfileChart>(
       find.byType(DiveProfileChart),
     );
-    expect(chart.tooltipBelow, isTrue);
+    // Cursor-following ProfileCursorTooltip (issue #2228 follow-up): the
+    // old clipping concern that used to justify tooltipBelow here no
+    // longer applies, since that tooltip clamps to the plot rect itself.
+    // onTooltipData stays wired regardless, so the sticky draggable
+    // readout card below keeps working alongside it.
+    expect(chart.tooltipBelow, isFalse);
     expect(chart.onTooltipData, isNotNull);
   });
 

@@ -41,6 +41,13 @@ class AscentRateBarOverlay extends StatelessWidget {
   /// on one scale rather than inventing a second threshold.
   final double maxAbsRateMetersPerMin;
 
+  /// The touched/hovered sample's timestamp (seconds), or null when nothing
+  /// is hovered. The bucket nearest this timestamp draws lit up -- brighter
+  /// and a little wider -- so hovering the chart highlights the bar under
+  /// the cursor the same way a metric line does, even though these bars are
+  /// not an fl_chart line the built-in touch/hover machinery can reach.
+  final int? highlightedTimestamp;
+
   const AscentRateBarOverlay({
     super.key,
     required this.ascentRates,
@@ -48,6 +55,7 @@ class AscentRateBarOverlay extends StatelessWidget {
     required this.visibleMaxSeconds,
     required this.insets,
     required this.maxAbsRateMetersPerMin,
+    this.highlightedTimestamp,
   });
 
   @override
@@ -76,6 +84,7 @@ class AscentRateBarOverlay extends StatelessWidget {
               plotWidth: plotWidth,
               plotHeight: plotHeight,
               maxAbsRateMetersPerMin: maxAbsRateMetersPerMin,
+              highlightedTimestamp: highlightedTimestamp,
             ),
           ),
         );
@@ -92,6 +101,7 @@ class _AscentRateBarPainter extends CustomPainter {
   final double plotWidth;
   final double plotHeight;
   final double maxAbsRateMetersPerMin;
+  final int? highlightedTimestamp;
 
   _AscentRateBarPainter({
     required this.ascentRates,
@@ -101,6 +111,7 @@ class _AscentRateBarPainter extends CustomPainter {
     required this.plotWidth,
     required this.plotHeight,
     required this.maxAbsRateMetersPerMin,
+    this.highlightedTimestamp,
   });
 
   // Light-to-dark ends of each direction's colour ramp. Red deepens with
@@ -140,27 +151,48 @@ class _AscentRateBarPainter extends CustomPainter {
     }
     if (buckets.isEmpty) return;
 
+    // Which bucket (if any) the hovered sample falls into, so its bar can
+    // draw lit up. Same bucketing as the loop above, applied to a single
+    // timestamp instead of the whole series.
+    int? highlightedBucket;
+    final highlighted = highlightedTimestamp;
+    if (highlighted != null &&
+        highlighted >= visibleMinSeconds &&
+        highlighted <= visibleMaxSeconds) {
+      final xPixel = (highlighted - visibleMinSeconds) * pixelsPerSecond;
+      highlightedBucket = (xPixel / _pixelsPerBar).floor();
+    }
+
     final halfBand = plotHeight / 2;
     final paint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = _pixelsPerBar
       ..strokeCap = StrokeCap.butt;
 
-    for (final point in buckets.values) {
+    for (final entry in buckets.entries) {
+      final point = entry.value;
       final rate = point.rateMetersPerMin;
       if (rate == 0) continue;
       final magnitude = (rate.abs() / maxAbsRateMetersPerMin).clamp(0.0, 1.0);
       if (magnitude <= 0) continue;
 
+      final isHighlighted = entry.key == highlightedBucket;
       final x =
           insets.left + (point.timestamp - visibleMinSeconds) * pixelsPerSecond;
       final barLength = magnitude * halfBand;
       final descending = rate < 0;
-      paint.color = Color.lerp(
+      final baseColor = Color.lerp(
         descending ? _descentLight : _ascentLight,
         descending ? _descentDark : _ascentDark,
         magnitude,
       )!;
+      // Lit up: brighter (lerp toward white) and a little wider, rather than
+      // a whole separate style -- keeps the same colour family so it still
+      // reads as "this bar", just emphasised.
+      paint
+        ..color = isHighlighted
+            ? Color.lerp(baseColor, Colors.white, 0.45)!
+            : baseColor
+        ..strokeWidth = isHighlighted ? _pixelsPerBar * 2 : _pixelsPerBar;
       final endY = descending ? baselineY + barLength : baselineY - barLength;
       canvas.drawLine(Offset(x, baselineY), Offset(x, endY), paint);
     }
@@ -174,5 +206,6 @@ class _AscentRateBarPainter extends CustomPainter {
       oldDelegate.insets != insets ||
       oldDelegate.plotWidth != plotWidth ||
       oldDelegate.plotHeight != plotHeight ||
-      oldDelegate.maxAbsRateMetersPerMin != maxAbsRateMetersPerMin;
+      oldDelegate.maxAbsRateMetersPerMin != maxAbsRateMetersPerMin ||
+      oldDelegate.highlightedTimestamp != highlightedTimestamp;
 }

@@ -116,6 +116,7 @@ class DiveProfileChartHost extends ConsumerWidget {
     this.exportKey,
     this.legendLeading,
     this.tooltipBelow = false,
+    this.useLegacyTooltipBubble = false,
     this.onTooltipData,
     this.onSafetyFindingDetails,
   });
@@ -135,6 +136,13 @@ class DiveProfileChartHost extends ConsumerWidget {
   /// Needed where there is no headroom above the chart for the painted
   /// tooltip to land in.
   final bool tooltipBelow;
+
+  /// Renders fl_chart's own tooltip bubble (positioned above the touched
+  /// point, sized by fl_chart itself) instead of the newer cursor-following
+  /// ProfileCursorTooltip. The dive detail page's long-standing behavior;
+  /// mutually exclusive with [tooltipBelow] in practice (a page picks one
+  /// tooltip presentation), though nothing enforces that here.
+  final bool useLegacyTooltipBubble;
 
   final void Function(List<TooltipRow>? rows)? onTooltipData;
 
@@ -361,6 +369,7 @@ class DiveProfileChartHost extends ConsumerWidget {
         maxDepth: dive.maxDepth,
         legendLeading: legendLeading,
         tooltipBelow: tooltipBelow,
+        useLegacyTooltipBubble: useLegacyTooltipBubble,
         onTooltipData: onTooltipData,
         ceilingCurve: analysis?.ceilingCurve,
         decoStopCurve: analysis?.decoStopCurve,

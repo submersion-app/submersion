@@ -416,10 +416,13 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           activeComputerId: activeProfile?.computerId,
                           diveDuration: dive.effectiveRuntime,
                           maxDepth: dive.maxDepth,
-                          // The painted tooltip would clip at the screen edge
-                          // (no headroom above the plot in fullscreen); the
-                          // draggable readout card renders the data instead.
-                          tooltipBelow: true,
+                          // The cursor-following in-chart tooltip (issue
+                          // #2228 follow-up): clamps to the plot rect itself,
+                          // so the old clipping concern that used to justify
+                          // tooltipBelow here no longer applies. The dive
+                          // detail page keeps the older presentation instead
+                          // (DiveProfileChartHost's useLegacyTooltipBubble).
+                          tooltipBelow: false,
                           onTooltipData: _onTooltipData,
                           legendLeading: Row(
                             mainAxisSize: MainAxisSize.min,

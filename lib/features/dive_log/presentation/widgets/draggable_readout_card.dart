@@ -44,12 +44,12 @@ class DraggableReadoutCard extends StatefulWidget {
 }
 
 class _DraggableReadoutCardState extends State<DraggableReadoutCard> {
-  // Fixed character columns, mirroring the detail-page tooltip
-  // (DiveProfileChart's labelWidth/valueWidth). Every row pads to the same
-  // character count and renders in monospace, so value-length changes while
-  // scrubbing never resize the card.
-  static const _labelChars = 8;
-  static const _valueChars = 16;
+  // Fixed character columns, shared with every other tooltip presentation
+  // (DiveProfileChart.tooltipLabelChars/tooltipValueChars). Every row pads to
+  // the same character count and renders in monospace, so value-length
+  // changes while scrubbing never resize the card.
+  static const _labelChars = DiveProfileChart.tooltipLabelChars;
+  static const _valueChars = DiveProfileChart.tooltipValueChars;
   static const _rowChars = _labelChars + _valueChars;
 
   final GlobalKey _cardKey = GlobalKey();
