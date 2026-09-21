@@ -9,14 +9,14 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// Identifies each configurable card on the Site Details page.
 ///
 /// Declaration order is the default display order: the order the page had
-/// before it became configurable. Every card is configurable; the site name
-/// lives in the app bar, so no part of the body is fixed.
+/// before it became configurable. The map card and the name header above
+/// these cards are pinned, so neither appears here; everything below them
+/// is the diver's to arrange.
 ///
 /// The two pairs in `kSiteDetailSectionPairs` are declared adjacently, in
 /// left-then-right order, so the default order already reads the way the
 /// paired layout renders.
 enum SiteDetailSectionId {
-  map,
   diveStatistics,
   description,
   location,
@@ -38,7 +38,6 @@ enum SiteDetailSectionId {
   /// list layout, on the card's folded header row.
   IconData get icon {
     return switch (this) {
-      map => Icons.map_outlined,
       diveStatistics => Icons.scuba_diving,
       description => Icons.description_outlined,
       location => Icons.public,
@@ -61,7 +60,6 @@ enum SiteDetailSectionId {
   /// The title the card itself shows, so the menu and the page agree.
   String localizedDisplayName(AppLocalizations l10n) {
     return switch (this) {
-      map => l10n.siteDetailSection_map_name,
       diveStatistics => l10n.diveSites_detail_section_divesAtSite,
       description => l10n.diveSites_detail_section_description,
       location => l10n.diveSites_detail_section_location,
@@ -84,7 +82,6 @@ enum SiteDetailSectionId {
   /// One-line description shown below the name on the settings page.
   String localizedDescription(AppLocalizations l10n) {
     return switch (this) {
-      map => l10n.siteDetailSection_map_description,
       diveStatistics => l10n.siteDetailSection_diveStatistics_description,
       description => l10n.siteDetailSection_description_description,
       location => l10n.siteDetailSection_location_description,
@@ -159,7 +156,6 @@ class SiteDetailSectionConfig {
   }
 
   static const List<SiteDetailSectionConfig> defaultSections = [
-    SiteDetailSectionConfig(id: SiteDetailSectionId.map, visible: true),
     SiteDetailSectionConfig(
       id: SiteDetailSectionId.diveStatistics,
       visible: true,

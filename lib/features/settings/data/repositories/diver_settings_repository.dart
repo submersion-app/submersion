@@ -97,6 +97,11 @@ class DiverSettingsRepository {
               visibilityScaleModerateM: Value(s.visibilityScaleModerateM),
               coordinateFormat: Value(s.coordinateFormat.name),
               seascapeAppearance: Value(s.seascapeAppearance.encode()),
+              seascapeVerticalExaggerationOverrides: Value(
+                _encodeExaggerationOverrides(
+                  s.seascapeVerticalExaggerationOverrides,
+                ),
+              ),
               timeFormat: Value(s.timeFormat.name),
               dateFormat: Value(s.dateFormat.name),
               themeMode: Value(_themeModeToString(s.themeMode)),
@@ -280,6 +285,11 @@ class DiverSettingsRepository {
           visibilityScaleModerateM: Value(settings.visibilityScaleModerateM),
           coordinateFormat: Value(settings.coordinateFormat.name),
           seascapeAppearance: Value(settings.seascapeAppearance.encode()),
+          seascapeVerticalExaggerationOverrides: Value(
+            _encodeExaggerationOverrides(
+              settings.seascapeVerticalExaggerationOverrides,
+            ),
+          ),
           timeFormat: Value(settings.timeFormat.name),
           dateFormat: Value(settings.dateFormat.name),
           themeMode: Value(_themeModeToString(settings.themeMode)),
@@ -513,6 +523,9 @@ class DiverSettingsRepository {
       visibilityScaleModerateM: row.visibilityScaleModerateM,
       coordinateFormat: _parseCoordinateFormat(row.coordinateFormat),
       seascapeAppearance: SeascapeAppearance.decode(row.seascapeAppearance),
+      seascapeVerticalExaggerationOverrides: _decodeExaggerationOverrides(
+        row.seascapeVerticalExaggerationOverrides,
+      ),
       timeFormat: _parseTimeFormat(row.timeFormat),
       dateFormat: _parseDateFormat(row.dateFormat),
       themeMode: _parseThemeMode(row.themeMode),
@@ -744,6 +757,30 @@ class DiverSettingsRepository {
       case ThemeMode.system:
         return 'system';
     }
+  }
+
+  /// Encodes the per-site vertical-exaggeration override map (issue #2141
+  /// follow-up) as a plain JSON object of siteId -> factor.
+  String _encodeExaggerationOverrides(Map<String, double> overrides) =>
+      jsonEncode(overrides);
+
+  /// Defensive decode: a missing column, malformed JSON, or a non-numeric
+  /// entry never blocks settings loading -- it just drops that entry (or
+  /// the whole map) back to "fully automatic".
+  Map<String, double> _decodeExaggerationOverrides(String? raw) {
+    if (raw == null || raw.isEmpty) return const {};
+    Object? decoded;
+    try {
+      decoded = jsonDecode(raw);
+    } on FormatException {
+      return const {};
+    }
+    if (decoded is! Map) return const {};
+    return {
+      for (final entry in decoded.entries)
+        if (entry.key is String && entry.value is num)
+          entry.key as String: (entry.value as num).toDouble(),
+    };
   }
 
   List<int> _parseReminderDays(String json) {

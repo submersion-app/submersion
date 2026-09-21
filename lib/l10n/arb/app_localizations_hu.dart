@@ -3200,6 +3200,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get common_action_ok => 'OK';
 
   @override
+  String get common_action_openSettings => 'Beállítások megnyitása';
+
+  @override
   String get common_action_save => 'Mentés';
 
   @override
@@ -5132,9 +5135,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'Plafon';
 
   @override
-  String get diveLog_deco_label_leading => 'Vezető';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5247,9 +5247,6 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'Lejátszás';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'Tartomány stat.';
@@ -7786,47 +7783,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'DEKO';
 
   @override
-  String get diveLog_playbackStats_depth => 'Mélység';
-
-  @override
-  String get diveLog_playbackStats_header => 'Élő statisztikák';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'Pulzus';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'Nyomás';
-
-  @override
-  String get diveLog_playbackStats_temp => 'Hőm.';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'Lejátszási pozíció';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'Léptetett lejátszás';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => 'Vissza 10 másodpercet';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'Kilépés a lejátszás módból';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => 'Előre 10 másodpercet';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'Szünet';
 
   @override
@@ -8346,27 +8302,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Nincs';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'Plafon';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M-érték';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'Szovettelitodes';
@@ -9619,7 +9554,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_filter_clearAll => 'Összes törlése';
 
   @override
-  String get diveSites_filter_country_hint => 'pl. Thaiföld';
+  String get diveSites_filter_allCountries => 'Összes ország';
+
+  @override
+  String get diveSites_filter_allRegions => 'Összes régió';
 
   @override
   String get diveSites_filter_country_label => 'Ország';
@@ -9656,10 +9594,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => 'pl. Phuket';
+  String get diveSites_filter_region_label => 'Régió';
 
   @override
-  String get diveSites_filter_region_label => 'Régió';
+  String get diveSites_filter_searchCountriesHint =>
+      'Gépelj az országok kereséséhez';
+
+  @override
+  String get diveSites_filter_searchRegionsHint =>
+      'Gépelj a régiók kereséséhez';
 
   @override
   String get diveSites_filter_section_depthRange => 'Max mélység tartomány';
@@ -17194,13 +17137,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Csatlakoztatott merülőszámítógépek, forráskezelés';
 
   @override
-  String get siteDetailSection_map_name => 'Térkép';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'A merülőhely helyének térképes előnézete';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Merülések száma, elért mélységek, leghosszabb és legutóbbi merülések';
 
@@ -18279,6 +18215,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_data_offlineMaps_subtitle =>
       'Térképek letöltése offline használathoz';
+
+  @override
+  String get settings_data_threeDMaps => '3D Maps';
+
+  @override
+  String get settings_data_threeDMaps_subtitle =>
+      'Manage cached swissBATHY3D and other bathymetry data';
 
   @override
   String get settings_data_restore => 'Visszaállítás';
@@ -23002,8 +22945,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_summary_stat_totalTrips => 'Összes út';
 
   @override
-  String trips_summary_upcomingSubtitle(Object date, Object days) {
-    return '$date • $days nap múlva';
+  String trips_summary_upcomingSubtitle(Object date, Object countdown) {
+    return '$date • $countdown';
   }
 
   @override
@@ -23633,6 +23576,14 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Néhány merülésnek nincs merülőhelye';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Ezek a merülések olyan merülőhelyre hivatkoztak, amelyet a fájl nem ír le, ezért merülőhely nélkül lettek importálva. A merülés szerkesztésével megadhatsz egyet.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'A tanúsítványok és a szervizrekordok nincsenek a fájlban';
 
@@ -23778,6 +23729,10 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'Ellenőrizd, hogy ebben a lépésben meg vannak-e feleltetve a dátum- és időoszlopok, és hogy dátumokat tartalmaznak-e.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Ellenőrizd, hogy a dátumoszlop a fejlécében megadott formátumban tartalmaz-e dátumokat.';
 
   @override
   String get universalImport_error_noDataInFile =>
@@ -26602,6 +26557,165 @@ class AppLocalizationsHu extends AppLocalizations {
       'Még nincsenek tárolt tómélységadatok';
 
   @override
+  String get maps3d_appBar_title => '3D térképek';
+
+  @override
+  String get maps3d_section_all => 'Összes szolgáltató';
+
+  @override
+  String get maps3d_section_swissBathy => 'swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete => 'Adatok törlése';
+
+  @override
+  String get maps3d_swissBathy_delete_subtitle =>
+      'Törli a gyorsítótárazott swissBATHY3D mélységi csempéket és tórácsokat';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmTitle =>
+      'Törli a swissBATHY3D adatokat?';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      'A svájci tavak gyorsítótárazott mélységi adatai törlődnek, és egy merülőhely 3D nézetének következő megnyitásakor újratöltődnek.';
+
+  @override
+  String get maps3d_swissBathy_delete_done => 'A swissBATHY3D adatok törölve';
+
+  @override
+  String get maps3d_section_other => 'Egyéb szolgáltatók';
+
+  @override
+  String get maps3d_other_reset => 'A többi batimetriai adat visszaállítása';
+
+  @override
+  String get maps3d_other_reset_subtitle =>
+      'Törli az EMODnet, NOAA DEM, GMRT és ETOPO gyorsítótárazott adatait';
+
+  @override
+  String get maps3d_other_reset_confirmTitle =>
+      'Visszaállítja a többi batimetriai adatot?';
+
+  @override
+  String get maps3d_other_reset_confirmMessage =>
+      'A swissBATHY3D kivételével minden szolgáltató gyorsítótárazott adata törlődik, és egy merülőhely 3D nézetének következő megnyitásakor újratöltődik.';
+
+  @override
+  String get maps3d_other_reset_done =>
+      'A többi batimetriai adat visszaállítva';
+
+  @override
+  String get maps3d_reload => 'Térképadatok újratöltése';
+
+  @override
+  String get maps3d_reload_subtitle =>
+      'Törli az összes gyorsítótárazott batimetriai adatot, és minden merülőhelyhez újra letölti őket';
+
+  @override
+  String get maps3d_reload_confirmTitle =>
+      'Újratölti a térképadatokat minden merülőhelyhez?';
+
+  @override
+  String maps3d_reload_confirm_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülőhely töltődik újra.',
+      one: '1 merülőhely töltődik újra.',
+      zero: 'Egyetlen merülőhelynek sincs koordinátája.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_confirm_estimatedSize(String size) {
+    return 'Becsült letöltés: kb. $size';
+  }
+
+  @override
+  String get maps3d_reload_confirm_duration => 'Ez több percig is eltarthat.';
+
+  @override
+  String get maps3d_reload_confirm_wifiHint =>
+      'Sok adat letöltésére kerül sor, ezért gyors Wi-Fi kapcsolat ajánlott.';
+
+  @override
+  String get maps3d_reload_start => 'Újratöltés';
+
+  @override
+  String maps3d_reload_progress(int completed, int total) {
+    return '$completed/$total merülőhely';
+  }
+
+  @override
+  String get maps3d_reload_cancel => 'Mégse';
+
+  @override
+  String get maps3d_reload_done =>
+      'A térképadatok minden merülőhelyhez újratöltve';
+
+  @override
+  String get maps3d_reload_cancelled => 'Az újratöltés megszakítva';
+
+  @override
+  String get maps3d_reload_failed =>
+      'Az újratöltés sikertelen; előfordulhat, hogy egyes merülőhelyek nem töltődtek újra';
+
+  @override
+  String get maps3d_busy_notice =>
+      'Egy másik művelet fut a 3D térképek oldalon. Kérjük, várja meg, amíg befejeződik.';
+
+  @override
+  String maps3d_reload_remainingSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'kb. $count másodperc van hátra',
+      one: 'kb. 1 másodperc van hátra',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_remainingMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'kb. $count perc van hátra',
+      one: 'kb. 1 perc van hátra',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_warming(int index, int total, String name) {
+    return 'Előkészítés: $index/$total. tó ($name)';
+  }
+
+  @override
+  String maps3d_reload_elapsedSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count másodperce fut',
+      one: '1 másodperce fut',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_elapsedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count perce fut',
+      one: '1 perce fut',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get common_action_reparse => 'Újraelemzés';
 
   @override
@@ -27378,6 +27492,16 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get dive3d_seascape_orbitView => '3D nézet';
+
+  @override
+  String get dive3d_seascape_verticalExaggeration => 'Függőleges túlzás';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationReset =>
+      'Visszaállítás automatikusra';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationLabel => 'Mélység';
 
   @override
   String get dive3d_seascape_appearance_surface => 'Terepfelszín';
@@ -38723,6 +38847,85 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get startup_failure_showBackupsFolder => 'Biztonsági mentések mappája';
+
+  @override
+  String get startup_failure_moreWays_title => 'További visszautak';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'Merülési napló használata másik mappából';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'Váltson egy olyan merülési naplóra, amelyet már máshol tárol, például egy iCloud Drive- vagy Dropbox-mappában.';
+
+  @override
+  String get startup_failure_restoreFromFile =>
+      'Visszaállítás biztonsági mentésből';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'Válasszon egy Submersion biztonsági mentést bárhonnan az eszközről vagy egy szinkronizált mappából.';
+
+  @override
+  String get startup_failure_startFresh => 'Kezdés üres merülési naplóval';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'Tegye félre a sérült fájlt, és kezdje elölről. Semmi nem törlődik.';
+
+  @override
+  String get startup_recovery_adopt_title => 'Ezt a merülési naplót használja?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'A Submersion mostantól ezt a merülési naplót nyitja meg. A fájl, amely nem nyílt meg, ott marad, ahol van.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives merülés, $sites merülőhely';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'Ezt a naplót használom';
+
+  @override
+  String get startup_recovery_startFresh_title =>
+      'Kezdés üres merülési naplóval?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'A Submersion a sérült fájlt külön mappába helyezi, és új, üres merülési naplót nyit. Semmi nem törlődik, így később újra megpróbálhatja a régi fájlt, vagy elküldheti a támogatásnak.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'Kezdés elölről';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'A sérült merülési napló ide került:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'Ez nem sikerült';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'A(z) $folder mappában nincs $filename nevű fájl. Válassza azt a mappát, amely magát a merülési napló fájlt tartalmazza.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'A(z) $path helyen lévő merülési napló sérült, vagy nem Submersion merülési napló.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'Ez a fájl nem olyan biztonsági mentés, amelyet a Submersion vissza tud állítani: $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'Ez a biztonsági mentés titkosított. A Submersion csak megnyitott alkalmazásban tud titkosított mentést feloldani, ezért használja előbb az itteni másik utak egyikét, majd állítsa vissza a Beállításokban, a Biztonsági mentés és visszaállítás résznél.';
 
   @override
   String get startup_failure_downgrade_title => 'Visszatérés az előző verzióra';

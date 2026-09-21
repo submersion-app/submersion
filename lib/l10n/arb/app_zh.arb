@@ -1351,6 +1351,7 @@
   "common_action_delete": "删除",
   "common_action_edit": "编辑",
   "common_action_ok": "确定",
+  "common_action_openSettings": "打开设置",
   "common_action_save": "保存",
   "common_action_search": "搜索",
   "common_label_error": "错误",
@@ -1832,8 +1833,6 @@
   "diveDetailSection_customFields_description": "用户自定义字段",
   "diveDetailSection_customFields_name": "自定义字段",
   "diveDetailSection_dataSources_description": "已连接的潜水电脑、数据源管理",
-  "siteDetailSection_map_name": "地图",
-  "siteDetailSection_map_description": "潜水点位置的地图预览",
   "siteDetailSection_diveStatistics_description": "潜水次数、到达深度、最长和最近的潜水",
   "siteDetailSection_description_description": "潜水点描述",
   "siteDetailSection_location_description": "国家、地区、水域、GPS 坐标",
@@ -2117,7 +2116,6 @@
   "diveLog_deco_badge_noDeco": "免减压",
   "diveLog_deco_label_ceiling": "上升限制",
   "diveLog_deco_label_gf99": "GF99",
-  "diveLog_deco_label_leading": "主导",
   "diveLog_deco_label_ndl": "免减压极限",
   "diveLog_deco_label_surfGf": "水面GF",
   "diveLog_deco_label_time": "时间",
@@ -2146,7 +2144,6 @@
   "diveLog_detail_badge_noDeco": "免减压",
   "diveLog_detail_badge_warning": "警告",
   "diveLog_detail_buddyCount": "{count} {count, plural, =1{位潜伴} other{位潜伴}}",
-  "diveLog_detail_button_playback": "回放",
   "diveLog_detail_button_rangeAnalysis": "范围统计",
   "diveLog_detail_button_showEnd": "显示结束",
   "diveLog_detail_captureSignature": "采集教练签名",
@@ -2802,19 +2799,6 @@
   "diveLog_o2tox_startPercent": "起始：{value}%",
   "diveLog_o2tox_title": "氧中毒",
   "diveLog_playbackStats_deco": "减压",
-  "diveLog_playbackStats_depth": "深度",
-  "diveLog_playbackStats_header": "实时统计",
-  "diveLog_playbackStats_heartRate": "心率",
-  "diveLog_playbackStats_ndl": "免减压极限",
-  "diveLog_playbackStats_ppO2": "氧分压",
-  "diveLog_playbackStats_pressure": "压力",
-  "diveLog_playbackStats_temp": "温度",
-  "diveLog_playback_sliderLabel": "回放位置",
-  "diveLog_playback_speed_label": "{speed}x",
-  "diveLog_playback_stepThrough": "逐步回放",
-  "diveLog_playback_tooltip_back10": "后退 10 秒",
-  "diveLog_playback_tooltip_exit": "退出回放模式",
-  "diveLog_playback_tooltip_forward10": "前进 10 秒",
   "diveLog_playback_tooltip_pause": "暂停",
   "diveLog_playback_tooltip_play": "播放",
   "diveLog_playback_tooltip_skipEnd": "跳至结尾",
@@ -2966,13 +2950,6 @@
   "diveLog_tank_tooltip_remove": "移除气瓶",
   "diveLog_tank_regulatorLabel": "调节器",
   "diveLog_tank_regulatorNone": "无",
-  "diveLog_tissue_label_ceiling": "上升限制",
-  "diveLog_tissue_label_gf": "GF",
-  "diveLog_tissue_label_ndl": "免减压极限",
-  "diveLog_tissue_label_tts": "TTS",
-  "diveLog_tissue_legend_he": "He",
-  "diveLog_tissue_legend_mValue": "100% M值",
-  "diveLog_tissue_legend_n2": "N₂",
   "diveLog_tissue_title": "组织饱和度",
   "diveLog_tooltip_avgCalculated": "（平均值，计算）",
   "diveLog_tooltip_ceiling": "上升限制",
@@ -3342,7 +3319,8 @@
   "diveSites_filter_apply": "应用筛选",
   "diveSites_filter_cancel": "取消",
   "diveSites_filter_clearAll": "清除全部",
-  "diveSites_filter_country_hint": "例如，泰国",
+  "diveSites_filter_allCountries": "所有国家",
+  "diveSites_filter_allRegions": "所有地区",
   "diveSites_filter_country_label": "国家",
   "diveSites_filter_depth_max_label": "最大",
   "diveSites_filter_depth_min_label": "最小",
@@ -3353,8 +3331,9 @@
   "diveSites_filter_option_hasDives_subtitle": "仅显示有潜水记录的潜水点",
   "diveSites_filter_option_hasDives_title": "有潜水记录",
   "diveSites_filter_rating_starsPlus": "{count}+ 颗星",
-  "diveSites_filter_region_hint": "例如，普吉岛",
   "diveSites_filter_region_label": "地区",
+  "diveSites_filter_searchCountriesHint": "输入以搜索国家",
+  "diveSites_filter_searchRegionsHint": "输入以搜索地区",
   "diveSites_filter_section_depthRange": "最大深度范围",
   "diveSites_filter_section_difficulty": "难度",
   "diveSites_filter_section_location": "位置",
@@ -5615,6 +5594,8 @@
   "settings_data_import_failed": "操作失败：{error}",
   "settings_data_offlineMaps": "离线地图",
   "settings_data_offlineMaps_subtitle": "下载地图以供离线使用",
+  "settings_data_threeDMaps": "3D Maps",
+  "settings_data_threeDMaps_subtitle": "Manage cached swissBATHY3D and other bathymetry data",
   "settings_data_restore": "恢复",
   "settings_data_restoreDialog_cancel": "取消",
   "settings_data_restoreDialog_content": "警告：从备份恢复将用备份数据替换所有当前数据。此操作无法撤销。确定要继续吗？",
@@ -7084,7 +7065,7 @@
   "trips_summary_stat_liveaboards": "船宿",
   "trips_summary_stat_totalDives": "总计潜水",
   "trips_summary_stat_totalTrips": "总计旅行",
-  "trips_summary_upcomingSubtitle": "{date} • {days} 天后",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "即将到来",
   "trips_type_dayTrip": "一日游",
   "trips_type_liveaboard": "船宿",
@@ -7177,6 +7158,8 @@
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, other{{count} 个值无法转换，已留空。如果某个字段看起来不正确，请检查列映射后重新导入。}}",
   "universalImport_summary_noticePhotosSkippedTitle": "部分照片已跳过",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, other{{count} 张照片没有文件名，无法关联。}}",
+  "universalImport_summary_noticeSitesUnresolvedTitle": "部分潜水没有潜水点",
+  "universalImport_summary_noticeSitesUnresolvedBody": "这些潜水引用了文件中没有描述的潜水点，因此导入时没有潜水点。您可以通过编辑潜水来设置潜水点。",
   "universalImport_summary_noticeMacdiveXmlCertsTitle": "文件中没有证书和维护记录",
   "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive 的 XML 导出不包含证书和装备维护记录。要导入它们，请导入您的 MacDive.sqlite 数据库。",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "未导入 MacDive 日志簿",
@@ -7192,6 +7175,7 @@
   "universalImport_error_stepFailed": "导入无法继续：{details}",
   "universalImport_error_unreadableDatesHeadline": "{count, plural, other{未导入任何内容：有 {count} 行的日期无法读取。}}",
   "universalImport_error_unreadableDatesHint": "请检查此步骤中是否已映射日期和时间列，以及这些列是否包含日期。",
+  "universalImport_error_unreadableDatesHintNoMapping": "请检查日期列中的日期是否采用其列标题所指明的格式。",
   "universalImport_error_noDataInFile": "此文件中未找到可导入的数据。",
   "universalImport_error_noDataInFileWithDetails": "此文件中未找到可导入的数据：{details}",
   "universalImport_error_noDataInFiles": "所选文件中未找到可导入的数据。",
@@ -7539,6 +7523,104 @@
   "settings_appearance_bathymetryRefresh_resultUpToDate": "所有数据均为最新",
   "settings_appearance_bathymetryRefresh_resultFailed": "无法检查所有数据；已保留现有数值",
   "settings_appearance_bathymetryRefresh_resultNothingCached": "尚未缓存湖泊深度数据",
+  "maps3d_appBar_title": "3D 地图",
+  "maps3d_section_all": "所有数据源",
+  "maps3d_section_swissBathy": "swissBATHY3D",
+  "maps3d_swissBathy_delete": "删除数据",
+  "maps3d_swissBathy_delete_subtitle": "删除已缓存的 swissBATHY3D 深度瓦片和湖泊网格",
+  "maps3d_swissBathy_delete_confirmTitle": "删除 swissBATHY3D 数据？",
+  "maps3d_swissBathy_delete_confirmMessage": "已缓存的瑞士湖泊深度数据将被删除，并在下次打开潜水点的 3D 视图时重新加载。",
+  "maps3d_swissBathy_delete_done": "已删除 swissBATHY3D 数据",
+  "maps3d_section_other": "其他数据源",
+  "maps3d_other_reset": "重置其余测深数据",
+  "maps3d_other_reset_subtitle": "删除来自 EMODnet、NOAA DEM、GMRT 和 ETOPO 的缓存数据",
+  "maps3d_other_reset_confirmTitle": "重置其余测深数据？",
+  "maps3d_other_reset_confirmMessage": "除 swissBATHY3D 以外所有数据源的缓存数据将被删除，并在下次打开潜水点的 3D 视图时重新加载。",
+  "maps3d_other_reset_done": "已重置其余测深数据",
+  "maps3d_reload": "重新加载地图数据",
+  "maps3d_reload_subtitle": "删除所有已缓存的测深数据，并为每个潜水点重新下载",
+  "maps3d_reload_confirmTitle": "为所有潜水点重新加载地图数据？",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{没有潜水点带有位置信息。} =1{将重新加载 1 个潜水点。} other{将重新加载 {count} 个潜水点。}}",
+  "@maps3d_reload_confirm_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_confirm_estimatedSize": "预计下载量：约 {size}",
+  "@maps3d_reload_confirm_estimatedSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_confirm_duration": "此操作可能需要几分钟。",
+  "maps3d_reload_confirm_wifiHint": "将下载大量数据，建议使用快速的 Wi-Fi 连接。",
+  "maps3d_reload_start": "重新加载",
+  "maps3d_reload_progress": "共 {total} 个潜水点，已完成 {completed} 个",
+  "@maps3d_reload_progress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_cancel": "取消",
+  "maps3d_reload_done": "已为所有潜水点重新加载地图数据",
+  "maps3d_reload_cancelled": "已取消重新加载",
+  "maps3d_reload_failed": "重新加载失败，部分潜水点可能未重新加载",
+  "maps3d_busy_notice": "另一项 3D 地图操作正在运行，请等待其完成。",
+  "maps3d_reload_remainingSeconds": "{count, plural, =1{约剩 1 秒} other{约剩 {count} 秒}}",
+  "@maps3d_reload_remainingSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_remainingMinutes": "{count, plural, =1{约剩 1 分钟} other{约剩 {count} 分钟}}",
+  "@maps3d_reload_remainingMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_warming": "正在准备：第 {index} 个湖泊，共 {total} 个（{name}）",
+  "@maps3d_reload_warming": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_elapsedSeconds": "{count, plural, =1{已运行 1 秒} other{已运行 {count} 秒}}",
+  "@maps3d_reload_elapsedSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_elapsedMinutes": "{count, plural, =1{已运行 1 分钟} other{已运行 {count} 分钟}}",
+  "@maps3d_reload_elapsedMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settings_appearance_mapStyle_openStreetMap": "街道地图",
   "settings_appearance_mapStyle_openTopoMap": "地形图",
   "universalImport_bulk_replaceSourceAll": "全部替换（{count}）",
@@ -7771,6 +7853,12 @@
   "@dive3d_seascape_chartView": {},
   "dive3d_seascape_orbitView": "3D 视图",
   "@dive3d_seascape_orbitView": {},
+  "dive3d_seascape_verticalExaggeration": "垂直夸张",
+  "@dive3d_seascape_verticalExaggeration": {},
+  "dive3d_seascape_verticalExaggerationReset": "重置为自动",
+  "@dive3d_seascape_verticalExaggerationReset": {},
+  "dive3d_seascape_verticalExaggerationLabel": "深度",
+  "@dive3d_seascape_verticalExaggerationLabel": {},
   "dive3d_seascape_appearance_surface": "地形表面",
   "@dive3d_seascape_appearance_surface": {},
   "dive3d_seascape_appearance_surfaceDepth": "深度配色",
@@ -11651,6 +11739,26 @@
   "startup_failure_restoreFailed": "无法恢复该备份。您的潜水日志已保持原样。",
   "startup_failure_backupsFolder": "您的备份位于：",
   "startup_failure_showBackupsFolder": "显示备份文件夹",
+  "startup_failure_moreWays_title": "其他恢复方式",
+  "startup_failure_useAnotherFolder": "使用其他文件夹中的潜水日志",
+  "startup_failure_useAnotherFolder_subtitle": "切换到你已经存放在别处的潜水日志，例如 iCloud 云盘或 Dropbox 文件夹中的日志。",
+  "startup_failure_restoreFromFile": "从备份文件恢复",
+  "startup_failure_restoreFromFile_subtitle": "从本设备的任意位置或同步文件夹中选择一个 Submersion 备份。",
+  "startup_failure_startFresh": "以空白潜水日志开始",
+  "startup_failure_startFresh_subtitle": "将损坏的文件移到一旁，重新开始。不会删除任何内容。",
+  "startup_recovery_adopt_title": "使用这个潜水日志？",
+  "startup_recovery_adopt_body": "Submersion 今后将打开这个潜水日志。无法打开的那个文件会留在原处。",
+  "startup_recovery_adopt_contents": "{dives} 次潜水，{sites} 个潜点",
+  "startup_recovery_adopt_confirm": "使用这个日志",
+  "startup_recovery_startFresh_title": "以空白潜水日志开始？",
+  "startup_recovery_startFresh_body": "Submersion 会把损坏的文件移入单独的文件夹，并打开一个全新的空白潜水日志。不会删除任何内容，你之后仍可再试旧文件或将其发送给支持人员。",
+  "startup_recovery_startFresh_confirm": "重新开始",
+  "startup_recovery_startFresh_done": "你损坏的潜水日志已移至：\n{path}",
+  "startup_recovery_problem_title": "这没有奏效",
+  "startup_recovery_noDiveLog_body": "{folder} 中没有 {filename}。请选择包含潜水日志文件本身的那个文件夹。",
+  "startup_recovery_unusable_body": "{path} 中的潜水日志已损坏，或者它不是 Submersion 的潜水日志。",
+  "startup_recovery_unusableBackup_body": "该文件不是 Submersion 能够恢复的备份：{path}",
+  "startup_recovery_encryptedBackup_body": "该备份已加密。Submersion 只有在应用打开后才能解锁加密备份，因此请先使用这里的其他方式，然后在设置的备份与恢复中恢复它。",
   "startup_failure_downgrade_title": "回到上一个版本",
   "startup_failure_downgrade_body": "如果升级持续失败，请安装您之前使用的 Submersion 版本，然后在该版本中恢复安全副本。在这里恢复只会再次运行同一次升级。Submersion 不会自动降级：自动把您切换到旧版本会在您不知情的情况下让您停留在存在已知问题的版本上。",
   "startup_failure_downgrade_action": "查看以往版本",

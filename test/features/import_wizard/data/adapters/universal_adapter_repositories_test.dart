@@ -29,5 +29,11 @@ void main() {
     expect(repos!.serviceRecordRepository, isNotNull);
     // Without it imported gear arrives with none of its tags (#1942).
     expect(repos!.equipmentTagRepository, isNotNull);
+    // Without these an import restores sites but not their
+    // classification (#1765).
+    expect(repos!.siteTypeRepository, isNotNull);
+    expect(repos!.siteClassificationRepository, isNotNull);
+    // Without it every site feature in the file is dropped (#2200).
+    expect(repos!.siteFeatureRepository, isNotNull);
   });
 }

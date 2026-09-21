@@ -332,7 +332,7 @@ class UniversalImportState {
   List<ImportEntityType> get availableTypes => payload?.availableTypes ?? [];
 
   /// Whether the format requires a field mapping step.
-  bool get needsFieldMapping => detectionResult?.format == ImportFormat.csv;
+  bool get needsFieldMapping => detectionResult?.format.mapsColumns ?? false;
 
   /// Summary of import results.
   String get importSummary {

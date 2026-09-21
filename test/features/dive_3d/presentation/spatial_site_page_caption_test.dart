@@ -81,6 +81,7 @@ void main() {
       minNorth: -100.0,
       maxNorth: 200.0,
       maxDepth: 30.0,
+      verticalExaggeration: 1.0,
     ),
   );
 

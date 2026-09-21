@@ -68,7 +68,9 @@ class SubmersionEquipmentCsvParser implements ImportParser {
         warnings.add(
           ImportWarning(
             severity: ImportWarningSeverity.error,
-            message: 'Row ${i + 2} has no equipment name and was skipped',
+            message:
+                'Row ${table.sourceRowOf(i)} has no equipment name and was '
+                'skipped',
             entityType: ImportEntityType.equipment,
             itemIndex: i,
             field: 'Name',

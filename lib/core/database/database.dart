@@ -2061,6 +2061,13 @@ class DiverSettings extends Table {
   /// and has never held a value, which is what lets a device adopt its
   /// legacy device-local pref exactly once (see SettingsNotifier).
   TextColumn get seascapeAppearance => text().nullable()();
+
+  /// v222: per-site manual override of the site terrain's vertical
+  /// exaggeration (issue #2141 follow-up), keyed by dive site id, JSON
+  /// object of `siteId` to `factor`. Per-diver so it syncs, like
+  /// [seascapeAppearance]. Null/missing key means "use the automatic
+  /// value" for that site.
+  TextColumn get seascapeVerticalExaggerationOverrides => text().nullable()();
   // Time/Date format settings
   TextColumn get timeFormat =>
       text().withDefault(const Constant('twelveHour'))();
@@ -4904,6 +4911,16 @@ class AppDatabase extends _$AppDatabase {
     // compatibility floor stays. Sits above v220 (#1980), which shipped
     // while this was in review.
     221,
+    // v222: diver_settings.seascape_vertical_exaggeration_overrides (issue
+    // #2141 follow-up). Additive column, default null. Compatibility floor
+    // stays: an older reader simply never sees the per-site overrides.
+    222,
+    // v223: media.upload_facts_hlc and verify_facts_hlc, the two fact
+    // clocks (media sync program spec 5.1). Columns plus a backfill from
+    // the row clock, and the one rung on this ladder that DOES move the
+    // compatibility floor: a reader without them cannot order fact writes.
+    // Numbered 223 while v222 was still in review, which is why it sits
+    // directly above it.
     223,
   ];
 
@@ -6374,6 +6391,24 @@ class AppDatabase extends _$AppDatabase {
         'ALTER TABLE equipment_sets '
         'ADD COLUMN auto_apply_on_computer_import INTEGER NOT NULL '
         'DEFAULT 0',
+      );
+    }
+  }
+
+  /// v222: diver_settings.seascape_vertical_exaggeration_overrides (issue
+  /// #2141 follow-up). Additive column, default null, so a diver with no
+  /// per-site overrides keeps today's fully-automatic behavior. Idempotent,
+  /// so it is safe to call from both onUpgrade and the beforeOpen backstop.
+  Future<void> _assertSeascapeVerticalExaggerationOverridesColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('seascape_vertical_exaggeration_overrides')) {
+      await customStatement(
+        'ALTER TABLE diver_settings '
+        'ADD COLUMN seascape_vertical_exaggeration_overrides TEXT',
       );
     }
   }
@@ -12423,6 +12458,15 @@ class AppDatabase extends _$AppDatabase {
           await _assertDiveCenterGearNotesSchema();
         }
         if (from < 221) await reportProgress();
+        // v222: diver_settings.seascape_vertical_exaggeration_overrides
+        // (issue #2141 follow-up). Column-only rung, no backfill: null
+        // reads back as fully automatic for every site.
+        if (from < 222) {
+          await _assertSeascapeVerticalExaggerationOverridesColumn();
+        }
+        if (from < 222) await reportProgress();
+        // v223: the two media fact clocks, backfilled from the row clock so
+        // an existing row starts with a clock on every group.
         if (from < 223) {
           await _assertMediaFactClockColumns();
           await _backfillMediaFactClocks();
@@ -12430,6 +12474,9 @@ class AppDatabase extends _$AppDatabase {
         if (from < 223) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v222 backstop: the per-site vertical exaggeration overrides.
+        await _assertSeascapeVerticalExaggerationOverridesColumn();
+
         // v220 backstop: the computer-set auto-apply opt-in column.
         await _assertEquipmentSetComputerAutoApplyColumn();
 

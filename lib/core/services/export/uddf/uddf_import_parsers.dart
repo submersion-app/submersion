@@ -654,6 +654,41 @@ class UddfImportParsers {
     _ => null,
   };
 
+  /// Every `<sitefeature>` inside a `<site>` (issue #2200), as the maps the
+  /// importer restores. Carried on the site map for the same reason the
+  /// classification refs are: the import wizard keeps only entity lists.
+  ///
+  /// `type` stays the raw stored name so a feature type written by a newer
+  /// build round-trips through an older one unchanged. A feature without
+  /// usable coordinates or a type is dropped rather than restored at 0,0.
+  static List<Map<String, dynamic>> parseSiteFeatures(XmlElement siteElement) {
+    final features = <Map<String, dynamic>>[];
+    for (final element
+        in siteElement
+            .findElements('sitefeatures')
+            .expand((s) => s.findElements('sitefeature'))) {
+      final typeName = getElementText(element, 'type')?.trim();
+      if (typeName == null || typeName.isEmpty) continue;
+      final geography = element.findElements('geography').firstOrNull;
+      if (geography == null) continue;
+      final latitude = parseUddfDouble(getElementText(geography, 'latitude'));
+      final longitude = parseUddfDouble(getElementText(geography, 'longitude'));
+      if (latitude == null || longitude == null) continue;
+      features.add(
+        <String, dynamic>{
+          'typeName': typeName,
+          'name': getElementText(element, 'name') ?? '',
+          'latitude': latitude,
+          'longitude': longitude,
+          'bearingDeg': parseUddfDouble(getElementText(element, 'bearing')),
+          'depthMeters': parseUddfDouble(getElementText(element, 'depth')),
+          'notes': getElementText(element, 'notes') ?? '',
+        }..removeWhere((_, value) => value == null),
+      );
+    }
+    return features;
+  }
+
   /// The `<tagref>` values of [parent]'s own `<tags>` child (issues #1765,
   /// #1942). `findElements` matches direct children only, so a check-in's
   /// `<tags>` inside an item's `<observations>` is never read as the item's.
@@ -930,6 +965,10 @@ class UddfImportParsers {
     if (typeRefs.isNotEmpty) site['siteTypeRefs'] = typeRefs;
     final tagRefs = _tagRefsOf(siteElement);
     if (tagRefs.isNotEmpty) site['tagRefs'] = tagRefs;
+
+    // Site features (issue #2200), on the site map for the same reason.
+    final siteFeatures = parseSiteFeatures(siteElement);
+    if (siteFeatures.isNotEmpty) site['siteFeatures'] = siteFeatures;
 
     return site;
   }

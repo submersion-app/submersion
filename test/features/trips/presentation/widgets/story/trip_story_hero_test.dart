@@ -26,6 +26,14 @@ class _FakeItineraryRepo extends ItineraryDayRepository {
 
 DateTime _dayOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 
+/// [days] calendar days from [day], which is not the same as adding a
+/// `Duration`. A `Duration` is elapsed time, so a window that crosses a
+/// daylight-saving change lands an hour short and loses a whole calendar day:
+/// from 2026-09-20, `add(Duration(days: 43))` gives 2026-11-01 23:00, not
+/// 2026-11-02, and a four-day trip becomes a three-day one.
+DateTime _daysFrom(DateTime day, int days) =>
+    DateTime(day.year, day.month, day.day + days);
+
 Trip _trip({
   required DateTime start,
   required DateTime end,
@@ -101,8 +109,8 @@ void main() {
   ) async {
     final today = _dayOnly(DateTime.now());
     final trip = _trip(
-      start: today.add(const Duration(days: 40)),
-      end: today.add(const Duration(days: 47)),
+      start: _daysFrom(today, 40),
+      end: _daysFrom(today, 47),
       tripType: TripType.liveaboard,
     );
     final story = _story(
@@ -125,10 +133,7 @@ void main() {
     // generateForTrip emits embark/disembark days and only the liveaboard
     // layout has an itinerary editor, so a shore trip must not expose the CTA.
     final today = _dayOnly(DateTime.now());
-    final trip = _trip(
-      start: today.add(const Duration(days: 40)),
-      end: today.add(const Duration(days: 47)),
-    );
+    final trip = _trip(start: _daysFrom(today, 40), end: _daysFrom(today, 47));
     await pumpHero(tester, _story(trip));
 
     expect(find.textContaining('until departure'), findsOneWidget);
@@ -140,10 +145,7 @@ void main() {
     // straddle midnight and shift the day-of-trip count.
     final now = DateTime.now();
     final today = _dayOnly(now);
-    final trip = _trip(
-      start: today.subtract(const Duration(days: 1)),
-      end: today.add(const Duration(days: 2)),
-    );
+    final trip = _trip(start: _daysFrom(today, -1), end: _daysFrom(today, 2));
     final story = _story(trip, today: now);
     await pumpHero(tester, story);
 
@@ -154,10 +156,7 @@ void main() {
     tester,
   ) async {
     final today = _dayOnly(DateTime.now());
-    final trip = _trip(
-      start: today.subtract(const Duration(days: 10)),
-      end: today.subtract(const Duration(days: 7)),
-    );
+    final trip = _trip(start: _daysFrom(today, -10), end: _daysFrom(today, -7));
     final story = _story(trip);
     var scanned = false;
     await pumpHero(tester, story, onScan: () => scanned = true);
@@ -173,8 +172,8 @@ void main() {
     final now = DateTime.now();
     final today = _dayOnly(now);
     final trip = _trip(
-      start: today.add(const Duration(days: 40)),
-      end: today.add(const Duration(days: 43)),
+      start: _daysFrom(today, 40),
+      end: _daysFrom(today, 43),
       tripType: TripType.liveaboard,
     );
     final story = _story(trip, today: now);

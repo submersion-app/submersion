@@ -1,7 +1,6 @@
-import 'package:drift/drift.dart';
-
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/divers/data/repositories/diver_delete_steps.dart';
 
 /// A table whose rows are deleted and tombstoned together with their parent,
 /// linked to it by [parentColumn].
@@ -116,45 +115,6 @@ const List<_OwnedTable> _ownedTables = [
   ),
 ];
 
-Future<List<String>> _idsOf(
-  AppDatabase db,
-  String sql,
-  List<String> args,
-) async {
-  final rows = await db
-      .customSelect(
-        sql,
-        variables: [for (final a in args) Variable.withString(a)],
-      )
-      .get();
-  return [for (final r in rows) r.read<String>('id')];
-}
-
-/// Deletes the [child] rows whose parent is one of [parentIds] (a query
-/// taking [diverId] as its only argument), logging a deletion for each.
-Future<void> _deleteChildren(
-  AppDatabase db,
-  SyncRepository syncRepository,
-  _ChildTable child,
-  String parentIds,
-  String diverId,
-) async {
-  final where = '${child.parentColumn} IN ($parentIds)';
-  final ids = await _idsOf(db, 'SELECT id FROM ${child.table} WHERE $where', [
-    diverId,
-  ]);
-  if (ids.isEmpty) return;
-  await db.customStatement('DELETE FROM ${child.table} WHERE $where', [
-    diverId,
-  ]);
-  for (final id in ids) {
-    await syncRepository.logDeletion(
-      entityType: child.entityType,
-      recordId: id,
-    );
-  }
-}
-
 /// Deletes [diverId]'s rows of every table in [_ownedTables], with their
 /// children, logging a deletion for each row. Run it inside the caller's
 /// transaction.
@@ -171,93 +131,18 @@ Future<void> deleteDiverOwnedRows(
 ) async {
   for (final owned in _ownedTables) {
     final ownedWhere = owned.hasBuiltIns
-        ? 'diver_id = ? AND is_built_in = 0'
-        : 'diver_id = ?';
+        ? 'diver_id = ?1 AND is_built_in = 0'
+        : 'diver_id = ?1';
     final ownedIds = 'SELECT id FROM ${owned.table} WHERE $ownedWhere';
-    for (final child in owned.children) {
-      await _deleteChildren(db, syncRepository, child, ownedIds, diverId);
-    }
-    final ids = await _idsOf(db, ownedIds, [diverId]);
-    if (ids.isEmpty) continue;
-    await db.customStatement('DELETE FROM ${owned.table} WHERE $ownedWhere', [
-      diverId,
+    await deleteDiverRows(db, syncRepository, diverId, [
+      for (final child in owned.children)
+        (
+          table: child.table,
+          entityType: child.entityType,
+          where: '${child.parentColumn} IN ($ownedIds)',
+        ),
+      (table: owned.table, entityType: owned.entityType, where: ownedWhere),
     ]);
-    for (final id in ids) {
-      await syncRepository.logDeletion(
-        entityType: owned.entityType,
-        recordId: id,
-      );
-    }
-  }
-}
-
-/// Trip children whose `trip_id` has no ON DELETE action. The diver deletion
-/// removes liveaboard details and itinerary days itself; these two are
-/// deleted and tombstoned the way `TripRepository.deleteTrip` does.
-const List<_ChildTable> _tripChildren = [
-  (
-    table: 'trip_checklist_items',
-    entityType: 'tripChecklistItems',
-    parentColumn: 'trip_id',
-  ),
-  (
-    table: 'trip_day_weather',
-    entityType: 'tripDayWeather',
-    parentColumn: 'trip_id',
-  ),
-];
-
-/// Deletes the checklist items and weather days of [diverId]'s trips,
-/// logging a deletion for each. Run it inside the caller's transaction,
-/// after shared trips have moved to a surviving diver (theirs stay with
-/// them) and before the diver's trips are deleted, which these rows would
-/// otherwise block.
-Future<void> deleteDiverTripChildren(
-  AppDatabase db,
-  SyncRepository syncRepository,
-  String diverId,
-) async {
-  for (final child in _tripChildren) {
-    await _deleteChildren(
-      db,
-      syncRepository,
-      child,
-      'SELECT id FROM trips WHERE diver_id = ?',
-      diverId,
-    );
-  }
-}
-
-/// Clears the dive center of other divers' dives logged at one of
-/// [diverId]'s centers, stamping and marking each dive so the change reaches
-/// peers. Run it inside the caller's transaction, after the diver's own
-/// dives are deleted (so every dive still pointing at a center survives) and
-/// before the centers are deleted.
-///
-/// `dives.dive_center_id` has no ON DELETE action, so such a dive would
-/// otherwise fail the deletion of the center and roll the whole diver
-/// deletion back.
-Future<void> clearDiveLinksToDiverCenters(
-  AppDatabase db,
-  SyncRepository syncRepository,
-  String diverId, {
-  required int now,
-}) async {
-  const where =
-      'dive_center_id IN (SELECT id FROM dive_centers WHERE diver_id = ?)';
-  // stats-scope-exempt: deletion cascade cleanup.
-  final ids = await _idsOf(db, 'SELECT id FROM dives WHERE $where', [diverId]);
-  if (ids.isEmpty) return;
-  await db.customStatement(
-    'UPDATE dives SET dive_center_id = NULL, updated_at = ? WHERE $where',
-    [now, diverId],
-  );
-  for (final id in ids) {
-    await syncRepository.markRecordPending(
-      entityType: 'dives',
-      recordId: id,
-      localUpdatedAt: now,
-    );
   }
 }
 
@@ -280,7 +165,7 @@ Future<void> retireDiverServiceKinds(
   const owned = 'diver_id = ? AND is_built_in = 0';
   const inUse =
       '$owned AND id IN (SELECT service_kind_id FROM service_schedules)';
-  final keptIds = await _idsOf(
+  final keptIds = await diverRowIds(
     db,
     'SELECT id FROM service_kinds WHERE $inUse',
     [diverId],
@@ -299,7 +184,7 @@ Future<void> retireDiverServiceKinds(
     }
   }
   // No schedule references what is left, so the cascade takes nothing.
-  final deletedIds = await _idsOf(
+  final deletedIds = await diverRowIds(
     db,
     'SELECT id FROM service_kinds WHERE $owned',
     [diverId],

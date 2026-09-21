@@ -257,6 +257,12 @@ dart run build_runner build --delete-conflicting-outputs
 flutter run -d macos    # or: windows, linux, ios, android
 ```
 
+> **Building on macOS without an Apple Developer account?** `flutter run -d macos`
+> builds the Debug configuration, which is pinned to the maintainer's signing
+> team and will fail with `No profiles for 'app.submersion' were found`. See
+> [running a debug build without an Apple Developer account](#running-a-debug-build-without-an-apple-developer-account)
+> below. Linux, Windows, Android and the iOS Simulator need no signing setup.
+
 ## Building from Source
 
 <details>
@@ -280,6 +286,102 @@ flutter build linux
 ```
 
 </details>
+
+### Running a debug build without an Apple Developer account
+
+`flutter run -d macos` builds the Debug configuration. On macOS that
+configuration pins `CODE_SIGN_IDENTITY` to `Apple Development` against the
+maintainer's Apple Developer team, so without access to that team Xcode cannot
+issue a provisioning profile and the build stops with:
+
+```
+error: No profiles for 'app.submersion' were found: Xcode couldn't find any
+Mac App Development provisioning profiles matching 'app.submersion'.
+```
+
+Substituting your own team is not sufficient: `macos/Runner/DebugProfile.entitlements`
+requests an iCloud container, push notifications, an app group and a keychain
+access group, all of which are tied to the maintainer's account, and the
+`app.submersion` App ID is already registered and cannot be claimed by another
+team.
+
+Sign the debug build ad-hoc instead. This requires no Apple account. Make both
+of the following local edits.
+
+**1. Sign the Debug configuration ad-hoc.** In Xcode, open
+`macos/Runner.xcodeproj`, select the **Runner** target, go to
+**Signing & Capabilities > Debug**, uncheck **Automatically manage signing**
+and set **Team** to **None**. To edit
+`macos/Runner.xcodeproj/project.pbxproj` by hand instead, find the Runner
+target's Debug configuration (the block containing
+`CODE_SIGN_ENTITLEMENTS = Runner/DebugProfile.entitlements;` that ends with
+`name = Debug;`) and change three settings:
+
+```diff
+-				CODE_SIGN_IDENTITY = "Apple Development";
++				CODE_SIGN_IDENTITY = "-";
+-				CODE_SIGN_STYLE = Automatic;
++				CODE_SIGN_STYLE = Manual;
+-				DEVELOPMENT_TEAM = 8U3RSKF42Q;
++				DEVELOPMENT_TEAM = "";
+```
+
+**2. Remove the account-bound entitlements.** Replace
+`macos/Runner/DebugProfile.entitlements` with the sandbox permissions that do
+not depend on a developer account:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>com.apple.security.app-sandbox</key>
+	<true/>
+	<key>com.apple.security.cs.allow-jit</key>
+	<true/>
+	<key>com.apple.security.device.bluetooth</key>
+	<true/>
+	<key>com.apple.security.device.serial</key>
+	<true/>
+	<key>com.apple.security.device.usb</key>
+	<true/>
+	<key>com.apple.security.files.user-selected.read-write</key>
+	<true/>
+	<key>com.apple.security.network.client</key>
+	<true/>
+	<key>com.apple.security.network.server</key>
+	<true/>
+	<key>com.apple.security.personal-information.location</key>
+	<true/>
+	<key>com.apple.security.personal-information.photos-library</key>
+	<true/>
+</dict>
+</plist>
+```
+
+`flutter run -d macos` then builds and runs with hot reload. iCloud sync, push
+notifications and Google Sign-In are unavailable in this build; dive logging,
+the database, dive computer downloads over Bluetooth and USB, and file
+import and export all work.
+
+> **Keep these edits out of your pull requests.** Both files are tracked. Do not
+> stage them, and restore them before you push:
+>
+> ```bash
+> git restore macos/Runner.xcodeproj/project.pbxproj macos/Runner/DebugProfile.entitlements
+> ```
+
+Other platforms need no signing setup. Linux, Windows and Android build from a
+clean checkout as-is, and so does the **iOS Simulator**: the iOS Debug
+configuration does not pin a signing identity, so the simulator SDK signs
+ad-hoc and never consults a developer account. `flutter run -d ios` against a
+simulator works without any of the edits above. Building for a physical iPhone
+does need the maintainer's team and is not currently possible for outside
+contributors.
+
+For a *release* build without a certificate, no edits are needed. Use the
+no-sandbox script described under "macOS: building without a developer
+certificate" below.
 
 <details>
 <summary><b>macOS: building without a developer certificate</b></summary>

@@ -149,10 +149,13 @@ void main() {
 
       final expected = formatMoney(120, 'EUR');
       await scrollTo(tester, find.text(expected));
-      // Both the record row and the (now correctly non-empty) total row show
-      // the same formatted amount.
-      expect(find.text(expected), findsNWidgets(2));
+      // Only the record row shows the fully formatted amount; the total
+      // row's currency is already stated in its label, so its own amount is
+      // plain (see formatAmountOnly) rather than repeating it.
+      expect(find.text(expected), findsOneWidget);
       expect(expected, contains('€'));
+      expect(find.text('Total Service Cost (EUR)'), findsOneWidget);
+      expect(find.text(formatAmountOnly(120, 'EUR')), findsOneWidget);
     });
 
     testWidgets('total cost is split per currency, never added together', (
@@ -189,8 +192,12 @@ void main() {
         defaultCurrency: 'GBP',
       );
 
-      await scrollTo(tester, find.text(formatMoney(40, 'GBP')));
-      expect(find.text(formatMoney(40, 'GBP')), findsOneWidget);
+      await scrollTo(tester, find.text('Total Service Cost (GBP)'));
+      expect(find.text('Total Service Cost (GBP)'), findsOneWidget);
+      // The record's own row has a blank stored currency, so formatMoney
+      // prints it with no symbol too - coincidentally the same plain "40.00"
+      // as the total row's amount, hence two matches rather than one.
+      expect(find.text(formatAmountOnly(40, 'GBP')), findsNWidgets(2));
     });
 
     testWidgets('records without a cost produce no total row', (tester) async {

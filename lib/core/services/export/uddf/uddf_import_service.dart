@@ -197,6 +197,12 @@ class UddfImportService {
     }
     site['description'] = _getElementText(siteElement, 'notes');
 
+    // Site features (issue #2200). Parsed here as well as in the full
+    // importer because the dives-only export writes them: a field one
+    // exporter writes is read by its paired importer.
+    final siteFeatures = UddfImportParsers.parseSiteFeatures(siteElement);
+    if (siteFeatures.isNotEmpty) site['siteFeatures'] = siteFeatures;
+
     return site;
   }
 

@@ -333,4 +333,99 @@ void main() {
         '${q.lat.toStringAsFixed(2)},${q.lon.toStringAsFixed(2)}@8000';
     expect(BathymetryRepository.keyFor(p), isNot(legacyKey));
   });
+
+  group('BathymetryRepository.averageCachedGridBytes', () {
+    test('returns null when there are no ok rows to average from', () async {
+      final r = repo(ScriptedSource(() => const BathymetryResolution.empty()));
+      await r.getGrid(bonaire); // caches an 'empty' row, not 'ok'
+      expect(await r.averageCachedGridBytes(), isNull);
+    });
+
+    test('averages the JSON byte size of every ok row', () async {
+      final r = repo(ScriptedSource(() => BathymetryResolution.ok(wetGrid())));
+      await r.getGrid(bonaire);
+      final avg = await r.averageCachedGridBytes();
+      expect(avg, isNotNull);
+      expect(avg, greaterThan(0));
+    });
+  });
+
+  group('BathymetryRepository.clearBySource', () {
+    test('deletes only rows attributed to the given source', () async {
+      final swissSite = repo(
+        ScriptedSource(() {
+          final g = wetGrid();
+          return BathymetryResolution.ok(
+            BathymetryGrid(
+              originLat: g.originLat,
+              originLon: g.originLon,
+              cellSizeLatDeg: g.cellSizeLatDeg,
+              cellSizeLonDeg: g.cellSizeLonDeg,
+              rows: g.rows,
+              cols: g.cols,
+              depthsMeters: g.depthsMeters,
+              sourceId: 'swissbathy3d',
+              resolutionMeters: g.resolutionMeters,
+              fetchedAt: g.fetchedAt,
+            ),
+          );
+        }),
+      );
+      final otherSite = repo(
+        ScriptedSource(() => BathymetryResolution.ok(wetGrid())),
+      );
+
+      await swissSite.getGrid(betlis);
+      await otherSite.getGrid(bonaire);
+
+      await swissSite.clearBySource('swissbathy3d');
+
+      expect(await swissSite.hasCachedAnswer(betlis), isFalse);
+      expect(await otherSite.hasCachedAnswer(bonaire), isTrue);
+    });
+  });
+
+  group('BathymetryRepository.clearAllExceptSource', () {
+    test('deletes rows from other sources and rows with no sourceId at all, '
+        'leaving only rows attributed to the given source', () async {
+      final swissRepo = repo(
+        ScriptedSource(() {
+          final g = wetGrid();
+          return BathymetryResolution.ok(
+            BathymetryGrid(
+              originLat: g.originLat,
+              originLon: g.originLon,
+              cellSizeLatDeg: g.cellSizeLatDeg,
+              cellSizeLonDeg: g.cellSizeLonDeg,
+              rows: g.rows,
+              cols: g.cols,
+              depthsMeters: g.depthsMeters,
+              sourceId: 'swissbathy3d',
+              resolutionMeters: g.resolutionMeters,
+              fetchedAt: g.fetchedAt,
+            ),
+          );
+        }),
+      );
+      final otherRepo = repo(
+        ScriptedSource(() => BathymetryResolution.ok(wetGrid())),
+      );
+      // A definitive "no water here" negative: a global source found dry
+      // land, so the row is cached with no sourceId at all (see _load()'s
+      // 'empty' branch).
+      final dryRepo = repo(
+        ScriptedSource(() => const BathymetryResolution.empty()),
+      );
+
+      await swissRepo.getGrid(betlis);
+      await otherRepo.getGrid(bonaire);
+      await dryRepo.getGrid(murgWest);
+
+      await swissRepo.clearAllExceptSource('swissbathy3d');
+
+      expect(await swissRepo.hasCachedAnswer(betlis), isTrue);
+      expect(await otherRepo.hasCachedAnswer(bonaire), isFalse);
+      expect(await dryRepo.hasCachedAnswer(murgWest), isFalse);
+    });
+  });
 }

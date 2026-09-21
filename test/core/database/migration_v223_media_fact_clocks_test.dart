@@ -66,7 +66,8 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 223);
     expect(AppDatabase.migrationVersions, contains(223));
-    expect(AppDatabase.migrationStepCount(221), 1);
+    // One step above v222, which landed on main while this was in review.
+    expect(AppDatabase.migrationStepCount(222), 1);
     // This rung RAISES the floor: the columns are additive, but the
     // semantics are not. A pre-v223 reader knows nothing of the fact clocks
     // and blind-upserts media, so a fact-only export from this build would

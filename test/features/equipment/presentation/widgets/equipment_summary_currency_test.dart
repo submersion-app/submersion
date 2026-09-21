@@ -125,7 +125,7 @@ void main() {
     final glyph = tester.widget<Icon>(
       find.descendant(of: tile, matching: find.byIcon(Icons.build)),
     );
-    expect(glyph.color, swatch.container);
+    expect(glyph.color, swatch.onAccent);
   }
 
   testWidgets('an overdue item paints the service-due section as alert', (

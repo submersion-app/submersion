@@ -64,6 +64,13 @@ void main() {
         repository.logDeletion(entityType: 'dives', recordId: 'test-id'),
         throwsA(anything),
       );
+      // The batched form rethrows too: the diver deletion runs it inside its
+      // transaction and counts on a failure rolling the rows back with it,
+      // rather than deleting them with no tombstone.
+      await expectLater(
+        repository.logDeletions(entityType: 'dives', recordIds: ['test-id']),
+        throwsA(anything),
+      );
       await expectLater(
         repository.getDeletionsSince(DateTime.now()),
         throwsA(anything),

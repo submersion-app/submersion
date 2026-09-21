@@ -12,7 +12,6 @@ void main() {
   group('SiteDetailSectionId', () {
     test('declares the order the site page shipped with', () {
       expect(SiteDetailSectionId.values, const [
-        SiteDetailSectionId.map,
         SiteDetailSectionId.diveStatistics,
         SiteDetailSectionId.description,
         SiteDetailSectionId.location,
@@ -40,7 +39,6 @@ void main() {
             id: id.localizedDisplayName(l10n),
         },
         const {
-          SiteDetailSectionId.map: 'Map',
           SiteDetailSectionId.diveStatistics: 'Dives at this Site',
           SiteDetailSectionId.description: 'Description',
           SiteDetailSectionId.location: 'Location',
@@ -111,7 +109,7 @@ void main() {
           SiteDetailSectionConfig(
             id: id,
             visible: id != SiteDetailSectionId.notes,
-            expanded: id == SiteDetailSectionId.map,
+            expanded: id == SiteDetailSectionId.depth,
           ),
       ];
       final back = SiteDetailSectionConfig.sectionsFromJson(
@@ -149,6 +147,30 @@ void main() {
       );
     });
 
+    test('settings saved while Map was a card still read back', () {
+      // Map was the first card before it became the pinned header's map.
+      // A diver's stored order still names it, and nothing rewrites that
+      // row, so the read has to drop it and keep the rest of the order.
+      final result = SiteDetailSectionConfig.sectionsFromJson(
+        '[{"id":"map","visible":false},'
+        '{"id":"notes","visible":false},'
+        '{"id":"description","visible":true}]',
+      );
+
+      // The saved cards keep their order and their visibility; the entry no
+      // card answers to is simply dropped, and the rest are filled in.
+      final ids = _ids(result);
+      expect(
+        ids.indexOf(SiteDetailSectionId.notes),
+        lessThan(ids.indexOf(SiteDetailSectionId.description)),
+      );
+      expect(
+        result.firstWhere((s) => s.id == SiteDetailSectionId.notes).visible,
+        isFalse,
+      );
+      expect(result.length, SiteDetailSectionId.values.length);
+    });
+
     test('a card missing from a saved order lands after its neighbour', () {
       // A saved order without Altitude, which belongs right after Depth.
       final saved = [
@@ -181,7 +203,7 @@ void main() {
           0,
         ),
       );
-      expect(ids.first, SiteDetailSectionId.map);
+      expect(ids.first, SiteDetailSectionId.diveStatistics);
       expect(
         ids.indexOf(SiteDetailSectionId.notes),
         ids.indexOf(SiteDetailSectionId.description) - 1,

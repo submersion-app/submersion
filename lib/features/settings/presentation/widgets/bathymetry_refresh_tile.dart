@@ -9,15 +9,23 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// swissBATHY3D tile via the same light STAC metadata check the periodic
 /// 30-day check performs, instead of waiting for it to elapse.
 ///
-/// Shared between [AppearancePage] and settings_page.dart's
-/// `_AppearanceSectionContent`, which are both real, user-reachable paths to
-/// the appearance settings (see settingsSectionDedicatedRoutes and the
-/// desktop master-detail layout) -- previously each carried its own copy of
-/// this logic, which could drift out of sync.
+/// Lives on the "3D Maps" settings page, alongside the swissBATHY3D/other
+/// providers' delete actions -- [onBusyChanged], if given, lets that page
+/// gate its OTHER three actions while this one is running, matching the
+/// page's "only one action at a time" rule.
 class BathymetryRefreshTile extends ConsumerStatefulWidget {
   final Widget leading;
 
-  const BathymetryRefreshTile({super.key, required this.leading});
+  /// Called with `true` when a refresh starts and `false` once it ends, so
+  /// a parent page can disable its other actions for the duration. Optional:
+  /// this tile still tracks and shows its own spinner either way.
+  final ValueChanged<bool>? onBusyChanged;
+
+  const BathymetryRefreshTile({
+    super.key,
+    required this.leading,
+    this.onBusyChanged,
+  });
 
   @override
   ConsumerState<BathymetryRefreshTile> createState() =>
@@ -29,6 +37,7 @@ class _BathymetryRefreshTileState extends ConsumerState<BathymetryRefreshTile> {
 
   Future<void> _refresh() async {
     setState(() => _isRefreshing = true);
+    widget.onBusyChanged?.call(true);
     final refresh = ref.read(swissBathyManualRefreshProvider);
     SwissBathyRefreshSummary? summary;
     try {
@@ -36,7 +45,16 @@ class _BathymetryRefreshTileState extends ConsumerState<BathymetryRefreshTile> {
     } catch (_) {
       summary = null;
     } finally {
-      if (mounted) setState(() => _isRefreshing = false);
+      // Both guarded by the same `mounted` check: widget.onBusyChanged is
+      // wired by the parent to its own setState (three_d_maps_page.dart), so
+      // calling it after this tile (and so its ancestor) is disposed --
+      // e.g. the diver navigated away while the refresh was still in
+      // flight -- would throw "setState() called after dispose()" on the
+      // parent, not just this widget (found by code review).
+      if (mounted) {
+        setState(() => _isRefreshing = false);
+        widget.onBusyChanged?.call(false);
+      }
     }
     if (!mounted) return;
 

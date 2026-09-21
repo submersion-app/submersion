@@ -61,6 +61,11 @@ enum ImportNoticeKind {
   /// [ImportNotice.names] lists the logbooks.
   macdiveLogbooksNotImported,
 
+  /// Dives that pointed at a dive site the source file never described, so
+  /// they were imported with no site. [ImportNotice.count] is the number of
+  /// imported dives affected.
+  sitesUnresolved,
+
   /// With "Retain source dive numbers" on, an imported dive kept a number
   /// that another dive in the log already uses. The number is kept as the
   /// diver asked rather than silently changed, so the diver is told instead
@@ -83,6 +88,7 @@ enum ImportNoticeKind {
     profileUndecodableOnPlatform ||
     noTankPressure ||
     unknownTransmitter ||
+    sitesUnresolved ||
     diveNumberConflict => true,
     divesSkipped ||
     unreadableDates ||

@@ -9,6 +9,13 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_classification_repository.dart';
+import 'package:submersion/features/dive_sites/data/repositories/site_feature_repository.dart';
+import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart';
+import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
+import 'package:submersion/features/tags/domain/entities/tag.dart'
+    as tag_entity;
+import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -47,6 +54,13 @@ void main() {
           ],
         ),
         equipmentComponentRepositoryProvider.overrideWithValue(_NoComponents()),
+        // The sites CSV now reads each site's features (issue #2200),
+        // and this container has no database behind it.
+        siteFeatureRepositoryProvider.overrideWithValue(_NoSiteFeatures()),
+        // It reads each site's type and tag names too (issue #2201).
+        siteClassificationRepositoryProvider.overrideWithValue(
+          _NoSiteClassification(),
+        ),
         equipmentTagRepositoryProvider.overrideWithValue(_OneTag()),
         settingsProvider.overrideWith((ref) => _ImperialSettings()),
         exportServiceProvider.overrideWithValue(export),
@@ -161,6 +175,9 @@ class _FakeExportService implements ExportService {
   Future<String> exportSitesToCsv(
     List<DiveSite> sites, {
     CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, List<SiteFeature>> featuresBySite = const {},
+    Map<String, List<String>> typeNamesBySite = const {},
+    Map<String, List<String>> tagNamesBySite = const {},
   }) async {
     this.units = units;
     return '/tmp/s.csv';
@@ -171,6 +188,9 @@ class _FakeExportService implements ExportService {
     List<DiveSite> sites, {
     required String dialogTitle,
     CsvExportUnits units = CsvExportUnits.metric,
+    Map<String, List<SiteFeature>> featuresBySite = const {},
+    Map<String, List<String>> typeNamesBySite = const {},
+    Map<String, List<String>> tagNamesBySite = const {},
   }) async {
     this.units = units;
     return '/tmp/s.csv';
@@ -208,6 +228,22 @@ class _FakeExportService implements ExportService {
 class _NoComponents extends Fake implements EquipmentComponentRepository {
   @override
   Future<List<EquipmentComponent>> getAllComponents() async => const [];
+}
+
+class _NoSiteClassification extends Fake
+    implements SiteClassificationRepository {
+  @override
+  Future<Map<String, List<SiteTypeEntity>>> getTypesBySite() async => const {};
+
+  @override
+  Future<Map<String, List<tag_entity.Tag>>> getTagsBySite() async => const {};
+}
+
+class _NoSiteFeatures extends Fake implements SiteFeatureRepository {
+  @override
+  Future<Map<String, List<SiteFeature>>> getFeaturesForSites(
+    List<String> siteIds,
+  ) async => const {};
 }
 
 class _ImperialSettings extends StateNotifier<AppSettings>
