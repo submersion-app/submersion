@@ -9,6 +9,7 @@ import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/log_file_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media/presentation/providers/media_health_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/debug_log_viewer_page.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
@@ -41,6 +42,7 @@ void main() {
     return ProviderScope(
       overrides: [
         logFileServiceProvider.overrideWithValue(service),
+        mediaReportBuilderProvider.overrideWithValue(() async => null),
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
       child: const MaterialApp(
@@ -99,6 +101,7 @@ void main() {
         ProviderScope(
           overrides: [
             logFileServiceProvider.overrideWithValue(service),
+            mediaReportBuilderProvider.overrideWithValue(() async => null),
             sharedPreferencesProvider.overrideWithValue(prefs),
             filteredLogEntriesProvider.overrideWithValue(
               const AsyncValue.loading(),
@@ -140,6 +143,7 @@ void main() {
         ProviderScope(
           overrides: [
             logFileServiceProvider.overrideWithValue(service),
+            mediaReportBuilderProvider.overrideWithValue(() async => null),
             sharedPreferencesProvider.overrideWithValue(prefs),
             logEntriesProvider.overrideWith((ref) async => entries),
           ],
@@ -219,6 +223,7 @@ void main() {
         ProviderScope(
           overrides: [
             logFileServiceProvider.overrideWithValue(service),
+            mediaReportBuilderProvider.overrideWithValue(() async => null),
             sharedPreferencesProvider.overrideWithValue(prefs),
             logEntriesProvider.overrideWith(
               (ref) async => cleared ? <LogEntry>[] : entries,
@@ -313,6 +318,7 @@ void main() {
         ProviderScope(
           overrides: [
             logFileServiceProvider.overrideWithValue(service),
+            mediaReportBuilderProvider.overrideWithValue(() async => null),
             sharedPreferencesProvider.overrideWithValue(prefs),
             filteredLogEntriesProvider.overrideWithValue(
               AsyncValue.error('Test error', StackTrace.current),
@@ -384,6 +390,7 @@ void main() {
         ProviderScope(
           overrides: [
             logFileServiceProvider.overrideWithValue(service),
+            mediaReportBuilderProvider.overrideWithValue(() async => null),
             sharedPreferencesProvider.overrideWithValue(prefs),
             logEntriesProvider.overrideWith((ref) async => entries),
           ],

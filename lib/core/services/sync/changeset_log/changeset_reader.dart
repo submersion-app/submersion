@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/crypto/crypto_errors.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_part_file_sink.dart';
@@ -112,6 +113,7 @@ class ChangesetReader {
     int localSchemaVersion = AppDatabase.currentSchemaVersion,
     List<CloudFileInfo>? preListedFiles,
     BaseDownloadProgress? onBaseDownloadProgress,
+    PeerDeviceNameStore? peerNames,
   }) async {
     final providerId = provider.providerId;
     // [preListedFiles] lets the caller reuse a listing it just made (the
@@ -171,6 +173,19 @@ class ChangesetReader {
         final manifestName = manifest.deviceName;
         if (manifestName != null && manifestName.isNotEmpty) {
           peerName = manifestName;
+        }
+        // Recorded unconditionally: the manifest read succeeded, so a
+        // missing name is the peer's current state and must clear any name
+        // it published before, not leave a stale label behind.
+        //
+        // Guarded on its own: a name is optional metadata, and a failed
+        // preferences write is not a failed peer read. Left to the catch
+        // below it would mark this peer read-failed and cost its changesets
+        // for the whole cycle.
+        try {
+          await peerNames?.record(peerId, manifestName);
+        } catch (e) {
+          _log.warning('Could not record the name for peer $peerId', error: e);
         }
 
         // Stale-epoch filter: once this device is on a library epoch, a peer

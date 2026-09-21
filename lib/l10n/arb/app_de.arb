@@ -3824,6 +3824,7 @@
   "enum_logCategory_serial": "Seriell",
   "enum_logCategory_libdc": "libdc",
   "enum_logCategory_database": "Datenbank",
+  "enum_logCategory_media": "Medien",
   "enum_visibility_excellent": "Ausgezeichnet (>30m / >100ft)",
   "enum_visibility_good": "Gut (15-30m / 50-100ft)",
   "enum_visibility_moderate": "Mäßig (5-15m / 15-50ft)",
@@ -7852,6 +7853,10 @@
   "settings_mediaStorage_transfers_suspended_subtitle": "Dieses Gerät und der Cloud-Speicher sind sich nicht mehr einig, welcher Speicher verwendet wird. Beim erneuten Verbinden wird der Speicher übernommen, den die Cloud jetzt enthält.",
   "settings_mediaStorage_transfers_queued": "{count} in Warteschlange",
   "settings_mediaStorage_transfers_waitingRetry": "{count} warten auf Wiederholung",
+  "settings_mediaStorage_report_action": "Medienbericht exportieren",
+  "settings_mediaStorage_report_done": "Medienbericht exportiert",
+  "settings_mediaStorage_report_note": "Der Bericht enthält Dateipfade und Gerätenamen. Es wird nichts gesendet.",
+  "settings_mediaStorage_report_running": "Medienbericht wird erstellt...",
   "settings_mediaStorage_verify_action": "Bibliothek überprüfen",
   "settings_mediaStorage_verify_running": "Medienbibliothek wird überprüft...",
   "settings_mediaStorage_verify_summary": "{checked} Cloud-Objekte geprüft ({originals, plural, =1{1 Original} other{{originals} Originale}}, {thumbs, plural, =1{1 Miniaturansicht} other{{thumbs} Miniaturansichten}}, {renditions, plural, =1{1 komprimierte Version} other{{renditions} komprimierte Versionen}}): {removed} verwaiste entfernt, {repaired} Reparaturen eingereiht, {aborted} veraltete Uploads abgebrochen",
@@ -8043,6 +8048,27 @@
   "@dive3d_seascape_seafloorSource": {},
   "dive3d_seascape_noCoordinates": "Dieser Tauchplatz hat keine GPS-Koordinaten",
   "@dive3d_seascape_noCoordinates": {},
+  "dive3d_seascape_detailLimitReached": "Für diesen Ort ist kein weiteres Detail verfügbar",
+  "@dive3d_seascape_detailLimitReached": {},
+  "dive3d_seascape_lodStageLabel": "Detailstufe: {stage} ({span})",
+  "@dive3d_seascape_lodStageLabel": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      },
+      "span": {
+        "type": "String"
+      }
+    }
+  },
+  "dive3d_seascape_lodStageOverview": "Übersicht",
+  "@dive3d_seascape_lodStageOverview": {},
+  "dive3d_seascape_lodStageMedium": "Mittel",
+  "@dive3d_seascape_lodStageMedium": {},
+  "dive3d_seascape_lodStageFine": "Fein",
+  "@dive3d_seascape_lodStageFine": {},
+  "dive3d_seascape_lodStageSuperFine": "Superfein",
+  "@dive3d_seascape_lodStageSuperFine": {},
   "dive3d_seascape_noData": "Keine Bathymetrie für diesen Ort verfügbar",
   "@dive3d_seascape_noData": {},
   "dive3d_seascape_axis_distance": "Entfernung ({unitSymbol})",
@@ -12144,7 +12170,9 @@
   "media_info_actionBackUpNow": "Jetzt sichern",
   "media_info_actionRetryUpload": "Upload wiederholen",
   "media_info_actionReveal": "Im Dateimanager anzeigen",
+  "media_info_actionCopyDiagnostics": "Diagnose kopieren",
   "media_info_actionCopyPath": "Referenz kopieren",
+  "media_info_diagnosticsCopied": "Diagnose kopiert",
   "media_info_referenceCopied": "Referenz kopiert",
   "media_info_checkFound": "Quelle gefunden",
   "media_info_checkMissing": "Quelle fehlt",

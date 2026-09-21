@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_resolver.dart';
 import 'package:submersion/features/bathymetry/data/sources/swiss_lake_levels.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
@@ -91,12 +92,28 @@ class BathymetryRepository {
     return (lat: q(c.latitude), lon: q(c.longitude));
   }
 
-  static String keyFor(GeoPoint c) {
+  /// Whether [spanMeters] asks for a narrower-than-base-square LOD patch
+  /// (the `medium`/`fine` stages in `bathymetry_lod.dart`), as opposed to
+  /// the always-loaded 8 km base square. A patch is requested for one
+  /// specific site's zoomed-in view, so it must resolve at the site's EXACT
+  /// coordinate: the quantized 0.02 degree cell center used for the base
+  /// square can sit ~1.1-1.5 km away, which dwarfs a patch's own half-width
+  /// (e.g. 250 m for `fine`) and can point the patch nowhere near the real
+  /// site.
+  static bool _isPatchSpan(double? spanMeters) =>
+      spanMeters != null && spanMeters < BathymetryResolver.defaultSpanMeters;
+
+  static String keyFor(GeoPoint c, {double? spanMeters}) {
     // The span AND the selection generation are part of the key: cached
     // rows never expire, so any change that would resolve a coordinate
     // differently must miss the old rows and refetch. Stale rows are inert
     // leftovers in this local-only cache.
-    final span = BathymetryResolver.defaultSpanMeters.round();
+    //
+    // Defaulting to [BathymetryResolver.defaultSpanMeters] when [spanMeters]
+    // is omitted keeps every existing base-square cache key byte-for-byte
+    // unchanged; only an explicit (smaller) LOD-patch span produces a
+    // different, additional key.
+    final span = (spanMeters ?? BathymetryResolver.defaultSpanMeters).round();
     final lake = findSwissLake(c);
     if (lake != null) {
       // The lake's OWN mean level rides along in the key, not just
@@ -119,19 +136,32 @@ class BathymetryRepository {
           '${c.longitude.toStringAsFixed(6)}@$span$selectionGeneration'
           '@${lake.meanLevelMeters}';
     }
+    if (_isPatchSpan(spanMeters)) {
+      // Same reasoning as the lake branch above, for a different reason: a
+      // patch is resolved at the exact site coordinate (see _isPatchSpan),
+      // so two real sites a few hundred metres apart -- well within one
+      // quantized cell -- must not collide on the same cache row.
+      return '${c.latitude.toStringAsFixed(6)},'
+          '${c.longitude.toStringAsFixed(6)}@$span$selectionGeneration';
+    }
     final q = quantize(c);
     return '${q.lat.toStringAsFixed(2)},${q.lon.toStringAsFixed(2)}'
         '@$span$selectionGeneration';
   }
 
   /// Whether the cache holds a DEFINITIVE answer (grid or empty) for this
-  /// coordinate's cell. False means a null from [getGrid] was transient
-  /// (network failure, broken cache) and worth retrying later.
-  Future<bool> hasCachedAnswer(GeoPoint center) async {
+  /// coordinate's cell (or, with [spanMeters], for its LOD patch cell --
+  /// see [getGridForSpan]). False means a null from [getGrid]/
+  /// [getGridForSpan] was transient (network failure, broken cache) and
+  /// worth retrying later.
+  Future<bool> hasCachedAnswer(GeoPoint center, {double? spanMeters}) async {
     try {
-      final row = await (_db.select(
-        _db.bathymetryCache,
-      )..where((t) => t.cacheKey.equals(keyFor(center)))).getSingleOrNull();
+      final row =
+          await (_db.select(_db.bathymetryCache)..where(
+                (t) =>
+                    t.cacheKey.equals(keyFor(center, spanMeters: spanMeters)),
+              ))
+              .getSingleOrNull();
       return row != null;
     } catch (_) {
       return false;
@@ -140,8 +170,36 @@ class BathymetryRepository {
 
   Future<BathymetryGrid?> getGrid(GeoPoint center) {
     final key = keyFor(center);
-    return _inFlight[key] ??= _guardedLoad(key, center)
-      ..whenComplete(() => _inFlight.remove(key));
+    return _inFlight[key] ??= _guardedLoad(
+      key,
+      center,
+      BathymetryResolver.defaultSpanMeters,
+      maxGridDim,
+    )..whenComplete(() => _inFlight.remove(key));
+  }
+
+  /// A smaller, additional LOD patch grid around [center] -- e.g. the
+  /// `medium`/`fine`/`superFine` stages in `bathymetry_lod.dart` -- fetched
+  /// and cached independently of the always-loaded [defaultSpanMeters] base
+  /// square. Shares every cache/dedup/quantization rule with [getGrid]; the
+  /// span (and so the cache key) differs, and [maxDim] lets a stage ask for
+  /// a finer downsample cap than the base square's (see
+  /// [BathymetryLodStage.maxGridDim]'s doc) -- defaults to this
+  /// repository's own [maxGridDim] when omitted. Not folded into the cache
+  /// key: every stage that calls this today has its own, unique span, so
+  /// [spanMeters] alone already disambiguates the row.
+  Future<BathymetryGrid?> getGridForSpan(
+    GeoPoint center,
+    double spanMeters, {
+    int? maxDim,
+  }) {
+    final key = keyFor(center, spanMeters: spanMeters);
+    return _inFlight[key] ??= _guardedLoad(
+      key,
+      center,
+      spanMeters,
+      maxDim ?? maxGridDim,
+    )..whenComplete(() => _inFlight.remove(key));
   }
 
   /// The scene must survive ANY cache/fetch failure (a broken table, an
@@ -165,9 +223,14 @@ class BathymetryRepository {
   /// installed release/beta app can never be — only that the user (or a
   /// support conversation walking them through it) flips Debug-Modus on in
   /// Settings before reproducing, in any build.
-  Future<BathymetryGrid?> _guardedLoad(String key, GeoPoint center) async {
+  Future<BathymetryGrid?> _guardedLoad(
+    String key,
+    GeoPoint center,
+    double spanMeters,
+    int maxDim,
+  ) async {
     try {
-      return await _load(key, center);
+      return await _load(key, center, spanMeters, maxDim);
     } catch (e, stackTrace) {
       _log.warning(
         'getGrid($key) degraded to null',
@@ -178,7 +241,12 @@ class BathymetryRepository {
     }
   }
 
-  Future<BathymetryGrid?> _load(String key, GeoPoint center) async {
+  Future<BathymetryGrid?> _load(
+    String key,
+    GeoPoint center,
+    double spanMeters,
+    int maxDim,
+  ) async {
     final row = await (_db.select(
       _db.bathymetryCache,
     )..where((t) => t.cacheKey.equals(key))).getSingleOrNull();
@@ -207,17 +275,26 @@ class BathymetryRepository {
 
     // Fetch centered on the quantized CELL CENTER so every coordinate in
     // the cell gets the same, fully covering grid -- except where
-    // [quantumDegFor] opts out of quantization (swissBATHY3D lakes), where
-    // the raw coordinate itself IS the fetch center: no cell to center on.
-    final quantum = quantumDegFor(center);
+    // [quantumDegFor] opts out of quantization (swissBATHY3D lakes), or
+    // where [spanMeters] asks for a narrower-than-base-square LOD patch
+    // (see [_isPatchSpan]): in both cases the raw coordinate itself IS the
+    // fetch center, no cell to center on. A patch's own half-width is often
+    // smaller than the quantized cell's offset from the real coordinate, so
+    // snapping it to the cell center could point the patch nowhere near the
+    // actual site.
+    final quantum = _isPatchSpan(spanMeters) ? 0.0 : quantumDegFor(center);
     final q = quantize(center);
     final fetchCenter = quantum > 0
         ? GeoPoint(q.lat + quantum / 2, q.lon + quantum / 2)
         : center;
-    final res = await _resolver.resolve(fetchCenter);
+    final res = await _resolver.resolve(fetchCenter, spanMeters: spanMeters);
     final resolved = res.grid;
     if (resolved != null) {
-      final grid = resolved.downsampleTo(maxGridDim);
+      final grid = _cropToSpan(
+        resolved,
+        fetchCenter,
+        spanMeters,
+      ).downsampleTo(maxDim);
       await _db
           .into(_db.bathymetryCache)
           .insertOnConflictUpdate(
@@ -248,6 +325,79 @@ class BathymetryRepository {
           );
     }
     return null; // transient: no row, next call retries
+  }
+
+  /// A `BathymetrySource.fetch` implementation is trusted to honor the
+  /// requested span -- and every shipped source does, except
+  /// `EtopoErddapSource` (etopo_erddap_source.dart), which floors its own
+  /// request box at 10 km regardless of how narrow a caller's span actually
+  /// is (see the comment on its `fetch`). The grid that comes back is still
+  /// correctly geo-referenced, real data per cell, not corrupted -- but for
+  /// a small LOD patch it can be many times wider than the patch's own
+  /// intended footprint, stretching the rendered patch far past where the
+  /// diver zoomed in.
+  ///
+  /// Crops back to (approximately) the requested box around [center]
+  /// whenever [grid] materially overshoots [spanMeters] in either
+  /// dimension; a source that already matches -- everyone but ETOPO -- is
+  /// returned untouched, with a tolerance so a near-exact match is never
+  /// trimmed over floating-point rounding.
+  static BathymetryGrid _cropToSpan(
+    BathymetryGrid grid,
+    GeoPoint center,
+    double spanMeters,
+  ) {
+    const overshootTolerance = 1.1;
+    final mLon = metersPerDegreeLongitude(center.latitude);
+    final actualLatSpan =
+        (grid.rows - 1) * grid.cellSizeLatDeg.abs() * metersPerDegreeLatitude;
+    final actualLonSpan = (grid.cols - 1) * grid.cellSizeLonDeg.abs() * mLon;
+    if (actualLatSpan <= spanMeters * overshootTolerance &&
+        actualLonSpan <= spanMeters * overshootTolerance) {
+      return grid;
+    }
+
+    final half = spanMeters / 2;
+    final dLat = half / metersPerDegreeLatitude;
+    final dLon = half / mLon;
+
+    int rowAt(double lat) => ((lat - grid.originLat) / grid.cellSizeLatDeg)
+        .round()
+        .clamp(0, grid.rows - 1);
+    int colAt(double lon) => ((lon - grid.originLon) / grid.cellSizeLonDeg)
+        .round()
+        .clamp(0, grid.cols - 1);
+
+    final rStart = rowAt(center.latitude - dLat);
+    final rEnd = rowAt(center.latitude + dLat);
+    final cStart = colAt(center.longitude - dLon);
+    final cEnd = colAt(center.longitude + dLon);
+    if (rEnd <= rStart || cEnd <= cStart) {
+      // Degenerate crop (spanMeters narrower than one of the source's own
+      // cells): keep the original grid rather than hand back a sliver.
+      return grid;
+    }
+
+    final newRows = rEnd - rStart + 1;
+    final newCols = cEnd - cStart + 1;
+    final out = List<double?>.filled(newRows * newCols, null);
+    for (var r = 0; r < newRows; r++) {
+      for (var c = 0; c < newCols; c++) {
+        out[r * newCols + c] = grid.depthAt(r + rStart, c + cStart);
+      }
+    }
+    return BathymetryGrid(
+      originLat: grid.originLat + grid.cellSizeLatDeg * rStart,
+      originLon: grid.originLon + grid.cellSizeLonDeg * cStart,
+      cellSizeLatDeg: grid.cellSizeLatDeg,
+      cellSizeLonDeg: grid.cellSizeLonDeg,
+      rows: newRows,
+      cols: newCols,
+      depthsMeters: out,
+      sourceId: grid.sourceId,
+      resolutionMeters: grid.resolutionMeters,
+      fetchedAt: grid.fetchedAt,
+    );
   }
 
   /// Deletes every cached row whose winning source was [sourceId]. Used by

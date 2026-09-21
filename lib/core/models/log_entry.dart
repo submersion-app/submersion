@@ -4,7 +4,8 @@ enum LogCategory {
   bluetooth('BLE', 'Bluetooth'),
   serial('SER', 'Serial'),
   libdc('LDC', 'libdc'),
-  database('DB', 'Database');
+  database('DB', 'Database'),
+  media('MED', 'Media');
 
   final String tag;
   final String displayName;

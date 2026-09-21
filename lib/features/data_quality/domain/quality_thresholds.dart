@@ -48,9 +48,10 @@ abstract final class QualityThresholds {
   static const int sacMinSeriesSeconds = 300;
   static const int switchProximitySeconds = 60;
   // How close a tank-pressure sample must sit to the depth-based surfacing
-  // moment to stand in for it (#2220). Wide enough to cover a coarsely
-  // sampled series without reaching back to an early-dive reading that says
-  // nothing about surfacing.
+  // moment to describe the end of the dive (#2220). Wide enough to cover a
+  // coarsely sampled series; beyond it the end comparison is suppressed
+  // rather than made against an early-dive reading that says nothing about
+  // surfacing, mirroring pressureStartLookbackSeconds below.
   static const int pressureSurfacingLookbackSeconds = 120;
   // How late into the dive a tank's first pressure sample may arrive and
   // still be compared against the reported start pressure (#2222). A source

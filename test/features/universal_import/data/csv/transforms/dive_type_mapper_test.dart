@@ -117,6 +117,22 @@ void main() {
       expect(mapDiveType('Sidemount-CCR'), 'sidemount-ccr');
       expect(mapDiveType('Free-dive'), 'freedive');
     });
+
+    // "ice" sits inside "Practice", "Service" and "Novice", so a bare
+    // contains() recorded each of those as an ice dive (#2214).
+    test('matches ice as a word only', () {
+      expect(mapDiveType('Practice'), 'practice');
+      expect(mapDiveType('Practice dive'), 'practice_dive');
+      expect(mapDiveType('Service dive'), 'service_dive');
+      expect(mapDiveType('Novice'), 'novice');
+    });
+
+    test('still maps a real ice dive', () {
+      expect(mapDiveType('Ice'), 'ice');
+      expect(mapDiveType('Ice dive'), 'ice');
+      expect(mapDiveType('Under-ice'), 'ice');
+      expect(mapDiveType('ICE'), 'ice');
+    });
   });
 
   // Subsurface maps its `mode` column and Garmin its `Activity Type` to the

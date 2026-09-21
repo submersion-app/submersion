@@ -6740,6 +6740,7 @@
   "enum_logCategory_serial": "Serial",
   "enum_logCategory_libdc": "libdc",
   "enum_logCategory_database": "Database",
+  "enum_logCategory_media": "Media",
   "enum_visibility_excellent": "Excellent (>30m / >100ft)",
   "enum_visibility_good": "Good (15-30m / 50-100ft)",
   "enum_visibility_moderate": "Moderate (5-15m / 15-50ft)",
@@ -17729,6 +17730,10 @@
       }
     }
   },
+  "settings_mediaStorage_report_action": "Export media report",
+  "settings_mediaStorage_report_done": "Media report exported",
+  "settings_mediaStorage_report_note": "The report lists file paths and device names. Nothing is sent anywhere.",
+  "settings_mediaStorage_report_running": "Building the media report...",
   "settings_mediaStorage_verify_action": "Verify library",
   "settings_mediaStorage_verify_running": "Verifying media library...",
   "settings_mediaStorage_verify_summary": "Checked {checked} cloud objects ({originals, plural, =1{1 original} other{{originals} originals}}, {thumbs, plural, =1{1 thumbnail} other{{thumbs} thumbnails}}, {renditions, plural, =1{1 compressed version} other{{renditions} compressed versions}}): removed {removed} orphans, queued {repaired} repairs, aborted {aborted} stale uploads",
@@ -18038,6 +18043,27 @@
   },
   "dive3d_seascape_noCoordinates": "This site has no GPS coordinates",
   "@dive3d_seascape_noCoordinates": {},
+  "dive3d_seascape_detailLimitReached": "This is the most detail available for this location",
+  "@dive3d_seascape_detailLimitReached": {},
+  "dive3d_seascape_lodStageLabel": "Level of detail: {stage} ({span})",
+  "@dive3d_seascape_lodStageLabel": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      },
+      "span": {
+        "type": "String"
+      }
+    }
+  },
+  "dive3d_seascape_lodStageOverview": "Overview",
+  "@dive3d_seascape_lodStageOverview": {},
+  "dive3d_seascape_lodStageMedium": "Medium",
+  "@dive3d_seascape_lodStageMedium": {},
+  "dive3d_seascape_lodStageFine": "Fine",
+  "@dive3d_seascape_lodStageFine": {},
+  "dive3d_seascape_lodStageSuperFine": "Super-fine",
+  "@dive3d_seascape_lodStageSuperFine": {},
   "dive3d_seascape_noData": "No bathymetry available for this location",
   "@dive3d_seascape_noData": {},
   "dive3d_seascape_axis_distance": "Distance ({unitSymbol})",
@@ -24679,10 +24705,12 @@
   "@media_info_actionReveal": {
     "description": "Media info panel, Origin block: opens the platform file manager at the item's path"
   },
+  "media_info_actionCopyDiagnostics": "Copy diagnostics",
   "media_info_actionCopyPath": "Copy reference",
   "@media_info_actionCopyPath": {
     "description": "Media info panel, Origin block: copies the source reference to the clipboard"
   },
+  "media_info_diagnosticsCopied": "Diagnostics copied",
   "media_info_referenceCopied": "Reference copied",
   "@media_info_referenceCopied": {
     "description": "Confirmation shown after copying the source reference"

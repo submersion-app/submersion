@@ -12,6 +12,7 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_apply_progress.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_json_stream_reader.dart';
@@ -235,6 +236,11 @@ class SyncService {
   /// Keyslot self-heal after publish (encrypted libraries). Nullable so
   /// existing constructions keep working; heal runs only when provided.
   final SyncEncryptionService? _encryptionService;
+
+  /// Where the names peers publish on their manifests are remembered, so
+  /// labels such as "From Eric's MacBook" need no cloud read. Optional:
+  /// the legacy tests build the service without one.
+  final PeerDeviceNameStore? _peerNames;
   final _log = LoggerService.forClass(SyncService);
   final _uuid = const Uuid();
 
@@ -298,12 +304,14 @@ class SyncService {
     LibraryEpochStore? epochStore,
     SyncEncryptionService? encryptionService,
     AppLocalizations Function()? localizations,
+    PeerDeviceNameStore? peerNames,
   }) : _syncRepository = syncRepository,
        _serializer = serializer,
        _cloudProvider = cloudProvider,
        _syncInitializer = syncInitializer,
        _epochStore = epochStore,
        _encryptionService = encryptionService,
+       _peerNames = peerNames,
        _localizations = localizations ?? _englishLocalizations;
 
   /// Set a callback to receive progress updates during sync
@@ -611,6 +619,7 @@ class SyncService {
         // Reuse the fence check's listing (null after a rejoin, which mutates
         // the folder and needs a fresh view).
         preListedFiles: fence.files,
+        peerNames: _peerNames,
         apply: (payload) async {
           final r = await _applyRemotePayload(payload, lastSyncTime);
           recordsSynced += r.recordsApplied;
@@ -4160,6 +4169,7 @@ class SyncService {
     final cursors = <({String deviceId, int baseSeq, int appliedThrough})>[];
     final newerSchemaPeerDeviceIds = <String>{};
     final newerSchemaPeerNames = <String, String>{};
+    final selfDeviceId = await _syncRepository.getDeviceId();
     for (final deviceId in deviceIds) {
       if (excludeDeviceIds.contains(deviceId)) continue;
       final manifestFile = byName[ChangesetLogLayout.manifestName(deviceId)];
@@ -4171,6 +4181,28 @@ class SyncService {
         );
       } catch (_) {
         continue;
+      }
+      // Recorded unconditionally: the manifest parsed, so a missing name is
+      // the peer's current state and clears any name it published before.
+      //
+      // Never for this device, though. Unlike a pull, this scan reads every
+      // manifest in the folder including its own, and PeerDeviceNameStore
+      // documents that this device is not in it: the device identity
+      // service already knows its own name, and a self entry would show up
+      // as a peer to anything that lists the map.
+      //
+      // Guarded on its own: nothing above catches here, so a failed
+      // preferences write would abort the whole scan and with it the
+      // library adoption, over optional metadata.
+      if (deviceId != selfDeviceId) {
+        try {
+          await _peerNames?.record(deviceId, manifest.deviceName);
+        } catch (e) {
+          _log.warning(
+            'Could not record the name for peer $deviceId',
+            error: e,
+          );
+        }
       }
       if (manifest.epochId != epochId) continue;
       final baseSeq = manifest.baseSeq;

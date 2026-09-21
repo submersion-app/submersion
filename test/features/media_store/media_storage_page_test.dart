@@ -15,6 +15,9 @@ import 'package:submersion/core/services/media_store/media_store_credentials_sto
 import 'package:submersion/core/services/media_store/media_upload_quality_policy.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/media_health_report.dart';
+import 'package:submersion/features/media/data/services/media_health_reporter.dart';
+import 'package:submersion/features/media/presentation/providers/media_health_providers.dart';
 import 'package:submersion/features/media_store/data/media_backfill_service.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/data/media_verify_service.dart';
@@ -158,6 +161,23 @@ class _FakeBackfillService extends MediaBackfillService {
     calls++;
     return 7;
   }
+}
+
+/// Answers a fixed library report and counts the asks.
+class _FakeLibraryReporter implements MediaHealthReporter {
+  _FakeLibraryReporter(this.report);
+  final MediaHealthReport report;
+  int libraryCalls = 0;
+
+  @override
+  Future<MediaHealthReport> forLibrary({bool probeStore = false}) async {
+    libraryCalls++;
+    return report;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('${invocation.memberName} is not stubbed');
 }
 
 void main() {
@@ -749,6 +769,116 @@ void main() {
 
     expect(backfill.calls, 1);
     expect(find.textContaining('7'), findsWidgets);
+  });
+
+  testWidgets('export media report builds the library report and hands it '
+      'to the exporter', (tester) async {
+    tester.view.physicalSize = const Size(800, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final exported = <(String content, String fileName, String mimeType)>[];
+    final reporter = _FakeLibraryReporter(
+      MediaHealthReport(
+        generatedAt: DateTime.utc(2026, 7, 1),
+        deviceId: 'dev-a',
+        deviceName: 'Device A',
+        attachedStoreId: 'store-1',
+        markerStoreId: 'store-1',
+        rows: const [],
+      ),
+    );
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        app(
+          statusHint: 'dive-media @ minio',
+          extraOverrides: [
+            mediaHealthReporterProvider.overrideWithValue(reporter),
+            textFileExporterProvider.overrideWithValue((
+              content,
+              fileName,
+              mimeType, {
+              Rect? sharePositionOrigin,
+            }) async {
+              exported.add((content, fileName, mimeType));
+              return fileName;
+            }),
+          ],
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    expect(
+      find.textContaining('The report lists file paths and device names'),
+      findsOneWidget,
+    );
+    await tester.ensureVisible(find.byKey(const Key('media-export-report')));
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('media-export-report')));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    expect(reporter.libraryCalls, 1);
+    final (content, fileName, mimeType) = exported.single;
+    expect(fileName, 'submersion-media-report.txt');
+    expect(mimeType, 'text/plain');
+    expect(content, startsWith('Submersion media health report'));
+    expect(content, contains('device: dev-a (Device A)'));
+    expect(find.text('Media report exported'), findsOneWidget);
+  });
+
+  testWidgets('export media report is offered with no store attached', (
+    tester,
+  ) async {
+    // The report describes local file and gallery rows too, which is the
+    // whole library a user with no store has. Gating it on a connection
+    // hid the media diagnostic from exactly the people diagnosing media.
+    tester.view.physicalSize = const Size(800, 2200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    final exported = <(String content, String fileName, String mimeType)>[];
+    final reporter = _FakeLibraryReporter(
+      MediaHealthReport(
+        generatedAt: DateTime.utc(2026, 7, 1),
+        deviceId: 'dev-a',
+        deviceName: 'Device A',
+        attachedStoreId: null,
+        markerStoreId: null,
+        rows: const [],
+      ),
+    );
+    await tester.runAsync(() async {
+      await tester.pumpWidget(
+        app(
+          extraOverrides: [
+            mediaHealthReporterProvider.overrideWithValue(reporter),
+            textFileExporterProvider.overrideWithValue((
+              content,
+              fileName,
+              mimeType, {
+              Rect? sharePositionOrigin,
+            }) async {
+              exported.add((content, fileName, mimeType));
+              return fileName;
+            }),
+          ],
+        ),
+      );
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    await tester.ensureVisible(find.byKey(const Key('media-export-report')));
+    await tester.runAsync(() async {
+      await tester.tap(find.byKey(const Key('media-export-report')));
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+      await tester.pump();
+    });
+
+    expect(reporter.libraryCalls, 1);
+    expect(exported.single.$2, 'submersion-media-report.txt');
   });
 
   testWidgets('verify library runs the sweep and reports the summary', (
