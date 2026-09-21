@@ -500,9 +500,9 @@ void main() {
   });
 
   group('reference resolution', () {
-    DivingLogLogbook wired() => DivingLogLogbook(
+    DivingLogLogbook wired() => const DivingLogLogbook(
       dives: [
-        const DivingLogRawDive(
+        DivingLogRawDive(
           id: 1,
           diveDate: '2024-06-01',
           entryTime: '09:30',
@@ -516,40 +516,32 @@ void main() {
           tripId: 50,
         ),
       ],
-      capabilities: const DivingLogCapabilities(tables: {}, columns: {}),
+      capabilities: DivingLogCapabilities(tables: {}, columns: {}),
       buddiesById: {
-        1: const DivingLogRawBuddy(
-          id: 1,
-          firstName: 'Alice',
-          lastName: 'Smith',
-        ),
+        1: DivingLogRawBuddy(id: 1, firstName: 'Alice', lastName: 'Smith'),
       },
       placesById: {
-        10: const DivingLogRawPlace(
+        10: DivingLogRawPlace(
           id: 10,
           place: 'Salt Pier',
           latitude: 12.13,
           longitude: -68.28,
         ),
       },
-      countryNamesById: const {30: 'Bonaire'},
-      equipmentById: {
-        3: const DivingLogRawEquipment(id: 3, object: 'Go Sport Fins'),
-      },
-      tripsById: {50: const DivingLogRawTrip(id: 50, name: 'Bonaire 2024')},
-      shopsById: {40: const DivingLogRawShop(id: 40, name: 'Dive Friends')},
-      diveTypesById: {5: const DivingLogRawDiveType(id: 5, name: 'Education')},
-      certifications: const [
-        DivingLogRawCertification(id: 1, name: 'Rescue Diver'),
-      ],
+      countryNamesById: {30: 'Bonaire'},
+      equipmentById: {3: DivingLogRawEquipment(id: 3, object: 'Go Sport Fins')},
+      tripsById: {50: DivingLogRawTrip(id: 50, name: 'Bonaire 2024')},
+      shopsById: {40: DivingLogRawShop(id: 40, name: 'Dive Friends')},
+      diveTypesById: {5: DivingLogRawDiveType(id: 5, name: 'Education')},
+      certifications: [DivingLogRawCertification(id: 1, name: 'Rescue Diver')],
       speciesById: {
-        99: const DivingLogRawSpecies(id: 99, commonName: 'Giant Manta Ray'),
+        99: DivingLogRawSpecies(id: 99, commonName: 'Giant Manta Ray'),
       },
-      speciesIdsByLogId: const {
+      speciesIdsByLogId: {
         1: [99],
       },
       picturesByLogId: {
-        1: [const DivingLogRawPicture(id: 1, logId: 1, path: '/p/1.jpg')],
+        1: [DivingLogRawPicture(id: 1, logId: 1, path: '/p/1.jpg')],
       },
     );
 
@@ -592,17 +584,17 @@ void main() {
     });
 
     test('reports ids that match no record, once per kind', () {
-      final book = DivingLogLogbook(
+      const book = DivingLogLogbook(
         dives: [
-          const DivingLogRawDive(
+          DivingLogRawDive(
             id: 1,
             diveDate: '2024-06-01',
             buddyIds: [1, 99],
             equipmentIds: [42],
           ),
         ],
-        capabilities: const DivingLogCapabilities(tables: {}, columns: {}),
-        buddiesById: {1: const DivingLogRawBuddy(id: 1, firstName: 'Alice')},
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+        buddiesById: {1: DivingLogRawBuddy(id: 1, firstName: 'Alice')},
       );
       final payload = DivingLogDiveMapper.toPayload(book);
       final messages = payload.warnings.map((w) => w.message).join(' ');
@@ -611,11 +603,11 @@ void main() {
     });
 
     test('still uses the text column when a dive has no BuddyIDs', () {
-      final book = DivingLogLogbook(
+      const book = DivingLogLogbook(
         dives: [
-          const DivingLogRawDive(id: 1, diveDate: '2024-06-01', buddy: 'Carol'),
+          DivingLogRawDive(id: 1, diveDate: '2024-06-01', buddy: 'Carol'),
         ],
-        capabilities: const DivingLogCapabilities(tables: {}, columns: {}),
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
       );
       final payload = DivingLogDiveMapper.toPayload(book);
       expect(payload.entitiesOf(ImportEntityType.dives).single['buddyRefs'], [
