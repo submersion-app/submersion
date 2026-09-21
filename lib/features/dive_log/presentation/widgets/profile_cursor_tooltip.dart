@@ -211,6 +211,13 @@ class ProfileCursorTooltip extends StatelessWidget {
         final boldRowStyle = rowStyle.copyWith(fontWeight: FontWeight.bold);
 
         return Stack(
+          // Clip.none: the enclosing chart Stack already allows this, but
+          // this widget's own LayoutBuilder constrains its Stack to the
+          // chart's size too, so both need it -- a box whose real height
+          // exceeds the plot's available space (even after the text has
+          // shrunk to fit as best it can) must be free to spill above the
+          // plot rather than have its top rows silently clipped away.
+          clipBehavior: Clip.none,
           children: [
             Positioned(
               left: position.dx,

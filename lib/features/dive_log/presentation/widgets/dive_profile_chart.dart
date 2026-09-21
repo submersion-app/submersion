@@ -3710,6 +3710,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         : combinedBars;
 
     return Stack(
+      // Clip.none: with many active metrics the cursor tooltip's real
+      // height can exceed the plot's own vertical space despite its text
+      // already shrinking to fit (ProfileCursorTooltip's scale estimate
+      // does not perfectly match the real, as-laid-out row height), which
+      // otherwise clipped its top rows away instead of letting it spill
+      // above the plot the way it already does horizontally past the
+      // cursor (issue #2228 follow-up).
+      clipBehavior: Clip.none,
       children: [
         LineChart(
           LineChartData(
