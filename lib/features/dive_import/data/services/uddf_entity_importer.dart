@@ -3162,26 +3162,37 @@ class UddfEntityImporter {
 
     for (final entry in raw) {
       if (entry is! Map) continue;
+      // Typed with `is String` rather than a cast: a payload carrying a
+      // number where a name belongs would otherwise throw out of this loop
+      // and take the whole import with it, which is the opposite of the
+      // best-effort contract above.
       // A source may name the species outright, or only reference it, in
       // which case the ref carries the name.
-      final named = (entry['speciesName'] as String?)?.trim();
-      final ref = (entry['speciesRef'] as String?)?.trim();
+      final named = entry['speciesName'] is String
+          ? (entry['speciesName'] as String).trim()
+          : null;
+      final ref = entry['speciesRef'] is String
+          ? (entry['speciesRef'] as String).trim()
+          : null;
       final commonName = named != null && named.isNotEmpty
           ? named
           : (ref == null || ref.isEmpty ? null : _speciesNameFromRef(ref));
       if (commonName == null || commonName.isEmpty) continue;
 
       try {
+        final scientific = entry['speciesScientificName'] is String
+            ? (entry['speciesScientificName'] as String).trim()
+            : null;
         final species = await repository.getOrCreateSpecies(
           commonName: commonName,
-          scientificName: (entry['speciesScientificName'] as String?)?.trim(),
+          scientificName: scientific,
           category: SpeciesCategory.other,
         );
         await repository.addSighting(
           diveId: diveId,
           speciesId: species.id,
-          count: entry['count'] as int? ?? 1,
-          notes: entry['notes'] as String? ?? '',
+          count: entry['count'] is int ? entry['count'] as int : 1,
+          notes: entry['notes'] is String ? entry['notes'] as String : '',
         );
       } catch (e) {
         _log.warning('Could not import a sighting for dive $diveId: $e');
