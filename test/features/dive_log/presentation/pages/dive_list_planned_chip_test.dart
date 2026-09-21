@@ -112,4 +112,82 @@ void main() {
     expect(find.bySemanticsLabel(RegExp('Planned')), findsWidgets);
     handle.dispose();
   });
+
+  testWidgets('the detailed tile shows no number badge when planned', (
+    tester,
+  ) async {
+    // The list passes its position when a dive has no number, so an
+    // unnumbered planned dive would wear a number that belongs to another
+    // dive. The icon stands in for the badge instead.
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: await overrides(),
+        child: detailedTile(_summary(isPlanned: true)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('#'), findsNothing);
+    expect(find.byIcon(Icons.event_available_outlined), findsOneWidget);
+  });
+
+  testWidgets('the detailed tile keeps the badge for a logged dive', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: await overrides(),
+        child: detailedTile(_summary(isPlanned: false)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('#7'), findsOneWidget);
+  });
+
+  testWidgets('the compact tile shows no number badge when planned', (
+    tester,
+  ) async {
+    final summary = _summary(isPlanned: true);
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: await overrides(),
+        child: CompactDiveListTile(
+          diveId: summary.id,
+          diveNumber: summary.diveNumber ?? 3,
+          dateTime: summary.dateTime,
+          siteName: summary.siteName,
+          maxDepth: summary.maxDepth,
+          duration: summary.bottomTime,
+          summary: summary,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('#'), findsNothing);
+    expect(find.byIcon(Icons.event_available_outlined), findsOneWidget);
+  });
+
+  testWidgets('a screen reader hears a planned dive without a number', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: await overrides(),
+        child: detailedTile(_summary(isPlanned: true)),
+      ),
+    );
+    await tester.pumpAndSettle();
+    // The node merges its children's labels, so match the part the tile
+    // itself contributes and check no dive number reaches the reader.
+    expect(
+      find.bySemanticsLabel(RegExp('Planned dive at Blue Hole')),
+      findsWidgets,
+    );
+    expect(find.bySemanticsLabel(RegExp(r'Dive \d+ at')), findsNothing);
+    handle.dispose();
+  });
 }

@@ -11418,6 +11418,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "Intervallo di profondità ({unit})",
   "diveLog_filter_sectionDiveComputer": "Computer subacqueo",
   "diveLog_listPage_semanticsDiveAtSite": "Immersione {diveNumber} presso {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "Immersione pianificata a {siteName}",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "Compatta",
   "enum_listViewMode_dense": "Densa",
   "enum_listViewMode_detailed": "Dettagliata",

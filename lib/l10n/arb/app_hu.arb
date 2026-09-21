@@ -11418,6 +11418,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "Mélységtartomány ({unit})",
   "diveLog_filter_sectionDiveComputer": "Búvárcomputer",
   "diveLog_listPage_semanticsDiveAtSite": "{diveNumber}. merülés itt: {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "Tervezett merülés itt: {siteName}",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "Tömör",
   "enum_listViewMode_dense": "Sűrű",
   "enum_listViewMode_detailed": "Részletes",

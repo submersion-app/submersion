@@ -60861,6 +60861,12 @@ abstract class AppLocalizations {
   /// **'Dive {diveNumber} at {siteName}'**
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName);
 
+  /// No description provided for @diveLog_listPage_semanticsPlannedDiveAtSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dive at {siteName}'**
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName);
+
   /// No description provided for @enum_listViewMode_compact.
   ///
   /// In en, this message translates to:

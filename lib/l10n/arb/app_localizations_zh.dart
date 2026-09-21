@@ -35484,6 +35484,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return '在 $siteName 的计划潜水';
+  }
+
+  @override
   String get enum_listViewMode_compact => '紧凑';
 
   @override

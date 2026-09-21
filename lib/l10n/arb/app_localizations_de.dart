@@ -37516,6 +37516,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'Geplanter Tauchgang bei $siteName';
+  }
+
+  @override
   String get enum_listViewMode_compact => 'Kompakt';
 
   @override

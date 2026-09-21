@@ -11522,6 +11522,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "Tiefenbereich ({unit})",
   "diveLog_filter_sectionDiveComputer": "Tauchcomputer",
   "diveLog_listPage_semanticsDiveAtSite": "Tauchgang {diveNumber} bei {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "Geplanter Tauchgang bei {siteName}",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "Kompakt",
   "enum_listViewMode_dense": "Dicht",
   "enum_listViewMode_detailed": "Detailliert",

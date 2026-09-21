@@ -11418,6 +11418,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "نطاق العمق ({unit})",
   "diveLog_filter_sectionDiveComputer": "حاسوب الغوص",
   "diveLog_listPage_semanticsDiveAtSite": "الغوصة {diveNumber} في {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "غوصة مخططة في {siteName}",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "مضغوط",
   "enum_listViewMode_dense": "كثيف",
   "enum_listViewMode_detailed": "مفصّل",

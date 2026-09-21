@@ -11418,6 +11418,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "深度范围（{unit}）",
   "diveLog_filter_sectionDiveComputer": "潜水电脑",
   "diveLog_listPage_semanticsDiveAtSite": "第 {diveNumber} 次潜水，地点 {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "在 {siteName} 的计划潜水",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "紧凑",
   "enum_listViewMode_dense": "密集",
   "enum_listViewMode_detailed": "详细",

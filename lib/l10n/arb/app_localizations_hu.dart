@@ -37450,6 +37450,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'Tervezett merülés itt: $siteName';
+  }
+
+  @override
   String get enum_listViewMode_compact => 'Tömör';
 
   @override

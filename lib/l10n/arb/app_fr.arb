@@ -11418,6 +11418,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "Plage de profondeur ({unit})",
   "diveLog_filter_sectionDiveComputer": "Ordinateur de plongée",
   "diveLog_listPage_semanticsDiveAtSite": "Plongée {diveNumber} sur {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "Plongée planifiée à {siteName}",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "Compact",
   "enum_listViewMode_dense": "Dense",
   "enum_listViewMode_detailed": "Détaillé",

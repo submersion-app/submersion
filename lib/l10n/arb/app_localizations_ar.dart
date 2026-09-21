@@ -37214,6 +37214,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'غوصة مخططة في $siteName';
+  }
+
+  @override
   String get enum_listViewMode_compact => 'مضغوط';
 
   @override

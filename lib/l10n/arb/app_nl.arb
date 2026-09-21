@@ -11418,6 +11418,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "Dieptebereik ({unit})",
   "diveLog_filter_sectionDiveComputer": "Duikcomputer",
   "diveLog_listPage_semanticsDiveAtSite": "Duik {diveNumber} bij {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "Geplande duik bij {siteName}",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "Compact",
   "enum_listViewMode_dense": "Dicht",
   "enum_listViewMode_detailed": "Gedetailleerd",

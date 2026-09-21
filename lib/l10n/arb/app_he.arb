@@ -11418,6 +11418,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "טווח עומק ({unit})",
   "diveLog_filter_sectionDiveComputer": "מחשב צלילה",
   "diveLog_listPage_semanticsDiveAtSite": "צלילה {diveNumber} באתר {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "צלילה מתוכננת ב־{siteName}",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "קומפקטי",
   "enum_listViewMode_dense": "צפוף",
   "enum_listViewMode_detailed": "מפורט",

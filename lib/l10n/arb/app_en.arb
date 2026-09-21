@@ -22573,6 +22573,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "Depth Range ({unit})",
   "diveLog_filter_sectionDiveComputer": "Dive Computer",
   "diveLog_listPage_semanticsDiveAtSite": "Dive {diveNumber} at {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "Planned dive at {siteName}",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "Compact",
   "enum_listViewMode_dense": "Dense",
   "enum_listViewMode_detailed": "Detailed",
