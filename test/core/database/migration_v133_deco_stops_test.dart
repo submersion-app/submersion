@@ -36,7 +36,7 @@ void main() {
       expect(cols, contains('default_deco_stop_source'));
     });
 
-    test('deco stop columns default to visible and calculated', () async {
+    test('deco stop columns default to visible and the computer', () async {
       final rows = await db
           .customSelect("PRAGMA table_info('diver_settings')")
           .get();
@@ -45,7 +45,8 @@ void main() {
           r.read<String>('name'): r.read<String?>('dflt_value'),
       };
       expect(byName['show_deco_stops_on_profile'], '1');
-      expect(byName['default_deco_stop_source'], '1');
+      // v223 moved the source default from calculated (1) to computer (0).
+      expect(byName['default_deco_stop_source'], '0');
     });
   });
 
@@ -82,6 +83,8 @@ void main() {
       expect(row.data['show_ceiling_on_profile'], 0);
       expect(row.data['default_ceiling_source'], 0);
       // The new non-nullable columns take their defaults on the legacy row.
+      // v133 seeds calculated (1); v223 does not rewrite existing rows, so
+      // the seeded value survives the rest of the ladder.
       expect(row.data['show_deco_stops_on_profile'], 1);
       expect(row.data['default_deco_stop_source'], 1);
     });
