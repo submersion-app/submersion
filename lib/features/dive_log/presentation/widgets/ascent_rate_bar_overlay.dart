@@ -158,18 +158,22 @@ class _AscentRateBarPainter extends CustomPainter {
     final isHighlighted = highlightedTimestamp != null;
 
     final halfBand = plotHeight / 2;
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.butt;
+    final paint = Paint()..style = PaintingStyle.fill;
 
-    for (final point in buckets.values) {
+    for (final entry in buckets.entries) {
+      final point = entry.value;
       final rate = point.rateMetersPerMin;
       if (rate == 0) continue;
       final magnitude = (rate.abs() / maxAbsRateMetersPerMin).clamp(0.0, 1.0);
       if (magnitude <= 0) continue;
 
-      final x =
-          insets.left + (point.timestamp - visibleMinSeconds) * pixelsPerSecond;
+      // The bucket's own pixel column, not the sample's exact timestamp
+      // position within it: drawing a fixed-width bar centred on the
+      // sample left gaps between adjacent bars wherever the sample landed
+      // off-centre in its bucket. A rect spanning the full bucket instead
+      // always touches the next one, edge to edge.
+      final left = insets.left + entry.key * _pixelsPerBar;
+      final right = left + _pixelsPerBar;
       final barLength = magnitude * halfBand;
       final descending = rate < 0;
       final baseColor = Color.lerp(
@@ -177,16 +181,16 @@ class _AscentRateBarPainter extends CustomPainter {
         descending ? _descentDark : _ascentDark,
         magnitude,
       )!;
-      // Lit up: brighter (lerp toward white) and a little wider, rather than
-      // a whole separate style -- keeps the same colour family so it still
-      // reads as "this bar", just emphasised.
-      paint
-        ..color = isHighlighted
-            ? Color.lerp(baseColor, Colors.white, 0.45)!
-            : baseColor
-        ..strokeWidth = isHighlighted ? _pixelsPerBar * 2 : _pixelsPerBar;
+      // Lit up: brighter (lerp toward white), the same way hovering a
+      // metric line highlights that whole line rather than just the
+      // touched point on it.
+      paint.color = isHighlighted
+          ? Color.lerp(baseColor, Colors.white, 0.45)!
+          : baseColor;
       final endY = descending ? baselineY + barLength : baselineY - barLength;
-      canvas.drawLine(Offset(x, baselineY), Offset(x, endY), paint);
+      final top = descending ? baselineY : endY;
+      final bottom = descending ? endY : baselineY;
+      canvas.drawRect(Rect.fromLTRB(left, top, right, bottom), paint);
     }
   }
 

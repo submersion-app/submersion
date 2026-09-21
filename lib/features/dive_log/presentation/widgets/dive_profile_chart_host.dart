@@ -116,7 +116,7 @@ class DiveProfileChartHost extends ConsumerWidget {
     this.exportKey,
     this.legendLeading,
     this.tooltipBelow = false,
-    this.tooltipAboveChart = false,
+    this.tooltipNativeBubble = false,
     this.onTooltipData,
     this.onSafetyFindingDetails,
   });
@@ -137,10 +137,10 @@ class DiveProfileChartHost extends ConsumerWidget {
   /// tooltip to land in.
   final bool tooltipBelow;
 
-  /// Lets the in-chart cursor tooltip grow upward past the chart's own top
-  /// edge instead of downward into the plotted data. See
-  /// [DiveProfileChart.tooltipAboveChart].
-  final bool tooltipAboveChart;
+  /// Renders fl_chart's own built-in tooltip bubble instead of the custom
+  /// cursor-following [ProfileCursorTooltip]. See
+  /// [DiveProfileChart.tooltipNativeBubble].
+  final bool tooltipNativeBubble;
 
   final void Function(List<TooltipRow>? rows)? onTooltipData;
 
@@ -367,7 +367,7 @@ class DiveProfileChartHost extends ConsumerWidget {
         maxDepth: dive.maxDepth,
         legendLeading: legendLeading,
         tooltipBelow: tooltipBelow,
-        tooltipAboveChart: tooltipAboveChart,
+        tooltipNativeBubble: tooltipNativeBubble,
         onTooltipData: onTooltipData,
         ceilingCurve: analysis?.ceilingCurve,
         decoStopCurve: analysis?.decoStopCurve,

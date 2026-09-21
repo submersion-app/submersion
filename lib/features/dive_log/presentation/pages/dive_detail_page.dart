@@ -2018,17 +2018,13 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               dive: dive,
               exportKey: _profileChartExportKey,
               onSafetyFindingDetails: (_) => _scrollToSafetySection(),
-              // The cursor-following ProfileCursorTooltip, same as the
-              // fullscreen profile view (issue #2228 follow-up: an earlier
-              // attempt at restoring fl_chart's own bubble here rendered
-              // both at once instead of replacing it; the cursor-following
-              // tooltip alone is what the user actually wants in both
-              // places).
-              //
-              // Unlike fullscreen, this embedded chart can be short on a
-              // narrow screen, so the tooltip is allowed to grow upward past
-              // the chart's own top edge rather than cover the plotted data.
-              tooltipAboveChart: true,
+              // fl_chart's own tooltip bubble (issue #2228 follow-up): this
+              // is the exact pre-#2228 presentation for the embedded chart,
+              // positioned above the chart box by fl_chart itself rather
+              // than by the custom ProfileCursorTooltip used elsewhere.
+              // Restored after the custom in-chart tooltip's own upward-
+              // growth approximation still did not land in the same place.
+              tooltipNativeBubble: true,
             ),
             // Profile point count (bottom-right, inline with x-axis)
             Align(

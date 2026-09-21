@@ -124,6 +124,33 @@ void main() {
       );
     });
 
+    testWidgets('suppresses the touched-spot indicator on the deco stop band', (
+      tester,
+    ) async {
+      // Regression: the band's spots are compressed to its step
+      // transitions (buildDecoStopBand), so fl_chart's nearest-spot touch
+      // resolution can land on the transition at the start of the
+      // current stop level instead of the cursor's actual position
+      // anywhere within that flat run -- the dot then reads as stuck
+      // rather than tracking the cursor. No indicator is clearer than one
+      // that does not track.
+      await tester.pumpWidget(
+        _buildChartHarness(
+          profile: _sampleProfileWithDeco(),
+          ceilingCurve: const [0.0, 4.2, 4.2, 0.0],
+          decoStopCurve: const [0.0, 6.0, 6.0, 0.0],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final chart = tester.widget<LineChart>(find.byType(LineChart));
+      final bars = chart.data.lineBarsData;
+      final band = bars.firstWhere((b) => b.isStepLineChart);
+
+      final indicator = chart.data.lineTouchData.getTouchedSpotIndicator;
+      expect(indicator(band, const [0]).single, isNull);
+    });
+
     testWidgets('omits the band when showDecoStops is false', (tester) async {
       // The widget's showDecoStops constructor param only seeds initState;
       // once mounted, visibility is driven by profileLegendProvider (see the

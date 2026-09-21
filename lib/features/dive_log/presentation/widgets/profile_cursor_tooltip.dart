@@ -68,23 +68,15 @@ double computeTooltipScaleFactor({
 /// otherwise overflow [plotRect.right], then clamped so it never extends
 /// past either horizontal edge.
 ///
-/// Vertically, the box does not track the cursor at all, and is placed
-/// [tooltipTopMargin] away from [plotRect.top] either:
-/// - growing downward from just below it (the default), clamped to never
-///   cross [plotRect.top] -- this stays clear of the plotted data only
-///   when the box is short enough to fit above whatever the cursor is
-///   over, or
-/// - (when [growUpward] is true) with its bottom edge pinned just above
-///   [plotRect.top], growing upward and intentionally left unclamped on
-///   that side -- see [DiveProfileChart.tooltipAboveChart] for why a
-///   caller opts into letting it overflow above the plot rather than
-///   clamping into it.
+/// Vertically, the box does not track the cursor at all: it is pinned
+/// [tooltipTopMargin] below [plotRect.top], so it stays clear of the
+/// plotted data instead of landing on top of it mid-chart (see the doc
+/// comment on [tooltipTopMargin]).
 Offset computeTooltipBoxPosition({
   required Offset cursorLocal,
   required Size boxSize,
   required Rect plotRect,
   double gap = tooltipCursorGap,
-  bool growUpward = false,
 }) {
   final maxLeft = plotRect.right - boxSize.width;
   final minLeft = plotRect.left;
@@ -96,9 +88,7 @@ Offset computeTooltipBoxPosition({
   }
   left = left.clamp(minLeft, minLeft > maxLeft ? minLeft : maxLeft);
 
-  final top = growUpward
-      ? plotRect.top - tooltipTopMargin - boxSize.height
-      : plotRect.top + tooltipTopMargin;
+  final top = plotRect.top + tooltipTopMargin;
 
   return Offset(left, top);
 }
@@ -136,16 +126,11 @@ class ProfileCursorTooltip extends StatelessWidget {
   /// Reserved axis gutters around the plot rect (the chart's `_plotInsets`).
   final ({double left, double top, double right, double bottom}) insets;
 
-  /// Grows the box upward past the plot's top edge instead of downward into
-  /// it. See [DiveProfileChart.tooltipAboveChart], which this mirrors.
-  final bool growUpward;
-
   const ProfileCursorTooltip({
     super.key,
     required this.rows,
     required this.cursorLocal,
     required this.insets,
-    this.growUpward = false,
   });
 
   @override
@@ -167,15 +152,10 @@ class ProfileCursorTooltip extends StatelessWidget {
 
         final naturalHeight =
             tooltipContentPadding * 2 + rows.length * tooltipBaseRowHeight;
-        // Growing upward, the box is not confined to the plot's own height
-        // (that is the point of growing upward in the first place), so it is
-        // never shrunk -- it simply extends further above the chart.
-        final scale = growUpward
-            ? 1.0
-            : computeTooltipScaleFactor(
-                naturalHeight: naturalHeight,
-                availableHeight: plotRect.height,
-              );
+        final scale = computeTooltipScaleFactor(
+          naturalHeight: naturalHeight,
+          availableHeight: plotRect.height,
+        );
         final boxWidth = tooltipMaxContentWidth < plotRect.width
             ? tooltipMaxContentWidth
             : plotRect.width;
@@ -185,7 +165,6 @@ class ProfileCursorTooltip extends StatelessWidget {
           cursorLocal: cursorLocal,
           boxSize: Size(boxWidth, boxHeight),
           plotRect: plotRect,
-          growUpward: growUpward,
         );
 
         final fontSize = tooltipBaseFontSize * scale;
@@ -197,10 +176,6 @@ class ProfileCursorTooltip extends StatelessWidget {
         );
 
         return Stack(
-          // Clip.none: when growUpward is set, the box's top can sit above
-          // this Stack's own bounds (its bottom edge is pinned near
-          // plotRect.top and it grows upward from there).
-          clipBehavior: Clip.none,
           children: [
             Positioned(
               left: position.dx,
