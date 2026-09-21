@@ -11,6 +11,7 @@ enum ImportFormat {
   macdiveSqlite,
   subsurfaceXml,
   divingLogXml,
+  divingLogSqlite,
   suuntoSml,
   suuntoDm5,
   fit,
@@ -31,6 +32,7 @@ enum ImportFormat {
     macdiveSqlite => 'MacDive SQLite',
     subsurfaceXml => 'Subsurface XML',
     divingLogXml => 'Diving Log XML',
+    divingLogSqlite => 'Diving Log',
     suuntoSml => 'Suunto SML',
     suuntoDm5 => 'Suunto DM5',
     fit => 'Garmin FIT',
@@ -41,6 +43,11 @@ enum ImportFormat {
     sqlite => 'SQLite Database',
     unknown => 'Unknown',
   };
+
+  /// Whether the wizard asks the diver to map this format's columns.
+  /// A self-describing format has no Map Fields step to send them back to,
+  /// so a message about the file's columns cannot point at one (#2152).
+  bool get mapsColumns => this == csv;
 
   /// Whether this format has a parser implemented in v1.5.
   bool get isSupported => switch (this) {
@@ -54,6 +61,7 @@ enum ImportFormat {
     shearwaterDb ||
     macdiveXml ||
     macdiveSqlite ||
+    divingLogSqlite ||
     danDl7 ||
     ratioXml => true,
     _ => false,
@@ -104,6 +112,11 @@ enum SourceApp {
       'In Scubapro LogTRAK, select your dives and export as UDDF format.',
     ssiMyDiveGuide =>
       'In the SSI app, go to My Logbook and export your dives as CSV.',
+    divingLog =>
+      'In Diving Log or DiveLogDT, export your logbook (the SQLite file, '
+          'not DL7) and import it here. The DL7 export carries only depth '
+          'and time, so sites, buddies, equipment, weights and trips are '
+          'not in it.',
     dan =>
       'Export your dives as DAN DL7 (.zxu) files and import them directly '
           'into Submersion.',
@@ -188,6 +201,11 @@ class SourceOverrideOption {
       sourceApp: SourceApp.divingLog,
       format: ImportFormat.csv,
       displayName: 'Diving Log (CSV)',
+    ),
+    SourceOverrideOption(
+      sourceApp: SourceApp.divingLog,
+      format: ImportFormat.divingLogSqlite,
+      displayName: 'Diving Log (Logbook)',
     ),
     SourceOverrideOption(
       sourceApp: SourceApp.diveMate,

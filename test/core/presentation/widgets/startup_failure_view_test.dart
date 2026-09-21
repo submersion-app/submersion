@@ -36,6 +36,10 @@ Widget _host({
   String? backupsDirectory,
   VoidCallback? onShowBackupsFolder,
   VoidCallback? onViewPreviousReleases,
+  VoidCallback? onUseAnotherFolder,
+  VoidCallback? onRestoreFromFile,
+  VoidCallback? onStartFresh,
+  bool recoveryBusy = false,
   VoidCallback? onClose,
 }) {
   return MaterialApp(
@@ -55,6 +59,10 @@ Widget _host({
         backupsDirectory: backupsDirectory,
         onShowBackupsFolder: onShowBackupsFolder,
         onViewPreviousReleases: onViewPreviousReleases,
+        onUseAnotherFolder: onUseAnotherFolder,
+        onRestoreFromFile: onRestoreFromFile,
+        onStartFresh: onStartFresh,
+        recoveryBusy: recoveryBusy,
         onClose: onClose ?? () {},
       ),
     ),
@@ -381,6 +389,173 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('View previous releases'), findsNothing);
+    });
+  });
+
+  group('the other ways back in', () {
+    // Issue #2139: a fresh macOS install whose database was damaged had an
+    // empty backup registry, so the only two actions on this screen were
+    // "show me an empty folder" and "quit" -- while an intact dive log sat in
+    // the diver's iCloud Drive folder.
+    testWidgets('an unreadable dive log offers all three routes out', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          kind: StartupFailureKind.dataUnreadable,
+          onUseAnotherFolder: () {},
+          onRestoreFromFile: () {},
+          onStartFresh: () {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Use a dive log in another folder'), findsOneWidget);
+      expect(find.text('Restore from a backup file'), findsOneWidget);
+      expect(find.text('Start with an empty dive log'), findsOneWidget);
+    });
+
+    testWidgets('each route reports the tap', (tester) async {
+      var folder = false;
+      var file = false;
+      var fresh = false;
+      await tester.pumpWidget(
+        _host(
+          kind: StartupFailureKind.dataUnreadable,
+          onUseAnotherFolder: () => folder = true,
+          onRestoreFromFile: () => file = true,
+          onStartFresh: () => fresh = true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Use a dive log in another folder'));
+      await tester.tap(find.text('Restore from a backup file'));
+      await tester.tap(find.text('Start with an empty dive log'));
+
+      expect(folder, isTrue);
+      expect(file, isTrue);
+      expect(fresh, isTrue);
+    });
+
+    // Same gate as the restore card. A build that cannot open any database
+    // fixes nothing by being pointed at a different file, and a lock means
+    // the database is intact -- offering to set it aside invites a diver to
+    // abandon good data over a problem a relaunch fixes.
+    testWidgets('a failure that left the data alone offers none of them', (
+      tester,
+    ) async {
+      for (final kind in [
+        StartupFailureKind.engineUnavailable,
+        StartupFailureKind.databaseBusy,
+      ]) {
+        await tester.pumpWidget(
+          _host(
+            kind: kind,
+            onUseAnotherFolder: () {},
+            onRestoreFromFile: () {},
+            onStartFresh: () {},
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('Use a dive log in another folder'),
+          findsNothing,
+          reason: '$kind must not offer another folder',
+        );
+        expect(
+          find.text('Restore from a backup file'),
+          findsNothing,
+          reason: '$kind must not offer a backup file',
+        );
+        expect(
+          find.text('Start with an empty dive log'),
+          findsNothing,
+          reason: '$kind must not offer an empty dive log',
+        );
+      }
+    });
+
+    testWidgets('a route with no handler is not shown', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          kind: StartupFailureKind.dataUnreadable,
+          onUseAnotherFolder: () {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Use a dive log in another folder'), findsOneWidget);
+      expect(find.text('Restore from a backup file'), findsNothing);
+      expect(find.text('Start with an empty dive log'), findsNothing);
+    });
+
+    // Every route acts on the diver's ONE database, so a second one started
+    // while the first is still copying races the same files.
+    testWidgets('every route is disabled while one is running', (tester) async {
+      await tester.pumpWidget(
+        _host(
+          kind: StartupFailureKind.dataUnreadable,
+          recoveryBackup: _preMigrationRecord(),
+          onRestoreBackup: () {},
+          onUseAnotherFolder: () {},
+          onRestoreFromFile: () {},
+          onStartFresh: () {},
+          recoveryBusy: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      for (final label in [
+        'Use a dive log in another folder',
+        'Restore from a backup file',
+        'Start with an empty dive log',
+        'Restore this backup',
+      ]) {
+        // byWidgetPredicate, not byType: ButtonStyleButton is abstract and
+        // byType matches the exact runtime type, so it finds nothing.
+        final button = tester.widget<ButtonStyleButton>(
+          find.ancestor(
+            of: find.text(label),
+            matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+          ),
+        );
+        expect(button.onPressed, isNull, reason: '$label must be disabled');
+      }
+    });
+
+    // Disabled, NOT hidden. A card or a route vanishing mid-action would read
+    // as the option having been taken away.
+    testWidgets('the routes stay on screen while one is running', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        _host(
+          kind: StartupFailureKind.dataUnreadable,
+          recoveryBackup: _preMigrationRecord(),
+          onRestoreBackup: () {},
+          onUseAnotherFolder: () {},
+          onRestoreFromFile: () {},
+          onStartFresh: () {},
+          recoveryBusy: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Use a dive log in another folder'), findsOneWidget);
+      expect(find.text('Restore from a backup file'), findsOneWidget);
+      expect(find.text('Start with an empty dive log'), findsOneWidget);
+      expect(find.text('Restore this backup'), findsOneWidget);
+    });
+
+    testWidgets('the section heading is gone when no route is wired', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_host(kind: StartupFailureKind.dataUnreadable));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Other ways back in'), findsNothing);
     });
   });
 

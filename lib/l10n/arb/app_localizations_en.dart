@@ -3151,6 +3151,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_action_ok => 'OK';
 
   @override
+  String get common_action_openSettings => 'Open Settings';
+
+  @override
   String get common_action_save => 'Save';
 
   @override
@@ -5054,9 +5057,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'Ceiling';
 
   @override
-  String get diveLog_deco_label_leading => 'Leading';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5168,9 +5168,6 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'Playback';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'Range Stats';
@@ -7665,47 +7662,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'DECO';
 
   @override
-  String get diveLog_playbackStats_depth => 'Depth';
-
-  @override
-  String get diveLog_playbackStats_header => 'Live Stats';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'Heart Rate';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'Pressure';
-
-  @override
-  String get diveLog_playbackStats_temp => 'Temp';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'Playback position';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'Step-through Playback';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => 'Back 10 seconds';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'Exit playback mode';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => 'Forward 10 seconds';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'Pause';
 
   @override
@@ -8215,27 +8171,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'None';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'Ceiling';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M-value';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'Tissue Loading';
@@ -9473,7 +9408,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveSites_filter_clearAll => 'Clear All';
 
   @override
-  String get diveSites_filter_country_hint => 'e.g., Thailand';
+  String get diveSites_filter_allCountries => 'All countries';
+
+  @override
+  String get diveSites_filter_allRegions => 'All regions';
 
   @override
   String get diveSites_filter_country_label => 'Country';
@@ -9510,10 +9448,13 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => 'e.g., Phuket';
+  String get diveSites_filter_region_label => 'Region';
 
   @override
-  String get diveSites_filter_region_label => 'Region';
+  String get diveSites_filter_searchCountriesHint => 'Type to search countries';
+
+  @override
+  String get diveSites_filter_searchRegionsHint => 'Type to search regions';
 
   @override
   String get diveSites_filter_section_depthRange => 'Max Depth Range';
@@ -16970,13 +16911,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Connected dive computers, source management';
 
   @override
-  String get siteDetailSection_map_name => 'Map';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Map preview of the site location';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Dive count, depths reached, longest and latest dives';
 
@@ -18031,6 +17965,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_data_offlineMaps_subtitle =>
       'Download maps for offline use';
+
+  @override
+  String get settings_data_threeDMaps => '3D Maps';
+
+  @override
+  String get settings_data_threeDMaps_subtitle =>
+      'Manage cached swissBATHY3D and other bathymetry data';
 
   @override
   String get settings_data_restore => 'Restore';
@@ -22681,8 +22622,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_summary_stat_totalTrips => 'Total Trips';
 
   @override
-  String trips_summary_upcomingSubtitle(Object date, Object days) {
-    return '$date • In $days days';
+  String trips_summary_upcomingSubtitle(Object date, Object countdown) {
+    return '$date • $countdown';
   }
 
   @override
@@ -23310,6 +23251,14 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Some dives have no dive site';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'These dives referred to a dive site the file does not describe, so they were imported without one. You can set a site by editing the dive.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'Certifications and service records not in the file';
 
@@ -23455,6 +23404,10 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'Check that the date and time columns are mapped on this step, and that they hold dates.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Check that the date column holds dates written the way its header names.';
 
   @override
   String get universalImport_error_noDataInFile =>
@@ -26219,7 +26172,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_appearance_mapStyle_esriSatellite => 'Satellite';
 
   @override
-  String get settings_appearance_bathymetryRefresh => 'Reload Map Data';
+  String get settings_appearance_bathymetryRefresh =>
+      'Update Existing Map Data';
 
   @override
   String get settings_appearance_bathymetryRefresh_subtitle =>
@@ -26247,6 +26201,163 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_appearance_bathymetryRefresh_resultNothingCached =>
       'No lake depth data cached yet';
+
+  @override
+  String get maps3d_appBar_title => '3D Maps';
+
+  @override
+  String get maps3d_section_all => 'All Providers';
+
+  @override
+  String get maps3d_section_swissBathy => 'swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete => 'Delete data';
+
+  @override
+  String get maps3d_swissBathy_delete_subtitle =>
+      'Removes cached swissBATHY3D depth tiles and lake grids';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmTitle =>
+      'Delete swissBATHY3D data?';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      'Cached depth data for Swiss lakes will be removed and reloaded the next time a dive site\'s 3D view is opened.';
+
+  @override
+  String get maps3d_swissBathy_delete_done => 'swissBATHY3D data deleted';
+
+  @override
+  String get maps3d_section_other => 'Other providers';
+
+  @override
+  String get maps3d_other_reset => 'Reset remaining bathymetry data';
+
+  @override
+  String get maps3d_other_reset_subtitle =>
+      'Removes cached data from EMODnet, NOAA DEM, GMRT and ETOPO';
+
+  @override
+  String get maps3d_other_reset_confirmTitle =>
+      'Reset remaining bathymetry data?';
+
+  @override
+  String get maps3d_other_reset_confirmMessage =>
+      'Cached data from every provider other than swissBATHY3D will be removed and reloaded the next time a dive site\'s 3D view is opened.';
+
+  @override
+  String get maps3d_other_reset_done => 'Remaining bathymetry data reset';
+
+  @override
+  String get maps3d_reload => 'Reload map data';
+
+  @override
+  String get maps3d_reload_subtitle =>
+      'Deletes all cached bathymetry data and downloads it again for every dive site';
+
+  @override
+  String get maps3d_reload_confirmTitle =>
+      'Reload map data for every dive site?';
+
+  @override
+  String maps3d_reload_confirm_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dive sites will be reloaded.',
+      one: '1 dive site will be reloaded.',
+      zero: 'No dive sites have a location.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_confirm_estimatedSize(String size) {
+    return 'Estimated download: approx. $size';
+  }
+
+  @override
+  String get maps3d_reload_confirm_duration => 'This can take several minutes.';
+
+  @override
+  String get maps3d_reload_confirm_wifiHint =>
+      'A lot of data will be downloaded — a fast Wi-Fi connection is recommended.';
+
+  @override
+  String get maps3d_reload_start => 'Reload';
+
+  @override
+  String maps3d_reload_progress(int completed, int total) {
+    return '$completed of $total dive sites';
+  }
+
+  @override
+  String get maps3d_reload_cancel => 'Cancel';
+
+  @override
+  String get maps3d_reload_done => 'Map data reloaded for every dive site';
+
+  @override
+  String get maps3d_reload_cancelled => 'Reload cancelled';
+
+  @override
+  String get maps3d_reload_failed =>
+      'Reload failed; some dive sites may not have been reloaded';
+
+  @override
+  String get maps3d_busy_notice =>
+      'Another 3D Maps action is running. Please wait until it finishes.';
+
+  @override
+  String maps3d_reload_remainingSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seconds',
+      one: '1 second',
+    );
+    return 'about $_temp0 remaining';
+  }
+
+  @override
+  String maps3d_reload_remainingMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return 'about $_temp0 remaining';
+  }
+
+  @override
+  String maps3d_reload_warming(int index, int total, String name) {
+    return 'Preparing: lake $index of $total ($name)';
+  }
+
+  @override
+  String maps3d_reload_elapsedSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count seconds',
+      one: '1 second',
+    );
+    return 'running for $_temp0';
+  }
+
+  @override
+  String maps3d_reload_elapsedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count minutes',
+      one: '1 minute',
+    );
+    return 'running for $_temp0';
+  }
 
   @override
   String get common_action_reparse => 'Re-parse';
@@ -27035,6 +27146,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get dive3d_seascape_orbitView => '3D view';
+
+  @override
+  String get dive3d_seascape_verticalExaggeration => 'Vertical exaggeration';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationReset => 'Reset to automatic';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationLabel => 'Depth';
 
   @override
   String get dive3d_seascape_appearance_surface => 'Terrain surface';
@@ -38318,6 +38438,84 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startup_failure_showBackupsFolder => 'Show backup folder';
+
+  @override
+  String get startup_failure_moreWays_title => 'Other ways back in';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'Use a dive log in another folder';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'Switch to a dive log you already keep somewhere else, such as an iCloud Drive or Dropbox folder.';
+
+  @override
+  String get startup_failure_restoreFromFile => 'Restore from a backup file';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'Pick a Submersion backup from anywhere on this device or in a synced folder.';
+
+  @override
+  String get startup_failure_startFresh => 'Start with an empty dive log';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'Set the damaged file aside and begin again. Nothing is deleted.';
+
+  @override
+  String get startup_recovery_adopt_title => 'Use this dive log?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'Submersion will open this dive log from now on. The file that would not open stays where it is.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives dives, $sites dive sites';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'Use this dive log';
+
+  @override
+  String get startup_recovery_startFresh_title =>
+      'Start with an empty dive log?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion moves the damaged file into a folder of its own and opens a new, empty dive log. Nothing is deleted, so you can still try the old file again or send it to support.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'Start fresh';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'Your damaged dive log was moved to:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'That did not work';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'There is no $filename in $folder. Choose the folder that holds the dive log file itself.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'The dive log at $path is damaged, or it is not a Submersion dive log.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'That file is not a backup Submersion can restore: $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'That backup is encrypted. Submersion can only unlock an encrypted backup once the app is open, so use one of the other routes here first, then restore it from Settings, under Backup and Restore.';
 
   @override
   String get startup_failure_downgrade_title =>

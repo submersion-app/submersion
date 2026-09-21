@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,8 +7,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart' show Intl;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
+import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
+import 'package:submersion/features/dive_3d/domain/geometry/scene_bounds.dart';
+import 'package:submersion/features/dive_3d/domain/scene_3d.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/bathymetry_terrain_builder.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/vertical_exaggeration.dart';
 import 'package:submersion/features/dive_3d/presentation/widgets/terrain_appearance_sheet.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -49,6 +58,7 @@ void main() {
   Future<ProviderContainer> pumpSheet(
     WidgetTester tester, {
     AppSettings initial = const AppSettings(),
+    String? siteId,
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -56,18 +66,24 @@ void main() {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         settingsProvider.overrideWith((ref) => MockSettingsNotifier(initial)),
+        if (siteId != null)
+          siteSeascapeProvider(
+            siteId,
+          ).overrideWith((ref) async => const SiteSeascapeNoData()),
       ],
     );
     addTearDown(container.dispose);
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: const MaterialApp(
-          locale: Locale('en'),
+        child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: SingleChildScrollView(child: TerrainAppearanceSheet()),
+            body: SingleChildScrollView(
+              child: TerrainAppearanceSheet(siteId: siteId),
+            ),
           ),
         ),
       ),
@@ -570,6 +586,216 @@ void main() {
           .getRect(find.byKey(const ValueKey('seascapeWallAngleSlider')))
           .bottom,
       lessThanOrEqualTo(800 - 320),
+    );
+  });
+
+  // Issue #2141 follow-up: the auto-computed exaggeration can still read
+  // too strong for some narrow lakes, so the diver can override it per
+  // site, persisted like the rest of the terrain-appearance knobs.
+  group('vertical exaggeration (issue #2141 follow-up)', () {
+    testWidgets('no siteId: the section is not shown', (tester) async {
+      await pumpSheet(tester);
+      expect(
+        find.byKey(const ValueKey('seascapeExaggerationSlider')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('with a siteId: the slider is shown, no reset yet', (
+      tester,
+    ) async {
+      await pumpSheet(tester, siteId: 'site-1');
+      expect(
+        find.byKey(const ValueKey('seascapeExaggerationSlider')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('seascapeExaggerationReset')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('dragging the slider persists a per-site override', (
+      tester,
+    ) async {
+      final container = await pumpSheet(tester, siteId: 'site-1');
+      await tester.drag(
+        find.byKey(const ValueKey('seascapeExaggerationSlider')),
+        const Offset(200, 0),
+      );
+      await tester.pump();
+
+      final override = container
+          .read(settingsProvider)
+          .seascapeVerticalExaggerationOverrides['site-1'];
+      expect(override, isNotNull);
+      expect(override, greaterThan(1.0));
+      expect(
+        find.byKey(const ValueKey('seascapeExaggerationReset')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a different site keeps its own override separate', (
+      tester,
+    ) async {
+      final container = await pumpSheet(
+        tester,
+        siteId: 'site-2',
+        initial: const AppSettings(
+          seascapeVerticalExaggerationOverrides: {'site-1': 4.2},
+        ),
+      );
+      // site-2 has no override of its own yet.
+      expect(
+        find.byKey(const ValueKey('seascapeExaggerationReset')),
+        findsNothing,
+      );
+      expect(
+        container
+            .read(settingsProvider)
+            .seascapeVerticalExaggerationOverrides['site-1'],
+        4.2,
+      );
+    });
+
+    testWidgets('the reset button clears only this site\'s override', (
+      tester,
+    ) async {
+      final container = await pumpSheet(
+        tester,
+        siteId: 'site-1',
+        initial: const AppSettings(
+          seascapeVerticalExaggerationOverrides: {'site-1': 3.0, 'site-2': 5.0},
+        ),
+      );
+      await tester.ensureVisible(
+        find.byKey(const ValueKey('seascapeExaggerationReset')),
+      );
+      await tester.tap(find.byKey(const ValueKey('seascapeExaggerationReset')));
+      await tester.pump();
+
+      final overrides = container
+          .read(settingsProvider)
+          .seascapeVerticalExaggerationOverrides;
+      expect(overrides.containsKey('site-1'), isFalse);
+      expect(overrides['site-2'], 5.0); // untouched
+      expect(
+        find.byKey(const ValueKey('seascapeExaggerationReset')),
+        findsNothing,
+      );
+    });
+
+    testWidgets(
+      'an out-of-range stored override reads the same on the thumb, the '
+      'label and the trailing text (Copilot review: the slider clamped '
+      'its own value while the readouts printed the raw one)',
+      (tester) async {
+        await pumpSheet(
+          tester,
+          siteId: 'site-1',
+          initial: const AppSettings(
+            seascapeVerticalExaggerationOverrides: {'site-1': 100},
+          ),
+        );
+
+        final slider = tester.widget<Slider>(
+          find.byKey(const ValueKey('seascapeExaggerationSlider')),
+        );
+        expect(slider.value, maxManualVerticalExaggeration);
+        expect(slider.label, '10.0\u00d7');
+        expect(find.text('10.0\u00d7'), findsOneWidget);
+        expect(find.text('100.0\u00d7'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'keeps the last known automatic value across a provider rebuild, '
+      "instead of snapping to 1.0x (Copilot review: every drag writes the "
+      "override the provider itself watches, so it rebuilds on every tick, "
+      "and reading valueOrNull straight off that rebuild would go through "
+      "null while it is (re)computing)",
+      (tester) async {
+        final grid = BathymetryGrid(
+          originLat: 0,
+          originLon: 0,
+          cellSizeLatDeg: 0.001,
+          cellSizeLonDeg: 0.001,
+          rows: 2,
+          cols: 2,
+          depthsMeters: const [10, 15, 12, 20],
+          sourceId: 'test',
+          resolutionMeters: 61,
+          fetchedAt: DateTime.utc(2026, 8, 15),
+        );
+        const center = GeoPoint(0, 0);
+        final box = BathymetryTerrainBuilder.enuBounds(grid, center);
+        final ready = SiteSeascapeReady(
+          scene: const Scene3d(
+            layers: [],
+            markers: [],
+            bounds: SceneBounds(durationSeconds: 1, maxDepthMeters: 1),
+          ),
+          sourceId: 'test',
+          resolutionMeters: 61,
+          grid: grid,
+          axisInputs: (
+            minEast: box.minEast,
+            maxEast: box.maxEast,
+            minNorth: box.minNorth,
+            maxNorth: box.maxNorth,
+            maxDepth: 20,
+            verticalExaggeration: 3.9,
+          ),
+        );
+
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        var callCount = 0;
+        final container = ProviderContainer(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            siteSeascapeProvider('site-1').overrideWith((ref) {
+              callCount++;
+              if (callCount == 1) return Future.value(ready);
+              // A rebuild in flight (e.g. triggered by the override write
+              // itself) that has not resolved yet -- exactly what a drag
+              // tick produces.
+              return Completer<SiteSeascapeState>().future;
+            }),
+          ],
+        );
+        addTearDown(container.dispose);
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: const MaterialApp(
+              locale: Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: TerrainAppearanceSheet(siteId: 'site-1'),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump();
+
+        Slider slider() => tester.widget<Slider>(
+          find.byKey(const ValueKey('seascapeExaggerationSlider')),
+        );
+        expect(slider().value, closeTo(3.9, 0.01));
+
+        // Force the provider to rebuild, landing on the never-resolving
+        // second future above -- the slider must still read the last known
+        // automatic value, not fall back to 1.0x.
+        container.invalidate(siteSeascapeProvider('site-1'));
+        await tester.pump();
+        expect(slider().value, closeTo(3.9, 0.01));
+      },
     );
   });
 }

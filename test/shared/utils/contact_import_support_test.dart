@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/shared/utils/contact_import_support.dart';
 
 /// Runs [body] with the target platform pinned.
@@ -53,5 +56,50 @@ void main() {
     _withPlatform(TargetPlatform.windows, () {
       expect(isContactImportSupported, isFalse);
     });
+  });
+
+  // The gate above and the Android manifest are two artifacts in two
+  // languages with nothing linking them, which is how they drifted: the gate
+  // offered contacts on Android for the whole life of the feature while the
+  // manifest declared no CONTACTS permission at all. Android denies a runtime
+  // request for an undeclared permission immediately, without a dialog, and
+  // the permission never appears in system settings, so the user could not
+  // grant it (#2191).
+  //
+  // Asserted in both directions. Dropping Android from the gate without
+  // dropping the permission leaves a sensitive declaration nothing uses, and
+  // Play reviews every one of those.
+  test('offering contacts on Android implies READ_CONTACTS is declared', () {
+    debugDefaultTargetPlatformOverride = TargetPlatform.android;
+    final bool offeredOnAndroid;
+    try {
+      offeredOnAndroid = isContactImportSupported;
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
+
+    final manifest = File(
+      p.join('android', 'app', 'src', 'main', 'AndroidManifest.xml'),
+    ).readAsStringSync();
+    // Comments in this manifest explain the permissions they sit above, so
+    // strip them first: a commented-out declaration must not read as one.
+    final live = manifest.replaceAll(RegExp(r'<!--.*?-->', dotAll: true), '');
+    final declared = RegExp(
+      r'<uses-permission\s+android:name="android\.permission\.READ_CONTACTS"',
+    ).hasMatch(live);
+
+    expect(
+      declared,
+      offeredOnAndroid,
+      reason: offeredOnAndroid
+          ? 'isContactImportSupported offers contacts on Android, so '
+                'android/app/src/main/AndroidManifest.xml must declare '
+                'READ_CONTACTS. Without it the permission request is denied '
+                'silently and the feature cannot run.'
+          : 'isContactImportSupported no longer offers contacts on Android, '
+                'so READ_CONTACTS should come out of '
+                'android/app/src/main/AndroidManifest.xml rather than stay as '
+                'an unused sensitive permission.',
+    );
   });
 }

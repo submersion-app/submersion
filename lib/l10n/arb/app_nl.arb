@@ -1257,6 +1257,7 @@
   "common_action_delete": "Verwijderen",
   "common_action_edit": "Bewerken",
   "common_action_ok": "OK",
+  "common_action_openSettings": "Instellingen openen",
   "common_action_save": "Opslaan",
   "common_action_search": "Zoeken",
   "common_label_error": "Fout",
@@ -1740,8 +1741,6 @@
   "diveDetailSection_customFields_description": "Gebruikergedefinieerde aangepaste velden",
   "diveDetailSection_customFields_name": "Aangepaste velden",
   "diveDetailSection_dataSources_description": "Verbonden duikcomputers, bronbeheer",
-  "siteDetailSection_map_name": "Kaart",
-  "siteDetailSection_map_description": "Kaartvoorbeeld van de duikstek",
   "siteDetailSection_diveStatistics_description": "Aantal duiken, bereikte diepten, langste en laatste duiken",
   "siteDetailSection_description_description": "Beschrijving van de duikstek",
   "siteDetailSection_location_description": "Land, regio, wateroppervlak, GPS-coördinaten",
@@ -2014,7 +2013,6 @@
   "diveLog_deco_badge_noDeco": "GEEN DECO",
   "diveLog_deco_label_ceiling": "Plafond",
   "diveLog_deco_label_gf99": "GF99",
-  "diveLog_deco_label_leading": "Leidend",
   "diveLog_deco_label_ndl": "NDL",
   "diveLog_deco_label_surfGf": "SurfGF",
   "diveLog_deco_label_time": "Tijd",
@@ -2043,7 +2041,6 @@
   "diveLog_detail_badge_noDeco": "GEEN DECO",
   "diveLog_detail_badge_warning": "WAARSCHUWING",
   "diveLog_detail_buddyCount": "{count} {count, plural, =1{buddy} other{buddy's}}",
-  "diveLog_detail_button_playback": "Afspelen",
   "diveLog_detail_button_rangeAnalysis": "Bereikstatistieken",
   "diveLog_detail_button_showEnd": "Toon einde",
   "diveLog_detail_captureSignature": "Handtekening instructeur vastleggen",
@@ -2669,19 +2666,6 @@
   "diveLog_o2tox_startPercent": "Start: {value}%",
   "diveLog_o2tox_title": "Zuurstoftoxiciteit",
   "diveLog_playbackStats_deco": "DECO",
-  "diveLog_playbackStats_depth": "Diepte",
-  "diveLog_playbackStats_header": "Live statistieken",
-  "diveLog_playbackStats_heartRate": "Hartslag",
-  "diveLog_playbackStats_ndl": "NDL",
-  "diveLog_playbackStats_ppO2": "ppO₂",
-  "diveLog_playbackStats_pressure": "Druk",
-  "diveLog_playbackStats_temp": "Temp",
-  "diveLog_playback_sliderLabel": "Afspeelpositie",
-  "diveLog_playback_speed_label": "{speed}x",
-  "diveLog_playback_stepThrough": "Stapsgewijs afspelen",
-  "diveLog_playback_tooltip_back10": "10 seconden terug",
-  "diveLog_playback_tooltip_exit": "Afspeelmodus verlaten",
-  "diveLog_playback_tooltip_forward10": "10 seconden vooruit",
   "diveLog_playback_tooltip_pause": "Pauzeren",
   "diveLog_playback_tooltip_play": "Afspelen",
   "diveLog_playback_tooltip_skipEnd": "Naar einde springen",
@@ -2833,13 +2817,6 @@
   "diveLog_tank_tooltip_remove": "Fles verwijderen",
   "diveLog_tank_regulatorLabel": "Ademautomaat",
   "diveLog_tank_regulatorNone": "Geen",
-  "diveLog_tissue_label_ceiling": "Plafond",
-  "diveLog_tissue_label_gf": "GF",
-  "diveLog_tissue_label_ndl": "NDL",
-  "diveLog_tissue_label_tts": "TTS",
-  "diveLog_tissue_legend_he": "He",
-  "diveLog_tissue_legend_mValue": "100% M-waarde",
-  "diveLog_tissue_legend_n2": "N₂",
   "diveLog_tissue_title": "Weefselbelasting",
   "diveLog_tooltip_avgCalculated": "(gem., berekend)",
   "diveLog_tooltip_ceiling": "Plafond",
@@ -3209,7 +3186,8 @@
   "diveSites_filter_apply": "Filters toepassen",
   "diveSites_filter_cancel": "Annuleren",
   "diveSites_filter_clearAll": "Alles wissen",
-  "diveSites_filter_country_hint": "bijv. Thailand",
+  "diveSites_filter_allCountries": "Alle landen",
+  "diveSites_filter_allRegions": "Alle regio's",
   "diveSites_filter_country_label": "Land",
   "diveSites_filter_depth_max_label": "Max",
   "diveSites_filter_depth_min_label": "Min",
@@ -3220,8 +3198,9 @@
   "diveSites_filter_option_hasDives_subtitle": "Toon alleen stekken met gelogde duiken",
   "diveSites_filter_option_hasDives_title": "Heeft duiken",
   "diveSites_filter_rating_starsPlus": "{count}+ sterren",
-  "diveSites_filter_region_hint": "bijv. Phuket",
   "diveSites_filter_region_label": "Regio",
+  "diveSites_filter_searchCountriesHint": "Typ om landen te zoeken",
+  "diveSites_filter_searchRegionsHint": "Typ om regio's te zoeken",
   "diveSites_filter_section_depthRange": "Max dieptebereik",
   "diveSites_filter_section_difficulty": "Moeilijkheidsgraad",
   "diveSites_filter_section_location": "Locatie",
@@ -5433,6 +5412,8 @@
   "settings_data_import_failed": "Bewerking mislukt: {error}",
   "settings_data_offlineMaps": "Offline kaarten",
   "settings_data_offlineMaps_subtitle": "Download kaarten voor offline gebruik",
+  "settings_data_threeDMaps": "3D Maps",
+  "settings_data_threeDMaps_subtitle": "Manage cached swissBATHY3D and other bathymetry data",
   "settings_data_restore": "Herstellen",
   "settings_data_restoreDialog_cancel": "Annuleren",
   "settings_data_restoreDialog_content": "Waarschuwing: Herstellen vanuit een back-up vervangt ALLE huidige gegevens door de back-upgegevens. Deze actie kan niet ongedaan worden gemaakt.\n\nWeet je zeker dat je wilt doorgaan?",
@@ -6898,7 +6879,7 @@
   "trips_summary_stat_liveaboards": "Liveaboards",
   "trips_summary_stat_totalDives": "Totaal duiken",
   "trips_summary_stat_totalTrips": "Totaal reizen",
-  "trips_summary_upcomingSubtitle": "{date} • Over {days} dagen",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "Aankomend",
   "trips_type_dayTrip": "Dagtrip",
   "trips_type_liveaboard": "Liveaboard",
@@ -6991,6 +6972,8 @@
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{1 waarde kon niet worden omgezet en is leeg gelaten. Als een veld er verkeerd uitziet, controleer dan de kolomtoewijzing en importeer opnieuw.} other{{count} waarden konden niet worden omgezet en zijn leeg gelaten. Als een veld er verkeerd uitziet, controleer dan de kolomtoewijzing en importeer opnieuw.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "Sommige foto's overgeslagen",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{1 foto had geen bestandsnaam en kon niet worden gekoppeld.} other{{count} foto's hadden geen bestandsnaam en konden niet worden gekoppeld.}}",
+  "universalImport_summary_noticeSitesUnresolvedTitle": "Sommige duiken zonder duikstek",
+  "universalImport_summary_noticeSitesUnresolvedBody": "Deze duiken verwezen naar een duikstek die het bestand niet beschrijft en zijn daarom zonder duikstek geïmporteerd. Je kunt er een instellen door de duik te bewerken.",
   "universalImport_summary_noticeMacdiveXmlCertsTitle": "Brevetten en servicerecords niet in het bestand",
   "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive laat brevetten en servicerecords van uitrusting weg uit de XML-export. Importeer je MacDive.sqlite-database om ze op te nemen.",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "MacDive-logboeken niet geïmporteerd",
@@ -7006,6 +6989,7 @@
   "universalImport_error_stepFailed": "Importeren kon niet doorgaan: {details}",
   "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{Er is niets geïmporteerd: de datum in 1 rij kon niet worden gelezen.} other{Er is niets geïmporteerd: de datums in {count} rijen konden niet worden gelezen.}}",
   "universalImport_error_unreadableDatesHint": "Controleer of de datum- en tijdkolommen in deze stap zijn toegewezen en of ze datums bevatten.",
+  "universalImport_error_unreadableDatesHintNoMapping": "Controleer of de datumkolom datums bevat in de notatie die de kolomkop aangeeft.",
   "universalImport_error_noDataInFile": "Er zijn geen importeerbare gegevens in dit bestand gevonden.",
   "universalImport_error_noDataInFileWithDetails": "Er zijn geen importeerbare gegevens in dit bestand gevonden: {details}",
   "universalImport_error_noDataInFiles": "Er zijn geen importeerbare gegevens in de geselecteerde bestanden gevonden.",
@@ -7539,6 +7523,104 @@
   "settings_appearance_bathymetryRefresh_resultUpToDate": "Alle gegevens zijn actueel",
   "settings_appearance_bathymetryRefresh_resultFailed": "Niet alle gegevens konden worden gecontroleerd; bestaande waarden zijn behouden",
   "settings_appearance_bathymetryRefresh_resultNothingCached": "Nog geen meerdieptegegevens opgeslagen",
+  "maps3d_appBar_title": "3D-kaarten",
+  "maps3d_section_all": "Alle aanbieders",
+  "maps3d_section_swissBathy": "swissBATHY3D",
+  "maps3d_swissBathy_delete": "Gegevens verwijderen",
+  "maps3d_swissBathy_delete_subtitle": "Verwijdert gecachte swissBATHY3D-dieptetegels en meerrasters",
+  "maps3d_swissBathy_delete_confirmTitle": "swissBATHY3D-gegevens verwijderen?",
+  "maps3d_swissBathy_delete_confirmMessage": "Gecachte dieptegegevens voor Zwitserse meren worden verwijderd en opnieuw geladen zodra de 3D-weergave van een duikstek weer wordt geopend.",
+  "maps3d_swissBathy_delete_done": "swissBATHY3D-gegevens verwijderd",
+  "maps3d_section_other": "Overige aanbieders",
+  "maps3d_other_reset": "Overige bathymetriegegevens resetten",
+  "maps3d_other_reset_subtitle": "Verwijdert gecachte gegevens van EMODnet, NOAA DEM, GMRT en ETOPO",
+  "maps3d_other_reset_confirmTitle": "Overige bathymetriegegevens resetten?",
+  "maps3d_other_reset_confirmMessage": "Gecachte gegevens van alle aanbieders behalve swissBATHY3D worden verwijderd en opnieuw geladen zodra de 3D-weergave van een duikstek weer wordt geopend.",
+  "maps3d_other_reset_done": "Overige bathymetriegegevens gereset",
+  "maps3d_reload": "Kaartgegevens opnieuw laden",
+  "maps3d_reload_subtitle": "Verwijdert alle gecachte bathymetriegegevens en downloadt ze opnieuw voor elke duikstek",
+  "maps3d_reload_confirmTitle": "Kaartgegevens voor alle duikstekken opnieuw laden?",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{Geen enkele duikstek heeft een locatie.} =1{Er wordt 1 duikstek opnieuw geladen.} other{Er worden {count} duikstekken opnieuw geladen.}}",
+  "@maps3d_reload_confirm_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_confirm_estimatedSize": "Geschatte download: ca. {size}",
+  "@maps3d_reload_confirm_estimatedSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_confirm_duration": "Dit kan enkele minuten duren.",
+  "maps3d_reload_confirm_wifiHint": "Er worden veel gegevens gedownload; een snelle Wi-Fi-verbinding wordt aanbevolen.",
+  "maps3d_reload_start": "Opnieuw laden",
+  "maps3d_reload_progress": "{completed} van {total} duikstekken",
+  "@maps3d_reload_progress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_cancel": "Annuleren",
+  "maps3d_reload_done": "Kaartgegevens voor alle duikstekken opnieuw geladen",
+  "maps3d_reload_cancelled": "Opnieuw laden geannuleerd",
+  "maps3d_reload_failed": "Opnieuw laden mislukt; sommige duikstekken zijn mogelijk niet opnieuw geladen",
+  "maps3d_busy_notice": "Er wordt al een andere 3D-kaartenactie uitgevoerd. Wacht tot deze klaar is.",
+  "maps3d_reload_remainingSeconds": "{count, plural, =1{nog ongeveer 1 seconde} other{nog ongeveer {count} seconden}}",
+  "@maps3d_reload_remainingSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_remainingMinutes": "{count, plural, =1{nog ongeveer 1 minuut} other{nog ongeveer {count} minuten}}",
+  "@maps3d_reload_remainingMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_warming": "Voorbereiden: meer {index} van {total} ({name})",
+  "@maps3d_reload_warming": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_elapsedSeconds": "{count, plural, =1{loopt al 1 seconde} other{loopt al {count} seconden}}",
+  "@maps3d_reload_elapsedSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_elapsedMinutes": "{count, plural, =1{loopt al 1 minuut} other{loopt al {count} minuten}}",
+  "@maps3d_reload_elapsedMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settings_appearance_mapStyle_openStreetMap": "Stratenkaart",
   "settings_appearance_mapStyle_openTopoMap": "Topografisch",
   "universalImport_bulk_replaceSourceAll": "Alles vervangen ({count})",
@@ -7771,6 +7853,12 @@
   "@dive3d_seascape_chartView": {},
   "dive3d_seascape_orbitView": "3D-weergave",
   "@dive3d_seascape_orbitView": {},
+  "dive3d_seascape_verticalExaggeration": "Verticale overdrijving",
+  "@dive3d_seascape_verticalExaggeration": {},
+  "dive3d_seascape_verticalExaggerationReset": "Terugzetten naar automatisch",
+  "@dive3d_seascape_verticalExaggerationReset": {},
+  "dive3d_seascape_verticalExaggerationLabel": "Diepte",
+  "@dive3d_seascape_verticalExaggerationLabel": {},
   "dive3d_seascape_appearance_surface": "Terreinoppervlak",
   "@dive3d_seascape_appearance_surface": {},
   "dive3d_seascape_appearance_surfaceDepth": "Dieptekleuren",
@@ -11651,6 +11739,26 @@
   "startup_failure_restoreFailed": "De back-up kon niet worden teruggezet. Je duiklogboek is precies gelaten zoals het was.",
   "startup_failure_backupsFolder": "Je back-ups staan in:",
   "startup_failure_showBackupsFolder": "Back-upmap tonen",
+  "startup_failure_moreWays_title": "Andere manieren om terug te komen",
+  "startup_failure_useAnotherFolder": "Een logboek in een andere map gebruiken",
+  "startup_failure_useAnotherFolder_subtitle": "Schakel over naar een logboek dat je al ergens anders bewaart, bijvoorbeeld in een map van iCloud Drive of Dropbox.",
+  "startup_failure_restoreFromFile": "Herstellen vanaf een back-upbestand",
+  "startup_failure_restoreFromFile_subtitle": "Kies een Submersion-back-up ergens op dit apparaat of in een gesynchroniseerde map.",
+  "startup_failure_startFresh": "Met een leeg logboek beginnen",
+  "startup_failure_startFresh_subtitle": "Zet het beschadigde bestand opzij en begin opnieuw. Er wordt niets verwijderd.",
+  "startup_recovery_adopt_title": "Dit logboek gebruiken?",
+  "startup_recovery_adopt_body": "Submersion opent voortaan dit logboek. Het bestand dat niet geopend kon worden, blijft waar het staat.",
+  "startup_recovery_adopt_contents": "{dives} duiken, {sites} duikstekken",
+  "startup_recovery_adopt_confirm": "Dit logboek gebruiken",
+  "startup_recovery_startFresh_title": "Met een leeg logboek beginnen?",
+  "startup_recovery_startFresh_body": "Submersion verplaatst het beschadigde bestand naar een eigen map en opent een nieuw, leeg logboek. Er wordt niets verwijderd, dus je kunt het oude bestand later opnieuw proberen of naar de ondersteuning sturen.",
+  "startup_recovery_startFresh_confirm": "Opnieuw beginnen",
+  "startup_recovery_startFresh_done": "Je beschadigde logboek is verplaatst naar:\n{path}",
+  "startup_recovery_problem_title": "Dat werkte niet",
+  "startup_recovery_noDiveLog_body": "Er staat geen {filename} in {folder}. Kies de map waarin het logboekbestand zelf staat.",
+  "startup_recovery_unusable_body": "Het logboek in {path} is beschadigd of het is geen Submersion-logboek.",
+  "startup_recovery_unusableBackup_body": "Dat bestand is geen back-up die Submersion kan herstellen: {path}",
+  "startup_recovery_encryptedBackup_body": "Die back-up is versleuteld. Submersion kan een versleutelde back-up pas ontgrendelen als de app open is, dus gebruik hier eerst een van de andere routes en herstel hem daarna via Instellingen, bij Back-up en herstel.",
   "startup_failure_downgrade_title": "Terug naar de vorige versie",
   "startup_failure_downgrade_body": "Als de upgrade blijft mislukken, installeer dan de versie van Submersion die je eerder gebruikte en zet de veiligheidskopie vanuit die versie terug. Hier terugzetten zou alleen dezelfde upgrade opnieuw uitvoeren. Submersion zet zichzelf nooit terug naar een oudere versie: je automatisch naar oudere builds verplaatsen zou je stilzwijgend op versies met bekende problemen houden.",
   "startup_failure_downgrade_action": "Vorige versies bekijken",

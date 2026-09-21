@@ -139,7 +139,14 @@ const _subsurface = CsvPreset(
         ColumnMapping(sourceColumn: 'maxdepth [m]', targetField: 'maxDepth'),
         ColumnMapping(sourceColumn: 'avgdepth [m]', targetField: 'avgDepth'),
         ColumnMapping(sourceColumn: 'sac [l/min]', targetField: 'sac'),
-        ColumnMapping(sourceColumn: 'mode', targetField: 'diveType'),
+        // Subsurface's `mode` is the breathing loop (OC/CCR/pSCR/Freedive),
+        // not the dive type, so it takes the mode transform: only that one
+        // drops a loop name rather than preserving it as a custom type.
+        ColumnMapping(
+          sourceColumn: 'mode',
+          targetField: 'diveType',
+          transform: ValueTransform.diveModeMap,
+        ),
         ColumnMapping(sourceColumn: 'airtemp [C]', targetField: 'airTemp'),
         ColumnMapping(sourceColumn: 'watertemp [C]', targetField: 'waterTemp'),
         ColumnMapping(sourceColumn: 'location', targetField: 'siteName'),
@@ -504,10 +511,12 @@ const _garminConnect = CsvPreset(
       sourceApp: SourceApp.garminConnect,
       columns: [
         ColumnMapping(sourceColumn: 'Date', targetField: 'date'),
+        // Garmin's `Activity Type` is the recording mode (Gauge Dive,
+        // Single-Gas Dive), not the dive type.
         ColumnMapping(
           sourceColumn: 'Activity Type',
           targetField: 'diveType',
-          transform: ValueTransform.diveTypeMap,
+          transform: ValueTransform.diveModeMap,
         ),
         ColumnMapping(sourceColumn: 'Max Depth', targetField: 'maxDepth'),
         ColumnMapping(sourceColumn: 'Avg Depth', targetField: 'avgDepth'),

@@ -70,10 +70,15 @@ void main() {
         });
 
         test('$mode $tone badge glyph is legible on its accent', () {
-          // A solid accent badge carries a container-colored icon (the
+          // A solid accent badge carries an onAccent-colored icon (the
           // equipment summary's service-due avatar); icons need 3:1.
+          //
+          // This is its own slot rather than a reuse of container because
+          // accent flips sides between modes: it is dark on a light page and
+          // light on a dark one, so the color that reads on top of it is
+          // white in one mode and near-black in the other.
           expect(
-            _contrast(swatch.container, swatch.accent),
+            _contrast(swatch.onAccent, swatch.accent),
             greaterThanOrEqualTo(3.0),
           );
         });
@@ -94,6 +99,37 @@ void main() {
     test('dark alert keeps the established overdue chip colors', () {
       expect(StatusColors.dark.alert.container, const Color(0xFF93000A));
       expect(StatusColors.dark.alert.onContainer, const Color(0xFFFFDAD6));
+    });
+
+    test('light containers are solid fills, not pastel washes', () {
+      // The pastel light palette put the chip fill 1.05:1 against the page,
+      // so a status chip read as a faint smudge next to dark mode's 1.55:1.
+      // Solid fills with reversed labels are the fix; pinning them here
+      // stops a later tweak from drifting back toward the wash.
+      expect(StatusColors.light.alert.container, const Color(0xFFC62828));
+      expect(StatusColors.light.alert.onContainer, const Color(0xFFFFFFFF));
+      expect(StatusColors.light.warn.container, const Color(0xFFF0A81E));
+      expect(StatusColors.light.ok.container, const Color(0xFF256D2B));
+      expect(StatusColors.light.ok.onContainer, const Color(0xFFFFFFFF));
+    });
+
+    test('light warn keeps a dark label so the fill stays amber', () {
+      // White on amber needs the fill dragged down to a brown before it
+      // clears AA, which reads as a third red among the alert chips.
+      expect(StatusColors.light.warn.onContainer, const Color(0xFF3A2200));
+    });
+
+    test('dark keeps the glyph color it rendered before onAccent existed', () {
+      // onAccent was extracted from container, so dark must be unchanged.
+      for (final MapEntry(key: tone, value: swatch) in _swatches(
+        StatusColors.dark,
+      ).entries) {
+        expect(
+          swatch.onAccent,
+          swatch.container,
+          reason: 'dark $tone avatar glyph moved',
+        );
+      }
     });
   });
 
@@ -195,6 +231,7 @@ void main() {
       );
       expect(mid.warn.outline, Color.lerp(light.outline, dark.outline, .5));
       expect(mid.warn.accent, Color.lerp(light.accent, dark.accent, .5));
+      expect(mid.warn.onAccent, Color.lerp(light.onAccent, dark.onAccent, .5));
     });
 
     test('lerp against a foreign extension returns itself', () {
@@ -208,6 +245,7 @@ void main() {
         onContainer: light.onContainer,
         outline: light.outline,
         accent: light.accent,
+        onAccent: light.onAccent,
       );
       expect(copy, light);
       expect(copy.hashCode, light.hashCode);

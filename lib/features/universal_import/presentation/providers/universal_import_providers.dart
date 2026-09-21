@@ -39,6 +39,7 @@ import 'package:submersion/features/universal_import/data/parsers/parser_registr
 import 'package:submersion/features/dive_import/data/services/fit_parser_service.dart';
 import 'package:submersion/features/universal_import/data/services/batch_parse_service.dart';
 import 'package:submersion/features/universal_import/data/services/garmin_device_detector.dart';
+import 'package:submersion/features/universal_import/data/services/divinglog_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/default_diver_mapping.dart';
 import 'package:submersion/features/universal_import/data/services/payload_diver_expander.dart';
@@ -160,6 +161,14 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
         detection = const DetectionResult(
           format: ImportFormat.macdiveSqlite,
           sourceApp: SourceApp.macdive,
+          confidence: 0.95,
+        );
+      } else if (DivingLogDbReader.matchesTables(tables)) {
+        // Checked last: its marker table is a single common name, so the
+        // more specific flavours claim their own files first.
+        detection = const DetectionResult(
+          format: ImportFormat.divingLogSqlite,
+          sourceApp: SourceApp.divingLog,
           confidence: 0.95,
         );
       }
@@ -916,7 +925,13 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
     // The per-row warnings are English transformer strings, so a CSV whose
     // every row was skipped is summarised rather than shown its first one.
     if (payload.isEmpty) {
-      throw _fail(emptyPayloadMessage(_l10n, payload.warnings));
+      throw _fail(
+        emptyPayloadMessage(
+          _l10n,
+          payload.warnings,
+          mapsColumns: opts.format.mapsColumns,
+        ),
+      );
     }
 
     final dupResult = await _checkDuplicatesOrEmpty(payload);

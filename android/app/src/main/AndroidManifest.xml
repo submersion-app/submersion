@@ -17,6 +17,14 @@
     <!-- For accessing photo location metadata -->
     <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
 
+    <!-- Address book access for importing dive buddies and their photos.
+         flutter_contacts ships an Android manifest with no uses-permission
+         elements, so the merger contributes nothing and this is the only
+         declaration. Without it Android denies the runtime request with no
+         dialog, and the permission never appears in system settings, so the
+         feature cannot run and the user cannot grant it (#2191). -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
     <!-- Bluetooth permissions for dive computer connectivity -->
     <!-- Android 12+ (API 31+) permissions -->
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" android:usesPermissionFlags="neverForLocation" />

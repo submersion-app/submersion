@@ -112,8 +112,12 @@ void main() {
   };
 
   // Parent table -> entityType for parents a user can delete (and thus
-  // tombstone). Divers are excluded: diver deletion goes through
-  // DiverMergeRepository, which repoints FKs rather than orphaning rows.
+  // tombstone). Divers are excluded: each of a deleted diver's rows carries
+  // its own fate instead. DiverRepository.deleteDiverWithReassignment
+  // tombstones every row it deletes and stamps the ones it reassigns, and
+  // DiverMergeRepository repoints them;
+  // SyncDataSerializer.repairDanglingForeignKeys clears a diverId that still
+  // dangles.
   const deletableParents = <String, String>{
     'dives': 'dives',
     'dive_sites': 'diveSites',

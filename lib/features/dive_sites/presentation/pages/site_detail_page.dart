@@ -29,7 +29,9 @@ import 'package:submersion/features/dive_sites/presentation/widgets/site_delete_
 import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
 import 'package:submersion/features/site_types/presentation/site_type_display.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_header.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_properties_menu.dart';
+import 'package:submersion/features/dive_sites/presentation/widgets/site_rating_stars.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_section_list.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
@@ -188,16 +190,30 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
       settingsProvider.select((s) => s.siteDetailLayout),
     );
 
+    // The map and the name header are pinned above the diver's cards, the
+    // way Dive Center Details opens: a site always reads as itself before
+    // whatever the diver arranged below.
     final body = SingleChildScrollView(
       controller: DetailScrollController.maybeOf(context),
       padding: EdgeInsets.all(layout.foldsSections ? 8 : 16),
-      child: SiteDetailSectionList(
-        sections: sections,
-        layout: layout,
-        cards: _sectionCards(context, site, sections),
-        onFoldChanged: (id, expanded) => ref
-            .read(settingsProvider.notifier)
-            .setSiteDetailSectionExpanded(id, expanded),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (site.hasCoordinates) ...[
+            _buildMapSection(context, ref, site),
+            const SizedBox(height: kSiteDetailCardGap),
+          ],
+          SiteDetailHeader(site: site),
+          const SizedBox(height: kSiteDetailCardGap),
+          SiteDetailSectionList(
+            sections: sections,
+            layout: layout,
+            cards: _sectionCards(context, site, sections),
+            onFoldChanged: (id, expanded) => ref
+                .read(settingsProvider.notifier)
+                .setSiteDetailSectionExpanded(id, expanded),
+          ),
+        ],
       ),
     );
 
@@ -252,9 +268,6 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
 
     final hasHazards = site.hazards != null && site.hazards!.isNotEmpty;
     final cards = <SiteDetailSectionId, WidgetBuilder? Function()>{
-      SiteDetailSectionId.map: () => site.hasCoordinates
-          ? watching((context, ref) => _buildMapSection(context, ref, site))
-          : null,
       // The count and the aggregates derived from the dives at this site.
       SiteDetailSectionId.diveStatistics: () => watching(
         (context, ref) => _buildDiveStatisticsSection(context, ref, site),
@@ -1737,20 +1750,20 @@ class _SiteDetailContentState extends ConsumerState<_SiteDetailContent> {
               ],
             ),
             const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(5, (index) {
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: Icon(
-                    index < rating ? Icons.star : Icons.star_border,
-                    color: hasRating
-                        ? Colors.amber
-                        : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
-                    size: 36,
-                  ),
-                );
-              }),
+            Center(
+              // The 8 between stars plus 4 at each end is what this row
+              // measured when every star carried its own horizontal 4.
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+                child: SiteRatingStars(
+                  rating: rating,
+                  size: 36,
+                  spacing: 8,
+                  color: hasRating
+                      ? Colors.amber
+                      : colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                ),
+              ),
             ),
             const SizedBox(height: 8),
             Center(

@@ -17,7 +17,7 @@ import 'package:submersion/features/universal_import/data/models/import_warning.
 /// header with no suffix is metric and ISO, which is what a Metric-mode
 /// file (and every file before #1813) contains.
 class SubmersionCsvTable {
-  SubmersionCsvTable._(this._headers, this.rows);
+  SubmersionCsvTable._(this._headers, this.rows, this._sourceRows);
 
   factory SubmersionCsvTable.parse(Uint8List bytes) {
     var text = utf8.decode(bytes, allowMalformed: true);
@@ -29,17 +29,29 @@ class SubmersionCsvTable {
       eol: '\n',
       shouldParseNumbers: false,
     ).convert(normalized);
-    if (all.isEmpty) return SubmersionCsvTable._(const [], const []);
+    if (all.isEmpty) {
+      return SubmersionCsvTable._(const [], const [], const []);
+    }
     final headers = [for (final h in all.first) '$h'.trim()];
-    final rows = [
-      for (final r in all.skip(1))
-        if (r.any((c) => '$c'.trim().isNotEmpty)) [for (final c in r) '$c'],
-    ];
-    return SubmersionCsvTable._(headers, rows);
+    final rows = <List<String>>[];
+    final sourceRows = <int>[];
+    for (final (i, r) in all.skip(1).indexed) {
+      if (!r.any((c) => '$c'.trim().isNotEmpty)) continue;
+      rows.add([for (final c in r) '$c']);
+      // The header is row 1, and a blank row is dropped without shifting
+      // the rows after it: a warning has to name the row the diver sees.
+      sourceRows.add(i + 2);
+    }
+    return SubmersionCsvTable._(headers, rows, sourceRows);
   }
 
   final List<String> _headers;
   final List<List<String>> rows;
+  final List<int> _sourceRows;
+
+  /// The spreadsheet row number of [rows]`[index]`, counting the header as
+  /// row 1.
+  int sourceRowOf(int index) => _sourceRows[index];
 
   static const _customPrefix = 'custom:';
 
@@ -130,7 +142,8 @@ class SubmersionCsvTable {
   /// kind its column holds: a number under [numbers], a date under [dates],
   /// a time under [times]. Such a cell is left out of the import, so a
   /// spreadsheet edit never drops a value without saying so. [rowIndex] is
-  /// the row's index in [rows]; messages count the header as row 1.
+  /// the row's index in [rows]; messages name the row as the spreadsheet
+  /// numbers it.
   List<ImportWarning> cellWarnings(
     List<String> row,
     int rowIndex,
@@ -143,8 +156,8 @@ class SubmersionCsvTable {
       severity: ImportWarningSeverity.warning,
       code: ImportWarningCode.diagnostic,
       message:
-          'Row ${rowIndex + 2}: "$value" under "${_header(base)}" could not '
-          'be read and was left out',
+          'Row ${sourceRowOf(rowIndex)}: "$value" under "${_header(base)}" '
+          'could not be read and was left out',
       entityType: entityType,
       itemIndex: rowIndex,
       field: base,

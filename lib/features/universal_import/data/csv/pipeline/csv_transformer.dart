@@ -12,6 +12,7 @@ import 'package:submersion/features/universal_import/data/csv/transforms/value_c
 import 'package:submersion/features/universal_import/data/models/field_mapping.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/csv/transforms/dive_type_mapper.dart';
 
 /// Stage 4: Transform raw CSV rows into typed field maps.
 ///
@@ -97,11 +98,19 @@ class CsvTransformer {
       final customFields = _readCustomFields(row, customFieldColumns);
       if (customFields.isNotEmpty) mapped['customFields'] = customFields;
 
+      // The diver's own spelling of the dive type cell, kept so a promoted
+      // custom type is named "Cenote Dive" rather than the slug's "Cenote
+      // dive" (_promoteCustomDiveType).
+      String? rawDiveType;
+
       for (final col in mapping.columns) {
         final colIdx = columnIndex[col.sourceColumn.toLowerCase().trim()];
         if (colIdx == null || colIdx >= row.length) continue;
 
         final rawValue = row[colIdx].trim();
+        if (col.targetField == 'diveType' && rawValue.isNotEmpty) {
+          rawDiveType = rawValue;
+        }
 
         // Use default if value is empty.
         if (rawValue.isEmpty) {
@@ -159,6 +168,7 @@ class CsvTransformer {
       }
 
       _resolveDiveTypes(mapped);
+      _promoteCustomDiveType(mapped, rawDiveType);
       mappedRows.add(mapped);
     }
 
@@ -310,6 +320,34 @@ class CsvTransformer {
             'value': _valueConverter.unescapeCsvInjectionGuard(row[colIdx]),
           },
     ];
+  }
+
+  /// Carries an unrecognised single 'diveType' value over to 'diveTypeIds'
+  /// so [DiveTypeExtractor] creates a real custom dive type for it.
+  ///
+  /// [mapDiveType] preserves a type it does not recognise as its slug rather
+  /// than recording it as 'recreational' (issue #2203). The slug alone is not
+  /// enough: `_replaceDiveTypeRows` writes the junction row without checking
+  /// that the dive type exists, so a preserved 'cenote' would point at no
+  /// row and never reach the type picker or a filter.
+  ///
+  /// A built-in id is left alone. It already has its row, and promoting it
+  /// would put every ordinary import's Wreck and Night on the review step as
+  /// though the diver had to confirm them. A row that already names its types
+  /// through the 'diveTypeIds' cell is left alone for the same reason: those
+  /// are the authoritative types, and this single value is only their
+  /// representative.
+  void _promoteCustomDiveType(Map<String, dynamic> mapped, String? rawValue) {
+    if (mapped.containsKey('diveTypeIds')) return;
+    final id = mapped['diveType'];
+    if (id is! String || id.isEmpty || kBuiltInDiveTypeIds.contains(id)) {
+      return;
+    }
+    mapped['diveTypeIds'] = [id];
+    // Name it as the diver wrote it. Without this the extractor names the
+    // type from its slug, turning "Cenote Dive" into "Cenote dive" and
+    // "Sidemount / CCR" into "Sidemount ccr".
+    if (rawValue != null) mapped['diveTypeNames'] = {id: rawValue};
   }
 
   /// Replaces the raw 'diveTypeNames' and 'diveTypeIds' cells of [mapped]
