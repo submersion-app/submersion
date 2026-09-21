@@ -1634,10 +1634,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final onLeadIn =
         timestamp < widget.profile.first.timestamp &&
         shouldDrawSurfaceLeadIn(widget.profile);
+    final units = UnitFormatter(ref.read(settingsProvider));
     final rows = _buildTooltipRowsForIndex(
       index,
       onLeadIn: onLeadIn,
-      units: UnitFormatter(ref.read(settingsProvider)),
+      units: units,
       colorScheme: Theme.of(context).colorScheme,
     );
     if (rows.isEmpty) return null;
@@ -1651,7 +1652,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       1e-9,
       double.infinity,
     );
-    final depth = _depthAtTimestamp(timestamp.toDouble());
+    // visibleMinDepth/visibleMaxDepth are in the diver's display unit (see
+    // _totalMaxDepth), but _depthAtTimestamp reads DiveProfilePoint.depth
+    // directly, which is always meters -- converting here is what keeps an
+    // imperial-unit diver's playback cursor landing at the right height
+    // instead of a raw-meters value plotted against a feet-scaled range.
+    final depth = units.convertDepth(_depthAtTimestamp(timestamp.toDouble()));
     final x = plotInsets.left + (timestamp - visibleMinX) / rangeX * plotWidth;
     final y = plotInsets.top + (depth - visibleMinDepth) / rangeY * plotHeight;
     return (cursorLocal: Offset(x, y), rows: rows);

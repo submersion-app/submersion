@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/ascent_rate_ba
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_tooltip.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -36,8 +37,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _TestSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
-  _TestSettingsNotifier()
-    : super(const AppSettings(defaultShowGasTimeline: true));
+  _TestSettingsNotifier({DepthUnit depthUnit = DepthUnit.meters})
+    : super(AppSettings(defaultShowGasTimeline: true, depthUnit: depthUnit));
 
   @override
   Future<void> setMapStyle(MapStyle style) async =>
@@ -985,6 +986,77 @@ void main() {
         expect(byLabel['ppO2'], contains('0.21')); // computed, not 0.63
         expect(byLabel['ppO2'], isNot(contains('0.63')));
         expect(byLabel['Temp'], contains('(interpolated)')); // temp held
+      },
+    );
+
+    testWidgets(
+      'the playback-driven tooltip cursor lands at the right height in '
+      'imperial units, not a raw-meters depth plotted against a feet-scaled '
+      'axis (issue #2228 follow-up)',
+      (tester) async {
+        // A profile sitting at its own max depth throughout: with the axis
+        // padded 10% above maxDepth (see _totalMaxDepth), the diver's true
+        // fractional position in the plot is depth / (depth * 1.1) ~= 0.909,
+        // regardless of which unit the depth axis is expressed in. Converting
+        // only one side of that fraction (the bug this guards against: depth
+        // left in raw meters while the axis range is feet-converted) instead
+        // produces a unit-independent ~0.277 -- meters/(meters*3.28*1.1) --
+        // stranding the cursor far short of the bottom of the plot.
+        final profile = [
+          for (var i = 0; i < 5; i++)
+            DiveProfilePoint(timestamp: i * 10, depth: 20.0),
+        ];
+        final container = ProviderContainer(
+          overrides: [
+            settingsProvider.overrideWith(
+              (ref) => _TestSettingsNotifier(depthUnit: DepthUnit.feet),
+            ),
+          ],
+        );
+        addTearDown(container.dispose);
+
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: MaterialApp(
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SizedBox(
+                  width: 400,
+                  height: 300,
+                  child: DiveProfileChart(
+                    profile: profile,
+                    diveDurationSeconds: profile.last.timestamp,
+                    playbackIsPlaying: true,
+                    highlightedTimestamp: 20,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final tooltip = tester.widget<ProfileCursorTooltip>(
+          find.byType(ProfileCursorTooltip),
+        );
+        // Measured against the LineChart's own rect, not the inner plot
+        // area alone (axis labels/gutters shrink the usable fraction of it,
+        // so this isn't the ~0.909 the plot-only math predicts) -- it only
+        // needs to clearly separate the fixed behaviour from the bug's, and
+        // the two land far enough apart in either coordinate space for that.
+        final chartRect = tester.getRect(find.byType(LineChart).first);
+        final fraction =
+            (tooltip.cursorLocal.dy - chartRect.top) / chartRect.height;
+        expect(
+          fraction,
+          greaterThan(0.5),
+          reason:
+              'a diver sitting at max depth the whole dive belongs well '
+              'toward the bottom of the chart, not stranded partway down by '
+              'a raw-meters depth plotted against a feet-scaled axis range',
+        );
       },
     );
 
