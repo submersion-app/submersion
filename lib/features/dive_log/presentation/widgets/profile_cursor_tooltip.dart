@@ -26,13 +26,56 @@ const double tooltipMaxContentWidth = 320;
 /// Base row font size, matching the old fl_chart bubble's monospace rows.
 const double tooltipBaseFontSize = 14;
 
-/// Estimated natural height of one row at [tooltipBaseFontSize], including
-/// inter-row spacing. Used only to size-estimate the box before the shrink
-/// factor is applied; the actual `Text` widgets still reflow within it.
-const double tooltipBaseRowHeight = 20;
-
 /// Vertical + horizontal content padding inside the tooltip box.
 const double tooltipContentPadding = 8;
+
+/// A row's own vertical padding (`EdgeInsets.symmetric(vertical: 1)` around
+/// each row, at scale 1.0) -- 1 logical pixel on top and bottom.
+const double _rowVerticalPadding = 2;
+
+/// The bullet dot's diameter at scale 1.0.
+const double _rowBulletSize = 8;
+
+double? _cachedRowTextHeight;
+
+/// Safety margin applied on top of the raw [TextPainter] measurement in
+/// [_measuredRowHeight]: the actual `Text` widgets in the row (inside a
+/// `Row`/`Padding`/`Flexible` tree, with the platform's real text renderer
+/// rather than a bare paragraph) reliably came out taller than the bare
+/// measurement by a roughly constant factor, not merely a rounding error.
+/// Overestimating here is the safe direction -- it only pushes the box a
+/// little further than strictly necessary -- while underestimating is what
+/// let the box overlap whatever sits above the chart in the first place.
+const double _rowHeightSafetyFactor = 1.4;
+
+/// Real height of one tooltip row at [tooltipBaseFontSize] and scale 1.0,
+/// measured with a [TextPainter] using the exact same font as the rendered
+/// rows (plus [_rowHeightSafetyFactor]), then cached (it never changes at
+/// runtime).
+///
+/// A guessed constant here previously stood in for this, and RobotoMono's
+/// real line height did not match it closely enough: the clamp and shrink
+/// calculations built on that guess let the box's real height quietly
+/// exceed what they assumed, so a box that should have been clamped inside
+/// the plot instead grew tall enough to overlap the legend above it (issue
+/// #2228 follow-up).
+double _measuredRowHeight() {
+  final textHeight = _cachedRowTextHeight ??= (TextPainter(
+    text: const TextSpan(
+      text: 'Ag0',
+      style: TextStyle(
+        fontFamily: 'RobotoMono',
+        fontSize: tooltipBaseFontSize,
+        fontFeatures: [FontFeature.tabularFigures()],
+      ),
+    ),
+    textDirection: TextDirection.ltr,
+  )..layout()).height;
+  final rowContentHeight = textHeight > _rowBulletSize
+      ? textHeight
+      : _rowBulletSize;
+  return (rowContentHeight + _rowVerticalPadding) * _rowHeightSafetyFactor;
+}
 
 /// Fixed dark background, not the theme's `colorScheme.inverseSurface`:
 /// that token is designed to invert with the theme (it renders light in a
@@ -171,7 +214,7 @@ class ProfileCursorTooltip extends StatelessWidget {
         }
 
         final naturalHeight =
-            tooltipContentPadding * 2 + rows.length * tooltipBaseRowHeight;
+            tooltipContentPadding * 2 + rows.length * _measuredRowHeight();
         final scale = computeTooltipScaleFactor(
           naturalHeight: naturalHeight,
           availableHeight: plotRect.height,

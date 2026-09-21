@@ -300,6 +300,34 @@ void main() {
       expect(shrunkWidth, lessThan(unshrunkWidth));
     });
 
+    testWidgets(
+      'the box\'s real top edge never rises above the top clamp, even '
+      'with enough rows that the row-height estimate matters (issue #2228 '
+      'follow-up: a guessed row height once let the real box grow taller '
+      'than the clamp accounted for, overlapping whatever sits above the '
+      'chart)',
+      (tester) async {
+        final rows = [
+          for (var i = 0; i < 20; i++)
+            TooltipRow(
+              label: 'Metric $i',
+              value: '$i.0',
+              bulletColor: AppColors.chartDepth,
+            ),
+        ];
+        await tester.pumpWidget(
+          harness(rows: rows, cursorLocal: const Offset(100, 10)),
+        );
+        await tester.pump();
+
+        final containerTop = tester
+            .getTopLeft(find.byType(ProfileCursorTooltip))
+            .dy;
+        final boxTop = tester.getRect(find.byType(DecoratedBox).first).top;
+        expect(boxTop, greaterThanOrEqualTo(containerTop + tooltipTopMargin));
+      },
+    );
+
     testWidgets('bolds the label of the row matching highlightedMetric, leaves '
         'others normal', (tester) async {
       await tester.pumpWidget(
