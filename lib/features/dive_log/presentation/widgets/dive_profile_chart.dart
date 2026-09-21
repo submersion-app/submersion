@@ -66,6 +66,14 @@ import 'package:submersion/features/dive_log/presentation/formatters/profile_eve
 /// band's own weight would produce.
 const double ceilingFillAlpha = 0.10;
 
+/// Non-axis lines that can still be hover-highlighted and have their
+/// tooltip row emphasised, even though they have no [ProfileRightAxisMetric]
+/// of their own: they are drawn at their real depth rather than stretched
+/// across a banded scale (issue #2228 follow-up), so they never drive the
+/// right axis, but that is no reason to leave them out of the same
+/// hover-highlight/bold-row treatment every axis-driven metric gets.
+enum ChartOnlyMetric { ceiling, decoStop, mod }
+
 /// Structured row emitted via [DiveProfileChart.onTooltipData] so callers
 /// can render the tooltip externally (e.g., below the chart).
 class TooltipRow {
@@ -73,12 +81,13 @@ class TooltipRow {
   final String value;
   final Color bulletColor;
 
-  /// The right-axis metric this row reads from, or null for a row with no
-  /// axis of its own (Time, Depth, Ceiling, Deco stop, ...). Lets a tooltip
-  /// presentation emphasise the row matching whichever line is currently
-  /// hover-highlighted (issue #2228 follow-up), the same metric identity
-  /// [lineMetricTags] tags each bar with.
-  final ProfileRightAxisMetric? metric;
+  /// The metric this row reads from -- a [ProfileRightAxisMetric] or a
+  /// [ChartOnlyMetric] -- or null for a row with no line identity of its
+  /// own (Time, an overlay comparison row, ...). Lets a tooltip presentation
+  /// emphasise the row matching whichever line is currently
+  /// hover-highlighted, the same identity [lineMetricTags] tags each bar
+  /// with.
+  final Object? metric;
 
   const TooltipRow({
     required this.label,
@@ -390,10 +399,9 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   final bool tooltipNativeBubble;
 
   /// Called with structured tooltip row data whenever a point is touched,
-  /// independent of [tooltipBelow] -- a caller can consume this for its own
-  /// external rendering (the dive-list panel's fixed-below overlay) alongside
-  /// whichever in-chart tooltip is showing. Null clears it (an active touch
-  /// ending).
+  /// while [tooltipBelow] is true -- the dive-list panel's own fixed-below
+  /// overlay is the only consumer, since the in-chart tooltip presentations
+  /// render themselves. Null clears it (an active touch ending).
   final void Function(List<TooltipRow>? rows)? onTooltipData;
 
   /// Optional widget rendered at the start of the legend row (e.g. a close
@@ -1108,6 +1116,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   // width.
   int? _hoverHighlightedBarIndex;
 
+  // The metric (a [ProfileRightAxisMetric] or a [ChartOnlyMetric])
+  // [_hoverHighlightedBarIndex]'s line is tagged with, kept alongside it
+  // since [_hoverRightAxisMetric] only ever holds an axis-driving metric --
+  // a highlighted [ChartOnlyMetric] line (ceiling, deco stop, MOD) would
+  // otherwise have no way to tell the matching tooltip row to render bold
+  // too (see [_highlightedTooltipMetric]).
+  Object? _hoverHighlightedMetric;
+
   // The touched/hovered sample's timestamp, for AscentRateBarOverlay to light
   // up its own nearest bar -- ascent-rate bars have no fl_chart line of their
   // own, so they cannot participate in [_hoverHighlightedBarIndex] above.
@@ -1123,14 +1139,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   int? _decoStopTouchIndex;
 
   // The metric whose tooltip row should render emphasised (issue #2228
-  // follow-up): [_hoverRightAxisMetric] for a tagged line, or
-  // [ProfileRightAxisMetric.ascentRate] when the ascent-rate bars are lit up
-  // instead (they have no line of their own to tag, see
+  // follow-up): [_hoverHighlightedMetric] for a tagged line (axis-driving or
+  // not), or [ProfileRightAxisMetric.ascentRate] when the ascent-rate bars
+  // are lit up instead (they have no line of their own to tag, see
   // [_hoveredAscentRateTimestamp]). Read by both tooltip presentations
   // (the native bubble's getTooltipItems and [ProfileCursorTooltip]) against
   // each [TooltipRow.metric].
-  ProfileRightAxisMetric? get _highlightedTooltipMetric =>
-      _hoverRightAxisMetric ??
+  Object? get _highlightedTooltipMetric =>
+      _hoverHighlightedMetric ??
       (_hoveredAscentRateTimestamp != null
           ? ProfileRightAxisMetric.ascentRate
           : null);
@@ -1148,6 +1164,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         _liveCursorTooltipRows.isEmpty &&
         _hoverRightAxisMetric == null &&
         _hoverHighlightedBarIndex == null &&
+        _hoverHighlightedMetric == null &&
         _hoveredAscentRateTimestamp == null &&
         _decoStopTouchIndex == null) {
       return;
@@ -1157,6 +1174,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       _liveCursorTooltipRows = const [];
       _hoverRightAxisMetric = null;
       _hoverHighlightedBarIndex = null;
+      _hoverHighlightedMetric = null;
       _hoveredAscentRateTimestamp = null;
       _decoStopTouchIndex = null;
     });
@@ -1164,20 +1182,22 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   // Per-group parallel tag lists, mirroring [_barsCache]'s groups
   // ('base'/'sac'/'ascent'/'analysis'/'markers'/'overlays'): each entry is
-  // the [ProfileRightAxisMetric] the bar at the same position in that
-  // group's bars list represents, or null when the bar has no matching
-  // right-axis metric (a fill/band, a marker, an overlay comparison trace,
-  // or ascent-rate -- which is drawn by [AscentRateBarOverlay], never an
-  // fl_chart line). Set as a side effect inside each group's
+  // the metric the bar at the same position in that group's bars list
+  // represents -- a [ProfileRightAxisMetric] for a line that can drive the
+  // right axis, a [_ChartOnlyMetric] for one that cannot (real-depth lines
+  // with no axis of their own, still worth highlighting), or null when the
+  // bar has no matching metric at all (a marker, an overlay comparison
+  // trace, or ascent-rate -- which is drawn by [AscentRateBarOverlay], never
+  // an fl_chart line). Set as a side effect inside each group's
   // `_barsCache.series` factory (see the 'base' group in [_buildChart]), so
   // a tag list is only rebuilt exactly when its group's bars are -- never
   // recomputed on a hover-only rebuild.
-  List<ProfileRightAxisMetric?> _baseTags = const [];
-  List<ProfileRightAxisMetric?> _sacTags = const [];
-  List<ProfileRightAxisMetric?> _ascentTags = const [];
-  List<ProfileRightAxisMetric?> _analysisTags = const [];
-  List<ProfileRightAxisMetric?> _markersTags = const [];
-  List<ProfileRightAxisMetric?> _overlaysTags = const [];
+  List<Object?> _baseTags = const [];
+  List<Object?> _sacTags = const [];
+  List<Object?> _ascentTags = const [];
+  List<Object?> _analysisTags = const [];
+  List<Object?> _markersTags = const [];
+  List<Object?> _overlaysTags = const [];
 
   // The readout last reported through onTooltipData, by either cursor. Lets
   // the external-cursor path skip a reading the pointer already reported,
@@ -1482,7 +1502,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// and empties the panel's tooltip, whereas a paused or released cursor
   /// should leave the last values standing.
   void _scheduleCursorReadout() {
-    if (widget.onTooltipData == null) return;
+    if (!widget.tooltipBelow || widget.onTooltipData == null) return;
     final timestamp = widget.highlightedTimestamp;
     if (timestamp == null) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1755,6 +1775,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           label: l10n.diveLog_tooltip_ceiling,
           value: hasCeiling && ceiling > 0 ? units.formatDepth(ceiling) : '-',
           bulletColor: const Color(0xFF7B1FA2),
+          metric: ChartOnlyMetric.ceiling,
         ),
       );
     }
@@ -1789,6 +1810,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           label: l10n.diveLog_tooltip_decoStop,
           value: hasStop && stop > 0 ? units.formatDepth(stop) : '-',
           bulletColor: decoStopBandColor,
+          metric: ChartOnlyMetric.decoStop,
         ),
       );
     }
@@ -2038,6 +2060,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           label: l10n.diveLog_tooltip_mod,
           value: hasMod && mod > 0 && mod < 200 ? units.formatDepth(mod) : '-',
           bulletColor: const Color(0xFFFFB300),
+          metric: ChartOnlyMetric.mod,
         ),
       );
     }
@@ -3413,20 +3436,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 : const <LineChartBarData>[];
 
             _baseTags = [
-              ...List<ProfileRightAxisMetric?>.filled(depthLines.length, null),
-              ...List<ProfileRightAxisMetric?>.filled(
-                gasSwitchMarkers.length,
-                null,
-              ),
-              ...List<ProfileRightAxisMetric?>.filled(
+              ...List<Object?>.filled(depthLines.length, null),
+              ...List<Object?>.filled(gasSwitchMarkers.length, null),
+              ...List<Object?>.filled(
                 temperatureLines.length,
                 ProfileRightAxisMetric.temperature,
               ),
-              ...List<ProfileRightAxisMetric?>.filled(
+              ...List<Object?>.filled(
                 tankPressureLines.length,
                 ProfileRightAxisMetric.pressure,
               ),
-              ...List<ProfileRightAxisMetric?>.filled(
+              ...List<Object?>.filled(
                 heartRateLines.length,
                 ProfileRightAxisMetric.heartRate,
               ),
@@ -3446,7 +3466,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 (_showSac && hasSacData && minSac != null && maxSac != null)
                 ? [_buildSacLine(metricBand, minSac, maxSac)]
                 : const <LineChartBarData>[];
-            _sacTags = List<ProfileRightAxisMetric?>.filled(
+            _sacTags = List<Object?>.filled(
               sacLines.length,
               ProfileRightAxisMetric.sac,
             );
@@ -3569,21 +3589,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 ? [_buildOtuLine(metricBand)]
                 : const <LineChartBarData>[];
 
-            List<ProfileRightAxisMetric?> tagsFor(
+            List<Object?> tagsFor(
               List<LineChartBarData> lines,
-              ProfileRightAxisMetric? metric,
-            ) => List<ProfileRightAxisMetric?>.filled(lines.length, metric);
+              Object? metric,
+            ) => List<Object?>.filled(lines.length, metric);
 
             _analysisTags = [
-              ...tagsFor(decoStopBand, null),
-              ...tagsFor(ceilingLines, null),
+              ...tagsFor(decoStopBand, ChartOnlyMetric.decoStop),
+              ...tagsFor(ceilingLines, ChartOnlyMetric.ceiling),
               ...tagsFor(ndlLines, ProfileRightAxisMetric.ndl),
               ...tagsFor(ppO2Lines, ProfileRightAxisMetric.ppO2),
               ...tagsFor(ppN2Lines, ProfileRightAxisMetric.ppN2),
               ...tagsFor(ppHeLines, ProfileRightAxisMetric.ppHe),
               ...tagsFor(o2CellRug, null),
               ...tagsFor(o2CellMvLines, ProfileRightAxisMetric.o2CellMv),
-              ...tagsFor(modLines, null),
+              ...tagsFor(modLines, ChartOnlyMetric.mod),
               ...tagsFor(densityLines, ProfileRightAxisMetric.gasDensity),
               ...tagsFor(gfLines, ProfileRightAxisMetric.gf),
               ...tagsFor(surfaceGfLines, ProfileRightAxisMetric.surfaceGf),
@@ -3623,10 +3643,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               minPressure: minPressure,
               maxPressure: maxPressure,
             );
-            _markersTags = List<ProfileRightAxisMetric?>.filled(
-              markerLines.length,
-              null,
-            );
+            _markersTags = List<Object?>.filled(markerLines.length, null);
             return markerLines;
           }),
           ..._barsCache.series('overlays', _overlaysSig, () {
@@ -3651,10 +3668,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               minTemp,
               maxTemp,
             );
-            _overlaysTags = List<ProfileRightAxisMetric?>.filled(
-              overlayLines.length,
-              null,
-            );
+            _overlaysTags = List<Object?>.filled(overlayLines.length, null);
             return overlayLines;
           }),
         ],
@@ -3667,7 +3681,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // (_windowedBars) keeps a strict 1:1 index correspondence, so these
     // indices stay valid against the windowed bars fl_chart is actually
     // given.
-    final lineMetricTags = <ProfileRightAxisMetric?>[
+    final lineMetricTags = <Object?>[
       ..._baseTags,
       ..._sacTags,
       ..._ascentTags,
@@ -3998,7 +4012,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     widget.onTooltipData != null) {
                   if (isTouchEnd) {
                     _reportSelection(null);
-                    widget.onTooltipData?.call(null);
+                    if (widget.tooltipBelow) {
+                      widget.onTooltipData?.call(null);
+                    }
                   } else if (resolvedTouch != null) {
                     _chartTouchSelecting = true;
                     // The lead-in vertex reads as t=0 in the tooltip, so
@@ -4007,7 +4023,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       resolvedTouch.index,
                       onLeadIn: resolvedTouch.onLeadIn,
                     );
-                    if (widget.onTooltipData != null) {
+                    if (widget.tooltipBelow && widget.onTooltipData != null) {
                       final settings = ref.read(settingsProvider);
                       final units = UnitFormatter(settings);
                       _emitExternalTooltip(
@@ -4061,6 +4077,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     toPixelY: toPixelY,
                   );
                 }
+                // The nearest bar's tag, whatever kind it is -- a
+                // ProfileRightAxisMetric (drives the right axis too, below)
+                // or a ChartOnlyMetric (highlighted the same way, but has no
+                // axis to switch to). Null when the nearest reported spot is
+                // an untagged bar (a marker, a fill, an overlay trace) with
+                // a tagged line further away, in which case nothing
+                // highlights.
+                final nearestTag =
+                    nearestBarIndex != null &&
+                        nearestBarIndex >= 0 &&
+                        nearestBarIndex < lineMetricTags.length
+                    ? lineMetricTags[nearestBarIndex]
+                    : null;
                 // Never resurrect the right axis over an explicit "None":
                 // the user hiding it is a deliberate choice, and hovering a
                 // line must not silently reappear it and shift the plot
@@ -4070,24 +4099,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     .rightAxisHidden;
                 final newHoverMetric =
                     !rightAxisExplicitlyHidden &&
-                        nearestBarIndex != null &&
-                        nearestBarIndex >= 0 &&
-                        nearestBarIndex < lineMetricTags.length
-                    ? lineMetricTags[nearestBarIndex]
+                        nearestTag is ProfileRightAxisMetric
+                    ? nearestTag
                     : null;
-                // Only a bar tagged with a metric is ever highlighted -- the
-                // nearest reported spot can be an untagged bar (a marker, a
-                // fill/band, an overlay trace) with a tagged line further
-                // away, in which case nothing highlights and the axis stays
-                // on the persisted preference.
-                final newHighlightedBarIndex = newHoverMetric != null
+                final newHighlightedBarIndex = nearestTag != null
                     ? nearestBarIndex
                     : null;
                 if (newHoverMetric != _hoverRightAxisMetric ||
-                    newHighlightedBarIndex != _hoverHighlightedBarIndex) {
+                    newHighlightedBarIndex != _hoverHighlightedBarIndex ||
+                    nearestTag != _hoverHighlightedMetric) {
                   setState(() {
                     _hoverRightAxisMetric = newHoverMetric;
                     _hoverHighlightedBarIndex = newHighlightedBarIndex;
+                    _hoverHighlightedMetric = newHighlightedBarIndex != null
+                        ? nearestTag
+                        : null;
                   });
                 }
 
@@ -5233,8 +5259,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         );
       }
 
-      // GF%, from this source's own computed analysis, on the same 0-120%
-      // band as the active GF% line (see _buildGfLine).
+      // GF%, from this source's own computed analysis, on the same band as
+      // the active GF% line (see _buildGfLine and _getGfMaxScale).
       if (_showGf) {
         _addOverlayBandLine(
           lines,
@@ -5242,11 +5268,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           band: band,
           curve: overlay.analysis?.gfCurve,
           spec: ProfileMetricBands.gf,
+          max: _getGfMaxScale(),
         );
       }
 
       // Surface GF%, from this source's own computed analysis, on the same
-      // 0-150% band as the active surface GF% line (see _buildSurfaceGfLine).
+      // band as the active surface GF% line (see _buildSurfaceGfLine and
+      // _getSurfaceGfMaxScale).
       if (_showSurfaceGf) {
         _addOverlayBandLine(
           lines,
@@ -5254,6 +5282,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           band: band,
           curve: overlay.analysis?.surfaceGfCurve,
           spec: ProfileMetricBands.surfaceGf,
+          max: _getSurfaceGfMaxScale(),
         );
       }
 
@@ -5941,6 +5970,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   LineChartBarData _buildGfLine(MetricBand band) => buildGfLine(
     band,
     widget.gfCurve!,
+    _getGfMaxScale(),
     widget.profile,
     _decimatedCurveIndices,
     _withFlatSurfaceLeadIn,
@@ -5952,6 +5982,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   LineChartBarData _buildSurfaceGfLine(MetricBand band) => buildSurfaceGfLine(
     band,
     widget.surfaceGfCurve!,
+    _getSurfaceGfMaxScale(),
     widget.profile,
     _decimatedCurveIndices,
     _withFlatSurfaceLeadIn,
@@ -6004,6 +6035,30 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     if (widget.otuCurve == null || widget.otuCurve!.isEmpty) return 100.0;
     final actualMax = widget.otuCurve!.reduce(math.max);
     return math.max(actualMax * 1.25, 20.0); // 25% headroom, min 20 OTU
+  }
+
+  /// Compute dynamic max scale for GF% based on actual data. Floors at the
+  /// usual 0-120% band so a normal dive looks the same as before; a dive
+  /// whose GF genuinely exceeds that (an over-pressure excursion) gets
+  /// headroom instead of clipping to the axis and, on the chart itself,
+  /// spilling past the plot's own top edge (issue #2228 follow-up).
+  double _getGfMaxScale() {
+    final curve = widget.gfCurve;
+    if (curve == null || curve.isEmpty) return ProfileMetricBands.gf.fixedMax;
+    final actualMax = curve.reduce(math.max);
+    return math.max(actualMax * 1.1, ProfileMetricBands.gf.fixedMax);
+  }
+
+  /// Compute dynamic max scale for Surface GF% based on actual data. See
+  /// [_getGfMaxScale] -- surface GF routinely runs past 100% and can exceed
+  /// even the usual 150% headroom on a demanding dive.
+  double _getSurfaceGfMaxScale() {
+    final curve = widget.surfaceGfCurve;
+    if (curve == null || curve.isEmpty) {
+      return ProfileMetricBands.surfaceGf.fixedMax;
+    }
+    final actualMax = curve.reduce(math.max);
+    return math.max(actualMax * 1.1, ProfileMetricBands.surfaceGf.fixedMax);
   }
 
   /// Build cumulative CNS% line
@@ -6440,6 +6495,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     hasMultiTankPressure: _hasMultiTankPressure,
     cnsMaxScale: _getCnsMaxScale(),
     otuMaxScale: _getOtuMaxScale(),
+    gfMaxScale: _getGfMaxScale(),
+    surfaceGfMaxScale: _getSurfaceGfMaxScale(),
     o2CellMvMax: _o2CellMvMax,
     ascentRateAxisRange: _ascentRateAxisRange,
   );

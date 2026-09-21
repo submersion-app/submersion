@@ -104,6 +104,19 @@ void main() {
       expect(position.dy, _plotRect.top + tooltipTopMargin);
     });
 
+    test('stops following the cursor once it goes low enough that the '
+        'bottom edge would pass plotRect.bottom - tooltipTopMargin, using '
+        'the same margin as the top clamp', () {
+      final position = computeTooltipBoxPosition(
+        cursorLocal: const Offset(50, 195),
+        boxSize: const Size(80, 40),
+        plotRect: _plotRect,
+        gap: 8,
+      );
+      final maxBottom = _plotRect.bottom - tooltipTopMargin;
+      expect(position.dy, maxBottom - 40);
+    });
+
     test('flips to the cursor\'s left side when the right edge overflows', () {
       final position = computeTooltipBoxPosition(
         cursorLocal: const Offset(280, 100),
@@ -246,6 +259,15 @@ void main() {
       final cnsLabel = tester.widget<Text>(find.text('CNS'));
       expect(tempLabel.style?.fontWeight, isNot(FontWeight.bold));
       expect(cnsLabel.style?.fontWeight, FontWeight.bold);
+
+      // The value column matches the label column (issue #2228 follow-up):
+      // previously every value rendered bold unconditionally, unlike the
+      // native bubble used on the dive detail page, where only the
+      // highlighted row's text is bold.
+      final tempValue = tester.widget<Text>(find.text('15°C'));
+      final cnsValue = tester.widget<Text>(find.text('37.0%'));
+      expect(tempValue.style?.fontWeight, isNot(FontWeight.bold));
+      expect(cnsValue.style?.fontWeight, FontWeight.bold);
     });
   });
 }

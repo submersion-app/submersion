@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
-    show TooltipRow;
+    show ChartOnlyMetric, TooltipRow;
 
 /// Horizontal gap, in logical pixels, between the touch/hover cursor (the
 /// vertical indicator line fl_chart draws at the touched sample) and the
@@ -79,9 +79,11 @@ double computeTooltipScaleFactor({
 /// past either horizontal edge.
 ///
 /// Vertically, the box's bottom edge sits at the cursor's Y, so it grows
-/// upward from wherever the cursor is -- never lower than
-/// [tooltipTopMargin] below [plotRect.top], so a cursor near the top of the
-/// plot cannot push the box above it.
+/// upward from wherever the cursor is -- clamped, with the same
+/// [tooltipTopMargin] on both ends, so it never rises above
+/// `plotRect.top + tooltipTopMargin` when the cursor is high, and stops
+/// following once the cursor goes low enough that the bottom edge would
+/// otherwise pass `plotRect.bottom - tooltipTopMargin`.
 Offset computeTooltipBoxPosition({
   required Offset cursorLocal,
   required Size boxSize,
@@ -98,8 +100,10 @@ Offset computeTooltipBoxPosition({
   }
   left = left.clamp(minLeft, minLeft > maxLeft ? minLeft : maxLeft);
 
+  final maxBottom = plotRect.bottom - tooltipTopMargin;
+  final bottom = cursorLocal.dy > maxBottom ? maxBottom : cursorLocal.dy;
   final minTop = plotRect.top + tooltipTopMargin;
-  final desiredTop = cursorLocal.dy - boxSize.height;
+  final desiredTop = bottom - boxSize.height;
   final top = desiredTop < minTop ? minTop : desiredTop;
 
   return Offset(left, top);
@@ -111,8 +115,9 @@ Offset computeTooltipBoxPosition({
 /// `tooltipBelow` path, used by the dive-list side panel, renders its own
 /// overlay elsewhere and never reaches this widget). This widget:
 /// - tracks the cursor horizontally, with its bottom edge at the cursor's Y
-///   so it grows upward from it, never pushed above the plot's top edge
-///   (see [computeTooltipBoxPosition]),
+///   so it grows upward from it, clamped so it never rises above the
+///   plot's top edge or trails below its bottom edge (see
+///   [computeTooltipBoxPosition]),
 /// - clamps to the plot rect so it can never overflow it, and
 /// - shrinks its text (never clips) when the rows would not otherwise fit
 ///   in the available vertical space (see [computeTooltipScaleFactor]).
@@ -133,10 +138,10 @@ class ProfileCursorTooltip extends StatelessWidget {
   final ({double left, double top, double right, double bottom}) insets;
 
   /// The metric currently hover-highlighted on the chart (its line drawn
-  /// thicker, or the ascent-rate bars lit up), so the matching row renders
-  /// bold instead of every row looking equally important. Null renders every
-  /// row the same.
-  final ProfileRightAxisMetric? highlightedMetric;
+  /// thicker, or the ascent-rate bars lit up) -- a [ProfileRightAxisMetric]
+  /// or a [ChartOnlyMetric] -- so the matching row renders bold instead of
+  /// every row looking equally important. Null renders every row the same.
+  final Object? highlightedMetric;
 
   const ProfileCursorTooltip({
     super.key,
@@ -186,6 +191,7 @@ class ProfileCursorTooltip extends StatelessWidget {
           color: tooltipTextColor,
           fontFeatures: const [FontFeature.tabularFigures()],
         );
+        final boldRowStyle = rowStyle.copyWith(fontWeight: FontWeight.bold);
 
         return Stack(
           children: [
@@ -225,9 +231,7 @@ class ProfileCursorTooltip extends StatelessWidget {
                                   style:
                                       row.metric != null &&
                                           row.metric == highlightedMetric
-                                      ? rowStyle.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                        )
+                                      ? boldRowStyle
                                       : rowStyle,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -249,9 +253,11 @@ class ProfileCursorTooltip extends StatelessWidget {
                               Flexible(
                                 child: Text(
                                   row.value,
-                                  style: rowStyle.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style:
+                                      row.metric != null &&
+                                          row.metric == highlightedMetric
+                                      ? boldRowStyle
+                                      : rowStyle,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),

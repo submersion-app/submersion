@@ -633,6 +633,7 @@ LineChartBarData buildDensityLine(
 LineChartBarData buildGfLine(
   MetricBand band,
   List<double> gfCurve,
+  double gfMaxScale,
   List<DiveProfilePoint> profile,
   DecimatedCurveIndices decimatedCurveIndices,
   WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
@@ -640,9 +641,9 @@ LineChartBarData buildGfLine(
 ) {
   const gfColor = ProfileMetricColors.gf;
 
-  // Map GF% to chart: 0% at top, 120% at bottom
+  // Map GF% to chart: 0% at top, gfMaxScale% at bottom.
   final minGf = ProfileMetricBands.gf.min;
-  final maxGf = ProfileMetricBands.gf.fixedMax;
+  final maxGf = gfMaxScale;
 
   final spots = <FlSpot>[];
   for (final i in decimatedCurveIndices(gfCurve)) {
@@ -673,6 +674,7 @@ LineChartBarData buildGfLine(
 LineChartBarData buildSurfaceGfLine(
   MetricBand band,
   List<double> surfaceGfCurve,
+  double surfaceGfMaxScale,
   List<DiveProfilePoint> profile,
   DecimatedCurveIndices decimatedCurveIndices,
   WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
@@ -680,9 +682,9 @@ LineChartBarData buildSurfaceGfLine(
 ) {
   const surfaceGfColor = ProfileMetricColors.surfaceGf;
 
-  // Map Surface GF% to chart: 0% at top, 150% at bottom
+  // Map Surface GF% to chart: 0% at top, surfaceGfMaxScale% at bottom.
   final minGf = ProfileMetricBands.surfaceGf.min;
-  final maxGf = ProfileMetricBands.surfaceGf.fixedMax;
+  final maxGf = surfaceGfMaxScale;
 
   final spots = <FlSpot>[];
   for (final i in decimatedCurveIndices(surfaceGfCurve)) {
