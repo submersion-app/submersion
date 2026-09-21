@@ -85,8 +85,15 @@ cd "$PROJECT_ROOT"
 
 # Resolve a main ref, used to bound the range when pushing a brand-new branch
 # (its remote sha is all-zeros, so there is no remote base to diff against).
+# upstream/main first: a fork's own "origin/main" is not kept in sync by
+# working from feature branches alone and can sit arbitrarily far behind the
+# canonical repo, which would widen this range to everything that changed
+# upstream since the fork last synced -- pulling in unrelated changed/test
+# files (and their failures) that have nothing to do with the actual push.
+# Falls back to origin/main, then local main, for a checkout with no
+# "upstream" remote configured (e.g. working directly in the canonical repo).
 MAIN_REF=""
-for ref in origin/main main; do
+for ref in upstream/main origin/main main; do
     if git rev-parse --verify --quiet "$ref" >/dev/null; then
         MAIN_REF="$ref"
         break
