@@ -49,6 +49,53 @@ void main() {
     );
   });
 
+  test('a very long Message is bounded', () async {
+    // The detail lands in the media queue's errorMessage column and in a
+    // list tile, by way of MediaStoreException's primary message, which is
+    // not the half that toString bounds. An S3-compatible server is free to
+    // answer with a Message of any length.
+    final client = clientReturning(
+      500,
+      '<Error><Code>InternalError</Code>'
+      '<Message>${'detail ' * 500}</Message></Error>',
+    );
+
+    await expectLater(
+      () => client.putObject('k', Uint8List.fromList([1])),
+      throwsA(
+        isA<CloudStorageException>().having(
+          (e) => e.message.length,
+          'message length',
+          lessThan(400),
+        ),
+      ),
+    );
+  });
+
+  test('a 403 carries the code the provider rejected it with', () async {
+    // The advice stays -- it is the actionable part -- but a provider that
+    // says SignatureDoesNotMatch is naming a different fault than one that
+    // says AccessDenied, and the person reading the failure cannot tell the
+    // two apart without it.
+    final client = clientReturning(
+      403,
+      '<Error><Code>SignatureDoesNotMatch</Code>'
+      '<Message>The request signature we calculated does not match</Message>'
+      '</Error>',
+    );
+
+    await expectLater(
+      () => client.putObject('k', Uint8List.fromList([1])),
+      throwsA(
+        isA<CloudStorageException>().having(
+          (e) => e.message,
+          'message',
+          allOf(contains('Access denied'), contains('SignatureDoesNotMatch')),
+        ),
+      ),
+    );
+  });
+
   test('an unparseable body degrades to the bare status', () async {
     final client = clientReturning(400, '<html>bad request</html>');
 

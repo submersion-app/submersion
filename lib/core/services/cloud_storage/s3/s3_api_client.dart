@@ -761,9 +761,13 @@ class S3ApiClient {
           '15 minutes off; correct the system time and try again.',
         );
       }
-      throw const CloudStorageException(
+      // The advice is the actionable part and stays first, but a provider
+      // that rejects the signature is naming a different fault than one
+      // that denies the key, and nothing downstream could tell them apart.
+      throw CloudStorageException(
         'Access denied. Check the access key, secret key, and bucket '
-        'permissions.',
+        'permissions.'
+        '${errorCode == null ? '' : ' (S3 said: ${_bounded(errorCode)})'}',
       );
     }
     if (response.statusCode == 404 && errorCode == 'NoSuchBucket') {
@@ -779,12 +783,24 @@ class S3ApiClient {
       utf8.decode(response.bodyBytes, allowMalformed: true),
       'Message',
     );
-    final detail = [?errorCode, ?errorMessage].join(': ');
+    final detail = _bounded([?errorCode, ?errorMessage].join(': '));
     throw CloudStorageException(
       'S3 $operation failed for "$key" (HTTP ${response.statusCode})'
       '${detail.isEmpty ? '' : ': $detail'}',
     );
   }
+
+  /// Caps a provider's own error text.
+  ///
+  /// This ends up in the media queue's `errorMessage` column and in a list
+  /// tile by way of `MediaStoreException`'s primary message, which is not
+  /// the half `MediaStoreException.toString` bounds. An S3-compatible
+  /// server is free to answer with a `Message` of any length.
+  static String _bounded(String detail) => detail.length <= _maxDetailLength
+      ? detail
+      : '${detail.substring(0, _maxDetailLength)}...';
+
+  static const _maxDetailLength = 200;
 
   String? _xmlElementText(String body, String element) {
     if (body.isEmpty) return null;

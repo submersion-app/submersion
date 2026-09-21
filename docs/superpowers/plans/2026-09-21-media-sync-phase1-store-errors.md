@@ -373,3 +373,28 @@ half shipped as #2019 and #2018 is already closed, and `Part of #2090` /
 - **Type consistency:** `MediaStoreException`, `MediaStoreErrorKind`,
   `CloudStorageException`, `_throwFor`, `_xmlElementText`, `_errorSummary`
   are spelled the same in every task.
+
+---
+
+## Review follow-up (PR #2246)
+
+Three gaps the review found after the tasks above landed. Each has a test
+that goes red when its own fix alone is reverted.
+
+- **The bound guarded the wrong half.** `MediaStoreException.toString()`
+  caps `cause`, but `S3MediaObjectStore._map` splices the whole
+  `CloudStorageException.message` into the media exception's *primary*
+  message, which nothing caps. A 3500-character `<Message>` from an
+  S3-compatible server reached `errorMessage` intact. `_throwFor` now bounds
+  the `Code`/`Message` detail at the same 200 characters before composing
+  the exception.
+- **The wrapped cause printed twice.** `CloudStorageException.toString()`
+  prefixes `CloudStorageException: `, so `message.contains(detail)` never
+  matched on the S3 and Dropbox paths and the whole provider explanation was
+  appended a second time. `_messageCarries` now also compares with a
+  leading `ClassName: ` stripped.
+- **403 still hid the provider's reason.** The catch-all gained the `Code`
+  but the access-denied branch above it did not, so a provider that rejects
+  a signature and one that denies a key read identically. The advice stays
+  first, with the code appended, which keeps both the `contains('Access
+  denied')` classification in `_map` and the settings-page snackbar test.

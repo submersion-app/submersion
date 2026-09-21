@@ -40,13 +40,28 @@ class MediaStoreException implements Exception {
     // this lands in a database column and a list tile. Skipped when the
     // message already contains it, which happens wherever a mapper folded
     // the cause's text in before wrapping it.
-    if (detail == null || detail.isEmpty || message.contains(detail)) {
+    if (detail == null || detail.isEmpty || _messageCarries(message, detail)) {
       return base;
     }
     final trimmed = detail.length <= 200
         ? detail
         : '${detail.substring(0, 200)}...';
     return '$base (cause: $trimmed)';
+  }
+
+  /// Whether [message] already says what [detail] says.
+  ///
+  /// A wrapped exception's `toString` is `ClassName: message`, but the
+  /// mappers build their own message out of the wrapped message alone, so a
+  /// plain containment check never matches on the path that wraps a whole
+  /// CloudStorageException and the provider's explanation prints twice.
+  static bool _messageCarries(String message, String detail) {
+    if (message.contains(detail)) return true;
+    final unprefixed = detail.replaceFirst(
+      RegExp(r'^\w+(Exception|Error): '),
+      '',
+    );
+    return unprefixed != detail && message.contains(unprefixed);
   }
 }
 

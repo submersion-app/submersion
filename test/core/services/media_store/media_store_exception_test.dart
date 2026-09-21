@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 
 /// The queue stores `toString()` in `errorMessage`, and the Transfers page
@@ -37,6 +38,26 @@ void main() {
     );
 
     expect(e.toString().length, lessThan(400));
+  });
+
+  test('a wrapped exception whose text is already in the message is not '
+      'repeated', () {
+    // The S3 and Dropbox stores build the message out of the wrapped
+    // exception's own message and then pass the exception itself as the
+    // cause. Its toString carries a class-name prefix, so a plain substring
+    // check never matches and the whole thing prints a second time.
+    const cause = CloudStorageException(
+      'S3 put failed for "k" (HTTP 500): InternalError: server had a moment',
+    );
+    const e = MediaStoreException(
+      'put k failed: '
+      'S3 put failed for "k" (HTTP 500): InternalError: server had a '
+      'moment',
+      kind: MediaStoreErrorKind.fatal,
+      cause: cause,
+    );
+
+    expect('InternalError'.allMatches(e.toString()).length, 1);
   });
 
   test('a cause that adds nothing is not repeated', () {
