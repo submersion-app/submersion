@@ -379,7 +379,7 @@ Do **not** tick "Data is end-to-end encrypted" on any row. See 3.4.
 | **Audio files** | No | Not collected |
 | **Files and docs** | Yes | `ImportedFiles.bytes` retains every imported dive log file verbatim (`database.dart:3365`) and is in the sync payload, as is `RawDiveData.rawData`, the raw bytes libdivecomputer returned from the dive computer. Encrypted database envelopes are written to the user's chosen cloud storage |
 | **Calendar** | No | Not accessed |
-| **Contacts** | Yes | Buddy records are contact information by Play's definition (names, email addresses, phone numbers) and they ride the sync payload however they were entered. They can also come from the device address book on either platform: `READ_CONTACTS` is declared on Android by #2192 (see 5.8) |
+| **Contacts** | Yes | Buddy records are contact information by Play's definition (names, email addresses, phone numbers) and they ride the sync payload however they were entered. They can also come from the device address book on either platform: `READ_CONTACTS` is declared on Android as of #2192 (see 5.8) |
 | **App activity** | No | No analytics. Verified: no Firebase, Sentry, Crashlytics, Amplitude, Mixpanel or any analytics SDK in `pubspec.yaml` |
 | **Web browsing** | No | Not collected |
 | **App info and performance: Crash logs** | No | No crash reporting SDK |
@@ -721,7 +721,7 @@ link it in the declaration.
 | `SCHEDULE_EXACT_ALARM` | Gear maintenance reminders | Medium. See 5.4 |
 | `RECEIVE_BOOT_COMPLETED` | Re-arm reminders after reboot | None |
 | `POST_NOTIFICATIONS` | Maintenance reminders | None |
-| `READ_CONTACTS` | Selecting a dive buddy from the address book. Declared by #2192; absent from this branch until that merges | Low. Dangerous but not restricted, so no Permissions Declaration Form. It is a declared permission every review will see |
+| `READ_CONTACTS` | Selecting a dive buddy from the address book | Low. Dangerous but not restricted, so no Permissions Declaration Form. It is a declared permission every review will see |
 
 **Absent and worth noting:** no `ACCESS_BACKGROUND_LOCATION`, no
 `QUERY_ALL_PACKAGES`, no `MANAGE_EXTERNAL_STORAGE`, no `REQUEST_INSTALL_PACKAGES`,
@@ -783,11 +783,21 @@ rather than merely asserting it.
 **Finding:** `android/app/build.gradle` sets `compileSdk = 37` and
 `targetSdk = flutter.targetSdkVersion`.
 
-**VERIFY:** resolve what `flutter.targetSdkVersion` evaluates to on your
-Flutter version and confirm it meets Play's current minimum for new releases.
-Play enforces a rolling target API level floor and rejects uploads below it.
-If the resolved value is below the floor, pin `targetSdk` explicitly rather
-than inheriting it.
+**Resolved:** `flutter.targetSdkVersion` is **36** on Flutter 3.47.0, read
+from `packages/flutter_tools/gradle/src/main/kotlin/FlutterExtension.kt:34` in
+the installed SDK. `compileSdk` is pinned to 37 in `build.gradle` and
+`minSdk` to 26, both deliberate.
+
+Play enforces a rolling target API floor and rejects uploads below it, so the
+strongest evidence is empirical rather than documentary: builds have been
+uploading to the closed track throughout the test, which they could not do if
+the target level were below the floor.
+
+Two caveats worth keeping. The value is inherited, not pinned, so a Flutter
+SDK downgrade would silently lower it; pinning `targetSdk` explicitly costs
+nothing and removes that failure mode. And the floor rises annually, usually
+at the end of August, so re-check this before the first release of each
+target-API year rather than assuming it stays satisfied.
 
 `minSdk = 26` (Android 8.0) is fine and is a deliberate floor, not a default.
 
@@ -819,11 +829,6 @@ Fixed in #2192, which closes #2191. It declares the permission, adds a test
 pairing the Dart platform gate to the manifest in both directions so they
 cannot drift apart again, and routes the user to system settings after a
 permanent denial.
-
-**Merge order:** #2192 is a separate PR. Until it merges, this branch's tree
-does not contain the declaration, so the 5.2 inventory row and the 3.2
-justification describe the post-merge state. If #2192 is closed without
-merging, revert those two and restore the iOS-only wording in `PRIVACY.md`.
 
 **For this application:** the Data safety answer does not change. The Contacts
 row in 3.2 was already Yes for a reason independent of the address book, which
@@ -971,6 +976,8 @@ Collected from the **[FILL]** and **VERIFY** markers above:
       `PRIVACY.md`~~ Done (A.3)
 - [ ] Complete the Foreground service permissions declaration and record the
       video (5.1)
-- [ ] Resolve `flutter.targetSdkVersion` against Play's current floor (5.6)
+- [x] ~~Resolve `flutter.targetSdkVersion` against Play's current floor~~
+      Resolves to 36 on Flutter 3.47.0, and closed-track uploads succeed,
+      which is the practical proof. Consider pinning it (5.6)
 - [ ] Create the 1024 x 500 feature graphic (4.3)
 - [ ] Capture Android phone screenshots at phone aspect ratio (4.3)
