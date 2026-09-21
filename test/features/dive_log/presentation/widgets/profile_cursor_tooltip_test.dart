@@ -94,22 +94,23 @@ void main() {
     });
 
     test('still tracks the cursor near the plot\'s top edge for an '
-        'ordinarily-sized box that comes nowhere near the hard ceiling', () {
+        'ordinarily-sized box that comes nowhere near the container\'s own '
+        'top edge', () {
       final position = computeTooltipBoxPosition(
-        cursorLocal: const Offset(50, 10),
+        cursorLocal: const Offset(50, 50),
         boxSize: const Size(80, 40),
         plotRect: _plotRect,
         gap: 8,
       );
-      expect(position.dy, 10);
+      expect(position.dy, 50);
     });
 
     test('detaches from the cursor once the box is tall enough that its '
-        'real height would push its top past the hard ceiling -- it stops '
-        'rising there instead of continuing to grow off the top of the '
-        'chart entirely (issue #2228 follow-up: an earlier version had no '
-        'ceiling at all here, which let the box wander arbitrarily far '
-        'above the chart)', () {
+        'real height would push its top past local y = 0 -- the '
+        'container\'s own top edge -- instead of continuing to grow off the '
+        'top of the container entirely (issue #2228 follow-up: an earlier '
+        'version had no ceiling at all here, which let the box wander '
+        'arbitrarily far above the chart)', () {
       const boxHeight = 400.0;
       final position = computeTooltipBoxPosition(
         cursorLocal: const Offset(50, 10),
@@ -117,8 +118,7 @@ void main() {
         plotRect: _plotRect,
         gap: 8,
       );
-      final ceiling = _plotRect.top - tooltipCeilingHeadroom;
-      expect(position.dy, ceiling + boxHeight);
+      expect(position.dy, boxHeight);
     });
 
     test('stops following the cursor once it goes low enough that the '
@@ -318,7 +318,10 @@ void main() {
 
     testWidgets('the box\'s bottom edge stays exactly at the cursor for an '
         'ordinary row count nowhere near the hard ceiling', (tester) async {
-      const cursorLocal = Offset(100, 10);
+      // Comfortably clear of the container's own top edge (see the
+      // computeTooltipBoxPosition unit tests above for why this box would
+      // otherwise never fit above a cursor sitting only, say, 10px down).
+      const cursorLocal = Offset(100, 100);
       const rows = [
         TooltipRow(label: 'Time', value: '1:23', bulletColor: Colors.blue),
         TooltipRow(label: 'Depth', value: '12.3 m', bulletColor: Colors.blue),
