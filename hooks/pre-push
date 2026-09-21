@@ -292,14 +292,20 @@ format_check() {
     if [ "${#changed_dart[@]}" -eq 0 ]; then
         return 0
     fi
-    # Piped through xargs, not passed directly as argv: a push spanning enough
-    # commits (a long-lived branch, a squash-worthy PR) can list enough changed
-    # files that the literal argument list exceeds the OS's command-line length
-    # limit -- on Windows this fails with "Die Befehlszeile ist zu lang" before
-    # dart format ever runs, misreporting a real format pass as a failure.
-    # xargs chunks the list to fit, invoking dart format as many times as
-    # needed; -0 keeps it filename-safe (paths with spaces).
-    printf '%s\0' "${changed_dart[@]}" | xargs -0 dart format --set-exit-if-changed
+    # Piped through xargs in small, fixed-size batches (-n 20), not passed
+    # directly as argv and not left to xargs' own auto-sized chunking: a push
+    # spanning enough commits (a long-lived branch, a squash-worthy PR) can
+    # list enough changed files that a single dart-format invocation's
+    # command line exceeds the OS's length limit -- on Windows this fails
+    # with "Die Befehlszeile ist zu lang" before dart format ever runs,
+    # misreporting a real format pass as a failure. xargs' own default chunk
+    # size is calculated from a reported ARG_MAX that does not hold in
+    # practice once `dart` resolves through a wrapping .bat on Windows (each
+    # layer of batch-file re-quoting eats into the same limit), so it still
+    # overflowed at 178 files with no explicit -n; a small fixed batch avoids
+    # depending on that estimate at all. -0 keeps it filename-safe (paths
+    # with spaces).
+    printf '%s\0' "${changed_dart[@]}" | xargs -0 -n 20 dart format --set-exit-if-changed
 }
 
 echo "📝 Checking formatting and 🔬 analyzing (in parallel)..."
