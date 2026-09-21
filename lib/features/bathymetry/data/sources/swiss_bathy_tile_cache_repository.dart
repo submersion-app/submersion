@@ -217,6 +217,15 @@ class SwissBathyTileCacheRepository {
         );
   }
 
+  /// Deletes every cached tile, 'ok' and 'empty' alike. Used by the "3D
+  /// Maps" settings page's swissBATHY3D delete action, alongside clearing
+  /// this tile's own rows in the outer [BathymetryCache] -- deleting only
+  /// one of the two tables has no visible effect, since the other keeps
+  /// serving its already-resolved answer.
+  Future<void> clearAll() async {
+    await _db.delete(_db.swissBathyTileCache).go();
+  }
+
   /// Records that [tileKey]'s freshness was just confirmed, without
   /// touching its grid: the periodic check found no version change (or
   /// could not tell), so only the checked-at stamp advances, pushing the

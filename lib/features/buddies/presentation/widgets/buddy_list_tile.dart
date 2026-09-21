@@ -7,6 +7,7 @@ import 'package:submersion/features/buddies/domain/constants/buddy_field.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy_with_dive_count.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/buddy_favorite_button.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
@@ -204,6 +205,15 @@ class BuddyListTile extends ConsumerWidget {
                           ],
                         ],
                       ),
+                    ),
+                    // Favoriting (issue #1336) is independent of bulk
+                    // selection, unlike the chevron below, so it stays
+                    // visible and tappable in every mode.
+                    BuddyFavoriteButton(
+                      buddyId: buddy.id,
+                      isFavorite: buddy.isFavorite,
+                      iconSize: 20,
+                      unselectedColor: secondaryTextColor,
                     ),
                     if (!isSelectionMode)
                       ExcludeSemantics(

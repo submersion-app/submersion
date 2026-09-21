@@ -3028,6 +3028,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_action_ok => '确定';
 
   @override
+  String get common_action_openSettings => '打开设置';
+
+  @override
   String get common_action_save => '保存';
 
   @override
@@ -4879,9 +4882,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_deco_label_ceiling => '上升限制';
 
   @override
-  String get diveLog_deco_label_leading => '主导';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -4992,9 +4992,6 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => '回放';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => '范围统计';
@@ -7409,47 +7406,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_playbackStats_deco => '减压';
 
   @override
-  String get diveLog_playbackStats_depth => '深度';
-
-  @override
-  String get diveLog_playbackStats_header => '实时统计';
-
-  @override
-  String get diveLog_playbackStats_heartRate => '心率';
-
-  @override
-  String get diveLog_playbackStats_ndl => '免减压极限';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => '氧分压';
-
-  @override
-  String get diveLog_playbackStats_pressure => '压力';
-
-  @override
-  String get diveLog_playbackStats_temp => '温度';
-
-  @override
-  String get diveLog_playback_sliderLabel => '回放位置';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => '逐步回放';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => '后退 10 秒';
-
-  @override
-  String get diveLog_playback_tooltip_exit => '退出回放模式';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => '前进 10 秒';
-
-  @override
   String get diveLog_playback_tooltip_pause => '暂停';
 
   @override
@@ -7952,27 +7908,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => '无';
-
-  @override
-  String get diveLog_tissue_label_ceiling => '上升限制';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => '免减压极限';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M值';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => '组织饱和度';
@@ -9173,7 +9108,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_filter_clearAll => '清除全部';
 
   @override
-  String get diveSites_filter_country_hint => '例如，泰国';
+  String get diveSites_filter_allCountries => '所有国家';
+
+  @override
+  String get diveSites_filter_allRegions => '所有地区';
 
   @override
   String get diveSites_filter_country_label => '国家';
@@ -9209,10 +9147,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => '例如，普吉岛';
+  String get diveSites_filter_region_label => '地区';
 
   @override
-  String get diveSites_filter_region_label => '地区';
+  String get diveSites_filter_searchCountriesHint => '输入以搜索国家';
+
+  @override
+  String get diveSites_filter_searchRegionsHint => '输入以搜索地区';
 
   @override
   String get diveSites_filter_section_depthRange => '最大深度范围';
@@ -16408,12 +16349,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveDetailSection_dataSources_description => '已连接的潜水电脑、数据源管理';
 
   @override
-  String get siteDetailSection_map_name => '地图';
-
-  @override
-  String get siteDetailSection_map_description => '潜水点位置的地图预览';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       '潜水次数、到达深度、最长和最近的潜水';
 
@@ -17416,6 +17351,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_data_offlineMaps_subtitle => '下载地图以供离线使用';
+
+  @override
+  String get settings_data_threeDMaps => '3D Maps';
+
+  @override
+  String get settings_data_threeDMaps_subtitle =>
+      'Manage cached swissBATHY3D and other bathymetry data';
 
   @override
   String get settings_data_restore => '恢复';
@@ -21876,8 +21818,8 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_summary_stat_totalTrips => '总计旅行';
 
   @override
-  String trips_summary_upcomingSubtitle(Object date, Object days) {
-    return '$date • $days 天后';
+  String trips_summary_upcomingSubtitle(Object date, Object countdown) {
+    return '$date • $countdown';
   }
 
   @override
@@ -22465,6 +22407,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle => '部分潜水没有潜水点';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      '这些潜水引用了文件中没有描述的潜水点，因此导入时没有潜水点。您可以通过编辑潜水来设置潜水点。';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       '文件中没有证书和维护记录';
 
@@ -22597,6 +22546,10 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       '请检查此步骤中是否已映射日期和时间列，以及这些列是否包含日期。';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      '请检查日期列中的日期是否采用其列标题所指明的格式。';
 
   @override
   String get universalImport_error_noDataInFile => '此文件中未找到可导入的数据。';
@@ -25303,6 +25256,156 @@ class AppLocalizationsZh extends AppLocalizations {
       '尚未缓存湖泊深度数据';
 
   @override
+  String get maps3d_appBar_title => '3D 地图';
+
+  @override
+  String get maps3d_section_all => '所有数据源';
+
+  @override
+  String get maps3d_section_swissBathy => 'swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete => '删除数据';
+
+  @override
+  String get maps3d_swissBathy_delete_subtitle =>
+      '删除已缓存的 swissBATHY3D 深度瓦片和湖泊网格';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmTitle => '删除 swissBATHY3D 数据？';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      '已缓存的瑞士湖泊深度数据将被删除，并在下次打开潜水点的 3D 视图时重新加载。';
+
+  @override
+  String get maps3d_swissBathy_delete_done => '已删除 swissBATHY3D 数据';
+
+  @override
+  String get maps3d_section_other => '其他数据源';
+
+  @override
+  String get maps3d_other_reset => '重置其余测深数据';
+
+  @override
+  String get maps3d_other_reset_subtitle =>
+      '删除来自 EMODnet、NOAA DEM、GMRT 和 ETOPO 的缓存数据';
+
+  @override
+  String get maps3d_other_reset_confirmTitle => '重置其余测深数据？';
+
+  @override
+  String get maps3d_other_reset_confirmMessage =>
+      '除 swissBATHY3D 以外所有数据源的缓存数据将被删除，并在下次打开潜水点的 3D 视图时重新加载。';
+
+  @override
+  String get maps3d_other_reset_done => '已重置其余测深数据';
+
+  @override
+  String get maps3d_reload => '重新加载地图数据';
+
+  @override
+  String get maps3d_reload_subtitle => '删除所有已缓存的测深数据，并为每个潜水点重新下载';
+
+  @override
+  String get maps3d_reload_confirmTitle => '为所有潜水点重新加载地图数据？';
+
+  @override
+  String maps3d_reload_confirm_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '将重新加载 $count 个潜水点。',
+      one: '将重新加载 1 个潜水点。',
+      zero: '没有潜水点带有位置信息。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_confirm_estimatedSize(String size) {
+    return '预计下载量：约 $size';
+  }
+
+  @override
+  String get maps3d_reload_confirm_duration => '此操作可能需要几分钟。';
+
+  @override
+  String get maps3d_reload_confirm_wifiHint => '将下载大量数据，建议使用快速的 Wi-Fi 连接。';
+
+  @override
+  String get maps3d_reload_start => '重新加载';
+
+  @override
+  String maps3d_reload_progress(int completed, int total) {
+    return '共 $total 个潜水点，已完成 $completed 个';
+  }
+
+  @override
+  String get maps3d_reload_cancel => '取消';
+
+  @override
+  String get maps3d_reload_done => '已为所有潜水点重新加载地图数据';
+
+  @override
+  String get maps3d_reload_cancelled => '已取消重新加载';
+
+  @override
+  String get maps3d_reload_failed => '重新加载失败，部分潜水点可能未重新加载';
+
+  @override
+  String get maps3d_busy_notice => '另一项 3D 地图操作正在运行，请等待其完成。';
+
+  @override
+  String maps3d_reload_remainingSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '约剩 $count 秒',
+      one: '约剩 1 秒',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_remainingMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '约剩 $count 分钟',
+      one: '约剩 1 分钟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_warming(int index, int total, String name) {
+    return '正在准备：第 $index 个湖泊，共 $total 个（$name）';
+  }
+
+  @override
+  String maps3d_reload_elapsedSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已运行 $count 秒',
+      one: '已运行 1 秒',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_elapsedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已运行 $count 分钟',
+      one: '已运行 1 分钟',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get common_action_reparse => '重新解析';
 
   @override
@@ -26040,6 +26143,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dive3d_seascape_orbitView => '3D 视图';
+
+  @override
+  String get dive3d_seascape_verticalExaggeration => '垂直夸张';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationReset => '重置为自动';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationLabel => '深度';
 
   @override
   String get dive3d_seascape_appearance_surface => '地形表面';
@@ -36669,6 +36781,81 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get startup_failure_showBackupsFolder => '显示备份文件夹';
+
+  @override
+  String get startup_failure_moreWays_title => '其他恢复方式';
+
+  @override
+  String get startup_failure_useAnotherFolder => '使用其他文件夹中的潜水日志';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      '切换到你已经存放在别处的潜水日志，例如 iCloud 云盘或 Dropbox 文件夹中的日志。';
+
+  @override
+  String get startup_failure_restoreFromFile => '从备份文件恢复';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      '从本设备的任意位置或同步文件夹中选择一个 Submersion 备份。';
+
+  @override
+  String get startup_failure_startFresh => '以空白潜水日志开始';
+
+  @override
+  String get startup_failure_startFresh_subtitle => '将损坏的文件移到一旁，重新开始。不会删除任何内容。';
+
+  @override
+  String get startup_recovery_adopt_title => '使用这个潜水日志？';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'Submersion 今后将打开这个潜水日志。无法打开的那个文件会留在原处。';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives 次潜水，$sites 个潜点';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => '使用这个日志';
+
+  @override
+  String get startup_recovery_startFresh_title => '以空白潜水日志开始？';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion 会把损坏的文件移入单独的文件夹，并打开一个全新的空白潜水日志。不会删除任何内容，你之后仍可再试旧文件或将其发送给支持人员。';
+
+  @override
+  String get startup_recovery_startFresh_confirm => '重新开始';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return '你损坏的潜水日志已移至：\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => '这没有奏效';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return '$folder 中没有 $filename。请选择包含潜水日志文件本身的那个文件夹。';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return '$path 中的潜水日志已损坏，或者它不是 Submersion 的潜水日志。';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return '该文件不是 Submersion 能够恢复的备份：$path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      '该备份已加密。Submersion 只有在应用打开后才能解锁加密备份，因此请先使用这里的其他方式，然后在设置的备份与恢复中恢复它。';
 
   @override
   String get startup_failure_downgrade_title => '回到上一个版本';

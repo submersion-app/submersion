@@ -3126,6 +3126,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get common_action_ok => 'אישור';
 
   @override
+  String get common_action_openSettings => 'פתח הגדרות';
+
+  @override
   String get common_action_save => 'שמירה';
 
   @override
@@ -5019,9 +5022,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'תקרה';
 
   @override
-  String get diveLog_deco_label_leading => 'מוביל';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5133,9 +5133,6 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'הפעלה';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'סטטיסטיקת טווח';
@@ -7609,47 +7606,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'דקו';
 
   @override
-  String get diveLog_playbackStats_depth => 'עומק';
-
-  @override
-  String get diveLog_playbackStats_header => 'נתונים חיים';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'קצב לב';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'לחץ';
-
-  @override
-  String get diveLog_playbackStats_temp => 'טמפ\'';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'מיקום הפעלה';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'הפעלה צעד אחר צעד';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => '10 שניות אחורה';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'יציאה ממצב הפעלה';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => '10 שניות קדימה';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'השהייה';
 
   @override
@@ -8154,27 +8110,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'ללא';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'תקרה';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% ערך M';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'עומס רקמות';
@@ -9403,7 +9338,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveSites_filter_clearAll => 'נקה הכל';
 
   @override
-  String get diveSites_filter_country_hint => 'לדוגמה, תאילנד';
+  String get diveSites_filter_allCountries => 'כל המדינות';
+
+  @override
+  String get diveSites_filter_allRegions => 'כל האזורים';
 
   @override
   String get diveSites_filter_country_label => 'מדינה';
@@ -9440,10 +9378,13 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => 'לדוגמה, פוקט';
+  String get diveSites_filter_region_label => 'אזור';
 
   @override
-  String get diveSites_filter_region_label => 'אזור';
+  String get diveSites_filter_searchCountriesHint => 'הקלד כדי לחפש מדינות';
+
+  @override
+  String get diveSites_filter_searchRegionsHint => 'הקלד כדי לחפש אזורים';
 
   @override
   String get diveSites_filter_section_depthRange => 'טווח עומק מקסימלי';
@@ -16835,13 +16776,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'מחשבי צלילה מחוברים, ניהול מקורות';
 
   @override
-  String get siteDetailSection_map_name => 'מפה';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'תצוגה מקדימה של מפת מיקום האתר';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'מספר צלילות, עומקים שהושגו, הצלילות הארוכות והאחרונות';
 
@@ -17880,6 +17814,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_data_offlineMaps_subtitle => 'הורד מפות לשימוש לא מקוון';
+
+  @override
+  String get settings_data_threeDMaps => '3D Maps';
+
+  @override
+  String get settings_data_threeDMaps_subtitle =>
+      'Manage cached swissBATHY3D and other bathymetry data';
 
   @override
   String get settings_data_restore => 'שחזור';
@@ -22492,8 +22433,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_summary_stat_totalTrips => 'סה\"כ טיולים';
 
   @override
-  String trips_summary_upcomingSubtitle(Object date, Object days) {
-    return '$date • בעוד $days ימים';
+  String trips_summary_upcomingSubtitle(Object date, Object countdown) {
+    return '$date • $countdown';
   }
 
   @override
@@ -23120,6 +23061,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'לחלק מהצלילות אין אתר צלילה';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'צלילות אלה הפנו לאתר צלילה שהקובץ אינו מתאר, ולכן יובאו ללא אתר. אפשר להגדיר אתר בעריכת הצלילה.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'הסמכות ורשומות טיפול לא נמצאות בקובץ';
 
@@ -23264,6 +23213,10 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'בדוק שעמודות התאריך והשעה ממופות בשלב זה ושהן מכילות תאריכים.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'בדוק שעמודת התאריך מכילה תאריכים בתבנית שמצוינת בכותרת שלה.';
 
   @override
   String get universalImport_error_noDataInFile =>
@@ -26041,6 +25994,163 @@ class AppLocalizationsHe extends AppLocalizations {
       'עדיין לא נשמרו נתוני עומק אגמים';
 
   @override
+  String get maps3d_appBar_title => 'מפות תלת-ממד';
+
+  @override
+  String get maps3d_section_all => 'כל הספקים';
+
+  @override
+  String get maps3d_section_swissBathy => 'swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete => 'מחיקת נתונים';
+
+  @override
+  String get maps3d_swissBathy_delete_subtitle =>
+      'מסיר אריחי עומק ורשתות אגמים של swissBATHY3D מהמטמון';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmTitle =>
+      'למחוק את נתוני swissBATHY3D?';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      'נתוני העומק השמורים במטמון עבור אגמים בשווייץ יימחקו וייטענו מחדש בפעם הבאה שתיפתח תצוגת התלת-ממד של אתר צלילה.';
+
+  @override
+  String get maps3d_swissBathy_delete_done => 'נתוני swissBATHY3D נמחקו';
+
+  @override
+  String get maps3d_section_other => 'ספקים אחרים';
+
+  @override
+  String get maps3d_other_reset => 'איפוס נתוני הבתימטריה הנותרים';
+
+  @override
+  String get maps3d_other_reset_subtitle =>
+      'מסיר נתונים שמורים במטמון מ-EMODnet, NOAA DEM, GMRT ו-ETOPO';
+
+  @override
+  String get maps3d_other_reset_confirmTitle =>
+      'לאפס את נתוני הבתימטריה הנותרים?';
+
+  @override
+  String get maps3d_other_reset_confirmMessage =>
+      'נתונים שמורים במטמון מכל הספקים מלבד swissBATHY3D יימחקו וייטענו מחדש בפעם הבאה שתיפתח תצוגת התלת-ממד של אתר צלילה.';
+
+  @override
+  String get maps3d_other_reset_done => 'נתוני הבתימטריה הנותרים אופסו';
+
+  @override
+  String get maps3d_reload => 'טעינת נתוני המפות מחדש';
+
+  @override
+  String get maps3d_reload_subtitle =>
+      'מוחק את כל נתוני הבתימטריה השמורים במטמון ומוריד אותם מחדש עבור כל אתר צלילה';
+
+  @override
+  String get maps3d_reload_confirmTitle =>
+      'לטעון מחדש את נתוני המפות עבור כל אתרי הצלילה?';
+
+  @override
+  String maps3d_reload_confirm_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count אתרי צלילה ייטענו מחדש.',
+      one: 'אתר צלילה אחד ייטען מחדש.',
+      zero: 'לאף אתר צלילה אין מיקום.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_confirm_estimatedSize(String size) {
+    return 'הורדה משוערת: כ-$size';
+  }
+
+  @override
+  String get maps3d_reload_confirm_duration => 'הפעולה עשויה להימשך כמה דקות.';
+
+  @override
+  String get maps3d_reload_confirm_wifiHint =>
+      'יורדו נתונים רבים, ולכן מומלץ חיבור Wi-Fi מהיר.';
+
+  @override
+  String get maps3d_reload_start => 'טעינה מחדש';
+
+  @override
+  String maps3d_reload_progress(int completed, int total) {
+    return '$completed מתוך $total אתרי צלילה';
+  }
+
+  @override
+  String get maps3d_reload_cancel => 'ביטול';
+
+  @override
+  String get maps3d_reload_done => 'נתוני המפות נטענו מחדש עבור כל אתרי הצלילה';
+
+  @override
+  String get maps3d_reload_cancelled => 'הטעינה מחדש בוטלה';
+
+  @override
+  String get maps3d_reload_failed =>
+      'הטעינה מחדש נכשלה; ייתכן שחלק מאתרי הצלילה לא נטענו מחדש';
+
+  @override
+  String get maps3d_busy_notice =>
+      'פעולה אחרת של מפות תלת-ממד פועלת כעת. יש להמתין עד לסיומה.';
+
+  @override
+  String maps3d_reload_remainingSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'נותרו כ-$count שניות',
+      one: 'נותרה כשנייה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_remainingMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'נותרו כ-$count דקות',
+      one: 'נותרה כדקה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_warming(int index, int total, String name) {
+    return 'בהכנה: אגם $index מתוך $total ($name)';
+  }
+
+  @override
+  String maps3d_reload_elapsedSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'פועל כבר $count שניות',
+      one: 'פועל כבר שנייה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_elapsedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'פועל כבר $count דקות',
+      one: 'פועל כבר דקה אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get common_action_reparse => 'נתח מחדש';
 
   @override
@@ -26818,6 +26928,15 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get dive3d_seascape_orbitView => 'תצוגת תלת-ממד';
+
+  @override
+  String get dive3d_seascape_verticalExaggeration => 'הגזמה אנכית';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationReset => 'איפוס לאוטומטי';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationLabel => 'עומק';
 
   @override
   String get dive3d_seascape_appearance_surface => 'פני הקרקע';
@@ -38153,6 +38272,83 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get startup_failure_showBackupsFolder => 'הצג את תיקיית הגיבויים';
+
+  @override
+  String get startup_failure_moreWays_title => 'דרכים נוספות לחזור';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'שימוש ביומן צלילה בתיקייה אחרת';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'עברו ליומן צלילה ששמור אצלכם כבר במקום אחר, למשל בתיקיית iCloud Drive או Dropbox.';
+
+  @override
+  String get startup_failure_restoreFromFile => 'שחזור מקובץ גיבוי';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'בחרו גיבוי של Submersion מכל מקום במכשיר הזה או בתיקייה מסונכרנת.';
+
+  @override
+  String get startup_failure_startFresh => 'התחלה עם יומן צלילה ריק';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'הניחו את הקובץ הפגום בצד והתחילו מחדש. שום דבר לא נמחק.';
+
+  @override
+  String get startup_recovery_adopt_title => 'להשתמש ביומן הצלילה הזה?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'מעכשיו Submersion יפתח את יומן הצלילה הזה. הקובץ שלא נפתח נשאר במקומו.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives צלילות, $sites אתרי צלילה';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'להשתמש ביומן הזה';
+
+  @override
+  String get startup_recovery_startFresh_title => 'להתחיל עם יומן צלילה ריק?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion מעביר את הקובץ הפגום לתיקייה נפרדת ופותח יומן צלילה חדש וריק. שום דבר לא נמחק, כך שתוכלו לנסות שוב את הקובץ הישן או לשלוח אותו לתמיכה.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'להתחיל מחדש';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'יומן הצלילה הפגום שלכם הועבר אל:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'זה לא עבד';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'אין קובץ $filename בתיקייה $folder. בחרו את התיקייה שמכילה את קובץ יומן הצלילה עצמו.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'יומן הצלילה שב-$path פגום, או שאינו יומן צלילה של Submersion.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'הקובץ הזה אינו גיבוי ש-Submersion יכול לשחזר: $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'הגיבוי הזה מוצפן. Submersion יכול לפתוח גיבוי מוצפן רק כשהאפליקציה פתוחה, ולכן השתמשו קודם באחת הדרכים האחרות כאן ואז שחזרו אותו מההגדרות, תחת גיבוי ושחזור.';
 
   @override
   String get startup_failure_downgrade_title => 'חזרה לגרסה הקודמת';

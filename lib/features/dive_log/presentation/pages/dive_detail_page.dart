@@ -78,7 +78,6 @@ import 'package:submersion/features/pre_dive/presentation/widgets/link_session_p
 import 'package:submersion/shared/widgets/export_destination_sheet.dart';
 import 'package:submersion/shared/widgets/master_detail/detail_scroll_retainer.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
-import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_tracking_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_range_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/buoyancy_section.dart';
@@ -102,15 +101,12 @@ import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/playback_controls.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/playback_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_properties_menu.dart';
 import 'package:submersion/shared/widgets/section_fold.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_volume_hint.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/tissue_saturation_panel.dart';
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
@@ -1892,19 +1888,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     // these providers reload behind any detail change tick (the first-view
     // safety review write included): the chart would drop its overlays and
     // estimated pressure series for a frame, then draw them again.
-    //
-    // Get profile analysis (async to avoid blocking UI with Buhlmann computation)
-    final analysis = ref
-        .watch(
-          sourceProfileAnalysisProvider((
-            diveId: dive.id,
-            sourceId: ref.watch(activeDiveSourceProvider(dive.id)),
-          )),
-        )
-        .value;
-
-    // Get playback state
-    final playbackState = ref.watch(playbackProvider(dive.id));
 
     // Get range selection state
     final rangeState = ref.watch(rangeSelectionProvider(dive.id));
@@ -1975,32 +1958,28 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     // A toggle, so it reads as one of the row's icons with
                     // an on state rather than a pill that shoulders them
                     // aside. The label it used to carry is the tooltip.
-                    if (!playbackState.isActive)
-                      IconButton(
-                        icon: const Icon(Icons.straighten),
-                        tooltip:
-                            context.l10n.diveLog_detail_button_rangeAnalysis,
-                        visualDensity: VisualDensity.compact,
-                        isSelected: rangeState.isEnabled,
-                        style: IconButton.styleFrom(
-                          backgroundColor: rangeState.isEnabled
-                              ? Theme.of(context).colorScheme.secondaryContainer
-                              : null,
-                          foregroundColor: rangeState.isEnabled
-                              ? Theme.of(
-                                  context,
-                                ).colorScheme.onSecondaryContainer
-                              : null,
-                        ),
-                        onPressed: () {
-                          final notifier = ref.read(
-                            rangeSelectionProvider(dive.id).notifier,
-                          );
-                          rangeState.isEnabled
-                              ? notifier.disableRangeMode()
-                              : notifier.enableRangeMode();
-                        },
+                    IconButton(
+                      icon: const Icon(Icons.straighten),
+                      tooltip: context.l10n.diveLog_detail_button_rangeAnalysis,
+                      visualDensity: VisualDensity.compact,
+                      isSelected: rangeState.isEnabled,
+                      style: IconButton.styleFrom(
+                        backgroundColor: rangeState.isEnabled
+                            ? Theme.of(context).colorScheme.secondaryContainer
+                            : null,
+                        foregroundColor: rangeState.isEnabled
+                            ? Theme.of(context).colorScheme.onSecondaryContainer
+                            : null,
                       ),
+                      onPressed: () {
+                        final notifier = ref.read(
+                          rangeSelectionProvider(dive.id).notifier,
+                        );
+                        rangeState.isEnabled
+                            ? notifier.disableRangeMode()
+                            : notifier.enableRangeMode();
+                      },
+                    ),
                     IconButton(
                       icon: const Icon(Icons.view_in_ar),
                       tooltip: context.l10n.dive3d_previewTitle,
@@ -2102,47 +2081,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 ),
               ),
             // O2 toxicity section moved to _buildDecoO2Panel (side by side)
-            // Playback controls and stats (when playback mode is active)
-            if (playbackState.isActive) ...[
-              const SizedBox(height: 16),
-              PlaybackControls(diveId: dive.id),
-              const SizedBox(height: 12),
-              PlaybackStatsPanel(
-                // The analysis is computed over the active source's series,
-                // so per-timestamp lookups must index the same profile.
-                profile: chartProfile,
-                currentTimestamp: playbackState.currentTimestamp,
-                units: units,
-                analysis: analysis,
-              ),
-              // Show compact tissue saturation during playback
-              if (analysis != null && analysis.decoStatuses.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Builder(
-                  builder: (context) {
-                    final timestamp = playbackState.currentTimestamp;
-                    // Find the closest profile index for the current playback
-                    // time, over the same series the analysis indexes.
-                    int closestIndex = 0;
-                    int closestDiff = (chartProfile[0].timestamp - timestamp)
-                        .abs();
-                    for (int i = 1; i < chartProfile.length; i++) {
-                      final diff = (chartProfile[i].timestamp - timestamp)
-                          .abs();
-                      if (diff < closestDiff) {
-                        closestDiff = diff;
-                        closestIndex = i;
-                      }
-                    }
-                    // Use corresponding deco status if available
-                    final status = closestIndex < analysis.decoStatuses.length
-                        ? analysis.decoStatuses[closestIndex]
-                        : analysis.decoStatuses.last;
-                    return CompactTissueSaturation(decoStatus: status);
-                  },
-                ),
-              ],
-            ],
             // Range stats panel (when range mode is active)
             if (rangeState.isEnabled && rangeState.hasSelection) ...[
               const SizedBox(height: 16),

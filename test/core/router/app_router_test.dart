@@ -849,6 +849,32 @@ void main() {
     });
   });
 
+  group('manageServiceTypes route escapes to the root navigator', () {
+    // Regression: the Add/Edit Service Record dialog opens via showDialog
+    // (useRootNavigator: true by default) and its "Manage Service Types"
+    // link pushes 'manageServiceTypes'. Absent a parentNavigatorKey, that
+    // page mounts on the ShellRoute's nested navigator, which paints under
+    // the root navigator's overlay, so the page opened hidden behind the
+    // still-open dialog. See service_record_dialog_manage_types_nav_test.dart
+    // for the render-level round trip.
+    test('manageServiceTypes has parentNavigatorKey set to the root '
+        'navigator', () {
+      final route = _findRouteByName(
+        router.configuration.routes,
+        'manageServiceTypes',
+      );
+      expect(route, isNotNull);
+      expect(
+        route!.parentNavigatorKey,
+        same(rootNavigatorKey),
+        reason:
+            'Without this, "Manage Service Types" pushed from the service '
+            'record dialog renders underneath it instead of in the '
+            'foreground.',
+      );
+    });
+  });
+
   group('app_router lightroom route (pending Adobe review)', () {
     test('lightroom route stays defined so navigation degrades gracefully', () {
       // The route is intentionally kept (not removed) while the UI is hidden so

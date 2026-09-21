@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/subsurface_xml_parser.dart';
 
@@ -473,7 +474,90 @@ void main() {
               as List<Map<String, dynamic>>;
       expect(tanks[0]['role'], TankRole.diluent);
       expect(tanks[1]['role'], TankRole.stage);
-      expect(tanks[2]['role'], isNull);
+      // Subsurface writes a side-less 'sidemount'; the side comes from the
+      // order the cylinders appear in. See the 'sidemount' group below.
+      expect(tanks[2]['role'], TankRole.sidemountLeft);
+    });
+
+    group('sidemount', () {
+      Future<List<Map<String, dynamic>>> tanksOf(String cylinders) async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+$cylinders
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        return result.entitiesOf(ImportEntityType.dives).first['tanks']
+            as List<Map<String, dynamic>>;
+      }
+
+      test('a pair of sidemount cylinders becomes left then right', () async {
+        final tanks = await tanksOf(
+          "  <cylinder size='11.1 l' description='SM1' use='sidemount' o2='32.0%' />\n"
+          "  <cylinder size='11.1 l' description='SM2' use='sidemount' o2='32.0%' />",
+        );
+        expect(tanks[0]['role'], TankRole.sidemountLeft);
+        expect(tanks[1]['role'], TankRole.sidemountRight);
+      });
+
+      test('a third sidemount cylinder is left without a side', () async {
+        // Two sides is all a diver has. Inventing one for a third cylinder
+        // would be data the file never carried.
+        final tanks = await tanksOf(
+          "  <cylinder size='11.1 l' description='SM1' use='sidemount' o2='32.0%' />\n"
+          "  <cylinder size='11.1 l' description='SM2' use='sidemount' o2='32.0%' />\n"
+          "  <cylinder size='11.1 l' description='SM3' use='sidemount' o2='32.0%' />",
+        );
+        expect(tanks[2]['role'], isNull);
+      });
+
+      test('the explicit sides Subsurface can write still win', () async {
+        final tanks = await tanksOf(
+          "  <cylinder size='11.1 l' description='R' use='sidemount-right' o2='32.0%' />\n"
+          "  <cylinder size='11.1 l' description='L' use='sidemount-left' o2='32.0%' />\n"
+          "  <cylinder size='11.1 l' description='SM' use='sidemount' o2='32.0%' />",
+        );
+        expect(tanks[0]['role'], TankRole.sidemountRight);
+        expect(tanks[1]['role'], TankRole.sidemountLeft);
+        // The side-less cylinder counts from the start of the dive's own
+        // sidemount cylinders, independently of the explicit ones.
+        expect(tanks[2]['role'], TankRole.sidemountLeft);
+      });
+
+      test('the side counter restarts on every dive', () async {
+        final result = await parser.parse(
+          xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <cylinder size='11.1 l' description='SM1' use='sidemount' o2='32.0%' />
+  <cylinder size='11.1 l' description='SM2' use='sidemount' o2='32.0%' />
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+<dive number='2' date='2025-01-16' time='10:00:00' duration='30:00 min'>
+  <cylinder size='11.1 l' description='SM1' use='sidemount' o2='32.0%' />
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+        );
+        final dives = result.entitiesOf(ImportEntityType.dives);
+        final second = dives[1]['tanks'] as List<Map<String, dynamic>>;
+        expect(second[0]['role'], TankRole.sidemountLeft);
+      });
     });
 
     test(
@@ -1362,6 +1446,273 @@ $dives
       final dives = result.entitiesOf(ImportEntityType.dives);
       final dive1TagRefs = dives[0]['tagRefs'] as List<String>;
       expect(dive1TagRefs, containsAll(['shore', 'student']));
+    });
+  });
+
+  group('tag classification (#2202)', () {
+    String divelogWithTags(String tags) =>
+        '''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' tags='$tags' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+''';
+
+    Future<Map<String, dynamic>> diveWithTags(String tags) async {
+      final result = await parser.parse(xmlBytes(divelogWithTags(tags)));
+      return result.entitiesOf(ImportEntityType.dives).first;
+    }
+
+    test('a cave tag classifies the dive as a cave dive', () async {
+      final dive = await diveWithTags('cave');
+      expect(dive['diveTypeIds'], ['cave']);
+    });
+
+    test('a cavern tag classifies the dive as a cavern dive', () async {
+      // 'cavern' contains 'cave': a substring match would lose the
+      // distinction that matters most to the diver who recorded it.
+      final dive = await diveWithTags('cavern');
+      expect(dive['diveTypeIds'], ['cavern']);
+    });
+
+    test('classification adds to the tags, it does not replace them', () async {
+      final dive = await diveWithTags('cave, sardine run');
+      expect(dive['tagRefs'], ['cave', 'sardine run']);
+      expect(dive['diveTypeIds'], ['cave']);
+    });
+
+    test('maps the whole Subsurface built-in vocabulary', () async {
+      final dive = await diveWithTags(
+        'boat, shore, drift, deep, ice, wreck, altitude, night, student',
+      );
+      expect(dive['diveTypeIds'], [
+        'boat',
+        'shore',
+        'drift',
+        'deep',
+        'ice',
+        'wreck',
+        'altitude',
+        'night',
+        'training',
+      ]);
+    });
+
+    test('keeps tag order and drops repeats', () async {
+      final dive = await diveWithTags('boat, cave, Boat');
+      expect(dive['diveTypeIds'], ['boat', 'cave']);
+    });
+
+    test('tags that map to nothing leave the dive unclassified', () async {
+      // No diveTypeIds at all, so the importer's own default (recreational,
+      // or technical when the profile shows deco) still decides.
+      final dive = await diveWithTags('photo, video, sardine run');
+      expect(dive.containsKey('diveTypeIds'), isFalse);
+      expect(dive['tagRefs'], ['photo', 'video', 'sardine run']);
+    });
+
+    test('a dive with no tags is left unclassified', () async {
+      final result = await parser.parse(
+        xmlBytes('''
+<divelog program='subsurface' version='3'>
+<dives>
+<dive number='1' date='2025-01-15' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>
+'''),
+      );
+      final dive = result.entitiesOf(ImportEntityType.dives).first;
+      expect(dive.containsKey('diveTypeIds'), isFalse);
+    });
+  });
+
+  group('tag-derived site type suggestions (#2202)', () {
+    String divelog(String divesites, String dives) =>
+        '''
+<divelog program='subsurface' version='3'>
+<divesites>
+$divesites
+</divesites>
+<dives>
+$dives
+</dives>
+</divelog>
+''';
+
+    String dive(String tags, {String? siteId, int number = 1}) =>
+        '''
+<dive number='$number' tags='$tags'${siteId == null ? '' : " divesiteid='$siteId'"} date='2025-01-1$number' time='10:00:00' duration='30:00 min'>
+  <divecomputer model='Test'>
+  <depth max='20.0 m' mean='15.0 m' />
+  </divecomputer>
+</dive>
+''';
+
+    test('a cave dive suggests a cave site, never asserting it', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog(
+            "<site uuid='s1' name='Dos Ojos' gps='20.323 -87.392'/>",
+            dive('cave', siteId: 's1'),
+          ),
+        ),
+      );
+      final site = result.entitiesOf(ImportEntityType.sites).single;
+      expect(site['suggestedSiteTypeRefs'], ['cave']);
+      // Only a suggestion: an explicit classification the diver already made
+      // must survive the import.
+      expect(site.containsKey('siteTypeRefs'), isFalse);
+    });
+
+    test('a cavern dive suggests a cavern site', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog(
+            "<site uuid='s1' name='Chac Mool' gps='20.323 -87.392'/>",
+            dive('cavern', siteId: 's1'),
+          ),
+        ),
+      );
+      final site = result.entitiesOf(ImportEntityType.sites).single;
+      expect(site['suggestedSiteTypeRefs'], ['cavern']);
+    });
+
+    test('suggestions from several dives at one site combine', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog(
+            "<site uuid='s1' name='Ginnie Springs' gps='29.836 -82.700'/>",
+            dive('cave', siteId: 's1') +
+                dive('cavern, river', siteId: 's1', number: 2),
+          ),
+        ),
+      );
+      final site = result.entitiesOf(ImportEntityType.sites).single;
+      expect(site['suggestedSiteTypeRefs'], ['cave', 'cavern', 'river']);
+    });
+
+    test('a suggestion follows a site through the duplicate fold', () async {
+      // Subsurface starts a fresh site whenever a dive's GPS drifts, so the
+      // dive that carries the cave tag often points at an entry that folds
+      // away. The suggestion has to land on the survivor.
+      final result = await parser.parse(
+        xmlBytes(
+          divelog(
+            "<site uuid='s1' name='Dos Ojos' gps='20.323000 -87.392000'/>\n"
+            "<site uuid='s2' name='Dos Ojos' gps='20.323050 -87.392050'/>",
+            dive('cave', siteId: 's2'),
+          ),
+        ),
+      );
+      final sites = result.entitiesOf(ImportEntityType.sites);
+      expect(sites.length, 1, reason: 'the two entries fold together');
+      expect(sites.single['suggestedSiteTypeRefs'], ['cave']);
+    });
+
+    test('tags that classify only the dive suggest no site type', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog(
+            "<site uuid='s1' name='Escambron' gps='18.465 -66.084'/>",
+            dive('boat, night, deep', siteId: 's1'),
+          ),
+        ),
+      );
+      final site = result.entitiesOf(ImportEntityType.sites).single;
+      expect(site.containsKey('suggestedSiteTypeRefs'), isFalse);
+    });
+
+    test('a cave dive with no site is imported without complaint', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog(
+            "<site uuid='s1' name='Escambron' gps='18.465 -66.084'/>",
+            dive('cave'),
+          ),
+        ),
+      );
+      expect(result.entitiesOf(ImportEntityType.dives).single['diveTypeIds'], [
+        'cave',
+      ]);
+      final site = result.entitiesOf(ImportEntityType.sites).single;
+      expect(site.containsKey('suggestedSiteTypeRefs'), isFalse);
+    });
+
+    test('a dive pointing at a site the file never declared is safe', () async {
+      final result = await parser.parse(
+        xmlBytes(
+          divelog(
+            "<site uuid='s1' name='Escambron' gps='18.465 -66.084'/>",
+            dive('cave', siteId: 'missing'),
+          ),
+        ),
+      );
+      expect(result.entitiesOf(ImportEntityType.dives).length, 1);
+      final site = result.entitiesOf(ImportEntityType.sites).single;
+      expect(site.containsKey('suggestedSiteTypeRefs'), isFalse);
+    });
+  });
+
+  group('a cave logbook (real Subsurface export)', () {
+    const fixturePath =
+        'test/features/universal_import/data/parsers/fixtures/cave-tags.ssrf';
+
+    Future<ImportPayload> parseFixture() async {
+      final bytes = await File(fixturePath).readAsBytes();
+      return parser.parse(Uint8List.fromList(bytes));
+    }
+
+    test('classifies every tagged dive', () async {
+      final dives = (await parseFixture()).entitiesOf(ImportEntityType.dives);
+      expect(dives.length, 4);
+      expect(dives[0]['diveTypeIds'], ['cave']);
+      expect(dives[1]['diveTypeIds'], ['cavern']);
+      expect(dives[2]['diveTypeIds'], ['cave', 'deep']);
+      expect(dives[3]['diveTypeIds'], ['boat', 'night']);
+    });
+
+    test('keeps the free-text tags alongside the classification', () async {
+      final result = await parseFixture();
+      final dives = result.entitiesOf(ImportEntityType.dives);
+      expect(dives[1]['tagRefs'], ['cavern', 'photo']);
+      final tagNames = result
+          .entitiesOf(ImportEntityType.tags)
+          .map((t) => t['name'])
+          .toSet();
+      expect(tagNames, containsAll(['cave', 'cavern', 'photo', 'boat']));
+    });
+
+    test(
+      'suggests a cave site for the cenote, and nothing for the reef',
+      () async {
+        final sites = (await parseFixture()).entitiesOf(ImportEntityType.sites);
+        final dosOjos = sites.firstWhere((s) => s['name'] == 'Dos Ojos');
+        final chacMool = sites.firstWhere((s) => s['name'] == 'Chac Mool');
+        final escambron = sites.firstWhere((s) => s['name'] == 'Escambron');
+        // Both Dos Ojos entries fold into one site, and the cave dive that
+        // referenced the folded-away entry still classifies the survivor.
+        expect(sites.where((s) => s['name'] == 'Dos Ojos').length, 1);
+        expect(dosOjos['suggestedSiteTypeRefs'], ['cave']);
+        expect(chacMool['suggestedSiteTypeRefs'], ['cavern']);
+        expect(escambron.containsKey('suggestedSiteTypeRefs'), isFalse);
+      },
+    );
+
+    test('reads the sidemount pair as left and right', () async {
+      final dives = (await parseFixture()).entitiesOf(ImportEntityType.dives);
+      final tanks = dives[2]['tanks'] as List<Map<String, dynamic>>;
+      expect(tanks[0]['role'], TankRole.sidemountLeft);
+      expect(tanks[1]['role'], TankRole.sidemountRight);
+      expect(tanks[2]['role'], TankRole.deco);
     });
   });
 

@@ -115,6 +115,22 @@ void main() {
     }
   });
 
+  // Issue #2141 follow-up: the slider itself now lives in the terrain-
+  // appearance sheet (persisted per site); the pane only shows a compact,
+  // read-only readout of whatever value is currently in effect.
+  testWidgets('shows a compact vertical-exaggeration readout, not a slider', (
+    tester,
+  ) async {
+    await tester.pumpWidget(page(readyState()));
+    await tester.pump();
+    await tester.pump();
+    expect(
+      find.byKey(const ValueKey('seascapeExaggerationSlider')),
+      findsNothing,
+    );
+    expect(find.textContaining('1.0×'), findsOneWidget);
+  });
+
   testWidgets('imagery reaches the viewport and shows attribution', (
     tester,
   ) async {
@@ -363,6 +379,7 @@ void main() {
             minNorth: box.minNorth,
             maxNorth: box.maxNorth,
             maxDepth: 35,
+            verticalExaggeration: 1.0,
           ),
         );
       }

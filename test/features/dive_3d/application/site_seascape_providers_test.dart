@@ -4,6 +4,7 @@ import 'package:submersion/features/bathymetry/application/bathymetry_providers.
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_lod.dart';
 import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/spatial_projection.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
@@ -159,9 +160,17 @@ void main() {
       expect(layer.layers, isNotEmpty);
       expect(layer.layers.first.mesh.positions, isNotEmpty);
       // Neither the terrain nor any contour/wall overlay it carries is
-      // drapedOnTerrain -- all ride the patch's own footprint and paint
-      // strictly after it, never sharing the base terrain's depth sort.
+      // drapedOnTerrain: draping is what pulls a layer into the BASE
+      // terrain's merge group, and the patch is near-coplanar with the base
+      // square, so sharing that sort z-fights the two.
       expect(layer.layers.every((l) => !l.drapedOnTerrain), isTrue);
+      // They do, however, all share one local merge group of their own, so
+      // the renderer depth-sorts the patch's terrain, contours and wall
+      // highlight together and a contour behind a ridge stays hidden.
+      expect(
+        layer.layers.map((l) => l.localMergeGroup).toSet().single,
+        isNotNull,
+      );
       expect(layer.detailLimitReached, isFalse);
     });
 
@@ -235,6 +244,48 @@ void main() {
         final results = await Future.wait([c.read(a.future), c.read(b.future)]);
         expect(identical(results[0], results[1]), isTrue);
       },
+    );
+  });
+
+  test('axisInputs carries the same verticalExaggeration the terrain was '
+      'built with (issue #2141 regression: a stale SeascapeAxisInputs would '
+      'default to 1.0 and the depth axis would no longer agree with the '
+      'exaggerated terrain it labels)', () async {
+    // 3 km cell spacing, shallow (20-30 m) depths matching the site's own
+    // recorded max depth: a true-to-scale rendering would read as flat,
+    // so this site must get exaggerated beyond 1.0.
+    final wideGrid = BathymetryGrid(
+      originLat: 12.15,
+      originLon: -68.30,
+      cellSizeLatDeg: 3000.0 / 110540.0,
+      cellSizeLonDeg: 3000.0 / 111320.0,
+      rows: 2,
+      cols: 2,
+      depthsMeters: const [20, 25, 25, 30],
+      sourceId: 'gmrt',
+      resolutionMeters: 3000,
+      fetchedAt: DateTime.utc(2026, 7, 28),
+    );
+    final c = container(site: withGps, grid: wideGrid);
+    final state = await c.read(siteSeascapeProvider(siteId).future);
+    final ready = state as SiteSeascapeReady;
+
+    expect(ready.axisInputs.verticalExaggeration, greaterThan(1.0));
+
+    // Reproducing what _buildAxes does in the presentation layer: a
+    // SpatialProjection built from axisInputs must reach exactly the
+    // terrain's own scene floor, not a true-to-scale one.
+    final axisProj = SpatialProjection(
+      minEast: ready.axisInputs.minEast,
+      maxEast: ready.axisInputs.maxEast,
+      minNorth: ready.axisInputs.minNorth,
+      maxNorth: ready.axisInputs.maxNorth,
+      maxDepth: ready.axisInputs.maxDepth,
+      verticalExaggeration: ready.axisInputs.verticalExaggeration,
+    );
+    expect(
+      axisProj.yOf(ready.axisInputs.maxDepth),
+      closeTo(ready.scene.bounds.sceneMinY, 1e-9),
     );
   });
 }

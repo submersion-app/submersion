@@ -3214,6 +3214,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get common_action_ok => 'OK';
 
   @override
+  String get common_action_openSettings => 'Einstellungen öffnen';
+
+  @override
   String get common_action_save => 'Speichern';
 
   @override
@@ -5150,9 +5153,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'Ceiling';
 
   @override
-  String get diveLog_deco_label_leading => 'Leitgewebe';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5265,9 +5265,6 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'Wiedergabe';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'Bereichsstatistik';
@@ -7802,47 +7799,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'DEKO';
 
   @override
-  String get diveLog_playbackStats_depth => 'Tiefe';
-
-  @override
-  String get diveLog_playbackStats_header => 'Live-Statistiken';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'Herzfrequenz';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'Druck';
-
-  @override
-  String get diveLog_playbackStats_temp => 'Temp.';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'Wiedergabeposition';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'Schrittweise Wiedergabe';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => '10 Sekunden zurück';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'Wiedergabemodus beenden';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => '10 Sekunden vor';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'Pause';
 
   @override
@@ -8357,27 +8313,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'Keiner';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'Ceiling';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M-Wert';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'Gewebesättigung';
@@ -9626,7 +9561,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_filter_clearAll => 'Alle löschen';
 
   @override
-  String get diveSites_filter_country_hint => 'z. B. Thailand';
+  String get diveSites_filter_allCountries => 'Alle Länder';
+
+  @override
+  String get diveSites_filter_allRegions => 'Alle Regionen';
 
   @override
   String get diveSites_filter_country_label => 'Land';
@@ -9663,10 +9601,15 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => 'z. B. Phuket';
+  String get diveSites_filter_region_label => 'Region';
 
   @override
-  String get diveSites_filter_region_label => 'Region';
+  String get diveSites_filter_searchCountriesHint =>
+      'Tippen, um Länder zu suchen';
+
+  @override
+  String get diveSites_filter_searchRegionsHint =>
+      'Tippen, um Regionen zu suchen';
 
   @override
   String get diveSites_filter_section_depthRange => 'Max. Tiefenbereich';
@@ -17220,13 +17163,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Verbundene Tauchcomputer, Quellenverwaltung';
 
   @override
-  String get siteDetailSection_map_name => 'Karte';
-
-  @override
-  String get siteDetailSection_map_description =>
-      'Kartenvorschau des Tauchplatzes';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'Anzahl der Tauchgänge, erreichte Tiefen, längster und letzter Tauchgang';
 
@@ -18300,6 +18236,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_data_offlineMaps_subtitle =>
       'Karten für die Offline-Nutzung herunterladen';
+
+  @override
+  String get settings_data_threeDMaps => '3D-Karten';
+
+  @override
+  String get settings_data_threeDMaps_subtitle =>
+      'Gecachte swissBATHY3D- und andere Bathymetrie-Daten verwalten';
 
   @override
   String get settings_data_restore => 'Wiederherstellen';
@@ -23012,8 +22955,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get trips_summary_stat_totalTrips => 'Reisen gesamt';
 
   @override
-  String trips_summary_upcomingSubtitle(Object date, Object days) {
-    return '$date • In $days Tagen';
+  String trips_summary_upcomingSubtitle(Object date, Object countdown) {
+    return '$date • $countdown';
   }
 
   @override
@@ -23643,6 +23586,14 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'Einige Tauchgänge ohne Tauchplatz';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'Diese Tauchgänge verwiesen auf einen Tauchplatz, den die Datei nicht beschreibt, und wurden daher ohne Tauchplatz importiert. Sie können den Tauchplatz beim Bearbeiten des Tauchgangs festlegen.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'Zertifizierungen und Wartungseinträge nicht in der Datei';
 
@@ -23790,6 +23741,10 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'Prüfen Sie, ob die Datums- und Uhrzeitspalten in diesem Schritt zugeordnet sind und Datumsangaben enthalten.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'Prüfen Sie, ob die Datumsspalte Datumsangaben in dem Format enthält, das ihre Überschrift nennt.';
 
   @override
   String get universalImport_error_noDataInFile =>
@@ -26598,7 +26553,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_appearance_bathymetryRefresh =>
-      'Kartendaten aktualisieren';
+      'Bestehende Kartendaten aktualisieren';
 
   @override
   String get settings_appearance_bathymetryRefresh_subtitle =>
@@ -26626,6 +26581,166 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_appearance_bathymetryRefresh_resultNothingCached =>
       'Noch keine Seetiefendaten gespeichert';
+
+  @override
+  String get maps3d_appBar_title => '3D-Karten';
+
+  @override
+  String get maps3d_section_all => 'Alle Anbieter';
+
+  @override
+  String get maps3d_section_swissBathy => 'swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete => 'Daten löschen';
+
+  @override
+  String get maps3d_swissBathy_delete_subtitle =>
+      'Entfernt gecachte swissBATHY3D-Tiefenkacheln und Seenetze';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmTitle =>
+      'swissBATHY3D-Daten löschen?';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      'Gecachte Tiefendaten für Schweizer Seen werden entfernt und beim nächsten Öffnen der 3D-Ansicht eines Tauchplatzes neu geladen.';
+
+  @override
+  String get maps3d_swissBathy_delete_done => 'swissBATHY3D-Daten gelöscht';
+
+  @override
+  String get maps3d_section_other => 'Übrige Anbieter';
+
+  @override
+  String get maps3d_other_reset => 'Übrige Bathymetrie-Daten zurücksetzen';
+
+  @override
+  String get maps3d_other_reset_subtitle =>
+      'Entfernt gecachte Daten von EMODnet, NOAA DEM, GMRT und ETOPO';
+
+  @override
+  String get maps3d_other_reset_confirmTitle =>
+      'Übrige Bathymetrie-Daten zurücksetzen?';
+
+  @override
+  String get maps3d_other_reset_confirmMessage =>
+      'Gecachte Daten aller Anbieter ausser swissBATHY3D werden entfernt und beim nächsten Öffnen der 3D-Ansicht eines Tauchplatzes neu geladen.';
+
+  @override
+  String get maps3d_other_reset_done =>
+      'Übrige Bathymetrie-Daten zurückgesetzt';
+
+  @override
+  String get maps3d_reload => 'Kartendaten neu laden';
+
+  @override
+  String get maps3d_reload_subtitle =>
+      'Löscht alle gecachten Bathymetrie-Daten und lädt sie für jeden Tauchplatz neu herunter';
+
+  @override
+  String get maps3d_reload_confirmTitle =>
+      'Kartendaten für alle Tauchplätze neu laden?';
+
+  @override
+  String maps3d_reload_confirm_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchplätze werden neu geladen.',
+      one: '1 Tauchplatz wird neu geladen.',
+      zero: 'Kein Tauchplatz hat eine Koordinate.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_confirm_estimatedSize(String size) {
+    return 'Geschätzter Download: ca. $size';
+  }
+
+  @override
+  String get maps3d_reload_confirm_duration =>
+      'Dies kann mehrere Minuten dauern.';
+
+  @override
+  String get maps3d_reload_confirm_wifiHint =>
+      'Es werden viele Daten heruntergeladen — ein schnelles WLAN wird empfohlen.';
+
+  @override
+  String get maps3d_reload_start => 'Neu laden';
+
+  @override
+  String maps3d_reload_progress(int completed, int total) {
+    return '$completed von $total Tauchplätzen';
+  }
+
+  @override
+  String get maps3d_reload_cancel => 'Abbrechen';
+
+  @override
+  String get maps3d_reload_done =>
+      'Kartendaten für alle Tauchplätze neu geladen';
+
+  @override
+  String get maps3d_reload_cancelled => 'Neu laden abgebrochen';
+
+  @override
+  String get maps3d_reload_failed =>
+      'Neu laden fehlgeschlagen; einige Tauchplätze wurden evtl. nicht neu geladen';
+
+  @override
+  String get maps3d_busy_notice =>
+      'Eine andere 3D-Karten-Aktion läuft gerade. Bitte warten, bis sie abgeschlossen ist.';
+
+  @override
+  String maps3d_reload_remainingSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sekunden',
+      one: '1 Sekunde',
+    );
+    return 'noch ca. $_temp0';
+  }
+
+  @override
+  String maps3d_reload_remainingMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Minuten',
+      one: '1 Minute',
+    );
+    return 'noch ca. $_temp0';
+  }
+
+  @override
+  String maps3d_reload_warming(int index, int total, String name) {
+    return 'Bereite vor: See $index von $total ($name)';
+  }
+
+  @override
+  String maps3d_reload_elapsedSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sekunden',
+      one: '1 Sekunde',
+    );
+    return 'läuft seit $_temp0';
+  }
+
+  @override
+  String maps3d_reload_elapsedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Minuten',
+      one: '1 Minute',
+    );
+    return 'läuft seit $_temp0';
+  }
 
   @override
   String get common_action_reparse => 'Neu auswerten';
@@ -27425,6 +27540,16 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get dive3d_seascape_orbitView => '3D-Ansicht';
+
+  @override
+  String get dive3d_seascape_verticalExaggeration => 'Vertikale Überhöhung';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationReset =>
+      'Auf automatisch zurücksetzen';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationLabel => 'Tiefe';
 
   @override
   String get dive3d_seascape_appearance_surface => 'Geländeoberfläche';
@@ -38809,6 +38934,85 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get startup_failure_showBackupsFolder => 'Sicherungsordner anzeigen';
+
+  @override
+  String get startup_failure_moreWays_title => 'Weitere Wege zurück';
+
+  @override
+  String get startup_failure_useAnotherFolder =>
+      'Logbuch in einem anderen Ordner verwenden';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'Wechseln Sie zu einem Logbuch, das Sie bereits anderswo aufbewahren, etwa in einem iCloud Drive- oder Dropbox-Ordner.';
+
+  @override
+  String get startup_failure_restoreFromFile =>
+      'Aus einer Sicherungsdatei wiederherstellen';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'Wählen Sie eine Submersion-Sicherung von einem beliebigen Ort auf diesem Gerät oder in einem synchronisierten Ordner.';
+
+  @override
+  String get startup_failure_startFresh => 'Mit leerem Logbuch beginnen';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'Die beschädigte Datei beiseitelegen und neu beginnen. Es wird nichts gelöscht.';
+
+  @override
+  String get startup_recovery_adopt_title => 'Dieses Logbuch verwenden?';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'Submersion öffnet ab jetzt dieses Logbuch. Die Datei, die sich nicht öffnen ließ, bleibt, wo sie ist.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives Tauchgänge, $sites Tauchplätze';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'Dieses Logbuch verwenden';
+
+  @override
+  String get startup_recovery_startFresh_title =>
+      'Mit leerem Logbuch beginnen?';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'Submersion verschiebt die beschädigte Datei in einen eigenen Ordner und öffnet ein neues, leeres Logbuch. Es wird nichts gelöscht; Sie können die alte Datei später erneut versuchen oder an den Support senden.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'Neu beginnen';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'Ihr beschädigtes Logbuch wurde verschoben nach:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'Das hat nicht funktioniert';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'In $folder gibt es keine Datei $filename. Wählen Sie den Ordner, der die Logbuchdatei selbst enthält.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'Das Logbuch unter $path ist beschädigt oder es ist kein Submersion-Logbuch.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'Diese Datei ist keine Sicherung, die Submersion wiederherstellen kann: $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'Diese Sicherung ist verschlüsselt. Submersion kann eine verschlüsselte Sicherung erst entsperren, wenn die App geöffnet ist. Nutzen Sie daher zuerst einen der anderen Wege hier und stellen Sie sie danach in den Einstellungen unter Sicherung und Wiederherstellung wieder her.';
 
   @override
   String get startup_failure_downgrade_title => 'Zurück zur vorherigen Version';

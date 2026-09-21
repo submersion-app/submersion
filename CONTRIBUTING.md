@@ -44,6 +44,14 @@ git config core.hooksPath hooks           # enables the pre-push checks
 dart run build_runner build --delete-conflicting-outputs
 ```
 
+If you develop on macOS without an Apple Developer account,
+`flutter run -d macos` fails with `No profiles for 'app.submersion' were found`,
+because the macOS Debug configuration is pinned to the maintainer's signing
+team. Sign the debug build ad-hoc instead, as described in
+[Running a debug build without an Apple Developer account](README.md#running-a-debug-build-without-an-apple-developer-account).
+Linux, Windows, Android and the iOS Simulator need no signing setup; only
+builds for a physical iPhone require the maintainer's team.
+
 For a deeper walkthrough of the architecture, database, state management, and
 platform builds, see the [developer docs](docs/developer/README.md).
 

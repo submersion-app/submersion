@@ -3148,6 +3148,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get common_action_ok => 'موافق';
 
   @override
+  String get common_action_openSettings => 'فتح الإعدادات';
+
+  @override
   String get common_action_save => 'حفظ';
 
   @override
@@ -5047,9 +5050,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_deco_label_ceiling => 'السقف';
 
   @override
-  String get diveLog_deco_label_leading => 'الأنسجة الرائدة';
-
-  @override
   String get diveLog_deco_label_gf99 => 'GF99';
 
   @override
@@ -5161,9 +5161,6 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$count $_temp0';
   }
-
-  @override
-  String get diveLog_detail_button_playback => 'تشغيل';
 
   @override
   String get diveLog_detail_button_rangeAnalysis => 'إحصائيات النطاق';
@@ -7649,47 +7646,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_playbackStats_deco => 'تخفيف ضغط';
 
   @override
-  String get diveLog_playbackStats_depth => 'العمق';
-
-  @override
-  String get diveLog_playbackStats_header => 'إحصائيات مباشرة';
-
-  @override
-  String get diveLog_playbackStats_heartRate => 'معدل نبض القلب';
-
-  @override
-  String get diveLog_playbackStats_ndl => 'NDL';
-
-  @override
-  String get diveLog_playbackStats_ppO2 => 'ppO₂';
-
-  @override
-  String get diveLog_playbackStats_pressure => 'الضغط';
-
-  @override
-  String get diveLog_playbackStats_temp => 'الحرارة';
-
-  @override
-  String get diveLog_playback_sliderLabel => 'موضع التشغيل';
-
-  @override
-  String diveLog_playback_speed_label(Object speed) {
-    return '${speed}x';
-  }
-
-  @override
-  String get diveLog_playback_stepThrough => 'تشغيل خطوة بخطوة';
-
-  @override
-  String get diveLog_playback_tooltip_back10 => 'رجوع 10 ثوانٍ';
-
-  @override
-  String get diveLog_playback_tooltip_exit => 'الخروج من وضع التشغيل';
-
-  @override
-  String get diveLog_playback_tooltip_forward10 => 'تقديم 10 ثوانٍ';
-
-  @override
   String get diveLog_playback_tooltip_pause => 'إيقاف مؤقت';
 
   @override
@@ -8198,27 +8154,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_tank_regulatorNone => 'لا شيء';
-
-  @override
-  String get diveLog_tissue_label_ceiling => 'السقف';
-
-  @override
-  String get diveLog_tissue_label_gf => 'GF';
-
-  @override
-  String get diveLog_tissue_label_ndl => 'NDL';
-
-  @override
-  String get diveLog_tissue_label_tts => 'TTS';
-
-  @override
-  String get diveLog_tissue_legend_he => 'He';
-
-  @override
-  String get diveLog_tissue_legend_mValue => '100% M-value';
-
-  @override
-  String get diveLog_tissue_legend_n2 => 'N₂';
 
   @override
   String get diveLog_tissue_title => 'تحميل الأنسجة';
@@ -9453,7 +9388,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_filter_clearAll => 'مسح الكل';
 
   @override
-  String get diveSites_filter_country_hint => 'مثال: تايلاند';
+  String get diveSites_filter_allCountries => 'جميع الدول';
+
+  @override
+  String get diveSites_filter_allRegions => 'جميع المناطق';
 
   @override
   String get diveSites_filter_country_label => 'الدولة';
@@ -9491,10 +9429,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => 'مثال: فوكيت';
+  String get diveSites_filter_region_label => 'المنطقة';
 
   @override
-  String get diveSites_filter_region_label => 'المنطقة';
+  String get diveSites_filter_searchCountriesHint => 'اكتب للبحث عن الدول';
+
+  @override
+  String get diveSites_filter_searchRegionsHint => 'اكتب للبحث عن المناطق';
 
   @override
   String get diveSites_filter_section_depthRange => 'نطاق أقصى عمق';
@@ -16956,12 +16897,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'أجهزة الغوص المتصلة، إدارة المصادر';
 
   @override
-  String get siteDetailSection_map_name => 'الخريطة';
-
-  @override
-  String get siteDetailSection_map_description => 'معاينة خريطة لموقع الغوص';
-
-  @override
   String get siteDetailSection_diveStatistics_description =>
       'عدد الغوصات، الأعماق التي تم بلوغها، أطول الغوصات وأحدثها';
 
@@ -18015,6 +17950,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_data_offlineMaps_subtitle =>
       'تنزيل الخرائط للاستخدام بدون اتصال';
+
+  @override
+  String get settings_data_threeDMaps => '3D Maps';
+
+  @override
+  String get settings_data_threeDMaps_subtitle =>
+      'Manage cached swissBATHY3D and other bathymetry data';
 
   @override
   String get settings_data_restore => 'استعادة';
@@ -22748,8 +22690,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_summary_stat_totalTrips => 'إجمالي الرحلات';
 
   @override
-  String trips_summary_upcomingSubtitle(Object date, Object days) {
-    return '$date • بعد $days أيام';
+  String trips_summary_upcomingSubtitle(Object date, Object countdown) {
+    return '$date • $countdown';
   }
 
   @override
@@ -23385,6 +23327,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_noticeSitesUnresolvedTitle =>
+      'بعض الغطسات بلا موقع غوص';
+
+  @override
+  String get universalImport_summary_noticeSitesUnresolvedBody =>
+      'أشارت هذه الغطسات إلى موقع غوص لا يصفه الملف، فاستُوردت بدون موقع. يمكنك تعيين موقع بتحرير الغطسة.';
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'الشهادات وسجلات الصيانة غير موجودة في الملف';
 
@@ -23529,6 +23479,10 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get universalImport_error_unreadableDatesHint =>
       'تحقق من ربط عمودي التاريخ والوقت في هذه الخطوة، ومن أنهما يحتويان على تواريخ.';
+
+  @override
+  String get universalImport_error_unreadableDatesHintNoMapping =>
+      'تحقق من أن عمود التاريخ يحتوي على تواريخ مكتوبة بالصيغة التي يذكرها عنوانه.';
 
   @override
   String get universalImport_error_noDataInFile =>
@@ -26326,6 +26280,165 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد بيانات أعماق بحيرات مخزّنة بعد';
 
   @override
+  String get maps3d_appBar_title => 'خرائط ثلاثية الأبعاد';
+
+  @override
+  String get maps3d_section_all => 'كل المزوّدين';
+
+  @override
+  String get maps3d_section_swissBathy => 'swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete => 'حذف البيانات';
+
+  @override
+  String get maps3d_swissBathy_delete_subtitle =>
+      'يزيل بلاطات العمق وشبكات البحيرات المخزَّنة مؤقتًا من swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmTitle =>
+      'حذف بيانات swissBATHY3D؟';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      'ستتم إزالة بيانات العمق المخزَّنة مؤقتًا للبحيرات السويسرية وإعادة تحميلها عند فتح العرض ثلاثي الأبعاد لموقع غوص في المرة القادمة.';
+
+  @override
+  String get maps3d_swissBathy_delete_done => 'تم حذف بيانات swissBATHY3D';
+
+  @override
+  String get maps3d_section_other => 'المزوّدون الآخرون';
+
+  @override
+  String get maps3d_other_reset => 'إعادة تعيين بيانات قياس الأعماق المتبقية';
+
+  @override
+  String get maps3d_other_reset_subtitle =>
+      'يزيل البيانات المخزَّنة مؤقتًا من EMODnet وNOAA DEM وGMRT وETOPO';
+
+  @override
+  String get maps3d_other_reset_confirmTitle =>
+      'إعادة تعيين بيانات قياس الأعماق المتبقية؟';
+
+  @override
+  String get maps3d_other_reset_confirmMessage =>
+      'ستتم إزالة البيانات المخزَّنة مؤقتًا من جميع المزوّدين باستثناء swissBATHY3D وإعادة تحميلها عند فتح العرض ثلاثي الأبعاد لموقع غوص في المرة القادمة.';
+
+  @override
+  String get maps3d_other_reset_done =>
+      'تمت إعادة تعيين بيانات قياس الأعماق المتبقية';
+
+  @override
+  String get maps3d_reload => 'إعادة تحميل بيانات الخرائط';
+
+  @override
+  String get maps3d_reload_subtitle =>
+      'يحذف جميع بيانات قياس الأعماق المخزَّنة مؤقتًا ويعيد تنزيلها لكل موقع غوص';
+
+  @override
+  String get maps3d_reload_confirmTitle =>
+      'إعادة تحميل بيانات الخرائط لكل مواقع الغوص؟';
+
+  @override
+  String maps3d_reload_confirm_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'سيُعاد تحميل $count موقع غوص.',
+      one: 'سيُعاد تحميل موقع غوص واحد.',
+      zero: 'لا يوجد موقع غوص له إحداثيات.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_confirm_estimatedSize(String size) {
+    return 'التنزيل المقدَّر: حوالي $size';
+  }
+
+  @override
+  String get maps3d_reload_confirm_duration => 'قد يستغرق ذلك عدة دقائق.';
+
+  @override
+  String get maps3d_reload_confirm_wifiHint =>
+      'سيتم تنزيل كمية كبيرة من البيانات، لذا يُنصح باتصال Wi-Fi سريع.';
+
+  @override
+  String get maps3d_reload_start => 'إعادة تحميل';
+
+  @override
+  String maps3d_reload_progress(int completed, int total) {
+    return '$completed من $total موقع غوص';
+  }
+
+  @override
+  String get maps3d_reload_cancel => 'إلغاء';
+
+  @override
+  String get maps3d_reload_done =>
+      'تمت إعادة تحميل بيانات الخرائط لكل مواقع الغوص';
+
+  @override
+  String get maps3d_reload_cancelled => 'تم إلغاء إعادة التحميل';
+
+  @override
+  String get maps3d_reload_failed =>
+      'فشلت إعادة التحميل؛ قد لا تكون بعض مواقع الغوص قد أُعيد تحميلها';
+
+  @override
+  String get maps3d_busy_notice =>
+      'هناك إجراء آخر في الخرائط ثلاثية الأبعاد قيد التنفيذ. يُرجى الانتظار حتى ينتهي.';
+
+  @override
+  String maps3d_reload_remainingSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'يتبقّى حوالي $count ثانية',
+      one: 'يتبقّى حوالي ثانية واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_remainingMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'يتبقّى حوالي $count دقيقة',
+      one: 'يتبقّى حوالي دقيقة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_warming(int index, int total, String name) {
+    return 'التحضير: البحيرة $index من $total ($name)';
+  }
+
+  @override
+  String maps3d_reload_elapsedSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'قيد التشغيل منذ $count ثانية',
+      one: 'قيد التشغيل منذ ثانية واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_elapsedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'قيد التشغيل منذ $count دقيقة',
+      one: 'قيد التشغيل منذ دقيقة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get common_action_reparse => 'إعادة التحليل';
 
   @override
@@ -27107,6 +27220,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dive3d_seascape_orbitView => 'عرض ثلاثي الأبعاد';
+
+  @override
+  String get dive3d_seascape_verticalExaggeration => 'المبالغة الرأسية';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationReset =>
+      'إعادة التعيين إلى تلقائي';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationLabel => 'العمق';
 
   @override
   String get dive3d_seascape_appearance_surface => 'سطح التضاريس';
@@ -38605,6 +38728,83 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get startup_failure_showBackupsFolder => 'إظهار مجلد النسخ الاحتياطية';
+
+  @override
+  String get startup_failure_moreWays_title => 'طرق أخرى للعودة';
+
+  @override
+  String get startup_failure_useAnotherFolder => 'استخدام سجل غوص في مجلد آخر';
+
+  @override
+  String get startup_failure_useAnotherFolder_subtitle =>
+      'انتقل إلى سجل غوص تحتفظ به بالفعل في مكان آخر، مثل مجلد في iCloud Drive أو Dropbox.';
+
+  @override
+  String get startup_failure_restoreFromFile =>
+      'الاستعادة من ملف نسخة احتياطية';
+
+  @override
+  String get startup_failure_restoreFromFile_subtitle =>
+      'اختر نسخة احتياطية من Submersion من أي مكان على هذا الجهاز أو في مجلد متزامن.';
+
+  @override
+  String get startup_failure_startFresh => 'البدء بسجل غوص فارغ';
+
+  @override
+  String get startup_failure_startFresh_subtitle =>
+      'ضع الملف التالف جانبًا وابدأ من جديد. لا يُحذف أي شيء.';
+
+  @override
+  String get startup_recovery_adopt_title => 'استخدام سجل الغوص هذا؟';
+
+  @override
+  String get startup_recovery_adopt_body =>
+      'سيفتح Submersion سجل الغوص هذا من الآن فصاعدًا. أما الملف الذي تعذر فتحه فيبقى في مكانه.';
+
+  @override
+  String startup_recovery_adopt_contents(Object dives, Object sites) {
+    return '$dives غطسة، $sites موقع غوص';
+  }
+
+  @override
+  String get startup_recovery_adopt_confirm => 'استخدام هذا السجل';
+
+  @override
+  String get startup_recovery_startFresh_title => 'البدء بسجل غوص فارغ؟';
+
+  @override
+  String get startup_recovery_startFresh_body =>
+      'ينقل Submersion الملف التالف إلى مجلد خاص به ويفتح سجل غوص جديدًا وفارغًا. لا يُحذف أي شيء، لذا يمكنك تجربة الملف القديم لاحقًا أو إرساله إلى الدعم.';
+
+  @override
+  String get startup_recovery_startFresh_confirm => 'البدء من جديد';
+
+  @override
+  String startup_recovery_startFresh_done(Object path) {
+    return 'تم نقل سجل الغوص التالف إلى:\n$path';
+  }
+
+  @override
+  String get startup_recovery_problem_title => 'لم ينجح ذلك';
+
+  @override
+  String startup_recovery_noDiveLog_body(Object filename, Object folder) {
+    return 'لا يوجد ملف $filename في $folder. اختر المجلد الذي يحتوي على ملف سجل الغوص نفسه.';
+  }
+
+  @override
+  String startup_recovery_unusable_body(Object path) {
+    return 'سجل الغوص في $path تالف، أو أنه ليس سجل غوص خاص بـ Submersion.';
+  }
+
+  @override
+  String startup_recovery_unusableBackup_body(Object path) {
+    return 'هذا الملف ليس نسخة احتياطية يستطيع Submersion استعادتها: $path';
+  }
+
+  @override
+  String get startup_recovery_encryptedBackup_body =>
+      'هذه النسخة الاحتياطية مشفَّرة. لا يستطيع Submersion فتح نسخة مشفَّرة إلا بعد تشغيل التطبيق، لذا استخدم إحدى الطرق الأخرى هنا أولًا ثم استعِدها من الإعدادات ضمن النسخ الاحتياطي والاستعادة.';
 
   @override
   String get startup_failure_downgrade_title => 'العودة إلى الإصدار السابق';

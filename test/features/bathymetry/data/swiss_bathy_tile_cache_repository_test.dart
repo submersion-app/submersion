@@ -281,6 +281,34 @@ void main() {
     });
   });
 
+  group('SwissBathyTileCacheRepository.clearAll', () {
+    test('removes every row, ok and empty alike', () async {
+      final grid = BathymetryGrid(
+        originLat: 47.2,
+        originLon: 9.1,
+        cellSizeLatDeg: 0.001,
+        cellSizeLonDeg: 0.001,
+        rows: 2,
+        cols: 2,
+        depthsMeters: [1.0, 2.0, 3.0, 4.0],
+        sourceId: 'swissbathy3d',
+        resolutionMeters: 2,
+        fetchedAt: DateTime.utc(2026, 1, 1),
+      );
+      await repo.writeOk('2726_1221', grid, referenceLevelMeters: 419.00);
+      await repo.writeEmpty('2600_1200', referenceLevelMeters: 405.92);
+
+      await repo.clearAll();
+
+      expect(await repo.allTileKeys(), isEmpty);
+    });
+
+    test('is a no-op on an already-empty table', () async {
+      await repo.clearAll();
+      expect(await repo.allTileKeys(), isEmpty);
+    });
+  });
+
   group('SwissBathyTileCacheRepository.deleteIfLevelUnknown', () {
     test('an uncached tile key is a no-op, returns false', () async {
       final deleted = await repo.deleteIfLevelUnknown('2726_1221', [419.00]);

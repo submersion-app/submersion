@@ -291,7 +291,17 @@ class TripSummaryWidget extends ConsumerWidget {
               ),
             ),
             subtitle: Text(
-              '${units.formatDate(nextTrip.trip.startDate)} • In $daysUntil days',
+              // The separator belongs to the translation: fr joins the two
+              // parts with a hyphen where every other locale uses the bullet.
+              // The date leads in every locale. Where the numeral sits is a
+              // property of the countdown clause, not of this template, and
+              // so belongs to trips_list_countdown: hu and zh lead that
+              // clause with the numeral, en and de trail it after "In".
+              // One more reason not to restate that wording here.
+              context.l10n.trips_summary_upcomingSubtitle(
+                units.formatDate(nextTrip.trip.startDate),
+                context.l10n.trips_list_countdown(daysUntil),
+              ),
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),

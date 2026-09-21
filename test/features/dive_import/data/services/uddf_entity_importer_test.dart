@@ -635,7 +635,7 @@ void main() {
     });
   });
 
-  group('Import dives (deco dive type default)', () {
+  group('Import dives (dive type default)', () {
     setUp(() {
       when(
         mockDiveRepo.createDive(any),
@@ -655,7 +655,7 @@ void main() {
     }
 
     test(
-      'a profile with a deco ceiling defaults the type to technical',
+      'a profile with a deco ceiling no longer changes the type (#1513)',
       () async {
         final dive = await importSingleDive({
           'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),
@@ -666,12 +666,12 @@ void main() {
             {'timestamp': 600, 'depth': 42.0, 'ceiling': 6.0},
           ],
         });
-        expect(dive.diveTypeIds, ['technical']);
+        expect(dive.diveTypeIds, ['recreational']);
       },
     );
 
     test(
-      'exhausted NDL with TTS at depth defaults the type to technical',
+      'exhausted NDL with TTS at depth no longer changes the type (#1513)',
       () async {
         final dive = await importSingleDive({
           'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),
@@ -682,11 +682,11 @@ void main() {
             {'timestamp': 900, 'depth': 32.0, 'ndl': 0, 'tts': 600},
           ],
         });
-        expect(dive.diveTypeIds, ['technical']);
+        expect(dive.diveTypeIds, ['recreational']);
       },
     );
 
-    test('a decoStopStart event defaults the type to technical', () async {
+    test('a decoStopStart event no longer changes the type (#1513)', () async {
       final dive = await importSingleDive({
         'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),
         'maxDepth': 40.0,
@@ -695,11 +695,11 @@ void main() {
           {'eventType': 'decoStopStart', 'timestamp': 1800},
         ],
       });
-      expect(dive.diveTypeIds, ['technical']);
+      expect(dive.diveTypeIds, ['recreational']);
     });
 
-    test('a decoStopStart event under profileEvents (UDDF source key) defaults '
-        'the type to technical', () async {
+    test('a decoStopStart event under profileEvents (UDDF source key) no '
+        'longer changes the type (#1513)', () async {
       final dive = await importSingleDive({
         'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),
         'maxDepth': 40.0,
@@ -708,7 +708,7 @@ void main() {
           {'eventType': 'decoStopStart', 'timestamp': 1800},
         ],
       });
-      expect(dive.diveTypeIds, ['technical']);
+      expect(dive.diveTypeIds, ['recreational']);
     });
 
     test('a no-deco profile keeps the recreational default', () async {
@@ -725,7 +725,7 @@ void main() {
     });
 
     test(
-      'an explicit dive type from the source wins over deco detection',
+      'an explicit dive type from the source wins over the default',
       () async {
         final dive = await importSingleDive({
           'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),
@@ -741,7 +741,7 @@ void main() {
     );
 
     test(
-      'explicit dive type ids from the source win over deco detection',
+      'explicit dive type ids from the source win over the default',
       () async {
         final dive = await importSingleDive({
           'dateTime': DateTime.utc(2025, 10, 13, 11, 24, 0),

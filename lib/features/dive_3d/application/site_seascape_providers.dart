@@ -179,6 +179,11 @@ final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
         .valueOrNull;
   }
 
+  final exaggerationOverride = ref.watch(
+    settingsProvider.select(
+      (s) => s.seascapeVerticalExaggerationOverrides[siteId],
+    ),
+  );
   final input = SiteSeascapeInput(
     grid: grid,
     center: center,
@@ -191,6 +196,7 @@ final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
     displayUnitInMeters: depthUnit == DepthUnit.feet ? 0.3048 : 1.0,
     depthSymbol: depthUnit.symbol,
     imageryFrame: imagery?.frame,
+    verticalExaggerationOverride: exaggerationOverride,
   );
   final built = grid.rows * grid.cols > _isolateCellThreshold
       ? await compute(_buildScene, input)
@@ -212,13 +218,18 @@ final siteSeascapeProvider = FutureProvider.family<SiteSeascapeState, String>((
       minNorth: box.minNorth,
       maxNorth: box.maxNorth,
       maxDepth: maxDepth,
+      verticalExaggeration: built.verticalExaggeration,
     ),
   );
 });
 
-({Scene3d scene, List<ContourLabelSpec> contourLabels}) _buildScene(
-  SiteSeascapeInput input,
-) => const SiteSeascapeGeometryService().buildWithLabels(input);
+({
+  Scene3d scene,
+  List<ContourLabelSpec> contourLabels,
+  double verticalExaggeration,
+})
+_buildScene(SiteSeascapeInput input) =>
+    const SiteSeascapeGeometryService().buildWithLabels(input);
 
 /// An additional, finer terrain patch layered on top of the always-loaded
 /// base square when the diver zooms in past `overview` (see
@@ -401,12 +412,18 @@ final siteSeascapePatchLayerProvider = FutureProvider.autoDispose
         settingsProvider.select((s) => s.seascapeAppearance),
       );
       final depthUnit = ref.watch(settingsProvider.select((s) => s.depthUnit));
+      // Carries the base scene's own vertical exaggeration (see #2141 and
+      // site_seascape_geometry_service.dart), not SpatialProjection's 1.0
+      // default. The factor is per site and can reach 8x, so a patch built
+      // at true scale would sit at a visibly different vertical scale from
+      // the base square it overlays instead of continuing its surface.
       final proj = SpatialProjection(
         minEast: base.axisInputs.minEast,
         maxEast: base.axisInputs.maxEast,
         minNorth: base.axisInputs.minNorth,
         maxNorth: base.axisInputs.maxNorth,
         maxDepth: base.axisInputs.maxDepth,
+        verticalExaggeration: base.axisInputs.verticalExaggeration,
       );
       final sceneInput = _PatchSceneInput(
         grid: patchGrid,

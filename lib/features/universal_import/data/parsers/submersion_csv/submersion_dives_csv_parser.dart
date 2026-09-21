@@ -84,13 +84,21 @@ class SubmersionDivesCsvParser implements ImportParser {
     for (final (i, row) in table.rows.indexed) {
       final date = table.date(row, 'Date');
       if (date == null) {
+        // Coded and numbered so the summary can name the dives that are
+        // missing: the notice grouper drops an error, which left a skipped
+        // row unmentioned and a wholly unreadable file reported by its
+        // first row alone (#2152).
         warnings.add(
           ImportWarning(
-            severity: ImportWarningSeverity.error,
-            message: 'Row ${i + 2} has no readable date and was skipped',
+            severity: ImportWarningSeverity.warning,
+            code: ImportWarningCode.unreadableDate,
+            message:
+                'Row ${table.sourceRowOf(i)} has no readable date and was '
+                'skipped',
             entityType: ImportEntityType.dives,
             itemIndex: i,
             field: 'Date',
+            sourceRow: table.sourceRowOf(i),
           ),
         );
         continue;

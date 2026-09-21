@@ -1257,6 +1257,7 @@
   "common_action_delete": "Elimina",
   "common_action_edit": "Modifica",
   "common_action_ok": "OK",
+  "common_action_openSettings": "Apri Impostazioni",
   "common_action_save": "Salva",
   "common_action_search": "Cerca",
   "common_label_error": "Errore",
@@ -1910,7 +1911,6 @@
   "diveLog_deco_badge_noDeco": "NO DECO",
   "diveLog_deco_label_ceiling": "Ceiling",
   "diveLog_deco_label_gf99": "GF99",
-  "diveLog_deco_label_leading": "Principale",
   "diveLog_deco_label_ndl": "NDL",
   "diveLog_deco_label_surfGf": "SurfGF",
   "diveLog_deco_label_time": "Tempo",
@@ -1939,7 +1939,6 @@
   "diveLog_detail_badge_noDeco": "NO DECO",
   "diveLog_detail_badge_warning": "ATTENZIONE",
   "diveLog_detail_buddyCount": "{count} {count, plural, =1{compagno} other{compagni}}",
-  "diveLog_detail_button_playback": "Riproduzione",
   "diveLog_detail_button_rangeAnalysis": "Stats intervallo",
   "diveLog_detail_button_showEnd": "Mostra fine",
   "diveLog_detail_captureSignature": "Acquisisci firma istruttore",
@@ -2565,19 +2564,6 @@
   "diveLog_o2tox_startPercent": "Inizio: {value}%",
   "diveLog_o2tox_title": "Tossicita dell'ossigeno",
   "diveLog_playbackStats_deco": "DECO",
-  "diveLog_playbackStats_depth": "Profondita",
-  "diveLog_playbackStats_header": "Statistiche in tempo reale",
-  "diveLog_playbackStats_heartRate": "Frequenza cardiaca",
-  "diveLog_playbackStats_ndl": "NDL",
-  "diveLog_playbackStats_ppO2": "ppO2",
-  "diveLog_playbackStats_pressure": "Pressione",
-  "diveLog_playbackStats_temp": "Temp",
-  "diveLog_playback_sliderLabel": "Posizione riproduzione",
-  "diveLog_playback_speed_label": "{speed}x",
-  "diveLog_playback_stepThrough": "Riproduzione passo-passo",
-  "diveLog_playback_tooltip_back10": "Indietro 10 secondi",
-  "diveLog_playback_tooltip_exit": "Esci dalla modalita riproduzione",
-  "diveLog_playback_tooltip_forward10": "Avanti 10 secondi",
   "diveLog_playback_tooltip_pause": "Pausa",
   "diveLog_playback_tooltip_play": "Riproduci",
   "diveLog_playback_tooltip_skipEnd": "Vai alla fine",
@@ -2729,13 +2715,6 @@
   "diveLog_tank_tooltip_remove": "Rimuovi bombola",
   "diveLog_tank_regulatorLabel": "Erogatore",
   "diveLog_tank_regulatorNone": "Nessuno",
-  "diveLog_tissue_label_ceiling": "Ceiling",
-  "diveLog_tissue_label_gf": "GF",
-  "diveLog_tissue_label_ndl": "NDL",
-  "diveLog_tissue_label_tts": "TTS",
-  "diveLog_tissue_legend_he": "He",
-  "diveLog_tissue_legend_mValue": "100% M-value",
-  "diveLog_tissue_legend_n2": "N₂",
   "diveLog_tissue_title": "Carico tissutale",
   "diveLog_tooltip_avgCalculated": "(media, calcolato)",
   "diveLog_tooltip_ceiling": "Ceiling",
@@ -3105,7 +3084,8 @@
   "diveSites_filter_apply": "Applica filtri",
   "diveSites_filter_cancel": "Annulla",
   "diveSites_filter_clearAll": "Cancella tutto",
-  "diveSites_filter_country_hint": "es. Thailandia",
+  "diveSites_filter_allCountries": "Tutti i paesi",
+  "diveSites_filter_allRegions": "Tutte le regioni",
   "diveSites_filter_country_label": "Paese",
   "diveSites_filter_depth_max_label": "Max",
   "diveSites_filter_depth_min_label": "Min",
@@ -3116,8 +3096,9 @@
   "diveSites_filter_option_hasDives_subtitle": "Mostra solo i siti con immersioni registrate",
   "diveSites_filter_option_hasDives_title": "Ha immersioni",
   "diveSites_filter_rating_starsPlus": "{count}+ stelle",
-  "diveSites_filter_region_hint": "es. Phuket",
   "diveSites_filter_region_label": "Regione",
+  "diveSites_filter_searchCountriesHint": "Digita per cercare i paesi",
+  "diveSites_filter_searchRegionsHint": "Digita per cercare le regioni",
   "diveSites_filter_section_depthRange": "Intervallo profondita massima",
   "diveSites_filter_section_difficulty": "Difficolta",
   "diveSites_filter_section_location": "Localita",
@@ -5329,6 +5310,8 @@
   "settings_data_import_failed": "Operazione non riuscita: {error}",
   "settings_data_offlineMaps": "Mappe offline",
   "settings_data_offlineMaps_subtitle": "Scarica mappe per l'uso offline",
+  "settings_data_threeDMaps": "3D Maps",
+  "settings_data_threeDMaps_subtitle": "Manage cached swissBATHY3D and other bathymetry data",
   "settings_data_restore": "Ripristina",
   "settings_data_restoreDialog_cancel": "Annulla",
   "settings_data_restoreDialog_content": "Attenzione: il ripristino da un backup sostituirà TUTTI i dati attuali con i dati del backup. Questa azione non può essere annullata.\n\nSei sicuro di voler continuare?",
@@ -6790,7 +6773,7 @@
   "trips_summary_stat_liveaboards": "Crociere subacquee",
   "trips_summary_stat_totalDives": "Immersioni totali",
   "trips_summary_stat_totalTrips": "Viaggi totali",
-  "trips_summary_upcomingSubtitle": "{date} • Tra {days} giorni",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "In programma",
   "trips_type_dayTrip": "Gita giornaliera",
   "trips_type_liveaboard": "Barca",
@@ -6883,6 +6866,8 @@
   "universalImport_summary_noticeValuesNotConvertedBody": "{count, plural, =1{1 valore non è stato convertito ed è stato lasciato vuoto. Se un campo sembra sbagliato, controlla l'associazione delle colonne e importa di nuovo.} other{{count} valori non sono stati convertiti e sono stati lasciati vuoti. Se un campo sembra sbagliato, controlla l'associazione delle colonne e importa di nuovo.}}",
   "universalImport_summary_noticePhotosSkippedTitle": "Alcune foto saltate",
   "universalImport_summary_noticePhotosSkippedBody": "{count, plural, =1{1 foto non aveva un nome file e non è stato possibile collegarla.} other{{count} foto non avevano un nome file e non è stato possibile collegarle.}}",
+  "universalImport_summary_noticeSitesUnresolvedTitle": "Alcune immersioni senza sito di immersione",
+  "universalImport_summary_noticeSitesUnresolvedBody": "Queste immersioni facevano riferimento a un sito di immersione che il file non descrive, quindi sono state importate senza sito. Puoi assegnarne uno modificando l'immersione.",
   "universalImport_summary_noticeMacdiveXmlCertsTitle": "Certificazioni e registri di manutenzione non presenti nel file",
   "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive esclude certificazioni e registri di manutenzione dell'attrezzatura dalla sua esportazione XML. Per importarli, importa il tuo database MacDive.sqlite.",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "Logbook MacDive non importati",
@@ -6898,6 +6883,7 @@
   "universalImport_error_stepFailed": "Impossibile continuare l'importazione: {details}",
   "universalImport_error_unreadableDatesHeadline": "{count, plural, =1{Non è stato importato nulla: non è stato possibile leggere la data di 1 riga.} other{Non è stato importato nulla: non è stato possibile leggere le date di {count} righe.}}",
   "universalImport_error_unreadableDatesHint": "Controlla che le colonne di data e ora siano mappate in questo passaggio e che contengano date.",
+  "universalImport_error_unreadableDatesHintNoMapping": "Controlla che la colonna della data contenga date scritte nel formato indicato dalla sua intestazione.",
   "universalImport_error_noDataInFile": "Nessun dato importabile trovato in questo file.",
   "universalImport_error_noDataInFileWithDetails": "Nessun dato importabile trovato in questo file: {details}",
   "universalImport_error_noDataInFiles": "Nessun dato importabile trovato nei file selezionati.",
@@ -7177,8 +7163,6 @@
   "diveDetailSection_customFields_description": "Campi personalizzati definiti dall'utente",
   "diveDetailSection_customFields_name": "Campi personalizzati",
   "diveDetailSection_dataSources_description": "Computer subacquei collegati, gestione sorgenti",
-  "siteDetailSection_map_name": "Mappa",
-  "siteDetailSection_map_description": "Anteprima della mappa della posizione del sito",
   "siteDetailSection_diveStatistics_description": "Numero di immersioni, profondità raggiunte, immersioni più lunghe e più recenti",
   "siteDetailSection_description_description": "Descrizione del sito",
   "siteDetailSection_location_description": "Paese, regione, specchio d'acqua, coordinate GPS",
@@ -7539,6 +7523,104 @@
   "settings_appearance_bathymetryRefresh_resultUpToDate": "Tutti i dati sono aggiornati",
   "settings_appearance_bathymetryRefresh_resultFailed": "Impossibile controllare tutti i dati; i valori esistenti sono stati mantenuti",
   "settings_appearance_bathymetryRefresh_resultNothingCached": "Nessun dato di profondità dei laghi ancora memorizzato",
+  "maps3d_appBar_title": "Mappe 3D",
+  "maps3d_section_all": "Tutti i fornitori",
+  "maps3d_section_swissBathy": "swissBATHY3D",
+  "maps3d_swissBathy_delete": "Elimina dati",
+  "maps3d_swissBathy_delete_subtitle": "Rimuove i tasselli di profondità e le griglie dei laghi swissBATHY3D dalla cache",
+  "maps3d_swissBathy_delete_confirmTitle": "Eliminare i dati swissBATHY3D?",
+  "maps3d_swissBathy_delete_confirmMessage": "I dati di profondità in cache dei laghi svizzeri verranno rimossi e ricaricati alla prossima apertura della vista 3D di un sito di immersione.",
+  "maps3d_swissBathy_delete_done": "Dati swissBATHY3D eliminati",
+  "maps3d_section_other": "Altri fornitori",
+  "maps3d_other_reset": "Ripristina i dati batimetrici rimanenti",
+  "maps3d_other_reset_subtitle": "Rimuove dalla cache i dati di EMODnet, NOAA DEM, GMRT ed ETOPO",
+  "maps3d_other_reset_confirmTitle": "Ripristinare i dati batimetrici rimanenti?",
+  "maps3d_other_reset_confirmMessage": "I dati in cache di tutti i fornitori diversi da swissBATHY3D verranno rimossi e ricaricati alla prossima apertura della vista 3D di un sito di immersione.",
+  "maps3d_other_reset_done": "Dati batimetrici rimanenti ripristinati",
+  "maps3d_reload": "Ricarica i dati delle mappe",
+  "maps3d_reload_subtitle": "Elimina tutti i dati batimetrici in cache e li scarica di nuovo per ogni sito di immersione",
+  "maps3d_reload_confirmTitle": "Ricaricare i dati delle mappe per tutti i siti di immersione?",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{Nessun sito di immersione ha una posizione.} =1{Verrà ricaricato 1 sito di immersione.} other{Verranno ricaricati {count} siti di immersione.}}",
+  "@maps3d_reload_confirm_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_confirm_estimatedSize": "Download stimato: circa {size}",
+  "@maps3d_reload_confirm_estimatedSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_confirm_duration": "L'operazione può richiedere diversi minuti.",
+  "maps3d_reload_confirm_wifiHint": "Verranno scaricati molti dati; si consiglia una connessione Wi-Fi veloce.",
+  "maps3d_reload_start": "Ricarica",
+  "maps3d_reload_progress": "{completed} di {total} siti di immersione",
+  "@maps3d_reload_progress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_cancel": "Annulla",
+  "maps3d_reload_done": "Dati delle mappe ricaricati per tutti i siti di immersione",
+  "maps3d_reload_cancelled": "Ricarica annullata",
+  "maps3d_reload_failed": "Ricarica non riuscita; alcuni siti di immersione potrebbero non essere stati ricaricati",
+  "maps3d_busy_notice": "È in corso un'altra azione Mappe 3D. Attendi il completamento.",
+  "maps3d_reload_remainingSeconds": "{count, plural, =1{circa 1 secondo rimanente} other{circa {count} secondi rimanenti}}",
+  "@maps3d_reload_remainingSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_remainingMinutes": "{count, plural, =1{circa 1 minuto rimanente} other{circa {count} minuti rimanenti}}",
+  "@maps3d_reload_remainingMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_warming": "Preparazione: lago {index} di {total} ({name})",
+  "@maps3d_reload_warming": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_elapsedSeconds": "{count, plural, =1{in esecuzione da 1 secondo} other{in esecuzione da {count} secondi}}",
+  "@maps3d_reload_elapsedSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_elapsedMinutes": "{count, plural, =1{in esecuzione da 1 minuto} other{in esecuzione da {count} minuti}}",
+  "@maps3d_reload_elapsedMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settings_appearance_mapStyle_openStreetMap": "Mappa stradale",
   "settings_appearance_mapStyle_openTopoMap": "Topografica",
   "universalImport_bulk_replaceSourceAll": "Sostituisci tutto ({count})",
@@ -7771,6 +7853,12 @@
   "@dive3d_seascape_chartView": {},
   "dive3d_seascape_orbitView": "Vista 3D",
   "@dive3d_seascape_orbitView": {},
+  "dive3d_seascape_verticalExaggeration": "Esagerazione verticale",
+  "@dive3d_seascape_verticalExaggeration": {},
+  "dive3d_seascape_verticalExaggerationReset": "Ripristina automatico",
+  "@dive3d_seascape_verticalExaggerationReset": {},
+  "dive3d_seascape_verticalExaggerationLabel": "Profondità",
+  "@dive3d_seascape_verticalExaggerationLabel": {},
   "dive3d_seascape_appearance_surface": "Superficie del terreno",
   "@dive3d_seascape_appearance_surface": {},
   "dive3d_seascape_appearance_surfaceDepth": "Colori di profondità",
@@ -11663,6 +11751,26 @@
   "startup_failure_restoreFailed": "Non è stato possibile ripristinare il backup. Il tuo diario di immersione è stato lasciato esattamente com'era.",
   "startup_failure_backupsFolder": "I tuoi backup si trovano in:",
   "startup_failure_showBackupsFolder": "Mostra cartella dei backup",
+  "startup_failure_moreWays_title": "Altri modi per rientrare",
+  "startup_failure_useAnotherFolder": "Usa un diario immersioni in un'altra cartella",
+  "startup_failure_useAnotherFolder_subtitle": "Passa a un diario immersioni che conservi già altrove, ad esempio in una cartella di iCloud Drive o Dropbox.",
+  "startup_failure_restoreFromFile": "Ripristina da un file di backup",
+  "startup_failure_restoreFromFile_subtitle": "Scegli un backup di Submersion da qualsiasi posizione su questo dispositivo o in una cartella sincronizzata.",
+  "startup_failure_startFresh": "Inizia con un diario vuoto",
+  "startup_failure_startFresh_subtitle": "Metti da parte il file danneggiato e ricomincia. Non viene eliminato nulla.",
+  "startup_recovery_adopt_title": "Usare questo diario immersioni?",
+  "startup_recovery_adopt_body": "Da ora Submersion aprirà questo diario immersioni. Il file che non si apriva resta dov'è.",
+  "startup_recovery_adopt_contents": "{dives} immersioni, {sites} siti di immersione",
+  "startup_recovery_adopt_confirm": "Usa questo diario",
+  "startup_recovery_startFresh_title": "Iniziare con un diario vuoto?",
+  "startup_recovery_startFresh_body": "Submersion sposta il file danneggiato in una cartella dedicata e apre un diario immersioni nuovo e vuoto. Non viene eliminato nulla, quindi potrai riprovare con il vecchio file o inviarlo all'assistenza.",
+  "startup_recovery_startFresh_confirm": "Ricomincia",
+  "startup_recovery_startFresh_done": "Il diario immersioni danneggiato è stato spostato in:\n{path}",
+  "startup_recovery_problem_title": "Non ha funzionato",
+  "startup_recovery_noDiveLog_body": "In {folder} non c'è alcun file {filename}. Scegli la cartella che contiene il file del diario immersioni.",
+  "startup_recovery_unusable_body": "Il diario immersioni in {path} è danneggiato oppure non è un diario immersioni di Submersion.",
+  "startup_recovery_unusableBackup_body": "Quel file non è un backup che Submersion può ripristinare: {path}",
+  "startup_recovery_encryptedBackup_body": "Quel backup è cifrato. Submersion può sbloccare un backup cifrato solo ad app aperta, quindi usa prima una delle altre opzioni qui e poi ripristinalo dalle Impostazioni, in Backup e ripristino.",
   "startup_failure_downgrade_title": "Tornare alla versione precedente",
   "startup_failure_downgrade_body": "Se l'aggiornamento continua a fallire, installa la versione di Submersion che usavi prima e ripristina la copia di sicurezza da quella versione. Ripristinarla qui rieseguirebbe soltanto lo stesso aggiornamento. Submersion non torna da solo a versioni precedenti: spostarti automaticamente su build più vecchie ti terrebbe in silenzio su versioni con problemi noti.",
   "startup_failure_downgrade_action": "Vedi le versioni precedenti",

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -314,13 +316,21 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
                             destinations: [
                               for (final destination in railDestinations)
                                 NavigationRailDestination(
-                                  icon: Icon(
-                                    destination.icon,
-                                    color: navAccent(destination.id),
+                                  icon: _railIcon(
+                                    Icon(
+                                      destination.icon,
+                                      color: navAccent(destination.id),
+                                    ),
+                                    label: destination.label(context.l10n),
+                                    labelsHidden: !showExtended,
                                   ),
-                                  selectedIcon: Icon(
-                                    destination.selectedIcon,
-                                    color: navAccent(destination.id),
+                                  selectedIcon: _railIcon(
+                                    Icon(
+                                      destination.selectedIcon,
+                                      color: navAccent(destination.id),
+                                    ),
+                                    label: destination.label(context.l10n),
+                                    labelsHidden: !showExtended,
                                   ),
                                   label: Text(destination.label(context.l10n)),
                                 ),
@@ -366,6 +376,45 @@ class _MainScaffoldState extends ConsumerState<MainScaffold> {
         overflow: overflowDestinations,
         alwaysHideLabels: alwaysHideLabels,
       ),
+    );
+  }
+
+  /// Names a rail icon on hover or long-press while the rail hides its labels.
+  ///
+  /// NavigationRailDestination has no tooltip of its own (NavigationBar
+  /// does), so a collapsed rail would otherwise leave its icons unnamed. The
+  /// tooltip skips semantics because the rail already announces the label.
+  Widget _railIcon(
+    Icon icon, {
+    required String label,
+    required bool labelsHidden,
+  }) {
+    if (!labelsHidden) return icon;
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+    return Tooltip(
+      message: label,
+      excludeFromSemantics: true,
+      positionDelegate: (position) => _besideRail(position, towardsLeft: isRtl),
+      child: icon,
+    );
+  }
+
+  /// Places a rail tooltip beside the rail, vertically centred on its icon,
+  /// so it never covers the neighbouring destinations above or below.
+  static Offset _besideRail(
+    TooltipPositionContext position, {
+    required bool towardsLeft,
+  }) {
+    // Clears the rail's selection indicator, which is wider than the icon.
+    const gap = 36.0;
+    final tooltip = position.tooltipSize;
+    final x = towardsLeft
+        ? position.target.dx - gap - tooltip.width
+        : position.target.dx + gap;
+    final y = position.target.dy - tooltip.height / 2;
+    return Offset(
+      x.clamp(0.0, math.max(0.0, position.overlaySize.width - tooltip.width)),
+      y.clamp(0.0, math.max(0.0, position.overlaySize.height - tooltip.height)),
     );
   }
 

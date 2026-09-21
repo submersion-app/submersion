@@ -54,7 +54,12 @@ void main() {
 
     expect(find.text('Site Detail Sections'), findsOneWidget);
     expect(find.text('Dives at this Site'), findsOneWidget);
-    expect(find.text('Map preview of the site location'), findsOneWidget);
+    expect(
+      find.text('Dive count, depths reached, longest and latest dives'),
+      findsOneWidget,
+    );
+    // The map is pinned above the cards now, so it is not one to arrange.
+    expect(find.text('Map'), findsNothing);
     expect(
       find.byType(Switch),
       findsNWidgets(SiteDetailSectionId.values.length),
@@ -73,7 +78,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final sections = notifier.state.siteDetailSections;
-    expect(sections.first.id, SiteDetailSectionId.map);
+    expect(sections.first.id, SiteDetailSectionId.diveStatistics);
     expect(sections.first.visible, isFalse);
     expect(sections.skip(1).every((s) => s.visible), isTrue);
   });
@@ -88,9 +93,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(_order(notifier.state).take(3), [
-      SiteDetailSectionId.diveStatistics,
       SiteDetailSectionId.description,
-      SiteDetailSectionId.map,
+      SiteDetailSectionId.location,
+      SiteDetailSectionId.diveStatistics,
     ]);
   });
 

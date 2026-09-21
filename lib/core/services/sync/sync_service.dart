@@ -2430,8 +2430,14 @@ class SyncService {
   /// completeness (and column nullability) is asserted against the live schema
   /// by sync_parent_refs_completeness_test.dart, so a new FK to a deletable
   /// parent fails that test until it is added here. (diverId is intentionally
-  /// absent: diver deletion goes through DiverMergeRepository, which repoints
-  /// FKs rather than orphaning them.)
+  /// absent, because each of the diver's rows carries its own fate to a peer.
+  /// DiverRepository.deleteDiverWithReassignment tombstones every row it
+  /// deletes and stamps the ones it keeps (shared trips and sites handed to a
+  /// surviving diver, a service kind still in use); DiverMergeRepository
+  /// repoints them. A diverId still left dangling, such as a row a peer wrote
+  /// before the diver's tombstone reached it, is cleared by
+  /// SyncDataSerializer.repairDanglingForeignKeys, which drops the row
+  /// instead where the column is NOT NULL.)
   @visibleForTesting
   static const Map<String, List<ParentRef>> parentRefs = {
     'dives': [

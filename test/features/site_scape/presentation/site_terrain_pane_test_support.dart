@@ -96,6 +96,7 @@ SiteSeascapeReady readyState({TerrainImagery? imagery}) {
       minNorth: box.minNorth,
       maxNorth: box.maxNorth,
       maxDepth: 35,
+      verticalExaggeration: 1.0,
     ),
   );
 }
