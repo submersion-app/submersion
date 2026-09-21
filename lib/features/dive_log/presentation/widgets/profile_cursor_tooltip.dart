@@ -5,8 +5,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 
 /// Gap, in logical pixels, between the touch/hover cursor (the vertical
 /// indicator line fl_chart draws at the touched sample) and the tooltip
-/// box's nearest corner.
-const double tooltipCursorGap = 8;
+/// box's nearest corner. 40, not the original 8, per direct feedback once
+/// the tooltip was actually tried live: 8px read as touching the cursor
+/// line rather than sitting clearly beside it.
+const double tooltipCursorGap = 40;
 
 /// Cap on the tooltip box's content width, carried over from the old
 /// fl_chart bubble's `maxContentWidth: 320` -- wide enough for a tank row

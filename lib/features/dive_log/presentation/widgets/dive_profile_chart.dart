@@ -4613,21 +4613,29 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return false;
   }
 
-  /// Same shape as fl_chart's own [defaultTouchedIndicators], but with a
-  /// thinner indicator line: the built-in default is 4px, competing with the
-  /// chart's own data lines after they were thinned to 1px (issue #2228).
-  /// The dot keeps fl_chart's own default styling untouched.
+  /// Same shape as fl_chart's own [defaultTouchedIndicators], but thinner and
+  /// with a smaller dot: the built-in defaults (4px line, 10px dot radius)
+  /// competed with the chart's own data lines after they were thinned to 1px
+  /// (issue #2228), and read as oversized once the rest of the chart was.
   TouchedSpotIndicatorData _thinTouchedIndicator(
     LineChartBarData barData,
     int index,
   ) {
     const indicatorStrokeWidth = 2.0;
+    // Radius, not diameter (fl_chart's own default is a 10px radius when a
+    // bar's own dotData is off, i.e. a 20px-wide circle -- half that here).
+    const dotRadius = 5.0;
     final defaultIndicator = defaultTouchedIndicators(barData, [index]).first;
+    final dotColor =
+        barData.gradient?.colors.first ?? barData.color ?? Colors.blueGrey;
     return TouchedSpotIndicatorData(
       defaultIndicator.indicatorBelowLine.copyWith(
         strokeWidth: indicatorStrokeWidth,
       ),
-      defaultIndicator.touchedSpotDotData,
+      FlDotData(
+        getDotPainter: (spot, percent, bar, i) =>
+            FlDotCirclePainter(radius: dotRadius, color: dotColor),
+      ),
     );
   }
 

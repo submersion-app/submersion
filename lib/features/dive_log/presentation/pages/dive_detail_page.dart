@@ -2018,11 +2018,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               dive: dive,
               exportKey: _profileChartExportKey,
               onSafetyFindingDetails: (_) => _scrollToSafetySection(),
-              // This page's long-standing tooltip: fl_chart's own bubble,
-              // positioned above the touched point. The new cursor-following
-              // ProfileCursorTooltip is for the fullscreen profile view
-              // instead (issue #2228 follow-up: these two were swapped).
-              useLegacyTooltipBubble: true,
+              // The cursor-following ProfileCursorTooltip, same as the
+              // fullscreen profile view (issue #2228 follow-up: an earlier
+              // attempt at restoring fl_chart's own bubble here rendered
+              // both at once instead of replacing it; the cursor-following
+              // tooltip alone is what the user actually wants in both
+              // places).
             ),
             // Profile point count (bottom-right, inline with x-axis)
             Align(

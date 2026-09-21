@@ -42,10 +42,11 @@ class AscentRateBarOverlay extends StatelessWidget {
   final double maxAbsRateMetersPerMin;
 
   /// The touched/hovered sample's timestamp (seconds), or null when nothing
-  /// is hovered. The bucket nearest this timestamp draws lit up -- brighter
-  /// and a little wider -- so hovering the chart highlights the bar under
-  /// the cursor the same way a metric line does, even though these bars are
-  /// not an fl_chart line the built-in touch/hover machinery can reach.
+  /// is hovered. Non-null lights up every bar -- brighter and a little
+  /// wider -- the same way hovering a metric line highlights that whole
+  /// line rather than just the touched point on it. (Highlighting only the
+  /// nearest bar read as a single stray bar changing among many identical
+  /// ones, not as "this metric is highlighted".)
   final int? highlightedTimestamp;
 
   const AscentRateBarOverlay({
@@ -151,31 +152,22 @@ class _AscentRateBarPainter extends CustomPainter {
     }
     if (buckets.isEmpty) return;
 
-    // Which bucket (if any) the hovered sample falls into, so its bar can
-    // draw lit up. Same bucketing as the loop above, applied to a single
-    // timestamp instead of the whole series.
-    int? highlightedBucket;
-    final highlighted = highlightedTimestamp;
-    if (highlighted != null &&
-        highlighted >= visibleMinSeconds &&
-        highlighted <= visibleMaxSeconds) {
-      final xPixel = (highlighted - visibleMinSeconds) * pixelsPerSecond;
-      highlightedBucket = (xPixel / _pixelsPerBar).floor();
-    }
+    // Whether anything is hovered at all: every bar lights up together in
+    // that case (see the field doc on [highlightedTimestamp]), so there is
+    // no per-bucket matching to do here.
+    final isHighlighted = highlightedTimestamp != null;
 
     final halfBand = plotHeight / 2;
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.butt;
 
-    for (final entry in buckets.entries) {
-      final point = entry.value;
+    for (final point in buckets.values) {
       final rate = point.rateMetersPerMin;
       if (rate == 0) continue;
       final magnitude = (rate.abs() / maxAbsRateMetersPerMin).clamp(0.0, 1.0);
       if (magnitude <= 0) continue;
 
-      final isHighlighted = entry.key == highlightedBucket;
       final x =
           insets.left + (point.timestamp - visibleMinSeconds) * pixelsPerSecond;
       final barLength = magnitude * halfBand;
