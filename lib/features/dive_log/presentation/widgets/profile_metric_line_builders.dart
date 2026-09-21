@@ -753,6 +753,7 @@ LineChartBarData buildMeanDepthLine(
 LineChartBarData buildTtsLine(
   MetricBand band,
   List<int> ttsCurve,
+  double ttsMaxScale,
   List<DiveProfilePoint> profile,
   DecimatedCurveIndices decimatedCurveIndices,
   WithFlatSurfaceLeadIn withFlatSurfaceLeadIn,
@@ -760,8 +761,8 @@ LineChartBarData buildTtsLine(
 ) {
   const ttsColor = ProfileMetricColors.tts;
 
-  // Map TTS to chart: 0 at top, 60 min at bottom
-  final maxTtsSeconds = ProfileMetricBands.tts.fixedMax;
+  // Map TTS to chart: 0 at top, ttsMaxScale at bottom.
+  final maxTtsSeconds = ttsMaxScale;
 
   final spots = <FlSpot>[];
   for (final i in decimatedCurveIndices(ttsCurve)) {

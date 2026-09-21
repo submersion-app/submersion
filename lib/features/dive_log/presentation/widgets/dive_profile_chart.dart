@@ -5138,12 +5138,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         }
       }
 
-      // TTS, from this source's own computed analysis, on the same 0-60 min
-      // normalized scale as the active TTS line (see _buildTtsLine); see the
-      // ceiling comment above for why this reads the computed curve rather
-      // than the raw device field.
+      // TTS, from this source's own computed analysis, on the same
+      // normalized scale as the active TTS line (see _buildTtsLine and
+      // _getTtsMaxScale); see the ceiling comment above for why this reads
+      // the computed curve rather than the raw device field.
       if (_showTts) {
-        final maxTtsSeconds = ProfileMetricBands.tts.fixedMax;
+        final maxTtsSeconds = _getTtsMaxScale();
         final ttsCurve = overlay.analysis?.ttsCurve;
         if (ttsCurve != null && ttsCurve.isNotEmpty) {
           final length = math.min(ttsCurve.length, overlay.points.length);
@@ -6008,11 +6008,22 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         _seriesGetsLeadIn,
       );
 
+  /// Compute dynamic max scale for TTS based on actual data. See
+  /// [_getGfMaxScale] -- a long/deep technical dive's TTS can genuinely
+  /// exceed the usual 60-minute floor.
+  double _getTtsMaxScale() {
+    final curve = widget.ttsCurve;
+    if (curve == null || curve.isEmpty) return ProfileMetricBands.tts.fixedMax;
+    final actualMax = curve.reduce(math.max).toDouble();
+    return math.max(actualMax, ProfileMetricBands.tts.fixedMax);
+  }
+
   /// Build TTS (Time To Surface) line
   /// Shows total time including deco stops to reach surface
   LineChartBarData _buildTtsLine(MetricBand band) => buildTtsLine(
     band,
     widget.ttsCurve!,
+    _getTtsMaxScale(),
     widget.profile,
     _decimatedCurveIndices,
     _withFlatSurfaceLeadIn,
@@ -6507,6 +6518,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     otuMaxScale: _getOtuMaxScale(),
     gfMaxScale: _getGfMaxScale(),
     surfaceGfMaxScale: _getSurfaceGfMaxScale(),
+    ttsMaxScale: _getTtsMaxScale(),
     o2CellMvMax: _o2CellMvMax,
     ascentRateAxisRange: _ascentRateAxisRange,
   );

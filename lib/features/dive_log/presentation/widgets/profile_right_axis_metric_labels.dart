@@ -59,12 +59,13 @@ bool hasDataForMetric(
 
 /// Get the min/max value range for a metric.
 ///
-/// [hasMultiTankPressure], [cnsMaxScale], [otuMaxScale], [gfMaxScale] and
-/// [surfaceGfMaxScale] are passed in rather than recomputed here because
-/// they are State-level values shared with many other call sites (the GF
-/// ones with the line itself, so an over-100% dive never plots past its own
-/// axis -- see buildGfLine/buildSurfaceGfLine). [o2CellMvMax] is passed in
-/// because it is memoized on a State field keyed by curve-list identity.
+/// [hasMultiTankPressure], [cnsMaxScale], [otuMaxScale], [gfMaxScale],
+/// [surfaceGfMaxScale] and [ttsMaxScale] are passed in rather than recomputed
+/// here because they are State-level values shared with many other call
+/// sites (the GF/TTS ones with the line itself, so an extreme dive never
+/// plots past its own axis -- see buildGfLine/buildSurfaceGfLine/
+/// buildTtsLine). [o2CellMvMax] is passed in because it is memoized on a
+/// State field keyed by curve-list identity.
 ({double min, double max})? getMetricRange(
   ProfileRightAxisMetric metric,
   UnitFormatter units,
@@ -74,6 +75,7 @@ bool hasDataForMetric(
   required double otuMaxScale,
   required double gfMaxScale,
   required double surfaceGfMaxScale,
+  required double ttsMaxScale,
   required int? Function(List<List<int?>>) o2CellMvMax,
   required ({double min, double max})? Function(List<AscentRatePoint>?)
   ascentRateAxisRange,
@@ -142,6 +144,8 @@ bool hasDataForMetric(
       return (min: 0.0, max: depths.reduce(math.max) * 1.1);
 
     case ProfileRightAxisMetric.tts:
+      return (min: 0.0, max: ttsMaxScale);
+
     case ProfileRightAxisMetric.gtr:
       return (min: 0.0, max: 3600.0); // 0-60 minutes
 
