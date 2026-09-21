@@ -292,7 +292,14 @@ format_check() {
     if [ "${#changed_dart[@]}" -eq 0 ]; then
         return 0
     fi
-    dart format --set-exit-if-changed "${changed_dart[@]}"
+    # Piped through xargs, not passed directly as argv: a push spanning enough
+    # commits (a long-lived branch, a squash-worthy PR) can list enough changed
+    # files that the literal argument list exceeds the OS's command-line length
+    # limit -- on Windows this fails with "Die Befehlszeile ist zu lang" before
+    # dart format ever runs, misreporting a real format pass as a failure.
+    # xargs chunks the list to fit, invoking dart format as many times as
+    # needed; -0 keeps it filename-safe (paths with spaces).
+    printf '%s\0' "${changed_dart[@]}" | xargs -0 dart format --set-exit-if-changed
 }
 
 echo "📝 Checking formatting and 🔬 analyzing (in parallel)..."
