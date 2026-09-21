@@ -202,9 +202,17 @@ class SubscriptionPoller {
       // it) is no longer orphaned now that it reappeared. Its own writer,
       // not a field on the patch above: updateMedia writes user fields from
       // a snapshot read before this poll's network round-trip, so it must
-      // not carry verification facts. markOrphaned is a no-op, and publishes
-      // nothing, when the row already agrees.
-      await mediaRepo.markOrphaned(existingRow.id, false);
+      // not carry verification facts.
+      //
+      // Only when THIS POLL'S SNAPSHOT saw it orphaned. The snapshot was
+      // read before the manifest request went out, and a verifier can flip
+      // the row to orphaned while that request is in flight: clearing it
+      // unconditionally would reverse a newer, better-informed verdict and
+      // publish the reversal under a fresh verification clock. A snapshot
+      // that already said "not orphaned" has nothing to clear anyway.
+      if (existingRow.isOrphaned) {
+        await mediaRepo.markOrphaned(existingRow.id, false);
+      }
     }
 
     // Removed entries: present in DB, absent from the new manifest body.

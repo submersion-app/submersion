@@ -1566,9 +1566,28 @@ class SyncDataSerializer {
           final Object? v => v,
         },
     ];
-    await _db.customStatement(
+    // customUpdate, not customStatement: a stale remote row whose fact group
+    // is newer skips the batched upsert, so this is the ONLY write for that
+    // record. customStatement tells Drift nothing about what changed, so the
+    // media query streams would not rebuild and a peer's new upload or
+    // verification facts stayed invisible to whatever was on screen until an
+    // unrelated reload.
+    await _db.customUpdate(
       'UPDATE "${target.table}" SET $set WHERE "${target.pk}" = ?',
-      [...args, recordId],
+      variables: [
+        for (final a in args)
+          switch (a) {
+            final int v => Variable.withInt(v),
+            final String v => Variable.withString(v),
+            final double v => Variable.withReal(v),
+            final bool v => Variable.withBool(v),
+            null => const Variable<String>(null),
+            final Object v => Variable.withString(v.toString()),
+          },
+        Variable.withString(recordId),
+      ],
+      updates: {_tableNamed(target.table)},
+      updateKind: UpdateKind.update,
     );
   }
 
