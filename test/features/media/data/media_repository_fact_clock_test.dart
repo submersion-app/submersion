@@ -237,27 +237,11 @@ void main() {
     );
   });
 
-  test('a fact-only whole-row write leaves the row clock alone', () async {
-    // A poller flipping isOrphaned goes through updateMedia like any other
-    // caller. Moving the row clock would republish its whole snapshot of the
-    // row as a newer user edit and let its stale caption beat a peer's.
-    final before = await clocks();
-    await Future<void>.delayed(const Duration(milliseconds: 2));
-    final row = (await repo.getMediaById(id))!;
-
-    await repo.updateMedia(row.copyWith(isOrphaned: true));
-
-    final after = await clocks();
-    expect(after['row'], before['row'], reason: 'no user field changed');
-    expect(
-      later(after['verify'], before['verify']),
-      isTrue,
-      reason: 'the verification facts changed, so they need a fresh clock',
-    );
-    expect(after['upload'], before['upload'], reason: 'untouched group');
-  });
-
-  test('a write changing a user field and a fact moves both', () async {
+  test('a whole-row write does not touch the verification facts', () async {
+    // updateMedia writes user fields only. Its caller patches a row it read
+    // earlier, so a verifier that ran in between would be rolled back, and
+    // the rollback would then carry a fresh verification clock and beat a
+    // peer's newer observation. markOrphaned and friends own those columns.
     final before = await clocks();
     await Future<void>.delayed(const Duration(milliseconds: 2));
     final row = (await repo.getMediaById(id))!;
@@ -267,9 +251,15 @@ void main() {
     );
 
     final after = await clocks();
-    expect(later(after['row'], before['row']), isTrue);
-    expect(later(after['verify'], before['verify']), isTrue);
-    expect(after['upload'], before['upload'], reason: 'untouched group');
+    expect((await repo.getMediaById(id))!.caption, 'a new caption');
+    expect(
+      (await repo.getMediaById(id))!.isOrphaned,
+      isFalse,
+      reason: 'the verification fact is not this writer\'s to move',
+    );
+    expect(later(after['row'], before['row']), isTrue, reason: 'a user edit');
+    expect(after['verify'], before['verify']);
+    expect(after['upload'], before['upload']);
   });
 
   test(

@@ -394,43 +394,6 @@ class MediaRepository {
   /// Fact groups whose columns differ between [previous] and [next]. Used by
   /// the whole-row writer so a changed fact travels under a fresh group
   /// clock, and an unchanged one does not (media sync program spec 5.1).
-  /// The fact groups a whole-row update actually changes.
-  ///
-  /// Verification only: [updateMedia] no longer writes the upload columns,
-  /// so a difference there is a stale caller snapshot rather than an intent,
-  /// and stamping the upload clock for it would endorse a rollback.
-  List<SyncFactGroup> _changedFactGroups(
-    domain.MediaItem? previous,
-    domain.MediaItem next,
-  ) {
-    if (previous == null) return SyncFactGroups.of('media');
-    if (previous.isOrphaned != next.isOrphaned ||
-        previous.lastVerifiedAt != next.lastVerifiedAt) {
-      return const [SyncFactGroups.mediaVerification];
-    }
-    return const [];
-  }
-
-  /// The row with every fact column and the write stamp flattened, so two
-  /// of these compare equal exactly when a write touches nothing but facts.
-  ///
-  /// Errs towards "user edit": a field [updateMedia] does not even write
-  /// still counts as a difference, because an unnecessary row-clock bump
-  /// only costs a redundant republish, while a missing one loses a real
-  /// edit to a peer.
-  static domain.MediaItem _userFieldsOf(domain.MediaItem item) => item.copyWith(
-    contentHash: null,
-    contentSizeBytes: null,
-    remoteUploadedAt: null,
-    remoteThumbUploadedAt: null,
-    remoteCompressedUploadedAt: null,
-    compressedLevel: null,
-    compressedSizeBytes: null,
-    isOrphaned: false,
-    lastVerifiedAt: null,
-    updatedAt: DateTime.fromMillisecondsSinceEpoch(0),
-  );
-
   Future<void> updateMedia(domain.MediaItem item) async {
     try {
       _log.info('Updating media: ${item.id}');
@@ -442,8 +405,6 @@ class MediaRepository {
       // would travel under an unchanged upload clock and lose to the very
       // stamp it erased (media sync program spec 5.1).
       await _db.transaction(() async {
-        final previous = await getMediaById(item.id);
-
         await (_db.update(_db.media)..where((t) => t.id.equals(item.id))).write(
           MediaCompanion(
             diveId: Value(item.diveId),
@@ -464,8 +425,13 @@ class MediaRepository {
             thumbnailGeneratedAt: Value(
               item.thumbnailGeneratedAt?.millisecondsSinceEpoch,
             ),
-            lastVerifiedAt: Value(item.lastVerifiedAt?.millisecondsSinceEpoch),
-            isOrphaned: Value(item.isOrphaned),
+            // The verification facts are absent for the same reason as the
+            // upload facts below: this is a whole-row write from a snapshot
+            // the caller read earlier, so a verifier that ran in between
+            // would be rolled back, and the rollback would then carry a
+            // fresh verification clock and beat a peer's newer observation.
+            // A caller that means to change them uses markOrphaned,
+            // markAsVerified or stampVerification.
             signerId: Value(item.signerId),
             signerName: Value(item.signerName),
             imageData: Value(item.imageData),
@@ -494,35 +460,14 @@ class MediaRepository {
           ),
         );
 
-        // A whole-row write carries the fact columns too. Stamp the clock of
-        // any fact group whose values actually changed, or the new values
-        // would travel under an unchanged group clock and lose to a peer's
-        // older facts (media sync program spec 5.1). Groups that did not
-        // change keep their clock, so a caption edit stays a caption edit.
-        final changedGroups = _changedFactGroups(previous, item);
-        // A fact-only patch (a poller flipping isOrphaned, say) must not move
-        // the row clock: that would republish this caller's whole snapshot of
-        // the row as a newer user edit and let its stale caption beat a peer's
-        // newer one. Only the groups move.
-        final userEdit =
-            previous == null || _userFieldsOf(previous) != _userFieldsOf(item);
-        if (userEdit || changedGroups.isEmpty) {
-          await _syncRepository.markRecordPending(
-            entityType: 'media',
-            recordId: item.id,
-            localUpdatedAt: now,
-            alsoStamp: changedGroups,
-          );
-        } else {
-          for (final group in changedGroups) {
-            await _syncRepository.markFactsPending(
-              entityType: 'media',
-              recordId: item.id,
-              localUpdatedAt: now,
-              group: group,
-            );
-          }
-        }
+        // The row clock alone. This writer touches no fact column now, so
+        // every call is a user edit and no group clock is owed; a caller
+        // that means to change a fact uses the narrow writer for it.
+        await _syncRepository.markRecordPending(
+          entityType: 'media',
+          recordId: item.id,
+          localUpdatedAt: now,
+        );
       });
       SyncEventBus.notifyLocalChange();
       _log.info('Updated media: ${item.id}');
@@ -894,8 +839,14 @@ class MediaRepository {
   /// null, and the pending mark would then sync the rollback fleet-wide.
   ///
   /// Always records the date, but publishes only when the flag moves: the
-  /// date is this device's own observation and reaches peers on the row's
-  /// next sync-visible write (spec 5.2). Like [markVerified], a row that is
+  /// date is this device's own observation of when it last looked, and it
+  /// stays local until something stamps the verification group, which only
+  /// a real flag change does (spec 5.2). A peer can therefore show an older
+  /// "last checked" indefinitely for a row whose every check confirms what
+  /// it already said. That is the intended trade: the alternative is a
+  /// library-wide publish every time a user presses Check all. The media
+  /// health report shows this device's own value, which is the one a
+  /// support thread needs. Like [markVerified], a row that is
   /// gone by the time the check lands (deleted during a Check all media
   /// pass) gets no pending record pointing at nothing.
   Future<void> stampVerification(
@@ -910,7 +861,10 @@ class MediaRepository {
       // moving: a Check all pass over a healthy library would otherwise
       // publish every row it confirmed. The date is this device's own
       // observation of when it last looked, so it is recorded without a
-      // clock and rides along on the row's next sync-visible write.
+      // clock. It does not travel on the row's next edit either: that edit
+      // moves the row clock, and the merge compares each fact group on its
+      // own clock, so a peer with an equal or newer verification clock keeps
+      // its own date. Local until the flag moves, by design.
       var flagMoved = false;
       if (isOrphaned != null) {
         flagMoved =

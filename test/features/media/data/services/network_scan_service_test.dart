@@ -241,13 +241,87 @@ void main() {
     expect(events.last.done, 2);
     expect(events.last.available, 1);
     expect(events.last.unreachable, 1);
+    // One write, not two: the counters record what the pass saw, but a
+    // transport failure learned nothing about the object, so that row is
+    // not written at all.
     verify(
       mockRepo.stampVerification(
-        any,
+        'ok',
+        isOrphaned: false,
+        verifiedAt: anyNamed('verifiedAt'),
+      ),
+    ).called(1);
+    verifyNever(
+      mockRepo.stampVerification(
+        'boom',
         isOrphaned: anyNamed('isOrphaned'),
         verifiedAt: anyNamed('verifiedAt'),
       ),
-    ).called(2);
+    );
+  });
+
+  test('only a definitive missing verdict orphans a row', () async {
+    // 404 and 410 are the host saying the object is gone. A 401, a 429 and
+    // a 5xx are the host refusing to answer, and the orphan flag is sticky
+    // and syncs, so guessing from them would mark a live library missing on
+    // every device.
+    for (final (code, writes) in [
+      (404, true),
+      (410, true),
+      (401, false),
+      (403, false),
+      (429, false),
+      (500, false),
+      (503, false),
+    ]) {
+      final repo = MockMediaRepository();
+      when(
+        repo.stampVerification(
+          any,
+          isOrphaned: anyNamed('isOrphaned'),
+          verifiedAt: anyNamed('verifiedAt'),
+        ),
+      ).thenAnswer((_) async {});
+      when(repo.getAllBySourceType(MediaSourceType.networkUrl)).thenAnswer(
+        (_) async => [
+          row(
+            id: 'r',
+            type: MediaSourceType.networkUrl,
+            url: 'https://example.com/a.jpg',
+          ),
+        ],
+      );
+      when(
+        repo.getAllBySourceType(MediaSourceType.manifestEntry),
+      ).thenAnswer((_) async => []);
+
+      await NetworkScanService(
+        repository: repo,
+        credentials: mockCreds,
+        subscriptions: mockSubs,
+        rateLimiter: limiter,
+        httpClientFactory: () =>
+            MockClient((_) async => http.Response('', code)),
+      ).scanAll().drain<void>();
+
+      if (writes) {
+        verify(
+          repo.stampVerification(
+            'r',
+            isOrphaned: true,
+            verifiedAt: anyNamed('verifiedAt'),
+          ),
+        ).called(1);
+      } else {
+        verifyNever(
+          repo.stampVerification(
+            any,
+            isOrphaned: anyNamed('isOrphaned'),
+            verifiedAt: anyNamed('verifiedAt'),
+          ),
+        );
+      }
+    }
   });
 
   test('skips rows with null url and counts them in skippedNoUrl', () async {

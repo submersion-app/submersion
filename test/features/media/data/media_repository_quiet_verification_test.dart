@@ -84,6 +84,25 @@ void main() {
       expect(await isPending(), isFalse);
     });
 
+    test('the quiet date stays local, even after a later edit', () async {
+      // The date is not carried to peers by the row's next edit: that edit
+      // moves the ROW clock, and the merge compares each fact group on its
+      // own clock, so a peer with an equal or newer verification clock
+      // keeps its own date. Local until the flag moves, by design.
+      final before = await verifyClock();
+      await repo.stampVerification(id, verifiedAt: DateTime(2026, 8));
+
+      final row = (await repo.getMediaById(id))!;
+      await repo.updateMedia(row.copyWith(caption: 'a later caption'));
+
+      expect(
+        await verifyClock(),
+        before,
+        reason: 'a user edit does not lend the date a verification clock',
+      );
+      expect((await repo.getMediaById(id))!.lastVerifiedAt, DateTime(2026, 8));
+    });
+
     test('a row that is gone publishes nothing', () async {
       await repo.stampVerification(
         'no-such-row',

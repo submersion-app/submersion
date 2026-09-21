@@ -340,9 +340,17 @@ advancing the cursor after `apply` is correct.
 - The verification writers publish only when `isOrphaned` actually moves.
   `lastVerifiedAt` is set to "now" on every check, so including it would
   mean every check publishes, which is the thing this section exists to
-  stop. The date is recorded locally without a clock and reaches peers on
-  the row's next sync-visible write. (Amended 2026-09-19, while planning
-  slice 4.)
+  stop. The date is recorded locally without a clock, and it STAYS local
+  until something stamps the verification group, which only a real flag
+  change does: a later row edit moves the row clock, and the merge compares
+  each fact group on its own clock, so a peer with an equal or newer
+  verification clock keeps its own date. A peer can therefore show an older
+  "last checked" indefinitely for a row whose every check confirms what it
+  already said. The media health report shows this device's own value,
+  which is the one a support thread needs. (Amended 2026-09-19 while
+  planning slice 4; the "reaches peers on the next sync-visible write"
+  wording was corrected 2026-09-20 after review showed the merge discards
+  it.)
 - Inconclusive verifier outcomes (`fromOtherDevice`, `accessDenied`, no
   resolver, throw) never write the row.
 - `MediaItemView` reconciles only when the resolver verdict is `notFound` on

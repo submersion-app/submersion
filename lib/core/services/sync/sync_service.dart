@@ -2978,6 +2978,15 @@ class SyncService {
       }
     }
 
+    // Rethrown, not counted, unlike the row upsert above. The upsert has
+    // already written this row including its new fact clock, while the
+    // group's own columns are still the old values (the upsert builds with
+    // nullToAbsent, which is why the targeted write exists at all). Swallow
+    // the failure and the row looks applied, the reader advances its cursor
+    // past this changeset, and the peer's clear is lost for good: its clock
+    // is now ours. Throwing rolls back the deferred-FK transaction around
+    // the whole payload, and the reader leaves its cursor where it was, so
+    // the next sync re-pulls this changeset (media sync program spec 5.1).
     for (final w in factWrites) {
       try {
         for (final g in w.groups) {
@@ -2985,12 +2994,12 @@ class SyncService {
         }
       } catch (e, stackTrace) {
         _log.error(
-          'Failed to write facts for $entityType ${w.id}',
+          'Failed to write facts for $entityType ${w.id}; rolling back the '
+          'payload so the changeset is re-applied next sync',
           error: e,
           stackTrace: stackTrace,
         );
-        failed += 1;
-        applied -= 1;
+        rethrow;
       }
     }
 
@@ -3758,12 +3767,19 @@ class SyncService {
   /// One snapshot row with fresh clocks for the replay.
   ///
   /// Fact groups (media sync program spec 5.1) carry their own clocks, and a
-  /// row can be pending because of a fact write alone. Restamping the ROW
-  /// clock for such a row would republish this device's whole snapshot of it
-  /// and let a stale caption beat a peer's newer edit, so the row clock is
-  /// refreshed only when it is already the newest clock on the row, which is
-  /// exactly when the last local write was a user edit. The facts republish
-  /// either way: the export selects a row on any of its clocks.
+  /// row can be pending because of a fact write alone. Only the newest clock
+  /// on the row is refreshed, because only it identifies what this device
+  /// wrote last and therefore has something to say.
+  ///
+  /// Refreshing the others would fabricate freshness: a row pending on an
+  /// upload write whose verification clock is older would come back with a
+  /// brand-new verification clock too, and this device's untouched
+  /// verification facts would then beat a peer's newer observation. So when
+  /// the row clock is newest the row alone is restamped, and otherwise only
+  /// the fact clocks that are themselves newer than the row. Everything
+  /// else travels with its original clock, which is exactly what the
+  /// per-group merge needs to leave a peer's newer facts alone. The row
+  /// still exports either way: the export selects it on any of its clocks.
   @visibleForTesting
   static Map<String, dynamic> restampRowForReplay(
     String entityType,
@@ -3774,19 +3790,16 @@ class SyncService {
       return {...row, 'hlc': SyncClock.instance.issue()};
     }
     final rowClock = row['hlc'];
-    var rowIsNewest = true;
-    for (final g in groups) {
-      final factClock = row[g.clockKey];
-      if (factClock is String &&
-          (rowClock is! String || factClock.compareTo(rowClock) > 0)) {
-        rowIsNewest = false;
-      }
-    }
+    bool newerThanRow(Object? factClock) =>
+        factClock is String &&
+        (rowClock is! String || factClock.compareTo(rowClock) > 0);
+    final rowIsNewest = !groups.any((g) => newerThanRow(row[g.clockKey]));
     return {
       ...row,
       if (rowIsNewest) 'hlc': SyncClock.instance.issue(),
       for (final g in groups)
-        if (row[g.clockKey] is String) g.clockKey: SyncClock.instance.issue(),
+        if (newerThanRow(row[g.clockKey]))
+          g.clockKey: SyncClock.instance.issue(),
     };
   }
 
