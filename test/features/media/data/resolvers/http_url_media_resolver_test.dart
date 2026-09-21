@@ -1,3 +1,4 @@
+import 'dart:io' show SocketException;
 import 'dart:typed_data';
 import 'dart:ui' show Size;
 
@@ -193,6 +194,59 @@ void main() {
           _manifestItem(url: 'https://example.com/a.jpg'),
         );
         expect(v, VerifyResult.notFound);
+      });
+
+      test('returns notFound on 410', () async {
+        final client = MockClient((req) async => http.Response('', 410));
+        final r = _makeResolver(client: client);
+        final v = await r.verify(
+          _manifestItem(url: 'https://example.com/a.jpg'),
+        );
+        expect(v, VerifyResult.notFound);
+      });
+
+      test('an inconclusive status is not absence', () async {
+        // notFound is the one verdict that flips the orphan flag, and the
+        // flag is sticky and syncs. A host that declines to answer has not
+        // told us the object is gone.
+        for (final code in [403, 429, 500, 502, 503]) {
+          final client = MockClient((req) async => http.Response('', code));
+          final r = _makeResolver(client: client);
+
+          expect(
+            await r.verify(_manifestItem(url: 'https://example.com/a.jpg')),
+            VerifyResult.transientError,
+            reason: 'HTTP $code',
+          );
+        }
+      });
+
+      test('a transport failure is not absence', () async {
+        final client = MockClient(
+          (_) async => throw const SocketException('no route'),
+        );
+        final r = _makeResolver(client: client);
+
+        expect(
+          await r.verify(_manifestItem(url: 'https://example.com/a.jpg')),
+          VerifyResult.transientError,
+        );
+      });
+
+      test('a redirect loop is not absence', () async {
+        final client = MockClient(
+          (req) async => http.Response(
+            '',
+            302,
+            headers: {'location': 'https://example.com/again.jpg'},
+          ),
+        );
+        final r = _makeResolver(client: client);
+
+        expect(
+          await r.verify(_manifestItem(url: 'https://example.com/a.jpg')),
+          VerifyResult.transientError,
+        );
       });
 
       test('returns notFound when URL is missing', () async {

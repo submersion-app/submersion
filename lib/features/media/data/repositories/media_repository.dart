@@ -1713,8 +1713,16 @@ class MediaRepository {
   /// Explicitly unlinks surviving media from deleted dives, with the HLC
   /// stamp the old silent FK SET NULL never produced - so the unlink
   /// propagates to other devices instead of diverging.
-  Future<void> unlinkMediaFromDeletedDives(List<String> mediaIds) async {
-    if (mediaIds.isEmpty) return;
+  /// [diveIds] are the dives being deleted, and every write here is scoped
+  /// to them. [partitionMediaForDiveDeletion] chose [mediaIds] before the
+  /// caller did its other deletion work, so a row can be relinked to a
+  /// surviving dive in between; keyed on the media id alone this would
+  /// clear that new link and delete the enrichment the row gained with it.
+  Future<void> unlinkMediaFromDeletedDives(
+    List<String> mediaIds,
+    List<String> diveIds,
+  ) async {
+    if (mediaIds.isEmpty || diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
       // The enrichment is dive-scoped (depth and elapsed time on THAT dive's
@@ -1722,10 +1730,14 @@ class MediaRepository {
       // about to be deleted would take it with them silently. Drop it here
       // instead, with tombstones, or a peer re-adds it on its next publish
       // (media sync program spec 5.3).
-      await _dropEnrichmentRows(mediaIds);
-      await (_db.update(_db.media)..where((t) => t.id.isIn(mediaIds))).write(
-        MediaCompanion(diveId: const Value(null), updatedAt: Value(now)),
-      );
+      await _dropEnrichmentForDives(mediaIds, diveIds);
+      final unlinked =
+          await (_db.update(
+            _db.media,
+          )..where((t) => t.id.isIn(mediaIds) & t.diveId.isIn(diveIds))).write(
+            MediaCompanion(diveId: const Value(null), updatedAt: Value(now)),
+          );
+      if (unlinked == 0) return;
       for (final id in mediaIds) {
         await _syncRepository.markRecordPending(
           entityType: 'media',
@@ -1938,6 +1950,29 @@ class MediaRepository {
   /// on foreign keys being enabled at all.
   ///
   /// Caller supplies the transaction; this does no committing of its own.
+  /// As [_dropEnrichmentRows], but only the rows belonging to [diveIds].
+  ///
+  /// The dive-deletion path must not touch enrichment a row gained on
+  /// ANOTHER dive: the partition that chose these ids ran before this call,
+  /// and a row can be relinked in between.
+  Future<void> _dropEnrichmentForDives(
+    List<String> mediaIds,
+    List<String> diveIds,
+  ) async {
+    final stale = await (_db.select(
+      _db.mediaEnrichment,
+    )..where((t) => t.mediaId.isIn(mediaIds) & t.diveId.isIn(diveIds))).get();
+    for (final row in stale) {
+      await (_db.delete(
+        _db.mediaEnrichment,
+      )..where((t) => t.id.equals(row.id))).go();
+      await _syncRepository.logDeletion(
+        entityType: 'mediaEnrichment',
+        recordId: row.id,
+      );
+    }
+  }
+
   Future<void> _dropEnrichmentRows(List<String> mediaIds) async {
     final stale = await (_db.select(
       _db.mediaEnrichment,

@@ -29,8 +29,17 @@ class NetworkBytesUnauthenticated extends NetworkBytesResult {
 }
 
 class NetworkBytesError extends NetworkBytesResult {
-  const NetworkBytesError(this.message);
+  const NetworkBytesError(this.message, {this.statusCode});
   final String message;
+
+  /// The HTTP status the host answered with, or null when there was no
+  /// answer at all (a transport failure, or too many redirects).
+  ///
+  /// Carried so a caller can tell "the host says this is gone" from "the
+  /// host would not tell me": only 404 and 410 are a positive finding of
+  /// absence, and the orphan flag is sticky and syncs, so guessing from a
+  /// 403 or a 503 marks a live library missing on every device.
+  final int? statusCode;
 }
 
 class NetworkUrlResolver {
@@ -66,7 +75,9 @@ class NetworkUrlResolver {
       if (code == 401) return const NetworkBytesUnauthenticated();
       if (code >= 300 && code < 400) {
         final loc = response.headers['location'];
-        if (loc == null) return NetworkBytesError('$code without Location');
+        if (loc == null) {
+          return NetworkBytesError('$code without Location', statusCode: code);
+        }
         current = current.resolve(loc);
         continue;
       }
@@ -78,7 +89,7 @@ class NetworkUrlResolver {
           lastModified: _parseLastModified(response.headers['last-modified']),
         );
       }
-      return NetworkBytesError('HTTP $code');
+      return NetworkBytesError('HTTP $code', statusCode: code);
     }
     return const NetworkBytesError('Too many redirects');
   }
