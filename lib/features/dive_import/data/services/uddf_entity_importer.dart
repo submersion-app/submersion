@@ -69,6 +69,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_tag_scopes.dart';
 import 'package:submersion/features/universal_import/data/services/import_tank_defaults.dart';
@@ -96,6 +97,10 @@ class ImportRepositories {
   /// Optional for the same reason; when null, gear check-ins in the source
   /// are skipped (condition phase 3a).
   final EquipmentObservationRepository? equipmentObservationRepository;
+
+  /// Optional for the same reason; when null, marine life sightings in the
+  /// source are skipped rather than failing the import.
+  final SpeciesRepository? speciesRepository;
   final SiteRepository siteRepository;
   final DiveRepository diveRepository;
   final TankPressureRepository tankPressureRepository;
@@ -150,6 +155,7 @@ class ImportRepositories {
     this.siteClassificationRepository,
     this.equipmentTagRepository,
     this.siteFeatureRepository,
+    this.speciesRepository,
   });
 }
 
@@ -2715,6 +2721,12 @@ class UddfEntityImporter {
 
       await repos.diveRepository.createDive(dive);
 
+      // Sightings are a child row, not a column: createDive writes the dive
+      // and its tanks, weights, custom fields and gear, and nothing else
+      // persists Dive.sightings. Without this the marine life a source
+      // carried is built, attached to the entity, and then dropped.
+      await _importSightings(diveData, dive.id, repos);
+
       // createDive's companion deliberately omits computer_id, so attribution
       // has to be an explicit second write (#1288).
       final computerKey = _importedComputerKey(diveData);
@@ -3127,6 +3139,54 @@ class UddfEntityImporter {
     }
 
     return [];
+  }
+
+  /// Writes the dive's marine life, creating any species it names.
+  ///
+  /// `sightings.species_id` is a foreign key to `species`, so the species
+  /// row has to exist first. `getOrCreateSpecies` matches on the lowercased
+  /// common name, which is what keeps an import from minting a twin of a
+  /// species already in the bundled catalogue.
+  ///
+  /// Best effort per sighting: one unreadable entry must not fail a dive
+  /// that is otherwise fine.
+  Future<void> _importSightings(
+    Map<String, dynamic> diveData,
+    String diveId,
+    ImportRepositories repos,
+  ) async {
+    final repository = repos.speciesRepository;
+    if (repository == null) return;
+    final raw = diveData['sightings'];
+    if (raw is! List || raw.isEmpty) return;
+
+    for (final entry in raw) {
+      if (entry is! Map) continue;
+      // A source may name the species outright, or only reference it, in
+      // which case the ref carries the name.
+      final named = (entry['speciesName'] as String?)?.trim();
+      final ref = (entry['speciesRef'] as String?)?.trim();
+      final commonName = named != null && named.isNotEmpty
+          ? named
+          : (ref == null || ref.isEmpty ? null : _speciesNameFromRef(ref));
+      if (commonName == null || commonName.isEmpty) continue;
+
+      try {
+        final species = await repository.getOrCreateSpecies(
+          commonName: commonName,
+          scientificName: (entry['speciesScientificName'] as String?)?.trim(),
+          category: SpeciesCategory.other,
+        );
+        await repository.addSighting(
+          diveId: diveId,
+          speciesId: species.id,
+          count: entry['count'] as int? ?? 1,
+          notes: entry['notes'] as String? ?? '',
+        );
+      } catch (e) {
+        _log.warning('Could not import a sighting for dive $diveId: $e');
+      }
+    }
   }
 
   List<MarineSighting> _buildSightings(Map<String, dynamic> diveData) {

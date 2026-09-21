@@ -37,7 +37,10 @@ void main() {
       // UddfEntityImporter._speciesNameFromRef strips `species_`, splits on
       // underscores and title cases, so this round trips to the name.
       expect(sightings.single['speciesRef'], 'species_giant_manta_ray');
-      expect(sightings.single['notes'], contains('Mobula birostris'));
+      // The importer creates the species row from these, so the original
+      // spelling has to travel rather than be derived back out of the ref.
+      expect(sightings.single['speciesName'], 'Giant Manta Ray');
+      expect(sightings.single['speciesScientificName'], 'Mobula birostris');
     });
 
     test('skips a link whose species row is missing', () {

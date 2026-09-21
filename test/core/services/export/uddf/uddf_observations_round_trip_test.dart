@@ -8,6 +8,7 @@ import 'package:submersion/features/buddies/data/repositories/buddy_repository.d
 import 'package:submersion/features/certifications/data/repositories/certification_repository.dart';
 import 'package:submersion/features/courses/data/repositories/course_repository.dart';
 import 'package:submersion/features/dive_centers/data/repositories/dive_center_repository.dart';
+import 'package:submersion/features/marine_life/data/repositories/species_repository.dart';
 import 'package:submersion/features/dive_import/data/services/uddf_entity_importer.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -48,6 +49,7 @@ ImportRepositories buildRepositories() => ImportRepositories(
   courseRepository: CourseRepository(),
   diveComputerRepository: DiveComputerRepository(),
   equipmentObservationRepository: EquipmentObservationRepository(),
+  speciesRepository: SpeciesRepository(),
 );
 
 Future<String> createTestDiver() async {

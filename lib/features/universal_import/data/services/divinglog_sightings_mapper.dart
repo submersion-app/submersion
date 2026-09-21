@@ -36,10 +36,15 @@ class DivingLogSightingsMapper {
       if (common == null || common.isEmpty) continue;
       out.add(<String, dynamic>{
         'speciesRef': speciesRef(common),
+        // Named outright as well as referenced: the importer creates the
+        // species row this sighting needs, and deriving the name back out
+        // of the ref would lose the original spelling and punctuation.
+        'speciesName': common,
+        if (species!.scientificName case final String s
+            when s.trim().isNotEmpty)
+          'speciesScientificName': s.trim(),
         'count': 1,
-        // The sighting record holds only a name, so the scientific name has
-        // nowhere else to go and would otherwise be dropped.
-        'notes': species!.scientificName ?? '',
+        'notes': '',
       });
     }
     return out;
