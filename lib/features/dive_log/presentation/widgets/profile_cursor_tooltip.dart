@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
     show TooltipRow;
 
@@ -10,12 +11,11 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 /// cursor line rather than sitting clearly beside it.
 const double tooltipCursorGap = 40;
 
-/// Fixed gap between the plot's top edge and the tooltip box's top edge.
-/// The box's vertical position does not track the cursor at all (issue
-/// #2228 follow-up, matching the mobile app's long-standing placement): a
-/// box that also tracked the cursor's Y could land mid-chart, on top of the
-/// very data it is describing, whereas pinning it to the top keeps it clear
-/// of the plotted lines the way fl_chart's own bubble used to.
+/// The tooltip box's highest allowed top edge: [plotRect.top] plus this
+/// margin. The box's bottom edge otherwise tracks the cursor's Y (see
+/// [computeTooltipBoxPosition]), growing upward from it; this is only the
+/// ceiling for when the cursor sits high enough that the box would
+/// otherwise be pushed above the plot.
 const double tooltipTopMargin = 8;
 
 /// Cap on the tooltip box's content width, carried over from the old
@@ -33,6 +33,16 @@ const double tooltipBaseRowHeight = 20;
 
 /// Vertical + horizontal content padding inside the tooltip box.
 const double tooltipContentPadding = 8;
+
+/// Fixed dark background, not the theme's `colorScheme.inverseSurface`:
+/// that token is designed to invert with the theme (it renders light in a
+/// dark theme, meant for things like snackbars), which left this box
+/// noticeably lighter than the old fl_chart bubble it replaced. This keeps
+/// it dark regardless of the active theme, matching that original bubble.
+const Color tooltipBackgroundColor = Color(0xFF1C1C1E);
+
+/// Row text colour against [tooltipBackgroundColor].
+const Color tooltipTextColor = Color(0xFFF2F2F2);
 
 /// Floor for the text-shrink factor: rows never render smaller than this
 /// fraction of [tooltipBaseFontSize] (here, 60% -> 8.4px), so a pathological
@@ -68,10 +78,10 @@ double computeTooltipScaleFactor({
 /// otherwise overflow [plotRect.right], then clamped so it never extends
 /// past either horizontal edge.
 ///
-/// Vertically, the box does not track the cursor at all: it is pinned
-/// [tooltipTopMargin] below [plotRect.top], so it stays clear of the
-/// plotted data instead of landing on top of it mid-chart (see the doc
-/// comment on [tooltipTopMargin]).
+/// Vertically, the box's bottom edge sits at the cursor's Y, so it grows
+/// upward from wherever the cursor is -- never lower than
+/// [tooltipTopMargin] below [plotRect.top], so a cursor near the top of the
+/// plot cannot push the box above it.
 Offset computeTooltipBoxPosition({
   required Offset cursorLocal,
   required Size boxSize,
@@ -88,25 +98,21 @@ Offset computeTooltipBoxPosition({
   }
   left = left.clamp(minLeft, minLeft > maxLeft ? minLeft : maxLeft);
 
-  final top = plotRect.top + tooltipTopMargin;
+  final minTop = plotRect.top + tooltipTopMargin;
+  final desiredTop = cursorLocal.dy - boxSize.height;
+  final top = desiredTop < minTop ? minTop : desiredTop;
 
   return Offset(left, top);
 }
 
-/// The dive-detail / fullscreen profile chart's own in-chart, cursor-
-/// following tooltip.
-///
-/// Replaces fl_chart's built-in bubble for [DiveProfileChart]'s
-/// `!tooltipBelow` path (the dive detail page and fullscreen profile page --
-/// the `tooltipBelow` path, used by the dive-list side panel, keeps rendering
-/// its own overlay elsewhere and never reaches this widget). fl_chart's
-/// bubble positioned and sized itself, and with many metrics enabled it
-/// could overflow the chart's top/bottom edge and clip rows rather than fit
-/// (`fitInsideVertically: false` was set because fl_chart's own vertical
-/// fitting pushed the box somewhere worse). This widget instead:
-/// - tracks the cursor horizontally, pinned near the plot's top edge
-///   vertically (see [computeTooltipBoxPosition]) -- it never sits over the
-///   data it describes, matching the mobile app's classic placement,
+/// The fullscreen profile chart's own in-chart, cursor-following tooltip
+/// (the dive detail page's embedded chart uses fl_chart's own native bubble
+/// instead -- see [DiveProfileChart.tooltipNativeBubble] -- and the
+/// `tooltipBelow` path, used by the dive-list side panel, renders its own
+/// overlay elsewhere and never reaches this widget). This widget:
+/// - tracks the cursor horizontally, with its bottom edge at the cursor's Y
+///   so it grows upward from it, never pushed above the plot's top edge
+///   (see [computeTooltipBoxPosition]),
 /// - clamps to the plot rect so it can never overflow it, and
 /// - shrinks its text (never clips) when the rows would not otherwise fit
 ///   in the available vertical space (see [computeTooltipScaleFactor]).
@@ -126,17 +132,23 @@ class ProfileCursorTooltip extends StatelessWidget {
   /// Reserved axis gutters around the plot rect (the chart's `_plotInsets`).
   final ({double left, double top, double right, double bottom}) insets;
 
+  /// The metric currently hover-highlighted on the chart (its line drawn
+  /// thicker, or the ascent-rate bars lit up), so the matching row renders
+  /// bold instead of every row looking equally important. Null renders every
+  /// row the same.
+  final ProfileRightAxisMetric? highlightedMetric;
+
   const ProfileCursorTooltip({
     super.key,
     required this.rows,
     required this.cursorLocal,
     required this.insets,
+    this.highlightedMetric,
   });
 
   @override
   Widget build(BuildContext context) {
     if (rows.isEmpty) return const SizedBox.shrink();
-    final colorScheme = Theme.of(context).colorScheme;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -171,7 +183,7 @@ class ProfileCursorTooltip extends StatelessWidget {
         final rowStyle = TextStyle(
           fontFamily: 'RobotoMono',
           fontSize: fontSize,
-          color: colorScheme.onInverseSurface,
+          color: tooltipTextColor,
           fontFeatures: const [FontFeature.tabularFigures()],
         );
 
@@ -183,7 +195,7 @@ class ProfileCursorTooltip extends StatelessWidget {
               width: boxWidth,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: colorScheme.inverseSurface,
+                  color: tooltipBackgroundColor,
                   borderRadius: BorderRadius.circular(6 * scale),
                 ),
                 child: Padding(
@@ -210,7 +222,13 @@ class ProfileCursorTooltip extends StatelessWidget {
                               Flexible(
                                 child: Text(
                                   row.label,
-                                  style: rowStyle,
+                                  style:
+                                      row.metric != null &&
+                                          row.metric == highlightedMetric
+                                      ? rowStyle.copyWith(
+                                          fontWeight: FontWeight.bold,
+                                        )
+                                      : rowStyle,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),

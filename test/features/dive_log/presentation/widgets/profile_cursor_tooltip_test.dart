@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/theme/app_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_tooltip.dart';
@@ -80,18 +81,27 @@ void main() {
       expect(position.dx, 50 + 8);
     });
 
-    test('pins to the plot top edge (plus the fixed top margin) regardless of '
-        'the cursor\'s vertical position -- it never tracks the cursor '
-        'vertically, so it never lands on top of the data it describes', () {
-      for (final cursorY in [10.0, 100.0, 195.0]) {
-        final position = computeTooltipBoxPosition(
-          cursorLocal: Offset(50, cursorY),
-          boxSize: const Size(80, 40),
-          plotRect: _plotRect,
-          gap: 8,
-        );
-        expect(position.dy, _plotRect.top + tooltipTopMargin);
-      }
+    test('places the box\'s bottom edge at the cursor\'s Y, growing upward '
+        'from it', () {
+      final position = computeTooltipBoxPosition(
+        cursorLocal: const Offset(50, 100),
+        boxSize: const Size(80, 40),
+        plotRect: _plotRect,
+        gap: 8,
+      );
+      expect(position.dy, 100 - 40);
+    });
+
+    test('clamps the top edge to plotRect.top + tooltipTopMargin when the '
+        'cursor is high enough that following it would push the box above '
+        'the plot', () {
+      final position = computeTooltipBoxPosition(
+        cursorLocal: const Offset(50, 10),
+        boxSize: const Size(80, 40),
+        plotRect: _plotRect,
+        gap: 8,
+      );
+      expect(position.dy, _plotRect.top + tooltipTopMargin);
     });
 
     test('flips to the cursor\'s left side when the right edge overflows', () {
@@ -146,6 +156,7 @@ void main() {
     Widget harness({
       required List<TooltipRow> rows,
       Offset cursorLocal = const Offset(100, 100),
+      ProfileRightAxisMetric? highlightedMetric,
     }) {
       return MaterialApp(
         home: Scaffold(
@@ -156,6 +167,7 @@ void main() {
               rows: rows,
               cursorLocal: cursorLocal,
               insets: _insets,
+              highlightedMetric: highlightedMetric,
             ),
           ),
         ),
@@ -206,6 +218,34 @@ void main() {
       await tester.pump();
       expect(tester.takeException(), isNull);
       expect(find.text('Metric 0'), findsOneWidget);
+    });
+
+    testWidgets('bolds the label of the row matching highlightedMetric, leaves '
+        'others normal', (tester) async {
+      await tester.pumpWidget(
+        harness(
+          rows: const [
+            TooltipRow(
+              label: 'Temp.',
+              value: '15°C',
+              bulletColor: AppColors.chartDepth,
+              metric: ProfileRightAxisMetric.temperature,
+            ),
+            TooltipRow(
+              label: 'CNS',
+              value: '37.0%',
+              bulletColor: AppColors.chartDepth,
+              metric: ProfileRightAxisMetric.cns,
+            ),
+          ],
+          highlightedMetric: ProfileRightAxisMetric.cns,
+        ),
+      );
+
+      final tempLabel = tester.widget<Text>(find.text('Temp.'));
+      final cnsLabel = tester.widget<Text>(find.text('CNS'));
+      expect(tempLabel.style?.fontWeight, isNot(FontWeight.bold));
+      expect(cnsLabel.style?.fontWeight, FontWeight.bold);
     });
   });
 }

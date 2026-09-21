@@ -117,11 +117,14 @@ class _AscentRateBarPainter extends CustomPainter {
 
   // Light-to-dark ends of each direction's colour ramp. Red deepens with
   // descent speed, green deepens with ascent speed, matching the reference
-  // sketch (faster = darker, in the same hue family as "danger"/"safe").
+  // sketch (faster = darker, in the same hue family as "danger"/"safe"). The
+  // dark ends go past Material's own 900 shades -- red/green 900 alone did
+  // not read as noticeably darker for the fastest rates against the chart's
+  // own dark background.
   static const _descentLight = Color(0xFFEF9A9A); // red 200
-  static const _descentDark = Color(0xFFB71C1C); // red 900
+  static const _descentDark = Color(0xFF7A0000); // past red 900
   static const _ascentLight = Color(0xFFA5D6A7); // green 200
-  static const _ascentDark = Color(0xFF1B5E20); // green 900
+  static const _ascentDark = Color(0xFF0A3D0F); // past green 900
 
   /// One bar per this many pixels of plot width: dense profiles (thousands of
   /// samples) would otherwise paint one line per sample, most of them
@@ -182,10 +185,17 @@ class _AscentRateBarPainter extends CustomPainter {
       final right = insets.left + nextBucket * _pixelsPerBar;
       final barLength = magnitude * halfBand;
       final descending = rate < 0;
+      // Eased, not linear: a plain lerp on `magnitude` left medium and fast
+      // rates looking too close in colour to tell apart at a glance. Squaring
+      // keeps slow rates close to the light end and reserves the darkest
+      // shades for genuinely fast ones, while staying a smooth function of
+      // rate rather than a stepped/banded one. Bar length stays linear in
+      // `magnitude` -- only the colour ramp uses this.
+      final colorMagnitude = magnitude * magnitude;
       final baseColor = Color.lerp(
         descending ? _descentLight : _ascentLight,
         descending ? _descentDark : _ascentDark,
-        magnitude,
+        colorMagnitude,
       )!;
       // Lit up: brighter (lerp toward white), the same way hovering a
       // metric line highlights that whole line rather than just the

@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
@@ -98,6 +99,7 @@ List<TooltipRow> buildO2CellTooltipRows(
         label: '${l10n.diveLog_tooltip_sensor} ${cell + 1}',
         value: readout,
         bulletColor: o2CellColor(cell),
+        metric: ProfileRightAxisMetric.o2CellMv,
       ),
     );
   }

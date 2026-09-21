@@ -73,10 +73,18 @@ class TooltipRow {
   final String value;
   final Color bulletColor;
 
+  /// The right-axis metric this row reads from, or null for a row with no
+  /// axis of its own (Time, Depth, Ceiling, Deco stop, ...). Lets a tooltip
+  /// presentation emphasise the row matching whichever line is currently
+  /// hover-highlighted (issue #2228 follow-up), the same metric identity
+  /// [lineMetricTags] tags each bar with.
+  final ProfileRightAxisMetric? metric;
+
   const TooltipRow({
     required this.label,
     required this.value,
     required this.bulletColor,
+    this.metric,
   });
 }
 
@@ -1114,6 +1122,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   // bar's own (too sparse) spots.
   int? _decoStopTouchIndex;
 
+  // The metric whose tooltip row should render emphasised (issue #2228
+  // follow-up): [_hoverRightAxisMetric] for a tagged line, or
+  // [ProfileRightAxisMetric.ascentRate] when the ascent-rate bars are lit up
+  // instead (they have no line of their own to tag, see
+  // [_hoveredAscentRateTimestamp]). Read by both tooltip presentations
+  // (the native bubble's getTooltipItems and [ProfileCursorTooltip]) against
+  // each [TooltipRow.metric].
+  ProfileRightAxisMetric? get _highlightedTooltipMetric =>
+      _hoverRightAxisMetric ??
+      (_hoveredAscentRateTimestamp != null
+          ? ProfileRightAxisMetric.ascentRate
+          : null);
+
   /// Drops the cursor-following tooltip and the hover-driven highlight/axis
   /// override. Called from every place a pointer stops actively hovering the
   /// chart (mouse exit, pointer up, pointer cancel) -- each of these used to
@@ -1702,6 +1723,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ? units.formatTemperature(point.temperature)
               : '-',
           bulletColor: colorScheme.tertiary,
+          metric: ProfileRightAxisMetric.temperature,
         ),
       );
       for (final overlay in widget.overlays ?? const <ChartSourceOverlay>[]) {
@@ -1810,6 +1832,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           value:
               '$arrow ${convertedRate.toStringAsFixed(1)} ${units.depthSymbol}/min',
           bulletColor: rateColor,
+          metric: ProfileRightAxisMetric.ascentRate,
         ),
       );
     }
@@ -1823,6 +1846,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ? '${point.heartRate} ${l10n.units_profileMetric_bpm}'
               : '-',
           bulletColor: Colors.red,
+          metric: ProfileRightAxisMetric.heartRate,
         ),
       );
     }
@@ -1847,6 +1871,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           label: row.label,
           value: row.value,
           bulletColor: Colors.teal,
+          metric: ProfileRightAxisMetric.sac,
         ),
       );
     }
@@ -1875,6 +1900,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           label: l10n.diveLog_tooltip_ndl,
           value: ndlValue,
           bulletColor: Colors.yellow.shade700,
+          metric: ProfileRightAxisMetric.ndl,
         ),
       );
     }
@@ -1918,6 +1944,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ? '${_readoutValue(widget.ppO2Curve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} ${l10n.units_pressure_bar}'
               : '-',
           bulletColor: const Color(0xFF00ACC1),
+          metric: ProfileRightAxisMetric.ppO2,
         ),
       );
     }
@@ -1953,6 +1980,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ? '${_readoutValue(widget.ppN2Curve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} ${l10n.units_pressure_bar}'
               : '-',
           bulletColor: Colors.indigo,
+          metric: ProfileRightAxisMetric.ppN2,
         ),
       );
     }
@@ -1982,6 +2010,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ? '${_readoutValue(ppHe, onLeadIn).toStringAsFixed(2)} ${l10n.units_pressure_bar}'
               : '-',
           bulletColor: Colors.pink.shade300,
+          metric: ProfileRightAxisMetric.ppHe,
         ),
       );
     }
@@ -2037,6 +2066,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ? '${_readoutValue(widget.densityCurve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} ${l10n.units_profileMetric_gPerL}'
               : '-',
           bulletColor: const Color(0xFF827717),
+          metric: ProfileRightAxisMetric.gasDensity,
         ),
       );
     }
@@ -2064,6 +2094,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ? '${widget.gfCurve![spot.spotIndex].toStringAsFixed(0)}%'
               : '-',
           bulletColor: Colors.deepPurple,
+          metric: ProfileRightAxisMetric.gf,
         ),
       );
     }
@@ -2091,6 +2122,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ? '${widget.surfaceGfCurve![spot.spotIndex].toStringAsFixed(0)}%'
               : '-',
           bulletColor: Colors.purple.shade300,
+          metric: ProfileRightAxisMetric.surfaceGf,
         ),
       );
     }
@@ -2118,6 +2150,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ? units.formatDepth(widget.meanDepthCurve![spot.spotIndex])
               : '-',
           bulletColor: Colors.blueGrey,
+          metric: ProfileRightAxisMetric.meanDepth,
         ),
       );
     }
@@ -2147,6 +2180,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ? '${(tts / 60).ceil()} ${l10n.units_profileMetric_min}'
               : '0 ${l10n.units_profileMetric_min}',
           bulletColor: const Color(0xFFAD1457),
+          metric: ProfileRightAxisMetric.tts,
         ),
       );
     }
@@ -2183,6 +2217,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             minuteUnit: l10n.units_profileMetric_min,
           ),
           bulletColor: ProfileRightAxisMetric.gtr.color!,
+          metric: ProfileRightAxisMetric.gtr,
         ),
       );
     }
@@ -2215,6 +2250,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ? '${widget.cnsCurve![spot.spotIndex].toStringAsFixed(1)}%'
               : '-',
           bulletColor: const Color(0xFFE65100),
+          metric: ProfileRightAxisMetric.cns,
         ),
       );
     }
@@ -2241,6 +2277,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ? widget.otuCurve![spot.spotIndex].toStringAsFixed(0)
               : '-',
           bulletColor: const Color(0xFF6D4C41),
+          metric: ProfileRightAxisMetric.otu,
         ),
       );
     }
@@ -2292,6 +2329,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             label: tankLabel,
             value: pressure != null ? units.formatPressure(pressure) : '-',
             bulletColor: color,
+            metric: ProfileRightAxisMetric.pressure,
           ),
         );
       }
@@ -4175,6 +4213,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       DiveProfileChart.tooltipLabelChars +
                       DiveProfileChart.tooltipValueChars;
                   final rowFiller = List.filled(rowWidth, '0').join();
+                  final highlightedMetric = _highlightedTooltipMetric;
                   final lines = <TextSpan>[];
                   for (final row in rows) {
                     if (lines.isNotEmpty) {
@@ -4192,7 +4231,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       DiveProfileChart.tooltipLabelChars,
                       DiveProfileChart.tooltipValueChars,
                     );
-                    lines.add(TextSpan(text: rowText, style: rowStyle));
+                    final isRowHighlighted =
+                        row.metric != null && row.metric == highlightedMetric;
+                    lines.add(
+                      TextSpan(
+                        text: rowText,
+                        style: isRowHighlighted
+                            ? rowStyle.copyWith(fontWeight: FontWeight.bold)
+                            : rowStyle,
+                      ),
+                    );
                     final fillerCount = rowWidth - rowText.length;
                     if (fillerCount > 0) {
                       lines.add(
@@ -4445,6 +4493,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 rows: _liveCursorTooltipRows,
                 cursorLocal: _lastPointerLocal!,
                 insets: plotInsets,
+                highlightedMetric: _highlightedTooltipMetric,
               ),
             ),
           ),
