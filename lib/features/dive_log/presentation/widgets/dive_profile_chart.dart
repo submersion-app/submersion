@@ -96,6 +96,20 @@ enum TooltipPresentation {
   external,
 }
 
+/// One drawn bar together with the metric it represents (a
+/// [ProfileRightAxisMetric], a [ChartOnlyMetric], an [O2CellMetric], or null
+/// for a bar with no matching metric at all), so the two can never drift
+/// out of positional sync the way two separately-built, equal-length lists
+/// could.
+typedef BarWithTag = ({LineChartBarData bar, Object? tag});
+
+/// Pairs every bar in [bars] with the same [tag] -- the common case behind
+/// most [BarWithTag] groups, where a whole line-builder's output shares one
+/// metric identity.
+List<BarWithTag> _tagAll(List<LineChartBarData> bars, Object? tag) => [
+  for (final bar in bars) (bar: bar, tag: tag),
+];
+
 /// One physical O2 sensor's millivolt line/tooltip row (issue #2228
 /// follow-up). All cells previously shared the single
 /// [ProfileRightAxisMetric.o2CellMv] tag, so hovering any one cell's line
@@ -1240,24 +1254,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     });
   }
 
-  // Per-group parallel tag lists, mirroring [_barsCache]'s groups
-  // ('base'/'sac'/'ascent'/'analysis'/'markers'/'overlays'): each entry is
-  // the metric the bar at the same position in that group's bars list
-  // represents -- a [ProfileRightAxisMetric] for a line that can drive the
-  // right axis, a [_ChartOnlyMetric] for one that cannot (real-depth lines
-  // with no axis of their own, still worth highlighting), or null when the
-  // bar has no matching metric at all (a marker, an overlay comparison
-  // trace, or ascent-rate -- which is drawn by [AscentRateBarOverlay], never
-  // an fl_chart line). Set as a side effect inside each group's
-  // `_barsCache.series` factory (see the 'base' group in [_buildChart]), so
-  // a tag list is only rebuilt exactly when its group's bars are -- never
-  // recomputed on a hover-only rebuild.
-  List<Object?> _baseTags = const [];
-  List<Object?> _sacTags = const [];
-  List<Object?> _ascentTags = const [];
-  List<Object?> _analysisTags = const [];
-  List<Object?> _markersTags = const [];
-  List<Object?> _overlaysTags = const [];
+  // A bar the each group's `_barsCache.series` factory builds is always
+  // paired with its metric tag directly (see `BarWithTag` and the 'base'
+  // group in [_buildChart]), rather than the pairing being maintained by
+  // convention across two separately-built, equal-length lists -- a bar
+  // added to one without its matching tag would otherwise silently misalign
+  // every tag after it. The tag is a [ProfileRightAxisMetric] for a line
+  // that can drive the right axis, a [ChartOnlyMetric] for one that cannot
+  // (real-depth lines with no axis of their own, still worth highlighting),
+  // or null when the bar has no matching metric at all (a marker, an
+  // overlay comparison trace, or ascent-rate -- which is drawn by
+  // [AscentRateBarOverlay], never an fl_chart line).
 
   // The readout last reported through onTooltipData, by either cursor. Lets
   // the external-cursor path skip a reading the pointer already reported,
@@ -1291,11 +1298,20 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   List<LineChartBarData>? _barWindowSource;
   ({double minX, double maxX, double minY})? _barWindowRange;
 
-  // Memoized lineBarsData. The chart's series builders are pure w.r.t.
-  // interaction state, so the assembled bars are reused across playback / hover
-  // / zoom rebuilds and only reconstructed when the underlying data, units,
-  // visibility, or theme change (see [_barsSignature]).
-  final ChartSeriesCache<LineChartBarData> _barsCache =
+  // Memoized lineBarsData, each paired with its metric tag (see BarWithTag).
+  // The chart's series builders are pure w.r.t. interaction state, so the
+  // assembled bars are reused across playback / hover / zoom rebuilds and
+  // only reconstructed when the underlying data, units, visibility, or
+  // theme change (see [_barsSignature]).
+  final ChartSeriesCache<BarWithTag> _barsCache =
+      ChartSeriesCache<BarWithTag>();
+
+  // The flattened, windowable bars behind the same 'combined' group as
+  // [_barsCache] -- kept in its own cache, rather than derived from
+  // [_barsCache]'s cached pairs on every build, so it is the identical List
+  // instance across a cache hit (a fresh `[for (p in pairs) p.bar]` would
+  // not be, defeating [_windowedBars]'s own identical()-based memoization).
+  final ChartSeriesCache<LineChartBarData> _flatBarsCache =
       ChartSeriesCache<LineChartBarData>();
 
   // Per-group cache signatures, computed once per build in the legend-sync
@@ -3479,332 +3495,276 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
     }
 
+    final combinedSig = _sigOf([
+      _baseSig,
+      _sacSig,
+      _ascentSig,
+      _analysisSig,
+      _markersSig,
+      _overlaysSig,
+    ]);
+    final combinedPairs = _barsCache.series(
+      'combined',
+      combinedSig,
+      () => [
+        ..._barsCache.series('base', _baseSig, () {
+          // Depth line segments (colored by active gas if
+          // present). No right-axis metric represents depth
+          // (it is the chart's own primary/left axis), so these
+          // never highlight/drive the right axis.
+          final depthLines = _buildGasColoredDepthLines(colorScheme, units);
+
+          // Gas switch markers (if showing and data available).
+          // Zero-width dot markers, not a metric line.
+          final gasSwitchMarkers = _showGasSwitchMarkers
+              ? _buildGasSwitchMarkers(units)
+              : const <LineChartBarData>[];
+
+          // Temperature line (if showing).
+          final temperatureLines =
+              (_showTemperature &&
+                  hasTemperatureData &&
+                  minTemp != null &&
+                  maxTemp != null)
+              ? _buildTemperatureLines(
+                  colorScheme,
+                  metricBand,
+                  minTemp,
+                  maxTemp,
+                  units,
+                )
+              : const <LineChartBarData>[];
+
+          // Multi-tank pressure lines (per-tank visibility
+          // controlled inside _buildMultiTankPressureLines via
+          // _showTankPressure).
+          final tankPressureLines = _hasMultiTankPressure
+              ? _buildMultiTankPressureLines(metricBand)
+              : const <LineChartBarData>[];
+
+          // Heart rate line (if showing)
+          final heartRateLines =
+              (_showHeartRate &&
+                  hasHeartRateData &&
+                  minHR != null &&
+                  maxHR != null)
+              ? [_buildHeartRateLine(heartRateColor, metricBand, minHR, maxHR)]
+              : const <LineChartBarData>[];
+
+          return [
+            ..._tagAll(depthLines, null),
+            ..._tagAll(gasSwitchMarkers, null),
+            ..._tagAll(temperatureLines, ProfileRightAxisMetric.temperature),
+            ..._tagAll(tankPressureLines, ProfileRightAxisMetric.pressure),
+            ..._tagAll(heartRateLines, ProfileRightAxisMetric.heartRate),
+          ];
+        }),
+        ..._barsCache.series('sac', _sacSig, () {
+          // SAC curve line (if showing)
+          final sacLines =
+              (_showSac && hasSacData && minSac != null && maxSac != null)
+              ? [_buildSacLine(metricBand, minSac, maxSac)]
+              : const <LineChartBarData>[];
+          return _tagAll(sacLines, ProfileRightAxisMetric.sac);
+        }),
+        // Ascent-rate magnitude is drawn by [AscentRateBarOverlay], a
+        // widget layer below (bars from the plot's vertical centre,
+        // not an fl_chart line bar), so this cache series is empty. The
+        // signature stays wired so a rate-data change still invalidates
+        // the shared bars cache key.
+        ..._barsCache.series('ascent', _ascentSig, () => const []),
+        ..._barsCache.series('analysis', _analysisSig, () {
+          // Deco stop band, drawn before the ceiling line so the
+          // dashed curve stays legible on top of the fill. A
+          // fill/band, not a right-axis metric line.
+          final decoStopBand = (_showDecoStops && widget.decoStopCurve != null)
+              ? [
+                  buildDecoStopBand(
+                    decoStopCurve: widget.decoStopCurve!,
+                    timestamps: [for (final p in widget.profile) p.timestamp],
+                    units: units,
+                  ),
+                ]
+              : const <LineChartBarData>[];
+
+          // Ceiling line (if showing and data available). There is
+          // no ProfileRightAxisMetric.ceiling, so this never
+          // drives the right axis.
+          final ceilingLines = (_showCeiling && widget.ceilingCurve != null)
+              ? [_buildCeilingLine(units)]
+              : const <LineChartBarData>[];
+
+          // NDL line (if showing)
+          final ndlLines = (_showNdl && widget.ndlCurve != null)
+              ? [_buildNdlLine(metricBand)]
+              : const <LineChartBarData>[];
+
+          // ppO2 line (if showing)
+          final ppO2Lines = (_showPpO2 && widget.ppO2Curve != null)
+              ? [_buildPpO2Line(metricBand)]
+              : const <LineChartBarData>[];
+
+          // ppN2 line (if showing)
+          final ppN2Lines = (_showPpN2 && widget.ppN2Curve != null)
+              ? [_buildPpN2Line(metricBand)]
+              : const <LineChartBarData>[];
+
+          // ppHe line (if showing and has helium data)
+          final ppHeLines =
+              (_showPpHe &&
+                  widget.ppHeCurve != null &&
+                  widget.ppHeCurve!.any((v) => v > 0.001))
+              ? [_buildPpHeLine(metricBand)]
+              : const <LineChartBarData>[];
+
+          // O2 cell agreement rug: a per-run agreement strip, not
+          // the mV values themselves, so it is left untagged
+          // (null) rather than attributed to o2CellMv.
+          final o2CellRug = (_showO2CellMv && widget.o2CellMvCurves != null)
+              ? _buildO2CellRug(metricBand)
+              : const <LineChartBarData>[];
+
+          // One millivolt line per cell (if showing), tagged with the
+          // physical cell it belongs to so hovering one cell's line
+          // highlights only that cell (see O2CellMetric) rather than
+          // every cell line at once.
+          final o2CellMvCells = (_showO2CellMv && widget.o2CellMvCurves != null)
+              ? _buildO2CellMvLines(metricBand, units)
+              : const <({int cell, LineChartBarData bar})>[];
+
+          // MOD line (if showing). There is no
+          // ProfileRightAxisMetric.mod, so this never drives the
+          // right axis.
+          final modLines = (_showMod && widget.modCurve != null)
+              ? [_buildModLine(units)]
+              : const <LineChartBarData>[];
+
+          // Gas density line (if showing)
+          final densityLines = (_showDensity && widget.densityCurve != null)
+              ? [_buildDensityLine(metricBand)]
+              : const <LineChartBarData>[];
+
+          // GF% line (if showing)
+          final gfLines = (_showGf && widget.gfCurve != null)
+              ? [_buildGfLine(metricBand)]
+              : const <LineChartBarData>[];
+
+          // Surface GF line (if showing)
+          final surfaceGfLines =
+              (_showSurfaceGf && widget.surfaceGfCurve != null)
+              ? [_buildSurfaceGfLine(metricBand)]
+              : const <LineChartBarData>[];
+
+          // Mean depth line (if showing)
+          final meanDepthLines =
+              (_showMeanDepth && widget.meanDepthCurve != null)
+              ? [_buildMeanDepthLine(units)]
+              : const <LineChartBarData>[];
+
+          // TTS line (if showing)
+          final ttsLines = (_showTts && widget.ttsCurve != null)
+              ? [_buildTtsLine(metricBand)]
+              : const <LineChartBarData>[];
+
+          // GTR line (if showing)
+          final gtrLines = (_showGtr && widget.gtrCurve != null)
+              ? [_buildGtrLine(metricBand)]
+              : const <LineChartBarData>[];
+
+          // CNS% curve (if showing)
+          final cnsLines = (_showCns && widget.cnsCurve != null)
+              ? [_buildCnsLine(metricBand)]
+              : const <LineChartBarData>[];
+
+          // OTU curve (if showing)
+          final otuLines = (_showOtu && widget.otuCurve != null)
+              ? [_buildOtuLine(metricBand)]
+              : const <LineChartBarData>[];
+
+          return [
+            ..._tagAll(decoStopBand, ChartOnlyMetric.decoStop),
+            ..._tagAll(ceilingLines, ChartOnlyMetric.ceiling),
+            ..._tagAll(ndlLines, ProfileRightAxisMetric.ndl),
+            ..._tagAll(ppO2Lines, ProfileRightAxisMetric.ppO2),
+            ..._tagAll(ppN2Lines, ProfileRightAxisMetric.ppN2),
+            ..._tagAll(ppHeLines, ProfileRightAxisMetric.ppHe),
+            ..._tagAll(o2CellRug, null),
+            for (final entry in o2CellMvCells)
+              (bar: entry.bar, tag: O2CellMetric(entry.cell)),
+            ..._tagAll(modLines, ChartOnlyMetric.mod),
+            ..._tagAll(densityLines, ProfileRightAxisMetric.gasDensity),
+            ..._tagAll(gfLines, ProfileRightAxisMetric.gf),
+            ..._tagAll(surfaceGfLines, ProfileRightAxisMetric.surfaceGf),
+            ..._tagAll(meanDepthLines, ProfileRightAxisMetric.meanDepth),
+            ..._tagAll(ttsLines, ProfileRightAxisMetric.tts),
+            ..._tagAll(gtrLines, ProfileRightAxisMetric.gtr),
+            ..._tagAll(cnsLines, ProfileRightAxisMetric.cns),
+            ..._tagAll(otuLines, ProfileRightAxisMetric.otu),
+          ];
+        }),
+        ..._barsCache.series('markers', _markersSig, () {
+          // Profile markers (max depth, pressure thresholds):
+          // zero-width dot markers, not right-axis metric lines.
+          final markerLines = _buildMarkerLines(
+            units,
+            metricBand,
+            minPressure: minPressure,
+            maxPressure: maxPressure,
+          );
+          return _tagAll(markerLines, null);
+        }),
+        ..._barsCache.series('overlays', _overlaysSig, () {
+          // Overlaid comparison sources — LAST, so depth bars keep
+          // occupying the leading barIndex range (_depthBarCount).
+          //
+          // Left entirely untagged (null): a single overlay can
+          // contribute a data-dependent number of lines across
+          // several different metrics (depth, temperature, deco
+          // band, ceiling, NDL, TTS, ppO2, ...), each gated by its
+          // own nested "if data present" check inside
+          // _buildOverlayLines. Re-deriving, per overlay, which
+          // metric each returned bar corresponds to would mean
+          // duplicating that whole conditional chain a second
+          // time here, with every duplication a chance to
+          // miscount and mislabel a bar -- exactly the failure
+          // mode called out as higher-risk than simply not
+          // highlighting an overlay line.
+          final overlayLines = _buildOverlayLines(
+            units,
+            metricBand,
+            minTemp,
+            maxTemp,
+          );
+          return _tagAll(overlayLines, null);
+        }),
+      ],
+    );
+
+    // The flattened bars alone, cached under the same signature so this is
+    // the identical List instance across a 'combined' cache hit (see
+    // _flatBarsCache) -- a fresh `[for (p in combinedPairs) p.bar]` on every
+    // build would defeat _windowedBars' own identical()-based memoization
+    // even when nothing changed.
+    final flatBars = _flatBarsCache.series(
+      'combined',
+      combinedSig,
+      () => [for (final pair in combinedPairs) pair.bar],
+    );
     final combinedBars = _windowedBars(
+      flatBars,
       visibleMinX: visibleMinX,
       visibleRangeX: visibleRangeX,
       chartMinY: -visibleMaxDepth,
-      _barsCache.series(
-        'combined',
-        _sigOf([
-          _baseSig,
-          _sacSig,
-          _ascentSig,
-          _analysisSig,
-          _markersSig,
-          _overlaysSig,
-        ]),
-        () => [
-          ..._barsCache.series('base', _baseSig, () {
-            // Depth line segments (colored by active gas if
-            // present). No right-axis metric represents depth
-            // (it is the chart's own primary/left axis), so these
-            // never highlight/drive the right axis.
-            final depthLines = _buildGasColoredDepthLines(colorScheme, units);
-
-            // Gas switch markers (if showing and data available).
-            // Zero-width dot markers, not a metric line.
-            final gasSwitchMarkers = _showGasSwitchMarkers
-                ? _buildGasSwitchMarkers(units)
-                : const <LineChartBarData>[];
-
-            // Temperature line (if showing).
-            final temperatureLines =
-                (_showTemperature &&
-                    hasTemperatureData &&
-                    minTemp != null &&
-                    maxTemp != null)
-                ? _buildTemperatureLines(
-                    colorScheme,
-                    metricBand,
-                    minTemp,
-                    maxTemp,
-                    units,
-                  )
-                : const <LineChartBarData>[];
-
-            // Multi-tank pressure lines (per-tank visibility
-            // controlled inside _buildMultiTankPressureLines via
-            // _showTankPressure).
-            final tankPressureLines = _hasMultiTankPressure
-                ? _buildMultiTankPressureLines(metricBand)
-                : const <LineChartBarData>[];
-
-            // Heart rate line (if showing)
-            final heartRateLines =
-                (_showHeartRate &&
-                    hasHeartRateData &&
-                    minHR != null &&
-                    maxHR != null)
-                ? [
-                    _buildHeartRateLine(
-                      heartRateColor,
-                      metricBand,
-                      minHR,
-                      maxHR,
-                    ),
-                  ]
-                : const <LineChartBarData>[];
-
-            _baseTags = [
-              ...List<Object?>.filled(depthLines.length, null),
-              ...List<Object?>.filled(gasSwitchMarkers.length, null),
-              ...List<Object?>.filled(
-                temperatureLines.length,
-                ProfileRightAxisMetric.temperature,
-              ),
-              ...List<Object?>.filled(
-                tankPressureLines.length,
-                ProfileRightAxisMetric.pressure,
-              ),
-              ...List<Object?>.filled(
-                heartRateLines.length,
-                ProfileRightAxisMetric.heartRate,
-              ),
-            ];
-
-            return [
-              ...depthLines,
-              ...gasSwitchMarkers,
-              ...temperatureLines,
-              ...tankPressureLines,
-              ...heartRateLines,
-            ];
-          }),
-          ..._barsCache.series('sac', _sacSig, () {
-            // SAC curve line (if showing)
-            final sacLines =
-                (_showSac && hasSacData && minSac != null && maxSac != null)
-                ? [_buildSacLine(metricBand, minSac, maxSac)]
-                : const <LineChartBarData>[];
-            _sacTags = List<Object?>.filled(
-              sacLines.length,
-              ProfileRightAxisMetric.sac,
-            );
-            return sacLines;
-          }),
-          // Ascent-rate magnitude is drawn by [AscentRateBarOverlay], a
-          // widget layer below (bars from the plot's vertical centre,
-          // not an fl_chart line bar), so this cache series is empty.
-          // The signature stays wired so a rate-data change still
-          // invalidates the shared bars cache key. [_ascentTags] stays
-          // empty in lockstep -- ascentRate has no line to highlight.
-          ..._barsCache.series('ascent', _ascentSig, () {
-            _ascentTags = const [];
-            return const [];
-          }),
-          ..._barsCache.series('analysis', _analysisSig, () {
-            // Deco stop band, drawn before the ceiling line so the
-            // dashed curve stays legible on top of the fill. A
-            // fill/band, not a right-axis metric line.
-            final decoStopBand =
-                (_showDecoStops && widget.decoStopCurve != null)
-                ? [
-                    buildDecoStopBand(
-                      decoStopCurve: widget.decoStopCurve!,
-                      timestamps: [for (final p in widget.profile) p.timestamp],
-                      units: units,
-                    ),
-                  ]
-                : const <LineChartBarData>[];
-
-            // Ceiling line (if showing and data available). There is
-            // no ProfileRightAxisMetric.ceiling, so this never
-            // drives the right axis.
-            final ceilingLines = (_showCeiling && widget.ceilingCurve != null)
-                ? [_buildCeilingLine(units)]
-                : const <LineChartBarData>[];
-
-            // NDL line (if showing)
-            final ndlLines = (_showNdl && widget.ndlCurve != null)
-                ? [_buildNdlLine(metricBand)]
-                : const <LineChartBarData>[];
-
-            // ppO2 line (if showing)
-            final ppO2Lines = (_showPpO2 && widget.ppO2Curve != null)
-                ? [_buildPpO2Line(metricBand)]
-                : const <LineChartBarData>[];
-
-            // ppN2 line (if showing)
-            final ppN2Lines = (_showPpN2 && widget.ppN2Curve != null)
-                ? [_buildPpN2Line(metricBand)]
-                : const <LineChartBarData>[];
-
-            // ppHe line (if showing and has helium data)
-            final ppHeLines =
-                (_showPpHe &&
-                    widget.ppHeCurve != null &&
-                    widget.ppHeCurve!.any((v) => v > 0.001))
-                ? [_buildPpHeLine(metricBand)]
-                : const <LineChartBarData>[];
-
-            // O2 cell agreement rug: a per-run agreement strip, not
-            // the mV values themselves, so it is left untagged
-            // (null) rather than attributed to o2CellMv.
-            final o2CellRug = (_showO2CellMv && widget.o2CellMvCurves != null)
-                ? _buildO2CellRug(metricBand)
-                : const <LineChartBarData>[];
-
-            // One millivolt line per cell (if showing), tagged with the
-            // physical cell it belongs to so hovering one cell's line
-            // highlights only that cell (see O2CellMetric) rather than
-            // every cell line at once.
-            final o2CellMvCells =
-                (_showO2CellMv && widget.o2CellMvCurves != null)
-                ? _buildO2CellMvLines(metricBand, units)
-                : const <({int cell, LineChartBarData bar})>[];
-            final o2CellMvLines = [
-              for (final entry in o2CellMvCells) entry.bar,
-            ];
-
-            // MOD line (if showing). There is no
-            // ProfileRightAxisMetric.mod, so this never drives the
-            // right axis.
-            final modLines = (_showMod && widget.modCurve != null)
-                ? [_buildModLine(units)]
-                : const <LineChartBarData>[];
-
-            // Gas density line (if showing)
-            final densityLines = (_showDensity && widget.densityCurve != null)
-                ? [_buildDensityLine(metricBand)]
-                : const <LineChartBarData>[];
-
-            // GF% line (if showing)
-            final gfLines = (_showGf && widget.gfCurve != null)
-                ? [_buildGfLine(metricBand)]
-                : const <LineChartBarData>[];
-
-            // Surface GF line (if showing)
-            final surfaceGfLines =
-                (_showSurfaceGf && widget.surfaceGfCurve != null)
-                ? [_buildSurfaceGfLine(metricBand)]
-                : const <LineChartBarData>[];
-
-            // Mean depth line (if showing)
-            final meanDepthLines =
-                (_showMeanDepth && widget.meanDepthCurve != null)
-                ? [_buildMeanDepthLine(units)]
-                : const <LineChartBarData>[];
-
-            // TTS line (if showing)
-            final ttsLines = (_showTts && widget.ttsCurve != null)
-                ? [_buildTtsLine(metricBand)]
-                : const <LineChartBarData>[];
-
-            // GTR line (if showing)
-            final gtrLines = (_showGtr && widget.gtrCurve != null)
-                ? [_buildGtrLine(metricBand)]
-                : const <LineChartBarData>[];
-
-            // CNS% curve (if showing)
-            final cnsLines = (_showCns && widget.cnsCurve != null)
-                ? [_buildCnsLine(metricBand)]
-                : const <LineChartBarData>[];
-
-            // OTU curve (if showing)
-            final otuLines = (_showOtu && widget.otuCurve != null)
-                ? [_buildOtuLine(metricBand)]
-                : const <LineChartBarData>[];
-
-            List<Object?> tagsFor(
-              List<LineChartBarData> lines,
-              Object? metric,
-            ) => List<Object?>.filled(lines.length, metric);
-
-            _analysisTags = [
-              ...tagsFor(decoStopBand, ChartOnlyMetric.decoStop),
-              ...tagsFor(ceilingLines, ChartOnlyMetric.ceiling),
-              ...tagsFor(ndlLines, ProfileRightAxisMetric.ndl),
-              ...tagsFor(ppO2Lines, ProfileRightAxisMetric.ppO2),
-              ...tagsFor(ppN2Lines, ProfileRightAxisMetric.ppN2),
-              ...tagsFor(ppHeLines, ProfileRightAxisMetric.ppHe),
-              ...tagsFor(o2CellRug, null),
-              for (final entry in o2CellMvCells) O2CellMetric(entry.cell),
-              ...tagsFor(modLines, ChartOnlyMetric.mod),
-              ...tagsFor(densityLines, ProfileRightAxisMetric.gasDensity),
-              ...tagsFor(gfLines, ProfileRightAxisMetric.gf),
-              ...tagsFor(surfaceGfLines, ProfileRightAxisMetric.surfaceGf),
-              ...tagsFor(meanDepthLines, ProfileRightAxisMetric.meanDepth),
-              ...tagsFor(ttsLines, ProfileRightAxisMetric.tts),
-              ...tagsFor(gtrLines, ProfileRightAxisMetric.gtr),
-              ...tagsFor(cnsLines, ProfileRightAxisMetric.cns),
-              ...tagsFor(otuLines, ProfileRightAxisMetric.otu),
-            ];
-
-            return [
-              ...decoStopBand,
-              ...ceilingLines,
-              ...ndlLines,
-              ...ppO2Lines,
-              ...ppN2Lines,
-              ...ppHeLines,
-              ...o2CellRug,
-              ...o2CellMvLines,
-              ...modLines,
-              ...densityLines,
-              ...gfLines,
-              ...surfaceGfLines,
-              ...meanDepthLines,
-              ...ttsLines,
-              ...gtrLines,
-              ...cnsLines,
-              ...otuLines,
-            ];
-          }),
-          ..._barsCache.series('markers', _markersSig, () {
-            // Profile markers (max depth, pressure thresholds):
-            // zero-width dot markers, not right-axis metric lines.
-            final markerLines = _buildMarkerLines(
-              units,
-              metricBand,
-              minPressure: minPressure,
-              maxPressure: maxPressure,
-            );
-            _markersTags = List<Object?>.filled(markerLines.length, null);
-            return markerLines;
-          }),
-          ..._barsCache.series('overlays', _overlaysSig, () {
-            // Overlaid comparison sources — LAST, so depth bars keep
-            // occupying the leading barIndex range (_depthBarCount).
-            //
-            // Left entirely untagged (null): a single overlay can
-            // contribute a data-dependent number of lines across
-            // several different metrics (depth, temperature, deco
-            // band, ceiling, NDL, TTS, ppO2, ...), each gated by its
-            // own nested "if data present" check inside
-            // _buildOverlayLines. Re-deriving, per overlay, which
-            // metric each returned bar corresponds to would mean
-            // duplicating that whole conditional chain a second
-            // time here, with every duplication a chance to
-            // miscount and mislabel a bar -- exactly the failure
-            // mode called out as higher-risk than simply not
-            // highlighting an overlay line.
-            final overlayLines = _buildOverlayLines(
-              units,
-              metricBand,
-              minTemp,
-              maxTemp,
-            );
-            _overlaysTags = List<Object?>.filled(overlayLines.length, null);
-            return overlayLines;
-          }),
-        ],
-      ),
     );
 
-    // Parallel to combinedBars: the metric each bar represents, or null
-    // when it has none (see the per-group tag fields set as a side effect
-    // inside the _barsCache.series closures above). Windowing
-    // (_windowedBars) keeps a strict 1:1 index correspondence, so these
-    // indices stay valid against the windowed bars fl_chart is actually
-    // given.
-    final lineMetricTags = <Object?>[
-      ..._baseTags,
-      ..._sacTags,
-      ..._ascentTags,
-      ..._analysisTags,
-      ..._markersTags,
-      ..._overlaysTags,
-    ];
+    // Parallel to combinedBars: the metric each bar represents, or null when
+    // it has none. Built from the same [combinedPairs] the bars themselves
+    // came from, so it cannot drift out of positional sync the way two
+    // separately-built, equal-length lists could. Windowing (_windowedBars)
+    // keeps a strict 1:1 index correspondence (it only cuts each bar's own
+    // spots, never reorders or drops a whole bar), so these indices stay
+    // valid against the windowed bars fl_chart is actually given.
+    final lineMetricTags = [for (final pair in combinedPairs) pair.tag];
 
     // The line under the cursor/touch (see the touchCallback below) is
     // drawn slightly thicker than its neighbours.
