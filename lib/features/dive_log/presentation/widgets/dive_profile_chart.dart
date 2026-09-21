@@ -37,8 +37,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_bar_wi
 import 'package:submersion/features/dive_log/presentation/widgets/ascent_rate_bar_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_agreement.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_lines.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/partial_pressure_line_builders.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_line_builders.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_right_axis_metric_labels.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/tank_line_builders.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/range_selection_overlay.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
