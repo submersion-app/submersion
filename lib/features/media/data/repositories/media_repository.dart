@@ -1763,6 +1763,12 @@ class MediaRepository {
     if (mediaIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
+      // The enrichment is dive-scoped (depth and elapsed time on THAT dive's
+      // profile) and its FK is NOT NULL with a cascade, so the dive rows
+      // about to be deleted would take it with them silently. Drop it here
+      // instead, with tombstones, or a peer re-adds it on its next publish
+      // (media sync program spec 5.3).
+      await _dropEnrichmentRows(mediaIds);
       await (_db.update(_db.media)..where((t) => t.id.isIn(mediaIds))).write(
         MediaCompanion(diveId: const Value(null), updatedAt: Value(now)),
       );
