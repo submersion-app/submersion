@@ -93,19 +93,32 @@ void main() {
       expect(position.dy, 100);
     });
 
-    test('keeps tracking the cursor even when the cursor is high enough '
-        'that the box (at its own real height) would rise above the plot '
-        '-- there is deliberately no clamp on this side, so the bottom '
-        'edge is always exactly at the cursor (issue #2228 follow-up: a '
-        'clamp here once pushed the bottom away from the cursor instead, '
-        'which read as the tooltip getting stuck)', () {
+    test('still tracks the cursor near the plot\'s top edge for an '
+        'ordinarily-sized box that comes nowhere near the hard ceiling', () {
       final position = computeTooltipBoxPosition(
         cursorLocal: const Offset(50, 10),
-        boxSize: const Size(80, 400),
+        boxSize: const Size(80, 40),
         plotRect: _plotRect,
         gap: 8,
       );
       expect(position.dy, 10);
+    });
+
+    test('detaches from the cursor once the box is tall enough that its '
+        'real height would push its top past the hard ceiling -- it stops '
+        'rising there instead of continuing to grow off the top of the '
+        'chart entirely (issue #2228 follow-up: an earlier version had no '
+        'ceiling at all here, which let the box wander arbitrarily far '
+        'above the chart)', () {
+      const boxHeight = 400.0;
+      final position = computeTooltipBoxPosition(
+        cursorLocal: const Offset(50, 10),
+        boxSize: const Size(80, boxHeight),
+        plotRect: _plotRect,
+        gap: 8,
+      );
+      final ceiling = _plotRect.top - tooltipCeilingHeadroom;
+      expect(position.dy, ceiling + boxHeight);
     });
 
     test('stops following the cursor once it goes low enough that the '
@@ -303,34 +316,50 @@ void main() {
       expect(shrunkWidth, lessThan(unshrunkWidth));
     });
 
-    testWidgets(
-      'the box\'s bottom edge stays exactly at the cursor even with enough '
-      'rows that it must grow above the container to do so (issue #2228 '
-      'follow-up: clamping the top instead pushed the bottom away from the '
-      'cursor, which read as the tooltip getting stuck instead of '
-      'following the pointer)',
-      (tester) async {
-        const cursorLocal = Offset(100, 10);
-        final rows = [
-          for (var i = 0; i < 20; i++)
-            TooltipRow(
-              label: 'Metric $i',
-              value: '$i.0',
-              bulletColor: AppColors.chartDepth,
-            ),
-        ];
-        await tester.pumpWidget(harness(rows: rows, cursorLocal: cursorLocal));
-        await tester.pump();
+    testWidgets('the box\'s bottom edge stays exactly at the cursor for an '
+        'ordinary row count nowhere near the hard ceiling', (tester) async {
+      const cursorLocal = Offset(100, 10);
+      const rows = [
+        TooltipRow(label: 'Time', value: '1:23', bulletColor: Colors.blue),
+        TooltipRow(label: 'Depth', value: '12.3 m', bulletColor: Colors.blue),
+        TooltipRow(label: 'Temp', value: '18°C', bulletColor: Colors.blue),
+      ];
+      await tester.pumpWidget(harness(rows: rows, cursorLocal: cursorLocal));
+      await tester.pump();
 
-        final containerTop = tester
-            .getTopLeft(find.byType(ProfileCursorTooltip))
-            .dy;
-        final boxBottom = tester
-            .getRect(find.byType(DecoratedBox).first)
-            .bottom;
-        expect(boxBottom, closeTo(containerTop + cursorLocal.dy, 0.5));
-      },
-    );
+      final containerTop = tester
+          .getTopLeft(find.byType(ProfileCursorTooltip))
+          .dy;
+      final boxBottom = tester.getRect(find.byType(DecoratedBox).first).bottom;
+      expect(boxBottom, closeTo(containerTop + cursorLocal.dy, 0.5));
+    });
+
+    testWidgets('detaches from the cursor once enough rows are active that the '
+        'box\'s real height would carry it past its hard ceiling, instead '
+        'of continuing to rise indefinitely (issue #2228 follow-up)', (
+      tester,
+    ) async {
+      const cursorLocal = Offset(100, 10);
+      final rows = [
+        for (var i = 0; i < 60; i++)
+          TooltipRow(
+            label: 'Metric $i',
+            value: '$i.0',
+            bulletColor: AppColors.chartDepth,
+          ),
+      ];
+      await tester.pumpWidget(harness(rows: rows, cursorLocal: cursorLocal));
+      await tester.pump();
+
+      final containerTop = tester
+          .getTopLeft(find.byType(ProfileCursorTooltip))
+          .dy;
+      final boxBottom = tester.getRect(find.byType(DecoratedBox).first).bottom;
+      // Had it kept tracking the cursor, the bottom would sit right at
+      // containerTop + 10; the ceiling instead holds it well below that
+      // (bottom = ceiling + box height), clear evidence it detached.
+      expect(boxBottom, greaterThan(containerTop + 50));
+    });
 
     testWidgets('bolds the label of the row matching highlightedMetric, leaves '
         'others normal', (tester) async {

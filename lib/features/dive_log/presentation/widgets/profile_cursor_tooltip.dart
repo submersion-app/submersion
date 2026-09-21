@@ -11,12 +11,17 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_c
 /// cursor line rather than sitting clearly beside it.
 const double tooltipCursorGap = 40;
 
-/// The tooltip box's highest allowed top edge: [plotRect.top] plus this
-/// margin. The box's bottom edge otherwise tracks the cursor's Y (see
-/// [computeTooltipBoxPosition]), growing upward from it; this is only the
-/// ceiling for when the cursor sits high enough that the box would
-/// otherwise be pushed above the plot.
+/// Margin the box's bottom edge keeps clear of `plotRect.bottom` when the
+/// cursor is low enough to otherwise push it into the safety-lane area
+/// below the plot (see [computeTooltipBoxPosition]).
 const double tooltipTopMargin = 8;
+
+/// How far above the plot's top edge the tooltip box may grow before it
+/// hits its hard ceiling and stops rising (see [computeTooltipBoxPosition])
+/// -- generous enough for the legend row above the chart, but finite, so
+/// the box can never wander past that into space that does not belong to
+/// the chart at all.
+const double tooltipCeilingHeadroom = 200;
 
 /// Cap on the tooltip box's content width, carried over from the old
 /// fl_chart bubble's `maxContentWidth: 320` -- wide enough for a tank row
@@ -46,7 +51,7 @@ double? _cachedRowTextHeight;
 /// Overestimating here is the safe direction -- it only pushes the box a
 /// little further than strictly necessary -- while underestimating is what
 /// let the box overlap whatever sits above the chart in the first place.
-const double _rowHeightSafetyFactor = 1.4;
+const double _rowHeightSafetyFactor = 1.15;
 
 /// Real height of one tooltip row at [tooltipBaseFontSize] and scale 1.0,
 /// measured with a [TextPainter] using the exact same font as the rendered
@@ -125,21 +130,22 @@ double computeTooltipScaleFactor({
 /// Vertically, the returned Y is the box's bottom edge, at the cursor's Y --
 /// the caller positions the box with a `bottom` (not `top`) offset derived
 /// from it, so the box grows upward from exactly the cursor's height
-/// regardless of the box's own real (as-laid-out) height. It always tracks
-/// the cursor this way, with one exception: it stops following once the
-/// cursor goes low enough that the bottom edge would otherwise pass
-/// `plotRect.bottom - tooltipTopMargin` (so it never trails into the
-/// safety-lane area below the plot).
-///
-/// There is deliberately no matching clamp on the *high* side: with enough
-/// active metrics the box can be taller than the room between the cursor
-/// and the plot's top edge, and a clamp that pushed the bottom down to
-/// compensate would leave the box no longer at the cursor's height at all
-/// (issue #2228 follow-up -- this was tried and reads as the tooltip
-/// getting stuck instead of following the pointer). Letting it grow above
-/// the plot instead (the caller's Clip.none) keeps the one thing that
-/// matters here true unconditionally: the bottom edge is always exactly
-/// where the cursor is.
+/// regardless of the box's own real (as-laid-out) height. It tracks the
+/// cursor this way except at its two edges:
+/// - low: it stops following once the cursor goes low enough that the
+///   bottom edge would otherwise pass `plotRect.bottom - tooltipTopMargin`
+///   (so it never trails into the safety-lane area below the plot);
+/// - high: with enough active metrics the box can be taller than the room
+///   between the cursor and the plot's top edge. [boxSize] lets it grow
+///   above the plot into whatever the caller's Clip.none exposes above it
+///   (the legend), but not past `plotRect.top - tooltipCeilingHeadroom` --
+///   past that hard ceiling it stops rising, and the bottom edge detaches
+///   from the cursor rather than the box continuing to grow off the top of
+///   the chart entirely (issue #2228 follow-up: an earlier version of this
+///   clamp used a height estimate inflated enough that it triggered long
+///   before the box was actually that tall, which read as the tooltip
+///   getting stuck instead of following the pointer -- this one only ever
+///   engages once the box's real height genuinely reaches the ceiling).
 Offset computeTooltipBoxPosition({
   required Offset cursorLocal,
   required Size boxSize,
@@ -157,7 +163,15 @@ Offset computeTooltipBoxPosition({
   left = left.clamp(minLeft, minLeft > maxLeft ? minLeft : maxLeft);
 
   final maxBottom = plotRect.bottom - tooltipTopMargin;
-  final bottom = cursorLocal.dy > maxBottom ? maxBottom : cursorLocal.dy;
+  var bottom = cursorLocal.dy > maxBottom ? maxBottom : cursorLocal.dy;
+
+  // Hard ceiling: once the box's own real height would push its top past
+  // this point, it stops rising -- the bottom edge detaches from the
+  // cursor rather than the box continuing to grow off the top of the
+  // chart entirely.
+  final ceiling = plotRect.top - tooltipCeilingHeadroom;
+  final minBottom = ceiling + boxSize.height;
+  if (bottom < minBottom) bottom = minBottom;
 
   return Offset(left, bottom);
 }
