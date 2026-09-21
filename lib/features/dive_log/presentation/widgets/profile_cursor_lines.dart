@@ -1,5 +1,6 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+
+import 'package:fl_chart/fl_chart.dart';
 
 /// Build vertical line for playback cursor
 List<VerticalLine> buildPlaybackCursor(

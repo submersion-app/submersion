@@ -4302,7 +4302,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     (_showDecoStops &&
                         decoStopCurve != null &&
                         resolvedTouch != null &&
-                        resolvedTouch.index < decoStopCurve.length)
+                        resolvedTouch.index < decoStopCurve.length &&
+                        // 0 means no deco obligation at that sample (see
+                        // quantizeCeilingToStops) -- without this, hovering a
+                        // no-deco dive drew a stray focus dot pinned to the
+                        // surface line at every sample.
+                        decoStopCurve[resolvedTouch.index] > 0)
                     ? resolvedTouch.index
                     : null;
                 if (decoStopTouchIndex != _decoStopTouchIndex) {
