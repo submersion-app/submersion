@@ -79,7 +79,9 @@ Widget _buildChartHarness({
             ceilingCurve: ceilingCurve,
             decoStopCurve: decoStopCurve,
             showDecoStops: showDecoStops,
-            tooltipBelow: tooltipBelow,
+            tooltipPresentation: tooltipBelow
+                ? TooltipPresentation.external
+                : TooltipPresentation.inChart,
             onTooltipData: onTooltipData,
           ),
         ),

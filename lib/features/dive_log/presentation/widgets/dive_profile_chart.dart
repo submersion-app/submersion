@@ -74,6 +74,28 @@ const double ceilingFillAlpha = 0.10;
 /// hover-highlight/bold-row treatment every axis-driven metric gets.
 enum ChartOnlyMetric { ceiling, decoStop, mod }
 
+/// Which of the three mutually exclusive ways [DiveProfileChart] shows the
+/// touched/hovered sample's readout.
+enum TooltipPresentation {
+  /// The default: a custom, cursor-following box drawn as a chart overlay
+  /// ([ProfileCursorTooltip]), clamped to the plot rect.
+  inChart,
+
+  /// fl_chart's own built-in tooltip bubble (dark, positioned above the
+  /// chart box by fl_chart itself, not clipped to the plot rect) instead of
+  /// [inChart]'s [ProfileCursorTooltip]. This is the pre-issue-#2228
+  /// in-chart presentation, restored for the dive detail page's embedded
+  /// chart specifically: it needs the box to land in exactly the same place
+  /// it always has, not a new approximation of that placement. The
+  /// fullscreen page keeps [inChart].
+  nativeBubble,
+
+  /// The built-in tooltip is suppressed; tooltip data is emitted via
+  /// [DiveProfileChart.onTooltipData] instead, so callers can render it
+  /// externally (e.g. below the chart in the profile panel).
+  external,
+}
+
 /// One physical O2 sensor's millivolt line/tooltip row (issue #2228
 /// follow-up). All cells previously shared the single
 /// [ProfileRightAxisMetric.o2CellMv] tag, so hovering any one cell's line
@@ -301,11 +323,11 @@ class DiveProfileChart extends ConsumerStatefulWidget {
 
   /// Whether step-through playback is currently auto-advancing
   /// [highlightedTimestamp]. While true, the in-chart cursor tooltip
-  /// (`!tooltipBelow`) follows the playback position instead of the mouse,
-  /// since the pointer sitting still somewhere else must not keep the
-  /// tooltip pinned to a stale sample while the playback line sweeps past
-  /// it. Regains the mouse's own position as soon as this turns false
-  /// (paused or stopped).
+  /// ([TooltipPresentation.inChart]) follows the playback position instead
+  /// of the mouse, since the pointer sitting still somewhere else must not
+  /// keep the tooltip pinned to a stale sample while the playback line
+  /// sweeps past it. Regains the mouse's own position as soon as this turns
+  /// false (paused or stopped).
   final bool playbackIsPlaying;
 
   /// Optional time range to emphasize (e.g. the selected safety finding).
@@ -417,26 +439,15 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// computers contribute pressure curves to the same chart.
   final Map<String, String>? computerNames;
 
-  /// When true, the built-in tooltip is suppressed and tooltip data is
-  /// emitted via [onTooltipData] so callers can render it externally
-  /// (e.g., below the chart in the profile panel).
-  final bool tooltipBelow;
-
-  /// Renders fl_chart's own built-in tooltip bubble (dark, positioned above
-  /// the chart box by fl_chart itself, not clipped to the plot rect) instead
-  /// of the custom cursor-following [ProfileCursorTooltip]. This is the
-  /// pre-issue-#2228 in-chart presentation, restored for the dive detail
-  /// page's embedded chart specifically: it needs the box to land in
-  /// exactly the same place it always has, not a new approximation of that
-  /// placement. The fullscreen page keeps the newer cursor-following
-  /// tooltip. Ignored when [tooltipBelow] is true (nothing is drawn
-  /// in-chart then).
-  final bool tooltipNativeBubble;
+  /// Which of the three mutually exclusive tooltip presentations this chart
+  /// uses. See [TooltipPresentation].
+  final TooltipPresentation tooltipPresentation;
 
   /// Called with structured tooltip row data whenever a point is touched,
-  /// while [tooltipBelow] is true -- the dive-list panel's own fixed-below
-  /// overlay is the only consumer, since the in-chart tooltip presentations
-  /// render themselves. Null clears it (an active touch ending).
+  /// while [tooltipPresentation] is [TooltipPresentation.external] -- the
+  /// dive-list panel's own fixed-below overlay is the only consumer, since
+  /// the in-chart tooltip presentations render themselves. Null clears it
+  /// (an active touch ending).
   final void Function(List<TooltipRow>? rows)? onTooltipData;
 
   /// Optional widget rendered at the start of the legend row (e.g. a close
@@ -466,8 +477,8 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   }
 
   /// Column widths for [tooltipRowText], used by this widget's own native
-  /// bubble (`tooltipNativeBubble`) to align its monospace label/value
-  /// columns.
+  /// bubble ([TooltipPresentation.nativeBubble]) to align its monospace
+  /// label/value columns.
   static const tooltipLabelChars = 8;
   static const tooltipValueChars = 16;
 
@@ -709,8 +720,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.overlays,
     this.activeComputerId,
     this.computerNames,
-    this.tooltipBelow = false,
-    this.tooltipNativeBubble = false,
+    this.tooltipPresentation = TooltipPresentation.inChart,
     this.onTooltipData,
     this.legendLeading,
   });
@@ -1130,13 +1140,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   int _activePointerCount = 0;
 
   // Rows for the in-chart cursor tooltip ([ProfileCursorTooltip]), the
-  // `!tooltipBelow` path's counterpart to onTooltipData. Populated from the
-  // same shared row builder as onTooltipData ([_buildTooltipRowsForIndex]),
-  // via the touch callback below, and cleared on touch end.
+  // [TooltipPresentation.inChart] path's counterpart to onTooltipData.
+  // Populated from the same shared row builder as onTooltipData
+  // ([_buildTooltipRowsForIndex]), via the touch callback below, and cleared
+  // on touch end.
   List<TooltipRow> _liveCursorTooltipRows = const [];
 
-  // Memoizes the native bubble's getTooltipItems result (tooltipNativeBubble)
-  // so a pointer sitting still over the same sample -- fl_chart calls this on
+  // Memoizes the native bubble's getTooltipItems result
+  // ([TooltipPresentation.nativeBubble]) so a pointer sitting still over the
+  // same sample -- fl_chart calls this on
   // every touch/hover event, including repeated ones with nothing changed --
   // rebuilds nothing. Keyed on everything the built rows/styling actually
   // depend on: the resolved sample, whether it's the surface lead-in vertex,
@@ -1552,7 +1564,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// and empties the panel's tooltip, whereas a paused or released cursor
   /// should leave the last values standing.
   void _scheduleCursorReadout() {
-    if (!widget.tooltipBelow || widget.onTooltipData == null) return;
+    if (widget.tooltipPresentation != TooltipPresentation.external ||
+        widget.onTooltipData == null) {
+      return;
+    }
     final timestamp = widget.highlightedTimestamp;
     if (timestamp == null) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1709,7 +1724,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   }
 
   /// Build and emit [TooltipRow] data for external rendering when
-  /// [DiveProfileChart.tooltipBelow] is true.
+  /// [DiveProfileChart.tooltipPresentation] is [TooltipPresentation.external].
   void _emitExternalTooltip(
     List<LineBarSpot> touchedSpots,
     UnitFormatter units,
@@ -1792,7 +1807,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// consumers: the [DiveProfileChart.onTooltipData] external readout (via
   /// [_emitTooltipRowsForIndex]), the cursor-following in-chart tooltip
   /// ([ProfileCursorTooltip], via the touch callback below), and
-  /// [DiveProfileChart.tooltipNativeBubble]'s own `getTooltipItems` below.
+  /// [TooltipPresentation.nativeBubble]'s own `getTooltipItems` below.
   /// Keeping one builder is what keeps a played-back dive and a
   /// hand-scrubbed one, and every tooltip presentation, reading identically.
   ///
@@ -4135,9 +4150,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 if (widget.onPointSelected != null ||
                     widget.onTimeSelected != null ||
                     widget.onTooltipData != null) {
+                  final isExternal =
+                      widget.tooltipPresentation ==
+                      TooltipPresentation.external;
                   if (isTouchEnd) {
                     _reportSelection(null);
-                    if (widget.tooltipBelow) {
+                    if (isExternal) {
                       widget.onTooltipData?.call(null);
                     }
                   } else if (resolvedTouch != null) {
@@ -4148,7 +4166,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                       resolvedTouch.index,
                       onLeadIn: resolvedTouch.onLeadIn,
                     );
-                    if (widget.tooltipBelow && widget.onTooltipData != null) {
+                    if (isExternal && widget.onTooltipData != null) {
                       final settings = ref.read(settingsProvider);
                       final units = UnitFormatter(settings);
                       _emitExternalTooltip(
@@ -4160,11 +4178,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   }
                 }
                 // The in-chart cursor tooltip's rows: only the
-                // ProfileCursorTooltip path (`!tooltipBelow &&
-                // !tooltipNativeBubble`) reads _liveCursorTooltipRows, so
-                // building it elsewhere would be wasted work every pointer
-                // move.
-                if (!widget.tooltipBelow && !widget.tooltipNativeBubble) {
+                // ProfileCursorTooltip path (TooltipPresentation.inChart)
+                // reads _liveCursorTooltipRows, so building it elsewhere
+                // would be wasted work every pointer move.
+                if (widget.tooltipPresentation == TooltipPresentation.inChart) {
                   final rows = resolvedTouch == null
                       ? const <TooltipRow>[]
                       : _buildTooltipRowsForIndex(
@@ -4180,7 +4197,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
                 // Hover-highlight the touched line and auto-switch the right
                 // axis to its metric (issue #2228 follow-up). Independent of
-                // tooltipBelow: it highlights the chart's own lines
+                // tooltipPresentation: it highlights the chart's own lines
                 // regardless of which tooltip surface is showing their
                 // values.
                 final cursor = _lastPointerLocal;
@@ -4319,26 +4336,29 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 }
               },
               touchTooltipData: LineTouchTooltipData(
-                // fl_chart's own bubble is suppressed for tooltipBelow
-                // (rendered externally via widget.onTooltipData) and for
-                // the default in-chart path (rendered by
+                // fl_chart's own bubble is suppressed for
+                // TooltipPresentation.external (rendered externally via
+                // widget.onTooltipData) and for .inChart (rendered by
                 // ProfileCursorTooltip, a Stack layer below, instead).
-                // tooltipNativeBubble restores this bubble exactly as it
-                // rendered before issue #2228 introduced
-                // ProfileCursorTooltip: fitInsideVertically: false with
-                // showOnTopOfTheChartBoxArea: true lets it sit above the
-                // whole chart box rather than being fitted -- and
-                // therefore repositioned or clipped -- against the plot.
+                // .nativeBubble restores this bubble exactly as it rendered
+                // before issue #2228 introduced ProfileCursorTooltip:
+                // fitInsideVertically: false with showOnTopOfTheChartBoxArea:
+                // true lets it sit above the whole chart box rather than
+                // being fitted -- and therefore repositioned or clipped --
+                // against the plot.
                 maxContentWidth: 320,
                 fitInsideHorizontally: true,
                 fitInsideVertically: false,
                 showOnTopOfTheChartBoxArea: true,
                 tooltipMargin: 0,
-                getTooltipColor: widget.tooltipNativeBubble
+                getTooltipColor:
+                    widget.tooltipPresentation ==
+                        TooltipPresentation.nativeBubble
                     ? (_) => Theme.of(context).colorScheme.inverseSurface
                     : (_) => Colors.transparent,
                 getTooltipItems: (touchedSpots) {
-                  if (!widget.tooltipNativeBubble) {
+                  if (widget.tooltipPresentation !=
+                      TooltipPresentation.nativeBubble) {
                     return touchedSpots.map((_) => null).toList();
                   }
                   final starts = _depthBarStartIndices();
@@ -4662,14 +4682,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               onDragActiveChanged: (active) => _rangeDragActive = active,
             ),
           ),
-        // In-chart cursor tooltip: the default (`!tooltipBelow &&
-        // !tooltipNativeBubble`) path's own rendering of the touched/
-        // hovered sample -- or, while playback is running, of the playback
-        // position instead (see [playbackCursorTooltip] above). IgnorePointer,
-        // like the other widget-layer overlays above, so it never steals the
-        // touch/hover that positions it.
-        if (!widget.tooltipBelow &&
-            !widget.tooltipNativeBubble &&
+        // In-chart cursor tooltip: TooltipPresentation.inChart's own
+        // rendering of the touched/hovered sample -- or, while playback is
+        // running, of the playback position instead (see
+        // [playbackCursorTooltip] above). IgnorePointer, like the other
+        // widget-layer overlays above, so it never steals the touch/hover
+        // that positions it.
+        if (widget.tooltipPresentation == TooltipPresentation.inChart &&
             tooltipCursorLocal != null &&
             tooltipRows.isNotEmpty)
           Positioned.fill(

@@ -108,7 +108,9 @@ Widget _harness({
                 analysis: _fullOverlayAnalysis(),
               ),
             ],
-            tooltipBelow: tooltipBelow,
+            tooltipPresentation: tooltipBelow
+                ? TooltipPresentation.external
+                : TooltipPresentation.inChart,
             onTooltipData: onTooltipData,
           ),
         ),

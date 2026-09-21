@@ -119,9 +119,10 @@ void main() {
       find.byType(DiveProfileChart),
     );
     // Cursor-following ProfileCursorTooltip (issue #2228 follow-up): the
-    // old clipping concern that used to justify tooltipBelow here no
-    // longer applies, since that tooltip clamps to the plot rect itself.
-    expect(chart.tooltipBelow, isFalse);
+    // old clipping concern that used to justify the external presentation
+    // here no longer applies, since that tooltip clamps to the plot rect
+    // itself.
+    expect(chart.tooltipPresentation, TooltipPresentation.inChart);
   });
 
   testWidgets('chart fills most of the screen height', (tester) async {

@@ -370,10 +370,10 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           diveDuration: dive.effectiveRuntime,
                           maxDepth: dive.maxDepth,
                           // Uses the default cursor-following in-chart
-                          // tooltip (issue #2228 follow-up), same as the dive
-                          // detail page: it clamps to the plot rect itself,
-                          // so the old clipping concern that used to justify
-                          // tooltipBelow here no longer applies.
+                          // tooltip (TooltipPresentation.inChart, issue #2228
+                          // follow-up): it clamps to the plot rect itself, so
+                          // the old clipping concern that used to justify the
+                          // external presentation here no longer applies.
                           playbackIsPlaying: playbackIsPlaying,
                           legendLeading: Row(
                             mainAxisSize: MainAxisSize.min,

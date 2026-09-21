@@ -115,8 +115,7 @@ class DiveProfileChartHost extends ConsumerWidget {
     required this.dive,
     this.exportKey,
     this.legendLeading,
-    this.tooltipBelow = false,
-    this.tooltipNativeBubble = false,
+    this.tooltipPresentation = TooltipPresentation.inChart,
     this.onTooltipData,
     this.onSafetyFindingDetails,
   });
@@ -132,15 +131,9 @@ class DiveProfileChartHost extends ConsumerWidget {
   /// button and title).
   final Widget? legendLeading;
 
-  /// Hand tooltip rows to the host instead of painting them over the plot.
-  /// Needed where there is no headroom above the chart for the painted
-  /// tooltip to land in.
-  final bool tooltipBelow;
-
-  /// Renders fl_chart's own built-in tooltip bubble instead of the custom
-  /// cursor-following [ProfileCursorTooltip]. See
-  /// [DiveProfileChart.tooltipNativeBubble].
-  final bool tooltipNativeBubble;
+  /// Which of the three mutually exclusive ways the hosted chart shows the
+  /// touched/hovered sample's readout. See [TooltipPresentation].
+  final TooltipPresentation tooltipPresentation;
 
   final void Function(List<TooltipRow>? rows)? onTooltipData;
 
@@ -366,8 +359,7 @@ class DiveProfileChartHost extends ConsumerWidget {
         diveDuration: dive.effectiveRuntime,
         maxDepth: dive.maxDepth,
         legendLeading: legendLeading,
-        tooltipBelow: tooltipBelow,
-        tooltipNativeBubble: tooltipNativeBubble,
+        tooltipPresentation: tooltipPresentation,
         onTooltipData: onTooltipData,
         ceilingCurve: analysis?.ceilingCurve,
         decoStopCurve: analysis?.decoStopCurve,

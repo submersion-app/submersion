@@ -98,6 +98,8 @@ import 'package:submersion/features/dive_log/presentation/providers/active_sourc
 import 'package:submersion/features/dive_log/presentation/widgets/compact_deco_status_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/compact_tissue_loading_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/cylinders_card.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart'
+    show TooltipPresentation;
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart_host.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_card.dart';
@@ -2024,7 +2026,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               // than by the custom ProfileCursorTooltip used elsewhere.
               // Restored after the custom in-chart tooltip's own upward-
               // growth approximation still did not land in the same place.
-              tooltipNativeBubble: true,
+              tooltipPresentation: TooltipPresentation.nativeBubble,
             ),
             // Profile point count (bottom-right, inline with x-axis)
             Align(

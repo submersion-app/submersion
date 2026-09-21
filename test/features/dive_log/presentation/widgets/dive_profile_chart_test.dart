@@ -239,8 +239,11 @@ Widget _buildChart({
             gasSwitches: gasSwitches,
             gasSegments: gasSegments,
             diveDurationSeconds: diveDurationSeconds,
-            tooltipBelow: tooltipBelow,
-            tooltipNativeBubble: tooltipNativeBubble,
+            tooltipPresentation: tooltipBelow
+                ? TooltipPresentation.external
+                : tooltipNativeBubble
+                ? TooltipPresentation.nativeBubble
+                : TooltipPresentation.inChart,
             onTooltipData: onTooltipData,
             onPointSelected: onPointSelected,
             playbackTimestamp: playbackTimestamp,
@@ -331,7 +334,9 @@ Widget _buildChartAllMetrics({
             markers: markers,
             showMaxDepthMarker: showMaxDepthMarker,
             showPressureThresholdMarkers: showPressureThresholdMarkers,
-            tooltipBelow: tooltipBelow,
+            tooltipPresentation: tooltipBelow
+                ? TooltipPresentation.external
+                : TooltipPresentation.inChart,
             onTooltipData: onTooltipData,
             onPointSelected: onPointSelected,
           ),
