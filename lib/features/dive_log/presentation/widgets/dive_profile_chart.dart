@@ -1778,6 +1778,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     );
   }
 
+  /// `curve[index]` if in range, else null -- the "does this sample have a
+  /// reading" lookup every curve-backed tooltip row in
+  /// [_buildTooltipRowsForIndex] starts from, replacing that method's
+  /// repeated `final hasX = curve != null && index < curve!.length;` guard.
+  static T? _curveValueAt<T>(List<T>? curve, int index) =>
+      curve != null && index < curve.length ? curve[index] : null;
+
   /// Build the readout rows describing profile sample [index], without
   /// emitting them anywhere.
   ///
@@ -1872,14 +1879,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // for this sample -- a toggled-on row disappearing entirely reads as the
     // toggle having silently failed, issue #2228 follow-up).
     if (_showCeiling) {
-      final hasCeiling =
-          widget.ceilingCurve != null &&
-          spot.spotIndex < widget.ceilingCurve!.length;
-      final ceiling = hasCeiling ? widget.ceilingCurve![spot.spotIndex] : 0.0;
+      final ceiling = _curveValueAt(widget.ceilingCurve, spot.spotIndex);
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_ceiling,
-          value: hasCeiling && ceiling > 0 ? units.formatDepth(ceiling) : '-',
+          value: ceiling != null && ceiling > 0
+              ? units.formatDepth(ceiling)
+              : '-',
           bulletColor: const Color(0xFF7B1FA2),
           metric: ChartOnlyMetric.ceiling,
         ),
@@ -1909,12 +1915,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // every recreational dive. An in-range-but-short curve (decimation edge
     // case) still falls back to a placeholder, same as every other row.
     if (_showDecoStops && widget.decoStopCurve != null) {
-      final hasStop = spot.spotIndex < widget.decoStopCurve!.length;
-      final stop = hasStop ? widget.decoStopCurve![spot.spotIndex] : 0.0;
+      final stop = _curveValueAt(widget.decoStopCurve, spot.spotIndex) ?? 0.0;
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_decoStop,
-          value: hasStop && stop > 0 ? units.formatDepth(stop) : '-',
+          value: stop > 0 ? units.formatDepth(stop) : '-',
           bulletColor: decoStopBandColor,
           metric: ChartOnlyMetric.decoStop,
         ),
@@ -2061,15 +2066,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // ppO2 (computer-supplied value or O2 cell average) plus each sensor
     // cell. Always shown once enabled; see the comment on the Ceiling row.
     if (_showPpO2) {
-      final hasPpO2 =
-          widget.ppO2Curve != null && spot.spotIndex < widget.ppO2Curve!.length;
+      final ppO2 = _curveValueAt(widget.ppO2Curve, spot.spotIndex);
       rows.add(
         TooltipRow(
           label: widget.ppO2FromSensorAverage
               ? '${context.l10n.diveLog_tooltip_ppO2} ${context.l10n.diveLog_tooltip_avgCalculated}'
               : context.l10n.diveLog_tooltip_ppO2,
-          value: hasPpO2
-              ? '${_readoutValue(widget.ppO2Curve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} ${l10n.units_pressure_bar}'
+          value: ppO2 != null
+              ? '${_readoutValue(ppO2, onLeadIn).toStringAsFixed(2)} ${l10n.units_pressure_bar}'
               : '-',
           bulletColor: const Color(0xFF00ACC1),
           metric: ProfileRightAxisMetric.ppO2,
@@ -2099,13 +2103,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     // ppN2 (always shown once enabled; see the comment on the Ceiling row).
     if (_showPpN2) {
-      final hasPpN2 =
-          widget.ppN2Curve != null && spot.spotIndex < widget.ppN2Curve!.length;
+      final ppN2 = _curveValueAt(widget.ppN2Curve, spot.spotIndex);
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_ppN2,
-          value: hasPpN2
-              ? '${_readoutValue(widget.ppN2Curve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} ${l10n.units_pressure_bar}'
+          value: ppN2 != null
+              ? '${_readoutValue(ppN2, onLeadIn).toStringAsFixed(2)} ${l10n.units_pressure_bar}'
               : '-',
           bulletColor: Colors.indigo,
           metric: ProfileRightAxisMetric.ppN2,
@@ -2128,13 +2131,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // ppHe (always shown once enabled, even on a non-trimix dive or where
     // the curve has no data for this sample; see the Ceiling row comment).
     if (_showPpHe) {
-      final hasPpHe =
-          widget.ppHeCurve != null && spot.spotIndex < widget.ppHeCurve!.length;
-      final ppHe = hasPpHe ? widget.ppHeCurve![spot.spotIndex] : 0.0;
+      final ppHe = _curveValueAt(widget.ppHeCurve, spot.spotIndex);
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_ppHe,
-          value: hasPpHe && ppHe > 0.001
+          value: ppHe != null && ppHe > 0.001
               ? '${_readoutValue(ppHe, onLeadIn).toStringAsFixed(2)} ${l10n.units_pressure_bar}'
               : '-',
           bulletColor: Colors.pink.shade300,
@@ -2158,13 +2159,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     // MOD (always shown once enabled; see the comment on the Ceiling row).
     if (_showMod) {
-      final hasMod =
-          widget.modCurve != null && spot.spotIndex < widget.modCurve!.length;
-      final mod = hasMod ? widget.modCurve![spot.spotIndex] : 0.0;
+      final mod = _curveValueAt(widget.modCurve, spot.spotIndex);
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_mod,
-          value: hasMod && mod > 0 && mod < 200 ? units.formatDepth(mod) : '-',
+          value: mod != null && mod > 0 && mod < 200
+              ? units.formatDepth(mod)
+              : '-',
           bulletColor: const Color(0xFFFFB300),
           metric: ChartOnlyMetric.mod,
         ),
@@ -2185,14 +2186,12 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     // Gas density (always shown once enabled; see the Ceiling row comment).
     if (_showDensity) {
-      final hasDensity =
-          widget.densityCurve != null &&
-          spot.spotIndex < widget.densityCurve!.length;
+      final density = _curveValueAt(widget.densityCurve, spot.spotIndex);
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_density,
-          value: hasDensity
-              ? '${_readoutValue(widget.densityCurve![spot.spotIndex], onLeadIn).toStringAsFixed(2)} ${l10n.units_profileMetric_gPerL}'
+          value: density != null
+              ? '${_readoutValue(density, onLeadIn).toStringAsFixed(2)} ${l10n.units_profileMetric_gPerL}'
               : '-',
           bulletColor: const Color(0xFF827717),
           metric: ProfileRightAxisMetric.gasDensity,
@@ -2214,14 +2213,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     // GF% (always shown once enabled; see the Ceiling row comment).
     if (_showGf) {
-      final hasGf =
-          widget.gfCurve != null && spot.spotIndex < widget.gfCurve!.length;
+      final gf = _curveValueAt(widget.gfCurve, spot.spotIndex);
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_gfPercent,
-          value: hasGf
-              ? '${widget.gfCurve![spot.spotIndex].toStringAsFixed(0)}%'
-              : '-',
+          value: gf != null ? '${gf.toStringAsFixed(0)}%' : '-',
           bulletColor: Colors.deepPurple,
           metric: ProfileRightAxisMetric.gf,
         ),
@@ -2241,15 +2237,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     // Surface GF (always shown once enabled; see the Ceiling row comment).
     if (_showSurfaceGf) {
-      final hasSurfaceGf =
-          widget.surfaceGfCurve != null &&
-          spot.spotIndex < widget.surfaceGfCurve!.length;
+      final surfaceGf = _curveValueAt(widget.surfaceGfCurve, spot.spotIndex);
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_srfGf,
-          value: hasSurfaceGf
-              ? '${widget.surfaceGfCurve![spot.spotIndex].toStringAsFixed(0)}%'
-              : '-',
+          value: surfaceGf != null ? '${surfaceGf.toStringAsFixed(0)}%' : '-',
           bulletColor: Colors.purple.shade300,
           metric: ProfileRightAxisMetric.surfaceGf,
         ),
@@ -2269,15 +2261,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     // Mean depth (always shown once enabled; see the Ceiling row comment).
     if (_showMeanDepth) {
-      final hasMeanDepth =
-          widget.meanDepthCurve != null &&
-          spot.spotIndex < widget.meanDepthCurve!.length;
+      final meanDepth = _curveValueAt(widget.meanDepthCurve, spot.spotIndex);
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_mean,
-          value: hasMeanDepth
-              ? units.formatDepth(widget.meanDepthCurve![spot.spotIndex])
-              : '-',
+          value: meanDepth != null ? units.formatDepth(meanDepth) : '-',
           bulletColor: Colors.blueGrey,
           metric: ProfileRightAxisMetric.meanDepth,
         ),
@@ -2370,14 +2358,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     // CNS% (always shown once enabled; see the Ceiling row comment).
     if (_showCns) {
-      final hasCns =
-          widget.cnsCurve != null && spot.spotIndex < widget.cnsCurve!.length;
+      final cns = _curveValueAt(widget.cnsCurve, spot.spotIndex);
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_cns,
-          value: hasCns
-              ? '${widget.cnsCurve![spot.spotIndex].toStringAsFixed(1)}%'
-              : '-',
+          value: cns != null ? '${cns.toStringAsFixed(1)}%' : '-',
           bulletColor: const Color(0xFFE65100),
           metric: ProfileRightAxisMetric.cns,
         ),
@@ -2397,14 +2382,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
     // OTU (always shown once enabled; see the Ceiling row comment).
     if (_showOtu) {
-      final hasOtu =
-          widget.otuCurve != null && spot.spotIndex < widget.otuCurve!.length;
+      final otu = _curveValueAt(widget.otuCurve, spot.spotIndex);
       rows.add(
         TooltipRow(
           label: l10n.diveLog_tooltip_otu,
-          value: hasOtu
-              ? widget.otuCurve![spot.spotIndex].toStringAsFixed(0)
-              : '-',
+          value: otu != null ? otu.toStringAsFixed(0) : '-',
           bulletColor: const Color(0xFF6D4C41),
           metric: ProfileRightAxisMetric.otu,
         ),
