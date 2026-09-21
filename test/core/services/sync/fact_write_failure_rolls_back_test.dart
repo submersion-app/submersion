@@ -93,6 +93,41 @@ void main() {
           "peer's clear is still outstanding and re-applies next sync",
     );
   });
+
+  test('a failed batch upsert takes its own fact writes with it', () async {
+    // The batch is all-or-nothing, so its failure means the row was never
+    // written. Applying the fact write anyway would land half a changeset
+    // that failed: the row keeps its old values while its fact columns and
+    // clock move, which consumes the peer's clear outright.
+    final before = await uploadFacts();
+    final local = (await SyncDataSerializer().fetchRecord('media', id))!;
+
+    final cleared = {
+      ...local,
+      'remoteUploadedAt': null,
+      'uploadFactsHlc': SyncClock.instance.issue(),
+    };
+
+    await SyncService(
+      syncRepository: SyncRepository(),
+      serializer: _FailingBatchUpsert(),
+    ).debugApplyPayload(
+      SyncPayload(
+        version: 1,
+        exportedAt: 0,
+        deviceId: 'peer',
+        checksum: '',
+        data: SyncData(media: [cleared]),
+        deletions: const {},
+      ),
+    );
+
+    expect(
+      await uploadFacts(),
+      before,
+      reason: 'neither half of the change landed',
+    );
+  });
 }
 
 /// Every targeted fact write fails, as a disk error or a locked database
@@ -105,4 +140,14 @@ class _FailingFactWriter extends SyncDataSerializer {
     SyncFactGroup group,
     Map<String, dynamic> values,
   ) async => throw StateError('fact write failed');
+}
+
+/// The batched row upsert fails, as a constraint violation or a malformed
+/// row would make it. Drift's batch is all-or-nothing, so nothing lands.
+class _FailingBatchUpsert extends SyncDataSerializer {
+  @override
+  Future<void> upsertRecords(
+    String entityType,
+    List<Map<String, dynamic>> records,
+  ) async => throw StateError('batch upsert failed');
 }

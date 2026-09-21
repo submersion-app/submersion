@@ -2733,8 +2733,18 @@ class SyncService {
     final toUpsert = <Map<String, dynamic>>[];
     // Fact groups written after the batched upsert with explicit values, so
     // a peer's cleared stamp lands (the upsert drops nulls; spec 5.1).
+    // [inBatch] records whether this row also went into the batched upsert,
+    // so a batch that fails can take its own fact writes down with it. A
+    // fact write whose row never joined the batch is independent of it.
     final factWrites =
-        <({String id, Map<String, dynamic> row, List<SyncFactGroup> groups})>[];
+        <
+          ({
+            String id,
+            Map<String, dynamic> row,
+            List<SyncFactGroup> groups,
+            bool inBatch,
+          })
+        >[];
 
     for (final record in records) {
       String? recordId;
@@ -2886,6 +2896,7 @@ class SyncService {
               id: recordId,
               row: resolved.row,
               groups: factGroups,
+              inBatch: true,
             ));
             applied += 1;
           } else if (resolved.fromRemote.isNotEmpty) {
@@ -2893,6 +2904,7 @@ class SyncService {
               id: recordId,
               row: resolved.row,
               groups: resolved.fromRemote,
+              inBatch: false,
             ));
             applied += 1;
           }
@@ -2973,6 +2985,7 @@ class SyncService {
     // right, and the partial stage is harmless: the staged rows are
     // pack that reads it is idempotent, and a retry restages the same ids
     // over the same rows.
+    var batchFailed = false;
     if (toUpsert.isNotEmpty) {
       try {
         await _serializer.upsertRecords(entityType, toUpsert);
@@ -2982,6 +2995,7 @@ class SyncService {
           error: e,
           stackTrace: stackTrace,
         );
+        batchFailed = true;
         failed += toUpsert.length;
         applied -= toUpsert.length;
       }
@@ -2997,6 +3011,12 @@ class SyncService {
     // the whole payload, and the reader leaves its cursor where it was, so
     // the next sync re-pulls this changeset (media sync program spec 5.1).
     for (final w in factWrites) {
+      // The batch is all-or-nothing, so a failure means this row was never
+      // written. Writing its facts anyway would apply half a changeset that
+      // failed: the row keeps its old values while its fact columns and
+      // clock move, which can consume a peer's clear outright. A fact write
+      // whose row was not in the batch is untouched by that failure.
+      if (batchFailed && w.inBatch) continue;
       try {
         for (final g in w.groups) {
           await _serializer.writeFactGroup(entityType, w.id, g, w.row);
