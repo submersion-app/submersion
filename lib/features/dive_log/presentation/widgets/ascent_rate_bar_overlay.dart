@@ -160,20 +160,26 @@ class _AscentRateBarPainter extends CustomPainter {
     final halfBand = plotHeight / 2;
     final paint = Paint()..style = PaintingStyle.fill;
 
-    for (final entry in buckets.entries) {
-      final point = entry.value;
+    // Sorted so each bar's right edge is the next occupied bucket's left
+    // edge: a profile sparser than one sample per bucket leaves buckets
+    // with no entry at all, and a fixed _pixelsPerBar width per bar (rather
+    // than reaching to whichever bucket is actually next) would leave a
+    // visible gap across that empty stretch.
+    final sortedKeys = buckets.keys.toList()..sort();
+
+    for (var i = 0; i < sortedKeys.length; i++) {
+      final bucket = sortedKeys[i];
+      final point = buckets[bucket]!;
       final rate = point.rateMetersPerMin;
       if (rate == 0) continue;
       final magnitude = (rate.abs() / maxAbsRateMetersPerMin).clamp(0.0, 1.0);
       if (magnitude <= 0) continue;
 
-      // The bucket's own pixel column, not the sample's exact timestamp
-      // position within it: drawing a fixed-width bar centred on the
-      // sample left gaps between adjacent bars wherever the sample landed
-      // off-centre in its bucket. A rect spanning the full bucket instead
-      // always touches the next one, edge to edge.
-      final left = insets.left + entry.key * _pixelsPerBar;
-      final right = left + _pixelsPerBar;
+      final left = insets.left + bucket * _pixelsPerBar;
+      final nextBucket = i + 1 < sortedKeys.length
+          ? sortedKeys[i + 1]
+          : bucket + 1;
+      final right = insets.left + nextBucket * _pixelsPerBar;
       final barLength = magnitude * halfBand;
       final descending = rate < 0;
       final baseColor = Color.lerp(

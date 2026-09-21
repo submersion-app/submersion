@@ -1105,6 +1105,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   // own, so they cannot participate in [_hoverHighlightedBarIndex] above.
   int? _hoveredAscentRateTimestamp;
 
+  // Profile index of the touched/hovered sample, for a custom-drawn deco
+  // stop focus dot. The deco stop band's own fl_chart spots are compressed
+  // to its step transitions (see buildDecoStopBand), so fl_chart's built-in
+  // touched-spot indicator is suppressed for that bar (getTouchedSpotIndicator
+  // below) and this dot is drawn independently instead, positioned from the
+  // resolved touch like [_hoveredAscentRateTimestamp] rather than from the
+  // bar's own (too sparse) spots.
+  int? _decoStopTouchIndex;
+
   /// Drops the cursor-following tooltip and the hover-driven highlight/axis
   /// override. Called from every place a pointer stops actively hovering the
   /// chart (mouse exit, pointer up, pointer cancel) -- each of these used to
@@ -1118,7 +1127,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         _liveCursorTooltipRows.isEmpty &&
         _hoverRightAxisMetric == null &&
         _hoverHighlightedBarIndex == null &&
-        _hoveredAscentRateTimestamp == null) {
+        _hoveredAscentRateTimestamp == null &&
+        _decoStopTouchIndex == null) {
       return;
     }
     setState(() {
@@ -1127,6 +1137,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       _hoverRightAxisMetric = null;
       _hoverHighlightedBarIndex = null;
       _hoveredAscentRateTimestamp = null;
+      _decoStopTouchIndex = null;
     });
   }
 
@@ -4091,6 +4102,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                         hoveredAscentRateTimestamp,
                   );
                 }
+
+                // Deco stop focus dot: positioned from the resolved touch
+                // rather than the band's own (sparse) spots -- see
+                // [_decoStopTouchIndex].
+                final decoStopCurve = widget.decoStopCurve;
+                final decoStopTouchIndex =
+                    (_showDecoStops &&
+                        decoStopCurve != null &&
+                        resolvedTouch != null &&
+                        resolvedTouch.index < decoStopCurve.length)
+                    ? resolvedTouch.index
+                    : null;
+                if (decoStopTouchIndex != _decoStopTouchIndex) {
+                  setState(() => _decoStopTouchIndex = decoStopTouchIndex);
+                }
               },
               touchTooltipData: LineTouchTooltipData(
                 // fl_chart's own bubble is suppressed for tooltipBelow
@@ -4299,6 +4325,55 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                   _ascentRateAxisRange(widget.ascentRates)?.max ?? 0,
               highlightedTimestamp: _hoveredAscentRateTimestamp,
             ),
+          ),
+        // Deco stop focus dot: a widget layer positioned from the resolved
+        // touch (see [_decoStopTouchIndex]) rather than fl_chart's own
+        // touched-spot indicator, which is suppressed for this bar
+        // (getTouchedSpotIndicator above) because its spots are too sparse
+        // to track the cursor continuously within a flat stop level.
+        if (_decoStopTouchIndex != null &&
+            widget.decoStopCurve != null &&
+            _decoStopTouchIndex! < widget.decoStopCurve!.length &&
+            _decoStopTouchIndex! < widget.profile.length)
+          Builder(
+            builder: (context) {
+              final index = _decoStopTouchIndex!;
+              final plotWidth =
+                  availableWidth - plotInsets.left - plotInsets.right;
+              final plotHeight =
+                  availableHeight - plotInsets.top - plotInsets.bottom;
+              final visibleRangeX = visibleMaxX - visibleMinX;
+              final maxY = -visibleMinDepth;
+              final minY = -visibleMaxDepth;
+              if (plotWidth <= 0 ||
+                  plotHeight <= 0 ||
+                  visibleRangeX <= 0 ||
+                  maxY <= minY) {
+                return const SizedBox.shrink();
+              }
+              final t = widget.profile[index].timestamp.toDouble();
+              final dataY = -units.convertDepth(widget.decoStopCurve![index]);
+              final x =
+                  plotInsets.left +
+                  (t - visibleMinX) / visibleRangeX * plotWidth;
+              final y =
+                  plotInsets.top + (maxY - dataY) / (maxY - minY) * plotHeight;
+              const dotRadius = 5.0;
+              return Positioned(
+                left: x - dotRadius,
+                top: y - dotRadius,
+                child: IgnorePointer(
+                  child: Container(
+                    width: dotRadius * 2,
+                    height: dotRadius * 2,
+                    decoration: const BoxDecoration(
+                      color: decoStopBandColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         // Photo markers: tappable camera chips at each photo's (time, depth).
         // A widget layer (not an fl_chart element) so its taps never enter
