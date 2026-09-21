@@ -292,6 +292,15 @@ class DiveProfileChart extends ConsumerStatefulWidget {
   /// Renders a subtle vertical line at this position.
   final int? highlightedTimestamp;
 
+  /// Whether step-through playback is currently auto-advancing
+  /// [highlightedTimestamp]. While true, the in-chart cursor tooltip
+  /// (`!tooltipBelow`) follows the playback position instead of the mouse,
+  /// since the pointer sitting still somewhere else must not keep the
+  /// tooltip pinned to a stale sample while the playback line sweeps past
+  /// it. Regains the mouse's own position as soon as this turns false
+  /// (paused or stopped).
+  final bool playbackIsPlaying;
+
   /// Optional time range to emphasize (e.g. the selected safety finding).
   /// Renders as a translucent vertical band with edge lines; short and
   /// instant ranges inflate to a minimum on-screen width.
@@ -666,6 +675,7 @@ class DiveProfileChart extends ConsumerStatefulWidget {
     this.exportKey,
     this.playbackTimestamp,
     this.highlightedTimestamp,
+    this.playbackIsPlaying = false,
     this.highlightRange,
     this.secondaryRanges = const [],
     this.safetyFindings,
@@ -1553,6 +1563,62 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         colorScheme: Theme.of(context).colorScheme,
       );
     });
+  }
+
+  /// The in-chart cursor tooltip's rows and position for the current
+  /// playback timestamp, used in place of the mouse-driven `_lastPointerLocal`
+  /// / `_liveCursorTooltipRows` while [DiveProfileChart.playbackIsPlaying] is
+  /// true.
+  ///
+  /// Mirrors the pixel geometry used elsewhere to place overlays at a given
+  /// timestamp (e.g. `_buildEventVerticalLines`'s `xPx`/`anchorY`): a
+  /// timestamp and the depth curve's value at it convert to the same
+  /// Stack-local coordinate space [ProfileCursorTooltip.cursorLocal] expects.
+  /// Returns null when there's nothing to show -- no highlighted timestamp,
+  /// no matching sample, or it currently sits outside the visible (zoomed)
+  /// window.
+  ({Offset cursorLocal, List<TooltipRow> rows})? _playbackCursorTooltipData({
+    required ({double left, double top, double right, double bottom})
+    plotInsets,
+    required double availableWidth,
+    required double availableHeight,
+    required double visibleMinX,
+    required double visibleMaxX,
+    required double visibleMinDepth,
+    required double visibleMaxDepth,
+  }) {
+    final timestamp = widget.highlightedTimestamp;
+    if (timestamp == null ||
+        timestamp < visibleMinX ||
+        timestamp > visibleMaxX) {
+      return null;
+    }
+    final index = indexForTimestamp(widget.profile, timestamp);
+    if (index == null) return null;
+    final onLeadIn =
+        timestamp < widget.profile.first.timestamp &&
+        shouldDrawSurfaceLeadIn(widget.profile);
+    final rows = _buildTooltipRowsForIndex(
+      index,
+      onLeadIn: onLeadIn,
+      units: UnitFormatter(ref.read(settingsProvider)),
+      colorScheme: Theme.of(context).colorScheme,
+    );
+    if (rows.isEmpty) return null;
+
+    final plotWidth = (availableWidth - plotInsets.left - plotInsets.right)
+        .clamp(1.0, double.infinity);
+    final plotHeight = (availableHeight - plotInsets.top - plotInsets.bottom)
+        .clamp(1.0, double.infinity);
+    final rangeX = (visibleMaxX - visibleMinX).clamp(1e-9, double.infinity);
+    final rangeY = (visibleMaxDepth - visibleMinDepth).clamp(
+      1e-9,
+      double.infinity,
+    );
+    final depth = _depthAtTimestamp(timestamp.toDouble());
+    final x = plotInsets.left + (timestamp - visibleMinX) / rangeX * plotWidth;
+    final y = plotInsets.top + (depth - visibleMinDepth) / rangeY * plotHeight;
+    return (cursorLocal: Offset(x, y), rows: rows);
   }
 
   void _scheduleTankPressureVisibilityInitialization() {
@@ -3734,6 +3800,28 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           ]
         : combinedBars;
 
+    // While playback is running, the in-chart cursor tooltip follows the
+    // playback position instead of wherever the mouse happens to be sitting
+    // idle -- otherwise it stayed pinned to the last hovered sample while
+    // the playback line swept right past it. Null (falls back to the mouse
+    // below) once playback stops, and also whenever the playback timestamp
+    // itself resolves to nothing showable (out of the visible window, no
+    // matching sample).
+    final playbackCursorTooltip = widget.playbackIsPlaying
+        ? _playbackCursorTooltipData(
+            plotInsets: plotInsets,
+            availableWidth: availableWidth,
+            availableHeight: availableHeight,
+            visibleMinX: visibleMinX,
+            visibleMaxX: visibleMaxX,
+            visibleMinDepth: visibleMinDepth,
+            visibleMaxDepth: visibleMaxDepth,
+          )
+        : null;
+    final tooltipCursorLocal =
+        playbackCursorTooltip?.cursorLocal ?? _lastPointerLocal;
+    final tooltipRows = playbackCursorTooltip?.rows ?? _liveCursorTooltipRows;
+
     return Stack(
       // Clip.none: with many active metrics the cursor tooltip's real
       // height can exceed the plot's own vertical space despite its text
@@ -4545,20 +4633,27 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           ),
         // In-chart cursor tooltip: the default (`!tooltipBelow &&
         // !tooltipNativeBubble`) path's own rendering of the touched/
-        // hovered sample. IgnorePointer, like the other widget-layer
-        // overlays above, so it never steals the touch/hover that
-        // positions it.
+        // hovered sample -- or, while playback is running, of the playback
+        // position instead (see [playbackCursorTooltip] above). IgnorePointer,
+        // like the other widget-layer overlays above, so it never steals the
+        // touch/hover that positions it.
         if (!widget.tooltipBelow &&
             !widget.tooltipNativeBubble &&
-            _lastPointerLocal != null &&
-            _liveCursorTooltipRows.isNotEmpty)
+            tooltipCursorLocal != null &&
+            tooltipRows.isNotEmpty)
           Positioned.fill(
             child: IgnorePointer(
               child: ProfileCursorTooltip(
-                rows: _liveCursorTooltipRows,
-                cursorLocal: _lastPointerLocal!,
+                rows: tooltipRows,
+                cursorLocal: tooltipCursorLocal,
                 insets: plotInsets,
-                highlightedMetric: _highlightedTooltipMetric,
+                // No hover-highlighted line while playback drives the
+                // tooltip: highlighting follows the mouse's nearest line,
+                // which is meaningless while the mouse isn't what is
+                // selecting the shown sample.
+                highlightedMetric: playbackCursorTooltip != null
+                    ? null
+                    : _highlightedTooltipMetric,
               ),
             ),
           ),

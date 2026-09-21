@@ -157,6 +157,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
         .watch(estimatedTankPressuresProvider(widget.diveId))
         .value;
     final reviewTimestamp = ref.watch(profileReviewProvider(widget.diveId));
+    final playbackIsPlaying = ref.watch(
+      playbackProvider(widget.diveId).select((s) => s.isPlaying),
+    );
     final selectedFinding = ref.watch(
       selectedSafetyFindingProvider(widget.diveId),
     );
@@ -372,6 +375,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           // clipping concern that used to justify
                           // tooltipBelow here no longer applies.
                           tooltipBelow: false,
+                          playbackIsPlaying: playbackIsPlaying,
                           legendLeading: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
