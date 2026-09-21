@@ -15,6 +15,7 @@ import 'package:submersion/features/tides/presentation/widgets/tide_section.dart
 import 'package:submersion/features/tides/presentation/widgets/tide_times_table.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
+import '../../../../helpers/l10n_test_helpers.dart';
 import '../../../../helpers/mock_providers.dart';
 
 // A diver on DD/MM/YYYY must read "Mon, 10 Aug", not "Mon, Aug 10" (#964).
@@ -258,9 +259,12 @@ void main() {
       required List<DateTime> extremeTimes,
     }) async {
       await tester.pumpWidget(
-        MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
+        // "Tomorrow" is an l10n string, so unlike the date assertions above it
+        // is not covered by the Intl.defaultLocale pin: it resolves through
+        // MaterialApp against the host's locale, which would render "Demain"
+        // or "Morgen" on a host that resolves to one of those. Pin the locale.
+        localizedMaterialApp(
+          locale: const Locale('en'),
           home: Scaffold(
             body: TideTimesTable(
               extremes: [
