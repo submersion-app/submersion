@@ -783,17 +783,17 @@ class _DiveFilterSheetState extends ConsumerState<DiveFilterSheet> {
                                     tag.id,
                                   );
                                   return FilterChip(
+                                    // The dot carries the tag's own colour,
+                                    // exactly as the site and equipment
+                                    // filter sheets show it. A tinted chip
+                                    // body would report a different colour on
+                                    // every surface (issue #2254).
+                                    avatar: CircleAvatar(
+                                      backgroundColor: tag.color,
+                                      radius: 6,
+                                    ),
                                     label: Text(tag.name),
                                     selected: isSelected,
-                                    selectedColor: tag.color.withValues(
-                                      alpha: 0.3,
-                                    ),
-                                    checkmarkColor: tag.color,
-                                    side: BorderSide(
-                                      color: isSelected
-                                          ? tag.color
-                                          : Colors.grey.shade300,
-                                    ),
                                     onSelected: (selected) {
                                       setState(() {
                                         if (selected) {

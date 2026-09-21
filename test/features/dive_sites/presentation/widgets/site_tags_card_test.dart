@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_tags_card.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// The Tags card on site detail (issue #1765), the twin of the dive one.
@@ -57,8 +58,8 @@ void main() {
     expect(find.byType(Card), findsOneWidget);
     expect(find.text('Tags'), findsOneWidget);
     expect(find.text('2 tags'), findsOneWidget);
-    expect(find.widgetWithText(ActionChip, 'To try'), findsOneWidget);
-    expect(find.widgetWithText(ActionChip, 'Avoid'), findsOneWidget);
+    expect(find.widgetWithText(TagChip, 'To try'), findsOneWidget);
+    expect(find.widgetWithText(TagChip, 'Avoid'), findsOneWidget);
   });
 
   testWidgets('tapping a tag opens the site list filtered to it', (

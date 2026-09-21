@@ -12,6 +12,7 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_edit_
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -88,7 +89,7 @@ void main() {
       tester.getTopLeft(find.text('Tags')).dy,
       greaterThan(tester.getTopLeft(find.text('Notes')).dy),
     );
-    expect(find.widgetWithText(Chip, 'Travel kit'), findsOneWidget);
+    expect(find.widgetWithText(TagChip, 'Travel kit'), findsOneWidget);
   });
 
   testWidgets('removing a tag and saving writes the new set', (tester) async {
@@ -100,7 +101,7 @@ void main() {
 
     await tester.tap(
       find.descendant(
-        of: find.widgetWithText(Chip, 'Travel kit'),
+        of: find.widgetWithText(TagChip, 'Travel kit'),
         matching: find.byIcon(Icons.close),
       ),
     );
@@ -146,7 +147,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tagField, findsOneWidget);
-      expect(find.widgetWithText(Chip, 'Travel kit'), findsOneWidget);
+      expect(find.widgetWithText(TagChip, 'Travel kit'), findsOneWidget);
     });
 
     testWidgets('a read that fails leaves the field locked and the stored '
@@ -208,7 +209,7 @@ void main() {
     await tester.enterText(tagField, 'Rental');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pumpAndSettle();
-    expect(find.widgetWithText(Chip, 'Rental'), findsOneWidget);
+    expect(find.widgetWithText(TagChip, 'Rental'), findsOneWidget);
 
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();

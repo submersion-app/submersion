@@ -13,6 +13,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_avatar.dart';
 import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_section_pairs.dart';
@@ -4153,14 +4154,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
               runSpacing: 8,
               children: dive.tags
                   .map(
-                    (tag) => ActionChip(
-                      label: Text(tag.name),
+                    (tag) => TagChip(
+                      tag: tag,
                       tooltip: context.l10n.tags_action_showDives(tag.name),
-                      backgroundColor: tag.color.withValues(alpha: 0.2),
-                      side: BorderSide(color: tag.color),
-                      labelStyle: TextStyle(color: tag.color),
-                      visualDensity: VisualDensity.compact,
-                      onPressed: () => openDivesWithTag(context, ref, tag.id),
+                      onTap: () => openDivesWithTag(context, ref, tag.id),
                     ),
                   )
                   .toList(),
