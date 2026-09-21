@@ -409,6 +409,30 @@ run_tests() {
     flutter test --exclude-tags performance --concurrency="$CONCURRENCY" "$@"
 }
 
+# Runs an explicit file list through run_tests in fixed-size batches, rather
+# than as one invocation: a selection large enough (a long-lived branch, a
+# squash-worthy PR) makes flutter test's own command line exceed the OS's
+# length limit -- on Windows this fails with "Argument list too long" inside
+# flutter.bat before a single test runs, the same class of failure the
+# xargs-batched format check above works around. Each batch pays its own
+# isolate/compile startup cost, which is the point: correctness over the
+# single-invocation speed this hook otherwise optimizes for, and this path
+# only engages once a selection is large enough to overflow in the first
+# place. Returns non-zero if any batch fails, after running them all so one
+# failing batch does not hide a later one.
+run_tests_batched() {
+    local -a files=("$@")
+    local batch_size=100
+    local i=0
+    local failed=0
+    while [ "$i" -lt "${#files[@]}" ]; do
+        local -a batch=("${files[@]:$i:$batch_size}")
+        run_tests "${batch[@]}" || failed=1
+        i=$((i + batch_size))
+    done
+    return "$failed"
+}
+
 if [ "${SKIP_TESTS:-0}" = "1" ]; then
     echo "🧪 Skipping tests (SKIP_TESTS=1). CI runs the full suite."
     echo ""
@@ -584,7 +608,7 @@ if [ "${#test_files[@]}" -gt 0 ]; then
         printf '   %s\n' "${test_files[@]}"
     fi
     echo ""
-    if ! run_tests "${test_files[@]}"; then
+    if ! run_tests_batched "${test_files[@]}"; then
         echo ""
         echo "❌ Tests failed! Fix the failing tests before pushing."
         echo "   (RUN_ALL_TESTS=1 git push runs the full suite; CI runs it regardless.)"
