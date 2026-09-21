@@ -64,7 +64,6 @@ void main() {
         reason: 'an inconclusive verify must not write the row',
       );
     },
-    skip: 'Media sync program S2: turns green in slice 4 (quiet verification)',
   );
 
   test(
