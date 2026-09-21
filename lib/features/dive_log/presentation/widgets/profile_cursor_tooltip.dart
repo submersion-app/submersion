@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/profile_metrics.dart';
@@ -312,14 +314,11 @@ class ProfileCursorTooltip extends StatelessWidget {
                           child: Row(
                             crossAxisAlignment: CrossAxisAlignment.center,
                             children: [
-                              Container(
-                                width: 8 * scale,
-                                height: 8 * scale,
-                                margin: EdgeInsets.only(right: 6 * scale),
-                                decoration: BoxDecoration(
-                                  color: row.bulletColor,
-                                  shape: BoxShape.circle,
-                                ),
+                              _TooltipBullet(
+                                color: row.bulletColor,
+                                diamond: row.diamondBullet,
+                                size: _rowBulletSize * scale,
+                                margin: 6 * scale,
                               ),
                               Flexible(
                                 child: Text(
@@ -369,6 +368,40 @@ class ProfileCursorTooltip extends StatelessWidget {
           ],
         );
       },
+    );
+  }
+}
+
+/// A tooltip row's bullet: a circle for an ordinary metric row, or a diamond
+/// (a square rotated 45 degrees -- [BoxDecoration] has no diamond shape of
+/// its own) for a marker row, so it stands out among several stacked rows
+/// the same way it did in the native fl_chart bubble this widget replaced.
+class _TooltipBullet extends StatelessWidget {
+  final Color color;
+  final bool diamond;
+  final double size;
+  final double margin;
+
+  const _TooltipBullet({
+    required this.color,
+    required this.diamond,
+    required this.size,
+    required this.margin,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dot = Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: color,
+        shape: diamond ? BoxShape.rectangle : BoxShape.circle,
+      ),
+    );
+    return Container(
+      margin: EdgeInsets.only(right: margin),
+      child: diamond ? Transform.rotate(angle: math.pi / 4, child: dot) : dot,
     );
   }
 }

@@ -405,5 +405,50 @@ void main() {
       expect(tempValue.style?.fontWeight, isNot(FontWeight.bold));
       expect(cnsValue.style?.fontWeight, FontWeight.bold);
     });
+
+    testWidgets('renders a marker row\'s bullet as a rotated diamond, not a '
+        'circle like every other row (issue #2228 follow-up: TooltipRow '
+        'lost this distinction when the tooltip-building code was '
+        'consolidated)', (tester) async {
+      await tester.pumpWidget(
+        harness(
+          rows: const [
+            TooltipRow(
+              label: 'Depth',
+              value: '12.3 m',
+              bulletColor: AppColors.chartDepth,
+            ),
+            TooltipRow(
+              label: 'Marker',
+              value: 'Photo',
+              bulletColor: AppColors.chartDepth,
+              diamondBullet: true,
+            ),
+          ],
+        ),
+      );
+
+      // The depth row's bullet stays an upright circle; the marker row's
+      // renders as a rectangle (rotated 45 degrees by its enclosing
+      // Transform, into a diamond).
+      final bulletDecorations = tester
+          .widgetList<DecoratedBox>(
+            find.descendant(
+              of: find.byType(Row),
+              matching: find.byType(DecoratedBox),
+            ),
+          )
+          .map((box) => box.decoration)
+          .whereType<BoxDecoration>()
+          .toList();
+      expect(
+        bulletDecorations.where((d) => d.shape == BoxShape.circle).length,
+        1,
+      );
+      expect(
+        bulletDecorations.where((d) => d.shape == BoxShape.rectangle).length,
+        1,
+      );
+    });
   });
 }

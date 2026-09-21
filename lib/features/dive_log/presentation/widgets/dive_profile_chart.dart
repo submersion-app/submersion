@@ -100,6 +100,12 @@ class TooltipRow {
   final String value;
   final Color bulletColor;
 
+  /// True for a photo/depth/pressure-threshold marker row: rendered with a
+  /// diamond bullet instead of every other row's circle, so it stands out
+  /// among several stacked metric rows (matches this chart's pre-#2228
+  /// native-bubble rendering).
+  final bool diamondBullet;
+
   /// The metric this row reads from -- a [ProfileRightAxisMetric] or a
   /// [ChartOnlyMetric] -- or null for a row with no line identity of its
   /// own (Time, an overlay comparison row, ...). Lets a tooltip presentation
@@ -112,6 +118,7 @@ class TooltipRow {
     required this.label,
     required this.value,
     required this.bulletColor,
+    this.diamondBullet = false,
     this.metric,
   });
 }
@@ -2462,6 +2469,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               label: l10n.diveLog_tooltip_marker,
               value: marker.chartLabel,
               bulletColor: marker.getColor(),
+              diamondBullet: true,
             ),
           );
         }
@@ -4379,8 +4387,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     }
                     lines.add(
                       TextSpan(
-                        text: '● ',
-                        style: TextStyle(color: row.bulletColor, fontSize: 12),
+                        text: row.diamondBullet ? '◆ ' : '● ',
+                        style: TextStyle(
+                          color: row.bulletColor,
+                          fontSize: row.diamondBullet ? 10 : 12,
+                        ),
                       ),
                     );
                     final rowText = DiveProfileChart.tooltipRowText(
