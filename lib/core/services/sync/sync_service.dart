@@ -2188,7 +2188,7 @@ class SyncService {
           // edited after the peer deleted it, which reached us before the
           // delete did, is kept. Either clock missing: the rules below.
           final localHlc =
-              SyncDataSerializer.parentGatedChildEntities.contains(entityType)
+              SyncDataSerializer.ownClockEntities.contains(entityType)
               ? _extractHlc(local)
               : null;
           final deletionHlc = _parseHlc(deletion.hlc);
@@ -2714,15 +2714,13 @@ class SyncService {
     // A child exported through its parent is applied as a blind upsert, but
     // carries its own clock (v210), so its local copy is read too: one batch
     // for the stale-copy guard below.
-    final childClocked = SyncDataSerializer.parentGatedChildEntities.contains(
-      entityType,
-    );
-    // The media tables join the same stale-copy guard (media sync program
-    // spec 5.1) through their own set; childClocked alone still selects the
-    // tombstone clocks below.
-    final clockGuarded =
-        childClocked ||
-        SyncDataSerializer.clockGuardedEntities.contains(entityType);
+    // One predicate for every row that carries its own clock, whether it
+    // reaches a peer through a parent or on its own (media sync program
+    // spec 5.1). The stale-copy guard, the tombstone comparison and the
+    // revival check below all read it, so a row cannot be guarded in the
+    // merge and compared by timestamp when a delete arrives.
+    final ownClocked = SyncDataSerializer.ownClockEntities.contains(entityType);
+    final clockGuarded = ownClocked;
     final factGroups = SyncFactGroups.of(entityType);
     final localById = hasUpdatedAt || clockGuarded || factGroups.isNotEmpty
         ? await _serializer.fetchRecords(entityType, [
@@ -2840,7 +2838,7 @@ class SyncService {
             // A child with its own clock, against the clock of our delete:
             // only an edit made after the delete revives it. Either clock
             // missing: the timestamps below.
-            final deleteClock = childClocked
+            final deleteClock = ownClocked
                 ? selfTombstoneClocks[recordId]
                 : null;
             final remoteClock = deleteClock == null
@@ -2900,6 +2898,13 @@ class SyncService {
           // Facts resolve per group by their own clocks (spec 5.1): a stale
           // row still hands over newer facts, and a newer row does not take
           // older ones.
+          //
+          // No _overlayOntoLocal here, unlike the LWW path below, and it is
+          // not needed: these arms build their insert with nullToAbsent, so
+          // a column an older peer omits is simply not written and the local
+          // value stands. That is the same property writeFactGroup exists to
+          // work around, since it is what stops a peer's explicit clear from
+          // landing through the upsert. media_clock_guard_test pins it.
           final resolved = mergeFactGroups(
             entityType: entityType,
             base: rowFromRemote ? recordToApply : local!,
@@ -4090,9 +4095,42 @@ class SyncService {
       for (final record in entry.value.values) {
         await _serializer.upsertRecord(entry.key, record);
       }
+      await _landAdoptedFactClears(entry.key, entry.value.values);
     }
 
     await _serializer.repairDanglingForeignKeys();
+  }
+
+  /// Lands the explicit fact clears an adopt's upsert would drop.
+  ///
+  /// Adopt applies rows straight through the serializer's upsert, which
+  /// builds with nullToAbsent, so a cleared stamp in the library being
+  /// adopted leaves this device's own value in place and the adopted
+  /// library is not the one the cloud holds (media sync program spec 5.1).
+  /// The merge path solves this with a targeted write; adopt needs the same
+  /// one.
+  ///
+  /// Only rows that carry an explicit null: adopt is a wholesale replace
+  /// applied in sequence, so a non-null value already landed through the
+  /// upsert and re-writing it would cost an UPDATE per media row for
+  /// nothing. There is no per-group clock resolution to do either, because
+  /// there is no local side to resolve against; the sequence is the answer.
+  Future<void> _landAdoptedFactClears(
+    String entityType,
+    Iterable<Map<String, dynamic>> rows,
+  ) async {
+    final groups = SyncFactGroups.of(entityType);
+    if (groups.isEmpty) return;
+    for (final row in rows) {
+      final id = recordIdForEntity(entityType, row);
+      if (id == null) continue;
+      for (final g in groups) {
+        final clears = g.columns.keys.any(
+          (k) => row.containsKey(k) && row[k] == null,
+        );
+        if (clears) await _serializer.writeFactGroup(entityType, id, g, row);
+      }
+    }
   }
 
   /// Test seam: in-memory adopt of [payloads] (the parity reference). Captures
@@ -4160,6 +4198,7 @@ class SyncService {
       ];
       if (valid.isEmpty) return;
       await _serializer.upsertRecords(table, valid);
+      await _landAdoptedFactClears(table, valid);
     }
 
     // Apply units: each base file and each changeset, ascending by exportedAt

@@ -130,6 +130,22 @@ void main() {
     expect(later(after['verify'], before['verify']), isTrue);
   });
 
+  test('markOrphaned stays quiet when the row already agrees', () async {
+    // SubscriptionPoller calls this for every entry on every poll, so
+    // without the guard a healthy library would take a fresh verification
+    // clock each time and re-export its snapshot over a peer's newer
+    // observation.
+    await repo.markOrphaned(id, true);
+    final before = await clocks();
+    await Future<void>.delayed(const Duration(milliseconds: 2));
+
+    await repo.markOrphaned(id, true);
+
+    final after = await clocks();
+    expect(after['verify'], before['verify'], reason: 'no clock was spent');
+    expect(after['row'], before['row']);
+  });
+
   test('republishForSync moves the upload clock alone by default', () async {
     // The one caller repairs lost upload stamps. Re-clocking verification
     // too would hand this device's stale isOrphaned and lastVerifiedAt a

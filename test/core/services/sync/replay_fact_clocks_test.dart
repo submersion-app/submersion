@@ -82,8 +82,8 @@ void main() {
       out['uploadFactsHlc'],
       earlier,
       reason:
-          'an older fact keeps its clock, or it would fabricate '
-          'freshness and beat a peer that really did write it',
+          'an older fact keeps its clock, or it would fabricate freshness '
+          'and beat a peer that really did write it',
     );
   });
 

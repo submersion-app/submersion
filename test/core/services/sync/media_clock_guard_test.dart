@@ -267,6 +267,94 @@ void main() {
     }
   });
 
+  group('an older peer that omits a column does not erase it', () {
+    // A peer on an older schema sends no key for a column it has never
+    // heard of. Winning the row decides whose values stand where both sides
+    // have one; the winner's silence is not an answer.
+    //
+    // These arms get that for free, without the _overlayOntoLocal the LWW
+    // path uses, because they build their insert with nullToAbsent: an
+    // absent key is simply not written. It is the same property that stops
+    // a peer's explicit clear from landing through the upsert, which is why
+    // writeFactGroup exists. Pinned here because the merge reads as though
+    // it were taking the peer's whole map.
+    test('a winning media row keeps a column the peer omitted', () async {
+      await captionLocally('mine');
+      await db.customStatement(
+        "UPDATE media SET original_filename = 'reef.jpg' WHERE id = ?",
+        [id],
+      );
+      final local = (await SyncDataSerializer().fetchRecord('media', id))!;
+
+      // The peer's row is newer, changes a column it does know, and
+      // predates the one it omits.
+      final older = {
+        ...local,
+        'caption': 'theirs',
+        'hlc': SyncClock.instance.issue(),
+      }..remove('originalFilename');
+      await apply(older);
+
+      expect(await captionOf(), 'theirs', reason: 'the peer row did win');
+
+      final after =
+          (await db
+                  .customSelect(
+                    'SELECT original_filename FROM media WHERE id = ?',
+                    variables: [Variable.withString(id)],
+                  )
+                  .getSingle())
+              .read<String?>('original_filename');
+      expect(after, 'reef.jpg');
+    });
+
+    test('a guarded child with no fact groups keeps it too', () async {
+      await db.customStatement(
+        "INSERT INTO species (id, common_name, scientific_name, category) "
+        "VALUES ('sp1', 'Grouper', 'Epinephelus', 'fish')",
+      );
+      await SyncRepository().markRecordPending(
+        entityType: 'species',
+        recordId: 'sp1',
+        localUpdatedAt: 0,
+      );
+      await SyncRepository().clearPendingRecords();
+      final local = (await SyncDataSerializer().fetchRecord('species', 'sp1'))!;
+
+      final older = {
+        ...local,
+        'commonName': 'Snapper',
+        'hlc': SyncClock.instance.issue(),
+      }..remove('scientificName');
+      await SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+      ).debugApplyPayload(
+        SyncPayload(
+          version: 1,
+          exportedAt: 0,
+          deviceId: 'peer',
+          checksum: '',
+          data: SyncData(species: [older]),
+          deletions: const {},
+        ),
+      );
+
+      final after = await db
+          .customSelect(
+            'SELECT common_name, scientific_name FROM species '
+            "WHERE id = 'sp1'",
+          )
+          .getSingle();
+      expect(
+        after.read<String?>('common_name'),
+        'Snapper',
+        reason: 'the peer row did win',
+      );
+      expect(after.read<String?>('scientific_name'), 'Epinephelus');
+    });
+  });
+
   test('a fact-only pending row still takes the peer\'s facts', () async {
     // A media row's first local write can be a fact write, which stamps the
     // group clock and leaves the row clock null. The row is then pending
@@ -304,6 +392,61 @@ void main() {
       row.read<String?>('caption'),
       isNot('theirs'),
       reason: 'the unpublished local row is still protected',
+    );
+  });
+
+  test('a local edit after a peer delete survives the tombstone', () async {
+    // The media tables joined the stale-copy guard through their own set,
+    // and the deletion path was left comparing them by updatedAt.
+    // mediaSpecies has no such column, so a row edited here after a peer
+    // deleted it was ageless and deleted as stale.
+    await db.customStatement(
+      "INSERT INTO species (id, common_name, category) "
+      "VALUES ('sp1', 'Grouper', 'fish')",
+    );
+    await db.customStatement(
+      'INSERT INTO media_species (id, media_id, species_id, notes, '
+      "created_at) VALUES ('ms1', ?, 'sp1', 'mine', 0)",
+      [id],
+    );
+    // The peer's delete happens first; this device edits afterwards.
+    final deletedAtHlc = SyncClock.instance.issue()!;
+    await SyncRepository().markRecordPending(
+      entityType: 'mediaSpecies',
+      recordId: 'ms1',
+      localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+    );
+    await SyncRepository().clearPendingRecords();
+
+    await SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+    ).debugApplyPayload(
+      SyncPayload(
+        version: 1,
+        exportedAt: 0,
+        deviceId: 'peer',
+        checksum: '',
+        data: const SyncData(),
+        deletions: {
+          'mediaSpecies': [
+            SyncDeletion(
+              id: 'ms1',
+              deletedAt: DateTime.now().millisecondsSinceEpoch,
+              hlc: deletedAtHlc,
+            ),
+          ],
+        },
+      ),
+    );
+
+    final rows = await db
+        .customSelect("SELECT id FROM media_species WHERE id = 'ms1'")
+        .get();
+    expect(
+      rows,
+      hasLength(1),
+      reason: 'the local edit is newer than the delete that reached us',
     );
   });
 
