@@ -392,38 +392,44 @@ LineChartBarData buildNdlLine(
 
 /// Build ppO2 (partial pressure of oxygen) line
 /// Values typically range from 0.21 (surface air) to 1.6+ (critical)
-LineChartBarData buildPpO2Line(
-  MetricBand band,
-  List<double> ppO2Curve,
-  double ppO2MaxScale,
-  List<DiveProfilePoint> profile,
-  DecimatedCurveIndices decimatedCurveIndices,
-  WithSurfaceLeadIn withSurfaceLeadIn,
-  SurfaceValueOf surfaceValueOf,
-  SeriesGetsLeadIn seriesGetsLeadIn,
-) {
-  const ppO2Color = ProfileMetricColors.ppO2;
-
-  // Map ppO2 to chart: 0 at top, ppO2MaxScale at bottom.
-  final minPpO2 = ProfileMetricBands.ppO2.min;
-  final maxPpO2 = ppO2MaxScale;
+/// Shared shape behind [buildPpO2Line], [buildPpN2Line] and [buildPpHeLine]:
+/// a partial-pressure curve is drawn the same way regardless of gas --
+/// mapped through [band] between 0 (a partial pressure is never negative)
+/// and [maxScale], with a computed (not flat) surface lead-in, since a
+/// partial pressure at 1 bar is simply that gas's fraction. [filterAtOrBelow]
+/// drops samples at or below it (ppHe is 0 for the entire dive on a
+/// non-trimix profile, and drawing a flat zero line for that is worse than
+/// drawing nothing).
+LineChartBarData _buildPartialPressureLine({
+  required MetricBand band,
+  required List<double> curve,
+  required double maxScale,
+  required Color color,
+  required List<DiveProfilePoint> profile,
+  required DecimatedCurveIndices decimatedCurveIndices,
+  required WithSurfaceLeadIn withSurfaceLeadIn,
+  required SurfaceValueOf surfaceValueOf,
+  required SeriesGetsLeadIn seriesGetsLeadIn,
+  double? filterAtOrBelow,
+}) {
+  const min = 0.0;
 
   final spots = <FlSpot>[];
-  for (final i in decimatedCurveIndices(ppO2Curve)) {
-    final ppO2 = ppO2Curve[i].clamp(minPpO2, maxPpO2);
-    final yValue = band.map(ppO2, minPpO2, maxPpO2);
+  for (final i in decimatedCurveIndices(curve)) {
+    final value = curve[i];
+    if (filterAtOrBelow != null && value <= filterAtOrBelow) continue;
+    final clamped = value.clamp(min, maxScale);
+    final yValue = band.map(clamped, min, maxScale);
     spots.add(FlSpot(profile[i].timestamp.toDouble(), -yValue));
   }
 
   return LineChartBarData(
-    // ppO2 scales with ambient pressure, so its surface value is computed,
-    // not held flat: at 1 bar it is simply the oxygen fraction.
     spots: withSurfaceLeadIn(
       spots,
       -band.map(
-        surfaceValueOf(ppO2Curve.first).clamp(minPpO2, maxPpO2),
-        minPpO2,
-        maxPpO2,
+        surfaceValueOf(curve.first).clamp(min, maxScale),
+        min,
+        maxScale,
       ),
     ),
     isCurved: true,
@@ -433,13 +439,34 @@ LineChartBarData buildPpO2Line(
     // the curve at the left edge. Dives already starting at t=0 keep
     // their existing smoothing untouched.
     preventCurveOverShooting: seriesGetsLeadIn(spots, profile),
-    color: ppO2Color,
+    color: color,
     barWidth: 1,
     isStrokeCapRound: true,
     dotData: const FlDotData(show: false),
     // Solid: see the comment on buildNdlLine's dashArray removal.
   );
 }
+
+LineChartBarData buildPpO2Line(
+  MetricBand band,
+  List<double> ppO2Curve,
+  double ppO2MaxScale,
+  List<DiveProfilePoint> profile,
+  DecimatedCurveIndices decimatedCurveIndices,
+  WithSurfaceLeadIn withSurfaceLeadIn,
+  SurfaceValueOf surfaceValueOf,
+  SeriesGetsLeadIn seriesGetsLeadIn,
+) => _buildPartialPressureLine(
+  band: band,
+  curve: ppO2Curve,
+  maxScale: ppO2MaxScale,
+  color: ProfileMetricColors.ppO2,
+  profile: profile,
+  decimatedCurveIndices: decimatedCurveIndices,
+  withSurfaceLeadIn: withSurfaceLeadIn,
+  surfaceValueOf: surfaceValueOf,
+  seriesGetsLeadIn: seriesGetsLeadIn,
+);
 
 /// Build ppN2 (partial pressure of nitrogen) line
 LineChartBarData buildPpN2Line(
@@ -451,46 +478,21 @@ LineChartBarData buildPpN2Line(
   WithSurfaceLeadIn withSurfaceLeadIn,
   SurfaceValueOf surfaceValueOf,
   SeriesGetsLeadIn seriesGetsLeadIn,
-) {
-  const ppN2Color = ProfileMetricColors.ppN2;
+) => _buildPartialPressureLine(
+  band: band,
+  curve: ppN2Curve,
+  maxScale: ppN2MaxScale,
+  color: ProfileMetricColors.ppN2,
+  profile: profile,
+  decimatedCurveIndices: decimatedCurveIndices,
+  withSurfaceLeadIn: withSurfaceLeadIn,
+  surfaceValueOf: surfaceValueOf,
+  seriesGetsLeadIn: seriesGetsLeadIn,
+);
 
-  // Map ppN2 to chart: 0 at top, ppN2MaxScale at bottom.
-  final minPpN2 = ProfileMetricBands.ppN2.min;
-  final maxPpN2 = ppN2MaxScale;
-
-  final spots = <FlSpot>[];
-  for (final i in decimatedCurveIndices(ppN2Curve)) {
-    final ppN2 = ppN2Curve[i].clamp(minPpN2, maxPpN2);
-    final yValue = band.map(ppN2, minPpN2, maxPpN2);
-    spots.add(FlSpot(profile[i].timestamp.toDouble(), -yValue));
-  }
-
-  return LineChartBarData(
-    // Computed, not held flat: at 1 bar ppN2 is the nitrogen fraction.
-    spots: withSurfaceLeadIn(
-      spots,
-      -band.map(
-        surfaceValueOf(ppN2Curve.first).clamp(minPpN2, maxPpN2),
-        minPpN2,
-        maxPpN2,
-      ),
-    ),
-    isCurved: true,
-    curveSmoothness: 0.2,
-    // Only while a lead-in is drawn: that vertex is a sharp direction
-    // change and the spline would otherwise overshoot it and hook below
-    // the curve at the left edge. Dives already starting at t=0 keep
-    // their existing smoothing untouched.
-    preventCurveOverShooting: seriesGetsLeadIn(spots, profile),
-    color: ppN2Color,
-    barWidth: 1,
-    isStrokeCapRound: true,
-    dotData: const FlDotData(show: false),
-    // Solid: see the comment on buildNdlLine's dashArray removal.
-  );
-}
-
-/// Build ppHe (partial pressure of helium) line for trimix dives
+/// Build ppHe (partial pressure of helium) line for trimix dives. The
+/// filterAtOrBelow 0.001 means a non-trimix dive (ppHe ~0 throughout) draws
+/// nothing at all, and the lead-in is skipped with it.
 LineChartBarData buildPpHeLine(
   MetricBand band,
   List<double> ppHeCurve,
@@ -500,49 +502,18 @@ LineChartBarData buildPpHeLine(
   WithSurfaceLeadIn withSurfaceLeadIn,
   SurfaceValueOf surfaceValueOf,
   SeriesGetsLeadIn seriesGetsLeadIn,
-) {
-  const ppHeColor = ProfileMetricColors.ppHe;
-
-  // Map ppHe to chart: 0 at top, ppHeMaxScale at bottom.
-  final minPpHe = ProfileMetricBands.ppHe.min;
-  final maxPpHe = ppHeMaxScale;
-
-  final spots = <FlSpot>[];
-  for (final i in decimatedCurveIndices(ppHeCurve)) {
-    final ppHe = ppHeCurve[i];
-    if (ppHe > 0.001) {
-      final clamped = ppHe.clamp(minPpHe, maxPpHe);
-      final yValue = band.map(clamped, minPpHe, maxPpHe);
-      spots.add(FlSpot(profile[i].timestamp.toDouble(), -yValue));
-    }
-  }
-
-  return LineChartBarData(
-    // Computed, not held flat: at 1 bar ppHe is the helium fraction. The
-    // ppHe > 0.001 filter above means a non-trimix dive draws nothing at all,
-    // and the lead-in is skipped with it.
-    spots: withSurfaceLeadIn(
-      spots,
-      -band.map(
-        surfaceValueOf(ppHeCurve.first).clamp(minPpHe, maxPpHe),
-        minPpHe,
-        maxPpHe,
-      ),
-    ),
-    isCurved: true,
-    curveSmoothness: 0.2,
-    // Only while a lead-in is drawn: that vertex is a sharp direction
-    // change and the spline would otherwise overshoot it and hook below
-    // the curve at the left edge. Dives already starting at t=0 keep
-    // their existing smoothing untouched.
-    preventCurveOverShooting: seriesGetsLeadIn(spots, profile),
-    color: ppHeColor,
-    barWidth: 1,
-    isStrokeCapRound: true,
-    dotData: const FlDotData(show: false),
-    // Solid: see the comment on buildNdlLine's dashArray removal.
-  );
-}
+) => _buildPartialPressureLine(
+  band: band,
+  curve: ppHeCurve,
+  maxScale: ppHeMaxScale,
+  color: ProfileMetricColors.ppHe,
+  profile: profile,
+  decimatedCurveIndices: decimatedCurveIndices,
+  withSurfaceLeadIn: withSurfaceLeadIn,
+  surfaceValueOf: surfaceValueOf,
+  seriesGetsLeadIn: seriesGetsLeadIn,
+  filterAtOrBelow: 0.001,
+);
 
 /// Build MOD (Maximum Operating Depth) line
 /// Shows the MOD limit as a horizontal reference line
