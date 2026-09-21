@@ -769,8 +769,20 @@ class S3ApiClient {
     if (response.statusCode == 404 && errorCode == 'NoSuchBucket') {
       throw CloudStorageException('Bucket "${_config.bucket}" not found');
     }
+    // The Code was parsed above to recognise four specific failures;
+    // everything else used to discard it along with the Message beside it,
+    // so a rejected request read as a bare status. That is the gap #2018
+    // fixed on the Drive adapter. A body that is not this shape (an HTML
+    // page from a proxy, an empty body) degrades to the status the caller
+    // already had.
+    final errorMessage = _xmlElementText(
+      utf8.decode(response.bodyBytes, allowMalformed: true),
+      'Message',
+    );
+    final detail = [?errorCode, ?errorMessage].join(': ');
     throw CloudStorageException(
-      'S3 $operation failed for "$key" (HTTP ${response.statusCode})',
+      'S3 $operation failed for "$key" (HTTP ${response.statusCode})'
+      '${detail.isEmpty ? '' : ': $detail'}',
     );
   }
 
