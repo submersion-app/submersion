@@ -60,12 +60,14 @@ bool hasDataForMetric(
 /// Get the min/max value range for a metric.
 ///
 /// [hasMultiTankPressure], [cnsMaxScale], [otuMaxScale], [gfMaxScale],
-/// [surfaceGfMaxScale] and [ttsMaxScale] are passed in rather than recomputed
+/// [surfaceGfMaxScale], [ttsMaxScale], [ppO2MaxScale], [ppN2MaxScale],
+/// [ppHeMaxScale] and [densityMaxScale] are passed in rather than recomputed
 /// here because they are State-level values shared with many other call
-/// sites (the GF/TTS ones with the line itself, so an extreme dive never
-/// plots past its own axis -- see buildGfLine/buildSurfaceGfLine/
-/// buildTtsLine). [o2CellMvMax] is passed in because it is memoized on a
-/// State field keyed by curve-list identity.
+/// sites (the ones with a line of their own, so an extreme dive never plots
+/// past its own axis -- see buildGfLine/buildSurfaceGfLine/buildTtsLine/
+/// buildPpO2Line/buildPpN2Line/buildPpHeLine/buildDensityLine). [o2CellMvMax]
+/// is passed in because it is memoized on a State field keyed by
+/// curve-list identity.
 ({double min, double max})? getMetricRange(
   ProfileRightAxisMetric metric,
   UnitFormatter units,
@@ -76,6 +78,10 @@ bool hasDataForMetric(
   required double gfMaxScale,
   required double surfaceGfMaxScale,
   required double ttsMaxScale,
+  required double ppO2MaxScale,
+  required double ppN2MaxScale,
+  required double ppHeMaxScale,
+  required double densityMaxScale,
   required int? Function(List<List<int?>>) o2CellMvMax,
   required ({double min, double max})? Function(List<AscentRatePoint>?)
   ascentRateAxisRange,
@@ -120,16 +126,16 @@ bool hasDataForMetric(
       return (min: 0.0, max: 3600.0); // 0-60 minutes
 
     case ProfileRightAxisMetric.ppO2:
-      return (min: 0.0, max: 2.0); // 0-2.0 bar
+      return (min: 0.0, max: ppO2MaxScale);
 
     case ProfileRightAxisMetric.ppN2:
-      return (min: 0.0, max: 5.0); // 0-5.0 bar
+      return (min: 0.0, max: ppN2MaxScale);
 
     case ProfileRightAxisMetric.ppHe:
-      return (min: 0.0, max: 3.0); // 0-3.0 bar
+      return (min: 0.0, max: ppHeMaxScale);
 
     case ProfileRightAxisMetric.gasDensity:
-      return (min: 0.0, max: 8.0); // 0-8 g/L
+      return (min: 0.0, max: densityMaxScale);
 
     case ProfileRightAxisMetric.gf:
       return (min: 0.0, max: gfMaxScale);

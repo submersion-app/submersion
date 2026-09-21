@@ -74,6 +74,25 @@ const double ceilingFillAlpha = 0.10;
 /// hover-highlight/bold-row treatment every axis-driven metric gets.
 enum ChartOnlyMetric { ceiling, decoStop, mod }
 
+/// One physical O2 sensor's millivolt line/tooltip row (issue #2228
+/// follow-up). All cells previously shared the single
+/// [ProfileRightAxisMetric.o2CellMv] tag, so hovering any one cell's line
+/// highlighted every cell's line and bolded every "Sensor N" row at once --
+/// this identifies each cell individually instead. The touch callback still
+/// maps it back to [ProfileRightAxisMetric.o2CellMv] for the right-axis
+/// switch, since that part should still happen the same as for any other
+/// o2CellMv line.
+class O2CellMetric {
+  final int cell;
+  const O2CellMetric(this.cell);
+
+  @override
+  bool operator ==(Object other) => other is O2CellMetric && other.cell == cell;
+
+  @override
+  int get hashCode => cell.hashCode;
+}
+
 /// Structured row emitted via [DiveProfileChart.onTooltipData] so callers
 /// can render the tooltip externally (e.g., below the chart).
 class TooltipRow {
@@ -3534,11 +3553,17 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 ? _buildO2CellRug(metricBand)
                 : const <LineChartBarData>[];
 
-            // One millivolt line per cell (if showing)
-            final o2CellMvLines =
+            // One millivolt line per cell (if showing), tagged with the
+            // physical cell it belongs to so hovering one cell's line
+            // highlights only that cell (see O2CellMetric) rather than
+            // every cell line at once.
+            final o2CellMvCells =
                 (_showO2CellMv && widget.o2CellMvCurves != null)
                 ? _buildO2CellMvLines(metricBand, units)
-                : const <LineChartBarData>[];
+                : const <({int cell, LineChartBarData bar})>[];
+            final o2CellMvLines = [
+              for (final entry in o2CellMvCells) entry.bar,
+            ];
 
             // MOD line (if showing). There is no
             // ProfileRightAxisMetric.mod, so this never drives the
@@ -3602,7 +3627,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               ...tagsFor(ppN2Lines, ProfileRightAxisMetric.ppN2),
               ...tagsFor(ppHeLines, ProfileRightAxisMetric.ppHe),
               ...tagsFor(o2CellRug, null),
-              ...tagsFor(o2CellMvLines, ProfileRightAxisMetric.o2CellMv),
+              for (final entry in o2CellMvCells) O2CellMetric(entry.cell),
               ...tagsFor(modLines, ChartOnlyMetric.mod),
               ...tagsFor(densityLines, ProfileRightAxisMetric.gasDensity),
               ...tagsFor(gfLines, ProfileRightAxisMetric.gf),
@@ -4105,10 +4130,16 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 final rightAxisExplicitlyHidden = ref
                     .read(profileLegendProvider)
                     .rightAxisHidden;
-                final newHoverMetric =
-                    !rightAxisExplicitlyHidden &&
-                        nearestTag is ProfileRightAxisMetric
+                // An O2CellMetric tags one physical cell's line for
+                // highlighting (see O2CellMetric), but every cell still
+                // reads on the one shared o2CellMv axis.
+                final nearestAxisMetric = nearestTag is ProfileRightAxisMetric
                     ? nearestTag
+                    : (nearestTag is O2CellMetric
+                          ? ProfileRightAxisMetric.o2CellMv
+                          : null);
+                final newHoverMetric = !rightAxisExplicitlyHidden
+                    ? nearestAxisMetric
                     : null;
                 final newHighlightedBarIndex = nearestTag != null
                     ? nearestBarIndex
@@ -5178,10 +5209,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         }
       }
 
-      // ppO2, from this source's own computed analysis, on the same 0-2.0
-      // bar band as the active ppO2 line (see _buildPpO2Line); see the
-      // ceiling comment above for why this reads the computed curve rather
-      // than the raw device field.
+      // ppO2, from this source's own computed analysis, on the same band as
+      // the active ppO2 line (see _buildPpO2Line and _getPpO2MaxScale); see
+      // the ceiling comment above for why this reads the computed curve
+      // rather than the raw device field.
       if (_showPpO2) {
         _addOverlayBandLine(
           lines,
@@ -5189,12 +5220,13 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           band: band,
           curve: overlay.analysis?.ppO2Curve,
           spec: ProfileMetricBands.ppO2,
+          max: _getPpO2MaxScale(),
           leadIn: _OverlayLeadIn.computed,
         );
       }
 
-      // ppN2, same shape as ppO2 above but on the active ppN2 line's 0-5 bar
-      // band (see _buildPpN2Line).
+      // ppN2, same shape as ppO2 above but on the active ppN2 line's band
+      // (see _buildPpN2Line and _getPpN2MaxScale).
       if (_showPpN2) {
         _addOverlayBandLine(
           lines,
@@ -5202,14 +5234,15 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           band: band,
           curve: overlay.analysis?.ppN2Curve,
           spec: ProfileMetricBands.ppN2,
+          max: _getPpN2MaxScale(),
           leadIn: _OverlayLeadIn.computed,
         );
       }
 
       // ppHe, same shape as ppO2/ppN2 above but on the active ppHe line's
-      // 0-3 bar band (see _buildPpHeLine), and only where helium is actually
-      // present -- the same ppHe > 0.001 filter the active line uses so a
-      // non-trimix overlay draws nothing.
+      // band (see _buildPpHeLine and _getPpHeMaxScale), and only where
+      // helium is actually present -- the same ppHe > 0.001 filter the
+      // active line uses so a non-trimix overlay draws nothing.
       if (_showPpHe) {
         _addOverlayBandLine(
           lines,
@@ -5217,6 +5250,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           band: band,
           curve: overlay.analysis?.ppHeCurve,
           spec: ProfileMetricBands.ppHe,
+          max: _getPpHeMaxScale(),
           leadIn: _OverlayLeadIn.computed,
           include: (value) => value > 0.001,
         );
@@ -5255,7 +5289,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       }
 
       // Gas density, from this source's own computed analysis, on the same
-      // 0-8 g/L band as the active density line (see _buildDensityLine).
+      // band as the active density line (see _buildDensityLine and
+      // _getDensityMaxScale).
       if (_showDensity) {
         _addOverlayBandLine(
           lines,
@@ -5263,6 +5298,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           band: band,
           curve: overlay.analysis?.densityCurve,
           spec: ProfileMetricBands.density,
+          max: _getDensityMaxScale(),
           leadIn: _OverlayLeadIn.computed,
         );
       }
@@ -5810,6 +5846,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   LineChartBarData _buildPpO2Line(MetricBand band) => buildPpO2Line(
     band,
     widget.ppO2Curve!,
+    _getPpO2MaxScale(),
     widget.profile,
     _decimatedCurveIndices,
     _withSurfaceLeadIn,
@@ -5918,7 +5955,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// reads the whole dive at a glance, the lines give the detail behind it.
   /// On an absolute scale the ppO2 swing dominates and the disagreement
   /// between cells is invisible, which is why the rug exists at all.
-  List<LineChartBarData> _buildO2CellMvLines(
+  List<({int cell, LineChartBarData bar})> _buildO2CellMvLines(
     MetricBand band,
     UnitFormatter units,
   ) => buildO2CellMvLines(
@@ -5933,6 +5970,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   LineChartBarData _buildPpN2Line(MetricBand band) => buildPpN2Line(
     band,
     widget.ppN2Curve!,
+    _getPpN2MaxScale(),
     widget.profile,
     _decimatedCurveIndices,
     _withSurfaceLeadIn,
@@ -5944,6 +5982,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   LineChartBarData _buildPpHeLine(MetricBand band) => buildPpHeLine(
     band,
     widget.ppHeCurve!,
+    _getPpHeMaxScale(),
     widget.profile,
     _decimatedCurveIndices,
     _withSurfaceLeadIn,
@@ -5966,6 +6005,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   LineChartBarData _buildDensityLine(MetricBand band) => buildDensityLine(
     band,
     widget.densityCurve!,
+    _getDensityMaxScale(),
     widget.profile,
     _decimatedCurveIndices,
     _withSurfaceLeadIn,
@@ -6080,6 +6120,45 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     }
     final actualMax = curve.reduce(math.max);
     return math.max(actualMax, ProfileMetricBands.surfaceGf.fixedMax);
+  }
+
+  /// Compute dynamic max scale for ppO2 based on actual data. See
+  /// [_getGfMaxScale] -- a CCR loop malfunction or deep bailout can genuinely
+  /// exceed the usual 2.0 bar floor.
+  double _getPpO2MaxScale() {
+    final curve = widget.ppO2Curve;
+    if (curve == null || curve.isEmpty) return ProfileMetricBands.ppO2.fixedMax;
+    final actualMax = curve.reduce(math.max);
+    return math.max(actualMax, ProfileMetricBands.ppO2.fixedMax);
+  }
+
+  /// Compute dynamic max scale for ppN2 based on actual data. See
+  /// [_getGfMaxScale].
+  double _getPpN2MaxScale() {
+    final curve = widget.ppN2Curve;
+    if (curve == null || curve.isEmpty) return ProfileMetricBands.ppN2.fixedMax;
+    final actualMax = curve.reduce(math.max);
+    return math.max(actualMax, ProfileMetricBands.ppN2.fixedMax);
+  }
+
+  /// Compute dynamic max scale for ppHe based on actual data. See
+  /// [_getGfMaxScale].
+  double _getPpHeMaxScale() {
+    final curve = widget.ppHeCurve;
+    if (curve == null || curve.isEmpty) return ProfileMetricBands.ppHe.fixedMax;
+    final actualMax = curve.reduce(math.max);
+    return math.max(actualMax, ProfileMetricBands.ppHe.fixedMax);
+  }
+
+  /// Compute dynamic max scale for gas density based on actual data. See
+  /// [_getGfMaxScale].
+  double _getDensityMaxScale() {
+    final curve = widget.densityCurve;
+    if (curve == null || curve.isEmpty) {
+      return ProfileMetricBands.density.fixedMax;
+    }
+    final actualMax = curve.reduce(math.max);
+    return math.max(actualMax, ProfileMetricBands.density.fixedMax);
   }
 
   /// Build cumulative CNS% line
@@ -6519,6 +6598,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     gfMaxScale: _getGfMaxScale(),
     surfaceGfMaxScale: _getSurfaceGfMaxScale(),
     ttsMaxScale: _getTtsMaxScale(),
+    ppO2MaxScale: _getPpO2MaxScale(),
+    ppN2MaxScale: _getPpN2MaxScale(),
+    ppHeMaxScale: _getPpHeMaxScale(),
+    densityMaxScale: _getDensityMaxScale(),
     o2CellMvMax: _o2CellMvMax,
     ascentRateAxisRange: _ascentRateAxisRange,
   );

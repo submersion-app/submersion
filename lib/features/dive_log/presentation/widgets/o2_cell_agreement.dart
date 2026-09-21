@@ -1,6 +1,5 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
@@ -99,7 +98,7 @@ List<TooltipRow> buildO2CellTooltipRows(
         label: '${l10n.diveLog_tooltip_sensor} ${cell + 1}',
         value: readout,
         bulletColor: o2CellColor(cell),
-        metric: ProfileRightAxisMetric.o2CellMv,
+        metric: O2CellMetric(cell),
       ),
     );
   }
@@ -205,7 +204,14 @@ List<LineChartBarData> buildO2CellRug(
 /// reads the whole dive at a glance, the lines give the detail behind it.
 /// On an absolute scale the ppO2 swing dominates and the disagreement
 /// between cells is invisible, which is why the rug exists at all.
-List<LineChartBarData> buildO2CellMvLines(
+///
+/// Paired with the cell each line is for (not every cell necessarily draws
+/// one -- a cell with no data in the visible window is skipped -- so the
+/// index into the returned list does not by itself say which physical cell
+/// a line belongs to). Callers use this to tag each line individually for
+/// hover-highlighting (see [O2CellMetric]) instead of every cell line
+/// highlighting together.
+List<({int cell, LineChartBarData bar})> buildO2CellMvLines(
   MetricBand band,
   List<List<int?>>? mvCurves,
   List<DiveProfilePoint> profile,
@@ -215,7 +221,7 @@ List<LineChartBarData> buildO2CellMvLines(
   if (mvCurves == null) return const [];
   if (range == null || range.max <= range.min) return const [];
 
-  final lines = <LineChartBarData>[];
+  final lines = <({int cell, LineChartBarData bar})>[];
   for (var cell = 0; cell < mvCurves.length; cell++) {
     final curve = mvCurves[cell];
     final spots = <FlSpot>[];
@@ -233,8 +239,9 @@ List<LineChartBarData> buildO2CellMvLines(
       );
     }
     if (spots.isEmpty) continue;
-    lines.add(
-      LineChartBarData(
+    lines.add((
+      cell: cell,
+      bar: LineChartBarData(
         spots: spots,
         isCurved: true,
         curveSmoothness: 0.2,
@@ -243,7 +250,7 @@ List<LineChartBarData> buildO2CellMvLines(
         isStrokeCapRound: true,
         dotData: const FlDotData(show: false),
       ),
-    );
+    ));
   }
   return lines;
 }

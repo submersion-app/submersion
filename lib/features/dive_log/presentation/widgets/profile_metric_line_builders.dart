@@ -394,6 +394,7 @@ LineChartBarData buildNdlLine(
 LineChartBarData buildPpO2Line(
   MetricBand band,
   List<double> ppO2Curve,
+  double ppO2MaxScale,
   List<DiveProfilePoint> profile,
   DecimatedCurveIndices decimatedCurveIndices,
   WithSurfaceLeadIn withSurfaceLeadIn,
@@ -402,9 +403,9 @@ LineChartBarData buildPpO2Line(
 ) {
   const ppO2Color = ProfileMetricColors.ppO2;
 
-  // Map ppO2 to chart: 0 at top, 2.0 bar at bottom
+  // Map ppO2 to chart: 0 at top, ppO2MaxScale at bottom.
   final minPpO2 = ProfileMetricBands.ppO2.min;
-  final maxPpO2 = ProfileMetricBands.ppO2.fixedMax;
+  final maxPpO2 = ppO2MaxScale;
 
   final spots = <FlSpot>[];
   for (final i in decimatedCurveIndices(ppO2Curve)) {
@@ -443,6 +444,7 @@ LineChartBarData buildPpO2Line(
 LineChartBarData buildPpN2Line(
   MetricBand band,
   List<double> ppN2Curve,
+  double ppN2MaxScale,
   List<DiveProfilePoint> profile,
   DecimatedCurveIndices decimatedCurveIndices,
   WithSurfaceLeadIn withSurfaceLeadIn,
@@ -451,9 +453,9 @@ LineChartBarData buildPpN2Line(
 ) {
   const ppN2Color = ProfileMetricColors.ppN2;
 
-  // Map ppN2 to chart: 0 at top, ~5 bar at bottom (deep dive)
+  // Map ppN2 to chart: 0 at top, ppN2MaxScale at bottom.
   final minPpN2 = ProfileMetricBands.ppN2.min;
-  final maxPpN2 = ProfileMetricBands.ppN2.fixedMax;
+  final maxPpN2 = ppN2MaxScale;
 
   final spots = <FlSpot>[];
   for (final i in decimatedCurveIndices(ppN2Curve)) {
@@ -491,6 +493,7 @@ LineChartBarData buildPpN2Line(
 LineChartBarData buildPpHeLine(
   MetricBand band,
   List<double> ppHeCurve,
+  double ppHeMaxScale,
   List<DiveProfilePoint> profile,
   DecimatedCurveIndices decimatedCurveIndices,
   WithSurfaceLeadIn withSurfaceLeadIn,
@@ -499,9 +502,9 @@ LineChartBarData buildPpHeLine(
 ) {
   const ppHeColor = ProfileMetricColors.ppHe;
 
-  // Map ppHe to chart: 0 at top, ~3 bar at bottom
+  // Map ppHe to chart: 0 at top, ppHeMaxScale at bottom.
   final minPpHe = ProfileMetricBands.ppHe.min;
-  final maxPpHe = ProfileMetricBands.ppHe.fixedMax;
+  final maxPpHe = ppHeMaxScale;
 
   final spots = <FlSpot>[];
   for (final i in decimatedCurveIndices(ppHeCurve)) {
@@ -582,6 +585,7 @@ LineChartBarData buildModLine(
 LineChartBarData buildDensityLine(
   MetricBand band,
   List<double> densityCurve,
+  double densityMaxScale,
   List<DiveProfilePoint> profile,
   DecimatedCurveIndices decimatedCurveIndices,
   WithSurfaceLeadIn withSurfaceLeadIn,
@@ -591,9 +595,9 @@ LineChartBarData buildDensityLine(
   // Lime 900 (olive) - distinct from the OTU brown.
   const densityColor = ProfileMetricColors.density;
 
-  // Map density to chart: 0 at top, 8 g/L at bottom
+  // Map density to chart: 0 at top, densityMaxScale at bottom.
   final minDensity = ProfileMetricBands.density.min;
-  final maxDensity = ProfileMetricBands.density.fixedMax;
+  final maxDensity = densityMaxScale;
 
   final spots = <FlSpot>[];
   for (final i in decimatedCurveIndices(densityCurve)) {
