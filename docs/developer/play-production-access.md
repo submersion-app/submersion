@@ -822,12 +822,12 @@ rather than merely asserting it.
 
 ### 5.6 Target SDK
 
-**Finding:** `android/app/build.gradle` sets `compileSdk = 37` and
+**Finding:** `android/app/build.gradle.kts` sets `compileSdk = 37` and
 `targetSdk = flutter.targetSdkVersion`.
 
 **Resolved:** `flutter.targetSdkVersion` is **36** on Flutter 3.47.0, read
 from `packages/flutter_tools/gradle/src/main/kotlin/FlutterExtension.kt:34` in
-the installed SDK. `compileSdk` is pinned to 37 in `build.gradle` and
+the installed SDK. `compileSdk` is pinned to 37 in `build.gradle.kts` and
 `minSdk` to 26, both deliberate.
 
 Play enforces a rolling target API floor and rejects uploads below it, so the
