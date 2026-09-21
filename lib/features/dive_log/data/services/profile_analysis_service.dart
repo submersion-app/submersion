@@ -2016,11 +2016,15 @@ class ProfileAnalysisService {
   ///
   /// Uses DecoStatus.surfGf which correctly finds the maximum surface
   /// gradient factor across all 16 compartments.
-  /// Values >100% indicate deco obligation.
+  /// Values >100% indicate deco obligation. No upper clamp: DecoStatus.surfGf
+  /// is itself unbounded above (only clamped at 0, where negative values mean
+  /// undersaturation and are not meaningful to display) and every other
+  /// consumer of that same raw value -- the compact status card, the deco
+  /// info panel, the safety review warning -- already shows it unclamped, so
+  /// clamping only this curve made a dive with a genuinely extreme SrfGF read
+  /// differently on the chart than everywhere else it appears.
   List<double> _calculateSurfaceGfCurve(List<DecoStatus> decoStatuses) {
-    return decoStatuses
-        .map((status) => status.surfGf.clamp(0.0, 200.0))
-        .toList();
+    return decoStatuses.map((status) => status.surfGf).toList();
   }
 
   /// Calculate mean depth curve (running average from start).
