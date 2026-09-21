@@ -72,9 +72,18 @@ class TagChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: borderRadius,
         child: Padding(
-          padding: dense
-              ? const EdgeInsets.symmetric(horizontal: 6, vertical: 2)
-              : const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          // A removable chip drops its vertical padding and takes its height
+          // from the close button's tap target instead, which is how a
+          // Material chip with a delete button sizes itself. Padding on top
+          // of a 48 dp target would make the chip 56 dp tall.
+          padding: EdgeInsets.symmetric(
+            horizontal: dense ? 6 : 10,
+            vertical: onDeleted != null
+                ? 0
+                : dense
+                ? 2
+                : 4,
+          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -112,9 +121,12 @@ class TagChip extends StatelessWidget {
   }
 }
 
-/// The close button of a removable chip. It is an [InkResponse] rather than
-/// an [IconButton] so the icon can stay chip sized while the tap target keeps
-/// its own radius.
+/// The close button of a removable chip.
+///
+/// The tap target is measured, not assumed: a bare icon with a splash radius
+/// leaves a 16 dp target, and `VisualDensity.compact` pulls an [IconButton]
+/// below its own constraints floor. The icon stays chip sized while the
+/// button is constrained to the platform's minimum.
 class _DeleteButton extends StatelessWidget {
   const _DeleteButton({
     required this.color,
@@ -126,19 +138,35 @@ class _DeleteButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String? tooltip;
 
+  /// The floor for the tap target. A finger needs the 48 dp Material touch
+  /// minimum; a pointer is precise, and a 48 dp box inside a chip is out of
+  /// scale on a desktop, so it takes the 32 dp pointer minimum instead.
+  static double targetFor(TargetPlatform platform) => switch (platform) {
+    TargetPlatform.android ||
+    TargetPlatform.iOS ||
+    TargetPlatform.fuchsia => 48,
+    TargetPlatform.macOS ||
+    TargetPlatform.linux ||
+    TargetPlatform.windows => 32,
+  };
+
   @override
   Widget build(BuildContext context) {
-    final button = InkResponse(
-      onTap: onPressed,
-      radius: 16,
-      child: Icon(Icons.close, size: 16, color: color),
-    );
-    return Semantics(
-      button: true,
-      label: tooltip,
-      child: tooltip == null
-          ? button
-          : Tooltip(message: tooltip!, child: button),
+    final target = targetFor(Theme.of(context).platform);
+    return IconButton(
+      onPressed: onPressed,
+      tooltip: tooltip,
+      icon: Icon(Icons.close, size: 16, color: color),
+      iconSize: 16,
+      padding: EdgeInsets.zero,
+      // shrinkWrap so the constraints alone decide the box: the padded
+      // setting would add its own 48 dp on top of them.
+      style: IconButton.styleFrom(
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        minimumSize: Size(target, target),
+        maximumSize: Size(target, target),
+      ),
+      constraints: BoxConstraints(minWidth: target, minHeight: target),
     );
   }
 }

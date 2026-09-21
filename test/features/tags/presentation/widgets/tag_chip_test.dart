@@ -105,6 +105,59 @@ void main() {
     expect(deletes, 1);
   });
 
+  group('the delete control keeps a reachable tap target', () {
+    // A 16px icon with only a splash radius left a 16x16 target, well under
+    // either platform's floor. Measured per platform, because a chip is not
+    // allowed to shrink the target the way VisualDensity.compact once did.
+    for (final (platform, floor) in [
+      (TargetPlatform.android, 48.0),
+      (TargetPlatform.iOS, 48.0),
+      (TargetPlatform.macOS, 32.0),
+      (TargetPlatform.windows, 32.0),
+      (TargetPlatform.linux, 32.0),
+    ]) {
+      testWidgets('$platform reaches $floor', (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(platform: platform),
+            home: Scaffold(
+              body: Center(
+                child: TagChip(tag: amber, onDeleted: () {}),
+              ),
+            ),
+          ),
+        );
+
+        final target = tester.getSize(
+          find.ancestor(
+            of: find.byIcon(Icons.close),
+            matching: find.byType(IconButton),
+          ),
+        );
+
+        expect(target.width, greaterThanOrEqualTo(floor));
+        expect(target.height, greaterThanOrEqualTo(floor));
+      });
+    }
+
+    testWidgets('and the whole chip stays no taller than that target', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: ThemeData(platform: TargetPlatform.macOS),
+          home: Scaffold(
+            body: Center(
+              child: TagChip(tag: amber, onDeleted: () {}),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.getSize(find.byType(TagChip)).height, 32.0);
+    });
+  });
+
   testWidgets('the dense variant keeps the same fill', (tester) async {
     await tester.pumpWidget(harness(TagChip(tag: amber, dense: true)));
 
