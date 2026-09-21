@@ -411,6 +411,7 @@ class DiveProfileChartHost extends ConsumerWidget {
         playbackTimestamp: playbackState.isActive
             ? playbackState.currentTimestamp
             : null,
+        playbackIsPlaying: playbackState.isPlaying,
         highlightedTimestamp:
             trackingIndex != null && trackingIndex < chartProfile.length
             ? chartProfile[trackingIndex].timestamp
