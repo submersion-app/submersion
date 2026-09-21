@@ -120,6 +120,7 @@ import 'package:submersion/features/settings/presentation/pages/language_setting
 import 'package:submersion/features/settings/presentation/pages/nav_customization_page.dart';
 import 'package:submersion/features/settings/presentation/pages/theme_gallery_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
+import 'package:submersion/features/settings/presentation/pages/three_d_maps_page.dart';
 import 'package:submersion/features/backup/presentation/pages/unrecognized_backups_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_usage_page.dart';
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
@@ -1180,6 +1181,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'offline-maps',
                 name: 'offlineMaps',
                 builder: (context, state) => const OfflineMapsPage(),
+              ),
+              GoRoute(
+                path: '3d-maps',
+                name: 'threeDMaps',
+                builder: (context, state) => const ThreeDMapsPage(),
               ),
               GoRoute(
                 path: 'wearable-import',

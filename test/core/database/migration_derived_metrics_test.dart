@@ -15,12 +15,12 @@ void main() {
     return rows.map((r) => r.read<String>('name')).toSet();
   }
 
-  test('v222 is the current schema version and is in the ladder', () {
+  test('v223 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 222);
-    expect(AppDatabase.migrationVersions, contains(222));
-    expect(AppDatabase.migrationStepCount(221), 1);
+    expect(AppDatabase.currentSchemaVersion, 223);
+    expect(AppDatabase.migrationVersions, contains(223));
+    expect(AppDatabase.migrationStepCount(222), 1);
     // Table-only rung on device-local tables: the sync floor must not move.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 210);
   });

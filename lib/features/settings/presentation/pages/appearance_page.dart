@@ -6,7 +6,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/settings/presentation/pages/language_settings_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/settings/presentation/widgets/bathymetry_refresh_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/nav_customization_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/display_zoom_settings_tile.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -116,14 +115,6 @@ class _AppearancePageState extends ConsumerState<AppearancePage> {
                   child: Text(_getMapStyleDisplayName(context, style)),
                 );
               }).toList(),
-            ),
-          ),
-          const Divider(),
-          const BathymetryRefreshTile(
-            leading: FeatureAccentIcon(
-              Icons.refresh,
-              featureId: 'settings-appearance',
-              surface: AccentSurface.list,
             ),
           ),
           const Divider(),

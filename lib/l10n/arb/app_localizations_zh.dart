@@ -9108,7 +9108,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveSites_filter_clearAll => '清除全部';
 
   @override
-  String get diveSites_filter_country_hint => '例如，泰国';
+  String get diveSites_filter_allCountries => '所有国家';
+
+  @override
+  String get diveSites_filter_allRegions => '所有地区';
 
   @override
   String get diveSites_filter_country_label => '国家';
@@ -9144,10 +9147,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => '例如，普吉岛';
+  String get diveSites_filter_region_label => '地区';
 
   @override
-  String get diveSites_filter_region_label => '地区';
+  String get diveSites_filter_searchCountriesHint => '输入以搜索国家';
+
+  @override
+  String get diveSites_filter_searchRegionsHint => '输入以搜索地区';
 
   @override
   String get diveSites_filter_section_depthRange => '最大深度范围';
@@ -17347,6 +17353,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_data_offlineMaps_subtitle => '下载地图以供离线使用';
 
   @override
+  String get settings_data_threeDMaps => '3D Maps';
+
+  @override
+  String get settings_data_threeDMaps_subtitle =>
+      'Manage cached swissBATHY3D and other bathymetry data';
+
+  @override
   String get settings_data_restore => '恢复';
 
   @override
@@ -25243,6 +25256,156 @@ class AppLocalizationsZh extends AppLocalizations {
       '尚未缓存湖泊深度数据';
 
   @override
+  String get maps3d_appBar_title => '3D 地图';
+
+  @override
+  String get maps3d_section_all => '所有数据源';
+
+  @override
+  String get maps3d_section_swissBathy => 'swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete => '删除数据';
+
+  @override
+  String get maps3d_swissBathy_delete_subtitle =>
+      '删除已缓存的 swissBATHY3D 深度瓦片和湖泊网格';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmTitle => '删除 swissBATHY3D 数据？';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      '已缓存的瑞士湖泊深度数据将被删除，并在下次打开潜水点的 3D 视图时重新加载。';
+
+  @override
+  String get maps3d_swissBathy_delete_done => '已删除 swissBATHY3D 数据';
+
+  @override
+  String get maps3d_section_other => '其他数据源';
+
+  @override
+  String get maps3d_other_reset => '重置其余测深数据';
+
+  @override
+  String get maps3d_other_reset_subtitle =>
+      '删除来自 EMODnet、NOAA DEM、GMRT 和 ETOPO 的缓存数据';
+
+  @override
+  String get maps3d_other_reset_confirmTitle => '重置其余测深数据？';
+
+  @override
+  String get maps3d_other_reset_confirmMessage =>
+      '除 swissBATHY3D 以外所有数据源的缓存数据将被删除，并在下次打开潜水点的 3D 视图时重新加载。';
+
+  @override
+  String get maps3d_other_reset_done => '已重置其余测深数据';
+
+  @override
+  String get maps3d_reload => '重新加载地图数据';
+
+  @override
+  String get maps3d_reload_subtitle => '删除所有已缓存的测深数据，并为每个潜水点重新下载';
+
+  @override
+  String get maps3d_reload_confirmTitle => '为所有潜水点重新加载地图数据？';
+
+  @override
+  String maps3d_reload_confirm_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '将重新加载 $count 个潜水点。',
+      one: '将重新加载 1 个潜水点。',
+      zero: '没有潜水点带有位置信息。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_confirm_estimatedSize(String size) {
+    return '预计下载量：约 $size';
+  }
+
+  @override
+  String get maps3d_reload_confirm_duration => '此操作可能需要几分钟。';
+
+  @override
+  String get maps3d_reload_confirm_wifiHint => '将下载大量数据，建议使用快速的 Wi-Fi 连接。';
+
+  @override
+  String get maps3d_reload_start => '重新加载';
+
+  @override
+  String maps3d_reload_progress(int completed, int total) {
+    return '共 $total 个潜水点，已完成 $completed 个';
+  }
+
+  @override
+  String get maps3d_reload_cancel => '取消';
+
+  @override
+  String get maps3d_reload_done => '已为所有潜水点重新加载地图数据';
+
+  @override
+  String get maps3d_reload_cancelled => '已取消重新加载';
+
+  @override
+  String get maps3d_reload_failed => '重新加载失败，部分潜水点可能未重新加载';
+
+  @override
+  String get maps3d_busy_notice => '另一项 3D 地图操作正在运行，请等待其完成。';
+
+  @override
+  String maps3d_reload_remainingSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '约剩 $count 秒',
+      one: '约剩 1 秒',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_remainingMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '约剩 $count 分钟',
+      one: '约剩 1 分钟',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_warming(int index, int total, String name) {
+    return '正在准备：第 $index 个湖泊，共 $total 个（$name）';
+  }
+
+  @override
+  String maps3d_reload_elapsedSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已运行 $count 秒',
+      one: '已运行 1 秒',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_elapsedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '已运行 $count 分钟',
+      one: '已运行 1 分钟',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get common_action_reparse => '重新解析';
 
   @override
@@ -25980,6 +26143,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get dive3d_seascape_orbitView => '3D 视图';
+
+  @override
+  String get dive3d_seascape_verticalExaggeration => '垂直夸张';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationReset => '重置为自动';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationLabel => '深度';
 
   @override
   String get dive3d_seascape_appearance_surface => '地形表面';

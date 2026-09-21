@@ -20,6 +20,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/site_dive_statistics.dart';
 import 'package:submersion/features/dive_sites/domain/models/entry_exit_suggestion.dart';
+import 'package:submersion/features/dive_sites/domain/utils/location_options.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_feature_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
@@ -85,18 +86,23 @@ class SiteFilterState {
       final site = siteWithCount.site;
       final diveCount = siteWithCount.diveCount;
 
-      // Country filter (case-insensitive contains)
+      // Country filter. Exact match (case-/whitespace-insensitive): the
+      // country always comes from the dropdown's enumerated site values
+      // (issue #1373), never free-typed partial text, so e.g. "Congo" must
+      // not also match a site whose country is "Democratic Republic of
+      // Congo".
       if (country != null && country!.isNotEmpty) {
         if (site.country == null ||
-            !site.country!.toLowerCase().contains(country!.toLowerCase())) {
+            locationDedupKey(site.country!) != locationDedupKey(country!)) {
           return false;
         }
       }
 
-      // Region filter (case-insensitive contains)
+      // Region filter. Same exact-match reasoning as country above - e.g.
+      // "Sinai" must not also match a site whose region is "South Sinai".
       if (region != null && region!.isNotEmpty) {
         if (site.region == null ||
-            !site.region!.toLowerCase().contains(region!.toLowerCase())) {
+            locationDedupKey(site.region!) != locationDedupKey(region!)) {
           return false;
         }
       }
@@ -222,6 +228,35 @@ final sitesProvider = FutureProvider<List<domain.DiveSite>>((ref) async {
   ref.invalidateSelfWhen(repository.watchSitesChanges());
   return repository.getAllSites(diverId: validatedDiverId);
 });
+
+/// Distinct country labels across all of the diver's sites, for the sites
+/// filter's country dropdown (issue #1373).
+final siteCountryOptionsProvider = Provider<AsyncValue<List<String>>>((ref) {
+  final sitesAsync = ref.watch(sitesProvider);
+  return sitesAsync.whenData(
+    (sites) => distinctLocationLabels(sites.map((site) => site.country)),
+  );
+});
+
+/// Distinct region labels among sites in [country], or across all sites when
+/// [country] is null - the sites filter's cascading region dropdown (issue
+/// #1373): picking a country narrows this list to the regions that actually
+/// occur there instead of every region in the diver's log.
+final siteRegionOptionsProvider =
+    Provider.family<AsyncValue<List<String>>, String?>((ref, country) {
+      final sitesAsync = ref.watch(sitesProvider);
+      return sitesAsync.whenData((sites) {
+        final scoped = country == null
+            ? sites
+            : sites.where(
+                (site) =>
+                    site.country != null &&
+                    locationDedupKey(site.country!) ==
+                        locationDedupKey(country),
+              );
+        return distinctLocationLabels(scoped.map((site) => site.region));
+      });
+    });
 
 /// Sites with dive counts provider
 final sitesWithCountsProvider = FutureProvider<List<SiteWithDiveCount>>((

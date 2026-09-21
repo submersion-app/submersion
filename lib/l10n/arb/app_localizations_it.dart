@@ -9570,7 +9570,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_filter_clearAll => 'Cancella tutto';
 
   @override
-  String get diveSites_filter_country_hint => 'es. Thailandia';
+  String get diveSites_filter_allCountries => 'Tutti i paesi';
+
+  @override
+  String get diveSites_filter_allRegions => 'Tutte le regioni';
 
   @override
   String get diveSites_filter_country_label => 'Paese';
@@ -9607,10 +9610,15 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => 'es. Phuket';
+  String get diveSites_filter_region_label => 'Regione';
 
   @override
-  String get diveSites_filter_region_label => 'Regione';
+  String get diveSites_filter_searchCountriesHint =>
+      'Digita per cercare i paesi';
+
+  @override
+  String get diveSites_filter_searchRegionsHint =>
+      'Digita per cercare le regioni';
 
   @override
   String get diveSites_filter_section_depthRange =>
@@ -18258,6 +18266,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Scarica mappe per l\'uso offline';
 
   @override
+  String get settings_data_threeDMaps => '3D Maps';
+
+  @override
+  String get settings_data_threeDMaps_subtitle =>
+      'Manage cached swissBATHY3D and other bathymetry data';
+
+  @override
   String get settings_data_restore => 'Ripristina';
 
   @override
@@ -26621,6 +26636,166 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun dato di profondità dei laghi ancora memorizzato';
 
   @override
+  String get maps3d_appBar_title => 'Mappe 3D';
+
+  @override
+  String get maps3d_section_all => 'Tutti i fornitori';
+
+  @override
+  String get maps3d_section_swissBathy => 'swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete => 'Elimina dati';
+
+  @override
+  String get maps3d_swissBathy_delete_subtitle =>
+      'Rimuove i tasselli di profondità e le griglie dei laghi swissBATHY3D dalla cache';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmTitle =>
+      'Eliminare i dati swissBATHY3D?';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      'I dati di profondità in cache dei laghi svizzeri verranno rimossi e ricaricati alla prossima apertura della vista 3D di un sito di immersione.';
+
+  @override
+  String get maps3d_swissBathy_delete_done => 'Dati swissBATHY3D eliminati';
+
+  @override
+  String get maps3d_section_other => 'Altri fornitori';
+
+  @override
+  String get maps3d_other_reset => 'Ripristina i dati batimetrici rimanenti';
+
+  @override
+  String get maps3d_other_reset_subtitle =>
+      'Rimuove dalla cache i dati di EMODnet, NOAA DEM, GMRT ed ETOPO';
+
+  @override
+  String get maps3d_other_reset_confirmTitle =>
+      'Ripristinare i dati batimetrici rimanenti?';
+
+  @override
+  String get maps3d_other_reset_confirmMessage =>
+      'I dati in cache di tutti i fornitori diversi da swissBATHY3D verranno rimossi e ricaricati alla prossima apertura della vista 3D di un sito di immersione.';
+
+  @override
+  String get maps3d_other_reset_done =>
+      'Dati batimetrici rimanenti ripristinati';
+
+  @override
+  String get maps3d_reload => 'Ricarica i dati delle mappe';
+
+  @override
+  String get maps3d_reload_subtitle =>
+      'Elimina tutti i dati batimetrici in cache e li scarica di nuovo per ogni sito di immersione';
+
+  @override
+  String get maps3d_reload_confirmTitle =>
+      'Ricaricare i dati delle mappe per tutti i siti di immersione?';
+
+  @override
+  String maps3d_reload_confirm_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Verranno ricaricati $count siti di immersione.',
+      one: 'Verrà ricaricato 1 sito di immersione.',
+      zero: 'Nessun sito di immersione ha una posizione.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_confirm_estimatedSize(String size) {
+    return 'Download stimato: circa $size';
+  }
+
+  @override
+  String get maps3d_reload_confirm_duration =>
+      'L\'operazione può richiedere diversi minuti.';
+
+  @override
+  String get maps3d_reload_confirm_wifiHint =>
+      'Verranno scaricati molti dati; si consiglia una connessione Wi-Fi veloce.';
+
+  @override
+  String get maps3d_reload_start => 'Ricarica';
+
+  @override
+  String maps3d_reload_progress(int completed, int total) {
+    return '$completed di $total siti di immersione';
+  }
+
+  @override
+  String get maps3d_reload_cancel => 'Annulla';
+
+  @override
+  String get maps3d_reload_done =>
+      'Dati delle mappe ricaricati per tutti i siti di immersione';
+
+  @override
+  String get maps3d_reload_cancelled => 'Ricarica annullata';
+
+  @override
+  String get maps3d_reload_failed =>
+      'Ricarica non riuscita; alcuni siti di immersione potrebbero non essere stati ricaricati';
+
+  @override
+  String get maps3d_busy_notice =>
+      'È in corso un\'altra azione Mappe 3D. Attendi il completamento.';
+
+  @override
+  String maps3d_reload_remainingSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'circa $count secondi rimanenti',
+      one: 'circa 1 secondo rimanente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_remainingMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'circa $count minuti rimanenti',
+      one: 'circa 1 minuto rimanente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_warming(int index, int total, String name) {
+    return 'Preparazione: lago $index di $total ($name)';
+  }
+
+  @override
+  String maps3d_reload_elapsedSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in esecuzione da $count secondi',
+      one: 'in esecuzione da 1 secondo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_elapsedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in esecuzione da $count minuti',
+      one: 'in esecuzione da 1 minuto',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get common_action_reparse => 'Rianalizza';
 
   @override
@@ -27420,6 +27595,16 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get dive3d_seascape_orbitView => 'Vista 3D';
+
+  @override
+  String get dive3d_seascape_verticalExaggeration => 'Esagerazione verticale';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationReset =>
+      'Ripristina automatico';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationLabel => 'Profondità';
 
   @override
   String get dive3d_seascape_appearance_surface => 'Superficie del terreno';

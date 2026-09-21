@@ -46,6 +46,27 @@ class SurfacingTankReading {
   final double? lastAfterSurfacing;
 }
 
+/// The last dive-computer second any of [points] was still deeper than
+/// [kSurfaceThresholdMeters], or null when none was.
+///
+/// Surfacing is the last sample deeper than the threshold, so a diver who
+/// drops back down after a surface break is measured from the final descent.
+///
+/// Shared by [surfacingTankReadings] and by callers that need to place the
+/// surfacing moment against a series of their own, such as
+/// `PressureAnomalyDetector` (issue #2220), so the two places that need to
+/// agree on where a dive ended cannot drift apart.
+int? lastTimeBelowSurfaceThreshold(Iterable<({int t, double depth})> points) {
+  int? surfacingTime;
+  for (final p in points) {
+    if (p.depth > kSurfaceThresholdMeters &&
+        (surfacingTime == null || p.t > surfacingTime)) {
+      surfacingTime = p.t;
+    }
+  }
+  return surfacingTime;
+}
+
 /// What each cylinder read on either side of the moment the diver surfaced,
 /// keyed by cylinder index.
 ///
@@ -56,10 +77,8 @@ class SurfacingTankReading {
 /// that orifice, and the tail of the recording can shed most of the cylinder's
 /// apparent contents (issue #1092).
 ///
-/// Surfacing is the last sample deeper than [kSurfaceThresholdMeters], so a
-/// diver who drops back down after a surface break is measured from the final
-/// descent. Each cylinder is read independently and carries its most recent
-/// value forward, because transmitters report on their own cadence and the
+/// Each cylinder is read independently and carries its most recent value
+/// forward, because transmitters report on their own cadence and the
 /// surfacing sample may hold no reading for a given cylinder.
 ///
 /// Cylinders with no reading at or before surfacing are left out: there is
@@ -69,13 +88,9 @@ class SurfacingTankReading {
 Map<int, SurfacingTankReading> surfacingTankReadings(
   List<SurfacingProfilePoint> points,
 ) {
-  int? surfacingTime;
-  for (final p in points) {
-    if (p.depthMeters > kSurfaceThresholdMeters &&
-        (surfacingTime == null || p.timeSeconds > surfacingTime)) {
-      surfacingTime = p.timeSeconds;
-    }
-  }
+  final surfacingTime = lastTimeBelowSurfaceThreshold(
+    points.map((p) => (t: p.timeSeconds, depth: p.depthMeters)),
+  );
   if (surfacingTime == null) {
     return const {};
   }

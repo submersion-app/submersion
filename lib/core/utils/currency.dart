@@ -59,6 +59,27 @@ String formatMoney(double amount, String currencyCode) {
   }
 }
 
+/// Formats [amount] as a plain localized number, with no currency symbol or
+/// code - for a total that is already labeled with its currency elsewhere,
+/// so the amount doesn't need to repeat it (and can't disagree with it: two
+/// currencies can render the same symbol, e.g. USD and CAD both show '$').
+/// Uses [currencyCode]'s own decimal precision (e.g. no decimals for JPY) so
+/// it still matches formatMoney's per-record rows; falls back to two decimal
+/// digits for unrecognised codes or locale data intl has no number symbols
+/// for, the same degrade path as formatMoney.
+String formatAmountOnly(double amount, String currencyCode) {
+  final code = currencyCode.trim().toUpperCase();
+  try {
+    final decimalDigits = NumberFormat.simpleCurrency(name: code).decimalDigits;
+    return NumberFormat.currency(
+      symbol: '',
+      decimalDigits: decimalDigits,
+    ).format(amount).trim();
+  } catch (_) {
+    return amount.toStringAsFixed(2);
+  }
+}
+
 /// Sums the amounts in [items] grouped by their currency, so a collection
 /// priced in more than one currency is never added into a single misleading
 /// figure.

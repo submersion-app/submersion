@@ -15705,11 +15705,17 @@ abstract class AppLocalizations {
   /// **'Clear All'**
   String get diveSites_filter_clearAll;
 
-  /// No description provided for @diveSites_filter_country_hint.
+  /// No description provided for @diveSites_filter_allCountries.
   ///
   /// In en, this message translates to:
-  /// **'e.g., Thailand'**
-  String get diveSites_filter_country_hint;
+  /// **'All countries'**
+  String get diveSites_filter_allCountries;
+
+  /// No description provided for @diveSites_filter_allRegions.
+  ///
+  /// In en, this message translates to:
+  /// **'All regions'**
+  String get diveSites_filter_allRegions;
 
   /// No description provided for @diveSites_filter_country_label.
   ///
@@ -15771,17 +15777,23 @@ abstract class AppLocalizations {
   /// **'{count}+ stars'**
   String diveSites_filter_rating_starsPlus(Object count);
 
-  /// No description provided for @diveSites_filter_region_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., Phuket'**
-  String get diveSites_filter_region_hint;
-
   /// No description provided for @diveSites_filter_region_label.
   ///
   /// In en, this message translates to:
   /// **'Region'**
   String get diveSites_filter_region_label;
+
+  /// No description provided for @diveSites_filter_searchCountriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to search countries'**
+  String get diveSites_filter_searchCountriesHint;
+
+  /// No description provided for @diveSites_filter_searchRegionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to search regions'**
+  String get diveSites_filter_searchRegionsHint;
 
   /// No description provided for @diveSites_filter_section_depthRange.
   ///
@@ -29695,6 +29707,18 @@ abstract class AppLocalizations {
   /// **'Download maps for offline use'**
   String get settings_data_offlineMaps_subtitle;
 
+  /// No description provided for @settings_data_threeDMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'3D Maps'**
+  String get settings_data_threeDMaps;
+
+  /// No description provided for @settings_data_threeDMaps_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage cached swissBATHY3D and other bathymetry data'**
+  String get settings_data_threeDMaps_subtitle;
+
   /// No description provided for @settings_data_restore.
   ///
   /// In en, this message translates to:
@@ -42645,7 +42669,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_appearance_bathymetryRefresh.
   ///
   /// In en, this message translates to:
-  /// **'Reload Map Data'**
+  /// **'Update Existing Map Data'**
   String get settings_appearance_bathymetryRefresh;
 
   /// No description provided for @settings_appearance_bathymetryRefresh_subtitle.
@@ -42677,6 +42701,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No lake depth data cached yet'**
   String get settings_appearance_bathymetryRefresh_resultNothingCached;
+
+  /// No description provided for @maps3d_appBar_title.
+  ///
+  /// In en, this message translates to:
+  /// **'3D Maps'**
+  String get maps3d_appBar_title;
+
+  /// No description provided for @maps3d_section_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All Providers'**
+  String get maps3d_section_all;
+
+  /// No description provided for @maps3d_section_swissBathy.
+  ///
+  /// In en, this message translates to:
+  /// **'swissBATHY3D'**
+  String get maps3d_section_swissBathy;
+
+  /// No description provided for @maps3d_swissBathy_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete data'**
+  String get maps3d_swissBathy_delete;
+
+  /// No description provided for @maps3d_swissBathy_delete_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes cached swissBATHY3D depth tiles and lake grids'**
+  String get maps3d_swissBathy_delete_subtitle;
+
+  /// No description provided for @maps3d_swissBathy_delete_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete swissBATHY3D data?'**
+  String get maps3d_swissBathy_delete_confirmTitle;
+
+  /// No description provided for @maps3d_swissBathy_delete_confirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached depth data for Swiss lakes will be removed and reloaded the next time a dive site\'s 3D view is opened.'**
+  String get maps3d_swissBathy_delete_confirmMessage;
+
+  /// No description provided for @maps3d_swissBathy_delete_done.
+  ///
+  /// In en, this message translates to:
+  /// **'swissBATHY3D data deleted'**
+  String get maps3d_swissBathy_delete_done;
+
+  /// No description provided for @maps3d_section_other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other providers'**
+  String get maps3d_section_other;
+
+  /// No description provided for @maps3d_other_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset remaining bathymetry data'**
+  String get maps3d_other_reset;
+
+  /// No description provided for @maps3d_other_reset_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes cached data from EMODnet, NOAA DEM, GMRT and ETOPO'**
+  String get maps3d_other_reset_subtitle;
+
+  /// No description provided for @maps3d_other_reset_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset remaining bathymetry data?'**
+  String get maps3d_other_reset_confirmTitle;
+
+  /// No description provided for @maps3d_other_reset_confirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached data from every provider other than swissBATHY3D will be removed and reloaded the next time a dive site\'s 3D view is opened.'**
+  String get maps3d_other_reset_confirmMessage;
+
+  /// No description provided for @maps3d_other_reset_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining bathymetry data reset'**
+  String get maps3d_other_reset_done;
+
+  /// No description provided for @maps3d_reload.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload map data'**
+  String get maps3d_reload;
+
+  /// No description provided for @maps3d_reload_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletes all cached bathymetry data and downloads it again for every dive site'**
+  String get maps3d_reload_subtitle;
+
+  /// No description provided for @maps3d_reload_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload map data for every dive site?'**
+  String get maps3d_reload_confirmTitle;
+
+  /// No description provided for @maps3d_reload_confirm_siteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No dive sites have a location.} =1{1 dive site will be reloaded.} other{{count} dive sites will be reloaded.}}'**
+  String maps3d_reload_confirm_siteCount(int count);
+
+  /// No description provided for @maps3d_reload_confirm_estimatedSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated download: approx. {size}'**
+  String maps3d_reload_confirm_estimatedSize(String size);
+
+  /// No description provided for @maps3d_reload_confirm_duration.
+  ///
+  /// In en, this message translates to:
+  /// **'This can take several minutes.'**
+  String get maps3d_reload_confirm_duration;
+
+  /// No description provided for @maps3d_reload_confirm_wifiHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A lot of data will be downloaded — a fast Wi-Fi connection is recommended.'**
+  String get maps3d_reload_confirm_wifiHint;
+
+  /// No description provided for @maps3d_reload_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload'**
+  String get maps3d_reload_start;
+
+  /// No description provided for @maps3d_reload_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'{completed} of {total} dive sites'**
+  String maps3d_reload_progress(int completed, int total);
+
+  /// No description provided for @maps3d_reload_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get maps3d_reload_cancel;
+
+  /// No description provided for @maps3d_reload_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Map data reloaded for every dive site'**
+  String get maps3d_reload_done;
+
+  /// No description provided for @maps3d_reload_cancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload cancelled'**
+  String get maps3d_reload_cancelled;
+
+  /// No description provided for @maps3d_reload_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload failed; some dive sites may not have been reloaded'**
+  String get maps3d_reload_failed;
+
+  /// No description provided for @maps3d_busy_notice.
+  ///
+  /// In en, this message translates to:
+  /// **'Another 3D Maps action is running. Please wait until it finishes.'**
+  String get maps3d_busy_notice;
+
+  /// No description provided for @maps3d_reload_remainingSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'about {count, plural, =1{1 second} other{{count} seconds}} remaining'**
+  String maps3d_reload_remainingSeconds(int count);
+
+  /// No description provided for @maps3d_reload_remainingMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'about {count, plural, =1{1 minute} other{{count} minutes}} remaining'**
+  String maps3d_reload_remainingMinutes(int count);
+
+  /// No description provided for @maps3d_reload_warming.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing: lake {index} of {total} ({name})'**
+  String maps3d_reload_warming(int index, int total, String name);
+
+  /// No description provided for @maps3d_reload_elapsedSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'running for {count, plural, =1{1 second} other{{count} seconds}}'**
+  String maps3d_reload_elapsedSeconds(int count);
+
+  /// No description provided for @maps3d_reload_elapsedMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'running for {count, plural, =1{1 minute} other{{count} minutes}}'**
+  String maps3d_reload_elapsedMinutes(int count);
 
   /// Generic re-parse action label
   ///
@@ -43901,6 +44123,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'3D view'**
   String get dive3d_seascape_orbitView;
+
+  /// No description provided for @dive3d_seascape_verticalExaggeration.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical exaggeration'**
+  String get dive3d_seascape_verticalExaggeration;
+
+  /// No description provided for @dive3d_seascape_verticalExaggerationReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to automatic'**
+  String get dive3d_seascape_verticalExaggerationReset;
+
+  /// No description provided for @dive3d_seascape_verticalExaggerationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get dive3d_seascape_verticalExaggerationLabel;
 
   /// No description provided for @dive3d_seascape_appearance_surface.
   ///

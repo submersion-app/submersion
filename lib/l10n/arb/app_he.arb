@@ -3084,7 +3084,8 @@
   "diveSites_filter_apply": "החל מסננים",
   "diveSites_filter_cancel": "ביטול",
   "diveSites_filter_clearAll": "נקה הכל",
-  "diveSites_filter_country_hint": "לדוגמה, תאילנד",
+  "diveSites_filter_allCountries": "כל המדינות",
+  "diveSites_filter_allRegions": "כל האזורים",
   "diveSites_filter_country_label": "מדינה",
   "diveSites_filter_depth_max_label": "מקסימום",
   "diveSites_filter_depth_min_label": "מינימום",
@@ -3095,8 +3096,9 @@
   "diveSites_filter_option_hasDives_subtitle": "הצג רק אתרים עם צלילות רשומות",
   "diveSites_filter_option_hasDives_title": "יש צלילות",
   "diveSites_filter_rating_starsPlus": "{count}+ כוכבים",
-  "diveSites_filter_region_hint": "לדוגמה, פוקט",
   "diveSites_filter_region_label": "אזור",
+  "diveSites_filter_searchCountriesHint": "הקלד כדי לחפש מדינות",
+  "diveSites_filter_searchRegionsHint": "הקלד כדי לחפש אזורים",
   "diveSites_filter_section_depthRange": "טווח עומק מקסימלי",
   "diveSites_filter_section_difficulty": "רמת קושי",
   "diveSites_filter_section_location": "מיקום",
@@ -5414,6 +5416,8 @@
   "settings_data_import_failed": "הפעולה נכשלה: {error}",
   "settings_data_offlineMaps": "מפות לא מקוונות",
   "settings_data_offlineMaps_subtitle": "הורד מפות לשימוש לא מקוון",
+  "settings_data_threeDMaps": "3D Maps",
+  "settings_data_threeDMaps_subtitle": "Manage cached swissBATHY3D and other bathymetry data",
   "settings_data_restore": "שחזור",
   "settings_data_restoreDialog_cancel": "ביטול",
   "settings_data_restoreDialog_content": "אזהרה: שחזור מגיבוי יחליף את כל הנתונים הנוכחיים בנתוני הגיבוי. לא ניתן לבטל פעולה זו.\n\nהאם אתה בטוח שברצונך להמשיך?",
@@ -7519,6 +7523,104 @@
   "settings_appearance_bathymetryRefresh_resultUpToDate": "כל הנתונים מעודכנים",
   "settings_appearance_bathymetryRefresh_resultFailed": "לא ניתן היה לבדוק את כל הנתונים; הערכים הקיימים נשמרו",
   "settings_appearance_bathymetryRefresh_resultNothingCached": "עדיין לא נשמרו נתוני עומק אגמים",
+  "maps3d_appBar_title": "מפות תלת-ממד",
+  "maps3d_section_all": "כל הספקים",
+  "maps3d_section_swissBathy": "swissBATHY3D",
+  "maps3d_swissBathy_delete": "מחיקת נתונים",
+  "maps3d_swissBathy_delete_subtitle": "מסיר אריחי עומק ורשתות אגמים של swissBATHY3D מהמטמון",
+  "maps3d_swissBathy_delete_confirmTitle": "למחוק את נתוני swissBATHY3D?",
+  "maps3d_swissBathy_delete_confirmMessage": "נתוני העומק השמורים במטמון עבור אגמים בשווייץ יימחקו וייטענו מחדש בפעם הבאה שתיפתח תצוגת התלת-ממד של אתר צלילה.",
+  "maps3d_swissBathy_delete_done": "נתוני swissBATHY3D נמחקו",
+  "maps3d_section_other": "ספקים אחרים",
+  "maps3d_other_reset": "איפוס נתוני הבתימטריה הנותרים",
+  "maps3d_other_reset_subtitle": "מסיר נתונים שמורים במטמון מ-EMODnet, NOAA DEM, GMRT ו-ETOPO",
+  "maps3d_other_reset_confirmTitle": "לאפס את נתוני הבתימטריה הנותרים?",
+  "maps3d_other_reset_confirmMessage": "נתונים שמורים במטמון מכל הספקים מלבד swissBATHY3D יימחקו וייטענו מחדש בפעם הבאה שתיפתח תצוגת התלת-ממד של אתר צלילה.",
+  "maps3d_other_reset_done": "נתוני הבתימטריה הנותרים אופסו",
+  "maps3d_reload": "טעינת נתוני המפות מחדש",
+  "maps3d_reload_subtitle": "מוחק את כל נתוני הבתימטריה השמורים במטמון ומוריד אותם מחדש עבור כל אתר צלילה",
+  "maps3d_reload_confirmTitle": "לטעון מחדש את נתוני המפות עבור כל אתרי הצלילה?",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{לאף אתר צלילה אין מיקום.} =1{אתר צלילה אחד ייטען מחדש.} other{{count} אתרי צלילה ייטענו מחדש.}}",
+  "@maps3d_reload_confirm_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_confirm_estimatedSize": "הורדה משוערת: כ-{size}",
+  "@maps3d_reload_confirm_estimatedSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_confirm_duration": "הפעולה עשויה להימשך כמה דקות.",
+  "maps3d_reload_confirm_wifiHint": "יורדו נתונים רבים, ולכן מומלץ חיבור Wi-Fi מהיר.",
+  "maps3d_reload_start": "טעינה מחדש",
+  "maps3d_reload_progress": "{completed} מתוך {total} אתרי צלילה",
+  "@maps3d_reload_progress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_cancel": "ביטול",
+  "maps3d_reload_done": "נתוני המפות נטענו מחדש עבור כל אתרי הצלילה",
+  "maps3d_reload_cancelled": "הטעינה מחדש בוטלה",
+  "maps3d_reload_failed": "הטעינה מחדש נכשלה; ייתכן שחלק מאתרי הצלילה לא נטענו מחדש",
+  "maps3d_busy_notice": "פעולה אחרת של מפות תלת-ממד פועלת כעת. יש להמתין עד לסיומה.",
+  "maps3d_reload_remainingSeconds": "{count, plural, =1{נותרה כשנייה אחת} other{נותרו כ-{count} שניות}}",
+  "@maps3d_reload_remainingSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_remainingMinutes": "{count, plural, =1{נותרה כדקה אחת} other{נותרו כ-{count} דקות}}",
+  "@maps3d_reload_remainingMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_warming": "בהכנה: אגם {index} מתוך {total} ({name})",
+  "@maps3d_reload_warming": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_elapsedSeconds": "{count, plural, =1{פועל כבר שנייה אחת} other{פועל כבר {count} שניות}}",
+  "@maps3d_reload_elapsedSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_elapsedMinutes": "{count, plural, =1{פועל כבר דקה אחת} other{פועל כבר {count} דקות}}",
+  "@maps3d_reload_elapsedMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settings_appearance_mapStyle_openStreetMap": "מפת רחובות",
   "settings_appearance_mapStyle_openTopoMap": "טופוגרפי",
   "universalImport_bulk_replaceSourceAll": "החלף הכול ({count})",
@@ -7751,6 +7853,12 @@
   "@dive3d_seascape_chartView": {},
   "dive3d_seascape_orbitView": "תצוגת תלת-ממד",
   "@dive3d_seascape_orbitView": {},
+  "dive3d_seascape_verticalExaggeration": "הגזמה אנכית",
+  "@dive3d_seascape_verticalExaggeration": {},
+  "dive3d_seascape_verticalExaggerationReset": "איפוס לאוטומטי",
+  "@dive3d_seascape_verticalExaggerationReset": {},
+  "dive3d_seascape_verticalExaggerationLabel": "עומק",
+  "@dive3d_seascape_verticalExaggerationLabel": {},
   "dive3d_seascape_appearance_surface": "פני הקרקע",
   "@dive3d_seascape_appearance_surface": {},
   "dive3d_seascape_appearance_surfaceDepth": "צבעי עומק",

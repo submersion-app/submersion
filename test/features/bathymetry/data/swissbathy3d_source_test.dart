@@ -2023,6 +2023,302 @@ nodata_value -9999
     },
   );
 
+  group('SwissBathy3dSource.warmKnownSites', () {
+    String tileAsc(int tileE, int tileN, double value) =>
+        'ncols 2\n'
+        'nrows 2\n'
+        'xllcorner ${tileE * 1000}\n'
+        'yllcorner ${tileN * 1000}\n'
+        'cellsize 500\n'
+        'nodata_value -9999\n'
+        '$value $value\n'
+        '$value $value\n';
+
+    test('two known sites on the SAME lake share one items lookup and one '
+        'download, even without any prior fetch() call', () async {
+      final siblingWgs84 = Lv95Transform.toWgs84(2690500, 1245500);
+      final siblingPoint = GeoPoint(
+        siblingWgs84.latitude,
+        siblingWgs84.longitude,
+      );
+      expect(findSwissLake(siblingPoint)?.name, 'Zürichsee');
+
+      var itemCalls = 0;
+      var downloadCalls = 0;
+      final source = SwissBathy3dSource(
+        tileCache: SwissBathyTileCacheRepository(db),
+        stacClient: SwissStacClient(
+          client: MockClient((req) async {
+            if (req.url.path.endsWith('/items')) {
+              itemCalls++;
+              return http.Response(
+                jsonEncode({
+                  'features': [
+                    {
+                      'bbox': _requestedBbox(req),
+                      'assets': {
+                        'grid': {'href': 'https://example.org/shared_lake.zip'},
+                      },
+                    },
+                  ],
+                }),
+                200,
+              );
+            }
+            downloadCalls++;
+            return http.Response.bytes(
+              _zipOfMultiple({
+                'swissBATHY3D_CHLV95_LN02_2685_1240.asc': tileAsc(
+                  2685,
+                  1240,
+                  100.0,
+                ),
+                'swissBATHY3D_CHLV95_LN02_2690_1245.asc': tileAsc(
+                  2690,
+                  1245,
+                  200.0,
+                ),
+              }),
+              200,
+            );
+          }),
+        ),
+        knownSiteLocations: () async => [zurichseePoint, siblingPoint],
+      );
+
+      await source.warmKnownSites();
+
+      expect(itemCalls, 1);
+      expect(downloadCalls, 1);
+      final tileCache = SwissBathyTileCacheRepository(db);
+      final a = await tileCache.read(
+        '2685_1240',
+        expectedReferenceLevelMeters: 405.92,
+      );
+      final b = await tileCache.read(
+        '2690_1245',
+        expectedReferenceLevelMeters: 405.92,
+      );
+      expect(a, isNotNull);
+      expect(b, isNotNull);
+    });
+
+    test('sites on different lakes each get their own items lookup/download, '
+        'never merged into one', () async {
+      const rotseeTileE = 2666;
+      const rotseeTileN = 1213;
+      final rotseeWgs84 = Lv95Transform.toWgs84(
+        (rotseeTileE + 0.5) * 1000,
+        (rotseeTileN + 0.5) * 1000,
+      );
+      final rotseePoint = GeoPoint(rotseeWgs84.latitude, rotseeWgs84.longitude);
+      expect(findSwissLake(rotseePoint)?.name, 'Rotsee');
+
+      var itemCalls = 0;
+      final source = SwissBathy3dSource(
+        tileCache: SwissBathyTileCacheRepository(db),
+        stacClient: SwissStacClient(
+          client: MockClient((req) async {
+            if (req.url.path.endsWith('/items')) {
+              itemCalls++;
+              return http.Response(
+                jsonEncode({
+                  'features': [
+                    {
+                      'bbox': _requestedBbox(req),
+                      'assets': {
+                        'grid': {
+                          'href': 'https://example.org/lake_${itemCalls}_.zip',
+                        },
+                      },
+                    },
+                  ],
+                }),
+                200,
+              );
+            }
+            return http.Response.bytes(
+              _zipOfMultiple({
+                'swissBATHY3D_CHLV95_LN02_2685_1240.asc': tileAsc(
+                  2685,
+                  1240,
+                  100.0,
+                ),
+                'swissBATHY3D_CHLV95_LN02_$rotseeTileE'
+                    '_$rotseeTileN.asc': tileAsc(
+                  rotseeTileE,
+                  rotseeTileN,
+                  50.0,
+                ),
+              }),
+              200,
+            );
+          }),
+        ),
+        knownSiteLocations: () async => [zurichseePoint, rotseePoint],
+      );
+
+      await source.warmKnownSites();
+
+      // One lookup per lake, not one shared across both.
+      expect(itemCalls, 2);
+    });
+
+    test('isCancelled is checked BETWEEN lakes: once true, no further lake '
+        'is started, but a lake already in flight still finishes', () async {
+      const rotseeTileE = 2666;
+      const rotseeTileN = 1213;
+      final rotseeWgs84 = Lv95Transform.toWgs84(
+        (rotseeTileE + 0.5) * 1000,
+        (rotseeTileN + 0.5) * 1000,
+      );
+      final rotseePoint = GeoPoint(rotseeWgs84.latitude, rotseeWgs84.longitude);
+      expect(findSwissLake(rotseePoint)?.name, 'Rotsee');
+
+      var itemCalls = 0;
+      var cancelled = false;
+      final source = SwissBathy3dSource(
+        tileCache: SwissBathyTileCacheRepository(db),
+        stacClient: SwissStacClient(
+          client: MockClient((req) async {
+            if (req.url.path.endsWith('/items')) {
+              itemCalls++;
+              // The first lake's own lookup flips the flag, simulating a
+              // cancel pressed while that lake was already in flight.
+              cancelled = true;
+              return http.Response(
+                jsonEncode({
+                  'features': [
+                    {
+                      'bbox': _requestedBbox(req),
+                      'assets': {
+                        'grid': {'href': 'https://example.org/lake.zip'},
+                      },
+                    },
+                  ],
+                }),
+                200,
+              );
+            }
+            return http.Response.bytes(
+              _zipOfMultiple({
+                'swissBATHY3D_CHLV95_LN02_2685_1240.asc': tileAsc(
+                  2685,
+                  1240,
+                  100.0,
+                ),
+                'swissBATHY3D_CHLV95_LN02_$rotseeTileE'
+                    '_$rotseeTileN.asc': tileAsc(
+                  rotseeTileE,
+                  rotseeTileN,
+                  50.0,
+                ),
+              }),
+              200,
+            );
+          }),
+        ),
+        knownSiteLocations: () async => [zurichseePoint, rotseePoint],
+      );
+
+      await source.warmKnownSites(isCancelled: () => cancelled);
+
+      // Exactly one lake's lookup ran (whichever the map iteration reached
+      // first); the second lake was never started once cancelled flipped.
+      expect(itemCalls, 1);
+    });
+
+    test('onLakeStart fires once per lake with its 1-based position, the '
+        'total lake count, and its name', () async {
+      const rotseeTileE = 2666;
+      const rotseeTileN = 1213;
+      final rotseeWgs84 = Lv95Transform.toWgs84(
+        (rotseeTileE + 0.5) * 1000,
+        (rotseeTileN + 0.5) * 1000,
+      );
+      final rotseePoint = GeoPoint(rotseeWgs84.latitude, rotseeWgs84.longitude);
+      expect(findSwissLake(rotseePoint)?.name, 'Rotsee');
+
+      final source = SwissBathy3dSource(
+        tileCache: SwissBathyTileCacheRepository(db),
+        stacClient: SwissStacClient(
+          client: MockClient((req) async {
+            if (req.url.path.endsWith('/items')) {
+              return http.Response(
+                jsonEncode({
+                  'features': [
+                    {
+                      'bbox': _requestedBbox(req),
+                      'assets': {
+                        'grid': {'href': 'https://example.org/lake.zip'},
+                      },
+                    },
+                  ],
+                }),
+                200,
+              );
+            }
+            return http.Response.bytes(
+              _zipOfMultiple({
+                'swissBATHY3D_CHLV95_LN02_2685_1240.asc': tileAsc(
+                  2685,
+                  1240,
+                  100.0,
+                ),
+                'swissBATHY3D_CHLV95_LN02_$rotseeTileE'
+                    '_$rotseeTileN.asc': tileAsc(
+                  rotseeTileE,
+                  rotseeTileN,
+                  50.0,
+                ),
+              }),
+              200,
+            );
+          }),
+        ),
+        knownSiteLocations: () async => [zurichseePoint, rotseePoint],
+      );
+
+      final calls = <(String, int, int)>[];
+      await source.warmKnownSites(
+        onLakeStart: (name, index, total) => calls.add((name, index, total)),
+      );
+
+      expect(calls, hasLength(2));
+      expect(calls.map((c) => c.$1).toSet(), {'Zürichsee', 'Rotsee'});
+      expect(calls.every((c) => c.$3 == 2), isTrue);
+      expect(calls.map((c) => c.$2).toSet(), {1, 2});
+    });
+
+    test('a null knownSiteLocations callback is a no-op', () async {
+      final source = SwissBathy3dSource(
+        tileCache: SwissBathyTileCacheRepository(db),
+        stacClient: SwissStacClient(
+          client: MockClient((req) async {
+            fail('must not make any network call without known sites');
+          }),
+        ),
+      );
+
+      await source.warmKnownSites();
+    });
+
+    test('a failing knownSiteLocations callback never throws', () async {
+      final source = SwissBathy3dSource(
+        tileCache: SwissBathyTileCacheRepository(db),
+        stacClient: SwissStacClient(
+          client: MockClient((req) async {
+            fail('must not make any network call when the callback throws');
+          }),
+        ),
+        knownSiteLocations: () async =>
+            throw StateError('site repository unavailable'),
+      );
+
+      await source.warmKnownSites();
+    });
+  });
+
   group('SwissBathy3dSource periodic freshness check', () {
     Future<void> backdateCheckedAt(GeoPoint point, DateTime checkedAt) async {
       final lv95 = Lv95Transform.fromWgs84(point.latitude, point.longitude);

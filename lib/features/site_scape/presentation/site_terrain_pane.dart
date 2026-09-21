@@ -100,7 +100,10 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                         key: const ValueKey('seascapeAppearanceButton'),
                         icon: const Icon(Icons.tune, size: 20),
                         tooltip: context.l10n.dive3d_seascape_appearance,
-                        onPressed: () => showTerrainAppearanceSheet(context),
+                        onPressed: () => showTerrainAppearanceSheet(
+                          context,
+                          siteId: widget.siteId,
+                        ),
                       ),
                       IconButton(
                         key: const ValueKey('seascapeChartToggle'),
@@ -243,6 +246,20 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
                           ),
                         ),
                       ),
+                    // Sits clear of the compass rose the chrome painter
+                    // draws in the bottom-left corner (center at (36,
+                    // height-36), radius 18, so its right edge is at x=54)
+                    // -- issue #2141 follow-up: the adjustable slider
+                    // itself moved into the terrain-appearance sheet; this
+                    // stays as a compact read-out of whatever value is
+                    // currently in effect, automatic or overridden.
+                    Positioned(
+                      left: 72,
+                      bottom: 24,
+                      child: _exaggerationBadge(
+                        axisInputs.verticalExaggeration,
+                      ),
+                    ),
                     _hoverTooltip(grid),
                   ],
                 ),
@@ -299,6 +316,7 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
         minNorth: inputs.minNorth,
         maxNorth: inputs.maxNorth,
         maxDepth: inputs.maxDepth,
+        verticalExaggeration: inputs.verticalExaggeration,
       ),
       minEast: inputs.minEast,
       maxEast: inputs.maxEast,
@@ -353,6 +371,33 @@ class _SiteTerrainPaneState extends ConsumerState<SiteTerrainPane> {
         borderRadius: BorderRadius.circular(6),
       ),
       child: Text(text, style: Theme.of(context).textTheme.labelSmall),
+    );
+  }
+
+  /// Compact, read-only readout of the terrain's current vertical
+  /// exaggeration (issue #2141 follow-up) -- automatic or manually
+  /// overridden via the slider now in the terrain-appearance sheet, which
+  /// is the one place that actually changes it. Deliberately tiny: an
+  /// icon plus a short label plus the factor, not a full control.
+  Widget _exaggerationBadge(double effectiveExaggeration) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.height, size: 14),
+          const SizedBox(width: 2),
+          Text(
+            '${context.l10n.dive3d_seascape_verticalExaggerationLabel} '
+            '${effectiveExaggeration.toStringAsFixed(1)}×',
+            style: Theme.of(context).textTheme.labelSmall,
+          ),
+        ],
+      ),
     );
   }
 

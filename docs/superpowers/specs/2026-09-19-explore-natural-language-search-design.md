@@ -454,8 +454,13 @@ subjects are a single count-per-entity bar chart.
   repository picks the longest series, with the row id as tie-break, so the
   stored metrics do not depend on the order the query returned rows in.
 - Both derived tables are children of `dives` with `ON DELETE CASCADE` and no
-  `hlc` column. Schema rung v222; `migrationVersions` gained 222 beside the
-  bump, and the v221 rung test handed over its exact-version assertions.
+  `hlc` column. Schema rung v223; `migrationVersions` gained 223 beside the
+  bump, and the v222 rung test handed over its exact-version assertions. The
+  rung was renumbered from 222, which the per-site seascape vertical
+  exaggeration overrides (#2141 follow-up) took on main while this was in
+  review: two branches each bumping the ladder is the ordinary case, and the
+  `beforeOpen` re-assert exists precisely so a collision cannot strand a
+  database.
 - The SQL table is named `dive_derived_metrics` via a `tableName` override,
   because the Drift class has to be `DiveDerivedMetricsRows` to avoid
   colliding with the `DiveDerivedMetrics` domain type.
