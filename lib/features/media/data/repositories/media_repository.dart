@@ -609,21 +609,16 @@ class MediaRepository {
             ) >
             0;
         if (!flagMoved) {
-          final rowsWritten =
-              await (_db.update(
-                _db.media,
-              )..where((t) => t.id.equals(id))).write(
-                MediaCompanion(
-                  lastVerifiedAt: Value(now),
-                  updatedAt: Value(now),
-                ),
-              );
-          if (rowsWritten > 0) SyncEventBus.notifyLocalChange();
+          // The check date is a local observation (spec 5.2), so nothing
+          // here becomes publishable and the sync check is left asleep.
+          // The media queries watch the table and see the write itself.
+          await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
+            MediaCompanion(lastVerifiedAt: Value(now), updatedAt: Value(now)),
+          );
           return;
         }
 
-        // Reached only when the flag moved and is being published;
-        // the date-only branch above notifies for itself.
+        // Reached only when the flag moved and is being published.
         wrote = true;
         await _syncRepository.markFactsPending(
           entityType: 'media',
@@ -947,21 +942,19 @@ class MediaRepository {
               0;
         }
         if (!flagMoved) {
-          final rowsWritten =
-              await (_db.update(
-                _db.media,
-              )..where((t) => t.id.equals(id))).write(
-                MediaCompanion(
-                  lastVerifiedAt: Value(verifiedAt.millisecondsSinceEpoch),
-                  updatedAt: Value(now),
-                ),
-              );
-          // A row deleted while a Check all pass was running gets nothing.
-          if (rowsWritten > 0) SyncEventBus.notifyLocalChange();
+          // The check date is a local observation (spec 5.2), so nothing
+          // here becomes publishable and the sync check is left asleep.
+          // A Check all pass reaches this for every healthy row; waking it
+          // each time would schedule a network sync with nothing to send.
+          await (_db.update(_db.media)..where((t) => t.id.equals(id))).write(
+            MediaCompanion(
+              lastVerifiedAt: Value(verifiedAt.millisecondsSinceEpoch),
+              updatedAt: Value(now),
+            ),
+          );
           return;
         }
-        // Reached only when the flag moved and is being published;
-        // the date-only branch above notifies for itself.
+        // Reached only when the flag moved and is being published.
         wrote = true;
         await _syncRepository.markFactsPending(
           entityType: 'media',

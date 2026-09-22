@@ -76,6 +76,21 @@ void main() {
       expect(await verifyClock(), before, reason: 'no clock was spent');
     });
 
+    test('a date-only check does not wake the sync check', () async {
+      // The date never leaves this device, so a listener woken here would
+      // schedule a network sync with nothing to send. Check all walks the
+      // whole library, so a healthy one would wake it once per row. The
+      // media queries watch the table itself and refresh without this.
+      final seen = <void>[];
+      final sub = SyncEventBus.changes.listen(seen.add);
+      addTearDown(sub.cancel);
+
+      await repo.stampVerification(id, verifiedAt: DateTime(2026, 8));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(seen, isEmpty, reason: 'nothing became publishable');
+    });
+
     test('confirming the current flag publishes nothing', () async {
       await repo.stampVerification(
         id,
@@ -159,6 +174,19 @@ void main() {
       await Future<void>.delayed(Duration.zero);
 
       expect(seen, isEmpty, reason: 'the row already agreed');
+    });
+
+    test('a date-only markAsVerified does not wake the sync check', () async {
+      // The row is already not orphaned, so this records a date and no
+      // more. Same reasoning as the date-only stampVerification.
+      final seen = <void>[];
+      final sub = SyncEventBus.changes.listen(seen.add);
+      addTearDown(sub.cancel);
+
+      await repo.markAsVerified(id);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(seen, isEmpty, reason: 'nothing became publishable');
     });
 
     test('markAsVerified publishes when it clears the flag', () async {
