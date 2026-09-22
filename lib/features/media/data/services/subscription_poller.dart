@@ -204,12 +204,12 @@ class SubscriptionPoller {
       // a snapshot read before this poll's network round-trip, so it must
       // not carry verification facts.
       //
-      // Only when THIS POLL'S SNAPSHOT saw it orphaned. The snapshot was
-      // read before the manifest request went out, and a verifier can flip
-      // the row to orphaned while that request is in flight: clearing it
-      // unconditionally would reverse a newer, better-informed verdict and
-      // publish the reversal under a fresh verification clock. A snapshot
-      // that already said "not orphaned" has nothing to clear anyway.
+      // Only when THIS POLL'S SNAPSHOT saw it orphaned. The rows are read
+      // after the manifest fetch returns, so the window is the short one
+      // between that read and this write: a verifier landing there would
+      // have its newer, better-informed verdict reversed, and the reversal
+      // published under a fresh verification clock. A snapshot that already
+      // said "not orphaned" has nothing to clear anyway.
       if (existingRow.isOrphaned) {
         await mediaRepo.markOrphaned(existingRow.id, false);
       }

@@ -4125,9 +4125,21 @@ class SyncService {
       final id = recordIdForEntity(entityType, row);
       if (id == null) continue;
       for (final g in groups) {
-        final clears = g.columns.keys.any(
-          (k) => row.containsKey(k) && row[k] == null,
-        );
+        // An explicitly null CLOCK counts as well as an explicitly null
+        // value. The v223 backstop adds the fact clock columns without
+        // backfilling them, so a row adopted from a library that upgraded
+        // that way carries a null clock beside non-null facts. The upsert
+        // omits nulls, so the local clock would survive and the adopted
+        // group would look newer than it is, instead of falling back to the
+        // row clock as a null clock is meant to.
+        //
+        // Still only explicit keys: a key the row omits is one the sender
+        // never had, and writing null for it would clear a fact nobody
+        // asked to clear.
+        final clears = [
+          ...g.columns.keys,
+          g.clockKey,
+        ].any((k) => row.containsKey(k) && row[k] == null);
         if (clears) await _serializer.writeFactGroup(entityType, id, g, row);
       }
     }
