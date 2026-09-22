@@ -2167,7 +2167,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get certifications_detail_status_expired =>
-      'Questa certificazione e scaduta';
+      'Questa certificazione è scaduta';
 
   @override
   String certifications_detail_status_expiredOn(Object date) {
@@ -3674,7 +3674,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get dashboard_alerts_insuranceExpiredGeneric =>
-      'La tua assicurazione subacquea e scaduta';
+      'La tua assicurazione subacquea è scaduta';
 
   @override
   String dashboard_alerts_insuranceExpiredProvider(Object provider) {
@@ -20719,7 +20719,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_summary_depthDistribution_empty =>
-      'Il grafico apparira quando registrerai immersioni';
+      'Il grafico apparirà quando registrerai immersioni';
 
   @override
   String get statistics_summary_depthDistribution_semanticLabel =>
@@ -20731,7 +20731,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_summary_diveTypes_empty =>
-      'Il grafico apparira quando registrerai immersioni';
+      'Il grafico apparirà quando registrerai immersioni';
 
   @override
   String statistics_summary_diveTypes_moreTypes(Object count) {
@@ -20747,7 +20747,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_summary_divesByMonth_empty =>
-      'Il grafico apparira quando registrerai immersioni';
+      'Il grafico apparirà quando registrerai immersioni';
 
   @override
   String get statistics_summary_divesByMonth_semanticLabel =>
