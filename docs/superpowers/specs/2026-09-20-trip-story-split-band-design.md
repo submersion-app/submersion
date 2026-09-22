@@ -77,10 +77,18 @@ clipping the date.
 The band uses start and end edges, never left and right, so RTL locales
 mirror.
 
-With the 380px column gone, the band and the story slivers share a centered
-max content width of 900px so the story does not stretch across a very wide
-window. `TripStatStrip` stops being pinned in a column and becomes ordinary
-scroll content, which is what it already is in the narrow layout.
+With the 380px column gone, the story and its band span whatever width they
+are given.
+
+This started as a centered 900px maximum, on the theory that a very wide
+window would stretch chapter lines. Seen in the running app it was wrong: the
+gutters either side read as a broken page rather than a deliberate measure,
+and the story pane never had them before, since it previously took the window
+minus the map column. The cap was removed on 2026-09-22. The band keeps its
+even split, so the map takes the end half of the window at every size.
+
+`TripStatStrip` stops being pinned in a column and becomes ordinary scroll
+content, which is what it already is in the narrow layout.
 
 ## Docking behavior
 
@@ -185,8 +193,8 @@ Written first. Ten tests, two of which replace existing ones.
    marker-opacity assertion.
 5. Tapping the panel scrolls that chapter's heading back into view.
 6. At 1400x900 there is no `trip-story-wide-layout`, there is one band, and
-   content is centered at 900px max. Replaces `wide layout docks the map
-   beside the story`.
+   the scroll view and band both span the full 1400px. Replaces `wide layout
+   docks the map beside the story`.
 7. At 200% text the band grows and the date is not clipped.
 8. Under RTL the day panel sits at the start edge.
 9. A story with no days, and a trip with no map points, both render without

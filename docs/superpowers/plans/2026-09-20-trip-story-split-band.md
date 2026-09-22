@@ -1513,6 +1513,13 @@ lines, no session links, no co-author trailers.
 
 ---
 
+## Amendment, 2026-09-22
+
+Task 5's centered `_maxContentWidth = 900` was removed after review in the
+running app: the gutters either side read as a broken page on desktop. The
+story and its band now span the full window, and the width test asserts that
+instead. The rest of the plan stands as executed.
+
 ## Notes for the executor
 
 - This worktree is `ericgriffin/trips-map-screen-space-f72bd0`. Run every
