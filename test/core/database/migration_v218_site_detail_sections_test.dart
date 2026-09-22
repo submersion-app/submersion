@@ -14,7 +14,7 @@ void main() {
   });
 
   test('the columns are additive, so the sync floor does not move', () {
-    // The floor moved to 223 with the media fact clocks; this rung
+    // The floor moved to 224 with the media fact clocks; this rung
     // still did not move it.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
