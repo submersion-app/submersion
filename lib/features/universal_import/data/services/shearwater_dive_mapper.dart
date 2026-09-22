@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 import 'package:submersion/features/universal_import/data/services/parsed_dive_profile_mapper.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_filename_parser.dart';
@@ -31,6 +32,9 @@ class ShearwaterDiveMapper {
 
     final tanks = mapTanks(rawDive);
     final surfacePressure = _extractSurfacePressure(rawDive);
+    final siteKey = siteKeyFor(rawDive);
+    final entryFix = _parseGnssLocation(rawDive.gnssEntryLocation);
+    final exitFix = _parseGnssLocation(rawDive.gnssExitLocation);
 
     return {
       'importSource': 'shearwater_cloud',
@@ -48,9 +52,16 @@ class ShearwaterDiveMapper {
       'diveNumber': _parseInt(rawDive.diveNumber),
       if (rawDive.buddy != null) 'buddyRefs': [rawDive.buddy!],
       'notes': _buildNotes(rawDive),
-      'siteName': rawDive.site,
-      if (rawDive.site != null)
-        'site': <String, dynamic>{'uddfId': rawDive.site, 'name': rawDive.site},
+      'siteName': ?siteKey,
+      if (siteKey != null)
+        'site': <String, dynamic>{'uddfId': siteKey, 'name': siteKey},
+      // The Swift's own fixes, kept on the dive whether or not they also
+      // named a site, so a logbook never loses where the dive happened
+      // (#2232). `UddfEntityImporter` reads these into `Dive.entryLocation`.
+      if (entryFix != null) 'latitude': entryFix.$1,
+      if (entryFix != null) 'longitude': entryFix.$2,
+      if (exitFix != null) 'exitLatitude': exitFix.$1,
+      if (exitFix != null) 'exitLongitude': exitFix.$2,
       'diveComputerModel': filenameInfo.model,
       'diveComputerSerial': filenameInfo.serial,
       'waterType': ShearwaterValueMapper.mapWaterType(rawDive.environment),
@@ -177,15 +188,37 @@ class ShearwaterDiveMapper {
     return results;
   }
 
+  /// The identity a dive's site is filed under, or null when the dive says
+  /// nothing about where it happened.
+  ///
+  /// Shearwater Cloud keys a site on its name, so a dive the diver never
+  /// named had no identity and used to be dropped along with its GNSS entry
+  /// fix (#2210). The fix now supplies the identity, through the shared
+  /// coordinate name every importer uses.
+  static String? siteKeyFor(ShearwaterRawDive dive) {
+    final name = dive.site?.trim();
+    if (name != null && name.isNotEmpty) return name;
+
+    final coords = _parseGnssLocation(dive.gnssEntryLocation);
+    if (coords == null) return null;
+    return ImportSiteLocation.named(<String, dynamic>{
+          'latitude': coords.$1,
+          'longitude': coords.$2,
+        })?['name']
+        as String?;
+  }
+
   /// Deduplicates dive sites by name across a list of raw dives.
   ///
   /// Each unique site name produces one site entity map with `name`,
-  /// `uddfId`, and optional location fields.
+  /// `uddfId`, and optional location fields. A dive the diver never named
+  /// is keyed on its GNSS fix instead of being skipped, so its coordinates
+  /// reach the log (#2210).
   static List<Map<String, dynamic>> mapSites(List<ShearwaterRawDive> dives) {
     final siteMap = <String, Map<String, dynamic>>{};
 
     for (final dive in dives) {
-      final name = dive.site;
+      final name = siteKeyFor(dive);
       if (name == null) continue;
 
       siteMap.putIfAbsent(name, () {

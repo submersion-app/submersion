@@ -11,6 +11,7 @@ import 'package:submersion/features/universal_import/data/parsers/dl7/dl7_docume
 import 'package:submersion/features/universal_import/data/parsers/dl7/dl7_reader.dart';
 import 'package:submersion/features/universal_import/data/parsers/dl7/dl7_units.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 
 /// Parser for DAN DL7 (.zxu/.zxl) dive log files.
 ///
@@ -105,6 +106,29 @@ class DanDl7Parser implements ImportParser {
       }
     }
 
+    // A multi-dive file gets no ZAR enrichment, because the block describes
+    // the single dive it was exported with. Its `<LOCATION>` is nonetheless
+    // the only place the file records GPS, so it is kept as a site the diver
+    // can attach by hand instead of being thrown away with the rest of the
+    // block (#2211). The dives are reported as unattached.
+    if (doc.dives.length > 1) {
+      final orphanSite = zar == null ? null : _zarSite(zar);
+      if (orphanSite != null) {
+        sitesByUddfId.putIfAbsent(
+          orphanSite['uddfId'] as String,
+          () => orphanSite,
+        );
+        warnings.add(
+          ImportSiteLocation.sitesUnresolved(
+            dives.length,
+            message:
+                '${dives.length} dives could not be attached to the one site '
+                'this multi-dive file describes',
+          ),
+        );
+      }
+    }
+
     if (dives.isNotEmpty) entities[ImportEntityType.dives] = dives;
     if (sitesByUddfId.isNotEmpty) {
       entities[ImportEntityType.sites] = sitesByUddfId.values.toList();
@@ -115,6 +139,30 @@ class DanDl7Parser implements ImportParser {
       warnings: warnings,
       metadata: {'source': 'dan_dl7', if (zar?.app != null) 'app': zar!.app},
     );
+  }
+
+  /// The site a `ZAR` block's `<LOCATION>` describes, or null when it names
+  /// no place and carries no coordinates.
+  ///
+  /// A block with GPS but no `LOCNAME` is filed under its own coordinates
+  /// rather than dropped, through the contract every importer shares
+  /// (#2211, #2232).
+  static Map<String, dynamic>? _zarSite(AqualungZarData zar) {
+    final named = ImportSiteLocation.named(<String, dynamic>{
+      'name': ?zar.locationName,
+      'latitude': ?zar.latitude,
+      'longitude': ?zar.longitude,
+    });
+    if (named == null) return null;
+
+    final name = named['name'] as String;
+    return <String, dynamic>{
+      ...named,
+      'uddfId': 'dl7_site_${name.toLowerCase()}',
+      if (zar.country != null) 'country': zar.country,
+      if (zar.stateProvince != null) 'region': zar.stateProvince,
+      if (zar.city != null) 'notes': 'City: ${zar.city}',
+    };
   }
 
   /// A dive left out of the import, counted by the summary's "dives could not
@@ -227,18 +275,10 @@ class DanDl7Parser implements ImportParser {
         result['latitude'] = zar.latitude;
         result['longitude'] = zar.longitude;
       }
-      final siteName = zar.locationName;
-      if (siteName != null) {
-        final siteId = 'dl7_site_${siteName.toLowerCase()}';
-        sitesByUddfId.putIfAbsent(siteId, () {
-          final site = <String, dynamic>{'uddfId': siteId, 'name': siteName};
-          if (zar.latitude != null) site['latitude'] = zar.latitude;
-          if (zar.longitude != null) site['longitude'] = zar.longitude;
-          if (zar.country != null) site['country'] = zar.country;
-          if (zar.stateProvince != null) site['region'] = zar.stateProvince;
-          if (zar.city != null) site['notes'] = 'City: ${zar.city}';
-          return site;
-        });
+      final site = _zarSite(zar);
+      if (site != null) {
+        final siteId = site['uddfId'] as String;
+        sitesByUddfId.putIfAbsent(siteId, () => site);
         result['site'] = {'uddfId': siteId};
       }
     }

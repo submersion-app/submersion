@@ -1,5 +1,6 @@
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 
 /// Result of folding a Subsurface `<divesites>` block.
 class FoldedSites {
@@ -65,7 +66,10 @@ FoldedSites foldSubsurfaceSites(List<Map<String, dynamic>> raw) {
     final host = _findNearest(survivors, point, _unnamedFoldMeters);
     if (host == null) {
       final named = Map<String, dynamic>.from(raw[i])
-        ..['name'] = point.toString();
+        ..['name'] = ImportSiteLocation.nameFromCoordinates(
+          point.latitude,
+          point.longitude,
+        );
       survivors.add(_Survivor(order: i, site: named, normalizedName: null));
     } else {
       _absorb(host, raw[i], aliases);

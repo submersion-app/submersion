@@ -11,6 +11,7 @@ import 'package:submersion/features/universal_import/data/models/import_payload.
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
 import 'package:submersion/features/universal_import/data/parsers/submersion_csv/submersion_csv_table.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 
 /// The names in a joined cell, or null when it carries none.
 ///
@@ -70,13 +71,23 @@ class SubmersionSitesCsvParser implements ImportParser {
     final sites = <Map<String, dynamic>>[];
 
     for (final (i, row) in table.rows.indexed) {
-      final name = table.text(row, 'Name');
+      // A row that gave no name is named from its own coordinates rather
+      // than skipped, which used to take the position with it (#2232). Only
+      // a row carrying neither is dropped, because it describes no place.
+      final name =
+          ImportSiteLocation.named(<String, dynamic>{
+                'name': ?table.text(row, 'Name'),
+                'latitude': table.number(row, 'Latitude'),
+                'longitude': table.number(row, 'Longitude'),
+              })?['name']
+              as String?;
       if (name == null) {
         warnings.add(
           ImportWarning(
             severity: ImportWarningSeverity.error,
             message:
-                'Row ${table.sourceRowOf(i)} has no site name and was skipped',
+                'Row ${table.sourceRowOf(i)} has neither a site name nor '
+                'coordinates and was skipped',
             entityType: ImportEntityType.sites,
             itemIndex: i,
             field: 'Name',

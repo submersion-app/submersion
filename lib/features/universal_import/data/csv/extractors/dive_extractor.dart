@@ -63,6 +63,17 @@ class DiveExtractor {
       }
     }
 
+    // The row's own position, kept on the dive whether or not sites are
+    // being imported (#2212). `gps` is deliberately not in `_diveFields`:
+    // it is a Subsurface-style "lat lon" pair, not a dive column, so it is
+    // parsed rather than copied. `UddfEntityImporter` reads the result into
+    // `Dive.entryLocation`.
+    final gps = _parseGps(row['gps']?.toString());
+    if (gps != null) {
+      dive['latitude'] = gps.$1;
+      dive['longitude'] = gps.$2;
+    }
+
     // A dive has no suit field, so the suit is kept in the notes, as the
     // Subsurface XML import keeps it. When equipment is imported the suit
     // also becomes gear linked to the dive (CsvCorrelator, #1824).
@@ -75,5 +86,19 @@ class DiveExtractor {
     }
 
     return dive;
+  }
+
+  /// Parse Subsurface GPS format: "lat lon" (space-separated floats).
+  ///
+  /// Returns null when the value is absent or unparseable. Mirrors
+  /// `SiteExtractor`, which reads the same column for the site.
+  (double, double)? _parseGps(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    final parts = raw.trim().split(RegExp(r'\s+'));
+    if (parts.length < 2) return null;
+    final lat = double.tryParse(parts[0]);
+    final lon = double.tryParse(parts[1]);
+    if (lat == null || lon == null) return null;
+    return (lat, lon);
   }
 }
