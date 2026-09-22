@@ -56,25 +56,40 @@ TagChipColors tagChipColorsFor({required Color seed, required Color surface}) {
 /// compresses the channel spread, which cost the saturated mid tones such as
 /// `#A855F7` nearly half their saturation on the way down.
 ///
-/// The direction follows the fill, so the one rule serves both themes: the
-/// label darkens on a pale chip and lightens on a dark one.
+/// The direction is read off the fill alone, so the one rule serves both
+/// themes: the label darkens on a pale chip and lightens on a dark one.
+///
+/// It is read off the fill rather than off the fill against the seed, which
+/// is a distinction that only shows up at the ends of the range. A tag stored
+/// near black on a dark theme has a fill LIGHTER than itself, because the
+/// fill is mostly surface; comparing the two then walked the label towards
+/// black, into the fill, and left it at 1.1:1. A white tag on a light theme
+/// was worse still, white on white at 1.0:1.
 Color _labelOn(Color fill, Color seed) {
   if (tagContrastRatio(seed, fill) >= _minLabelContrast) return seed;
 
   final hsl = HSLColor.fromColor(seed);
-  final darken = fill.computeLuminance() > seed.computeLuminance();
 
-  for (var step = 1; step <= _labelSteps; step++) {
+  // Whichever end of the lightness range has room against this fill. Black
+  // clears AA for any fill above about 0.175 luminance and white for any
+  // below about 0.183, so the two ranges overlap: some end always works,
+  // whatever the fill, and the walk below always terminates.
+  final endpoint =
+      tagContrastRatio(Colors.black, fill) >=
+          tagContrastRatio(Colors.white, fill)
+      ? 0.0
+      : 1.0;
+
+  for (var step = 1; step < _labelSteps; step++) {
     final t = step / _labelSteps;
-    final lightness = darken
-        ? hsl.lightness * (1 - t)
-        : hsl.lightness + (1 - hsl.lightness) * t;
-    final candidate = hsl.withLightness(lightness.clamp(0.0, 1.0)).toColor();
+    final candidate = hsl
+        .withLightness(hsl.lightness + (endpoint - hsl.lightness) * t)
+        .toColor();
     if (tagContrastRatio(candidate, fill) >= _minLabelContrast) {
       return candidate;
     }
   }
-  return darken ? Colors.black : Colors.white;
+  return hsl.withLightness(endpoint).toColor();
 }
 
 /// WCAG 2.1 contrast ratio between two opaque colours, from 1 (identical) to

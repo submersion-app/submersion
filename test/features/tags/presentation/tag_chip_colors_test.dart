@@ -97,6 +97,39 @@ void main() {
       }
     });
 
+    test('stays readable when the tag is darker than its own fill', () {
+      // A tag stored near black, on a dark theme. The fill is the surface
+      // tinted, so it comes out LIGHTER than the seed, and picking the
+      // direction by comparing the two then walks the label towards black,
+      // into the fill, for about 1.1:1. The direction has to be read off the
+      // fill alone: whichever end of the lightness range has room against it.
+      const darkSurface = Color(0xFF121212);
+
+      for (final seed in [Colors.black, const Color(0xFF050505)]) {
+        final colors = colorsFor(seed, surface: darkSurface);
+
+        expect(
+          tagContrastRatio(colors.label, colors.fill),
+          greaterThanOrEqualTo(4.5),
+          reason: '$seed label is unreadable on its own chip',
+        );
+      }
+    });
+
+    test('stays readable when the tag is lighter than its own fill', () {
+      // The mirror case on a light theme, where a near-white tag's fill is
+      // fractionally darker than the tag.
+      for (final seed in [Colors.white, const Color(0xFFFAFAFA)]) {
+        final colors = colorsFor(seed);
+
+        expect(
+          tagContrastRatio(colors.label, colors.fill),
+          greaterThanOrEqualTo(4.5),
+          reason: '$seed label is unreadable on its own chip',
+        );
+      }
+    });
+
     test('darkens the pale colours that the raw hue could not carry', () {
       // Amber on its own 15 per cent tint is about 1.7:1, which is why the
       // pre-#2255 label was close to invisible on the pale end of the
