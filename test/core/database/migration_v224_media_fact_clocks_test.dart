@@ -2,7 +2,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v223: media fact clocks (media sync program, spec 5.1). Upload and
+/// Schema v224: media fact clocks (media sync program, spec 5.1). Upload and
 /// verification facts get their own clock columns so a fact write never
 /// moves the row clock.
 void main() {
@@ -61,18 +61,18 @@ void main() {
     };
   }
 
-  test('v223 is the current schema version and is in the ladder', () {
+  test('v224 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 223);
-    expect(AppDatabase.migrationVersions, contains(223));
-    // One step above v222, which landed on main while this was in review.
-    expect(AppDatabase.migrationStepCount(222), 1);
+    expect(AppDatabase.currentSchemaVersion, 224);
+    expect(AppDatabase.migrationVersions, contains(224));
+    // One step above v223, which landed on main while this was in review.
+    expect(AppDatabase.migrationStepCount(223), 1);
     // This rung RAISES the floor: the columns are additive, but the
-    // semantics are not. A pre-v223 reader knows nothing of the fact clocks
+    // semantics are not. A pre-v224 reader knows nothing of the fact clocks
     // and blind-upserts media, so a fact-only export from this build would
     // overwrite a caption that reader holds and we do not have.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 223);
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
 
   test(
@@ -91,9 +91,12 @@ void main() {
   );
 
   test('the backstop re-adds missing columns without backfilling', () async {
-    // A database already at v223 that lost the columns to a version
-    // collision on a parallel branch.
-    final db = AppDatabase(setupDb(userVersion: 223));
+    // A database already at the current version that lost the columns to a
+    // version collision on a parallel branch: no rung runs, so only the
+    // beforeOpen backstop can put them back, and it does not backfill.
+    final db = AppDatabase(
+      setupDb(userVersion: AppDatabase.currentSchemaVersion),
+    );
     addTearDown(db.close);
     expect(
       await columnsOf(db, 'media'),

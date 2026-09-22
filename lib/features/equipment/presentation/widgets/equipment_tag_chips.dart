@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/presentation/equipment_tag_navigation.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// An equipment item's tags as colored chips, under the name in the detail
@@ -27,16 +28,12 @@ class EquipmentTagChips extends ConsumerWidget {
         runSpacing: 8,
         children: [
           for (final tag in tags)
-            ActionChip(
-              label: Text(tag.name),
+            TagChip(
+              tag: tag,
               tooltip: context.l10n.equipment_detail_showEquipmentWith(
                 tag.name,
               ),
-              backgroundColor: tag.color.withValues(alpha: 0.2),
-              side: BorderSide(color: tag.color),
-              labelStyle: TextStyle(color: tag.color),
-              visualDensity: VisualDensity.compact,
-              onPressed: () => openEquipmentWithTag(context, ref, tag.id),
+              onTap: () => openEquipmentWithTag(context, ref, tag.id),
             ),
         ],
       ),

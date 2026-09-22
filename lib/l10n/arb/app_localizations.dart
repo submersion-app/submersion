@@ -2437,6 +2437,24 @@ abstract class AppLocalizations {
   /// **'email@example.com'**
   String get buddies_field_emailHint;
 
+  /// No description provided for @buddies_field_linkedProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked profile'**
+  String get buddies_field_linkedProfile;
+
+  /// No description provided for @buddies_field_linkedProfileHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The local profile this buddy is'**
+  String get buddies_field_linkedProfileHint;
+
+  /// No description provided for @buddies_field_linkedProfileNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked'**
+  String get buddies_field_linkedProfileNone;
+
   /// No description provided for @buddies_field_nameHint.
   ///
   /// In en, this message translates to:
@@ -2682,6 +2700,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use'**
   String get buddies_linkText_useSuggestion;
+
+  /// No description provided for @buddies_linkedProfile_chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get buddies_linkedProfile_chip;
+
+  /// No description provided for @buddies_linkedProfile_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get buddies_linkedProfile_link;
+
+  /// No description provided for @buddies_linkedProfile_notNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get buddies_linkedProfile_notNow;
+
+  /// No description provided for @buddies_linkedProfile_openBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Open buddy'**
+  String get buddies_linkedProfile_openBuddy;
+
+  /// No description provided for @buddies_linkedProfile_pickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a profile'**
+  String get buddies_linkedProfile_pickerTitle;
+
+  /// No description provided for @buddies_linkedProfile_refusedSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'A buddy cannot be linked to its own profile.'**
+  String get buddies_linkedProfile_refusedSelf;
+
+  /// No description provided for @buddies_linkedProfile_refusedTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'{buddyName} is already linked to this profile.'**
+  String buddies_linkedProfile_refusedTaken(String buddyName);
+
+  /// No description provided for @buddies_linkedProfile_suggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has a profile here. Link this buddy to it?'**
+  String buddies_linkedProfile_suggestion(String name);
+
+  /// No description provided for @buddies_merge_refusedDifferentLinks.
+  ///
+  /// In en, this message translates to:
+  /// **'These buddies are linked to different profiles. Merge the profiles first.'**
+  String get buddies_merge_refusedDifferentLinks;
 
   /// No description provided for @buddies_message_added.
   ///
@@ -9441,6 +9513,18 @@ abstract class AppLocalizations {
   /// **'Tanks'**
   String get diveLog_edit_overline_tanks;
 
+  /// No description provided for @diveLog_edit_planned_switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dive'**
+  String get diveLog_edit_planned_switch;
+
+  /// No description provided for @diveLog_edit_planned_switchSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting dive computer data. No dive number until it is logged.'**
+  String get diveLog_edit_planned_switchSubtitle;
+
   /// Dive profile row placeholder when no profile exists; tapping opens the draw editor
   ///
   /// In en, this message translates to:
@@ -10928,6 +11012,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log Dive Manually'**
   String get diveLog_listPage_bottomSheet_logManually;
+
+  /// No description provided for @diveLog_listPage_bottomSheet_planDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan a dive'**
+  String get diveLog_listPage_bottomSheet_planDive;
+
+  /// No description provided for @diveLog_listPage_bottomSheet_planDiveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in the details now, add the dive computer data later'**
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle;
 
   /// No description provided for @diveLog_listPage_fab_addDive.
   ///
@@ -38311,6 +38407,72 @@ abstract class AppLocalizations {
   /// **'Skip'**
   String get universalImport_label_skip;
 
+  /// No description provided for @universalImport_label_fillPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill planned dive'**
+  String get universalImport_label_fillPlanned;
+
+  /// No description provided for @universalImport_compare_fillPlannedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach this download to the dive you planned'**
+  String get universalImport_compare_fillPlannedSubtitle;
+
+  /// No description provided for @universalImport_label_filledPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled planned dives'**
+  String get universalImport_label_filledPlanned;
+
+  /// No description provided for @universalImport_fillPlanned_target.
+  ///
+  /// In en, this message translates to:
+  /// **'Fills planned dive: {label}'**
+  String universalImport_fillPlanned_target(String label);
+
+  /// No description provided for @universalImport_fillPlanned_replacesProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Its sketched profile will be replaced.'**
+  String get universalImport_fillPlanned_replacesProfile;
+
+  /// No description provided for @universalImport_fillPlanned_change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get universalImport_fillPlanned_change;
+
+  /// No description provided for @universalImport_fillPlanned_pickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a planned dive'**
+  String get universalImport_fillPlanned_pickerTitle;
+
+  /// No description provided for @universalImport_fillPlanned_importAsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Import as a new dive instead'**
+  String get universalImport_fillPlanned_importAsNew;
+
+  /// No description provided for @universalImport_fillPlanned_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo fills'**
+  String get universalImport_fillPlanned_undo;
+
+  /// No description provided for @universalImport_fillPlanned_undone.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dives restored'**
+  String get universalImport_fillPlanned_undone;
+
+  /// No description provided for @universalImport_fillPlanned_undoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not restore every planned dive. Try again.'**
+  String get universalImport_fillPlanned_undoFailed;
+
   /// Text showing the batch tag applied to imported items
   ///
   /// In en, this message translates to:
@@ -47039,6 +47201,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log near-miss'**
   String get diveLog_detail_menu_logNearMiss;
+
+  /// No description provided for @diveLog_planned_chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get diveLog_planned_chip;
+
+  /// No description provided for @diveLog_planned_bannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dive'**
+  String get diveLog_planned_bannerTitle;
+
+  /// No description provided for @diveLog_planned_bannerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting dive computer data. Mark it as logged if you dived without one.'**
+  String get diveLog_planned_bannerBody;
+
+  /// No description provided for @diveLog_detail_menu_markLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as logged'**
+  String get diveLog_detail_menu_markLogged;
+
+  /// No description provided for @diveLog_planned_markedLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as logged'**
+  String get diveLog_planned_markedLogged;
+
+  /// No description provided for @diveLog_planned_markLoggedFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t mark the dive as logged.'**
+  String get diveLog_planned_markLoggedFailed;
+
+  /// No description provided for @diveLog_mirror_dialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Also log this dive in another profile?'**
+  String get diveLog_mirror_dialogTitle;
+
+  /// No description provided for @diveLog_mirror_dialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These buddies have profiles on this device. The dive is added to their logs as a planned dive until their own dive computer data fills it.'**
+  String get diveLog_mirror_dialogBody;
+
+  /// No description provided for @diveLog_mirror_log.
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get diveLog_mirror_log;
+
+  /// No description provided for @diveLog_mirror_notNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get diveLog_mirror_notNow;
+
+  /// No description provided for @diveLog_mirror_snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged for {names}'**
+  String diveLog_mirror_snackbar(String names);
+
+  /// No description provided for @diveLog_mirror_undone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mirrored dives removed'**
+  String get diveLog_mirror_undone;
+
+  /// No description provided for @diveLog_mirror_undoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t remove the mirrored dives.'**
+  String get diveLog_mirror_undoFailed;
+
+  /// No description provided for @diveLog_mirror_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not log for {names}'**
+  String diveLog_mirror_failed(String names);
+
+  /// No description provided for @diveLog_detail_menu_logForBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Log for a buddy\'s profile'**
+  String get diveLog_detail_menu_logForBuddy;
+
+  /// No description provided for @diveLog_detail_loggedWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged with'**
+  String get diveLog_detail_loggedWith;
+
+  /// No description provided for @diveLog_detail_loggedWithPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'awaiting their dive computer'**
+  String get diveLog_detail_loggedWithPlanned;
 
   /// No description provided for @diveLog_detail_linkedIncidents.
   ///
@@ -60662,6 +60926,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dive {diveNumber} at {siteName}'**
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName);
+
+  /// No description provided for @diveLog_listPage_semanticsPlannedDiveAtSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dive at {siteName}'**
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName);
 
   /// No description provided for @enum_listViewMode_compact.
   ///

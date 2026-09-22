@@ -69,6 +69,10 @@ class DiveComparisonCard extends ConsumerWidget {
   /// visually prominent. Has no effect in immediate-action mode.
   final bool isPending;
 
+  /// Whether the row was paired with a planned dive (issue #2002), which is
+  /// the only case where the fill-planned button belongs.
+  final bool showFillPlanned;
+
   const DiveComparisonCard({
     super.key,
     required this.incoming,
@@ -84,6 +88,7 @@ class DiveComparisonCard extends ConsumerWidget {
     this.availableActions,
     this.embedded = false,
     this.isPending = false,
+    this.showFillPlanned = false,
   });
 
   @override
@@ -435,6 +440,7 @@ class DiveComparisonCard extends ConsumerWidget {
         DuplicateAction.importAsNew => Colors.green,
         DuplicateAction.consolidate => colorScheme.primary,
         DuplicateAction.replaceSource => Colors.orange,
+        DuplicateAction.fillPlanned => colorScheme.tertiary,
       };
     }
 
@@ -498,6 +504,23 @@ class DiveComparisonCard extends ConsumerWidget {
             _ActionButtonStyle.outlined,
           ),
           color: colorFor(DuplicateAction.consolidate),
+        ),
+      );
+    }
+
+    // Only a row the planned pass paired offers to fill a planned dive
+    // (issue #2002); the button is meaningless on a real duplicate.
+    if (showFillPlanned && showAction(DuplicateAction.fillPlanned)) {
+      buttons.add(
+        _ActionButton(
+          label: context.l10n.universalImport_label_fillPlanned,
+          subtitle: context.l10n.universalImport_compare_fillPlannedSubtitle,
+          onPressed: callbackFor(DuplicateAction.fillPlanned, null),
+          style: styleFor(
+            DuplicateAction.fillPlanned,
+            _ActionButtonStyle.outlined,
+          ),
+          color: colorFor(DuplicateAction.fillPlanned),
         ),
       );
     }

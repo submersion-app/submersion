@@ -320,7 +320,7 @@ in groups, and each group has its own synced clock column on the row:
   by an older app version stamp facts through the row clock, so they still
   order correctly against new ones, and rows that predate the columns behave
   exactly as today.
-- The v223 rung backfills both clocks from the row clock for existing rows,
+- The v224 rung backfills both clocks from the row clock for existing rows,
   and a new row stamps both at creation, so later user edits do not move a
   fact group's effective clock.
 - The media upsert drops explicit nulls (`nullToAbsent`), so the merge writes
@@ -507,7 +507,7 @@ becomes a sub-issue and one PR. Dependencies run top to bottom.
 2. Media health report with its three entry points, `LogCategory.media`,
    per-category file floor, named origin device. (4.2 to 4.4)
 3. Engine merge rule: merge and keep pending where both sides are clocked,
-   media tables join the stale-copy guard, two fact clocks (schema v223),
+   media tables join the stale-copy guard, two fact clocks (schema v224),
    fact writers stamp their group clock. Turns S1 and S3 green. (5.1)
 4. Quiet verification: an inconclusive check writes nothing, and a
    verification publishes only when the orphan flag moves. Tombstone the

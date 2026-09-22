@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -178,6 +179,10 @@ class _EmptyState extends StatelessWidget {
             onPressed: () => showAddDiveBottomSheet(
               context: context,
               onLogManually: () => context.push('/dives/new'),
+              onPlanDive: () => context.push(
+                '/dives/new',
+                extra: const DivePrefill(isPlanned: true),
+              ),
             ),
             icon: const Icon(Icons.add),
             label: Text(context.l10n.diveLog_empty_logFirstDive),
