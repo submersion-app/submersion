@@ -60,6 +60,24 @@ void main() {
     expect('InternalError'.allMatches(e.toString()).length, 1);
   });
 
+  test('a nested transport cause still reaches the string', () {
+    // _map builds its message out of e.message, which omits the cause, so
+    // the handshake failure under a "Could not reach" error is visible only
+    // through the cause. Suppressing a cause that repeats the message must
+    // never suppress one that adds to it.
+    const cause = CloudStorageException(
+      'Could not reach S3 endpoint nas.local:9000',
+      'HandshakeException: CERTIFICATE_VERIFY_FAILED',
+    );
+    const e = MediaStoreException(
+      'get k failed: Could not reach S3 endpoint nas.local:9000',
+      kind: MediaStoreErrorKind.transient,
+      cause: cause,
+    );
+
+    expect(e.toString(), contains('CERTIFICATE_VERIFY_FAILED'));
+  });
+
   test('a cause that adds nothing is not repeated', () {
     // A wrapped exception whose own toString is already inside the message
     // would otherwise print twice.

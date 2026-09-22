@@ -216,7 +216,7 @@ constructor call rather than inventing a second shape).
       );
 
       expect(
-        () => client.uploadFile('k', Uint8List.fromList([1])),
+        () => client.putObject('k', Uint8List.fromList([1])),
         throwsA(
           isA<CloudStorageException>().having(
             (e) => e.message,
@@ -234,7 +234,7 @@ constructor call rather than inventing a second shape).
       final client = clientReturning(502, '<html>bad gateway</html>');
 
       expect(
-        () => client.uploadFile('k', Uint8List.fromList([1])),
+        () => client.putObject('k', Uint8List.fromList([1])),
         throwsA(
           isA<CloudStorageException>().having(
             (e) => e.message,
@@ -398,3 +398,11 @@ that goes red when its own fix alone is reverted.
   a signature and one that denies a key read identically. The advice stays
   first, with the code appended, which keeps both the `contains('Access
   denied')` classification in `_map` and the settings-page snackbar test.
+
+A fourth point from the same review, that the mapped S3 error could lose a
+nested transport cause, did not reproduce. `_map` builds its message out of
+`e.message`, which omits the cause, so the unprefixed detail still carries
+the ` (HandshakeException: ...)` suffix the message lacks, the containment
+check fails and the cause is appended. Pinned by "a nested transport cause
+still reaches the string" so a later change to the suppression rule cannot
+quietly drop it.
