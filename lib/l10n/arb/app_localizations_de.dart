@@ -347,7 +347,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String gasCalculators_bestMix_heliumAdded(Object limit) {
-    return 'Helium zugefugt, damit END innerhalb deines Limits von $limit bleibt.';
+    return 'Helium zugefügt, damit END innerhalb deines Limits von $limit bleibt.';
   }
 
   @override
@@ -377,11 +377,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String gasCalculators_rockBottom_solveGas(Object depth, Object unit) {
-    return 'Gas zur Problemlosung auf $depth$unit';
+    return 'Gas zur Problemlösung auf $depth$unit';
   }
 
   @override
-  String get gasCalculators_rockBottom_solveTime => 'Zeit zur Problemlosung';
+  String get gasCalculators_rockBottom_solveTime => 'Zeit zur Problemlösung';
 
   @override
   String get gasCalculators_rockBottom_solveTimeHint =>
@@ -17194,7 +17194,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveDetailSection_tanks_description =>
-      'Flaschenliste, Gasmischungen, Drucke, Flaschen-Verbrauch';
+      'Flaschenliste, Gasmischungen, Drücke, Flaschen-Verbrauch';
 
   @override
   String get diveDetailSection_buddies_name => 'Buddies';

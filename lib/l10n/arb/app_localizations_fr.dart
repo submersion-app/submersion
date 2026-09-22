@@ -7767,7 +7767,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_numbering_assignMissingDesc =>
-      'Numeroter les plongées non numérotées à partir de la dernière plongée numérotée';
+      'Numéroter les plongées non numérotées à partir de la dernière plongée numérotée';
 
   @override
   String get diveLog_numbering_close => 'Fermer';
@@ -7810,7 +7810,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_numbering_snackbar_assigned =>
-      'Numéros de plongée manquants attribues';
+      'Numéros de plongée manquants attribués';
 
   @override
   String diveLog_numbering_snackbar_renumbered(Object number) {
@@ -13558,7 +13558,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_snackbar_markedAsServiced => 'Marqué comme révisé';
 
   @override
-  String get equipment_snackbar_reactivated => 'Équipement reactive';
+  String get equipment_snackbar_reactivated => 'Équipement réactivé';
 
   @override
   String get equipment_snackbar_retired => 'Équipement retire';
@@ -16687,7 +16687,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_appearance_cardColorAttribute_subtitle =>
-      'Choisir quel attribut determine la couleur de fond des cartes';
+      'Choisir quel attribut détermine la couleur de fond des cartes';
 
   @override
   String get settings_appearance_cardColorAttribute_none => 'Aucun';
@@ -18090,7 +18090,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_cloudSync_signOutSuccess =>
-      'Deconnecte du fournisseur cloud';
+      'Déconnecté du fournisseur cloud';
 
   @override
   String get settings_cloudSync_signOut_subtitle =>
@@ -24212,7 +24212,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String universalImport_pending_gateHint(int count) {
-    return '$count doublon(s) nécessitent une decision';
+    return '$count doublon(s) nécessitent une décision';
   }
 
   @override
@@ -24251,7 +24251,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get universalImport_semantics_needsDecision =>
-      'Doublon presume, decision requise';
+      'Doublon présumé, décision requise';
 
   @override
   String get universalImport_semantics_possibleDuplicate => 'Doublon possible';
@@ -24293,7 +24293,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get universalImport_summary_decidesRequired =>
-      'Chacun nécessite une decision avant l\'import.';
+      'Chacun nécessite une décision avant l\'import.';
 
   @override
   String get universalImport_title => 'Importer des données';

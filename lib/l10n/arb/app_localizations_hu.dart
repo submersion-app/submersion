@@ -2506,7 +2506,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String certifications_renderer_label_issued(Object date) {
-    return 'Kiallitva: $date';
+    return 'Kiállítva: $date';
   }
 
   @override
@@ -6165,7 +6165,7 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveLog_edit_tripUse => 'Hasznalas';
+  String get diveLog_edit_tripUse => 'Használás';
 
   @override
   String get diveLog_edit_useSet => 'Készlet használata';
@@ -6695,7 +6695,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_chartSection_decompression => 'Dekompresszió';
 
   @override
-  String get diveLog_chartSection_gasAnalysis => 'Gazelemzes';
+  String get diveLog_chartSection_gasAnalysis => 'Gázelemzés';
 
   @override
   String get diveLog_chartSection_display => 'Megjelenítés';
@@ -10941,7 +10941,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_certificationLevel_instructor => 'Oktató';
 
   @override
-  String get enum_certificationLevel_masterInstructor => 'Mesteroktato';
+  String get enum_certificationLevel_masterInstructor => 'Mesteroktató';
 
   @override
   String get enum_certificationLevel_nitrox => 'Nitrox';
@@ -11444,13 +11444,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_profileEvent_safetyStopStart => 'Biztonsági megállás kezdete';
 
   @override
-  String get enum_profileEvent_setpointChange => 'Setpoint valtozas';
+  String get enum_profileEvent_setpointChange => 'Setpoint változás';
 
   @override
   String get enum_profileMetricCategory_decompression => 'Dekompresszió';
 
   @override
-  String get enum_profileMetricCategory_gasAnalysis => 'Gazelemzes';
+  String get enum_profileMetricCategory_gasAnalysis => 'Gázelemzés';
 
   @override
   String get enum_profileMetricCategory_gradientFactor => 'Gradiens faktorok';
@@ -11711,7 +11711,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_tankRole_diluent => 'Higigaz';
 
   @override
-  String get enum_tankRole_oxygenSupply => 'O₂ ellatas';
+  String get enum_tankRole_oxygenSupply => 'O₂ ellátás';
 
   @override
   String get enum_tankRole_pony => 'Pony palack';
@@ -20211,7 +20211,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get statistics_gas_tankRole_diluent => 'Higito';
 
   @override
-  String get statistics_gas_tankRole_oxygenSupply => 'O₂ ellatas';
+  String get statistics_gas_tankRole_oxygenSupply => 'O₂ ellátás';
 
   @override
   String get statistics_gas_tankRole_pony => 'Pony';
@@ -24277,7 +24277,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tides_label_fromNowSuffix => 'múlva';
 
   @override
-  String get certifications_card_issued => 'KIALLITVA';
+  String get certifications_card_issued => 'KIÁLLÍTVA';
 
   @override
   String certifications_certificate_cardNumber(Object number) {
@@ -24299,7 +24299,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String certifications_certificate_issued(Object date) {
-    return 'Kiallitva: $date';
+    return 'Kiállítva: $date';
   }
 
   @override
@@ -24537,7 +24537,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveComputer_downloadExit_leave => 'Kilépés';
 
   @override
-  String get diveComputer_downloadExit_stay => 'Maradas';
+  String get diveComputer_downloadExit_stay => 'Maradás';
 
   @override
   String get diveComputer_downloadExit_title => 'Letöltés folyamatban';
@@ -25995,7 +25995,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get maps_offline_sizeUnknown => 'Ismeretlen';
 
   @override
-  String get maps_offline_tiles => 'Csempek';
+  String get maps_offline_tiles => 'Csempék';
 
   @override
   String maps_offline_tilesPerSecond(Object rate) {
@@ -26121,7 +26121,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tankPresets_edit_required => 'Kötelező';
 
   @override
-  String get tankPresets_edit_tankSpecifications => 'Palack specifikaciok';
+  String get tankPresets_edit_tankSpecifications => 'Palack specifikációk';
 
   @override
   String get tankPresets_edit_title => 'Palacksablon szerkesztése';
@@ -26254,7 +26254,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tools_weight_tankMaterial => 'Palack anyag';
 
   @override
-  String get tools_weight_tankSpecifications => 'Palack specifikaciok';
+  String get tools_weight_tankSpecifications => 'Palack specifikációk';
 
   @override
   String get tools_weight_title => 'Súlyszámológép';
