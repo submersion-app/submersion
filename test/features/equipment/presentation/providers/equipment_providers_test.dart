@@ -9,6 +9,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -165,11 +166,16 @@ void main() {
 
         // Keep the provider alive so its equipment table-change subscription
         // stays open.
-        final sub = container.listen(serviceDueEquipmentProvider, (_, _) {});
+        final sub = container.listen(
+          serviceDueEquipmentProvider(ServiceDueFilter.any),
+          (_, _) {},
+        );
         addTearDown(sub.close);
 
         expect(
-          await container.read(serviceDueEquipmentProvider.future),
+          await container.read(
+            serviceDueEquipmentProvider(ServiceDueFilter.any).future,
+          ),
           isEmpty,
         );
 
@@ -188,7 +194,7 @@ void main() {
         for (var i = 0; i < 50; i++) {
           await Future<void>.delayed(const Duration(milliseconds: 10));
           names = (await container.read(
-            serviceDueEquipmentProvider.future,
+            serviceDueEquipmentProvider(ServiceDueFilter.any).future,
           )).map((e) => e.name).toList();
           if (names.contains('Overdue Reg')) break;
         }
@@ -224,7 +230,7 @@ void main() {
       );
 
       final names = (await container.read(
-        serviceDueEquipmentProvider.future,
+        serviceDueEquipmentProvider(ServiceDueFilter.any).future,
       )).map((e) => e.name).toList();
 
       expect(
@@ -233,6 +239,37 @@ void main() {
         reason:
             'The Service Due filter must read the service ledger; the '
             'legacy single-clock columns are no longer written',
+      );
+    });
+
+    test('a lapsed clock lands under overdue and not under due soon', () async {
+      // End to end against the real ledger: the severity the list buckets on
+      // has to be the one the engine actually computed, or the home chip's
+      // count and the list's row count part company.
+      final diver = await seedCurrentDiver();
+
+      final container = makeContainer();
+      addTearDown(container.dispose);
+
+      await equipmentRepo.createEquipment(
+        _makeEquipment(
+          name: 'Neglected Reg',
+          diverId: diver.id,
+          purchaseDate: DateTime(2020),
+        ),
+      );
+
+      expect(
+        (await container.read(
+          serviceDueEquipmentProvider(ServiceDueFilter.overdue).future,
+        )).map((e) => e.name),
+        contains('Neglected Reg'),
+      );
+      expect(
+        await container.read(
+          serviceDueEquipmentProvider(ServiceDueFilter.dueSoon).future,
+        ),
+        isEmpty,
       );
     });
 
@@ -252,7 +289,7 @@ void main() {
 
       expect(
         (await container.read(
-          serviceDueEquipmentProvider.future,
+          serviceDueEquipmentProvider(ServiceDueFilter.any).future,
         )).map((e) => e.name),
         contains('Serviced Reg'),
       );
@@ -274,7 +311,12 @@ void main() {
             ),
           );
 
-      expect(await container.read(serviceDueEquipmentProvider.future), isEmpty);
+      expect(
+        await container.read(
+          serviceDueEquipmentProvider(ServiceDueFilter.any).future,
+        ),
+        isEmpty,
+      );
     });
 
     test('excludes gear whose ledger clocks are all still ok', () async {
@@ -291,7 +333,12 @@ void main() {
         ),
       );
 
-      expect(await container.read(serviceDueEquipmentProvider.future), isEmpty);
+      expect(
+        await container.read(
+          serviceDueEquipmentProvider(ServiceDueFilter.any).future,
+        ),
+        isEmpty,
+      );
     });
   });
 }

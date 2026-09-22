@@ -3754,11 +3754,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dashboard_gauges_addGear => 'Felszerelés hozzáadása';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name rendben';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
     return '$name szervize $days nap múlva esedékes';
   }
@@ -3769,8 +3764,23 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count további lejárt';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count eszköz szervize lejárt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count eszköz szervize $days nap múlva esedékes',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12695,6 +12705,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'szervizre szoruló felszerelés';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'hamarosan szervizre szoruló felszerelés';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'lejárt szervizű felszerelés';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return '$status felszerelés';
   }
@@ -12726,6 +12744,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Minden felszerelése naprakész a szervizzel!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'Semmi nem szorul hamarosan szervizre.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'Semminek sem járt le a szervize.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'Hiba a felszerelés betöltésekor: $error';
   }
@@ -12735,6 +12761,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'Szerviz esedék';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'Hamarosan';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'Lejárt';
 
   @override
   String get equipment_list_typeFilterAll => 'Összes típus';

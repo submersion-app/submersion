@@ -28,6 +28,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/domain/models/service_due_filter_display.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/presentation/providers/condition_badge_providers.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
@@ -212,7 +213,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   /// would leave pull-to-refresh and error-retry showing stale rows.
   void _invalidateCurrentProvider(WidgetRef ref) {
     final filter = ref.read(equipmentFilterProvider);
-    if (filter.serviceDueOnly) {
+    if (filter.serviceDue != null) {
       // The service-due list derives from the clock evaluation, so refresh
       // that base rather than the leaf, which would replay cached verdicts.
       ref.invalidate(activeEquipmentClocksProvider);
@@ -249,8 +250,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     };
 
     final AsyncValue<List<EquipmentItem>> equipmentAsync;
-    if (filter.serviceDueOnly) {
-      equipmentAsync = ref.watch(serviceDueEquipmentProvider);
+    final serviceDue = filter.serviceDue;
+    if (serviceDue != null) {
+      equipmentAsync = ref.watch(serviceDueEquipmentProvider(serviceDue));
     } else if (filter.status == null) {
       // The default view hides retired gear; the Retired status filter is
       // the way to see it (#636).
@@ -881,9 +883,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               },
             ),
             const SizedBox(width: 8),
-            if (filter.serviceDueOnly)
+            if (filter.serviceDue != null)
               _buildActiveFilterChip(
-                context.l10n.equipment_list_filterServiceDue,
+                filter.serviceDue!.localizedName(context.l10n),
                 () => ref.read(equipmentFilterProvider.notifier).state = filter
                     .copyWith(clearStatus: true),
               ),
@@ -1062,8 +1064,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       filterText = context.l10n.equipment_list_emptyState_filterText_type(
         filter.type!.localizedName(context.l10n),
       );
-    } else if (filter.serviceDueOnly) {
-      filterText = context.l10n.equipment_list_emptyState_filterText_serviceDue;
+    } else if (filter.serviceDue != null) {
+      filterText = filter.serviceDue!.emptyStateFilterText(context.l10n);
     } else if (filter.status == null) {
       filterText = context.l10n.equipment_list_emptyState_filterText_equipment;
     } else {
@@ -1092,8 +1094,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 ? context.l10n.equipment_list_emptyState_noTagMatch
                 : blameCategory
                 ? context.l10n.equipment_list_emptyState_noTypeMatch
-                : filter.serviceDueOnly
-                ? context.l10n.equipment_list_emptyState_serviceDueUpToDate
+                : filter.serviceDue != null
+                ? filter.serviceDue!.emptyStateSubtitle(context.l10n)
                 : filter.status != null
                 ? context.l10n.equipment_list_emptyState_noStatusMatch
                 : context.l10n.equipment_list_emptyState_addPrompt,

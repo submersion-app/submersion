@@ -7,6 +7,7 @@ import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -19,7 +20,10 @@ class EquipmentSummaryWidget extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final allEquipmentAsync = ref.watch(allEquipmentProvider);
-    final serviceDueAsync = ref.watch(serviceDueEquipmentProvider);
+    // The summary counts everything with a clock due, both severities.
+    final serviceDueAsync = ref.watch(
+      serviceDueEquipmentProvider(ServiceDueFilter.any),
+    );
 
     return Scaffold(
       body: SingleChildScrollView(
