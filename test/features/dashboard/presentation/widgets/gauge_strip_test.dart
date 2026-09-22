@@ -13,8 +13,10 @@ import 'package:submersion/features/dashboard/presentation/providers/gauge_provi
 import 'package:submersion/features/dashboard/presentation/widgets/gauge_strip.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
@@ -32,10 +34,13 @@ final _t0 = DateTime(2026, 1, 1);
 class NavSpy {
   String? location;
   late final GoRouter router;
+
+  /// The scope the strip was pumped in, so a test can read the equipment
+  /// filter a chip seeded on its way to the list.
+  late final ProviderContainer container;
 }
 
 const _emptyGauges = DashboardGauges(
-  gearGauges: [],
   hasGear: true,
   insurance: null,
   noFlyStatus: null,
@@ -44,7 +49,6 @@ const _emptyGauges = DashboardGauges(
 
 /// Sync enabled, nothing pending: the state the sync chip renders as "Synced".
 const _syncGauges = DashboardGauges(
-  gearGauges: [],
   hasGear: true,
   insurance: null,
   noFlyStatus: null,
@@ -168,6 +172,9 @@ Future<NavSpy> pumpStrip(
     ),
   );
   await tester.pumpAndSettle();
+  spy.container = ProviderScope.containerOf(
+    tester.element(find.byType(MaterialApp)),
+  );
   return spy;
 }
 
@@ -188,6 +195,21 @@ Future<void> tapChip(WidgetTester tester, String label) async {
   );
   await tester.pumpAndSettle();
 }
+
+/// A severity bucket holding [count] items, the most urgent of which is
+/// [name]. A bucket of one is what the strip names; more than one collapses
+/// into a counted chip.
+GearSeverityGroup _gearGroup(
+  int count,
+  String name,
+  EquipmentType type,
+  ServiceClockSeverity severity, {
+  DateTime? dueDate,
+  String? id,
+}) => GearSeverityGroup(
+  count: count,
+  worst: _gearGauge(name, type, severity, dueDate: dueDate, id: id),
+);
 
 GearGauge _gearGauge(
   String name,
@@ -270,7 +292,6 @@ void main() {
       final spy = await pumpStrip(
         tester,
         const DashboardGauges(
-          gearGauges: [],
           hasGear: false,
           insurance: null,
           noFlyStatus: null,
@@ -282,66 +303,238 @@ void main() {
       expect(spy.location, '/equipment/new');
     });
 
-    testWidgets('overdue, due-soon and ok gear render their own labels', (
+    testWidgets('a lone overdue item is named and opens that item', (
+      tester,
+    ) async {
+      // One lapsed regulator is a thing, not a statistic: naming it saves
+      // the diver a hop through a one-row list (issue #816).
+      final spy = await pumpStrip(
+        tester,
+        DashboardGauges(
+          gearOverdue: _gearGroup(
+            1,
+            'Regulator',
+            EquipmentType.regulator,
+            ServiceClockSeverity.overdue,
+            dueDate: DateTime(2026, 6, 1),
+            id: 'reg-1',
+          ),
+          hasGear: true,
+          insurance: null,
+          noFlyStatus: null,
+          daysSinceLastDive: null,
+        ),
+      );
+      expect(find.text('Regulator service overdue'), findsOneWidget);
+      expect(find.text('Add gear'), findsNothing);
+      await tapChip(tester, 'Regulator service overdue');
+      expect(spy.location, '/equipment/reg-1');
+    });
+
+    testWidgets('several overdue items collapse into one counted chip', (
       tester,
     ) async {
       final spy = await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: [
-            _gearGauge(
-              'Regulator',
-              EquipmentType.regulator,
-              ServiceClockSeverity.overdue,
-              dueDate: DateTime(2026, 6, 1),
-              id: 'reg-1',
-            ),
-            _gearGauge(
-              'BCD',
-              EquipmentType.bcd,
-              ServiceClockSeverity.dueSoon,
-              // daysUntilDue truncates, so add slack to land on exactly 20.
-              dueDate: DateTime.now().add(const Duration(days: 20, hours: 1)),
-            ),
-            _gearGauge(
-              'Teric',
-              EquipmentType.computer,
-              ServiceClockSeverity.ok,
-            ),
-          ],
+          gearOverdue: _gearGroup(
+            4,
+            'Regulator',
+            EquipmentType.regulator,
+            ServiceClockSeverity.overdue,
+            dueDate: DateTime(2026, 6, 1),
+            id: 'reg-1',
+          ),
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
           daysSinceLastDive: null,
         ),
       );
-      expect(find.text('Regulator overdue'), findsOneWidget);
-      expect(find.text('BCD due in 20d'), findsOneWidget);
-      expect(find.text('Teric OK'), findsOneWidget);
-      expect(find.text('Add gear'), findsNothing);
-
-      // The chip names one item, so it must open that item rather than the
-      // list the diver would then have to search (issue #816).
-      await tapChip(tester, 'Regulator overdue');
-      expect(spy.location, '/equipment/reg-1');
+      expect(find.text('4 items overdue for service'), findsOneWidget);
+      // The chip speaks for four items, so naming one of them would be a
+      // lie about where the tap goes.
+      expect(find.text('Regulator service overdue'), findsNothing);
+      await tapChip(tester, '4 items overdue for service');
+      expect(spy.location, '/equipment');
     });
 
-    testWidgets('due-soon clock without a due date falls back to 0 days', (
+    testWidgets('the counted overdue chip narrows the list to overdue gear', (
+      tester,
+    ) async {
+      // The count the chip showed has to be the number of rows the diver
+      // then sees, so it seeds the overdue filter rather than the combined
+      // service-due one.
+      final spy = await pumpStrip(
+        tester,
+        DashboardGauges(
+          gearOverdue: _gearGroup(
+            4,
+            'Regulator',
+            EquipmentType.regulator,
+            ServiceClockSeverity.overdue,
+            dueDate: DateTime(2026, 6, 1),
+          ),
+          hasGear: true,
+          insurance: null,
+          noFlyStatus: null,
+          daysSinceLastDive: null,
+        ),
+      );
+      await tapChip(tester, '4 items overdue for service');
+      expect(
+        spy.container.read(equipmentFilterProvider).serviceDue,
+        ServiceDueFilter.overdue,
+      );
+    });
+
+    testWidgets('a lone due-soon item is named with its remaining days', (
       tester,
     ) async {
       await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: [
-            _gearGauge('BCD', EquipmentType.bcd, ServiceClockSeverity.dueSoon),
-          ],
+          gearDueSoon: _gearGroup(
+            1,
+            'BCD',
+            EquipmentType.bcd,
+            ServiceClockSeverity.dueSoon,
+            // daysUntilDue truncates, so add slack to land on exactly 20.
+            dueDate: DateTime.now().add(const Duration(days: 20, hours: 1)),
+          ),
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
           daysSinceLastDive: null,
         ),
       );
-      expect(find.text('BCD due in 0d'), findsOneWidget);
+      expect(find.text('BCD service due in 20d'), findsOneWidget);
+    });
+
+    testWidgets('several due-soon items collapse into one counted chip', (
+      tester,
+    ) async {
+      // The days come from the bucket's most urgent item, which is the only
+      // urgency worth a glance when the chip names nothing.
+      final spy = await pumpStrip(
+        tester,
+        DashboardGauges(
+          gearDueSoon: _gearGroup(
+            3,
+            'BCD',
+            EquipmentType.bcd,
+            ServiceClockSeverity.dueSoon,
+            dueDate: DateTime.now().add(const Duration(days: 20, hours: 1)),
+          ),
+          hasGear: true,
+          insurance: null,
+          noFlyStatus: null,
+          daysSinceLastDive: null,
+        ),
+      );
+      expect(find.text('3 items due for service in 20d'), findsOneWidget);
+      expect(find.text('BCD service due in 20d'), findsNothing);
+      await tapChip(tester, '3 items due for service in 20d');
+      expect(spy.location, '/equipment');
+      expect(
+        spy.container.read(equipmentFilterProvider).serviceDue,
+        ServiceDueFilter.dueSoon,
+      );
+    });
+
+    testWidgets('a due-soon clock without a due date falls back to 0 days', (
+      tester,
+    ) async {
+      await pumpStrip(
+        tester,
+        DashboardGauges(
+          gearDueSoon: _gearGroup(
+            1,
+            'BCD',
+            EquipmentType.bcd,
+            ServiceClockSeverity.dueSoon,
+          ),
+          hasGear: true,
+          insurance: null,
+          noFlyStatus: null,
+          daysSinceLastDive: null,
+        ),
+      );
+      expect(find.text('BCD service due in 0d'), findsOneWidget);
+    });
+
+    testWidgets('each severity contributes exactly one chip', (tester) async {
+      // The whole point of the consolidation: a shelf of lapsed gear is two
+      // chips, not a strip made entirely of regulators.
+      await pumpStrip(
+        tester,
+        DashboardGauges(
+          gearOverdue: _gearGroup(
+            4,
+            'Regulator',
+            EquipmentType.regulator,
+            ServiceClockSeverity.overdue,
+            dueDate: DateTime(2026, 6, 1),
+          ),
+          gearDueSoon: _gearGroup(
+            3,
+            'BCD',
+            EquipmentType.bcd,
+            ServiceClockSeverity.dueSoon,
+            dueDate: DateTime.now().add(const Duration(days: 20, hours: 1)),
+          ),
+          hasGear: true,
+          insurance: null,
+          noFlyStatus: null,
+          daysSinceLastDive: null,
+        ),
+      );
+      // Gear is the only chip family that speaks about service, so naming
+      // it is enough to pick the gear chips out of the strip.
+      final gearChips = chipLabels(
+        tester,
+      ).where((l) => l.contains('service')).toList();
+      expect(gearChips, [
+        '4 items overdue for service',
+        '3 items due for service in 20d',
+      ]);
+    });
+
+    testWidgets('a counted overdue chip survives hiding the gear type', (
+      tester,
+    ) async {
+      // Lapsed gear is a dive-safety fact the diver cannot hide; gear that
+      // is merely due soon is a nag, and hiding it is a fair choice. The
+      // hardened-chips group covers the named single-item chip; this is the
+      // counted one, which takes the other branch.
+      final settingsNotifier = MockSettingsNotifier();
+      await settingsNotifier.setHomeChipEnabled('gear', false);
+      await pumpStrip(
+        tester,
+        DashboardGauges(
+          gearOverdue: _gearGroup(
+            4,
+            'Regulator',
+            EquipmentType.regulator,
+            ServiceClockSeverity.overdue,
+            dueDate: DateTime(2026, 6, 1),
+          ),
+          gearDueSoon: _gearGroup(
+            3,
+            'BCD',
+            EquipmentType.bcd,
+            ServiceClockSeverity.dueSoon,
+            dueDate: DateTime.now().add(const Duration(days: 20, hours: 1)),
+          ),
+          hasGear: true,
+          insurance: null,
+          noFlyStatus: null,
+          daysSinceLastDive: null,
+        ),
+        settingsNotifier: settingsNotifier,
+      );
+      expect(find.text('4 items overdue for service'), findsOneWidget);
+      expect(find.text('3 items due for service in 20d'), findsNothing);
     });
   });
 
@@ -364,7 +557,6 @@ void main() {
       await pumpStrip(
         tester,
         const DashboardGauges(
-          gearGauges: [],
           hasGear: true,
           insurance: DiverInsurance(provider: 'DAN', policyNumber: '12345'),
           noFlyStatus: null,
@@ -379,7 +571,6 @@ void main() {
       await pumpStrip(
         tester,
         const DashboardGauges(
-          gearGauges: [],
           hasGear: true,
           insurance: DiverInsurance(provider: ''),
           noFlyStatus: null,
@@ -395,7 +586,6 @@ void main() {
       final spy = await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: const [],
           hasGear: true,
           insurance: DiverInsurance(
             provider: 'DAN',
@@ -416,7 +606,6 @@ void main() {
       final spy = await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: const [],
           hasGear: true,
           insurance: DiverInsurance(
             provider: 'DAN',
@@ -440,7 +629,6 @@ void main() {
       final spy = await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: const [],
           hasGear: true,
           insurance: DiverInsurance(
             provider: 'DAN',
@@ -472,7 +660,6 @@ void main() {
       final spy = await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: const [],
           hasGear: true,
           insurance: null,
           noFlyStatus: NoFlyStatus(
@@ -495,7 +682,6 @@ void main() {
       await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: const [],
           hasGear: true,
           insurance: null,
           noFlyStatus: NoFlyStatus(
@@ -515,7 +701,6 @@ void main() {
       await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: const [],
           hasGear: true,
           insurance: null,
           noFlyStatus: NoFlyStatus(
@@ -532,7 +717,6 @@ void main() {
 
   group('flight window chip', () {
     DashboardGauges gaugesWith(FlightWindowState state) => DashboardGauges(
-      gearGauges: const [],
       hasGear: true,
       insurance: null,
       noFlyStatus: null,
@@ -586,7 +770,6 @@ void main() {
     Future<void> pumpDays(WidgetTester tester, int? days) => pumpStrip(
       tester,
       DashboardGauges(
-        gearGauges: const [],
         hasGear: true,
         insurance: null,
         noFlyStatus: null,
@@ -623,7 +806,6 @@ void main() {
       final spy = await pumpStrip(
         tester,
         const DashboardGauges(
-          gearGauges: [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -648,7 +830,6 @@ void main() {
       final spy = await pumpStrip(
         tester,
         const DashboardGauges(
-          gearGauges: [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -665,7 +846,6 @@ void main() {
       final spy = await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: const [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -689,7 +869,6 @@ void main() {
       final spy = await pumpStrip(
         tester,
         const DashboardGauges(
-          gearGauges: [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -706,7 +885,6 @@ void main() {
       final spy = await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: const [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -726,7 +904,6 @@ void main() {
       await pumpStrip(
         tester,
         const DashboardGauges(
-          gearGauges: [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -741,7 +918,6 @@ void main() {
       final spy = await pumpStrip(
         tester,
         const DashboardGauges(
-          gearGauges: [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -757,7 +933,6 @@ void main() {
       final spy = await pumpStrip(
         tester,
         const DashboardGauges(
-          gearGauges: [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -776,7 +951,6 @@ void main() {
       await pumpStrip(
         tester,
         const DashboardGauges(
-          gearGauges: [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -811,7 +985,6 @@ void main() {
       await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: const [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -826,7 +999,6 @@ void main() {
       await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: const [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -845,7 +1017,6 @@ void main() {
       final spy = await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: const [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -868,7 +1039,6 @@ void main() {
       await pumpStrip(
         tester,
         const DashboardGauges(
-          gearGauges: [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -883,7 +1053,6 @@ void main() {
       await pumpStrip(
         tester,
         const DashboardGauges(
-          gearGauges: [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -984,9 +1153,13 @@ void main() {
       await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: [
-            _gearGauge('Reg', EquipmentType.regulator, ServiceClockSeverity.ok),
-          ],
+          gearOverdue: _gearGroup(
+            1,
+            'Reg',
+            EquipmentType.regulator,
+            ServiceClockSeverity.overdue,
+            dueDate: DateTime(2026, 6, 1),
+          ),
           hasGear: true,
           insurance: const DiverInsurance(provider: 'DAN'),
           noFlyStatus: null,
@@ -1017,7 +1190,6 @@ void main() {
       await pumpStrip(
         tester,
         const DashboardGauges(
-          gearGauges: [],
           hasGear: false,
           insurance: null,
           noFlyStatus: null,
@@ -1042,22 +1214,23 @@ void main() {
 
   group('tone colors', () {
     final gauges = DashboardGauges(
-      gearGauges: [
-        _gearGauge(
-          'Reg',
-          EquipmentType.regulator,
-          ServiceClockSeverity.overdue,
-        ),
-        _gearGauge(
-          'BCD',
-          EquipmentType.bcd,
-          ServiceClockSeverity.dueSoon,
-          dueDate: DateTime.now().add(const Duration(days: 3)),
-        ),
-        _gearGauge('Fins', EquipmentType.fins, ServiceClockSeverity.ok),
-      ],
+      gearOverdue: _gearGroup(
+        1,
+        'Reg',
+        EquipmentType.regulator,
+        ServiceClockSeverity.overdue,
+      ),
+      gearDueSoon: _gearGroup(
+        1,
+        'BCD',
+        EquipmentType.bcd,
+        ServiceClockSeverity.dueSoon,
+        dueDate: DateTime.now().add(const Duration(days: 3)),
+      ),
       hasGear: true,
-      insurance: null,
+      // Gear no longer speaks when every clock is ok, so the ok swatch is
+      // asserted on the insurance chip instead.
+      insurance: const DiverInsurance(provider: 'DAN'),
       noFlyStatus: null,
       daysSinceLastDive: 12,
     );
@@ -1092,9 +1265,9 @@ void main() {
     testWidgets('gear severities use the light status palette', (tester) async {
       await pumpStrip(tester, gauges);
 
-      expectSwatch(tester, 'Reg overdue', StatusColors.light.alert);
-      expectSwatch(tester, 'BCD due in', StatusColors.light.warn);
-      expectSwatch(tester, 'Fins OK', StatusColors.light.ok);
+      expectSwatch(tester, 'Reg service overdue', StatusColors.light.alert);
+      expectSwatch(tester, 'BCD service due in', StatusColors.light.warn);
+      expectSwatch(tester, 'Insurance OK', StatusColors.light.ok);
     });
 
     testWidgets('gear severities use the dark status palette', (tester) async {
@@ -1104,9 +1277,9 @@ void main() {
         theme: ThemeData(brightness: Brightness.dark),
       );
 
-      expectSwatch(tester, 'Reg overdue', StatusColors.dark.alert);
-      expectSwatch(tester, 'BCD due in', StatusColors.dark.warn);
-      expectSwatch(tester, 'Fins OK', StatusColors.dark.ok);
+      expectSwatch(tester, 'Reg service overdue', StatusColors.dark.alert);
+      expectSwatch(tester, 'BCD service due in', StatusColors.dark.warn);
+      expectSwatch(tester, 'Insurance OK', StatusColors.dark.ok);
     });
 
     testWidgets('a neutral chip is outlined and matches the others in size', (
@@ -1128,7 +1301,7 @@ void main() {
             )
             .first,
       );
-      expect(sizeOf('Last dive').height, sizeOf('Reg overdue').height);
+      expect(sizeOf('Last dive').height, sizeOf('Reg service overdue').height);
 
       // The outline must not grow the pill: Container folds the 1px border
       // into its padding, so 5px inset + 1px border matches the old 6px
@@ -1136,12 +1309,15 @@ void main() {
       final row = tester.getSize(
         find
             .ancestor(
-              of: find.textContaining('Reg overdue'),
+              of: find.textContaining('Reg service overdue'),
               matching: find.byType(Row),
             )
             .first,
       );
-      expect(sizeOf('Reg overdue'), Size(row.width + 24, row.height + 12));
+      expect(
+        sizeOf('Reg service overdue'),
+        Size(row.width + 24, row.height + 12),
+      );
     });
   });
 
@@ -1152,19 +1328,20 @@ void main() {
       await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: [
-            _gearGauge(
-              'Teric',
-              EquipmentType.computer,
-              ServiceClockSeverity.ok,
-            ),
-            _gearGauge(
-              'Regulator',
-              EquipmentType.regulator,
-              ServiceClockSeverity.overdue,
-              dueDate: DateTime(2026, 6, 1),
-            ),
-          ],
+          gearOverdue: _gearGroup(
+            1,
+            'Regulator',
+            EquipmentType.regulator,
+            ServiceClockSeverity.overdue,
+            dueDate: DateTime(2026, 6, 1),
+          ),
+          gearDueSoon: _gearGroup(
+            1,
+            'Teric',
+            EquipmentType.computer,
+            ServiceClockSeverity.dueSoon,
+            dueDate: DateTime.now().add(const Duration(days: 20, hours: 1)),
+          ),
           hasGear: true,
           insurance: const DiverInsurance(provider: 'DAN'),
           noFlyStatus: null,
@@ -1174,8 +1351,8 @@ void main() {
       // The overdue regulator jumps the queue; every other chip, including
       // the warn-tone backup chip, stays in the order the strip declares.
       expect(chipLabels(tester), [
-        'Regulator overdue',
-        'Teric OK',
+        'Regulator service overdue',
+        'Teric service due in 20d',
         'Insurance OK',
         'No-fly 0:00',
         'Last dive 12d ago',
@@ -1187,14 +1364,13 @@ void main() {
       await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: [
-            _gearGauge(
-              'Regulator',
-              EquipmentType.regulator,
-              ServiceClockSeverity.overdue,
-              dueDate: DateTime(2026, 6, 1),
-            ),
-          ],
+          gearOverdue: _gearGroup(
+            1,
+            'Regulator',
+            EquipmentType.regulator,
+            ServiceClockSeverity.overdue,
+            dueDate: DateTime(2026, 6, 1),
+          ),
           hasGear: true,
           insurance: DiverInsurance(
             provider: 'DAN',
@@ -1205,7 +1381,7 @@ void main() {
         ),
       );
       expect(chipLabels(tester).take(2), [
-        'Regulator overdue',
+        'Regulator service overdue',
         'Insurance expired',
       ]);
     });
@@ -1226,26 +1402,21 @@ void main() {
       final spy = await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: [
-            _gearGauge(
-              'Regulator',
-              EquipmentType.regulator,
-              ServiceClockSeverity.overdue,
-              dueDate: DateTime(2026, 6, 1),
-              id: 'reg-1',
-            ),
-            _gearGauge(
-              'BCD',
-              EquipmentType.bcd,
-              ServiceClockSeverity.dueSoon,
-              dueDate: DateTime.now().add(const Duration(days: 20, hours: 1)),
-            ),
-            _gearGauge(
-              'Teric',
-              EquipmentType.computer,
-              ServiceClockSeverity.ok,
-            ),
-          ],
+          gearOverdue: _gearGroup(
+            1,
+            'Regulator',
+            EquipmentType.regulator,
+            ServiceClockSeverity.overdue,
+            dueDate: DateTime(2026, 6, 1),
+            id: 'reg-1',
+          ),
+          gearDueSoon: _gearGroup(
+            1,
+            'BCD',
+            EquipmentType.bcd,
+            ServiceClockSeverity.dueSoon,
+            dueDate: DateTime.now().add(const Duration(days: 20, hours: 1)),
+          ),
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -1253,11 +1424,11 @@ void main() {
         ),
         settingsNotifier: await allHidden(),
       );
-      // Only the lapsed item survives: due-soon and OK gear are ordinary
-      // chips the diver is allowed to hide.
-      expect(chipLabels(tester), ['Regulator overdue']);
+      // Only the lapsed item survives: due-soon gear is an ordinary chip
+      // the diver is allowed to hide.
+      expect(chipLabels(tester), ['Regulator service overdue']);
 
-      await tapChip(tester, 'Regulator overdue');
+      await tapChip(tester, 'Regulator service overdue');
       expect(spy.location, '/equipment/reg-1');
     });
 
@@ -1267,7 +1438,6 @@ void main() {
       await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: const [],
           hasGear: true,
           insurance: DiverInsurance(
             provider: 'DAN',
@@ -1287,7 +1457,6 @@ void main() {
       await pumpStrip(
         tester,
         const DashboardGauges(
-          gearGauges: [],
           hasGear: true,
           insurance: DiverInsurance(provider: 'DAN'),
           noFlyStatus: null,
@@ -1315,7 +1484,6 @@ void main() {
       await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: const [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -1339,7 +1507,6 @@ void main() {
       await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: const [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -1363,7 +1530,6 @@ void main() {
       await pumpStrip(
         tester,
         DashboardGauges(
-          gearGauges: const [],
           hasGear: true,
           insurance: null,
           noFlyStatus: null,
@@ -1373,82 +1539,6 @@ void main() {
         settingsNotifier: await allHidden(),
       );
       expect(find.byType(Wrap), findsNothing);
-    });
-  });
-
-  group('overdue overflow chip', () {
-    testWidgets('renders the count and opens the equipment list', (
-      tester,
-    ) async {
-      final spy = await pumpStrip(
-        tester,
-        DashboardGauges(
-          gearGauges: [
-            _gearGauge(
-              'Regulator',
-              EquipmentType.regulator,
-              ServiceClockSeverity.overdue,
-              dueDate: DateTime(2026, 6, 1),
-            ),
-          ],
-          gearOverdueOverflow: 3,
-          hasGear: true,
-          insurance: null,
-          noFlyStatus: null,
-          daysSinceLastDive: null,
-        ),
-      );
-      expect(find.text('+3 more overdue'), findsOneWidget);
-
-      // It names no single item, so it falls back to the list.
-      await tapChip(tester, '+3 more overdue');
-      expect(spy.location, '/equipment');
-    });
-
-    testWidgets('is absent when nothing overflowed', (tester) async {
-      await pumpStrip(
-        tester,
-        DashboardGauges(
-          gearGauges: [
-            _gearGauge(
-              'Regulator',
-              EquipmentType.regulator,
-              ServiceClockSeverity.overdue,
-              dueDate: DateTime(2026, 6, 1),
-            ),
-          ],
-          hasGear: true,
-          insurance: null,
-          noFlyStatus: null,
-          daysSinceLastDive: null,
-        ),
-      );
-      expect(find.textContaining('more overdue'), findsNothing);
-    });
-
-    testWidgets('survives gear chips being hidden', (tester) async {
-      final settingsNotifier = MockSettingsNotifier();
-      await settingsNotifier.setHomeChipEnabled('gear', false);
-      await pumpStrip(
-        tester,
-        DashboardGauges(
-          gearGauges: [
-            _gearGauge(
-              'Regulator',
-              EquipmentType.regulator,
-              ServiceClockSeverity.overdue,
-              dueDate: DateTime(2026, 6, 1),
-            ),
-          ],
-          gearOverdueOverflow: 2,
-          hasGear: true,
-          insurance: null,
-          noFlyStatus: null,
-          daysSinceLastDive: null,
-        ),
-        settingsNotifier: settingsNotifier,
-      );
-      expect(find.text('+2 more overdue'), findsOneWidget);
     });
   });
 

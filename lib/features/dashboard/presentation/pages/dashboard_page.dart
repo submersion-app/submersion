@@ -13,7 +13,6 @@ import 'package:submersion/features/dashboard/presentation/providers/media_ribbo
 import 'package:submersion/features/dashboard/presentation/widgets/dashboard_grid.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/gauge_strip.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -153,15 +152,9 @@ bool _hasSafetyAlert(DashboardGauges g) {
       insurance != null &&
       insurance.providerLabel != null &&
       insurance.isExpired;
-  // Overflow counts as overdue gear in its own right. With the shipped caps
-  // it can only be positive alongside a shown overdue gauge, so this clause
-  // is currently redundant; it is here so the guard states the same rule
-  // GaugeStrip does (an alert-tone "+N more overdue" chip), rather than
-  // depending on the cap values to keep the two in agreement.
-  return g.gearOverdueOverflow > 0 ||
-      g.gearGauges.any(
-        (gauge) => gauge.status.severity == ServiceClockSeverity.overdue,
-      ) ||
+  // The strip renders one alert-tone chip for the whole overdue bucket,
+  // whatever its size, so the presence of the bucket is the whole rule.
+  return g.gearOverdue != null ||
       expiredPolicy ||
       g.flightWindow?.state == FlightWindowState.closed ||
       g.flightWindow?.state == FlightWindowState.conflict;

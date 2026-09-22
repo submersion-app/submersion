@@ -3736,13 +3736,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_gauges_addGear => 'إضافة معدات';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name سليم';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
-    return '$name مستحق خلال $days يوم';
+    return '$name يحتاج صيانة خلال $days يوم';
   }
 
   @override
@@ -3751,8 +3746,27 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count أخرى متأخرة';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر متأخرة عن الصيانة',
+      two: 'عنصران متأخران عن الصيانة',
+      one: 'عنصر واحد متأخر عن الصيانة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر تحتاج صيانة خلال $days يوم',
+      two: 'عنصران يحتاجان صيانة خلال $days يوم',
+      one: 'عنصر واحد يحتاج صيانة خلال $days يوم',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12579,6 +12593,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'معدات تحتاج صيانة';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'معدات تحتاج صيانة قريبًا';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'معدات متأخرة عن الصيانة';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return 'معدات $status';
   }
@@ -12610,6 +12632,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'جميع معداتك محدثة الصيانة!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'لا شيء يحتاج صيانة قريبًا.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'لا شيء متأخر عن الصيانة.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'خطأ في تحميل المعدات: $error';
   }
@@ -12619,6 +12649,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'الصيانة مستحقة';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'قريبًا';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'متأخرة';
 
   @override
   String get equipment_list_typeFilterAll => 'جميع الأنواع';

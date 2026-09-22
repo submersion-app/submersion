@@ -60,7 +60,9 @@ void main() {
         overrides: [
           ...overrides,
           allEquipmentProvider.overrideWith((ref) async => equipment),
-          serviceDueEquipmentProvider.overrideWith((ref) async => serviceDue),
+          serviceDueEquipmentProvider.overrideWith(
+            (ref, _) async => serviceDue,
+          ),
           dueClocksProvider.overrideWith((ref) async => dueClocks),
         ],
       ),

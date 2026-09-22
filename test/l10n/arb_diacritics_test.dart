@@ -33,6 +33,8 @@ const _forbiddenSpellings = <String, Map<String, String>>{
     'assignees': 'assignées',
     'BIENTOT': 'BIENTÔT',
     'bientot': 'bientôt',
+    'binome': 'binôme',
+    'binomes': 'binômes',
     'boite': 'boîte',
     'Bouee': 'Bouée',
     'Cable': 'Câble',
@@ -68,6 +70,7 @@ const _forbiddenSpellings = <String, Map<String, String>>{
     'Egypte': 'Égypte',
     'Entrainements': 'Entraînements',
     'equilibree': 'équilibrée',
+    'etablissement': 'établissement',
     'etoiles': 'étoiles',
     'exploree': 'explorée',
     'explorees': 'explorées',
@@ -75,14 +78,13 @@ const _forbiddenSpellings = <String, Map<String, String>>{
     'fusionne': 'fusionné',
     'fusionnes': 'fusionnés',
     'grele': 'grêle',
+    'icone': 'icône',
     'illimitee': 'illimitée',
     'Imperial': 'Impérial',
     'Indonesie': 'Indonésie',
     'integrale': 'intégrale',
     'integrees': 'intégrées',
     'Invertebre': 'Invertébré',
-    'etablissement': 'établissement',
-    'icone': 'icône',
     'leger': 'léger',
     'legere': 'légère',
     'Mammifere': 'Mammifère',
@@ -228,6 +230,7 @@ const _forbiddenSpellings = <String, Map<String, String>>{
     'Flaschendrucke': 'Flaschendrücke',
     'fuer': 'für',
     'fur': 'für',
+    'Gegenstaende': 'Gegenstände',
     'Groesse': 'Größe',
     'hinzufugen': 'hinzufügen',
     'losen': 'lösen',
@@ -236,31 +239,101 @@ const _forbiddenSpellings = <String, Map<String, String>>{
     'Prufe': 'Prüfe',
     'Schliesse': 'Schließe',
     'Taglich': 'Täglich',
+    'Tauchgaenge': 'Tauchgänge',
+    'Tauchgaengen': 'Tauchgängen',
+    'Tauchplaetze': 'Tauchplätze',
     'Uber': 'Über',
     'uberschreitet': 'überschreitet',
     'Uberwiegend': 'Überwiegend',
     'Verbandspruefung': 'Verbandsprüfung',
+    'Verknuepfen': 'Verknüpfen',
     'Wochentlich': 'Wöchentlich',
   },
 };
 
-/// Strips ICU argument names and branch selectors while keeping branch prose.
+/// Keeps an ICU message's prose and drops its syntax, with a balanced walk.
 ///
-/// A flat `\{[^{}]*\}` cannot do this: on `{count, plural, =1{plongée
-/// deplacee} other{...}}` it matches the *innermost* braces and deletes the
-/// branch text, hiding every word inside a plural. That is how `deplacee` and
-/// `retiree` survived the first pass of this sweep. Argument names are dropped
-/// because they are identifiers, not prose - `{resolution}` must not be read
-/// as a misspelling of `résolution`.
-String arbProse(String value) => value
-    .replaceAll(RegExp(r'\{\s*\w+\s*\}'), ' ')
-    .replaceAll(RegExp(r'\{\s*\w+\s*,\s*\w+\s*,'), ' ')
-    .replaceAll(
-      RegExp(r'(?:=\d+|zero|one|two|few|many|other|male|female)\s*\{'),
-      ' ',
-    )
-    .replaceAll('{', ' ')
-    .replaceAll('}', ' ');
+/// Regex stripping cannot do this, and failed twice while this sweep was
+/// written. A flat `\{[^{}]*\}` matches the *innermost* braces, so on
+/// `{count, plural, =1{plongée deplacee} other{...}}` it deletes the branch
+/// text rather than the argument name; that is how `deplacee` and `retiree`
+/// first survived. Stripping `{name}` placeholders before the complex-argument
+/// header has the same effect on a one-word branch - `=1{fur}` looks exactly
+/// like a placeholder - and on every branch of a `select` whose keys are not
+/// plural categories, such as `{type, select, ccr{CCR} other{OC}}`. That
+/// second gap hid five German transliterations (`Tauchgaenge`, `Tauchplaetze`,
+/// `Gegenstaende`, `Tauchgaengen`, `Verknuepfen`) and French `binome`.
+///
+/// Argument *names* are still dropped, because they are identifiers rather
+/// than prose: `{resolution}` must not read as a misspelling of `résolution`.
+String arbProse(String value) {
+  final out = StringBuffer();
+  // Which brace each open `{` belongs to: a plural/select argument, or one of
+  // its branch bodies. Only inside the former does a `{` open a branch.
+  final stack = <_Brace>[];
+  var text = '';
+
+  void flush() {
+    if (text.isNotEmpty) {
+      out.write(text);
+      text = '';
+    }
+  }
+
+  var i = 0;
+  while (i < value.length) {
+    final ch = value[i];
+    if (ch == '}') {
+      if (stack.isNotEmpty) stack.removeLast();
+      flush();
+      out.write(' ');
+      i++;
+      continue;
+    }
+    if (ch != '{') {
+      text += ch;
+      i++;
+      continue;
+    }
+    if (stack.isNotEmpty &&
+        stack.last == _Brace.argument &&
+        _selectorTail.hasMatch(text)) {
+      text = text.replaceFirst(_selectorTail, '');
+      flush();
+      out.write(' ');
+      stack.add(_Brace.branch);
+      i++;
+      continue;
+    }
+    final header = _complexHeader.matchAsPrefix(value, i);
+    if (header != null) {
+      flush();
+      out.write(' ');
+      stack.add(_Brace.argument);
+      i = header.end;
+      continue;
+    }
+    final simple = _simpleArgument.matchAsPrefix(value, i);
+    if (simple != null) {
+      flush();
+      out.write(' ');
+      i = simple.end;
+      continue;
+    }
+    flush();
+    out.write(' ');
+    stack.add(_Brace.branch);
+    i++;
+  }
+  flush();
+  return out.toString();
+}
+
+enum _Brace { argument, branch }
+
+final _simpleArgument = RegExp(r'\{\s*\w+\s*\}');
+final _complexHeader = RegExp(r'\{\s*\w+\s*,\s*\w+\s*,');
+final _selectorTail = RegExp(r'(?:=\d+|\w+)\s*$');
 
 void main() {
   group('ARB values keep their diacritics', () {

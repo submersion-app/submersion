@@ -3818,23 +3818,35 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dashboard_gauges_addGear => 'Ausrüstung hinzufügen';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name OK';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
-    return '$name fällig in ${days}T';
+    return '$name Wartung fällig in ${days}T';
   }
 
   @override
   String dashboard_gauges_gearOverdue(String name) {
-    return '$name überfällig';
+    return '$name Wartung überfällig';
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count weitere überfällig';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile mit überfälliger Wartung',
+      one: '$count Teil mit überfälliger Wartung',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile zur Wartung in ${days}T',
+      one: '$count Teil zur Wartung in ${days}T',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -4828,7 +4840,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return 'Möchten Sie wirklich $count $_temp0 löschen? Diese Aktion kann nicht rückgängig gemacht werden.';
@@ -4842,7 +4854,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 gelöscht';
@@ -4872,7 +4884,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp1 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
-      other: 'Tauchgaengen',
+      other: 'Tauchgängen',
       one: 'Tauchgang',
     );
     return '$tagCount $_temp0 zu $diveCount $_temp1 hinzugefügt';
@@ -4904,7 +4916,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 zur Reise verschoben';
@@ -4935,7 +4947,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 von Reise entfernt';
@@ -4949,7 +4961,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 bearbeiten';
@@ -4978,7 +4990,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 erfolgreich exportiert';
@@ -4989,7 +5001,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 exportieren';
@@ -5373,7 +5385,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Gegenstaende',
+      other: 'Gegenstände',
       one: 'Gegenstand',
     );
     return '$count $_temp0';
@@ -5928,7 +5940,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Gegenstaende',
+      other: 'Gegenstände',
       one: 'Gegenstand',
     );
     return '$count $_temp0 als neues Ausrüstungsset speichern.';
@@ -7781,7 +7793,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 ohne Nummer';
@@ -8230,7 +8242,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0';
@@ -9865,7 +9877,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchplaetze',
+      other: 'Tauchplätze',
       one: 'Tauchplatz',
     );
     return 'Sind Sie sicher, dass Sie $count $_temp0 löschen möchten? Diese Aktion kann innerhalb von 5 Sekunden rückgängig gemacht werden.';
@@ -9880,7 +9892,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchplaetze',
+      other: 'Tauchplätze',
       one: 'Tauchplatz',
     );
     return '$count $_temp0 gelöscht';
@@ -9901,7 +9913,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchplaetze',
+      other: 'Tauchplätze',
       one: 'Tauchplatz',
     );
     return '$count $_temp0 zusammengeführt';
@@ -12775,6 +12787,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'wartungsfällige Ausrüstung';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'bald wartungsfällige Ausrüstung';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'überfällige Ausrüstung';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return '$status Ausrüstung';
   }
@@ -12806,6 +12826,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Alle Ihre Ausrüstungsgegenstände sind wartungstechnisch auf dem neuesten Stand!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'Nichts ist demnächst fällig.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'Nichts ist überfällig.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'Fehler beim Laden der Ausrüstung: $error';
   }
@@ -12815,6 +12843,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'Wartung fällig';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'Bald fällig';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'Überfällig';
 
   @override
   String get equipment_list_typeFilterAll => 'Alle Typen';
@@ -15017,8 +15051,8 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp1 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Verknuepfen',
-      one: 'Verknuepfen',
+      other: 'Verknüpfen',
+      one: 'Verknüpfen',
     );
     return '$_temp0 in der Nähe dieses Tauchgangs gefunden. $_temp1?';
   }
@@ -24931,7 +24965,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 heruntergeladen';
@@ -24948,7 +24982,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 von $name heruntergeladen';
@@ -25012,7 +25046,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     String _temp1 = intl.Intl.pluralLogic(
@@ -25033,7 +25067,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     String _temp1 = intl.Intl.pluralLogic(

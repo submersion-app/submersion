@@ -3742,23 +3742,35 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard_gauges_addGear => 'Add gear';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name OK';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
-    return '$name due in ${days}d';
+    return '$name service due in ${days}d';
   }
 
   @override
   String dashboard_gauges_gearOverdue(String name) {
-    return '$name overdue';
+    return '$name service overdue';
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count more overdue';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items overdue for service',
+      one: '$count item overdue for service',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items due for service in ${days}d',
+      one: '$count item due for service in ${days}d',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12587,6 +12599,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'equipment needing service';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'equipment due for service soon';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'equipment overdue for service';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return '$status equipment';
   }
@@ -12618,6 +12638,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'All your equipment is up to date on service!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'Nothing is due for service soon.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'Nothing is overdue for service.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'Error loading equipment: $error';
   }
@@ -12627,6 +12655,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'Service Due';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'Due Soon';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'Overdue';
 
   @override
   String get equipment_list_typeFilterAll => 'All Types';
