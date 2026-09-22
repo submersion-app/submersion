@@ -6,6 +6,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -107,6 +108,60 @@ void main() {
     ).debugAdoptInMemory([payload(set, 1), payload(cleared, 2)]);
 
     expect(await uploadedAt(), isNull);
+  });
+
+  group('an adopted null fact clock', () {
+    // The v223 backstop adds the fact clock columns without backfilling, so
+    // a library that upgraded that way publishes rows carrying a null clock
+    // beside non-null facts. A null clock means "fall back to the row
+    // clock", so it has to land. The two adopt paths differ on whether it
+    // does by itself: the in-memory one writes the data class directly and
+    // so writes nulls, the streaming one batches through nullToAbsent.
+    test(
+      'survives the batched upsert, which is why the write is needed',
+      () async {
+        final row = (await SyncDataSerializer().fetchRecord('media', id))!;
+        final before = row['uploadFactsHlc'];
+        expect(before, isNotNull);
+
+        await SyncDataSerializer().upsertRecords('media', [
+          {...row, 'uploadFactsHlc': null},
+        ]);
+
+        final after = await db
+            .customSelect(
+              'SELECT upload_facts_hlc FROM media WHERE id = ?',
+              variables: [Variable.withString(id)],
+            )
+            .getSingle();
+        expect(
+          after.data.values.first,
+          before,
+          reason:
+              'the batched arm drops it, so the adopt needs the targeted '
+              'write to land a null clock',
+        );
+      },
+    );
+
+    test('is cleared by the targeted write', () async {
+      final row = (await SyncDataSerializer().fetchRecord('media', id))!;
+
+      await SyncDataSerializer().writeFactGroup(
+        'media',
+        id,
+        SyncFactGroups.mediaUpload,
+        {...row, 'uploadFactsHlc': null},
+      );
+
+      final after = await db
+          .customSelect(
+            'SELECT upload_facts_hlc FROM media WHERE id = ?',
+            variables: [Variable.withString(id)],
+          )
+          .getSingle();
+      expect(after.data.values.first, isNull);
+    });
   });
 
   test('a row that clears nothing keeps its adopted value', () async {

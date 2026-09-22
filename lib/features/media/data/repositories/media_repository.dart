@@ -395,12 +395,11 @@ class MediaRepository {
     try {
       _log.info('Updating media: ${item.id}');
       final now = DateTime.now().millisecondsSinceEpoch;
-      // One transaction over read, write and stamp. The row carries fact
-      // columns the upload worker writes concurrently; read outside it, a
-      // stamp landing between the read and this whole-row write would be
-      // rolled back while comparing equal on both sides, so the rollback
-      // would travel under an unchanged upload clock and lose to the very
-      // stamp it erased (media sync program spec 5.1).
+      // One transaction over the write and the stamp, so a crash cannot
+      // leave the row written and unpublished. It reads nothing: the fact
+      // columns this used to diff are simply not written here any more,
+      // which is what actually stops a stale caller snapshot rolling back a
+      // concurrent stamp (media sync program spec 5.1).
       await _db.transaction(() async {
         await (_db.update(_db.media)..where((t) => t.id.equals(item.id))).write(
           MediaCompanion(
