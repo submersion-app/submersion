@@ -7,6 +7,7 @@ import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -96,7 +97,19 @@ class EquipmentSummaryWidget extends ConsumerWidget {
     // Keyed by item so each row can render its own severity: the card's
     // swatch is the worst across the section, which made an overdue item
     // and a due-soon item look identical (#2260).
-    final clockByItemId = {for (final c in dueClocks) c.item.id: c};
+    //
+    // Reduced with isMoreUrgentClock rather than written as a map
+    // comprehension: an item with several clocks appears several times, and
+    // a comprehension keeps the LAST, which is the least urgent given this
+    // list arrives worst-first. Ranking explicitly also stops the row
+    // depending on how dueClocksProvider happens to sort.
+    final clockByItemId = <String, DueClock>{};
+    for (final c in dueClocks) {
+      final held = clockByItemId[c.item.id];
+      if (held == null || isMoreUrgentClock(c.status, held.status)) {
+        clockByItemId[c.item.id] = c;
+      }
+    }
     final status = StatusColors.of(context);
     final serviceSwatch = anyOverdue ? status.alert : status.warn;
 

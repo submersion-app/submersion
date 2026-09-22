@@ -133,6 +133,63 @@ void main() {
     expect(find.text('General service due in 12d'), findsOneWidget);
   });
 
+  testWidgets('full renders the status line above its full trigger line', (
+    tester,
+  ) async {
+    // This density has no production caller yet, so nothing else would
+    // notice it regressing.
+    await tester.pumpWidget(
+      wrap(
+        ServiceStatusIndicator(
+          clock: clock(),
+          subjectId: 'reg',
+          density: ServiceIndicatorDensity.full,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('General service overdue'), findsOneWidget);
+    // The second line is the long joined trigger, the same wording the
+    // service clocks card shows, not the short chip form.
+    expect(find.textContaining('Overdue since'), findsOneWidget);
+  });
+
+  testWidgets('full carries the status line as one semantics label', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      wrap(
+        ServiceStatusIndicator(
+          clock: clock(),
+          subjectId: 'reg',
+          density: ServiceIndicatorDensity.full,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.bySemanticsLabel(RegExp('General service overdue')),
+      findsOneWidget,
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('full renders nothing for an ok clock', (tester) async {
+    await tester.pumpWidget(
+      wrap(
+        ServiceStatusIndicator(
+          clock: clock(severity: ServiceClockSeverity.ok),
+          subjectId: 'reg',
+          density: ServiceIndicatorDensity.full,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(Text), findsNothing);
+  });
+
   testWidgets('the dot density draws no text but carries a semantics label', (
     tester,
   ) async {

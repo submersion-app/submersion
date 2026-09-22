@@ -136,12 +136,35 @@ weight planner `rig_composer.dart` chips, the dive planner
 
 ### Migrate onto the widget (working today)
 
-`EquipmentListTile`, `DenseEquipmentListTile`, the equipment detail header,
-`ComponentsCard`, `ChildrenCard`, `TripServiceAlertBanner`, `SessionItemTile`,
-`GaugeStrip`.
+Planned: `EquipmentListTile`, `DenseEquipmentListTile`, the equipment detail
+header, `ComponentsCard`, `ChildrenCard`, `TripServiceAlertBanner`,
+`SessionItemTile`, `GaugeStrip`.
 
 These go last, behind their existing tests, so a regression in a working
 surface is caught rather than shipped.
+
+**As shipped**, three of those were deliberately left alone, because reading
+the code showed migrating them would lose meaning rather than add
+consistency:
+
+- `SessionItemTile` keeps its own provider. The rollup carries only the
+  worst clock, while the tile deliberately shows every configured clock, and
+  `activeEquipmentClocksProvider` covers active gear only, while the pre-dive
+  start sheet offers gear from `allEquipmentProvider`. Migrating would have
+  hidden clocks in a safety checklist. The N+1 is filed separately.
+- `TripServiceAlertBanner` keeps its own rendering. Its due-soon line is
+  trip-relative ("due before {trip date}"), which is more useful there than a
+  relative day count. It does adopt the shared overdue key, and is
+  allowlisted in the wording guard with that reason.
+- `GaugeStrip` keeps its own wording: its chips name the gear item, not the
+  service kind, and it holds a `GearGauge` projection rather than a clock.
+
+`ComponentsCard` and `ChildrenCard` were fixed to read the rollup rather than
+migrated to the widget: they draw a dot for every part including healthy ones,
+which the indicator renders as nothing.
+
+The equipment detail header keeps its page-level banner, which is a different
+thing from a per-item badge.
 
 ### Excluded
 
@@ -170,11 +193,25 @@ Filed separately rather than widened into this change:
 
 ## Localisation
 
-Two new keys across all 11 locale files:
+Nine new keys across all 11 locale files.
+
+The two status sentences:
 
 - `equipment_service_overdue`: `{kind} overdue`, retiring
   `equipment_list_worstClock` and `trips_serviceAlert_overdue`.
 - `equipment_service_dueRelative`: `{kind} due {relative}`.
+
+Plus seven per-unit short forms feeding `{relative}`:
+`equipment_service_shortDives`, `..._shortHours`, `..._shortSaltHours`,
+`..._shortColdDives`, `..._shortO2Hours`, `..._shortDeepCycles` and
+`..._shortCycles`, each of the form "in {count} {unit noun}".
+
+These are per-unit rather than one generic "in {count} {unit}" because a unit
+noun cannot be composed into a sentence generically: the preposition, article
+and case all vary by language. `ExposureUnitDisplay.usedAndLeftText` already
+works this way for the same reason, and the generic form was tried first and
+produced "in 3 Interval (dives)", since the only existing per-unit string is a
+form-field label rather than a bare noun.
 
 Only `app_en.arb` is alphabetical; inserts in the other ten anchor on a
 neighbouring key.
