@@ -2189,7 +2189,7 @@ class SyncService {
           // delete did, is kept. Either clock missing: the rules below.
           final localHlc =
               SyncDataSerializer.ownClockEntities.contains(entityType)
-              ? _extractHlc(local)
+              ? _ownClock(entityType, local)
               : null;
           final deletionHlc = _parseHlc(deletion.hlc);
           if (deletionHlc != null) SyncClock.instance.receive(deletionHlc);
@@ -2843,7 +2843,7 @@ class SyncService {
                 : null;
             final remoteClock = deleteClock == null
                 ? null
-                : _extractHlc(record);
+                : _ownClock(entityType, record);
             if (deleteClock != null && remoteClock != null) {
               if (remoteClock.compareTo(deleteClock) <= 0) continue;
             } else {
@@ -3172,6 +3172,27 @@ class SyncService {
     } catch (_) {
       return null;
     }
+  }
+
+  /// The newest clock a row carries: its own, or any of its fact groups'.
+  ///
+  /// A media fact write advances ONLY its group clock and deliberately
+  /// leaves the row clock alone, so reading the row clock by itself makes a
+  /// freshly written fact look older than it is. A tombstone decision that
+  /// did that fell through to the `updatedAt` comparison and could apply a
+  /// stale delete over a newer fact write (media sync program spec 5.1).
+  /// The row clock alone is still the answer for an entity with no fact
+  /// groups, and for a peer old enough to send none.
+  Hlc? _ownClock(String entityType, Map<String, dynamic>? row) {
+    var newest = _extractHlc(row);
+    for (final g in SyncFactGroups.of(entityType)) {
+      final factClock = _parseHlc(row?[g.clockKey]);
+      if (factClock != null &&
+          (newest == null || factClock.compareTo(newest) > 0)) {
+        newest = factClock;
+      }
+    }
+    return newest;
   }
 
   /// Whether a local row and a peer's copy can be ordered: both carry a
