@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_enum_
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_history_dialog.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Opens the add-components sheet for [parentId]. With [replacing], the
@@ -288,10 +289,20 @@ class _ComponentPickerSheetState extends ConsumerState<ComponentPickerSheet> {
                                   ? null
                                   : (value) => _toggle(item.id, value == true),
                               title: Text(item.name),
-                              subtitle: switch (labels[item.id]?.subtitle) {
-                                final detail? => Text(detail),
-                                null => null,
-                              },
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  switch (labels[item.id]?.subtitle) {
+                                    final detail? => Text(detail),
+                                    null => const SizedBox.shrink(),
+                                  },
+                                  ServiceStatusIndicatorFor(
+                                    equipmentId: item.id,
+                                    density: ServiceIndicatorDensity.compact,
+                                  ),
+                                ],
+                              ),
                               secondary: Icon(equipmentTypeIcon(item.type)),
                               controlAffinity: ListTileControlAffinity.trailing,
                             ),

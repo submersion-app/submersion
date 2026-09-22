@@ -6,6 +6,7 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/utils/child_installed_text.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -87,6 +88,11 @@ class InstalledInRow extends StatelessWidget {
                             ),
                             textAlign: TextAlign.end,
                           ),
+                        ),
+                        const SizedBox(width: 4),
+                        ServiceStatusIndicatorFor(
+                          equipmentId: host.id,
+                          density: ServiceIndicatorDensity.dot,
                         ),
                         const SizedBox(width: 4),
                         Icon(
