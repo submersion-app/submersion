@@ -360,6 +360,7 @@ class _ColorSwatch extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final target = tagTapTarget(Theme.of(context).platform);
 
     return Semantics(
       button: true,
@@ -367,29 +368,41 @@ class _ColorSwatch extends StatelessWidget {
       selected: isSelected,
       child: GestureDetector(
         onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? scheme.primary : Colors.transparent,
-              width: _ringWidth,
-            ),
-          ),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              minWidth: _minChipWidth,
-              maxWidth: _maxChipWidth,
-            ),
-            // The chip is this control's picture, not its description. Its
-            // label repeats the name field above on all twenty swatches, and
-            // announcing it once per swatch would bury the colour, which is
-            // the only thing that differs between them.
-            child: ExcludeSemantics(
-              child: TagChip.unsaved(
-                name: name,
-                color: TagColors.fromHex(hex),
-                dense: true,
+        // Opaque so the whole target answers the tap, not only the pixels the
+        // chip happens to cover.
+        behavior: HitTestBehavior.opaque,
+        child: ConstrainedBox(
+          // The swatch is a control the diver taps, so it owns the platform's
+          // tap target even though the chip it previews is 29 dp tall. The
+          // dots it replaced were 28 dp and cleared neither floor either.
+          constraints: BoxConstraints(minWidth: target, minHeight: target),
+          child: Center(
+            widthFactor: 1,
+            child: Container(
+              padding: const EdgeInsets.all(3),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected ? scheme.primary : Colors.transparent,
+                  width: _ringWidth,
+                ),
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minWidth: _minChipWidth,
+                  maxWidth: _maxChipWidth,
+                ),
+                // The chip is this control's picture, not its description.
+                // Its label repeats the name field above on all twenty
+                // swatches, and announcing it once per swatch would bury the
+                // colour, which is the only thing that differs between them.
+                child: ExcludeSemantics(
+                  child: TagChip.unsaved(
+                    name: name,
+                    color: TagColors.fromHex(hex),
+                    dense: true,
+                  ),
+                ),
               ),
             ),
           ),

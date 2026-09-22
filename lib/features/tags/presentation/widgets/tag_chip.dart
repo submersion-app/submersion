@@ -130,6 +130,17 @@ class TagChip extends StatelessWidget {
   }
 }
 
+/// The floor for a tag control's tap target.
+///
+/// A finger needs the 48 dp Material touch minimum; a pointer is precise, and
+/// a 48 dp box inside a chip is out of scale on a desktop, so it takes the
+/// 32 dp pointer minimum instead. Shared by the chip's close button and by
+/// the colour swatches in Settings, which are chips the diver taps.
+double tagTapTarget(TargetPlatform platform) => switch (platform) {
+  TargetPlatform.android || TargetPlatform.iOS || TargetPlatform.fuchsia => 48,
+  TargetPlatform.macOS || TargetPlatform.linux || TargetPlatform.windows => 32,
+};
+
 /// The close button of a removable chip.
 ///
 /// The tap target is measured, not assumed: a bare icon with a splash radius
@@ -147,21 +158,9 @@ class _DeleteButton extends StatelessWidget {
   final VoidCallback onPressed;
   final String? tooltip;
 
-  /// The floor for the tap target. A finger needs the 48 dp Material touch
-  /// minimum; a pointer is precise, and a 48 dp box inside a chip is out of
-  /// scale on a desktop, so it takes the 32 dp pointer minimum instead.
-  static double targetFor(TargetPlatform platform) => switch (platform) {
-    TargetPlatform.android ||
-    TargetPlatform.iOS ||
-    TargetPlatform.fuchsia => 48,
-    TargetPlatform.macOS ||
-    TargetPlatform.linux ||
-    TargetPlatform.windows => 32,
-  };
-
   @override
   Widget build(BuildContext context) {
-    final target = targetFor(Theme.of(context).platform);
+    final target = tagTapTarget(Theme.of(context).platform);
     return IconButton(
       onPressed: onPressed,
       tooltip: tooltip,

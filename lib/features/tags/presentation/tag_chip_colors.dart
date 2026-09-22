@@ -30,6 +30,15 @@ const int _labelSteps = 20;
 /// a selected row, where the row's blue-grey bled through (issue #2254).
 /// Resolving the tint here means a tag has exactly one display colour, which
 /// is what lets the Settings swatches offer it.
+///
+/// [ColorScheme.surface] is a deliberate fixed reference, not an oversight:
+/// a chip on a card sits on `surfaceContainerLow` or higher, and tinting
+/// against whichever container the chip happens to be in would hand back a
+/// different colour per surface, which is the bug this exists to prevent. The
+/// chip is meant to read as a chip against its background rather than as a
+/// wash of it, and the full-strength border carries the identity either way.
+/// `course_status_colors.dart` names its own surface for the same reason, and
+/// names the one its card actually uses because that card has only one home.
 TagChipColors tagChipColors(BuildContext context, Color seed) =>
     tagChipColorsFor(
       seed: seed,

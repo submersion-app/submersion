@@ -24,8 +24,9 @@ void main() {
     String? selectedColor,
     TextEditingController? nameController,
     void Function(String)? onColorSelected,
+    TargetPlatform? platform,
   }) => MaterialApp(
-    theme: theme,
+    theme: platform == null ? theme : theme.copyWith(platform: platform),
     home: Scaffold(
       body: SingleChildScrollView(
         child: SizedBox(
@@ -130,5 +131,29 @@ void main() {
         .where((s) => s.properties.selected == true);
 
     expect(semantics, hasLength(1));
+  });
+
+  group('a swatch is a reachable tap target', () {
+    // The swatch is the control the diver taps to choose a colour, so it
+    // answers to the same floor as the chip's own close button: 48 dp where
+    // a finger points, 32 dp where a mouse does. The dots it replaced were
+    // 28 dp and the dense chip on its own is 29, so neither the old grid nor
+    // the new one cleared either floor until this was measured.
+    for (final (platform, floor) in [
+      (TargetPlatform.android, 48.0),
+      (TargetPlatform.iOS, 48.0),
+      (TargetPlatform.macOS, 32.0),
+      (TargetPlatform.windows, 32.0),
+      (TargetPlatform.linux, 32.0),
+    ]) {
+      testWidgets('$platform reaches $floor', (tester) async {
+        await tester.pumpWidget(harness(platform: platform));
+
+        final swatch = tester.getSize(find.byType(GestureDetector).first);
+
+        expect(swatch.height, greaterThanOrEqualTo(floor));
+        expect(swatch.width, greaterThanOrEqualTo(floor));
+      });
+    }
   });
 }
