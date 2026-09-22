@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -48,6 +49,42 @@ void main() {
           'toString',
           contains('path/conflict/file/..'),
         ),
+      ),
+    );
+  });
+
+  test('a very long Dropbox error_summary is bounded', () async {
+    // error_summary is provider-controlled and, unlike the raw-body
+    // fallback, was not capped. It reaches MediaStoreException.message
+    // through displayMessage, which is the half nothing else bounds, and
+    // from there the queue's errorMessage column and a list tile.
+    final store = DropboxMediaObjectStore(
+      client: DropboxApiClient(
+        getAccessToken: () async => 'token',
+        onAccessTokenRejected: () {},
+        httpClient: MockClient(
+          (_) async => http.Response(
+            jsonEncode({
+              'error_summary': 'path/conflict/${'x' * 5000}',
+              'error': {'.tag': 'path'},
+            }),
+            409,
+          ),
+        ),
+      ),
+    );
+    final src = File('${tmp.path}/long.bin')..writeAsBytesSync([1]);
+
+    await expectLater(
+      store.putFile('smv1/objects/aa/long.bin', src, contentType: 'x'),
+      throwsA(
+        isA<MediaStoreException>()
+            .having((e) => e.message.length, 'message length', lessThan(400))
+            .having(
+              (e) => e.toString().length,
+              'toString length',
+              lessThan(600),
+            ),
       ),
     );
   });

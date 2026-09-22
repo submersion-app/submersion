@@ -387,13 +387,18 @@ class DropboxApiClient {
   }
 
   /// Dropbox errors are JSON with an error_summary; fall back to the raw
-  /// (truncated) body for non-JSON responses.
+  /// body for non-JSON responses.
+  ///
+  /// Both are bounded. The summary is provider-controlled and reaches
+  /// `MediaStoreException.message` through `displayMessage`, which is the
+  /// half nothing downstream caps, and from there the media queue's
+  /// `errorMessage` column and a list tile.
   static String _errorSummary(http.Response response) {
     try {
       final decoded = jsonDecode(response.body);
       if (decoded is Map<String, Object?> &&
           decoded['error_summary'] is String) {
-        return decoded['error_summary'] as String;
+        return _bounded(decoded['error_summary'] as String);
       }
     } on FormatException {
       // fall through
@@ -401,8 +406,11 @@ class DropboxApiClient {
     return _bodySummary(response);
   }
 
-  static String _bodySummary(http.Response response) {
-    final body = response.body;
-    return body.length <= 200 ? body : body.substring(0, 200);
-  }
+  static String _bodySummary(http.Response response) => _bounded(response.body);
+
+  static String _bounded(String text) => text.length <= _maxSummaryLength
+      ? text
+      : text.substring(0, _maxSummaryLength);
+
+  static const _maxSummaryLength = 200;
 }

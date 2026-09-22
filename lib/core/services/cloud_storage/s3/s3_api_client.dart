@@ -404,10 +404,13 @@ class S3ApiClient {
       body: Uint8List.fromList(utf8.encode(manifest.toString())),
     );
     if (response.statusCode != 200) _throwFor('finish upload', key, response);
-    // S3 reports completion errors inside a 200 body.
+    // S3 reports completion errors inside a 200 body. The Code is what
+    // gives the failure away, so it is already parsed here; it and the
+    // Message beside it go in the cause, the same as every other throw.
     if (_xmlElementText(response.body, 'Code') != null) {
       throw CloudStorageException(
         'S3 rejected the upload completion for "$key"',
+        _bodyDetail(response.body),
       );
     }
   }
@@ -760,10 +763,7 @@ class S3ApiClient {
     //
     // Bounded because it can be an HTML page from a proxy. A body that is
     // not this shape leaves the message alone and carries no cause.
-    final detail = _bounded(
-      [?errorCode, ?_xmlElementText(body, 'Message')].join(': '),
-    );
-    final cause = detail.isEmpty ? null : detail;
+    final cause = _bodyDetail(body);
 
     // Matched by error code regardless of HTTP status: AWS uses 400, some
     // compatible servers 403.
@@ -798,6 +798,18 @@ class S3ApiClient {
       'S3 $operation failed for "$key" (HTTP ${response.statusCode})',
       cause,
     );
+  }
+
+  /// The provider's own `Code` and `Message`, bounded, or null when the
+  /// body is not that shape (an HTML page from a proxy, an empty body).
+  String? _bodyDetail(String body) {
+    final detail = _bounded(
+      [
+        ?_xmlElementText(body, 'Code'),
+        ?_xmlElementText(body, 'Message'),
+      ].join(': '),
+    );
+    return detail.isEmpty ? null : detail;
   }
 
   /// Caps a provider's own error text.

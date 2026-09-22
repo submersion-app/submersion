@@ -191,6 +191,39 @@ void main() {
     );
   });
 
+  test('a completion error inside a 200 body says what S3 said', () async {
+    // S3 reports completion failures inside a 200. The client already looks
+    // for the Code to notice it failed at all, then threw it away, which is
+    // the same gap as the catch-all one status class over.
+    final client = clientReturning(
+      200,
+      '<Error><Code>InvalidPart</Code>'
+      '<Message>One or more of the specified parts could not be found'
+      '</Message></Error>',
+    );
+
+    await expectLater(
+      () => client.completeMultipartUpload(
+        'k',
+        uploadId: 'u',
+        parts: const [S3PartInfo(partNumber: 1, etag: '"e"')],
+      ),
+      throwsA(
+        isA<CloudStorageException>()
+            .having((e) => e.message, 'message', isNot(contains('InvalidPart')))
+            .having(
+              (e) => e.displayMessage,
+              'displayMessage',
+              allOf(
+                contains('rejected the upload completion'),
+                contains('InvalidPart'),
+                contains('could not be found'),
+              ),
+            ),
+      ),
+    );
+  });
+
   test('an unparseable body degrades to the bare status', () async {
     final client = clientReturning(400, '<html>bad request</html>');
 

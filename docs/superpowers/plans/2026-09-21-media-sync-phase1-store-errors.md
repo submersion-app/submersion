@@ -437,3 +437,17 @@ on the key, which the message already carries, so it passed whether or not
 the cause survived. It now asserts on the source file's own path, which only
 the `FileSystemException` can supply, and goes red when the cause is
 suppressed.
+
+Routing the detail through `displayMessage` then exposed an unbounded path
+of its own. Dropbox's `_errorSummary` capped the raw-body fallback at 200
+characters but returned the structured `error_summary` untouched, and that
+value is provider-controlled, so a 5000-character summary reached
+`MediaStoreException.message`, the half nothing downstream bounds. Both
+paths now go through one bound.
+
+Auditing the rest of the S3 client for the same shape found one more:
+`completeMultipartUpload` parses the `Code` out of a 200 body to notice the
+upload failed at all, then threw it away. That is the slice's own gap, one
+status class over. It now passes the same bounded detail as its cause, and
+`_throwFor` and it share one `_bodyDetail` helper so a third site cannot
+compose the rule differently.
