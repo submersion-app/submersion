@@ -1471,6 +1471,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_field_emailHint => 'email@example.com';
 
   @override
+  String get buddies_field_linkedProfile => 'الملف الشخصي المرتبط';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'الملف الشخصي المحلي الذي يمثل هذا الرفيق';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'غير مرتبط';
+
+  @override
   String get buddies_field_nameHint => 'أدخل اسم الرفيق';
 
   @override
@@ -1679,6 +1689,39 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'استخدام';
+
+  @override
+  String get buddies_linkedProfile_chip => 'ملف شخصي';
+
+  @override
+  String get buddies_linkedProfile_link => 'ربط';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'ليس الآن';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'فتح الرفيق';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'الربط بملف شخصي';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'لا يمكن ربط الرفيق بملفه الشخصي.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName مرتبط بالفعل بهذا الملف الشخصي.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return 'لدى $name ملف شخصي هنا. هل تريد ربط هذا الرفيق به؟';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'هؤلاء الرفاق مرتبطون بملفات شخصية مختلفة. ادمج الملفات الشخصية أولاً.';
 
   @override
   String get buddies_message_added => 'تمت إضافة الرفيق بنجاح';
@@ -3693,13 +3736,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_gauges_addGear => 'إضافة معدات';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name سليم';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
-    return '$name مستحق خلال $days يوم';
+    return '$name يحتاج صيانة خلال $days يوم';
   }
 
   @override
@@ -3708,8 +3746,27 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count أخرى متأخرة';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر متأخرة عن الصيانة',
+      two: 'عنصران متأخران عن الصيانة',
+      one: 'عنصر واحد متأخر عن الصيانة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر تحتاج صيانة خلال $days يوم',
+      two: 'عنصران يحتاجان صيانة خلال $days يوم',
+      one: 'عنصر واحد يحتاج صيانة خلال $days يوم',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -5701,6 +5758,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'الأسطوانات';
 
   @override
+  String get diveLog_edit_planned_switch => 'غوصة مخططة';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'في انتظار بيانات كمبيوتر الغوص. لا رقم للغوصة حتى يتم تسجيلها.';
+
+  @override
   String get diveLog_edit_profile_draw => 'رسم ملف الغوص';
 
   @override
@@ -6575,6 +6639,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_listPage_bottomSheet_logManually => 'تسجيل غوصة يدويا';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'التخطيط لغوصة';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'أدخل التفاصيل الآن وأضف بيانات كمبيوتر الغوص لاحقا';
 
   @override
   String get diveLog_listPage_fab_addDive => 'اضافة غوصة';
@@ -12522,6 +12593,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'معدات تحتاج صيانة';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'معدات تحتاج صيانة قريبًا';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'معدات متأخرة عن الصيانة';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return 'معدات $status';
   }
@@ -12553,6 +12632,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'جميع معداتك محدثة الصيانة!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'لا شيء يحتاج صيانة قريبًا.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'لا شيء متأخر عن الصيانة.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'خطأ في تحميل المعدات: $error';
   }
@@ -12562,6 +12649,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'الصيانة مستحقة';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'قريبًا';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'متأخرة';
 
   @override
   String get equipment_list_typeFilterAll => 'جميع الأنواع';
@@ -23612,6 +23705,46 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_label_skip => 'تخطي';
 
   @override
+  String get universalImport_label_fillPlanned => 'إكمال الغوصة المخططة';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'إرفاق هذا التنزيل بالغوصة التي خططت لها';
+
+  @override
+  String get universalImport_label_filledPlanned => 'الغوصات المخططة المكتملة';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'تكمل الغوصة المخططة: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'سيتم استبدال ملفها التقريبي.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'تغيير';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle => 'اختر غوصة مخططة';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'الاستيراد كغوصة جديدة بدلا من ذلك';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'التراجع عن الإكمال';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'تمت استعادة الغوصات المخططة';
+
+  @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'تعذرت استعادة كل الغوصات المخططة. حاول مرة أخرى.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'موسوم كـ: $tag';
   }
@@ -28800,6 +28933,66 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'تسجيل حادث وشيك';
+
+  @override
+  String get diveLog_planned_chip => 'مخططة';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'غوصة مخططة';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'في انتظار بيانات كمبيوتر الغوص. ضع علامة مسجلة إذا غصت بدون كمبيوتر.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'وضع علامة مسجلة';
+
+  @override
+  String get diveLog_planned_markedLogged => 'تم وضع علامة مسجلة';
+
+  @override
+  String get diveLog_planned_markLoggedFailed =>
+      'تعذّر وضع علامة على الغوصة كمسجّلة.';
+
+  @override
+  String get diveLog_mirror_dialogTitle =>
+      'هل تريد تسجيل هذه الغوصة في ملف شخصي آخر أيضا؟';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'لدى هؤلاء الرفاق ملفات شخصية على هذا الجهاز. تضاف الغوصة إلى سجلاتهم كغوصة مخططة حتى تملأها بيانات كمبيوتر الغوص الخاص بهم.';
+
+  @override
+  String get diveLog_mirror_log => 'تسجيل';
+
+  @override
+  String get diveLog_mirror_notNow => 'ليس الآن';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'تم التسجيل لـ $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'تمت إزالة الغوصات المنسوخة';
+
+  @override
+  String get diveLog_mirror_undoFailed => 'تعذّر إزالة الغوصات المنسوخة.';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'تعذر التسجيل لـ $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy => 'التسجيل في ملف رفيق';
+
+  @override
+  String get diveLog_detail_loggedWith => 'مسجلة مع';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned =>
+      'في انتظار كمبيوتر الغوص الخاص بهم';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -37092,6 +37285,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'الغوصة $diveNumber في $siteName';
+  }
+
+  @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'غوصة مخططة في $siteName';
   }
 
   @override

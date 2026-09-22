@@ -22,6 +22,7 @@ void main() {
                   onPressed: () => showAddDiveBottomSheet(
                     context: context,
                     onLogManually: () => manualTaps.add(true),
+                    onPlanDive: () {},
                   ),
                   child: const Text('open'),
                 ),

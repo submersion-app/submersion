@@ -5,7 +5,8 @@ import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 
 import 'package:submersion/features/dashboard/presentation/providers/gauge_providers.dart';
-import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/presentation/equipment_service_navigation.dart';
 import 'package:submersion/features/safety/domain/services/no_fly_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
@@ -57,6 +58,45 @@ class GaugeStrip extends ConsumerWidget {
   bool _shown(Set<String> hidden, HomeChipType type) =>
       !hidden.contains(type.name);
 
+  /// The one chip that speaks for a severity bucket.
+  ///
+  /// A bucket of one names its item and opens that item, which saves the
+  /// diver a hop through a one-row list (issue #816). More than one counts
+  /// the items and opens the equipment list narrowed to the same severity,
+  /// so the number on the chip is the number of rows behind it.
+  _Chip _gearChip(
+    BuildContext context,
+    WidgetRef ref,
+    GearSeverityGroup group,
+    ServiceDueFilter severity,
+  ) {
+    final l10n = context.l10n;
+    final worst = group.worst;
+    final overdue = severity == ServiceDueFilter.overdue;
+    // Overdue needs no date; due soon carries the most urgent item's days,
+    // which is the only urgency worth a glance when nothing is named.
+    final days = worst.status.daysUntilDue ?? 0;
+    final String label;
+    if (group.count == 1) {
+      label = overdue
+          ? l10n.dashboard_gauges_gearOverdue(worst.itemName)
+          : l10n.dashboard_gauges_gearDueIn(worst.itemName, days);
+    } else {
+      label = overdue
+          ? l10n.dashboard_gauges_gearOverdueCount(group.count)
+          : l10n.dashboard_gauges_gearDueSoonCount(group.count, days);
+    }
+    return _chip(
+      context,
+      icon: Icons.build_outlined,
+      label: label,
+      tone: overdue ? _Tone.alert : _Tone.warn,
+      onTap: group.count == 1
+          ? () => context.push('/equipment/${worst.itemId}')
+          : () => openEquipmentWithServiceDue(context, ref, severity),
+    );
+  }
+
   Widget _buildStrip(
     BuildContext context,
     WidgetRef ref,
@@ -85,50 +125,16 @@ class GaugeStrip extends ConsumerWidget {
         );
       }
     } else {
-      for (final gauge in g.gearGauges) {
-        final (label, tone) = switch (gauge.status.severity) {
-          ServiceClockSeverity.overdue => (
-            l10n.dashboard_gauges_gearOverdue(gauge.itemName),
-            _Tone.alert,
-          ),
-          ServiceClockSeverity.dueSoon => (
-            l10n.dashboard_gauges_gearDueIn(
-              gauge.itemName,
-              gauge.status.daysUntilDue ?? 0,
-            ),
-            _Tone.warn,
-          ),
-          ServiceClockSeverity.ok => (
-            l10n.dashboard_gauges_gearOk(gauge.itemName),
-            _Tone.ok,
-          ),
-        };
-        if (!gearShown && tone != _Tone.alert) continue;
-        chips.add(
-          _chip(
-            context,
-            icon: Icons.build_outlined,
-            label: label,
-            tone: tone,
-            // The chip names one item, so open that item rather than the
-            // list the diver would then have to search.
-            onTap: () => context.push('/equipment/${gauge.itemId}'),
-          ),
-        );
+      // At most one chip per severity, however much gear is behind it: a
+      // diver with a shelf of lapsed regulators gets a count, not a strip
+      // made entirely of regulators.
+      final overdue = g.gearOverdue;
+      if (overdue != null) {
+        chips.add(_gearChip(context, ref, overdue, ServiceDueFilter.overdue));
       }
-      // Overdue items beyond the per-item cap collapse into one chip, so a
-      // diver with a shelf of lapsed gear gets a count instead of a strip
-      // made entirely of regulators. It names nothing, so it opens the list.
-      if (g.gearOverdueOverflow > 0) {
-        chips.add(
-          _chip(
-            context,
-            icon: Icons.build_outlined,
-            label: l10n.dashboard_gauges_gearOverdueMore(g.gearOverdueOverflow),
-            tone: _Tone.alert,
-            onTap: () => context.push('/equipment'),
-          ),
-        );
+      final dueSoon = g.gearDueSoon;
+      if (gearShown && dueSoon != null) {
+        chips.add(_gearChip(context, ref, dueSoon, ServiceDueFilter.dueSoon));
       }
     }
 

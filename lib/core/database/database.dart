@@ -884,6 +884,11 @@ class Dives extends Table {
   BoolColumn get isPlanned =>
       boolean().withDefault(const Constant(false))(); // True for planned dives
 
+  /// Shared id across the sibling dives created by one mirror action (issue
+  /// #2002). Not a foreign key: a lone dive with an outing id is valid, and a
+  /// group id written once per row never half-applies under sync.
+  TextColumn get outingId => text().nullable()();
+
   // Primary computer used for this dive
   TextColumn get computerId =>
       text().nullable().references(DiveComputers, #id)();
@@ -2341,6 +2346,12 @@ class DiverSettings extends Table {
 class Buddies extends Table {
   TextColumn get id => text()();
   TextColumn get diverId => text().nullable().references(Divers, #id)();
+
+  /// The local diver profile this buddy IS (issue #2002). Distinct from
+  /// [diverId], which says whose contact list the buddy belongs to. Set NULL
+  /// when that profile is deleted; repointed by the diver merge.
+  TextColumn get linkedDiverId =>
+      text().nullable().references(Divers, #id, onDelete: KeyAction.setNull)();
   TextColumn get name => text()();
   TextColumn get email => text().nullable()();
   TextColumn get phone => text().nullable()();
@@ -4268,7 +4279,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 222;
+  static const int currentSchemaVersion = 223;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4892,6 +4903,14 @@ class AppDatabase extends _$AppDatabase {
     // #2141 follow-up). Additive column, default null. Compatibility floor
     // stays: an older reader simply never sees the per-site overrides.
     222,
+    // v223: buddies.linked_diver_id (a buddy that IS a local profile) and
+    // dives.outing_id (sibling dives mirrored from one save), issue #2002.
+    // Additive nullable columns, no backfill, so the floor stays at 210.
+    // Renumbered four times: equipment tags took 219, the computer-set
+    // auto-apply column took 220, rental gear memory took 221 and the
+    // per-site vertical exaggeration overrides took 222 while this branch
+    // was open, and a rung at or below the shipped version never runs.
+    223,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6380,6 +6399,31 @@ class AppDatabase extends _$AppDatabase {
         'ALTER TABLE diver_settings '
         'ADD COLUMN seascape_vertical_exaggeration_overrides TEXT',
       );
+    }
+  }
+
+  /// v223: buddies.linked_diver_id and dives.outing_id (issue #2002).
+  /// Idempotent, so it is safe from both onUpgrade and the beforeOpen
+  /// backstop, and a no-op for either table when it does not exist yet.
+  /// SQLite lets ADD COLUMN carry a REFERENCES clause only for a nullable
+  /// column with no default, which this one is.
+  Future<void> _assertBuddyProfileDiveLinkColumns() async {
+    final buddyCols = await customSelect("PRAGMA table_info('buddies')").get();
+    if (buddyCols.isNotEmpty) {
+      final names = buddyCols.map((c) => c.read<String>('name')).toSet();
+      if (!names.contains('linked_diver_id')) {
+        await customStatement(
+          'ALTER TABLE buddies ADD COLUMN linked_diver_id TEXT '
+          'REFERENCES divers (id) ON DELETE SET NULL',
+        );
+      }
+    }
+    final diveCols = await customSelect("PRAGMA table_info('dives')").get();
+    if (diveCols.isNotEmpty) {
+      final names = diveCols.map((c) => c.read<String>('name')).toSet();
+      if (!names.contains('outing_id')) {
+        await customStatement('ALTER TABLE dives ADD COLUMN outing_id TEXT');
+      }
     }
   }
 
@@ -12403,6 +12447,13 @@ class AppDatabase extends _$AppDatabase {
           await _assertSeascapeVerticalExaggerationOverridesColumn();
         }
         if (from < 222) await reportProgress();
+
+        // v223: buddy profile links and dive outings (issue #2002). Column-only
+        // rung, no backfill: null reads back as "not linked" and "no siblings".
+        if (from < 223) {
+          await _assertBuddyProfileDiveLinkColumns();
+        }
+        if (from < 223) await reportProgress();
       },
       beforeOpen: (details) async {
         // v222 backstop: the per-site vertical exaggeration overrides.
@@ -12780,6 +12831,11 @@ class AppDatabase extends _$AppDatabase {
         // arrives by restore or sync-adopt without them would throw on the
         // first read.
         await _assertSiteDetailColumns();
+        // v223 backstop: re-assert the buddy link and outing columns. The
+        // buddy and dive mappers read the whole row, so a database that
+        // arrives by restore or sync-adopt without them would throw on the
+        // first read.
+        await _assertBuddyProfileDiveLinkColumns();
         // v182 backstop: re-assert the packed profile series tables, then
         // pack any dive that still has legacy rows and no series row. A
         // schema-version collision with a parallel branch skips the rung on

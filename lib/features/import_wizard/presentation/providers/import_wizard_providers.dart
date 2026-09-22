@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
@@ -198,6 +200,16 @@ class ImportWizardState {
 ///
 /// Orchestrates review selections, duplicate actions, import progress,
 /// and results. Source-specific logic is delegated to an [ImportSourceAdapter].
+/// The unfilled planned dives a download may fill (issue #2002), keyed by
+/// the import's target profile (null = unscoped). Follows the dives tick so
+/// a plan created or promoted mid-wizard shows up.
+final plannedFillCandidatesProvider = FutureProvider.autoDispose
+    .family<List<Dive>, String?>((ref, diverId) {
+      final repository = ref.watch(diveRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchDivesChanges());
+      return repository.getPlannedDives(diverId: diverId);
+    });
+
 class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   ImportWizardNotifier(
     this._adapter, {
@@ -312,6 +324,17 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
               duplicateActions.putIfAbsent(type, () => {})[index] =
                   DuplicateAction.skip;
               selections[type] = selections[type]!.difference({index});
+              pendingForType = pendingForType.difference({index});
+              continue;
+            }
+
+            // A same-day planned dive of the target profile (issue #2002):
+            // default to filling it. The row stays selected and needs no
+            // decision; the card offers Change and Import as new.
+            if (match.isPlannedFill) {
+              duplicateActions.putIfAbsent(type, () => {})[index] =
+                  DuplicateAction.fillPlanned;
+              selections[type] = {...selections[type]!, index};
               pendingForType = pendingForType.difference({index});
               continue;
             }
@@ -669,6 +692,69 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
   ///   [action] is [DuplicateAction.skip]; adds [index] otherwise.
   /// - Drains [index] from [ImportWizardState.pendingDuplicateReview] for
   ///   [type] via [_drainPending].
+  /// The profile this import writes to, for the planned-dive candidates
+  /// (issue #2002). Null in an unscoped library.
+  String? get diverId => _diverId;
+
+  /// Point a planned-fill row at another planned dive, or (null) at none.
+  /// Rewrites the bundle so the card and the adapter read one source of
+  /// truth.
+  ///
+  /// A row that loses its target stops being a match at all: its match
+  /// result and duplicate flag are removed and it imports as an ordinary
+  /// new dive. Keeping a match with an empty dive id would not do, since an
+  /// empty id already means "duplicate of another dive in this batch" to
+  /// the comparison card.
+  void setPlannedFillTarget(int index, String? plannedDiveId) {
+    const type = ImportEntityType.dives;
+    final bundle = state.bundle;
+    final group = bundle?.groups[type];
+    final current = group?.matchResults?[index];
+    if (bundle == null || group == null || current == null) return;
+
+    final EntityGroup updatedGroup;
+    if (plannedDiveId == null) {
+      updatedGroup = group.copyWith(
+        duplicateIndices: group.duplicateIndices.difference({index}),
+        matchResults: {
+          for (final entry in group.matchResults!.entries)
+            if (entry.key != index) entry.key: entry.value,
+        },
+      );
+    } else {
+      updatedGroup = group.copyWith(
+        matchResults: {
+          ...group.matchResults!,
+          index: current.withPlannedDive(plannedDiveId),
+        },
+      );
+    }
+    state = state.copyWith(
+      bundle: ImportBundle(
+        source: bundle.source,
+        groups: {...bundle.groups, type: updatedGroup},
+        nextDiveNumberByTarget: bundle.nextDiveNumberByTarget,
+      ),
+    );
+
+    if (plannedDiveId != null) {
+      setDuplicateAction(type, index, DuplicateAction.fillPlanned);
+      return;
+    }
+    // No longer a duplicate: drop its action, keep it selected for import.
+    final actions = Map<int, DuplicateAction>.from(
+      state.duplicateActions[type] ?? const <int, DuplicateAction>{},
+    )..remove(index);
+    state = state.copyWith(
+      duplicateActions: {...state.duplicateActions, type: actions},
+      selections: {
+        ...state.selections,
+        type: {...state.selections[type] ?? const <int>{}, index},
+      },
+      pendingDuplicateReview: _drainPending(type, {index}),
+    );
+  }
+
   void setDuplicateAction(
     ImportEntityType type,
     int index,
@@ -743,6 +829,8 @@ class ImportWizardNotifier extends StateNotifier<ImportWizardState> {
       '${_adapter.runtimeType} for entity type $type',
     );
     if (!_adapter.duplicateActionsFor(type).contains(action)) return;
+    // One planned dive per row, chosen per row: never applied in bulk.
+    if (action == DuplicateAction.fillPlanned) return;
 
     final pending = state.pendingFor(type);
     if (pending.isEmpty) return;

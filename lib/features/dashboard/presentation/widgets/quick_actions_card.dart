@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 
 import 'package:submersion/features/dive_log/presentation/widgets/add_dive_bottom_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -39,6 +40,10 @@ class QuickActionsCard extends StatelessWidget {
                   // sub-pages must stay poppable so system back returns to the
                   // dashboard (#647).
                   onLogManually: () => context.push('/dives/new'),
+                  onPlanDive: () => context.push(
+                    '/dives/new',
+                    extra: const DivePrefill(isPlanned: true),
+                  ),
                 ),
                 icon: const Icon(Icons.add),
                 label: Text(context.l10n.dashboard_quickActions_logDive),

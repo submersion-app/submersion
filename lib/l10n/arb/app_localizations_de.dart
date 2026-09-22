@@ -1485,6 +1485,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_field_emailHint => 'email@beispiel.de';
 
   @override
+  String get buddies_field_linkedProfile => 'Verknüpftes Profil';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'Das lokale Profil, das dieser Tauchpartner ist';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Nicht verknüpft';
+
+  @override
   String get buddies_field_nameHint => 'Tauchpartnername eingeben';
 
   @override
@@ -1697,6 +1707,39 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Übernehmen';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Profil';
+
+  @override
+  String get buddies_linkedProfile_link => 'Verknüpfen';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Später';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Tauchpartner öffnen';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Mit einem Profil verknüpfen';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'Ein Tauchpartner kann nicht mit dem eigenen Profil verknüpft werden.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName ist bereits mit diesem Profil verknüpft.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name hat hier ein Profil. Diesen Tauchpartner damit verknüpfen?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'Diese Tauchpartner sind mit verschiedenen Profilen verknüpft. Führe zuerst die Profile zusammen.';
 
   @override
   String get buddies_message_added => 'Tauchpartner erfolgreich hinzugefügt';
@@ -3775,23 +3818,35 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dashboard_gauges_addGear => 'Ausrüstung hinzufügen';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name OK';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
-    return '$name fällig in ${days}T';
+    return '$name Wartung fällig in ${days}T';
   }
 
   @override
   String dashboard_gauges_gearOverdue(String name) {
-    return '$name überfällig';
+    return '$name Wartung überfällig';
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count weitere überfällig';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile mit überfälliger Wartung',
+      one: '$count Teil mit überfälliger Wartung',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile zur Wartung in ${days}T',
+      one: '$count Teil zur Wartung in ${days}T',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -5813,6 +5868,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'Flaschen';
 
   @override
+  String get diveLog_edit_planned_switch => 'Geplanter Tauchgang';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'Wartet auf Tauchcomputerdaten. Keine Tauchgangsnummer, bis er protokolliert ist.';
+
+  @override
   String get diveLog_edit_profile_draw => 'Profil zeichnen';
 
   @override
@@ -6708,6 +6770,13 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Tauchgang manuell erfassen';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'Tauchgang planen';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Details jetzt eintragen, Tauchcomputerdaten später ergänzen';
 
   @override
   String get diveLog_listPage_fab_addDive => 'Tauchgang hinzufugen';
@@ -12718,6 +12787,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'wartungsfällige Ausrüstung';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'bald wartungsfällige Ausrüstung';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'überfällige Ausrüstung';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return '$status Ausrüstung';
   }
@@ -12749,6 +12826,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Alle Ihre Ausrüstungsgegenstände sind wartungstechnisch auf dem neuesten Stand!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'Nichts ist demnächst fällig.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'Nichts ist überfällig.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'Fehler beim Laden der Ausrüstung: $error';
   }
@@ -12758,6 +12843,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'Wartung fällig';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'Bald fällig';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'Überfällig';
 
   @override
   String get equipment_list_typeFilterAll => 'Alle Typen';
@@ -23874,6 +23965,49 @@ class AppLocalizationsDe extends AppLocalizations {
   String get universalImport_label_skip => 'Überspringen';
 
   @override
+  String get universalImport_label_fillPlanned =>
+      'Geplanten Tauchgang ausfüllen';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Diesen Download dem geplanten Tauchgang zuordnen';
+
+  @override
+  String get universalImport_label_filledPlanned =>
+      'Ausgefüllte geplante Tauchgänge';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Füllt geplanten Tauchgang: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'Das skizzierte Profil wird ersetzt.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Ändern';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle =>
+      'Geplanten Tauchgang wählen';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'Stattdessen als neuen Tauchgang importieren';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Ausfüllen rückgängig machen';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'Geplante Tauchgänge wiederhergestellt';
+
+  @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Nicht alle geplanten Tauchgänge konnten wiederhergestellt werden. Versuche es erneut.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Getaggt als: $tag';
   }
@@ -29142,6 +29276,68 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Beinahe-Unfall erfassen';
+
+  @override
+  String get diveLog_planned_chip => 'Geplant';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'Geplanter Tauchgang';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'Wartet auf Tauchcomputerdaten. Als protokolliert markieren, wenn du ohne Computer getaucht bist.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'Als protokolliert markieren';
+
+  @override
+  String get diveLog_planned_markedLogged => 'Als protokolliert markiert';
+
+  @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Der Tauchgang konnte nicht als protokolliert markiert werden.';
+
+  @override
+  String get diveLog_mirror_dialogTitle =>
+      'Diesen Tauchgang auch in einem anderen Profil protokollieren?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Diese Tauchpartner haben Profile auf diesem Gerät. Der Tauchgang wird ihren Logbüchern als geplanter Tauchgang hinzugefügt, bis ihre eigenen Tauchcomputerdaten ihn ausfüllen.';
+
+  @override
+  String get diveLog_mirror_log => 'Protokollieren';
+
+  @override
+  String get diveLog_mirror_notNow => 'Später';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Protokolliert für $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Gespiegelte Tauchgänge entfernt';
+
+  @override
+  String get diveLog_mirror_undoFailed =>
+      'Die gespiegelten Tauchgänge konnten nicht entfernt werden.';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Konnte nicht protokolliert werden für $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Für das Profil eines Tauchpartners protokollieren';
+
+  @override
+  String get diveLog_detail_loggedWith => 'Protokolliert mit';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned =>
+      'wartet auf ihren Tauchcomputer';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -37389,6 +37585,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Tauchgang $diveNumber bei $siteName';
+  }
+
+  @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'Geplanter Tauchgang bei $siteName';
   }
 
   @override

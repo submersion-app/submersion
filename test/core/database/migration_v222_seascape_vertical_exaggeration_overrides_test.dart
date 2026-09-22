@@ -4,12 +4,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v222 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 222);
+  test('v222 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v223 (buddy profile dive links) landed on top; the
+    // newest rung owns the exact assertions.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(222));
     expect(AppDatabase.migrationVersions, contains(222));
-    expect(AppDatabase.migrationStepCount(221), 1);
+    expect(AppDatabase.migrationStepCount(221), greaterThanOrEqualTo(1));
   });
 
   test('the column is additive, so the sync floor does not move', () {
