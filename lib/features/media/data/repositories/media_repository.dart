@@ -542,6 +542,11 @@ class MediaRepository {
       _log.info('Marking media as orphaned: $id');
       final now = DateTime.now().millisecondsSinceEpoch;
 
+      // Hoisted: the write below is guarded on the flag actually
+      // moving, and SubscriptionPoller reaches these for every manifest
+      // entry on every poll, so a row that was not written must not
+      // announce a local change and wake the sync check for nothing.
+      var wrote = false;
       // One transaction: the flag and the clock that orders it must
       // not be able to come apart (media sync program spec 5.1).
       await _db.transaction(() async {
@@ -556,6 +561,8 @@ class MediaRepository {
                 );
         if (rowsWritten == 0) return;
 
+        if (rowsWritten == 0) return;
+        wrote = true;
         await _syncRepository.markFactsPending(
           entityType: 'media',
           recordId: id,
@@ -563,6 +570,7 @@ class MediaRepository {
           group: SyncFactGroups.mediaVerification,
         );
       });
+      if (!wrote) return;
       SyncEventBus.notifyLocalChange();
       _log.info('Marked media as orphaned: $id');
     } catch (e, stackTrace) {

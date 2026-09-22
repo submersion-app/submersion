@@ -2,6 +2,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_clock.dart';
@@ -145,6 +146,20 @@ void main() {
         );
       },
     );
+
+    test('a no-op flag write announces nothing', () async {
+      // SubscriptionPoller reaches these for every manifest entry on every
+      // poll. A row that was not written must not wake the sync check.
+      await repo.markAsOrphaned(id);
+      final seen = <void>[];
+      final sub = SyncEventBus.changes.listen(seen.add);
+      addTearDown(sub.cancel);
+
+      await repo.markAsOrphaned(id);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(seen, isEmpty, reason: 'the row already agreed');
+    });
 
     test('markAsVerified publishes when it clears the flag', () async {
       await repo.markOrphaned(id, true);
