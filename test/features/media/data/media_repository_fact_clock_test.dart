@@ -206,7 +206,7 @@ void main() {
   );
 
   test('a fact-only write leaves a sibling null clock null', () async {
-    // The v223 beforeOpen backstop adds the two columns without backfilling,
+    // The v224 beforeOpen backstop adds the two columns without backfilling,
     // so a row can carry null fact clocks. Initialising the other group's
     // clock on an upload write would hand this device's untouched
     // verification facts a brand-new clock and beat a peer's newer
