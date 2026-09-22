@@ -406,3 +406,13 @@ the ` (HandshakeException: ...)` suffix the message lacks, the containment
 check fails and the cause is appended. Pinned by "a nested transport cause
 still reaches the string" so a later change to the suppression rule cannot
 quietly drop it.
+
+A later round found the same gap in the branches above the catch-all. The
+403 path appended only the `Code`, so `AccessDenied` with a `Message` of
+"user is disabled" reached the queue as the generic advice plus the code,
+and the region branch dropped the `Message` that names the region its own
+advice tells the person to go and find. `_throwFor` now decodes the body
+once, parses `Code` and `Message` once, and every branch ends with the same
+bounded detail in parentheses after its advice. A body that is not that
+shape leaves each message exactly as it was, so the curated wording and the
+`contains` assertions on it are unchanged.

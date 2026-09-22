@@ -742,51 +742,58 @@ class S3ApiClient {
   }
 
   Never _throwFor(String operation, String key, http.Response response) {
-    final errorCode = _xmlElementText(
-      utf8.decode(response.bodyBytes, allowMalformed: true),
-      'Code',
+    final body = utf8.decode(response.bodyBytes, allowMalformed: true);
+    final errorCode = _xmlElementText(body, 'Code');
+    // Every throw below ends with the provider's own words. The curated
+    // advice is the actionable part and stays first, but only the body says
+    // which of the faults behind a status actually happened: a 403 covers a
+    // wrong key and a disabled user alike, and the region branch's Message
+    // names the region the advice sends the person to go and find. A body
+    // that is not this shape (an HTML page from a proxy, an empty body)
+    // leaves each message exactly as it was. That is the gap #2018 fixed on
+    // the Drive adapter, and it was in every branch here, not just the
+    // catch-all.
+    final detail = _bounded(
+      [?errorCode, ?_xmlElementText(body, 'Message')].join(': '),
     );
+    String withDetail(String advice) =>
+        detail.isEmpty ? advice : '$advice ($detail)';
+
     // Matched by error code regardless of HTTP status: AWS uses 400, some
     // compatible servers 403.
     if (errorCode == 'AuthorizationHeaderMalformed') {
-      throw const CloudStorageException(
-        "S3 rejected the request's signature region. Open Advanced and "
-        'set Region to the value your provider expects.',
+      throw CloudStorageException(
+        withDetail(
+          "S3 rejected the request's signature region. Open Advanced and "
+          'set Region to the value your provider expects.',
+        ),
       );
     }
     if (response.statusCode == 403) {
       if (errorCode == 'RequestTimeTooSkewed') {
-        throw const CloudStorageException(
-          'S3 rejected the request time. The device clock is more than '
-          '15 minutes off; correct the system time and try again.',
+        throw CloudStorageException(
+          withDetail(
+            'S3 rejected the request time. The device clock is more than '
+            '15 minutes off; correct the system time and try again.',
+          ),
         );
       }
-      // The advice is the actionable part and stays first, but a provider
-      // that rejects the signature is naming a different fault than one
-      // that denies the key, and nothing downstream could tell them apart.
       throw CloudStorageException(
-        'Access denied. Check the access key, secret key, and bucket '
-        'permissions.'
-        '${errorCode == null ? '' : ' (S3 said: ${_bounded(errorCode)})'}',
+        withDetail(
+          'Access denied. Check the access key, secret key, and bucket '
+          'permissions.',
+        ),
       );
     }
     if (response.statusCode == 404 && errorCode == 'NoSuchBucket') {
-      throw CloudStorageException('Bucket "${_config.bucket}" not found');
+      throw CloudStorageException(
+        withDetail('Bucket "${_config.bucket}" not found'),
+      );
     }
-    // The Code was parsed above to recognise four specific failures;
-    // everything else used to discard it along with the Message beside it,
-    // so a rejected request read as a bare status. That is the gap #2018
-    // fixed on the Drive adapter. A body that is not this shape (an HTML
-    // page from a proxy, an empty body) degrades to the status the caller
-    // already had.
-    final errorMessage = _xmlElementText(
-      utf8.decode(response.bodyBytes, allowMalformed: true),
-      'Message',
-    );
-    final detail = _bounded([?errorCode, ?errorMessage].join(': '));
     throw CloudStorageException(
-      'S3 $operation failed for "$key" (HTTP ${response.statusCode})'
-      '${detail.isEmpty ? '' : ': $detail'}',
+      withDetail(
+        'S3 $operation failed for "$key" (HTTP ${response.statusCode})',
+      ),
     );
   }
 

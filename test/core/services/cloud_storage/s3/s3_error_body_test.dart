@@ -96,6 +96,69 @@ void main() {
     );
   });
 
+  test('a 403 carries the Message, not just the Code', () async {
+    // AccessDenied covers a wrong key and a disabled user alike. Only the
+    // Message tells them apart, and the advice cannot.
+    final client = clientReturning(
+      403,
+      '<Error><Code>AccessDenied</Code>'
+      '<Message>user is disabled</Message></Error>',
+    );
+
+    await expectLater(
+      () => client.putObject('k', Uint8List.fromList([1])),
+      throwsA(
+        isA<CloudStorageException>().having(
+          (e) => e.message,
+          'message',
+          allOf(contains('Access denied'), contains('user is disabled')),
+        ),
+      ),
+    );
+  });
+
+  test('the region branch carries the expected region the body names', () {
+    // AWS answers this code with a Message that names the region it wanted,
+    // which is the one value the advice tells the person to go and find.
+    final client = clientReturning(
+      400,
+      '<Error><Code>AuthorizationHeaderMalformed</Code>'
+      "<Message>the region 'us-east-1' is wrong; expecting 'eu-west-2'"
+      '</Message></Error>',
+    );
+
+    expect(
+      () => client.putObject('k', Uint8List.fromList([1])),
+      throwsA(
+        isA<CloudStorageException>().having(
+          (e) => e.message,
+          'message',
+          allOf(contains('signature region'), contains('eu-west-2')),
+        ),
+      ),
+    );
+  });
+
+  test('the clock branch carries the skew the body reports', () {
+    final client = clientReturning(
+      403,
+      '<Error><Code>RequestTimeTooSkewed</Code>'
+      '<Message>request time 2026-06-09T09:00:00Z differs by 42 minutes'
+      '</Message></Error>',
+    );
+
+    expect(
+      () => client.getObject('k'),
+      throwsA(
+        isA<CloudStorageException>().having(
+          (e) => e.message,
+          'message',
+          allOf(contains('clock'), contains('42 minutes')),
+        ),
+      ),
+    );
+  });
+
   test('an unparseable body degrades to the bare status', () async {
     final client = clientReturning(400, '<html>bad request</html>');
 
