@@ -166,6 +166,75 @@ void main() {
     expect(find.text('General service overdue'), findsOneWidget);
   });
 
+  testWidgets('ServiceStatusIndicatorForAny reports the worst member clock', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(
+        const ServiceStatusIndicatorForAny(equipmentIds: ['fins', 'reg']),
+        map: {
+          'fins': clock(
+            ownerId: 'fins',
+            ownerName: 'Jets',
+            severity: ServiceClockSeverity.dueSoon,
+            dueDate: DateTime(2026, 1, 13),
+          ),
+          'reg': clock(),
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('Cold water reg'),
+      findsOneWidget,
+      reason: 'the overdue member outranks the due-soon one',
+    );
+    expect(
+      find.textContaining('Jets'),
+      findsNothing,
+      reason: 'only the worst member is reported, not every member',
+    );
+  });
+
+  testWidgets('ServiceStatusIndicatorForAny renders nothing when all are ok', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(
+        const ServiceStatusIndicatorForAny(equipmentIds: ['fins', 'reg']),
+        map: {
+          'fins': clock(
+            ownerId: 'fins',
+            ownerName: 'Jets',
+            severity: ServiceClockSeverity.ok,
+          ),
+          'reg': clock(severity: ServiceClockSeverity.ok),
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(Text), findsNothing);
+  });
+
+  testWidgets('ServiceStatusIndicatorForAny names the member that is due', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(
+        const ServiceStatusIndicatorForAny(equipmentIds: ['fins', 'reg']),
+        map: {'reg': clock()},
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.textContaining('Cold water reg'),
+      findsOneWidget,
+      reason:
+          'a set tile names the item needing service, since the set itself '
+          'is not the thing that is overdue',
+    );
+  });
+
   testWidgets('ServiceStatusIndicatorFor renders nothing when disabled', (
     tester,
   ) async {

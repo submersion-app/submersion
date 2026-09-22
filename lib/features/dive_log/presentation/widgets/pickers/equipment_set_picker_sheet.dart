@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Equipment set picker bottom sheet
@@ -135,7 +136,17 @@ class _EquipmentSetTile extends ConsumerWidget {
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
-          trailing: const Icon(Icons.chevron_right),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ServiceStatusIndicatorForAny(
+                equipmentIds: [for (final i in items) i.id],
+                density: ServiceIndicatorDensity.dot,
+              ),
+              const SizedBox(width: 6),
+              const Icon(Icons.chevron_right),
+            ],
+          ),
           onTap: items.isEmpty ? null : () => onTap(items),
         );
       },

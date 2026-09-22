@@ -164,3 +164,51 @@ class ServiceStatusIndicatorFor extends ConsumerWidget {
     );
   }
 }
+
+/// [ServiceStatusIndicator] for a surface whose subject is a group rather
+/// than one item: an equipment set, a rig, a saved kit. Reports the most
+/// urgent clock across [equipmentIds] and names the member that owns it,
+/// because the group itself is not the thing needing service.
+///
+/// Ranking is [isMoreUrgentClock], the same order the equipment list uses,
+/// so a set and its members never disagree about which clock matters most.
+class ServiceStatusIndicatorForAny extends ConsumerWidget {
+  const ServiceStatusIndicatorForAny({
+    super.key,
+    required this.equipmentIds,
+    this.density = ServiceIndicatorDensity.compact,
+    this.enabled = true,
+  });
+
+  final List<String> equipmentIds;
+  final ServiceIndicatorDensity density;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!enabled) return const SizedBox.shrink();
+    final map = ref.watch(equipmentRollupClockProvider).value;
+    if (map == null) return const SizedBox.shrink();
+
+    RollupClock? worst;
+    for (final id in equipmentIds) {
+      final candidate = map[id];
+      if (candidate == null ||
+          candidate.status.severity == ServiceClockSeverity.ok) {
+        continue;
+      }
+      if (worst == null || isMoreUrgentClock(candidate.status, worst.status)) {
+        worst = candidate;
+      }
+    }
+    if (worst == null) return const SizedBox.shrink();
+
+    // A subject id that matches nothing forces the owner-naming branch, so
+    // the label always says which member is due rather than just the kind.
+    return ServiceStatusIndicator(
+      clock: worst,
+      subjectId: '',
+      density: density,
+    );
+  }
+}

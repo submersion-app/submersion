@@ -15,6 +15,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_row_l
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The gear on a dive, rendered the same way on the detail and edit pages
@@ -45,6 +46,11 @@ class DiveGearTreeView extends ConsumerStatefulWidget {
   final Widget Function(EquipmentItem item)? rowTrailing;
   final void Function(GearLink link)? onUpdateAssembly;
 
+  /// Whether this tree is a present-tense view of the gear. Dive edit and a
+  /// planned dive pass true; a logged past dive passes false, so its record
+  /// does not gain a mark about today's service state.
+  final bool showServiceStatus;
+
   const DiveGearTreeView({
     super.key,
     required this.links,
@@ -54,6 +60,7 @@ class DiveGearTreeView extends ConsumerStatefulWidget {
     this.onRemovePart,
     this.rowTrailing,
     this.onUpdateAssembly,
+    this.showServiceStatus = false,
   });
 
   @override
@@ -194,6 +201,11 @@ class _DiveGearTreeViewState extends ConsumerState<DiveGearTreeView> {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              ServiceStatusIndicatorFor(
+                equipmentId: item.id,
+                density: ServiceIndicatorDensity.dot,
+                enabled: widget.showServiceStatus,
+              ),
               if (widget.rowTrailing case final trailing?) trailing(item),
               // Redundant under a group heading, which already names the
               // type, and for a part, whose parent row says what it is.

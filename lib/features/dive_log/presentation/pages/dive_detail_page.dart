@@ -4650,6 +4650,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: DiveGearTreeView(
           links: dive.gear,
+          // A planned dive is still actionable; a logged one is a record of
+          // what happened, and a service mark on it would read as a claim
+          // about that dive rather than about today.
+          showServiceStatus: dive.effectiveEntryTime.isAfter(DateTime.now()),
           onTap: (item) => context.push('/equipment/${item.id}'),
           // The check-in chip for each row (condition phase 3a).
           rowTrailing: (item) =>
