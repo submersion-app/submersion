@@ -138,20 +138,36 @@ class DivingLogReferenceMapper {
   /// used as the key would reach nothing.
   static Map<String, Map<String, dynamic>> diveTypes(DivingLogLogbook book) {
     final out = <String, Map<String, dynamic>>{};
-    for (final type in book.diveTypesById.values) {
-      final name = type.name?.trim();
-      if (name == null || name.isEmpty) continue;
-      final slug = DiveTypeEntity.generateSlug(name);
-      if (slug.isEmpty || out.containsKey(slug)) continue;
+    for (final entry in book.diveTypesById.entries) {
+      // Same predicate the ref and the count use, so an entity cannot be
+      // emitted for something a dive can never reference, nor withheld for
+      // something the count calls resolved.
+      final slug = _diveTypeSlug(book, entry.key);
+      if (slug == null || out.containsKey(slug)) continue;
       out[slug] = <String, dynamic>{
         'id': slug,
-        'name': name,
+        'name': entry.value.name!.trim(),
         'uddfId': slug,
         'isBuiltIn': false,
-        if (type.sortOrder != null) 'sortOrder': type.sortOrder,
+        if (entry.value.sortOrder != null) 'sortOrder': entry.value.sortOrder,
       };
     }
     return out;
+  }
+
+  /// The slug dive type [id] resolves to, or null when it reaches nothing
+  /// importable.
+  ///
+  /// One predicate for the entity, the ref and the count. Two of those
+  /// agreeing and a third testing something close but different is how a
+  /// reference goes missing without anything reporting it: a name can be
+  /// non-blank and still slugify to nothing, since `generateSlug` strips
+  /// every character outside `[a-z0-9 -]`.
+  static String? _diveTypeSlug(DivingLogLogbook book, int id) {
+    final name = book.diveTypesById[id]?.name?.trim();
+    if (name == null || name.isEmpty) return null;
+    final slug = DiveTypeEntity.generateSlug(name);
+    return slug.isEmpty ? null : slug;
   }
 
   /// The `diveTypeIds` for [dive]: slugs, matching [diveTypes].
@@ -161,10 +177,8 @@ class DivingLogReferenceMapper {
   ) {
     final out = <String>[];
     for (final id in dive.diveTypeIds) {
-      final name = book.diveTypesById[id]?.name?.trim();
-      if (name == null || name.isEmpty) continue;
-      final slug = DiveTypeEntity.generateSlug(name);
-      if (slug.isNotEmpty && !out.contains(slug)) out.add(slug);
+      final slug = _diveTypeSlug(book, id);
+      if (slug != null && !out.contains(slug)) out.add(slug);
     }
     return out;
   }
@@ -177,10 +191,7 @@ class DivingLogReferenceMapper {
   static int unresolvedDiveTypeCount(
     DivingLogLogbook book,
     DivingLogRawDive dive,
-  ) => dive.diveTypeIds.where((id) {
-    final name = book.diveTypesById[id]?.name?.trim();
-    return name == null || name.isEmpty;
-  }).length;
+  ) => dive.diveTypeIds.where((id) => _diveTypeSlug(book, id) == null).length;
 
   /// How many of [dive]'s buddy ids reach no named row.
   static int unresolvedBuddyCount(

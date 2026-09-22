@@ -197,6 +197,31 @@ void main() {
       expect(type['isBuiltIn'], isFalse);
     });
 
+    test('counts a dive type whose name yields no slug as unresolved', () {
+      // generateSlug strips everything outside [a-z0-9 -], so a name can be
+      // non-blank and still produce nothing. Both diveTypes and
+      // diveTypeIdsFor skip it, so the counter must agree or the loss is
+      // silent.
+      final book = logbook(
+        diveTypes: {9: const DivingLogRawDiveType(id: 9, name: '!!!')},
+        dives: [
+          const DivingLogRawDive(id: 1, diveTypeIds: [9]),
+        ],
+      );
+      expect(DivingLogReferenceMapper.diveTypes(book), isEmpty);
+      expect(
+        DivingLogReferenceMapper.diveTypeIdsFor(book, book.dives.single),
+        isEmpty,
+      );
+      expect(
+        DivingLogReferenceMapper.unresolvedDiveTypeCount(
+          book,
+          book.dives.single,
+        ),
+        1,
+      );
+    });
+
     test('maps a certification with its agency and date', () {
       final book = logbook(
         certifications: [
