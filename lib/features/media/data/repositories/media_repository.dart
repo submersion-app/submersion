@@ -756,10 +756,25 @@ class MediaRepository {
   /// gallery-deletion handler), this accepts an explicit boolean so the
   /// [SubscriptionPoller] can flip rows back to non-orphaned when a
   /// previously-removed manifest entry reappears.
-  Future<void> markOrphaned(String id, bool isOrphaned) async {
+  /// [ifLastVerifiedAt] makes this a compare-and-set on the verification
+  /// stamp: the row is written only while it still carries the date the
+  /// caller saw. Pass it when deciding from a snapshot a verifier could
+  /// have overtaken, because the flag guard below cannot see that. A
+  /// verifier that RE-CONFIRMS the flag leaves it exactly where the
+  /// snapshot found it and moves only the date, so without this the clear
+  /// would reverse a fresher, better-informed verdict. Absent means the
+  /// caller is the only writer and no comparison is wanted.
+  Future<void> markOrphaned(
+    String id,
+    bool isOrphaned, {
+    Value<DateTime?> ifLastVerifiedAt = const Value.absent(),
+  }) async {
     try {
       _log.info('Setting isOrphaned=$isOrphaned for media: $id');
       final now = DateTime.now().millisecondsSinceEpoch;
+      final expected = ifLastVerifiedAt.present
+          ? ifLastVerifiedAt.value?.millisecondsSinceEpoch
+          : null;
 
       // Hoisted: an early return below leaves the transaction, not the
       // method, and a row that was not written must not announce a
@@ -770,12 +785,18 @@ class MediaRepository {
       // not be able to come apart (media sync program spec 5.1).
       await _db.transaction(() async {
         final rowsWritten =
-            await (_db.update(_db.media)..where(
+            await (_db.update(_db.media)..where((t) {
                   // Matching on the OPPOSITE flag makes this a no-op when the
                   // row already agrees, so a poller that re-reports the same
                   // state publishes nothing.
-                  (t) => t.id.equals(id) & t.isOrphaned.equals(!isOrphaned),
-                ))
+                  final match =
+                      t.id.equals(id) & t.isOrphaned.equals(!isOrphaned);
+                  if (!ifLastVerifiedAt.present) return match;
+                  return match &
+                      (expected == null
+                          ? t.lastVerifiedAt.isNull()
+                          : t.lastVerifiedAt.equals(expected));
+                }))
                 .write(
                   MediaCompanion(
                     isOrphaned: Value(isOrphaned),
