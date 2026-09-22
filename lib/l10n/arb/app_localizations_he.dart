@@ -3712,11 +3712,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dashboard_gauges_addGear => 'הוסף ציוד';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name תקין';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
     return '$name דורש טיפול בעוד $days ימים';
   }
@@ -3727,8 +3722,25 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count נוספים באיחור';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים באיחור בטיפול',
+      one: 'פריט אחד באיחור בטיפול',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים דורשים טיפול בעוד $days ימים',
+      one: 'פריט אחד דורש טיפול בעוד $days ימים',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12501,6 +12513,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'ציוד הדורש טיפול';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'ציוד הדורש טיפול בקרוב';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'ציוד באיחור בטיפול';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return 'ציוד $status';
   }
@@ -12529,6 +12549,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'כל הציוד שלך מעודכן בטיפול!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'שום דבר לא דורש טיפול בקרוב.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'שום דבר לא באיחור בטיפול.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'שגיאה בטעינת ציוד: $error';
   }
@@ -12538,6 +12566,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'טיפול נדרש';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'בקרוב';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'באיחור';
 
   @override
   String get equipment_list_typeFilterAll => 'כל הסוגים';

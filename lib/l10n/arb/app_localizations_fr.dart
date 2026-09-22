@@ -3820,11 +3820,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get dashboard_gauges_addGear => 'Ajouter du matériel';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name OK';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
     return '$name à réviser dans ${days}j';
   }
@@ -3835,8 +3830,25 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count autres en retard';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments en retard de révision',
+      one: '$count élément en retard de révision',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments à réviser dans ${days}j',
+      one: '$count élément à réviser dans ${days}j',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12827,6 +12839,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'équipement nécessitant une révision';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'équipement à réviser bientôt';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'équipement en retard de révision';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return 'équipement $status';
   }
@@ -12858,6 +12878,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Tout ton équipement est à jour en matiere de révision !';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'Rien n\'est à réviser prochainement.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'Rien n\'est en retard de révision.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'Erreur de chargement de l\'équipement : $error';
   }
@@ -12867,6 +12895,12 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'Révision due';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'Bientôt due';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'En retard';
 
   @override
   String get equipment_list_typeFilterAll => 'Tous les types';

@@ -4,6 +4,23 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 
+/// Which service clocks the list narrows to.
+///
+/// The severities exist so the home strip's two consolidated service chips
+/// have an honest destination each: a chip that counted the overdue items
+/// has to land on a list of exactly those, not on the combined due list.
+/// [any] is the diver-facing Service Due filter that predates them.
+enum ServiceDueFilter {
+  /// Overdue or due soon: everything with a clock that is not ok.
+  any,
+
+  /// Items whose worst clock has lapsed.
+  overdue,
+
+  /// Items due for service soon, excluding anything already overdue.
+  dueSoon,
+}
+
 /// Filter state for the equipment list, shared by the phone, master-detail and
 /// table layouts and edited through the filter panel.
 ///
@@ -25,9 +42,9 @@ class EquipmentFilterState {
   /// retired gear; the Retired status is the way to see it (#636).
   final EquipmentStatus? status;
 
-  /// Show only gear with a service clock due. Mutually exclusive with
-  /// [status].
-  final bool serviceDueOnly;
+  /// Show only gear with a service clock due, optionally narrowed to one
+  /// severity. Null shows every status. Mutually exclusive with [status].
+  final ServiceDueFilter? serviceDue;
 
   /// Narrow to a single gear category, or null for every category.
   final EquipmentType? type;
@@ -41,12 +58,12 @@ class EquipmentFilterState {
 
   const EquipmentFilterState({
     this.status,
-    this.serviceDueOnly = false,
+    this.serviceDue,
     this.type,
     this.attrConditions = const [],
     this.tagIds = const {},
   }) : assert(
-         !(serviceDueOnly && status != null),
+         !(serviceDue != null && status != null),
          'The status axis is a single choice: service due or a status, never '
          'both -- the list reads one provider.',
        );
@@ -60,7 +77,7 @@ class EquipmentFilterState {
       tagIds.isNotEmpty;
 
   /// Whether the status axis is anything other than the default view.
-  bool get hasStatusFilter => status != null || serviceDueOnly;
+  bool get hasStatusFilter => status != null || serviceDue != null;
 
   /// Narrow [equipment] to the selected category, its conditions and the
   /// selected tags. [tagIdsByEquipment] is each item's tag ids, keyed by
@@ -108,7 +125,7 @@ class EquipmentFilterState {
   /// because they belong to the category.
   EquipmentFilterState copyWith({
     EquipmentStatus? status,
-    bool? serviceDueOnly,
+    ServiceDueFilter? serviceDue,
     EquipmentType? type,
     List<EquipmentAttrCondition>? attrConditions,
     Set<String>? tagIds,
@@ -121,9 +138,7 @@ class EquipmentFilterState {
     final categoryChanged = nextType != this.type;
     return EquipmentFilterState(
       status: clearStatus ? null : (status ?? this.status),
-      serviceDueOnly: clearStatus
-          ? false
-          : (serviceDueOnly ?? this.serviceDueOnly),
+      serviceDue: clearStatus ? null : (serviceDue ?? this.serviceDue),
       type: nextType,
       attrConditions: clearAttrConditions
           ? const []
@@ -139,7 +154,7 @@ class EquipmentFilterState {
       identical(this, other) ||
       other is EquipmentFilterState &&
           other.status == status &&
-          other.serviceDueOnly == serviceDueOnly &&
+          other.serviceDue == serviceDue &&
           other.type == type &&
           listEquals(other.attrConditions, attrConditions) &&
           setEquals(other.tagIds, tagIds);
@@ -147,7 +162,7 @@ class EquipmentFilterState {
   @override
   int get hashCode => Object.hash(
     status,
-    serviceDueOnly,
+    serviceDue,
     type,
     Object.hashAll(attrConditions),
     Object.hashAllUnordered(tagIds),
@@ -155,6 +170,6 @@ class EquipmentFilterState {
 
   @override
   String toString() =>
-      'EquipmentFilterState(status: $status, serviceDueOnly: $serviceDueOnly, '
+      'EquipmentFilterState(status: $status, serviceDue: $serviceDue, '
       'type: $type, attrConditions: $attrConditions, tagIds: $tagIds)';
 }

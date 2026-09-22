@@ -3818,23 +3818,35 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dashboard_gauges_addGear => 'Ausrüstung hinzufügen';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name OK';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
-    return '$name fällig in ${days}T';
+    return '$name Wartung fällig in ${days}T';
   }
 
   @override
   String dashboard_gauges_gearOverdue(String name) {
-    return '$name überfällig';
+    return '$name Wartung überfällig';
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count weitere überfällig';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile mit überfälliger Wartung',
+      one: '$count Teil mit überfälliger Wartung',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile zur Wartung in ${days}T',
+      one: '$count Teil zur Wartung in ${days}T',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12775,6 +12787,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'wartungsfällige Ausrüstung';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'bald wartungsfällige Ausrüstung';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'überfällige Ausrüstung';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return '$status Ausrüstung';
   }
@@ -12806,6 +12826,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Alle Ihre Ausrüstungsgegenstände sind wartungstechnisch auf dem neuesten Stand!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'Nichts ist demnächst fällig.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'Nichts ist überfällig.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'Fehler beim Laden der Ausrüstung: $error';
   }
@@ -12815,6 +12843,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'Wartung fällig';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'Bald fällig';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'Überfällig';
 
   @override
   String get equipment_list_typeFilterAll => 'Alle Typen';

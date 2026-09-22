@@ -3808,23 +3808,35 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dashboard_gauges_addGear => 'Adicionar equipamento';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name OK';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
-    return '$name vence em ${days}d';
+    return '$name com manutenção em ${days}d';
   }
 
   @override
   String dashboard_gauges_gearOverdue(String name) {
-    return '$name atrasado';
+    return '$name com manutenção atrasada';
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count mais atrasados';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipamentos com manutenção atrasada',
+      one: '$count equipamento com manutenção atrasada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipamentos com manutenção em ${days}d',
+      one: '$count equipamento com manutenção em ${days}d',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -6273,7 +6285,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_equipmentPicker_spareHint =>
-      'Defina o status de um item como Ativo para adiciona-lo a um mergulho';
+      'Defina o status de um item como Ativo para adicioná-lo a um mergulho';
 
   @override
   String get diveLog_equipmentPicker_title => 'Adicionar Equipamento';
@@ -10659,7 +10671,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get divers_edit_discardDialogContent =>
-      'Você tem alterações não salvas. Tem certeza de que deseja descarta-las?';
+      'Você tem alterações não salvas. Tem certeza de que deseja descartá-las?';
 
   @override
   String get divers_edit_discardDialogTitle => 'Descartar Alterações?';
@@ -12780,6 +12792,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'equipamento com manutenção pendente';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'equipamento com manutenção em breve';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'equipamento com manutenção atrasada';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return 'equipamento $status';
   }
@@ -12811,6 +12831,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Todo o seu equipamento está em dia com a manutenção!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'Nada precisa de manutenção em breve.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'Nada esta com manutenção atrasada.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'Erro ao carregar equipamento: $error';
   }
@@ -12820,6 +12848,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'Manutenção Pendente';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'Em Breve';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'Atrasada';
 
   @override
   String get equipment_list_typeFilterAll => 'Todos os Tipos';

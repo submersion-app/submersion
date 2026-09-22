@@ -3607,11 +3607,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dashboard_gauges_addGear => '添加装备';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name 正常';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
     return '$name $days天后需保养';
   }
@@ -3622,8 +3617,23 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '另有 $count 项逾期';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件装备保养逾期',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件装备 $days 天后需保养',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12203,6 +12213,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_list_emptyState_filterText_serviceDue => '需要维护的装备';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon => '即将需要维护的装备';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue => '维护已逾期的装备';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return '$status 装备';
   }
@@ -12230,6 +12246,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_list_emptyState_serviceDueUpToDate => '您的所有装备维护都已是最新状态！';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon => '近期没有装备需要维护。';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue => '没有装备维护逾期。';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return '加载装备出错：$error';
   }
@@ -12239,6 +12261,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => '需要维护';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => '即将到期';
+
+  @override
+  String get equipment_list_filterServiceOverdue => '已逾期';
 
   @override
   String get equipment_list_typeFilterAll => '全部类型';

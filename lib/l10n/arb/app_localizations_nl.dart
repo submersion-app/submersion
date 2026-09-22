@@ -3782,23 +3782,35 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dashboard_gauges_addGear => 'Uitrusting toevoegen';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name OK';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
-    return '$name over ${days}d aan onderhoud toe';
+    return '$name onderhoud over ${days}d';
   }
 
   @override
   String dashboard_gauges_gearOverdue(String name) {
-    return '$name over tijd';
+    return '$name onderhoud over tijd';
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count meer over tijd';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items met achterstallig onderhoud',
+      one: '$count item met achterstallig onderhoud',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items aan onderhoud toe over ${days}d',
+      one: '$count item aan onderhoud toe over ${days}d',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12689,6 +12701,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'uitrusting die service nodig heeft';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'uitrusting die binnenkort service nodig heeft';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'uitrusting met achterstallige service';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return '$status uitrusting';
   }
@@ -12720,6 +12740,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Al je uitrusting is up-to-date met service!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'Niets heeft binnenkort service nodig.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'Niets is achterstallig voor service.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'Fout bij laden van uitrusting: $error';
   }
@@ -12729,6 +12757,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'Service nodig';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'Binnenkort';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'Achterstallig';
 
   @override
   String get equipment_list_typeFilterAll => 'Alle types';
