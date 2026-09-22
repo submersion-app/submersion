@@ -3825,7 +3825,7 @@ class SyncService {
 
     // 4. Replay the pending snapshot: offline-created records survive.
     if (pending != null) {
-      await _replayPendingSnapshot(pending);
+      await _replayPendingSnapshot(pending, publishedThrough: watermark);
     }
 
     // 5. Live again: drop our marker. The rest of this sync pulls (cursors
@@ -3838,38 +3838,49 @@ class SyncService {
   /// One snapshot row with fresh clocks for the replay.
   ///
   /// Fact groups (media sync program spec 5.1) carry their own clocks, and a
-  /// row can be pending because of a fact write alone. Only the newest clock
-  /// on the row is refreshed, because only it identifies what this device
-  /// wrote last and therefore has something to say.
+  /// row can be pending because of a fact write alone. [publishedThrough] is
+  /// the watermark the snapshot was exported above: a clock at or below it
+  /// was already published, a clock above it never was. Only the unpublished
+  /// clocks are refreshed, because only they are this device's unsent writes
+  /// and so the only ones with something to say.
   ///
-  /// Refreshing the others would fabricate freshness: a row pending on an
-  /// upload write whose verification clock is older would come back with a
-  /// brand-new verification clock too, and this device's untouched
-  /// verification facts would then beat a peer's newer observation. So when
-  /// the row clock is newest the row alone is restamped, and otherwise only
-  /// the fact clocks that are themselves newer than the row. Everything
-  /// else travels with its original clock, which is exactly what the
-  /// per-group merge needs to leave a peer's newer facts alone. The row
-  /// still exports either way: the export selects it on any of its clocks.
+  /// Refreshing a published clock would fabricate freshness. The export
+  /// selects a row on ANY of its clocks, so a row pending on one group
+  /// carries its other groups along in the same payload, holding facts the
+  /// cloud has already resolved; a brand-new clock on those would let this
+  /// device's untouched observation beat a peer that really did write one.
+  /// How a group's clock sorts against the ROW clock says nothing about
+  /// this, which is why the watermark decides and the row clock is chosen
+  /// the same way. Everything else travels with its original clock, which is
+  /// exactly what the per-group merge needs to leave a peer's newer facts
+  /// alone; the row still exports either way.
+  ///
+  /// A row with nothing above the watermark cannot come out of the export,
+  /// but would sort below the adopted watermark and be lost if it did, so
+  /// its row clock is refreshed as a floor.
   @visibleForTesting
   static Map<String, dynamic> restampRowForReplay(
     String entityType,
-    Map<String, dynamic> row,
-  ) {
+    Map<String, dynamic> row, {
+    required String? publishedThrough,
+  }) {
+    // No watermark means this device has published nothing at all.
+    bool unpublished(Object? clock) =>
+        clock is String &&
+        (publishedThrough == null || clock.compareTo(publishedThrough) > 0);
+
     final groups = SyncFactGroups.of(entityType);
     if (groups.isEmpty) {
       return {...row, 'hlc': SyncClock.instance.issue()};
     }
-    final rowClock = row['hlc'];
-    bool newerThanRow(Object? factClock) =>
-        factClock is String &&
-        (rowClock is! String || factClock.compareTo(rowClock) > 0);
-    final rowIsNewest = !groups.any((g) => newerThanRow(row[g.clockKey]));
+    final restampRow =
+        unpublished(row['hlc']) ||
+        !groups.any((g) => unpublished(row[g.clockKey]));
     return {
       ...row,
-      if (rowIsNewest) 'hlc': SyncClock.instance.issue(),
+      if (restampRow) 'hlc': SyncClock.instance.issue(),
       for (final g in groups)
-        if (newerThanRow(row[g.clockKey]))
+        if (unpublished(row[g.clockKey]))
           g.clockKey: SyncClock.instance.issue(),
     };
   }
@@ -3882,7 +3893,13 @@ class SyncService {
   /// reason; their local effect still applies via the payload's deletions,
   /// under the standard deletedAt-vs-updatedAt LWW (a peer's newer edit
   /// legitimately revives the record -- unchanged semantics).
-  Future<void> _replayPendingSnapshot(SyncPayload pending) async {
+  ///
+  /// [publishedThrough] is the watermark the snapshot was exported above;
+  /// [restampRowForReplay] refreshes only the clocks that sit over it.
+  Future<void> _replayPendingSnapshot(
+    SyncPayload pending, {
+    required String? publishedThrough,
+  }) async {
     await _syncRepository.ensureSyncClockConfigured();
     final dataJson = pending.data.toJson();
     final restamped = <String, dynamic>{};
@@ -3895,7 +3912,11 @@ class SyncService {
       restamped[entry.key] = [
         for (final row in rows)
           if (row is Map<String, dynamic> && row.containsKey('hlc'))
-            restampRowForReplay(entry.key, row)
+            restampRowForReplay(
+              entry.key,
+              row,
+              publishedThrough: publishedThrough,
+            )
           else
             row,
       ];
@@ -4147,7 +4168,7 @@ class SyncService {
       if (id == null) continue;
       for (final g in groups) {
         // An explicitly null CLOCK counts as well as an explicitly null
-        // value. The v223 backstop adds the fact clock columns without
+        // value. The v224 backstop adds the fact clock columns without
         // backfilling them, so a row adopted from a library that upgraded
         // that way carries a null clock beside non-null facts. The upsert
         // omits nulls, so the local clock would survive and the adopted

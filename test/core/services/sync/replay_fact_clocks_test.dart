@@ -34,14 +34,28 @@ void main() {
   });
 
   /// Real clocks: an issued HLC is a canonical zero-padded string, so a
-  /// letter stand-in would compare the wrong way round.
-  late String earlier;
-  late String later;
+  /// letter stand-in would compare the wrong way round. [watermark] is the
+  /// publish watermark the snapshot was exported above, so [oldest] and
+  /// [older] are published and [newer] and [newest] are not.
+  late String oldest;
+  late String older;
+  late String watermark;
+  late String newer;
+  late String newest;
 
   setUp(() {
-    earlier = SyncClock.instance.issue()!;
-    later = SyncClock.instance.issue()!;
-    expect(later.compareTo(earlier), greaterThan(0));
+    oldest = SyncClock.instance.issue()!;
+    older = SyncClock.instance.issue()!;
+    watermark = SyncClock.instance.issue()!;
+    newer = SyncClock.instance.issue()!;
+    newest = SyncClock.instance.issue()!;
+    expect([
+      oldest,
+      older,
+      watermark,
+      newer,
+      newest,
+    ], orderedEquals([oldest, older, watermark, newer, newest]..sort()));
   });
 
   Map<String, dynamic> mediaRow({
@@ -56,57 +70,100 @@ void main() {
     'verifyFactsHlc': verify,
   };
 
-  test('a fact-only pending row keeps its row clock', () {
-    final row = mediaRow(hlc: earlier, upload: later);
-    final out = SyncService.restampRowForReplay('media', row);
+  Map<String, dynamic> restamp(Map<String, dynamic> row) =>
+      SyncService.restampRowForReplay(
+        'media',
+        row,
+        publishedThrough: watermark,
+      );
 
+  test('a fact-only pending row keeps its row clock', () {
+    final out = restamp(mediaRow(hlc: older, upload: newest));
+
+    expect(out['hlc'], older, reason: 'the row clock was already published');
     expect(
-      out['hlc'],
-      earlier,
-      reason: 'the last local write was a fact write',
-    );
-    expect(
-      (out['uploadFactsHlc'] as String).compareTo(later),
+      (out['uploadFactsHlc'] as String).compareTo(newest),
       greaterThan(0),
-      reason: 'the facts must still republish',
+      reason: 'the unsent facts must still republish',
     );
     expect(out['verifyFactsHlc'], isNull, reason: 'absent stays absent');
   });
 
-  test('a row whose last write was a user edit is restamped alone', () {
-    final row = mediaRow(hlc: later, upload: earlier);
-    final out = SyncService.restampRowForReplay('media', row);
+  test('a row whose only unsent write is a user edit is restamped alone', () {
+    final out = restamp(mediaRow(hlc: newest, upload: older));
 
-    expect((out['hlc'] as String).compareTo(later), greaterThan(0));
+    expect((out['hlc'] as String).compareTo(newest), greaterThan(0));
     expect(
       out['uploadFactsHlc'],
-      earlier,
+      older,
       reason:
-          'an older fact keeps its clock, or it would fabricate freshness '
+          'a published fact keeps its clock, or it would fabricate freshness '
           'and beat a peer that really did write it',
     );
   });
 
-  test('only the fact group that is newer than the row is restamped', () {
-    final row = mediaRow(hlc: earlier, upload: later, verify: earlier);
-    final out = SyncService.restampRowForReplay('media', row);
+  test('a published fact above the row clock keeps its clock', () {
+    // The snapshot selects the row on ANY clock above the watermark, so a
+    // row can arrive with a published upload fact that is newer than its
+    // published row clock and only the verification unsent. Choosing by
+    // "newer than the row" restamped that upload fact too, republishing a
+    // fact the cloud has already resolved with a brand-new clock.
+    final out = restamp(mediaRow(hlc: oldest, upload: older, verify: newest));
 
-    expect(out['hlc'], earlier, reason: 'the row clock is not the newest');
-    expect((out['uploadFactsHlc'] as String).compareTo(later), greaterThan(0));
+    expect(out['hlc'], oldest);
+    expect(
+      out['uploadFactsHlc'],
+      older,
+      reason: 'published, however it sorts against the row clock',
+    );
+    expect((out['verifyFactsHlc'] as String).compareTo(newest), greaterThan(0));
+  });
+
+  test('only the unpublished fact group is restamped', () {
+    final out = restamp(mediaRow(hlc: older, upload: newest, verify: oldest));
+
+    expect(out['hlc'], older);
+    expect((out['uploadFactsHlc'] as String).compareTo(newest), greaterThan(0));
     expect(
       out['verifyFactsHlc'],
-      earlier,
-      reason: 'this device wrote no verification fact to republish',
+      oldest,
+      reason: 'this device has no unsent verification fact to republish',
     );
+  });
+
+  test('a row with nothing unsent still republishes', () {
+    // The export cannot select such a row, but a row that restamped no
+    // clock at all would sort below the adopted watermark and be lost, so
+    // the row clock is refreshed as a floor.
+    final out = restamp(mediaRow(hlc: oldest, upload: older, verify: older));
+
+    expect((out['hlc'] as String).compareTo(watermark), greaterThan(0));
+    expect(out['uploadFactsHlc'], older);
+    expect(out['verifyFactsHlc'], older);
   });
 
   test('an entity with no fact groups is restamped as before', () {
     final out = SyncService.restampRowForReplay('dives', {
       'id': 'd1',
-      'hlc': earlier,
-    });
+      'hlc': older,
+    }, publishedThrough: watermark);
 
-    expect((out['hlc'] as String).compareTo(earlier), greaterThan(0));
+    expect((out['hlc'] as String).compareTo(older), greaterThan(0));
+  });
+
+  test('a never-published device restamps everything', () {
+    final out = SyncService.restampRowForReplay(
+      'media',
+      mediaRow(hlc: oldest, upload: older),
+      publishedThrough: null,
+    );
+
+    expect((out['hlc'] as String).compareTo(newest), greaterThan(0));
+    expect(
+      (out['uploadFactsHlc'] as String).compareTo(newest),
+      greaterThan(0),
+      reason: 'with no watermark nothing was ever published',
+    );
   });
 
   test('the replay does not re-stamp a fact-only row on the way out', () async {
