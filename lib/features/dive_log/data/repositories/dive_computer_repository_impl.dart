@@ -787,6 +787,71 @@ class DiveComputerRepository {
     }
   }
 
+  /// The dive_data_sources row for one download: provenance, summary
+  /// numbers, the raw blob and its fingerprint. Shared by the new-dive and
+  /// existing-dive branches of [importProfile] so both leave a row the
+  /// re-download pass can find.
+  DiveDataSourcesCompanion _downloadSourceCompanion({
+    required String diveId,
+    required String computerId,
+    required bool isPrimary,
+    required domain.DiveComputer? computer,
+    required DateTime profileStartTime,
+    required int durationSeconds,
+    required double? maxDepth,
+    required double? effectiveAvgDepth,
+    required double? minWaterTemp,
+    required double? maxCns,
+    required int now,
+    required double? entryLatitude,
+    required double? entryLongitude,
+    required double? exitLatitude,
+    required double? exitLongitude,
+    required String? decoAlgorithm,
+    required int? gfLow,
+    required int? gfHigh,
+    required Uint8List? rawData,
+    required Uint8List? rawFingerprint,
+    required String? descriptorVendor,
+    required String? descriptorProduct,
+    required int? descriptorModel,
+    required String? libdivecomputerVersion,
+  }) {
+    final nowDt = DateTime.fromMillisecondsSinceEpoch(now);
+    return DiveDataSourcesCompanion.insert(
+      id: _uuid.v4(),
+      diveId: diveId,
+      computerId: Value(computerId),
+      isPrimary: Value(isPrimary),
+      computerModel: Value(computer?.fullName),
+      computerSerial: Value(computer?.serialNumber),
+      sourceFormat: const Value('dive_computer'),
+      maxDepth: Value(maxDepth),
+      avgDepth: Value(effectiveAvgDepth),
+      duration: Value(durationSeconds),
+      waterTemp: Value(minWaterTemp),
+      entryLatitude: Value(entryLatitude),
+      entryLongitude: Value(entryLongitude),
+      exitLatitude: Value(exitLatitude),
+      exitLongitude: Value(exitLongitude),
+      entryTime: Value(profileStartTime),
+      exitTime: Value(profileStartTime.add(Duration(seconds: durationSeconds))),
+      cns: Value(maxCns),
+      decoAlgorithm: Value(decoAlgorithm),
+      gradientFactorLow: Value(gfLow),
+      gradientFactorHigh: Value(gfHigh),
+      rawData: Value(rawData),
+      rawFingerprint: Value(rawFingerprint),
+      descriptorVendor: Value(descriptorVendor),
+      descriptorProduct: Value(descriptorProduct),
+      descriptorModel: Value(descriptorModel),
+      libdivecomputerVersion: Value(libdivecomputerVersion),
+      lastParsedAt: Value(rawData != null ? DateTime.now() : null),
+      importedAt: nowDt,
+      createdAt: nowDt,
+    );
+  }
+
   /// The dive_data_sources row on [diveId] that describes [computerId], or
   /// null when the dive has no source row for that computer yet.
   ///
@@ -944,6 +1009,7 @@ class DiveComputerRepository {
           ABS(COALESCE(entry_time, dive_date_time) - ?) as time_diff
         FROM dives
         WHERE ABS(COALESCE(entry_time, dive_date_time) - ?) <= ?
+          AND is_planned = 0
           $diverClause
         ORDER BY time_diff ASC
         LIMIT 10
@@ -1081,6 +1147,7 @@ class DiveComputerRepository {
         JOIN dive_profile_series dps ON dps.dive_id = d.id
         LEFT JOIN dive_data_sources ds ON ds.id = dps.source_id
         WHERE COALESCE(dps.computer_id, ds.computer_id, d.computer_id) = ?
+          AND d.is_planned = 0
           AND (COALESCE(d.entry_time, d.dive_date_time) + dps.start_timestamp * 1000) <= ?
           AND (COALESCE(d.entry_time, d.dive_date_time) + dps.end_timestamp * 1000) >= ?
           $diverClause
@@ -1253,6 +1320,10 @@ class DiveComputerRepository {
     // the dive header and never as a sample, so it cannot be recovered from
     // the profile points.
     double? minTemperature,
+    // Attach to this dive instead of matching by time (issue #2002). A
+    // planned dive being filled may share its minute with a sibling in
+    // another profile, so the time match could land on the wrong row.
+    String? targetDiveId,
   }) async {
     try {
       _log.info('Importing profile from computer $computerId');
@@ -1261,10 +1332,11 @@ class DiveComputerRepository {
       // Try to find an existing dive (skip matching when forceNew is true)
       final matchedDiveId = forceNew
           ? null
-          : await findMatchingDive(
-              profileStartTime: profileStartTime,
-              durationSeconds: durationSeconds,
-            );
+          : (targetDiveId ??
+                await findMatchingDive(
+                  profileStartTime: profileStartTime,
+                  durationSeconds: durationSeconds,
+                ));
 
       final diveId = matchedDiveId ?? _uuid.v4();
       final isNewDive = matchedDiveId == null;
@@ -1443,43 +1515,34 @@ class DiveComputerRepository {
                 ? sampleTemps.reduce((a, b) => a < b ? a : b)
                 : null);
 
-        final nowDt = DateTime.fromMillisecondsSinceEpoch(now);
         await _db
             .into(_db.diveDataSources)
             .insert(
-              DiveDataSourcesCompanion.insert(
-                id: _uuid.v4(),
+              _downloadSourceCompanion(
                 diveId: diveId,
-                computerId: Value(computerId),
-                isPrimary: const Value(true),
-                computerModel: Value(computer?.fullName),
-                computerSerial: Value(computer?.serialNumber),
-                sourceFormat: const Value('dive_computer'),
-                maxDepth: Value(maxDepth),
-                avgDepth: Value(effectiveAvgDepth),
-                duration: Value(durationSeconds),
-                waterTemp: Value(minWaterTemp),
-                entryLatitude: Value(entryLatitude),
-                entryLongitude: Value(entryLongitude),
-                exitLatitude: Value(exitLatitude),
-                exitLongitude: Value(exitLongitude),
-                entryTime: Value(profileStartTime),
-                exitTime: Value(
-                  profileStartTime.add(Duration(seconds: durationSeconds)),
-                ),
-                cns: Value(maxCns),
-                decoAlgorithm: Value(decoAlgorithm),
-                gradientFactorLow: Value(gfLow),
-                gradientFactorHigh: Value(gfHigh),
-                rawData: Value(rawData),
-                rawFingerprint: Value(rawFingerprint),
-                descriptorVendor: Value(descriptorVendor),
-                descriptorProduct: Value(descriptorProduct),
-                descriptorModel: Value(descriptorModel),
-                libdivecomputerVersion: Value(libdivecomputerVersion),
-                lastParsedAt: Value(rawData != null ? DateTime.now() : null),
-                importedAt: nowDt,
-                createdAt: nowDt,
+                computerId: computerId,
+                isPrimary: true,
+                computer: computer,
+                profileStartTime: profileStartTime,
+                durationSeconds: durationSeconds,
+                maxDepth: maxDepth,
+                effectiveAvgDepth: effectiveAvgDepth,
+                minWaterTemp: minWaterTemp,
+                maxCns: maxCns,
+                now: now,
+                entryLatitude: entryLatitude,
+                entryLongitude: entryLongitude,
+                exitLatitude: exitLatitude,
+                exitLongitude: exitLongitude,
+                decoAlgorithm: decoAlgorithm,
+                gfLow: gfLow,
+                gfHigh: gfHigh,
+                rawData: rawData,
+                rawFingerprint: rawFingerprint,
+                descriptorVendor: descriptorVendor,
+                descriptorProduct: descriptorProduct,
+                descriptorModel: descriptorModel,
+                libdivecomputerVersion: libdivecomputerVersion,
               ),
             );
 
@@ -1496,6 +1559,73 @@ class DiveComputerRepository {
       final hadSeries = await _profileSeries.hasAnySeries(diveId);
       if (!hadSeries) {
         isPrimary = true;
+      }
+
+      // A profile attached to an existing dive used to leave no
+      // dive_data_sources row, so its fingerprint was invisible to the
+      // re-download pass and the series had no owning source (issue #2002).
+      // Primary when the dive had nothing yet; a secondary otherwise.
+      if (!isNewDive && await _dataSourceIdFor(diveId, computerId) == null) {
+        // A dive can already hold a summary-only source row and no series:
+        // a UDDF import writes one for every dive it creates. The download
+        // is about to become this dive's profile, so it takes the primary
+        // flag and any older primary loses it. Readers resolve "the"
+        // primary with LIMIT 1, so two primaries would be ambiguous.
+        if (!hadSeries) {
+          await (_db.update(_db.diveDataSources)..where(
+                (t) => t.diveId.equals(diveId) & t.isPrimary.equals(true),
+              ))
+              .write(const DiveDataSourcesCompanion(isPrimary: Value(false)));
+        }
+        final existingSampleTemps = points
+            .map((p) => p.temperature)
+            .whereType<double>()
+            .toList();
+        final existingSampleCns = points
+            .map((p) => p.cns)
+            .whereType<double>()
+            .toList();
+        await _db
+            .into(_db.diveDataSources)
+            .insert(
+              _downloadSourceCompanion(
+                diveId: diveId,
+                computerId: computerId,
+                isPrimary: !hadSeries,
+                computer: await getComputerById(computerId),
+                profileStartTime: profileStartTime,
+                durationSeconds: durationSeconds,
+                maxDepth: maxDepth,
+                effectiveAvgDepth:
+                    avgDepth ??
+                    (points.isNotEmpty
+                        ? points.map((p) => p.depth).reduce((a, b) => a + b) /
+                              points.length
+                        : null),
+                minWaterTemp:
+                    minTemperature ??
+                    (existingSampleTemps.isNotEmpty
+                        ? existingSampleTemps.reduce((a, b) => a < b ? a : b)
+                        : null),
+                maxCns: existingSampleCns.isNotEmpty
+                    ? existingSampleCns.reduce((a, b) => a > b ? a : b)
+                    : null,
+                now: now,
+                entryLatitude: entryLatitude,
+                entryLongitude: entryLongitude,
+                exitLatitude: exitLatitude,
+                exitLongitude: exitLongitude,
+                decoAlgorithm: decoAlgorithm,
+                gfLow: gfLow,
+                gfHigh: gfHigh,
+                rawData: rawData,
+                rawFingerprint: rawFingerprint,
+                descriptorVendor: descriptorVendor,
+                descriptorProduct: descriptorProduct,
+                descriptorModel: descriptorModel,
+                libdivecomputerVersion: libdivecomputerVersion,
+              ),
+            );
       }
 
       // Attribute the samples to the dive_data_sources row that describes

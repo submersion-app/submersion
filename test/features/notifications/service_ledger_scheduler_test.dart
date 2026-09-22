@@ -136,7 +136,16 @@ void main() {
       // One tank with hydro AND vip overdue is one item, not two.
       expect(reminder.itemCount, 1);
       // Fires tripServiceLeadDays (default 14) before the trip starts.
-      final expectedDay = trip.startDate.subtract(const Duration(days: 14));
+      // Mirrors how the scheduler builds fireAt: from the trip's CALENDAR
+      // day, not from the start instant. Subtracting an elapsed-time
+      // Duration from the instant lands on the previous calendar day
+      // whenever the run happens near midnight and the 14-day window
+      // crosses a daylight-saving change, and .day then disagrees.
+      final expectedDay = DateTime(
+        trip.startDate.year,
+        trip.startDate.month,
+        trip.startDate.day - 14,
+      );
       expect(reminder.fireAt.day, expectedDay.day);
       expect(reminder.fireAt.isBefore(trip.startDate), isTrue);
     },

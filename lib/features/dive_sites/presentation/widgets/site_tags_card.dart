@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/site_tag_navigation.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The Tags card on site detail (issue #1765), built like the dive detail
@@ -52,14 +53,10 @@ class SiteTagsCard extends ConsumerWidget {
               runSpacing: 8,
               children: [
                 for (final tag in tags)
-                  ActionChip(
-                    label: Text(tag.name),
+                  TagChip(
+                    tag: tag,
                     tooltip: l10n.diveSites_detail_showSitesWith(tag.name),
-                    backgroundColor: tag.color.withValues(alpha: 0.2),
-                    side: BorderSide(color: tag.color),
-                    labelStyle: TextStyle(color: tag.color),
-                    visualDensity: VisualDensity.compact,
-                    onPressed: () => openSitesWithTag(context, ref, tag.id),
+                    onTap: () => openSitesWithTag(context, ref, tag.id),
                   ),
               ],
             ),

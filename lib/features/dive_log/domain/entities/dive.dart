@@ -174,6 +174,10 @@ class Dive extends Equatable {
   // Dive planner flag (v1.5)
   final bool isPlanned; // True for planned dives (not yet executed)
 
+  /// Shared id across sibling dives mirrored from one save (issue #2002).
+  /// Null for a dive that was never mirrored.
+  final String? outingId;
+
   // Training course (v1.5)
   final String? courseId; // FK to training course
 
@@ -278,6 +282,7 @@ class Dive extends Equatable {
     this.scrubber,
     // Dive planner (v1.5)
     this.isPlanned = false,
+    this.outingId,
     // Training course (v1.5)
     this.courseId,
     // Import source tracking
@@ -683,6 +688,8 @@ class Dive extends Equatable {
     ScrubberInfo? scrubber,
     // Dive planner
     bool? isPlanned,
+    String? outingId,
+    bool clearOutingId = false,
     // Training course
     String? courseId,
     // Import source tracking
@@ -780,6 +787,7 @@ class Dive extends Equatable {
       scrubber: scrubber ?? this.scrubber,
       // Dive planner
       isPlanned: isPlanned ?? this.isPlanned,
+      outingId: clearOutingId ? null : (outingId ?? this.outingId),
       // Training course
       courseId: courseId ?? this.courseId,
       // Import source tracking
@@ -880,6 +888,7 @@ class Dive extends Equatable {
     scrubber,
     // Dive planner
     isPlanned,
+    outingId,
     // Training course
     courseId,
     // Import source tracking

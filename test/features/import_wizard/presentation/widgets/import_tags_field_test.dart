@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/import_wizard/domain/models/tag_selection.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/import_tags_field.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 void main() {
@@ -240,8 +241,8 @@ void main() {
       );
 
       // Chip should render with the tag's color
-      final chip = tester.widget<Chip>(find.byType(Chip));
-      expect(chip.side?.color, equals(const Color(0xFFFF0000)));
+      final chip = tester.widget<TagChip>(find.byType(TagChip));
+      expect(chip.color, equals(const Color(0xFFFF0000)));
     });
 
     testWidgets('chip falls back to blue for new tags', (tester) async {
@@ -261,11 +262,11 @@ void main() {
       );
 
       // Falls back to theme's primary color (not hardcoded blue)
-      final chip = tester.widget<Chip>(find.byType(Chip));
+      final chip = tester.widget<TagChip>(find.byType(TagChip));
       final primaryColor = Theme.of(
         tester.element(find.byType(ImportTagsField)),
       ).colorScheme.primary;
-      expect(chip.side?.color, equals(primaryColor));
+      expect(chip.color, equals(primaryColor));
     });
 
     testWidgets('shows autocomplete suggestions matching query', (

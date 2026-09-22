@@ -83,7 +83,7 @@ void main() {
     // Additive rung: the sync compatibility floor must not move.
     // The floor moved to 223 with the media fact clocks; this rung
     // still did not move it.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 223);
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
 
   test('adds the dive_center_gear_notes table', () async {

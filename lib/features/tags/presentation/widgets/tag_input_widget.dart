@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 
@@ -81,16 +82,9 @@ class _TagInputWidgetState extends ConsumerState<TagInputWidget> {
             spacing: 8,
             runSpacing: 4,
             children: widget.selectedTags.map((tag) {
-              return Chip(
-                label: Text(tag.name),
-                backgroundColor: tag.color.withValues(alpha: 0.2),
-                side: BorderSide(color: tag.color),
-                deleteIcon: widget.enabled
-                    ? Icon(Icons.close, size: 18, color: tag.color)
-                    : null,
+              return TagChip(
+                tag: tag,
                 onDeleted: widget.enabled ? () => _removeTag(tag) : null,
-                labelStyle: TextStyle(color: tag.color),
-                visualDensity: VisualDensity.compact,
               );
             }).toList(),
           ),
@@ -265,20 +259,7 @@ class TagChips extends StatelessWidget {
       spacing: 4,
       runSpacing: 2,
       children: [
-        ...displayTags.map(
-          (tag) => Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: tag.color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: tag.color.withValues(alpha: 0.3)),
-            ),
-            child: Text(
-              tag.name,
-              style: TextStyle(fontSize: 11, color: tag.color),
-            ),
-          ),
-        ),
+        ...displayTags.map((tag) => TagChip(tag: tag, dense: true)),
         if (remaining > 0)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

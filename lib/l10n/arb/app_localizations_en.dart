@@ -1463,6 +1463,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get buddies_field_emailHint => 'email@example.com';
 
   @override
+  String get buddies_field_linkedProfile => 'Linked profile';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'The local profile this buddy is';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Not linked';
+
+  @override
   String get buddies_field_nameHint => 'Enter buddy name';
 
   @override
@@ -1672,6 +1682,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Use';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Profile';
+
+  @override
+  String get buddies_linkedProfile_link => 'Link';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Not now';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Open buddy';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Link to a profile';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'A buddy cannot be linked to its own profile.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName is already linked to this profile.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name has a profile here. Link this buddy to it?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'These buddies are linked to different profiles. Merge the profiles first.';
 
   @override
   String get buddies_message_added => 'Buddy added successfully';
@@ -5709,6 +5752,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'Tanks';
 
   @override
+  String get diveLog_edit_planned_switch => 'Planned dive';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'Awaiting dive computer data. No dive number until it is logged.';
+
+  @override
   String get diveLog_edit_profile_draw => 'Draw a profile';
 
   @override
@@ -6591,6 +6641,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_listPage_bottomSheet_logManually => 'Log Dive Manually';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'Plan a dive';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Fill in the details now, add the dive computer data later';
 
   @override
   String get diveLog_listPage_fab_addDive => 'Add Dive';
@@ -23537,6 +23594,45 @@ class AppLocalizationsEn extends AppLocalizations {
   String get universalImport_label_skip => 'Skip';
 
   @override
+  String get universalImport_label_fillPlanned => 'Fill planned dive';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Attach this download to the dive you planned';
+
+  @override
+  String get universalImport_label_filledPlanned => 'Filled planned dives';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Fills planned dive: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'Its sketched profile will be replaced.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Change';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle => 'Choose a planned dive';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'Import as a new dive instead';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Undo fills';
+
+  @override
+  String get universalImport_fillPlanned_undone => 'Planned dives restored';
+
+  @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Could not restore every planned dive. Try again.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Tagged as: $tag';
   }
@@ -28730,6 +28826,66 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Log near-miss';
+
+  @override
+  String get diveLog_planned_chip => 'Planned';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'Planned dive';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'Awaiting dive computer data. Mark it as logged if you dived without one.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'Mark as logged';
+
+  @override
+  String get diveLog_planned_markedLogged => 'Marked as logged';
+
+  @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Couldn\'t mark the dive as logged.';
+
+  @override
+  String get diveLog_mirror_dialogTitle =>
+      'Also log this dive in another profile?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'These buddies have profiles on this device. The dive is added to their logs as a planned dive until their own dive computer data fills it.';
+
+  @override
+  String get diveLog_mirror_log => 'Log';
+
+  @override
+  String get diveLog_mirror_notNow => 'Not now';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Logged for $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Mirrored dives removed';
+
+  @override
+  String get diveLog_mirror_undoFailed =>
+      'Couldn\'t remove the mirrored dives.';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Could not log for $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy => 'Log for a buddy\'s profile';
+
+  @override
+  String get diveLog_detail_loggedWith => 'Logged with';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned => 'awaiting their dive computer';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -36946,6 +37102,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Dive $diveNumber at $siteName';
+  }
+
+  @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'Planned dive at $siteName';
   }
 
   @override

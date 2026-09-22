@@ -22,6 +22,10 @@ class DivePrefill {
   final String? photoPath; // source logbook photo to attach after save
   final String? importSource; // e.g. 'ocr'
 
+  /// Open the form as a planned dive: awaiting dive computer data, no
+  /// number until it is logged (issue #2002).
+  final bool isPlanned;
+
   const DivePrefill({
     this.diveNumber,
     this.dateTime,
@@ -40,5 +44,6 @@ class DivePrefill {
     this.weightKg,
     this.photoPath,
     this.importSource,
+    this.isPlanned = false,
   });
 }

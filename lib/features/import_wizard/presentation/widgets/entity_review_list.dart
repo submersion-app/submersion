@@ -83,6 +83,13 @@ class EntityReviewList extends StatefulWidget {
   /// re-picking the active field to flip its direction.
   final ValueChanged<DiveReviewSortField>? onSortFieldChanged;
 
+  /// Label of the planned dive a fill row targets (issue #2002); null for
+  /// other rows or when the caller does not resolve labels.
+  final String? Function(int index)? plannedDiveLabelForIndex;
+
+  /// Opens the planned-dive picker for a fill row.
+  final void Function(int index)? onChangeFillTarget;
+
   const EntityReviewList({
     super.key,
     required this.group,
@@ -101,6 +108,8 @@ class EntityReviewList extends StatefulWidget {
     this.sortField,
     this.sortAscending = false,
     this.onSortFieldChanged,
+    this.plannedDiveLabelForIndex,
+    this.onChangeFillTarget,
   });
 
   static void _noopBulkAction(DuplicateAction _) {}
@@ -350,6 +359,10 @@ class _EntityReviewListState extends State<EntityReviewList> {
         existingDiveId: widget.existingDiveIdForIndex(index),
         projectedDiveNumber: widget.projectedDiveNumbers?[index],
         isPending: widget.pendingIndices.contains(index),
+        plannedDiveLabel: widget.plannedDiveLabelForIndex?.call(index),
+        onChangeFillTarget: widget.onChangeFillTarget == null
+            ? null
+            : () => widget.onChangeFillTarget!(index),
       ),
     );
   }
@@ -767,6 +780,7 @@ class _EntityDuplicateCardState extends State<_EntityDuplicateCard> {
       DuplicateAction.importAsNew => Colors.green,
       DuplicateAction.consolidate => colorScheme.primary,
       DuplicateAction.replaceSource => Colors.blue.shade700,
+      DuplicateAction.fillPlanned => colorScheme.tertiary,
       DuplicateAction.skip => colorScheme.error,
     };
 
@@ -1202,6 +1216,10 @@ class _SimpleActionBadge extends StatelessWidget {
       DuplicateAction.replaceSource => (
         context.l10n.universalImport_entityAction_replaceBadge,
         Colors.blue.shade700,
+      ),
+      DuplicateAction.fillPlanned => (
+        context.l10n.universalImport_label_fillPlanned,
+        theme.colorScheme.tertiary,
       ),
       DuplicateAction.skip => (
         context.l10n.universalImport_entityAction_skipBadge,

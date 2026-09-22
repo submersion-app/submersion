@@ -16,6 +16,7 @@ import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_glyph.dart';
 import 'package:submersion/features/site_scape/presentation/site_feature_sheet.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_inset.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
@@ -163,14 +164,10 @@ class _SiteListTileState extends ConsumerState<SiteListTile> {
             color: SiteFeatureGlyph.styleFor(typeName).$2,
             textColor: chipTextColor,
           ),
-      // Tags (issue #1765): the first three, then a count of the rest.
-      for (final tag in shownTags)
-        _SiteChip(
-          icon: Icons.sell_outlined,
-          label: tag.name,
-          color: tag.color,
-          textColor: chipTextColor,
-        ),
+      // Tags (issue #1765): the first three, then a count of the rest. A tag
+      // carries the diver's own colour, so it is filled with it rather than
+      // outlined like the type and feature chips (issue #2254).
+      for (final tag in shownTags) TagChip(tag: tag, dense: true),
       if (hiddenTagCount > 0)
         _SiteChip(
           icon: Icons.sell_outlined,
