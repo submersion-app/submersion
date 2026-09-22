@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -88,7 +89,7 @@ class TripSummaryWidget extends ConsumerWidget {
     }
 
     // Find upcoming trips
-    final now = DateTime.now();
+    final now = clock.now();
     final upcomingTrips =
         trips.where((t) => t.trip.startDate.isAfter(now)).toList()
           ..sort((a, b) => a.trip.startDate.compareTo(b.trip.startDate));
@@ -259,7 +260,11 @@ class TripSummaryWidget extends ConsumerWidget {
   ) {
     final units = UnitFormatter(ref.watch(settingsProvider));
     final nextTrip = upcomingTrips.first;
-    final daysUntil = nextTrip.trip.startDate.difference(DateTime.now()).inDays;
+    // Whole calendar days to the start date. Subtracting the current instant
+    // instead would floor away the rest of today (a trip four calendar days
+    // out reads "In 3 days" at any hour past midnight), and would lose a
+    // further day whenever a spring-forward falls inside the window.
+    final daysUntil = nextTrip.trip.daysUntilStart;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -291,7 +296,17 @@ class TripSummaryWidget extends ConsumerWidget {
               ),
             ),
             subtitle: Text(
-              '${units.formatDate(nextTrip.trip.startDate)} • In $daysUntil days',
+              // The separator belongs to the translation: fr joins the two
+              // parts with a hyphen where every other locale uses the bullet.
+              // The date leads in every locale. Where the numeral sits is a
+              // property of the countdown clause, not of this template, and
+              // so belongs to trips_list_countdown: hu and zh lead that
+              // clause with the numeral, en and de trail it after "In".
+              // One more reason not to restate that wording here.
+              context.l10n.trips_summary_upcomingSubtitle(
+                units.formatDate(nextTrip.trip.startDate),
+                context.l10n.trips_list_countdown(daysUntil),
+              ),
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),

@@ -28,6 +28,10 @@ class DiveSummary extends Equatable {
 
   /// Excluded from SAC/RMV and gas-mix aggregates only (#1272).
   final bool excludedFromGasStats;
+
+  /// A planned dive awaiting its dive computer data (issue #2002). Shown
+  /// with a marker in the list and never numbered until promoted.
+  final bool isPlanned;
   final DiveMode diveMode;
   final List<String> diveTypeIds;
   final List<Tag> tags;
@@ -67,6 +71,7 @@ class DiveSummary extends Equatable {
     this.isFavorite = false,
     this.excludedFromStats = false,
     this.excludedFromGasStats = false,
+    this.isPlanned = false,
     this.diveMode = DiveMode.oc,
     this.diveTypeIds = const ['recreational'],
     this.tags = const [],
@@ -104,6 +109,7 @@ class DiveSummary extends Equatable {
       isFavorite: dive.isFavorite,
       excludedFromStats: dive.excludedFromStats,
       excludedFromGasStats: dive.excludedFromGasStats,
+      isPlanned: dive.isPlanned,
       diveMode: dive.diveMode,
       diveTypeIds: dive.diveTypeIds,
       tags: dive.tags,
@@ -161,6 +167,7 @@ class DiveSummary extends Equatable {
     bool? isFavorite,
     bool? excludedFromStats,
     bool? excludedFromGasStats,
+    bool? isPlanned,
     DiveMode? diveMode,
     List<String>? diveTypeIds,
     List<Tag>? tags,
@@ -190,6 +197,7 @@ class DiveSummary extends Equatable {
       isFavorite: isFavorite ?? this.isFavorite,
       excludedFromStats: excludedFromStats ?? this.excludedFromStats,
       excludedFromGasStats: excludedFromGasStats ?? this.excludedFromGasStats,
+      isPlanned: isPlanned ?? this.isPlanned,
       diveMode: diveMode ?? this.diveMode,
       diveTypeIds: diveTypeIds ?? this.diveTypeIds,
       tags: tags ?? this.tags,
@@ -222,6 +230,7 @@ class DiveSummary extends Equatable {
     isFavorite,
     excludedFromStats,
     excludedFromGasStats,
+    isPlanned,
     diveMode,
     diveTypeIds,
     tags,

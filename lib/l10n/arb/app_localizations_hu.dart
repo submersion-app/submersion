@@ -1482,6 +1482,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_field_emailHint => 'pelda@email.hu';
 
   @override
+  String get buddies_field_linkedProfile => 'Kapcsolt profil';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'A helyi profil, amely ez a búvártárs';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Nincs kapcsolva';
+
+  @override
   String get buddies_field_nameHint => 'Add meg a búvártárs nevét';
 
   @override
@@ -1695,6 +1705,39 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Használat';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Profil';
+
+  @override
+  String get buddies_linkedProfile_link => 'Kapcsolás';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Most nem';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Búvártárs megnyitása';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Kapcsolás profilhoz';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'Egy búvártárs nem kapcsolható a saját profiljához.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName már ehhez a profilhoz van kapcsolva.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name rendelkezik itt profillal. Kapcsoljuk hozzá ezt a búvártársat?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'Ezek a búvártársak különböző profilokhoz vannak kapcsolva. Először egyesítsd a profilokat.';
 
   @override
   String get buddies_message_added => 'Búvártárs sikeresen hozzáadva';
@@ -3754,11 +3797,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dashboard_gauges_addGear => 'Felszerelés hozzáadása';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name rendben';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
     return '$name szervize $days nap múlva esedékes';
   }
@@ -3769,8 +3807,23 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count további lejárt';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count eszköz szervize lejárt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count eszköz szervize $days nap múlva esedékes',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -5796,6 +5849,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'Palackok';
 
   @override
+  String get diveLog_edit_planned_switch => 'Tervezett merülés';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'Búvárkomputer-adatokra vár. Nincs merülésszám, amíg nincs naplózva.';
+
+  @override
   String get diveLog_edit_profile_draw => 'Profil rajzolása';
 
   @override
@@ -6696,6 +6756,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Merülés manuális rögzítése';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'Merülés tervezése';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Töltsd ki a részleteket most, a búvárkomputer adatait add hozzá később';
 
   @override
   String get diveLog_listPage_fab_addDive => 'Merülés hozzáadása';
@@ -9554,7 +9621,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveSites_filter_clearAll => 'Összes törlése';
 
   @override
-  String get diveSites_filter_country_hint => 'pl. Thaiföld';
+  String get diveSites_filter_allCountries => 'Összes ország';
+
+  @override
+  String get diveSites_filter_allRegions => 'Összes régió';
 
   @override
   String get diveSites_filter_country_label => 'Ország';
@@ -9591,10 +9661,15 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => 'pl. Phuket';
+  String get diveSites_filter_region_label => 'Régió';
 
   @override
-  String get diveSites_filter_region_label => 'Régió';
+  String get diveSites_filter_searchCountriesHint =>
+      'Gépelj az országok kereséséhez';
+
+  @override
+  String get diveSites_filter_searchRegionsHint =>
+      'Gépelj a régiók kereséséhez';
 
   @override
   String get diveSites_filter_section_depthRange => 'Max mélység tartomány';
@@ -11699,6 +11774,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get enum_logCategory_database => 'Adatbázis';
 
   @override
+  String get enum_logCategory_media => 'Média';
+
+  @override
   String get enum_visibility_excellent => 'Kitűnő (>30m / >100ft)';
 
   @override
@@ -12684,6 +12762,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'szervizre szoruló felszerelés';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'hamarosan szervizre szoruló felszerelés';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'lejárt szervizű felszerelés';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return '$status felszerelés';
   }
@@ -12715,6 +12801,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Minden felszerelése naprakész a szervizzel!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'Semmi nem szorul hamarosan szervizre.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'Semminek sem járt le a szervize.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'Hiba a felszerelés betöltésekor: $error';
   }
@@ -12724,6 +12818,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'Szerviz esedék';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'Hamarosan';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'Lejárt';
 
   @override
   String get equipment_list_typeFilterAll => 'Összes típus';
@@ -18209,6 +18309,13 @@ class AppLocalizationsHu extends AppLocalizations {
       'Térképek letöltése offline használathoz';
 
   @override
+  String get settings_data_threeDMaps => '3D Maps';
+
+  @override
+  String get settings_data_threeDMaps_subtitle =>
+      'Manage cached swissBATHY3D and other bathymetry data';
+
+  @override
   String get settings_data_restore => 'Visszaállítás';
 
   @override
@@ -22930,8 +23037,8 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_summary_stat_totalTrips => 'Összes út';
 
   @override
-  String trips_summary_upcomingSubtitle(Object date, Object days) {
-    return '$date • $days nap múlva';
+  String trips_summary_upcomingSubtitle(Object date, Object countdown) {
+    return '$date • $countdown';
   }
 
   @override
@@ -23842,6 +23949,48 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_label_skip => 'Kihagyás';
+
+  @override
+  String get universalImport_label_fillPlanned => 'Tervezett merülés kitöltése';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Ennek a letöltésnek a hozzárendelése a tervezett merüléshez';
+
+  @override
+  String get universalImport_label_filledPlanned =>
+      'Kitöltött tervezett merülések';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Kitölti a tervezett merülést: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'A felvázolt profil lecserélődik.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Módosítás';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle =>
+      'Válassz tervezett merülést';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'Inkább új merülésként importálás';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Kitöltések visszavonása';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'Tervezett merülések visszaállítva';
+
+  @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Nem sikerült minden tervezett merülést visszaállítani. Próbáld újra.';
 
   @override
   String universalImport_label_taggedAs(Object tag) {
@@ -26542,6 +26691,165 @@ class AppLocalizationsHu extends AppLocalizations {
       'Még nincsenek tárolt tómélységadatok';
 
   @override
+  String get maps3d_appBar_title => '3D térképek';
+
+  @override
+  String get maps3d_section_all => 'Összes szolgáltató';
+
+  @override
+  String get maps3d_section_swissBathy => 'swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete => 'Adatok törlése';
+
+  @override
+  String get maps3d_swissBathy_delete_subtitle =>
+      'Törli a gyorsítótárazott swissBATHY3D mélységi csempéket és tórácsokat';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmTitle =>
+      'Törli a swissBATHY3D adatokat?';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      'A svájci tavak gyorsítótárazott mélységi adatai törlődnek, és egy merülőhely 3D nézetének következő megnyitásakor újratöltődnek.';
+
+  @override
+  String get maps3d_swissBathy_delete_done => 'A swissBATHY3D adatok törölve';
+
+  @override
+  String get maps3d_section_other => 'Egyéb szolgáltatók';
+
+  @override
+  String get maps3d_other_reset => 'A többi batimetriai adat visszaállítása';
+
+  @override
+  String get maps3d_other_reset_subtitle =>
+      'Törli az EMODnet, NOAA DEM, GMRT és ETOPO gyorsítótárazott adatait';
+
+  @override
+  String get maps3d_other_reset_confirmTitle =>
+      'Visszaállítja a többi batimetriai adatot?';
+
+  @override
+  String get maps3d_other_reset_confirmMessage =>
+      'A swissBATHY3D kivételével minden szolgáltató gyorsítótárazott adata törlődik, és egy merülőhely 3D nézetének következő megnyitásakor újratöltődik.';
+
+  @override
+  String get maps3d_other_reset_done =>
+      'A többi batimetriai adat visszaállítva';
+
+  @override
+  String get maps3d_reload => 'Térképadatok újratöltése';
+
+  @override
+  String get maps3d_reload_subtitle =>
+      'Törli az összes gyorsítótárazott batimetriai adatot, és minden merülőhelyhez újra letölti őket';
+
+  @override
+  String get maps3d_reload_confirmTitle =>
+      'Újratölti a térképadatokat minden merülőhelyhez?';
+
+  @override
+  String maps3d_reload_confirm_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülőhely töltődik újra.',
+      one: '1 merülőhely töltődik újra.',
+      zero: 'Egyetlen merülőhelynek sincs koordinátája.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_confirm_estimatedSize(String size) {
+    return 'Becsült letöltés: kb. $size';
+  }
+
+  @override
+  String get maps3d_reload_confirm_duration => 'Ez több percig is eltarthat.';
+
+  @override
+  String get maps3d_reload_confirm_wifiHint =>
+      'Sok adat letöltésére kerül sor, ezért gyors Wi-Fi kapcsolat ajánlott.';
+
+  @override
+  String get maps3d_reload_start => 'Újratöltés';
+
+  @override
+  String maps3d_reload_progress(int completed, int total) {
+    return '$completed/$total merülőhely';
+  }
+
+  @override
+  String get maps3d_reload_cancel => 'Mégse';
+
+  @override
+  String get maps3d_reload_done =>
+      'A térképadatok minden merülőhelyhez újratöltve';
+
+  @override
+  String get maps3d_reload_cancelled => 'Az újratöltés megszakítva';
+
+  @override
+  String get maps3d_reload_failed =>
+      'Az újratöltés sikertelen; előfordulhat, hogy egyes merülőhelyek nem töltődtek újra';
+
+  @override
+  String get maps3d_busy_notice =>
+      'Egy másik művelet fut a 3D térképek oldalon. Kérjük, várja meg, amíg befejeződik.';
+
+  @override
+  String maps3d_reload_remainingSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'kb. $count másodperc van hátra',
+      one: 'kb. 1 másodperc van hátra',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_remainingMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'kb. $count perc van hátra',
+      one: 'kb. 1 perc van hátra',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_warming(int index, int total, String name) {
+    return 'Előkészítés: $index/$total. tó ($name)';
+  }
+
+  @override
+  String maps3d_reload_elapsedSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count másodperce fut',
+      one: '1 másodperce fut',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_elapsedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count perce fut',
+      one: '1 perce fut',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get common_action_reparse => 'Újraelemzés';
 
   @override
@@ -27020,6 +27328,20 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_report_action => 'Médiajelentés exportálása';
+
+  @override
+  String get settings_mediaStorage_report_done => 'Médiajelentés exportálva';
+
+  @override
+  String get settings_mediaStorage_report_note =>
+      'A jelentés fájlútvonalakat és eszközneveket tartalmaz. Semmi sem kerül elküldésre.';
+
+  @override
+  String get settings_mediaStorage_report_running =>
+      'Médiajelentés készítése...';
+
+  @override
   String get settings_mediaStorage_verify_action => 'Könyvtár ellenőrzése';
 
   @override
@@ -27320,6 +27642,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dive3d_seascape_orbitView => '3D nézet';
 
   @override
+  String get dive3d_seascape_verticalExaggeration => 'Függőleges túlzás';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationReset =>
+      'Visszaállítás automatikusra';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationLabel => 'Mélység';
+
+  @override
   String get dive3d_seascape_appearance_surface => 'Terepfelszín';
 
   @override
@@ -27437,6 +27769,27 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get dive3d_seascape_noCoordinates =>
       'Ennek a helyszínnek nincsenek GPS-koordinátái';
+
+  @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
+  String dive3d_seascape_lodStageLabel(String stage, String span) {
+    return 'Level of detail: $stage ($span)';
+  }
+
+  @override
+  String get dive3d_seascape_lodStageOverview => 'Overview';
+
+  @override
+  String get dive3d_seascape_lodStageMedium => 'Medium';
+
+  @override
+  String get dive3d_seascape_lodStageFine => 'Fine';
+
+  @override
+  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
 
   @override
   String get dive3d_seascape_noData =>
@@ -28867,6 +29220,67 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Kvázibaleset rögzítése';
+
+  @override
+  String get diveLog_planned_chip => 'Tervezett';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'Tervezett merülés';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'Búvárkomputer-adatokra vár. Jelöld naplózottnak, ha komputer nélkül merültél.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'Naplózottnak jelölés';
+
+  @override
+  String get diveLog_planned_markedLogged => 'Naplózottnak jelölve';
+
+  @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Nem sikerült naplózottként megjelölni a merülést.';
+
+  @override
+  String get diveLog_mirror_dialogTitle =>
+      'Ezt a merülést egy másik profilban is naplózod?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Ezeknek a búvártársaknak van profiljuk ezen az eszközön. A merülés tervezett merülésként kerül a naplójukba, amíg a saját búvárkomputerük adatai ki nem töltik.';
+
+  @override
+  String get diveLog_mirror_log => 'Naplózás';
+
+  @override
+  String get diveLog_mirror_notNow => 'Most nem';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Naplózva: $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Tükrözött merülések eltávolítva';
+
+  @override
+  String get diveLog_mirror_undoFailed =>
+      'Nem sikerült eltávolítani a tükrözött merüléseket.';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Nem sikerült naplózni: $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Naplózás egy búvártárs profiljába';
+
+  @override
+  String get diveLog_detail_loggedWith => 'Naplózva vele';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned => 'a búvárkomputerére vár';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -37106,6 +37520,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'Tervezett merülés itt: $siteName';
+  }
+
+  @override
   String get enum_listViewMode_compact => 'Tömör';
 
   @override
@@ -39888,7 +40307,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_info_actionReveal => 'Megjelenítés a fájlkezelőben';
 
   @override
+  String get media_info_actionCopyDiagnostics => 'Diagnosztika másolása';
+
+  @override
   String get media_info_actionCopyPath => 'Hivatkozás másolása';
+
+  @override
+  String get media_info_diagnosticsCopied => 'Diagnosztika másolva';
 
   @override
   String get media_info_referenceCopied => 'Hivatkozás másolva';

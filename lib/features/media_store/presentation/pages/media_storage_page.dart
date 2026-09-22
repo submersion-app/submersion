@@ -12,6 +12,8 @@ import 'package:submersion/core/services/cloud_storage/s3/s3_credentials_store.d
 import 'package:submersion/core/services/cloud_storage/s3/s3_region.dart';
 import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_upload_quality_policy.dart';
+import 'package:submersion/core/utils/share_anchor.dart';
+import 'package:submersion/features/media/presentation/providers/media_health_providers.dart';
 import 'package:submersion/features/media_store/data/media_store_service.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -66,10 +68,11 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
   bool _secretVisible = false;
   bool _busy = false;
   bool _verifying = false;
+  bool _exporting = false;
 
   /// A sweep holds store/DB state a concurrent disconnect or backfill
   /// would race with; every connected-state action gates on both flags.
-  bool get _actionInFlight => _busy || _verifying;
+  bool get _actionInFlight => _busy || _verifying || _exporting;
   bool _syncConfigAvailable = false;
   CloudProviderType _selectedProvider = CloudProviderType.s3;
   // Null until loaded; the switches render only once values are known.
@@ -325,6 +328,30 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
       unawaited(runtime?.worker?.drain());
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Builds the whole-library health report and hands it to the exporter
+  /// (share sheet, or a save dialog where sharing is unsupported). Reads the
+  /// store through the side-effect-free adapter provider, so exporting never
+  /// starts a drain.
+  Future<void> _exportReport() async {
+    final l10n = context.l10n;
+    final anchor = shareAnchorFrom(context);
+    setState(() => _exporting = true);
+    try {
+      final report = await ref.read(mediaHealthReporterProvider).forLibrary();
+      await ref.read(textFileExporterProvider)(
+        report.toText(),
+        'submersion-media-report.txt',
+        'text/plain',
+        sharePositionOrigin: anchor,
+      );
+      if (mounted) _showSnack(l10n.settings_mediaStorage_report_done);
+    } catch (e) {
+      if (mounted) _showSnack('$e', isError: true);
+    } finally {
+      if (mounted) setState(() => _exporting = false);
     }
   }
 
@@ -848,6 +875,29 @@ class _MediaStoragePageState extends ConsumerState<MediaStoragePage> {
                 child: Text(l10n.settings_mediaStorage_action_disconnect),
               ),
             ],
+            // Outside the connected branch on purpose. The report describes
+            // local file and gallery rows as well as stored ones, and a
+            // device with no store attached is the one most likely to be
+            // diagnosing why its photos are not arriving. With nothing
+            // attached the store header and the per-row probe read "none"
+            // and "not probed", which is an answer, not a gap.
+            const SizedBox(height: 8),
+            FilledButton.tonal(
+              key: const Key('media-export-report'),
+              onPressed: _actionInFlight ? null : _exportReport,
+              child: Text(
+                _exporting
+                    ? l10n.settings_mediaStorage_report_running
+                    : l10n.settings_mediaStorage_report_action,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                l10n.settings_mediaStorage_report_note,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
           ],
         ),
       ),

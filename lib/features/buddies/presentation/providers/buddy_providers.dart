@@ -23,6 +23,23 @@ final buddyRepositoryProvider = Provider<BuddyRepository>((ref) {
   return BuddyRepository();
 });
 
+/// Self-invalidates on any change a buddy's dive count reads.
+///
+/// Two separate subscriptions on purpose, not one merged stream: an
+/// undebounced tick on `buddies` (a rename or favorite toggle should refresh
+/// instantly, matching how the button that triggered it reads its own
+/// state) plus [DiveRepository.watchDivesChangesWithBuddyLinks], which
+/// unions `dives` with the junction table `dive_buddies` and `buddies`
+/// again but debounced. A buddy link written by a sync pull touches only
+/// `dive_buddies` and never restamps the parent dive (#1769/#1915), so
+/// watching plain `dives` alone missed it (#2084).
+void _invalidateOnBuddyDiveChanges(Ref ref, BuddyRepository repository) {
+  ref.invalidateSelfWhen(repository.watchBuddiesChanges());
+  ref.invalidateSelfWhen(
+    ref.read(diveRepositoryProvider).watchDivesChangesWithBuddyLinks(),
+  );
+}
+
 /// All buddies provider (filtered by current diver).
 ///
 /// A one-shot read that self-invalidates whenever the `buddies` table changes
@@ -55,10 +72,7 @@ final allBuddiesWithDiveCountProvider =
       final validatedDiverId = await ref.watch(
         validatedCurrentDiverIdProvider.future,
       );
-      ref.invalidateSelfWhen(repository.watchBuddiesChanges());
-      ref.invalidateSelfWhen(
-        ref.read(diveRepositoryProvider).watchDivesChanges(),
-      );
+      _invalidateOnBuddyDiveChanges(ref, repository);
       return repository.getAllBuddiesWithDiveCount(diverId: validatedDiverId);
     });
 
@@ -73,7 +87,7 @@ final buddySearchWithDiveCountProvider =
       final validatedDiverId = await ref.watch(
         validatedCurrentDiverIdProvider.future,
       );
-      ref.invalidateSelfWhen(repository.watchBuddiesChanges());
+      _invalidateOnBuddyDiveChanges(ref, repository);
       return repository.getAllBuddiesWithDiveCount(
         diverId: validatedDiverId,
         query: query,
@@ -241,8 +255,7 @@ final buddyStatsProvider = FutureProvider.family<BuddyStats, String>((
   buddyId,
 ) async {
   final repository = ref.watch(buddyRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchBuddiesChanges());
-  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
+  _invalidateOnBuddyDiveChanges(ref, repository);
   return repository.getBuddyStats(buddyId);
 });
 
@@ -256,8 +269,7 @@ final diveIdsForBuddyProvider = FutureProvider.family<List<String>, String>((
   buddyId,
 ) async {
   final repository = ref.watch(buddyRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchBuddiesChanges());
-  ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
+  _invalidateOnBuddyDiveChanges(ref, repository);
   return repository.getDiveIdsForBuddy(buddyId);
 });
 

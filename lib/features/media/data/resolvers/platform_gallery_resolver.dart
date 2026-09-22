@@ -41,9 +41,27 @@ class PlatformGalleryResolver implements MediaSourceResolver {
   /// still safe in a Mac's or phone's library missing everywhere.
   final bool _hasPhotoLibrary;
 
-  static const _elsewhere = UnavailableData(
-    kind: UnavailableKind.fromOtherDevice,
-  );
+  /// Names the device a row was linked on, for the "From {device}"
+  /// placeholder. Consulted only when this host has no photo library.
+  final Future<String?> Function(String deviceId)? _deviceLabel;
+
+  Future<UnavailableData> _elsewhereFor(MediaItem item) async =>
+      UnavailableData(
+        kind: UnavailableKind.fromOtherDevice,
+        originDeviceLabel: await _labelFor(item.originDeviceId),
+      );
+
+  /// The published name of [deviceId], or null when unknown or unset. Never
+  /// throws: a label is decoration on a placeholder, not a verdict.
+  Future<String?> _labelFor(String? deviceId) async {
+    final lookup = _deviceLabel;
+    if (deviceId == null || lookup == null) return null;
+    try {
+      return await lookup(deviceId);
+    } catch (_) {
+      return null;
+    }
+  }
 
   ///
   /// [assetReader] performs the byte and metadata reads once an id is
@@ -53,10 +71,12 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     GalleryThumbnailCache? thumbnailCache,
     bool hasPhotoLibrary = true,
     GalleryAssetReader? assetReader,
+    Future<String?> Function(String deviceId)? deviceLabel,
   }) : _resolutionService = resolutionService,
        _thumbnailCache = thumbnailCache ?? GalleryThumbnailCache(),
        _hasPhotoLibrary = hasPhotoLibrary,
-       _reader = assetReader ?? const PhotoManagerAssetReader();
+       _reader = assetReader ?? const PhotoManagerAssetReader(),
+       _deviceLabel = deviceLabel;
 
   final GalleryAssetReader _reader;
 
@@ -72,7 +92,7 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     if (assetId == null || assetId.isEmpty) {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
-    if (!_hasPhotoLibrary) return _elsewhere;
+    if (!_hasPhotoLibrary) return _elsewhereFor(item);
     final resolution = await _resolutionService.resolveAssetId(item);
     // Checked before the id, because accessDenied always carries a null id
     // and collapsing the two would report "your photo is gone" for what is
@@ -100,7 +120,7 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     if (assetId == null || assetId.isEmpty) {
       return const UnavailableData(kind: UnavailableKind.notFound);
     }
-    if (!_hasPhotoLibrary) return _elsewhere;
+    if (!_hasPhotoLibrary) return _elsewhereFor(item);
     final width = target.width.toInt();
     final height = target.height.toInt();
     // Keyed by size as well as item: the grid and the viewer ask for different

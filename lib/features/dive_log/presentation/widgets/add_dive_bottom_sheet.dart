@@ -12,12 +12,15 @@ import 'package:submersion/l10n/l10n_extension.dart';
 void showAddDiveBottomSheet({
   required BuildContext context,
   required VoidCallback onLogManually,
+  required VoidCallback onPlanDive,
 }) {
   showModalBottomSheet(
     context: context,
     builder: (sheetContext) {
+      // Scrolls so a short viewport (or a large text scale) never clips
+      // the last entries; the sheet's own height cap stays in charge.
       return SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -40,6 +43,21 @@ void showAddDiveBottomSheet({
                 onTap: () {
                   Navigator.pop(sheetContext);
                   onLogManually();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.event_available_outlined),
+                title: Text(
+                  sheetContext.l10n.diveLog_listPage_bottomSheet_planDive,
+                ),
+                subtitle: Text(
+                  sheetContext
+                      .l10n
+                      .diveLog_listPage_bottomSheet_planDiveSubtitle,
+                ),
+                onTap: () {
+                  Navigator.pop(sheetContext);
+                  onPlanDive();
                 },
               ),
               ListTile(

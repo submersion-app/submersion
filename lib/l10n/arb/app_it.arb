@@ -688,6 +688,18 @@
   "buddies_field_notesHint": "Aggiungi note su questo compagno...",
   "buddies_field_phone": "Telefono",
   "buddies_field_phoneHint": "+39 123 456 7890",
+  "buddies_field_linkedProfile": "Profilo collegato",
+  "buddies_field_linkedProfileHint": "Il profilo locale che corrisponde a questo compagno",
+  "buddies_field_linkedProfileNone": "Non collegato",
+  "buddies_linkedProfile_chip": "Profilo",
+  "buddies_linkedProfile_link": "Collega",
+  "buddies_linkedProfile_notNow": "Non ora",
+  "buddies_linkedProfile_openBuddy": "Apri compagno",
+  "buddies_linkedProfile_pickerTitle": "Collega a un profilo",
+  "buddies_linkedProfile_refusedSelf": "Un compagno non può essere collegato al proprio profilo.",
+  "buddies_linkedProfile_refusedTaken": "{buddyName} è già collegato a questo profilo.",
+  "buddies_linkedProfile_suggestion": "{name} ha un profilo qui. Collegare questo compagno a esso?",
+  "buddies_merge_refusedDifferentLinks": "Questi compagni sono collegati a profili diversi. Unisci prima i profili.",
   "buddies_label_agency": "Agenzia",
   "buddies_label_diveCount": "{count, plural, =1{1 immersione} other{{count} immersioni}}",
   "buddies_label_level": "Livello",
@@ -2328,6 +2340,10 @@
   "ocrImport_scanPage_engineMissing": "Il riconoscimento del testo non è disponibile. Installa Tesseract per scansionare i logbook cartacei (ad esempio: sudo apt install tesseract-ocr).",
   "ocrImport_editPage_photoAttachFailed": "L'immersione è stata salvata, ma non è stato possibile allegare la pagina scansionata",
   "diveLog_listPage_bottomSheet_logManually": "Registra immersione manualmente",
+  "diveLog_listPage_bottomSheet_planDive": "Pianifica un'immersione",
+  "diveLog_listPage_bottomSheet_planDiveSubtitle": "Inserisci i dettagli ora, aggiungi i dati del computer più tardi",
+  "diveLog_edit_planned_switch": "Immersione pianificata",
+  "diveLog_edit_planned_switchSubtitle": "In attesa dei dati del computer. Nessun numero di immersione finché non viene registrata.",
   "diveLog_listPage_compactTitle": "Immersioni",
   "diveLog_listPage_errorLoading": "Errore: {error}",
   "diveLog_listPage_fab_addDive": "Aggiungi immersione",
@@ -3084,7 +3100,8 @@
   "diveSites_filter_apply": "Applica filtri",
   "diveSites_filter_cancel": "Annulla",
   "diveSites_filter_clearAll": "Cancella tutto",
-  "diveSites_filter_country_hint": "es. Thailandia",
+  "diveSites_filter_allCountries": "Tutti i paesi",
+  "diveSites_filter_allRegions": "Tutte le regioni",
   "diveSites_filter_country_label": "Paese",
   "diveSites_filter_depth_max_label": "Max",
   "diveSites_filter_depth_min_label": "Min",
@@ -3095,8 +3112,9 @@
   "diveSites_filter_option_hasDives_subtitle": "Mostra solo i siti con immersioni registrate",
   "diveSites_filter_option_hasDives_title": "Ha immersioni",
   "diveSites_filter_rating_starsPlus": "{count}+ stelle",
-  "diveSites_filter_region_hint": "es. Phuket",
   "diveSites_filter_region_label": "Regione",
+  "diveSites_filter_searchCountriesHint": "Digita per cercare i paesi",
+  "diveSites_filter_searchRegionsHint": "Digita per cercare le regioni",
   "diveSites_filter_section_depthRange": "Intervallo profondita massima",
   "diveSites_filter_section_difficulty": "Difficolta",
   "diveSites_filter_section_location": "Localita",
@@ -3708,6 +3726,7 @@
   "enum_logCategory_serial": "Seriale",
   "enum_logCategory_libdc": "libdc",
   "enum_logCategory_database": "Database",
+  "enum_logCategory_media": "Media",
   "enum_visibility_excellent": "Eccellente (>30m / >100ft)",
   "enum_visibility_good": "Buona (15-30m / 50-100ft)",
   "enum_visibility_moderate": "Moderata (5-15m / 15-50ft)",
@@ -4029,6 +4048,8 @@
   "equipment_list_emptyState_addPrompt": "Aggiungi la tua attrezzatura subacquea per monitorare utilizzo e manutenzione",
   "equipment_list_emptyState_filterText_equipment": "attrezzatura",
   "equipment_list_emptyState_filterText_serviceDue": "attrezzatura che necessita manutenzione",
+  "equipment_list_emptyState_filterText_serviceDueSoon": "attrezzatura con manutenzione in scadenza",
+  "equipment_list_emptyState_filterText_serviceOverdue": "attrezzatura con manutenzione scaduta",
   "equipment_list_emptyState_filterText_status": "attrezzatura {status}",
   "equipment_list_emptyState_filterText_type": "attrezzatura {type}",
   "equipment_list_emptyState_noEquipment": "Nessuna {filterText}",
@@ -4036,9 +4057,13 @@
   "equipment_list_emptyState_noTagMatch": "Nessuna attrezzatura con questi tag",
   "equipment_list_emptyState_noTypeMatch": "Nessuna attrezzatura in questa categoria",
   "equipment_list_emptyState_serviceDueUpToDate": "Tutta la tua attrezzatura e in regola con la manutenzione!",
+  "equipment_list_emptyState_serviceNoneDueSoon": "Nulla necessita manutenzione a breve.",
+  "equipment_list_emptyState_serviceNoneOverdue": "Nulla ha la manutenzione scaduta.",
   "equipment_list_errorLoading": "Errore nel caricamento dell'attrezzatura: {error}",
   "equipment_list_filterAll": "Tutta l'attrezzatura",
   "equipment_list_filterServiceDue": "Manutenzione prevista",
+  "equipment_list_filterServiceDueSoon": "In scadenza",
+  "equipment_list_filterServiceOverdue": "Scaduta",
   "equipment_list_typeFilterAll": "Tutti i tipi",
   "equipment_list_filterTooltip": "Filtra attrezzatura",
   "equipment_list_activeFilter_clear": "Cancella",
@@ -5308,6 +5333,8 @@
   "settings_data_import_failed": "Operazione non riuscita: {error}",
   "settings_data_offlineMaps": "Mappe offline",
   "settings_data_offlineMaps_subtitle": "Scarica mappe per l'uso offline",
+  "settings_data_threeDMaps": "3D Maps",
+  "settings_data_threeDMaps_subtitle": "Manage cached swissBATHY3D and other bathymetry data",
   "settings_data_restore": "Ripristina",
   "settings_data_restoreDialog_cancel": "Annulla",
   "settings_data_restoreDialog_content": "Attenzione: il ripristino da un backup sostituirà TUTTI i dati attuali con i dati del backup. Questa azione non può essere annullata.\n\nSei sicuro di voler continuare?",
@@ -6769,7 +6796,7 @@
   "trips_summary_stat_liveaboards": "Crociere subacquee",
   "trips_summary_stat_totalDives": "Immersioni totali",
   "trips_summary_stat_totalTrips": "Viaggi totali",
-  "trips_summary_upcomingSubtitle": "{date} • Tra {days} giorni",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "In programma",
   "trips_type_dayTrip": "Gita giornaliera",
   "trips_type_liveaboard": "Barca",
@@ -6908,6 +6935,17 @@
   "universalImport_label_selectCorrectSource": "Non è giusto? Seleziona la fonte corretta:",
   "universalImport_label_selected": "{count} selezionati",
   "universalImport_label_skip": "Salta",
+  "universalImport_label_fillPlanned": "Completa immersione pianificata",
+  "universalImport_compare_fillPlannedSubtitle": "Collega questo download all'immersione che hai pianificato",
+  "universalImport_label_filledPlanned": "Immersioni pianificate completate",
+  "universalImport_fillPlanned_target": "Completa l'immersione pianificata: {label}",
+  "universalImport_fillPlanned_replacesProfile": "Il profilo abbozzato verrà sostituito.",
+  "universalImport_fillPlanned_change": "Cambia",
+  "universalImport_fillPlanned_pickerTitle": "Scegli un'immersione pianificata",
+  "universalImport_fillPlanned_importAsNew": "Importa invece come nuova immersione",
+  "universalImport_fillPlanned_undo": "Annulla completamenti",
+  "universalImport_fillPlanned_undone": "Immersioni pianificate ripristinate",
+  "universalImport_fillPlanned_undoFailed": "Impossibile ripristinare tutte le immersioni pianificate. Riprova.",
   "universalImport_label_taggedAs": "Taggato come: {tag}",
   "universalImport_label_unknownDate": "Data sconosciuta",
   "universalImport_label_unnamed": "Senza nome",
@@ -7269,10 +7307,10 @@
   "dashboard_hero_todayLabel": "oggi!",
   "dashboard_semantics_statsBar": "Riepilogo statistiche immersioni",
   "dashboard_gauges_addGear": "Aggiungi attrezzatura",
-  "dashboard_gauges_gearOk": "{name} OK",
-  "dashboard_gauges_gearDueIn": "{name} in scadenza tra {days}g",
-  "dashboard_gauges_gearOverdue": "{name} in ritardo",
-  "dashboard_gauges_gearOverdueMore": "+{count} altri in ritardo",
+  "dashboard_gauges_gearDueIn": "{name} manutenzione tra {days}g",
+  "dashboard_gauges_gearOverdue": "{name} manutenzione scaduta",
+  "dashboard_gauges_gearOverdueCount": "{count, plural, =1{{count} attrezzo con manutenzione scaduta} other{{count} attrezzi con manutenzione scaduta}}",
+  "dashboard_gauges_gearDueSoonCount": "{count, plural, =1{{count} attrezzo con manutenzione tra {days}g} other{{count} attrezzi con manutenzione tra {days}g}}",
   "dashboard_gauges_insuranceOk": "Assicurazione OK",
   "dashboard_gauges_insuranceExpires": "Assicurazione scade il {date}",
   "dashboard_gauges_insuranceExpired": "Assicurazione scaduta",
@@ -7519,6 +7557,104 @@
   "settings_appearance_bathymetryRefresh_resultUpToDate": "Tutti i dati sono aggiornati",
   "settings_appearance_bathymetryRefresh_resultFailed": "Impossibile controllare tutti i dati; i valori esistenti sono stati mantenuti",
   "settings_appearance_bathymetryRefresh_resultNothingCached": "Nessun dato di profondità dei laghi ancora memorizzato",
+  "maps3d_appBar_title": "Mappe 3D",
+  "maps3d_section_all": "Tutti i fornitori",
+  "maps3d_section_swissBathy": "swissBATHY3D",
+  "maps3d_swissBathy_delete": "Elimina dati",
+  "maps3d_swissBathy_delete_subtitle": "Rimuove i tasselli di profondità e le griglie dei laghi swissBATHY3D dalla cache",
+  "maps3d_swissBathy_delete_confirmTitle": "Eliminare i dati swissBATHY3D?",
+  "maps3d_swissBathy_delete_confirmMessage": "I dati di profondità in cache dei laghi svizzeri verranno rimossi e ricaricati alla prossima apertura della vista 3D di un sito di immersione.",
+  "maps3d_swissBathy_delete_done": "Dati swissBATHY3D eliminati",
+  "maps3d_section_other": "Altri fornitori",
+  "maps3d_other_reset": "Ripristina i dati batimetrici rimanenti",
+  "maps3d_other_reset_subtitle": "Rimuove dalla cache i dati di EMODnet, NOAA DEM, GMRT ed ETOPO",
+  "maps3d_other_reset_confirmTitle": "Ripristinare i dati batimetrici rimanenti?",
+  "maps3d_other_reset_confirmMessage": "I dati in cache di tutti i fornitori diversi da swissBATHY3D verranno rimossi e ricaricati alla prossima apertura della vista 3D di un sito di immersione.",
+  "maps3d_other_reset_done": "Dati batimetrici rimanenti ripristinati",
+  "maps3d_reload": "Ricarica i dati delle mappe",
+  "maps3d_reload_subtitle": "Elimina tutti i dati batimetrici in cache e li scarica di nuovo per ogni sito di immersione",
+  "maps3d_reload_confirmTitle": "Ricaricare i dati delle mappe per tutti i siti di immersione?",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{Nessun sito di immersione ha una posizione.} =1{Verrà ricaricato 1 sito di immersione.} other{Verranno ricaricati {count} siti di immersione.}}",
+  "@maps3d_reload_confirm_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_confirm_estimatedSize": "Download stimato: circa {size}",
+  "@maps3d_reload_confirm_estimatedSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_confirm_duration": "L'operazione può richiedere diversi minuti.",
+  "maps3d_reload_confirm_wifiHint": "Verranno scaricati molti dati; si consiglia una connessione Wi-Fi veloce.",
+  "maps3d_reload_start": "Ricarica",
+  "maps3d_reload_progress": "{completed} di {total} siti di immersione",
+  "@maps3d_reload_progress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_cancel": "Annulla",
+  "maps3d_reload_done": "Dati delle mappe ricaricati per tutti i siti di immersione",
+  "maps3d_reload_cancelled": "Ricarica annullata",
+  "maps3d_reload_failed": "Ricarica non riuscita; alcuni siti di immersione potrebbero non essere stati ricaricati",
+  "maps3d_busy_notice": "È in corso un'altra azione Mappe 3D. Attendi il completamento.",
+  "maps3d_reload_remainingSeconds": "{count, plural, =1{circa 1 secondo rimanente} other{circa {count} secondi rimanenti}}",
+  "@maps3d_reload_remainingSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_remainingMinutes": "{count, plural, =1{circa 1 minuto rimanente} other{circa {count} minuti rimanenti}}",
+  "@maps3d_reload_remainingMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_warming": "Preparazione: lago {index} di {total} ({name})",
+  "@maps3d_reload_warming": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_elapsedSeconds": "{count, plural, =1{in esecuzione da 1 secondo} other{in esecuzione da {count} secondi}}",
+  "@maps3d_reload_elapsedSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_elapsedMinutes": "{count, plural, =1{in esecuzione da 1 minuto} other{in esecuzione da {count} minuti}}",
+  "@maps3d_reload_elapsedMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settings_appearance_mapStyle_openStreetMap": "Mappa stradale",
   "settings_appearance_mapStyle_openTopoMap": "Topografica",
   "universalImport_bulk_replaceSourceAll": "Sostituisci tutto ({count})",
@@ -7646,6 +7782,10 @@
   "settings_mediaStorage_transfers_suspended_subtitle": "Questo dispositivo e l'archivio cloud non concordano più su quale archivio sia in uso. Riconnettere l'archivio multimediale adotta quello che il cloud contiene ora.",
   "settings_mediaStorage_transfers_queued": "{count} in coda",
   "settings_mediaStorage_transfers_waitingRetry": "{count} in attesa di riprovare",
+  "settings_mediaStorage_report_action": "Esporta rapporto media",
+  "settings_mediaStorage_report_done": "Rapporto media esportato",
+  "settings_mediaStorage_report_note": "Il rapporto elenca percorsi dei file e nomi dei dispositivi. Non viene inviato nulla.",
+  "settings_mediaStorage_report_running": "Creazione del rapporto media...",
   "settings_mediaStorage_verify_action": "Verifica libreria",
   "settings_mediaStorage_verify_running": "Verifica della libreria multimediale...",
   "settings_mediaStorage_verify_summary": "Controllati {checked} oggetti nel cloud ({originals, plural, =1{1 originale} other{{originals} originali}}, {thumbs, plural, =1{1 miniatura} other{{thumbs} miniature}}, {renditions, plural, =1{1 versione compressa} other{{renditions} versioni compresse}}): {removed} orfani rimossi, {repaired} riparazioni in coda, {aborted} caricamenti obsoleti annullati",
@@ -7751,6 +7891,12 @@
   "@dive3d_seascape_chartView": {},
   "dive3d_seascape_orbitView": "Vista 3D",
   "@dive3d_seascape_orbitView": {},
+  "dive3d_seascape_verticalExaggeration": "Esagerazione verticale",
+  "@dive3d_seascape_verticalExaggeration": {},
+  "dive3d_seascape_verticalExaggerationReset": "Ripristina automatico",
+  "@dive3d_seascape_verticalExaggerationReset": {},
+  "dive3d_seascape_verticalExaggerationLabel": "Profondità",
+  "@dive3d_seascape_verticalExaggerationLabel": {},
   "dive3d_seascape_appearance_surface": "Superficie del terreno",
   "@dive3d_seascape_appearance_surface": {},
   "dive3d_seascape_appearance_surfaceDepth": "Colori di profondità",
@@ -7829,6 +7975,18 @@
   "@dive3d_seascape_siteTitle": {},
   "dive3d_seascape_seafloorSource": "Fondale: {source} (~{resolution} m)",
   "@dive3d_seascape_seafloorSource": {},
+  "dive3d_seascape_detailLimitReached": "This is the most detail available for this location",
+  "@dive3d_seascape_detailLimitReached": {},
+  "dive3d_seascape_lodStageLabel": "Level of detail: {stage} ({span})",
+  "@dive3d_seascape_lodStageLabel": {},
+  "dive3d_seascape_lodStageOverview": "Overview",
+  "@dive3d_seascape_lodStageOverview": {},
+  "dive3d_seascape_lodStageMedium": "Medium",
+  "@dive3d_seascape_lodStageMedium": {},
+  "dive3d_seascape_lodStageFine": "Fine",
+  "@dive3d_seascape_lodStageFine": {},
+  "dive3d_seascape_lodStageSuperFine": "Super-fine",
+  "@dive3d_seascape_lodStageSuperFine": {},
   "dive3d_seascape_noCoordinates": "Questo sito non ha coordinate GPS",
   "@dive3d_seascape_noCoordinates": {},
   "dive3d_seascape_noData": "Nessuna batimetria disponibile per questa posizione",
@@ -8637,6 +8795,23 @@
   "safetyHub_incidentsLink": "Registro dei quasi incidenti",
   "safetyHub_incidentsLink_subtitle": "Note private e non punitive sugli incidenti",
   "diveLog_detail_menu_logNearMiss": "Registra quasi incidente",
+  "diveLog_planned_chip": "Pianificata",
+  "diveLog_planned_bannerTitle": "Immersione pianificata",
+  "diveLog_planned_bannerBody": "In attesa dei dati del computer. Segnala come registrata se hai immerso senza computer.",
+  "diveLog_detail_menu_markLogged": "Segna come registrata",
+  "diveLog_planned_markedLogged": "Segnata come registrata",
+  "diveLog_planned_markLoggedFailed": "Impossibile contrassegnare l'immersione come registrata.",
+  "diveLog_mirror_dialogTitle": "Registrare questa immersione anche in un altro profilo?",
+  "diveLog_mirror_dialogBody": "Questi compagni hanno un profilo su questo dispositivo. L'immersione viene aggiunta ai loro registri come immersione pianificata finché i dati del loro computer non la completano.",
+  "diveLog_mirror_log": "Registra",
+  "diveLog_mirror_notNow": "Non ora",
+  "diveLog_mirror_snackbar": "Registrata per {names}",
+  "diveLog_mirror_undone": "Immersioni speculari rimosse",
+  "diveLog_mirror_undoFailed": "Impossibile rimuovere le immersioni speculari.",
+  "diveLog_mirror_failed": "Impossibile registrare per {names}",
+  "diveLog_detail_menu_logForBuddy": "Registra nel profilo di un compagno",
+  "diveLog_detail_loggedWith": "Registrata con",
+  "diveLog_detail_loggedWithPlanned": "in attesa del loro computer subacqueo",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 quasi incidente collegato a questa immersione} other{{count} quasi incidenti collegati a questa immersione}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {
@@ -11266,6 +11441,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "Intervallo di profondità ({unit})",
   "diveLog_filter_sectionDiveComputer": "Computer subacqueo",
   "diveLog_listPage_semanticsDiveAtSite": "Immersione {diveNumber} presso {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "Immersione pianificata a {siteName}",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "Compatta",
   "enum_listViewMode_dense": "Densa",
   "enum_listViewMode_detailed": "Dettagliata",
@@ -11932,7 +12115,9 @@
   "media_info_actionBackUpNow": "Esegui backup ora",
   "media_info_actionRetryUpload": "Riprova caricamento",
   "media_info_actionReveal": "Mostra nel gestore file",
+  "media_info_actionCopyDiagnostics": "Copia diagnostica",
   "media_info_actionCopyPath": "Copia riferimento",
+  "media_info_diagnosticsCopied": "Diagnostica copiata",
   "media_info_referenceCopied": "Riferimento copiato",
   "media_info_checkFound": "Sorgente trovata",
   "media_info_checkMissing": "Sorgente mancante",

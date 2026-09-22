@@ -9,6 +9,10 @@ import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 class Buddy extends Equatable {
   final String id;
   final String? diverId;
+
+  /// The local diver profile this buddy is (issue #2002). Null for a buddy
+  /// with no profile on this library. Not the owner: that is [diverId].
+  final String? linkedDiverId;
   final String name;
   final String? email;
   final String? phone;
@@ -32,6 +36,7 @@ class Buddy extends Equatable {
   const Buddy({
     required this.id,
     this.diverId,
+    this.linkedDiverId,
     required this.name,
     this.email,
     this.phone,
@@ -97,6 +102,7 @@ class Buddy extends Equatable {
   Buddy copyWith({
     String? id,
     String? diverId,
+    String? linkedDiverId,
     String? name,
     String? email,
     String? phone,
@@ -113,6 +119,7 @@ class Buddy extends Equatable {
     return Buddy(
       id: id ?? this.id,
       diverId: diverId ?? this.diverId,
+      linkedDiverId: linkedDiverId ?? this.linkedDiverId,
       name: name ?? this.name,
       email: email ?? this.email,
       phone: phone ?? this.phone,
@@ -138,6 +145,7 @@ class Buddy extends Equatable {
     return Buddy(
       id: id,
       diverId: diverId,
+      linkedDiverId: linkedDiverId,
       name: name,
       email: email,
       phone: phone,
@@ -153,10 +161,34 @@ class Buddy extends Equatable {
     );
   }
 
+  /// Create a copy with the profile link removed. [copyWith] keeps the
+  /// current value on a null argument, so clearing needs its own method,
+  /// as [clearPhoto] does for the photo.
+  Buddy clearLinkedDiver() {
+    return Buddy(
+      id: id,
+      diverId: diverId,
+      linkedDiverId: null,
+      name: name,
+      email: email,
+      phone: phone,
+      certificationLevel: certificationLevel,
+      certificationAgency: certificationAgency,
+      certificationTitle: certificationTitle,
+      photoPath: photoPath,
+      photo: photo,
+      notes: notes,
+      isFavorite: isFavorite,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+    );
+  }
+
   @override
   List<Object?> get props => [
     id,
     diverId,
+    linkedDiverId,
     name,
     email,
     phone,

@@ -324,26 +324,42 @@ final equipmentTripIdsProvider = FutureProvider.family<List<String>, String>((
   return repository.getTripIdsForEquipment(equipmentId);
 });
 
-/// Active gear with at least one service clock due soon or overdue, worst
-/// first.
+/// Active gear whose service is due, narrowed to one severity, worst first.
 ///
 /// Reads the service ledger (schedules + records + usage, via
-/// [dueClocksProvider]), the same source as the row badges and the dashboard
-/// card. It must not go back to the legacy `EquipmentItem.isServiceDue`
-/// getter: that reads `serviceIntervalDays`, a column the v122/v131
-/// migrations copied into the ledger and no in-app editor writes any more, so
-/// the Service Due filter always came back empty while the badges said
-/// overdue.
-final serviceDueEquipmentProvider = FutureProvider<List<EquipmentItem>>((
-  ref,
-) async {
-  final due = await ref.watch(dueClocksProvider.future);
-  final items = <String, EquipmentItem>{};
-  for (final clock in due) {
-    items.putIfAbsent(clock.item.id, () => clock.item);
-  }
-  return items.values.toList();
-});
+/// [equipmentWorstClockProvider]), the same source as the row badges and the
+/// dashboard card. It must not go back to the legacy
+/// `EquipmentItem.isServiceDue` getter: that reads `serviceIntervalDays`, a
+/// column the v122/v131 migrations copied into the ledger and no in-app
+/// editor writes any more, so the Service Due filter always came back empty
+/// while the badges said overdue.
+///
+/// Each item is bucketed by its WORST clock, so it appears under exactly one
+/// severity. That is what lets the home strip's counted chips promise a
+/// number and land on a list with that many rows in it.
+final serviceDueEquipmentProvider =
+    FutureProvider.family<List<EquipmentItem>, ServiceDueFilter>((
+      ref,
+      filter,
+    ) async {
+      // Keyed by item and already sorted overdue-first, so the result needs
+      // no de-duplication of its own.
+      final worst = await ref.watch(equipmentWorstClockProvider.future);
+      return [
+        for (final clock in worst.values)
+          if (matchesServiceDue(filter, clock.status.severity)) clock.item,
+      ];
+    });
+
+/// Whether a clock of [severity] belongs in the [filter]'s list.
+bool matchesServiceDue(
+  ServiceDueFilter filter,
+  ServiceClockSeverity severity,
+) => switch (filter) {
+  ServiceDueFilter.any => severity != ServiceClockSeverity.ok,
+  ServiceDueFilter.overdue => severity == ServiceClockSeverity.overdue,
+  ServiceDueFilter.dueSoon => severity == ServiceClockSeverity.dueSoon,
+};
 
 /// Equipment search provider
 final equipmentSearchProvider =

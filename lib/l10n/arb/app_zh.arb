@@ -791,6 +791,18 @@
   "buddies_field_notesHint": "添加关于此潜伴的备注...",
   "buddies_field_phone": "电话",
   "buddies_field_phoneHint": "+1 (555) 123-4567",
+  "buddies_field_linkedProfile": "关联的个人资料",
+  "buddies_field_linkedProfileHint": "此潜伴对应的本地个人资料",
+  "buddies_field_linkedProfileNone": "未关联",
+  "buddies_linkedProfile_chip": "个人资料",
+  "buddies_linkedProfile_link": "关联",
+  "buddies_linkedProfile_notNow": "暂不",
+  "buddies_linkedProfile_openBuddy": "打开潜伴",
+  "buddies_linkedProfile_pickerTitle": "关联到个人资料",
+  "buddies_linkedProfile_refusedSelf": "潜伴不能关联到自己的个人资料。",
+  "buddies_linkedProfile_refusedTaken": "{buddyName} 已关联到此个人资料。",
+  "buddies_linkedProfile_suggestion": "{name} 在此有个人资料。将此潜伴关联到它吗？",
+  "buddies_merge_refusedDifferentLinks": "这些潜伴关联到不同的个人资料。请先合并个人资料。",
   "buddies_instructorPicker_label": "来自潜伴的教练",
   "buddies_instructorPicker_none": "无（手动输入）",
   "buddies_label_agency": "机构",
@@ -2563,6 +2575,10 @@
   "ocrImport_scanPage_engineMissing": "文本识别不可用。请安装 Tesseract 以扫描纸质日志（例如：sudo apt install tesseract-ocr）。",
   "ocrImport_editPage_photoAttachFailed": "潜水已保存，但附加扫描页面失败",
   "diveLog_listPage_bottomSheet_logManually": "手动记录潜水",
+  "diveLog_listPage_bottomSheet_planDive": "计划一次潜水",
+  "diveLog_listPage_bottomSheet_planDiveSubtitle": "现在填写详情，稍后添加潜水电脑数据",
+  "diveLog_edit_planned_switch": "计划的潜水",
+  "diveLog_edit_planned_switchSubtitle": "等待潜水电脑数据。记录前没有潜水编号。",
   "diveLog_listPage_compactTitle": "潜水",
   "diveLog_listPage_errorLoading": "错误：{error}",
   "diveLog_listPage_fab_addDive": "添加潜水",
@@ -3319,7 +3335,8 @@
   "diveSites_filter_apply": "应用筛选",
   "diveSites_filter_cancel": "取消",
   "diveSites_filter_clearAll": "清除全部",
-  "diveSites_filter_country_hint": "例如，泰国",
+  "diveSites_filter_allCountries": "所有国家",
+  "diveSites_filter_allRegions": "所有地区",
   "diveSites_filter_country_label": "国家",
   "diveSites_filter_depth_max_label": "最大",
   "diveSites_filter_depth_min_label": "最小",
@@ -3330,8 +3347,9 @@
   "diveSites_filter_option_hasDives_subtitle": "仅显示有潜水记录的潜水点",
   "diveSites_filter_option_hasDives_title": "有潜水记录",
   "diveSites_filter_rating_starsPlus": "{count}+ 颗星",
-  "diveSites_filter_region_hint": "例如，普吉岛",
   "diveSites_filter_region_label": "地区",
+  "diveSites_filter_searchCountriesHint": "输入以搜索国家",
+  "diveSites_filter_searchRegionsHint": "输入以搜索地区",
   "diveSites_filter_section_depthRange": "最大深度范围",
   "diveSites_filter_section_difficulty": "难度",
   "diveSites_filter_section_location": "位置",
@@ -3955,6 +3973,7 @@
   "enum_logCategory_serial": "串口",
   "enum_logCategory_libdc": "libdc",
   "enum_logCategory_database": "数据库",
+  "enum_logCategory_media": "媒体",
   "enum_visibility_excellent": "极好 (>30m / >100ft)",
   "enum_visibility_good": "良好 (15-30m / 50-100ft)",
   "enum_visibility_moderate": "一般 (5-15m / 15-50ft)",
@@ -4276,6 +4295,8 @@
   "equipment_list_emptyState_addPrompt": "添加您的潜水装备以追踪使用情况和维护",
   "equipment_list_emptyState_filterText_equipment": "装备",
   "equipment_list_emptyState_filterText_serviceDue": "需要维护的装备",
+  "equipment_list_emptyState_filterText_serviceDueSoon": "即将需要维护的装备",
+  "equipment_list_emptyState_filterText_serviceOverdue": "维护已逾期的装备",
   "equipment_list_emptyState_filterText_status": "{status} 装备",
   "equipment_list_emptyState_filterText_type": "{type} 装备",
   "equipment_list_emptyState_noEquipment": "没有{filterText}",
@@ -4283,9 +4304,13 @@
   "equipment_list_emptyState_noTagMatch": "没有带这些标签的装备",
   "equipment_list_emptyState_noTypeMatch": "此类别中没有装备",
   "equipment_list_emptyState_serviceDueUpToDate": "您的所有装备维护都已是最新状态！",
+  "equipment_list_emptyState_serviceNoneDueSoon": "近期没有装备需要维护。",
+  "equipment_list_emptyState_serviceNoneOverdue": "没有装备维护逾期。",
   "equipment_list_errorLoading": "加载装备出错：{error}",
   "equipment_list_filterAll": "全部装备",
   "equipment_list_filterServiceDue": "需要维护",
+  "equipment_list_filterServiceDueSoon": "即将到期",
+  "equipment_list_filterServiceOverdue": "已逾期",
   "equipment_list_typeFilterAll": "全部类型",
   "equipment_list_filterTooltip": "筛选装备",
   "equipment_list_activeFilter_clear": "清除",
@@ -5592,6 +5617,8 @@
   "settings_data_import_failed": "操作失败：{error}",
   "settings_data_offlineMaps": "离线地图",
   "settings_data_offlineMaps_subtitle": "下载地图以供离线使用",
+  "settings_data_threeDMaps": "3D Maps",
+  "settings_data_threeDMaps_subtitle": "Manage cached swissBATHY3D and other bathymetry data",
   "settings_data_restore": "恢复",
   "settings_data_restoreDialog_cancel": "取消",
   "settings_data_restoreDialog_content": "警告：从备份恢复将用备份数据替换所有当前数据。此操作无法撤销。确定要继续吗？",
@@ -7061,7 +7088,7 @@
   "trips_summary_stat_liveaboards": "船宿",
   "trips_summary_stat_totalDives": "总计潜水",
   "trips_summary_stat_totalTrips": "总计旅行",
-  "trips_summary_upcomingSubtitle": "{date} • {days} 天后",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "即将到来",
   "trips_type_dayTrip": "一日游",
   "trips_type_liveaboard": "船宿",
@@ -7200,6 +7227,17 @@
   "universalImport_label_selectCorrectSource": "不正确？请选择正确的来源：",
   "universalImport_label_selected": "{count} 已选择",
   "universalImport_label_skip": "跳过",
+  "universalImport_label_fillPlanned": "填充计划的潜水",
+  "universalImport_compare_fillPlannedSubtitle": "将此下载附加到您计划的潜水",
+  "universalImport_label_filledPlanned": "已填充的计划潜水",
+  "universalImport_fillPlanned_target": "填充计划的潜水：{label}",
+  "universalImport_fillPlanned_replacesProfile": "其草绘的剖面将被替换。",
+  "universalImport_fillPlanned_change": "更改",
+  "universalImport_fillPlanned_pickerTitle": "选择一次计划的潜水",
+  "universalImport_fillPlanned_importAsNew": "改为作为新潜水导入",
+  "universalImport_fillPlanned_undo": "撤销填充",
+  "universalImport_fillPlanned_undone": "已恢复计划的潜水",
+  "universalImport_fillPlanned_undoFailed": "无法恢复所有计划的潜水。请重试。",
   "universalImport_label_taggedAs": "标记为：{tag}",
   "universalImport_label_unknownDate": "未知日期",
   "universalImport_label_unnamed": "未命名",
@@ -7269,10 +7307,10 @@
   "dashboard_hero_todayLabel": "今天！",
   "dashboard_semantics_statsBar": "潜水统计摘要",
   "dashboard_gauges_addGear": "添加装备",
-  "dashboard_gauges_gearOk": "{name} 正常",
   "dashboard_gauges_gearDueIn": "{name} {days}天后需保养",
   "dashboard_gauges_gearOverdue": "{name} 保养逾期",
-  "dashboard_gauges_gearOverdueMore": "另有 {count} 项逾期",
+  "dashboard_gauges_gearOverdueCount": "{count, plural, other{{count} 件装备保养逾期}}",
+  "dashboard_gauges_gearDueSoonCount": "{count, plural, other{{count} 件装备 {days} 天后需保养}}",
   "dashboard_gauges_insuranceOk": "保险正常",
   "dashboard_gauges_insuranceExpires": "保险 {date} 到期",
   "dashboard_gauges_insuranceExpired": "保险已过期",
@@ -7519,6 +7557,104 @@
   "settings_appearance_bathymetryRefresh_resultUpToDate": "所有数据均为最新",
   "settings_appearance_bathymetryRefresh_resultFailed": "无法检查所有数据；已保留现有数值",
   "settings_appearance_bathymetryRefresh_resultNothingCached": "尚未缓存湖泊深度数据",
+  "maps3d_appBar_title": "3D 地图",
+  "maps3d_section_all": "所有数据源",
+  "maps3d_section_swissBathy": "swissBATHY3D",
+  "maps3d_swissBathy_delete": "删除数据",
+  "maps3d_swissBathy_delete_subtitle": "删除已缓存的 swissBATHY3D 深度瓦片和湖泊网格",
+  "maps3d_swissBathy_delete_confirmTitle": "删除 swissBATHY3D 数据？",
+  "maps3d_swissBathy_delete_confirmMessage": "已缓存的瑞士湖泊深度数据将被删除，并在下次打开潜水点的 3D 视图时重新加载。",
+  "maps3d_swissBathy_delete_done": "已删除 swissBATHY3D 数据",
+  "maps3d_section_other": "其他数据源",
+  "maps3d_other_reset": "重置其余测深数据",
+  "maps3d_other_reset_subtitle": "删除来自 EMODnet、NOAA DEM、GMRT 和 ETOPO 的缓存数据",
+  "maps3d_other_reset_confirmTitle": "重置其余测深数据？",
+  "maps3d_other_reset_confirmMessage": "除 swissBATHY3D 以外所有数据源的缓存数据将被删除，并在下次打开潜水点的 3D 视图时重新加载。",
+  "maps3d_other_reset_done": "已重置其余测深数据",
+  "maps3d_reload": "重新加载地图数据",
+  "maps3d_reload_subtitle": "删除所有已缓存的测深数据，并为每个潜水点重新下载",
+  "maps3d_reload_confirmTitle": "为所有潜水点重新加载地图数据？",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{没有潜水点带有位置信息。} =1{将重新加载 1 个潜水点。} other{将重新加载 {count} 个潜水点。}}",
+  "@maps3d_reload_confirm_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_confirm_estimatedSize": "预计下载量：约 {size}",
+  "@maps3d_reload_confirm_estimatedSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_confirm_duration": "此操作可能需要几分钟。",
+  "maps3d_reload_confirm_wifiHint": "将下载大量数据，建议使用快速的 Wi-Fi 连接。",
+  "maps3d_reload_start": "重新加载",
+  "maps3d_reload_progress": "共 {total} 个潜水点，已完成 {completed} 个",
+  "@maps3d_reload_progress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_cancel": "取消",
+  "maps3d_reload_done": "已为所有潜水点重新加载地图数据",
+  "maps3d_reload_cancelled": "已取消重新加载",
+  "maps3d_reload_failed": "重新加载失败，部分潜水点可能未重新加载",
+  "maps3d_busy_notice": "另一项 3D 地图操作正在运行，请等待其完成。",
+  "maps3d_reload_remainingSeconds": "{count, plural, =1{约剩 1 秒} other{约剩 {count} 秒}}",
+  "@maps3d_reload_remainingSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_remainingMinutes": "{count, plural, =1{约剩 1 分钟} other{约剩 {count} 分钟}}",
+  "@maps3d_reload_remainingMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_warming": "正在准备：第 {index} 个湖泊，共 {total} 个（{name}）",
+  "@maps3d_reload_warming": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_elapsedSeconds": "{count, plural, =1{已运行 1 秒} other{已运行 {count} 秒}}",
+  "@maps3d_reload_elapsedSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_elapsedMinutes": "{count, plural, =1{已运行 1 分钟} other{已运行 {count} 分钟}}",
+  "@maps3d_reload_elapsedMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settings_appearance_mapStyle_openStreetMap": "街道地图",
   "settings_appearance_mapStyle_openTopoMap": "地形图",
   "universalImport_bulk_replaceSourceAll": "全部替换（{count}）",
@@ -7646,6 +7782,10 @@
   "settings_mediaStorage_transfers_suspended_subtitle": "此设备与云存储对正在使用的存储库不再一致。重新连接媒体存储将采用云端当前保存的存储库。",
   "settings_mediaStorage_transfers_queued": "{count} 个排队中",
   "settings_mediaStorage_transfers_waitingRetry": "{count} 个等待重试",
+  "settings_mediaStorage_report_action": "导出媒体报告",
+  "settings_mediaStorage_report_done": "媒体报告已导出",
+  "settings_mediaStorage_report_note": "报告包含文件路径和设备名称。不会向任何地方发送。",
+  "settings_mediaStorage_report_running": "正在生成媒体报告...",
   "settings_mediaStorage_verify_action": "验证媒体库",
   "settings_mediaStorage_verify_running": "正在验证媒体库...",
   "settings_mediaStorage_verify_summary": "已检查 {checked} 个云端对象（{originals} 个原图、{thumbs} 个缩略图、{renditions} 个压缩版本）：移除 {removed} 个孤立文件，排队 {repaired} 个修复，中止 {aborted} 个过期上传",
@@ -7751,6 +7891,12 @@
   "@dive3d_seascape_chartView": {},
   "dive3d_seascape_orbitView": "3D 视图",
   "@dive3d_seascape_orbitView": {},
+  "dive3d_seascape_verticalExaggeration": "垂直夸张",
+  "@dive3d_seascape_verticalExaggeration": {},
+  "dive3d_seascape_verticalExaggerationReset": "重置为自动",
+  "@dive3d_seascape_verticalExaggerationReset": {},
+  "dive3d_seascape_verticalExaggerationLabel": "深度",
+  "@dive3d_seascape_verticalExaggerationLabel": {},
   "dive3d_seascape_appearance_surface": "地形表面",
   "@dive3d_seascape_appearance_surface": {},
   "dive3d_seascape_appearance_surfaceDepth": "深度配色",
@@ -7829,6 +7975,18 @@
   "@dive3d_seascape_siteTitle": {},
   "dive3d_seascape_seafloorSource": "海底：{source}（约{resolution}米）",
   "@dive3d_seascape_seafloorSource": {},
+  "dive3d_seascape_detailLimitReached": "This is the most detail available for this location",
+  "@dive3d_seascape_detailLimitReached": {},
+  "dive3d_seascape_lodStageLabel": "Level of detail: {stage} ({span})",
+  "@dive3d_seascape_lodStageLabel": {},
+  "dive3d_seascape_lodStageOverview": "Overview",
+  "@dive3d_seascape_lodStageOverview": {},
+  "dive3d_seascape_lodStageMedium": "Medium",
+  "@dive3d_seascape_lodStageMedium": {},
+  "dive3d_seascape_lodStageFine": "Fine",
+  "@dive3d_seascape_lodStageFine": {},
+  "dive3d_seascape_lodStageSuperFine": "Super-fine",
+  "@dive3d_seascape_lodStageSuperFine": {},
   "dive3d_seascape_noCoordinates": "该潜点没有GPS坐标",
   "@dive3d_seascape_noCoordinates": {},
   "dive3d_seascape_noData": "该位置没有可用的水深数据",
@@ -8637,6 +8795,23 @@
   "safetyHub_incidentsLink": "未遂事件日志",
   "safetyHub_incidentsLink_subtitle": "私密、非惩罚性的事件记录",
   "diveLog_detail_menu_logNearMiss": "记录未遂事件",
+  "diveLog_planned_chip": "计划中",
+  "diveLog_planned_bannerTitle": "计划的潜水",
+  "diveLog_planned_bannerBody": "等待潜水电脑数据。如果没有使用潜水电脑，请标记为已记录。",
+  "diveLog_detail_menu_markLogged": "标记为已记录",
+  "diveLog_planned_markedLogged": "已标记为已记录",
+  "diveLog_planned_markLoggedFailed": "无法将该潜水标记为已记录。",
+  "diveLog_mirror_dialogTitle": "也在其他个人资料中记录此次潜水？",
+  "diveLog_mirror_dialogBody": "这些潜伴在此设备上有个人资料。此次潜水将作为计划的潜水添加到他们的日志中，直到他们自己的潜水电脑数据填充为止。",
+  "diveLog_mirror_log": "记录",
+  "diveLog_mirror_notNow": "暂不",
+  "diveLog_mirror_snackbar": "已为 {names} 记录",
+  "diveLog_mirror_undone": "已移除镜像的潜水",
+  "diveLog_mirror_undoFailed": "无法移除镜像的潜水。",
+  "diveLog_mirror_failed": "无法为 {names} 记录",
+  "diveLog_detail_menu_logForBuddy": "记录到潜伴的个人资料",
+  "diveLog_detail_loggedWith": "一同记录",
+  "diveLog_detail_loggedWithPlanned": "等待其潜水电脑",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 起未遂事件与此次潜水关联} other{{count} 起未遂事件与此次潜水关联}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {
@@ -11266,6 +11441,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "深度范围（{unit}）",
   "diveLog_filter_sectionDiveComputer": "潜水电脑",
   "diveLog_listPage_semanticsDiveAtSite": "第 {diveNumber} 次潜水，地点 {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "在 {siteName} 的计划潜水",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "紧凑",
   "enum_listViewMode_dense": "密集",
   "enum_listViewMode_detailed": "详细",
@@ -11932,7 +12115,9 @@
   "media_info_actionBackUpNow": "立即备份",
   "media_info_actionRetryUpload": "重试上传",
   "media_info_actionReveal": "在文件管理器中显示",
+  "media_info_actionCopyDiagnostics": "复制诊断信息",
   "media_info_actionCopyPath": "复制引用",
+  "media_info_diagnosticsCopied": "诊断信息已复制",
   "media_info_referenceCopied": "引用已复制",
   "media_info_checkFound": "已找到源",
   "media_info_checkMissing": "源缺失",

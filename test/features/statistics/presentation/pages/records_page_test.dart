@@ -70,6 +70,20 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(seascapeAppearance: appearance);
 
   @override
+  Future<void> setSeascapeVerticalExaggerationOverride(
+    String siteId,
+    double? factor,
+  ) async {
+    final overrides = {...state.seascapeVerticalExaggerationOverrides};
+    if (factor == null) {
+      overrides.remove(siteId);
+    } else {
+      overrides[siteId] = factor;
+    }
+    state = state.copyWith(seascapeVerticalExaggerationOverrides: overrides);
+  }
+
+  @override
   Future<void> setChamberHidden(String chamberId, bool hidden) async {
     final ids = {...state.hiddenChamberIds};
     if (hidden) {

@@ -156,18 +156,23 @@ Widget host({
 
 void main() {
   final now = DateTime.now();
+  // Ages render as an exact calendar-day difference: parentDivesFrom
+  // truncates the install instant to its local calendar day, so an
+  // elapsed-time Duration that crosses a daylight-saving change lands on
+  // the previous day and the card reads "41 days ago" for a 40-day part.
+  final today = DateTime(now.year, now.month, now.day);
   final cell = child(
     'c1',
     'Cell 1',
     EquipmentType.o2Cell,
     slot: 1,
-    installed: now.subtract(const Duration(days: 40)),
+    installed: DateTime(today.year, today.month, today.day - 40),
   );
   final battery = child(
     'b1',
     'Handset battery',
     EquipmentType.battery,
-    installed: now.subtract(const Duration(days: 200)),
+    installed: DateTime(today.year, today.month, today.day - 200),
   );
 
   testWidgets('lists slot, age and the worst clock dot', (tester) async {
@@ -246,7 +251,7 @@ void main() {
       name: 'Spare cell',
       type: EquipmentType.o2Cell,
       parentEquipmentId: 'r1',
-      createdAt: now.subtract(const Duration(days: 12)),
+      createdAt: DateTime(today.year, today.month, today.day - 12),
     );
     await tester.pumpWidget(host(equipment: ccr, children: [bare]));
     await tester.pumpAndSettle();
@@ -311,7 +316,7 @@ void main() {
       'Spare cell',
       EquipmentType.o2Cell,
       slot: 0,
-      installed: now.subtract(const Duration(days: 40)),
+      installed: DateTime(today.year, today.month, today.day - 40),
     );
     await tester.pumpWidget(host(equipment: ccr, children: [odd]));
     await tester.pumpAndSettle();

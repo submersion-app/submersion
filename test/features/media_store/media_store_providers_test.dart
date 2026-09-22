@@ -1,4 +1,5 @@
 import 'package:drift/native.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,6 +51,40 @@ void main() {
       expect(await container.read(mediaStoreStatusHintProvider.future), isNull);
     },
   );
+
+  testWidgets('invalidating the attachment rebuilds the store adapter too', (
+    tester,
+  ) async {
+    // The runtime is built FROM the adapter, so invalidating the runtime
+    // alone would rebuild it around the store this device just left, and
+    // a diagnostics report would keep probing that store.
+    var adapterBuilds = 0;
+    late WidgetRef captured;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          attachedMediaObjectStoreProvider.overrideWith((ref) async {
+            adapterBuilds++;
+            return null;
+          }),
+        ],
+        child: Consumer(
+          builder: (context, ref, _) {
+            captured = ref;
+            ref.watch(attachedMediaObjectStoreProvider);
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(adapterBuilds, 1);
+
+    invalidateMediaStoreAttachment(captured);
+    await tester.pump();
+
+    expect(adapterBuilds, 2, reason: 'a stale adapter outlives a connect');
+  });
 
   test('the suspension provider reads false without a runtime', () async {
     final container = ProviderContainer(

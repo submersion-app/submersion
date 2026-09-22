@@ -688,6 +688,18 @@
   "buddies_field_notesHint": "הוסף הערות על חבר צוללים זה...",
   "buddies_field_phone": "טלפון",
   "buddies_field_phoneHint": "+972-50-123-4567",
+  "buddies_field_linkedProfile": "פרופיל מקושר",
+  "buddies_field_linkedProfileHint": "הפרופיל המקומי שהוא חבר צוללים זה",
+  "buddies_field_linkedProfileNone": "לא מקושר",
+  "buddies_linkedProfile_chip": "פרופיל",
+  "buddies_linkedProfile_link": "קישור",
+  "buddies_linkedProfile_notNow": "לא עכשיו",
+  "buddies_linkedProfile_openBuddy": "פתיחת חבר צוללים",
+  "buddies_linkedProfile_pickerTitle": "קישור לפרופיל",
+  "buddies_linkedProfile_refusedSelf": "לא ניתן לקשר חבר צוללים לפרופיל של עצמו.",
+  "buddies_linkedProfile_refusedTaken": "{buddyName} כבר מקושר לפרופיל זה.",
+  "buddies_linkedProfile_suggestion": "ל{name} יש פרופיל כאן. לקשר אליו את חבר הצוללים הזה?",
+  "buddies_merge_refusedDifferentLinks": "חברי צוללים אלה מקושרים לפרופילים שונים. יש למזג את הפרופילים תחילה.",
   "buddies_label_agency": "גוף הסמכה",
   "buddies_label_diveCount": "{count, plural, =1{צלילה אחת} other{{count} צלילות}}",
   "buddies_label_level": "רמה",
@@ -2328,6 +2340,10 @@
   "ocrImport_scanPage_engineMissing": "זיהוי טקסט אינו זמין. התקינו את Tesseract כדי לסרוק יומנים מנייר (לדוגמה: sudo apt install tesseract-ocr).",
   "ocrImport_editPage_photoAttachFailed": "הצלילה נשמרה, אך צירוף העמוד הסרוק נכשל",
   "diveLog_listPage_bottomSheet_logManually": "רישום צלילה ידנית",
+  "diveLog_listPage_bottomSheet_planDive": "תכנון צלילה",
+  "diveLog_listPage_bottomSheet_planDiveSubtitle": "מלאו את הפרטים עכשיו והוסיפו את נתוני מחשב הצלילה מאוחר יותר",
+  "diveLog_edit_planned_switch": "צלילה מתוכננת",
+  "diveLog_edit_planned_switchSubtitle": "ממתין לנתוני מחשב הצלילה. אין מספר צלילה עד שהיא נרשמת.",
   "diveLog_listPage_compactTitle": "צלילות",
   "diveLog_listPage_errorLoading": "שגיאה: {error}",
   "diveLog_listPage_fab_addDive": "הוספת צלילה",
@@ -3084,7 +3100,8 @@
   "diveSites_filter_apply": "החל מסננים",
   "diveSites_filter_cancel": "ביטול",
   "diveSites_filter_clearAll": "נקה הכל",
-  "diveSites_filter_country_hint": "לדוגמה, תאילנד",
+  "diveSites_filter_allCountries": "כל המדינות",
+  "diveSites_filter_allRegions": "כל האזורים",
   "diveSites_filter_country_label": "מדינה",
   "diveSites_filter_depth_max_label": "מקסימום",
   "diveSites_filter_depth_min_label": "מינימום",
@@ -3095,8 +3112,9 @@
   "diveSites_filter_option_hasDives_subtitle": "הצג רק אתרים עם צלילות רשומות",
   "diveSites_filter_option_hasDives_title": "יש צלילות",
   "diveSites_filter_rating_starsPlus": "{count}+ כוכבים",
-  "diveSites_filter_region_hint": "לדוגמה, פוקט",
   "diveSites_filter_region_label": "אזור",
+  "diveSites_filter_searchCountriesHint": "הקלד כדי לחפש מדינות",
+  "diveSites_filter_searchRegionsHint": "הקלד כדי לחפש אזורים",
   "diveSites_filter_section_depthRange": "טווח עומק מקסימלי",
   "diveSites_filter_section_difficulty": "רמת קושי",
   "diveSites_filter_section_location": "מיקום",
@@ -3708,6 +3726,7 @@
   "enum_logCategory_serial": "טורי",
   "enum_logCategory_libdc": "libdc",
   "enum_logCategory_database": "מסד נתונים",
+  "enum_logCategory_media": "מדיה",
   "enum_visibility_excellent": "מצוינת (>30m / >100ft)",
   "enum_visibility_good": "טובה (15-30m / 50-100ft)",
   "enum_visibility_moderate": "בינונית (5-15m / 15-50ft)",
@@ -4029,6 +4048,8 @@
   "equipment_list_emptyState_addPrompt": "הוסף את ציוד הצלילה שלך כדי לעקוב אחר שימוש וטיפול",
   "equipment_list_emptyState_filterText_equipment": "ציוד",
   "equipment_list_emptyState_filterText_serviceDue": "ציוד הדורש טיפול",
+  "equipment_list_emptyState_filterText_serviceDueSoon": "ציוד הדורש טיפול בקרוב",
+  "equipment_list_emptyState_filterText_serviceOverdue": "ציוד באיחור בטיפול",
   "equipment_list_emptyState_filterText_status": "ציוד {status}",
   "equipment_list_emptyState_filterText_type": "ציוד {type}",
   "equipment_list_emptyState_noEquipment": "אין {filterText}",
@@ -4036,9 +4057,13 @@
   "equipment_list_emptyState_noTagMatch": "אין ציוד עם תגיות אלה",
   "equipment_list_emptyState_noTypeMatch": "אין ציוד בקטגוריה זו",
   "equipment_list_emptyState_serviceDueUpToDate": "כל הציוד שלך מעודכן בטיפול!",
+  "equipment_list_emptyState_serviceNoneDueSoon": "שום דבר לא דורש טיפול בקרוב.",
+  "equipment_list_emptyState_serviceNoneOverdue": "שום דבר לא באיחור בטיפול.",
   "equipment_list_errorLoading": "שגיאה בטעינת ציוד: {error}",
   "equipment_list_filterAll": "כל הציוד",
   "equipment_list_filterServiceDue": "טיפול נדרש",
+  "equipment_list_filterServiceDueSoon": "בקרוב",
+  "equipment_list_filterServiceOverdue": "באיחור",
   "equipment_list_typeFilterAll": "כל הסוגים",
   "equipment_list_filterTooltip": "סינון ציוד",
   "equipment_list_activeFilter_clear": "נקה",
@@ -5414,6 +5439,8 @@
   "settings_data_import_failed": "הפעולה נכשלה: {error}",
   "settings_data_offlineMaps": "מפות לא מקוונות",
   "settings_data_offlineMaps_subtitle": "הורד מפות לשימוש לא מקוון",
+  "settings_data_threeDMaps": "3D Maps",
+  "settings_data_threeDMaps_subtitle": "Manage cached swissBATHY3D and other bathymetry data",
   "settings_data_restore": "שחזור",
   "settings_data_restoreDialog_cancel": "ביטול",
   "settings_data_restoreDialog_content": "אזהרה: שחזור מגיבוי יחליף את כל הנתונים הנוכחיים בנתוני הגיבוי. לא ניתן לבטל פעולה זו.\n\nהאם אתה בטוח שברצונך להמשיך?",
@@ -6875,7 +6902,7 @@
   "trips_summary_stat_liveaboards": "ספינות צלילה",
   "trips_summary_stat_totalDives": "סה\"כ צלילות",
   "trips_summary_stat_totalTrips": "סה\"כ טיולים",
-  "trips_summary_upcomingSubtitle": "{date} • בעוד {days} ימים",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "קרובים",
   "trips_type_dayTrip": "טיול יום",
   "trips_type_liveaboard": "סירת שהייה",
@@ -7014,6 +7041,17 @@
   "universalImport_label_selectCorrectSource": "לא נכון? בחר את המקור הנכון:",
   "universalImport_label_selected": "{count} נבחרו",
   "universalImport_label_skip": "דלג",
+  "universalImport_label_fillPlanned": "השלמת צלילה מתוכננת",
+  "universalImport_compare_fillPlannedSubtitle": "שיוך ההורדה הזו לצלילה שתכננתם",
+  "universalImport_label_filledPlanned": "צלילות מתוכננות שהושלמו",
+  "universalImport_fillPlanned_target": "משלים צלילה מתוכננת: {label}",
+  "universalImport_fillPlanned_replacesProfile": "הפרופיל המשורטט שלה יוחלף.",
+  "universalImport_fillPlanned_change": "שינוי",
+  "universalImport_fillPlanned_pickerTitle": "בחירת צלילה מתוכננת",
+  "universalImport_fillPlanned_importAsNew": "ייבוא כצלילה חדשה במקום",
+  "universalImport_fillPlanned_undo": "ביטול ההשלמות",
+  "universalImport_fillPlanned_undone": "צלילות מתוכננות שוחזרו",
+  "universalImport_fillPlanned_undoFailed": "לא ניתן היה לשחזר את כל הצלילות המתוכננות. נסו שוב.",
   "universalImport_label_taggedAs": "מתויג כ: {tag}",
   "universalImport_label_unknownDate": "תאריך לא ידוע",
   "universalImport_label_unnamed": "ללא שם",
@@ -7269,10 +7307,10 @@
   "dashboard_hero_todayLabel": "!היום",
   "dashboard_semantics_statsBar": "סיכום סטטיסטיקות צלילה",
   "dashboard_gauges_addGear": "הוסף ציוד",
-  "dashboard_gauges_gearOk": "{name} תקין",
   "dashboard_gauges_gearDueIn": "{name} דורש טיפול בעוד {days} ימים",
   "dashboard_gauges_gearOverdue": "{name} באיחור טיפול",
-  "dashboard_gauges_gearOverdueMore": "+{count} נוספים באיחור",
+  "dashboard_gauges_gearOverdueCount": "{count, plural, =1{פריט אחד באיחור בטיפול} other{{count} פריטים באיחור בטיפול}}",
+  "dashboard_gauges_gearDueSoonCount": "{count, plural, =1{פריט אחד דורש טיפול בעוד {days} ימים} other{{count} פריטים דורשים טיפול בעוד {days} ימים}}",
   "dashboard_gauges_insuranceOk": "ביטוח תקין",
   "dashboard_gauges_insuranceExpires": "הביטוח פג ב-{date}",
   "dashboard_gauges_insuranceExpired": "הביטוח פג תוקף",
@@ -7519,6 +7557,104 @@
   "settings_appearance_bathymetryRefresh_resultUpToDate": "כל הנתונים מעודכנים",
   "settings_appearance_bathymetryRefresh_resultFailed": "לא ניתן היה לבדוק את כל הנתונים; הערכים הקיימים נשמרו",
   "settings_appearance_bathymetryRefresh_resultNothingCached": "עדיין לא נשמרו נתוני עומק אגמים",
+  "maps3d_appBar_title": "מפות תלת-ממד",
+  "maps3d_section_all": "כל הספקים",
+  "maps3d_section_swissBathy": "swissBATHY3D",
+  "maps3d_swissBathy_delete": "מחיקת נתונים",
+  "maps3d_swissBathy_delete_subtitle": "מסיר אריחי עומק ורשתות אגמים של swissBATHY3D מהמטמון",
+  "maps3d_swissBathy_delete_confirmTitle": "למחוק את נתוני swissBATHY3D?",
+  "maps3d_swissBathy_delete_confirmMessage": "נתוני העומק השמורים במטמון עבור אגמים בשווייץ יימחקו וייטענו מחדש בפעם הבאה שתיפתח תצוגת התלת-ממד של אתר צלילה.",
+  "maps3d_swissBathy_delete_done": "נתוני swissBATHY3D נמחקו",
+  "maps3d_section_other": "ספקים אחרים",
+  "maps3d_other_reset": "איפוס נתוני הבתימטריה הנותרים",
+  "maps3d_other_reset_subtitle": "מסיר נתונים שמורים במטמון מ-EMODnet, NOAA DEM, GMRT ו-ETOPO",
+  "maps3d_other_reset_confirmTitle": "לאפס את נתוני הבתימטריה הנותרים?",
+  "maps3d_other_reset_confirmMessage": "נתונים שמורים במטמון מכל הספקים מלבד swissBATHY3D יימחקו וייטענו מחדש בפעם הבאה שתיפתח תצוגת התלת-ממד של אתר צלילה.",
+  "maps3d_other_reset_done": "נתוני הבתימטריה הנותרים אופסו",
+  "maps3d_reload": "טעינת נתוני המפות מחדש",
+  "maps3d_reload_subtitle": "מוחק את כל נתוני הבתימטריה השמורים במטמון ומוריד אותם מחדש עבור כל אתר צלילה",
+  "maps3d_reload_confirmTitle": "לטעון מחדש את נתוני המפות עבור כל אתרי הצלילה?",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{לאף אתר צלילה אין מיקום.} =1{אתר צלילה אחד ייטען מחדש.} other{{count} אתרי צלילה ייטענו מחדש.}}",
+  "@maps3d_reload_confirm_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_confirm_estimatedSize": "הורדה משוערת: כ-{size}",
+  "@maps3d_reload_confirm_estimatedSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_confirm_duration": "הפעולה עשויה להימשך כמה דקות.",
+  "maps3d_reload_confirm_wifiHint": "יורדו נתונים רבים, ולכן מומלץ חיבור Wi-Fi מהיר.",
+  "maps3d_reload_start": "טעינה מחדש",
+  "maps3d_reload_progress": "{completed} מתוך {total} אתרי צלילה",
+  "@maps3d_reload_progress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_cancel": "ביטול",
+  "maps3d_reload_done": "נתוני המפות נטענו מחדש עבור כל אתרי הצלילה",
+  "maps3d_reload_cancelled": "הטעינה מחדש בוטלה",
+  "maps3d_reload_failed": "הטעינה מחדש נכשלה; ייתכן שחלק מאתרי הצלילה לא נטענו מחדש",
+  "maps3d_busy_notice": "פעולה אחרת של מפות תלת-ממד פועלת כעת. יש להמתין עד לסיומה.",
+  "maps3d_reload_remainingSeconds": "{count, plural, =1{נותרה כשנייה אחת} other{נותרו כ-{count} שניות}}",
+  "@maps3d_reload_remainingSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_remainingMinutes": "{count, plural, =1{נותרה כדקה אחת} other{נותרו כ-{count} דקות}}",
+  "@maps3d_reload_remainingMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_warming": "בהכנה: אגם {index} מתוך {total} ({name})",
+  "@maps3d_reload_warming": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_elapsedSeconds": "{count, plural, =1{פועל כבר שנייה אחת} other{פועל כבר {count} שניות}}",
+  "@maps3d_reload_elapsedSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_elapsedMinutes": "{count, plural, =1{פועל כבר דקה אחת} other{פועל כבר {count} דקות}}",
+  "@maps3d_reload_elapsedMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settings_appearance_mapStyle_openStreetMap": "מפת רחובות",
   "settings_appearance_mapStyle_openTopoMap": "טופוגרפי",
   "universalImport_bulk_replaceSourceAll": "החלף הכול ({count})",
@@ -7646,6 +7782,10 @@
   "settings_mediaStorage_transfers_suspended_subtitle": "המכשיר הזה ואחסון הענן כבר לא מסכימים על המאגר שבשימוש. חיבור מחדש של אחסון המדיה מאמץ את המאגר שנמצא כעת בענן.",
   "settings_mediaStorage_transfers_queued": "{count} בתור",
   "settings_mediaStorage_transfers_waitingRetry": "{count} ממתינים לניסיון חוזר",
+  "settings_mediaStorage_report_action": "ייצוא דוח מדיה",
+  "settings_mediaStorage_report_done": "דוח המדיה יוצא",
+  "settings_mediaStorage_report_note": "הדוח מפרט נתיבי קבצים ושמות מכשירים. שום דבר לא נשלח.",
+  "settings_mediaStorage_report_running": "בונה את דוח המדיה...",
   "settings_mediaStorage_verify_action": "אימות הספרייה",
   "settings_mediaStorage_verify_running": "מאמת את ספריית המדיה...",
   "settings_mediaStorage_verify_summary": "נבדקו {checked} אובייקטים בענן ({originals, plural, =1{מקורי אחד} other{{originals} מקוריים}}, {thumbs, plural, =1{תמונה ממוזערת אחת} other{{thumbs} תמונות ממוזערות}}, {renditions, plural, =1{גרסה דחוסה אחת} other{{renditions} גרסאות דחוסות}}): הוסרו {removed} יתומים, {repaired} תיקונים נוספו לתור, {aborted} העלאות ישנות בוטלו",
@@ -7751,6 +7891,12 @@
   "@dive3d_seascape_chartView": {},
   "dive3d_seascape_orbitView": "תצוגת תלת-ממד",
   "@dive3d_seascape_orbitView": {},
+  "dive3d_seascape_verticalExaggeration": "הגזמה אנכית",
+  "@dive3d_seascape_verticalExaggeration": {},
+  "dive3d_seascape_verticalExaggerationReset": "איפוס לאוטומטי",
+  "@dive3d_seascape_verticalExaggerationReset": {},
+  "dive3d_seascape_verticalExaggerationLabel": "עומק",
+  "@dive3d_seascape_verticalExaggerationLabel": {},
   "dive3d_seascape_appearance_surface": "פני הקרקע",
   "@dive3d_seascape_appearance_surface": {},
   "dive3d_seascape_appearance_surfaceDepth": "צבעי עומק",
@@ -7829,6 +7975,18 @@
   "@dive3d_seascape_siteTitle": {},
   "dive3d_seascape_seafloorSource": "קרקעית הים: {source} (~{resolution} מ')",
   "@dive3d_seascape_seafloorSource": {},
+  "dive3d_seascape_detailLimitReached": "This is the most detail available for this location",
+  "@dive3d_seascape_detailLimitReached": {},
+  "dive3d_seascape_lodStageLabel": "Level of detail: {stage} ({span})",
+  "@dive3d_seascape_lodStageLabel": {},
+  "dive3d_seascape_lodStageOverview": "Overview",
+  "@dive3d_seascape_lodStageOverview": {},
+  "dive3d_seascape_lodStageMedium": "Medium",
+  "@dive3d_seascape_lodStageMedium": {},
+  "dive3d_seascape_lodStageFine": "Fine",
+  "@dive3d_seascape_lodStageFine": {},
+  "dive3d_seascape_lodStageSuperFine": "Super-fine",
+  "@dive3d_seascape_lodStageSuperFine": {},
   "dive3d_seascape_noCoordinates": "לאתר זה אין נקודות ציון GPS",
   "@dive3d_seascape_noCoordinates": {},
   "dive3d_seascape_noData": "אין נתוני עומק זמינים למיקום זה",
@@ -8637,6 +8795,23 @@
   "safetyHub_incidentsLink": "יומן כמעט-תאונות",
   "safetyHub_incidentsLink_subtitle": "הערות אירועים פרטיות ולא ענישתיות",
   "diveLog_detail_menu_logNearMiss": "רישום כמעט-תאונה",
+  "diveLog_planned_chip": "מתוכננת",
+  "diveLog_planned_bannerTitle": "צלילה מתוכננת",
+  "diveLog_planned_bannerBody": "ממתין לנתוני מחשב הצלילה. סמנו כנרשמה אם צללתם בלי מחשב.",
+  "diveLog_detail_menu_markLogged": "סימון כנרשמה",
+  "diveLog_planned_markedLogged": "סומנה כנרשמה",
+  "diveLog_planned_markLoggedFailed": "לא ניתן היה לסמן את הצלילה כרשומה.",
+  "diveLog_mirror_dialogTitle": "לרשום את הצלילה הזו גם בפרופיל אחר?",
+  "diveLog_mirror_dialogBody": "לחברי צוללים אלה יש פרופילים במכשיר זה. הצלילה מתווספת ליומן שלהם כצלילה מתוכננת עד שנתוני מחשב הצלילה שלהם ימלאו אותה.",
+  "diveLog_mirror_log": "רישום",
+  "diveLog_mirror_notNow": "לא עכשיו",
+  "diveLog_mirror_snackbar": "נרשמה עבור {names}",
+  "diveLog_mirror_undone": "צלילות משוכפלות הוסרו",
+  "diveLog_mirror_undoFailed": "לא ניתן היה להסיר את הצלילות המשוכפלות.",
+  "diveLog_mirror_failed": "לא ניתן היה לרשום עבור {names}",
+  "diveLog_detail_menu_logForBuddy": "רישום בפרופיל של חבר צוללים",
+  "diveLog_detail_loggedWith": "נרשמה עם",
+  "diveLog_detail_loggedWithPlanned": "ממתין למחשב הצלילה שלהם",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{כמעט-תאונה אחת מקושרת לצלילה זו} other{{count} כמעט-תאונות מקושרות לצלילה זו}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {
@@ -11266,6 +11441,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "טווח עומק ({unit})",
   "diveLog_filter_sectionDiveComputer": "מחשב צלילה",
   "diveLog_listPage_semanticsDiveAtSite": "צלילה {diveNumber} באתר {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "צלילה מתוכננת ב־{siteName}",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "קומפקטי",
   "enum_listViewMode_dense": "צפוף",
   "enum_listViewMode_detailed": "מפורט",
@@ -11932,7 +12115,9 @@
   "media_info_actionBackUpNow": "גבה עכשיו",
   "media_info_actionRetryUpload": "נסה להעלות שוב",
   "media_info_actionReveal": "הצג במנהל הקבצים",
+  "media_info_actionCopyDiagnostics": "העתק אבחון",
   "media_info_actionCopyPath": "העתק הפניה",
+  "media_info_diagnosticsCopied": "האבחון הועתק",
   "media_info_referenceCopied": "ההפניה הועתקה",
   "media_info_checkFound": "המקור נמצא",
   "media_info_checkMissing": "המקור חסר",

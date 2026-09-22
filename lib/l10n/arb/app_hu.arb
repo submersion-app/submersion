@@ -688,6 +688,18 @@
   "buddies_field_notesHint": "Írj jegyzeteket erről a búvártársról...",
   "buddies_field_phone": "Telefon",
   "buddies_field_phoneHint": "+36 30 123 4567",
+  "buddies_field_linkedProfile": "Kapcsolt profil",
+  "buddies_field_linkedProfileHint": "A helyi profil, amely ez a búvártárs",
+  "buddies_field_linkedProfileNone": "Nincs kapcsolva",
+  "buddies_linkedProfile_chip": "Profil",
+  "buddies_linkedProfile_link": "Kapcsolás",
+  "buddies_linkedProfile_notNow": "Most nem",
+  "buddies_linkedProfile_openBuddy": "Búvártárs megnyitása",
+  "buddies_linkedProfile_pickerTitle": "Kapcsolás profilhoz",
+  "buddies_linkedProfile_refusedSelf": "Egy búvártárs nem kapcsolható a saját profiljához.",
+  "buddies_linkedProfile_refusedTaken": "{buddyName} már ehhez a profilhoz van kapcsolva.",
+  "buddies_linkedProfile_suggestion": "{name} rendelkezik itt profillal. Kapcsoljuk hozzá ezt a búvártársat?",
+  "buddies_merge_refusedDifferentLinks": "Ezek a búvártársak különböző profilokhoz vannak kapcsolva. Először egyesítsd a profilokat.",
   "buddies_label_agency": "Szervezet",
   "buddies_label_diveCount": "{count, plural, =1{1 merülés} other{{count} merülés}}",
   "buddies_label_level": "Szint",
@@ -2328,6 +2340,10 @@
   "ocrImport_scanPage_engineMissing": "A szövegfelismerés nem érhető el. Telepítse a Tesseract-ot a papír naplók beolvasásához (például: sudo apt install tesseract-ocr).",
   "ocrImport_editPage_photoAttachFailed": "A merülés mentve, de a beolvasott oldal csatolása nem sikerült",
   "diveLog_listPage_bottomSheet_logManually": "Merülés manuális rögzítése",
+  "diveLog_listPage_bottomSheet_planDive": "Merülés tervezése",
+  "diveLog_listPage_bottomSheet_planDiveSubtitle": "Töltsd ki a részleteket most, a búvárkomputer adatait add hozzá később",
+  "diveLog_edit_planned_switch": "Tervezett merülés",
+  "diveLog_edit_planned_switchSubtitle": "Búvárkomputer-adatokra vár. Nincs merülésszám, amíg nincs naplózva.",
   "diveLog_listPage_compactTitle": "Merülések",
   "diveLog_listPage_errorLoading": "Hiba: {error}",
   "diveLog_listPage_fab_addDive": "Merülés hozzáadása",
@@ -3084,7 +3100,8 @@
   "diveSites_filter_apply": "Szűrők alkalmazása",
   "diveSites_filter_cancel": "Mégse",
   "diveSites_filter_clearAll": "Összes törlése",
-  "diveSites_filter_country_hint": "pl. Thaiföld",
+  "diveSites_filter_allCountries": "Összes ország",
+  "diveSites_filter_allRegions": "Összes régió",
   "diveSites_filter_country_label": "Ország",
   "diveSites_filter_depth_max_label": "Max",
   "diveSites_filter_depth_min_label": "Min",
@@ -3095,8 +3112,9 @@
   "diveSites_filter_option_hasDives_subtitle": "Csak rögzített merülésekkel rendelkező helyszínek mutatása",
   "diveSites_filter_option_hasDives_title": "Vannak merülések",
   "diveSites_filter_rating_starsPlus": "{count}+ csillag",
-  "diveSites_filter_region_hint": "pl. Phuket",
   "diveSites_filter_region_label": "Régió",
+  "diveSites_filter_searchCountriesHint": "Gépelj az országok kereséséhez",
+  "diveSites_filter_searchRegionsHint": "Gépelj a régiók kereséséhez",
   "diveSites_filter_section_depthRange": "Max mélység tartomány",
   "diveSites_filter_section_difficulty": "Nehezsseg",
   "diveSites_filter_section_location": "Helyszín",
@@ -3708,6 +3726,7 @@
   "enum_logCategory_serial": "Soros",
   "enum_logCategory_libdc": "libdc",
   "enum_logCategory_database": "Adatbázis",
+  "enum_logCategory_media": "Média",
   "enum_visibility_excellent": "Kitűnő (>30m / >100ft)",
   "enum_visibility_good": "Jó (15-30m / 50-100ft)",
   "enum_visibility_moderate": "Közepes (5-15m / 15-50ft)",
@@ -4029,6 +4048,8 @@
   "equipment_list_emptyState_addPrompt": "Adja hozzá búvárfelszerelését a használat és szerviz köveTéséhez",
   "equipment_list_emptyState_filterText_equipment": "felszerelés",
   "equipment_list_emptyState_filterText_serviceDue": "szervizre szoruló felszerelés",
+  "equipment_list_emptyState_filterText_serviceDueSoon": "hamarosan szervizre szoruló felszerelés",
+  "equipment_list_emptyState_filterText_serviceOverdue": "lejárt szervizű felszerelés",
   "equipment_list_emptyState_filterText_status": "{status} felszerelés",
   "equipment_list_emptyState_filterText_type": "{type} felszerelés",
   "equipment_list_emptyState_noEquipment": "Nincs {filterText}",
@@ -4036,9 +4057,13 @@
   "equipment_list_emptyState_noTagMatch": "Nincs felszerelés ezekkel a címkékkel",
   "equipment_list_emptyState_noTypeMatch": "Nincs felszerelés ebben a kategóriában",
   "equipment_list_emptyState_serviceDueUpToDate": "Minden felszerelése naprakész a szervizzel!",
+  "equipment_list_emptyState_serviceNoneDueSoon": "Semmi nem szorul hamarosan szervizre.",
+  "equipment_list_emptyState_serviceNoneOverdue": "Semminek sem járt le a szervize.",
   "equipment_list_errorLoading": "Hiba a felszerelés betöltésekor: {error}",
   "equipment_list_filterAll": "Összes felszerelés",
   "equipment_list_filterServiceDue": "Szerviz esedék",
+  "equipment_list_filterServiceDueSoon": "Hamarosan",
+  "equipment_list_filterServiceOverdue": "Lejárt",
   "equipment_list_typeFilterAll": "Összes típus",
   "equipment_list_filterTooltip": "Felszerelés szűrése",
   "equipment_list_activeFilter_clear": "Törlés",
@@ -5308,6 +5333,8 @@
   "settings_data_import_failed": "Művelet sikertelen: {error}",
   "settings_data_offlineMaps": "Offline térképek",
   "settings_data_offlineMaps_subtitle": "Térképek letöltése offline használathoz",
+  "settings_data_threeDMaps": "3D Maps",
+  "settings_data_threeDMaps_subtitle": "Manage cached swissBATHY3D and other bathymetry data",
   "settings_data_restore": "Visszaállítás",
   "settings_data_restoreDialog_cancel": "Mégse",
   "settings_data_restoreDialog_content": "Figyelmeztetés: A biztonsági mentésből való visszaállítás MINDEN jelenlegi adatot felülír a mentett adatokkal. Ez a művelet nem vonható vissza.\n\nBiztosan folytatja?",
@@ -6773,7 +6800,7 @@
   "trips_summary_stat_liveaboards": "Hajoszallasok",
   "trips_summary_stat_totalDives": "Összes merülés",
   "trips_summary_stat_totalTrips": "Összes út",
-  "trips_summary_upcomingSubtitle": "{date} • {days} nap múlva",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "Közelgő",
   "trips_type_dayTrip": "Napi túra",
   "trips_type_liveaboard": "Hajós",
@@ -6912,6 +6939,17 @@
   "universalImport_label_selectCorrectSource": "Nem helyes? Válaszd ki a megfelelő forrást:",
   "universalImport_label_selected": "{count} kiválasztva",
   "universalImport_label_skip": "Kihagyás",
+  "universalImport_label_fillPlanned": "Tervezett merülés kitöltése",
+  "universalImport_compare_fillPlannedSubtitle": "Ennek a letöltésnek a hozzárendelése a tervezett merüléshez",
+  "universalImport_label_filledPlanned": "Kitöltött tervezett merülések",
+  "universalImport_fillPlanned_target": "Kitölti a tervezett merülést: {label}",
+  "universalImport_fillPlanned_replacesProfile": "A felvázolt profil lecserélődik.",
+  "universalImport_fillPlanned_change": "Módosítás",
+  "universalImport_fillPlanned_pickerTitle": "Válassz tervezett merülést",
+  "universalImport_fillPlanned_importAsNew": "Inkább új merülésként importálás",
+  "universalImport_fillPlanned_undo": "Kitöltések visszavonása",
+  "universalImport_fillPlanned_undone": "Tervezett merülések visszaállítva",
+  "universalImport_fillPlanned_undoFailed": "Nem sikerült minden tervezett merülést visszaállítani. Próbáld újra.",
   "universalImport_label_taggedAs": "Címkézve mint: {tag}",
   "universalImport_label_unknownDate": "Ismeretlen dátum",
   "universalImport_label_unnamed": "Névtelen",
@@ -7269,10 +7307,10 @@
   "dashboard_hero_todayLabel": "ma!",
   "dashboard_semantics_statsBar": "Merülési statisztika összefoglaló",
   "dashboard_gauges_addGear": "Felszerelés hozzáadása",
-  "dashboard_gauges_gearOk": "{name} rendben",
   "dashboard_gauges_gearDueIn": "{name} szervize {days} nap múlva esedékes",
   "dashboard_gauges_gearOverdue": "{name} szervize lejárt",
-  "dashboard_gauges_gearOverdueMore": "+{count} további lejárt",
+  "dashboard_gauges_gearOverdueCount": "{count, plural, other{{count} eszköz szervize lejárt}}",
+  "dashboard_gauges_gearDueSoonCount": "{count, plural, other{{count} eszköz szervize {days} nap múlva esedékes}}",
   "dashboard_gauges_insuranceOk": "Biztosítás rendben",
   "dashboard_gauges_insuranceExpires": "A biztosítás lejár: {date}",
   "dashboard_gauges_insuranceExpired": "A biztosítás lejárt",
@@ -7519,6 +7557,104 @@
   "settings_appearance_bathymetryRefresh_resultUpToDate": "Minden adat naprakész",
   "settings_appearance_bathymetryRefresh_resultFailed": "Nem sikerült minden adatot ellenőrizni; a meglévő értékek megmaradtak",
   "settings_appearance_bathymetryRefresh_resultNothingCached": "Még nincsenek tárolt tómélységadatok",
+  "maps3d_appBar_title": "3D térképek",
+  "maps3d_section_all": "Összes szolgáltató",
+  "maps3d_section_swissBathy": "swissBATHY3D",
+  "maps3d_swissBathy_delete": "Adatok törlése",
+  "maps3d_swissBathy_delete_subtitle": "Törli a gyorsítótárazott swissBATHY3D mélységi csempéket és tórácsokat",
+  "maps3d_swissBathy_delete_confirmTitle": "Törli a swissBATHY3D adatokat?",
+  "maps3d_swissBathy_delete_confirmMessage": "A svájci tavak gyorsítótárazott mélységi adatai törlődnek, és egy merülőhely 3D nézetének következő megnyitásakor újratöltődnek.",
+  "maps3d_swissBathy_delete_done": "A swissBATHY3D adatok törölve",
+  "maps3d_section_other": "Egyéb szolgáltatók",
+  "maps3d_other_reset": "A többi batimetriai adat visszaállítása",
+  "maps3d_other_reset_subtitle": "Törli az EMODnet, NOAA DEM, GMRT és ETOPO gyorsítótárazott adatait",
+  "maps3d_other_reset_confirmTitle": "Visszaállítja a többi batimetriai adatot?",
+  "maps3d_other_reset_confirmMessage": "A swissBATHY3D kivételével minden szolgáltató gyorsítótárazott adata törlődik, és egy merülőhely 3D nézetének következő megnyitásakor újratöltődik.",
+  "maps3d_other_reset_done": "A többi batimetriai adat visszaállítva",
+  "maps3d_reload": "Térképadatok újratöltése",
+  "maps3d_reload_subtitle": "Törli az összes gyorsítótárazott batimetriai adatot, és minden merülőhelyhez újra letölti őket",
+  "maps3d_reload_confirmTitle": "Újratölti a térképadatokat minden merülőhelyhez?",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{Egyetlen merülőhelynek sincs koordinátája.} =1{1 merülőhely töltődik újra.} other{{count} merülőhely töltődik újra.}}",
+  "@maps3d_reload_confirm_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_confirm_estimatedSize": "Becsült letöltés: kb. {size}",
+  "@maps3d_reload_confirm_estimatedSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_confirm_duration": "Ez több percig is eltarthat.",
+  "maps3d_reload_confirm_wifiHint": "Sok adat letöltésére kerül sor, ezért gyors Wi-Fi kapcsolat ajánlott.",
+  "maps3d_reload_start": "Újratöltés",
+  "maps3d_reload_progress": "{completed}/{total} merülőhely",
+  "@maps3d_reload_progress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_cancel": "Mégse",
+  "maps3d_reload_done": "A térképadatok minden merülőhelyhez újratöltve",
+  "maps3d_reload_cancelled": "Az újratöltés megszakítva",
+  "maps3d_reload_failed": "Az újratöltés sikertelen; előfordulhat, hogy egyes merülőhelyek nem töltődtek újra",
+  "maps3d_busy_notice": "Egy másik művelet fut a 3D térképek oldalon. Kérjük, várja meg, amíg befejeződik.",
+  "maps3d_reload_remainingSeconds": "{count, plural, =1{kb. 1 másodperc van hátra} other{kb. {count} másodperc van hátra}}",
+  "@maps3d_reload_remainingSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_remainingMinutes": "{count, plural, =1{kb. 1 perc van hátra} other{kb. {count} perc van hátra}}",
+  "@maps3d_reload_remainingMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_warming": "Előkészítés: {index}/{total}. tó ({name})",
+  "@maps3d_reload_warming": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_elapsedSeconds": "{count, plural, =1{1 másodperce fut} other{{count} másodperce fut}}",
+  "@maps3d_reload_elapsedSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_elapsedMinutes": "{count, plural, =1{1 perce fut} other{{count} perce fut}}",
+  "@maps3d_reload_elapsedMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settings_appearance_mapStyle_openStreetMap": "Utcatérkép",
   "settings_appearance_mapStyle_openTopoMap": "Topográfiai",
   "universalImport_bulk_replaceSourceAll": "Mind cseréje ({count})",
@@ -7646,6 +7782,10 @@
   "settings_mediaStorage_transfers_suspended_subtitle": "Ez az eszköz és a felhőtároló már nem egyezik abban, melyik tárolót használják. A médiatároló újracsatlakoztatása a felhőben most található tárolót veszi át.",
   "settings_mediaStorage_transfers_queued": "{count} sorban áll",
   "settings_mediaStorage_transfers_waitingRetry": "{count} újrapróbálkozásra vár",
+  "settings_mediaStorage_report_action": "Médiajelentés exportálása",
+  "settings_mediaStorage_report_done": "Médiajelentés exportálva",
+  "settings_mediaStorage_report_note": "A jelentés fájlútvonalakat és eszközneveket tartalmaz. Semmi sem kerül elküldésre.",
+  "settings_mediaStorage_report_running": "Médiajelentés készítése...",
   "settings_mediaStorage_verify_action": "Könyvtár ellenőrzése",
   "settings_mediaStorage_verify_running": "Médiatár ellenőrzése...",
   "settings_mediaStorage_verify_summary": "{checked} felhőobjektum ellenőrizve ({originals} eredeti, {thumbs} bélyegkép, {renditions} tömörített változat): {removed} árva eltávolítva, {repaired} javítás sorba állítva, {aborted} elavult feltöltés megszakítva",
@@ -7751,6 +7891,12 @@
   "@dive3d_seascape_chartView": {},
   "dive3d_seascape_orbitView": "3D nézet",
   "@dive3d_seascape_orbitView": {},
+  "dive3d_seascape_verticalExaggeration": "Függőleges túlzás",
+  "@dive3d_seascape_verticalExaggeration": {},
+  "dive3d_seascape_verticalExaggerationReset": "Visszaállítás automatikusra",
+  "@dive3d_seascape_verticalExaggerationReset": {},
+  "dive3d_seascape_verticalExaggerationLabel": "Mélység",
+  "@dive3d_seascape_verticalExaggerationLabel": {},
   "dive3d_seascape_appearance_surface": "Terepfelszín",
   "@dive3d_seascape_appearance_surface": {},
   "dive3d_seascape_appearance_surfaceDepth": "Mélységszínek",
@@ -7829,6 +7975,18 @@
   "@dive3d_seascape_siteTitle": {},
   "dive3d_seascape_seafloorSource": "Tengerfenék: {source} (~{resolution} m)",
   "@dive3d_seascape_seafloorSource": {},
+  "dive3d_seascape_detailLimitReached": "This is the most detail available for this location",
+  "@dive3d_seascape_detailLimitReached": {},
+  "dive3d_seascape_lodStageLabel": "Level of detail: {stage} ({span})",
+  "@dive3d_seascape_lodStageLabel": {},
+  "dive3d_seascape_lodStageOverview": "Overview",
+  "@dive3d_seascape_lodStageOverview": {},
+  "dive3d_seascape_lodStageMedium": "Medium",
+  "@dive3d_seascape_lodStageMedium": {},
+  "dive3d_seascape_lodStageFine": "Fine",
+  "@dive3d_seascape_lodStageFine": {},
+  "dive3d_seascape_lodStageSuperFine": "Super-fine",
+  "@dive3d_seascape_lodStageSuperFine": {},
   "dive3d_seascape_noCoordinates": "Ennek a helyszínnek nincsenek GPS-koordinátái",
   "@dive3d_seascape_noCoordinates": {},
   "dive3d_seascape_noData": "Ehhez a helyhez nem érhető el batimetria",
@@ -8637,6 +8795,23 @@
   "safetyHub_incidentsLink": "Kvázibaleset-napló",
   "safetyHub_incidentsLink_subtitle": "Privát, nem büntető jellegű eseményjegyzetek",
   "diveLog_detail_menu_logNearMiss": "Kvázibaleset rögzítése",
+  "diveLog_planned_chip": "Tervezett",
+  "diveLog_planned_bannerTitle": "Tervezett merülés",
+  "diveLog_planned_bannerBody": "Búvárkomputer-adatokra vár. Jelöld naplózottnak, ha komputer nélkül merültél.",
+  "diveLog_detail_menu_markLogged": "Naplózottnak jelölés",
+  "diveLog_planned_markedLogged": "Naplózottnak jelölve",
+  "diveLog_planned_markLoggedFailed": "Nem sikerült naplózottként megjelölni a merülést.",
+  "diveLog_mirror_dialogTitle": "Ezt a merülést egy másik profilban is naplózod?",
+  "diveLog_mirror_dialogBody": "Ezeknek a búvártársaknak van profiljuk ezen az eszközön. A merülés tervezett merülésként kerül a naplójukba, amíg a saját búvárkomputerük adatai ki nem töltik.",
+  "diveLog_mirror_log": "Naplózás",
+  "diveLog_mirror_notNow": "Most nem",
+  "diveLog_mirror_snackbar": "Naplózva: {names}",
+  "diveLog_mirror_undone": "Tükrözött merülések eltávolítva",
+  "diveLog_mirror_undoFailed": "Nem sikerült eltávolítani a tükrözött merüléseket.",
+  "diveLog_mirror_failed": "Nem sikerült naplózni: {names}",
+  "diveLog_detail_menu_logForBuddy": "Naplózás egy búvártárs profiljába",
+  "diveLog_detail_loggedWith": "Naplózva vele",
+  "diveLog_detail_loggedWithPlanned": "a búvárkomputerére vár",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 kvázibaleset kapcsolódik ehhez a merüléshez} other{{count} kvázibaleset kapcsolódik ehhez a merüléshez}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {
@@ -11266,6 +11441,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "Mélységtartomány ({unit})",
   "diveLog_filter_sectionDiveComputer": "Búvárcomputer",
   "diveLog_listPage_semanticsDiveAtSite": "{diveNumber}. merülés itt: {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "Tervezett merülés itt: {siteName}",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "Tömör",
   "enum_listViewMode_dense": "Sűrű",
   "enum_listViewMode_detailed": "Részletes",
@@ -11932,7 +12115,9 @@
   "media_info_actionBackUpNow": "Mentés most",
   "media_info_actionRetryUpload": "Feltöltés újra",
   "media_info_actionReveal": "Megjelenítés a fájlkezelőben",
+  "media_info_actionCopyDiagnostics": "Diagnosztika másolása",
   "media_info_actionCopyPath": "Hivatkozás másolása",
+  "media_info_diagnosticsCopied": "Diagnosztika másolva",
   "media_info_referenceCopied": "Hivatkozás másolva",
   "media_info_checkFound": "A forrás megtalálható",
   "media_info_checkMissing": "A forrás hiányzik",

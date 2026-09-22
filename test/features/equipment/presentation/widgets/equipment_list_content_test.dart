@@ -123,7 +123,7 @@ Future<List<Override>> _buildPhoneOverrides({
     equipmentByStatusProvider.overrideWith((ref, status) => items),
     activeEquipmentProvider.overrideWith((ref) async => items),
     allEquipmentProvider.overrideWith((ref) async => items),
-    serviceDueEquipmentProvider.overrideWith((ref) async => serviceDue),
+    serviceDueEquipmentProvider.overrideWith((ref, _) async => serviceDue),
     equipmentListViewModeProvider.overrideWith((ref) => viewMode),
     equipmentTableConfigProvider.overrideWith(
       (ref) => _TestEquipTableConfigNotifier(_testConfig),
@@ -1732,7 +1732,7 @@ void main() {
             ),
             allEquipmentProvider.overrideWith((ref) async => ref.watch(source)),
             serviceDueEquipmentProvider.overrideWith(
-              (ref) async => const <EquipmentItem>[],
+              (ref, _) async => const <EquipmentItem>[],
             ),
             equipmentListViewModeProvider.overrideWith(
               (ref) => ListViewMode.detailed,

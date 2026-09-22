@@ -136,6 +136,44 @@ void main() {
       expect(out.single.params['seriesBar'], 215);
     });
 
+    test(
+      'a series that only starts logging long after the dive began is not flagged',
+      () {
+        // A rebreather O2 supply cylinder, logged only on addition: first
+        // sample at t=800s, well past pressureStartLookbackSeconds (#2222).
+        // The reported start pressure (200) comes from the source's own
+        // pairing/power-on metadata and has nothing to do with this sample.
+        final series = [
+          const QualityPressureSample(t: 800, bar: 180),
+          const QualityPressureSample(t: 6830, bar: 76),
+        ];
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 200, end: 76)]),
+          pressures: {'t1': series},
+        );
+        expect(
+          det.detect(ctx).where((f) => f.params['endpoint'] == 'start'),
+          isEmpty,
+        );
+      },
+    );
+
+    test('a mismatch within the start lookback window is still flagged', () {
+      final series = [
+        const QualityPressureSample(t: 60, bar: 215),
+        const QualityPressureSample(t: 2400, bar: 60),
+      ];
+      final ctx = makeContext(
+        dive: makeTestDive(tanks: [tank()]), // recorded start 200
+        pressures: {'t1': series},
+      );
+      final startMismatch = det
+          .detect(ctx)
+          .singleWhere((f) => f.params['endpoint'] == 'start');
+      expect(startMismatch.params['recordBar'], 200);
+      expect(startMismatch.params['seriesBar'], 215);
+    });
+
     test('mid-dive rise away from any switch is flagged', () {
       final series = [
         const QualityPressureSample(t: 0, bar: 200),
@@ -187,6 +225,156 @@ void main() {
       expect(endMismatch.params['recordBar'], 60);
       expect(endMismatch.params['seriesBar'], 80);
     });
+
+    // Shared shape for the two tests below: the diver is still underwater
+    // at t=1000 (110 bar), reaches the surface (depth <= 0.75 m) exactly at
+    // t=1200 with 102 bar, then the computer keeps recording for two more
+    // minutes while a rebreather's O2 supply bleeds down through its
+    // orifice, ending at 92 bar -- the exact shape the surfacing-pressure
+    // import fix (#1092) corrects the reported end pressure for.
+    final postSurfacingSamples = [
+      const QualitySample(t: 0, depth: 20),
+      const QualitySample(t: 1000, depth: 20),
+      const QualitySample(t: 1200, depth: 1.0),
+      const QualitySample(t: 1260, depth: 0.3),
+      const QualitySample(t: 1320, depth: 0.2),
+    ];
+    final postSurfacingSeries = [
+      const QualityPressureSample(t: 0, bar: 200),
+      const QualityPressureSample(t: 1000, bar: 110),
+      const QualityPressureSample(t: 1200, bar: 102),
+      const QualityPressureSample(t: 1260, bar: 97),
+      const QualityPressureSample(t: 1320, bar: 92),
+    ];
+
+    test(
+      'post-surfacing bleed-down tail matching the surfacing reading is not flagged',
+      () {
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 200, end: 102)]),
+          samples: postSurfacingSamples,
+          pressures: {'t1': postSurfacingSeries},
+        );
+        final out = det.detect(ctx);
+        expect(out.where((f) => f.params['endpoint'] == 'end'), isEmpty);
+      },
+    );
+
+    test(
+      'end pressure genuinely off from the surfacing reading is still flagged',
+      () {
+        final ctx = makeContext(
+          // Recorded end pressure matches neither the surfacing reading
+          // (102) nor the tail (92): a real anomaly, unrelated to bleed-down.
+          dive: makeTestDive(tanks: [tank(start: 200, end: 40)]),
+          samples: postSurfacingSamples,
+          pressures: {'t1': postSurfacingSeries},
+        );
+        final out = det.detect(ctx);
+        final endMismatch = out.singleWhere(
+          (f) => f.params['endpoint'] == 'end',
+        );
+        expect(endMismatch.params['recordBar'], 40);
+        expect(endMismatch.params['seriesBar'], 102);
+      },
+    );
+
+    // The end check drops out the same way the start check does: a reported
+    // endpoint is only compared against a sample near the moment it
+    // describes. The three series below carry no such sample, so no
+    // endmismatch may be raised for any of them.
+    test(
+      'a two-point tank series spanning the whole dive corroborates no end pressure',
+      () {
+        // Only a start and an end reading. The end reading sits past
+        // surfacing (t=290), in the tail #1092 exists to distrust, and the
+        // last pre-surfacing reading (t=0) is the whole dive away from the
+        // end. Neither describes the pressure at the surface.
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 200, end: 65)]),
+          samples: flatProfile(depth: 10, durationSeconds: 300),
+          pressures: {
+            't1': const [
+              QualityPressureSample(t: 0, bar: 200),
+              QualityPressureSample(t: 300, bar: 50),
+            ],
+          },
+        );
+        expect(
+          det.detect(ctx).where((f) => f.params['endpoint'] == 'end'),
+          isEmpty,
+        );
+      },
+    );
+
+    test('a series that stops long before surfacing corroborates no end '
+        'pressure', () {
+      // No post-surfacing tail at all: the transmitter dropped out at t=600
+      // and the diver surfaced at t=1190, so the last reading is ten minutes
+      // of breathing away from the pressure the cylinder held at the surface.
+      final ctx = makeContext(
+        dive: makeTestDive(tanks: [tank(start: 200, end: 60)]),
+        samples: flatProfile(depth: 20, durationSeconds: 1200),
+        pressures: {
+          't1': const [
+            QualityPressureSample(t: 0, bar: 200),
+            QualityPressureSample(t: 600, bar: 140),
+          ],
+        },
+      );
+      expect(
+        det.detect(ctx).where((f) => f.params['endpoint'] == 'end'),
+        isEmpty,
+      );
+    });
+
+    test(
+      'a series that begins after surfacing corroborates neither endpoint',
+      () {
+        // Every reading lands in the post-surfacing tail, so there is nothing
+        // at or before surfacing to read at all.
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 200, end: 60)]),
+          samples: flatProfile(depth: 10, durationSeconds: 300),
+          pressures: {
+            't1': const [
+              QualityPressureSample(t: 295, bar: 100),
+              QualityPressureSample(t: 400, bar: 90),
+            ],
+          },
+        );
+        expect(
+          det.detect(ctx).where((f) => f.params['endpoint'] != null),
+          isEmpty,
+        );
+      },
+    );
+
+    test(
+      'a reading inside the surfacing lookback is still compared, not the tail',
+      () {
+        // Surfacing is t=290 and the last pre-surfacing reading is t=200,
+        // inside pressureSurfacingLookbackSeconds: close enough to describe
+        // the end of the dive, so a genuine mismatch is still reported
+        // against that reading (70), never the tail (50).
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 200, end: 40)]),
+          samples: flatProfile(depth: 10, durationSeconds: 300),
+          pressures: {
+            't1': const [
+              QualityPressureSample(t: 0, bar: 200),
+              QualityPressureSample(t: 200, bar: 70),
+              QualityPressureSample(t: 300, bar: 50),
+            ],
+          },
+        );
+        final endMismatch = det
+            .detect(ctx)
+            .singleWhere((f) => f.params['endpoint'] == 'end');
+        expect(endMismatch.params['recordBar'], 40);
+        expect(endMismatch.params['seriesBar'], 70);
+      },
+    );
 
     test('a mid-dive rise coincident with a gas switch is suppressed', () {
       final series = [

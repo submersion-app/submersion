@@ -2437,6 +2437,24 @@ abstract class AppLocalizations {
   /// **'email@example.com'**
   String get buddies_field_emailHint;
 
+  /// No description provided for @buddies_field_linkedProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Linked profile'**
+  String get buddies_field_linkedProfile;
+
+  /// No description provided for @buddies_field_linkedProfileHint.
+  ///
+  /// In en, this message translates to:
+  /// **'The local profile this buddy is'**
+  String get buddies_field_linkedProfileHint;
+
+  /// No description provided for @buddies_field_linkedProfileNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not linked'**
+  String get buddies_field_linkedProfileNone;
+
   /// No description provided for @buddies_field_nameHint.
   ///
   /// In en, this message translates to:
@@ -2682,6 +2700,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Use'**
   String get buddies_linkText_useSuggestion;
+
+  /// No description provided for @buddies_linkedProfile_chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get buddies_linkedProfile_chip;
+
+  /// No description provided for @buddies_linkedProfile_link.
+  ///
+  /// In en, this message translates to:
+  /// **'Link'**
+  String get buddies_linkedProfile_link;
+
+  /// No description provided for @buddies_linkedProfile_notNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get buddies_linkedProfile_notNow;
+
+  /// No description provided for @buddies_linkedProfile_openBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Open buddy'**
+  String get buddies_linkedProfile_openBuddy;
+
+  /// No description provided for @buddies_linkedProfile_pickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Link to a profile'**
+  String get buddies_linkedProfile_pickerTitle;
+
+  /// No description provided for @buddies_linkedProfile_refusedSelf.
+  ///
+  /// In en, this message translates to:
+  /// **'A buddy cannot be linked to its own profile.'**
+  String get buddies_linkedProfile_refusedSelf;
+
+  /// No description provided for @buddies_linkedProfile_refusedTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'{buddyName} is already linked to this profile.'**
+  String buddies_linkedProfile_refusedTaken(String buddyName);
+
+  /// No description provided for @buddies_linkedProfile_suggestion.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} has a profile here. Link this buddy to it?'**
+  String buddies_linkedProfile_suggestion(String name);
+
+  /// No description provided for @buddies_merge_refusedDifferentLinks.
+  ///
+  /// In en, this message translates to:
+  /// **'These buddies are linked to different profiles. Merge the profiles first.'**
+  String get buddies_merge_refusedDifferentLinks;
 
   /// No description provided for @buddies_message_added.
   ///
@@ -6147,29 +6219,29 @@ abstract class AppLocalizations {
   /// **'Add gear'**
   String get dashboard_gauges_addGear;
 
-  /// No description provided for @dashboard_gauges_gearOk.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} OK'**
-  String dashboard_gauges_gearOk(String name);
-
   /// No description provided for @dashboard_gauges_gearDueIn.
   ///
   /// In en, this message translates to:
-  /// **'{name} due in {days}d'**
+  /// **'{name} service due in {days}d'**
   String dashboard_gauges_gearDueIn(String name, int days);
 
   /// No description provided for @dashboard_gauges_gearOverdue.
   ///
   /// In en, this message translates to:
-  /// **'{name} overdue'**
+  /// **'{name} service overdue'**
   String dashboard_gauges_gearOverdue(String name);
 
-  /// No description provided for @dashboard_gauges_gearOverdueMore.
+  /// No description provided for @dashboard_gauges_gearOverdueCount.
   ///
   /// In en, this message translates to:
-  /// **'+{count} more overdue'**
-  String dashboard_gauges_gearOverdueMore(int count);
+  /// **'{count, plural, one{{count} item overdue for service} other{{count} items overdue for service}}'**
+  String dashboard_gauges_gearOverdueCount(int count);
+
+  /// No description provided for @dashboard_gauges_gearDueSoonCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item due for service in {days}d} other{{count} items due for service in {days}d}}'**
+  String dashboard_gauges_gearDueSoonCount(int count, int days);
 
   /// No description provided for @dashboard_gauges_insuranceOk.
   ///
@@ -9441,6 +9513,18 @@ abstract class AppLocalizations {
   /// **'Tanks'**
   String get diveLog_edit_overline_tanks;
 
+  /// No description provided for @diveLog_edit_planned_switch.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dive'**
+  String get diveLog_edit_planned_switch;
+
+  /// No description provided for @diveLog_edit_planned_switchSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting dive computer data. No dive number until it is logged.'**
+  String get diveLog_edit_planned_switchSubtitle;
+
   /// Dive profile row placeholder when no profile exists; tapping opens the draw editor
   ///
   /// In en, this message translates to:
@@ -10928,6 +11012,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log Dive Manually'**
   String get diveLog_listPage_bottomSheet_logManually;
+
+  /// No description provided for @diveLog_listPage_bottomSheet_planDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan a dive'**
+  String get diveLog_listPage_bottomSheet_planDive;
+
+  /// No description provided for @diveLog_listPage_bottomSheet_planDiveSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill in the details now, add the dive computer data later'**
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle;
 
   /// No description provided for @diveLog_listPage_fab_addDive.
   ///
@@ -15705,11 +15801,17 @@ abstract class AppLocalizations {
   /// **'Clear All'**
   String get diveSites_filter_clearAll;
 
-  /// No description provided for @diveSites_filter_country_hint.
+  /// No description provided for @diveSites_filter_allCountries.
   ///
   /// In en, this message translates to:
-  /// **'e.g., Thailand'**
-  String get diveSites_filter_country_hint;
+  /// **'All countries'**
+  String get diveSites_filter_allCountries;
+
+  /// No description provided for @diveSites_filter_allRegions.
+  ///
+  /// In en, this message translates to:
+  /// **'All regions'**
+  String get diveSites_filter_allRegions;
 
   /// No description provided for @diveSites_filter_country_label.
   ///
@@ -15771,17 +15873,23 @@ abstract class AppLocalizations {
   /// **'{count}+ stars'**
   String diveSites_filter_rating_starsPlus(Object count);
 
-  /// No description provided for @diveSites_filter_region_hint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., Phuket'**
-  String get diveSites_filter_region_hint;
-
   /// No description provided for @diveSites_filter_region_label.
   ///
   /// In en, this message translates to:
   /// **'Region'**
   String get diveSites_filter_region_label;
+
+  /// No description provided for @diveSites_filter_searchCountriesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to search countries'**
+  String get diveSites_filter_searchCountriesHint;
+
+  /// No description provided for @diveSites_filter_searchRegionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Type to search regions'**
+  String get diveSites_filter_searchRegionsHint;
 
   /// No description provided for @diveSites_filter_section_depthRange.
   ///
@@ -19546,6 +19654,12 @@ abstract class AppLocalizations {
   /// **'Database'**
   String get enum_logCategory_database;
 
+  /// No description provided for @enum_logCategory_media.
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get enum_logCategory_media;
+
   /// No description provided for @enum_visibility_excellent.
   ///
   /// In en, this message translates to:
@@ -21068,6 +21182,18 @@ abstract class AppLocalizations {
   /// **'equipment needing service'**
   String get equipment_list_emptyState_filterText_serviceDue;
 
+  /// No description provided for @equipment_list_emptyState_filterText_serviceDueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'equipment due for service soon'**
+  String get equipment_list_emptyState_filterText_serviceDueSoon;
+
+  /// No description provided for @equipment_list_emptyState_filterText_serviceOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'equipment overdue for service'**
+  String get equipment_list_emptyState_filterText_serviceOverdue;
+
   /// No description provided for @equipment_list_emptyState_filterText_status.
   ///
   /// In en, this message translates to:
@@ -21110,6 +21236,18 @@ abstract class AppLocalizations {
   /// **'All your equipment is up to date on service!'**
   String get equipment_list_emptyState_serviceDueUpToDate;
 
+  /// No description provided for @equipment_list_emptyState_serviceNoneDueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is due for service soon.'**
+  String get equipment_list_emptyState_serviceNoneDueSoon;
+
+  /// No description provided for @equipment_list_emptyState_serviceNoneOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is overdue for service.'**
+  String get equipment_list_emptyState_serviceNoneOverdue;
+
   /// No description provided for @equipment_list_errorLoading.
   ///
   /// In en, this message translates to:
@@ -21127,6 +21265,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Service Due'**
   String get equipment_list_filterServiceDue;
+
+  /// No description provided for @equipment_list_filterServiceDueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Due Soon'**
+  String get equipment_list_filterServiceDueSoon;
+
+  /// No description provided for @equipment_list_filterServiceOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get equipment_list_filterServiceOverdue;
 
   /// Label of the chip that clears the category filter and shows equipment of every type
   ///
@@ -29695,6 +29845,18 @@ abstract class AppLocalizations {
   /// **'Download maps for offline use'**
   String get settings_data_offlineMaps_subtitle;
 
+  /// No description provided for @settings_data_threeDMaps.
+  ///
+  /// In en, this message translates to:
+  /// **'3D Maps'**
+  String get settings_data_threeDMaps;
+
+  /// No description provided for @settings_data_threeDMaps_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage cached swissBATHY3D and other bathymetry data'**
+  String get settings_data_threeDMaps_subtitle;
+
   /// No description provided for @settings_data_restore.
   ///
   /// In en, this message translates to:
@@ -36995,8 +37157,8 @@ abstract class AppLocalizations {
   /// No description provided for @trips_summary_upcomingSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'{date} • In {days} days'**
-  String trips_summary_upcomingSubtitle(Object date, Object days);
+  /// **'{date} • {countdown}'**
+  String trips_summary_upcomingSubtitle(Object date, Object countdown);
 
   /// No description provided for @trips_summary_upcomingTitle.
   ///
@@ -38280,6 +38442,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Skip'**
   String get universalImport_label_skip;
+
+  /// No description provided for @universalImport_label_fillPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill planned dive'**
+  String get universalImport_label_fillPlanned;
+
+  /// No description provided for @universalImport_compare_fillPlannedSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach this download to the dive you planned'**
+  String get universalImport_compare_fillPlannedSubtitle;
+
+  /// No description provided for @universalImport_label_filledPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled planned dives'**
+  String get universalImport_label_filledPlanned;
+
+  /// No description provided for @universalImport_fillPlanned_target.
+  ///
+  /// In en, this message translates to:
+  /// **'Fills planned dive: {label}'**
+  String universalImport_fillPlanned_target(String label);
+
+  /// No description provided for @universalImport_fillPlanned_replacesProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Its sketched profile will be replaced.'**
+  String get universalImport_fillPlanned_replacesProfile;
+
+  /// No description provided for @universalImport_fillPlanned_change.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get universalImport_fillPlanned_change;
+
+  /// No description provided for @universalImport_fillPlanned_pickerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a planned dive'**
+  String get universalImport_fillPlanned_pickerTitle;
+
+  /// No description provided for @universalImport_fillPlanned_importAsNew.
+  ///
+  /// In en, this message translates to:
+  /// **'Import as a new dive instead'**
+  String get universalImport_fillPlanned_importAsNew;
+
+  /// No description provided for @universalImport_fillPlanned_undo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo fills'**
+  String get universalImport_fillPlanned_undo;
+
+  /// No description provided for @universalImport_fillPlanned_undone.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dives restored'**
+  String get universalImport_fillPlanned_undone;
+
+  /// No description provided for @universalImport_fillPlanned_undoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not restore every planned dive. Try again.'**
+  String get universalImport_fillPlanned_undoFailed;
 
   /// Text showing the batch tag applied to imported items
   ///
@@ -42645,7 +42873,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_appearance_bathymetryRefresh.
   ///
   /// In en, this message translates to:
-  /// **'Reload Map Data'**
+  /// **'Update Existing Map Data'**
   String get settings_appearance_bathymetryRefresh;
 
   /// No description provided for @settings_appearance_bathymetryRefresh_subtitle.
@@ -42677,6 +42905,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No lake depth data cached yet'**
   String get settings_appearance_bathymetryRefresh_resultNothingCached;
+
+  /// No description provided for @maps3d_appBar_title.
+  ///
+  /// In en, this message translates to:
+  /// **'3D Maps'**
+  String get maps3d_appBar_title;
+
+  /// No description provided for @maps3d_section_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All Providers'**
+  String get maps3d_section_all;
+
+  /// No description provided for @maps3d_section_swissBathy.
+  ///
+  /// In en, this message translates to:
+  /// **'swissBATHY3D'**
+  String get maps3d_section_swissBathy;
+
+  /// No description provided for @maps3d_swissBathy_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete data'**
+  String get maps3d_swissBathy_delete;
+
+  /// No description provided for @maps3d_swissBathy_delete_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes cached swissBATHY3D depth tiles and lake grids'**
+  String get maps3d_swissBathy_delete_subtitle;
+
+  /// No description provided for @maps3d_swissBathy_delete_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete swissBATHY3D data?'**
+  String get maps3d_swissBathy_delete_confirmTitle;
+
+  /// No description provided for @maps3d_swissBathy_delete_confirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached depth data for Swiss lakes will be removed and reloaded the next time a dive site\'s 3D view is opened.'**
+  String get maps3d_swissBathy_delete_confirmMessage;
+
+  /// No description provided for @maps3d_swissBathy_delete_done.
+  ///
+  /// In en, this message translates to:
+  /// **'swissBATHY3D data deleted'**
+  String get maps3d_swissBathy_delete_done;
+
+  /// No description provided for @maps3d_section_other.
+  ///
+  /// In en, this message translates to:
+  /// **'Other providers'**
+  String get maps3d_section_other;
+
+  /// No description provided for @maps3d_other_reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset remaining bathymetry data'**
+  String get maps3d_other_reset;
+
+  /// No description provided for @maps3d_other_reset_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Removes cached data from EMODnet, NOAA DEM, GMRT and ETOPO'**
+  String get maps3d_other_reset_subtitle;
+
+  /// No description provided for @maps3d_other_reset_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset remaining bathymetry data?'**
+  String get maps3d_other_reset_confirmTitle;
+
+  /// No description provided for @maps3d_other_reset_confirmMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Cached data from every provider other than swissBATHY3D will be removed and reloaded the next time a dive site\'s 3D view is opened.'**
+  String get maps3d_other_reset_confirmMessage;
+
+  /// No description provided for @maps3d_other_reset_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Remaining bathymetry data reset'**
+  String get maps3d_other_reset_done;
+
+  /// No description provided for @maps3d_reload.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload map data'**
+  String get maps3d_reload;
+
+  /// No description provided for @maps3d_reload_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Deletes all cached bathymetry data and downloads it again for every dive site'**
+  String get maps3d_reload_subtitle;
+
+  /// No description provided for @maps3d_reload_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload map data for every dive site?'**
+  String get maps3d_reload_confirmTitle;
+
+  /// No description provided for @maps3d_reload_confirm_siteCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No dive sites have a location.} =1{1 dive site will be reloaded.} other{{count} dive sites will be reloaded.}}'**
+  String maps3d_reload_confirm_siteCount(int count);
+
+  /// No description provided for @maps3d_reload_confirm_estimatedSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Estimated download: approx. {size}'**
+  String maps3d_reload_confirm_estimatedSize(String size);
+
+  /// No description provided for @maps3d_reload_confirm_duration.
+  ///
+  /// In en, this message translates to:
+  /// **'This can take several minutes.'**
+  String get maps3d_reload_confirm_duration;
+
+  /// No description provided for @maps3d_reload_confirm_wifiHint.
+  ///
+  /// In en, this message translates to:
+  /// **'A lot of data will be downloaded — a fast Wi-Fi connection is recommended.'**
+  String get maps3d_reload_confirm_wifiHint;
+
+  /// No description provided for @maps3d_reload_start.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload'**
+  String get maps3d_reload_start;
+
+  /// No description provided for @maps3d_reload_progress.
+  ///
+  /// In en, this message translates to:
+  /// **'{completed} of {total} dive sites'**
+  String maps3d_reload_progress(int completed, int total);
+
+  /// No description provided for @maps3d_reload_cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get maps3d_reload_cancel;
+
+  /// No description provided for @maps3d_reload_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Map data reloaded for every dive site'**
+  String get maps3d_reload_done;
+
+  /// No description provided for @maps3d_reload_cancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload cancelled'**
+  String get maps3d_reload_cancelled;
+
+  /// No description provided for @maps3d_reload_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload failed; some dive sites may not have been reloaded'**
+  String get maps3d_reload_failed;
+
+  /// No description provided for @maps3d_busy_notice.
+  ///
+  /// In en, this message translates to:
+  /// **'Another 3D Maps action is running. Please wait until it finishes.'**
+  String get maps3d_busy_notice;
+
+  /// No description provided for @maps3d_reload_remainingSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'about {count, plural, =1{1 second} other{{count} seconds}} remaining'**
+  String maps3d_reload_remainingSeconds(int count);
+
+  /// No description provided for @maps3d_reload_remainingMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'about {count, plural, =1{1 minute} other{{count} minutes}} remaining'**
+  String maps3d_reload_remainingMinutes(int count);
+
+  /// No description provided for @maps3d_reload_warming.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing: lake {index} of {total} ({name})'**
+  String maps3d_reload_warming(int index, int total, String name);
+
+  /// No description provided for @maps3d_reload_elapsedSeconds.
+  ///
+  /// In en, this message translates to:
+  /// **'running for {count, plural, =1{1 second} other{{count} seconds}}'**
+  String maps3d_reload_elapsedSeconds(int count);
+
+  /// No description provided for @maps3d_reload_elapsedMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'running for {count, plural, =1{1 minute} other{{count} minutes}}'**
+  String maps3d_reload_elapsedMinutes(int count);
 
   /// Generic re-parse action label
   ///
@@ -43384,6 +43810,30 @@ abstract class AppLocalizations {
   /// **'{count} waiting to retry'**
   String settings_mediaStorage_transfers_waitingRetry(int count);
 
+  /// No description provided for @settings_mediaStorage_report_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Export media report'**
+  String get settings_mediaStorage_report_action;
+
+  /// No description provided for @settings_mediaStorage_report_done.
+  ///
+  /// In en, this message translates to:
+  /// **'Media report exported'**
+  String get settings_mediaStorage_report_done;
+
+  /// No description provided for @settings_mediaStorage_report_note.
+  ///
+  /// In en, this message translates to:
+  /// **'The report lists file paths and device names. Nothing is sent anywhere.'**
+  String get settings_mediaStorage_report_note;
+
+  /// No description provided for @settings_mediaStorage_report_running.
+  ///
+  /// In en, this message translates to:
+  /// **'Building the media report...'**
+  String get settings_mediaStorage_report_running;
+
   /// No description provided for @settings_mediaStorage_verify_action.
   ///
   /// In en, this message translates to:
@@ -43902,6 +44352,24 @@ abstract class AppLocalizations {
   /// **'3D view'**
   String get dive3d_seascape_orbitView;
 
+  /// No description provided for @dive3d_seascape_verticalExaggeration.
+  ///
+  /// In en, this message translates to:
+  /// **'Vertical exaggeration'**
+  String get dive3d_seascape_verticalExaggeration;
+
+  /// No description provided for @dive3d_seascape_verticalExaggerationReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to automatic'**
+  String get dive3d_seascape_verticalExaggerationReset;
+
+  /// No description provided for @dive3d_seascape_verticalExaggerationLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get dive3d_seascape_verticalExaggerationLabel;
+
   /// No description provided for @dive3d_seascape_appearance_surface.
   ///
   /// In en, this message translates to:
@@ -44123,6 +44591,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This site has no GPS coordinates'**
   String get dive3d_seascape_noCoordinates;
+
+  /// No description provided for @dive3d_seascape_detailLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'This is the most detail available for this location'**
+  String get dive3d_seascape_detailLimitReached;
+
+  /// No description provided for @dive3d_seascape_lodStageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Level of detail: {stage} ({span})'**
+  String dive3d_seascape_lodStageLabel(String stage, String span);
+
+  /// No description provided for @dive3d_seascape_lodStageOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get dive3d_seascape_lodStageOverview;
+
+  /// No description provided for @dive3d_seascape_lodStageMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get dive3d_seascape_lodStageMedium;
+
+  /// No description provided for @dive3d_seascape_lodStageFine.
+  ///
+  /// In en, this message translates to:
+  /// **'Fine'**
+  String get dive3d_seascape_lodStageFine;
+
+  /// No description provided for @dive3d_seascape_lodStageSuperFine.
+  ///
+  /// In en, this message translates to:
+  /// **'Super-fine'**
+  String get dive3d_seascape_lodStageSuperFine;
 
   /// No description provided for @dive3d_seascape_noData.
   ///
@@ -46733,6 +47237,108 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Log near-miss'**
   String get diveLog_detail_menu_logNearMiss;
+
+  /// No description provided for @diveLog_planned_chip.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get diveLog_planned_chip;
+
+  /// No description provided for @diveLog_planned_bannerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dive'**
+  String get diveLog_planned_bannerTitle;
+
+  /// No description provided for @diveLog_planned_bannerBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting dive computer data. Mark it as logged if you dived without one.'**
+  String get diveLog_planned_bannerBody;
+
+  /// No description provided for @diveLog_detail_menu_markLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as logged'**
+  String get diveLog_detail_menu_markLogged;
+
+  /// No description provided for @diveLog_planned_markedLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Marked as logged'**
+  String get diveLog_planned_markedLogged;
+
+  /// No description provided for @diveLog_planned_markLoggedFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t mark the dive as logged.'**
+  String get diveLog_planned_markLoggedFailed;
+
+  /// No description provided for @diveLog_mirror_dialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Also log this dive in another profile?'**
+  String get diveLog_mirror_dialogTitle;
+
+  /// No description provided for @diveLog_mirror_dialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'These buddies have profiles on this device. The dive is added to their logs as a planned dive until their own dive computer data fills it.'**
+  String get diveLog_mirror_dialogBody;
+
+  /// No description provided for @diveLog_mirror_log.
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get diveLog_mirror_log;
+
+  /// No description provided for @diveLog_mirror_notNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get diveLog_mirror_notNow;
+
+  /// No description provided for @diveLog_mirror_snackbar.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged for {names}'**
+  String diveLog_mirror_snackbar(String names);
+
+  /// No description provided for @diveLog_mirror_undone.
+  ///
+  /// In en, this message translates to:
+  /// **'Mirrored dives removed'**
+  String get diveLog_mirror_undone;
+
+  /// No description provided for @diveLog_mirror_undoFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t remove the mirrored dives.'**
+  String get diveLog_mirror_undoFailed;
+
+  /// No description provided for @diveLog_mirror_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not log for {names}'**
+  String diveLog_mirror_failed(String names);
+
+  /// No description provided for @diveLog_detail_menu_logForBuddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Log for a buddy\'s profile'**
+  String get diveLog_detail_menu_logForBuddy;
+
+  /// No description provided for @diveLog_detail_loggedWith.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged with'**
+  String get diveLog_detail_loggedWith;
+
+  /// No description provided for @diveLog_detail_loggedWithPlanned.
+  ///
+  /// In en, this message translates to:
+  /// **'awaiting their dive computer'**
+  String get diveLog_detail_loggedWithPlanned;
 
   /// No description provided for @diveLog_detail_linkedIncidents.
   ///
@@ -60357,6 +60963,12 @@ abstract class AppLocalizations {
   /// **'Dive {diveNumber} at {siteName}'**
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName);
 
+  /// No description provided for @diveLog_listPage_semanticsPlannedDiveAtSite.
+  ///
+  /// In en, this message translates to:
+  /// **'Planned dive at {siteName}'**
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName);
+
   /// No description provided for @enum_listViewMode_compact.
   ///
   /// In en, this message translates to:
@@ -64407,11 +65019,23 @@ abstract class AppLocalizations {
   /// **'Show in file manager'**
   String get media_info_actionReveal;
 
+  /// No description provided for @media_info_actionCopyDiagnostics.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy diagnostics'**
+  String get media_info_actionCopyDiagnostics;
+
   /// Media info panel, Origin block: copies the source reference to the clipboard
   ///
   /// In en, this message translates to:
   /// **'Copy reference'**
   String get media_info_actionCopyPath;
+
+  /// No description provided for @media_info_diagnosticsCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Diagnostics copied'**
+  String get media_info_diagnosticsCopied;
 
   /// Confirmation shown after copying the source reference
   ///

@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'dart:ui' show Size;
 
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/resolvers/media_fetch_gate.dart';
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
+import 'package:submersion/features/media/domain/services/diagnostic_probe.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/data/services/video_thumbnail_service.dart';
@@ -49,7 +51,7 @@ const int kLocalResolveConcurrency = 8;
 ///
 /// The Phase 1 stub fell back to [UnavailableData] on iOS / Android; this
 /// promotion replaces that with the full bookmark / URI flow.
-class LocalFileResolver implements MediaSourceResolver {
+class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
   final LocalBookmarkStorage _bookmarkStorage;
   final LocalMediaPlatform _platform;
   final ExifExtractor _exifExtractor;
@@ -65,11 +67,13 @@ class LocalFileResolver implements MediaSourceResolver {
     MediaFetchGate? gate,
     bool Function()? usesSecurityScopedBookmarks,
     Future<String?> Function()? localDeviceId,
+    Future<String?> Function(String deviceId)? deviceLabel,
   }) : _bookmarkStorage = bookmarkStorage,
        _platform = platform,
        _exifExtractor = exifExtractor,
        _videoThumbnails = videoThumbnails,
        _localDeviceId = localDeviceId,
+       _deviceLabel = deviceLabel,
        _volumeOnline = (volumeStatus ?? VolumeStatus()).newExpiringProbe(
          ttl: volumeProbeTtl,
          clock: clock,
@@ -114,10 +118,17 @@ class LocalFileResolver implements MediaSourceResolver {
   /// in tests), in which case every row reads as this device's.
   final Future<String?> Function()? _localDeviceId;
 
+  /// Names the device a row was linked on, for the "From {device}"
+  /// placeholder. Consulted only on a foreign-origin miss.
+  final Future<String?> Function(String deviceId)? _deviceLabel;
+
   /// [_localDeviceId]'s answer, memoized once it succeeds. A failed fetch
   /// (no database open yet) is not cached, so the next resolution asks again.
   String? _knownDeviceId;
-  final _log = LoggerService.forClass(LocalFileResolver);
+  final _log = LoggerService.forClass(
+    LocalFileResolver,
+    category: LogCategory.media,
+  );
 
   @override
   MediaSourceType get sourceType => MediaSourceType.localFile;
@@ -133,6 +144,18 @@ class LocalFileResolver implements MediaSourceResolver {
     final origin = item.originDeviceId;
     if (local == null || origin == null) return true;
     return origin == local;
+  }
+
+  /// The published name of [deviceId], or null when unknown or unset. Never
+  /// throws: a label is decoration on a placeholder, not a verdict.
+  Future<String?> _labelFor(String? deviceId) async {
+    final lookup = _deviceLabel;
+    if (deviceId == null || lookup == null) return null;
+    try {
+      return await lookup(deviceId);
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Whether [item]'s bytes were imported on a different device.
@@ -201,7 +224,10 @@ class LocalFileResolver implements MediaSourceResolver {
     if (resolved is UnavailableData &&
         resolved.kind == UnavailableKind.notFound &&
         await _importedElsewhere(item)) {
-      return const UnavailableData(kind: UnavailableKind.fromOtherDevice);
+      return UnavailableData(
+        kind: UnavailableKind.fromOtherDevice,
+        originDeviceLabel: await _labelFor(item.originDeviceId),
+      );
     }
     return resolved;
   }
@@ -432,6 +458,46 @@ class LocalFileResolver implements MediaSourceResolver {
       }
     }
     return null;
+  }
+
+  /// The same decision tree as [verify], stopped before any byte read.
+  ///
+  /// [verify] answers by calling [resolve], which on the bookmark path hands
+  /// back the file's whole contents: right for a sweep that must prove the
+  /// bytes are reachable, ruinous for a report that asks about every row in
+  /// the library. This gets as far as "is the pointer still there", which is
+  /// what a diagnostic needs, using a stat and an open/close round-trip.
+  ///
+  /// Returns null for a row that only a read could settle, which is a row
+  /// with no usable path and a bookmark: opening the security scope IS the
+  /// read, so claiming the file is present on the strength of the bookmark
+  /// existing would be a guess.
+  @override
+  Future<VerifyResult?> probe(MediaItem item) async {
+    final localPath = item.localPath ?? item.filePath;
+    if (localPath != null && localPath.isNotEmpty) {
+      if (!await _volumeOnlineOrAssumed(localPath)) {
+        return VerifyResult.volumeOffline;
+      }
+      try {
+        final f = File(localPath);
+        if (await f.exists()) {
+          // Present but unopenable (sandbox denial, revoked permission) is
+          // not a dead pointer, exactly as in verify.
+          return await _readBlocker(f) == null
+              ? VerifyResult.available
+              : VerifyResult.transientError;
+        }
+      } on FileSystemException {
+        if (!await _volumeOnlineOrAssumed(localPath)) {
+          return VerifyResult.volumeOffline;
+        }
+      }
+    }
+    final ref = item.bookmarkRef;
+    if (ref != null && ref.isNotEmpty) return null;
+    if (await _importedElsewhere(item)) return VerifyResult.fromOtherDevice;
+    return VerifyResult.notFound;
   }
 
   @override

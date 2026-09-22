@@ -105,6 +105,7 @@ class BuddyMergeRepository {
     return domain.Buddy(
       id: row.id,
       diverId: row.diverId,
+      linkedDiverId: row.linkedDiverId,
       name: row.name,
       email: row.email,
       phone: row.phone,
@@ -172,6 +173,23 @@ class BuddyMergeRepository {
         throw StateError('Cannot merge buddies from different divers');
       }
 
+      // A buddy is at most one local profile (issue #2002). Two different
+      // links cannot be reconciled by picking one, so refuse; the diver
+      // merge reconciles profiles first.
+      final links = allBuddies
+          .map((b) => b.linkedDiverId)
+          .whereType<String>()
+          .toSet();
+      if (links.length > 1) {
+        throw StateError('Cannot merge buddies linked to different profiles');
+      }
+      final survivingLink = links.isEmpty
+          ? null
+          : (mergedBuddy.linkedDiverId ?? links.single);
+      final linkedSurvivor = survivingLink == null
+          ? survivorBuddy.clearLinkedDiver()
+          : survivorBuddy.copyWith(linkedDiverId: survivingLink);
+
       // Capture snapshot of all DiveBuddies for ALL buddies (survivor + duplicates)
       final allDiveBuddyRows = await (_db.select(
         _db.diveBuddies,
@@ -198,7 +216,7 @@ class BuddyMergeRepository {
 
       await _db.transaction(() async {
         // Update survivor with merged fields
-        await _updateBuddyRow(survivorBuddy, now);
+        await _updateBuddyRow(linkedSurvivor, now);
         await _syncRepository.markRecordPending(
           entityType: 'buddies',
           recordId: survivorId,
@@ -441,6 +459,7 @@ class BuddyMergeRepository {
                 BuddiesCompanion(
                   id: Value(buddy.id),
                   diverId: Value(buddy.diverId),
+                  linkedDiverId: Value(buddy.linkedDiverId),
                   name: Value(buddy.name),
                   email: Value(buddy.email),
                   phone: Value(buddy.phone),
@@ -590,6 +609,7 @@ class BuddyMergeRepository {
     await (_db.update(_db.buddies)..where((t) => t.id.equals(buddy.id))).write(
       BuddiesCompanion(
         diverId: Value(buddy.diverId),
+        linkedDiverId: Value(buddy.linkedDiverId),
         name: Value(buddy.name),
         email: Value(buddy.email),
         phone: Value(buddy.phone),

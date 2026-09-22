@@ -80,6 +80,7 @@ void main() {
     TissueChromeStyle? chromeStyle,
     SceneChromeMode chromeMode = SceneChromeMode.none,
     bool showPosePresets = false,
+    ValueChanged<double>? onZoomSettled,
   }) async {
     await tester.pumpWidget(
       MaterialApp(
@@ -97,6 +98,7 @@ void main() {
             chromeStyle: chromeStyle,
             chromeMode: chromeMode,
             showPosePresets: showPosePresets,
+            onZoomSettled: onZoomSettled,
           ),
         ),
       ),
@@ -723,5 +725,70 @@ void main() {
     painter = scenePainterOf(tester);
     expect(painter.yawDegrees, -32);
     expect(painter.pitchDegrees, 22);
+  });
+
+  group('onZoomSettled', () {
+    testWidgets('fires once with the final zoom after 300ms of no further '
+        'zoom change', (tester) async {
+      final settled = <double>[];
+      await pumpViewport(
+        tester,
+        scene: buildScene(),
+        onZoomSettled: settled.add,
+      );
+
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pump();
+      final zoomed = scenePainterOf(tester).zoom;
+      expect(zoomed, greaterThan(1.0));
+
+      // Still inside the debounce window: nothing published yet.
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(settled, isEmpty);
+
+      // Window elapses with no further zoom change: one settled callback.
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(settled, [zoomed]);
+    });
+
+    testWidgets('a burst of zoom changes collapses to a single, final '
+        'callback', (tester) async {
+      final settled = <double>[];
+      await pumpViewport(
+        tester,
+        scene: buildScene(),
+        onZoomSettled: settled.add,
+      );
+
+      // Each tap resets the debounce timer before it can fire.
+      for (var i = 0; i < 3; i++) {
+        await tester.tap(find.byIcon(Icons.add));
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      expect(settled, isEmpty);
+      final finalZoom = scenePainterOf(tester).zoom;
+
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(settled, [finalZoom]);
+    });
+
+    testWidgets('never fires when the widget is unmounted before it settles', (
+      tester,
+    ) async {
+      final settled = <double>[];
+      await pumpViewport(
+        tester,
+        scene: buildScene(),
+        onZoomSettled: settled.add,
+      );
+      await tester.tap(find.byIcon(Icons.add));
+      await tester.pump();
+
+      await tester.pumpWidget(const SizedBox.shrink());
+      // If dispose failed to cancel the pending timer this would throw
+      // (setState/callback after disposal) instead of just staying empty.
+      await tester.pump(const Duration(milliseconds: 400));
+      expect(settled, isEmpty);
+    });
   });
 }

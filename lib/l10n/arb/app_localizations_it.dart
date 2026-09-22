@@ -1489,6 +1489,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buddies_field_emailHint => 'email@esempio.com';
 
   @override
+  String get buddies_field_linkedProfile => 'Profilo collegato';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'Il profilo locale che corrisponde a questo compagno';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Non collegato';
+
+  @override
   String get buddies_field_nameHint => 'Inserisci nome compagno';
 
   @override
@@ -1699,6 +1709,39 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Usa';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Profilo';
+
+  @override
+  String get buddies_linkedProfile_link => 'Collega';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Non ora';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Apri compagno';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Collega a un profilo';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'Un compagno non può essere collegato al proprio profilo.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName è già collegato a questo profilo.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name ha un profilo qui. Collegare questo compagno a esso?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'Questi compagni sono collegati a profili diversi. Unisci prima i profili.';
 
   @override
   String get buddies_message_added => 'Compagno aggiunto con successo';
@@ -3763,23 +3806,35 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dashboard_gauges_addGear => 'Aggiungi attrezzatura';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name OK';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
-    return '$name in scadenza tra ${days}g';
+    return '$name manutenzione tra ${days}g';
   }
 
   @override
   String dashboard_gauges_gearOverdue(String name) {
-    return '$name in ritardo';
+    return '$name manutenzione scaduta';
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count altri in ritardo';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attrezzi con manutenzione scaduta',
+      one: '$count attrezzo con manutenzione scaduta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count attrezzi con manutenzione tra ${days}g',
+      one: '$count attrezzo con manutenzione tra ${days}g',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -5808,6 +5863,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'Bombole';
 
   @override
+  String get diveLog_edit_planned_switch => 'Immersione pianificata';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'In attesa dei dati del computer. Nessun numero di immersione finché non viene registrata.';
+
+  @override
   String get diveLog_edit_profile_draw => 'Disegna un profilo';
 
   @override
@@ -6710,6 +6772,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Registra immersione manualmente';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive =>
+      'Pianifica un\'immersione';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Inserisci i dettagli ora, aggiungi i dati del computer più tardi';
 
   @override
   String get diveLog_listPage_fab_addDive => 'Aggiungi immersione';
@@ -9570,7 +9640,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_filter_clearAll => 'Cancella tutto';
 
   @override
-  String get diveSites_filter_country_hint => 'es. Thailandia';
+  String get diveSites_filter_allCountries => 'Tutti i paesi';
+
+  @override
+  String get diveSites_filter_allRegions => 'Tutte le regioni';
 
   @override
   String get diveSites_filter_country_label => 'Paese';
@@ -9607,10 +9680,15 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => 'es. Phuket';
+  String get diveSites_filter_region_label => 'Regione';
 
   @override
-  String get diveSites_filter_region_label => 'Regione';
+  String get diveSites_filter_searchCountriesHint =>
+      'Digita per cercare i paesi';
+
+  @override
+  String get diveSites_filter_searchRegionsHint =>
+      'Digita per cercare le regioni';
 
   @override
   String get diveSites_filter_section_depthRange =>
@@ -11721,6 +11799,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_logCategory_database => 'Database';
 
   @override
+  String get enum_logCategory_media => 'Media';
+
+  @override
   String get enum_visibility_excellent => 'Eccellente (>30m / >100ft)';
 
   @override
@@ -12716,6 +12797,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'attrezzatura che necessita manutenzione';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'attrezzatura con manutenzione in scadenza';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'attrezzatura con manutenzione scaduta';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return 'attrezzatura $status';
   }
@@ -12747,6 +12836,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tutta la tua attrezzatura e in regola con la manutenzione!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'Nulla necessita manutenzione a breve.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'Nulla ha la manutenzione scaduta.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'Errore nel caricamento dell\'attrezzatura: $error';
   }
@@ -12756,6 +12853,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'Manutenzione prevista';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'In scadenza';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'Scaduta';
 
   @override
   String get equipment_list_typeFilterAll => 'Tutti i tipi';
@@ -18258,6 +18361,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Scarica mappe per l\'uso offline';
 
   @override
+  String get settings_data_threeDMaps => '3D Maps';
+
+  @override
+  String get settings_data_threeDMaps_subtitle =>
+      'Manage cached swissBATHY3D and other bathymetry data';
+
+  @override
   String get settings_data_restore => 'Ripristina';
 
   @override
@@ -22992,8 +23102,8 @@ class AppLocalizationsIt extends AppLocalizations {
   String get trips_summary_stat_totalTrips => 'Viaggi totali';
 
   @override
-  String trips_summary_upcomingSubtitle(Object date, Object days) {
-    return '$date • Tra $days giorni';
+  String trips_summary_upcomingSubtitle(Object date, Object countdown) {
+    return '$date • $countdown';
   }
 
   @override
@@ -23906,6 +24016,49 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get universalImport_label_skip => 'Salta';
+
+  @override
+  String get universalImport_label_fillPlanned =>
+      'Completa immersione pianificata';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Collega questo download all\'immersione che hai pianificato';
+
+  @override
+  String get universalImport_label_filledPlanned =>
+      'Immersioni pianificate completate';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Completa l\'immersione pianificata: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'Il profilo abbozzato verrà sostituito.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Cambia';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle =>
+      'Scegli un\'immersione pianificata';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'Importa invece come nuova immersione';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Annulla completamenti';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'Immersioni pianificate ripristinate';
+
+  @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Impossibile ripristinare tutte le immersioni pianificate. Riprova.';
 
   @override
   String universalImport_label_taggedAs(Object tag) {
@@ -26621,6 +26774,166 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun dato di profondità dei laghi ancora memorizzato';
 
   @override
+  String get maps3d_appBar_title => 'Mappe 3D';
+
+  @override
+  String get maps3d_section_all => 'Tutti i fornitori';
+
+  @override
+  String get maps3d_section_swissBathy => 'swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete => 'Elimina dati';
+
+  @override
+  String get maps3d_swissBathy_delete_subtitle =>
+      'Rimuove i tasselli di profondità e le griglie dei laghi swissBATHY3D dalla cache';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmTitle =>
+      'Eliminare i dati swissBATHY3D?';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      'I dati di profondità in cache dei laghi svizzeri verranno rimossi e ricaricati alla prossima apertura della vista 3D di un sito di immersione.';
+
+  @override
+  String get maps3d_swissBathy_delete_done => 'Dati swissBATHY3D eliminati';
+
+  @override
+  String get maps3d_section_other => 'Altri fornitori';
+
+  @override
+  String get maps3d_other_reset => 'Ripristina i dati batimetrici rimanenti';
+
+  @override
+  String get maps3d_other_reset_subtitle =>
+      'Rimuove dalla cache i dati di EMODnet, NOAA DEM, GMRT ed ETOPO';
+
+  @override
+  String get maps3d_other_reset_confirmTitle =>
+      'Ripristinare i dati batimetrici rimanenti?';
+
+  @override
+  String get maps3d_other_reset_confirmMessage =>
+      'I dati in cache di tutti i fornitori diversi da swissBATHY3D verranno rimossi e ricaricati alla prossima apertura della vista 3D di un sito di immersione.';
+
+  @override
+  String get maps3d_other_reset_done =>
+      'Dati batimetrici rimanenti ripristinati';
+
+  @override
+  String get maps3d_reload => 'Ricarica i dati delle mappe';
+
+  @override
+  String get maps3d_reload_subtitle =>
+      'Elimina tutti i dati batimetrici in cache e li scarica di nuovo per ogni sito di immersione';
+
+  @override
+  String get maps3d_reload_confirmTitle =>
+      'Ricaricare i dati delle mappe per tutti i siti di immersione?';
+
+  @override
+  String maps3d_reload_confirm_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Verranno ricaricati $count siti di immersione.',
+      one: 'Verrà ricaricato 1 sito di immersione.',
+      zero: 'Nessun sito di immersione ha una posizione.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_confirm_estimatedSize(String size) {
+    return 'Download stimato: circa $size';
+  }
+
+  @override
+  String get maps3d_reload_confirm_duration =>
+      'L\'operazione può richiedere diversi minuti.';
+
+  @override
+  String get maps3d_reload_confirm_wifiHint =>
+      'Verranno scaricati molti dati; si consiglia una connessione Wi-Fi veloce.';
+
+  @override
+  String get maps3d_reload_start => 'Ricarica';
+
+  @override
+  String maps3d_reload_progress(int completed, int total) {
+    return '$completed di $total siti di immersione';
+  }
+
+  @override
+  String get maps3d_reload_cancel => 'Annulla';
+
+  @override
+  String get maps3d_reload_done =>
+      'Dati delle mappe ricaricati per tutti i siti di immersione';
+
+  @override
+  String get maps3d_reload_cancelled => 'Ricarica annullata';
+
+  @override
+  String get maps3d_reload_failed =>
+      'Ricarica non riuscita; alcuni siti di immersione potrebbero non essere stati ricaricati';
+
+  @override
+  String get maps3d_busy_notice =>
+      'È in corso un\'altra azione Mappe 3D. Attendi il completamento.';
+
+  @override
+  String maps3d_reload_remainingSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'circa $count secondi rimanenti',
+      one: 'circa 1 secondo rimanente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_remainingMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'circa $count minuti rimanenti',
+      one: 'circa 1 minuto rimanente',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_warming(int index, int total, String name) {
+    return 'Preparazione: lago $index di $total ($name)';
+  }
+
+  @override
+  String maps3d_reload_elapsedSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in esecuzione da $count secondi',
+      one: 'in esecuzione da 1 secondo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_elapsedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in esecuzione da $count minuti',
+      one: 'in esecuzione da 1 minuto',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get common_action_reparse => 'Rianalizza';
 
   @override
@@ -27102,6 +27415,20 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_report_action => 'Esporta rapporto media';
+
+  @override
+  String get settings_mediaStorage_report_done => 'Rapporto media esportato';
+
+  @override
+  String get settings_mediaStorage_report_note =>
+      'Il rapporto elenca percorsi dei file e nomi dei dispositivi. Non viene inviato nulla.';
+
+  @override
+  String get settings_mediaStorage_report_running =>
+      'Creazione del rapporto media...';
+
+  @override
   String get settings_mediaStorage_verify_action => 'Verifica libreria';
 
   @override
@@ -27422,6 +27749,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dive3d_seascape_orbitView => 'Vista 3D';
 
   @override
+  String get dive3d_seascape_verticalExaggeration => 'Esagerazione verticale';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationReset =>
+      'Ripristina automatico';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationLabel => 'Profondità';
+
+  @override
   String get dive3d_seascape_appearance_surface => 'Superficie del terreno';
 
   @override
@@ -27540,6 +27877,27 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get dive3d_seascape_noCoordinates =>
       'Questo sito non ha coordinate GPS';
+
+  @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
+  String dive3d_seascape_lodStageLabel(String stage, String span) {
+    return 'Level of detail: $stage ($span)';
+  }
+
+  @override
+  String get dive3d_seascape_lodStageOverview => 'Overview';
+
+  @override
+  String get dive3d_seascape_lodStageMedium => 'Medium';
+
+  @override
+  String get dive3d_seascape_lodStageFine => 'Fine';
+
+  @override
+  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
 
   @override
   String get dive3d_seascape_noData =>
@@ -28974,6 +29332,68 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Registra quasi incidente';
+
+  @override
+  String get diveLog_planned_chip => 'Pianificata';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'Immersione pianificata';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'In attesa dei dati del computer. Segnala come registrata se hai immerso senza computer.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'Segna come registrata';
+
+  @override
+  String get diveLog_planned_markedLogged => 'Segnata come registrata';
+
+  @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Impossibile contrassegnare l\'immersione come registrata.';
+
+  @override
+  String get diveLog_mirror_dialogTitle =>
+      'Registrare questa immersione anche in un altro profilo?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Questi compagni hanno un profilo su questo dispositivo. L\'immersione viene aggiunta ai loro registri come immersione pianificata finché i dati del loro computer non la completano.';
+
+  @override
+  String get diveLog_mirror_log => 'Registra';
+
+  @override
+  String get diveLog_mirror_notNow => 'Non ora';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Registrata per $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Immersioni speculari rimosse';
+
+  @override
+  String get diveLog_mirror_undoFailed =>
+      'Impossibile rimuovere le immersioni speculari.';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Impossibile registrare per $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Registra nel profilo di un compagno';
+
+  @override
+  String get diveLog_detail_loggedWith => 'Registrata con';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned =>
+      'in attesa del loro computer subacqueo';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -37254,6 +37674,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'Immersione pianificata a $siteName';
+  }
+
+  @override
   String get enum_listViewMode_compact => 'Compatta';
 
   @override
@@ -40040,7 +40465,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_info_actionReveal => 'Mostra nel gestore file';
 
   @override
+  String get media_info_actionCopyDiagnostics => 'Copia diagnostica';
+
+  @override
   String get media_info_actionCopyPath => 'Copia riferimento';
+
+  @override
+  String get media_info_diagnosticsCopied => 'Diagnostica copiata';
 
   @override
   String get media_info_referenceCopied => 'Riferimento copiato';

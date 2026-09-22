@@ -59,5 +59,38 @@ void main() {
       // fraction of the scene box independent of it.
       expect(sceneFloor.abs() / horizontalHalfExtent, closeTo(40 / 4000, 1e-9));
     });
+
+    test('verticalExaggeration scales depthScale and yOf, but not horizScale, '
+        'xOf/zOf or zHalfExtent (issue #2141)', () {
+      final proj = SpatialProjection(
+        minEast: -4000,
+        maxEast: 4000,
+        minNorth: -4000,
+        maxNorth: 4000,
+        maxDepth: 40,
+        verticalExaggeration: 3.0,
+      );
+
+      expect(proj.depthScale, closeTo(proj.horizScale * 3.0, 1e-9));
+      expect(proj.yOf(40), closeTo(-40 * proj.horizScale * 3.0, 1e-9));
+      expect(proj.xOf(100), closeTo(5.0 + 100 * proj.horizScale, 1e-9));
+      expect(proj.zOf(100), closeTo(-100 * proj.horizScale, 1e-9));
+      expect(proj.zHalfExtent, closeTo(4000 * proj.horizScale, 1e-9));
+    });
+
+    test(
+      'verticalExaggeration defaults to 1.0, leaving depth true to scale',
+      () {
+        final proj = SpatialProjection(
+          minEast: -4000,
+          maxEast: 4000,
+          minNorth: -4000,
+          maxNorth: 4000,
+          maxDepth: 40,
+        );
+        expect(proj.verticalExaggeration, 1.0);
+        expect(proj.depthScale, proj.horizScale);
+      },
+    );
   });
 }

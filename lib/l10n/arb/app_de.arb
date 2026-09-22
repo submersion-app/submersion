@@ -700,6 +700,18 @@
   "buddies_field_notesHint": "Notizen zu diesem Tauchpartner hinzufügen...",
   "buddies_field_phone": "Telefon",
   "buddies_field_phoneHint": "+49 (123) 456-7890",
+  "buddies_field_linkedProfile": "Verknüpftes Profil",
+  "buddies_field_linkedProfileHint": "Das lokale Profil, das dieser Tauchpartner ist",
+  "buddies_field_linkedProfileNone": "Nicht verknüpft",
+  "buddies_linkedProfile_chip": "Profil",
+  "buddies_linkedProfile_link": "Verknüpfen",
+  "buddies_linkedProfile_notNow": "Später",
+  "buddies_linkedProfile_openBuddy": "Tauchpartner öffnen",
+  "buddies_linkedProfile_pickerTitle": "Mit einem Profil verknüpfen",
+  "buddies_linkedProfile_refusedSelf": "Ein Tauchpartner kann nicht mit dem eigenen Profil verknüpft werden.",
+  "buddies_linkedProfile_refusedTaken": "{buddyName} ist bereits mit diesem Profil verknüpft.",
+  "buddies_linkedProfile_suggestion": "{name} hat hier ein Profil. Diesen Tauchpartner damit verknüpfen?",
+  "buddies_merge_refusedDifferentLinks": "Diese Tauchpartner sind mit verschiedenen Profilen verknüpft. Führe zuerst die Profile zusammen.",
   "buddies_label_agency": "Organisation",
   "buddies_label_diveCount": "{count, plural, =1{1 Tauchgang} other{{count} Tauchgänge}}",
   "buddies_label_level": "Stufe",
@@ -2442,6 +2454,10 @@
   "ocrImport_scanPage_engineMissing": "Texterkennung ist nicht verfügbar. Installieren Sie Tesseract, um Papier-Logbücher zu scannen (zum Beispiel: sudo apt install tesseract-ocr).",
   "ocrImport_editPage_photoAttachFailed": "Der Tauchgang wurde gespeichert, aber das Anhängen der gescannten Seite ist fehlgeschlagen",
   "diveLog_listPage_bottomSheet_logManually": "Tauchgang manuell erfassen",
+  "diveLog_listPage_bottomSheet_planDive": "Tauchgang planen",
+  "diveLog_listPage_bottomSheet_planDiveSubtitle": "Details jetzt eintragen, Tauchcomputerdaten später ergänzen",
+  "diveLog_edit_planned_switch": "Geplanter Tauchgang",
+  "diveLog_edit_planned_switchSubtitle": "Wartet auf Tauchcomputerdaten. Keine Tauchgangsnummer, bis er protokolliert ist.",
   "diveLog_listPage_compactTitle": "Tauchgänge",
   "diveLog_listPage_errorLoading": "Fehler: {error}",
   "diveLog_listPage_fab_addDive": "Tauchgang hinzufugen",
@@ -3198,7 +3214,8 @@
   "diveSites_filter_apply": "Filter anwenden",
   "diveSites_filter_cancel": "Abbrechen",
   "diveSites_filter_clearAll": "Alle löschen",
-  "diveSites_filter_country_hint": "z. B. Thailand",
+  "diveSites_filter_allCountries": "Alle Länder",
+  "diveSites_filter_allRegions": "Alle Regionen",
   "diveSites_filter_country_label": "Land",
   "diveSites_filter_depth_max_label": "Max",
   "diveSites_filter_depth_min_label": "Min",
@@ -3209,8 +3226,9 @@
   "diveSites_filter_option_hasDives_subtitle": "Nur Plätze mit eingetragenen Tauchgängen anzeigen",
   "diveSites_filter_option_hasDives_title": "Hat Tauchgänge",
   "diveSites_filter_rating_starsPlus": "{count}+ Sterne",
-  "diveSites_filter_region_hint": "z. B. Phuket",
   "diveSites_filter_region_label": "Region",
+  "diveSites_filter_searchCountriesHint": "Tippen, um Länder zu suchen",
+  "diveSites_filter_searchRegionsHint": "Tippen, um Regionen zu suchen",
   "diveSites_filter_section_depthRange": "Max. Tiefenbereich",
   "diveSites_filter_section_difficulty": "Schwierigkeitsgrad",
   "diveSites_filter_section_location": "Standort",
@@ -3822,6 +3840,7 @@
   "enum_logCategory_serial": "Seriell",
   "enum_logCategory_libdc": "libdc",
   "enum_logCategory_database": "Datenbank",
+  "enum_logCategory_media": "Medien",
   "enum_visibility_excellent": "Ausgezeichnet (>30m / >100ft)",
   "enum_visibility_good": "Gut (15-30m / 50-100ft)",
   "enum_visibility_moderate": "Mäßig (5-15m / 15-50ft)",
@@ -4234,6 +4253,8 @@
   "equipment_list_emptyState_addPrompt": "Fügen Sie Ihre Tauchausrüstung hinzu, um Nutzung und Wartung zu verfolgen",
   "equipment_list_emptyState_filterText_equipment": "Ausrüstung",
   "equipment_list_emptyState_filterText_serviceDue": "wartungsfällige Ausrüstung",
+  "equipment_list_emptyState_filterText_serviceDueSoon": "bald wartungsfällige Ausrüstung",
+  "equipment_list_emptyState_filterText_serviceOverdue": "überfällige Ausrüstung",
   "equipment_list_emptyState_filterText_status": "{status} Ausrüstung",
   "equipment_list_emptyState_filterText_type": "{type}-Ausrüstung",
   "equipment_list_emptyState_noEquipment": "Keine {filterText}",
@@ -4241,9 +4262,13 @@
   "equipment_list_emptyState_noTagMatch": "Keine Ausrüstung mit diesen Tags",
   "equipment_list_emptyState_noTypeMatch": "Keine Ausrüstung in dieser Kategorie",
   "equipment_list_emptyState_serviceDueUpToDate": "Alle Ihre Ausrüstungsgegenstände sind wartungstechnisch auf dem neuesten Stand!",
+  "equipment_list_emptyState_serviceNoneDueSoon": "Nichts ist demnächst fällig.",
+  "equipment_list_emptyState_serviceNoneOverdue": "Nichts ist überfällig.",
   "equipment_list_errorLoading": "Fehler beim Laden der Ausrüstung: {error}",
   "equipment_list_filterAll": "Gesamte Ausrüstung",
   "equipment_list_filterServiceDue": "Wartung fällig",
+  "equipment_list_filterServiceDueSoon": "Bald fällig",
+  "equipment_list_filterServiceOverdue": "Überfällig",
   "equipment_list_typeFilterAll": "Alle Typen",
   "equipment_list_filterTooltip": "Ausrüstung filtern",
   "equipment_list_activeFilter_clear": "Löschen",
@@ -5514,6 +5539,8 @@
   "settings_data_import_failed": "Vorgang fehlgeschlagen: {error}",
   "settings_data_offlineMaps": "Offline-Karten",
   "settings_data_offlineMaps_subtitle": "Karten für die Offline-Nutzung herunterladen",
+  "settings_data_threeDMaps": "3D-Karten",
+  "settings_data_threeDMaps_subtitle": "Gecachte swissBATHY3D- und andere Bathymetrie-Daten verwalten",
   "settings_data_restore": "Wiederherstellen",
   "settings_data_restoreDialog_cancel": "Abbrechen",
   "settings_data_restoreDialog_content": "Warnung: Das Wiederherstellen aus einer Sicherung ersetzt ALLE aktuellen Daten durch die Sicherungsdaten. Diese Aktion kann nicht rückgängig gemacht werden.\n\nSind Sie sicher, dass Sie fortfahren möchten?",
@@ -6979,7 +7006,7 @@
   "trips_summary_stat_liveaboards": "Tauchsafaris",
   "trips_summary_stat_totalDives": "Tauchgänge gesamt",
   "trips_summary_stat_totalTrips": "Reisen gesamt",
-  "trips_summary_upcomingSubtitle": "{date} • In {days} Tagen",
+  "trips_summary_upcomingSubtitle": "{date} • {countdown}",
   "trips_summary_upcomingTitle": "Bevorstehend",
   "trips_type_dayTrip": "Tagesausflug",
   "trips_type_liveaboard": "Safariboot",
@@ -7118,6 +7145,17 @@
   "universalImport_label_selectCorrectSource": "Nicht richtig? Wählen Sie die richtige Quelle:",
   "universalImport_label_selected": "{count} ausgewählt",
   "universalImport_label_skip": "Überspringen",
+  "universalImport_label_fillPlanned": "Geplanten Tauchgang ausfüllen",
+  "universalImport_compare_fillPlannedSubtitle": "Diesen Download dem geplanten Tauchgang zuordnen",
+  "universalImport_label_filledPlanned": "Ausgefüllte geplante Tauchgänge",
+  "universalImport_fillPlanned_target": "Füllt geplanten Tauchgang: {label}",
+  "universalImport_fillPlanned_replacesProfile": "Das skizzierte Profil wird ersetzt.",
+  "universalImport_fillPlanned_change": "Ändern",
+  "universalImport_fillPlanned_pickerTitle": "Geplanten Tauchgang wählen",
+  "universalImport_fillPlanned_importAsNew": "Stattdessen als neuen Tauchgang importieren",
+  "universalImport_fillPlanned_undo": "Ausfüllen rückgängig machen",
+  "universalImport_fillPlanned_undone": "Geplante Tauchgänge wiederhergestellt",
+  "universalImport_fillPlanned_undoFailed": "Nicht alle geplanten Tauchgänge konnten wiederhergestellt werden. Versuche es erneut.",
   "universalImport_label_taggedAs": "Getaggt als: {tag}",
   "universalImport_label_unknownDate": "Unbekanntes Datum",
   "universalImport_label_unnamed": "Unbenannt",
@@ -7373,10 +7411,10 @@
   "dashboard_hero_todayLabel": "Heute!",
   "dashboard_semantics_statsBar": "Tauchstatistik-Zusammenfassung",
   "dashboard_gauges_addGear": "Ausrüstung hinzufügen",
-  "dashboard_gauges_gearOk": "{name} OK",
-  "dashboard_gauges_gearDueIn": "{name} fällig in {days}T",
-  "dashboard_gauges_gearOverdue": "{name} überfällig",
-  "dashboard_gauges_gearOverdueMore": "+{count} weitere überfällig",
+  "dashboard_gauges_gearDueIn": "{name} Wartung fällig in {days}T",
+  "dashboard_gauges_gearOverdue": "{name} Wartung überfällig",
+  "dashboard_gauges_gearOverdueCount": "{count, plural, =1{{count} Teil mit überfälliger Wartung} other{{count} Teile mit überfälliger Wartung}}",
+  "dashboard_gauges_gearDueSoonCount": "{count, plural, =1{{count} Teil zur Wartung in {days}T} other{{count} Teile zur Wartung in {days}T}}",
   "dashboard_gauges_insuranceOk": "Versicherung OK",
   "dashboard_gauges_insuranceExpires": "Versicherung läuft am {date} ab",
   "dashboard_gauges_insuranceExpired": "Versicherung abgelaufen",
@@ -7610,7 +7648,7 @@
   "diveLog_detail_reparseProfilePreserved": "Quelldetails aktualisiert. Dieser Tauchgang wurde aus mehreren Tauchgängen zusammengeführt, daher blieb sein Profil unverändert.",
   "settings_appearance_mapStyle": "Kartenstil",
   "settings_appearance_mapStyle_esriSatellite": "Satellit",
-  "settings_appearance_bathymetryRefresh": "Kartendaten aktualisieren",
+  "settings_appearance_bathymetryRefresh": "Bestehende Kartendaten aktualisieren",
   "settings_appearance_bathymetryRefresh_subtitle": "Prüft swissBATHY3D-Tiefendaten auf Aktualisierungen",
   "settings_appearance_bathymetryRefresh_resultUpdated": "{count, plural, =1{1 Kachel aktualisiert} other{{count} Kacheln aktualisiert}}",
   "@settings_appearance_bathymetryRefresh_resultUpdated": {
@@ -7623,6 +7661,104 @@
   "settings_appearance_bathymetryRefresh_resultUpToDate": "Alle Daten sind aktuell",
   "settings_appearance_bathymetryRefresh_resultFailed": "Nicht alle Daten konnten geprüft werden; bestehende Werte wurden beibehalten",
   "settings_appearance_bathymetryRefresh_resultNothingCached": "Noch keine Seetiefendaten gespeichert",
+  "maps3d_appBar_title": "3D-Karten",
+  "maps3d_section_all": "Alle Anbieter",
+  "maps3d_section_swissBathy": "swissBATHY3D",
+  "maps3d_swissBathy_delete": "Daten löschen",
+  "maps3d_swissBathy_delete_subtitle": "Entfernt gecachte swissBATHY3D-Tiefenkacheln und Seenetze",
+  "maps3d_swissBathy_delete_confirmTitle": "swissBATHY3D-Daten löschen?",
+  "maps3d_swissBathy_delete_confirmMessage": "Gecachte Tiefendaten für Schweizer Seen werden entfernt und beim nächsten Öffnen der 3D-Ansicht eines Tauchplatzes neu geladen.",
+  "maps3d_swissBathy_delete_done": "swissBATHY3D-Daten gelöscht",
+  "maps3d_section_other": "Übrige Anbieter",
+  "maps3d_other_reset": "Übrige Bathymetrie-Daten zurücksetzen",
+  "maps3d_other_reset_subtitle": "Entfernt gecachte Daten von EMODnet, NOAA DEM, GMRT und ETOPO",
+  "maps3d_other_reset_confirmTitle": "Übrige Bathymetrie-Daten zurücksetzen?",
+  "maps3d_other_reset_confirmMessage": "Gecachte Daten aller Anbieter ausser swissBATHY3D werden entfernt und beim nächsten Öffnen der 3D-Ansicht eines Tauchplatzes neu geladen.",
+  "maps3d_other_reset_done": "Übrige Bathymetrie-Daten zurückgesetzt",
+  "maps3d_reload": "Kartendaten neu laden",
+  "maps3d_reload_subtitle": "Löscht alle gecachten Bathymetrie-Daten und lädt sie für jeden Tauchplatz neu herunter",
+  "maps3d_reload_confirmTitle": "Kartendaten für alle Tauchplätze neu laden?",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{Kein Tauchplatz hat eine Koordinate.} =1{1 Tauchplatz wird neu geladen.} other{{count} Tauchplätze werden neu geladen.}}",
+  "@maps3d_reload_confirm_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_confirm_estimatedSize": "Geschätzter Download: ca. {size}",
+  "@maps3d_reload_confirm_estimatedSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_confirm_duration": "Dies kann mehrere Minuten dauern.",
+  "maps3d_reload_confirm_wifiHint": "Es werden viele Daten heruntergeladen — ein schnelles WLAN wird empfohlen.",
+  "maps3d_reload_start": "Neu laden",
+  "maps3d_reload_progress": "{completed} von {total} Tauchplätzen",
+  "@maps3d_reload_progress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_cancel": "Abbrechen",
+  "maps3d_reload_done": "Kartendaten für alle Tauchplätze neu geladen",
+  "maps3d_reload_cancelled": "Neu laden abgebrochen",
+  "maps3d_reload_failed": "Neu laden fehlgeschlagen; einige Tauchplätze wurden evtl. nicht neu geladen",
+  "maps3d_busy_notice": "Eine andere 3D-Karten-Aktion läuft gerade. Bitte warten, bis sie abgeschlossen ist.",
+  "maps3d_reload_remainingSeconds": "noch ca. {count, plural, =1{1 Sekunde} other{{count} Sekunden}}",
+  "@maps3d_reload_remainingSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_remainingMinutes": "noch ca. {count, plural, =1{1 Minute} other{{count} Minuten}}",
+  "@maps3d_reload_remainingMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_warming": "Bereite vor: See {index} von {total} ({name})",
+  "@maps3d_reload_warming": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_elapsedSeconds": "läuft seit {count, plural, =1{1 Sekunde} other{{count} Sekunden}}",
+  "@maps3d_reload_elapsedSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_elapsedMinutes": "läuft seit {count, plural, =1{1 Minute} other{{count} Minuten}}",
+  "@maps3d_reload_elapsedMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settings_appearance_mapStyle_openStreetMap": "Straßenkarte",
   "settings_appearance_mapStyle_openTopoMap": "Topografisch",
   "universalImport_bulk_replaceSourceAll": "Alle ersetzen ({count})",
@@ -7750,6 +7886,10 @@
   "settings_mediaStorage_transfers_suspended_subtitle": "Dieses Gerät und der Cloud-Speicher sind sich nicht mehr einig, welcher Speicher verwendet wird. Beim erneuten Verbinden wird der Speicher übernommen, den die Cloud jetzt enthält.",
   "settings_mediaStorage_transfers_queued": "{count} in Warteschlange",
   "settings_mediaStorage_transfers_waitingRetry": "{count} warten auf Wiederholung",
+  "settings_mediaStorage_report_action": "Medienbericht exportieren",
+  "settings_mediaStorage_report_done": "Medienbericht exportiert",
+  "settings_mediaStorage_report_note": "Der Bericht enthält Dateipfade und Gerätenamen. Es wird nichts gesendet.",
+  "settings_mediaStorage_report_running": "Medienbericht wird erstellt...",
   "settings_mediaStorage_verify_action": "Bibliothek überprüfen",
   "settings_mediaStorage_verify_running": "Medienbibliothek wird überprüft...",
   "settings_mediaStorage_verify_summary": "{checked} Cloud-Objekte geprüft ({originals, plural, =1{1 Original} other{{originals} Originale}}, {thumbs, plural, =1{1 Miniaturansicht} other{{thumbs} Miniaturansichten}}, {renditions, plural, =1{1 komprimierte Version} other{{renditions} komprimierte Versionen}}): {removed} verwaiste entfernt, {repaired} Reparaturen eingereiht, {aborted} veraltete Uploads abgebrochen",
@@ -7855,6 +7995,12 @@
   "@dive3d_seascape_chartView": {},
   "dive3d_seascape_orbitView": "3D-Ansicht",
   "@dive3d_seascape_orbitView": {},
+  "dive3d_seascape_verticalExaggeration": "Vertikale Überhöhung",
+  "@dive3d_seascape_verticalExaggeration": {},
+  "dive3d_seascape_verticalExaggerationReset": "Auf automatisch zurücksetzen",
+  "@dive3d_seascape_verticalExaggerationReset": {},
+  "dive3d_seascape_verticalExaggerationLabel": "Tiefe",
+  "@dive3d_seascape_verticalExaggerationLabel": {},
   "dive3d_seascape_appearance_surface": "Geländeoberfläche",
   "@dive3d_seascape_appearance_surface": {},
   "dive3d_seascape_appearance_surfaceDepth": "Tiefenfarben",
@@ -7935,6 +8081,27 @@
   "@dive3d_seascape_seafloorSource": {},
   "dive3d_seascape_noCoordinates": "Dieser Tauchplatz hat keine GPS-Koordinaten",
   "@dive3d_seascape_noCoordinates": {},
+  "dive3d_seascape_detailLimitReached": "Für diesen Ort ist kein weiteres Detail verfügbar",
+  "@dive3d_seascape_detailLimitReached": {},
+  "dive3d_seascape_lodStageLabel": "Detailstufe: {stage} ({span})",
+  "@dive3d_seascape_lodStageLabel": {
+    "placeholders": {
+      "stage": {
+        "type": "String"
+      },
+      "span": {
+        "type": "String"
+      }
+    }
+  },
+  "dive3d_seascape_lodStageOverview": "Übersicht",
+  "@dive3d_seascape_lodStageOverview": {},
+  "dive3d_seascape_lodStageMedium": "Mittel",
+  "@dive3d_seascape_lodStageMedium": {},
+  "dive3d_seascape_lodStageFine": "Fein",
+  "@dive3d_seascape_lodStageFine": {},
+  "dive3d_seascape_lodStageSuperFine": "Superfein",
+  "@dive3d_seascape_lodStageSuperFine": {},
   "dive3d_seascape_noData": "Keine Bathymetrie für diesen Ort verfügbar",
   "@dive3d_seascape_noData": {},
   "dive3d_seascape_axis_distance": "Entfernung ({unitSymbol})",
@@ -8741,6 +8908,23 @@
   "safetyHub_incidentsLink": "Beinahe-Unfall-Log",
   "safetyHub_incidentsLink_subtitle": "Private, nicht wertende Vorfallnotizen",
   "diveLog_detail_menu_logNearMiss": "Beinahe-Unfall erfassen",
+  "diveLog_planned_chip": "Geplant",
+  "diveLog_planned_bannerTitle": "Geplanter Tauchgang",
+  "diveLog_planned_bannerBody": "Wartet auf Tauchcomputerdaten. Als protokolliert markieren, wenn du ohne Computer getaucht bist.",
+  "diveLog_detail_menu_markLogged": "Als protokolliert markieren",
+  "diveLog_planned_markedLogged": "Als protokolliert markiert",
+  "diveLog_planned_markLoggedFailed": "Der Tauchgang konnte nicht als protokolliert markiert werden.",
+  "diveLog_mirror_dialogTitle": "Diesen Tauchgang auch in einem anderen Profil protokollieren?",
+  "diveLog_mirror_dialogBody": "Diese Tauchpartner haben Profile auf diesem Gerät. Der Tauchgang wird ihren Logbüchern als geplanter Tauchgang hinzugefügt, bis ihre eigenen Tauchcomputerdaten ihn ausfüllen.",
+  "diveLog_mirror_log": "Protokollieren",
+  "diveLog_mirror_notNow": "Später",
+  "diveLog_mirror_snackbar": "Protokolliert für {names}",
+  "diveLog_mirror_undone": "Gespiegelte Tauchgänge entfernt",
+  "diveLog_mirror_undoFailed": "Die gespiegelten Tauchgänge konnten nicht entfernt werden.",
+  "diveLog_mirror_failed": "Konnte nicht protokolliert werden für {names}",
+  "diveLog_detail_menu_logForBuddy": "Für das Profil eines Tauchpartners protokollieren",
+  "diveLog_detail_loggedWith": "Protokolliert mit",
+  "diveLog_detail_loggedWithPlanned": "wartet auf ihren Tauchcomputer",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 Beinahe-Unfall mit diesem Tauchgang verknüpft} other{{count} Beinahe-Unfälle mit diesem Tauchgang verknüpft}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {
@@ -11370,6 +11554,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "Tiefenbereich ({unit})",
   "diveLog_filter_sectionDiveComputer": "Tauchcomputer",
   "diveLog_listPage_semanticsDiveAtSite": "Tauchgang {diveNumber} bei {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "Geplanter Tauchgang bei {siteName}",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "Kompakt",
   "enum_listViewMode_dense": "Dicht",
   "enum_listViewMode_detailed": "Detailliert",
@@ -12036,7 +12228,9 @@
   "media_info_actionBackUpNow": "Jetzt sichern",
   "media_info_actionRetryUpload": "Upload wiederholen",
   "media_info_actionReveal": "Im Dateimanager anzeigen",
+  "media_info_actionCopyDiagnostics": "Diagnose kopieren",
   "media_info_actionCopyPath": "Referenz kopieren",
+  "media_info_diagnosticsCopied": "Diagnose kopiert",
   "media_info_referenceCopied": "Referenz kopiert",
   "media_info_checkFound": "Quelle gefunden",
   "media_info_checkMissing": "Quelle fehlt",

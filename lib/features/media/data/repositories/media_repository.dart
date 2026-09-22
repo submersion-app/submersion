@@ -2130,6 +2130,19 @@ class MediaRepository {
     return labels;
   }
 
+  /// The row's sync clock, or null for an unknown id or a row never marked
+  /// pending. A narrow read for diagnostics: the domain entity does not carry
+  /// the column, and a stale-merge investigation needs it.
+  Future<String?> getSyncHlc(String id) async {
+    final hlc = _db.media.hlc;
+    final row =
+        await (_db.selectOnly(_db.media)
+              ..addColumns([hlc])
+              ..where(_db.media.id.equals(id)))
+            .getSingleOrNull();
+    return row?.read(hlc);
+  }
+
   static String? _firstNonBlank(String? first, String? second) {
     if (first != null && first.isNotEmpty) return first;
     if (second != null && second.isNotEmpty) return second;

@@ -52,6 +52,7 @@ class LogFilterState {
       LogCategory.serial,
       LogCategory.libdc,
       LogCategory.database,
+      LogCategory.media,
     },
     this.minimumSeverity = LogLevel.debug,
     this.searchQuery = '',
@@ -130,6 +131,7 @@ final filteredLogEntriesProvider = Provider<AsyncValue<List<LogEntry>>>((ref) {
 
 /// Name the exported copy carries in the share sheet and the save dialog.
 const _exportFileName = 'submersion-debug-logs.txt';
+const _mediaReportFileName = 'submersion-media-report.txt';
 
 /// Resolve the header prepended to every export.
 ///
@@ -165,11 +167,16 @@ Future<Uint8List> buildLogExportBytes(File file, String header) async {
 /// [sharePositionOrigin] anchors the iPad share popover; this function has no
 /// [BuildContext] of its own, so the caller resolves it from the share button
 /// (see `shareAnchorFrom`). Ignored on every other platform.
+///
+/// [mediaReport] is the media health report as text; when given, it travels
+/// as a second file so a photo-sync report carries the row facts alongside
+/// the log lines.
 Future<void> shareLogFile(
   LogFileService service,
   AppLocalizations l10n, {
   LogEnvironment? environment,
   Rect? sharePositionOrigin,
+  String? mediaReport,
 }) async {
   final file = File(service.logFilePath);
   if (!file.existsSync()) return;
@@ -184,10 +191,16 @@ Future<void> shareLogFile(
   final tempDir = await getTemporaryDirectory();
   final export = File('${tempDir.path}/$_exportFileName');
   await export.writeAsBytes(await buildLogExportBytes(file, header));
+  final files = [XFile(export.path, mimeType: 'text/plain')];
+  if (mediaReport != null) {
+    final report = File('${tempDir.path}/$_mediaReportFileName');
+    await report.writeAsString(mediaReport);
+    files.add(XFile(report.path, mimeType: 'text/plain'));
+  }
 
   await SharePlus.instance.share(
     ShareParams(
-      files: [XFile(export.path, mimeType: 'text/plain')],
+      files: files,
       subject: l10n.settings_debugLog_shareSubject,
       sharePositionOrigin: sharePositionOrigin,
     ),

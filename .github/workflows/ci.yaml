@@ -450,6 +450,15 @@ jobs:
             test/features/dive_log/data/repositories/dive_records_filter_test.dart
             test/features/dive_log/data/repositories/dive_repository_weekday_filter_test.dart
             test/features/statistics/data/dive_filter_sql_test.dart
+            test/features/trips/domain/entities/trip_test.dart
+            test/features/trips/domain/entities/itinerary_day_test.dart
+            test/features/trips/presentation/pages/trip_edit_page_test.dart
+            test/features/trips/presentation/widgets/trip_summary_widget_test.dart
+            test/features/trips/presentation/widgets/story/trip_story_hero_test.dart
+            test/features/trips/domain/entities/trip_upcoming_test.dart
+            test/features/equipment/presentation/widgets/children_card_test.dart
+            test/features/notifications/service_ledger_scheduler_test.dart
+            test/features/tides/presentation/widgets/tide_date_format_test.dart
           )
           # Guard against a rename silently emptying the list: with no paths,
           # `flutter test` would run the ENTIRE suite twice and look green.

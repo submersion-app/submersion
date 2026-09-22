@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
+import 'package:submersion/features/media/presentation/providers/media_health_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_log_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/debug_mode_provider.dart';
 import 'package:submersion/features/settings/presentation/widgets/log_entry_tile.dart';
@@ -141,10 +142,18 @@ class _DebugLogViewerPageState extends ConsumerState<DebugLogViewerPage> {
                   onPressed: () async {
                     final l10n = context.l10n;
                     final service = ref.read(logFileServiceProvider);
+                    // Resolved before the awaits: the anchor needs a live
+                    // context, and the report build can take a moment.
+                    final anchor = shareAnchorFrom(buttonContext);
+                    // Null when it cannot be built; the log still ships.
+                    final mediaReport = await ref.read(
+                      mediaReportBuilderProvider,
+                    )();
                     await shareLogFile(
                       service,
                       l10n,
-                      sharePositionOrigin: shareAnchorFrom(buttonContext),
+                      sharePositionOrigin: anchor,
+                      mediaReport: mediaReport,
                     );
                   },
                   icon: const Icon(Icons.share, size: 18),

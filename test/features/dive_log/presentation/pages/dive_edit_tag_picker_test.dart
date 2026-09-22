@@ -8,6 +8,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_picker_sheet.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -103,6 +104,6 @@ void main() {
 
     // Sheet dismissed, and the picked tag is now a chip on the form.
     expect(find.byType(TagPickerSheet), findsNothing);
-    expect(find.widgetWithText(Chip, 'Wreck'), findsOneWidget);
+    expect(find.widgetWithText(TagChip, 'Wreck'), findsOneWidget);
   });
 }

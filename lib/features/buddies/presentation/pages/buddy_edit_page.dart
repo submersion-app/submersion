@@ -16,6 +16,10 @@ import 'package:submersion/features/certifications/presentation/providers/certif
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
+import 'package:submersion/features/buddies/presentation/providers/buddy_profile_link_providers.dart';
+import 'package:submersion/features/buddies/presentation/widgets/linked_profile_field.dart';
+import 'package:submersion/features/buddies/presentation/widgets/linked_profile_suggestion.dart';
+import 'package:submersion/features/buddies/data/repositories/buddy_profile_link_repository.dart';
 import 'package:submersion/features/buddies/data/repositories/buddy_repository.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_merge_form_controller.dart';
 import 'package:submersion/features/certifications/presentation/certification_title_l10n.dart';
@@ -83,6 +87,13 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
   bool _hasChanges = false;
   Buddy? _originalBuddy;
   Uint8List? _photo;
+
+  /// The local profile this buddy is (issue #2002), as edited on this page.
+  String? _linkedDiverId;
+
+  /// "Not now" on the suggestion hides it for this page only; there is no
+  /// persistent dismissal, since the link is expected to be set eventually.
+  bool _suggestionDismissed = false;
 
   BuddyMergeFormController? _mergeCtrl;
 
@@ -155,6 +166,7 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
         if (!mounted) return;
         _originalBuddy = buddy;
         _photo = buddy.photo;
+        _linkedDiverId = buddy.linkedDiverId;
         _nameController.text = buddy.name;
         _emailController.text = buddy.email ?? '';
         _phoneController.text = buddy.phone ?? '';
@@ -428,6 +440,23 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
               keyboardType: TextInputType.phone,
             ),
             const SizedBox(height: 24),
+
+            // Linked profile (issue #2002): which local diver this buddy is.
+            // Hidden in merge mode, where the surviving link is settled by
+            // the controller and the repository.
+            if (!widget.isMerging) ...[
+              if (!_suggestionDismissed && _linkedDiverId == null)
+                _buildLinkedProfileSuggestion(),
+              LinkedProfileField(
+                ownerDiverId: _originalBuddy?.diverId,
+                linkedDiverId: _linkedDiverId,
+                onChanged: (id) => setState(() {
+                  _linkedDiverId = id;
+                  _hasChanges = true;
+                }),
+              ),
+              const SizedBox(height: 24),
+            ],
 
             // Certifications (issue #553): staged in memory, committed on
             // Save. Hidden in merge mode -- the survivor inherits the union of
@@ -703,10 +732,34 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
           _originalBuddy?.diverId ??
           await ref.read(validatedCurrentDiverIdProvider.future);
 
+      // The profile link is validated before anything is written: at most
+      // one buddy per owner list may be a given profile, and never the
+      // owner itself (issue #2002).
+      final linkedDiverId = widget.isMerging
+          ? _mergeCtrl?.mergedLinkedDiverId
+          : _linkedDiverId;
+      if (linkedDiverId != null) {
+        try {
+          await ref
+              .read(buddyProfileLinkRepositoryProvider)
+              .assertLinkAllowed(
+                ownerDiverId: diverId,
+                linkedDiverId: linkedDiverId,
+                buddyId: widget.buddyId,
+              );
+        } on BuddyLinkRefused catch (refusal) {
+          if (!mounted) return;
+          _showLinkRefused(refusal);
+          setState(() => _isSaving = false);
+          return;
+        }
+      }
+
       final now = DateTime.now();
       final buddy = Buddy(
         id: widget.buddyId ?? '',
         diverId: diverId,
+        linkedDiverId: linkedDiverId,
         name: _nameController.text.trim(),
         email: _emailController.text.trim().isEmpty
             ? null
@@ -787,16 +840,72 @@ class _BuddyEditPageState extends ConsumerState<BuddyEditPage> {
       }
     } catch (e) {
       if (mounted) {
+        final message =
+            e is StateError && e.message.contains('different profiles')
+            ? context.l10n.buddies_merge_refusedDifferentLinks
+            : context.l10n.buddies_message_errorSaving(e.toString());
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              context.l10n.buddies_message_errorSaving(e.toString()),
-            ),
+            content: Text(message),
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
         setState(() => _isSaving = false);
       }
     }
+  }
+
+  /// The one-time prompt offering to link this buddy to the single local
+  /// profile whose name or email matches what is typed.
+  Widget _buildLinkedProfileSuggestion() {
+    return Consumer(
+      builder: (context, ref, _) {
+        final ownerId =
+            _originalBuddy?.diverId ?? ref.watch(currentDiverIdProvider);
+        final email = _emailController.text.trim();
+        final suggestion = ref.watch(
+          linkedProfileSuggestionProvider((
+            ownerDiverId: ownerId,
+            name: _nameController.text,
+            email: email.isEmpty ? null : email,
+          )),
+        );
+        final diver = suggestion.value;
+        if (diver == null) return const SizedBox.shrink();
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: LinkedProfileSuggestion(
+            diver: diver,
+            onLink: () => setState(() {
+              _linkedDiverId = diver.id;
+              _hasChanges = true;
+            }),
+            onDismiss: () => setState(() => _suggestionDismissed = true),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showLinkRefused(BuddyLinkRefused refusal) {
+    final l10n = context.l10n;
+    final existing = refusal.existingBuddy;
+    final text = switch (refusal.reason) {
+      BuddyLinkRefusal.self => l10n.buddies_linkedProfile_refusedSelf,
+      BuddyLinkRefusal.taken => l10n.buddies_linkedProfile_refusedTaken(
+        existing?.name ?? '',
+      ),
+    };
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(text),
+        action: existing == null
+            ? null
+            : SnackBarAction(
+                label: l10n.buddies_linkedProfile_openBuddy,
+                onPressed: () => context.push('/buddies/${existing.id}'),
+              ),
+      ),
+    );
   }
 }
