@@ -96,7 +96,7 @@ void main() {
       expect(l10n.diveSites_list_tile_diveCount(0), '0 mergulho');
       expect(l10n.diveSites_list_tile_diveCount(1), '1 mergulho');
       expect(l10n.diveSites_list_tile_diveCount(2), '2 mergulhos');
-      expect(l10n.settings_cloudSync_pendingChanges(0), '0 alteracao pendente');
+      expect(l10n.settings_cloudSync_pendingChanges(0), '0 alteração pendente');
       expect(l10n.equipment_components_countOfTotal(3, 0), '3 de 0 componente');
     });
 
