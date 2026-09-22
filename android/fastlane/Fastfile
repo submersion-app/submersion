@@ -68,7 +68,7 @@ platform :android do
     UI.success("AAB validation passed!")
   end
 
-  desc "Upload AAB to the beta testing track (PLAY_BETA_TRACK, default alpha), released"
+  desc "Upload AAB to the beta testing track (PLAY_BETA_TRACK, default beta), released"
   lane :upload_beta do
     aab_path = find_aab
     track = beta_track
@@ -95,7 +95,7 @@ platform :android do
     UI.success("AAB released to the '#{track}' track!")
   end
 
-  desc "Promote a build from the beta testing track (PLAY_BETA_TRACK, default alpha) to production"
+  desc "Promote a build from the beta testing track (PLAY_BETA_TRACK, default beta) to production"
   lane :promote_to_production do |options|
     version_code = options[:version_code] || UI.user_error!("version_code is required")
     rollout = options[:rollout] || "1.0"
@@ -122,13 +122,15 @@ platform :android do
   # Helper Methods
   # ============================================================================
 
-  # The Play track carrying beta builds. 'alpha' (closed testing) until Google
-  # grants production access -- open testing ('beta') is gated behind it, and
-  # running a closed test (12+ testers, 14 days) is what earns it. Flip
-  # PLAY_BETA_TRACK to 'beta' in beta.yml/promote.yml (or the default here)
-  # once production access is granted.
+  # The Play track carrying beta builds. 'beta' (open testing) since Google
+  # granted production access on 2026-09-22. It was 'alpha' (closed testing)
+  # before that: open testing is gated behind production access, and running
+  # a closed test (12+ testers, 14 days) is what earns it.
+  #
+  # PLAY_BETA_TRACK still overrides, so a one-off run can target either track
+  # without a code change.
   def beta_track
-    track = ENV["PLAY_BETA_TRACK"] || "alpha"
+    track = ENV["PLAY_BETA_TRACK"] || "beta"
     unless ["alpha", "beta"].include?(track)
       UI.user_error!(
         "PLAY_BETA_TRACK must be 'alpha' (closed testing) or 'beta' " \
