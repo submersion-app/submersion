@@ -331,6 +331,27 @@ void main() {
       );
     });
 
+    testWidgets('tapping a lit service severity releases it', (tester) async {
+      // The chips toggle, so the diver drops the narrowing from the same
+      // chip that applied it rather than hunting for All Equipment.
+      _useTallSurface(tester);
+      final container = await _container(
+        filter: const EquipmentFilterState(
+          serviceDue: ServiceDueFilter.overdue,
+        ),
+      );
+
+      await _openSheet(tester, container);
+      await tester.tap(
+        find.byKey(const ValueKey('equipment_filter_status_serviceOverdue')),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('equipment_filter_apply')));
+      await tester.pumpAndSettle();
+
+      expect(container.read(equipmentFilterProvider).serviceDue, isNull);
+    });
+
     testWidgets('picking a status releases a service severity', (tester) async {
       _useTallSurface(tester);
       final container = await _container(

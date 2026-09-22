@@ -79,6 +79,17 @@ void main() {
       );
     });
 
+    test('toString names the service severity', () {
+      // The filter prints itself into diagnostics, and "which severity" is
+      // the whole question when a list comes back shorter than expected.
+      expect(
+        const EquipmentFilterState(
+          serviceDue: ServiceDueFilter.overdue,
+        ).toString(),
+        contains('overdue'),
+      );
+    });
+
     test('filters differing only in service severity are not equal', () {
       // The two home chips seed states that differ in nothing else, so a
       // provider keyed on the filter has to tell them apart.
