@@ -12,6 +12,11 @@ import 'package:submersion/core/services/cloud_storage/s3/s3_config.dart';
 /// used to throw the bare status, discarding the Code it had already parsed
 /// to recognise four specific failures. That is the gap #2018 fixed on the
 /// Drive adapter.
+///
+/// The provider's words go in the cause, so they reach the person through
+/// `displayMessage` and `toString` while `message` stays the curated advice.
+/// That split matters: the media stores classify a failure by substring on
+/// `message`, so provider text in it would change what gets retried.
 void main() {
   S3ApiClient clientReturning(int status, String body) => S3ApiClient(
     S3Config(
@@ -38,8 +43,8 @@ void main() {
       () => client.putObject('k', Uint8List.fromList([1])),
       throwsA(
         isA<CloudStorageException>().having(
-          (e) => e.message,
-          'message',
+          (e) => e.displayMessage,
+          'displayMessage',
           allOf(
             contains('InvalidRequest'),
             contains('Multipart uploads are not supported here'),
@@ -49,11 +54,38 @@ void main() {
     );
   });
 
+  test('the provider text stays out of the classification input', () async {
+    // The media stores classify by substring on message. A 500 whose
+    // Message reads "Access denied by policy" is a server fault to retry,
+    // not an auth failure to stop on, so message must not carry it.
+    final client = clientReturning(
+      500,
+      '<Error><Code>InternalError</Code>'
+      '<Message>Access denied by policy</Message></Error>',
+    );
+
+    await expectLater(
+      () => client.putObject('k', Uint8List.fromList([1])),
+      throwsA(
+        isA<CloudStorageException>()
+            .having(
+              (e) => e.message,
+              'message',
+              isNot(contains('Access denied')),
+            )
+            .having(
+              (e) => e.displayMessage,
+              'displayMessage',
+              contains('Access denied by policy'),
+            ),
+      ),
+    );
+  });
+
   test('a very long Message is bounded', () async {
-    // The detail lands in the media queue's errorMessage column and in a
-    // list tile, by way of MediaStoreException's primary message, which is
-    // not the half that toString bounds. An S3-compatible server is free to
-    // answer with a Message of any length.
+    // The detail reaches the media queue's errorMessage column and a list
+    // tile, and an S3-compatible server is free to answer with a Message of
+    // any length, or a proxy with a whole HTML page.
     final client = clientReturning(
       500,
       '<Error><Code>InternalError</Code>'
@@ -64,8 +96,8 @@ void main() {
       () => client.putObject('k', Uint8List.fromList([1])),
       throwsA(
         isA<CloudStorageException>().having(
-          (e) => e.message.length,
-          'message length',
+          (e) => e.displayMessage.length,
+          'displayMessage length',
           lessThan(400),
         ),
       ),
@@ -88,8 +120,8 @@ void main() {
       () => client.putObject('k', Uint8List.fromList([1])),
       throwsA(
         isA<CloudStorageException>().having(
-          (e) => e.message,
-          'message',
+          (e) => e.displayMessage,
+          'displayMessage',
           allOf(contains('Access denied'), contains('SignatureDoesNotMatch')),
         ),
       ),
@@ -109,8 +141,8 @@ void main() {
       () => client.putObject('k', Uint8List.fromList([1])),
       throwsA(
         isA<CloudStorageException>().having(
-          (e) => e.message,
-          'message',
+          (e) => e.displayMessage,
+          'displayMessage',
           allOf(contains('Access denied'), contains('user is disabled')),
         ),
       ),
@@ -131,8 +163,8 @@ void main() {
       () => client.putObject('k', Uint8List.fromList([1])),
       throwsA(
         isA<CloudStorageException>().having(
-          (e) => e.message,
-          'message',
+          (e) => e.displayMessage,
+          'displayMessage',
           allOf(contains('signature region'), contains('eu-west-2')),
         ),
       ),
@@ -151,8 +183,8 @@ void main() {
       () => client.getObject('k'),
       throwsA(
         isA<CloudStorageException>().having(
-          (e) => e.message,
-          'message',
+          (e) => e.displayMessage,
+          'displayMessage',
           allOf(contains('clock'), contains('42 minutes')),
         ),
       ),
@@ -165,11 +197,13 @@ void main() {
     await expectLater(
       () => client.putObject('k', Uint8List.fromList([1])),
       throwsA(
-        isA<CloudStorageException>().having(
-          (e) => e.message,
-          'message',
-          allOf(contains('400'), isNot(contains('html'))),
-        ),
+        isA<CloudStorageException>()
+            .having(
+              (e) => e.displayMessage,
+              'displayMessage',
+              allOf(contains('400'), isNot(contains('html'))),
+            )
+            .having((e) => e.cause, 'cause', isNull),
       ),
     );
   });

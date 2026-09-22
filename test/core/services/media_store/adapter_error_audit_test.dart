@@ -66,7 +66,17 @@ void main() {
         isA<MediaStoreException>().having(
           (e) => e.toString(),
           'toString',
-          allOf(contains('cannot read source'), contains('gone.bin')),
+          allOf(
+            contains('cannot read source'),
+            contains('gone.bin'),
+            // The message carries the key, not the source file's own path,
+            // so only the cause can put that path in the string. Asserting
+            // on the key alone would pass with the cause dropped. The type
+            // name is not asserted: a missing file raises the
+            // PathNotFoundException subclass, and which subclass Dart picks
+            // is not what this test is about.
+            contains(missing.path),
+          ),
         ),
       ),
     );

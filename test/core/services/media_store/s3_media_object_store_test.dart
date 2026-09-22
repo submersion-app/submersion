@@ -308,6 +308,45 @@ void main() {
     }
   });
 
+  test('a provider message mentioning access does not reclassify a server '
+      'fault', () async {
+    // _map classifies on e.message by substring, so the provider's own words
+    // must never reach that input. A 500 whose Message happens to read
+    // "Access denied by policy" is a server fault the queue should retry,
+    // not an auth failure it should stop on.
+    final store = S3MediaObjectStore(
+      client: S3ApiClient(
+        S3Config(
+          endpoint: 'http://nas.local:9000',
+          bucket: 'dive-sync',
+          accessKeyId: 'ak',
+          secretAccessKey: 'sk',
+        ),
+        httpClient: MockClient(
+          (_) async => http.Response(
+            '<Error><Code>InternalError</Code>'
+            '<Message>Access denied by policy</Message></Error>',
+            500,
+          ),
+        ),
+        now: () => DateTime.utc(2026, 6, 9, 12),
+        retryDelay: Duration.zero,
+      ),
+      keyPrefix: 'submersion-media/',
+    );
+
+    await expectLater(
+      store.head('smv1/objects/aa/x.bin'),
+      throwsA(
+        isA<MediaStoreException>().having(
+          (e) => e.kind,
+          'kind',
+          MediaStoreErrorKind.fatal,
+        ),
+      ),
+    );
+  });
+
   test('every verb wraps a client error as a MediaStoreException', () async {
     final store = throwingStore(
       const CloudStorageException('Access denied to bucket'),

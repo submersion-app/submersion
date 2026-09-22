@@ -744,56 +744,59 @@ class S3ApiClient {
   Never _throwFor(String operation, String key, http.Response response) {
     final body = utf8.decode(response.bodyBytes, allowMalformed: true);
     final errorCode = _xmlElementText(body, 'Code');
-    // Every throw below ends with the provider's own words. The curated
-    // advice is the actionable part and stays first, but only the body says
-    // which of the faults behind a status actually happened: a 403 covers a
-    // wrong key and a disabled user alike, and the region branch's Message
-    // names the region the advice sends the person to go and find. A body
-    // that is not this shape (an HTML page from a proxy, an empty body)
-    // leaves each message exactly as it was. That is the gap #2018 fixed on
-    // the Drive adapter, and it was in every branch here, not just the
-    // catch-all.
+    // Every throw below carries the provider's own words, because only the
+    // body says which of the faults behind a status actually happened: a
+    // 403 covers a wrong key and a disabled user alike, and the region
+    // branch's Message names the region its own advice sends the person to
+    // go and find. That is the gap #2018 fixed on the Drive adapter, and it
+    // was in every branch here, not just the catch-all.
+    //
+    // They go in the cause, never in the message, which is the shape the
+    // Dropbox client already throws. S3MediaObjectStore._map classifies by
+    // substring on the message, so a 500 whose Message reads "Access denied
+    // by policy" would be filed as an auth failure and stop being retried.
+    // toString and displayMessage both append the cause, so the explanation
+    // still reaches the Transfers page and the media health report.
+    //
+    // Bounded because it can be an HTML page from a proxy. A body that is
+    // not this shape leaves the message alone and carries no cause.
     final detail = _bounded(
       [?errorCode, ?_xmlElementText(body, 'Message')].join(': '),
     );
-    String withDetail(String advice) =>
-        detail.isEmpty ? advice : '$advice ($detail)';
+    final cause = detail.isEmpty ? null : detail;
 
     // Matched by error code regardless of HTTP status: AWS uses 400, some
     // compatible servers 403.
     if (errorCode == 'AuthorizationHeaderMalformed') {
       throw CloudStorageException(
-        withDetail(
-          "S3 rejected the request's signature region. Open Advanced and "
-          'set Region to the value your provider expects.',
-        ),
+        "S3 rejected the request's signature region. Open Advanced and "
+        'set Region to the value your provider expects.',
+        cause,
       );
     }
     if (response.statusCode == 403) {
       if (errorCode == 'RequestTimeTooSkewed') {
         throw CloudStorageException(
-          withDetail(
-            'S3 rejected the request time. The device clock is more than '
-            '15 minutes off; correct the system time and try again.',
-          ),
+          'S3 rejected the request time. The device clock is more than '
+          '15 minutes off; correct the system time and try again.',
+          cause,
         );
       }
       throw CloudStorageException(
-        withDetail(
-          'Access denied. Check the access key, secret key, and bucket '
-          'permissions.',
-        ),
+        'Access denied. Check the access key, secret key, and bucket '
+        'permissions.',
+        cause,
       );
     }
     if (response.statusCode == 404 && errorCode == 'NoSuchBucket') {
       throw CloudStorageException(
-        withDetail('Bucket "${_config.bucket}" not found'),
+        'Bucket "${_config.bucket}" not found',
+        cause,
       );
     }
     throw CloudStorageException(
-      withDetail(
-        'S3 $operation failed for "$key" (HTTP ${response.statusCode})',
-      ),
+      'S3 $operation failed for "$key" (HTTP ${response.statusCode})',
+      cause,
     );
   }
 

@@ -416,3 +416,24 @@ once, parses `Code` and `Message` once, and every branch ends with the same
 bounded detail in parentheses after its advice. A body that is not that
 shape leaves each message exactly as it was, so the curated wording and the
 `contains` assertions on it are unchanged.
+
+That round introduced a regression the next one caught: the media stores
+classify a failure by substring on `CloudStorageException.message`, so a 500
+whose `Message` read "Access denied by policy" was filed as
+`MediaStoreErrorKind.auth` and stopped being retried. The slice promises not
+to change classification, and it did.
+
+The fix is the shape the Dropbox client already threw: the provider's words
+go in the `cause`, never in the `message`. `_throwFor` passes the bounded
+detail as the cause and leaves each curated message alone, so the
+classification input is exactly what it was before this slice. Both media
+mappers now classify on `e.message` and build their wrapped message from
+`e.displayMessage`, which folds the cause in, so the explanation still
+reaches the queue, the Transfers page and the media health report, and the
+cause is not then repeated after it.
+
+The iCloud filesystem-cause test was also weaker than it looked. It asserted
+on the key, which the message already carries, so it passed whether or not
+the cause survived. It now asserts on the source file's own path, which only
+the `FileSystemException` can supply, and goes red when the cause is
+suppressed.
