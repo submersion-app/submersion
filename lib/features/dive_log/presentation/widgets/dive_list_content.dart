@@ -48,6 +48,7 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_log/data/services/dive_merge_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/data_quality/presentation/providers/data_quality_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -2378,6 +2379,10 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
                   context.push('/dives/new');
                 }
               },
+              onPlanDive: () => context.push(
+                '/dives/new',
+                extra: const DivePrefill(isPlanned: true),
+              ),
             ),
             icon: const Icon(Icons.add),
             label: Text(context.l10n.diveLog_empty_logFirstDive),

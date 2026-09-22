@@ -1482,6 +1482,16 @@ class AppLocalizationsHu extends AppLocalizations {
   String get buddies_field_emailHint => 'pelda@email.hu';
 
   @override
+  String get buddies_field_linkedProfile => 'Kapcsolt profil';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'A helyi profil, amely ez a búvártárs';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Nincs kapcsolva';
+
+  @override
   String get buddies_field_nameHint => 'Add meg a búvártárs nevét';
 
   @override
@@ -1695,6 +1705,39 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Használat';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Profil';
+
+  @override
+  String get buddies_linkedProfile_link => 'Kapcsolás';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Most nem';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Búvártárs megnyitása';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Kapcsolás profilhoz';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'Egy búvártárs nem kapcsolható a saját profiljához.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName már ehhez a profilhoz van kapcsolva.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name rendelkezik itt profillal. Kapcsoljuk hozzá ezt a búvártársat?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'Ezek a búvártársak különböző profilokhoz vannak kapcsolva. Először egyesítsd a profilokat.';
 
   @override
   String get buddies_message_added => 'Búvártárs sikeresen hozzáadva';
@@ -5796,6 +5839,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'Palackok';
 
   @override
+  String get diveLog_edit_planned_switch => 'Tervezett merülés';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'Búvárkomputer-adatokra vár. Nincs merülésszám, amíg nincs naplózva.';
+
+  @override
   String get diveLog_edit_profile_draw => 'Profil rajzolása';
 
   @override
@@ -6696,6 +6746,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Merülés manuális rögzítése';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'Merülés tervezése';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Töltsd ki a részleteket most, a búvárkomputer adatait add hozzá később';
 
   @override
   String get diveLog_listPage_fab_addDive => 'Merülés hozzáadása';
@@ -23862,6 +23919,48 @@ class AppLocalizationsHu extends AppLocalizations {
   String get universalImport_label_skip => 'Kihagyás';
 
   @override
+  String get universalImport_label_fillPlanned => 'Tervezett merülés kitöltése';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Ennek a letöltésnek a hozzárendelése a tervezett merüléshez';
+
+  @override
+  String get universalImport_label_filledPlanned =>
+      'Kitöltött tervezett merülések';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Kitölti a tervezett merülést: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'A felvázolt profil lecserélődik.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Módosítás';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle =>
+      'Válassz tervezett merülést';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'Inkább új merülésként importálás';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Kitöltések visszavonása';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'Tervezett merülések visszaállítva';
+
+  @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Nem sikerült minden tervezett merülést visszaállítani. Próbáld újra.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Címkézve mint: $tag';
   }
@@ -29089,6 +29188,67 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Kvázibaleset rögzítése';
+
+  @override
+  String get diveLog_planned_chip => 'Tervezett';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'Tervezett merülés';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'Búvárkomputer-adatokra vár. Jelöld naplózottnak, ha komputer nélkül merültél.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'Naplózottnak jelölés';
+
+  @override
+  String get diveLog_planned_markedLogged => 'Naplózottnak jelölve';
+
+  @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Nem sikerült naplózottként megjelölni a merülést.';
+
+  @override
+  String get diveLog_mirror_dialogTitle =>
+      'Ezt a merülést egy másik profilban is naplózod?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Ezeknek a búvártársaknak van profiljuk ezen az eszközön. A merülés tervezett merülésként kerül a naplójukba, amíg a saját búvárkomputerük adatai ki nem töltik.';
+
+  @override
+  String get diveLog_mirror_log => 'Naplózás';
+
+  @override
+  String get diveLog_mirror_notNow => 'Most nem';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Naplózva: $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Tükrözött merülések eltávolítva';
+
+  @override
+  String get diveLog_mirror_undoFailed =>
+      'Nem sikerült eltávolítani a tükrözött merüléseket.';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Nem sikerült naplózni: $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Naplózás egy búvártárs profiljába';
+
+  @override
+  String get diveLog_detail_loggedWith => 'Naplózva vele';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned => 'a búvárkomputerére vár';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -37325,6 +37485,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return '$diveNumber. merülés itt: $siteName';
+  }
+
+  @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'Tervezett merülés itt: $siteName';
   }
 
   @override

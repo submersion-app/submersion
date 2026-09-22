@@ -1397,6 +1397,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get buddies_field_emailHint => 'email@example.com';
 
   @override
+  String get buddies_field_linkedProfile => '关联的个人资料';
+
+  @override
+  String get buddies_field_linkedProfileHint => '此潜伴对应的本地个人资料';
+
+  @override
+  String get buddies_field_linkedProfileNone => '未关联';
+
+  @override
   String get buddies_field_nameHint => '输入潜伴姓名';
 
   @override
@@ -1596,6 +1605,37 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => '使用';
+
+  @override
+  String get buddies_linkedProfile_chip => '个人资料';
+
+  @override
+  String get buddies_linkedProfile_link => '关联';
+
+  @override
+  String get buddies_linkedProfile_notNow => '暂不';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => '打开潜伴';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => '关联到个人资料';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf => '潜伴不能关联到自己的个人资料。';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName 已关联到此个人资料。';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name 在此有个人资料。将此潜伴关联到它吗？';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks => '这些潜伴关联到不同的个人资料。请先合并个人资料。';
 
   @override
   String get buddies_message_added => '潜伴添加成功';
@@ -5522,6 +5562,12 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_edit_overline_tanks => '气瓶';
 
   @override
+  String get diveLog_edit_planned_switch => '计划的潜水';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle => '等待潜水电脑数据。记录前没有潜水编号。';
+
+  @override
   String get diveLog_edit_profile_draw => '绘制潜水曲线';
 
   @override
@@ -6369,6 +6415,13 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_listPage_bottomSheet_logManually => '手动记录潜水';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => '计划一次潜水';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      '现在填写详情，稍后添加潜水电脑数据';
 
   @override
   String get diveLog_listPage_fab_addDive => '添加潜水';
@@ -22672,6 +22725,41 @@ class AppLocalizationsZh extends AppLocalizations {
   String get universalImport_label_skip => '跳过';
 
   @override
+  String get universalImport_label_fillPlanned => '填充计划的潜水';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle => '将此下载附加到您计划的潜水';
+
+  @override
+  String get universalImport_label_filledPlanned => '已填充的计划潜水';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return '填充计划的潜水：$label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile => '其草绘的剖面将被替换。';
+
+  @override
+  String get universalImport_fillPlanned_change => '更改';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle => '选择一次计划的潜水';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew => '改为作为新潜水导入';
+
+  @override
+  String get universalImport_fillPlanned_undo => '撤销填充';
+
+  @override
+  String get universalImport_fillPlanned_undone => '已恢复计划的潜水';
+
+  @override
+  String get universalImport_fillPlanned_undoFailed => '无法恢复所有计划的潜水。请重试。';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return '标记为：$tag';
   }
@@ -27686,6 +27774,62 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_logNearMiss => '记录未遂事件';
+
+  @override
+  String get diveLog_planned_chip => '计划中';
+
+  @override
+  String get diveLog_planned_bannerTitle => '计划的潜水';
+
+  @override
+  String get diveLog_planned_bannerBody => '等待潜水电脑数据。如果没有使用潜水电脑，请标记为已记录。';
+
+  @override
+  String get diveLog_detail_menu_markLogged => '标记为已记录';
+
+  @override
+  String get diveLog_planned_markedLogged => '已标记为已记录';
+
+  @override
+  String get diveLog_planned_markLoggedFailed => '无法将该潜水标记为已记录。';
+
+  @override
+  String get diveLog_mirror_dialogTitle => '也在其他个人资料中记录此次潜水？';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      '这些潜伴在此设备上有个人资料。此次潜水将作为计划的潜水添加到他们的日志中，直到他们自己的潜水电脑数据填充为止。';
+
+  @override
+  String get diveLog_mirror_log => '记录';
+
+  @override
+  String get diveLog_mirror_notNow => '暂不';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return '已为 $names 记录';
+  }
+
+  @override
+  String get diveLog_mirror_undone => '已移除镜像的潜水';
+
+  @override
+  String get diveLog_mirror_undoFailed => '无法移除镜像的潜水。';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return '无法为 $names 记录';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy => '记录到潜伴的个人资料';
+
+  @override
+  String get diveLog_detail_loggedWith => '一同记录';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned => '等待其潜水电脑';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -35373,6 +35517,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return '第 $diveNumber 次潜水，地点 $siteName';
+  }
+
+  @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return '在 $siteName 的计划潜水';
   }
 
   @override
