@@ -45,6 +45,15 @@ void main() {
       );
     });
 
+    test('rejects a non-finite value', () {
+      // double.tryParse accepts these, and NaN defeats the range check
+      // because every NaN comparison is false. A NaN latitude would then
+      // evade downstream validation for the same reason.
+      expect(parseDivingLogCoordinate('NaN'), isNull);
+      expect(parseDivingLogCoordinate('Infinity'), isNull);
+      expect(parseDivingLogCoordinate('-Infinity'), isNull);
+    });
+
     test('returns null for null, blank and unreadable text', () {
       expect(parseDivingLogCoordinate(null), isNull);
       expect(parseDivingLogCoordinate(''), isNull);

@@ -38,9 +38,25 @@ class DivingLogReferenceMapper {
       (dive.cityId == null ? null : book.cityNamesById[dive.cityId]) ??
       dive.city;
 
-  static String? countryNameFor(DivingLogLogbook book, DivingLogRawDive dive) =>
-      (dive.countryId == null ? null : book.countryNamesById[dive.countryId]) ??
-      dive.country;
+  /// The dive's own country id first, then the one its `Place` carries,
+  /// then the free text.
+  ///
+  /// A `Place` row names its country, so a dive whose `CountryID` is absent
+  /// or dangling still has a relational answer available and should not
+  /// drop straight to the text column.
+  static String? countryNameFor(DivingLogLogbook book, DivingLogRawDive dive) {
+    final direct = dive.countryId == null
+        ? null
+        : book.countryNamesById[dive.countryId];
+    if (direct != null) return direct;
+    final placeCountryId = dive.placeId == null
+        ? null
+        : book.placesById[dive.placeId]?.countryId;
+    final viaPlace = placeCountryId == null
+        ? null
+        : book.countryNamesById[placeCountryId];
+    return viaPlace ?? dive.country;
+  }
 
   /// Sites, built from the dives so a `Place` nobody dived is left out and
   /// the key matches what the dive will reference.

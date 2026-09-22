@@ -104,6 +104,26 @@ void main() {
     });
   });
 
+  group('country fallback', () {
+    test('takes the country from the Place when the dive lacks one', () {
+      // Place carries its own CountryID, so a dive whose CountryID is
+      // absent still has a relational country available.
+      final book = logbook(
+        places: {
+          10: const DivingLogRawPlace(id: 10, countryId: 30, place: 'Karpata'),
+        },
+        countries: const {30: 'Bonaire'},
+        dives: [const DivingLogRawDive(id: 1, placeId: 10)],
+      );
+      final site = DivingLogReferenceMapper.sites(book).values.single;
+      expect(site['country'], 'Bonaire');
+      expect(
+        DivingLogReferenceMapper.sites(book).keys.single,
+        'divinglog_site_bonaire|karpata',
+      );
+    });
+  });
+
   group('buddies', () {
     test('joins the name parts and keeps contact details', () {
       final book = logbook(

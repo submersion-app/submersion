@@ -96,11 +96,17 @@ double? parseDivingLogCoordinate(String? raw) {
     final signed = (hemisphere == 'S' || hemisphere == 'W')
         ? -magnitude
         : magnitude;
+    if (!signed.isFinite) return null;
     return signed.abs() > 180 ? null : signed;
   }
 
   final decimal = double.tryParse(text);
   if (decimal == null) return null;
+  // double.tryParse accepts NaN and Infinity, and the range check below
+  // cannot reject NaN because every comparison against it is false. A NaN
+  // latitude would reach the payload and then evade downstream validation
+  // for exactly the same reason, so it is rejected here.
+  if (!decimal.isFinite) return null;
   return decimal.abs() > 180 ? null : decimal;
 }
 
