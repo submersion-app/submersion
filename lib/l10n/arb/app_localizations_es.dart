@@ -12429,6 +12429,51 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String equipment_service_overdue(String kind) {
+    return '$kind vencido';
+  }
+
+  @override
+  String equipment_service_dueRelative(String kind, String relative) {
+    return '$kind vence $relative';
+  }
+
+  @override
+  String equipment_service_shortDives(String count) {
+    return 'en $count inmersiones';
+  }
+
+  @override
+  String equipment_service_shortHours(String count) {
+    return 'en $count horas';
+  }
+
+  @override
+  String equipment_service_shortSaltHours(String count) {
+    return 'en $count horas en agua salada';
+  }
+
+  @override
+  String equipment_service_shortColdDives(String count) {
+    return 'en $count inmersiones en agua fría';
+  }
+
+  @override
+  String equipment_service_shortO2Hours(String count) {
+    return 'en $count horas con alto O2';
+  }
+
+  @override
+  String equipment_service_shortDeepCycles(String count) {
+    return 'en $count inmersiones profundas';
+  }
+
+  @override
+  String equipment_service_shortCycles(String count) {
+    return 'en $count ciclos de batería';
+  }
+
+  @override
   String trips_serviceAlert_overdue(String kind) {
     return '$kind vencido';
   }

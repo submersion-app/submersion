@@ -20576,6 +20576,60 @@ abstract class AppLocalizations {
   /// **'{kind} due {date}'**
   String trips_serviceAlert_dueBefore(String kind, String date);
 
+  /// One-line service status for an overdue clock. The kind is the service kind name, or component and kind when the clock belongs to a part.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind} overdue'**
+  String equipment_service_overdue(String kind);
+
+  /// One-line service status for a due-soon clock. The relative part is a short trigger such as in 12d or in 3 dives, and carries its own preposition.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind} due {relative}'**
+  String equipment_service_dueRelative(String kind, String relative);
+
+  /// Short form of a service clock measured in dives, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'in {count} dives'**
+  String equipment_service_shortDives(String count);
+
+  /// Short form of a service clock measured in hours, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'in {count} hours'**
+  String equipment_service_shortHours(String count);
+
+  /// Short form of a service clock measured in salt-water hours, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'in {count} salt-water hours'**
+  String equipment_service_shortSaltHours(String count);
+
+  /// Short form of a service clock measured in cold dives, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'in {count} cold dives'**
+  String equipment_service_shortColdDives(String count);
+
+  /// Short form of a service clock measured in high-O2 hours, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'in {count} high-O2 hours'**
+  String equipment_service_shortO2Hours(String count);
+
+  /// Short form of a service clock measured in deep dives, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'in {count} deep dives'**
+  String equipment_service_shortDeepCycles(String count);
+
+  /// Short form of a service clock measured in battery cycles, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'in {count} battery cycles'**
+  String equipment_service_shortCycles(String count);
+
   /// No description provided for @trips_serviceAlert_overdue.
   ///
   /// In en, this message translates to:

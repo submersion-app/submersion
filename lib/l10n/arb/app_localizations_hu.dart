@@ -12402,6 +12402,51 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String equipment_service_overdue(String kind) {
+    return '$kind lejárt';
+  }
+
+  @override
+  String equipment_service_dueRelative(String kind, String relative) {
+    return '$kind esedékes $relative';
+  }
+
+  @override
+  String equipment_service_shortDives(String count) {
+    return '$count merülés múlva';
+  }
+
+  @override
+  String equipment_service_shortHours(String count) {
+    return '$count óra múlva';
+  }
+
+  @override
+  String equipment_service_shortSaltHours(String count) {
+    return '$count sós vízi óra múlva';
+  }
+
+  @override
+  String equipment_service_shortColdDives(String count) {
+    return '$count hideg vízi merülés múlva';
+  }
+
+  @override
+  String equipment_service_shortO2Hours(String count) {
+    return '$count magas O2-tartalmú óra múlva';
+  }
+
+  @override
+  String equipment_service_shortDeepCycles(String count) {
+    return '$count mély merülés múlva';
+  }
+
+  @override
+  String equipment_service_shortCycles(String count) {
+    return '$count akkumulátorciklus múlva';
+  }
+
+  @override
   String trips_serviceAlert_overdue(String kind) {
     return '$kind lejárt';
   }

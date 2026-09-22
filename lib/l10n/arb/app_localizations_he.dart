@@ -12160,6 +12160,51 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String equipment_service_overdue(String kind) {
+    return '$kind באיחור';
+  }
+
+  @override
+  String equipment_service_dueRelative(String kind, String relative) {
+    return '$kind לביצוע $relative';
+  }
+
+  @override
+  String equipment_service_shortDives(String count) {
+    return 'בעוד $count צלילות';
+  }
+
+  @override
+  String equipment_service_shortHours(String count) {
+    return 'בעוד $count שעות';
+  }
+
+  @override
+  String equipment_service_shortSaltHours(String count) {
+    return 'בעוד $count שעות במים מלוחים';
+  }
+
+  @override
+  String equipment_service_shortColdDives(String count) {
+    return 'בעוד $count צלילות במים קרים';
+  }
+
+  @override
+  String equipment_service_shortO2Hours(String count) {
+    return 'בעוד $count שעות בחמצן גבוה';
+  }
+
+  @override
+  String equipment_service_shortDeepCycles(String count) {
+    return 'בעוד $count צלילות עמוקות';
+  }
+
+  @override
+  String equipment_service_shortCycles(String count) {
+    return 'בעוד $count מחזורי סוללה';
+  }
+
+  @override
   String trips_serviceAlert_overdue(String kind) {
     return '$kind באיחור';
   }

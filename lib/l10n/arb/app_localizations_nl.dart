@@ -12340,6 +12340,51 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String equipment_service_overdue(String kind) {
+    return '$kind achterstallig';
+  }
+
+  @override
+  String equipment_service_dueRelative(String kind, String relative) {
+    return '$kind vervalt $relative';
+  }
+
+  @override
+  String equipment_service_shortDives(String count) {
+    return 'over $count duiken';
+  }
+
+  @override
+  String equipment_service_shortHours(String count) {
+    return 'over $count uur';
+  }
+
+  @override
+  String equipment_service_shortSaltHours(String count) {
+    return 'over $count uren in zout water';
+  }
+
+  @override
+  String equipment_service_shortColdDives(String count) {
+    return 'over $count koudwaterduiken';
+  }
+
+  @override
+  String equipment_service_shortO2Hours(String count) {
+    return 'over $count uren met hoog O2';
+  }
+
+  @override
+  String equipment_service_shortDeepCycles(String count) {
+    return 'over $count diepe duiken';
+  }
+
+  @override
+  String equipment_service_shortCycles(String count) {
+    return 'over $count batterijcycli';
+  }
+
+  @override
   String trips_serviceAlert_overdue(String kind) {
     return '$kind achterstallig';
   }

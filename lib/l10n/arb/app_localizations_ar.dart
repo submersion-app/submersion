@@ -12237,6 +12237,51 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String equipment_service_overdue(String kind) {
+    return '$kind متأخرة';
+  }
+
+  @override
+  String equipment_service_dueRelative(String kind, String relative) {
+    return '$kind مستحقة $relative';
+  }
+
+  @override
+  String equipment_service_shortDives(String count) {
+    return 'خلال $count غوصة';
+  }
+
+  @override
+  String equipment_service_shortHours(String count) {
+    return 'خلال $count ساعة';
+  }
+
+  @override
+  String equipment_service_shortSaltHours(String count) {
+    return 'خلال $count ساعة في الماء المالح';
+  }
+
+  @override
+  String equipment_service_shortColdDives(String count) {
+    return 'خلال $count غطسة في الماء البارد';
+  }
+
+  @override
+  String equipment_service_shortO2Hours(String count) {
+    return 'خلال $count ساعة بأكسجين مرتفع';
+  }
+
+  @override
+  String equipment_service_shortDeepCycles(String count) {
+    return 'خلال $count غطسة عميقة';
+  }
+
+  @override
+  String equipment_service_shortCycles(String count) {
+    return 'خلال $count دورة بطارية';
+  }
+
+  @override
   String trips_serviceAlert_overdue(String kind) {
     return '$kind متأخرة';
   }
