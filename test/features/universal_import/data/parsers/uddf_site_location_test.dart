@@ -82,6 +82,50 @@ void main() {
       );
     });
 
+    test(
+      'a trip, centre, course or buddy link is not a dangling site',
+      () async {
+        // The same <link> elements are walked by an earlier pass that keys on
+        // these prefixes. Counting them here would raise the notice on a file
+        // that never lost a site at all.
+        for (final ref in const [
+          'trip_1',
+          'center_1',
+          'course_1',
+          'buddy_1',
+          'dive_1',
+        ]) {
+          final payload = await parse(
+            document(diveLinks: '<link ref="$ref" />'),
+          );
+
+          expect(
+            payload.warnings.where(
+              (w) => w.code == ImportWarningCode.sitesUnresolved,
+            ),
+            isEmpty,
+            reason: ref,
+          );
+        }
+      },
+    );
+
+    test(
+      'a dive with a trip link and a dangling site link still counts',
+      () async {
+        final payload = await parse(
+          document(diveLinks: '<link ref="trip_1" /><link ref="s-missing" />'),
+        );
+
+        expect(
+          payload.warnings
+              .singleWhere((w) => w.code == ImportWarningCode.sitesUnresolved)
+              .count,
+          1,
+        );
+      },
+    );
+
     test('a dive with no link at all raises nothing', () async {
       final payload = await parse(document(diveLinks: ''));
 

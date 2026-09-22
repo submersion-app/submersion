@@ -160,6 +160,38 @@ void main() {
     });
   });
 
+  group('fix', () {
+    test('accepts a usable pair', () {
+      expect(
+        ImportSiteLocation.fix(20.2114, -87.4654),
+        const GeoPoint(20.2114, -87.4654),
+      );
+    });
+
+    test('rejects the same pairs coordinatesOf rejects', () {
+      expect(ImportSiteLocation.fix(0, 0), isNull);
+      expect(ImportSiteLocation.fix(91, -87.4654), isNull);
+      expect(ImportSiteLocation.fix(20.2114, 181), isNull);
+      expect(ImportSiteLocation.fix(double.nan, -87.4654), isNull);
+      expect(ImportSiteLocation.fix(double.infinity, -87.4654), isNull);
+      expect(ImportSiteLocation.fix(20.2114, null), isNull);
+      expect(ImportSiteLocation.fix(null, null), isNull);
+    });
+
+    test('is the rule coordinatesOf applies to a map', () {
+      // A dive's own fix and a site's coordinates must be judged alike, or
+      // a Shearwater dive at 0,0 persists an entry location while the site
+      // built from the very same string is dropped.
+      expect(
+        ImportSiteLocation.coordinatesOf(<String, dynamic>{
+          'latitude': 0.0,
+          'longitude': 0.0,
+        }),
+        ImportSiteLocation.fix(0, 0),
+      );
+    });
+  });
+
   group('sitesUnresolved', () {
     test('carries the code the summary groups on', () {
       final warning = ImportSiteLocation.sitesUnresolved(3);

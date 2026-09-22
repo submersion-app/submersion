@@ -197,6 +197,7 @@ class UddfImportResult {
       sourceFileName: sourceFileName,
       dataSourcesByDiveRef: dataSourcesByDiveRef,
       unpairedDumps: unpairedDumps,
+      divesMissingSite: divesMissingSite,
     );
   }
 }

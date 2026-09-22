@@ -5,6 +5,7 @@ import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
@@ -33,8 +34,8 @@ class ShearwaterDiveMapper {
     final tanks = mapTanks(rawDive);
     final surfacePressure = _extractSurfacePressure(rawDive);
     final siteKey = siteKeyFor(rawDive);
-    final entryFix = _parseGnssLocation(rawDive.gnssEntryLocation);
-    final exitFix = _parseGnssLocation(rawDive.gnssExitLocation);
+    final entryFix = _gnssFix(rawDive.gnssEntryLocation);
+    final exitFix = _gnssFix(rawDive.gnssExitLocation);
 
     return {
       'importSource': 'shearwater_cloud',
@@ -58,10 +59,10 @@ class ShearwaterDiveMapper {
       // The Swift's own fixes, kept on the dive whether or not they also
       // named a site, so a logbook never loses where the dive happened
       // (#2232). `UddfEntityImporter` reads these into `Dive.entryLocation`.
-      if (entryFix != null) 'latitude': entryFix.$1,
-      if (entryFix != null) 'longitude': entryFix.$2,
-      if (exitFix != null) 'exitLatitude': exitFix.$1,
-      if (exitFix != null) 'exitLongitude': exitFix.$2,
+      if (entryFix != null) 'latitude': entryFix.latitude,
+      if (entryFix != null) 'longitude': entryFix.longitude,
+      if (exitFix != null) 'exitLatitude': exitFix.latitude,
+      if (exitFix != null) 'exitLongitude': exitFix.longitude,
       'diveComputerModel': filenameInfo.model,
       'diveComputerSerial': filenameInfo.serial,
       'waterType': ShearwaterValueMapper.mapWaterType(rawDive.environment),
@@ -199,13 +200,23 @@ class ShearwaterDiveMapper {
     final name = dive.site?.trim();
     if (name != null && name.isNotEmpty) return name;
 
-    final coords = _parseGnssLocation(dive.gnssEntryLocation);
+    final point = _gnssFix(dive.gnssEntryLocation);
+    if (point == null) return null;
+    return ImportSiteLocation.nameFromCoordinates(
+      point.latitude,
+      point.longitude,
+    );
+  }
+
+  /// A GNSS string as a position the contract accepts, or null.
+  ///
+  /// The string parse alone is not enough: `_parseGnssLocation` returns any
+  /// two readable doubles, including `0,0` and an off-globe pair, and the
+  /// entity importer stores whatever it is handed.
+  static GeoPoint? _gnssFix(String? gnss) {
+    final coords = _parseGnssLocation(gnss);
     if (coords == null) return null;
-    return ImportSiteLocation.named(<String, dynamic>{
-          'latitude': coords.$1,
-          'longitude': coords.$2,
-        })?['name']
-        as String?;
+    return ImportSiteLocation.fix(coords.$1, coords.$2);
   }
 
   /// Deduplicates dive sites by name across a list of raw dives.

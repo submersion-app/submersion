@@ -1,5 +1,7 @@
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
+
 /// Known standardized field names that map directly to dive records.
 const _diveFields = <String>[
   'diveNumber',
@@ -66,12 +68,15 @@ class DiveExtractor {
     // The row's own position, kept on the dive whether or not sites are
     // being imported (#2212). `gps` is deliberately not in `_diveFields`:
     // it is a Subsurface-style "lat lon" pair, not a dive column, so it is
-    // parsed rather than copied. `UddfEntityImporter` reads the result into
+    // parsed rather than copied. It is then judged by the same rule the
+    // site is, so a cell `SiteExtractor` rejects cannot reach the dive
+    // instead. `UddfEntityImporter` reads the result into
     // `Dive.entryLocation`.
     final gps = _parseGps(row['gps']?.toString());
-    if (gps != null) {
-      dive['latitude'] = gps.$1;
-      dive['longitude'] = gps.$2;
+    final fix = gps == null ? null : ImportSiteLocation.fix(gps.$1, gps.$2);
+    if (fix != null) {
+      dive['latitude'] = fix.latitude;
+      dive['longitude'] = fix.longitude;
     }
 
     // A dive has no suit field, so the suit is kept in the notes, as the

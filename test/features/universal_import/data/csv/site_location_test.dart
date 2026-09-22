@@ -89,6 +89,16 @@ void main() {
       expect(dive['longitude'], -87.4654);
     });
 
+    test('does not persist a pair the contract rejects', () {
+      // `SiteExtractor` already drops these, so a dive that kept them would
+      // contradict the site built from the same cell.
+      for (final gps in const ['0 0', '91.5 -87.4654', '20.2114 181.0']) {
+        final dive = const DiveExtractor().extract(row(gps: gps));
+        expect(dive.containsKey('latitude'), isFalse, reason: gps);
+        expect(dive.containsKey('longitude'), isFalse, reason: gps);
+      }
+    });
+
     test('leaves the dive without coordinates when gps is unreadable', () {
       final dive = const DiveExtractor().extract(row(gps: 'not a fix'));
 

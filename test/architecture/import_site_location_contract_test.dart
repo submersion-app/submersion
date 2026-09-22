@@ -13,8 +13,16 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// A file is a candidate when it assigns a `latitude` key into a map, which
 /// is how every import layer in this repo hands a position to the next one.
-/// A candidate passes by naming [ImportSiteLocation], or by appearing in
-/// [allowed] with the reason it does not need to.
+/// A candidate passes by *calling* `ImportSiteLocation`, or by appearing in
+/// `allowed` with the reason it does not need to.
+///
+/// What this proves and what it does not: matching a call rather than the
+/// bare name stops a mention in a comment or an unused import from passing
+/// the file. It does not tie each individual assignment to a validated
+/// value, so a file that already calls the contract could still gain a
+/// second, unchecked latitude write. Proving that needs dataflow over the
+/// right-hand side of every assignment, which is a job for a linter and not
+/// for a regex; the per-importer tests are what cover the behaviour itself.
 void main() {
   /// Where import-side coordinates are produced. Export builders are not
   /// scanned: they read a `DiveSite` that already has a name.
@@ -30,12 +38,14 @@ void main() {
     // The dive's own entry and exit fixes, which is the contract's other
     // half: a parser with nowhere to put a site writes the pair onto the
     // dive, and `UddfEntityImporter` reads it into `Dive.entryLocation`.
-    'lib/features/universal_import/data/parsers/fit_import_parser.dart':
-        "the dive's own fix, not a site",
-    'lib/features/universal_import/data/csv/extractors/dive_extractor.dart':
-        "the dive's own fix, not a site",
+    // Reads a dive's entry or exit fix back out of Submersion's own UDDF
+    // export, and already rejects a half pair, a non-finite value and an
+    // off-globe pair. It deliberately keeps 0/0, which the contract treats
+    // as "no fix": a coordinate this app wrote is one the diver had, and a
+    // round trip must not quietly drop it. The `<divecenter>` address it
+    // also parses is not a dive site either.
     'lib/core/services/export/uddf/uddf_import_parsers.dart':
-        "a dive's own fix and a dive center's address, not a site",
+        "round-trips a dive's own fix and a dive centre address, not a site",
     // A photo's coordinates, which belong to the picture rather than to the
     // place the dive happened.
     'lib/features/universal_import/data/services/macdive_media_entries.dart':
@@ -52,6 +62,14 @@ void main() {
   final writesLatitude = RegExp(
     '''\\[['"]latitude['"]\\]\\s*=|['"]latitude['"]\\s*:''',
   );
+
+  /// A call into the contract, such as `ImportSiteLocation.named(`. The bare
+  /// class name is not enough: a doc comment mentioning it would pass.
+  final callsContract = RegExp(r'ImportSiteLocation\s*\.\s*\w+\s*\(');
+
+  /// The contract itself declares the class rather than calling it.
+  const contractPath =
+      'lib/features/universal_import/data/services/import_site_location.dart';
 
   List<File> dartFilesUnder(String root) => Directory(root)
       .listSync(recursive: true)
@@ -70,8 +88,9 @@ void main() {
 
         final path = file.path;
         candidates.add(path);
+        if (path == contractPath) continue;
         if (allowed.containsKey(path)) continue;
-        if (source.contains('ImportSiteLocation')) continue;
+        if (callsContract.hasMatch(source)) continue;
         offenders.add(path);
       }
     }
@@ -96,7 +115,7 @@ void main() {
     );
   });
 
-  test('every allowlisted file still exists and still writes a latitude', () {
+  test('every allowlisted file still needs its exemption', () {
     for (final MapEntry(key: path, value: reason) in allowed.entries) {
       final file = File(path);
       expect(
@@ -104,12 +123,24 @@ void main() {
         isTrue,
         reason: 'allowed entry "$path" ($reason) no longer exists; remove it',
       );
+
+      final source = file.readAsStringSync();
       expect(
-        writesLatitude.hasMatch(file.readAsStringSync()),
+        writesLatitude.hasMatch(source),
         isTrue,
         reason:
             'allowed entry "$path" ($reason) no longer writes a latitude; '
             'remove it so the list stays honest',
+      );
+      // A file that now calls the contract would pass on its own merits, so
+      // keeping it listed would hide a later regression behind an exemption
+      // it no longer needs.
+      expect(
+        callsContract.hasMatch(source),
+        isFalse,
+        reason:
+            'allowed entry "$path" ($reason) now calls ImportSiteLocation; '
+            'remove the exemption and let the scan check it',
       );
     }
   });

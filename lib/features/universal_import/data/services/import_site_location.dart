@@ -33,22 +33,31 @@ abstract final class ImportSiteLocation {
   static String nameFromCoordinates(double latitude, double longitude) =>
       GeoPoint(latitude, longitude).toString();
 
-  /// [site]'s coordinates, or null when it has none worth keeping.
+  /// [latitude] and [longitude] as a position, or null when the pair is not
+  /// one worth keeping.
   ///
   /// Rejects a half pair, a non-finite value, a pair outside the valid range
-  /// and MacDive's `0.0/0.0` stand-in for "no GPS set". Accepts an `int` as
-  /// well as a `double`, since a whole-degree cell parses as the former.
-  static GeoPoint? coordinatesOf(Map<String, dynamic> site) {
-    final latitude = asDoubleOrNull(site['latitude']);
-    final longitude = asDoubleOrNull(site['longitude']);
+  /// and the `0.0/0.0` stand-in several logbooks write for "no GPS set".
+  ///
+  /// A dive's own entry or exit fix is judged by this, exactly as a site's
+  /// coordinates are by [coordinatesOf]. They have to agree: a Shearwater
+  /// dive at 0,0 that persisted an entry location while the site built from
+  /// the very same string was dropped would put the dive in the Atlantic and
+  /// leave nothing in the log to explain it.
+  static GeoPoint? fix(double? latitude, double? longitude) {
     if (latitude == null || longitude == null) return null;
     if (!latitude.isFinite || !longitude.isFinite) return null;
     if (latitude.abs() > 90 || longitude.abs() > 180) return null;
-    // Null Island is what several logbooks write when the diver never set a
-    // position, so it is an absent fix rather than a place in the Atlantic.
     if (latitude == 0 && longitude == 0) return null;
     return GeoPoint(latitude, longitude);
   }
+
+  /// [site]'s coordinates, or null when it has none worth keeping.
+  ///
+  /// The map form of [fix]. Accepts an `int` as well as a `double`, since a
+  /// whole-degree cell parses as the former.
+  static GeoPoint? coordinatesOf(Map<String, dynamic> site) =>
+      fix(asDoubleOrNull(site['latitude']), asDoubleOrNull(site['longitude']));
 
   /// [site] guaranteed to carry a name, or null when it carries nothing worth
   /// importing.

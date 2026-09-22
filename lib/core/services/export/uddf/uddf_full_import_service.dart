@@ -26,6 +26,26 @@ class UddfFullImportService {
   /// then strip it. Never reaches the payload.
   static const _unresolvedSiteRefKey = '_unresolvedSiteRef';
 
+  /// Prefixes a `<link ref>` carries when it names something other than a
+  /// dive site.
+  ///
+  /// The same `<link>` elements are walked twice: once by the pass that
+  /// reads trip, dive centre, course and buddy references, and once by the
+  /// chain that reads sites, buddies, deco models and dive computers. A ref
+  /// the second pass does not recognise is only a lost site when the first
+  /// pass did not claim it, or a dive that merely belongs to a trip would
+  /// raise a `sitesUnresolved` notice about a site it never had.
+  static const _nonSiteRefPrefixes = [
+    'trip_',
+    'center_',
+    'course_',
+    'buddy_',
+    'dive_',
+  ];
+
+  static bool _isNonSiteRef(String ref) =>
+      _nonSiteRefPrefixes.any(ref.startsWith);
+
   static final _logger = LoggerService.forClass(UddfFullImportService);
 
   /// Import ALL application data from UDDF file.
@@ -1927,7 +1947,7 @@ class UddfFullImportService {
             if (computer['manufacturer']?.isNotEmpty == true) {
               diveData['diveComputerManufacturer'] = computer['manufacturer'];
             }
-          } else {
+          } else if (!_isNonSiteRef(ref)) {
             sawDanglingRef = true;
           }
         }

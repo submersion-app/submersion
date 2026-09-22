@@ -88,6 +88,27 @@ void main() {
       expect(dive['exitLongitude'], -74.0301);
     });
 
+    test('an unusable fix is not persisted as a location', () {
+      // 0,0 is the sentinel a logbook writes when no fix was taken, and the
+      // site built from the same string is already dropped. The dive must
+      // agree, or it lands in the Atlantic.
+      final atNullIsland = ShearwaterDiveMapper.mapDiveMetadata(
+        rawDive(gnssEntryLocation: '0, 0'),
+      );
+      expect(atNullIsland['latitude'], isNull);
+      expect(atNullIsland['longitude'], isNull);
+
+      final offGlobe = ShearwaterDiveMapper.mapDiveMetadata(
+        rawDive(gnssEntryLocation: '91.5, -74.03'),
+      );
+      expect(offGlobe['latitude'], isNull);
+
+      final badExit = ShearwaterDiveMapper.mapDiveMetadata(
+        rawDive(gnssExitLocation: '40.19, 181.0'),
+      );
+      expect(badExit['exitLatitude'], isNull);
+    });
+
     test('an unreadable fix leaves the dive without coordinates', () {
       final dive = ShearwaterDiveMapper.mapDiveMetadata(
         rawDive(gnssEntryLocation: 'not a fix'),
