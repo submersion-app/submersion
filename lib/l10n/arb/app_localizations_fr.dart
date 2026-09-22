@@ -2175,7 +2175,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get certifications_detail_status_expired =>
-      'Cette certification a expire';
+      'Cette certification a expiré';
 
   @override
   String certifications_detail_status_expiredOn(Object date) {
@@ -3685,7 +3685,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get dashboard_alerts_insuranceExpiredGeneric =>
-      'Ton assurance plongée a expire';
+      'Ton assurance plongée a expiré';
 
   @override
   String dashboard_alerts_insuranceExpiredProvider(Object provider) {
@@ -6264,7 +6264,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveLog_emptyFiltered_title =>
-      'Aucune plongée ne correspond a tes filtres';
+      'Aucune plongée ne correspond à tes filtres';
 
   @override
   String get diveLog_empty_logFirstDive => 'Enregistre ta première plongée';
@@ -9783,7 +9783,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveSites_import_empty_description =>
-      'Recherche des sites de plongée dans notre base de données\nde destinations populaires a travers le monde.';
+      'Recherche des sites de plongée dans notre base de données\nde destinations populaires à travers le monde.';
 
   @override
   String get diveSites_import_empty_hint =>
@@ -9982,7 +9982,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveSites_list_emptyFiltered_title =>
-      'Aucun site ne correspond a tes filtres';
+      'Aucun site ne correspond à tes filtres';
 
   @override
   String get diveSites_list_empty_addFirstSite => 'Ajouter ton premier site';
@@ -10257,7 +10257,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveSites_map_empty_description =>
-      'Ajoute des coordonnées a tes sites de plongée pour les voir sur la carte';
+      'Ajoute des coordonnées à tes sites de plongée pour les voir sur la carte';
 
   @override
   String get diveSites_map_empty_title => 'Aucun site avec coordonnées';
@@ -19072,7 +19072,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_notifications_enableServiceReminders_subtitle =>
-      'Être notifie lorsque l\'entretien de l\'équipement est du';
+      'Être notifié lorsque l\'entretien de l\'équipement est dû';
 
   @override
   String get settings_notifications_header_reminderSchedule =>
@@ -19087,7 +19087,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Les notifications sont programmées au lancement de l\'application et se rafraîchissent périodiquement en arrière-plan. Vous pouvez personnaliser les rappels pour chaque équipement dans son écran de modification.';
 
   @override
-  String get settings_notifications_howItWorks_title => 'Comment ca fonctionne';
+  String get settings_notifications_howItWorks_title => 'Comment ça fonctionne';
 
   @override
   String get settings_notifications_permissionRequired =>
@@ -20571,7 +20571,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statistics_profile_timeAtDepth_subtitle =>
-      'Temps approximatif passe a chaque profondeur';
+      'Temps approximatif passé à chaque profondeur';
 
   @override
   String get statistics_profile_timeAtDepth_title =>
@@ -25014,7 +25014,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get diveComputer_list_helpTip3 =>
-      '- Vérifiez que le Bluetooth est active';
+      '- Vérifiez que le Bluetooth est activé';
 
   @override
   String get diveComputer_list_helpTipsTitle => 'Conseils';
@@ -26506,15 +26506,15 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_permissionGranted =>
-      'Accès a HealthKit accorde';
+      'Accès à HealthKit accordé';
 
   @override
   String get settings_dataSources_appleHealth_permissionNotGranted =>
-      'Accès a HealthKit non accorde';
+      'Accès à HealthKit non accordé';
 
   @override
   String get settings_dataSources_appleHealth_permissionChecking =>
-      'Vérification de l\'accès a HealthKit...';
+      'Vérification de l\'accès à HealthKit...';
 
   @override
   String get settings_dataSources_appleHealth_importAction =>
