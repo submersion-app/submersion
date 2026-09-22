@@ -450,6 +450,56 @@ void main() {
     );
   });
 
+  test('a fact write newer than a delete keeps the row', () async {
+    // A media fact write advances ONLY its group clock and leaves the row
+    // clock alone, so reading the row clock by itself makes a fresh fact
+    // look older than it is. The tombstone decision then fell through to
+    // the updatedAt comparison and could apply a stale delete over it.
+    final deleteHlc = SyncClock.instance.issue()!;
+    // The fact write happens after the peer issued its delete.
+    await MediaRepository().stampRemoteUploaded(
+      id,
+      uploadedAt: DateTime(2026, 8),
+    );
+    // Published, so the pending guard above the clock comparison does not
+    // stand in for it: this test is about the clocks.
+    await SyncRepository().clearPendingRecords();
+
+    await SyncService(
+      syncRepository: SyncRepository(),
+      serializer: SyncDataSerializer(),
+    ).debugApplyPayload(
+      SyncPayload(
+        version: 1,
+        exportedAt: 0,
+        deviceId: 'peer',
+        checksum: '',
+        data: const SyncData(),
+        deletions: {
+          'media': [
+            SyncDeletion(
+              id: id,
+              deletedAt: DateTime.now().millisecondsSinceEpoch,
+              hlc: deleteHlc,
+            ),
+          ],
+        },
+      ),
+    );
+
+    final rows = await db
+        .customSelect(
+          'SELECT id FROM media WHERE id = ?',
+          variables: [Variable.withString(id)],
+        )
+        .get();
+    expect(
+      rows,
+      hasLength(1),
+      reason: 'the fact write is newer than the delete that reached us',
+    );
+  });
+
   test('the batched fetch serves media rows', () async {
     final rows = await SyncDataSerializer().fetchRecords('media', [id, 'none']);
     expect(rows.keys, [id]);
