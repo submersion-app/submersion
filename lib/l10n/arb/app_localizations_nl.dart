@@ -1477,6 +1477,16 @@ class AppLocalizationsNl extends AppLocalizations {
   String get buddies_field_emailHint => 'email@voorbeeld.nl';
 
   @override
+  String get buddies_field_linkedProfile => 'Gekoppeld profiel';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'Het lokale profiel dat deze buddy is';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Niet gekoppeld';
+
+  @override
   String get buddies_field_nameHint => 'Voer buddy naam in';
 
   @override
@@ -1687,6 +1697,39 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Gebruiken';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Profiel';
+
+  @override
+  String get buddies_linkedProfile_link => 'Koppelen';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Niet nu';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Buddy openen';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Koppelen aan een profiel';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'Een buddy kan niet aan het eigen profiel worden gekoppeld.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName is al aan dit profiel gekoppeld.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name heeft hier een profiel. Deze buddy eraan koppelen?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'Deze buddy\'s zijn aan verschillende profielen gekoppeld. Voeg eerst de profielen samen.';
 
   @override
   String get buddies_message_added => 'Buddy succesvol toegevoegd';
@@ -5770,6 +5813,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'Flessen';
 
   @override
+  String get diveLog_edit_planned_switch => 'Geplande duik';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'Wacht op duikcomputergegevens. Geen duiknummer tot de duik is gelogd.';
+
+  @override
   String get diveLog_edit_profile_draw => 'Profiel tekenen';
 
   @override
@@ -6660,6 +6710,13 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Duik handmatig loggen';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'Duik plannen';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Vul de details nu in, voeg de duikcomputergegevens later toe';
 
   @override
   String get diveLog_listPage_fab_addDive => 'Duik toevoegen';
@@ -23741,6 +23798,46 @@ class AppLocalizationsNl extends AppLocalizations {
   String get universalImport_label_skip => 'Overslaan';
 
   @override
+  String get universalImport_label_fillPlanned => 'Geplande duik invullen';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Koppel deze download aan de duik die je hebt gepland';
+
+  @override
+  String get universalImport_label_filledPlanned => 'Ingevulde geplande duiken';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Vult geplande duik: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'Het geschetste profiel wordt vervangen.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Wijzigen';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle =>
+      'Kies een geplande duik';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'In plaats daarvan als nieuwe duik importeren';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Invullen ongedaan maken';
+
+  @override
+  String get universalImport_fillPlanned_undone => 'Geplande duiken hersteld';
+
+  @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Niet elke geplande duik kon worden hersteld. Probeer het opnieuw.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Getagd als: $tag';
   }
@@ -28985,6 +29082,67 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Bijna-ongeval vastleggen';
+
+  @override
+  String get diveLog_planned_chip => 'Gepland';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'Geplande duik';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'Wacht op duikcomputergegevens. Markeer als gelogd als je zonder computer hebt gedoken.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'Markeren als gelogd';
+
+  @override
+  String get diveLog_planned_markedLogged => 'Gemarkeerd als gelogd';
+
+  @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Kon de duik niet als gelogd markeren.';
+
+  @override
+  String get diveLog_mirror_dialogTitle =>
+      'Deze duik ook in een ander profiel loggen?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Deze buddy\'s hebben een profiel op dit apparaat. De duik wordt als geplande duik aan hun logboek toegevoegd tot hun eigen duikcomputergegevens hem invullen.';
+
+  @override
+  String get diveLog_mirror_log => 'Loggen';
+
+  @override
+  String get diveLog_mirror_notNow => 'Niet nu';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Gelogd voor $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Gespiegelde duiken verwijderd';
+
+  @override
+  String get diveLog_mirror_undoFailed =>
+      'Kon de gespiegelde duiken niet verwijderen.';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Loggen voor $names is mislukt';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Loggen in het profiel van een buddy';
+
+  @override
+  String get diveLog_detail_loggedWith => 'Gelogd met';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned => 'wacht op hun duikcomputer';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -37211,6 +37369,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Duik $diveNumber bij $siteName';
+  }
+
+  @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'Geplande duik bij $siteName';
   }
 
   @override

@@ -37,6 +37,11 @@ class BuddyMergeFormController {
   /// v181 still surfaces whatever it had.
   List<MergeFieldCandidate<Uint8List?>> photoBytesCandidates = [];
   Uint8List? mergedPhoto;
+
+  /// The profile link the survivor keeps: the first non-null link across the
+  /// candidates (issue #2002). Not cycled, since a buddy is at most one
+  /// profile; two different links make the repository refuse the merge.
+  String? mergedLinkedDiverId;
   bool isInitialized = false;
 
   /// Initialize merge candidate state from loaded buddies. Sets the text
@@ -53,6 +58,11 @@ class BuddyMergeFormController {
   }) {
     if (isInitialized) return;
     isInitialized = true;
+
+    mergedLinkedDiverId = buddies
+        .map((buddy) => buddy.linkedDiverId)
+        .whereType<String>()
+        .firstOrNull;
 
     _initializeTextField(
       key: 'name',

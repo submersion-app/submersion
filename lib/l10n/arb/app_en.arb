@@ -911,6 +911,9 @@
   "buddies_field_certificationLevel": "Certification Level",
   "buddies_field_email": "Email",
   "buddies_field_emailHint": "email@example.com",
+  "buddies_field_linkedProfile": "Linked profile",
+  "buddies_field_linkedProfileHint": "The local profile this buddy is",
+  "buddies_field_linkedProfileNone": "Not linked",
   "buddies_field_nameHint": "Enter buddy name",
   "buddies_field_nameRequired": "Name *",
   "buddies_field_notes": "Notes",
@@ -1066,6 +1069,29 @@
   },
   "buddies_linkText_undone": "Buddy links removed",
   "buddies_linkText_useSuggestion": "Use",
+  "buddies_linkedProfile_chip": "Profile",
+  "buddies_linkedProfile_link": "Link",
+  "buddies_linkedProfile_notNow": "Not now",
+  "buddies_linkedProfile_openBuddy": "Open buddy",
+  "buddies_linkedProfile_pickerTitle": "Link to a profile",
+  "buddies_linkedProfile_refusedSelf": "A buddy cannot be linked to its own profile.",
+  "buddies_linkedProfile_refusedTaken": "{buddyName} is already linked to this profile.",
+  "@buddies_linkedProfile_refusedTaken": {
+    "placeholders": {
+      "buddyName": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_linkedProfile_suggestion": "{name} has a profile here. Link this buddy to it?",
+  "@buddies_linkedProfile_suggestion": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "buddies_merge_refusedDifferentLinks": "These buddies are linked to different profiles. Merge the profiles first.",
   "buddies_message_added": "Buddy added successfully",
   "buddies_message_contactImportUnavailable": "Contact import is not available on this platform",
   "buddies_message_contactLoadFailed": "Failed to load contacts",
@@ -3309,6 +3335,8 @@
   "@diveLog_edit_overline_tanks": {
     "description": "Sub-header overline above the tank rows in the Gas & Gear edit section"
   },
+  "diveLog_edit_planned_switch": "Planned dive",
+  "diveLog_edit_planned_switchSubtitle": "Awaiting dive computer data. No dive number until it is logged.",
   "diveLog_edit_profile_draw": "Draw a profile",
   "@diveLog_edit_profile_draw": {
     "description": "Dive profile row placeholder when no profile exists; tapping opens the draw editor"
@@ -3670,6 +3698,8 @@
   "ocrImport_scanPage_engineMissing": "Text recognition is not available. Install Tesseract to scan paper logs (for example: sudo apt install tesseract-ocr).",
   "ocrImport_editPage_photoAttachFailed": "The dive was saved, but attaching the scanned page failed",
   "diveLog_listPage_bottomSheet_logManually": "Log Dive Manually",
+  "diveLog_listPage_bottomSheet_planDive": "Plan a dive",
+  "diveLog_listPage_bottomSheet_planDiveSubtitle": "Fill in the details now, add the dive computer data later",
   "diveLog_listPage_fab_addDive": "Add Dive",
   "diveLog_listPage_fab_logDive": "Log Dive",
   "diveLog_listPage_menuAdvancedSearch": "Advanced Search",
@@ -14600,6 +14630,24 @@
   "universalImport_label_selectCorrectSource": "Not right? Select the correct source:",
   "universalImport_label_selected": "{count} selected",
   "universalImport_label_skip": "Skip",
+  "universalImport_label_fillPlanned": "Fill planned dive",
+  "universalImport_compare_fillPlannedSubtitle": "Attach this download to the dive you planned",
+  "universalImport_label_filledPlanned": "Filled planned dives",
+  "universalImport_fillPlanned_target": "Fills planned dive: {label}",
+  "@universalImport_fillPlanned_target": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "universalImport_fillPlanned_replacesProfile": "Its sketched profile will be replaced.",
+  "universalImport_fillPlanned_change": "Change",
+  "universalImport_fillPlanned_pickerTitle": "Choose a planned dive",
+  "universalImport_fillPlanned_importAsNew": "Import as a new dive instead",
+  "universalImport_fillPlanned_undo": "Undo fills",
+  "universalImport_fillPlanned_undone": "Planned dives restored",
+  "universalImport_fillPlanned_undoFailed": "Could not restore every planned dive. Try again.",
   "universalImport_label_taggedAs": "Tagged as: {tag}",
   "universalImport_label_unknownDate": "Unknown date",
   "universalImport_label_unnamed": "Unnamed",
@@ -18758,6 +18806,37 @@
   "safetyHub_incidentsLink": "Near-miss log",
   "safetyHub_incidentsLink_subtitle": "Private, non-punitive incident notes",
   "diveLog_detail_menu_logNearMiss": "Log near-miss",
+  "diveLog_planned_chip": "Planned",
+  "diveLog_planned_bannerTitle": "Planned dive",
+  "diveLog_planned_bannerBody": "Awaiting dive computer data. Mark it as logged if you dived without one.",
+  "diveLog_detail_menu_markLogged": "Mark as logged",
+  "diveLog_planned_markedLogged": "Marked as logged",
+  "diveLog_planned_markLoggedFailed": "Couldn't mark the dive as logged.",
+  "diveLog_mirror_dialogTitle": "Also log this dive in another profile?",
+  "diveLog_mirror_dialogBody": "These buddies have profiles on this device. The dive is added to their logs as a planned dive until their own dive computer data fills it.",
+  "diveLog_mirror_log": "Log",
+  "diveLog_mirror_notNow": "Not now",
+  "diveLog_mirror_snackbar": "Logged for {names}",
+  "@diveLog_mirror_snackbar": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_mirror_undone": "Mirrored dives removed",
+  "diveLog_mirror_undoFailed": "Couldn't remove the mirrored dives.",
+  "diveLog_mirror_failed": "Could not log for {names}",
+  "@diveLog_mirror_failed": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "diveLog_detail_menu_logForBuddy": "Log for a buddy's profile",
+  "diveLog_detail_loggedWith": "Logged with",
+  "diveLog_detail_loggedWithPlanned": "awaiting their dive computer",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{1 near-miss linked to this dive} other{{count} near-misses linked to this dive}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {
@@ -22520,6 +22599,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "Depth Range ({unit})",
   "diveLog_filter_sectionDiveComputer": "Dive Computer",
   "diveLog_listPage_semanticsDiveAtSite": "Dive {diveNumber} at {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "Planned dive at {siteName}",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "Compact",
   "enum_listViewMode_dense": "Dense",
   "enum_listViewMode_detailed": "Detailed",

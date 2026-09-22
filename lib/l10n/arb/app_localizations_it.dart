@@ -1489,6 +1489,16 @@ class AppLocalizationsIt extends AppLocalizations {
   String get buddies_field_emailHint => 'email@esempio.com';
 
   @override
+  String get buddies_field_linkedProfile => 'Profilo collegato';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'Il profilo locale che corrisponde a questo compagno';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Non collegato';
+
+  @override
   String get buddies_field_nameHint => 'Inserisci nome compagno';
 
   @override
@@ -1699,6 +1709,39 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Usa';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Profilo';
+
+  @override
+  String get buddies_linkedProfile_link => 'Collega';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Non ora';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Apri compagno';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Collega a un profilo';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'Un compagno non può essere collegato al proprio profilo.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName è già collegato a questo profilo.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name ha un profilo qui. Collegare questo compagno a esso?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'Questi compagni sono collegati a profili diversi. Unisci prima i profili.';
 
   @override
   String get buddies_message_added => 'Compagno aggiunto con successo';
@@ -5808,6 +5851,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'Bombole';
 
   @override
+  String get diveLog_edit_planned_switch => 'Immersione pianificata';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'In attesa dei dati del computer. Nessun numero di immersione finché non viene registrata.';
+
+  @override
   String get diveLog_edit_profile_draw => 'Disegna un profilo';
 
   @override
@@ -6710,6 +6760,14 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Registra immersione manualmente';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive =>
+      'Pianifica un\'immersione';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Inserisci i dettagli ora, aggiungi i dati del computer più tardi';
 
   @override
   String get diveLog_listPage_fab_addDive => 'Aggiungi immersione';
@@ -23926,6 +23984,49 @@ class AppLocalizationsIt extends AppLocalizations {
   String get universalImport_label_skip => 'Salta';
 
   @override
+  String get universalImport_label_fillPlanned =>
+      'Completa immersione pianificata';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Collega questo download all\'immersione che hai pianificato';
+
+  @override
+  String get universalImport_label_filledPlanned =>
+      'Immersioni pianificate completate';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Completa l\'immersione pianificata: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'Il profilo abbozzato verrà sostituito.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Cambia';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle =>
+      'Scegli un\'immersione pianificata';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'Importa invece come nuova immersione';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Annulla completamenti';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'Immersioni pianificate ripristinate';
+
+  @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Impossibile ripristinare tutte le immersioni pianificate. Riprova.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Taggato come: $tag';
   }
@@ -29197,6 +29298,68 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Registra quasi incidente';
+
+  @override
+  String get diveLog_planned_chip => 'Pianificata';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'Immersione pianificata';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'In attesa dei dati del computer. Segnala come registrata se hai immerso senza computer.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'Segna come registrata';
+
+  @override
+  String get diveLog_planned_markedLogged => 'Segnata come registrata';
+
+  @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Impossibile contrassegnare l\'immersione come registrata.';
+
+  @override
+  String get diveLog_mirror_dialogTitle =>
+      'Registrare questa immersione anche in un altro profilo?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Questi compagni hanno un profilo su questo dispositivo. L\'immersione viene aggiunta ai loro registri come immersione pianificata finché i dati del loro computer non la completano.';
+
+  @override
+  String get diveLog_mirror_log => 'Registra';
+
+  @override
+  String get diveLog_mirror_notNow => 'Non ora';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Registrata per $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Immersioni speculari rimosse';
+
+  @override
+  String get diveLog_mirror_undoFailed =>
+      'Impossibile rimuovere le immersioni speculari.';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Impossibile registrare per $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Registra nel profilo di un compagno';
+
+  @override
+  String get diveLog_detail_loggedWith => 'Registrata con';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned =>
+      'in attesa del loro computer subacqueo';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -37474,6 +37637,11 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Immersione $diveNumber presso $siteName';
+  }
+
+  @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'Immersione pianificata a $siteName';
   }
 
   @override
