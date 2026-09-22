@@ -324,16 +324,16 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String gasCalculators_bestMix_densityCritical(Object limit) {
-    return 'Oltre il limite massimo di densita di $limit g/L.';
+    return 'Oltre il limite massimo di densità di $limit g/L.';
   }
 
   @override
   String get gasCalculators_bestMix_densityLabel =>
-      'Densita del gas alla quota';
+      'Densità del gas alla quota';
 
   @override
   String gasCalculators_bestMix_densityWarn(Object limit) {
-    return 'Oltre il limite di densita raccomandato di $limit g/L.';
+    return 'Oltre il limite di densità raccomandato di $limit g/L.';
   }
 
   @override
@@ -365,7 +365,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gasCalculators_bestMix_nearestStandard =>
-      'Miscela standard piu vicina che copre questa quota';
+      'Miscela standard più vicina che copre questa quota';
 
   @override
   String get gasCalculators_bestMix_recommendedMix => 'Miscela consigliata';
@@ -979,7 +979,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get accessibility_keyLabel_delete => 'Canc';
 
   @override
-  String get accessibility_keyLabel_down => 'Giu';
+  String get accessibility_keyLabel_down => 'Giù';
 
   @override
   String get accessibility_keyLabel_enter => 'Invio';
@@ -2064,7 +2064,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get certifications_detail_label_type => 'Tipo';
 
   @override
-  String get certifications_detail_label_validity => 'Validita';
+  String get certifications_detail_label_validity => 'Validità';
 
   @override
   String get certifications_detail_noExpiration => 'Nessuna scadenza';
@@ -3696,7 +3696,7 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get dashboard_hero_error => 'Pronti a esplorare le profondita?';
+  String get dashboard_hero_error => 'Pronti a esplorare le profondità?';
 
   @override
   String dashboard_hero_hoursUnderwater(Object hours) {
@@ -4045,19 +4045,19 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get dashboard_personalRecords_coldest => 'Piu fredda';
+  String get dashboard_personalRecords_coldest => 'Più fredda';
 
   @override
-  String get dashboard_personalRecords_deepest => 'Piu profonda';
+  String get dashboard_personalRecords_deepest => 'Più profonda';
 
   @override
-  String get dashboard_personalRecords_longest => 'Piu lunga';
+  String get dashboard_personalRecords_longest => 'Più lunga';
 
   @override
   String get dashboard_personalRecords_sectionTitle => 'Record personali';
 
   @override
-  String get dashboard_personalRecords_warmest => 'Piu calda';
+  String get dashboard_personalRecords_warmest => 'Più calda';
 
   @override
   String get dashboard_quickActions_addSite => 'Aggiungi sito';
@@ -4176,7 +4176,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dashboard_stats_hoursLogged => 'Ore registrate';
 
   @override
-  String get dashboard_stats_maxDepth => 'Profondita massima';
+  String get dashboard_stats_maxDepth => 'Profondità massima';
 
   @override
   String get dashboard_stats_sitesVisited => 'Siti visitati';
@@ -4781,7 +4781,7 @@ class AppLocalizationsIt extends AppLocalizations {
       other: 'immersioni',
       one: 'immersione',
     );
-    return 'Sei sicuro di voler eliminare $count $_temp0? Questa azione non puo essere annullata.';
+    return 'Sei sicuro di voler eliminare $count $_temp0? Questa azione non può essere annullata.';
   }
 
   @override
@@ -5225,7 +5225,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_delete_confirm =>
-      'Questa azione non puo essere annullata. L\'immersione e tutti i dati associati (profilo, bombole, avvistamenti) saranno eliminati definitivamente.';
+      'Questa azione non può essere annullata. L\'immersione e tutti i dati associati (profilo, bombole, avvistamenti) saranno eliminati definitivamente.';
 
   @override
   String get diveLog_delete_delete => 'Elimina';
@@ -5336,7 +5336,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_label_airTemp => 'Temp. aria';
 
   @override
-  String get diveLog_detail_label_avgDepth => 'Profondita media';
+  String get diveLog_detail_label_avgDepth => 'Profondità media';
 
   @override
   String get diveLog_detail_label_buddy => 'Compagno';
@@ -5345,7 +5345,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_label_currentDirection => 'Direzione corrente';
 
   @override
-  String get diveLog_detail_label_currentStrength => 'Intensita corrente';
+  String get diveLog_detail_label_currentStrength => 'Intensità corrente';
 
   @override
   String get diveLog_detail_label_diveComputer => 'Computer subacqueo';
@@ -5417,7 +5417,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_label_total => 'Totale:';
 
   @override
-  String get diveLog_detail_label_visibility => 'Visibilita';
+  String get diveLog_detail_label_visibility => 'Visibilità';
 
   @override
   String get diveLog_detail_label_waterType => 'Tipo di acqua';
@@ -5485,7 +5485,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_detail_section_oxygenToxicity =>
-      'Tossicita dell\'ossigeno';
+      'Tossicità dell\'ossigeno';
 
   @override
   String get diveLog_detail_section_sacRateBySegment =>
@@ -5523,7 +5523,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_detail_stat_bottomTime => 'Tempo di fondo';
 
   @override
-  String get diveLog_detail_stat_maxDepth => 'Profondita massima';
+  String get diveLog_detail_stat_maxDepth => 'Profondità massima';
 
   @override
   String get diveLog_detail_stat_runtime => 'Tempo totale';
@@ -5588,10 +5588,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Rebreather semi-chiuso con ppO2 variabile';
 
   @override
-  String get diveLog_diveMode_title => 'Modalita immersione';
+  String get diveLog_diveMode_title => 'Modalità immersione';
 
   @override
-  String get diveLog_editSighting_count => 'Quantita';
+  String get diveLog_editSighting_count => 'Quantità';
 
   @override
   String get diveLog_editSighting_notes => 'Note';
@@ -5723,7 +5723,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_label_altitude => 'Altitudine';
 
   @override
-  String get diveLog_edit_label_avgDepth => 'Profondita media';
+  String get diveLog_edit_label_avgDepth => 'Profondità media';
 
   @override
   String get diveLog_edit_label_bottomTime => 'Tempo di fondo';
@@ -5732,7 +5732,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_label_currentDirection => 'Direzione corrente';
 
   @override
-  String get diveLog_edit_label_currentStrength => 'Intensita corrente';
+  String get diveLog_edit_label_currentStrength => 'Intensità corrente';
 
   @override
   String get diveLog_edit_label_diveType => 'Tipo di immersione';
@@ -5761,7 +5761,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_label_exitMethod => 'Metodo di uscita';
 
   @override
-  String get diveLog_edit_label_maxDepth => 'Profondita massima';
+  String get diveLog_edit_label_maxDepth => 'Profondità massima';
 
   @override
   String get diveLog_edit_label_runtime => 'Tempo totale';
@@ -5776,7 +5776,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_label_type => 'Tipo';
 
   @override
-  String get diveLog_edit_label_visibility => 'Visibilita';
+  String get diveLog_edit_label_visibility => 'Visibilità';
 
   @override
   String get diveLog_edit_label_waterTemp => 'Temp. acqua';
@@ -5789,7 +5789,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Tocca \"Aggiungi\" per registrare gli avvistamenti';
 
   @override
-  String get diveLog_edit_nearbySitesFirst => 'Prima i siti piu vicini';
+  String get diveLog_edit_nearbySitesFirst => 'Prima i siti più vicini';
 
   @override
   String get diveLog_edit_noEquipmentSelected =>
@@ -5919,7 +5919,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_edit_section_customFields => 'Custom Fields';
 
   @override
-  String get diveLog_edit_section_depthDuration => 'Profondita e durata';
+  String get diveLog_edit_section_depthDuration => 'Profondità e durata';
 
   @override
   String get diveLog_edit_section_diveCenter => 'Centro immersioni';
@@ -5976,7 +5976,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String diveLog_edit_snackbar_avgDepthCalculated(Object depth) {
-    return 'Profondita media calcolata: $depth';
+    return 'Profondità media calcolata: $depth';
   }
 
   @override
@@ -5991,7 +5991,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String diveLog_edit_snackbar_maxDepthCalculated(Object depth) {
-    return 'Profondita max calcolata: $depth';
+    return 'Profondità max calcolata: $depth';
   }
 
   @override
@@ -6005,7 +6005,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_edit_snackbar_unableToCalculateAvgDepth =>
-      'Impossibile calcolare la profondita media dal profilo';
+      'Impossibile calcolare la profondità media dal profilo';
 
   @override
   String get diveLog_edit_snackbar_unableToCalculate =>
@@ -6013,7 +6013,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_edit_snackbar_unableToCalculateMaxDepth =>
-      'Impossibile calcolare la profondita max dal profilo';
+      'Impossibile calcolare la profondità max dal profilo';
 
   @override
   String get diveLog_edit_snackbar_unableToCalculateRuntime =>
@@ -6198,11 +6198,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_equipmentPicker_allSelected =>
-      'Tutta l\'attrezzatura gia selezionata';
+      'Tutta l\'attrezzatura già selezionata';
 
   @override
   String get diveLog_equipmentPicker_allSpare =>
-      'L\'attrezzatura rimanente e segnata come di scorta';
+      'L\'attrezzatura rimanente è segnata come di scorta';
 
   @override
   String diveLog_equipmentPicker_errorLoading(Object error) {
@@ -6490,7 +6490,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionDepthRange =>
-      'Intervallo profondita (metri)';
+      'Intervallo profondità (metri)';
 
   @override
   String get diveLog_filter_sectionDiveSite => 'Sito di immersione';
@@ -6546,11 +6546,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_legend_label_ascentRate => 'Velocita di risalita';
+  String get diveLog_legend_label_ascentRate => 'Velocità di risalita';
 
   @override
   String get diveLog_legend_label_ascentRateLine =>
-      'Linea velocita di risalita';
+      'Linea velocità di risalita';
 
   @override
   String get diveLog_legend_label_ceiling => 'Ceiling';
@@ -6562,7 +6562,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_cns => 'CNS%';
 
   @override
-  String get diveLog_legend_label_depth => 'Profondita';
+  String get diveLog_legend_label_depth => 'Profondità';
 
   @override
   String get diveLog_legend_label_events => 'Eventi';
@@ -6571,7 +6571,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_computedEvents => 'Eventi calcolati';
 
   @override
-  String get diveLog_legend_label_gasDensity => 'Densita del gas';
+  String get diveLog_legend_label_gasDensity => 'Densità del gas';
 
   @override
   String get diveLog_legend_label_gasSwitches => 'Cambi gas';
@@ -6583,10 +6583,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_legend_label_heartRate => 'Frequenza cardiaca';
 
   @override
-  String get diveLog_legend_label_maxDepth => 'Profondita massima';
+  String get diveLog_legend_label_maxDepth => 'Profondità massima';
 
   @override
-  String get diveLog_legend_label_meanDepth => 'Profondita media';
+  String get diveLog_legend_label_meanDepth => 'Profondità media';
 
   @override
   String get diveLog_legend_label_mod => 'MOD';
@@ -7638,11 +7638,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_map_emptySubtitle =>
-      'Registra immersioni con dati di posizione per vedere la tua attivita sulla mappa';
+      'Registra immersioni con dati di posizione per vedere la tua attività sulla mappa';
 
   @override
   String get diveLog_map_emptyTitle =>
-      'Nessuna attivita di immersione da visualizzare';
+      'Nessuna attività di immersione da visualizzare';
 
   @override
   String diveLog_map_errorLoading(Object error) {
@@ -7692,7 +7692,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_numbering_renumberDialog_content =>
-      'Tutte le immersioni saranno rinumerate in modo sequenziale in base alla data/ora di ingresso. Questa azione non puo essere annullata.';
+      'Tutte le immersioni saranno rinumerate in modo sequenziale in base alla data/ora di ingresso. Questa azione non può essere annullata.';
 
   @override
   String get diveLog_numbering_renumberDialog_renumber => 'Rinumera';
@@ -7758,7 +7758,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_o2tox_label_maxPpO2 => 'ppO2 massimo';
 
   @override
-  String get diveLog_o2tox_label_maxPpO2Depth => 'Profondita ppO2 massimo';
+  String get diveLog_o2tox_label_maxPpO2Depth => 'Profondità ppO2 massimo';
 
   @override
   String diveLog_o2tox_label_timeAboveLimit(String limit) {
@@ -7770,7 +7770,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_o2tox_oxygenToleranceUnits =>
-      'Unita di tolleranza all\'ossigeno';
+      'Unità di tolleranza all\'ossigeno';
 
   @override
   String diveLog_o2tox_semantics_cnsBadge(Object value) {
@@ -7779,7 +7779,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_o2tox_semantics_criticalWarning =>
-      'Avviso critico tossicita dell\'ossigeno';
+      'Avviso critico tossicità dell\'ossigeno';
 
   @override
   String diveLog_o2tox_semantics_otu(Object value, Object percent) {
@@ -7788,7 +7788,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveLog_o2tox_semantics_warning =>
-      'Avviso tossicita dell\'ossigeno';
+      'Avviso tossicità dell\'ossigeno';
 
   @override
   String diveLog_o2tox_startPercent(Object value) {
@@ -7796,7 +7796,7 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get diveLog_o2tox_title => 'Tossicita dell\'ossigeno';
+  String get diveLog_o2tox_title => 'Tossicità dell\'ossigeno';
 
   @override
   String get diveLog_playbackStats_deco => 'DECO';
@@ -7814,11 +7814,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_playback_tooltip_skipStart => 'Vai all\'inizio';
 
   @override
-  String get diveLog_playback_tooltip_speed => 'Velocita di riproduzione';
+  String get diveLog_playback_tooltip_speed => 'Velocità di riproduzione';
 
   @override
   String diveLog_profile_axisDepth(Object unit) {
-    return 'Profondita ($unit)';
+    return 'Profondità ($unit)';
   }
 
   @override
@@ -8014,7 +8014,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_search_label_deco => 'Decompressione';
 
   @override
-  String get diveLog_search_label_depthRange => 'Intervallo profondita (m)';
+  String get diveLog_search_label_depthRange => 'Intervallo profondità (m)';
 
   @override
   String get diveLog_search_label_diveCenter => 'Centro immersioni';
@@ -8047,7 +8047,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_search_section_gasEquipment => 'Gas e attrezzatura';
 
   @override
-  String get diveLog_search_section_location => 'Localita';
+  String get diveLog_search_section_location => 'Località';
 
   @override
   String get diveLog_search_section_organization => 'Organizzazione';
@@ -8187,19 +8187,19 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_summary_overview => 'Panoramica';
 
   @override
-  String get diveLog_summary_record_coldest => 'Immersione piu fredda';
+  String get diveLog_summary_record_coldest => 'Immersione più fredda';
 
   @override
-  String get diveLog_summary_record_deepest => 'Immersione piu profonda';
+  String get diveLog_summary_record_deepest => 'Immersione più profonda';
 
   @override
-  String get diveLog_summary_record_longest => 'Immersione piu lunga';
+  String get diveLog_summary_record_longest => 'Immersione più lunga';
 
   @override
-  String get diveLog_summary_record_warmest => 'Immersione piu calda';
+  String get diveLog_summary_record_warmest => 'Immersione più calda';
 
   @override
-  String get diveLog_summary_section_mostVisited => 'Siti piu visitati';
+  String get diveLog_summary_section_mostVisited => 'Siti più visitati';
 
   @override
   String get diveLog_summary_section_quickActions => 'Azioni rapide';
@@ -8212,7 +8212,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Seleziona un\'immersione dalla lista per visualizzare i dettagli';
 
   @override
-  String get diveLog_summary_stat_avgMaxDepth => 'Profondita max media';
+  String get diveLog_summary_stat_avgMaxDepth => 'Profondità max media';
 
   @override
   String get diveLog_summary_stat_avgWaterTemp => 'Temp. acqua media';
@@ -8224,7 +8224,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_summary_stat_diveTime => 'Tempo di immersione';
 
   @override
-  String get diveLog_summary_stat_maxDepth => 'Profondita max';
+  String get diveLog_summary_stat_maxDepth => 'Profondità max';
 
   @override
   String get diveLog_summary_stat_totalDives => 'Immersioni totali';
@@ -8335,10 +8335,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_tooltip_cns => 'CNS';
 
   @override
-  String get diveLog_tooltip_density => 'Densita';
+  String get diveLog_tooltip_density => 'Densità';
 
   @override
-  String get diveLog_tooltip_depth => 'Profondita';
+  String get diveLog_tooltip_depth => 'Profondità';
 
   @override
   String get diveLog_tooltip_gfPercent => 'GF%';
@@ -8374,7 +8374,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_tooltip_press => 'Press';
 
   @override
-  String get diveLog_tooltip_rate => 'Velocita';
+  String get diveLog_tooltip_rate => 'Velocità';
 
   @override
   String get gasConsumption_rmv => 'RMV';
@@ -8961,7 +8961,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_detail_deleteDialog_content =>
-      'Sei sicuro di voler eliminare questo sito? Questa azione non puo essere annullata.';
+      'Sei sicuro di voler eliminare questo sito? Questa azione non può essere annullata.';
 
   @override
   String get diveSites_detail_deleteDialog_title => 'Elimina sito';
@@ -9032,7 +9032,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_detail_noDepthInfo =>
-      'Nessuna informazione sulla profondita';
+      'Nessuna informazione sulla profondità';
 
   @override
   String get diveSites_detail_noDescription => 'Nessuna descrizione';
@@ -9055,14 +9055,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_detail_section_altitude => 'Altitudine';
 
   @override
-  String get diveSites_detail_section_depthRange => 'Intervallo profondita';
+  String get diveSites_detail_section_depthRange => 'Intervallo profondità';
 
   @override
   String get diveSites_detail_section_description => 'Descrizione';
 
   @override
   String get diveSites_detail_section_difficultyLevel =>
-      'Livello di difficolta';
+      'Livello di difficoltà';
 
   @override
   String get diveSites_detail_section_diveStatistics =>
@@ -9076,7 +9076,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_detail_section_hazards => 'Pericoli e sicurezza';
 
   @override
-  String get diveSites_detail_section_location => 'Localita';
+  String get diveSites_detail_section_location => 'Località';
 
   @override
   String get diveSites_detail_section_notes => 'Note';
@@ -9094,10 +9094,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_detail_stats_lastDive => 'Ultima immersione';
 
   @override
-  String get diveSites_detail_stats_longestDive => 'Immersione piu lunga';
+  String get diveSites_detail_stats_longestDive => 'Immersione più lunga';
 
   @override
-  String get diveSites_detail_stats_maxDepth => 'Immersione piu profonda';
+  String get diveSites_detail_stats_maxDepth => 'Immersione più profonda';
 
   @override
   String get diveSites_detail_stats_minDepth => 'Immersione meno profonda';
@@ -9136,7 +9136,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_detail_siteNotFound_body =>
-      'Questo sito non esiste piu.';
+      'Questo sito non esiste più.';
 
   @override
   String get diveSites_detail_siteNotFound_title => 'Sito non trovato';
@@ -9168,7 +9168,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_edit_access_parkingInfo_hint =>
-      'Disponibilita parcheggio, tariffe, consigli';
+      'Disponibilità parcheggio, tariffe, consigli';
 
   @override
   String get diveSites_edit_access_parkingInfo_label =>
@@ -9262,14 +9262,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_edit_depth_helperText =>
-      'Dal punto meno profondo al punto piu profondo';
+      'Dal punto meno profondo al punto più profondo';
 
   @override
   String get diveSites_edit_depth_maxHint => 'es. 30';
 
   @override
   String diveSites_edit_depth_maxLabel(Object symbol) {
-    return 'Profondita massima ($symbol)';
+    return 'Profondità massima ($symbol)';
   }
 
   @override
@@ -9277,7 +9277,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String diveSites_edit_depth_minLabel(Object symbol) {
-    return 'Profondita minima ($symbol)';
+    return 'Profondità minima ($symbol)';
   }
 
   @override
@@ -9492,10 +9492,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_edit_section_altitude => 'Altitudine';
 
   @override
-  String get diveSites_edit_section_depthRange => 'Intervallo profondita';
+  String get diveSites_edit_section_depthRange => 'Intervallo profondità';
 
   @override
-  String get diveSites_edit_section_difficultyLevel => 'Livello di difficolta';
+  String get diveSites_edit_section_difficultyLevel => 'Livello di difficoltà';
 
   @override
   String get diveSites_edit_section_expectedMarineLife => 'Specie previste';
@@ -9622,13 +9622,13 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_filter_section_depthRange =>
-      'Intervallo profondita massima';
+      'Intervallo profondità massima';
 
   @override
-  String get diveSites_filter_section_difficulty => 'Difficolta';
+  String get diveSites_filter_section_difficulty => 'Difficoltà';
 
   @override
-  String get diveSites_filter_section_location => 'Localita';
+  String get diveSites_filter_section_location => 'Località';
 
   @override
   String get diveSites_filter_section_minRating => 'Valutazione minima';
@@ -9658,7 +9658,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_import_button_import => 'Importa';
 
   @override
-  String get diveSites_import_detail_alreadyImported => 'Gia importato';
+  String get diveSites_import_detail_alreadyImported => 'Già importato';
 
   @override
   String get diveSites_import_detail_importToMySites => 'Importa nei miei siti';
@@ -9820,7 +9820,7 @@ class AppLocalizationsIt extends AppLocalizations {
       other: 'siti',
       one: 'sito',
     );
-    return 'Sei sicuro di voler eliminare $count $_temp0? Questa azione puo essere annullata entro 5 secondi.';
+    return 'Sei sicuro di voler eliminare $count $_temp0? Questa azione può essere annullata entro 5 secondi.';
   }
 
   @override
@@ -9879,7 +9879,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveSites_list_empty_subtitle =>
-      'Aggiungi siti di immersione per tenere traccia delle tue localita preferite';
+      'Aggiungi siti di immersione per tenere traccia delle tue località preferite';
 
   @override
   String get diveSites_list_empty_title => 'Nessun sito di immersione';
@@ -10207,7 +10207,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_summary_section_countriesRegions => 'Paesi e regioni';
 
   @override
-  String get diveSites_summary_section_mostDived => 'Piu visitati';
+  String get diveSites_summary_section_mostDived => 'Più visitati';
 
   @override
   String get diveSites_summary_section_overview => 'Panoramica';
@@ -10216,7 +10216,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveSites_summary_section_quickActions => 'Azioni rapide';
 
   @override
-  String get diveSites_summary_section_topRated => 'Piu votati';
+  String get diveSites_summary_section_topRated => 'Più votati';
 
   @override
   String get diveSites_summary_stat_avgRating => 'Valutazione media';
@@ -11343,11 +11343,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get enum_profileEvent_ascentRateCritical =>
-      'Velocita di risalita critica';
+      'Velocità di risalita critica';
 
   @override
   String get enum_profileEvent_ascentRateWarning =>
-      'Attenzione velocita di risalita';
+      'Attenzione velocità di risalita';
 
   @override
   String get enum_profileEvent_ascentStart => 'Inizio risalita';
@@ -11377,7 +11377,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_profileEvent_lowGas => 'Avviso gas scarso';
 
   @override
-  String get enum_profileEvent_maxDepth => 'Profondita massima';
+  String get enum_profileEvent_maxDepth => 'Profondità massima';
 
   @override
   String get enum_profileEvent_missedStop => 'Sosta deco mancata';
@@ -11417,10 +11417,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_profileMetricCategory_primary => 'Metriche principali';
 
   @override
-  String get enum_profileMetric_gasDensity => 'Densita del gas';
+  String get enum_profileMetric_gasDensity => 'Densità del gas';
 
   @override
-  String get enum_profileMetric_gasDensity_short => 'Densita';
+  String get enum_profileMetric_gasDensity_short => 'Densità';
 
   @override
   String get enum_profileMetric_gf => 'GF%';
@@ -11435,7 +11435,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_profileMetric_heartRate_short => 'FC';
 
   @override
-  String get enum_profileMetric_meanDepth => 'Profondita media';
+  String get enum_profileMetric_meanDepth => 'Profondità media';
 
   @override
   String get enum_profileMetric_meanDepth_short => 'Media';
@@ -11567,7 +11567,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_sortField_dateTaken => 'Data dello scatto';
 
   @override
-  String get enum_sortField_difficulty => 'Difficolta';
+  String get enum_sortField_difficulty => 'Difficoltà';
 
   @override
   String get enum_sortField_diveCount => 'Numero di immersioni';
@@ -11594,7 +11594,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get enum_sortField_lastServiceDate => 'Ultima revisione';
 
   @override
-  String get enum_sortField_maxDepth => 'Profondita massima';
+  String get enum_sortField_maxDepth => 'Profondità massima';
 
   @override
   String get enum_sortField_name => 'Nome';
@@ -11871,7 +11871,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_deleteDialog_content =>
-      'Sei sicuro di voler eliminare questa attrezzatura? Questa azione non puo essere annullata.';
+      'Sei sicuro di voler eliminare questa attrezzatura? Questa azione non può essere annullata.';
 
   @override
   String get equipment_deleteDialog_title => 'Elimina attrezzatura';
@@ -11993,7 +11993,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_detail_notFoundMessage =>
-      'Questa attrezzatura non esiste piu.';
+      'Questa attrezzatura non esiste più.';
 
   @override
   String get equipment_detail_notFoundTitle => 'Attrezzatura non trovata';
@@ -12583,7 +12583,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_edit_notFoundMessage =>
-      'Questa attrezzatura non esiste piu.';
+      'Questa attrezzatura non esiste più.';
 
   @override
   String get equipment_edit_notFoundTitle => 'Attrezzatura non trovata';
@@ -12755,7 +12755,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_list_emptyState_serviceDueUpToDate =>
-      'Tutta la tua attrezzatura e in regola con la manutenzione!';
+      'Tutta la tua attrezzatura è in regola con la manutenzione!';
 
   @override
   String equipment_list_errorLoading(Object error) {
@@ -13282,7 +13282,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_setDetail_notFoundMessage =>
-      'Questo set di attrezzatura non esiste piu.';
+      'Questo set di attrezzatura non esiste più.';
 
   @override
   String get equipment_setDetail_notFoundTitle => 'Set non trovato';
@@ -13333,7 +13333,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_setEdit_notFoundMessage =>
-      'Questo set di attrezzatura non esiste piu.';
+      'Questo set di attrezzatura non esiste più.';
 
   @override
   String get equipment_setEdit_notFoundTitle => 'Set non trovato';
@@ -13709,10 +13709,10 @@ class AppLocalizationsIt extends AppLocalizations {
       'Limite di lavoro standard per immersioni ricreative';
 
   @override
-  String get gasCalculators_mnd_depthInput => 'Profondita';
+  String get gasCalculators_mnd_depthInput => 'Profondità';
 
   @override
-  String get gasCalculators_mnd_endAtDepthTitle => 'END alla profondita';
+  String get gasCalculators_mnd_endAtDepthTitle => 'END alla profondità';
 
   @override
   String get gasCalculators_mnd_endLimit => 'Limite END';
@@ -13722,7 +13722,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gasCalculators_mnd_infoContent =>
-      'La profondita narcotica massima (MND) e la profondita massima a cui puoi scendere prima che la narcosi superi il tuo limite END. La profondita narcotica equivalente (END) indica l\'effetto narcotico del tuo gas a una data profondita.\n\nQuando \"O2 e narcotico\" e attivato, sia l\'ossigeno che l\'azoto contribuiscono alla narcosi (piu conservativo). Quando disattivato, solo l\'azoto e considerato narcotico.';
+      'La profondità narcotica massima (MND) è la profondità massima a cui puoi scendere prima che la narcosi superi il tuo limite END. La profondità narcotica equivalente (END) indica l\'effetto narcotico del tuo gas a una data profondità.\n\nQuando \"O2 è narcotico\" è attivato, sia l\'ossigeno che l\'azoto contribuiscono alla narcosi (più conservativo). Quando disattivato, solo l\'azoto è considerato narcotico.';
 
   @override
   String get gasCalculators_mnd_infoTitle => 'Informazioni su MND/END';
@@ -13735,13 +13735,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Miscela gas e impostazioni narcosi';
 
   @override
-  String get gasCalculators_mnd_o2Narcotic => 'O2 e narcotico';
+  String get gasCalculators_mnd_o2Narcotic => 'O2 è narcotico';
 
   @override
   String get gasCalculators_mnd_o2Percent => 'O2 %';
 
   @override
-  String get gasCalculators_mnd_resultTitle => 'Profondita narcotica massima';
+  String get gasCalculators_mnd_resultTitle => 'Profondità narcotica massima';
 
   @override
   String get gasCalculators_ppO2Limit => 'Limite ppO₂';
@@ -14968,7 +14968,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_diveScan_accessDenied =>
-      'L\'accesso alla libreria foto e necessario per cercare le foto';
+      'L\'accesso alla libreria foto è necessario per cercare le foto';
 
   @override
   String media_diveScan_foundPhotos(int count) {
@@ -15049,8 +15049,8 @@ class AppLocalizationsIt extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count foto gia collegate a questa immersione',
-      one: '1 foto gia collegata a questa immersione',
+      other: '$count foto già collegate a questa immersione',
+      one: '1 foto già collegata a questa immersione',
     );
     return '$_temp0';
   }
@@ -15068,7 +15068,7 @@ class AppLocalizationsIt extends AppLocalizations {
       other: 'Importate $imported foto',
       one: 'Importata 1 foto',
     );
-    return '$_temp0 ($skipped gia collegate)';
+    return '$_temp0 ($skipped già collegate)';
   }
 
   @override
@@ -15379,7 +15379,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get media_photoPicker_thumbnailAlreadyLinkedLabel =>
-      'Foto gia collegata a questa immersione';
+      'Foto già collegata a questa immersione';
 
   @override
   String get media_perdixOverlay_labelCns => 'CNS';
@@ -17263,7 +17263,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_appearance_header_theme => 'Tema';
 
   @override
-  String get settings_appearance_header_mode => 'Modalita';
+  String get settings_appearance_header_mode => 'Modalità';
 
   @override
   String get settings_themes_title => 'Scegli tema';
@@ -17379,10 +17379,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_appearance_metric_gtr => 'GTR (Tempo gas rimanente)';
 
   @override
-  String get settings_appearance_metric_cns => 'CNS% (Tossicita O2)';
+  String get settings_appearance_metric_cns => 'CNS% (Tossicità O2)';
 
   @override
-  String get settings_appearance_metric_otu => 'OTU (Unita di tolleranza O2)';
+  String get settings_appearance_metric_otu => 'OTU (Unità di tolleranza O2)';
 
   @override
   String get settings_appearance_metric_photoMarkers => 'Indicatori foto';
@@ -18415,18 +18415,18 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_decompression_header_narcosis => 'Narcosi';
 
   @override
-  String get settings_decompression_o2Narcotic => 'O2 e narcotico';
+  String get settings_decompression_o2Narcotic => 'O2 è narcotico';
 
   @override
   String get settings_decompression_o2Narcotic_subtitle =>
-      'Quando attivato, sia O2 che N2 sono considerati narcotici (piu conservativo). Quando disattivato, solo N2 contribuisce alla narcosi.';
+      'Quando attivato, sia O2 che N2 sono considerati narcotici (più conservativo). Quando disattivato, solo N2 contribuisce alla narcosi.';
 
   @override
   String get settings_decompression_endLimit => 'Limite END';
 
   @override
   String get settings_decompression_endLimit_subtitle =>
-      'Profondita narcotica equivalente massima utilizzata per i calcoli MND';
+      'Profondità narcotica equivalente massima utilizzata per i calcoli MND';
 
   @override
   String get settings_decompression_endLimit_dialog_title => 'Limite END';
@@ -19323,7 +19323,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_storage_resetDialog_backupFailed =>
-      'Backup non riuscito. Il reset e stato annullato per proteggere i tuoi dati.';
+      'Backup non riuscito. Il reset è stato annullato per proteggere i tuoi dati.';
 
   @override
   String settings_storage_resetDialog_resetFailed(Object error) {
@@ -19757,7 +19757,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_category_conditions_subtitle =>
-      'Visibilita e temperatura';
+      'Visibilità e temperatura';
 
   @override
   String get statistics_category_conditions_title => 'Condizioni';
@@ -19797,14 +19797,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_category_profile_subtitle =>
-      'Velocita di risalita e deco';
+      'Velocità di risalita e deco';
 
   @override
   String get statistics_category_profile_title => 'Analisi profilo';
 
   @override
   String get statistics_category_progression_subtitle =>
-      'Tendenze profondita e tempo';
+      'Tendenze profondità e tempo';
 
   @override
   String get statistics_category_progression_title => 'Progressione';
@@ -19909,15 +19909,15 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_conditions_visibility_error =>
-      'Impossibile caricare i dati sulla visibilita';
+      'Impossibile caricare i dati sulla visibilità';
 
   @override
   String get statistics_conditions_visibility_subtitle =>
-      'Immersioni per condizione di visibilita';
+      'Immersioni per condizione di visibilità';
 
   @override
   String get statistics_conditions_visibility_title =>
-      'Distribuzione visibilita';
+      'Distribuzione visibilità';
 
   @override
   String get statistics_conditions_siteType_error =>
@@ -19959,7 +19959,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_equipment_mostUsedGear_title =>
-      'Attrezzatura piu usata';
+      'Attrezzatura più usata';
 
   @override
   String get statistics_equipment_weightTrend_error =>
@@ -20245,7 +20245,7 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile caricare i dati sui viaggi';
 
   @override
-  String get statistics_geographic_trips_subtitle => 'Viaggi piu produttivi';
+  String get statistics_geographic_trips_subtitle => 'Viaggi più produttivi';
 
   @override
   String statistics_geographic_trips_summary(
@@ -20274,7 +20274,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_marineLife_bestSites_subtitle =>
-      'Siti con maggiore varieta di specie';
+      'Siti con maggiore varietà di specie';
 
   @override
   String statistics_marineLife_bestSites_summary(
@@ -20298,7 +20298,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_marineLife_mostCommon_subtitle =>
-      'Specie avvistate piu spesso';
+      'Specie avvistate più spesso';
 
   @override
   String statistics_marineLife_mostCommon_summary(
@@ -20306,12 +20306,12 @@ class AppLocalizationsIt extends AppLocalizations {
     Object topName,
     Object topCount,
   ) {
-    return '$count specie. Piu comune: $topName con $topCount avvistamenti';
+    return '$count specie. Più comune: $topName con $topCount avvistamenti';
   }
 
   @override
   String get statistics_marineLife_mostCommon_title =>
-      'Avvistamenti piu comuni';
+      'Avvistamenti più comuni';
 
   @override
   String get statistics_marineLife_speciesSpotted => 'Specie avvistate';
@@ -20333,7 +20333,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_profile_ascentDescent_error =>
-      'Impossibile caricare i dati sulle velocita';
+      'Impossibile caricare i dati sulle velocità';
 
   @override
   String get statistics_profile_ascentDescent_subtitle =>
@@ -20341,7 +20341,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_profile_ascentDescent_title =>
-      'Velocita medie di risalita e discesa';
+      'Velocità medie di risalita e discesa';
 
   @override
   String get statistics_profile_avgAscent => 'Risalita media';
@@ -20390,19 +20390,19 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_profile_timeAtDepth_empty =>
-      'Nessun dato sulla profondita disponibile';
+      'Nessun dato sulla profondità disponibile';
 
   @override
   String get statistics_profile_timeAtDepth_error =>
-      'Impossibile caricare i dati sugli intervalli di profondita';
+      'Impossibile caricare i dati sugli intervalli di profondità';
 
   @override
   String get statistics_profile_timeAtDepth_subtitle =>
-      'Tempo approssimativo trascorso a ogni profondita';
+      'Tempo approssimativo trascorso a ogni profondità';
 
   @override
   String get statistics_profile_timeAtDepth_title =>
-      'Tempo per intervalli di profondita';
+      'Tempo per intervalli di profondità';
 
   @override
   String statistics_profile_timeAtDepth_valueFormat(Object value) {
@@ -20438,7 +20438,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_progression_depthProgression_error =>
-      'Impossibile caricare la progressione di profondita';
+      'Impossibile caricare la progressione di profondità';
 
   @override
   String get statistics_progression_depthProgression_subtitle =>
@@ -20446,7 +20446,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_progression_depthProgression_title =>
-      'Progressione profondita massima';
+      'Progressione profondità massima';
 
   @override
   String get statistics_progression_divesPerYear_empty =>
@@ -20499,10 +20499,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get statistics_records_appBar_title => 'Record immersioni';
 
   @override
-  String get statistics_records_coldestDive => 'Immersione piu fredda';
+  String get statistics_records_coldestDive => 'Immersione più fredda';
 
   @override
-  String get statistics_records_deepestDive => 'Immersione piu profonda';
+  String get statistics_records_deepestDive => 'Immersione più profonda';
 
   @override
   String statistics_records_diveNumber(Object number) {
@@ -20523,7 +20523,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get statistics_records_firstDive => 'Prima immersione';
 
   @override
-  String get statistics_records_longestDive => 'Immersione piu lunga';
+  String get statistics_records_longestDive => 'Immersione più lunga';
 
   @override
   String statistics_records_longestDiveValue(Object minutes) {
@@ -20542,7 +20542,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get statistics_records_milestones => 'Traguardi';
 
   @override
-  String get statistics_records_mostRecentDive => 'Immersione piu recente';
+  String get statistics_records_mostRecentDive => 'Immersione più recente';
 
   @override
   String statistics_records_recordSemanticLabel(
@@ -20563,7 +20563,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get statistics_records_unknownSite => 'Sito sconosciuto';
 
   @override
-  String get statistics_records_warmestDive => 'Immersione piu calda';
+  String get statistics_records_warmestDive => 'Immersione più calda';
 
   @override
   String statistics_sectionCard_semanticLabel(Object title) {
@@ -20601,7 +20601,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_social_topBuddies_subtitle =>
-      'Compagni di immersione piu frequenti';
+      'Compagni di immersione più frequenti';
 
   @override
   String get statistics_social_topBuddies_title =>
@@ -20613,14 +20613,14 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_social_topDiveCenters_subtitle =>
-      'Operatori piu visitati';
+      'Operatori più visitati';
 
   @override
   String get statistics_social_topDiveCenters_title =>
       'Migliori centri immersioni';
 
   @override
-  String get statistics_summary_avgDepth => 'Profondita media';
+  String get statistics_summary_avgDepth => 'Profondità media';
 
   @override
   String get statistics_summary_avgTemp => 'Temp. media';
@@ -20631,11 +20631,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_summary_depthDistribution_semanticLabel =>
-      'Grafico a torta che mostra la distribuzione della profondita';
+      'Grafico a torta che mostra la distribuzione della profondità';
 
   @override
   String get statistics_summary_depthDistribution_title =>
-      'Distribuzione profondita';
+      'Distribuzione profondità';
 
   @override
   String get statistics_summary_diveTypes_empty =>
@@ -20680,7 +20680,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get statistics_summary_header_title => 'Panoramica statistiche';
 
   @override
-  String get statistics_summary_maxDepth => 'Profondita max';
+  String get statistics_summary_maxDepth => 'Profondità max';
 
   @override
   String get statistics_summary_sitesVisited => 'Siti visitati';
@@ -20762,7 +20762,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get statistics_timePatterns_dayOfWeek_subtitle =>
-      'Quando ti immergi di piu?';
+      'Quando ti immergi di più?';
 
   @override
   String get statistics_timePatterns_dayOfWeek_sun => 'Dom';
@@ -21396,7 +21396,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tags_manage_useForSites => 'Usa per i siti';
 
   @override
-  String get tags_manage_nameRequired => 'Il nome del tag e obbligatorio';
+  String get tags_manage_nameRequired => 'Il nome del tag è obbligatorio';
 
   @override
   String get tags_manage_deleteTitle => 'Eliminare il tag?';
@@ -21410,7 +21410,7 @@ class AppLocalizationsIt extends AppLocalizations {
       one: '1 immersione',
       zero: '0 immersioni',
     );
-    return '\"$tagName\" verra rimosso da $_temp0. Questa azione non puo essere annullata.';
+    return '\"$tagName\" verrà rimosso da $_temp0. Questa azione non può essere annullata.';
   }
 
   @override
@@ -21545,7 +21545,7 @@ class AppLocalizationsIt extends AppLocalizations {
       one: '1 immersione',
       zero: '0 immersioni',
     );
-    return 'Questi tag verranno rimossi da $_temp0 in totale. Questa azione non puo essere annullata.';
+    return 'Questi tag verranno rimossi da $_temp0 in totale. Questa azione non può essere annullata.';
   }
 
   @override
@@ -21681,7 +21681,7 @@ class AppLocalizationsIt extends AppLocalizations {
       one: '1 immersione',
       zero: '0 immersioni',
     );
-    return 'Questo influenzera $_temp0 in totale.';
+    return 'Questo influenzerà $_temp0 in totale.';
   }
 
   @override
@@ -21833,7 +21833,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tank_al63_displayName => 'AL63';
 
   @override
-  String get tank_al80_description => 'Alluminio 80 cu ft (la piu comune)';
+  String get tank_al80_description => 'Alluminio 80 cu ft (la più comune)';
 
   @override
   String get tank_al80_displayName => 'AL80';
@@ -24468,7 +24468,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveComputer_downloadExit_content =>
-      'Uscendo verra annullato il download in corso dal computer da sub. Sei sicuro?';
+      'Uscendo verrà annullato il download in corso dal computer da sub. Sei sicuro?';
 
   @override
   String get diveComputer_downloadExit_leave => 'Esci';
@@ -24827,7 +24827,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveComputer_scan_emptyStateInstructions =>
-      'Assicurati che il tuo computer da sub sia:\n• Acceso\n• In modalita di abbinamento Bluetooth\n• Vicino al tuo dispositivo';
+      'Assicurati che il tuo computer da sub sia:\n• Acceso\n• In modalità di abbinamento Bluetooth\n• Vicino al tuo dispositivo';
 
   @override
   String get diveComputer_scan_knownBadge => 'Conosciuto';
@@ -25015,7 +25015,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get diveImport_healthkit_dataUsage =>
-      'Legge le attivita di immersione subacquea da Apple Health, inclusi profondita, durata, temperatura dell\'acqua e frequenza cardiaca. Questi dati vengono archiviati localmente nel tuo registro immersioni e non vengono mai condivisi con terze parti.';
+      'Legge le attività di immersione subacquea da Apple Health, inclusi profondità, durata, temperatura dell\'acqua e frequenza cardiaca. Questi dati vengono archiviati localmente nel tuo registro immersioni e non vengono mai condivisi con terze parti.';
 
   @override
   String get diveImport_healthkit_dateFrom => 'Da';
@@ -26270,7 +26270,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_dataSources_appleHealth_dataTypeWorkouts =>
-      'Allenamenti di immersione subacquea - orario di inizio, durata e dati di attivita dell\'immersione';
+      'Allenamenti di immersione subacquea - orario di inizio, durata e dati di attività dell\'immersione';
 
   @override
   String get settings_dataSources_appleHealth_dataTypeHeartRate =>
