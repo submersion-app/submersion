@@ -1907,8 +1907,18 @@ class UddfFullImportService {
       // A ref matching none of them used to fall off the end of this chain
       // without a word, which is how a logbook whose <divesite> block was
       // lost imported every dive with no site and no notice (#2209).
+      //
+      // UDDF allows a <link> either inside <informationbeforedive> or
+      // directly under <dive>. Only the inner ones were read, so a file
+      // using the outer shape lost its site link in silence even when the
+      // <divesite> block described the site perfectly well. Inner links are
+      // walked first, so a resolving one still wins over a dangling outer
+      // one rather than the last read winning.
       var sawDanglingRef = false;
-      for (final linkElement in beforeElement.findElements('link')) {
+      for (final linkElement in [
+        ...beforeElement.findElements('link'),
+        ...diveElement.findElements('link'),
+      ]) {
         final ref = linkElement.getAttribute('ref');
         if (ref != null) {
           // Check if it's a site reference

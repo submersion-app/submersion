@@ -23,6 +23,31 @@ void main() {
   Future<ImportPayload> parse(String uddf) =>
       UddfImportParser().parse(Uint8List.fromList(utf8.encode(uddf)));
 
+  /// The same document with its links directly under `<dive>` instead of
+  /// inside `<informationbeforedive>`. UDDF allows either.
+  String documentWithDirectLinks({
+    String sites = '',
+    required String diveLinks,
+  }) =>
+      '''<?xml version="1.0" encoding="UTF-8" ?>
+<uddf version="3.2.0">
+  <divesite>$sites</divesite>
+  <profiledata>
+    <repetitiongroup id="rg-1">
+      <dive id="d-1">
+        $diveLinks
+        <informationbeforedive>
+          <datetime>2024-06-01T09:00:00</datetime>
+        </informationbeforedive>
+        <informationafterdive>
+          <greatestdepth>18.0</greatestdepth>
+          <diveduration>2400</diveduration>
+        </informationafterdive>
+      </dive>
+    </repetitiongroup>
+  </profiledata>
+</uddf>''';
+
   String document({String sites = '', required String diveLinks}) =>
       '''<?xml version="1.0" encoding="UTF-8" ?>
 <uddf version="3.2.0">
@@ -175,6 +200,69 @@ void main() {
       );
 
       expect(payload.entitiesOf(ImportEntityType.sites), isEmpty);
+    });
+  });
+
+  group('a link directly under <dive>', () {
+    test(
+      'resolves its site, as one inside informationbeforedive does',
+      () async {
+        final payload = await parse(
+          documentWithDirectLinks(
+            sites: '<site id="s1"><name>Test Site</name></site>',
+            diveLinks: '<link ref="s1" />',
+          ),
+        );
+
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect((dive['site'] as Map<String, dynamic>)['uddfId'], 's1');
+      },
+    );
+
+    test('raises the notice when it does not resolve', () async {
+      final payload = await parse(
+        documentWithDirectLinks(diveLinks: '<link ref="s-missing" />'),
+      );
+
+      expect(
+        payload.warnings
+            .singleWhere((w) => w.code == ImportWarningCode.sitesUnresolved)
+            .count,
+        1,
+      );
+    });
+
+    test('a trip link there is still not a dangling site', () async {
+      final payload = await parse(
+        documentWithDirectLinks(diveLinks: '<link ref="trip_1" />'),
+      );
+
+      expect(
+        payload.warnings.where(
+          (w) => w.code == ImportWarningCode.sitesUnresolved,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('does not override a site the inner links already resolved', () async {
+      // Both places carry a link; the one that resolves must win rather
+      // than the last one read.
+      final payload = await parse(
+        documentWithDirectLinks(
+          sites: '<site id="s1"><name>Test Site</name></site>',
+          diveLinks: '<link ref="s1" /><link ref="s-missing" />',
+        ),
+      );
+
+      final dive = payload.entitiesOf(ImportEntityType.dives).single;
+      expect((dive['site'] as Map<String, dynamic>)['uddfId'], 's1');
+      expect(
+        payload.warnings.where(
+          (w) => w.code == ImportWarningCode.sitesUnresolved,
+        ),
+        isEmpty,
+      );
     });
   });
 }
