@@ -71,6 +71,12 @@ void main() {
   const contractPath =
       'lib/features/universal_import/data/services/import_site_location.dart';
 
+  /// `Directory.listSync` yields platform paths, so on Windows every
+  /// allowlist key and [contractPath] below would miss and the scan would
+  /// report phantom violations. `preference_aware_date_format_test.dart`
+  /// normalises for the same reason.
+  String repoPath(File file) => file.path.replaceAll('\\', '/');
+
   List<File> dartFilesUnder(String root) => Directory(root)
       .listSync(recursive: true)
       .whereType<File>()
@@ -86,7 +92,7 @@ void main() {
         final source = file.readAsStringSync();
         if (!writesLatitude.hasMatch(source)) continue;
 
-        final path = file.path;
+        final path = repoPath(file);
         candidates.add(path);
         if (path == contractPath) continue;
         if (allowed.containsKey(path)) continue;
@@ -113,6 +119,17 @@ void main() {
           'coordinates, or add the file to `allowed` with the reason the '
           'contract does not apply to it.\n  ${offenders.join('\n  ')}',
     );
+  });
+
+  test('a Windows path is normalised before it is compared', () {
+    // The allowlist and contractPath are written with forward slashes. This
+    // runs on a POSIX machine in CI, so without an explicit check the
+    // Windows behaviour would never be exercised anywhere.
+    const windowsPath =
+        'lib\\features\\universal_import\\data\\services'
+        '\\import_site_location.dart';
+
+    expect(repoPath(File(windowsPath)), contractPath);
   });
 
   test('every allowlisted file still needs its exemption', () {
