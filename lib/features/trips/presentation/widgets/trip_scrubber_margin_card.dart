@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -123,7 +124,18 @@ class _MarginBlock extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(m.item.name, style: theme.textTheme.titleSmall),
+        Row(
+          children: [
+            Flexible(
+              child: Text(m.item.name, style: theme.textTheme.titleSmall),
+            ),
+            const SizedBox(width: 6),
+            ServiceStatusIndicatorFor(
+              equipmentId: m.item.id,
+              density: ServiceIndicatorDensity.dot,
+            ),
+          ],
+        ),
         const SizedBox(height: 4),
         if (m.ratedMinutes == null)
           Text(l10n.trips_scrubber_noRating, style: body)

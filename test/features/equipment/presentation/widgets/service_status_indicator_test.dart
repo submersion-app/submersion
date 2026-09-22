@@ -235,6 +235,47 @@ void main() {
     );
   });
 
+  testWidgets('the dot fits a Chip avatar slot without forcing a size', (
+    tester,
+  ) async {
+    // The planner and weight-rig chips put the indicator in `avatar`, which
+    // lays its child out under tight constraints. A dot that demanded its
+    // own size, or an empty box that did not, would overflow or throw.
+    await tester.pumpWidget(
+      wrap(
+        const InputChip(
+          avatar: ServiceStatusIndicatorFor(
+            equipmentId: 'reg',
+            density: ServiceIndicatorDensity.dot,
+          ),
+          label: Text('Cold water reg'),
+        ),
+        map: {'reg': clock()},
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Cold water reg'), findsOneWidget);
+  });
+
+  testWidgets('a Chip avatar with an ok clock still lays out', (tester) async {
+    await tester.pumpWidget(
+      wrap(
+        const InputChip(
+          avatar: ServiceStatusIndicatorFor(
+            equipmentId: 'reg',
+            density: ServiceIndicatorDensity.dot,
+          ),
+          label: Text('Cold water reg'),
+        ),
+        map: {'reg': clock(severity: ServiceClockSeverity.ok)},
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text('Cold water reg'), findsOneWidget);
+  });
+
   testWidgets('ServiceStatusIndicatorFor renders nothing when disabled', (
     tester,
   ) async {
