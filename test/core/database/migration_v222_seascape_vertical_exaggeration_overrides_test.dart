@@ -14,7 +14,7 @@ void main() {
   });
 
   test('this rung is additive and did not move the sync floor', () {
-    // The floor is 223, raised by the media fact clocks, whose own test
+    // The floor is 224, raised by the media fact clocks, whose own test
     // owns that number. This rung did not raise it: an older reader simply
     // never sees the per-site overrides. Asserting the current value here
     // keeps the pair honest, so moving the floor fails both tests rather
