@@ -71,11 +71,11 @@ void main() {
         (ref) async => {'hose': subPartClock},
       ),
     ],
-    child: MaterialApp(
-      locale: const Locale('en'),
+    child: const MaterialApp(
+      locale: Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: const Scaffold(body: ComponentsCard(equipmentId: 'reg')),
+      home: Scaffold(body: ComponentsCard(equipmentId: 'reg')),
     ),
   );
 
