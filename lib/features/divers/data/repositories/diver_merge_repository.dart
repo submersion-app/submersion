@@ -53,12 +53,19 @@ class DiverMergeSnapshot {
   /// part of the merge (keeper-wins policy). Each captures `(table, row)`.
   final List<({String table, Map<String, dynamic> row})> deletedSingletonRows;
 
+  /// Buddies whose `linked_diver_id` named the duplicate (issue #2002). The
+  /// generic repoint keys on `diver_id`, so these are handled separately:
+  /// each was moved to the keeper, or cleared when the same owner list
+  /// already linked the keeper. Undo restores the prior link and hlc.
+  final List<({String rowId, String? priorHlc})> repointedLinkedBuddies;
+
   const DiverMergeSnapshot({
     required this.keeperId,
     required this.duplicateId,
     required this.duplicateDiver,
     required this.repointedRows,
     required this.deletedSingletonRows,
+    this.repointedLinkedBuddies = const [],
   });
 }
 
@@ -110,6 +117,7 @@ class DiverMergeRepository {
     final repointed =
         <({String table, String rowId, String? priorHlc, bool hasHlc})>[];
     final deletedSingleton = <({String table, Map<String, dynamic> row})>[];
+    final repointedLinks = <({String rowId, String? priorHlc})>[];
 
     // Capture the duplicate's row BEFORE the transaction so we can restore
     // it on undo. The select runs outside the txn because we only need a
@@ -168,6 +176,15 @@ class DiverMergeRepository {
         }
       }
 
+      // Buddies that ARE the duplicate profile follow it to the keeper.
+      repointedLinks.addAll(
+        await _repointLinkedBuddies(
+          keeperId: keeperId,
+          duplicateId: duplicateId,
+          now: now,
+        ),
+      );
+
       // Finally remove the duplicate diver itself, and log the deletion
       // inside the same transaction so the local DB state and the sync
       // tombstone commit atomically (matches the buddy-merge pattern; a
@@ -203,7 +220,55 @@ class DiverMergeRepository {
       duplicateDiver: duplicateRow,
       repointedRows: repointed,
       deletedSingletonRows: deletedSingleton,
+      repointedLinkedBuddies: repointedLinks,
     );
+  }
+
+  /// `buddies.linked_diver_id` is not a `diver_id` column, so the generic
+  /// repoint skips it. Move each link to the keeper unless the same owner
+  /// list already links the keeper, in which case clear it (one link per
+  /// owner list, see BuddyProfileLinkRepository). Returns what was touched,
+  /// with the pre-merge hlc, for undo.
+  Future<List<({String rowId, String? priorHlc})>> _repointLinkedBuddies({
+    required String keeperId,
+    required String duplicateId,
+    required int now,
+  }) async {
+    final rows = await (_db.select(
+      _db.buddies,
+    )..where((t) => t.linkedDiverId.equals(duplicateId))).get();
+    final touched = <({String rowId, String? priorHlc})>[];
+    for (final row in rows) {
+      final owner = row.diverId;
+      // A buddy in the keeper's own list would end up linking the profile
+      // that owns it, which BuddyProfileLinkRepository refuses. Clear it
+      // instead, as for a collision.
+      final wouldSelfLink = owner == keeperId;
+      final clash =
+          await (_db.select(_db.buddies)..where(
+                (t) =>
+                    t.linkedDiverId.equals(keeperId) &
+                    (owner == null
+                        ? t.diverId.isNull()
+                        : t.diverId.equals(owner)),
+              ))
+              .get();
+      touched.add((rowId: row.id, priorHlc: row.hlc));
+      await (_db.update(_db.buddies)..where((t) => t.id.equals(row.id))).write(
+        BuddiesCompanion(
+          linkedDiverId: Value(
+            clash.isEmpty && !wouldSelfLink ? keeperId : null,
+          ),
+          updatedAt: Value(now),
+        ),
+      );
+      await _syncRepository.markRecordPending(
+        entityType: 'buddies',
+        recordId: row.id,
+        localUpdatedAt: now,
+      );
+    }
+    return touched;
   }
 
   /// Reverse a merge previously executed by [mergeDivers], using the snapshot
@@ -258,6 +323,19 @@ class DiverMergeRepository {
         await _db.customStatement(
           'DELETE FROM sync_records WHERE entity_type = ? AND record_id = ?',
           [_entityTypeFor(entry.table), entry.rowId],
+        );
+      }
+
+      // Buddies that linked the duplicate get their link and hlc back, and
+      // their pending marks cleared, like the diver_id rows above.
+      for (final entry in snapshot.repointedLinkedBuddies) {
+        await _db.customStatement(
+          'UPDATE buddies SET linked_diver_id = ?, hlc = ? WHERE id = ?',
+          [snapshot.duplicateId, entry.priorHlc, entry.rowId],
+        );
+        await _db.customStatement(
+          'DELETE FROM sync_records WHERE entity_type = ? AND record_id = ?',
+          ['buddies', entry.rowId],
         );
       }
 

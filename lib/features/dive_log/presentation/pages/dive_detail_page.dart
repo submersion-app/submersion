@@ -88,6 +88,10 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_safety_su
 import 'package:submersion/features/safety/domain/services/altitude_flag.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_locations_map.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/header_map_backdrop.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/logged_with_tiles.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/mirror_dive_dialog.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/planned_dive_banner.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/site_suggestion_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/surface_gps_section.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/data_sources_section.dart';
@@ -175,6 +179,11 @@ class DiveDetailPage extends ConsumerStatefulWidget {
 class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// Track if we've already initiated a redirect to prevent multiple calls
   bool _hasRedirected = false;
+
+  /// A promotion of a planned dive is in flight (issue #2002), so a second
+  /// tap on the banner or the menu item is ignored rather than calling
+  /// convertPlanToActualDive on a dive that is no longer planned.
+  bool _promoting = false;
 
   /// Key for capturing the profile chart as an image for PNG export
   final GlobalKey _profileChartExportKey = GlobalKey();
@@ -1075,8 +1084,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             // renders one here; otherwise the banner would appear twice.
             // Collapses to nothing when there is no suggestion, so no
             // spacing of its own is needed.
-            if (!widget.embedded)
+            if (!widget.embedded) ...[
+              if (dive.isPlanned)
+                PlannedDiveBanner(onMarkLogged: () => _markAsLogged(dive)),
               SiteSuggestionCard(diveId: dive.id, currentSite: dive.site),
+            ],
             // Fixed: Header
             Consumer(
               builder: (context, ref, _) {
@@ -1201,6 +1213,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 case 'logNearMiss':
                   context.push('/incidents/new?diveId=$diveId');
                   break;
+                case 'markLogged':
+                  _markAsLogged(dive);
+                  break;
+                case 'logForBuddy':
+                  _logForBuddy(dive);
+                  break;
                 case 'linkPreDive':
                   _linkPreDiveChecklist(context, dive);
                   break;
@@ -1244,6 +1262,24 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   contentPadding: EdgeInsets.zero,
                 ),
               ),
+              if (dive.isPlanned)
+                PopupMenuItem(
+                  value: 'markLogged',
+                  child: ListTile(
+                    leading: const Icon(Icons.event_available_outlined),
+                    title: Text(context.l10n.diveLog_detail_menu_markLogged),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              if (_hasMirrorCandidates(ref, dive))
+                PopupMenuItem(
+                  value: 'logForBuddy',
+                  child: ListTile(
+                    leading: const Icon(Icons.people_outline),
+                    title: Text(context.l10n.diveLog_detail_menu_logForBuddy),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
               _preDiveLinkMenuItem(context, linkedPreDive),
               if (hasRawData)
                 PopupMenuItem(
@@ -1430,6 +1466,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     case 'logNearMiss':
                       context.push('/incidents/new?diveId=$diveId');
                       break;
+                    case 'markLogged':
+                      _markAsLogged(dive);
+                      break;
+                    case 'logForBuddy':
+                      _logForBuddy(dive);
+                      break;
                     case 'linkPreDive':
                       _linkPreDiveChecklist(context, dive);
                       break;
@@ -1478,6 +1520,28 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
+                  if (dive.isPlanned)
+                    PopupMenuItem(
+                      value: 'markLogged',
+                      child: ListTile(
+                        leading: const Icon(Icons.event_available_outlined),
+                        title: Text(
+                          context.l10n.diveLog_detail_menu_markLogged,
+                        ),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                  if (_hasMirrorCandidates(ref, dive))
+                    PopupMenuItem(
+                      value: 'logForBuddy',
+                      child: ListTile(
+                        leading: const Icon(Icons.people_outline),
+                        title: Text(
+                          context.l10n.diveLog_detail_menu_logForBuddy,
+                        ),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
                   _preDiveLinkMenuItem(context, linkedPreDive),
                   if (hasRawData)
                     PopupMenuItem(
@@ -1526,11 +1590,81 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             ],
           ),
         ),
+        if (dive.isPlanned)
+          PlannedDiveBanner(onMarkLogged: () => _markAsLogged(dive)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: SiteSuggestionCard(diveId: dive.id, currentSite: dive.site),
         ),
       ],
+    );
+  }
+
+  /// Whether any linked buddy on this dive still lacks a sibling (issue
+  /// #2002). Watched in the menu builders, so the item follows the ticks.
+  bool _hasMirrorCandidates(WidgetRef ref, Dive dive) {
+    if (dive.isPlanned) return false;
+    final candidates = ref.watch(mirrorCandidatesProvider(dive.id)).value;
+    return candidates != null && candidates.isNotEmpty;
+  }
+
+  /// Log this dive into a linked buddy's profile from the overflow menu.
+  Future<void> _logForBuddy(Dive dive) async {
+    // The dialog and the mirror transaction both take time, and the diver
+    // can leave in between. Everything after the first await goes through
+    // the container, which outlives this State, rather than through ref.
+    final container = ProviderScope.containerOf(context, listen: false);
+    final candidates = await ref.read(mirrorCandidatesProvider(dive.id).future);
+    if (!mounted || candidates.isEmpty) return;
+    final chosenIds = await showMirrorDiveDialog(
+      context,
+      candidates: candidates,
+    );
+    if (chosenIds == null || chosenIds.isEmpty || !mounted) return;
+    await runDiveMirror(
+      context: context,
+      container: container,
+      sourceDiveId: dive.id,
+      chosen: [
+        for (final c in candidates)
+          if (chosenIds.contains(c.diver.id)) c,
+      ],
+    );
+    container.invalidate(mirrorCandidatesProvider(dive.id));
+    container.invalidate(siblingDivesProvider(dive.id));
+  }
+
+  /// Promote a planned dive by hand (issue #2002): clears the flag and takes
+  /// the next dive number through the one path that does both. Invalidates
+  /// through the container so the list refreshes even if this page is gone.
+  Future<void> _markAsLogged(Dive dive) async {
+    // The button stays enabled while the promotion runs, and the same
+    // action sits in the overflow menu, so a second call can arrive after
+    // the flag is already cleared. convertPlanToActualDive throws then,
+    // and nothing awaits this callback, so it must not escape.
+    if (_promoting) return;
+    _promoting = true;
+    final container = ProviderScope.containerOf(context, listen: false);
+    final messenger = ScaffoldMessenger.of(context);
+    final failureMessage = context.l10n.diveLog_planned_markLoggedFailed;
+    try {
+      await ref.read(diveRepositoryProvider).convertPlanToActualDive(dive.id);
+    } catch (_) {
+      _promoting = false;
+      container.invalidate(diveProvider(dive.id));
+      messenger.showSnackBar(SnackBar(content: Text(failureMessage)));
+      return;
+    }
+    _promoting = false;
+    container.invalidate(diveProvider(dive.id));
+    container.invalidate(paginatedDiveListProvider);
+    container.invalidate(diveListNotifierProvider);
+    container.invalidate(divesProvider);
+    container.invalidate(diveStatisticsProvider);
+    container.invalidate(diveNumberingInfoProvider);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.l10n.diveLog_planned_markedLogged)),
     );
   }
 
@@ -4560,6 +4694,8 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   )
                 else
                   ...buddies.map((bwr) => _buildBuddyTile(context, bwr)),
+                // Other profiles' logs of this outing (issue #2002).
+                LoggedWithTiles(diveId: diveId),
               ],
             ),
           ),

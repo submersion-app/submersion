@@ -148,6 +148,7 @@ class BuddyRepository {
       return domain.Buddy(
         id: row.data['id'] as String,
         diverId: row.data['diver_id'] as String?,
+        linkedDiverId: row.data['linked_diver_id'] as String?,
         name: row.data['name'] as String,
         email: row.data['email'] as String?,
         phone: row.data['phone'] as String?,
@@ -185,6 +186,7 @@ class BuddyRepository {
             BuddiesCompanion(
               id: Value(id),
               diverId: Value(buddy.diverId),
+              linkedDiverId: Value(buddy.linkedDiverId),
               name: Value(buddy.name),
               email: Value(buddy.email),
               phone: Value(buddy.phone),
@@ -257,6 +259,7 @@ class BuddyRepository {
         _log.info('Found existing buddy: $trimmedName');
         final found = domain.Buddy(
           id: row.data['id'] as String,
+          linkedDiverId: row.data['linked_diver_id'] as String?,
           diverId: row.data['diver_id'] as String?,
           name: row.data['name'] as String,
           email: row.data['email'] as String?,
@@ -314,6 +317,7 @@ class BuddyRepository {
       )..where((t) => t.id.equals(buddy.id))).write(
         BuddiesCompanion(
           diverId: Value(buddy.diverId),
+          linkedDiverId: Value(buddy.linkedDiverId),
           name: Value(buddy.name),
           email: Value(buddy.email),
           phone: Value(buddy.phone),
@@ -406,6 +410,8 @@ class BuddyRepository {
     ) {
       final buddy = domain.Buddy(
         id: row.data['id'] as String,
+        diverId: row.data['diver_id'] as String?,
+        linkedDiverId: row.data['linked_diver_id'] as String?,
         name: row.data['name'] as String,
         email: row.data['email'] as String?,
         phone: row.data['phone'] as String?,
@@ -490,6 +496,7 @@ class BuddyRepository {
       final buddy = domain.Buddy(
         id: b.id,
         diverId: b.diverId,
+        linkedDiverId: b.linkedDiverId,
         name: b.name,
         email: b.email,
         phone: b.phone,
@@ -911,6 +918,7 @@ class BuddyRepository {
         final buddy = domain.Buddy(
           id: row.data['id'] as String,
           diverId: row.data['diver_id'] as String?,
+          linkedDiverId: row.data['linked_diver_id'] as String?,
           name: row.data['name'] as String,
           email: row.data['email'] as String?,
           phone: row.data['phone'] as String?,
@@ -1217,6 +1225,7 @@ class BuddyRepository {
     return domain.Buddy(
       id: row.id,
       diverId: row.diverId,
+      linkedDiverId: row.linkedDiverId,
       name: row.name,
       email: row.email,
       phone: row.phone,

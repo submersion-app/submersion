@@ -1486,6 +1486,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get buddies_field_emailHint => 'email@exemplo.com';
 
   @override
+  String get buddies_field_linkedProfile => 'Perfil vinculado';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'O perfil local que este companheiro é';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Não vinculado';
+
+  @override
   String get buddies_field_nameHint => 'Digite o nome do companheiro';
 
   @override
@@ -1699,6 +1709,39 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Usar';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Perfil';
+
+  @override
+  String get buddies_linkedProfile_link => 'Vincular';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Agora não';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Abrir companheiro';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Vincular a um perfil';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'Um companheiro não pode ser vinculado ao próprio perfil.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName já está vinculado a este perfil.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name tem um perfil aqui. Vincular este companheiro a ele?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'Estes companheiros estão vinculados a perfis diferentes. Mescle os perfis primeiro.';
 
   @override
   String get buddies_message_added => 'Companheiro adicionado com sucesso';
@@ -5813,6 +5856,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'Cilindros';
 
   @override
+  String get diveLog_edit_planned_switch => 'Mergulho planejado';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'Aguardando os dados do computador. Sem número de mergulho até ser registrado.';
+
+  @override
   String get diveLog_edit_profile_draw => 'Desenhar um perfil';
 
   @override
@@ -6714,6 +6764,13 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get diveLog_listPage_bottomSheet_logManually =>
       'Registrar mergulho manualmente';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'Planejar um mergulho';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Preencha os detalhes agora e adicione os dados do computador depois';
 
   @override
   String get diveLog_listPage_fab_addDive => 'Adicionar mergulho';
@@ -23930,6 +23987,49 @@ class AppLocalizationsPt extends AppLocalizations {
   String get universalImport_label_skip => 'Pular';
 
   @override
+  String get universalImport_label_fillPlanned =>
+      'Preencher mergulho planejado';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Anexar este download ao mergulho que você planejou';
+
+  @override
+  String get universalImport_label_filledPlanned =>
+      'Mergulhos planejados preenchidos';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Preenche o mergulho planejado: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'O perfil esboçado será substituído.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Alterar';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle =>
+      'Escolher um mergulho planejado';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'Importar como um novo mergulho em vez disso';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Desfazer preenchimentos';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'Mergulhos planejados restaurados';
+
+  @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Não foi possível restaurar todos os mergulhos planejados. Tente novamente.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Marcado como: $tag';
   }
@@ -29195,6 +29295,68 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Registrar quase acidente';
+
+  @override
+  String get diveLog_planned_chip => 'Planejado';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'Mergulho planejado';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'Aguardando os dados do computador. Marque como registrado se mergulhou sem computador.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'Marcar como registrado';
+
+  @override
+  String get diveLog_planned_markedLogged => 'Marcado como registrado';
+
+  @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Não foi possível marcar o mergulho como registrado.';
+
+  @override
+  String get diveLog_mirror_dialogTitle =>
+      'Registrar este mergulho também em outro perfil?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Estes companheiros têm perfis neste dispositivo. O mergulho é adicionado aos registros deles como mergulho planejado até que os dados do próprio computador o preencham.';
+
+  @override
+  String get diveLog_mirror_log => 'Registrar';
+
+  @override
+  String get diveLog_mirror_notNow => 'Agora não';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Registrado para $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Mergulhos espelhados removidos';
+
+  @override
+  String get diveLog_mirror_undoFailed =>
+      'Não foi possível remover os mergulhos espelhados.';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Não foi possível registrar para $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Registrar no perfil de um companheiro';
+
+  @override
+  String get diveLog_detail_loggedWith => 'Registrado com';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned =>
+      'aguardando o computador de mergulho deles';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -37476,6 +37638,11 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'Mergulho $diveNumber em $siteName';
+  }
+
+  @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'Mergulho planejado em $siteName';
   }
 
   @override
