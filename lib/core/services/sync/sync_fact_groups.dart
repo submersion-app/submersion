@@ -76,7 +76,7 @@ typedef FactResolution = ({
 });
 
 /// A side's clock for [g]: its own group clock, else its row clock (rows
-/// from an older app version, or from before the v223 rung, stamped facts
+/// from an older app version, or from before the v224 rung, stamped facts
 /// through the row clock).
 String? _effectiveClock(Map<String, dynamic>? side, SyncFactGroup g) {
   if (side == null) return null;

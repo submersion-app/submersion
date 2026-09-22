@@ -169,7 +169,7 @@ void main() {
     // the linked cylinders, so under its NO ACTION link a tombstone from
     // this build fails there and the item lingers. Holding readers below
     // 210 until they update is what makes the tombstone apply. A later
-    // rung may raise the floor further (v223 did); the newest one owns the
+    // rung may raise the floor further (v224 did); the newest one owns the
     // exact value, and this rung only needs it never to fall below 210.
     expect(
       AppDatabase.minimumCompatibleSchemaVersion,

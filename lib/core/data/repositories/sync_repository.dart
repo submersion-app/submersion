@@ -809,7 +809,7 @@ class SyncRepository {
     //
     // Only on a row-clock write, which is what that fallback is about. A
     // fact-only write must leave the other groups' null clocks alone: the
-    // v223 beforeOpen backstop adds the columns without backfilling them,
+    // v224 beforeOpen backstop adds the columns without backfilling them,
     // so on such a row an upload stamp would hand this device's untouched
     // verification facts a brand-new clock and beat a peer's newer
     // observation. Left null they keep falling back to the row clock, which

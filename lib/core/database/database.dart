@@ -1733,7 +1733,7 @@ class Media extends Table {
   /// and the compressed rendition's level and size). Every upload-fact write
   /// stamps this instead of [hlc], so a stamp never makes a stale caption win
   /// the row, and a cleared stamp still orders against a set one. Null falls
-  /// back to [hlc] (v223, media sync program spec 5.1).
+  /// back to [hlc] (v224, media sync program spec 5.1).
   TextColumn get uploadFactsHlc => text().nullable()();
 
   /// Clock of the verification facts (isOrphaned, lastVerifiedAt). Same
@@ -4362,7 +4362,7 @@ class AppDatabase extends _$AppDatabase {
   /// of the fact clocks and applies media as a blind upsert, so it would take
   /// the whole row and overwrite a caption it holds that is newer than ours.
   /// That is an old reader misapplying our payload, which is what this floor
-  /// exists to prevent. Peers below 223 are held until they update; their own
+  /// exists to prevent. Peers below 224 are held until they update; their own
   /// payloads still arrive here, and this build's merge reads a missing fact
   /// clock as the row clock, so an old peer's writes still order correctly
   /// (media sync program spec 5.1).
@@ -7859,7 +7859,7 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// v223: existing facts were last written under the row clock, so that is
+  /// v224: existing facts were last written under the row clock, so that is
   /// their clock. Rows already stamped (a re-run) are left alone. Guarded
   /// like the backstops: a partially built database (a migration fixture, or
   /// one caught mid-ladder) may lack the table or its row clock.

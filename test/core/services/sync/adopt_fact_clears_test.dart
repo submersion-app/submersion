@@ -111,7 +111,7 @@ void main() {
   });
 
   group('an adopted null fact clock', () {
-    // The v223 backstop adds the fact clock columns without backfilling, so
+    // The v224 backstop adds the fact clock columns without backfilling, so
     // a library that upgraded that way publishes rows carrying a null clock
     // beside non-null facts. A null clock means "fall back to the row
     // clock", so it has to land. The two adopt paths differ on whether it

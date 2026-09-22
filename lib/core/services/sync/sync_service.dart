@@ -4147,7 +4147,7 @@ class SyncService {
       if (id == null) continue;
       for (final g in groups) {
         // An explicitly null CLOCK counts as well as an explicitly null
-        // value. The v223 backstop adds the fact clock columns without
+        // value. The v224 backstop adds the fact clock columns without
         // backfilling them, so a row adopted from a library that upgraded
         // that way carries a null clock beside non-null facts. The upsert
         // omits nulls, so the local clock would survive and the adopted

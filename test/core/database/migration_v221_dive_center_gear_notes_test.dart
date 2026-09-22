@@ -75,7 +75,7 @@ void main() {
 
   test('v221 is at or below the current schema version and in the ladder', () {
     // Relaxed once v222 (per-site vertical exaggeration overrides) and then
-    // v223 (the media fact clocks) landed on top; the newest rung owns the
+    // v224 (the media fact clocks) landed on top; the newest rung owns the
     // exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(221));
     expect(AppDatabase.migrationVersions, contains(221));
