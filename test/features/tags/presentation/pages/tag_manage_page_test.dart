@@ -13,6 +13,7 @@ import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/pages/tag_manage_page.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
@@ -1042,8 +1043,14 @@ void main() {
 
       await tester.tap(find.byKey(const ValueKey('tag_edit_tag1')));
       await tester.pumpAndSettle();
-      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for sites'));
-      await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
+      // The colour swatches are chips rather than dots (issue #2269), so the
+      // scope editor below them can sit past the dialog's fold.
+      final sites = find.widgetWithText(CheckboxListTile, 'Use for sites');
+      final dives = find.widgetWithText(CheckboxListTile, 'Use for dives');
+      await tester.ensureVisible(sites);
+      await tester.tap(sites);
+      await tester.ensureVisible(dives);
+      await tester.tap(dives);
       await tester.pump();
       await tester.tap(find.widgetWithText(TextButton, 'Save'));
       await tester.pump();
@@ -1417,6 +1424,55 @@ void main() {
         ),
         findsOneWidget,
       );
+    });
+  });
+  group('a row shows the tag as the app shows it', () {
+    // The row's leading dot used to be a solid CircleAvatar of the stored
+    // hex, which is the exact spot issue #2254 measured as disagreeing with
+    // every chip in the app. Settings now offers the same chip the rest of
+    // the app paints, so there is nothing left claiming the raw hex is what
+    // a tag looks like (issue #2269).
+    testWidgets('renders each tag as its chip', (tester) async {
+      await tester.pumpWidget(_buildTestWidget(stats: _testStats));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(TagChip), findsNWidgets(_testStats.length));
+    });
+
+    testWidgets('keeps no solid dot of the stored colour', (tester) async {
+      await tester.pumpWidget(_buildTestWidget(stats: _testStats));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CircleAvatar), findsNothing);
+    });
+
+    testWidgets('paints the chip in the tint, not the stored hex', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_buildTestWidget(stats: _testStats));
+      await tester.pumpAndSettle();
+
+      final fill = tester
+          .widget<Material>(
+            find
+                .descendant(
+                  of: find.byType(TagChip).first,
+                  matching: find.byType(Material),
+                )
+                .first,
+          )
+          .color;
+
+      expect(fill, isNot(_testStats.first.tag.color));
+      expect(fill?.a, 1.0);
+    });
+
+    testWidgets('names the tag exactly once in the row', (tester) async {
+      // The chip carries the name, so the ListTile title must not repeat it.
+      await tester.pumpWidget(_buildTestWidget(stats: _testStats));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Night Dive'), findsOneWidget);
     });
   });
 }

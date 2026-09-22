@@ -200,6 +200,9 @@ class _TagMergeSheetState extends ConsumerState<TagMergeSheet> {
             const SizedBox(height: 8),
             TagColorPicker(
               selectedColor: _selectedColor,
+              // The merged tag's own name, so the swatches preview the tag
+              // this sheet is about to produce.
+              nameController: _nameController,
               onColorSelected: (color) {
                 setState(() {
                   _selectedColor = color;

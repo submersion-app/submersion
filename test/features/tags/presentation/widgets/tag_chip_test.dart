@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
-import 'package:submersion/features/tags/presentation/tag_color_contrast.dart';
+import 'package:submersion/features/tags/presentation/tag_chip_colors.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 
-/// TagChip paints a tag in the colour the diver chose (issue #2254).
+/// TagChip paints a tag as a pale tint of the diver's colour (issue #2269).
 ///
-/// The chips used to fill with `tag.color.withValues(alpha: 0.15)`, which is
-/// not a colour but a recipe: the result depended on the surface behind the
-/// chip, so one tag read as four different colours across the app and changed
-/// again when its row was selected. These tests pin the fill to the stored
-/// colour, opaque, whatever sits behind it.
+/// #2255 filled the chip with the stored colour at full strength to make the
+/// app agree with Settings. The agreement is wanted; the flooded chip is not.
+/// The chip is quiet again, and the tint is resolved against the theme's own
+/// surface and painted opaque, so a tag is still one colour everywhere
+/// instead of the four that the translucent fill produced.
 void main() {
   final amber = Tag(
     id: 'shore',
@@ -19,59 +19,89 @@ void main() {
     createdAt: DateTime(2026),
     updatedAt: DateTime(2026),
   );
+  const amberSeed = Color(0xFFF59E0B);
 
-  Widget harness(Widget child, {Color? surface}) => MaterialApp(
-    home: Scaffold(
-      body: Center(
-        child: ColoredBox(
-          color: surface ?? Colors.white,
-          child: Padding(padding: const EdgeInsets.all(8), child: child),
-        ),
-      ),
+  final theme = ThemeData(
+    colorScheme: const ColorScheme.light().copyWith(
+      surface: Colors.white,
+      onSurface: const Color(0xFF1C1B1F),
     ),
   );
 
-  /// The colour [TagChip] fills itself with.
-  Color fillOf(WidgetTester tester) {
-    final material = tester.widget<Material>(
-      find
-          .descendant(of: find.byType(TagChip), matching: find.byType(Material))
-          .first,
-    );
-    return material.color!;
-  }
+  Widget harness(Widget child, {Color? surface, ThemeData? withTheme}) =>
+      MaterialApp(
+        theme: withTheme ?? theme,
+        home: Scaffold(
+          body: Center(
+            child: ColoredBox(
+              color: surface ?? Colors.white,
+              child: Padding(padding: const EdgeInsets.all(8), child: child),
+            ),
+          ),
+        ),
+      );
 
-  testWidgets('fills with the exact stored colour, fully opaque', (
-    tester,
-  ) async {
+  Material materialOf(WidgetTester tester) => tester.widget<Material>(
+    find
+        .descendant(of: find.byType(TagChip), matching: find.byType(Material))
+        .first,
+  );
+
+  Color fillOf(WidgetTester tester) => materialOf(tester).color!;
+
+  BorderSide borderOf(WidgetTester tester) =>
+      (materialOf(tester).shape! as RoundedRectangleBorder).side;
+
+  testWidgets('fills with a pale tint, not the stored colour', (tester) async {
     await tester.pumpWidget(harness(TagChip(tag: amber)));
 
-    expect(fillOf(tester), const Color(0xFFF59E0B));
+    final expected = tagChipColorsFor(seed: amberSeed, surface: Colors.white);
+
+    expect(fillOf(tester), expected.fill);
+    expect(fillOf(tester), isNot(amberSeed));
+  });
+
+  testWidgets('fills opaquely', (tester) async {
+    await tester.pumpWidget(harness(TagChip(tag: amber)));
+
     expect(fillOf(tester).a, 1.0);
   });
 
   testWidgets('shows the same colour whatever surface is behind it', (
     tester,
   ) async {
-    // The second is the blue-grey of a selected dive row. Composited under
-    // the old 15% tint the chip came out F2E8D7 on one and C4C2B7 on the
-    // other, so one tag read as two colours.
+    // The second is the blue-grey of a selected dive row. Under the old
+    // translucent tint the chip came out F2E8D7 on one and C4C2B7 on the
+    // other, so one tag read as two colours. The tint is resolved from the
+    // theme now, so what sits behind the chip cannot reach it.
+    final fills = <Color>[];
     for (final surface in [Colors.white, const Color(0xFFBBC8D6)]) {
       await tester.pumpWidget(harness(TagChip(tag: amber), surface: surface));
-
-      expect(
-        Color.alphaBlend(fillOf(tester), surface),
-        const Color(0xFFF59E0B),
-        reason: 'on $surface',
-      );
+      fills.add(fillOf(tester));
     }
+
+    expect(fills.first, fills.last);
   });
 
-  testWidgets('labels the chip with the contrasting colour', (tester) async {
+  testWidgets('outlines the chip in the stored colour at full strength', (
+    tester,
+  ) async {
+    await tester.pumpWidget(harness(TagChip(tag: amber)));
+
+    expect(borderOf(tester).color, amberSeed);
+  });
+
+  testWidgets('labels the chip in the tag hue, darkened to stay readable', (
+    tester,
+  ) async {
     await tester.pumpWidget(harness(TagChip(tag: amber)));
 
     final label = tester.widget<Text>(find.text('Shore'));
-    expect(label.style?.color, tagForegroundColor(amber.color));
+    final expected = tagChipColorsFor(seed: amberSeed, surface: Colors.white);
+
+    expect(label.style?.color, expected.label);
+    expect(label.style?.color, isNot(Colors.black));
+    expect(label.style?.color, isNot(Colors.white));
   });
 
   testWidgets('a colourless tag still fills opaquely', (tester) async {
@@ -79,8 +109,8 @@ void main() {
 
     await tester.pumpWidget(harness(TagChip(tag: plain)));
 
-    expect(fillOf(tester), plain.color);
     expect(fillOf(tester).a, 1.0);
+    expect(borderOf(tester).color, plain.color);
   });
 
   testWidgets('reports a tap', (tester) async {
@@ -109,6 +139,8 @@ void main() {
     // A 16px icon with only a splash radius left a 16x16 target, well under
     // either platform's floor. Measured per platform, because a chip is not
     // allowed to shrink the target the way VisualDensity.compact once did.
+    // The colour of the chip has nothing to do with this floor, so the fix
+    // that introduced it outlives the fill that came with it.
     for (final (platform, floor) in [
       (TargetPlatform.android, 48.0),
       (TargetPlatform.iOS, 48.0),
@@ -118,13 +150,9 @@ void main() {
     ]) {
       testWidgets('$platform reaches $floor', (tester) async {
         await tester.pumpWidget(
-          MaterialApp(
-            theme: ThemeData(platform: platform),
-            home: Scaffold(
-              body: Center(
-                child: TagChip(tag: amber, onDeleted: () {}),
-              ),
-            ),
+          harness(
+            TagChip(tag: amber, onDeleted: () {}),
+            withTheme: theme.copyWith(platform: platform),
           ),
         );
 
@@ -144,13 +172,9 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(platform: TargetPlatform.macOS),
-          home: Scaffold(
-            body: Center(
-              child: TagChip(tag: amber, onDeleted: () {}),
-            ),
-          ),
+        harness(
+          TagChip(tag: amber, onDeleted: () {}),
+          withTheme: theme.copyWith(platform: TargetPlatform.macOS),
         ),
       );
 
@@ -158,9 +182,18 @@ void main() {
     });
   });
 
-  testWidgets('the dense variant keeps the same fill', (tester) async {
+  testWidgets('the dense variant keeps the same fill and border', (
+    tester,
+  ) async {
+    // One tint across the app, not the 0.15 of a list row and the 0.2 of a
+    // card: two tints would give a tag two display colours again, and the
+    // Settings swatch could only tell the truth about one of them.
+    await tester.pumpWidget(harness(TagChip(tag: amber)));
+    final normalFill = fillOf(tester);
+
     await tester.pumpWidget(harness(TagChip(tag: amber, dense: true)));
 
-    expect(fillOf(tester), const Color(0xFFF59E0B));
+    expect(fillOf(tester), normalFill);
+    expect(borderOf(tester).color, amberSeed);
   });
 }

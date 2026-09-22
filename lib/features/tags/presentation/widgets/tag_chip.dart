@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/features/tags/domain/entities/tag.dart';
-import 'package:submersion/features/tags/presentation/tag_color_contrast.dart';
+import 'package:submersion/features/tags/presentation/tag_chip_colors.dart';
 
-/// A tag shown in the colour the diver gave it (issue #2254).
+/// A tag shown in the colour the diver gave it (issues #2254, #2269).
 ///
 /// Every tag chip in the app renders through this widget, so a tag looks the
 /// same in a dive list row, on a detail card, beside a site and beside a
-/// piece of equipment. The fill is [Tag.color] at full opacity, never a
-/// translucent tint: a tint is not a colour but a recipe, and the chips that
-/// used one resolved to a different colour on every surface, turning an amber
-/// tag grey-olive on a selected row. The label takes the colour that
-/// contrasts with the fill, since the palette spans a pale yellow and a
-/// near-black slate.
+/// piece of equipment. The chip is a quiet tint of [Tag.color] outlined in
+/// that colour, which is how a tag looked before #2255 flooded the chip with
+/// the colour outright.
+///
+/// The tint is a value, not a translucent overlay: [tagChipColors] resolves
+/// it against the theme surface and hands back an opaque fill. A translucent
+/// fill is a recipe rather than a colour, and the chips that used one came
+/// out differently on every surface, turning an amber tag grey-olive on a
+/// selected row.
 class TagChip extends StatelessWidget {
   TagChip({
     super.key,
@@ -40,7 +43,8 @@ class TagChip extends StatelessWidget {
 
   final String name;
 
-  /// The fill, painted opaque. [Tag.color] for a stored tag.
+  /// The tag's own colour, which the outline shows at full strength and the
+  /// fill shows as a tint. [Tag.color] for a stored tag.
   final Color color;
 
   /// Tapping the chip, usually to open what carries the tag.
@@ -58,16 +62,21 @@ class TagChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final foreground = tagForegroundColor(color);
+    final colors = tagChipColors(context, color);
     final borderRadius = BorderRadius.circular(dense ? 4 : 8);
     final textStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
-      color: foreground,
+      color: colors.label,
       fontSize: dense ? 11 : null,
     );
 
     Widget chip = Material(
-      color: color,
-      borderRadius: borderRadius,
+      color: colors.fill,
+      // The outline is the one place the tag's colour is shown at full
+      // strength, which is what keeps a pale tint identifiable.
+      shape: RoundedRectangleBorder(
+        borderRadius: borderRadius,
+        side: BorderSide(color: colors.border),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: borderRadius,
@@ -98,7 +107,7 @@ class TagChip extends StatelessWidget {
               if (onDeleted != null) ...[
                 const SizedBox(width: 4),
                 _DeleteButton(
-                  color: foreground,
+                  color: colors.label,
                   // Material's own chips label their delete button from the
                   // same string, so a caller that has nothing better to say
                   // keeps the wording screen readers already know.
