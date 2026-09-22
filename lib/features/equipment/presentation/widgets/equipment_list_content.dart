@@ -364,12 +364,22 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           valueListenable: _selection,
           builder: (context, selection, _) => Column(
             children: [
-              selection.isActive
-                  ? _buildSelectionBar(sortedVisible, SelectionBarShell.pane)
-                  : EquipmentHeaderBar(
-                      toggleBuilder: widget.toggleBuilder,
-                      actionsBuilder: _buildHeaderActions,
-                    ),
+              // The toggle outlives the actions it scopes. The master pane
+              // has no app bar above it, so letting the header go away with
+              // the action row would strand the diver in Equipment until they
+              // left selection mode.
+              if (selection.isActive) ...[
+                if (widget.toggleBuilder != null)
+                  EquipmentHeaderBar(
+                    toggleBuilder: widget.toggleBuilder,
+                    actionsBuilder: _noActions,
+                  ),
+                _buildSelectionBar(sortedVisible, SelectionBarShell.pane),
+              ] else
+                EquipmentHeaderBar(
+                  toggleBuilder: widget.toggleBuilder,
+                  actionsBuilder: _buildHeaderActions,
+                ),
               if (filter.hasActiveFilters)
                 _buildActiveFiltersBar(context, filter),
               Expanded(child: buildContent()),
@@ -644,8 +654,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
             if (widget.toggleBuilder != null)
               EquipmentHeaderBar(
                 toggleBuilder: widget.toggleBuilder,
-                actionsBuilder: (context, {required bool dense}) =>
-                    const <Widget>[],
+                actionsBuilder: _noActions,
               ),
             // Table mode has no app bar of its own, so both bars live here:
             // the contextual one while selecting, and the Select affordance
@@ -743,6 +752,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       },
     );
   }
+
+  /// A header carrying the toggle alone: table mode keeps its actions in the
+  /// surrounding scaffold, and selection mode replaces them with its own bar.
+  static List<Widget> _noActions(BuildContext context, {required bool dense}) =>
+      const <Widget>[];
 
   /// The list's own actions, for [EquipmentHeaderBar].
   ///

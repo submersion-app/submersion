@@ -90,6 +90,9 @@ Widget _app(List<Override> overrides) {
     overrides: overrides,
     child: MaterialApp.router(
       routerConfig: router,
+      // Pinned: the assertions compare against strings loaded for en, and an
+      // unpinned app resolves against the host's locale instead.
+      locale: const Locale('en'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
     ),
@@ -173,6 +176,25 @@ void main() {
     ) async {
       await _pump(tester, window: const Size(1400, 900), paneWidth: 440);
       expect(find.byIcon(Icons.checklist), findsOneWidget);
+    });
+
+    testWidgets('the wide pane keeps the toggle while selecting', (
+      tester,
+    ) async {
+      await _pump(tester, window: const Size(1400, 900), paneWidth: 440);
+      expect(find.byType(SegmentedButton<int>), findsOneWidget);
+
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+
+      // The master pane has no app bar above it, so if the header goes away
+      // with the actions there is no way back to Sets without leaving
+      // selection mode first.
+      expect(
+        find.byType(SegmentedButton<int>),
+        findsOneWidget,
+        reason: 'the section toggle must outlive the action bar it scopes',
+      );
     });
 
     testWidgets('the phone list body carries no heading of its own', (
