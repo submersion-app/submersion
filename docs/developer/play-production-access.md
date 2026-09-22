@@ -985,12 +985,10 @@ is the only lever; the environment variable still overrides it for a one-off
 run. The helper accepts only `alpha` or `beta`, so a typo fails loudly rather
 than uploading to the wrong track.
 
-Verify the first promotion with a staged rollout. Both
-`promote_to_production` and the `play-rollout` input on `promote.yml` default
-to `1.0`, which is every user at once. Pass a smaller fraction explicitly on
-the first production release and raise it once Play Console shows a sane
-crash rate. The lane is re-entrant, so it can be dispatched again at a higher
-fraction.
+Both `promote_to_production` and the `play-rollout` input on `promote.yml`
+default to `1.0`, every user at once, which is the intended behaviour. See
+the rollout note in `docs/developer/release-process.md` for why, and for how
+to stage one if a release ever warrants it.
 
 ---
 

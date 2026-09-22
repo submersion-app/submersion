@@ -161,11 +161,14 @@ The track remains a single switch: `PLAY_BETA_TRACK` (default `beta` in
 `android/fastlane/Fastfile`), so a one-off run can still target `alpha`
 without a code change.
 
-**First production promotion:** `play-rollout` on `promote.yml` defaults to
-`1.0`, which is every user at once. Pass a smaller fraction on the first
-promotion and raise it once the crash rate in Play Console looks sane.
-`promote_to_production` is re-entrant, so a staged rollout can be dispatched
-again at a higher fraction.
+**Rollout fraction:** `play-rollout` on `promote.yml` defaults to `1.0`,
+every user at once, and that is deliberate. A staged rollout needs enough
+installs for the crash rate to mean anything, and at this install base a
+fraction would delay releases while telling you very little.
+
+The lever is there if a release ever warrants it: dispatch with a smaller
+fraction, then dispatch again at a higher one. `promote_to_production` is
+re-entrant.
 
 ## Hotfix escape hatch
 
