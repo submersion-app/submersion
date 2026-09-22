@@ -113,3 +113,14 @@ double? parseDivingLogCoordinate(String? raw) {
 /// [parseDivingLogCoordinate] applied to a column.
 double? rowCoordinate(Row row, String column) =>
     parseDivingLogCoordinate(rowString(row, column));
+
+/// [value] when it is a real measurement, or null when it is absent or the
+/// zero this format uses to mean "not recorded".
+///
+/// Diving Log writes 0 into optional numeric columns it never filled in, so
+/// passing one through states something false: a cylinder that weighs
+/// nothing, a site whose maximum depth is the surface. The packed profile
+/// columns needed the same rule, where reading their zeros as measurements
+/// gave 402 open-circuit dives an oxygen sensor.
+double? positiveOrNull(double? value) =>
+    value == null || value <= 0 ? null : value;

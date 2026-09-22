@@ -1,5 +1,6 @@
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
+import 'package:submersion/features/universal_import/data/services/divinglog_row_values.dart';
 
 /// Builds the payload entities that come from Diving Log's reference
 /// tables, each keyed by the `uddfId` the dive maps reference.
@@ -76,9 +77,8 @@ class DivingLogReferenceMapper {
       if (city != null) map['region'] = city;
       if (place?.latitude != null) map['latitude'] = place!.latitude;
       if (place?.longitude != null) map['longitude'] = place!.longitude;
-      if (place?.maxDepthMeters != null) {
-        map['maxDepth'] = place!.maxDepthMeters;
-      }
+      final maxDepth = positiveOrNull(place?.maxDepthMeters);
+      if (maxDepth != null) map['maxDepth'] = maxDepth;
       final notes = [
         if (place?.waterName != null) 'Water: ${place!.waterName}',
         if (place?.difficulty != null) 'Difficulty: ${place!.difficulty}',

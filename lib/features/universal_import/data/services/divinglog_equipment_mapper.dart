@@ -2,6 +2,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_type_from_name.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
+import 'package:submersion/features/universal_import/data/services/divinglog_row_values.dart';
 
 /// Maps Diving Log's `Equipment` table.
 ///
@@ -33,9 +34,12 @@ class DivingLogEquipmentMapper {
       // EquipmentItem has no weight field. The importer builds it from the
       // direct keys plus `attributes`, so a top-level `weight` would be
       // read by nobody and the value would be lost on the way in.
-      if (item.weightKg != null) {
+      // A zero here is the format's "not recorded", and a dry weight of
+      // zero is not harmless: it feeds the buoyancy maths as a real value.
+      final weight = positiveOrNull(item.weightKg);
+      if (weight != null) {
         map['attributes'] = <Map<String, dynamic>>[
-          {'key': EquipmentAttrKeys.dryWeightKg, 'valueNum': item.weightKg},
+          {'key': EquipmentAttrKeys.dryWeightKg, 'valueNum': weight},
         ];
       }
       // The importer reads `purchasePrice`; `price` is silently dropped.

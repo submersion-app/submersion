@@ -79,6 +79,20 @@ void main() {
       expect((weight as Map)['valueNum'], closeTo(3.6287, 1e-9));
     });
 
+    test(
+      'omits a zero weight rather than claiming the item weighs nothing',
+      () {
+        // 6 of the 31 items in the reference logbook carry Weight 0, which
+        // means not recorded. Emitting it would feed a real zero to the
+        // buoyancy maths.
+        final book = logbook({
+          1: const DivingLogRawEquipment(id: 1, object: 'Teric', weightKg: 0),
+        });
+        final item = DivingLogEquipmentMapper.entities(book).values.single;
+        expect(item.containsKey('attributes'), isFalse);
+      },
+    );
+
     test('marks an inactive item retired the way the importer reads it', () {
       // The importer reads `status` and `isActive`; `isRetired` reaches
       // nothing, so an inactive item would import as active.

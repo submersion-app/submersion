@@ -124,6 +124,23 @@ void main() {
     });
   });
 
+  group('zero sentinels', () {
+    test('omits a zero max depth rather than storing it as a depth', () {
+      final book = logbook(
+        places: {
+          10: const DivingLogRawPlace(
+            id: 10,
+            place: 'Salt Pier',
+            maxDepthMeters: 0,
+          ),
+        },
+        dives: [const DivingLogRawDive(id: 1, placeId: 10)],
+      );
+      final site = DivingLogReferenceMapper.sites(book).values.single;
+      expect(site.containsKey('maxDepth'), isFalse);
+    });
+  });
+
   group('buddies', () {
     test('joins the name parts and keeps contact details', () {
       final book = logbook(
