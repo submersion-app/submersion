@@ -12137,11 +12137,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String equipment_list_worstClock(String kind) {
-    return '$kind באיחור';
-  }
-
-  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -12202,11 +12197,6 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String equipment_service_shortCycles(String count) {
     return 'בעוד $count מחזורי סוללה';
-  }
-
-  @override
-  String trips_serviceAlert_overdue(String kind) {
-    return '$kind באיחור';
   }
 
   @override

@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/children_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -142,7 +143,20 @@ Widget host({
       childEquipmentProvider(
         equipment.id,
       ).overrideWith((ref) => load?.call() ?? Future.value(children)),
-      equipmentWorstClockProvider.overrideWith((ref) async => worst),
+      // These cards read the rollup now, so a part whose own sub-part is
+      // overdue lights up here exactly as it does in the equipment list
+      // (#2260). The fixtures still describe DueClocks; convert at the
+      // boundary rather than restating every case.
+      equipmentRollupClockProvider.overrideWith(
+        (ref) async => {
+          for (final e in worst.entries)
+            e.key: (
+              ownerId: e.value.item.id,
+              ownerName: e.value.item.name,
+              status: e.value.status,
+            ),
+        },
+      ),
       if (repo != null) equipmentRepositoryProvider.overrideWithValue(repo),
     ],
     child: MaterialApp.router(

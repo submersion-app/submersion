@@ -7220,14 +7220,6 @@
       }
     }
   },
-  "equipment_list_worstClock": "{kind} overdue",
-  "@equipment_list_worstClock": {
-    "placeholders": {
-      "kind": {
-        "type": "String"
-      }
-    }
-  },
   "trips_serviceAlert_count": "{count, plural, =1{1 item needs service before this trip} other{{count} items need service before this trip}}",
   "@trips_serviceAlert_count": {
     "placeholders": {
@@ -7327,14 +7319,6 @@
     "description": "Short form of a service clock measured in battery cycles, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.",
     "placeholders": {
       "count": {
-        "type": "String"
-      }
-    }
-  },
-  "trips_serviceAlert_overdue": "{kind} overdue",
-  "@trips_serviceAlert_overdue": {
-    "placeholders": {
-      "kind": {
         "type": "String"
       }
     }

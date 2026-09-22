@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
@@ -274,6 +275,37 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.text('Cold water reg'), findsOneWidget);
+  });
+
+  testWidgets('a color override wins, for a status-filled surface', (
+    tester,
+  ) async {
+    // The summary card fills itself with the status container colour, where
+    // the accent would not read. Such a surface supplies the foreground its
+    // own fill guarantees instead.
+    await tester.pumpWidget(
+      wrap(
+        ServiceStatusIndicator(
+          clock: clock(),
+          subjectId: 'reg',
+          color: const Color(0xFF00FF00),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final label = tester.widget<Text>(find.text('General service overdue'));
+    expect(label.style?.color, const Color(0xFF00FF00));
+  });
+
+  testWidgets('without an override the severity accent is used', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(ServiceStatusIndicator(clock: clock(), subjectId: 'reg')),
+    );
+    await tester.pumpAndSettle();
+    final label = tester.widget<Text>(find.text('General service overdue'));
+    expect(label.style?.color, StatusColors.light.alert.accent);
   });
 
   testWidgets('ServiceStatusIndicatorFor renders nothing when disabled', (

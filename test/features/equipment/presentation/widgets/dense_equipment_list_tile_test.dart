@@ -81,7 +81,12 @@ void main() {
         );
         await tester.pumpAndSettle();
 
-        final label = tester.widget<Text>(find.text('Annual service'));
+        // The label now carries its severity wording too ("Annual service
+        // overdue"), so match on the kind rather than the whole string; this
+        // test is about the colour, which the wording tests do not cover.
+        final label = tester.widget<Text>(
+          find.textContaining('Annual service'),
+        );
         expect(label.style?.color, expected);
       });
     }

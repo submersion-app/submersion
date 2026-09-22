@@ -35,6 +35,7 @@ class ServiceStatusIndicator extends ConsumerWidget {
     required this.clock,
     required this.subjectId,
     this.density = ServiceIndicatorDensity.compact,
+    this.color,
   });
 
   final RollupClock? clock;
@@ -44,6 +45,12 @@ class ServiceStatusIndicator extends ConsumerWidget {
   final String subjectId;
 
   final ServiceIndicatorDensity density;
+
+  /// Foreground for a surface that has already filled itself with a status
+  /// colour, where [StatusColors]'s accent would not read against its own
+  /// container. Such a caller passes the `onContainer` its fill guarantees.
+  /// Everything else leaves this null and takes the severity accent.
+  final Color? color;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -80,7 +87,7 @@ class ServiceStatusIndicator extends ConsumerWidget {
           );
 
     final labelStyle = theme.textTheme.labelSmall?.copyWith(
-      color: swatch?.accent,
+      color: color ?? swatch?.accent,
       fontWeight: FontWeight.w600,
     );
 
@@ -125,7 +132,9 @@ class ServiceStatusIndicator extends ConsumerWidget {
               height: 8,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: serviceSeverityDotColor(context, c.status.severity),
+                color:
+                    color ??
+                    serviceSeverityDotColor(context, c.status.severity),
               ),
             ),
           ),

@@ -20558,12 +20558,6 @@ abstract class AppLocalizations {
   /// **'{name}: {kind} overdue'**
   String dashboard_alerts_clockOverdue(String name, String kind);
 
-  /// No description provided for @equipment_list_worstClock.
-  ///
-  /// In en, this message translates to:
-  /// **'{kind} overdue'**
-  String equipment_list_worstClock(String kind);
-
   /// No description provided for @trips_serviceAlert_count.
   ///
   /// In en, this message translates to:
@@ -20629,12 +20623,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'in {count} battery cycles'**
   String equipment_service_shortCycles(String count);
-
-  /// No description provided for @trips_serviceAlert_overdue.
-  ///
-  /// In en, this message translates to:
-  /// **'{kind} overdue'**
-  String trips_serviceAlert_overdue(String kind);
 
   /// No description provided for @settings_notifications_tripLeadTitle.
   ///

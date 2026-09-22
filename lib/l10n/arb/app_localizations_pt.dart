@@ -12409,11 +12409,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String equipment_list_worstClock(String kind) {
-    return '$kind em atraso';
-  }
-
-  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -12472,11 +12467,6 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String equipment_service_shortCycles(String count) {
     return 'em $count ciclos de bateria';
-  }
-
-  @override
-  String trips_serviceAlert_overdue(String kind) {
-    return '$kind em atraso';
   }
 
   @override
