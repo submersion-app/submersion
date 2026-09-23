@@ -78,6 +78,23 @@ void main() {
     expect(e.toString(), contains('CERTIFICATE_VERIFY_FAILED'));
   });
 
+  test('a cause whose toString throws cannot make toString throw', () {
+    // The upload pipeline calls toString inside its catch to hand the text
+    // to markFailed. If that call threw, the row would stay 'transferring',
+    // which the drainer never selects, and wedge the queue head (#1270).
+    // cause is an arbitrary Object?, so its toString is allowed to throw.
+    final e = MediaStoreException(
+      'put k failed',
+      kind: MediaStoreErrorKind.fatal,
+      cause: _ThrowingToString(),
+    );
+
+    late final String rendered;
+    expect(() => rendered = e.toString(), returnsNormally);
+    expect(rendered, contains('put k failed'));
+    expect(rendered, contains('_ThrowingToString'));
+  });
+
   test('a cause that adds nothing is not repeated', () {
     // A wrapped exception whose own toString is already inside the message
     // would otherwise print twice.
@@ -89,4 +106,9 @@ void main() {
 
     expect('Access denied.'.allMatches(e.toString()).length, 1);
   });
+}
+
+class _ThrowingToString {
+  @override
+  String toString() => throw StateError('toString is broken');
 }

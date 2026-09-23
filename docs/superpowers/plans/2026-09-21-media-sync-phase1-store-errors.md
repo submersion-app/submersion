@@ -451,3 +451,14 @@ upload failed at all, then threw it away. That is the slice's own gap, one
 status class over. It now passes the same bounded detail as its cause, and
 `_throwFor` and it share one `_bodyDetail` helper so a third site cannot
 compose the rule differently.
+
+Rendering the cause made `MediaStoreException.toString()` able to throw for
+the first time, because `cause` is an arbitrary `Object?` whose own
+`toString` may throw. That matters more than it looks: the upload pipeline
+calls `toString` inside its catch to hand `markFailed` its text, and anything
+that escapes that catch leaves the row `transferring`, which the drainer
+never selects (#1270). The cause is now rendered through a guard that falls
+back to `Error.safeToString`, the same fallback `CloudStorageException` uses
+for its own cause. A pipeline test drives a store failure with an
+unrenderable cause and asserts the row returns to `pending`; it goes red
+with the guard removed.
