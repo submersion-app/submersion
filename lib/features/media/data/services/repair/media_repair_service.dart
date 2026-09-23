@@ -34,9 +34,10 @@ class RepairWrite {
   /// [newPlatformAssetId].
   final MediaSourceType newSourceType;
 
-  /// The new gallery asset's iCloud identifier, or '' when it has none or
-  /// the lookup failed: the old one named the old asset, and an empty
-  /// string (unlike null) reaches every peer. Unused for other sources.
+  /// The new gallery asset's iCloud identifier, or null when it has none or
+  /// the lookup failed. The repository writes null as '': the old id named
+  /// the old asset, and an empty string (unlike null) reaches every peer.
+  /// Unused for other sources.
   final String? newCloudAssetId;
 }
 
@@ -96,7 +97,7 @@ class MediaRepairService {
 
   /// [writes] with each gallery relink's new iCloud identifier, looked up
   /// in one batch (spec 6.2). A relink whose asset has none, or whose
-  /// lookup failed, gets '' so the old asset's id does not linger.
+  /// lookup failed, keeps null, which the repository writes as ''.
   Future<List<RepairWrite>> _withCloudIds(List<RepairWrite> writes) async {
     final galleryIds = [
       for (final w in writes)
@@ -123,7 +124,7 @@ class MediaRepairService {
                 newBookmarkRef: w.newBookmarkRef,
                 newPlatformAssetId: w.newPlatformAssetId,
                 newSourceType: w.newSourceType,
-                newCloudAssetId: cloudIds[w.newPlatformAssetId] ?? '',
+                newCloudAssetId: cloudIds[w.newPlatformAssetId],
               )
             : w,
     ];
