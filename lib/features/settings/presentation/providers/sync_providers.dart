@@ -50,6 +50,7 @@ import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
+import 'package:submersion/features/media/presentation/providers/gallery_origin_backfill_provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
@@ -1394,6 +1395,12 @@ class SyncNotifier extends StateNotifier<SyncState> {
               stackTrace: stackTrace,
             );
           }
+          // Gallery rows linked before links recorded an origin learn it
+          // here (media sync program spec 6.1). After a sync, never at
+          // launch: a stamp bumps the row clock, so this device's copies
+          // should be as fresh as a pull makes them. Once per device, off
+          // the sync path, and it contains its own failures.
+          unawaited(_ref.read(galleryOriginBackfillProvider)());
         } else {
           state = state.copyWith(
             status: SyncStatus.error,
