@@ -1257,6 +1257,12 @@ Where the code that shipped differs from the tasks above:
   catches a reconnect to the same store. `defer` writes only while the row
   is pending or transferring, and the offline line shows for any
   outstanding work.
+- **Drain lifecycle (PR review).** A drain stays running while it schedules
+  its wakeup; a transfer that settles in that window asks for a follow-up
+  drain instead of starting a second one beside it. A gate that throws is
+  held like a failed admission (quietly offline, else with its error) and
+  arms the retry window, instead of ending the drain silently. The budget
+  deferral is a compare-and-set on the attempt count the claim read.
 - **Mutation checks**, each compiling and red on its named test: dropping
   the lease or the drain's reclaim (Task 1); dropping the hold from the
   waiting reason or from the re-emit (Task 3); the offline branch, the

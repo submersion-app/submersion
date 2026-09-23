@@ -39,10 +39,16 @@ class MediaStoreWorker {
     // A claim released while this worker is idle is a transfer that
     // settled outside any drain of its own: late, past its budget, or after
     // the worker that started it was replaced. A backoff it left behind has
-    // no wakeup, so drain, which arms one. While draining, the release is
-    // this drain's own and the loop carries on.
+    // no wakeup, so drain, which arms one. While the drain loop runs, the
+    // release is the loop's to see; while it schedules its wakeup, the
+    // drain runs once more after, rather than a second one beside it.
     _releaseSub = queue.claimReleases.listen((_) {
-      if (!_disposed && !_running) unawaited(drain());
+      if (_disposed) return;
+      if (!_running) {
+        unawaited(drain());
+      } else if (_scheduling) {
+        _drainAgain = true;
+      }
     });
   }
 
@@ -111,6 +117,13 @@ class MediaStoreWorker {
     category: LogCategory.media,
   );
   bool _running = false;
+
+  /// Whether a finished drain is scheduling its wakeup (still [_running]).
+  bool _scheduling = false;
+
+  /// Set when a transfer settled while the drain was scheduling: the drain
+  /// runs once more when it is done, since its wakeup may predate the row.
+  bool _drainAgain = false;
   bool _disposed = false;
   bool _suspended = false;
   final _suspensionChanges = StreamController<bool>.broadcast();
@@ -199,7 +212,18 @@ class MediaStoreWorker {
         var handedOff = false;
         try {
           if (_gate != null) {
-            final decision = await _gate(entry);
+            final WorkerGate decision;
+            try {
+              decision = await _gate(entry);
+            } on Object catch (e, stackTrace) {
+              // The gate reads connectivity and policies, and any of them
+              // can throw. Treated as a failed admission: the stop is held
+              // with its reason and the retry window armed, never a silent
+              // exit (or an uncaught error from an unawaited drain).
+              await _gateFailed(e, stackTrace);
+              preflightBlocked = true;
+              break;
+            }
             if (decision == WorkerGate.stopDraining) {
               _log.info('Drain stopped by gate (offline or suspended)');
               _hold(_offlineHold);
@@ -236,11 +260,24 @@ class MediaStoreWorker {
         }
       }
     } finally {
-      _running = false;
-      await _armWakeup(
-        drainedToEmpty: drainedToEmpty,
-        preflightBlocked: preflightBlocked,
-      );
+      // Still running while the wakeup is scheduled: a second drain started
+      // in this window would cancel or overwrite this one's timer and hold.
+      // A transfer that settles meanwhile is not lost, though: it asks for
+      // a follow-up drain, run once scheduling is done.
+      _scheduling = true;
+      try {
+        await _armWakeup(
+          drainedToEmpty: drainedToEmpty,
+          preflightBlocked: preflightBlocked,
+        );
+      } finally {
+        _scheduling = false;
+        _running = false;
+      }
+      if (_drainAgain && !_disposed) {
+        _drainAgain = false;
+        unawaited(drain());
+      }
     }
   }
 
@@ -386,6 +423,27 @@ class MediaStoreWorker {
       }
     }
     return false;
+  }
+
+  /// Holds the drain for a gate that threw, as a preflight throw is held:
+  /// quietly while offline, otherwise with the error as its reason.
+  Future<void> _gateFailed(Object e, StackTrace stackTrace) async {
+    if (await _offline()) {
+      _log.info('Transfer gate could not run while offline');
+      _hold(_offlineHold);
+      return;
+    }
+    _log.warning(
+      'Transfer gate could not run; drain held',
+      error: e,
+      stackTrace: stackTrace,
+    );
+    _hold(
+      MediaTransferHold(
+        MediaTransferHoldKind.storeUnreachable,
+        'Could not check transfer conditions: $e',
+      ),
+    );
   }
 
   static const _offlineHold = MediaTransferHold(

@@ -373,6 +373,48 @@ void main() {
     expect(queue.currentHold?.kind, MediaTransferHoldKind.offline);
   });
 
+  // The production gate reads connectivity and policies, and any of them can
+  // throw. The drain must not end silently with a due row and no retry: it
+  // holds, says why, and arms the retry window like any failed admission.
+  test('a gate that throws holds and arms a retry', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      gate: (_) async => throw StateError('policy read failed'),
+      isOffline: () async => false,
+      preflightRetryWindow: const Duration(minutes: 7),
+    );
+    addTearDown(worker.dispose);
+
+    await expectLater(worker.drain(), completes);
+
+    expect(pipeline.processed, isEmpty);
+    expect(worker.wakeupDelayForTesting, const Duration(minutes: 7));
+    expect(queue.currentHold?.message, contains('policy read failed'));
+    expect(
+      await queue.nextPending(DateTime.now()),
+      isNotNull,
+      reason: 'the claim went back, so the retry can take the row',
+    );
+  });
+
+  test('a gate that throws while offline holds quietly', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      gate: (_) async => throw StateError('no connectivity plugin'),
+      isOffline: () async => true,
+    );
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+
+    expect(worker.isSuspended, isFalse);
+    expect(queue.currentHold?.kind, MediaTransferHoldKind.offline);
+  });
+
   // The drain claims a row before the gate sees it. A claim the gate turns
   // away must go back, or no later drain could select the row.
   test('a row the gate stops for is taken by a later drain', () async {

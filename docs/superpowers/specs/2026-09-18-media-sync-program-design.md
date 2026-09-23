@@ -475,9 +475,14 @@ a burst pair, before asking the reporter to confirm.
 - The resume gate builds the runtime for any outstanding row: due,
   deferred, or stranded in `transferring`.
 - A marker mismatch (another store's marker, or none) is remembered on the
-  attach state and raises a pending-setup card with a one-tap route to
-  reconnect, and the queue's suspended notice names it. (The earlier "epoch
-  failure" wording is dropped: the media store has no epoch.)
+  attach state and raises a pending-setup card that opens Media Storage,
+  where disconnecting and connecting again adopts the store the cloud now
+  holds; the queue's suspended notice names it. A one-tap reconnect is the
+  guided adopt / rebuild / detach choice of design spec section 13, not
+  this slice: `media` rows carry no store id, so adopting silently would
+  leave upload stamps pointing at objects the new store never held. (The
+  earlier "epoch failure" wording is dropped: the media store has no
+  epoch.)
 
 ### 7.2 Store gate probe
 

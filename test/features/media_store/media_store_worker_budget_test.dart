@@ -486,6 +486,37 @@ void main() {
     );
   });
 
+  // A drain is single-flight through the scheduling of its wakeup, not only
+  // its loop: a transfer that settles while it is scheduling must not start
+  // a second drain beside it (the two would overwrite each other's timer
+  // and hold). The settlement is not lost either: a follow-up drain runs
+  // once scheduling is done.
+  test('a release while the wakeup is being scheduled waits for it', () async {
+    final scheduling = _BlocksFirstWakeupQuery(cacheDb);
+    final pipeline = buildPipeline(hangOn: const {});
+    final worker = MediaStoreWorker(queue: scheduling, pipeline: pipeline);
+    addTearDown(worker.dispose);
+
+    final first = worker.drain();
+    await scheduling.blocked.future;
+
+    // Another worker's transfer settles meanwhile.
+    final other = MediaTransferQueueRepository(database: cacheDb);
+    await other.enqueueUpload(mediaId: 'm1');
+    final claimed = (await other.claimNextPending(DateTime.now()))!;
+    final claimsBefore = scheduling.claims;
+    other.releaseSettled(claimed.id);
+    await pumpEventQueue();
+    expect(scheduling.claims, claimsBefore, reason: 'no second drain');
+
+    scheduling.unblock.complete();
+    await first;
+    for (var i = 0; i < 50 && pipeline.processed.isEmpty; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+    expect(pipeline.processed, ['m1'], reason: 'the follow-up drain ran');
+  });
+
   // The claim goes back when the transfer settles, whatever its outcome: a
   // row that failed back into the queue must be selectable again.
   test('a row that failed back into the queue is taken again', () async {
@@ -569,4 +600,30 @@ void main() {
 
     expect(pipeline.processed, ['healthy']);
   });
+}
+
+/// Blocks its first wakeup query until [unblock], so a test can land events
+/// while a drain is scheduling its wakeup. Counts claims, which only a
+/// running drain makes.
+class _BlocksFirstWakeupQuery extends MediaTransferQueueRepository {
+  _BlocksFirstWakeupQuery(LocalCacheDatabase db) : super(database: db);
+
+  final blocked = Completer<void>();
+  final unblock = Completer<void>();
+  var claims = 0;
+
+  @override
+  Future<DateTime?> earliestPendingWakeup(DateTime now) async {
+    if (!blocked.isCompleted) {
+      blocked.complete();
+      await unblock.future;
+    }
+    return super.earliestPendingWakeup(now);
+  }
+
+  @override
+  Future<MediaTransferQueueEntry?> claimNextPending(DateTime now) {
+    claims++;
+    return super.claimNextPending(now);
+  }
 }
