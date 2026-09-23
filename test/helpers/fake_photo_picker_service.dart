@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
 import 'package:submersion/features/media/data/services/gallery_asset_reader.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
@@ -14,6 +15,7 @@ class FakeGalleryAsset {
     this.height = 3024,
     this.filename = 'IMG_0001.JPG',
     this.type = AssetType.image,
+    this.cloudId,
   });
 
   final String id;
@@ -26,6 +28,10 @@ class FakeGalleryAsset {
   /// often omits on a peer's fast date-range query.
   final String? filename;
   final AssetType type;
+
+  /// PhotoKit's cloud identifier. Two devices sharing an iCloud library
+  /// hold the same photo under different ids and the SAME cloud id.
+  final String? cloudId;
 
   AssetInfo get info => AssetInfo(
     id: id,
@@ -44,7 +50,8 @@ class FakeGalleryAsset {
 /// reads `PlatformGalleryResolver` runs through [GalleryAssetReader]. Two
 /// devices get two instances; a shared iCloud library is modelled by giving
 /// both the same bytes under different ids.
-class FakePhotoPickerService implements PhotoPickerService, GalleryAssetReader {
+class FakePhotoPickerService
+    implements PhotoPickerService, GalleryAssetReader, CloudIdentifierSource {
   FakePhotoPickerService({
     List<FakeGalleryAsset> assets = const [],
     this.permission = PhotoPermissionStatus.authorized,
@@ -63,6 +70,9 @@ class FakePhotoPickerService implements PhotoPickerService, GalleryAssetReader {
 
   void add(FakeGalleryAsset asset) => _assets[asset.id] = asset;
   void remove(String id) => _assets.remove(id);
+
+  /// The picker's view of asset [id], as a selection hands it over.
+  AssetInfo infoFor(String id) => _assets[id]!.info;
 
   FakeGalleryAsset? _visible(String id) {
     final asset = _assets[id];
@@ -143,5 +153,26 @@ class FakePhotoPickerService implements PhotoPickerService, GalleryAssetReader {
       height: a.height,
       mimeType: a.type == AssetType.video ? 'video/quicktime' : 'image/jpeg',
     );
+  }
+
+  // CloudIdentifierSource
+
+  /// How many batch lookups ran: resolution must not ask for a row that
+  /// has no cloud id to match.
+  int cloudIdCalls = 0;
+
+  /// When set, the lookups throw it (a platform channel failure).
+  Object? cloudIdError;
+
+  @override
+  Future<Map<String, String>> cloudIdentifiers(List<String> localIds) async {
+    cloudIdCalls++;
+    final error = cloudIdError;
+    if (error != null) throw error;
+    return {
+      for (final id in localIds)
+        if (_visible(id)?.cloudId case final cloudId? when cloudId.isNotEmpty)
+          id: cloudId,
+    };
   }
 }
