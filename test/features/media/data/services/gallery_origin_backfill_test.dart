@@ -68,9 +68,24 @@ void main() {
         mediaRepository: MediaRepository(),
         reader: reader ?? gallery,
         photos: gallery,
+        permissionStatus: () async => gallery.permission,
         deviceId: () => SyncRepository().getDeviceId(),
         prefs: prefs,
       );
+
+  // It runs after a sync, unasked. On mobile the service's checkPermission
+  // is a request (it shows the OS prompt when access was never decided), so
+  // the backfill must only read the status and wait for the gallery flow.
+  test('never asks for photo access, only reads it', () async {
+    final counting = _CountingPhotoPicker();
+    gallery = counting;
+    gallery.add(FakeGalleryAsset(id: 'A-1', bytes: bytes, takenAt: taken));
+    final id = await legacyRow('A-1');
+
+    expect(await backfill().run(), (checked: 1, stamped: 1));
+    expect(await originOf(id), me);
+    expect(counting.asks, 0);
+  });
 
   test('stamps the rows whose asset id loads here, and only those', () async {
     gallery.add(FakeGalleryAsset(id: 'A-1', bytes: bytes, takenAt: taken));
@@ -165,4 +180,21 @@ class _ThrowsFor implements GalleryAssetReader {
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Counts calls that could show the OS photo prompt on a real device.
+class _CountingPhotoPicker extends FakePhotoPickerService {
+  var asks = 0;
+
+  @override
+  Future<PhotoPermissionStatus> checkPermission() {
+    asks++;
+    return super.checkPermission();
+  }
+
+  @override
+  Future<PhotoPermissionStatus> requestPermission() {
+    asks++;
+    return super.requestPermission();
+  }
 }

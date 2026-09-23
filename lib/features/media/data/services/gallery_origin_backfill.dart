@@ -40,11 +40,13 @@ class GalleryOriginBackfill {
     required MediaRepository mediaRepository,
     required GalleryAssetReader reader,
     required PhotoPickerService photos,
+    required Future<PhotoPermissionStatus> Function() permissionStatus,
     required Future<String> Function() deviceId,
     required SharedPreferences prefs,
   }) : _mediaRepository = mediaRepository,
        _reader = reader,
        _photos = photos,
+       _permissionStatus = permissionStatus,
        _deviceId = deviceId,
        _prefs = prefs;
 
@@ -58,6 +60,12 @@ class GalleryOriginBackfill {
   final MediaRepository _mediaRepository;
   final GalleryAssetReader _reader;
   final PhotoPickerService _photos;
+
+  /// Reads photo access without asking for it. Not the service's
+  /// checkPermission: on mobile that is a request, and this runs after a
+  /// sync, unasked, so it must never show the OS prompt. Without full
+  /// access it waits for the user to grant it through the gallery flow.
+  final Future<PhotoPermissionStatus> Function() _permissionStatus;
   final Future<String> Function() _deviceId;
   final SharedPreferences _prefs;
   final _log = LoggerService.forClass(
@@ -76,7 +84,7 @@ class GalleryOriginBackfill {
         await _prefs.setBool(doneFlagKey, true);
         return (checked: 0, stamped: 0);
       }
-      if (await _photos.checkPermission() != PhotoPermissionStatus.authorized) {
+      if (await _permissionStatus() != PhotoPermissionStatus.authorized) {
         _log.info('Gallery origin backfill waiting for full photo access');
         return null;
       }

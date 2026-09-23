@@ -65,4 +65,34 @@ void main() {
     await sync;
     expect(container.read(syncStateProvider).lastSync, isNotNull);
   });
+
+  // Awaiting the backfill is a new pause inside performSync, and the
+  // notifier can be disposed during it (app teardown, a container rebuilt).
+  // Reading state afterwards throws on a disposed notifier.
+  test('a notifier disposed during the backfill finishes quietly', () async {
+    final started = Completer<void>();
+    final release = Completer<void>();
+    final prefs = await SharedPreferences.getInstance();
+    final container = ProviderContainer(
+      overrides: [
+        sharedPreferencesProvider.overrideWithValue(prefs),
+        cloudStorageProviderProvider.overrideWithValue(
+          FakeCloudStorageProvider(),
+        ),
+        galleryOriginBackfillProvider.overrideWithValue(() {
+          if (!started.isCompleted) started.complete();
+          return release.future;
+        }),
+      ],
+    );
+    final notifier = container.read(syncStateProvider.notifier);
+    await notifier.refreshState();
+
+    final sync = notifier.performSync();
+    await started.future;
+    container.dispose();
+    release.complete();
+
+    await expectLater(sync, completes);
+  });
 }

@@ -408,7 +408,7 @@ git commit -m "feat(media): a gallery link records the device that made it"
 - Produces:
   - `Future<List<({String id, String platformAssetId})>> MediaRepository.getGalleryMediaWithoutOrigin()`
   - `Future<int> MediaRepository.stampOriginDevice(List<String> ids, String deviceId)`
-  - `class GalleryOriginBackfill { GalleryOriginBackfill({required MediaRepository mediaRepository, required GalleryAssetReader reader, required PhotoPickerService photos, required Future<String> Function() deviceId, required SharedPreferences prefs}); static const doneFlagKey; static bool isDone(SharedPreferences); Future<GalleryOriginBackfillOutcome?> run(); }`
+  - `class GalleryOriginBackfill { GalleryOriginBackfill({required MediaRepository mediaRepository, required GalleryAssetReader reader, required PhotoPickerService photos, required Future<PhotoPermissionStatus> Function() permissionStatus, required Future<String> Function() deviceId, required SharedPreferences prefs}); static const doneFlagKey; static bool isDone(SharedPreferences); Future<GalleryOriginBackfillOutcome?> run(); }`
   - `typedef GalleryOriginBackfillOutcome = ({int checked, int stamped});`
   - `final galleryOriginBackfillProvider = Provider<Future<void> Function()>(...)`
 
@@ -486,6 +486,7 @@ void main() {
         mediaRepository: MediaRepository(),
         reader: reader ?? gallery,
         photos: gallery,
+        permissionStatus: () async => gallery.permission,
         deviceId: () => SyncRepository().getDeviceId(),
         prefs: prefs,
       );
@@ -654,6 +655,7 @@ Create `lib/features/media/data/services/gallery_origin_backfill.dart`:
 ```dart
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/gallery_asset_reader.dart';
@@ -693,11 +695,13 @@ class GalleryOriginBackfill {
     required MediaRepository mediaRepository,
     required GalleryAssetReader reader,
     required PhotoPickerService photos,
+    required Future<PhotoPermissionStatus> Function() permissionStatus,
     required Future<String> Function() deviceId,
     required SharedPreferences prefs,
   }) : _mediaRepository = mediaRepository,
        _reader = reader,
        _photos = photos,
+       _permissionStatus = permissionStatus,
        _deviceId = deviceId,
        _prefs = prefs;
 
@@ -711,6 +715,12 @@ class GalleryOriginBackfill {
   final MediaRepository _mediaRepository;
   final GalleryAssetReader _reader;
   final PhotoPickerService _photos;
+
+  /// Reads photo access without asking for it. Not the service's
+  /// checkPermission: on mobile that is a request, and this runs after a
+  /// sync, unasked, so it must never show the OS prompt. Without full
+  /// access it waits for the user to grant it through the gallery flow.
+  final Future<PhotoPermissionStatus> Function() _permissionStatus;
   final Future<String> Function() _deviceId;
   final SharedPreferences _prefs;
   final _log = LoggerService.forClass(
@@ -729,7 +739,7 @@ class GalleryOriginBackfill {
         await _prefs.setBool(doneFlagKey, true);
         return (checked: 0, stamped: 0);
       }
-      if (await _photos.checkPermission() != PhotoPermissionStatus.authorized) {
+      if (await _permissionStatus() != PhotoPermissionStatus.authorized) {
         _log.info('Gallery origin backfill waiting for full photo access');
         return null;
       }
@@ -781,15 +791,17 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/services/gallery_asset_reader.dart';
 import 'package:submersion/features/media/data/services/gallery_origin_backfill.dart';
+import 'package:submersion/features/media/data/services/photo_picker_service_mobile.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 
 /// Runs [GalleryOriginBackfill] once per device, after a successful sync.
 ///
 /// Checks the done flag first, so every sync after the one that finished it
-/// costs one preference read. Contains its own failures: the call site is
-/// fire-and-forget, so an escaping throw would land in the zone handler with
-/// nothing to catch it (the shape of #942).
+/// costs one preference read. The sync awaits it inside its single flight,
+/// so no second sync overlaps a stamp. Contains its own failures: the sync
+/// has already succeeded, and a backfill that could not run must not turn
+/// it into an error.
 // no-tick: the value is a CLOSURE, not a query result. Every read happens
 // inside it at call time via ref.read, so there is no cached row to go stale.
 final galleryOriginBackfillProvider = Provider<Future<void> Function()>((ref) {
@@ -797,10 +809,16 @@ final galleryOriginBackfillProvider = Provider<Future<void> Function()>((ref) {
     try {
       final prefs = await SharedPreferences.getInstance();
       if (GalleryOriginBackfill.isDone(prefs)) return;
+      final photos = ref.read(photoPickerServiceProvider);
       await GalleryOriginBackfill(
         mediaRepository: ref.read(mediaRepositoryProvider),
         reader: const PhotoManagerAssetReader(),
-        photos: ref.read(photoPickerServiceProvider),
+        photos: photos,
+        // Read, never asked: this runs after a sync, unasked. The desktop
+        // service never prompts, so its checkPermission is already a read.
+        permissionStatus: photos is PhotoPickerServiceMobile
+            ? photos.currentPermission
+            : photos.checkPermission,
         deviceId: () => SyncRepository().getDeviceId(),
         prefs: prefs,
       ).run();
@@ -821,12 +839,18 @@ In `sync_providers.dart`, inside `performSync`'s `if (result.isSuccess) {` branc
           // Gallery rows linked before links recorded an origin learn it
           // here (media sync program spec 6.1). After a sync, never at
           // launch: a stamp bumps the row clock, so this device's copies
-          // should be as fresh as a pull makes them. Once per device, off
-          // the sync path, and it contains its own failures.
-          unawaited(_ref.read(galleryOriginBackfillProvider)());
+          // should be as fresh as a pull makes them. Awaited, so it stays
+          // inside this sync's single flight: a stamp republishes the row,
+          // and a second sync merging or publishing mid-stamp would reopen
+          // the stale-copy window it waits here to avoid. Once per device
+          // (a flag read after that), and it contains its own failures.
+          await _ref.read(galleryOriginBackfillProvider)();
+          // The notifier can be disposed while the backfill runs, and the
+          // settle below reads state.
+          if (!mounted) return;
 ```
 
-Add the import `import 'package:submersion/features/media/presentation/providers/gallery_origin_backfill_provider.dart';`, and `import 'dart:async';` if the file lacks it.
+Add the import `import 'package:submersion/features/media/presentation/providers/gallery_origin_backfill_provider.dart';`. Awaited, not fire-and-forget: the stamps republish rows, so the backfill must stay inside the sync's single flight or a second sync could merge or publish mid-stamp.
 
 - [ ] **Step 7: Run the affected suites**
 
@@ -939,6 +963,7 @@ Add these two members to `HarnessDevice`, beside `stripStoreStamps`:
       mediaRepository: MediaRepository(),
       reader: gallery,
       photos: gallery,
+      permissionStatus: () async => gallery.permission,
       deviceId: () async => deviceId,
       prefs: prefs,
     ).run();

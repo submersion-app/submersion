@@ -482,6 +482,7 @@ class HarnessDevice {
       mediaRepository: MediaRepository(),
       reader: gallery,
       photos: gallery,
+      permissionStatus: () async => gallery.permission,
       deviceId: () async => deviceId,
       prefs: prefs,
     ).run();

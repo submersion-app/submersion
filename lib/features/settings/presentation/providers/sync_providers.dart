@@ -1404,6 +1404,9 @@ class SyncNotifier extends StateNotifier<SyncState> {
           // the stale-copy window it waits here to avoid. Once per device
           // (a flag read after that), and it contains its own failures.
           await _ref.read(galleryOriginBackfillProvider)();
+          // The notifier can be disposed while the backfill runs, and the
+          // settle below reads state.
+          if (!mounted) return;
         } else {
           state = state.copyWith(
             status: SyncStatus.error,
