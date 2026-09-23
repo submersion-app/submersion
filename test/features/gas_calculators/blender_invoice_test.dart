@@ -7,10 +7,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
 import 'package:submersion/features/gas_calculators/domain/blending/billed_fill.dart';
+import 'package:submersion/features/gas_calculators/domain/blending/blender_gas_role.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/flush_fee.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
@@ -18,6 +21,7 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/blender
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_invoice_card.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_invoice_export_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -50,18 +54,40 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
-Future<WidgetRef> _pump(WidgetTester tester) async {
+/// Opens "Add a line", switched to the free-amount kind when [freeAmount].
+Future<void> _openAddLine(
+  WidgetTester tester, {
+  bool freeAmount = false,
+}) async {
+  await tester.tap(find.byKey(const Key('blender-add-manual-line')));
+  await tester.pumpAndSettle();
+  if (freeAmount) {
+    await tester.tap(find.text('Free amount'));
+    await tester.pumpAndSettle();
+  }
+}
+
+/// Picks [gas] from the gas fill's dropdown.
+Future<void> _pickGas(WidgetTester tester, String gas) async {
+  await tester.tap(find.byKey(const Key('blender-line-gas')));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text(gas).last);
+  await tester.pumpAndSettle();
+}
+
+Future<WidgetRef> _pump(
+  WidgetTester tester, {
+  List<TankPresetEntity> presets = const [],
+  AppSettings settings = const AppSettings(defaultCurrency: 'CHF'),
+}) async {
   await tester.binding.setSurfaceSize(const Size(900, 2400));
   addTearDown(() => tester.binding.setSurfaceSize(null));
   late WidgetRef captured;
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        settingsProvider.overrideWith(
-          (ref) =>
-              _TestSettingsNotifier(const AppSettings(defaultCurrency: 'CHF')),
-        ),
-        tankPresetsProvider.overrideWith((ref) async => const []),
+        settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
+        tankPresetsProvider.overrideWith((ref) async => presets),
       ],
       child: MaterialApp(
         locale: const Locale('en'),
@@ -149,41 +175,89 @@ void main() {
       expect(fill.isManual, isTrue);
     });
 
-    test('a custom mix round-trips through JSON alongside the fill', () {
+    test('a hand-entered gas fill round-trips its role and start pressure '
+        '(#2302)', () {
       const fill = BilledFill(
         id: 'c',
-        label: 'Tx 21/35',
-        lines: [],
-        total: 40,
-        customMix: BilledCustomMix(cylinderLiters: 11.1, o2: 21, he: 35),
+        label: 'Helium',
+        lines: [
+          BilledGasLine(
+            gas: 'Helium',
+            addedBar: 150,
+            cost: 27,
+            freeGasLiters: 1800,
+            cylinderLiters: 12,
+            role: BlenderGasRole.he,
+            startBar: 50,
+          ),
+        ],
+        total: 27,
       );
       final decoded = BilledFill.fromJson(
         jsonDecode(jsonEncode(fill.toJson())) as Map<String, dynamic>,
       )!;
-      expect(decoded.customMix, isNotNull);
-      expect(decoded.customMix!.cylinderLiters, 11.1);
-      expect(decoded.customMix!.o2, 21);
-      expect(decoded.customMix!.he, 35);
+      final line = decoded.manualGasLine;
+      expect(line, isNotNull);
+      expect(line!.role, BlenderGasRole.he);
+      expect(line.startBar, 50);
+      expect(line.endBar, 200);
+      expect(decoded.isManual, isFalse);
     });
 
-    test('a fill without a custom mix decodes with none', () {
-      const fill = BilledFill(id: 'd', label: 'x', lines: [], total: 1);
-      final decoded = BilledFill.fromJson(
-        jsonDecode(jsonEncode(fill.toJson())) as Map<String, dynamic>,
-      )!;
-      expect(decoded.customMix, isNull);
-    });
-
-    test('copyWith can clear a custom mix', () {
+    test('a computed fill is not a hand-entered gas fill', () {
       const fill = BilledFill(
-        id: 'e',
-        label: 'Tx 21/35',
-        lines: [],
-        total: 40,
-        customMix: BilledCustomMix(cylinderLiters: 11.1, o2: 21, he: 35),
+        id: 'd',
+        label: 'Tx 18/45',
+        lines: [BilledGasLine(gas: 'O₂', addedBar: 10, cost: 10)],
+        total: 10,
       );
-      expect(fill.copyWith(label: 'x').customMix, isNotNull);
-      expect(fill.copyWith(clearCustomMix: true).customMix, isNull);
+      expect(fill.manualGasLine, isNull);
+    });
+
+    test('an unknown role in a synced blob decodes to none, keeping the '
+        'line', () {
+      final line = BilledGasLine.fromJson({
+        'gas': 'X',
+        'addedBar': 10,
+        'role': 'argon',
+        'startBar': 'oops',
+      })!;
+      expect(line.role, isNull);
+      expect(line.startBar, isNull);
+      expect(line.addedBar, 10);
+    });
+
+    test('a manual line saved with the retired custom mix still decodes, '
+        'without it (#2302)', () {
+      final decoded = BilledFill.fromJson({
+        'id': 'e',
+        'label': 'Tx 21/35',
+        'lines': [],
+        'total': 40,
+        'customMix': {'cylinderLiters': 11.1, 'o2': 21, 'he': 35},
+      })!;
+      expect(decoded.label, 'Tx 21/35');
+      expect(decoded.total, 40);
+      expect(decoded.isManual, isTrue);
+      expect(decoded.toJson().containsKey('customMix'), isFalse);
+    });
+
+    test('copyWith can replace the lines, and leaves them alone otherwise', () {
+      const fill = BilledFill(
+        id: 'f',
+        label: 'Helium',
+        lines: [
+          BilledGasLine(
+            gas: 'Helium',
+            addedBar: 150,
+            cost: 27,
+            role: BlenderGasRole.he,
+          ),
+        ],
+        total: 27,
+      );
+      expect(fill.copyWith(label: 'x').lines, hasLength(1));
+      expect(fill.copyWith(lines: const []).isManual, isTrue);
     });
 
     test('an unpriced line makes the total incomplete, not smaller', () {
@@ -373,10 +447,9 @@ void main() {
       expect(ref.read(blenderBilledFillsProvider), isEmpty);
     });
 
-    testWidgets('a manual line can be added', (tester) async {
+    testWidgets('a free-amount line can be added', (tester) async {
       final ref = await _pump(tester);
-      await tester.tap(find.byKey(const Key('blender-add-manual-line')));
-      await tester.pumpAndSettle();
+      await _openAddLine(tester, freeAmount: true);
 
       await tester.enterText(
         find.byKey(const Key('blender-line-description')),
@@ -396,18 +469,13 @@ void main() {
       expect(fills.single.total, closeTo(12.50, 0.001));
     });
 
-    testWidgets('saving a line with nothing to name it says so', (
+    testWidgets('a free amount with nothing to name it says so', (
       tester,
     ) async {
-      // PR #1359 review: with no description and no usable mix there was
-      // nothing to label the line with, and Save simply returned - no line,
-      // no message, a button that reads as broken.
-      await _pump(tester);
-      await tester.tap(find.byKey(const Key('blender-add-manual-line')));
-      await tester.pumpAndSettle();
-      // The mix fields are pre-filled, so the label can fall back to them
-      // until one of them is cleared.
-      await tester.enterText(find.widgetWithText(TextField, 'O\u2082 (%)'), '');
+      // PR #1359 review: with nothing to label the line with, Save simply
+      // returned - no line, no message, a button that reads as broken.
+      final ref = await _pump(tester);
+      await _openAddLine(tester, freeAmount: true);
       await tester.enterText(
         find.byKey(const Key('blender-line-amount')),
         '12.50',
@@ -420,83 +488,270 @@ void main() {
       expect(find.textContaining('Enter a description'), findsOneWidget);
       // Still open, with the amount intact, so the diver can fix it in place.
       expect(find.byKey(const Key('blender-line-amount')), findsOneWidget);
+      expect(ref.read(blenderBilledFillsProvider), isEmpty);
     });
 
-    testWidgets('a custom mix line records the cylinder and gas entered', (
-      tester,
-    ) async {
-      final ref = await _pump(tester);
-      await tester.tap(find.byKey(const Key('blender-add-manual-line')));
+    testWidgets('the kind switch shows only the fields that kind needs '
+        '(#2302)', (tester) async {
+      await _pump(tester);
+      await _openAddLine(tester);
+
+      // A new line starts as a gas fill.
+      expect(find.byKey(const Key('blender-line-gas')), findsOneWidget);
+      expect(find.byKey(const Key('blender-line-cylinder')), findsOneWidget);
+      expect(
+        find.byKey(const Key('blender-line-start-pressure')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('blender-line-end-pressure')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('blender-line-computed-amount')),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('blender-line-amount')), findsNothing);
+
+      await tester.tap(find.text('Free amount'));
       await tester.pumpAndSettle();
 
+      expect(find.byKey(const Key('blender-line-amount')), findsOneWidget);
+      expect(find.byKey(const Key('blender-line-gas')), findsNothing);
+      expect(find.byKey(const Key('blender-line-cylinder')), findsNothing);
+      expect(find.byKey(const Key('blender-line-end-pressure')), findsNothing);
+      expect(
+        find.byKey(const Key('blender-line-computed-amount')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('a gas fill is priced from the cylinder, the pressures and '
+        'the gas price (#2302)', (tester) async {
+      final ref = await _pump(tester);
+      ref.read(blenderGasPricesProvider.notifier).state = const [1.0, 1.5, 0.1];
+      await _openAddLine(tester);
+
+      await _pickGas(tester, 'Helium');
       await tester.enterText(
         find.byKey(const Key('blender-line-cylinder')),
-        '11.1',
+        '12',
       );
       await tester.enterText(
-        find.byKey(const Key('blender-line-amount')),
-        '30',
+        find.byKey(const Key('blender-line-start-pressure')),
+        '50',
       );
-      // Description left blank on purpose: the label falls back to the mix.
-      await tester.enterText(find.widgetWithText(TextField, 'O₂ (%)'), '21');
-      await tester.enterText(find.widgetWithText(TextField, 'He (%)'), '35');
+      await tester.enterText(
+        find.byKey(const Key('blender-line-end-pressure')),
+        '200',
+      );
       await tester.pumpAndSettle();
+
+      // Shown live, as text rather than an editable field.
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('blender-line-fill-pressure')))
+            .data,
+        contains('150'),
+      );
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('blender-line-computed-amount')))
+            .data,
+        contains('27.00'),
+      );
+      expect(find.byKey(const Key('blender-line-no-price')), findsNothing);
+
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
       await tester.pumpAndSettle();
 
       final fills = ref.read(blenderBilledFillsProvider);
       expect(fills, hasLength(1));
-      expect(fills.single.label, 'Tx 21/35');
-      expect(fills.single.customMix, isNotNull);
-      expect(fills.single.customMix!.cylinderLiters, closeTo(11.1, 0.001));
-      expect(fills.single.customMix!.o2, 21);
-      expect(fills.single.customMix!.he, 35);
+      expect(fills.single.total, closeTo(27, 1e-9));
+      final line = fills.single.manualGasLine!;
+      expect(line.role, BlenderGasRole.he);
+      expect(line.gas, 'Helium');
+      expect(line.addedBar, 150);
+      expect(line.startBar, 50);
+      expect(line.freeGasLiters, 1800);
+      expect(line.cylinderLiters, 12);
+      // No description typed: the label is generated from the fill.
+      expect(fills.single.label, startsWith('Helium · 12'));
+      expect(fills.single.label, endsWith('150 bar'));
     });
 
-    testWidgets('re-editing a manual line pre-fills its saved mix', (
-      tester,
-    ) async {
+    testWidgets('a gas without a price is charged at 0, and the form says '
+        'so (#2302)', (tester) async {
       final ref = await _pump(tester);
+      await _openAddLine(tester);
+
+      expect(find.byKey(const Key('blender-line-no-price')), findsOneWidget);
+
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      final fills = ref.read(blenderBilledFillsProvider);
+      expect(fills, hasLength(1));
+      expect(fills.single.total, 0);
+      // Priced at zero, so the bill is complete rather than flagged.
+      expect(totalOf(fills).complete, isTrue);
+    });
+
+    testWidgets('an end pressure not above the start pressure blocks saving '
+        '(#2302)', (tester) async {
+      final ref = await _pump(tester);
+      await _openAddLine(tester);
+
+      await tester.enterText(
+        find.byKey(const Key('blender-line-start-pressure')),
+        '200',
+      );
+      await tester.enterText(
+        find.byKey(const Key('blender-line-end-pressure')),
+        '100',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.textContaining('end pressure must be above'), findsOneWidget);
+      expect(ref.read(blenderBilledFillsProvider), isEmpty);
+    });
+
+    testWidgets('a cylinder preset sets the volume and the end pressure, '
+        'which stays editable (#2302)', (tester) async {
+      final ref = await _pump(
+        tester,
+        presets: [
+          TankPresetEntity(
+            id: 'd12',
+            name: 'd12',
+            displayName: 'D12 232',
+            volumeLiters: 12,
+            workingPressureBar: 232,
+            material: TankMaterial.steel,
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+        ],
+      );
+      ref.read(blenderGasPricesProvider.notifier).state = const [1.0, 1.5, 0.1];
+      await _openAddLine(tester);
+
+      await tester.tap(find.byKey(const Key('blender-line-cylinder-presets')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('D12 232').last);
+      await tester.pumpAndSettle();
+
+      String text(String key) =>
+          tester.widget<TextField>(find.byKey(Key(key))).controller!.text;
+      expect(text('blender-line-cylinder'), '12');
+      expect(text('blender-line-end-pressure'), '232');
+
+      // Overridden by hand, e.g. for the oxygen step of a blend.
+      await tester.enterText(
+        find.byKey(const Key('blender-line-end-pressure')),
+        '30',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      final line = ref.read(blenderBilledFillsProvider).single.manualGasLine!;
+      expect(line.role, BlenderGasRole.o2);
+      expect(line.addedBar, 30);
+      expect(line.cylinderLiters, 12);
+    });
+
+    testWidgets('re-editing a gas fill reopens it with its values and '
+        'reprices it (#2302)', (tester) async {
+      final ref = await _pump(tester);
+      ref.read(blenderGasPricesProvider.notifier).state = const [1.0, 1.5, 0.1];
       ref.read(blenderBilledFillsProvider.notifier).state = const [
         BilledFill(
           id: 'a',
-          label: 'Tx 21/35',
-          lines: [],
-          total: 30,
-          customMix: BilledCustomMix(cylinderLiters: 11.1, o2: 21, he: 35),
+          label: 'Twinset',
+          lines: [
+            BilledGasLine(
+              gas: 'Helium',
+              addedBar: 150,
+              cost: 27,
+              freeGasLiters: 1800,
+              cylinderLiters: 12,
+              role: BlenderGasRole.he,
+              startBar: 50,
+            ),
+          ],
+          total: 27,
         ),
       ];
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Actions for Tx 21/35'));
+      await tester.tap(find.byTooltip('Actions for Twinset'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Edit Tx 21/35'));
+      await tester.tap(find.text('Edit Twinset'));
       await tester.pumpAndSettle();
 
-      final o2Field = tester.widget<TextField>(
-        find.widgetWithText(TextField, 'O₂ (%)'),
-      );
-      expect(o2Field.controller!.text, '21');
-      final heField = tester.widget<TextField>(
-        find.widgetWithText(TextField, 'He (%)'),
-      );
-      expect(heField.controller!.text, '35');
+      String text(String key) =>
+          tester.widget<TextField>(find.byKey(Key(key))).controller!.text;
+      expect(text('blender-line-description'), 'Twinset');
+      expect(text('blender-line-cylinder'), '12');
+      expect(text('blender-line-start-pressure'), '50');
+      expect(text('blender-line-end-pressure'), '200');
 
-      // Changing the mix and saving updates the stored fill rather than
-      // adding a second one.
-      await tester.enterText(find.widgetWithText(TextField, 'He (%)'), '45');
+      await tester.enterText(
+        find.byKey(const Key('blender-line-end-pressure')),
+        '150',
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
       await tester.pumpAndSettle();
 
       final fills = ref.read(blenderBilledFillsProvider);
       expect(fills, hasLength(1));
-      expect(fills.single.customMix!.he, 45);
+      expect(fills.single.label, 'Twinset');
+      expect(fills.single.manualGasLine!.addedBar, 100);
+      expect(fills.single.total, closeTo(18, 1e-9));
     });
 
-    testWidgets('a computed fill offers no mix fields when re-edited', (
-      tester,
-    ) async {
+    testWidgets('pressures are entered in the diver\'s unit and stored in '
+        'bar (#2302)', (tester) async {
+      final ref = await _pump(
+        tester,
+        settings: const AppSettings(
+          defaultCurrency: 'CHF',
+          pressureUnit: PressureUnit.psi,
+        ),
+      );
+      ref.read(blenderGasPricesProvider.notifier).state = const [1.0, 1.5, 0.1];
+      await _openAddLine(tester);
+
+      expect(find.textContaining('Start pressure (psi)'), findsOneWidget);
+      await tester.enterText(
+        find.byKey(const Key('blender-line-cylinder')),
+        '10',
+      );
+      await tester.enterText(
+        find.byKey(const Key('blender-line-start-pressure')),
+        '0',
+      );
+      await tester.enterText(
+        find.byKey(const Key('blender-line-end-pressure')),
+        '3000',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      final fill = ref.read(blenderBilledFillsProvider).single;
+      const bar = 3000 / 14.5038;
+      expect(fill.manualGasLine!.addedBar, closeTo(bar, 0.01));
+      expect(fill.total, closeTo(10 * bar / 100, 0.01));
+      expect(fill.label, endsWith('psi'));
+    });
+
+    testWidgets('a computed fill offers neither the kind switch nor the gas '
+        'fields when re-edited', (tester) async {
       final ref = await _pump(tester);
       ref.read(blenderBilledFillsProvider.notifier).state = const [
         BilledFill(
@@ -513,8 +768,18 @@ void main() {
       await tester.tap(find.text('Edit Tx 18/45'));
       await tester.pumpAndSettle();
 
+      expect(find.byKey(const Key('blender-line-kind')), findsNothing);
       expect(find.byKey(const Key('blender-line-cylinder')), findsNothing);
-      expect(find.widgetWithText(TextField, 'O₂ (%)'), findsNothing);
+      expect(find.byKey(const Key('blender-line-amount')), findsOneWidget);
+
+      // Saving keeps the itemisation it was computed with.
+      await tester.enterText(find.byKey(const Key('blender-line-amount')), '9');
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+      final fill = ref.read(blenderBilledFillsProvider).single;
+      expect(fill.lines, hasLength(1));
+      expect(fill.total, 9);
     });
 
     testWidgets('paying asks first, then archives and empties the bill', (
@@ -765,8 +1030,7 @@ void main() {
     /// on screen, then opens the export picker.
     Future<void> addLineAndOpenPicker(WidgetTester tester) async {
       await _pump(tester);
-      await tester.tap(find.byKey(const Key('blender-add-manual-line')));
-      await tester.pumpAndSettle();
+      await _openAddLine(tester, freeAmount: true);
       await tester.enterText(
         find.byKey(const Key('blender-line-description')),
         'Analyser cell',

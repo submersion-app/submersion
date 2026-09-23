@@ -14233,7 +14233,48 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_lineNeedsDescription =>
-      'Introduce una descripción, o un cilindro y una mezcla.';
+      'Introduce una descripción.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'Llenado de gas';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'Importe libre';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'Llenado';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'Presión inicial';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'Presión final';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'Presión de llenado: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'Importe: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'No hay precio para este gas, así que se cobra a 0.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'La presión final debe ser mayor que la inicial.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder =>
+      'Introduce un volumen de cilindro.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'Opcional. Si se deja vacío, se genera a partir del llenado.';
 
   @override
   String get gasCalculators_blender_export => 'Exportar';

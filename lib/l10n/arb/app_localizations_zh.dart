@@ -13567,7 +13567,45 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_lineAmount => '金额';
 
   @override
-  String get gasCalculators_blender_lineNeedsDescription => '请输入说明，或气瓶与混合气。';
+  String get gasCalculators_blender_lineNeedsDescription => '请输入说明。';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => '气体充填';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => '自由金额';
+
+  @override
+  String get gasCalculators_blender_lineGas => '充填';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => '初始压力';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => '最终压力';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return '充填压力：$pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return '金额：$amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice => '此气体未设置价格，按 0 计费。';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure => '最终压力必须高于初始压力。';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder => '请输入气瓶容积。';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      '可选。留空时根据充填自动生成。';
 
   @override
   String get gasCalculators_blender_export => '导出';

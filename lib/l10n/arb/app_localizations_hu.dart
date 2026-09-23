@@ -14201,7 +14201,48 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_lineNeedsDescription =>
-      'Adjon meg egy leírást, vagy egy palackot és keveréket.';
+      'Adjon meg egy leírást.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'Gáztöltés';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'Szabad összeg';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'Töltés';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'Kezdőnyomás';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'Végnyomás';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'Töltési nyomás: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'Összeg: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'Ehhez a gázhoz nincs ár megadva, ezért 0-val számolunk.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'A végnyomásnak nagyobbnak kell lennie a kezdőnyomásnál.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder =>
+      'Adja meg a palack térfogatát.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'Nem kötelező. Ha üresen marad, a töltésből jön létre.';
 
   @override
   String get gasCalculators_blender_export => 'Exportálás';
