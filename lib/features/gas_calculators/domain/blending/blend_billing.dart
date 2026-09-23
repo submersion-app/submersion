@@ -149,10 +149,13 @@ ManualGasFillCost? manualGasFillCost({
   if (!waterLiters.isFinite || !startBar.isFinite || !endBar.isFinite) {
     return null;
   }
+  // A corrupt tariff is not an unset one: charging it as 0 would pass a
+  // broken price off as a deliberate free fill.
+  if (pricePer100 != null && !pricePer100.isFinite) return null;
   if (waterLiters <= 0 || startBar < 0 || endBar <= startBar) return null;
   final addedBar = endBar - startBar;
   final liters = waterLiters * addedBar;
-  final price = pricePer100 != null && pricePer100.isFinite ? pricePer100 : 0;
+  final price = pricePer100 ?? 0;
   return ManualGasFillCost(
     addedBar: addedBar,
     freeGasLiters: liters,

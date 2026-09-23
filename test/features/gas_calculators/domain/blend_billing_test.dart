@@ -256,6 +256,27 @@ void main() {
       );
     });
 
+    test('a non-finite price is rejected, not treated as unset', () {
+      expect(
+        manualGasFillCost(
+          waterLiters: 12,
+          startBar: 0,
+          endBar: 100,
+          pricePer100: double.nan,
+        ),
+        isNull,
+      );
+      expect(
+        manualGasFillCost(
+          waterLiters: 12,
+          startBar: 0,
+          endBar: 100,
+          pricePer100: double.infinity,
+        ),
+        isNull,
+      );
+    });
+
     test('non-finite input is rejected rather than priced', () {
       expect(
         manualGasFillCost(
