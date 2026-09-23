@@ -2039,9 +2039,10 @@ class MediaRepository {
   Future<void> applyRepairWrites(List<RepairWrite> writes) async {
     if (writes.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
-    // A relink points the row at an address only this device can resolve,
-    // so this device becomes its origin: kept foreign or missing, the device
-    // that relinked it could never call it gone (spec 6.1).
+    // The origin follows the new address, as at link time: a gallery asset
+    // or a file resolves only here, so this device becomes the origin (kept
+    // foreign or missing, the device that relinked it could never call it
+    // gone, spec 6.1); a shared source records none.
     final origins = {
       for (final type in {for (final w in writes) w.newSourceType})
         type: await _originFor(type),
@@ -2070,9 +2071,10 @@ class MediaRepository {
             // that no longer exists on this device.
             platformAssetId: Value(write.newPlatformAssetId),
             sourceType: Value(write.newSourceType.name),
-            originDeviceId: origin == null
-                ? const Value.absent()
-                : Value(origin),
+            // Written even when null: a shared source records no origin at
+            // link time, and the old one described an address this row no
+            // longer has.
+            originDeviceId: Value(origin),
             isOrphaned: const Value(false),
             lastVerifiedAt: Value(now),
             updatedAt: Value(now),

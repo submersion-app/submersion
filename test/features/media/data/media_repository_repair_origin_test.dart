@@ -80,4 +80,17 @@ void main() {
 
     expect(await originOf(id), me);
   });
+
+  // A source every device resolves the same way records no origin at link
+  // time, and a repair to one must not keep the old device's: that origin
+  // described an address the row no longer has.
+  test('a relink to a shared source clears the old origin', () async {
+    final id = await deadRow('peer');
+
+    await repo.applyRepairWrites([
+      RepairWrite(mediaId: id, newSourceType: MediaSourceType.networkUrl),
+    ]);
+
+    expect(await originOf(id), isNull);
+  });
 }
