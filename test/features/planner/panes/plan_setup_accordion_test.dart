@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_deco_section.dart';
+import 'package:submersion/features/dive_planner/presentation/widgets/setup/plan_environment_section.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/presentation/panes/plan_setup_accordion.dart';
@@ -68,6 +69,9 @@ void main() {
     await tester.tap(find.text('Environment'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
+    // A collapsed ExpansionTile builds no children, so this fails if the tap
+    // above is a no-op and the section never opened.
+    expect(find.byType(PlanEnvironmentSection), findsOneWidget);
   });
 
   testWidgets('CCR section appears for CCR plans', (tester) async {
