@@ -384,7 +384,14 @@ entity deletes use, computed before the transaction and applied through
 sites and gear is deleted with `media` and `mediaEnrichment` tombstones and
 a blob-delete intent for anything store-backed; media also linked to a
 surviving row is unlinked, stamped and marked pending. Originals are never
-touched. #1957 (the rest of the diver delete) stays its own issue; the two
+touched. The diver's buddies go too, and `media.signer_id` is also `ON
+DELETE SET NULL`, so a surviving signature whose signer was one of them has
+`signer_id` cleared, stamped and marked pending with the other unlinks. A
+signer is not a logbook link: it never keeps a row alive or dooms one. The
+media enrichment the diver's dives cascade away is tombstoned inside the
+transaction, from ids read before it. The per-entity partitions cannot be
+chained here, because each keeps a row another dying parent still links, so
+the plan classifies every row against all the dying sets at once. #1957 (the rest of the diver delete) stays its own issue; the two
 PRs coordinate on the transaction boundary.
 
 ## 6. Phase 2: resolution
