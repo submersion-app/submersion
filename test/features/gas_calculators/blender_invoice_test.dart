@@ -911,6 +911,99 @@ void main() {
       expect(line.addedBar, 207);
     });
 
+    testWidgets('a generated label saved in bar still regenerates once the '
+        'diver has switched to psi (#2302 review)', (tester) async {
+      final ref = await _pump(
+        tester,
+        settings: const AppSettings(
+          defaultCurrency: 'CHF',
+          pressureUnit: PressureUnit.psi,
+        ),
+      );
+      ref.read(blenderBilledFillsProvider.notifier).state = const [
+        BilledFill(
+          id: 'a',
+          label: 'Helium · 12 L · 150 bar',
+          lines: [
+            BilledGasLine(
+              gas: 'Helium',
+              addedBar: 150,
+              cost: 0,
+              cylinderLiters: 12,
+              role: BlenderGasRole.he,
+              startBar: 0,
+            ),
+          ],
+          total: 0,
+        ),
+      ];
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Actions for Helium · 12 L · 150 bar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit Helium · 12 L · 150 bar'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<TextField>(
+              find.byKey(const Key('blender-line-description')),
+            )
+            .controller!
+            .text,
+        isEmpty,
+      );
+      await tester.enterText(
+        find.byKey(const Key('blender-line-end-pressure')),
+        '1000',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(
+        ref.read(blenderBilledFillsProvider).single.label,
+        endsWith('1000 psi'),
+      );
+    });
+
+    testWidgets('switching a gas fill with a generated label to a free '
+        'amount keeps its label (#2302 review)', (tester) async {
+      final ref = await _pump(tester);
+      ref.read(blenderBilledFillsProvider.notifier).state = const [
+        BilledFill(
+          id: 'a',
+          label: 'Helium · 12 L · 150 bar',
+          lines: [
+            BilledGasLine(
+              gas: 'Helium',
+              addedBar: 150,
+              cost: 27,
+              cylinderLiters: 12,
+              role: BlenderGasRole.he,
+              startBar: 0,
+            ),
+          ],
+          total: 27,
+        ),
+      ];
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Actions for Helium · 12 L · 150 bar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit Helium · 12 L · 150 bar'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Free amount'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      final fill = ref.read(blenderBilledFillsProvider).single;
+      expect(fill.label, 'Helium · 12 L · 150 bar');
+      expect(fill.isManual, isTrue);
+      expect(fill.total, 27);
+    });
+
     testWidgets('a computed fill offers neither the kind switch nor the gas '
         'fields when re-edited', (tester) async {
       final ref = await _pump(tester);

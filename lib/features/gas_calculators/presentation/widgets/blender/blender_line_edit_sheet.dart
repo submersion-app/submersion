@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
@@ -111,17 +112,12 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
     _role = gasLine?.role ?? BlenderGasRole.o2;
 
     // A label this sheet generated is left blank rather than kept as typed
-    // text, so changing the pressure or the gas regenerates it.
-    final generated = gasLine == null
-        ? null
-        : _generatedLabel(
-            gasLine.gas,
-            gasLine.cylinderLiters,
-            gasLine.addedBar,
-            units,
-          );
+    // text, so changing the pressure or the gas regenerates it. Checked in
+    // every unit combination: the diver may have switched units since.
+    final generated =
+        gasLine != null && _isGeneratedLabel(fill!.label, gasLine, settings);
     _label = TextEditingController(
-      text: fill == null || fill.label == generated ? '' : fill.label,
+      text: fill == null || generated ? '' : fill.label,
     );
     // Seeded for a gas fill too: switching it to a free amount starts from
     // what it cost rather than from a blank that would leave it unpriced.
@@ -171,6 +167,32 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
     _startPressure.dispose();
     _endPressure.dispose();
     super.dispose();
+  }
+
+  /// Whether [label] is what [_generatedLabel] made for [line], in any
+  /// pressure and volume unit.
+  bool _isGeneratedLabel(
+    String label,
+    BilledGasLine line,
+    AppSettings settings,
+  ) {
+    for (final pressure in PressureUnit.values) {
+      for (final volume in VolumeUnit.values) {
+        final units = UnitFormatter(
+          settings.copyWith(pressureUnit: pressure, volumeUnit: volume),
+        );
+        if (label ==
+            _generatedLabel(
+              line.gas,
+              line.cylinderLiters,
+              line.addedBar,
+              units,
+            )) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   String _generatedLabel(
@@ -360,6 +382,15 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
                 onSelectionChanged: (selection) => setState(() {
                   _kind = selection.single;
                   _error = null;
+                  // A free amount needs a description, and a generated one
+                  // was left blank: carry the line's label over rather than
+                  // make the diver retype it.
+                  final fill = widget.fill;
+                  if (_kind == BlenderLineKind.amount &&
+                      _label.text.trim().isEmpty &&
+                      fill != null) {
+                    _label.text = fill.label;
+                  }
                 }),
               ),
               const SizedBox(height: 12),
