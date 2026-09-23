@@ -38,11 +38,15 @@ class PlatformGalleryResolver implements MediaSourceResolver {
   /// [AssetResolutionService], whose gallery search is an interactive file
   /// dialog on those platforms.
   ///
-  /// Never [UnavailableKind.notFound]: that is the one verdict that orphans a
-  /// row, and the write syncs, so a Linux device would mark photos that are
-  /// still safe in a Mac's or phone's library missing everywhere. Hosts with
-  /// a library follow the same rule for every row they did not link; see
-  /// [_linkedHere].
+  /// [UnavailableKind.notFound] is the one verdict that orphans a row, and
+  /// the write syncs, so it is origin-qualified. A host without a library
+  /// never gives it for a row that carries an asset id: a Linux device would
+  /// otherwise mark photos still safe in a Mac's or phone's library missing
+  /// everywhere. A host with a library gives it only when the search fails
+  /// for a row whose origin is this device ([_linkedHere], via [_missing]);
+  /// a row linked elsewhere, or with no origin yet, is
+  /// [UnavailableKind.fromOtherDevice]. A row with no asset id at all has
+  /// nothing to search for and is notFound on every host.
   final bool _hasPhotoLibrary;
 
   /// Names the device a row was linked on, for the "From {device}"

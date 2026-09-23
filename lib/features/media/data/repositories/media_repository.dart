@@ -242,7 +242,12 @@ class MediaRepository {
   }
 
   /// Returns the device ID to record on a new MediaItem, or null if the
-  /// source type is device-portable (gallery, URL, manifest, signature).
+  /// source type is device-portable (URL, manifest, signature, store).
+  ///
+  /// Gallery rows record this device: its stored asset id loads only here,
+  /// and the gallery resolver lets only the origin device call a failed
+  /// search notFound (media sync program spec 6.1). Dropping this stamp
+  /// would leave every new gallery row unorphanable, on every device.
   ///
   /// Caller-provided originDeviceId is always preserved.
   Future<String?> _effectiveOriginDeviceId(domain.MediaItem item) async {

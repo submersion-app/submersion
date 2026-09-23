@@ -1398,9 +1398,12 @@ class SyncNotifier extends StateNotifier<SyncState> {
           // Gallery rows linked before links recorded an origin learn it
           // here (media sync program spec 6.1). After a sync, never at
           // launch: a stamp bumps the row clock, so this device's copies
-          // should be as fresh as a pull makes them. Once per device, off
-          // the sync path, and it contains its own failures.
-          unawaited(_ref.read(galleryOriginBackfillProvider)());
+          // should be as fresh as a pull makes them. Awaited, so it stays
+          // inside this sync's single flight: a stamp republishes the row,
+          // and a second sync merging or publishing mid-stamp would reopen
+          // the stale-copy window it waits here to avoid. Once per device
+          // (a flag read after that), and it contains its own failures.
+          await _ref.read(galleryOriginBackfillProvider)();
         } else {
           state = state.copyWith(
             status: SyncStatus.error,

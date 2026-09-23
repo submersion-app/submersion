@@ -11,9 +11,10 @@ import 'package:submersion/features/media/presentation/providers/photo_picker_pr
 /// Runs [GalleryOriginBackfill] once per device, after a successful sync.
 ///
 /// Checks the done flag first, so every sync after the one that finished it
-/// costs one preference read. Contains its own failures: the call site is
-/// fire-and-forget, so an escaping throw would land in the zone handler with
-/// nothing to catch it (the shape of #942).
+/// costs one preference read. The sync awaits it inside its single flight,
+/// so no second sync overlaps a stamp. Contains its own failures: the sync
+/// has already succeeded, and a backfill that could not run must not turn
+/// it into an error.
 // no-tick: the value is a CLOSURE, not a query result. Every read happens
 // inside it at call time via ref.read, so there is no cached row to go stale.
 final galleryOriginBackfillProvider = Provider<Future<void> Function()>((ref) {
