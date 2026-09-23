@@ -250,8 +250,10 @@ class MediaRepository {
     switch (item.sourceType) {
       case MediaSourceType.localFile:
       case MediaSourceType.serviceConnector:
-        return _syncRepository.getDeviceId();
+      // Only the linking device holds the stored asset id, and only its
+      // failed search may call the photo gone (media sync program spec 6.1).
       case MediaSourceType.platformGallery:
+        return _syncRepository.getDeviceId();
       case MediaSourceType.networkUrl:
       case MediaSourceType.manifestEntry:
       case MediaSourceType.signature:
