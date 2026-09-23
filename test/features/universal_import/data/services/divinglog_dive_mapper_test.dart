@@ -11,6 +11,7 @@ DivingLogRawDive dive({
   String? place = 'Salt Pier',
   String? city = 'Kralendijk',
   String? country = 'Bonaire',
+  int? placeId,
   String? buddy,
   String? divemaster,
   String? divesuit,
@@ -29,6 +30,7 @@ DivingLogRawDive dive({
   country: country,
   city: city,
   place: place,
+  placeId: placeId,
   buddy: buddy,
   divemaster: divemaster,
   comments: comments,
@@ -45,9 +47,13 @@ DivingLogRawDive dive({
   samples: samples,
 );
 
-DivingLogLogbook book(List<DivingLogRawDive> dives) => DivingLogLogbook(
+DivingLogLogbook book(
+  List<DivingLogRawDive> dives, {
+  Map<int, DivingLogRawPlace> places = const {},
+}) => DivingLogLogbook(
   dives: dives,
   capabilities: const DivingLogCapabilities(tables: {}, columns: {}),
+  placesById: places,
 );
 
 void main() {
@@ -88,6 +94,29 @@ void main() {
       );
       final d = payload.entitiesOf(ImportEntityType.dives).single;
       expect(d['dateTime'], DateTime.utc(2024, 6, 1));
+    });
+
+    test('a dive at a coordinate-only Place links to the site named from '
+        'them', () {
+      final payload = DivingLogDiveMapper.toPayload(
+        book(
+          [dive(place: null, city: null, country: null, placeId: 10)],
+          places: {
+            10: const DivingLogRawPlace(
+              id: 10,
+              latitude: 12.13,
+              longitude: -68.28,
+            ),
+          },
+        ),
+      );
+
+      final site = payload.entitiesOf(ImportEntityType.sites).single;
+      expect(site['latitude'], closeTo(12.13, 1e-9));
+      expect(
+        payload.entitiesOf(ImportEntityType.dives).single['site']['uddfId'],
+        site['uddfId'],
+      );
     });
 
     test('collapses repeated dives at one place to a single site', () {
