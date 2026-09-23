@@ -683,6 +683,22 @@ void main() {
       expect(messages, isNot(contains('does not contain')));
     });
 
+    test('surfaces a buddy name collision as a diagnostic', () {
+      const book = DivingLogLogbook(
+        dives: [DivingLogRawDive(id: 1, diveDate: '2024-06-01')],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+        buddiesById: {
+          1: DivingLogRawBuddy(id: 1, firstName: 'Sam', lastName: 'Lee'),
+          2: DivingLogRawBuddy(id: 2, firstName: 'Sam', lastName: 'Lee'),
+        },
+      );
+      final payload = DivingLogDiveMapper.toPayload(book);
+      expect(
+        payload.warnings.map((w) => w.message).join(' '),
+        contains('Sam Lee'),
+      );
+    });
+
     test('still uses the text column when a dive has no BuddyIDs', () {
       const book = DivingLogLogbook(
         dives: [

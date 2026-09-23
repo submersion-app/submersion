@@ -106,6 +106,26 @@ class DivingLogReferenceMapper {
     return out;
   }
 
+  /// Display names shared by more than one `Buddy` row.
+  ///
+  /// Buddies are keyed by display name, deliberately, so that a free-text
+  /// buddy or divemaster naming the same person folds onto the table row
+  /// instead of arriving twice. The cost is that two distinct people with
+  /// one name become a single record. That trade stands, but the merge is
+  /// reported here rather than made in silence.
+  static List<String> buddyNameCollisions(DivingLogLogbook book) {
+    final counts = <String, int>{};
+    for (final buddy in book.buddiesById.values) {
+      final name = buddy.fullName;
+      if (name == null) continue;
+      counts[name] = (counts[name] ?? 0) + 1;
+    }
+    return [
+      for (final entry in counts.entries)
+        if (entry.value > 1) entry.key,
+    ];
+  }
+
   static Map<String, Map<String, dynamic>> trips(DivingLogLogbook book) {
     final out = <String, Map<String, dynamic>>{};
     for (final trip in book.tripsById.values) {

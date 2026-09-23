@@ -42,8 +42,11 @@ class DivingLogEquipmentMapper {
           {'key': EquipmentAttrKeys.dryWeightKg, 'valueNum': weight},
         ];
       }
-      // The importer reads `purchasePrice`; `price` is silently dropped.
-      if (item.price != null) map['purchasePrice'] = item.price;
+      // The importer reads `purchasePrice`; `price` is silently dropped. A
+      // zero is this format's "not recorded", and a purchase price of zero
+      // would import the item as free and skew any gear cost total.
+      final price = positiveOrNull(item.price);
+      if (price != null) map['purchasePrice'] = price;
       if (item.purchaseDate != null) map['purchaseDate'] = item.purchaseDate;
       // Diving Log's inactive gear is retired gear, and the importer reads
       // `status` and `isActive`, not `isRetired`. Both markers, as MacDive

@@ -163,6 +163,20 @@ void main() {
       expect(buddy['notes'], 'good buddy');
     });
 
+    test('reports two buddy rows that share a display name', () {
+      // Buddies are keyed by name so free-text references fold onto them,
+      // which makes two distinct people with one name a single record.
+      // That merge is reported rather than done silently.
+      final book = logbook(
+        buddies: {
+          1: const DivingLogRawBuddy(id: 1, firstName: 'Sam', lastName: 'Lee'),
+          2: const DivingLogRawBuddy(id: 2, firstName: 'Sam', lastName: 'Lee'),
+          3: const DivingLogRawBuddy(id: 3, firstName: 'Ana'),
+        },
+      );
+      expect(DivingLogReferenceMapper.buddyNameCollisions(book), ['Sam Lee']);
+    });
+
     test('skips a row with no name at all', () {
       final book = logbook(buddies: {1: const DivingLogRawBuddy(id: 1)});
       expect(DivingLogReferenceMapper.buddies(book), isEmpty);

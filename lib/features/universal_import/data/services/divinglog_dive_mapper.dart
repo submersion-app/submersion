@@ -189,6 +189,17 @@ class DivingLogDiveMapper {
         ),
       );
     }
+    for (final name in DivingLogReferenceMapper.buddyNameCollisions(logbook)) {
+      warnings.add(
+        ImportWarning(
+          severity: ImportWarningSeverity.info,
+          code: ImportWarningCode.diagnostic,
+          message:
+              'More than one buddy is named "$name", so they were imported '
+              'as a single buddy.',
+        ),
+      );
+    }
     for (final note in logbook.schemaNotes) {
       warnings.add(
         ImportWarning(

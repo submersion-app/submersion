@@ -93,6 +93,16 @@ void main() {
       },
     );
 
+    test('omits a zero price rather than importing the item as free', () {
+      // 3 of the 31 items in the reference logbook carry Price 0, which in
+      // this format means not recorded.
+      final book = logbook({
+        2: const DivingLogRawEquipment(id: 2, object: 'MK25', price: 0),
+      });
+      final item = DivingLogEquipmentMapper.entities(book).values.single;
+      expect(item.containsKey('purchasePrice'), isFalse);
+    });
+
     test('marks an inactive item retired the way the importer reads it', () {
       // The importer reads `status` and `isActive`; `isRetired` reaches
       // nothing, so an inactive item would import as active.
