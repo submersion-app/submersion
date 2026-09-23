@@ -20681,8 +20681,8 @@ abstract class AppLocalizations {
   /// Short form of a service clock measured in dives, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
   ///
   /// In en, this message translates to:
-  /// **'in {count} dives'**
-  String equipment_service_shortDives(String count);
+  /// **'{count, plural, one{in {count} dive} other{in {count} dives}}'**
+  String equipment_service_shortDives(int count);
 
   /// Short form of a service clock measured in hours, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
   ///
@@ -20699,8 +20699,8 @@ abstract class AppLocalizations {
   /// Short form of a service clock measured in cold dives, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
   ///
   /// In en, this message translates to:
-  /// **'in {count} cold dives'**
-  String equipment_service_shortColdDives(String count);
+  /// **'{count, plural, one{in {count} cold dive} other{in {count} cold dives}}'**
+  String equipment_service_shortColdDives(int count);
 
   /// Short form of a service clock measured in high-O2 hours, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
   ///
@@ -20711,14 +20711,14 @@ abstract class AppLocalizations {
   /// Short form of a service clock measured in deep dives, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
   ///
   /// In en, this message translates to:
-  /// **'in {count} deep dives'**
-  String equipment_service_shortDeepCycles(String count);
+  /// **'{count, plural, one{in {count} deep dive} other{in {count} deep dives}}'**
+  String equipment_service_shortDeepCycles(int count);
 
   /// Short form of a service clock measured in battery cycles, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
   ///
   /// In en, this message translates to:
-  /// **'in {count} battery cycles'**
-  String equipment_service_shortCycles(String count);
+  /// **'{count, plural, one{in {count} battery cycle} other{in {count} battery cycles}}'**
+  String equipment_service_shortCycles(int count);
 
   /// No description provided for @settings_notifications_tripLeadTitle.
   ///

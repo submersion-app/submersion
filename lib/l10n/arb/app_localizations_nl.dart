@@ -12414,8 +12414,14 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String equipment_service_shortDives(String count) {
-    return 'over $count duiken';
+  String equipment_service_shortDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'over $count duiken',
+      one: 'over $count duik',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12429,8 +12435,14 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String equipment_service_shortColdDives(String count) {
-    return 'over $count koudwaterduiken';
+  String equipment_service_shortColdDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'over $count koudwaterduiken',
+      one: 'over $count koudwaterduik',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12439,13 +12451,25 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String equipment_service_shortDeepCycles(String count) {
-    return 'over $count diepe duiken';
+  String equipment_service_shortDeepCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'over $count diepe duiken',
+      one: 'over $count diepe duik',
+    );
+    return '$_temp0';
   }
 
   @override
-  String equipment_service_shortCycles(String count) {
-    return 'over $count batterijcycli';
+  String equipment_service_shortCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'over $count batterijcycli',
+      one: 'over $count batterijcyclus',
+    );
+    return '$_temp0';
   }
 
   @override

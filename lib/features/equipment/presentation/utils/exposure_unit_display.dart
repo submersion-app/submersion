@@ -69,17 +69,22 @@ extension ExposureUnitDisplay on ExposureUnit {
   ///
   /// [days] has no short form here; the date branch of
   /// [formatServiceTriggerShort] covers it with a relative day count.
-  String shortRemainingText(AppLocalizations l10n, String count) =>
-      switch (this) {
-        ExposureUnit.days => '',
-        ExposureUnit.dives => l10n.equipment_service_shortDives(count),
-        ExposureUnit.hours => l10n.equipment_service_shortHours(count),
-        ExposureUnit.saltHours => l10n.equipment_service_shortSaltHours(count),
-        ExposureUnit.coldDives => l10n.equipment_service_shortColdDives(count),
-        ExposureUnit.o2Hours => l10n.equipment_service_shortO2Hours(count),
-        ExposureUnit.deepCycles => l10n.equipment_service_shortDeepCycles(
-          count,
-        ),
-        ExposureUnit.cycles => l10n.equipment_service_shortCycles(count),
-      };
+  String shortRemainingText(AppLocalizations l10n, double remaining) {
+    // Counts select a plural category ("in 1 dive", "in 3 dives"), so they
+    // go in as ints. Hours stay a one-decimal string: a decimal takes the
+    // plural in every locale here ("in 1.0 hours"), and a string cannot
+    // enter a plural selector anyway.
+    final count = remaining.round();
+    final decimal = remaining.toStringAsFixed(1);
+    return switch (this) {
+      ExposureUnit.days => '',
+      ExposureUnit.dives => l10n.equipment_service_shortDives(count),
+      ExposureUnit.hours => l10n.equipment_service_shortHours(decimal),
+      ExposureUnit.saltHours => l10n.equipment_service_shortSaltHours(decimal),
+      ExposureUnit.coldDives => l10n.equipment_service_shortColdDives(count),
+      ExposureUnit.o2Hours => l10n.equipment_service_shortO2Hours(decimal),
+      ExposureUnit.deepCycles => l10n.equipment_service_shortDeepCycles(count),
+      ExposureUnit.cycles => l10n.equipment_service_shortCycles(count),
+    };
+  }
 }

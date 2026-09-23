@@ -12313,8 +12313,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String equipment_service_shortDives(String count) {
-    return 'خلال $count غوصة';
+  String equipment_service_shortDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خلال $count غوصة',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12328,8 +12333,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String equipment_service_shortColdDives(String count) {
-    return 'خلال $count غطسة في الماء البارد';
+  String equipment_service_shortColdDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خلال $count غطسة في الماء البارد',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12338,13 +12348,23 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String equipment_service_shortDeepCycles(String count) {
-    return 'خلال $count غطسة عميقة';
+  String equipment_service_shortDeepCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خلال $count غطسة عميقة',
+    );
+    return '$_temp0';
   }
 
   @override
-  String equipment_service_shortCycles(String count) {
-    return 'خلال $count دورة بطارية';
+  String equipment_service_shortCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خلال $count دورة بطارية',
+    );
+    return '$_temp0';
   }
 
   @override

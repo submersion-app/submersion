@@ -12474,8 +12474,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String equipment_service_shortDives(String count) {
-    return '$count merülés múlva';
+  String equipment_service_shortDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés múlva',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12489,8 +12494,13 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String equipment_service_shortColdDives(String count) {
-    return '$count hideg vízi merülés múlva';
+  String equipment_service_shortColdDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count hideg vízi merülés múlva',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12499,13 +12509,23 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String equipment_service_shortDeepCycles(String count) {
-    return '$count mély merülés múlva';
+  String equipment_service_shortDeepCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mély merülés múlva',
+    );
+    return '$_temp0';
   }
 
   @override
-  String equipment_service_shortCycles(String count) {
-    return '$count akkumulátorciklus múlva';
+  String equipment_service_shortCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count akkumulátorciklus múlva',
+    );
+    return '$_temp0';
   }
 
   @override

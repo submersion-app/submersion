@@ -7293,18 +7293,18 @@
       }
     }
   },
-  "equipment_service_shortDives": "in {count} dives",
+  "equipment_service_shortDives": "{count, plural, one{in {count} dive} other{in {count} dives}}",
   "equipment_service_shortHours": "in {count} hours",
   "equipment_service_shortSaltHours": "in {count} salt-water hours",
-  "equipment_service_shortColdDives": "in {count} cold dives",
+  "equipment_service_shortColdDives": "{count, plural, one{in {count} cold dive} other{in {count} cold dives}}",
   "equipment_service_shortO2Hours": "in {count} high-O2 hours",
-  "equipment_service_shortDeepCycles": "in {count} deep dives",
-  "equipment_service_shortCycles": "in {count} battery cycles",
+  "equipment_service_shortDeepCycles": "{count, plural, one{in {count} deep dive} other{in {count} deep dives}}",
+  "equipment_service_shortCycles": "{count, plural, one{in {count} battery cycle} other{in {count} battery cycles}}",
   "@equipment_service_shortDives": {
     "description": "Short form of a service clock measured in dives, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.",
     "placeholders": {
       "count": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -7328,7 +7328,7 @@
     "description": "Short form of a service clock measured in cold dives, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.",
     "placeholders": {
       "count": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -7344,7 +7344,7 @@
     "description": "Short form of a service clock measured in deep dives, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.",
     "placeholders": {
       "count": {
-        "type": "String"
+        "type": "int"
       }
     }
   },
@@ -7352,7 +7352,7 @@
     "description": "Short form of a service clock measured in battery cycles, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.",
     "placeholders": {
       "count": {
-        "type": "String"
+        "type": "int"
       }
     }
   },

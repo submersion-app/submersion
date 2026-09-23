@@ -150,6 +150,47 @@ void main() {
     expect(text, 'in 0 dives');
   });
 
+  testWidgets('one dive left reads in the singular', (tester) async {
+    // An integer unit takes the CLDR plural, so a count of one must not read
+    // "in 1 dives" (#2260).
+    final text = await render(
+      tester,
+      status(
+        usageByUnit: {
+          ExposureUnit.dives: const ClockUsage(interval: 50, since: 49),
+        },
+      ),
+    );
+    expect(text, 'in 1 dive');
+  });
+
+  testWidgets('one battery cycle left reads in the singular', (tester) async {
+    final text = await render(
+      tester,
+      status(
+        usageByUnit: {
+          ExposureUnit.cycles: const ClockUsage(interval: 300, since: 299),
+        },
+      ),
+    );
+    expect(text, 'in 1 battery cycle');
+  });
+
+  testWidgets('a zero-dive count keeps its digit in fr', (tester) async {
+    // fr puts 0 in the `one` category, so a branch that hardcoded the
+    // singular would print no count at all for a spent clock.
+    final text = await render(
+      tester,
+      status(
+        usageByUnit: {
+          ExposureUnit.dives: const ClockUsage(interval: 50, since: 50),
+        },
+      ),
+      locale: const Locale('fr'),
+    );
+    expect(text, contains('0'));
+  });
+
   testWidgets('a clock with no configured trigger yields an empty string', (
     tester,
   ) async {

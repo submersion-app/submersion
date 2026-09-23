@@ -12504,8 +12504,14 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String equipment_service_shortDives(String count) {
-    return 'en $count inmersiones';
+  String equipment_service_shortDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'en $count inmersiones',
+      one: 'en $count inmersión',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12519,8 +12525,14 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String equipment_service_shortColdDives(String count) {
-    return 'en $count inmersiones en agua fría';
+  String equipment_service_shortColdDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'en $count inmersiones en agua fría',
+      one: 'en $count inmersión en agua fría',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12529,13 +12541,25 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String equipment_service_shortDeepCycles(String count) {
-    return 'en $count inmersiones profundas';
+  String equipment_service_shortDeepCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'en $count inmersiones profundas',
+      one: 'en $count inmersión profunda',
+    );
+    return '$_temp0';
   }
 
   @override
-  String equipment_service_shortCycles(String count) {
-    return 'en $count ciclos de batería';
+  String equipment_service_shortCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'en $count ciclos de batería',
+      one: 'en $count ciclo de batería',
+    );
+    return '$_temp0';
   }
 
   @override

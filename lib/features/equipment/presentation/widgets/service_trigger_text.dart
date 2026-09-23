@@ -127,10 +127,5 @@ String formatServiceTriggerShort(
   // A spent clock is overdue, not negatively remaining; the same clamp
   // formatServiceTriggerText applies to its own usage lines.
   final remaining = usage.remaining < 0 ? 0.0 : usage.remaining;
-  return pick.shortRemainingText(
-    l10n,
-    pick.isFractional
-        ? remaining.toStringAsFixed(1)
-        : remaining.round().toString(),
-  );
+  return pick.shortRemainingText(l10n, remaining);
 }

@@ -11945,8 +11945,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String equipment_service_shortDives(String count) {
-    return '$count 次潜水后';
+  String equipment_service_shortDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水后',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -11960,8 +11965,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String equipment_service_shortColdDives(String count) {
-    return '$count 次冷水潜水后';
+  String equipment_service_shortColdDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次冷水潜水后',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -11970,13 +11980,23 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String equipment_service_shortDeepCycles(String count) {
-    return '$count 次深潜后';
+  String equipment_service_shortDeepCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次深潜后',
+    );
+    return '$_temp0';
   }
 
   @override
-  String equipment_service_shortCycles(String count) {
-    return '$count 次电池循环后';
+  String equipment_service_shortCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次电池循环后',
+    );
+    return '$_temp0';
   }
 
   @override
