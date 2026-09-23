@@ -3632,14 +3632,18 @@ void main() {
         await tester.pumpAndSettle();
 
         final chartFinder = find.byType(LineChart);
-        final chartBox = tester.renderObject(chartFinder) as RenderBox;
-        final chartSize = chartBox.size;
 
         // Sweep across the chart so fl_chart resolves a nearby data point and
-        // renders the in-chart tooltip, exercising getTooltipItems.
+        // renders the in-chart tooltip, exercising getTooltipItems. The
+        // RenderBox is re-fetched every iteration rather than cached before
+        // the loop: a hover/hold can rebuild the chart with a fresh
+        // RenderObject (e.g. the legend's async height measurement), and
+        // localToGlobal on a stale, now-detached reference throws
+        // "'attached': is not true".
         for (var xFrac = 0.1; xFrac <= 0.9; xFrac += 0.1) {
+          final chartBox = tester.renderObject(chartFinder) as RenderBox;
           final testPoint = chartBox.localToGlobal(
-            Offset(chartSize.width * xFrac, chartSize.height * 0.5),
+            Offset(chartBox.size.width * xFrac, chartBox.size.height * 0.5),
           );
           final gesture = await tester.startGesture(testPoint);
           await tester.pump(const Duration(milliseconds: 600));
