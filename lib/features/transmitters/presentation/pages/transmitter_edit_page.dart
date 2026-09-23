@@ -509,6 +509,7 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                   ),
                   const SizedBox(height: 8),
                   presets.when(
+                    skipLoadingOnReload: true,
                     loading: () => const LinearProgressIndicator(),
                     error: (e, st) => Text('${l10n.common_label_error}: $e'),
                     data: (visibleList) {

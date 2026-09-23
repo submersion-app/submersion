@@ -25,27 +25,31 @@ final tankPresetRepositoryProvider = Provider<TankPresetRepository>((ref) {
 /// a cached one-shot snapshot.
 final tankPresetsProvider = FutureProvider<List<TankPresetEntity>>((ref) async {
   final repository = ref.watch(tankPresetRepositoryProvider);
-  // Selected by content, not by the Set instance: every settings reload
-  // decodes a fresh Set, which must not re-run this provider on its own.
+  // Selects the presets that are effectively hidden (the default is always
+  // offered), by content rather than by Set instance: a settings reload
+  // decodes a fresh Set, and starring a preset that was never hidden must
+  // not re-run this provider either.
   final hidden = ref
-      .watch(
-        settingsProvider.select(
-          (s) => (s.hiddenTankPresetIds.toList()..sort()).join('\n'),
-        ),
-      )
+      .watch(settingsProvider.select(_effectivelyHiddenKey))
       .split('\n')
       .where((name) => name.isNotEmpty)
       .toSet();
-  final defaultPresetName = ref.watch(
-    settingsProvider.select((s) => s.defaultTankPreset),
-  );
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
   ref.invalidateSelfWhen(repository.watchTankPresetsChanges());
   final all = await repository.getAllPresets(diverId: validatedDiverId);
-  return visibleTankPresets(all, hidden, defaultPresetName: defaultPresetName);
+  return visibleTankPresets(all, hidden);
 });
+
+/// The hidden built-in preset slugs minus the default preset, sorted and
+/// newline-joined so equal contents compare equal.
+String _effectivelyHiddenKey(AppSettings settings) =>
+    (settings.hiddenTankPresetIds
+            .where((name) => name != settings.defaultTankPreset)
+            .toList()
+          ..sort())
+        .join('\n');
 
 /// Custom (user-defined) tank presets only for the current diver
 final customTankPresetsProvider = FutureProvider<List<TankPresetEntity>>((

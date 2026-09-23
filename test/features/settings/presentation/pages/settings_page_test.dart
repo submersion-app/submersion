@@ -128,6 +128,7 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
 
   @override
   Future<void> setTankPresetHidden(String presetName, bool hidden) async {
+    if (hidden && presetName == state.defaultTankPreset) return;
     final ids = {...state.hiddenTankPresetIds};
     if (hidden) {
       ids.add(presetName);

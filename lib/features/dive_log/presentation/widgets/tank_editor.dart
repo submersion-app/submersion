@@ -473,6 +473,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         // Tank preset dropdown
         Expanded(
           child: presetsAsync.when(
+            // A reload (a synced settings change, a preset edit) keeps the
+            // dropdown in place instead of swapping it for a progress bar.
+            skipLoadingOnReload: true,
             loading: () => const LinearProgressIndicator(),
             error: (e, st) => Text('Error: $e'),
             data: (visiblePresets) {

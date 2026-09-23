@@ -1539,13 +1539,23 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   /// Also shows [presetName] again if it was hidden: the default preset is
-  /// always offered in the pickers (issue #2305).
+  /// always offered in the pickers (issue #2305). The outgoing default is
+  /// dropped from the hidden set too, since a stale entry for it (a synced
+  /// row can carry one) would otherwise hide it the moment it stops being
+  /// the default, without the diver ever having switched it off.
   Future<void> setDefaultTankPreset(String? presetName) async {
+    final hidden = state.hiddenTankPresetIds;
+    final previous = state.defaultTankPreset;
+    final touchesHidden =
+        hidden.contains(presetName) || hidden.contains(previous);
     state = state.copyWith(
       defaultTankPreset: presetName,
       clearDefaultTankPreset: presetName == null,
-      hiddenTankPresetIds: state.hiddenTankPresetIds.contains(presetName)
-          ? ({...state.hiddenTankPresetIds}..remove(presetName))
+      hiddenTankPresetIds: touchesHidden
+          ? {
+              for (final name in hidden)
+                if (name != presetName && name != previous) name,
+            }
           : null,
     );
     await _saveSettings();
