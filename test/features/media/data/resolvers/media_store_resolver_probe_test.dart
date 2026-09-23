@@ -261,6 +261,50 @@ void main() {
     );
   });
 
+  // No slot would ever open, or every HEAD would give up before it began:
+  // either way every tile would wait on nothing.
+  test('a resolver that could never probe is refused', () {
+    MediaStoreResolver build({
+      int maxConcurrentProbes = 4,
+      Duration probeBudget = const Duration(seconds: 1),
+    }) => MediaStoreResolver(
+      store: store,
+      cache: MediaCacheStore(database: cacheDb, root: root),
+      maxConcurrentProbes: maxConcurrentProbes,
+      probeBudget: probeBudget,
+    );
+
+    expect(() => build(maxConcurrentProbes: 0), throwsA(isA<AssertionError>()));
+    expect(() => build(probeBudget: Duration.zero), throwsAssertionError);
+  });
+
+  // A store runtime torn down mid-scroll must not leave tiles waiting for a
+  // slot that will never open.
+  test('disposing lets go of probes waiting for a slot', () async {
+    final single = MediaStoreResolver(
+      store: store,
+      cache: MediaCacheStore(database: cacheDb, root: root),
+      maxConcurrentProbes: 1,
+    );
+    store.hold = Completer<void>();
+    final running = single.tryResolveProbed(
+      unstamped(contentHash: sha256.convert([1]).toString()),
+      thumbnail: false,
+    );
+    final waiting = single.tryResolveProbed(
+      unstamped(contentHash: sha256.convert([2]).toString()),
+      thumbnail: false,
+    );
+    await pumpEventQueue();
+
+    single.dispose();
+
+    expect(await waiting, isNull);
+    expect(store.heads, hasLength(1), reason: 'the waiter never ran a HEAD');
+    store.hold!.complete();
+    await running;
+  });
+
   // A grid of foreign rows probes as it scrolls; the HEADs are capped the
   // way the fetch gate caps fetches.
   test('probes run a few at a time', () async {

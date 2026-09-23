@@ -513,8 +513,10 @@ Read-only (decided 2026-09-23): a successful probe serves the tile and
 writes nothing; the stamps stay the uploading device's facts, and a grid
 render never publishes a sync write. Only `fromOtherDevice` is probed
 (`notFound` is the linking device's own verdict that the bytes are gone),
-each tier the request needs is asked about once per content hash for the
-life of the store runtime, and a HEAD that failed is not remembered.
+each tier the request needs is asked about once per store key for the
+life of the store runtime (an original's key carries its extension, so one
+content hash can have several), and a HEAD that failed or timed out is not
+remembered.
 
 ## 8. Phase 4: verification matrix
 

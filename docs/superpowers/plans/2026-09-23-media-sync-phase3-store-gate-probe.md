@@ -4,7 +4,7 @@
 
 **Goal:** A foreign row whose upload stamps were lost or have not arrived yet is still shown from the media store this device is attached to (spec 7.2, issue #2129). Turns harness scenario S4 green.
 
-**Architecture:** The tile gate (`storeConfirmed`) consults the store only for rows whose synced stamps say it holds bytes. For a row whose native verdict is `fromOtherDevice` and which carries a `contentHash`, the tile now asks the attached store directly: `MediaStoreResolver.tryResolveProbed` HEADs the tier the tile needs, caches each answer per content hash and tier for the life of the resolver (found and not-found alike; a failed HEAD is not cached), and serves through the existing fetch path by treating the probed tiers as stamped. Nothing is written: the stamps stay the uploading device's facts.
+**Architecture:** The tile gate (`storeConfirmed`) consults the store only for rows whose synced stamps say it holds bytes. For a row whose native verdict is `fromOtherDevice` and which carries a `contentHash`, the tile now asks the attached store directly: `MediaStoreResolver.tryResolveProbed` HEADs the tier the tile needs, caches each answer per store key (the tier's full key, which for an original carries its extension) for the life of the resolver (found and not-found alike; a failed HEAD is not cached), and serves through the existing fetch path by treating the probed tiers as stamped. Nothing is written: the stamps stay the uploading device's facts.
 
 **Tech Stack:** Flutter, Dart, the media store adapters behind `MediaObjectStore`, the two-device media harness.
 
@@ -59,7 +59,8 @@
 - [ ] **Step 3: Implement.**
 
 ```dart
-  /// Probe answers per content hash and tier for the life of this resolver:
+  /// Probe answers per store key for the life of this resolver (superseded
+  /// in review; see As executed):
   /// true found, false absent. A HEAD that failed is not recorded.
   final Map<String, bool> _probes = {};
 
@@ -156,3 +157,4 @@ with `_probe` mirroring the confirmed branch: look up the remote (null keeps nat
 - **Coalescing uses the resolver's own in-flight map.** `MediaFetchGate.run` is typed to `MediaSourceData?`, so concurrent probes for one tier share a `Future<bool?>` in `_probing` instead; the fetch that follows a positive probe still goes through the gate.
 - **A self-waiting future.** The first version removed the in-flight entry with `whenComplete(() => _probing.remove(key))`. `remove` returns the entry, which is that same future, and `whenComplete` waits on a future its callback returns, so every probe waited on itself forever (the tests timed out at 30 s). The callback is now a block that returns nothing, with a comment saying why.
 - **Mutation checks**, each compiling and red on its named test: dropping the negative cache, caching a failed HEAD, dropping the video-thumbnail guard (Task 1); dropping the probe branch (S4), probing `notFound`, probing without a content hash (Task 2).
+- **Review round (PR #2311).** The shipped probe differs from the Task 1 sample above: answers are keyed by the full store key, not the content hash and tier (an original's key carries its extension, so one hash can have several, and a miss for one said nothing about another); after an absent original it probes the compressed rendition, the tier `tryResolveRemote` tries last; probes run at most `maxConcurrentProbes` (4) at a time and each gives up after `probeBudget` (the fetch slot budget), a timeout being remembered no more than a failure; the constructor refuses a non-positive cap or budget, as `MediaFetchGate` does; and a probe with no store attached reports `storeFallbackUsed`.
