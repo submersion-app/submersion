@@ -91,4 +91,33 @@ void main() {
     expect(find.text('Finish setting up this device'), findsNothing);
     expect(prefs.getBool('setup_item_dismissed_store_store-1'), isTrue);
   });
+
+  // The card follows every local write while it is showing, not only the
+  // first after it opened (issue #2304): each write fires the sync event
+  // bus, and each must reach the card.
+  testWidgets('follows every change while it is showing', (tester) async {
+    Future<void> announce(String storeId, String hint) async {
+      await tester.runAsync(
+        () => MediaStoresRepository().upsertActive(
+          storeId: storeId,
+          providerType: 's3',
+          displayHint: hint,
+        ),
+      );
+      await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+      await tester.pump();
+      await tester.pump();
+    }
+
+    await tester.pumpWidget(app());
+    await tester.pump();
+    expect(find.text('Finish setting up this device'), findsNothing);
+
+    await announce('store-1', 'first @ minio');
+    expect(find.text('Connect media storage (first @ minio)'), findsOneWidget);
+
+    await announce('store-2', 'second @ minio');
+    expect(find.text('Connect media storage (second @ minio)'), findsOneWidget);
+    expect(find.text('Connect media storage (first @ minio)'), findsNothing);
+  });
 }
