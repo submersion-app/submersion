@@ -12,6 +12,17 @@ import '../../../../helpers/test_database.dart';
 
 /// Tag scope on the Tags management page (issue #1765), against a real
 /// database so the narrowing path runs end to end.
+/// Taps a scope checkbox, scrolling it into view first.
+///
+/// The colour swatches above it are chips carrying a full tap target
+/// (issue #2269), so the scope editor can sit past the dialog's fold. The
+/// dialog has always scrolled; only the distance changed.
+Future<void> _tapScope(WidgetTester tester, String label) async {
+  final target = find.widgetWithText(CheckboxListTile, label);
+  await tester.ensureVisible(target);
+  await tester.tap(target);
+}
+
 void main() {
   late MockCurrentDiverIdNotifier diverIdNotifier;
 
@@ -71,7 +82,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('tag_edit_t1')));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for sites'));
+    await _tapScope(tester, 'Use for sites');
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(TextButton, 'Save'));
     await tester.pumpAndSettle();
@@ -96,7 +107,7 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('tag_edit_t1')));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for sites'));
+    await _tapScope(tester, 'Use for sites');
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(TextButton, 'Save'));
     await tester.pumpAndSettle();
@@ -127,8 +138,8 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('tag_edit_t1')));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for dives'));
-    await tester.tap(find.widgetWithText(CheckboxListTile, 'Use for sites'));
+    await _tapScope(tester, 'Use for dives');
+    await _tapScope(tester, 'Use for sites');
     await tester.pumpAndSettle();
 
     expect(

@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_dive_mapper.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
 
@@ -495,6 +496,220 @@ void main() {
             .length,
         1,
       );
+    });
+  });
+
+  group('reference resolution', () {
+    DivingLogLogbook wired() => const DivingLogLogbook(
+      dives: [
+        DivingLogRawDive(
+          id: 1,
+          diveDate: '2024-06-01',
+          entryTime: '09:30',
+          buddy: 'Ignored Text',
+          buddyIds: [1],
+          equipmentIds: [3],
+          diveTypeIds: [5],
+          placeId: 10,
+          countryId: 30,
+          shopId: 40,
+          tripId: 50,
+        ),
+      ],
+      capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+      buddiesById: {
+        1: DivingLogRawBuddy(id: 1, firstName: 'Alice', lastName: 'Smith'),
+      },
+      placesById: {
+        10: DivingLogRawPlace(
+          id: 10,
+          place: 'Salt Pier',
+          latitude: 12.13,
+          longitude: -68.28,
+        ),
+      },
+      countryNamesById: {30: 'Bonaire'},
+      equipmentById: {3: DivingLogRawEquipment(id: 3, object: 'Go Sport Fins')},
+      tripsById: {50: DivingLogRawTrip(id: 50, name: 'Bonaire 2024')},
+      shopsById: {40: DivingLogRawShop(id: 40, name: 'Dive Friends')},
+      diveTypesById: {5: DivingLogRawDiveType(id: 5, name: 'Education')},
+      certifications: [DivingLogRawCertification(id: 1, name: 'Rescue Diver')],
+      speciesById: {
+        99: DivingLogRawSpecies(id: 99, commonName: 'Giant Manta Ray'),
+      },
+      speciesIdsByLogId: {
+        1: [99],
+      },
+      picturesByLogId: {
+        1: [DivingLogRawPicture(id: 1, logId: 1, path: '/p/1.jpg')],
+      },
+    );
+
+    test('emits every reference entity', () {
+      final payload = DivingLogDiveMapper.toPayload(wired());
+      expect(payload.entitiesOf(ImportEntityType.sites), hasLength(1));
+      expect(payload.entitiesOf(ImportEntityType.buddies), hasLength(1));
+      expect(payload.entitiesOf(ImportEntityType.equipment), hasLength(1));
+      expect(payload.entitiesOf(ImportEntityType.trips), hasLength(1));
+      expect(payload.entitiesOf(ImportEntityType.diveCenters), hasLength(1));
+      expect(payload.entitiesOf(ImportEntityType.diveTypes), hasLength(1));
+      expect(payload.entitiesOf(ImportEntityType.certifications), hasLength(1));
+      expect(payload.entitiesOf(ImportEntityType.media), hasLength(1));
+    });
+
+    test('a dive with BuddyIDs ignores its free text buddy column', () {
+      final payload = DivingLogDiveMapper.toPayload(wired());
+      final d = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(d['buddyRefs'], ['Alice Smith']);
+      final names = payload
+          .entitiesOf(ImportEntityType.buddies)
+          .map((b) => b['name'])
+          .toList();
+      expect(names, ['Alice Smith']);
+      expect(names, isNot(contains('Ignored Text')));
+    });
+
+    test('links the dive to its references by uddfId', () {
+      final payload = DivingLogDiveMapper.toPayload(wired());
+      final d = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(d['equipmentRefs'], ['divinglog_gear_3']);
+      expect(d['tripRef'], 'divinglog_trip_50');
+      expect(d['diveCenterRef'], 'divinglog_shop_40');
+      expect(d['diveTypeIds'], [DiveTypeEntity.generateSlug('Education')]);
+      expect(d['site']['uddfId'], 'divinglog_site_bonaire|salt pier');
+      expect(
+        (d['sightings'] as List).single['speciesRef'],
+        'species_giant_manta_ray',
+      );
+    });
+
+    test('reports ids that match no record, once per kind', () {
+      const book = DivingLogLogbook(
+        dives: [
+          DivingLogRawDive(
+            id: 1,
+            diveDate: '2024-06-01',
+            buddyIds: [1, 99],
+            equipmentIds: [42],
+          ),
+        ],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+        buddiesById: {1: DivingLogRawBuddy(id: 1, firstName: 'Alice')},
+      );
+      final payload = DivingLogDiveMapper.toPayload(book);
+      final messages = payload.warnings.map((w) => w.message).join(' ');
+      expect(messages, contains('1 buddy reference(s)'));
+      expect(messages, contains('1 equipment reference(s)'));
+    });
+
+    test('an unresolvable BuddyIDs does not fall back to the text', () {
+      // Ids win means ids win. Falling back here would recreate the phase 1
+      // duplicates precisely when the relational data is incomplete.
+      const book = DivingLogLogbook(
+        dives: [
+          DivingLogRawDive(
+            id: 1,
+            diveDate: '2024-06-01',
+            buddy: 'Alice, Bob',
+            buddyIds: [99],
+          ),
+        ],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+      );
+      final payload = DivingLogDiveMapper.toPayload(book);
+      final d = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(d.containsKey('buddyRefs'), isFalse);
+      expect(payload.entitiesOf(ImportEntityType.buddies), isEmpty);
+      expect(
+        payload.warnings.map((w) => w.message).join(' '),
+        contains('1 buddy reference(s)'),
+      );
+    });
+
+    test('does not call a deduplicated dive type reference unresolved', () {
+      // diveTypeIdsFor collapses two ids that share a name into one slug,
+      // so counting requested minus resolved would report a record missing
+      // when nothing is missing at all.
+      const book = DivingLogLogbook(
+        dives: [
+          DivingLogRawDive(id: 1, diveDate: '2024-06-01', diveTypeIds: [5, 6]),
+        ],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+        diveTypesById: {
+          5: DivingLogRawDiveType(id: 5, name: 'Wreck'),
+          6: DivingLogRawDiveType(id: 6, name: 'Wreck'),
+        },
+      );
+      final payload = DivingLogDiveMapper.toPayload(book);
+      expect(
+        payload.entitiesOf(ImportEntityType.dives).single['diveTypeIds'],
+        hasLength(1),
+      );
+      expect(
+        payload.warnings.map((w) => w.message).join(' '),
+        isNot(contains('dive type reference')),
+      );
+    });
+
+    test('counts a repeated valid id once per id, not as a gap', () {
+      const book = DivingLogLogbook(
+        dives: [
+          DivingLogRawDive(id: 1, diveDate: '2024-06-01', diveTypeIds: [5, 5]),
+        ],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+        diveTypesById: {5: DivingLogRawDiveType(id: 5, name: 'Wreck')},
+      );
+      final payload = DivingLogDiveMapper.toPayload(book);
+      expect(
+        payload.warnings.map((w) => w.message).join(' '),
+        isNot(contains('dive type reference')),
+      );
+    });
+
+    test('says references could not be resolved, not that rows are absent', () {
+      // The count includes rows that exist but yield no entity, such as an
+      // equipment row with a blank name, so "the file does not contain
+      // them" would be untrue.
+      const book = DivingLogLogbook(
+        dives: [
+          DivingLogRawDive(id: 1, diveDate: '2024-06-01', equipmentIds: [8]),
+        ],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+        equipmentById: {8: DivingLogRawEquipment(id: 8, object: '   ')},
+      );
+      final payload = DivingLogDiveMapper.toPayload(book);
+      final messages = payload.warnings.map((w) => w.message).join(' ');
+      expect(messages, contains('could not be resolved'));
+      expect(messages, isNot(contains('does not contain')));
+    });
+
+    test('surfaces a buddy name collision as a diagnostic', () {
+      const book = DivingLogLogbook(
+        dives: [DivingLogRawDive(id: 1, diveDate: '2024-06-01')],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+        buddiesById: {
+          1: DivingLogRawBuddy(id: 1, firstName: 'Sam', lastName: 'Lee'),
+          2: DivingLogRawBuddy(id: 2, firstName: 'Sam', lastName: 'Lee'),
+        },
+      );
+      final payload = DivingLogDiveMapper.toPayload(book);
+      expect(
+        payload.warnings.map((w) => w.message).join(' '),
+        contains('Sam Lee'),
+      );
+    });
+
+    test('still uses the text column when a dive has no BuddyIDs', () {
+      const book = DivingLogLogbook(
+        dives: [
+          DivingLogRawDive(id: 1, diveDate: '2024-06-01', buddy: 'Carol'),
+        ],
+        capabilities: DivingLogCapabilities(tables: {}, columns: {}),
+      );
+      final payload = DivingLogDiveMapper.toPayload(book);
+      expect(payload.entitiesOf(ImportEntityType.dives).single['buddyRefs'], [
+        'Carol',
+      ]);
     });
   });
 }

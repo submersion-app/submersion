@@ -21,9 +21,20 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/services/dive_sensor_summary_service.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
+
+/// One item's exposure as [EquipmentRepository.getItemExposure] wires it:
+/// its parent, its parts still fitted, whether it breathes a loop, and the
+/// dives it was exposed on.
+typedef ItemExposure = ({
+  EquipmentItem? parent,
+  List<EquipmentItem> fittedChildren,
+  bool isRebreather,
+  List<EquipmentExposureSample> samples,
+});
 
 class EquipmentRepository {
   /// Injectable seams mirror [SiteRepository]: tests hand in a coordinator
@@ -1057,39 +1068,10 @@ class EquipmentRepository {
             ],
           )
           .get();
-      return rows.map((r) {
-        final mode = DiveMode.values.firstWhere(
-          (m) => m.name == r.data['dive_mode'],
-          orElse: () => DiveMode.oc,
-        );
-        final waterName = r.data['water_type'] as String?;
-        final water = waterName == null
-            ? null
-            : WaterType.values.where((w) => w.name == waterName).firstOrNull;
-        final o2Percent = (r.data['contact_o2'] as num?)?.toDouble();
-        final contact = o2Percent != null
-            ? o2Percent / 100.0
-            : (rebreatherContact && mode == DiveMode.ccr ? 1.0 : null);
-        return EquipmentExposureSample(
-          diveId: r.data['dive_id'] as String,
-          updatedAt: (r.data['updated_at'] as num).toInt(),
-          // dives.dive_date_time is epoch millis with wall-clock-as-UTC
-          // semantics (see dive_filter_sql.dart); decode with isUtc: true
-          // like the other dive-date mappers so the engine's
-          // date.isAfter(anchor) usage comparison is not shifted by the
-          // local offset around day boundaries.
-          date: DateTime.fromMillisecondsSinceEpoch(
-            r.data['date_ms'] as int,
-            isUtc: true,
-          ),
-          durationSeconds: (r.data['duration_sec'] as num).toInt(),
-          diveMode: mode,
-          maxDepth: (r.data['max_depth'] as num?)?.toDouble(),
-          minTemperature: (r.data['min_temp'] as num?)?.toDouble(),
-          waterType: water,
-          contactO2Fraction: contact,
-        );
-      }).toList();
+      return [
+        for (final r in rows)
+          _exposureSampleFromRow(r, rebreatherContact: rebreatherContact),
+      ];
     } catch (e, stackTrace) {
       _log.error(
         'Failed to get exposure samples for equipment: $equipmentId',
@@ -1112,15 +1094,10 @@ class EquipmentRepository {
   ///
   /// [siblings] is the active gear list when the caller already has it, so
   /// the parent and children lookups cost no query per item.
-  Future<
-    ({
-      EquipmentItem? parent,
-      List<EquipmentItem> fittedChildren,
-      bool isRebreather,
-      List<EquipmentExposureSample> samples,
-    })
-  >
-  getItemExposure(EquipmentItem item, {List<EquipmentItem>? siblings}) async {
+  Future<ItemExposure> getItemExposure(
+    EquipmentItem item, {
+    List<EquipmentItem>? siblings,
+  }) async {
     final parentId = item.parentEquipmentId;
     final parent = parentId == null
         ? null
@@ -1160,6 +1137,319 @@ class EquipmentRepository {
                 if (s.date.isBefore(until)) s,
             ],
     );
+  }
+
+  /// [getItemExposure] for many items at once, keyed by item id, in a
+  /// fixed number of statements however many items there are: one for any
+  /// parents outside [items], one for the children of every item and
+  /// parent, and one exposure query per 200 items. Retired and spare items
+  /// are evaluated like any other; the caller chooses the set.
+  Future<Map<String, ItemExposure>> getItemExposures(
+    List<EquipmentItem> items,
+  ) async {
+    if (items.isEmpty) return const {};
+    final known = {for (final i in items) i.id: i};
+    final parentIds = {
+      for (final i in items)
+        if (i.parentEquipmentId != null) i.parentEquipmentId!,
+    };
+    final missingParents = [
+      for (final id in parentIds)
+        if (!known.containsKey(id)) id,
+    ];
+    final byId = {
+      ...known,
+      for (final p in await getEquipmentByIds(missingParents)) p.id: p,
+    };
+    // Retired children too: a fitted-parts list filters them out below, and
+    // a replaced part's successor may itself be retired by now.
+    final childrenOf = await _getChildrenOf([
+      ...known.keys,
+      for (final id in parentIds)
+        if (!known.containsKey(id)) id,
+    ]);
+
+    final shapes = [
+      for (final item in items)
+        (
+          item: item,
+          parent: item.parentEquipmentId == null
+              ? null
+              : byId[item.parentEquipmentId],
+        ),
+    ];
+    bool loopOf(({EquipmentItem item, EquipmentItem? parent}) s) =>
+        s.item.type == EquipmentType.rebreather ||
+        s.parent?.type == EquipmentType.rebreather;
+
+    final samplesByOwner = await _getExposureSamplesForOwners([
+      for (final s in shapes)
+        (
+          id: s.item.id,
+          parentId: s.item.parentEquipmentId,
+          installedSince: s.item.parentDivesFrom,
+          rebreatherContact: loopOf(s),
+        ),
+    ]);
+
+    return {
+      for (final s in shapes)
+        s.item.id: _trimmedExposure(
+          s.item,
+          parent: s.parent,
+          fittedChildren: [
+            for (final c in childrenOf[s.item.id] ?? const <EquipmentItem>[])
+              if (c.isFitted) c,
+          ],
+          isRebreather: loopOf(s),
+          samples: samplesByOwner[s.item.id] ?? const [],
+          parentChildren: s.item.parentEquipmentId == null
+              ? const []
+              : childrenOf[s.item.parentEquipmentId] ?? const [],
+        ),
+    };
+  }
+
+  /// Every child of each of [parentIds], retired ones included, keyed by
+  /// parent id and ordered by name as [getChildEquipment] orders them.
+  Future<Map<String, List<EquipmentItem>>> _getChildrenOf(
+    List<String> parentIds,
+  ) async {
+    if (parentIds.isEmpty) return const {};
+    final rows = <EquipmentData>[];
+    for (final chunk in seriesIdChunks(parentIds)) {
+      rows.addAll(
+        await (_db.select(
+          _db.equipment,
+        )..where((t) => t.parentEquipmentId.isIn(chunk))).get(),
+      );
+    }
+    final children = await _mapRowsWithAttributes(
+      sortedByText(rows, (r) => r.name),
+    );
+    final byParent = <String, List<EquipmentItem>>{};
+    for (final child in children) {
+      byParent.putIfAbsent(child.parentEquipmentId!, () => []).add(child);
+    }
+    return byParent;
+  }
+
+  /// [item]'s exposure once its parts and samples are known: a part no
+  /// longer fitted stops at its successor's install date. [parentChildren]
+  /// is every child of [item]'s parent, retired ones included.
+  static ItemExposure _trimmedExposure(
+    EquipmentItem item, {
+    required EquipmentItem? parent,
+    required List<EquipmentItem> fittedChildren,
+    required bool isRebreather,
+    required List<EquipmentExposureSample> samples,
+    required List<EquipmentItem> parentChildren,
+  }) {
+    // Only a part no longer fitted can have a successor.
+    final until = item.parentEquipmentId == null || item.isFitted
+        ? null
+        : successorStart(item, parentChildren);
+    return (
+      parent: parent,
+      fittedChildren: fittedChildren,
+      isRebreather: isRebreather,
+      samples: until == null
+          ? samples
+          : [
+              for (final s in samples)
+                if (s.date.isBefore(until)) s,
+            ],
+    );
+  }
+
+  /// One exposure query row as a sample. Shared by the single-item and the
+  /// batched query, which select the same columns.
+  static EquipmentExposureSample _exposureSampleFromRow(
+    QueryRow r, {
+    required bool rebreatherContact,
+  }) {
+    final mode = DiveMode.values.firstWhere(
+      (m) => m.name == r.data['dive_mode'],
+      orElse: () => DiveMode.oc,
+    );
+    final waterName = r.data['water_type'] as String?;
+    final water = waterName == null
+        ? null
+        : WaterType.values.where((w) => w.name == waterName).firstOrNull;
+    final o2Percent = (r.data['contact_o2'] as num?)?.toDouble();
+    final contact = o2Percent != null
+        ? o2Percent / 100.0
+        : (rebreatherContact && mode == DiveMode.ccr ? 1.0 : null);
+    return EquipmentExposureSample(
+      diveId: r.data['dive_id'] as String,
+      updatedAt: (r.data['updated_at'] as num).toInt(),
+      // dives.dive_date_time is epoch millis with wall-clock-as-UTC
+      // semantics (see dive_filter_sql.dart); decode with isUtc: true
+      // like the other dive-date mappers so the engine's
+      // date.isAfter(anchor) usage comparison is not shifted by the
+      // local offset around day boundaries.
+      date: DateTime.fromMillisecondsSinceEpoch(
+        r.data['date_ms'] as int,
+        isUtc: true,
+      ),
+      durationSeconds: (r.data['duration_sec'] as num).toInt(),
+      diveMode: mode,
+      maxDepth: (r.data['max_depth'] as num?)?.toDouble(),
+      minTemperature: (r.data['min_temp'] as num?)?.toDouble(),
+      waterType: water,
+      contactO2Fraction: contact,
+    );
+  }
+
+  /// Owners per batched exposure statement. Each binds four variables, so
+  /// 200 keeps a statement at 801, under the 900 the id chunks use.
+  static const int _exposureOwnersPerStatement = 200;
+
+  /// [getExposureSamplesForEquipment] for many owners at once, keyed by
+  /// owner id, each owner's samples in date order. Every owner is present,
+  /// an owner with no dives mapping to an empty list.
+  ///
+  /// The single-item query binds the owner, its parent, its install date
+  /// and its loop flag as scalars. Here each owner's four values ride in a
+  /// VALUES table instead, so the caller still decides them in Dart (the
+  /// install date is a derived, timezone-sensitive attribute, see
+  /// [EquipmentItem.parentDivesFrom]) and the SQL stops being run per item.
+  /// The seven branches are the single-item query's, joined to that table.
+  ///
+  /// Deliberately does NOT apply DiveStatsScope, for the single-item query's
+  /// reason: an excluded dive still wore this gear, and dropping it would
+  /// push a real service interval later than it should be.
+  Future<Map<String, List<EquipmentExposureSample>>>
+  _getExposureSamplesForOwners(
+    List<
+      ({
+        String id,
+        String? parentId,
+        DateTime? installedSince,
+        bool rebreatherContact,
+      })
+    >
+    owners,
+  ) async {
+    final byOwner = {for (final o in owners) o.id: <EquipmentExposureSample>[]};
+    final rebreatherById = {for (final o in owners) o.id: o.rebreatherContact};
+    try {
+      for (
+        var start = 0;
+        start < owners.length;
+        start += _exposureOwnersPerStatement
+      ) {
+        final end = start + _exposureOwnersPerStatement < owners.length
+            ? start + _exposureOwnersPerStatement
+            : owners.length;
+        final chunk = owners.sublist(start, end);
+        final values = List.filled(chunk.length, '(?, ?, ?, ?)').join(', ');
+        // stats-scope-exempt: gear wear is physical, not descriptive
+        final rows = await _db
+            .customSelect(
+              '''
+        WITH owners(owner_id, parent_id, installed_since, rebreather) AS (
+          VALUES $values
+        )
+        SELECT je.owner_id AS owner_id,
+               d.id AS dive_id,
+               d.updated_at AS updated_at,
+               d.dive_date_time AS date_ms,
+               CASE
+                 WHEN d.runtime > 0 THEN d.runtime
+                 WHEN d.bottom_time > 0 THEN d.bottom_time
+                 ELSE 0
+               END AS duration_sec,
+               d.dive_mode AS dive_mode,
+               d.water_type AS water_type,
+               COALESCE(s.max_depth, d.max_depth) AS max_depth,
+               COALESCE(s.min_temperature, d.water_temp) AS min_temp,
+               MAX(je.contact_o2) AS contact_o2
+        FROM (
+          SELECT o.owner_id, de.dive_id, NULL AS contact_o2, 0 AS via_parent
+            FROM owners o
+            JOIN dive_equipment de ON de.equipment_id = o.owner_id
+          UNION ALL
+          SELECT o.owner_id, t.dive_id, t.o2_percent, 0
+            FROM owners o
+            JOIN dive_tanks t ON t.equipment_id = o.owner_id
+              OR t.regulator_equipment_id = o.owner_id
+          UNION ALL
+          SELECT o.owner_id, de.dive_id, t.o2_percent, 0
+            FROM owners o
+            JOIN dive_equipment de ON de.equipment_id = o.owner_id
+            JOIN dive_tanks t ON t.dive_id = de.dive_id
+              AND t.tank_role IN ('diluent', 'oxygenSupply')
+            WHERE o.rebreather = 1
+          UNION ALL
+          SELECT o.owner_id, t.dive_id, NULL, 0
+            FROM owners o
+            JOIN transmitters r ON r.transmitter_equipment_id = o.owner_id
+            JOIN dive_tanks t
+              ON TRIM(t.transmitter_serial) = TRIM(r.transmitter_serial)
+            JOIN dives rd ON rd.id = t.dive_id
+            WHERE LTRIM(TRIM(r.transmitter_serial), '0') <> ''
+              AND (r.diver_id IS NULL OR rd.diver_id IS NULL
+                OR rd.diver_id = r.diver_id)
+          UNION ALL
+          -- A NULL parent matches nothing, as the single query's '' does.
+          SELECT o.owner_id, de.dive_id, NULL, 1
+            FROM owners o
+            JOIN dive_equipment de ON de.equipment_id = o.parent_id
+          UNION ALL
+          SELECT o.owner_id, t.dive_id, t.o2_percent, 1
+            FROM owners o
+            JOIN dive_tanks t ON t.equipment_id = o.parent_id
+              OR t.regulator_equipment_id = o.parent_id
+          UNION ALL
+          SELECT o.owner_id, de.dive_id, t.o2_percent, 1
+            FROM owners o
+            JOIN dive_equipment de ON de.equipment_id = o.parent_id
+            JOIN dive_tanks t ON t.dive_id = de.dive_id
+              AND t.tank_role IN ('diluent', 'oxygenSupply')
+            WHERE o.rebreather = 1
+        ) je
+        JOIN owners o ON o.owner_id = je.owner_id
+        JOIN dives d ON d.id = je.dive_id
+        LEFT JOIN dive_sensor_summaries s ON s.dive_id = d.id
+          AND s.source_updated_at = d.updated_at
+          AND s.engine_version >= ?
+        WHERE (je.via_parent = 0 OR o.installed_since IS NULL
+          OR d.dive_date_time >= o.installed_since)
+        GROUP BY je.owner_id, d.id
+        ORDER BY je.owner_id, d.dive_date_time
+      ''',
+              variables: [
+                for (final o in chunk) ...[
+                  Variable.withString(o.id),
+                  Variable(o.parentId),
+                  Variable(o.installedSince?.millisecondsSinceEpoch),
+                  Variable.withInt(o.rebreatherContact ? 1 : 0),
+                ],
+                // Only a current summary, as in the single-item query.
+                Variable.withInt(DiveSensorSummaryService.version),
+              ],
+            )
+            .get();
+        for (final r in rows) {
+          final ownerId = r.data['owner_id'] as String;
+          byOwner[ownerId]!.add(
+            _exposureSampleFromRow(
+              r,
+              rebreatherContact: rebreatherById[ownerId]!,
+            ),
+          );
+        }
+      }
+      return byOwner;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get exposure samples for ${owners.length} owners',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
   }
 
   /// When the next part of [item]'s type went into the same slot after it,

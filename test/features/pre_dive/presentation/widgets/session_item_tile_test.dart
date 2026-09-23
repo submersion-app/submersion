@@ -7,9 +7,9 @@ import 'package:submersion/features/equipment/domain/entities/service_clock_stat
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
+import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/session_item_tile.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -300,9 +300,11 @@ void main() {
           s: session(),
           it: item(equipmentId: 'g1'),
           overrides: [
-            serviceClockStatusesProvider(
-              'g1',
-            ).overrideWith((ref) async => [overdueStatus]),
+            sessionServiceClocksProvider('s1').overrideWith(
+              (ref) async => {
+                'g1': [overdueStatus],
+              },
+            ),
           ],
         );
         expect(find.text('Service overdue'), findsOneWidget);
@@ -340,9 +342,11 @@ void main() {
       bool overdue = false,
     }) => [
       settingsProvider.overrideWith((ref) => MockSettingsNotifier(settings)),
-      serviceClockStatusesProvider(
-        'g1',
-      ).overrideWith((ref) async => overdue ? [overdueStatus] : []),
+      sessionServiceClocksProvider('s1').overrideWith(
+        (ref) async => {
+          'g1': overdue ? [overdueStatus] : [],
+        },
+      ),
       equipmentConditionProvider('g1').overrideWith((ref) async => findings),
     ];
 
@@ -436,7 +440,9 @@ void main() {
         s: session(),
         it: item(equipmentId: 'g1'),
         overrides: [
-          serviceClockStatusesProvider('g1').overrideWith((ref) async => []),
+          sessionServiceClocksProvider(
+            's1',
+          ).overrideWith((ref) async => {'g1': []}),
         ],
       );
       expect(find.text('Service overdue'), findsNothing);
@@ -460,7 +466,7 @@ void main() {
               ),
             ],
           ),
-          // No serviceClockStatusesProvider override: a resolved item must
+          // No sessionServiceClocksProvider override: a resolved item must
           // never watch it, so this would fail with a missing-provider error
           // if the live path were used by mistake.
         );
@@ -527,17 +533,19 @@ void main() {
           s: session(),
           it: item(equipmentId: 'g1'),
           overrides: [
-            serviceClockStatusesProvider('g1').overrideWith(
-              (ref) async => [
-                ServiceClockStatus(
-                  schedule: overdueStatus.schedule,
-                  kind: overdueStatus.kind,
-                  anchor: now,
-                  dueDate: DateTime(2024, 6),
-                  severity: ServiceClockSeverity.overdue,
-                  now: DateTime(2026, 1, 1),
-                ),
-              ],
+            sessionServiceClocksProvider('s1').overrideWith(
+              (ref) async => {
+                'g1': [
+                  ServiceClockStatus(
+                    schedule: overdueStatus.schedule,
+                    kind: overdueStatus.kind,
+                    anchor: now,
+                    dueDate: DateTime(2024, 6),
+                    severity: ServiceClockSeverity.overdue,
+                    now: DateTime(2026, 1, 1),
+                  ),
+                ],
+              },
             ),
           ],
         );
@@ -597,15 +605,82 @@ void main() {
           s: session(),
           it: item(equipmentId: 'g1'),
           overrides: [
-            serviceClockStatusesProvider(
-              'g1',
-            ).overrideWith((ref) async => [dueSoonStatus, okStatus]),
+            sessionServiceClocksProvider('s1').overrideWith(
+              (ref) async => {
+                'g1': [dueSoonStatus, okStatus],
+              },
+            ),
           ],
         );
 
         expect(find.text('Service overdue'), findsNothing);
         expect(find.textContaining('Scrubber'), findsOneWidget);
         expect(find.textContaining('CO2 sensor'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'an item with two overdue clocks shows both, not only the worst',
+      (tester) async {
+        final overdueHydro = ServiceClockStatus(
+          schedule: ServiceSchedule(
+            id: 'sched-hydro',
+            equipmentId: 'g1',
+            serviceKindId: 'hydro',
+            createdAt: now,
+            updatedAt: now,
+          ),
+          kind: ServiceKind(
+            id: 'hydro',
+            name: 'Hydrostatic test',
+            applicableTypes: const [],
+            createdAt: now,
+            updatedAt: now,
+          ),
+          anchor: now,
+          dueDate: DateTime(2021, 1, 1),
+          severity: ServiceClockSeverity.overdue,
+          now: DateTime(2026, 1, 1),
+        );
+
+        await pumpTile(
+          tester,
+          s: session(),
+          it: item(equipmentId: 'g1'),
+          overrides: [
+            sessionServiceClocksProvider('s1').overrideWith(
+              (ref) async => {
+                'g1': [overdueStatus, overdueHydro],
+              },
+            ),
+          ],
+        );
+
+        // One heading, then a line per clock.
+        expect(find.text('Service overdue'), findsOneWidget);
+        expect(find.textContaining('Visual inspection'), findsOneWidget);
+        expect(find.textContaining('Hydrostatic test'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      "a pending item reads only its own gear's clocks from the session map",
+      (tester) async {
+        await pumpTile(
+          tester,
+          s: session(),
+          it: item(equipmentId: 'g2'),
+          overrides: [
+            sessionServiceClocksProvider('s1').overrideWith(
+              (ref) async => {
+                'g1': [overdueStatus],
+              },
+            ),
+          ],
+        );
+
+        expect(find.text('Service overdue'), findsNothing);
+        expect(find.textContaining('Visual inspection'), findsNothing);
       },
     );
 
@@ -640,9 +715,11 @@ void main() {
           s: session(),
           it: item(equipmentId: 'g1'),
           overrides: [
-            serviceClockStatusesProvider(
-              'g1',
-            ).overrideWith((ref) async => [overdueStatus, dueSoonStatus]),
+            sessionServiceClocksProvider('s1').overrideWith(
+              (ref) async => {
+                'g1': [overdueStatus, dueSoonStatus],
+              },
+            ),
           ],
         );
 

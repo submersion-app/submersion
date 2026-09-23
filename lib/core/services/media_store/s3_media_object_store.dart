@@ -378,6 +378,12 @@ class S3MediaObjectStore implements MediaObjectStore {
   /// Classifies S3ApiClient's user-facing messages (see _throwFor and
   /// getObject in s3_api_client.dart) into the retry taxonomy.
   MediaStoreException _map(String op, String key, CloudStorageException e) {
+    // Classify on the message alone. displayMessage folds in the provider's
+    // own words, and a 500 whose Message reads "Access denied by policy" is
+    // a server fault the queue should retry, not an auth failure it should
+    // stop on. The wrapped message below uses displayMessage, so the
+    // explanation still reaches the queue, the Transfers page and the media
+    // health report.
     final message = e.message;
     final MediaStoreErrorKind kind;
     if (message.startsWith('File not found in S3')) {
@@ -390,7 +396,7 @@ class S3MediaObjectStore implements MediaObjectStore {
       kind = MediaStoreErrorKind.fatal;
     }
     return MediaStoreException(
-      '$op $key failed: $message',
+      '$op $key failed: ${e.displayMessage}',
       kind: kind,
       cause: e,
     );

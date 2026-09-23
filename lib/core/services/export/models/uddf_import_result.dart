@@ -47,6 +47,12 @@ class UddfImportResult {
   /// must not cost the user the rest of the import.
   final int unpairedDumps;
 
+  /// Dives that pointed at a dive site the file never described, so they
+  /// were imported without one (#2209). Counted here rather than raised as a
+  /// warning because this service predates `ImportWarning`; `UddfImportParser`
+  /// turns it into the summary's `sitesUnresolved` notice.
+  final int divesMissingSite;
+
   const UddfImportResult({
     this.dives = const [],
     this.sites = const [],
@@ -70,6 +76,7 @@ class UddfImportResult {
     this.sourceFileName,
     this.dataSourcesByDiveRef = const {},
     this.unpairedDumps = 0,
+    this.divesMissingSite = 0,
   });
 
   /// Check if any data was imported
@@ -190,6 +197,7 @@ class UddfImportResult {
       sourceFileName: sourceFileName,
       dataSourcesByDiveRef: dataSourcesByDiveRef,
       unpairedDumps: unpairedDumps,
+      divesMissingSite: divesMissingSite,
     );
   }
 }

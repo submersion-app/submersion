@@ -30,7 +30,7 @@ class CsvCorrelator {
   /// 2. Extract dives via [DiveExtractor] - each gets a fresh UUID.
   /// 3. Extract tanks via [TankExtractor] and link to their dive by diveId.
   /// 4. Extract sites via [SiteExtractor] (deduplicated).
-  /// 5. Link each dive to its site using [SiteExtractor.siteIdForName].
+  /// 5. Link each dive to its site using [SiteExtractor.siteIdForRow].
   /// 6. Conditionally extract buddies, tags, and gear.
   /// 7. Attach tanks list to each dive map, link buddies and tags, and link
   ///    each dive to the suit gear extracted from its row.
@@ -70,13 +70,18 @@ class CsvCorrelator {
     // Step 5: Link dives to their sites (only when sites are enabled).
     final List<Map<String, dynamic>> linkedDives;
     if (siteExtractor != null) {
-      linkedDives = dives.map((dive) {
-        final siteName = dive['siteName'] as String?;
-        if (siteName == null) return dive;
-        final siteId = siteExtractor!.siteIdForName(siteName);
-        if (siteId == null) return dive;
-        return Map<String, dynamic>.from(dive)..['siteId'] = siteId;
-      }).toList();
+      // Linked from the row, not from the dive's `siteName`: a site that
+      // exists only because its row carried `gps` has no name on the dive to
+      // look up (#2212).
+      linkedDives = [
+        for (var i = 0; i < dives.length; i++)
+          switch (siteExtractor.siteIdForRow(rows[i])) {
+            final siteId? => Map<String, dynamic>.from(
+              dives[i],
+            )..['siteId'] = siteId,
+            null => dives[i],
+          },
+      ];
     } else {
       linkedDives = dives;
     }

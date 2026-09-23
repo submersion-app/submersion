@@ -10,6 +10,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/legend_candida
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_legend_config.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 /// Persistent dialog for chart toggle options.
 ///
@@ -73,6 +75,15 @@ class ChartOptionsDialog extends StatelessWidget {
                         context,
                         legendState: legendState,
                         legendNotifier: legendNotifier,
+                        // The unit is a viewing preference, not a per-dive
+                        // one: picking it here makes it the default for the
+                        // next dive too.
+                        onO2CellUnitChanged: (unit) {
+                          legendNotifier.setO2CellUnit(unit);
+                          ref
+                              .read(settingsProvider.notifier)
+                              .setO2CellUnit(unit);
+                        },
                       ),
                     ),
                   );
@@ -89,6 +100,7 @@ class ChartOptionsDialog extends StatelessWidget {
     BuildContext context, {
     required ProfileLegendState legendState,
     required ProfileLegend legendNotifier,
+    required ValueChanged<O2CellUnit> onO2CellUnitChanged,
   }) {
     final sections = <Widget>[];
 
@@ -430,15 +442,28 @@ class ChartOptionsDialog extends StatelessWidget {
           isEnabled: legendState.showPpHe,
           onTap: legendNotifier.togglePpHe,
         ),
-      if (config.hasO2CellMvData)
-        buildToggleItem(
-          context,
-          label: context.l10n.diveLog_legend_label_o2Cells,
-          // Cell 1's colour, so the swatch belongs to the same set as the lines.
-          color: o2CellColor(0),
-          isEnabled: legendState.showO2CellMv,
-          onTap: legendNotifier.toggleO2CellMv,
-        ),
+      if (config.hasO2CellData)
+        if (config.hasBothO2CellUnits)
+          buildToggleWithSource(
+            context,
+            label: context.l10n.diveLog_legend_label_o2Cells,
+            color: o2CellColor(0),
+            isEnabled: legendState.showO2Cells,
+            onTap: legendNotifier.toggleO2Cells,
+            currentSource: legendState.o2CellUnit,
+            onSourceChanged: onO2CellUnitChanged,
+            segments: o2CellUnitSegments(context),
+          )
+        else
+          buildToggleItem(
+            context,
+            label: context.l10n.diveLog_legend_label_o2Cells,
+            // Cell 1's colour, so the swatch belongs to the same set as the
+            // lines.
+            color: o2CellColor(0),
+            isEnabled: legendState.showO2Cells,
+            onTap: legendNotifier.toggleO2Cells,
+          ),
       if (config.hasModData)
         buildToggleItem(
           context,

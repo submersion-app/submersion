@@ -3,6 +3,8 @@ import 'package:submersion/core/services/export/excel/pre_dive_excel_export_serv
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_template_repository.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart'
@@ -130,6 +132,41 @@ final preDiveSessionItemsProvider =
       ref.invalidateSelfWhen(repository.watchSessionsChanges());
       return repository.getItemsForSession(sessionId);
     });
+
+/// Every live service clock on the gear a session's rows link, keyed by
+/// equipment id: one batched evaluation that every row of the runner reads,
+/// where one provider per row cost ~14.6 statements a row. Retired and
+/// spare gear keeps its clocks (the session sheet offers any item), and
+/// every clock is kept, not only the worst.
+///
+/// Depends on WHICH gear the session links, not on the rows themselves:
+/// every tap rewrites the session, and re-evaluating the clocks per tap
+/// would be a cost the per-row providers never had. A resolved row reads
+/// its frozen snapshot instead, never this.
+final sessionServiceClocksProvider =
+    FutureProvider.family<Map<String, List<ServiceClockStatus>>, String>((
+      ref,
+      sessionId,
+    ) async {
+      final idsKey = await ref.watch(
+        preDiveSessionItemsProvider(sessionId).selectAsync(_linkedGearKey),
+      );
+      return evaluateServiceClocksForIds(
+        ref,
+        idsKey.isEmpty ? const [] : idsKey.split(_gearKeySeparator),
+      );
+    });
+
+/// Joins ids that are uuids, so a comma never occurs inside one.
+const _gearKeySeparator = ',';
+
+/// The distinct gear ids [items] link, sorted and joined: a String, so the
+/// select above compares by value where a List would compare by identity
+/// and fire on every rebuild.
+String _linkedGearKey(List<domain.PreDiveSessionItem> items) => ({
+  for (final item in items)
+    if (item.equipmentId != null) item.equipmentId!,
+}.toList()..sort()).join(_gearKeySeparator);
 
 final preDiveSessionForDiveProvider =
     FutureProvider.family<domain.PreDiveSession?, String>((ref, diveId) async {

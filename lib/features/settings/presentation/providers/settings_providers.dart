@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/constants/place_name_language.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
@@ -108,6 +109,10 @@ class SettingsKeys {
   // per-diver in the DB).
   static const String profileMetricsFollowViewport =
       'profile_metrics_follow_viewport';
+
+  // Which unit the O2 cell traces are drawn in when a dive carries both
+  // (device-local, a viewing preference like the one above).
+  static const String o2CellUnit = 'o2_cell_unit';
 
   // Perdix-style media overlay preferences (device-local, stored directly in
   // SharedPreferences rather than per-diver in the DB).
@@ -523,6 +528,11 @@ class AppSettings {
   /// not per-diver. See MetricBand.
   final bool profileMetricsFollowViewport;
 
+  /// Unit for the per-cell O2 traces on dives that log both a calibrated ppO2
+  /// and the raw cell output. The two are the same measurement one calibration
+  /// constant apart, so only one is drawn.
+  final O2CellUnit o2CellUnit;
+
   /// Perdix-style media overlay: shown over photos/videos when enabled.
   /// Device-local, not per-diver.
   final bool perdixOverlayEnabled;
@@ -680,6 +690,7 @@ class AppSettings {
     this.fullscreenReadoutCardX,
     this.fullscreenReadoutCardY,
     this.profileMetricsFollowViewport = false,
+    this.o2CellUnit = O2CellUnit.ppO2,
     this.perdixOverlayEnabled = false,
     this.perdixOverlayX,
     this.perdixOverlayY,
@@ -859,6 +870,7 @@ class AppSettings {
     double? fullscreenReadoutCardX,
     double? fullscreenReadoutCardY,
     bool? profileMetricsFollowViewport,
+    O2CellUnit? o2CellUnit,
     bool? perdixOverlayEnabled,
     double? perdixOverlayX,
     double? perdixOverlayY,
@@ -1047,6 +1059,7 @@ class AppSettings {
           fullscreenReadoutCardY ?? this.fullscreenReadoutCardY,
       profileMetricsFollowViewport:
           profileMetricsFollowViewport ?? this.profileMetricsFollowViewport,
+      o2CellUnit: o2CellUnit ?? this.o2CellUnit,
       perdixOverlayEnabled: perdixOverlayEnabled ?? this.perdixOverlayEnabled,
       perdixOverlayX: perdixOverlayX ?? this.perdixOverlayX,
       perdixOverlayY: perdixOverlayY ?? this.perdixOverlayY,
@@ -1229,6 +1242,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       // kept out of the per-diver settings table like the prefs above.
       final profileMetricsFollowViewport =
           prefs.getBool(SettingsKeys.profileMetricsFollowViewport) ?? false;
+      final o2CellUnit = O2CellUnit.values.firstWhere(
+        (u) => u.name == prefs.getString(SettingsKeys.o2CellUnit),
+        orElse: () => O2CellUnit.ppO2,
+      );
       final perdixOverlayEnabled =
           prefs.getBool(SettingsKeys.perdixOverlayEnabled) ?? false;
       final perdixOverlayX = prefs.getDouble(SettingsKeys.perdixOverlayX);
@@ -1253,6 +1270,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
           fullscreenReadoutCardY: fullscreenReadoutCardY,
           pscrRatio: pscrRatio ?? 100.0,
           profileMetricsFollowViewport: profileMetricsFollowViewport,
+          o2CellUnit: o2CellUnit,
           perdixOverlayEnabled: perdixOverlayEnabled,
           perdixOverlayX: perdixOverlayX,
           perdixOverlayY: perdixOverlayY,
@@ -1284,6 +1302,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         fullscreenReadoutCardY: fullscreenReadoutCardY,
         pscrRatio: pscrRatio,
         profileMetricsFollowViewport: profileMetricsFollowViewport,
+        o2CellUnit: o2CellUnit,
         perdixOverlayEnabled: perdixOverlayEnabled,
         perdixOverlayX: perdixOverlayX,
         perdixOverlayY: perdixOverlayY,
@@ -1362,6 +1381,7 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       SettingsKeys.profileMetricsFollowViewport,
       state.profileMetricsFollowViewport,
     );
+    await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
     await prefs.setBool(
       SettingsKeys.perdixOverlayEnabled,
       state.perdixOverlayEnabled,
@@ -2251,6 +2271,11 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
 
   Future<void> setProfileMetricsFollowViewport(bool value) async {
     state = state.copyWith(profileMetricsFollowViewport: value);
+    await _saveSettings();
+  }
+
+  Future<void> setO2CellUnit(O2CellUnit value) async {
+    state = state.copyWith(o2CellUnit: value);
     await _saveSettings();
   }
 

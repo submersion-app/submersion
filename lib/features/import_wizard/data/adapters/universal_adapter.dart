@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
+import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -1858,6 +1859,7 @@ ImportRepositories universalImportRepositories(WidgetRef ref) {
     siteRepository: ref.read(siteRepositoryProvider),
     diveRepository: ref.read(diveRepositoryProvider),
     tankPressureRepository: ref.read(tankPressureRepositoryProvider),
+    speciesRepository: ref.read(speciesRepositoryProvider),
     courseRepository: ref.read(courseRepositoryProvider),
     serviceRecordRepository: ref.read(serviceRecordRepositoryProvider),
     diveComputerRepository: ref.read(diveComputerRepositoryProvider),

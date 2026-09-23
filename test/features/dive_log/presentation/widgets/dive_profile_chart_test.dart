@@ -18,6 +18,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_event.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_legend.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -27,6 +28,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_o
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -349,6 +351,20 @@ bool _isRugSegment(LineChartBarData bar) =>
     (bar.color == const Color(0xFF66BB6A).withValues(alpha: 0.55) ||
         bar.color == const Color(0xFFFFCA28) ||
         bar.color == const Color(0xFFE57373));
+
+/// Per-cell traces in either unit, identified by the shared cell palette. The
+/// agreement rug is excluded: its "wide" red is also the sixth cell's colour.
+List<LineChartBarData> _cellLines(WidgetTester tester) => tester
+    .widget<LineChart>(find.byType(LineChart).first)
+    .data
+    .lineBarsData
+    .where((b) => b.color != null && kO2CellColors.contains(b.color))
+    .where((b) => !_isRugSegment(b))
+    .toList();
+
+/// A line's readings, with the null spots that break it into segments removed.
+List<FlSpot> _realSpots(LineChartBarData bar) =>
+    bar.spots.where((s) => s != FlSpot.nullSpot).toList();
 
 void main() {
   group('DiveProfileChart - estimated tank pressure', () {
@@ -1521,7 +1537,7 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(DiveProfileChart)),
       );
-      container.read(profileLegendProvider.notifier).toggleO2CellMv();
+      container.read(profileLegendProvider.notifier).toggleO2Cells();
       await tester.pumpAndSettle();
 
       final rug = data().lineBarsData.where(_isRugSegment).toList();
@@ -1555,7 +1571,7 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(DiveProfileChart)),
       );
-      container.read(profileLegendProvider.notifier).toggleO2CellMv();
+      container.read(profileLegendProvider.notifier).toggleO2Cells();
       await tester.pumpAndSettle();
 
       final rug = tester
@@ -1588,7 +1604,7 @@ void main() {
         tester.element(find.byType(DiveProfileChart)),
       );
       final notifier = container.read(profileLegendProvider.notifier);
-      notifier.toggleO2CellMv();
+      notifier.toggleO2Cells();
       await tester.pumpAndSettle();
 
       final cellLines = tester
@@ -1617,7 +1633,7 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(DiveProfileChart)),
       );
-      container.read(profileLegendProvider.notifier).toggleO2CellMv();
+      container.read(profileLegendProvider.notifier).toggleO2Cells();
       await tester.pumpAndSettle();
 
       final rug = tester
@@ -1628,11 +1644,13 @@ void main() {
       expect(rug, hasLength(1), reason: 'rounding fragmented the rug');
     });
 
-    testWidgets('a cell gap breaks its line instead of interpolating', (
+    testWidgets('a cell logging on its own cadence stays one line', (
       tester,
     ) async {
       final profile = makeRichProfile();
-      // One cell, reporting on 6 of 10 samples.
+      // libdc clears the cell fields every sample, so a computer that writes
+      // its cells on their own second leaves a null between every reading.
+      // Breaking on those would render the trace as a scatter of dots.
       final mv = <List<int?>>[
         [58, null, 57, null, 56, null, 55, null, 54, 53],
       ];
@@ -1645,18 +1663,318 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(DiveProfileChart)),
       );
-      final notifier = container.read(profileLegendProvider.notifier);
-      notifier.toggleO2CellMv();
+      container.read(profileLegendProvider.notifier).toggleO2Cells();
       await tester.pumpAndSettle();
 
-      final bars = tester
+      final cellLine = _cellLines(tester).single;
+      expect(_realSpots(cellLine), hasLength(6));
+      expect(cellLine.spots, isNot(contains(FlSpot.nullSpot)));
+    });
+
+    testWidgets('a cell that goes quiet breaks its line', (tester) async {
+      // Same six readings, but the cell now keeps a 30s cadence and then
+      // disappears for four minutes -- a dropout, not a logging interval.
+      final profile = List.generate(
+        14,
+        (i) => DiveProfilePoint(timestamp: i * 30, depth: 20),
+      );
+      final mv = <List<int?>>[
+        [58, 57, 56, 55, null, null, null, null, null, null, null, 54, 53, 52],
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(profile: profile, o2CellMvCurves: mv),
+      );
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      container.read(profileLegendProvider.notifier).toggleO2Cells();
+      await tester.pumpAndSettle();
+
+      final cellLine = _cellLines(tester).single;
+      expect(_realSpots(cellLine), hasLength(7));
+      expect(cellLine.spots.where((s) => s == FlSpot.nullSpot), hasLength(1));
+    });
+
+    testWidgets('cells reported only in bar still earn the legend chip', (
+      tester,
+    ) async {
+      // The regression behind #854: the chip was gated on millivolts, so a
+      // Subsurface or UDDF import -- bar cells, no millivolts -- offered no
+      // way to turn the cells on at all.
+      await tester.pumpWidget(
+        _buildChart(
+          profile: makeRichProfile(),
+          ppO2Curve: List.generate(10, (i) => 0.9),
+          o2SensorCurves: <List<double?>>[
+            List.generate(10, (i) => 0.88),
+            List.generate(10, (i) => 0.92),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final config = tester
+          .widget<DiveProfileLegend>(find.byType(DiveProfileLegend))
+          .config;
+      expect(config.hasO2CellData, isTrue);
+    });
+
+    testWidgets('draws one ppO2 line per cell once the toggle is on', (
+      tester,
+    ) async {
+      final profile = makeRichProfile();
+      final sensors = <List<double?>>[
+        List.generate(10, (i) => 0.68 + i * 0.05),
+        List.generate(10, (i) => 0.72 + i * 0.05),
+        List.generate(10, (i) => 0.70 + i * 0.05),
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profile,
+          ppO2Curve: List.generate(10, (i) => 0.7 + i * 0.05),
+          o2SensorCurves: sensors,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(_cellLines(tester), isEmpty, reason: 'hidden until toggled on');
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      container.read(profileLegendProvider.notifier).toggleO2Cells();
+      await tester.pumpAndSettle();
+
+      final lines = _cellLines(tester);
+      expect(lines, hasLength(3));
+      // One colour per physical cell, so a trace can be tied back to the cell
+      // the tooltip names.
+      expect(lines.map((b) => b.color).toSet(), {
+        o2CellColor(0),
+        o2CellColor(1),
+        o2CellColor(2),
+      });
+      // Thinner than the aggregate, which stays the primary reading.
+      expect(lines.every((b) => b.barWidth < 2), isTrue);
+    });
+
+    testWidgets('cell ppO2 lines follow new sensor curves', (tester) async {
+      // A ppO2-only dive whose cell curves arrive after the first frame. The
+      // profile and aggregate are the same instances across both pumps, so
+      // only the cell curves can tell the cached traces apart.
+      final profile = makeRichProfile();
+      final ppO2 = List.generate(10, (i) => 0.7 + i * 0.05);
+
+      await tester.pumpWidget(_buildChart(profile: profile, ppO2Curve: ppO2));
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      container.read(profileLegendProvider.notifier).toggleO2Cells();
+      await tester.pumpAndSettle();
+      expect(_cellLines(tester), isEmpty);
+
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profile,
+          ppO2Curve: ppO2,
+          o2SensorCurves: <List<double?>>[
+            List.generate(10, (i) => 0.68 + i * 0.05),
+            List.generate(10, (i) => 0.72 + i * 0.05),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        _cellLines(tester),
+        hasLength(2),
+        reason: 'the cached analysis series must key on the cell ppO2 curves',
+      );
+    });
+
+    testWidgets('cell ppO2 lines share the aggregate ppO2 mapping', (
+      tester,
+    ) async {
+      final profile = makeRichProfile();
+      // A cell pinned to exactly the aggregate must land on the aggregate.
+      final flat = List.generate(10, (i) => 1.2);
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profile,
+          ppO2Curve: flat,
+          o2SensorCurves: <List<double?>>[List.generate(10, (i) => 1.2)],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      final notifier = container.read(profileLegendProvider.notifier);
+      notifier.toggleO2Cells();
+      notifier.togglePpO2();
+      await tester.pumpAndSettle();
+
+      final cell = _cellLines(tester).single;
+      final aggregate = tester
           .widget<LineChart>(find.byType(LineChart).first)
           .data
-          .lineBarsData;
-      // The millivolt line carries only the six reported samples; a carried or
-      // interpolated value would give it all ten.
-      final mvBar = bars.firstWhere((b) => b.spots.length == 6);
-      expect(mvBar.spots, hasLength(6));
+          .lineBarsData
+          .firstWhere((b) => b.color == ProfileMetricColors.ppO2);
+
+      final cellY = _realSpots(cell).map((s) => s.y).toSet();
+      final aggregateY = _realSpots(aggregate).map((s) => s.y).toSet();
+      expect(cellY, hasLength(1));
+      expect(aggregateY, hasLength(1));
+      expect(
+        cellY.single,
+        closeTo(aggregateY.single, 0.001),
+        reason:
+            'a different band mapping would offset the cell from the '
+            'aggregate it equals',
+      );
+    });
+
+    testWidgets('a ppO2 cell gap breaks its line instead of bridging', (
+      tester,
+    ) async {
+      final profile = makeRichProfile();
+      // Cell 2 drops out for three samples in the middle of the dive.
+      final sensors = <List<double?>>[
+        <double?>[0.7, 0.7, 0.7, null, null, null, 0.7, 0.7, 0.7, 0.7],
+      ];
+
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profile,
+          ppO2Curve: List.generate(10, (i) => 0.7),
+          o2SensorCurves: sensors,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      container.read(profileLegendProvider.notifier).toggleO2Cells();
+      await tester.pumpAndSettle();
+
+      final cell = _cellLines(tester).single;
+      expect(_realSpots(cell), hasLength(7));
+      // One contiguous hole, three cadences wide, so exactly one break.
+      expect(cell.spots.where((s) => s == FlSpot.nullSpot), hasLength(1));
+    });
+
+    testWidgets('a dive with both units draws only the chosen one', (
+      tester,
+    ) async {
+      final profile = makeRichProfile();
+      // A calibrated Shearwater reports both from the same libdc callback.
+      // They are the same measurement one calibration constant apart, so
+      // drawing both would be the same curve twice.
+      await tester.pumpWidget(
+        _buildChart(
+          profile: profile,
+          ppO2Curve: List.generate(10, (i) => 0.9),
+          o2SensorCurves: <List<double?>>[
+            List.generate(10, (i) => 0.88),
+            List.generate(10, (i) => 0.92),
+          ],
+          o2CellMvCurves: <List<int?>>[
+            List.generate(10, (i) => 58),
+            List.generate(10, (i) => 61),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      final notifier = container.read(profileLegendProvider.notifier);
+      notifier.toggleO2Cells();
+      await tester.pumpAndSettle();
+
+      // Two cells, one unit -- not four lines.
+      expect(_cellLines(tester), hasLength(2));
+      final asPpO2 = _cellLines(tester).map((b) => b.spots.first.y).toList();
+
+      notifier.setO2CellUnit(O2CellUnit.millivolts);
+      await tester.pumpAndSettle();
+
+      final asMv = _cellLines(tester);
+      expect(asMv, hasLength(2));
+      // The millivolt axis maps elsewhere, so the same cells land differently.
+      expect(asMv.map((b) => b.spots.first.y).toList(), isNot(asPpO2));
+    });
+
+    testWidgets('the unit switch is offered only when both units exist', (
+      tester,
+    ) async {
+      Future<ProfileLegendConfig> configFor({
+        List<List<double?>>? bar,
+        List<List<int?>>? mv,
+      }) async {
+        await tester.pumpWidget(
+          _buildChart(
+            profile: makeRichProfile(),
+            ppO2Curve: List.generate(10, (i) => 0.9),
+            o2SensorCurves: bar,
+            o2CellMvCurves: mv,
+          ),
+        );
+        await tester.pumpAndSettle();
+        return tester
+            .widget<DiveProfileLegend>(find.byType(DiveProfileLegend))
+            .config;
+      }
+
+      final bar = <List<double?>>[List.generate(10, (i) => 0.88)];
+      final mv = <List<int?>>[List.generate(10, (i) => 58)];
+
+      expect((await configFor(bar: bar)).hasBothO2CellUnits, isFalse);
+      expect((await configFor(mv: mv)).hasBothO2CellUnits, isFalse);
+      expect((await configFor(bar: bar, mv: mv)).hasBothO2CellUnits, isTrue);
+    });
+
+    testWidgets('the spread rug is drawn for cells that report only ppO2', (
+      tester,
+    ) async {
+      // The rug used to need millivolts. A dive that carries only a derived
+      // ppO2 can still disagree with itself, so it earns the same verdict.
+      await tester.pumpWidget(
+        _buildChart(
+          profile: makeRichProfile(),
+          ppO2Curve: List.generate(10, (i) => 0.9),
+          o2SensorCurves: <List<double?>>[
+            List.generate(10, (i) => 0.70),
+            List.generate(10, (i) => 1.05),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DiveProfileChart)),
+      );
+      container.read(profileLegendProvider.notifier).toggleO2Cells();
+      await tester.pumpAndSettle();
+
+      final rug = tester
+          .widget<LineChart>(find.byType(LineChart).first)
+          .data
+          .lineBarsData
+          .where(_isRugSegment)
+          .toList();
+      // 0.35 bar apart is past the wide threshold, all dive long.
+      expect(rug, hasLength(1));
+      expect(rug.single.color, const Color(0xFFE57373));
     });
 
     testWidgets('forwards ppO2FromSensorAverage flag to the chart', (
@@ -2983,7 +3301,7 @@ void main() {
         tester.element(find.byType(DiveProfileChart)),
       );
       final notifier = container.read(profileLegendProvider.notifier);
-      notifier.toggleO2CellMv();
+      notifier.toggleO2Cells();
       if (container.read(profileLegendProvider).showPpO2) {
         notifier.togglePpO2();
       }
@@ -4708,7 +5026,7 @@ void main() {
       final container = ProviderScope.containerOf(
         tester.element(find.byType(DiveProfileChart)),
       );
-      container.read(profileLegendProvider.notifier).toggleO2CellMv();
+      container.read(profileLegendProvider.notifier).toggleO2Cells();
       await tester.pumpAndSettle();
 
       final cellLines = tester

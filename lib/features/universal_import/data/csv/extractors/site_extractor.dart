@@ -1,12 +1,19 @@
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/features/universal_import/data/csv/extractors/entity_extractor.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 
 /// Extracts dive site records from transformed CSV rows.
 ///
 /// Sites are deduplicated by name (case-insensitive). The first occurrence
 /// of a name wins for GPS coordinates and for city, island, region and
 /// country.
+///
+/// A row that carries `gps` but no site name is not dropped: the shared
+/// contract names it from its own coordinates, so the position reaches the
+/// log under a label rather than being discarded for want of one (#2212).
+/// Such a site is keyed on that coordinate name, which makes two rows at the
+/// same place one site, as two rows sharing a name already are.
 class SiteExtractor implements EntityExtractor<Map<String, dynamic>> {
   final Uuid _uuid;
 
@@ -21,10 +28,8 @@ class SiteExtractor implements EntityExtractor<Map<String, dynamic>> {
     final nameToId = <String, String>{};
 
     for (final row in rows) {
-      final rawName = row['siteName'];
-      if (rawName == null) continue;
-      final name = rawName.toString().trim();
-      if (name.isEmpty) continue;
+      final name = _siteNameOf(row);
+      if (name == null) continue;
 
       final key = name.toLowerCase();
       if (nameToId.containsKey(key)) continue;
@@ -53,6 +58,29 @@ class SiteExtractor implements EntityExtractor<Map<String, dynamic>> {
   /// The lookup is case-insensitive.
   String? siteIdForName(String name) {
     return _siteNameToId[name.toLowerCase()];
+  }
+
+  /// Returns the generated UUID for the site [row] belongs to, or null when
+  /// the row named no site and carried no coordinates.
+  ///
+  /// This is the lookup the correlator needs: a row whose site exists only
+  /// because of its `gps` has no name to look up, so the caller cannot use
+  /// [siteIdForName] on its own.
+  String? siteIdForRow(Map<String, dynamic> row) {
+    final name = _siteNameOf(row);
+    return name == null ? null : siteIdForName(name);
+  }
+
+  /// The name the site extracted from [row] is filed under, or null when the
+  /// row describes no place at all.
+  String? _siteNameOf(Map<String, dynamic> row) {
+    final gps = _parseGps(row['gps']?.toString());
+    return ImportSiteLocation.named(<String, dynamic>{
+          if (row['siteName'] case final raw?) 'name': raw.toString(),
+          if (gps != null) 'latitude': gps.$1,
+          if (gps != null) 'longitude': gps.$2,
+        })?['name']
+        as String?;
   }
 
   // ---------------------------------------------------------------------------

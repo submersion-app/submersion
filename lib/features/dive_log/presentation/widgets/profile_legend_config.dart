@@ -112,8 +112,13 @@ class ProfileLegendConfig {
   final bool hasCnsData;
   final bool hasOtuData;
 
-  /// Whether any O2 cell reported a raw millivolt reading (issue #810).
-  final bool hasO2CellMvData;
+  /// Whether any O2 cell reported anything: a ppO2 (issue #854) or a raw
+  /// millivolt output (issue #810). Either alone earns the legend chip.
+  final bool hasO2CellData;
+
+  /// Whether the dive carries both units, so the unit is a real choice. A dive
+  /// with only one renders that one and offers no switch.
+  final bool hasBothO2CellUnits;
   const ProfileLegendConfig({
     this.activeSourceName,
     this.overlays = const [],
@@ -150,7 +155,8 @@ class ProfileLegendConfig {
     this.hasGtrData = false,
     this.hasCnsData = false,
     this.hasOtuData = false,
-    this.hasO2CellMvData = false,
+    this.hasO2CellData = false,
+    this.hasBothO2CellUnits = false,
   });
 
   bool get hasTankListSection =>
@@ -187,5 +193,5 @@ class ProfileLegendConfig {
       hasGtrData ||
       hasCnsData ||
       hasOtuData ||
-      hasO2CellMvData;
+      hasO2CellData;
 }

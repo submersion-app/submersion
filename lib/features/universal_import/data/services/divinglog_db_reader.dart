@@ -3,8 +3,11 @@ import 'dart:typed_data';
 
 import 'package:sqlite3/sqlite3.dart';
 
+import 'package:submersion/features/universal_import/data/services/divinglog_id_list.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_profile_codec.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
+import 'package:submersion/features/universal_import/data/services/divinglog_reference_reader.dart';
+import 'package:submersion/features/universal_import/data/services/divinglog_row_values.dart';
 
 /// Reads a Diving Log 5.0 / DiveLogDT SQLite logbook.
 ///
@@ -124,6 +127,14 @@ class DivingLogDbReader {
     'Computer',
     'Visibility',
     'SupplyType',
+    'BuddyIDs',
+    'UsedEquip',
+    'Divetype',
+    'PlaceID',
+    'CityID',
+    'CountryID',
+    'ShopID',
+    'TripID',
     'ProfileInt',
     'Profile',
     'Profile2',
@@ -206,6 +217,10 @@ class DivingLogDbReader {
 
       final tombstones = _readTombstones(db, caps);
       final tanksByLogId = _readTanks(db, caps);
+
+      notes.addAll(DivingLogReferenceReader.schemaNotes(caps));
+      final references = DivingLogReferenceReader.read(db, caps);
+
       final selectList = caps.selectList('Logbook', _logbookColumns);
       if (selectList.isEmpty) {
         // Another product's table can share the name. Saying so beats
@@ -222,9 +237,9 @@ class DivingLogDbReader {
 
       final dives = <DivingLogRawDive>[];
       for (final row in rows) {
-        final uuid = _str(row, 'UUID');
+        final uuid = rowString(row, 'UUID');
         if (uuid != null && tombstones.contains(uuid)) continue;
-        final id = _int(row, 'ID');
+        final id = rowInt(row, 'ID');
         if (id == null) continue;
 
         final inline = _inlineTank(row);
@@ -232,32 +247,40 @@ class DivingLogDbReader {
           DivingLogRawDive(
             id: id,
             uuid: uuid,
-            number: _int(row, 'Number'),
-            diveDate: _str(row, 'Divedate'),
-            entryTime: _str(row, 'Entrytime'),
-            country: _str(row, 'Country'),
-            city: _str(row, 'City'),
-            place: _str(row, 'Place'),
-            buddy: _str(row, 'Buddy'),
-            divemaster: _str(row, 'Divemaster'),
-            comments: _str(row, 'Comments'),
-            depthMeters: _double(row, 'Depth'),
-            diveTimeMinutes: _double(row, 'Divetime'),
-            airTempCelsius: _double(row, 'Airtemp'),
-            waterTempCelsius: _double(row, 'Watertemp'),
-            weightKg: _double(row, 'Weight'),
-            divesuit: _str(row, 'Divesuit'),
-            computer: _str(row, 'Computer'),
-            visibilityCode: _int(row, 'Visibility'),
-            supplyType: _str(row, 'SupplyType'),
+            number: rowInt(row, 'Number'),
+            diveDate: rowString(row, 'Divedate'),
+            entryTime: rowString(row, 'Entrytime'),
+            country: rowString(row, 'Country'),
+            city: rowString(row, 'City'),
+            place: rowString(row, 'Place'),
+            buddy: rowString(row, 'Buddy'),
+            divemaster: rowString(row, 'Divemaster'),
+            comments: rowString(row, 'Comments'),
+            depthMeters: rowDouble(row, 'Depth'),
+            diveTimeMinutes: rowDouble(row, 'Divetime'),
+            airTempCelsius: rowDouble(row, 'Airtemp'),
+            waterTempCelsius: rowDouble(row, 'Watertemp'),
+            weightKg: rowDouble(row, 'Weight'),
+            divesuit: rowString(row, 'Divesuit'),
+            computer: rowString(row, 'Computer'),
+            visibilityCode: rowInt(row, 'Visibility'),
+            supplyType: rowString(row, 'SupplyType'),
+            buddyIds: parseDivingLogIdList(rowString(row, 'BuddyIDs')),
+            equipmentIds: parseDivingLogIdList(rowString(row, 'UsedEquip')),
+            diveTypeIds: parseDivingLogIdList(rowString(row, 'Divetype')),
+            placeId: rowInt(row, 'PlaceID'),
+            cityId: rowInt(row, 'CityID'),
+            countryId: rowInt(row, 'CountryID'),
+            shopId: rowInt(row, 'ShopID'),
+            tripId: rowInt(row, 'TripID'),
             tanks: tanksByLogId[id] ?? (inline == null ? const [] : [inline]),
             samples: DivingLogProfileCodec.decode(
-              intervalSeconds: _int(row, 'ProfileInt') ?? 0,
-              profile: _str(row, 'Profile'),
-              profile2: _str(row, 'Profile2'),
-              profile3: _str(row, 'Profile3'),
-              profile4: _str(row, 'Profile4'),
-              profile5: _str(row, 'Profile5'),
+              intervalSeconds: rowInt(row, 'ProfileInt') ?? 0,
+              profile: rowString(row, 'Profile'),
+              profile2: rowString(row, 'Profile2'),
+              profile3: rowString(row, 'Profile3'),
+              profile4: rowString(row, 'Profile4'),
+              profile5: rowString(row, 'Profile5'),
             ),
           ),
         );
@@ -267,6 +290,18 @@ class DivingLogDbReader {
         dives: dives,
         capabilities: caps,
         schemaNotes: notes,
+        buddiesById: references.buddies,
+        placesById: references.places,
+        cityNamesById: references.cityNames,
+        countryNamesById: references.countryNames,
+        equipmentById: references.equipment,
+        tripsById: references.trips,
+        shopsById: references.shops,
+        diveTypesById: references.diveTypes,
+        certifications: references.certifications,
+        speciesById: references.species,
+        speciesIdsByLogId: references.speciesIdsByLogId,
+        picturesByLogId: references.picturesByLogId,
       );
     });
   }
@@ -284,7 +319,7 @@ class DivingLogDbReader {
     );
     return {
       for (final r in rows)
-        if (_str(r, 'UUID') case final String u) u,
+        if (rowString(r, 'UUID') case final String u) u,
     };
   }
 
@@ -307,19 +342,19 @@ class DivingLogDbReader {
 
     final out = <int, List<DivingLogRawTank>>{};
     for (final row in rows) {
-      final logId = _int(row, 'LogID');
+      final logId = rowInt(row, 'LogID');
       if (logId == null) continue;
       out[logId] = [
         ...?out[logId],
         DivingLogRawTank(
-          tankId: _int(row, 'TankID') ?? out[logId]?.length ?? 0,
-          sizeLiters: _double(row, 'TankSize'),
-          startPressureBar: _double(row, 'PresS'),
-          endPressureBar: _double(row, 'PresE'),
-          workingPressureBar: _double(row, 'PresW'),
-          o2Percent: _double(row, 'O2'),
-          hePercent: _double(row, 'He'),
-          isDouble: (_int(row, 'DblTank') ?? 0) > 0,
+          tankId: rowInt(row, 'TankID') ?? out[logId]?.length ?? 0,
+          sizeLiters: rowDouble(row, 'TankSize'),
+          startPressureBar: rowDouble(row, 'PresS'),
+          endPressureBar: rowDouble(row, 'PresE'),
+          workingPressureBar: rowDouble(row, 'PresW'),
+          o2Percent: rowDouble(row, 'O2'),
+          hePercent: rowDouble(row, 'He'),
+          isDouble: (rowInt(row, 'DblTank') ?? 0) > 0,
         ),
       ];
     }
@@ -331,10 +366,10 @@ class DivingLogDbReader {
   /// no cylinder data at all, so a dive without gas does not gain an empty
   /// tank.
   static DivingLogRawTank? _inlineTank(Row row) {
-    final size = _double(row, 'TankSize');
-    final start = _double(row, 'PresS');
-    final end = _double(row, 'PresE');
-    final o2 = _double(row, 'O2');
+    final size = rowDouble(row, 'TankSize');
+    final start = rowDouble(row, 'PresS');
+    final end = rowDouble(row, 'PresE');
+    final o2 = rowDouble(row, 'O2');
     if (size == null && start == null && end == null && o2 == null) {
       return null;
     }
@@ -343,43 +378,15 @@ class DivingLogDbReader {
       sizeLiters: size,
       startPressureBar: start,
       endPressureBar: end,
-      workingPressureBar: _double(row, 'PresW'),
+      workingPressureBar: rowDouble(row, 'PresW'),
       o2Percent: o2,
-      hePercent: _double(row, 'He'),
-      isDouble: (_int(row, 'DblTank') ?? 0) > 0,
+      hePercent: rowDouble(row, 'He'),
+      isDouble: (rowInt(row, 'DblTank') ?? 0) > 0,
     );
   }
 
   /// Reads a column that the SELECT may not have included at all, so a
   /// missing column and a null value are the same thing to callers.
-  static Object? _cell(Row row, String column) {
-    try {
-      return row[column];
-    } catch (_) {
-      return null;
-    }
-  }
-
-  static String? _str(Row row, String column) {
-    final v = _cell(row, column);
-    if (v == null) return null;
-    final s = v.toString().trim();
-    return s.isEmpty ? null : s;
-  }
-
-  static int? _int(Row row, String column) {
-    final v = _cell(row, column);
-    if (v is int) return v;
-    if (v is num) return v.toInt();
-    return v == null ? null : int.tryParse(v.toString().trim());
-  }
-
-  static double? _double(Row row, String column) {
-    final v = _cell(row, column);
-    if (v is double) return v;
-    if (v is num) return v.toDouble();
-    return v == null ? null : double.tryParse(v.toString().trim());
-  }
 
   static void _deleteTempDir(Directory d) {
     try {
