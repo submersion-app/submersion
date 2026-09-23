@@ -4,7 +4,7 @@
 
 **Goal:** Deleting a diver deletes the media only that diver's rows linked, and unlinks, stamps and publishes the media a surviving row still links, so every device converges and uploaded copies are scheduled for removal.
 
-**Architecture:** A new `media_parent_cascade.dart` plans the cascade inside the diver delete's transaction, after Step 0 reassigns the shared sites and before any delete, while the media links still name the dying parents, and applies it after the transaction commits. Survivors are unlinked first, on their own. Doomed rows are read again (`recheckDoomed`) and go through the existing `MediaDeletionCoordinator` (tombstones plus blob-delete intents) in isolated batches of at most 900, each row judged once more inside the delete's own transaction (`keepIf`), so a relink landing at any point before the delete spares it. Every id list is read in chunks of 900 as well. Survivors get their dying links cleared with `NULLIF`, a fresh `updated_at` and a pending mark. The media enrichment the dive deletes cascade away is tombstoned inside the transaction from ids read before it.
+**Architecture:** A new `media_parent_cascade.dart` plans the cascade inside the diver delete's transaction, after Step 0 reassigns the shared sites and before any delete, while the media links still name the dying parents, and applies it after the transaction commits. Survivors are unlinked first, on their own. Doomed rows are read again (`recheckDoomed`) and go through the existing `MediaDeletionCoordinator` (tombstones plus blob-delete intents) in isolated batches of at most 900, each row judged once more inside the delete's own transaction (`keepIf`), so a relink landing at any point before the delete spares it. Every id list is read in chunks of 900 as well. Survivors get their dying links cleared with `NULLIF`, a fresh `updated_at` and a pending mark, each survivor in its own transaction so one row that cannot be written does not roll the others back; the failures are rethrown together once every survivor has been tried. The media enrichment the dive deletes cascade away is tombstoned inside the transaction from ids read before it.
 
 **Tech Stack:** Flutter, Dart, Drift over SQLite, the in-house changeset sync (`SyncRepository`), `flutter_test` with in-memory databases, the two-device media harness.
 
@@ -79,6 +79,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/features/media/data/repositories/media_parent_cascade.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -397,6 +398,31 @@ void main() {
       expect((await row(id)).diveId, 'd-kept');
     });
 
+    test('one survivor failing does not undo the others', () async {
+      // Each survivor's unlink is the only thing that publishes it, so one
+      // row that cannot be marked must not roll the rest back with it.
+      final bad = await photo(dive: 'd-dying', site: 's-kept');
+      final good = await photo(dive: 'd-dying', site: 's-kept');
+      await SyncRepository().clearPendingRecords();
+
+      await expectLater(
+        unlinkMediaFromDeletedParents(db, _PendingFailsFor(bad), [
+          MediaSurvivor(bad, diveId: 'd-dying'),
+          MediaSurvivor(good, diveId: 'd-dying'),
+        ]),
+        throwsA(isA<StateError>()),
+        reason: 'the caller still hears about the failure',
+      );
+
+      expect((await row(good)).diveId, isNull);
+      expect(await isPending(good), isTrue);
+      expect(
+        (await row(bad)).diveId,
+        'd-dying',
+        reason: 'its own unlink rolled back with its failed mark',
+      );
+    });
+
     test('a row deleted since the plan is not marked', () async {
       await unlinkMediaFromDeletedParents(db, SyncRepository(), const [
         MediaSurvivor('gone', diveId: 'd-dying'),
@@ -405,6 +431,33 @@ void main() {
       expect(await isPending('gone'), isFalse);
     });
   });
+}
+
+/// Fails to mark one record pending, the way a full disk or a locked
+/// database would for a single write.
+class _PendingFailsFor extends SyncRepository {
+  _PendingFailsFor(this.failingId);
+  final String failingId;
+
+  @override
+  Future<void> markRecordPending({
+    required String entityType,
+    required String recordId,
+    required int localUpdatedAt,
+    List<SyncFactGroup> alsoStamp = const [],
+    bool stampClock = true,
+  }) {
+    if (recordId == failingId) {
+      return Future<void>.error(StateError('could not mark $recordId'));
+    }
+    return super.markRecordPending(
+      entityType: entityType,
+      recordId: recordId,
+      localUpdatedAt: localUpdatedAt,
+      alsoStamp: alsoStamp,
+      stampClock: stampClock,
+    );
+  }
 }
 ```
 
@@ -651,6 +704,14 @@ Future<List<domain.MediaItem>> recheckDoomed(
 /// argument leaves the column unchanged, because `x = NULL` is never true.
 ///
 /// Sends no local-change notice: the caller announces the whole deletion.
+///
+/// One transaction per survivor, so a row's unlink and its pending mark land
+/// together or not at all, and one row that cannot be written does not roll
+/// the others back: each survivor's unlink is the only thing that publishes
+/// it. A failure is rethrown after the rest have been tried, so the caller
+/// still hears about it. A survivor left unpublished this way is not lost:
+/// its dying link is gone locally, and every peer clears the same link
+/// itself when it applies the parent's tombstone.
 Future<void> unlinkMediaFromDeletedParents(
   AppDatabase db,
   SyncRepository sync,
@@ -658,43 +719,61 @@ Future<void> unlinkMediaFromDeletedParents(
 ) async {
   if (survivors.isEmpty) return;
   final now = DateTime.now().millisecondsSinceEpoch;
-  await db.transaction(() async {
-    for (final s in survivors) {
-      final written = await db.customUpdate(
-        'UPDATE media SET '
-        'dive_id = NULLIF(dive_id, ?), '
-        'site_id = NULLIF(site_id, ?), '
-        'equipment_id = NULLIF(equipment_id, ?), '
-        'signer_id = NULLIF(signer_id, ?), '
-        'updated_at = ? '
-        'WHERE id = ?',
-        variables: [
-          Variable<String>(s.diveId),
-          Variable<String>(s.siteId),
-          Variable<String>(s.equipmentId),
-          Variable<String>(s.signerId),
-          Variable<int>(now),
-          Variable<String>(s.id),
-        ],
-        updates: {db.media},
-        updateKind: UpdateKind.update,
-      );
-      // Deleted since the plan: nothing survived to publish.
-      if (written == 0) continue;
-      await sync.markRecordPending(
-        entityType: 'media',
-        recordId: s.id,
-        localUpdatedAt: now,
-      );
+  Object? firstError;
+  StackTrace? firstStack;
+  var failed = 0;
+  for (final s in survivors) {
+    try {
+      await db.transaction(() async {
+        final written = await db.customUpdate(
+          'UPDATE media SET '
+          'dive_id = NULLIF(dive_id, ?), '
+          'site_id = NULLIF(site_id, ?), '
+          'equipment_id = NULLIF(equipment_id, ?), '
+          'signer_id = NULLIF(signer_id, ?), '
+          'updated_at = ? '
+          'WHERE id = ?',
+          variables: [
+            Variable<String>(s.diveId),
+            Variable<String>(s.siteId),
+            Variable<String>(s.equipmentId),
+            Variable<String>(s.signerId),
+            Variable<int>(now),
+            Variable<String>(s.id),
+          ],
+          updates: {db.media},
+          updateKind: UpdateKind.update,
+        );
+        // Deleted since the plan: nothing survived to publish.
+        if (written == 0) return;
+        await sync.markRecordPending(
+          entityType: 'media',
+          recordId: s.id,
+          localUpdatedAt: now,
+        );
+      });
+    } on Object catch (e, stackTrace) {
+      failed++;
+      firstError ??= e;
+      firstStack ??= stackTrace;
     }
-  });
+  }
+  if (firstError != null) {
+    Error.throwWithStackTrace(
+      StateError(
+        '$failed of ${survivors.length} surviving media rows could not be '
+        'unlinked: $firstError',
+      ),
+      firstStack!,
+    );
+  }
 }
 ```
 
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `dart format lib test && flutter test test/features/media/data/media_parent_cascade_test.dart`
-Expected: `All tests passed!` (15 tests).
+Expected: `All tests passed!` (16 tests).
 
 - [ ] **Step 5: Mutation-check the rules that matter**
 
@@ -710,7 +789,11 @@ cp lib/features/media/data/repositories/media_parent_cascade.dart "$SCRATCH/medi
 
 (c) In `planMediaCascade`, read the enrichment in one list: replace `for (final chunk in _chunks(parents.diveIds.toList()))` with `for (final chunk in [parents.diveIds.toList()])`. Expected: `a dying set past the bind-variable limit is read in chunks` FAILS with `too many SQL variables`. Restore from the backup.
 
-(d) In `recheckDoomed`, drop the liveness check (`still.add(mediaItemFromRow(row))` unconditionally). Expected: `a doomed row relinked to a surviving parent is spared` FAILS. Restore from the backup and rerun: all pass.
+(d) In `recheckDoomed`, drop the liveness check (`still.add(mediaItemFromRow(row))` unconditionally). Expected: `a doomed row relinked to a surviving parent is spared` FAILS. Restore from the backup.
+
+(e) In `unlinkMediaFromDeletedParents`, stop at the first failure: `rethrow;` as the catch's first statement after `failed++;`. Expected: `one survivor failing does not undo the others` FAILS (the good row is never reached). Restore from the backup.
+
+(f) Swallow the failures: `if (firstError != null && failed < 0) {`. Expected: the same test FAILS (the caller no longer hears). Restore from the backup and rerun: all pass.
 
 - [ ] **Step 6: Commit**
 
