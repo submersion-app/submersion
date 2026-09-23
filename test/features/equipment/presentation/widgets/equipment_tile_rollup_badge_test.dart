@@ -96,7 +96,9 @@ void main() {
         }),
       );
       await tester.pumpAndSettle();
-      expect(find.text('Hose replacement'), findsOneWidget);
+      // Due soon now carries its relative trigger instead of the bare kind
+      // name, so amber is no longer the only thing saying it (#2260).
+      expect(find.text('Hose replacement due in 0d'), findsOneWidget);
     },
   );
 
@@ -128,6 +130,11 @@ void main() {
       }),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Necklace hose: Hose replacement'), findsOneWidget);
+    // The dense tile used to drop the word "overdue" that the standard tile
+    // kept; both now read the same (#2260).
+    expect(
+      find.text('Necklace hose: Hose replacement overdue'),
+      findsOneWidget,
+    );
   });
 }

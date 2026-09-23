@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -309,6 +310,10 @@ class EquipmentSetDetailPage extends ConsumerWidget {
               ].join(' · '),
             ),
             AssemblyChips(itemId: item.id),
+            ServiceStatusIndicatorFor(
+              equipmentId: item.id,
+              density: ServiceIndicatorDensity.compact,
+            ),
           ],
         ),
         trailing: const Icon(Icons.chevron_right),

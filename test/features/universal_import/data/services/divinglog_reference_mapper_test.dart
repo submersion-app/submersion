@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_reference_mapper.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 
 DivingLogLogbook logbook({
   Map<int, DivingLogRawBuddy> buddies = const {},
@@ -68,6 +69,55 @@ void main() {
       expect(
         DivingLogReferenceMapper.sites(book).keys.single,
         'divinglog_site_bonaire|kralendijk|salt pier',
+      );
+    });
+  });
+
+  group('a Place with only coordinates', () {
+    // Coordinates are never discarded for want of a name (#2232). The key
+    // falls back to the shared coordinate name, as Shearwater's does
+    // (#2210): keyed on text alone, the dive never reached the naming.
+    test('keeps its position, named from its coordinates', () {
+      final book = logbook(
+        places: {
+          10: const DivingLogRawPlace(
+            id: 10,
+            latitude: 12.13,
+            longitude: -68.28,
+          ),
+        },
+        dives: [const DivingLogRawDive(id: 1, placeId: 10)],
+      );
+
+      final sites = DivingLogReferenceMapper.sites(book);
+
+      final site = sites.values.single;
+      expect(
+        site['name'],
+        ImportSiteLocation.nameFromCoordinates(12.13, -68.28),
+      );
+      expect(site['latitude'], closeTo(12.13, 1e-9));
+      expect(site['longitude'], closeTo(-68.28, 1e-9));
+      expect(
+        sites.keys.single,
+        DivingLogReferenceMapper.siteKeyFor(book, book.dives.single),
+        reason: 'the dive has to reference the key the site is stored under',
+      );
+    });
+
+    test('with no usable coordinates either, is still dropped', () {
+      // 0/0 is the stand-in logbooks write for "no GPS set".
+      final book = logbook(
+        places: {
+          10: const DivingLogRawPlace(id: 10, latitude: 0, longitude: 0),
+        },
+        dives: [const DivingLogRawDive(id: 1, placeId: 10)],
+      );
+
+      expect(DivingLogReferenceMapper.sites(book), isEmpty);
+      expect(
+        DivingLogReferenceMapper.siteKeyFor(book, book.dives.single),
+        isNull,
       );
     });
   });

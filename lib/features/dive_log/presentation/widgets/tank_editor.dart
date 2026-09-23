@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 
 /// Callback when tank data changes
 typedef TankChangeCallback = void Function(DiveTank tank);
@@ -612,7 +613,20 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           child: Text(context.l10n.diveLog_tank_regulatorNone),
         ),
         for (final r in regs)
-          DropdownMenuItem<String?>(value: r.id, child: Text(r.name)),
+          DropdownMenuItem<String?>(
+            value: r.id,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ServiceStatusIndicatorFor(
+                  equipmentId: r.id,
+                  density: ServiceIndicatorDensity.dot,
+                ),
+                const SizedBox(width: 6),
+                Flexible(child: Text(r.name, overflow: TextOverflow.ellipsis)),
+              ],
+            ),
+          ),
       ],
       onChanged: (value) {
         setState(() => _regulatorEquipmentId = value);

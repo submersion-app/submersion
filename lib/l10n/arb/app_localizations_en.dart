@@ -12292,11 +12292,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String equipment_list_worstClock(String kind) {
-    return '$kind overdue';
-  }
-
-  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -12313,8 +12308,72 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String trips_serviceAlert_overdue(String kind) {
+  String equipment_service_overdue(String kind) {
     return '$kind overdue';
+  }
+
+  @override
+  String equipment_service_dueRelative(String kind, String relative) {
+    return '$kind due $relative';
+  }
+
+  @override
+  String equipment_service_shortDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count dives',
+      one: 'in $count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortHours(String count) {
+    return 'in $count hours';
+  }
+
+  @override
+  String equipment_service_shortSaltHours(String count) {
+    return 'in $count salt-water hours';
+  }
+
+  @override
+  String equipment_service_shortColdDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count cold dives',
+      one: 'in $count cold dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortO2Hours(String count) {
+    return 'in $count high-O2 hours';
+  }
+
+  @override
+  String equipment_service_shortDeepCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count deep dives',
+      one: 'in $count deep dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count battery cycles',
+      one: 'in $count battery cycle',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12332,9 +12391,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String equipment_detail_serviceIntervalValue(Object days) {
     return '$days days';
   }
-
-  @override
-  String get equipment_detail_serviceOverdue => 'Service is overdue!';
 
   @override
   String equipment_detail_showEquipmentWith(String name) {

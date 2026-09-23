@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_attr_
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
@@ -35,7 +36,6 @@ import 'package:submersion/features/equipment/domain/services/equipment_arranger
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
-import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -1300,32 +1300,13 @@ class EquipmentListTile extends ConsumerWidget {
     }
 
     if (worstClock != null) {
-      final overdue =
-          worstClock.status.severity == ServiceClockSeverity.overdue;
-      final kindLabel = worstClock.ownerId == item.id
-          ? worstClock.status.kind.name
-          : context.l10n.equipment_components_rollupClock(
-              worstClock.ownerName,
-              worstClock.status.kind.name,
-            );
       return Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           typeLabel,
           const SizedBox(height: 2),
-          Text(
-            overdue
-                ? context.l10n.equipment_list_worstClock(kindLabel)
-                : kindLabel,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: serviceSeveritySwatch(
-                StatusColors.of(context),
-                worstClock.status.severity,
-              )?.accent,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          ServiceStatusIndicator(clock: worstClock, subjectId: item.id),
         ],
       );
     }

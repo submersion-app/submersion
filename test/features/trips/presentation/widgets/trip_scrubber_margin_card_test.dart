@@ -4,6 +4,10 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/scrubber_margin.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
@@ -62,10 +66,15 @@ ScrubberMargin margin({
   caution: caution,
 );
 
-Widget host(List<ScrubberMargin> margins, {bool past = false}) => ProviderScope(
+Widget host(
+  List<ScrubberMargin> margins, {
+  bool past = false,
+  Map<String, RollupClock> clocks = const {},
+}) => ProviderScope(
   overrides: [
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     tripScrubberMarginsProvider('t1').overrideWith((ref) async => margins),
+    equipmentRollupClockProvider.overrideWith((ref) async => clocks),
   ],
   child: MaterialApp(
     locale: const Locale('en'),
@@ -190,6 +199,65 @@ void main() {
     await tester.pumpWidget(host([margin()], past: true));
     await tester.pumpAndSettle();
     expect(find.textContaining('as of Mar 1, 2025'), findsOneWidget);
+  });
+
+  RollupClock overdueScrubber() {
+    final t0 = DateTime(2025, 1, 1);
+    return (
+      ownerId: ccr.id,
+      ownerName: ccr.name,
+      status: ServiceClockStatus(
+        schedule: ServiceSchedule(
+          id: 's1',
+          equipmentId: ccr.id,
+          serviceKindId: 'repack',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        kind: ServiceKind(
+          id: 'repack',
+          name: 'Scrubber repack',
+          createdAt: t0,
+          updatedAt: t0,
+        ),
+        anchor: t0,
+        dueDate: DateTime(2025, 6, 1),
+        severity: ServiceClockSeverity.overdue,
+        now: DateTime(2026, 1, 1),
+      ),
+    );
+  }
+
+  testWidgets('an upcoming trip flags a rebreather that is overdue', (
+    tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      host([margin()], clocks: {ccr.id: overdueScrubber()}),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.bySemanticsLabel(RegExp('Scrubber repack overdue')),
+      findsOneWidget,
+    );
+    semantics.dispose();
+  });
+
+  testWidgets('a past trip does not show today\'s service state', (
+    tester,
+  ) async {
+    // The card reads as of the trip's start, so a live overdue mark beside
+    // those figures would claim the unit was overdue on that trip (#2260).
+    final semantics = tester.ensureSemantics();
+    await tester.pumpWidget(
+      host([margin()], past: true, clocks: {ccr.id: overdueScrubber()}),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.bySemanticsLabel(RegExp('Scrubber repack overdue')),
+      findsNothing,
+    );
+    semantics.dispose();
   });
 
   testWidgets('no rating shows the hint instead of a margin', (tester) async {

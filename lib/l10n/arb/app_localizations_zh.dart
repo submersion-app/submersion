@@ -11920,11 +11920,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String equipment_list_worstClock(String kind) {
-    return '$kind已逾期';
-  }
-
-  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -11940,8 +11935,68 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String trips_serviceAlert_overdue(String kind) {
+  String equipment_service_overdue(String kind) {
     return '$kind已逾期';
+  }
+
+  @override
+  String equipment_service_dueRelative(String kind, String relative) {
+    return '$kind$relative到期';
+  }
+
+  @override
+  String equipment_service_shortDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水后',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortHours(String count) {
+    return '$count 小时后';
+  }
+
+  @override
+  String equipment_service_shortSaltHours(String count) {
+    return '$count 海水小时后';
+  }
+
+  @override
+  String equipment_service_shortColdDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次冷水潜水后',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortO2Hours(String count) {
+    return '$count 高氧小时后';
+  }
+
+  @override
+  String equipment_service_shortDeepCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次深潜后',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次电池循环后',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -11959,9 +12014,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String equipment_detail_serviceIntervalValue(Object days) {
     return '$days 天';
   }
-
-  @override
-  String get equipment_detail_serviceOverdue => '维护已逾期！';
 
   @override
   String equipment_detail_showEquipmentWith(String name) {

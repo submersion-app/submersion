@@ -7253,14 +7253,6 @@
       }
     }
   },
-  "equipment_list_worstClock": "{kind} overdue",
-  "@equipment_list_worstClock": {
-    "placeholders": {
-      "kind": {
-        "type": "String"
-      }
-    }
-  },
   "trips_serviceAlert_count": "{count, plural, =1{1 item needs service before this trip} other{{count} items need service before this trip}}",
   "@trips_serviceAlert_count": {
     "placeholders": {
@@ -7280,11 +7272,87 @@
       }
     }
   },
-  "trips_serviceAlert_overdue": "{kind} overdue",
-  "@trips_serviceAlert_overdue": {
+  "equipment_service_overdue": "{kind} overdue",
+  "equipment_service_dueRelative": "{kind} due {relative}",
+  "@equipment_service_overdue": {
+    "description": "One-line service status for an overdue clock. The kind is the service kind name, or component and kind when the clock belongs to a part.",
     "placeholders": {
       "kind": {
         "type": "String"
+      }
+    }
+  },
+  "@equipment_service_dueRelative": {
+    "description": "One-line service status for a due-soon clock. The relative part is a short trigger such as in 12d or in 3 dives, and carries its own preposition.",
+    "placeholders": {
+      "kind": {
+        "type": "String"
+      },
+      "relative": {
+        "type": "String"
+      }
+    }
+  },
+  "equipment_service_shortDives": "{count, plural, one{in {count} dive} other{in {count} dives}}",
+  "equipment_service_shortHours": "in {count} hours",
+  "equipment_service_shortSaltHours": "in {count} salt-water hours",
+  "equipment_service_shortColdDives": "{count, plural, one{in {count} cold dive} other{in {count} cold dives}}",
+  "equipment_service_shortO2Hours": "in {count} high-O2 hours",
+  "equipment_service_shortDeepCycles": "{count, plural, one{in {count} deep dive} other{in {count} deep dives}}",
+  "equipment_service_shortCycles": "{count, plural, one{in {count} battery cycle} other{in {count} battery cycles}}",
+  "@equipment_service_shortDives": {
+    "description": "Short form of a service clock measured in dives, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@equipment_service_shortHours": {
+    "description": "Short form of a service clock measured in hours, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "@equipment_service_shortSaltHours": {
+    "description": "Short form of a service clock measured in salt-water hours, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "@equipment_service_shortColdDives": {
+    "description": "Short form of a service clock measured in cold dives, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@equipment_service_shortO2Hours": {
+    "description": "Short form of a service clock measured in high-O2 hours, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.",
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "@equipment_service_shortDeepCycles": {
+    "description": "Short form of a service clock measured in deep dives, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@equipment_service_shortCycles": {
+    "description": "Short form of a service clock measured in battery cycles, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.",
+    "placeholders": {
+      "count": {
+        "type": "int"
       }
     }
   },
@@ -7299,7 +7367,6 @@
   },
   "equipment_detail_serviceIntervalLabel": "Service Interval",
   "equipment_detail_serviceIntervalValue": "{days} days",
-  "equipment_detail_serviceOverdue": "Service is overdue!",
   "equipment_detail_showEquipmentWith": "Show equipment with {name}",
   "@equipment_detail_showEquipmentWith": {
     "description": "Tooltip on a tag chip on equipment detail; tapping it opens the equipment list filtered to that tag",

@@ -826,7 +826,9 @@ void main() {
 
       final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
       expect(avatar.backgroundColor, scheme.tertiaryContainer);
-      final label = tester.widget<Text>(find.text('Annual service'));
+      // Due soon now carries its relative trigger as well as the kind
+      // name (#2260), so match on the kind; this test is about the colour.
+      final label = tester.widget<Text>(find.textContaining('Annual service'));
       expect(label.style?.color, StatusColors.light.warn.accent);
     });
 

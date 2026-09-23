@@ -6,6 +6,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_c
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_departed_status.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A small caption that splits the Components card into its "Part of" and
@@ -88,7 +89,17 @@ class _ParentTile extends StatelessWidget {
           ],
         ],
       ),
-      trailing: const Icon(Icons.chevron_right),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ServiceStatusIndicatorFor(
+            equipmentId: edge.parentEquipmentId,
+            density: ServiceIndicatorDensity.dot,
+          ),
+          const SizedBox(width: 6),
+          const Icon(Icons.chevron_right),
+        ],
+      ),
       onTap: () => context.push('/equipment/${edge.parentEquipmentId}'),
     );
   }

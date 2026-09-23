@@ -9,6 +9,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/safety/domain/entities/incident.dart';
 import 'package:submersion/features/safety/presentation/formatters/incident_labels.dart';
 import 'package:submersion/features/safety/presentation/providers/incident_providers.dart';
@@ -281,7 +282,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
               SimpleDialogOption(
                 onPressed: () =>
                     Navigator.of(dialogContext).pop(_EquipmentChoice(item.id)),
-                child: Text(item.name),
+                child: _GearOption(item: item),
               ),
           ],
           if (rest.isNotEmpty) ...[
@@ -290,7 +291,7 @@ class _IncidentEditPageState extends ConsumerState<IncidentEditPage> {
               SimpleDialogOption(
                 onPressed: () =>
                     Navigator.of(dialogContext).pop(_EquipmentChoice(item.id)),
-                child: Text(item.name),
+                child: _GearOption(item: item),
               ),
           ],
         ],
@@ -433,6 +434,25 @@ class _PickerHeader extends StatelessWidget {
         color: Theme.of(context).colorScheme.primary,
       ),
     ),
+  );
+}
+
+/// One row of the gear picker: the item's name with its service status, so
+/// a diver linking an incident sees whether that gear is also overdue.
+class _GearOption extends StatelessWidget {
+  final EquipmentItem item;
+  const _GearOption({required this.item});
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Flexible(child: Text(item.name)),
+      const SizedBox(width: 8),
+      ServiceStatusIndicatorFor(
+        equipmentId: item.id,
+        density: ServiceIndicatorDensity.dot,
+      ),
+    ],
   );
 }
 

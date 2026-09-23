@@ -15,14 +15,29 @@ class DivingLogReferenceMapper {
   /// re-import must fold onto the same site rather than creating a second.
   /// The parts are the country, city and place names in that order, joined
   /// with a pipe and lowercased, skipping any that are missing.
+  ///
+  /// With no text at all, a Place's coordinates key the site instead,
+  /// through the shared coordinate name the way Shearwater's key does
+  /// (#2210). Keyed on text alone, a dive at a Place the diver never named
+  /// never reached [ImportSiteLocation.named] and lost where it happened
+  /// (#2232). Nothing phase 1 keyed can collide: it read the text only.
   static String? siteKeyFor(DivingLogLogbook book, DivingLogRawDive dive) {
     final parts = [
       countryNameFor(book, dive),
       cityNameFor(book, dive),
       placeNameFor(book, dive),
     ].whereType<String>().where((p) => p.trim().isNotEmpty).toList();
-    if (parts.isEmpty) return null;
-    return 'divinglog_site_${parts.join('|').toLowerCase()}';
+    if (parts.isNotEmpty) {
+      return 'divinglog_site_${parts.join('|').toLowerCase()}';
+    }
+    final place = dive.placeId == null ? null : book.placesById[dive.placeId];
+    final point = ImportSiteLocation.fix(place?.latitude, place?.longitude);
+    if (point == null) return null;
+    final name = ImportSiteLocation.nameFromCoordinates(
+      point.latitude,
+      point.longitude,
+    );
+    return 'divinglog_site_${name.toLowerCase()}';
   }
 
   /// Each component resolves through its id, falling back to the free text

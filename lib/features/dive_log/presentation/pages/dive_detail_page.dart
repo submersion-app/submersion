@@ -11,6 +11,7 @@ import 'package:submersion/core/services/export/uddf/uddf_source_fetch.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:latlong2/latlong.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/features/dive_log/presentation/utils/dive_service_status.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/equipment/presentation/widgets/observation_status_chip.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
@@ -4783,6 +4784,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: DiveGearTreeView(
           links: dive.gear,
+          showServiceStatus: diveGearShowsLiveServiceStatus(
+            dive,
+            DateTime.now(),
+          ),
           onTap: (item) => context.push('/equipment/${item.id}'),
           // The check-in chip for each row (condition phase 3a).
           rowTrailing: (item) =>

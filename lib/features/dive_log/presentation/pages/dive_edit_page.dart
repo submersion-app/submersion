@@ -3494,6 +3494,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 // pointless reordering of dive_equipment on every save.
                 DiveGearTreeView(
                   links: gearLinksFor(_selectedEquipment, _gearRows),
+                  // The diver is choosing gear right now, so today's
+                  // service state is exactly what they need to see.
+                  showServiceStatus: true,
                   onRemoveSet: (setId) =>
                       _setGear(GearExpander.removeSet(_gearRows, setId)),
                   onRemoveSubtree: (id) =>

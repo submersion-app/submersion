@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipm
 import 'package:submersion/features/dive_log/presentation/widgets/pickers/equipment_set_picker_sheet.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -170,6 +171,10 @@ class RigComposer extends ConsumerWidget {
                   for (final item in gear)
                     if (!partIds.contains(item.id))
                       InputChip(
+                        avatar: ServiceStatusIndicatorFor(
+                          equipmentId: item.id,
+                          density: ServiceIndicatorDensity.dot,
+                        ),
                         label: Text(switch (partCounts[item.id]) {
                           final n? when n > 0 =>
                             context.l10n.equipment_assemblyChip_label(

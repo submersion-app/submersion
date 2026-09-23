@@ -12283,11 +12283,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String equipment_list_worstClock(String kind) {
-    return '$kind متأخرة';
-  }
-
-  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -12308,8 +12303,68 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String trips_serviceAlert_overdue(String kind) {
+  String equipment_service_overdue(String kind) {
     return '$kind متأخرة';
+  }
+
+  @override
+  String equipment_service_dueRelative(String kind, String relative) {
+    return '$kind مستحقة $relative';
+  }
+
+  @override
+  String equipment_service_shortDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خلال $count غوصة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortHours(String count) {
+    return 'خلال $count ساعة';
+  }
+
+  @override
+  String equipment_service_shortSaltHours(String count) {
+    return 'خلال $count ساعة في الماء المالح';
+  }
+
+  @override
+  String equipment_service_shortColdDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خلال $count غطسة في الماء البارد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortO2Hours(String count) {
+    return 'خلال $count ساعة بأكسجين مرتفع';
+  }
+
+  @override
+  String equipment_service_shortDeepCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خلال $count غطسة عميقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خلال $count دورة بطارية',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12328,9 +12383,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String equipment_detail_serviceIntervalValue(Object days) {
     return '$days يوم';
   }
-
-  @override
-  String get equipment_detail_serviceOverdue => 'الصيانة متأخرة!';
 
   @override
   String equipment_detail_showEquipmentWith(String name) {

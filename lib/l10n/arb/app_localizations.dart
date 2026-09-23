@@ -20654,12 +20654,6 @@ abstract class AppLocalizations {
   /// **'{name}: {kind} overdue'**
   String dashboard_alerts_clockOverdue(String name, String kind);
 
-  /// No description provided for @equipment_list_worstClock.
-  ///
-  /// In en, this message translates to:
-  /// **'{kind} overdue'**
-  String equipment_list_worstClock(String kind);
-
   /// No description provided for @trips_serviceAlert_count.
   ///
   /// In en, this message translates to:
@@ -20672,11 +20666,59 @@ abstract class AppLocalizations {
   /// **'{kind} due {date}'**
   String trips_serviceAlert_dueBefore(String kind, String date);
 
-  /// No description provided for @trips_serviceAlert_overdue.
+  /// One-line service status for an overdue clock. The kind is the service kind name, or component and kind when the clock belongs to a part.
   ///
   /// In en, this message translates to:
   /// **'{kind} overdue'**
-  String trips_serviceAlert_overdue(String kind);
+  String equipment_service_overdue(String kind);
+
+  /// One-line service status for a due-soon clock. The relative part is a short trigger such as in 12d or in 3 dives, and carries its own preposition.
+  ///
+  /// In en, this message translates to:
+  /// **'{kind} due {relative}'**
+  String equipment_service_dueRelative(String kind, String relative);
+
+  /// Short form of a service clock measured in dives, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{in {count} dive} other{in {count} dives}}'**
+  String equipment_service_shortDives(int count);
+
+  /// Short form of a service clock measured in hours, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'in {count} hours'**
+  String equipment_service_shortHours(String count);
+
+  /// Short form of a service clock measured in salt-water hours, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'in {count} salt-water hours'**
+  String equipment_service_shortSaltHours(String count);
+
+  /// Short form of a service clock measured in cold dives, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{in {count} cold dive} other{in {count} cold dives}}'**
+  String equipment_service_shortColdDives(int count);
+
+  /// Short form of a service clock measured in high-O2 hours, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'in {count} high-O2 hours'**
+  String equipment_service_shortO2Hours(String count);
+
+  /// Short form of a service clock measured in deep dives, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{in {count} deep dive} other{in {count} deep dives}}'**
+  String equipment_service_shortDeepCycles(int count);
+
+  /// Short form of a service clock measured in battery cycles, for a one-line chip or tooltip. Carries its own preposition so it composes into equipment_service_dueRelative.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{in {count} battery cycle} other{in {count} battery cycles}}'**
+  String equipment_service_shortCycles(int count);
 
   /// No description provided for @settings_notifications_tripLeadTitle.
   ///
@@ -20701,12 +20743,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{days} days'**
   String equipment_detail_serviceIntervalValue(Object days);
-
-  /// No description provided for @equipment_detail_serviceOverdue.
-  ///
-  /// In en, this message translates to:
-  /// **'Service is overdue!'**
-  String get equipment_detail_serviceOverdue;
 
   /// Tooltip on a tag chip on equipment detail; tapping it opens the equipment list filtered to that tag
   ///
