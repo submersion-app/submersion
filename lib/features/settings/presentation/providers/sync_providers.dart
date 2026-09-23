@@ -50,6 +50,7 @@ import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
+import 'package:submersion/features/media/presentation/providers/gallery_origin_backfill_provider.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
@@ -1408,6 +1409,18 @@ class SyncNotifier extends StateNotifier<SyncState> {
               stackTrace: stackTrace,
             );
           }
+          // Gallery rows linked before links recorded an origin learn it
+          // here (media sync program spec 6.1). After a sync, never at
+          // launch: a stamp bumps the row clock, so this device's copies
+          // should be as fresh as a pull makes them. Awaited, so it stays
+          // inside this sync's single flight: a stamp republishes the row,
+          // and a second sync merging or publishing mid-stamp would reopen
+          // the stale-copy window it waits here to avoid. Once per device
+          // (a flag read after that), and it contains its own failures.
+          await _ref.read(galleryOriginBackfillProvider)();
+          // The notifier can be disposed while the backfill runs, and the
+          // settle below reads state.
+          if (!mounted) return;
         } else {
           state = state.copyWith(
             status: SyncStatus.error,

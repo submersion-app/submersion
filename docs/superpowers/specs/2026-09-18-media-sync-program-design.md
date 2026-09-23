@@ -416,9 +416,17 @@ returns null for `platformGallery`), and the origin republish sweep only
 selects rows this device already owns. Slice 7 therefore adds two things:
 gallery links stamp the linking device's id at insert from then on, and a
 one-time origin backfill stamps this device's id (a narrow write, one clock
-bump) on every null-origin row that resolves natively here. Until a row has
-an origin it keeps today's behaviour on the device with a cache hit for it
-and answers `fromOtherDevice` elsewhere.
+bump) on every null-origin row that resolves natively here. A repair that
+relinks a row to a gallery asset or a file records the repairing device as
+its origin too, since the new address resolves only there. Until a row has
+an origin it is never `notFound`, on any device (decided 2026-09-23). The
+spec first kept today's behaviour on a device with a cache hit, but the
+first failed thumbnail fetch clears that mapping, so the verdict would flip
+between renders. The backfill runs once per device after a successful sync,
+never at launch: the origin has no fact group, so a stamp bumps the row
+clock, and right after a pull is when it can least overwrite a peer's unseen
+newer edit. It runs only with full photo access, since a limited selection
+hides rows the device did link.
 
 ### 6.2 PhotoKit cloud identifier (#1937)
 

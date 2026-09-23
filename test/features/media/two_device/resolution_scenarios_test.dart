@@ -16,41 +16,62 @@ void main() {
   setUp(() async => h = await TwoDeviceMediaHarness.create());
   tearDown(() => h.dispose());
 
-  test(
-    'S5: a gallery photo B does not have reads as from another device and '
-    'never orphans the row',
-    () async {
-      final dive = await h.a.createDive();
-      final id = await h.a.linkGalleryPhoto(
-        FakeGalleryAsset(id: 'A-1', bytes: photo, takenAt: taken),
-        diveId: dive,
-      );
-      await h.a.sync();
-      await h.b.sync();
+  test('S5: a gallery photo B does not have reads as from another device and '
+      'never orphans the row', () async {
+    final dive = await h.a.createDive();
+    final id = await h.a.linkGalleryPhoto(
+      FakeGalleryAsset(id: 'A-1', bytes: photo, takenAt: taken),
+      diveId: dive,
+    );
+    await h.a.sync();
+    await h.b.sync();
 
-      final tile = await h.b.tile(id);
-      expect(
-        (tile.data as UnavailableData).kind,
-        UnavailableKind.fromOtherDevice,
-        reason: 'B never had this photo; it is not evidence it was deleted',
-      );
+    final tile = await h.b.tile(id);
+    expect(
+      (tile.data as UnavailableData).kind,
+      UnavailableKind.fromOtherDevice,
+      reason: 'B never had this photo; it is not evidence it was deleted',
+    );
 
-      await h.b.checkTile(id);
-      expect((await h.b.media(id))!.isOrphaned, isFalse);
-      await h.b.sync();
-      await h.a.sync();
-      expect(
-        (await h.a.media(id))!.isOrphaned,
-        isFalse,
-        reason: 'a peer must never plant the orphan flag',
-      );
-      // Note for slice 7: gallery rows are inserted with a null
-      // originDeviceId (MediaRepository._effectiveOriginDeviceId), so
-      // origin-aware verdicts need the origin stamped on gallery rows too.
-    },
-    skip:
-        'Media sync program S5: turns green in slice 7 (origin-aware verdicts)',
-  );
+    await h.b.checkTile(id);
+    expect((await h.b.media(id))!.isOrphaned, isFalse);
+    await h.b.sync();
+    await h.a.sync();
+    expect(
+      (await h.a.media(id))!.isOrphaned,
+      isFalse,
+      reason: 'a peer must never plant the orphan flag',
+    );
+  });
+
+  test('an old gallery row learns its origin after a sync, and peers with '
+      'it', () async {
+    final dive = await h.a.createDive();
+    final id = await h.a.linkGalleryPhoto(
+      FakeGalleryAsset(id: 'A-1', bytes: photo, takenAt: taken),
+      diveId: dive,
+    );
+    // Linked before gallery rows recorded an origin.
+    await h.a.clearOrigin(id);
+    await h.a.sync();
+    await h.b.sync();
+    expect((await h.b.media(id))!.originDeviceId, isNull);
+
+    await h.a.backfillGalleryOrigins();
+    await h.a.sync();
+    await h.b.sync();
+
+    expect(
+      (await h.b.media(id))!.originDeviceId,
+      h.a.deviceId,
+      reason: 'the linking device stamped it and the stamp synced',
+    );
+    final tile = await h.b.tile(id);
+    expect(
+      (tile.data as UnavailableData).kind,
+      UnavailableKind.fromOtherDevice,
+    );
+  });
 
   test('S6: a burst pair shot in the same second resolves to the right frame '
       'on a peer sharing the photo library', () async {
