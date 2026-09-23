@@ -4,7 +4,7 @@
 
 **Goal:** Deleting a diver deletes the media only that diver's rows linked, and unlinks, stamps and publishes the media a surviving row still links, so every device converges and uploaded copies are scheduled for removal.
 
-**Architecture:** A new `media_parent_cascade.dart` plans the cascade inside the diver delete's transaction, after Step 0 reassigns the shared sites and before any delete, while the media links still name the dying parents, and applies it after the transaction commits. Doomed rows are read again first (`recheckDoomed`), then go through the existing `MediaDeletionCoordinator` (tombstones plus blob-delete intents) in batches of at most 900. Every id list is read in chunks of 900 as well. Survivors get their dying links cleared with `NULLIF`, a fresh `updated_at` and a pending mark. The media enrichment the dive deletes cascade away is tombstoned inside the transaction from ids read before it.
+**Architecture:** A new `media_parent_cascade.dart` plans the cascade inside the diver delete's transaction, after Step 0 reassigns the shared sites and before any delete, while the media links still name the dying parents, and applies it after the transaction commits. Survivors are unlinked first, on their own. Doomed rows are read again (`recheckDoomed`) and go through the existing `MediaDeletionCoordinator` (tombstones plus blob-delete intents) in isolated batches of at most 900, each row judged once more inside the delete's own transaction (`keepIf`), so a relink landing at any point before the delete spares it. Every id list is read in chunks of 900 as well. Survivors get their dying links cleared with `NULLIF`, a fresh `updated_at` and a pending mark. The media enrichment the dive deletes cascade away is tombstoned inside the transaction from ids read before it.
 
 **Tech Stack:** Flutter, Dart, Drift over SQLite, the in-house changeset sync (`SyncRepository`), `flutter_test` with in-memory databases, the two-device media harness.
 
@@ -15,8 +15,11 @@
 > deletes and needs no prediction of Step 0; added `recheckDoomed` so a row
 > relinked between the commit and the apply is spared; and chunked every id
 > list at 900, because the bundled SQLite (3.53.3) binds at most 32766
-> variables per statement (measured). The tasks below describe the code as it
-> shipped.
+> variables per statement (measured). A later round ran the survivor unlinks
+> first and on their own, so a failed deletion batch cannot suppress them, and
+> gave `deleteMultipleMedia` a `keepIf` judged inside its own transaction, so
+> a relink during the coordinator's queue write still spares the row. The
+> tasks below describe the code as it shipped.
 
 ## Global Constraints
 
@@ -64,6 +67,7 @@ Two traps shape this plan. An implementer who skips this section will fall into 
   - `class MediaCascadePlan { const MediaCascadePlan({DyingMediaParents parents, List<domain.MediaItem> doomed, List<MediaSurvivor> survivors, List<String> enrichmentIds}); static const empty; }`
   - `Future<MediaCascadePlan> planMediaCascade(AppDatabase db, DyingMediaParents parents)`
   - `Future<List<domain.MediaItem>> recheckDoomed(AppDatabase db, MediaCascadePlan plan)`
+  - `bool mediaRowLivesOn(MediaData row, DyingMediaParents parents)`: whether a live parent still links the row; Task 2 hands it to the delete as `keepIf`.
   - `Future<void> unlinkMediaFromDeletedParents(AppDatabase db, SyncRepository sync, List<MediaSurvivor> survivors)`
 
 - [ ] **Step 1: Write the failing tests**
@@ -523,7 +527,10 @@ String? _dyingOf(String? link, Set<String> dying) =>
 
 /// Whether some logbook link on [row] names a parent that is not dying.
 /// That link alone keeps the row, whatever else dies around it.
-bool _livesOn(MediaData row, DyingMediaParents parents) =>
+///
+/// Public so a caller can hand it to `MediaDeletionCoordinator` as `keepIf`,
+/// where it is judged inside the delete's own transaction.
+bool mediaRowLivesOn(MediaData row, DyingMediaParents parents) =>
     (row.diveId != null && !parents.diveIds.contains(row.diveId)) ||
     (row.siteId != null && !parents.siteIds.contains(row.siteId)) ||
     (row.equipmentId != null &&
@@ -569,7 +576,7 @@ Future<MediaCascadePlan> planMediaCascade(
   for (final row in byId.values) {
     final linked =
         row.diveId != null || row.siteId != null || row.equipmentId != null;
-    if (linked && !_livesOn(row, parents)) {
+    if (linked && !mediaRowLivesOn(row, parents)) {
       doomed.add(mediaItemFromRow(row));
     } else {
       survivors.add(
@@ -604,13 +611,17 @@ Future<MediaCascadePlan> planMediaCascade(
 /// The planned doomed rows that are still doomed now, read fresh.
 ///
 /// The plan is applied after the deletion commits, and a row can be
-/// relinked to a surviving parent in between (a sync pull, say). Deleting by
-/// the planned id alone would destroy that row and queue its uploaded copy
-/// for removal. So each row is read again and deleted only while no logbook
-/// link names a live parent: links the deletion's SET NULL cleared, and
-/// links still naming a dying parent, both leave it doomed. A row already
-/// gone is dropped. The items are the fresh reads, so a blob-delete intent
-/// is built from the row as it is now.
+/// relinked to a surviving parent in between (a sync pull, say). A row is
+/// kept here while some logbook link names a live parent: links the
+/// deletion's SET NULL cleared, and links still naming a dying parent, both
+/// leave it doomed. A row already gone is dropped. The items are the fresh
+/// reads, so a blob-delete intent is built from the row as it is now.
+///
+/// A pre-filter, not the guard: the delete that follows awaits a queue write
+/// before it runs, and a relink can land in that gap too. The guard is
+/// [mediaRowLivesOn] passed to the delete as `keepIf`, which judges each row
+/// inside the delete's own transaction. This only spares the rows already
+/// relinked the cost of a blob intent.
 Future<List<domain.MediaItem>> recheckDoomed(
   AppDatabase db,
   MediaCascadePlan plan,
@@ -620,7 +631,9 @@ Future<List<domain.MediaItem>> recheckDoomed(
     for (final row in await (db.select(
       db.media,
     )..where((m) => m.id.isIn(chunk))).get()) {
-      if (!_livesOn(row, plan.parents)) still.add(mediaItemFromRow(row));
+      if (!mediaRowLivesOn(row, plan.parents)) {
+        still.add(mediaItemFromRow(row));
+      }
     }
   }
   return still;
@@ -691,7 +704,7 @@ Back up the file first; never `git checkout` it (a checkout during a red check d
 cp lib/features/media/data/repositories/media_parent_cascade.dart "$SCRATCH/media_parent_cascade.dart.bak"
 ```
 
-(a) Replace the body of `_livesOn` with the dive partition's rule, `row.siteId != null || row.equipmentId != null`. Run the test file. Expected: `a row whose every link is dying is doomed` FAILS (the dive-and-site row survives). Restore from the backup.
+(a) Replace the body of `mediaRowLivesOn` with the dive partition's rule, `row.siteId != null || row.equipmentId != null`. Run the test file. Expected: `a row whose every link is dying is doomed` FAILS (the dive-and-site row survives). Restore from the backup.
 
 (b) Replace `'dive_id = NULLIF(dive_id, ?), '` with `'dive_id = CASE WHEN ? IS NULL THEN dive_id ELSE NULL END, '`. Run the test file. Expected: `a link that moved since the plan is kept` FAILS. Restore from the backup.
 
@@ -712,12 +725,14 @@ git commit -m "feat(media): plan a cascade over several dying parent sets at onc
 
 **Files:**
 - Modify: `lib/features/divers/data/repositories/diver_repository.dart` (constructor near line 45; `deleteDiverWithReassignment` near line 330)
+- Modify: `lib/features/media/data/repositories/media_repository.dart` (`deleteMultipleMedia`)
+- Modify: `lib/features/media_store/data/media_deletion_coordinator.dart` (`deleteMediaItems`, `_delete`)
 - Modify: `docs/superpowers/specs/2026-09-18-media-sync-program-design.md` (section 5.4)
 - Test: `test/features/divers/data/repositories/diver_delete_media_cascade_test.dart`
 
 **Interfaces:**
-- Consumes (Task 1): `DyingMediaParents`, `MediaCascadePlan`, `planMediaCascade(AppDatabase, DyingMediaParents)`, `unlinkMediaFromDeletedParents(AppDatabase, SyncRepository, List<MediaSurvivor>)`. Also `MediaDeletionCoordinator.deleteMediaItems(List<MediaItem>)` and `SyncRepository.logDeletions({required String entityType, required Iterable<String> recordIds})`.
-- Produces: `DiverRepository({ImportedFileReclaimer? importedFileReclaimer, MediaDeletionCoordinator? mediaDeletionCoordinator})`. Task 3 passes the coordinator.
+- Consumes (Task 1): `DyingMediaParents`, `MediaCascadePlan`, `planMediaCascade(AppDatabase, DyingMediaParents)`, `unlinkMediaFromDeletedParents(AppDatabase, SyncRepository, List<MediaSurvivor>)`. Also `recheckDoomed`, `mediaRowLivesOn` and `SyncRepository.logDeletions({required String entityType, required Iterable<String> recordIds})`.
+- Produces: `DiverRepository({ImportedFileReclaimer? importedFileReclaimer, MediaDeletionCoordinator? mediaDeletionCoordinator})` (Task 3 passes the coordinator); `MediaRepository.deleteMultipleMedia(List<String> ids, {bool Function(MediaData row)? keepIf})`; `MediaDeletionCoordinator.deleteMediaItems(List<MediaItem> items, {bool Function(MediaData row)? keepIf})`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1052,6 +1067,60 @@ void main() {
     },
   );
 
+  test(
+    'a failed deletion still publishes the unlinks of surviving media',
+    () async {
+      // The commit already cleared the survivor's dying link with SET NULL
+      // and no stamp, and its live link keeps it out of every sweep. If this
+      // write is lost, its peers keep the stale link for good.
+      await insertDive('d1', 'diver-a');
+      await insertSite('s1', 'diver-a', isShared: true);
+      await photo(dive: 'd1');
+      final survivor = await photo(dive: 'd1', site: 's1');
+      await SyncRepository().clearPendingRecords();
+
+      await DiverRepository(
+        mediaDeletionCoordinator: _FailingCoordinator(),
+      ).deleteDiverWithReassignment('diver-a');
+
+      final kept = await row(survivor);
+      expect(kept!.diveId, isNull);
+      expect(kept.siteId, 's1');
+      expect(await isPending(survivor), isTrue);
+    },
+  );
+
+  test('a photo relinked while its deletion is under way is kept', () async {
+    // The row is read again before deletion, but the coordinator awaits its
+    // queue write before deleting by id, and a relink can land in between.
+    // The liveness check has to travel with the delete itself.
+    await insertDive('d1', 'diver-a');
+    await insertDive('d-b', 'diver-b');
+    final id = await photo(dive: 'd1');
+    // Uploaded, so the coordinator writes to the queue: the relink lands
+    // inside that write.
+    await uploaded(id);
+    final relinking = _RelinkingQueue(
+      cacheDb,
+      () => db.customStatement(
+        "UPDATE media SET dive_id = 'd-b' WHERE id = ?",
+        [id],
+      ),
+    );
+
+    await DiverRepository(
+      mediaDeletionCoordinator: MediaDeletionCoordinator(
+        mediaRepository: MediaRepository(),
+        queue: () => relinking,
+      ),
+    ).deleteDiverWithReassignment('diver-a');
+
+    final kept = await row(id);
+    expect(kept, isNotNull, reason: 'a surviving dive shows it now');
+    expect(kept!.diveId, 'd-b');
+    expect(await tombstonesFor('media', id), 0);
+  });
+
   test('a delete that fails changes no media', () async {
     await insertDive('d1', 'diver-a');
     final id = await photo(dive: 'd1');
@@ -1073,6 +1142,31 @@ void main() {
   });
 }
 
+/// Runs [relink] inside the coordinator's queue write, which is exactly the
+/// window between its liveness recheck and its delete.
+class _RelinkingQueue extends MediaTransferQueueRepository {
+  _RelinkingQueue(LocalCacheDatabase database, this.relink)
+    : super(database: database);
+
+  final Future<void> Function() relink;
+
+  @override
+  Future<int> enqueueDelete({
+    required String mediaId,
+    required String contentHash,
+    required String originalExt,
+    required String renditionExt,
+  }) async {
+    await relink();
+    return super.enqueueDelete(
+      mediaId: mediaId,
+      contentHash: contentHash,
+      originalExt: originalExt,
+      renditionExt: renditionExt,
+    );
+  }
+}
+
 /// Fails the way a media store problem after the commit would.
 class _FailingCoordinator extends MediaDeletionCoordinator {
   _FailingCoordinator()
@@ -1082,8 +1176,10 @@ class _FailingCoordinator extends MediaDeletionCoordinator {
       );
 
   @override
-  Future<void> deleteMediaItems(List<MediaItem> items) async =>
-      throw StateError('media store unavailable');
+  Future<void> deleteMediaItems(
+    List<MediaItem> items, {
+    bool Function(MediaData row)? keepIf,
+  }) async => throw StateError('media store unavailable');
 }
 ```
 
@@ -1099,6 +1195,7 @@ In `diver_repository.dart`, add the imports (keep the existing grouping, alphabe
 ```dart
 import 'package:submersion/features/media/data/repositories/media_parent_cascade.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 ```
@@ -1130,6 +1227,124 @@ class DiverRepository {
 ```
 
 (Leave the other existing fields, `_settingsRepository` and `_syncRepository`, where they are.)
+
+- [ ] **Step 3b: Let the delete itself judge whether a row still dies**
+
+A liveness check made before the delete can be overtaken: the coordinator awaits its queue write and then deletes by id, and a relink can land in between. The check has to run inside the delete's own transaction. In `lib/features/media/data/repositories/media_repository.dart`, replace `deleteMultipleMedia` with:
+
+```dart
+  /// Delete multiple media items in a single transaction.
+  /// Logs each deletion for sync tracking.
+  ///
+  /// [keepIf], when given, is asked about each row as it stands inside the
+  /// same transaction, and a row it keeps is neither deleted nor
+  /// tombstoned. That makes a caller's "is this row still doomed?" check
+  /// atomic with the delete: one made earlier, outside the transaction, can
+  /// be overtaken by a relink before the delete runs.
+  Future<void> deleteMultipleMedia(
+    List<String> ids, {
+    bool Function(MediaData row)? keepIf,
+  }) async {
+    if (ids.isEmpty) return;
+    try {
+      _log.info('Deleting ${ids.length} media items');
+      await _db.transaction(() async {
+        var targets = ids;
+        if (keepIf != null) {
+          final rows = await (_db.select(
+            _db.media,
+          )..where((t) => t.id.isIn(ids))).get();
+          targets = [
+            for (final row in rows)
+              if (!keepIf(row)) row.id,
+          ];
+          if (targets.isEmpty) return;
+        }
+        // Before the parents: the enrichment rows would otherwise vanish on
+        // the FK cascade, which removes them without logging anything. See
+        // [_dropEnrichmentRows] for why the tombstone matters.
+        await _dropEnrichmentRows(targets);
+        for (final id in targets) {
+          await (_db.delete(_db.media)..where((t) => t.id.equals(id))).go();
+          await _syncRepository.logDeletion(entityType: 'media', recordId: id);
+        }
+      });
+      SyncEventBus.notifyLocalChange();
+      _log.info('Deleted ${ids.length} media items');
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to delete multiple media',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+```
+
+In `lib/features/media_store/data/media_deletion_coordinator.dart`, add `import 'package:submersion/core/database/database.dart';` and replace `deleteMediaItems` and `_delete` with:
+
+```dart
+  /// [deleteMultipleMedia] for callers that already hold the rows. The
+  /// dive-deletion cascade partitions its doomed set out of a single
+  /// select, so re-reading each row by id here would be duplicate work
+  /// proportional to the number of photos on the dives being deleted.
+  ///
+  /// [keepIf] spares any row it answers true for, judged inside the delete's
+  /// own transaction (see [MediaRepository.deleteMultipleMedia]). A caller
+  /// whose items were chosen earlier passes the rule that chose them, so a
+  /// row relinked in the meantime, even during the queue write below,
+  /// survives. Its intent was already enqueued; that is harmless by the
+  /// same refcount that covers a crash between enqueue and delete.
+  Future<void> deleteMediaItems(
+    List<MediaItem> items, {
+    bool Function(MediaData row)? keepIf,
+  }) => _delete(
+    [for (final item in items) item.id],
+    {for (final item in items) item.id: item},
+    keepIf: keepIf,
+  );
+
+  /// [known] short-circuits the per-id read for callers that already hold
+  /// the row; ids absent from it are read back as before.
+  Future<void> _delete(
+    List<String> ids,
+    Map<String, MediaItem> known, {
+    bool Function(MediaData row)? keepIf,
+  }) async {
+    var enqueued = false;
+    for (final id in ids) {
+      // Untyped catch on purpose: an uninitialized
+      // LocalCacheDatabaseService throws StateError (an Error, not an
+      // Exception), and no media-store problem may ever block the user's
+      // deletion.
+      try {
+        if (await _enqueueIntent(id, known[id])) enqueued = true;
+      } catch (e, stackTrace) {
+        _log.warning(
+          'Could not enqueue remote delete for media $id '
+          '(sweep will reconcile)',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+    if (keepIf != null) {
+      await _mediaRepository.deleteMultipleMedia(ids, keepIf: keepIf);
+    } else if (ids.length == 1) {
+      await _mediaRepository.deleteMedia(ids.single);
+    } else {
+      await _mediaRepository.deleteMultipleMedia(ids);
+    }
+    if (enqueued && _kickWorker != null) {
+      try {
+        await _kickWorker();
+      } catch (e) {
+        _log.warning('Worker kick after media delete failed', error: e);
+      }
+    }
+  }
+```
 
 - [ ] **Step 4: Plan inside the transaction, tombstone inside it, apply after it**
 
@@ -1166,33 +1381,66 @@ Add these two members to `DiverRepository`, directly above the doc comment of `d
   /// After the delete commits, never inside it: the coordinator's queue
   /// lives in another database, and a failed delete must leave the media as
   /// it was. A failure here is logged, not rethrown: the diver is gone and
-  /// cannot be restored, and what is left is recoverable (unlinked rows for
-  /// the orphan sweep, a missed blob intent for the Verify Library sweep).
+  /// cannot be restored.
   ///
-  /// The doomed rows are checked again first, because one can be relinked
-  /// to a surviving parent between the commit and here. They go to the
-  /// coordinator in bounded batches: it tombstones their enrichment with one
-  /// list per call, and a whole library can pass what one statement binds.
+  /// The survivors go first and on their own. The commit already cleared
+  /// their dying links with SET NULL and no stamp, and their live links keep
+  /// them out of every sweep, so a lost unlink would leave peers with the
+  /// stale link for good. A doomed row the deletion misses is recoverable
+  /// (the orphan sweep collects it, and the Verify Library sweep a missed
+  /// blob intent), so each deletion batch is isolated and a failed one does
+  /// not stop the rest.
+  ///
+  /// Each doomed row is judged again inside the delete's own transaction
+  /// ([mediaRowLivesOn] as `keepIf`), so one relinked to a surviving parent
+  /// since the plan survives, even if the relink lands during the
+  /// coordinator's queue write. [recheckDoomed] only drops the rows already
+  /// relinked beforehand. Batches are bounded: the coordinator tombstones
+  /// their enrichment with one list per call, and a whole library can pass
+  /// what one statement binds.
   Future<void> _applyMediaCascade(String diverId, MediaCascadePlan plan) async {
     try {
-      final doomed = await recheckDoomed(_db, plan);
-      for (var i = 0; i < doomed.length; i += mediaCascadeIdChunk) {
-        await _mediaDeletionCoordinator.deleteMediaItems(
-          doomed.sublist(
-            i,
-            i + mediaCascadeIdChunk < doomed.length
-                ? i + mediaCascadeIdChunk
-                : doomed.length,
-          ),
-        );
-      }
       await unlinkMediaFromDeletedParents(_db, _syncRepository, plan.survivors);
     } catch (e, stackTrace) {
       _log.error(
-        'Deleted diver $diverId, but could not clean up their media',
+        'Deleted diver $diverId, but could not publish the unlinks of the '
+        'media that outlived it',
         error: e,
         stackTrace: stackTrace,
       );
+    }
+
+    final List<MediaItem> doomed;
+    try {
+      doomed = await recheckDoomed(_db, plan);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Deleted diver $diverId, but could not read the media only it linked',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return;
+    }
+    for (var i = 0; i < doomed.length; i += mediaCascadeIdChunk) {
+      final batch = doomed.sublist(
+        i,
+        i + mediaCascadeIdChunk < doomed.length
+            ? i + mediaCascadeIdChunk
+            : doomed.length,
+      );
+      try {
+        await _mediaDeletionCoordinator.deleteMediaItems(
+          batch,
+          keepIf: (row) => mediaRowLivesOn(row, plan.parents),
+        );
+      } catch (e, stackTrace) {
+        _log.error(
+          'Deleted diver $diverId, but could not delete ${batch.length} of '
+          'the media only it linked',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
     }
   }
 ```
@@ -1236,7 +1484,7 @@ After the transaction, directly after its closing `});` and before the comment t
 - [ ] **Step 5: Run the tests to verify they pass**
 
 Run: `dart format lib test && flutter test test/features/divers/data/repositories/diver_delete_media_cascade_test.dart`
-Expected: `All tests passed!` (11 tests).
+Expected: `All tests passed!` (13 tests).
 
 - [ ] **Step 6: Mutation-check the diver-specific rules**
 
@@ -1250,7 +1498,11 @@ cp lib/features/divers/data/repositories/diver_repository.dart "$SCRATCH/diver_r
 
 (c) Comment out `await _applyMediaCascade(id, mediaPlan);`. Expected: the dive-only, shared-site, gear and signature tests FAIL. Restore.
 
-(d) Add `rethrow;` at the end of `_applyMediaCascade`'s catch. Expected: `a cleanup failure after the commit is logged, not rethrown` FAILS. Restore and rerun: all pass.
+(d) Add `rethrow;` at the end of the catch around a deletion batch in `_applyMediaCascade`. Expected: `a cleanup failure after the commit is logged, not rethrown` FAILS. Restore.
+
+(e) Drop the `keepIf:` argument from the coordinator call in `_applyMediaCascade`. Expected: `a photo relinked while its deletion is under way is kept` FAILS. Restore.
+
+(f) Move the survivors' `try` block below the deletion loop and add `return;` to a failed batch's catch. Expected: `a failed deletion still publishes the unlinks of surviving media` FAILS. Restore and rerun: all pass.
 
 - [ ] **Step 7: Run the existing diver and census suites**
 
@@ -1275,7 +1527,7 @@ the plan classifies every row against all the dying sets at once.
 - [ ] **Step 9: Commit**
 
 ```bash
-git add lib/features/divers/data/repositories/diver_repository.dart test/features/divers/data/repositories/diver_delete_media_cascade_test.dart docs/superpowers/specs/2026-09-18-media-sync-program-design.md
+git add lib/features/divers/data/repositories/diver_repository.dart lib/features/media/data/repositories/media_repository.dart lib/features/media_store/data/media_deletion_coordinator.dart test/features/divers/data/repositories/diver_delete_media_cascade_test.dart docs/superpowers/specs/2026-09-18-media-sync-program-design.md
 git commit -m "fix(divers): a diver delete cascades their media like the single-entity deletes"
 ```
 
