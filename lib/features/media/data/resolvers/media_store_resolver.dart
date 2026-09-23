@@ -35,6 +35,81 @@ class MediaStoreResolver {
     category: LogCategory.media,
   );
 
+  /// Probe answers per content hash and tier for the life of this resolver
+  /// (one store runtime): true found, false absent. A HEAD that failed is
+  /// not recorded, since it says nothing about the object.
+  final Map<String, bool> _probes = {};
+
+  /// Probes in flight, so tiles asking about the same object share one HEAD.
+  final Map<String, Future<bool?>> _probing = {};
+
+  /// Serves [item] from the store when its synced upload stamps are missing
+  /// but the store may hold it anyway (media sync program spec 7.2): a stamp
+  /// that is late, or was lost. Each tier the request needs is HEADed once
+  /// and remembered, found or absent, so a grid of such rows costs one HEAD
+  /// per row and tier for the life of this resolver. Serving goes through
+  /// [tryResolveRemote] with the found tiers treated as stamped. Read-only:
+  /// nothing is written back, since the stamps are the uploading device's
+  /// facts (decided 2026-09-23).
+  Future<MediaSourceData?> tryResolveProbed(
+    MediaItem item, {
+    required bool thumbnail,
+  }) async {
+    final hash = item.contentHash;
+    if (hash == null) return null;
+    final thumbFound =
+        thumbnail && await _probe(hash, 'thumb', StoreKeys.thumbKey(hash));
+    // A video's original is a video: a thumbnail cannot degrade to it (see
+    // tryResolveRemote), so it is not worth a HEAD either.
+    final wantsOriginal =
+        !thumbnail || (!thumbFound && item.mediaType != MediaType.video);
+    final originalFound =
+        wantsOriginal &&
+        await _probe(
+          hash,
+          'original',
+          StoreKeys.objectKey(
+            hash,
+            extension: StoreKeys.extensionFor(item.originalFilename),
+          ),
+        );
+    if (!thumbFound && !originalFound) return null;
+    final probed = DateTime.fromMillisecondsSinceEpoch(0);
+    return tryResolveRemote(
+      item.copyWith(
+        remoteThumbUploadedAt: thumbFound ? probed : null,
+        remoteUploadedAt: originalFound ? probed : null,
+        remoteCompressedUploadedAt: null,
+      ),
+      thumbnail: thumbnail,
+    );
+  }
+
+  Future<bool> _probe(String hash, String tier, String key) async {
+    final cacheKey = '$hash#$tier';
+    final known = _probes[cacheKey];
+    if (known != null) return known;
+    // A block body on purpose: remove() returns the entry, which is this very
+    // future, and whenComplete waits on a future its callback returns, so
+    // `=> _probing.remove(...)` would wait on itself forever.
+    final found = await (_probing[cacheKey] ??= _head(key).whenComplete(() {
+      _probing.remove(cacheKey);
+    }));
+    if (found == null) return false;
+    _probes[cacheKey] = found;
+    return found;
+  }
+
+  /// Whether the store holds [key], or null when it could not say.
+  Future<bool?> _head(String key) async {
+    try {
+      return await _store.head(key) != null;
+    } on Object catch (e) {
+      _log.debug('Store probe for $key failed; not remembered', error: e);
+      return null;
+    }
+  }
+
   /// Returns FileData when the bytes are cached or fetched (originals are
   /// hash-verified); null when this item is not confirmed in the store or
   /// any error occurs (the caller keeps its native UnavailableData).
