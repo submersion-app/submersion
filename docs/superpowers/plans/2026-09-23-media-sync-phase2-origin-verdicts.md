@@ -443,6 +443,7 @@ void main() {
   late SharedPreferences prefs;
   late String me;
   final bytes = Uint8List.fromList(List<int>.generate(64, (i) => i));
+  final taken = DateTime(2026, 7, 1);
 
   setUp(() async {
     db = await setUpTestDatabase();
@@ -461,9 +462,9 @@ void main() {
         mediaType: MediaType.photo,
         sourceType: MediaSourceType.platformGallery,
         platformAssetId: assetId,
-        takenAt: DateTime(2026, 7, 1),
-        createdAt: DateTime(2026, 7, 1),
-        updatedAt: DateTime(2026, 7, 1),
+        takenAt: taken,
+        createdAt: taken,
+        updatedAt: taken,
       ),
     )).id;
     await db.customStatement(
@@ -491,8 +492,22 @@ void main() {
         prefs: prefs,
       );
 
+  // It runs after a sync, unasked. On mobile the service's checkPermission
+  // is a request (it shows the OS prompt when access was never decided), so
+  // the backfill must only read the status and wait for the gallery flow.
+  test('never asks for photo access, only reads it', () async {
+    final counting = _CountingPhotoPicker();
+    gallery = counting;
+    gallery.add(FakeGalleryAsset(id: 'A-1', bytes: bytes, takenAt: taken));
+    final id = await legacyRow('A-1');
+
+    expect(await backfill().run(), (checked: 1, stamped: 1));
+    expect(await originOf(id), me);
+    expect(counting.asks, 0);
+  });
+
   test('stamps the rows whose asset id loads here, and only those', () async {
-    gallery.add(FakeGalleryAsset(id: 'A-1', bytes: bytes, takenAt: DateTime(2026, 7, 1)));
+    gallery.add(FakeGalleryAsset(id: 'A-1', bytes: bytes, takenAt: taken));
     final mine = await legacyRow('A-1');
     final theirs = await legacyRow('B-9');
     await SyncRepository().clearPendingRecords();
@@ -507,7 +522,7 @@ void main() {
   });
 
   test('a row that already records an origin is left alone', () async {
-    gallery.add(FakeGalleryAsset(id: 'A-1', bytes: bytes, takenAt: DateTime(2026, 7, 1)));
+    gallery.add(FakeGalleryAsset(id: 'A-1', bytes: bytes, takenAt: taken));
     final id = (await MediaRepository().createMedia(
       MediaItem(
         id: '',
@@ -515,9 +530,9 @@ void main() {
         sourceType: MediaSourceType.platformGallery,
         platformAssetId: 'A-1',
         originDeviceId: 'phone',
-        takenAt: DateTime(2026, 7, 1),
-        createdAt: DateTime(2026, 7, 1),
-        updatedAt: DateTime(2026, 7, 1),
+        takenAt: taken,
+        createdAt: taken,
+        updatedAt: taken,
       ),
     )).id;
 
@@ -527,15 +542,18 @@ void main() {
     expect(await originOf(id), 'phone');
   });
 
-  test('waits for full photo access, and retries after the next sync', () async {
-    gallery.add(FakeGalleryAsset(id: 'A-1', bytes: bytes, takenAt: DateTime(2026, 7, 1)));
-    final id = await legacyRow('A-1');
-    gallery.permission = PhotoPermissionStatus.limited;
+  test(
+    'waits for full photo access, and retries after the next sync',
+    () async {
+      gallery.add(FakeGalleryAsset(id: 'A-1', bytes: bytes, takenAt: taken));
+      final id = await legacyRow('A-1');
+      gallery.permission = PhotoPermissionStatus.limited;
 
-    expect(await backfill().run(), isNull);
-    expect(await originOf(id), isNull);
-    expect(GalleryOriginBackfill.isDone(prefs), isFalse);
-  });
+      expect(await backfill().run(), isNull);
+      expect(await originOf(id), isNull);
+      expect(GalleryOriginBackfill.isDone(prefs), isFalse);
+    },
+  );
 
   test('a device with no photo library is done at once', () async {
     gallery = FakePhotoPickerService(supportsGalleryBrowsing: false);
@@ -551,18 +569,101 @@ void main() {
     expect(await backfill().run(), isNull);
   });
 
-  test('a probe that throws skips its row and the pass still completes',
-      () async {
-    gallery.add(FakeGalleryAsset(id: 'A-1', bytes: bytes, takenAt: DateTime(2026, 7, 1)));
-    final good = await legacyRow('A-1');
+  test(
+    'a probe that throws skips its row and the pass still completes',
+    () async {
+      gallery.add(FakeGalleryAsset(id: 'A-1', bytes: bytes, takenAt: taken));
+      final good = await legacyRow('A-1');
+      final bad = await legacyRow('boom');
+
+      final outcome = await backfill(reader: _ThrowsFor('boom', gallery)).run();
+
+      expect(outcome, (checked: 2, stamped: 1));
+      expect(await originOf(good), me);
+      expect(await originOf(bad), isNull);
+    },
+  );
+
+  // A probe that could not answer says nothing about the row. The pass is
+  // not complete until every candidate has been probed, so the next sync
+  // tries the rest again.
+  test('a failed probe leaves the backfill to run again', () async {
+    gallery.add(FakeGalleryAsset(id: 'boom', bytes: bytes, takenAt: taken));
     final bad = await legacyRow('boom');
 
-    final outcome = await backfill(reader: _ThrowsFor('boom', gallery)).run();
+    await backfill(reader: _ThrowsFor('boom', gallery)).run();
+    expect(GalleryOriginBackfill.isDone(prefs), isFalse);
 
-    expect(outcome, (checked: 2, stamped: 1));
-    expect(await originOf(good), me);
-    expect(await originOf(bad), isNull);
+    expect(await backfill().run(), (checked: 1, stamped: 1));
+    expect(await originOf(bad), me);
+    expect(GalleryOriginBackfill.isDone(prefs), isTrue);
   });
+
+  // The candidates are read before a probe loop that can run long. A row
+  // the user converts in the meantime (here to a cloud-backed row) no longer
+  // points at the asset that was probed, and must not gain a gallery origin.
+  test('a row converted during the probe is not stamped', () async {
+    gallery.add(FakeGalleryAsset(id: 'A-1', bytes: bytes, takenAt: taken));
+    gallery.add(FakeGalleryAsset(id: 'A-2', bytes: bytes, takenAt: taken));
+    final converted = await legacyRow('A-1');
+    final relinked = await legacyRow('A-2');
+
+    final outcome = await backfill(
+      reader: _ChangesDuringProbe(gallery, () async {
+        await db.customStatement(
+          "UPDATE media SET source_type = 'mediaStore' WHERE id = ?",
+          [converted],
+        );
+        await db.customStatement(
+          "UPDATE media SET platform_asset_id = 'A-9' WHERE id = ?",
+          [relinked],
+        );
+      }),
+    ).run();
+
+    expect(outcome, (checked: 2, stamped: 0));
+    expect(await originOf(converted), isNull);
+    expect(await originOf(relinked), isNull);
+
+    // The relinked row is still a gallery row with no origin, under an
+    // asset this pass never probed: the pass is not complete, and the next
+    // one checks it. The converted row is no longer a candidate at all.
+    expect(GalleryOriginBackfill.isDone(prefs), isFalse);
+    gallery.add(FakeGalleryAsset(id: 'A-9', bytes: bytes, takenAt: taken));
+    expect(await backfill().run(), (checked: 1, stamped: 1));
+    expect(await originOf(relinked), me);
+    expect(GalleryOriginBackfill.isDone(prefs), isTrue);
+  });
+
+  // Rows another device linked probe negative and stay originless; they are
+  // answered, and must not keep the pass open forever.
+  test('rows that do not load here still let the pass complete', () async {
+    await legacyRow('B-9');
+
+    expect(await backfill().run(), (checked: 1, stamped: 0));
+    expect(GalleryOriginBackfill.isDone(prefs), isTrue);
+  });
+}
+
+/// Runs [change] on the first probe, then delegates: the rows move while the
+/// backfill is still probing.
+class _ChangesDuringProbe implements GalleryAssetReader {
+  _ChangesDuringProbe(this.inner, this.change);
+  final GalleryAssetReader inner;
+  final Future<void> Function() change;
+  var _changed = false;
+
+  @override
+  Future<bool> exists(String assetId) async {
+    if (!_changed) {
+      _changed = true;
+      await change();
+    }
+    return inner.exists(assetId);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Delegates to [inner] except that probing [id] throws, the way a platform
@@ -573,11 +674,29 @@ class _ThrowsFor implements GalleryAssetReader {
   final GalleryAssetReader inner;
 
   @override
-  Future<bool> exists(String assetId) =>
-      assetId == id ? Future.error(StateError('probe failed')) : inner.exists(assetId);
+  Future<bool> exists(String assetId) => assetId == id
+      ? Future<bool>.error(StateError('probe failed'))
+      : inner.exists(assetId);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/// Counts calls that could show the OS photo prompt on a real device.
+class _CountingPhotoPicker extends FakePhotoPickerService {
+  var asks = 0;
+
+  @override
+  Future<PhotoPermissionStatus> checkPermission() {
+    asks++;
+    return super.checkPermission();
+  }
+
+  @override
+  Future<PhotoPermissionStatus> requestPermission() {
+    asks++;
+    return super.requestPermission();
+  }
 }
 ```
 
@@ -806,7 +925,7 @@ class GalleryOriginBackfill {
 - [ ] **Step 5: Run the tests to verify they pass**
 
 Run: `dart format lib test && flutter test test/features/media/data/services/gallery_origin_backfill_test.dart`
-Expected: `All tests passed!` (6 tests).
+Expected: `All tests passed!` (10 tests).
 
 - [ ] **Step 6: The provider and the post-sync hook**
 
@@ -894,7 +1013,7 @@ cp lib/features/media/data/services/gallery_origin_backfill.dart "$SCRATCH/galle
 
 (a) Replace `!= PhotoPermissionStatus.authorized` with `== PhotoPermissionStatus.denied`. Expected: `waits for full photo access, and retries after the next sync` FAILS. Restore.
 
-(b) Stamp every candidate: replace `if (await _reader.exists(row.platformAssetId)) mine.add(row.id);` with `mine.add(row.id);`. Expected: `stamps the rows whose asset id loads here, and only those` FAILS. Restore and rerun: all pass.
+(b) Stamp every candidate: replace `if (await _reader.exists(row.platformAssetId)) mine.add(row);` with `mine.add(row);`. Expected: `stamps the rows whose asset id loads here, and only those` FAILS. Restore and rerun: all pass.
 
 - [ ] **Step 9: Commit**
 
