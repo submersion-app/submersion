@@ -109,6 +109,39 @@ void main() {
       },
     );
 
+    test('raises nothing when no dive could be read', () async {
+      // Every record fails for want of a start time. No dive was imported,
+      // so there is no dive that failed to attach, and a notice saying
+      // "0 dives" would describe nothing.
+      final buffer = StringBuffer()
+        ..writeln(r'FSH|^~\&{}|ANST01^12X456^A|ZXU|20240310120000|')
+        ..writeln(r'ZRH|^~\&{}|||MFWG|ThM|C|bar|L|')
+        ..writeln('ZAR{')
+        ..writeln('<AQUALUNG>')
+        ..writeln('<LOCATION>$withName</LOCATION>')
+        ..writeln('</AQUALUNG>')
+        ..writeln('}');
+      for (var i = 1; i <= 2; i++) {
+        buffer
+          ..writeln('ZDH|$i|$i|M|QS||22|||')
+          ..writeln('ZDT|1|$i|12.0||21||');
+      }
+
+      final payload = await parser.parse(
+        Uint8List.fromList(utf8.encode(buffer.toString())),
+      );
+
+      expect(payload.entitiesOf(ImportEntityType.dives), isEmpty);
+      expect(
+        payload.warnings.where(
+          (w) => w.code == ImportWarningCode.sitesUnresolved,
+        ),
+        isEmpty,
+      );
+      // The location is still the only GPS the file holds, so it is kept.
+      expect(payload.entitiesOf(ImportEntityType.sites), hasLength(1));
+    });
+
     test('a file with no ZAR raises nothing', () async {
       final payload = await parser.parse(
         Uint8List.fromList(utf8.encode(document(dives: 2))),

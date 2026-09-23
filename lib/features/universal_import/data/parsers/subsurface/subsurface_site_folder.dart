@@ -169,12 +169,11 @@ String? _normalizedName(String? raw) {
   return collapsed.isEmpty ? null : collapsed;
 }
 
-GeoPoint? _pointOf(Map<String, dynamic> site) {
-  final lat = site['latitude'] as double?;
-  final lon = site['longitude'] as double?;
-  if (lat == null || lon == null) return null;
-  return GeoPoint(lat, lon);
-}
+/// [site]'s position under the shared contract, or null. 0,0 is the pair
+/// logbooks write for "no fix", so it neither names a nameless entry nor
+/// places one site on top of another in a fold (#2232).
+GeoPoint? _pointOf(Map<String, dynamic> site) =>
+    ImportSiteLocation.coordinatesOf(site);
 
 bool _isBlank(Object? value) =>
     value == null || (value is String && value.trim().isEmpty);

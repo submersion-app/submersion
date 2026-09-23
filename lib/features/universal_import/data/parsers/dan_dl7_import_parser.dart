@@ -118,14 +118,19 @@ class DanDl7Parser implements ImportParser {
           orphanSite['uddfId'] as String,
           () => orphanSite,
         );
-        warnings.add(
-          ImportSiteLocation.sitesUnresolved(
-            dives.length,
-            message:
-                '${dives.length} dives could not be attached to the one site '
-                'this multi-dive file describes',
-          ),
-        );
+        // No notice when no dive was read at all: there is then no dive that
+        // failed to attach, and "0 dives" would describe nothing. The site
+        // is still kept, since it is the only GPS the file holds.
+        if (dives.isNotEmpty) {
+          warnings.add(
+            ImportSiteLocation.sitesUnresolved(
+              dives.length,
+              message:
+                  '${dives.length} dives could not be attached to the one site '
+                  'this multi-dive file describes',
+            ),
+          );
+        }
       }
     }
 
