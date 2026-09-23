@@ -104,13 +104,22 @@ class GalleryOriginBackfill {
         }
       }
       final stamped = await _mediaRepository.stampOriginDevice(mine, me);
-      // Done only once every candidate had an answer: a probe that failed
-      // said nothing about its row, so the next sync asks again.
-      if (unanswered == 0) await _prefs.setBool(doneFlagKey, true);
+      // Done only once every candidate had an answer, and nothing is left
+      // that this pass did not ask about. A probe that failed said nothing
+      // about its row; a row relinked during the probe loop is still a
+      // candidate, under an asset this pass never probed. Either way the
+      // next sync asks again. Rows that answered "not here" stay
+      // candidates too, but they were asked, so they do not hold it open.
+      final asked = candidates.toSet();
+      final unasked = (await _mediaRepository.getGalleryMediaWithoutOrigin())
+          .where((row) => !asked.contains(row))
+          .length;
+      final complete = unanswered == 0 && unasked == 0;
+      if (complete) await _prefs.setBool(doneFlagKey, true);
       _log.info(
-        'Gallery origin backfill ${unanswered == 0 ? 'done' : 'partial'}: '
+        'Gallery origin backfill ${complete ? 'done' : 'partial'}: '
         'checked ${candidates.length}, stamped $stamped, '
-        'unanswered $unanswered',
+        'unanswered $unanswered, unasked $unasked',
       );
       return (checked: candidates.length, stamped: stamped);
     } on Object catch (e, stackTrace) {

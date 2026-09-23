@@ -205,6 +205,24 @@ void main() {
     expect(outcome, (checked: 2, stamped: 0));
     expect(await originOf(converted), isNull);
     expect(await originOf(relinked), isNull);
+
+    // The relinked row is still a gallery row with no origin, under an
+    // asset this pass never probed: the pass is not complete, and the next
+    // one checks it. The converted row is no longer a candidate at all.
+    expect(GalleryOriginBackfill.isDone(prefs), isFalse);
+    gallery.add(FakeGalleryAsset(id: 'A-9', bytes: bytes, takenAt: taken));
+    expect(await backfill().run(), (checked: 1, stamped: 1));
+    expect(await originOf(relinked), me);
+    expect(GalleryOriginBackfill.isDone(prefs), isTrue);
+  });
+
+  // Rows another device linked probe negative and stay originless; they are
+  // answered, and must not keep the pass open forever.
+  test('rows that do not load here still let the pass complete', () async {
+    await legacyRow('B-9');
+
+    expect(await backfill().run(), (checked: 1, stamped: 0));
+    expect(GalleryOriginBackfill.isDone(prefs), isTrue);
   });
 }
 
