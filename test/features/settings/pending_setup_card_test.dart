@@ -118,7 +118,9 @@ void main() {
     await announce('store-1', 'first @ minio');
     expect(find.text('Connect media storage (first @ minio)'), findsOneWidget);
 
-    await announce('store-2', 'second @ minio');
+    // The same store re-announced under a new hint: a second write that
+    // fires the bus, with no two descriptors tying on their timestamps.
+    await announce('store-1', 'second @ minio');
     expect(find.text('Connect media storage (second @ minio)'), findsOneWidget);
     expect(find.text('Connect media storage (first @ minio)'), findsNothing);
   });
