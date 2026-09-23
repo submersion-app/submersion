@@ -2049,3 +2049,12 @@ git commit -m "docs(spec): record slice 8's decisions in 6.2"
 ```
 
 The PR body carries `Closes #2116, closes #1937` and `Part of #2090`.
+
+## Execution notes (2026-09-23)
+
+- `PhotoManager.plugin` and `PhotoManagerPlugin` are exported by `package:photo_manager/photo_manager.dart` in 3.12.0; the seam compiles as written.
+- Task 2: the plan's import test used `CloudIdentifierSource` without importing it; added. The dive-path test stubs `getGalleryLinksForDive` and echoes the created item, like its neighbours.
+- Task 4: the lookup lives in a `_withCloudIds` helper rather than inline in `apply`. The mutation pass showed the null-to-empty fallback was written twice (service and repository), so either copy alone survived its mutation; the service now passes null through and the repository alone writes `''`, which also covers any other caller of `applyRepairWrites`.
+- Task 6: one test beyond the plan's nine, `a row linked during the lookup keeps the flag open`, which pins the unasked check.
+- Mutation pass: 17 mutations, each compiling and failing its named test (the table above, plus the relink fallback, the file-relink `Value.absent`, the backfill's unasked check, the `rowFromRemote` gate in the hint, and the v226 backstop).
+

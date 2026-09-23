@@ -446,6 +446,17 @@ hides rows the device did link.
 - Cache invalidation: when a sync applies a new `cloud_asset_id` or new
   upload facts to a row, its `unresolved` cache entry is deleted, so the
   next view retries instead of waiting out the backoff.
+- Decided 2026-09-23 while planning: rung 226 (PR #1978 holds 225); the
+  floor stays 224; the batch `getCloudIdentifiers` call everywhere, since
+  `AssetEntity.darwin.cloudIdentifier` wraps it one id at a time and throws
+  off Apple platforms; the backfill is the slice 7 origin backfill's twin
+  (own rows, after a sync, full access, once), not the origin republish
+  sweep, and it waits for the origin backfill; a gallery relink restamps
+  the cloud id, with an empty string for "none" because a null never
+  reaches a peer through the merge's nullToAbsent upsert. "New upload
+  facts" means an upload value this device did not have, not a won upload
+  clock: a group with no clock of its own falls back to the row clock, so
+  a plain edit can win it.
 
 ### 6.3 Android (#1625)
 
