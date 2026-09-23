@@ -5,15 +5,21 @@ import 'package:submersion/core/database/database.dart';
 
 void main() {
   test('v222 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v223 (buddy profile dive links) landed on top; the
-    // newest rung owns the exact assertions.
+    // Relaxed once v223 (buddy profile dive links) and then v224 (the
+    // media fact clocks) landed on top; the newest rung owns the exact
+    // assertions.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(222));
     expect(AppDatabase.migrationVersions, contains(222));
     expect(AppDatabase.migrationStepCount(221), greaterThanOrEqualTo(1));
   });
 
-  test('the column is additive, so the sync floor does not move', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 210);
+  test('this rung is additive and did not move the sync floor', () {
+    // The floor is 224, raised by the media fact clocks, whose own test
+    // owns that number. This rung did not raise it: an older reader simply
+    // never sees the per-site overrides. Asserting the current value here
+    // keeps the pair honest, so moving the floor fails both tests rather
+    // than silently passing this one.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
 
   test('a fresh database has the overrides column, nullable', () async {

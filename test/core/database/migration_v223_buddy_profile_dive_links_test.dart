@@ -4,16 +4,21 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
 void main() {
-  test('v223 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 223);
+  test('v223 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v224 (the media fact clocks) landed on top; the newest
+    // rung owns the exact assertions.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(223));
     expect(AppDatabase.migrationVersions, contains(223));
-    expect(AppDatabase.migrationStepCount(222), 1);
+    expect(AppDatabase.migrationStepCount(222), greaterThanOrEqualTo(1));
   });
 
-  test('the columns are additive, so the sync floor does not move', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 210);
+  test('these columns are additive and did not move the sync floor', () {
+    // The floor is 224, raised by the media fact clocks, whose own test
+    // owns that number. This rung did not raise it: an older reader simply
+    // never sees a buddy's profile link or a dive's outing. Asserting the
+    // current value keeps the pair honest, so moving the floor fails both
+    // tests rather than silently passing this one.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
 
   test('a fresh database has both columns, nullable', () async {
@@ -50,7 +55,7 @@ void main() {
     },
   );
 
-  test('a v222 database upgrades to v223 with both columns', () async {
+  test('a v222 database upgrades with both columns', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = 222');
@@ -92,7 +97,7 @@ void main() {
     final diveCols = await db.customSelect("PRAGMA table_info('dives')").get();
     expect(diveCols.map((c) => c.read<String>('name')), contains('outing_id'));
     final version = await db.customSelect('PRAGMA user_version').getSingle();
-    expect(version.read<int>('user_version'), 223);
+    expect(version.read<int>('user_version'), AppDatabase.currentSchemaVersion);
   });
 
   test('the asserts are no-ops when the tables are absent', () async {

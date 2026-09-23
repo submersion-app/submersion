@@ -1729,6 +1729,17 @@ class Media extends Table {
   IntColumn get updatedAt => integer()();
   TextColumn get hlc => text().nullable()();
 
+  /// Clock of the upload facts (content identity, the three upload stamps
+  /// and the compressed rendition's level and size). Every upload-fact write
+  /// stamps this instead of [hlc], so a stamp never makes a stale caption win
+  /// the row, and a cleared stamp still orders against a set one. Null falls
+  /// back to [hlc] (v224, media sync program spec 5.1).
+  TextColumn get uploadFactsHlc => text().nullable()();
+
+  /// Clock of the verification facts (isOrphaned, lastVerifiedAt). Same
+  /// contract as [uploadFactsHlc].
+  TextColumn get verifyFactsHlc => text().nullable()();
+
   @override
   Set<Column> get primaryKey => {id};
 }
@@ -4279,7 +4290,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 223;
+  static const int currentSchemaVersion = 224;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4343,7 +4354,19 @@ class AppDatabase extends _$AppDatabase {
   /// are held until they update. Their own payloads still arrive here, and
   /// a live tank row still pointing at an item deleted here has its link
   /// cleared by [SyncService.parentRefs].
-  static const int minimumCompatibleSchemaVersion = 210;
+  ///
+  /// Raised 210 -> 224 by the media fact clocks: v224 splits a media row's
+  /// device-stamped facts (the upload stamps and the verification pair) onto
+  /// their own clocks, so this build publishes a media row whose ROW clock
+  /// did not move when only its facts changed. An older reader knows nothing
+  /// of the fact clocks and applies media as a blind upsert, so it would take
+  /// the whole row and overwrite a caption it holds that is newer than ours.
+  /// That is an old reader misapplying our payload, which is what this floor
+  /// exists to prevent. Peers below 224 are held until they update; their own
+  /// payloads still arrive here, and this build's merge reads a missing fact
+  /// clock as the row clock, so an old peer's writes still order correctly
+  /// (media sync program spec 5.1).
+  static const int minimumCompatibleSchemaVersion = 224;
 
   /// Every schema version that has a migration block in onUpgrade.
   /// Used to calculate progress step counts. When adding a new migration,
@@ -4911,6 +4934,13 @@ class AppDatabase extends _$AppDatabase {
     // per-site vertical exaggeration overrides took 222 while this branch
     // was open, and a rung at or below the shipped version never runs.
     223,
+    // v224: media.upload_facts_hlc and verify_facts_hlc, the two fact
+    // clocks (media sync program spec 5.1). Columns plus a backfill from
+    // the row clock, and the one rung on this ladder that DOES move the
+    // compatibility floor: a reader without them cannot order fact writes.
+    // Renumbered from 223, which buddy profile links took while this was
+    // in review.
+    224,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -7811,6 +7841,38 @@ class AppDatabase extends _$AppDatabase {
       'CREATE INDEX IF NOT EXISTS idx_media_equipment_id '
       'ON media(equipment_id)',
     );
+  }
+
+  Future<void> _assertMediaFactClockColumns() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('upload_facts_hlc')) {
+      await customStatement(
+        'ALTER TABLE media ADD COLUMN upload_facts_hlc TEXT',
+      );
+    }
+    if (!names.contains('verify_facts_hlc')) {
+      await customStatement(
+        'ALTER TABLE media ADD COLUMN verify_facts_hlc TEXT',
+      );
+    }
+  }
+
+  /// v224: existing facts were last written under the row clock, so that is
+  /// their clock. Rows already stamped (a re-run) are left alone. Guarded
+  /// like the backstops: a partially built database (a migration fixture, or
+  /// one caught mid-ladder) may lack the table or its row clock.
+  Future<void> _backfillMediaFactClocks() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('hlc')) return;
+    for (final column in const ['upload_facts_hlc', 'verify_facts_hlc']) {
+      if (!names.contains(column)) continue;
+      await customStatement(
+        'UPDATE media SET $column = hlc WHERE $column IS NULL',
+      );
+    }
   }
 
   Future<void> _assertBuddyFavoriteColumn() async {
@@ -12447,13 +12509,20 @@ class AppDatabase extends _$AppDatabase {
           await _assertSeascapeVerticalExaggerationOverridesColumn();
         }
         if (from < 222) await reportProgress();
-
-        // v223: buddy profile links and dive outings (issue #2002). Column-only
-        // rung, no backfill: null reads back as "not linked" and "no siblings".
+        // v223: buddy profile links and dive outings (issue #2002).
+        // Column-only rung, no backfill: null reads back as "not linked"
+        // and "no siblings".
         if (from < 223) {
           await _assertBuddyProfileDiveLinkColumns();
         }
         if (from < 223) await reportProgress();
+        // v224: the two media fact clocks, backfilled from the row clock so
+        // an existing row starts with a clock on every group.
+        if (from < 224) {
+          await _assertMediaFactClockColumns();
+          await _backfillMediaFactClocks();
+        }
+        if (from < 224) await reportProgress();
       },
       beforeOpen: (details) async {
         // v222 backstop: the per-site vertical exaggeration overrides.
@@ -12941,6 +13010,11 @@ class AppDatabase extends _$AppDatabase {
         // every open: column-and-index only, no backfill, so it cannot
         // resurrect or overwrite diver data.
         await _assertMediaEquipmentIdColumn();
+
+        // v224 backstop: re-assert the media fact clock columns (parallel
+        // branch version-collision self-heal). Columns only, no backfill: a
+        // null clock falls back to the row clock, so nothing is lost.
+        await _assertMediaFactClockColumns();
 
         // v194 backstop: re-assert dive_tanks.transmitter_serial. Every tank
         // read selects the whole row, so a database that arrives by restore

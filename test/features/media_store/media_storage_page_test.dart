@@ -260,6 +260,12 @@ void main() {
 
   testWidgets('invalid form blocks connect and never calls the '
       'service', (tester) async {
+    // At the default 800x600 the connect button sits below the fold with no
+    // scrollable able to reach it, so the tap hit nothing at all and
+    // connectCalls stayed 0 without the form ever being submitted.
+    tester.view.physicalSize = const Size(800, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
     await tester.runAsync(() async {
       await tester.pumpWidget(app());
       await Future<void>.delayed(const Duration(milliseconds: 50));

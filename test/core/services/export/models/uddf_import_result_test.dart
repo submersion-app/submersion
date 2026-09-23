@@ -333,5 +333,24 @@ void main() {
         expect(copy.customDiveRoles.single['id'], 'uuid-1');
       });
     });
+
+    group('divesMissingSite', () {
+      test('survives copyWithSourceFileName', () {
+        // The count is what `UddfImportParser` turns into the summary's
+        // sitesUnresolved notice. A copy that dropped it would make the
+        // notice vanish for any caller that names the source file after
+        // parsing, which is the whole batch path.
+        const result = UddfImportResult(divesMissingSite: 3);
+
+        expect(
+          result.copyWithSourceFileName('backup.uddf').divesMissingSite,
+          3,
+        );
+      });
+
+      test('defaults to none', () {
+        expect(const UddfImportResult().divesMissingSite, 0);
+      });
+    });
   });
 }

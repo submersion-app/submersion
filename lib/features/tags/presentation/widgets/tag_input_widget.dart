@@ -277,57 +277,137 @@ class TagChips extends StatelessWidget {
   }
 }
 
-/// Color picker for tags
+/// The colour choices for a tag, each shown as the chip the tag will become
+/// (issue #2269).
+///
+/// The swatches used to be solid 28 dp dots of the stored hex, which is a
+/// colour a tag never actually displays: a chip is a tint of it. Offering the
+/// raw hex here is what made Settings disagree with the rest of the app in
+/// issue #2254. Every swatch is now a real [TagChip] drawn by the same
+/// [tagChipColors], carrying the name being typed, so choosing a colour is
+/// choosing a preview rather than a code.
 class TagColorPicker extends StatelessWidget {
   final String? selectedColor;
   final void Function(String color) onColorSelected;
+
+  /// The tag's name field, so each swatch previews this tag rather than a
+  /// generic one and keeps up as the name is typed. A null or empty
+  /// controller leaves the swatches unlabelled, which is what the Add dialog
+  /// shows before anything has been entered.
+  final TextEditingController? nameController;
 
   const TagColorPicker({
     super.key,
     this.selectedColor,
     required this.onColorSelected,
+    this.nameController,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: TagColors.predefined.map((color) {
-        final isSelected = color == selectedColor;
-        return Semantics(
-          button: true,
-          label: 'Select color $color',
-          selected: isSelected,
-          child: GestureDetector(
-            onTap: () => onColorSelected(color),
+    final controller = nameController;
+    if (controller == null) return _swatches('');
+
+    return ValueListenableBuilder<TextEditingValue>(
+      valueListenable: controller,
+      builder: (context, value, _) => _swatches(value.text),
+    );
+  }
+
+  Widget _swatches(String name) => Wrap(
+    spacing: 8,
+    runSpacing: 8,
+    children: [
+      for (final hex in TagColors.predefined)
+        _ColorSwatch(
+          hex: hex,
+          name: name,
+          isSelected: hex == selectedColor,
+          onTap: () => onColorSelected(hex),
+        ),
+    ],
+  );
+}
+
+/// One colour choice, shown as the chip it produces.
+class _ColorSwatch extends StatelessWidget {
+  const _ColorSwatch({
+    required this.hex,
+    required this.name,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String hex;
+  final String name;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  /// Enough of a long tag name to recognise the preview by, without one
+  /// swatch driving the grid down to a single column. Twenty labelled chips
+  /// wrap to several times the height of twenty dots, so the grid is kept
+  /// tight and the dialog's own scroll view carries the rest.
+  static const double _maxChipWidth = 96;
+
+  /// A swatch with nothing to label it is still a chip, not a hairline.
+  static const double _minChipWidth = 32;
+
+  /// The ring the chosen swatch wears. Reserved on every swatch and left
+  /// transparent where it is not worn, so choosing one does not reflow the
+  /// grid under the pointer.
+  static const double _ringWidth = 2;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final target = tagTapTarget(Theme.of(context).platform);
+
+    return Semantics(
+      button: true,
+      label: 'Select color $hex',
+      selected: isSelected,
+      child: GestureDetector(
+        onTap: onTap,
+        // Opaque so the whole target answers the tap, not only the pixels the
+        // chip happens to cover.
+        behavior: HitTestBehavior.opaque,
+        child: ConstrainedBox(
+          // The swatch is a control the diver taps, so it owns the platform's
+          // tap target even though the chip it previews is 29 dp tall. The
+          // dots it replaced were 28 dp and cleared neither floor either.
+          constraints: BoxConstraints(minWidth: target, minHeight: target),
+          child: Center(
+            widthFactor: 1,
             child: Container(
-              width: 28,
-              height: 28,
+              padding: const EdgeInsets.all(3),
               decoration: BoxDecoration(
-                color: TagColors.fromHex(color),
-                shape: BoxShape.circle,
-                border: isSelected
-                    ? Border.all(color: Colors.white, width: 2)
-                    : null,
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: TagColors.fromHex(
-                            color,
-                          ).withValues(alpha: 0.5),
-                          blurRadius: 6,
-                        ),
-                      ]
-                    : null,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected ? scheme.primary : Colors.transparent,
+                  width: _ringWidth,
+                ),
               ),
-              child: isSelected
-                  ? const Icon(Icons.check, size: 16, color: Colors.white)
-                  : null,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  minWidth: _minChipWidth,
+                  maxWidth: _maxChipWidth,
+                ),
+                // The chip is this control's picture, not its description.
+                // Its label repeats the name field above on all twenty
+                // swatches, and announcing it once per swatch would bury the
+                // colour, which is the only thing that differs between them.
+                child: ExcludeSemantics(
+                  child: TagChip.unsaved(
+                    name: name,
+                    color: TagColors.fromHex(hex),
+                    dense: true,
+                  ),
+                ),
+              ),
             ),
           ),
-        );
-      }).toList(),
+        ),
+      ),
     );
   }
 }

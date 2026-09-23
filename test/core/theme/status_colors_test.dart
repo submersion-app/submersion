@@ -101,22 +101,29 @@ void main() {
       expect(StatusColors.dark.alert.onContainer, const Color(0xFFFFDAD6));
     });
 
-    test('light containers are solid fills, not pastel washes', () {
-      // The pastel light palette put the chip fill 1.05:1 against the page,
-      // so a status chip read as a faint smudge next to dark mode's 1.55:1.
-      // Solid fills with reversed labels are the fix; pinning them here
-      // stops a later tweak from drifting back toward the wash.
+    test('only light alert is a solid fill', () {
+      // Red is the one status that should stop a diver, so it keeps the
+      // saturated fill and the reversed label. Amber and green are
+      // information rather than interruption and stay pastel: a strip where
+      // every chip shouts is a strip where none of them do.
       expect(StatusColors.light.alert.container, const Color(0xFFC62828));
       expect(StatusColors.light.alert.onContainer, const Color(0xFFFFFFFF));
-      expect(StatusColors.light.warn.container, const Color(0xFFF0A81E));
-      expect(StatusColors.light.ok.container, const Color(0xFF256D2B));
-      expect(StatusColors.light.ok.onContainer, const Color(0xFFFFFFFF));
+      expect(StatusColors.light.warn.container, const Color(0xFFFFEDC2));
+      expect(StatusColors.light.warn.onContainer, const Color(0xFF7A4500));
+      expect(StatusColors.light.ok.container, const Color(0xFFDCF2E3));
+      expect(StatusColors.light.ok.onContainer, const Color(0xFF1C5E34));
     });
 
-    test('light warn keeps a dark label so the fill stays amber', () {
-      // White on amber needs the fill dragged down to a brown before it
-      // clears AA, which reads as a third red among the alert chips.
-      expect(StatusColors.light.warn.onContainer, const Color(0xFF3A2200));
+    test('light alert outweighs the other two tones on the page', () {
+      // The property that matters is ordering, not the literals above: the
+      // alert fill must separate from the page by more than the pastel
+      // tones do, or red stops reading as the one chip to act on.
+      const page = Color(0xFFFFFFFF);
+      final alert = _contrast(StatusColors.light.alert.container, page);
+      final warn = _contrast(StatusColors.light.warn.container, page);
+      final ok = _contrast(StatusColors.light.ok.container, page);
+      expect(alert, greaterThan(warn * 2));
+      expect(alert, greaterThan(ok * 2));
     });
 
     test('dark keeps the glyph color it rendered before onAccent existed', () {

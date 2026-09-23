@@ -167,9 +167,15 @@ class NetworkScanService {
     }
   }
 
-  /// Scans a single row. Returns `true` if the row is reachable, `false`
-  /// if it should be marked orphaned. Always updates `lastVerifiedAt`.
-  /// Per-row exceptions are caught and logged; the scan continues.
+  /// Scans a single row. Returns `true` when the host confirmed the object
+  /// is there, which is what the progress counters mean by reachable.
+  ///
+  /// What gets WRITTEN is narrower than what gets counted: only a definitive
+  /// verdict reaches the row. A 401, a 429, a 5xx, a DNS failure or a
+  /// timeout all say this scan could not see the object, not that the
+  /// object is gone, and the orphan flag is sticky and syncs (media sync
+  /// program spec 5.2). Per-row exceptions are caught and logged; the scan
+  /// continues.
   Future<bool> _scanOne(http.Client client, MediaItem row) async {
     final urlString = row.url!;
     final uri = Uri.parse(urlString);
@@ -177,7 +183,7 @@ class NetworkScanService {
 
     try {
       final headers = await _resolveAuthHeaders(row, uri);
-      final reachable = await _rateLimiter.run<bool>(host, () async {
+      final verdict = await _rateLimiter.run<_ScanVerdict>(host, () async {
         // First try HEAD. Some servers return 405 / 501 / 400 for HEAD on
         // user-content endpoints; in that case fall back to a 1-byte
         // range GET, which is still polite.
@@ -187,20 +193,21 @@ class NetworkScanService {
             uri,
             headers: {...headers, 'Range': 'bytes=0-0'},
           );
-          return _isReachable(getResp.statusCode);
+          return _verdictFor(getResp.statusCode);
         }
-        return _isReachable(headResp.statusCode);
+        return _verdictFor(headResp.statusCode);
       });
 
-      await _persistResult(row, reachable: reachable);
-      return reachable;
+      await _persistResult(row, verdict);
+      return verdict == _ScanVerdict.reachable;
     } catch (e, st) {
       _log.warning(
         'Scan failed for media ${row.id} (${row.url}): $e',
         stackTrace: st,
       );
       try {
-        await _persistResult(row, reachable: false);
+        // A transport failure learned nothing, so nothing is written.
+        await _persistResult(row, _ScanVerdict.inconclusive);
       } catch (e2, st2) {
         _log.error(
           'Failed to persist orphan flag for ${row.id}',
@@ -212,12 +219,26 @@ class NetworkScanService {
     }
   }
 
-  Future<void> _persistResult(MediaItem row, {required bool reachable}) {
-    final updated = row.copyWith(
-      isOrphaned: !reachable,
-      lastVerifiedAt: clock.now(),
+  /// The narrow verification write, never [MediaRepository.updateMedia]:
+  /// [row] is this scan's snapshot, and an upload that finished since it was
+  /// taken has stamped the row, so a whole-row write would roll those stamps
+  /// back. It also keeps the verification facts under their own clock.
+  ///
+  /// [MediaRepository.stampVerification] rather than `markVerified`: it
+  /// records the date whether or not the flag moves, and publishes only
+  /// when it does.
+  ///
+  /// An inconclusive verdict writes nothing at all, matching
+  /// `MediaItemVerifier`: the scan did not learn whether the object is
+  /// there, and the orphan flag is sticky and syncs, so guessing from a 401
+  /// or a timeout would mark a live library missing on every device.
+  Future<void> _persistResult(MediaItem row, _ScanVerdict verdict) async {
+    if (verdict == _ScanVerdict.inconclusive) return;
+    await _repository.stampVerification(
+      row.id,
+      verifiedAt: clock.now(),
+      isOrphaned: verdict == _ScanVerdict.missing,
     );
-    return _repository.updateMedia(updated);
   }
 
   Future<Map<String, String>> _resolveAuthHeaders(
@@ -237,5 +258,16 @@ class NetworkScanService {
   bool _isHeadUnsupported(int code) =>
       code == 405 || code == 501 || code == 400;
 
-  bool _isReachable(int code) => code >= 200 && code < 400;
+  /// 404 and 410 are the host saying the object is not there. Everything
+  /// else that is not a success is the host refusing to answer: 401 and 403
+  /// are credentials, 429 is throttling, 5xx is the server's own problem.
+  _ScanVerdict _verdictFor(int code) {
+    if (code >= 200 && code < 400) return _ScanVerdict.reachable;
+    if (code == 404 || code == 410) return _ScanVerdict.missing;
+    return _ScanVerdict.inconclusive;
+  }
 }
+
+/// What one probe learned. Only [missing] is a positive finding of absence,
+/// and only it may set the orphan flag.
+enum _ScanVerdict { reachable, missing, inconclusive }

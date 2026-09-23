@@ -7,6 +7,7 @@ import 'package:submersion/features/universal_import/data/models/import_options.
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 
 /// Parser adapter for UDDF files.
 ///
@@ -70,6 +71,10 @@ class UddfImportParser implements ImportParser {
 
       return ImportPayload(
         entities: entities,
+        warnings: [
+          if (result.divesMissingSite > 0)
+            ImportSiteLocation.sitesUnresolved(result.divesMissingSite),
+        ],
         metadata: {
           'sourceApp': options?.sourceApp.displayName ?? 'UDDF',
           'summary': result.summary,

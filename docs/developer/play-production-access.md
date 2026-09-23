@@ -1,5 +1,11 @@
 # Google Play production access application
 
+> **Granted 2026-09-22.** Kept for the record, and because the Data safety
+> declaration in section 3 has to be reaffirmed on every update. If you ever
+> apply for another app on this account, read section 2 first: the form's
+> fields are capped at **300 characters each**, which is far shorter than the
+> answers drafted here.
+
 Working document for the production access application on the personal
 developer account holding `app.submersion`. Everything here is derived from
 the code in this repository as of version 1.8.0 (version code 128), not from
@@ -131,15 +137,102 @@ Both are separate from the production access form and both gate publishing:
 
 ## 2. Production access application answers
 
-Google's form is free text across roughly six prompts. Exact wording varies;
-match the drafted answer to the prompt it fits. Answers below are written to
-be specific, because the reviewers are reading for evidence that a real app
-with real users exists.
+**Every field is capped at 300 characters.** This was not apparent until the
+form was open, and it is the single most useful thing on this page: the
+answers below run far longer and had to be cut to roughly a fifth of their
+length on the spot. What actually got submitted is in 2.1.
+
+The form is three steps. Step 1 asks about the closed test (recruitment, how
+easy recruiting was, tester engagement, feedback summary), step 2 about the
+app (audience, value, expected first-year installs), step 3 about production
+readiness (what changed because of the test, how you decided it was ready).
+Two are multiple choice; the rest are 300-character free text.
+
+The long-form answers below are kept because they are the raw material: they
+hold the reasoning and the sourced detail, and cutting from them is far
+easier than writing to the cap cold.
 
 Every answer below is drafted. Two still need a number only the Play Console
 and your test suite can give you, marked **VERIFY**: the tester count and the
 test count. Read the accuracy note above the feedback answer before pasting
 that one.
+
+### 2.1 What was actually submitted
+
+These are the answers that were approved, each within the 300-character cap.
+Kept verbatim because a reapplication or a second app starts from here, not
+from the long-form drafts below.
+
+**Step 1, about your closed test**
+
+Recruitment (297):
+
+> No paid testing provider, and not friends and family. Testers came from
+> Submersion's existing iOS App Store users who also carry Android, from the
+> project's public GitHub issue tracker, and from dive clubs and scuba forums,
+> where I looked for owners of dive computers I have no way to test myself.
+
+How easy was recruiting: **Neither difficult or easy**.
+
+Engagement (291):
+
+> Real diving, not synthetic testing. Testers logged their own dives and
+> downloaded from their own dive computers. Coverage was deliberately uneven:
+> each tester exercised the parts their own diving uses, which is how they
+> found faults in hardware, regions and data shapes I cannot reach alone.
+
+Feedback summary (300):
+
+> Collected through the public GitHub tracker and by direct email. 204 issues
+> from 40 reporters were closed during the test. Examples: the planner read a
+> cylinder's cuft as water volume not gas capacity (#2027); re-parsing erased
+> hand-entered tank pressures (#2014); Swiss bathymetry timed out (#2021).
+
+**Step 2, about your app**
+
+Intended audience (293):
+
+> Certified scuba divers, from newly certified recreational divers logging
+> their first dives to technical divers running trimix and closed-circuit
+> rebreathers. Also instructors and divemasters tracking student dives and
+> equipment servicing. Adults: no social features and no shared user content.
+
+Value to users (297):
+
+> Dive logging software is either dated desktop software or a mobile app that
+> locks your dives in a proprietary cloud. Submersion is one app on Android,
+> iOS, macOS, Windows and Linux. It downloads from 350+ dive computers,
+> analyses decompression, and keeps your log as a file you own and can export.
+
+Expected first-year installs: **0 to 10K**.
+
+**Step 3, your production readiness**
+
+Changes made because of the test (300):
+
+> Fixed what testers found and removed the causes. An Android-only defect
+> surfaced: contact import was offered but its permission was never declared,
+> so it could never run. Now declared and held by a test. The planner also
+> separates a cylinder's water capacity from its gas capacity in the type
+> system.
+
+How readiness was decided (275):
+
+> It is already in production on the App Store, so it has passed Apple's
+> review. Every change runs a sharded test suite, static analysis with infos
+> treated as fatal, CodeQL and architecture guards before merge. Stable
+> releases promote from a beta that testers have already run.
+
+### What worked, if you ever do this again
+
+- The audience answer names what the app is *not* (no social features, no
+  shared user content) so it agrees with the content rating questionnaire and
+  the 18+ target audience declaration. Those three are cross-checked.
+- The changes answer leads with a defect that existed **only on Android**.
+  That is the strongest evidence a closed test on this track did real work,
+  as opposed to a test a desktop build would have passed.
+- Issue numbers beat adjectives at 300 characters. They are checkable in a
+  public tracker and cost almost nothing to include.
 
 ### "What is your app about?"
 
@@ -885,19 +978,17 @@ declared permission that every review will see.
 
 One switch, documented in `docs/developer/release-process.md`:
 
-`PLAY_BETA_TRACK` defaults to `alpha` in `android/fastlane/Fastfile`. Once
-production access is granted, open testing becomes available and the default
-can move to `beta`. The helper validates the value and accepts only `alpha` or
-`beta`, so a typo fails loudly rather than uploading to the wrong track.
+**Granted 2026-09-22.** The default in the `beta_track` helper is now `beta`,
+so betas go to open testing and the `promote-play` leg works. Neither
+`beta.yml` nor `promote.yml` sets `PLAY_BETA_TRACK`, so the helper's default
+is the only lever; the environment variable still overrides it for a one-off
+run. The helper accepts only `alpha` or `beta`, so a typo fails loudly rather
+than uploading to the wrong track.
 
-Change the default in the `beta_track` helper, or set `PLAY_BETA_TRACK=beta`
-in `.github/workflows/beta.yml` and `.github/workflows/promote.yml`.
-
-The `promote-play` leg of the release pipeline, which currently cannot
-succeed, starts working at the same moment. Verify the first promotion with a
-staged rollout: `promote_to_production` already defaults to `rollout: "1.0"`,
-which is 100 percent. For the first production release, pass a smaller value
-explicitly.
+Both `promote_to_production` and the `play-rollout` input on `promote.yml`
+default to `1.0`, every user at once, which is the intended behaviour. See
+the rollout note in `docs/developer/release-process.md` for why, and for how
+to stage one if a release ever warrants it.
 
 ---
 

@@ -35,7 +35,9 @@ import 'package:submersion/features/dive_log/presentation/widgets/profile_metric
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_bands.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_bar_window.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/ascent_rate_bar_overlay.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_agreement.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_readout.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_spread.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_lines.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/partial_pressure_line_builders.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_line_builders.dart';
@@ -787,7 +789,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   bool _showPpO2 = false;
   bool _showPpN2 = false;
   bool _showPpHe = false;
-  bool _showO2CellMv = false;
+  bool _showO2Cells = false;
+  O2CellUnit _o2CellUnit = O2CellUnit.ppO2;
   bool _showMod = false;
   bool _showDensity = false;
   bool _showGf = false;
@@ -1404,21 +1407,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   /// Sibling of [_decimatedIndicesCache] for curves with real gaps (a cell
   /// that stopped reporting), which [_decimatedCurveIndices]'s `List<num>`
   /// cannot represent. Cleared alongside it in [_syncDecimationScope].
-  final Map<List<int?>, List<int>> _decimatedNullableIndicesCache =
-      HashMap<List<int?>, List<int>>.identity();
+  final Map<List<num?>, List<int>> _decimatedNullableIndicesCache =
+      HashMap<List<num?>, List<int>>.identity();
 
   /// Indices of [curve] to render: gaps excluded before decimation ever sees
   /// them (envelope decimation has no "this doesn't count" input, so a
   /// present-only view is the only way to keep it from treating a gap as a
   /// value), then decimated to [_curvePointBudget] over the same
   /// visible-window slice [_decimatedCurveIndices] uses.
-  List<int> _decimatedNullableCurveIndices(List<int?> curve) =>
+  List<int> _decimatedNullableCurveIndices(List<num?> curve) =>
       _decimatedNullableIndicesCache.putIfAbsent(
         curve,
         () => _computeDecimatedNullableCurveIndices(curve),
       );
 
-  List<int> _computeDecimatedNullableCurveIndices(List<int?> curve) {
+  List<int> _computeDecimatedNullableCurveIndices(List<num?> curve) {
     final n = math.min(widget.profile.length, curve.length);
     if (n == 0) return const [];
     final (start, end) = _viewportSampleWindow(n);
@@ -2152,7 +2155,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     // One row per physical cell, plus the agreement verdict (#810). Gated on
     // the cells' own toggles, not on the ppO2 line: hiding the loop ppO2 must
     // not take the sensor readings with it.
-    if (_showPpO2 || _showO2CellMv) {
+    if (_showPpO2 || _showO2Cells) {
       rows.addAll(_buildO2CellTooltipRows(spot.spotIndex));
     }
 
@@ -2707,7 +2710,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     _showPpO2 = legendState.showPpO2;
     _showPpN2 = legendState.showPpN2;
     _showPpHe = legendState.showPpHe;
-    _showO2CellMv = legendState.showO2CellMv;
+    _showO2Cells = legendState.showO2Cells;
+    _o2CellUnit = legendState.o2CellUnit;
     _showMod = legendState.showMod;
     _showDensity = legendState.showDensity;
     _showGf = legendState.showGf;
@@ -2779,6 +2783,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       identityHashCode(widget.gtrCurve),
       identityHashCode(widget.cnsCurve),
       identityHashCode(widget.otuCurve),
+      identityHashCode(widget.o2SensorCurves),
       identityHashCode(widget.o2CellMvCurves),
       vpBucket,
     ]);
@@ -2798,7 +2803,9 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     final hasPpHeData =
         widget.ppHeCurve != null && widget.ppHeCurve!.any((v) => v > 0.001);
     final hasModData = widget.modCurve != null && widget.modCurve!.isNotEmpty;
-    final hasO2CellMvData = _hasDataForMetric(ProfileRightAxisMetric.o2CellMv);
+    final hasO2CellData = _o2CellBarCurves != null || _o2CellMvCurves != null;
+    final hasBothO2CellUnits =
+        _o2CellBarCurves != null && _o2CellMvCurves != null;
     final hasDensityData =
         widget.densityCurve != null && widget.densityCurve!.isNotEmpty;
     final hasGfData = widget.gfCurve != null && widget.gfCurve!.isNotEmpty;
@@ -2851,7 +2858,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasPpO2Data: hasPpO2Data,
       hasPpN2Data: hasPpN2Data,
       hasPpHeData: hasPpHeData,
-      hasO2CellMvData: hasO2CellMvData,
+      hasO2CellData: hasO2CellData,
+      hasBothO2CellUnits: hasBothO2CellUnits,
       hasModData: hasModData,
       hasDensityData: hasDensityData,
       hasGfData: hasGfData,
@@ -3668,16 +3676,19 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           // O2 cell agreement rug: a per-run agreement strip, not
           // the mV values themselves, so it is left untagged
           // (null) rather than attributed to o2CellMv.
-          final o2CellRug = (_showO2CellMv && widget.o2CellMvCurves != null)
+          final o2CellRug = _showO2Cells
               ? _buildO2CellRug(metricBand)
               : const <LineChartBarData>[];
 
-          // One millivolt line per cell (if showing), tagged with the
+          // One line per cell (if showing), in whichever unit
+          // _effectiveO2CellUnit resolves to for this dive, tagged with the
           // physical cell it belongs to so hovering one cell's line
           // highlights only that cell (see O2CellMetric) rather than
           // every cell line at once.
-          final o2CellMvCells = (_showO2CellMv && widget.o2CellMvCurves != null)
-              ? _buildO2CellMvLines(metricBand, units)
+          final o2CellCells = _showO2Cells
+              ? (_effectiveO2CellUnit == O2CellUnit.ppO2
+                    ? _buildO2CellPpO2Lines(metricBand)
+                    : _buildO2CellMvLines(metricBand, units))
               : const <({int cell, LineChartBarData bar})>[];
 
           // MOD line (if showing). There is no
@@ -3737,7 +3748,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             ..._tagAll(ppN2Lines, ProfileRightAxisMetric.ppN2),
             ..._tagAll(ppHeLines, ProfileRightAxisMetric.ppHe),
             ..._tagAll(o2CellRug, null),
-            for (final entry in o2CellMvCells)
+            for (final entry in o2CellCells)
               (bar: entry.bar, tag: O2CellMetric(entry.cell)),
             ..._tagAll(modLines, ChartOnlyMetric.mod),
             ..._tagAll(densityLines, ProfileRightAxisMetric.gasDensity),
@@ -6042,44 +6053,145 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     return _ascentRateAxisRangeCached;
   }
 
-  List<List<int?>>? _o2SpreadSource;
+  List<List<num?>>? _o2SpreadSource;
   List<double?>? _o2SpreadCached;
 
   /// Smoothed cell spread (max minus min), memoized on the source identity.
   ///
   /// Both the ribbon and the axis need it, and a rolling median per frame would
-  /// be wasteful.
-  List<double?> _o2CellSpread(List<List<int?>> mvCurves) {
-    if (identical(_o2SpreadSource, mvCurves) && _o2SpreadCached != null) {
+  /// be wasteful. Smoothed because millivolts are whole numbers: without it the
+  /// ribbon flickers a full millivolt wider and narrower on pure rounding.
+  List<double?> _o2CellSpread(List<List<num?>> cellCurves) {
+    if (identical(_o2SpreadSource, cellCurves) && _o2SpreadCached != null) {
       return _o2SpreadCached!;
     }
-    _o2SpreadSource = mvCurves;
-    _o2SpreadCached = computeO2CellSpread(mvCurves, widget.profile);
+    final window = o2CellSpreadWindowSamples([
+      for (final p in widget.profile) p.timestamp,
+    ]);
+    _o2SpreadSource = cellCurves;
+    _o2SpreadCached = smoothO2CellSpread([
+      computeO2CellRange(cellCurves),
+    ], windowSamples: window).single;
     return _o2SpreadCached!;
+  }
+
+  /// The curves the spread is read from, and the unit that reads them.
+  ///
+  /// Millivolts when the dive logs them, since that is the raw output and
+  /// needs no calibration to be comparable; the derived ppO2 otherwise, so a
+  /// dive that carries only bar still gets the rug.
+  (List<List<num?>>, O2CellUnit)? get _o2SpreadInput {
+    final mv = _o2CellMvCurves;
+    if (mv != null) return (mv, O2CellUnit.millivolts);
+    final bar = _o2CellBarCurves;
+    if (bar != null) return (bar, O2CellUnit.ppO2);
+    return null;
   }
 
   /// Cell spread at one sample, for the tooltip. Null when fewer than two cells
   /// reported there.
   double? _o2CellRangeAt(int sampleIndex) {
-    final curves = widget.o2CellMvCurves;
-    if (curves == null) return null;
-    return o2CellRangeAt(_o2CellSpread(curves), sampleIndex);
+    final input = _o2SpreadInput;
+    if (input == null) return null;
+    final spread = _o2CellSpread(input.$1);
+    if (sampleIndex >= spread.length) return null;
+    return spread[sampleIndex];
+  }
+
+  /// Colour for one agreement level, traffic-light coded so the verdict reads
+  /// without decoding a legend. Tight is deliberately quiet despite being
+  /// green: a healthy rig is in that state for essentially the whole dive, so
+  /// it must read as background, not as a series demanding attention.
+  Color _agreementColor(O2CellAgreement level) => switch (level) {
+    O2CellAgreement.tight => const Color(0xFF66BB6A).withValues(alpha: 0.55),
+    O2CellAgreement.drifting => const Color(0xFFFFCA28),
+    O2CellAgreement.wide => const Color(0xFFE57373),
+  };
+
+  /// The rug's caption. Held here so the track and the tooltip cannot diverge.
+  String get _l10nO2CellSpreadLabel => context.l10n.diveLog_o2CellSpread_label;
+
+  String _agreementWord(O2CellAgreement level) => switch (level) {
+    O2CellAgreement.tight => context.l10n.diveLog_tooltip_o2CellsTight,
+    O2CellAgreement.drifting => context.l10n.diveLog_tooltip_o2CellsDrifting,
+    O2CellAgreement.wide => context.l10n.diveLog_tooltip_o2CellsWide,
+  };
+
+  /// "tight (1 mV)" -- a verdict backed by the number, rather than a number the
+  /// reader has to know how to judge.
+  String? _o2CellAgreementReadout(int sampleIndex) {
+    final spread = _o2CellRangeAt(sampleIndex);
+    if (spread == null) return null;
+    final unit = _o2SpreadInput!.$2;
+    final level = o2CellAgreementFor(spread, unit: unit);
+    final value = switch (unit) {
+      O2CellUnit.ppO2 =>
+        '${spread.toStringAsFixed(2)} ${context.l10n.units_pressure_bar}',
+      O2CellUnit.millivolts =>
+        '${spread.toStringAsFixed(0)} '
+            '${context.l10n.units_profileMetric_millivolts}',
+    };
+    return '${_agreementWord(level)} ($value)';
   }
 
   /// One row per physical cell -- ppO2 when the calibration is trustworthy,
   /// the raw output when it is not, both when both are available -- plus the
   /// agreement verdict row (#810). Shared by both tooltip layouts so they
-  /// cannot drift apart; callers must gate this on `_showPpO2 || _showO2CellMv`
+  /// cannot drift apart; callers must gate this on `_showPpO2 || _showO2Cells`
   /// themselves, since a mobile-vs-desktop caller may need to skip building an
   /// empty section wrapper when there is nothing to show.
-  List<TooltipRow> _buildO2CellTooltipRows(int spotIndex) =>
-      buildO2CellTooltipRows(
-        spotIndex,
-        widget.o2SensorCurves,
-        widget.o2CellMvCurves,
-        _o2CellRangeAt(spotIndex),
-        context.l10n,
+  List<TooltipRow> _buildO2CellTooltipRows(int spotIndex) {
+    final l10n = context.l10n;
+    final rows = <TooltipRow>[];
+    final cellCount = o2CellCount(
+      barCurves: widget.o2SensorCurves,
+      mvCurves: widget.o2CellMvCurves,
+    );
+    for (var cell = 0; cell < cellCount; cell++) {
+      final readout = formatO2CellReadout(
+        bar: valueAtSample(
+          curves: widget.o2SensorCurves,
+          cell: cell,
+          sampleIndex: spotIndex,
+        ),
+        millivolt: valueAtSample(
+          curves: widget.o2CellMvCurves,
+          cell: cell,
+          sampleIndex: spotIndex,
+        ),
+        barUnit: l10n.units_pressure_bar,
+        millivoltUnit: l10n.units_profileMetric_millivolts,
       );
+      if (readout == null) continue;
+      rows.add(
+        TooltipRow(
+          label: '${l10n.diveLog_tooltip_sensor} ${cell + 1}',
+          value: readout,
+          bulletColor: o2CellColor(cell),
+          metric: O2CellMetric(cell),
+        ),
+      );
+    }
+    final agreement = _o2CellAgreementReadout(spotIndex);
+    if (agreement != null) {
+      rows.add(
+        TooltipRow(
+          label: _l10nO2CellSpreadLabel,
+          value: agreement,
+          bulletColor: _agreementColor(
+            o2CellAgreementFor(
+              _o2CellRangeAt(spotIndex)!,
+              unit: _o2SpreadInput!.$2,
+            ),
+          ),
+        ),
+      );
+    }
+    return rows;
+  }
+
+  /// Depth, in the band's units, at which the agreement rug sits.
+  double _o2CellRugDepth(MetricBand band) => band.top + band.span * 0.985;
 
   /// A faint full-width groove behind the rug, captioned with what it is.
   ///
@@ -6090,13 +6202,28 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   List<HorizontalLine> _buildO2CellRugTrack(
     MetricBand band,
     ColorScheme colorScheme,
-  ) => buildO2CellRugTrack(
-    band,
-    colorScheme,
-    showO2CellMv: _showO2CellMv,
-    o2CellMvCurves: widget.o2CellMvCurves,
-    l10n: context.l10n,
-  );
+  ) {
+    if (!_showO2Cells) return const [];
+    if (_o2SpreadInput == null) return const [];
+
+    return [
+      HorizontalLine(
+        y: -_o2CellRugDepth(band),
+        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.18),
+        strokeWidth: 3,
+        label: HorizontalLineLabel(
+          show: true,
+          alignment: Alignment.topLeft,
+          padding: const EdgeInsets.only(left: 4, bottom: 2),
+          style: TextStyle(
+            fontSize: 9,
+            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+          ),
+          labelResolver: (_) => _l10nO2CellSpreadLabel,
+        ),
+      ),
+    ];
+  }
 
   /// Cell agreement over time, as a strip pinned to the bottom edge of the plot.
   ///
@@ -6107,12 +6234,182 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   ///
   /// One segment per run rather than per sample, so a steady dive is a single
   /// bar however long it is.
-  List<LineChartBarData> _buildO2CellRug(MetricBand band) => buildO2CellRug(
-    band,
-    widget.o2CellMvCurves,
-    widget.profile,
-    _o2CellSpread,
-  );
+  List<LineChartBarData> _buildO2CellRug(MetricBand band) {
+    final input = _o2SpreadInput;
+    if (input == null) return const [];
+
+    final spread = _o2CellSpread(input.$1);
+    final runs = o2CellAgreementRuns(spread, unit: input.$2);
+    if (runs.isEmpty) return const [];
+
+    final y = -_o2CellRugDepth(band);
+    final lastSample = widget.profile.length - 1;
+
+    final bars = <LineChartBarData>[];
+    for (final run in runs) {
+      if (run.startIndex > lastSample) continue;
+      final from = widget.profile[run.startIndex].timestamp.toDouble();
+      final to = widget.profile[math.min(run.endIndex, lastSample)].timestamp
+          .toDouble();
+      bars.add(
+        LineChartBarData(
+          // A run of one sample would be a zero-length line and draw nothing,
+          // so give it the width of one sampling interval.
+          spots: [FlSpot(from, y), FlSpot(to > from ? to : from + 1, y)],
+          isCurved: false,
+          color: _agreementColor(run.level),
+          // Exception marking: a wide gap is drawn heavier so it is visible
+          // without hunting for a colour change.
+          barWidth: run.level == O2CellAgreement.tight ? 3 : 6,
+          isStrokeCapRound: false,
+          dotData: const FlDotData(show: false),
+        ),
+      );
+    }
+    return bars;
+  }
+
+  /// Cell ppO2 curves, when any cell reported one.
+  List<List<double?>>? get _o2CellBarCurves {
+    final curves = widget.o2SensorCurves;
+    if (curves == null) return null;
+    return curves.any((c) => c.any((v) => v != null)) ? curves : null;
+  }
+
+  /// Cell millivolt curves, when any cell reported one.
+  List<List<int?>>? get _o2CellMvCurves {
+    final curves = widget.o2CellMvCurves;
+    if (curves == null) return null;
+    return curves.any((c) => c.any((v) => v != null)) ? curves : null;
+  }
+
+  /// The unit actually drawn: the chosen one when the dive carries it, the
+  /// other when it does not. Both are the same measurement one calibration
+  /// constant apart, so drawing both would be the same curve twice.
+  O2CellUnit get _effectiveO2CellUnit {
+    if (_o2CellUnit == O2CellUnit.ppO2 && _o2CellBarCurves != null) {
+      return O2CellUnit.ppO2;
+    }
+    if (_o2CellUnit == O2CellUnit.millivolts && _o2CellMvCurves != null) {
+      return O2CellUnit.millivolts;
+    }
+    return _o2CellBarCurves != null ? O2CellUnit.ppO2 : O2CellUnit.millivolts;
+  }
+
+  /// One cell's readings as spots, broken wherever the cell stopped
+  /// reporting.
+  ///
+  /// The break has to be decided from the source curve, not from the rendered
+  /// indices: decimation drops present samples too, and treating every skipped
+  /// index as a gap would shatter a healthy line. Only a null actually sitting
+  /// between two rendered samples is a dropout.
+  List<FlSpot> _o2CellSpots(List<num?> curve, double Function(num) toY) {
+    final indices = _decimatedNullableCurveIndices(curve);
+    if (indices.isEmpty) return const [];
+
+    final breaks = _o2CellDropouts(curve);
+    final spots = <FlSpot>[];
+    var nextBreak = 0;
+    var previous = -1;
+    for (final i in indices) {
+      // Any dropout the decimator skipped over still has to break the line,
+      // so the breaks are consumed against the source index, not matched to
+      // the rendered one.
+      var dropped = false;
+      while (nextBreak < breaks.length && breaks[nextBreak] <= i) {
+        if (breaks[nextBreak] > previous) dropped = true;
+        nextBreak++;
+      }
+      if (dropped && spots.isNotEmpty) spots.add(FlSpot.nullSpot);
+      spots.add(FlSpot(widget.profile[i].timestamp.toDouble(), toY(curve[i]!)));
+      previous = i;
+    }
+    return spots;
+  }
+
+  /// Sample indices where [curve] resumes after the cell genuinely stopped
+  /// reporting, in ascending order.
+  ///
+  /// Not every null is a dropout. libdc clears the cell fields on each sample
+  /// (`libdc_download.c`), so a computer that logs its cells on their own
+  /// second leaves a null between every pair of readings; breaking on those
+  /// would shatter a healthy trace into single points, which fl_chart draws as
+  /// a scatter of round caps rather than a line. A dropout is a silence that
+  /// is long against the cadence the cell itself keeps.
+  List<int> _o2CellDropouts(List<num?> curve) {
+    final n = math.min(widget.profile.length, curve.length);
+    final present = <int>[];
+    for (var i = 0; i < n; i++) {
+      if (curve[i] != null) present.add(i);
+    }
+    if (present.length < 3) return const [];
+
+    final deltas = <int>[];
+    for (var k = 1; k < present.length; k++) {
+      final delta =
+          widget.profile[present[k]].timestamp -
+          widget.profile[present[k - 1]].timestamp;
+      if (delta > 0) deltas.add(delta);
+    }
+    if (deltas.isEmpty) return const [];
+    deltas.sort();
+    final cadence = deltas[deltas.length ~/ 2];
+    if (cadence <= 0) return const [];
+
+    // Three cadences: a single missed reading is noise, a silence this long is
+    // the cell having stopped.
+    final threshold = cadence * 3;
+    final breaks = <int>[];
+    for (var k = 1; k < present.length; k++) {
+      final delta =
+          widget.profile[present[k]].timestamp -
+          widget.profile[present[k - 1]].timestamp;
+      if (delta > threshold) breaks.add(present[k]);
+    }
+    return breaks;
+  }
+
+  /// Per-cell ppO2 lines, on the aggregate's own axis (#854).
+  ///
+  /// Drawn against the aggregate rather than on a scale of their own, because
+  /// the aggregate is precisely what hides a failing cell: a voted or averaged
+  /// value stays plausible while one cell walks away from the others. The
+  /// divergence is only legible as a fan opening between the traces and the
+  /// line they are supposed to agree with.
+  List<({int cell, LineChartBarData bar})> _buildO2CellPpO2Lines(
+    MetricBand band,
+  ) {
+    final curves = widget.o2SensorCurves;
+    if (curves == null) return const [];
+
+    final minPpO2 = ProfileMetricBands.ppO2.min;
+    final maxPpO2 = ProfileMetricBands.ppO2.fixedMax;
+
+    final lines = <({int cell, LineChartBarData bar})>[];
+    for (var cell = 0; cell < curves.length; cell++) {
+      final spots = _o2CellSpots(
+        curves[cell],
+        (v) =>
+            -band.map(v.toDouble().clamp(minPpO2, maxPpO2), minPpO2, maxPpO2),
+      );
+      if (spots.isEmpty) continue;
+      lines.add((
+        cell: cell,
+        bar: LineChartBarData(
+          spots: spots,
+          isCurved: true,
+          curveSmoothness: 0.2,
+          color: o2CellColor(cell),
+          // Thinner than the aggregate: the cells are the supporting detail,
+          // the voted reading stays the headline.
+          barWidth: 1.5,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(show: false),
+        ),
+      ));
+    }
+    return lines;
+  }
 
   /// Per-cell millivolt lines, drawn alongside the agreement rug: the rug
   /// reads the whole dive at a glance, the lines give the detail behind it.
@@ -6121,13 +6418,38 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
   List<({int cell, LineChartBarData bar})> _buildO2CellMvLines(
     MetricBand band,
     UnitFormatter units,
-  ) => buildO2CellMvLines(
-    band,
-    widget.o2CellMvCurves,
-    widget.profile,
-    _getMetricRange(ProfileRightAxisMetric.o2CellMv, units),
-    _decimatedNullableCurveIndices,
-  );
+  ) {
+    final mvCurves = widget.o2CellMvCurves;
+    if (mvCurves == null) return const [];
+    final range = _getMetricRange(ProfileRightAxisMetric.o2CellMv, units);
+    if (range == null || range.max <= range.min) return const [];
+
+    final lines = <({int cell, LineChartBarData bar})>[];
+    for (var cell = 0; cell < mvCurves.length; cell++) {
+      final spots = _o2CellSpots(
+        mvCurves[cell],
+        (mv) => -band.map(
+          mv.toDouble().clamp(range.min, range.max),
+          range.min,
+          range.max,
+        ),
+      );
+      if (spots.isEmpty) continue;
+      lines.add((
+        cell: cell,
+        bar: LineChartBarData(
+          spots: spots,
+          isCurved: true,
+          curveSmoothness: 0.2,
+          color: o2CellColor(cell),
+          barWidth: 1.5,
+          isStrokeCapRound: true,
+          dotData: const FlDotData(show: false),
+        ),
+      ));
+    }
+    return lines;
+  }
 
   /// Build ppN2 (partial pressure of nitrogen) line
   LineChartBarData _buildPpN2Line(MetricBand band) => buildPpN2Line(
@@ -6361,7 +6683,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
     required double visibleMaxX,
   }) {
     final annotations = <VerticalRangeAnnotation>[];
-    if (_showO2CellMv) {
+    if (_showO2Cells) {
       for (final range in widget.secondaryRanges) {
         final visible = visibleHighlightSpan(
           range,

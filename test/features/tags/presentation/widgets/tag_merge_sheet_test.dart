@@ -180,6 +180,10 @@ void main() {
       // Tap the Merge button
       final mergeButton = find.widgetWithText(FilledButton, 'Merge');
       expect(mergeButton, findsOneWidget);
+      // Scrolled into view first. This assertion is a negative one, so a tap
+      // that missed would pass it without ever exercising the empty-name
+      // guard, and the swatches above the button grew in issue #2269.
+      await tester.ensureVisible(mergeButton);
       await tester.tap(mergeButton);
       await tester.pumpAndSettle();
 

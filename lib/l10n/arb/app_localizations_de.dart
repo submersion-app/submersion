@@ -323,7 +323,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String gasCalculators_bestMix_densityCritical(Object limit) {
-    return 'Uber der harten Dichtegrenze von $limit g/L.';
+    return 'Über der harten Dichtegrenze von $limit g/L.';
   }
 
   @override
@@ -331,12 +331,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String gasCalculators_bestMix_densityWarn(Object limit) {
-    return 'Uber der empfohlenen Dichtegrenze von $limit g/L.';
+    return 'Über der empfohlenen Dichtegrenze von $limit g/L.';
   }
 
   @override
   String gasCalculators_bestMix_endExceeded(Object limit) {
-    return 'END uberschreitet dein Limit von $limit.';
+    return 'END überschreitet dein Limit von $limit.';
   }
 
   @override
@@ -347,7 +347,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String gasCalculators_bestMix_heliumAdded(Object limit) {
-    return 'Helium zugefugt, damit END innerhalb deines Limits von $limit bleibt.';
+    return 'Helium zugefügt, damit END innerhalb deines Limits von $limit bleibt.';
   }
 
   @override
@@ -363,7 +363,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_bestMix_nearestStandard =>
-      'Nachstes Standardgemisch fur diese Tiefe';
+      'Nächstes Standardgemisch für diese Tiefe';
 
   @override
   String get gasCalculators_bestMix_recommendedMix => 'Empfohlenes Gemisch';
@@ -373,19 +373,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_planningCaveat =>
-      'Planungswert. Setzt einen direkten Aufstieg voraus. Prufe ihn gegen deine Ausbildung und plane Reserve fur die Bedingungen ein.';
+      'Planungswert. Setzt einen direkten Aufstieg voraus. Prüfe ihn gegen deine Ausbildung und plane Reserve für die Bedingungen ein.';
 
   @override
   String gasCalculators_rockBottom_solveGas(Object depth, Object unit) {
-    return 'Gas zur Problemlosung auf $depth$unit';
+    return 'Gas zur Problemlösung auf $depth$unit';
   }
 
   @override
-  String get gasCalculators_rockBottom_solveTime => 'Zeit zur Problemlosung';
+  String get gasCalculators_rockBottom_solveTime => 'Zeit zur Problemlösung';
 
   @override
   String get gasCalculators_rockBottom_solveTimeHint =>
-      'Zeit auf Tiefe, um den Notfall zu losen, bevor der Aufstieg beginnt.';
+      'Zeit auf Tiefe, um den Notfall zu lösen, bevor der Aufstieg beginnt.';
 
   @override
   String o2Toxicity_addedThisDive(Object value) {
@@ -398,7 +398,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get o2Toxicity_daily => 'Taglich';
+  String get o2Toxicity_daily => 'Täglich';
 
   @override
   String o2Toxicity_otuSemantics(
@@ -429,7 +429,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get o2Toxicity_thisDive => 'Dieser Tauchgang';
 
   @override
-  String get o2Toxicity_weekly => 'Wochentlich';
+  String get o2Toxicity_weekly => 'Wöchentlich';
 
   @override
   String trips_story_dayLabel(int number) {
@@ -1029,7 +1029,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get accessibility_label_resizeMasterPane =>
-      'Hauptbereich in der Groesse aendern';
+      'Hauptbereich in der Größe ändern';
 
   @override
   String get accessibility_label_sharedWithAllProfiles =>
@@ -4840,7 +4840,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return 'Möchten Sie wirklich $count $_temp0 löschen? Diese Aktion kann nicht rückgängig gemacht werden.';
@@ -4854,7 +4854,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 gelöscht';
@@ -4884,7 +4884,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp1 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
-      other: 'Tauchgaengen',
+      other: 'Tauchgängen',
       one: 'Tauchgang',
     );
     return '$tagCount $_temp0 zu $diveCount $_temp1 hinzugefügt';
@@ -4916,7 +4916,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 zur Reise verschoben';
@@ -4947,7 +4947,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 von Reise entfernt';
@@ -4961,7 +4961,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 bearbeiten';
@@ -4990,7 +4990,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 erfolgreich exportiert';
@@ -5001,7 +5001,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 exportieren';
@@ -5385,7 +5385,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Gegenstaende',
+      other: 'Gegenstände',
       one: 'Gegenstand',
     );
     return '$count $_temp0';
@@ -5940,7 +5940,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Gegenstaende',
+      other: 'Gegenstände',
       one: 'Gegenstand',
     );
     return '$count $_temp0 als neues Ausrüstungsset speichern.';
@@ -6718,7 +6718,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_chartSection_other => 'Sonstiges';
 
   @override
-  String get diveLog_chartSection_tankPressures => 'Flaschendrucke';
+  String get diveLog_chartSection_tankPressures => 'Flaschendrücke';
 
   @override
   String get diveLog_chartOption_metricsFollowViewport =>
@@ -6782,7 +6782,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Details jetzt eintragen, Tauchcomputerdaten später ergänzen';
 
   @override
-  String get diveLog_listPage_fab_addDive => 'Tauchgang hinzufugen';
+  String get diveLog_listPage_fab_addDive => 'Tauchgang hinzufügen';
 
   @override
   String get diveLog_listPage_fab_logDive => 'Tauchgang erfassen';
@@ -7796,7 +7796,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 ohne Nummer';
@@ -8245,7 +8245,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0';
@@ -8640,7 +8640,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get divePlanner_field_bailoutGasHint =>
-      'Offenes Gas, mitgefuhrt fur den Fall eines Kreislaufausfalls';
+      'Offenes Gas, mitgeführt für den Fall eines Kreislaufausfalls';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -9880,7 +9880,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchplaetze',
+      other: 'Tauchplätze',
       one: 'Tauchplatz',
     );
     return 'Sind Sie sicher, dass Sie $count $_temp0 löschen möchten? Diese Aktion kann innerhalb von 5 Sekunden rückgängig gemacht werden.';
@@ -9895,7 +9895,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchplaetze',
+      other: 'Tauchplätze',
       one: 'Tauchplatz',
     );
     return '$count $_temp0 gelöscht';
@@ -9916,7 +9916,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchplaetze',
+      other: 'Tauchplätze',
       one: 'Tauchplatz',
     );
     return '$count $_temp0 zusammengeführt';
@@ -14155,7 +14155,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_billedNone =>
-      'Noch nichts abgerechnet. Schliesse eine Füllung ab und speichere sie hier.';
+      'Noch nichts abgerechnet. Schließe eine Füllung ab und speichere sie hier.';
 
   @override
   String get gasCalculators_blender_billedTo => 'Rechnung an';
@@ -15054,8 +15054,8 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp1 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Verknuepfen',
-      one: 'Verknuepfen',
+      other: 'Verknüpfen',
+      one: 'Verknüpfen',
     );
     return '$_temp0 in der Nähe dieses Tauchgangs gefunden. $_temp1?';
   }
@@ -17197,7 +17197,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveDetailSection_tanks_description =>
-      'Flaschenliste, Gasmischungen, Drucke, Flaschen-Verbrauch';
+      'Flaschenliste, Gasmischungen, Drücke, Flaschen-Verbrauch';
 
   @override
   String get diveDetailSection_buddies_name => 'Buddies';
@@ -18965,7 +18965,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_notifications_disabled_subtitleUnrequested =>
-      'Serviceerinnerungen benotigen die Berechtigung fur Mitteilungen';
+      'Serviceerinnerungen benötigen die Berechtigung für Mitteilungen';
 
   @override
   String get settings_notifications_disabled_subtitle =>
@@ -22393,11 +22393,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get transfer_pdfExport_includeVerificationAreas =>
-      'Bestaetigungsfelder einfuegen';
+      'Bestätigungsfelder einfügen';
 
   @override
   String get transfer_pdfExport_includeVerificationAreasSubtitle =>
-      'Stempel- und Unterschriftsfelder fuer die Verbandspruefung';
+      'Stempel- und Unterschriftsfelder für die Verbandsprüfung';
 
   @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
@@ -24201,13 +24201,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get weather_wmo_freezingRain => 'Gefrierender Regen';
 
   @override
-  String get weather_wmo_mainlyClear => 'Uberwiegend klar';
+  String get weather_wmo_mainlyClear => 'Überwiegend klar';
 
   @override
   String get weather_wmo_overcast => 'Bedeckt';
 
   @override
-  String get weather_wmo_partlyCloudy => 'Teilweise bewolkt';
+  String get weather_wmo_partlyCloudy => 'Teilweise bewölkt';
 
   @override
   String get weather_wmo_rain => 'Regen';
@@ -24968,7 +24968,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 heruntergeladen';
@@ -24985,7 +24985,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 von $name heruntergeladen';
@@ -25049,7 +25049,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     String _temp1 = intl.Intl.pluralLogic(
@@ -25070,7 +25070,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     String _temp1 = intl.Intl.pluralLogic(

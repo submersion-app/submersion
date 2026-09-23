@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' as enums;
@@ -8,6 +7,7 @@ import 'package:submersion/core/services/export/models/uddf_import_result.dart';
 import 'package:submersion/core/services/export/uddf/uddf_buddy_roles.dart';
 import 'package:submersion/core/services/export/uddf/uddf_dump_codec.dart';
 import 'package:submersion/core/services/export/uddf/uddf_import_parsers.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 import 'package:submersion/core/services/export/uddf/uddf_normalizer.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/services/transmitter_serial.dart';
@@ -20,6 +20,53 @@ import 'package:submersion/features/universal_import/data/csv/transforms/dive_ty
 /// Delegates base parsing to [UddfImportService] and entity parsing
 /// to [UddfImportParsers].
 class UddfFullImportService {
+  /// Private marker `_parseFullDive` leaves on a dive whose `<link ref>`
+  /// matched nothing the parser knows about, so the caller can count it and
+  /// then strip it. Never reaches the payload.
+  static const _unresolvedSiteRefKey = '_unresolvedSiteRef';
+
+  /// Prefixes a `<link ref>` carries when it names something other than a
+  /// dive site: every id prefix Submersion's own UDDF writers mint, except
+  /// `site_`.
+  ///
+  /// The same `<link>` elements are walked twice: once by the pass that
+  /// reads trip, dive centre, course and buddy references, and once by the
+  /// chain that reads sites, buddies, deco models and dive computers. A ref
+  /// the chain does not recognise is only a lost site when it could have
+  /// been one, or a dive that merely belongs to a trip, or whose
+  /// `<divecomputer>` block went missing, would raise a `sitesUnresolved`
+  /// notice about a site it never had. A foreign file's ids carry none of
+  /// these prefixes and are still counted.
+  ///
+  /// `uddf_site_location_test.dart` pins this list to the writers, so a new
+  /// entity type the exporter starts linking fails the test rather than
+  /// being mistaken for a lost site.
+  @visibleForTesting
+  static const nonSiteRefPrefixes = {
+    'buddy_',
+    'center_',
+    'cert_',
+    'computer_',
+    'course_',
+    'dc_',
+    'dive_',
+    'equip_',
+    'gf_',
+    'mix_',
+    'obs_',
+    'owner_',
+    'service_',
+    'set_',
+    'sitefeature_',
+    'species_',
+    'tag_',
+    'tank_',
+    'trip_',
+  };
+
+  static bool _isNonSiteRef(String ref) =>
+      nonSiteRefPrefixes.any(ref.startsWith);
+
   static final _logger = LoggerService.forClass(UddfFullImportService);
 
   /// Import ALL application data from UDDF file.
@@ -66,7 +113,12 @@ class UddfFullImportService {
     final divesiteElement = uddfElement.findElements('divesite').firstOrNull;
     if (divesiteElement != null) {
       for (final siteElement in divesiteElement.findElements('site')) {
-        final siteData = _parseFullSite(siteElement);
+        // A `<site>` the file never named is filed under its own
+        // coordinates, so the review step shows where it is rather than
+        // "Unnamed" and the position survives the import (#2232). A site
+        // with neither is dropped, which is all it was ever worth.
+        final siteData = ImportSiteLocation.named(_parseFullSite(siteElement));
+        if (siteData == null) continue;
         final siteId = siteElement.getAttribute('id');
         if (siteId != null) {
           siteData['uddfId'] = siteId;
@@ -190,6 +242,8 @@ class UddfFullImportService {
     // Parse dives with extended fields
     final dives = <Map<String, dynamic>>[];
     final sightings = <Map<String, dynamic>>[];
+    // Dives that pointed at a site the file never described (#2209).
+    var divesMissingSite = 0;
     final profileDataElement = uddfElement
         .findElements('profiledata')
         .firstOrNull;
@@ -207,6 +261,9 @@ class UddfFullImportService {
             diveComputersMap,
           );
           if (diveData.isNotEmpty) {
+            if (diveData.remove(_unresolvedSiteRefKey) == true) {
+              divesMissingSite++;
+            }
             dives.add(diveData);
             // Extract sightings from dive
             if (diveData.containsKey('sightings')) {
@@ -560,6 +617,7 @@ class UddfFullImportService {
     return UddfImportResult(
       dataSourcesByDiveRef: sources.byDiveRef,
       unpairedDumps: sources.unpaired,
+      divesMissingSite: divesMissingSite,
       dives: dives,
       sites: sites,
       equipment: equipment,
@@ -1867,7 +1925,21 @@ class UddfFullImportService {
       }
 
       // Get all linked references (can be sites, buddies, decomodels, or dive computers)
-      for (final linkElement in beforeElement.findElements('link')) {
+      // A ref matching none of them used to fall off the end of this chain
+      // without a word, which is how a logbook whose <divesite> block was
+      // lost imported every dive with no site and no notice (#2209).
+      //
+      // UDDF allows a <link> either inside <informationbeforedive> or
+      // directly under <dive>. Only the inner ones were read, so a file
+      // using the outer shape lost its site link in silence even when the
+      // <divesite> block described the site perfectly well. Inner links are
+      // walked first, so a resolving one still wins over a dangling outer
+      // one rather than the last read winning.
+      var sawDanglingRef = false;
+      for (final linkElement in [
+        ...beforeElement.findElements('link'),
+        ...diveElement.findElements('link'),
+      ]) {
         final ref = linkElement.getAttribute('ref');
         if (ref != null) {
           // Check if it's a site reference
@@ -1906,8 +1978,17 @@ class UddfFullImportService {
             if (computer['manufacturer']?.isNotEmpty == true) {
               diveData['diveComputerManufacturer'] = computer['manufacturer'];
             }
+          } else if (!_isNonSiteRef(ref)) {
+            sawDanglingRef = true;
           }
         }
+      }
+
+      // A dangling ref only counts against the dive when nothing else gave
+      // it a site: a file may legitimately link something this parser does
+      // not read, and that is not a lost location.
+      if (sawDanglingRef && diveData['site'] == null) {
+        diveData[_unresolvedSiteRefKey] = true;
       }
 
       // Also check equipmentused for dive computer links (Shearwater style)

@@ -15,6 +15,8 @@ library;
 
 import 'dart:math' as math;
 
+import 'package:submersion/core/constants/o2_cell_unit.dart';
+
 /// Time span the divergence is smoothed over, in seconds.
 ///
 /// A failing cell drifts over minutes; sample-to-sample change on whole-
@@ -31,21 +33,21 @@ const int _maxWindowSamples = 121;
 /// all: it answers "how far apart are my cells right now?" without needing a
 /// reference that could itself be wrong. Null where fewer than two cells
 /// reported, since a single cell cannot disagree with anything.
-List<double?> computeO2CellRange(List<List<int?>> mvCurves) {
-  if (mvCurves.isEmpty) return const [];
+List<double?> computeO2CellRange(List<List<num?>> cellCurves) {
+  if (cellCurves.isEmpty) return const [];
 
   var sampleCount = 0;
-  for (final curve in mvCurves) {
+  for (final curve in cellCurves) {
     sampleCount = math.max(sampleCount, curve.length);
   }
 
-  return [for (var i = 0; i < sampleCount; i++) _rangeAt(mvCurves, i)];
+  return [for (var i = 0; i < sampleCount; i++) _rangeAt(cellCurves, i)];
 }
 
-double? _rangeAt(List<List<int?>> mvCurves, int i) {
-  int? lo, hi;
+double? _rangeAt(List<List<num?>> cellCurves, int i) {
+  num? lo, hi;
   var seen = 0;
-  for (final curve in mvCurves) {
+  for (final curve in cellCurves) {
     if (i >= curve.length) continue;
     final value = curve[i];
     if (value == null) continue;
@@ -146,9 +148,26 @@ const double kO2CellDriftingMv = 5.0;
 /// Spread at which the gap is too wide to explain as healthy cells, in mV.
 const double kO2CellWideMv = 12.0;
 
-O2CellAgreement o2CellAgreementFor(double spreadMv) {
-  if (spreadMv >= kO2CellWideMv) return O2CellAgreement.wide;
-  if (spreadMv >= kO2CellDriftingMv) return O2CellAgreement.drifting;
+/// The [kO2CellDriftingMv] threshold in bar.
+///
+/// Converted at the factory-default calibration of 0.021 bar per millivolt,
+/// then rounded: a cell's calibration sits within a few percent of that, so a
+/// sharper figure would imply a precision the conversion does not have.
+const double kO2CellDriftingBar = 0.10;
+
+/// The [kO2CellWideMv] threshold in bar, converted as [kO2CellDriftingBar] is.
+const double kO2CellWideBar = 0.25;
+
+O2CellAgreement o2CellAgreementFor(
+  double spread, {
+  O2CellUnit unit = O2CellUnit.millivolts,
+}) {
+  final (drifting, wide) = switch (unit) {
+    O2CellUnit.ppO2 => (kO2CellDriftingBar, kO2CellWideBar),
+    O2CellUnit.millivolts => (kO2CellDriftingMv, kO2CellWideMv),
+  };
+  if (spread >= wide) return O2CellAgreement.wide;
+  if (spread >= drifting) return O2CellAgreement.drifting;
   return O2CellAgreement.tight;
 }
 
@@ -166,7 +185,10 @@ typedef O2CellAgreementRun = ({
 /// dive collapses to a single segment however long it is. Gaps end the current
 /// run rather than being bridged, so a stretch with no cell data does not get
 /// coloured as if it had been checked.
-List<O2CellAgreementRun> o2CellAgreementRuns(List<double?> spread) {
+List<O2CellAgreementRun> o2CellAgreementRuns(
+  List<double?> spread, {
+  O2CellUnit unit = O2CellUnit.millivolts,
+}) {
   final runs = <O2CellAgreementRun>[];
   int? startIndex;
   O2CellAgreement? level;
@@ -184,7 +206,7 @@ List<O2CellAgreementRun> o2CellAgreementRuns(List<double?> spread) {
       close(i - 1);
       continue;
     }
-    final current = o2CellAgreementFor(value);
+    final current = o2CellAgreementFor(value, unit: unit);
     if (level != current) {
       close(i - 1);
       startIndex = i;

@@ -280,6 +280,12 @@ class DropboxMediaObjectStore implements MediaObjectStore {
   /// Classifies DropboxApiClient's user-facing messages into the retry
   /// taxonomy (see the client's _send error policy).
   MediaStoreException _map(String op, String key, CloudStorageException e) {
+    // Classify on the message alone. displayMessage folds in the provider's
+    // own words, and a 500 whose Message reads "Access denied by policy" is
+    // a server fault the queue should retry, not an auth failure it should
+    // stop on. The wrapped message below uses displayMessage, so the
+    // explanation still reaches the queue, the Transfers page and the media
+    // health report.
     final message = e.message;
     final MediaStoreErrorKind kind;
     if (message.contains('not found')) {
@@ -293,7 +299,7 @@ class DropboxMediaObjectStore implements MediaObjectStore {
       kind = MediaStoreErrorKind.fatal;
     }
     return MediaStoreException(
-      '$op $key failed: $message',
+      '$op $key failed: ${e.displayMessage}',
       kind: kind,
       cause: e,
     );

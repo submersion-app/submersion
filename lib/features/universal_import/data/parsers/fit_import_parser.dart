@@ -9,6 +9,7 @@ import 'package:submersion/features/universal_import/data/models/import_options.
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 
 /// Parser adapter for Garmin FIT binary files.
 ///
@@ -90,13 +91,22 @@ class FitImportParser implements ImportParser {
     if (dive.computerFirmware != null) {
       diveData['diveComputerFirmware'] = dive.computerFirmware;
     }
-    if (dive.latitude != null && dive.longitude != null) {
-      diveData['latitude'] = dive.latitude;
-      diveData['longitude'] = dive.longitude;
+    // FIT is the one registered format that records a position without ever
+    // describing a site, so the dive's own fix is all there is. It is judged
+    // by the same rule a site's coordinates are, or a watch that wrote 0/0
+    // for "no fix" would put the dive in the Atlantic (#2232).
+    final entryFix = ImportSiteLocation.fix(dive.latitude, dive.longitude);
+    if (entryFix != null) {
+      diveData['latitude'] = entryFix.latitude;
+      diveData['longitude'] = entryFix.longitude;
     }
-    if (dive.exitLatitude != null && dive.exitLongitude != null) {
-      diveData['exitLatitude'] = dive.exitLatitude;
-      diveData['exitLongitude'] = dive.exitLongitude;
+    final exitFix = ImportSiteLocation.fix(
+      dive.exitLatitude,
+      dive.exitLongitude,
+    );
+    if (exitFix != null) {
+      diveData['exitLatitude'] = exitFix.latitude;
+      diveData['exitLongitude'] = exitFix.longitude;
     }
 
     if (dive.tanks.isNotEmpty) {

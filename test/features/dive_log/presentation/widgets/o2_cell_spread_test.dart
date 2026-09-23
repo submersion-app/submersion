@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/dive_log/presentation/widgets/o2_cell_spread.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
 
 void main() {
   group('computeO2CellRange', () {
@@ -207,6 +208,57 @@ void main() {
       // instead of one per sample.
       final runs = o2CellAgreementRuns(List.filled(5000, 1.0));
       expect(runs, hasLength(1));
+    });
+  });
+
+  group('agreement in bar', () {
+    test('the same gap reads differently in each unit', () {
+      // 0.12 bar is a drifting gap; as a bare number it would be tight on the
+      // millivolt scale, which is why the unit travels with the spread.
+      expect(
+        o2CellAgreementFor(0.12, unit: O2CellUnit.ppO2),
+        O2CellAgreement.drifting,
+      );
+      expect(
+        o2CellAgreementFor(0.12, unit: O2CellUnit.millivolts),
+        O2CellAgreement.tight,
+      );
+    });
+
+    test('bar thresholds bracket the three levels', () {
+      const u = O2CellUnit.ppO2;
+      expect(o2CellAgreementFor(0.05, unit: u), O2CellAgreement.tight);
+      expect(
+        o2CellAgreementFor(kO2CellDriftingBar, unit: u),
+        O2CellAgreement.drifting,
+      );
+      expect(o2CellAgreementFor(kO2CellWideBar, unit: u), O2CellAgreement.wide);
+    });
+
+    test('millivolts stay the default so existing callers are unchanged', () {
+      expect(o2CellAgreementFor(kO2CellWideMv), O2CellAgreement.wide);
+    });
+
+    test('runs are cut at the unit thresholds they are given', () {
+      final spread = <double?>[0.02, 0.02, 0.30, 0.30];
+      expect(
+        o2CellAgreementRuns(
+          spread,
+          unit: O2CellUnit.ppO2,
+        ).map((r) => r.level).toList(),
+        [O2CellAgreement.tight, O2CellAgreement.wide],
+      );
+      // Read as millivolts the whole stretch is tight, so it is one run.
+      expect(o2CellAgreementRuns(spread), hasLength(1));
+    });
+
+    test('a spread of ppO2 values is computed the same way', () {
+      final range = computeO2CellRange(<List<num?>>[
+        <double?>[1.13, 1.20],
+        <double?>[1.71, 1.22],
+      ]);
+      expect(range[0], closeTo(0.58, 1e-9));
+      expect(range[1], closeTo(0.02, 1e-9));
     });
   });
 }

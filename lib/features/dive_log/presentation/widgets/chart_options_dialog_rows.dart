@@ -12,6 +12,7 @@ import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/gas_colors.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
 
 Widget buildOptionsSection(
   BuildContext context, {
@@ -47,6 +48,13 @@ Widget buildOptionsSection(
 List<(MetricDataSource, String)> sourceSegments(BuildContext context) => [
   (MetricDataSource.computer, context.l10n.diveLog_legend_source_dc),
   (MetricDataSource.calculated, context.l10n.diveLog_legend_source_calc),
+];
+
+/// ppO2/mV segments for the O2 cell traces. Offered only where a dive logs
+/// both, since the two are the same measurement one calibration apart.
+List<(O2CellUnit, String)> o2CellUnitSegments(BuildContext context) => [
+  (O2CellUnit.ppO2, context.l10n.diveLog_legend_label_ppO2),
+  (O2CellUnit.millivolts, context.l10n.units_profileMetric_millivolts),
 ];
 
 /// A toggle row with a segmented mode switch on the right. Generic over the

@@ -404,10 +404,13 @@ class S3ApiClient {
       body: Uint8List.fromList(utf8.encode(manifest.toString())),
     );
     if (response.statusCode != 200) _throwFor('finish upload', key, response);
-    // S3 reports completion errors inside a 200 body.
+    // S3 reports completion errors inside a 200 body. The Code is what
+    // gives the failure away, so it is already parsed here; it and the
+    // Message beside it go in the cause, the same as every other throw.
     if (_xmlElementText(response.body, 'Code') != null) {
       throw CloudStorageException(
         'S3 rejected the upload completion for "$key"',
+        _bodyDetail(response.body),
       );
     }
   }
@@ -742,37 +745,84 @@ class S3ApiClient {
   }
 
   Never _throwFor(String operation, String key, http.Response response) {
-    final errorCode = _xmlElementText(
-      utf8.decode(response.bodyBytes, allowMalformed: true),
-      'Code',
-    );
+    final body = utf8.decode(response.bodyBytes, allowMalformed: true);
+    final errorCode = _xmlElementText(body, 'Code');
+    // Every throw below carries the provider's own words, because only the
+    // body says which of the faults behind a status actually happened: a
+    // 403 covers a wrong key and a disabled user alike, and the region
+    // branch's Message names the region its own advice sends the person to
+    // go and find. That is the gap #2018 fixed on the Drive adapter, and it
+    // was in every branch here, not just the catch-all.
+    //
+    // They go in the cause, never in the message, which is the shape the
+    // Dropbox client already throws. S3MediaObjectStore._map classifies by
+    // substring on the message, so a 500 whose Message reads "Access denied
+    // by policy" would be filed as an auth failure and stop being retried.
+    // toString and displayMessage both append the cause, so the explanation
+    // still reaches the Transfers page and the media health report.
+    //
+    // Bounded because it can be an HTML page from a proxy. A body that is
+    // not this shape leaves the message alone and carries no cause.
+    final cause = _bodyDetail(body);
+
     // Matched by error code regardless of HTTP status: AWS uses 400, some
     // compatible servers 403.
     if (errorCode == 'AuthorizationHeaderMalformed') {
-      throw const CloudStorageException(
+      throw CloudStorageException(
         "S3 rejected the request's signature region. Open Advanced and "
         'set Region to the value your provider expects.',
+        cause,
       );
     }
     if (response.statusCode == 403) {
       if (errorCode == 'RequestTimeTooSkewed') {
-        throw const CloudStorageException(
+        throw CloudStorageException(
           'S3 rejected the request time. The device clock is more than '
           '15 minutes off; correct the system time and try again.',
+          cause,
         );
       }
-      throw const CloudStorageException(
+      throw CloudStorageException(
         'Access denied. Check the access key, secret key, and bucket '
         'permissions.',
+        cause,
       );
     }
     if (response.statusCode == 404 && errorCode == 'NoSuchBucket') {
-      throw CloudStorageException('Bucket "${_config.bucket}" not found');
+      throw CloudStorageException(
+        'Bucket "${_config.bucket}" not found',
+        cause,
+      );
     }
     throw CloudStorageException(
       'S3 $operation failed for "$key" (HTTP ${response.statusCode})',
+      cause,
     );
   }
+
+  /// The provider's own `Code` and `Message`, bounded, or null when the
+  /// body is not that shape (an HTML page from a proxy, an empty body).
+  String? _bodyDetail(String body) {
+    final detail = _bounded(
+      [
+        ?_xmlElementText(body, 'Code'),
+        ?_xmlElementText(body, 'Message'),
+      ].join(': '),
+    );
+    return detail.isEmpty ? null : detail;
+  }
+
+  /// Caps a provider's own error text.
+  ///
+  /// This ends up in the media queue's `errorMessage` column and in a list
+  /// tile by way of `MediaStoreException`'s primary message, which is not
+  /// the half `MediaStoreException.toString` bounds. An S3-compatible
+  /// server is free to answer with a `Message` of any length.
+  static String _bounded(String detail) => detail.length <= _maxDetailLength
+      ? detail
+      : '${detail.substring(0, _maxDetailLength)}...';
+
+  static const _maxDetailLength = 200;
 
   String? _xmlElementText(String body, String element) {
     if (body.isEmpty) return null;

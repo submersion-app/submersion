@@ -2,7 +2,10 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
+import 'package:submersion/features/universal_import/data/services/divinglog_equipment_mapper.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
+import 'package:submersion/features/universal_import/data/services/divinglog_reference_mapper.dart';
+import 'package:submersion/features/universal_import/data/services/divinglog_sightings_mapper.dart';
 
 /// Turns a [DivingLogLogbook] into an [ImportPayload].
 ///
@@ -20,6 +23,16 @@ class DivingLogDiveMapper {
     final buddiesByName = <String, Map<String, dynamic>>{};
     final tagsByName = <String, Map<String, dynamic>>{};
     var sawOtu = false;
+    // Counts of ids that matched no row, by kind, reported once each.
+    final unresolved = <String, int>{};
+    final referenceSites = DivingLogReferenceMapper.sites(logbook);
+    final referenceBuddies = DivingLogReferenceMapper.buddies(logbook);
+    final equipment = DivingLogEquipmentMapper.entities(logbook);
+    final trips = DivingLogReferenceMapper.trips(logbook);
+    final diveCenters = DivingLogReferenceMapper.diveCenters(logbook);
+    final referenceDiveTypes = DivingLogReferenceMapper.diveTypes(logbook);
+    final certifications = DivingLogReferenceMapper.certifications(logbook);
+    final media = <Map<String, dynamic>>[];
 
     for (var i = 0; i < logbook.dives.length; i++) {
       final raw = logbook.dives[i];
@@ -69,17 +82,20 @@ class DivingLogDiveMapper {
       ].join('\n\n');
       if (notes.isNotEmpty) map['notes'] = notes;
 
-      final siteKey = _siteKey(raw);
+      final siteKey =
+          DivingLogReferenceMapper.siteKeyFor(logbook, raw) ?? _siteKey(raw);
       if (siteKey != null) {
-        sitesByKey.putIfAbsent(siteKey, () {
-          final site = <String, dynamic>{
-            'uddfId': siteKey,
-            'name': raw.place ?? raw.city ?? raw.country!,
-          };
-          if (raw.country != null) site['country'] = raw.country;
-          if (raw.city != null) site['region'] = raw.city;
-          return site;
-        });
+        if (!referenceSites.containsKey(siteKey)) {
+          sitesByKey.putIfAbsent(siteKey, () {
+            final site = <String, dynamic>{
+              'uddfId': siteKey,
+              'name': raw.place ?? raw.city ?? raw.country!,
+            };
+            if (raw.country != null) site['country'] = raw.country;
+            if (raw.city != null) site['region'] = raw.city;
+            return site;
+          });
+        }
         map['site'] = <String, dynamic>{'uddfId': siteKey};
       }
 
@@ -88,7 +104,20 @@ class DivingLogDiveMapper {
       // `alice` emits one buddy; a ref spelled the other way would then
       // match nothing in the importer's id map and the dive would lose the
       // link silently.
-      final buddyRefs = _refs(_names(raw.buddy), buddiesByName);
+      // Ids win. A dive that names its buddies by id must not also emit the
+      // free-text column, or the same person arrives twice under two
+      // spellings and the dive links to only one of them. This is what
+      // turned a Buddy table of 16 people into 68 entries in phase 1.
+      final idBuddyRefs = [
+        for (final id in raw.buddyIds)
+          if (logbook.buddiesById[id]?.fullName case final String name) name,
+      ];
+      // Keyed on whether the dive HAS ids, not on whether they resolved.
+      // Falling back when none resolve would recreate the phase 1
+      // duplicates exactly when the relational data is incomplete.
+      final buddyRefs = raw.buddyIds.isEmpty
+          ? _refs(_names(raw.buddy), buddiesByName)
+          : idBuddyRefs;
       final guideRefs = _refs(_names(raw.divemaster), buddiesByName);
       if (buddyRefs.isNotEmpty) map['buddyRefs'] = buddyRefs;
       if (guideRefs.isNotEmpty) map['diveGuideRefs'] = guideRefs;
@@ -108,6 +137,44 @@ class DivingLogDiveMapper {
       if (switches.isNotEmpty) map['gasSwitches'] = switches;
       if (raw.samples.any((s) => s.otu != null)) sawOtu = true;
 
+      final gearRefs = DivingLogEquipmentMapper.refsFor(logbook, raw);
+      if (gearRefs.isNotEmpty) map['equipmentRefs'] = gearRefs;
+
+      if (raw.tripId != null &&
+          trips.containsKey('divinglog_trip_${raw.tripId}')) {
+        map['tripRef'] = 'divinglog_trip_${raw.tripId}';
+      }
+      if (raw.shopId != null &&
+          diveCenters.containsKey('divinglog_shop_${raw.shopId}')) {
+        map['diveCenterRef'] = 'divinglog_shop_${raw.shopId}';
+      }
+      final typeIds = DivingLogReferenceMapper.diveTypeIdsFor(logbook, raw);
+      if (typeIds.isNotEmpty) map['diveTypeIds'] = typeIds;
+
+      final sightings = DivingLogSightingsMapper.sightingsFor(logbook, raw);
+      if (sightings.isNotEmpty) map['sightings'] = sightings;
+
+      media.addAll(
+        DivingLogSightingsMapper.mediaFor(logbook, raw, dives.length),
+      );
+
+      // An id pointing at a row the file does not contain is skipped above.
+      // Counting it here turns a silent drop into one diagnostic per kind,
+      // which is how this importer's earlier data losses went unnoticed.
+      // Each count comes from the mapper that owns the resolution, applied
+      // per id. Subtracting list lengths instead would report deduplication
+      // as a gap, since two dive type ids sharing a name collapse to one
+      // slug and nothing is actually missing.
+      unresolved['buddy'] =
+          (unresolved['buddy'] ?? 0) +
+          DivingLogReferenceMapper.unresolvedBuddyCount(logbook, raw);
+      unresolved['equipment'] =
+          (unresolved['equipment'] ?? 0) +
+          DivingLogEquipmentMapper.unresolvedCount(logbook, raw);
+      unresolved['dive type'] =
+          (unresolved['dive type'] ?? 0) +
+          DivingLogReferenceMapper.unresolvedDiveTypeCount(logbook, raw);
+
       dives.add(map);
     }
 
@@ -122,6 +189,17 @@ class DivingLogDiveMapper {
         ),
       );
     }
+    for (final name in DivingLogReferenceMapper.buddyNameCollisions(logbook)) {
+      warnings.add(
+        ImportWarning(
+          severity: ImportWarningSeverity.info,
+          code: ImportWarningCode.diagnostic,
+          message:
+              'More than one buddy is named "$name", so they were imported '
+              'as a single buddy.',
+        ),
+      );
+    }
     for (final note in logbook.schemaNotes) {
       warnings.add(
         ImportWarning(
@@ -132,17 +210,56 @@ class DivingLogDiveMapper {
       );
     }
 
+    for (final entry in unresolved.entries) {
+      if (entry.value == 0) continue;
+      warnings.add(
+        ImportWarning(
+          severity: ImportWarningSeverity.info,
+          code: ImportWarningCode.diagnostic,
+          // Not "the file does not contain them": the count also covers
+          // rows that are present but cannot yield an entity, such as an
+          // equipment row with a blank name.
+          message:
+              '${entry.value} ${entry.key} reference(s) could not be resolved '
+              'to importable records and were skipped.',
+          count: entry.value,
+        ),
+      );
+    }
+
     final entities = <ImportEntityType, List<Map<String, dynamic>>>{};
     if (dives.isNotEmpty) entities[ImportEntityType.dives] = dives;
-    if (sitesByKey.isNotEmpty) {
-      entities[ImportEntityType.sites] = sitesByKey.values.toList();
+    final allSites = {...sitesByKey, ...referenceSites};
+    if (allSites.isNotEmpty) {
+      entities[ImportEntityType.sites] = allSites.values.toList();
     }
-    if (buddiesByName.isNotEmpty) {
-      entities[ImportEntityType.buddies] = buddiesByName.values.toList();
+    final allBuddies = {
+      for (final b in buddiesByName.values) b['name'] as String: b,
+      ...referenceBuddies,
+    };
+    if (allBuddies.isNotEmpty) {
+      entities[ImportEntityType.buddies] = allBuddies.values.toList();
     }
     if (tagsByName.isNotEmpty) {
       entities[ImportEntityType.tags] = tagsByName.values.toList();
     }
+    if (equipment.isNotEmpty) {
+      entities[ImportEntityType.equipment] = equipment.values.toList();
+    }
+    if (trips.isNotEmpty) {
+      entities[ImportEntityType.trips] = trips.values.toList();
+    }
+    if (diveCenters.isNotEmpty) {
+      entities[ImportEntityType.diveCenters] = diveCenters.values.toList();
+    }
+    if (referenceDiveTypes.isNotEmpty) {
+      entities[ImportEntityType.diveTypes] = referenceDiveTypes.values.toList();
+    }
+    if (certifications.isNotEmpty) {
+      entities[ImportEntityType.certifications] = certifications.values
+          .toList();
+    }
+    if (media.isNotEmpty) entities[ImportEntityType.media] = media;
 
     return ImportPayload(
       entities: entities,

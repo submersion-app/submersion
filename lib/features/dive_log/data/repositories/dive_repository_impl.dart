@@ -1987,7 +1987,7 @@ class DiveRepository {
       await _mediaDeletionCoordinator.deleteMediaItems(split.doomed);
     }
     if (split.unlinkIds.isNotEmpty) {
-      await _mediaRepository.unlinkMediaFromDeletedDives(split.unlinkIds);
+      await _mediaRepository.unlinkMediaFromDeletedDives(split.unlinkIds, ids);
     }
   }
 

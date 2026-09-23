@@ -74,11 +74,13 @@ class StatusColors extends ThemeExtension<StatusColors> {
   /// In date and good to go.
   final StatusSwatch ok;
 
-  /// Light containers are solid fills, not tints. The pastel palette they
-  /// replace sat about 1.05:1 against the page, so a status chip read as a
-  /// smudge while the same chip in dark mode sat at 1.55:1 and read as a
-  /// block. Reversing the label out of a saturated fill buys the separation
-  /// a light page cannot get from a tint.
+  /// Only alert is a solid fill. Red is the one status that should stop a
+  /// diver, so it takes the saturated fill and the reversed label that a
+  /// light page cannot get from a tint. Amber and green are information,
+  /// not interruption, and they keep the pastel wash: a strip where every
+  /// chip shouts is a strip where none of them do, and a green "all good"
+  /// chip rendered as a solid block competes with the one chip that means
+  /// something is wrong.
   static const StatusColors light = StatusColors(
     alert: StatusSwatch(
       container: Color(0xFFC62828),
@@ -87,22 +89,21 @@ class StatusColors extends ThemeExtension<StatusColors> {
       accent: Color(0xFFC62828),
       onAccent: Color(0xFFFFFFFF),
     ),
-    // Amber is the hue that goes illegible first on a light surface. Its
+    // Amber is the hue that goes illegible first on a light surface, so its
     // accent sits well past the Material 800 shade to hold 4.5:1 on every
-    // preset's page color, and its container keeps a near-black label:
-    // white text would force the fill down to a brown, which then reads as
-    // a third red alongside the alert chips.
+    // preset's page color. The container is a pale wash with a dark label,
+    // which clears AA comfortably without competing with alert.
     warn: StatusSwatch(
-      container: Color(0xFFF0A81E),
-      onContainer: Color(0xFF3A2200),
-      outline: Color(0xFFC9880A),
+      container: Color(0xFFFFEDC2),
+      onContainer: Color(0xFF7A4500),
+      outline: Color(0xFFE9BE62),
       accent: Color(0xFF955300),
       onAccent: Color(0xFFFFFFFF),
     ),
     ok: StatusSwatch(
-      container: Color(0xFF256D2B),
-      onContainer: Color(0xFFFFFFFF),
-      outline: Color(0xFF1D5722),
+      container: Color(0xFFDCF2E3),
+      onContainer: Color(0xFF1C5E34),
+      outline: Color(0xFF9ACFAB),
       accent: Color(0xFF256D2B),
       onAccent: Color(0xFFFFFFFF),
     ),
