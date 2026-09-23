@@ -35,6 +35,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/domain/services/media_orphan_reconciler.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
+import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_store_preflight.dart';
 import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
@@ -458,7 +459,14 @@ class HarnessDevice {
 
   Future<void> deleteDiver(String id) async {
     await activate();
-    await DiverRepository().deleteDiverWithReassignment(id);
+    // This device's queue: a default coordinator writes to the global cache
+    // database, which the harness never points at a device.
+    await DiverRepository(
+      mediaDeletionCoordinator: MediaDeletionCoordinator(
+        mediaRepository: MediaRepository(),
+        queue: () => queue,
+      ),
+    ).deleteDiverWithReassignment(id);
   }
 
   /// Simulates upload stamps that never arrived or were dropped by a merge.
