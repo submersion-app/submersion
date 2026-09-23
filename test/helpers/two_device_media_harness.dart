@@ -386,6 +386,7 @@ class HarnessDevice {
       syncRepository: SyncRepository(),
       serializer: SyncDataSerializer(),
       cloudProvider: _harness.cloud,
+      onMediaResolutionHints: assetCache.clearUnresolved,
     ).performSync();
     if (expectSuccess && !result.isSuccess) {
       throw StateError('$name sync failed: ${result.status} ${result.message}');
@@ -483,6 +484,15 @@ class HarnessDevice {
     await activate();
     await db.customStatement(
       'UPDATE media SET origin_device_id = NULL WHERE id = ?',
+      [id],
+    );
+  }
+
+  /// Simulates a gallery row linked before links recorded a cloud id.
+  Future<void> clearCloudAssetId(String id) async {
+    await activate();
+    await db.customStatement(
+      'UPDATE media SET cloud_asset_id = NULL WHERE id = ?',
       [id],
     );
   }

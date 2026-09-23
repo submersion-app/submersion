@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
@@ -134,6 +135,109 @@ void main() {
     expect(
       await h.b.assetCache.getCacheEntry(id1),
       isA<CacheEntry>().having((e) => e.resolutionMethod, 'method', 'cloud_id'),
+    );
+  });
+
+  test('a peer that gave up on a photo retries as soon as its cloud id '
+      'arrives', () async {
+    final frame1 = Uint8List.fromList(List<int>.generate(512, (i) => i % 251));
+    final frame2 = Uint8List.fromList(
+      List<int>.generate(512, (i) => (i * 7) % 251),
+    );
+    final dive = await h.a.createDive();
+    final id1 = await h.a.linkGalleryPhoto(
+      FakeGalleryAsset(
+        id: 'A-b1',
+        bytes: frame1,
+        takenAt: taken,
+        cloudId: 'C-b1',
+      ),
+      diveId: dive,
+    );
+    await h.a.linkGalleryPhoto(
+      FakeGalleryAsset(
+        id: 'A-b2',
+        bytes: frame2,
+        takenAt: taken,
+        cloudId: 'C-b2',
+      ),
+      diveId: dive,
+    );
+    h.b.gallery
+      ..add(
+        FakeGalleryAsset(
+          id: 'B-b1',
+          bytes: frame1,
+          takenAt: taken,
+          filename: null,
+          cloudId: 'C-b1',
+        ),
+      )
+      ..add(
+        FakeGalleryAsset(
+          id: 'B-b2',
+          bytes: frame2,
+          takenAt: taken,
+          filename: null,
+          cloudId: 'C-b2',
+        ),
+      );
+    // The row reaches B without its cloud id; B cannot tell the frames apart
+    // and backs off.
+    await h.a.clearCloudAssetId(id1);
+    await h.a.sync();
+    await h.b.sync();
+    expect((await h.b.tile(id1)).data, isA<UnavailableData>());
+    expect(
+      (await h.b.assetCache.getCacheEntry(id1))!.resolutionMethod,
+      'unresolved',
+    );
+
+    // A learns the id again (by the backfill, Task 6, or any stamp) and
+    // syncs; the row clock moves so the peer takes the row.
+    await h.a.activate();
+    await h.a.db.customStatement(
+      "UPDATE media SET cloud_asset_id = 'C-b1' WHERE id = ?",
+      [id1],
+    );
+    await SyncRepository().markRecordPending(
+      entityType: 'media',
+      recordId: id1,
+      localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
+    );
+    await h.a.sync();
+    await h.b.sync();
+
+    expect(
+      await h.b.assetCache.getCacheEntry(id1),
+      isNull,
+      reason: 'the new cloud id lifted the backoff',
+    );
+    final tile = await h.b.tile(id1);
+    expect((tile.data as BytesData).bytes, frame1);
+  });
+
+  test('a plain edit from the peer does not lift the backoff', () async {
+    final dive = await h.a.createDive();
+    final id = await h.a.linkGalleryPhoto(
+      FakeGalleryAsset(id: 'A-1', bytes: photo, takenAt: taken),
+      diveId: dive,
+    );
+    await h.a.sync();
+    await h.b.sync();
+    await h.b.tile(id);
+    expect(
+      (await h.b.assetCache.getCacheEntry(id))!.resolutionMethod,
+      'unresolved',
+    );
+
+    await h.a.setManualElapsed(id, 42);
+    await h.a.sync();
+    await h.b.sync();
+
+    expect(
+      (await h.b.assetCache.getCacheEntry(id))!.resolutionMethod,
+      'unresolved',
     );
   });
 

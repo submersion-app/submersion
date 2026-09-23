@@ -214,4 +214,24 @@ void main() {
       expect(entry!.attemptCount, equals(1));
     });
   });
+
+  // A sync that brings a row a cloud id or an upload retries its search at
+  // once (spec 6.2); a mapping that was found stays.
+  test('clearUnresolved drops only unresolved entries', () async {
+    await repository.cacheResolution(
+      mediaId: 'u',
+      localAssetId: null,
+      method: 'unresolved',
+    );
+    await repository.cacheResolution(
+      mediaId: 'r',
+      localAssetId: 'B-1',
+      method: 'cloud_id',
+    );
+
+    await repository.clearUnresolved(['u', 'r', 'absent']);
+
+    expect(await repository.getCacheEntry('u'), isNull);
+    expect((await repository.getCacheEntry('r'))!.localAssetId, 'B-1');
+  });
 }

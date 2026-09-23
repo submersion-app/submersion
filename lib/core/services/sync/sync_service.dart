@@ -14,6 +14,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
+import 'package:submersion/core/services/sync/media_resolution_hints.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_apply_progress.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_json_stream_reader.dart';
@@ -242,6 +243,11 @@ class SyncService {
   /// labels such as "From Eric's MacBook" need no cloud read. Optional:
   /// the legacy tests build the service without one.
   final PeerDeviceNameStore? _peerNames;
+
+  /// Told which media rows a merge gave something new to be found by, so
+  /// their cached "not found here" searches retry at once (spec 6.2).
+  /// Optional: most tests build the service without one.
+  final Future<void> Function(Set<String> mediaIds)? _onMediaResolutionHints;
   final _log = LoggerService.forClass(SyncService);
   final _uuid = const Uuid();
 
@@ -306,6 +312,7 @@ class SyncService {
     SyncEncryptionService? encryptionService,
     AppLocalizations Function()? localizations,
     PeerDeviceNameStore? peerNames,
+    Future<void> Function(Set<String> mediaIds)? onMediaResolutionHints,
   }) : _syncRepository = syncRepository,
        _serializer = serializer,
        _cloudProvider = cloudProvider,
@@ -313,6 +320,7 @@ class SyncService {
        _epochStore = epochStore,
        _encryptionService = encryptionService,
        _peerNames = peerNames,
+       _onMediaResolutionHints = onMediaResolutionHints,
        _localizations = localizations ?? _englishLocalizations;
 
   /// Set a callback to receive progress updates during sync
@@ -2734,6 +2742,9 @@ class SyncService {
     // [inBatch] records whether this row also went into the batched upsert,
     // so a batch that fails can take its own fact writes down with it. A
     // fact write whose row never joined the batch is independent of it.
+    // Media rows this merge gave something new to be found by (spec 6.2),
+    // and whether each rode the batch, so a failed batch drops its own.
+    final hinted = <({String id, bool inBatch})>[];
     final factWrites =
         <
           ({
@@ -2911,6 +2922,14 @@ class SyncService {
             local: local,
             remote: recordToApply,
           );
+          if (entityType == 'media' &&
+              bringsMediaResolutionHint(
+                local: local,
+                applied: resolved.row,
+                rowFromRemote: rowFromRemote,
+              )) {
+            hinted.add((id: recordId, inBatch: rowFromRemote));
+          }
           if (rowFromRemote) {
             toUpsert.add(resolved.row);
             factWrites.add((
@@ -3050,6 +3069,25 @@ class SyncService {
           stackTrace: stackTrace,
         );
         rethrow;
+      }
+    }
+
+    // After the writes, so a row the batch failed to write is not retried
+    // as if it had landed. The cache is another database and outside this
+    // payload's transaction: if the payload later rolls back, the only
+    // cost is a search that runs sooner than its backoff.
+    final hintIds = {
+      for (final h in hinted)
+        if (!(batchFailed && h.inBatch)) h.id,
+    };
+    final onHints = _onMediaResolutionHints;
+    if (hintIds.isNotEmpty && onHints != null) {
+      try {
+        await onHints(hintIds);
+      } on Object catch (e) {
+        _log.warning(
+          'Could not retry resolution for ${hintIds.length} media rows: $e',
+        );
       }
     }
 

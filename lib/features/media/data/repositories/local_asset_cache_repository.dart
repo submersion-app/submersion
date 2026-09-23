@@ -94,6 +94,18 @@ class LocalAssetCacheRepository {
     )..where((t) => t.mediaId.equals(mediaId))).go();
   }
 
+  /// Drops the `unresolved` entries among [mediaIds], so their next view
+  /// searches again instead of waiting out the backoff. Called when a sync
+  /// brings a row something new to be found by (spec 6.2). A resolved
+  /// mapping stays: it was found, and a failed fetch re-resolves it.
+  Future<void> clearUnresolved(Iterable<String> mediaIds) async {
+    final ids = mediaIds.toList();
+    if (ids.isEmpty) return;
+    await (_db.delete(
+      _db.localAssetCache,
+    )..where((t) => t.mediaId.isIn(ids) & t.localAssetId.isNull())).go();
+  }
+
   /// Check if an unresolved entry has exceeded its backoff period.
   /// Returns false for resolved entries (they never expire).
   Future<bool> isExpired(String mediaId) async {
