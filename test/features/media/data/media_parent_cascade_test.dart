@@ -154,6 +154,20 @@ void main() {
       },
     );
 
+    test('paperwork only dying gear holds is doomed with it', () async {
+      final invoice = await photo(gear: 'g-dying');
+      final keptByGear = await photo(site: 's-dying', gear: 'g-kept');
+
+      final plan = await planMediaCascade(db, dying);
+
+      expect(plan.doomed.single.id, invoice);
+      expect(
+        plan.survivors.single.id,
+        keptByGear,
+        reason: 'surviving gear keeps a row whose site dies',
+      );
+    });
+
     test('a dying signer never dooms a row on its own', () async {
       // A signer is not a logbook link: it names who signed, not where the
       // signature belongs.

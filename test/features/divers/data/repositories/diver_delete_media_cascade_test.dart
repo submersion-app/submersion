@@ -292,6 +292,40 @@ void main() {
     expect(await isPending(id), isFalse);
   });
 
+  test('a cleanup failure after the commit is logged, not rethrown', () async {
+    // The diver is gone by then and cannot be restored, so reporting the
+    // delete as failed would be a lie. What is left is recoverable: the row
+    // stays, unlinked, for the orphan sweep.
+    await insertDive('d1', 'diver-a');
+    final id = await photo(dive: 'd1');
+
+    await DiverRepository(
+      mediaDeletionCoordinator: _FailingCoordinator(),
+    ).deleteDiverWithReassignment('diver-a');
+
+    final diver = await (db.select(
+      db.divers,
+    )..where((d) => d.id.equals('diver-a'))).getSingleOrNull();
+    expect(diver, isNull);
+    expect(await row(id), isNotNull, reason: 'left for the orphan sweep');
+  });
+
+  test(
+    'without an injected coordinator the default one does the cascade',
+    () async {
+      // Most callers build a DiverRepository only to read the active diver,
+      // so the default coordinator is built on first use. An uploaded row
+      // makes it reach for its queue too.
+      await insertDive('d1', 'diver-a');
+      final id = await photo(dive: 'd1');
+      await uploaded(id);
+
+      await DiverRepository().deleteDiverWithReassignment('diver-a');
+
+      expect(await row(id), isNull);
+    },
+  );
+
   test('a delete that fails changes no media', () async {
     await insertDive('d1', 'diver-a');
     final id = await photo(dive: 'd1');
@@ -311,4 +345,17 @@ void main() {
     expect(await isPending(id), isFalse);
     expect(await blobDeletes(), isEmpty);
   });
+}
+
+/// Fails the way a media store problem after the commit would.
+class _FailingCoordinator extends MediaDeletionCoordinator {
+  _FailingCoordinator()
+    : super(
+        mediaRepository: MediaRepository(),
+        queue: () => MediaTransferQueueRepository(),
+      );
+
+  @override
+  Future<void> deleteMediaItems(List<MediaItem> items) async =>
+      throw StateError('media store unavailable');
 }
