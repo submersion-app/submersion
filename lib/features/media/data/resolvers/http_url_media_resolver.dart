@@ -145,6 +145,15 @@ class HttpUrlMediaResolver implements MediaSourceResolver {
     if (result is NetworkBytesUnauthenticated) {
       return VerifyResult.unauthenticated;
     }
-    return VerifyResult.notFound;
+    // Only 404 and 410 are the host saying the object is gone. A 403, a
+    // 429, a 5xx, a transport failure and a redirect loop are all the host
+    // declining to answer, and notFound is the one verdict that flips the
+    // orphan flag, which is sticky and syncs (media sync program spec 5.2).
+    // Reporting them as absence marked a live library missing on every
+    // device. transientError records nothing and leaves the flag alone.
+    final status = result is NetworkBytesError ? result.statusCode : null;
+    return status == 404 || status == 410
+        ? VerifyResult.notFound
+        : VerifyResult.transientError;
   }
 }

@@ -43,6 +43,7 @@ import 'package:submersion/features/trips/domain/entities/trip.dart' as trips;
 import 'package:submersion/features/trips/presentation/providers/trip_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
 
 /// Minimal fake SiteRepository for bulk-share smoke tests.
 class _FakeSiteRepository implements SiteRepository {
@@ -178,6 +179,20 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setSeascapeAppearance(SeascapeAppearance appearance) async =>
       state = state.copyWith(seascapeAppearance: appearance);
+
+  @override
+  Future<void> setSeascapeVerticalExaggerationOverride(
+    String siteId,
+    double? factor,
+  ) async {
+    final overrides = {...state.seascapeVerticalExaggerationOverrides};
+    if (factor == null) {
+      overrides.remove(siteId);
+    } else {
+      overrides[siteId] = factor;
+    }
+    state = state.copyWith(seascapeVerticalExaggerationOverrides: overrides);
+  }
 
   @override
   Future<void> setChamberHidden(String chamberId, bool hidden) async {
@@ -606,6 +621,10 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(defaultShowO2CellMv: value);
 
   @override
+  Future<void> setO2CellUnit(O2CellUnit value) async =>
+      state = state.copyWith(o2CellUnit: value);
+
+  @override
   Future<void> setDefaultShowGtr(bool value) async =>
       state = state.copyWith(defaultShowGtr: value);
 
@@ -674,13 +693,6 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       ],
     );
   }
-
-  @override
-  Future<void> setFullscreenReadoutCardPosition(double x, double y) async =>
-      state = state.copyWith(
-        fullscreenReadoutCardX: x,
-        fullscreenReadoutCardY: y,
-      );
 
   @override
   Future<void> setProfileMetricsFollowViewport(bool value) async =>

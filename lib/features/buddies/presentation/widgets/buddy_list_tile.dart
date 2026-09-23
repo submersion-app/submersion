@@ -11,6 +11,7 @@ import 'package:submersion/features/buddies/presentation/widgets/buddy_favorite_
 import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
 import 'package:submersion/features/dive_roles/presentation/dive_role_display.dart';
 import 'package:submersion/features/dive_roles/presentation/providers/dive_role_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/buddies/presentation/buddy_certification_l10n.dart';
@@ -110,6 +111,13 @@ class BuddyListTile extends ConsumerWidget {
     final certLine = buddyCertificationLineL10n(buddy, context.l10n);
 
     final trailer = <Widget>[
+      // A buddy that IS a local profile (issue #2002).
+      if (buddy.linkedDiverId != null)
+        _BuddyChip(
+          icon: Icons.account_circle_outlined,
+          label: l10n.buddies_linkedProfile_chip,
+          color: statColor,
+        ),
       if (certLine != null)
         _BuddyChip(
           icon: Icons.card_membership,
@@ -277,8 +285,10 @@ class BuddyListTile extends ConsumerWidget {
 }
 
 /// Photo when the stored file exists, initials otherwise, inside an
-/// optional 2 px ring in the certification agency's brand colour.
-class _BuddyAvatar extends StatelessWidget {
+/// optional 2 px ring in the certification agency's brand colour. A buddy
+/// without a photo that is a local profile borrows that profile's photo
+/// (issue #2002).
+class _BuddyAvatar extends ConsumerWidget {
   final Buddy buddy;
   final Color? ringColor;
   final Color backgroundColor;
@@ -292,9 +302,13 @@ class _BuddyAvatar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final linkedId = buddy.linkedDiverId;
+    final profilePhoto = buddy.photo == null && linkedId != null
+        ? ref.watch(diverByIdProvider(linkedId)).value?.photo
+        : null;
     return ProfileAvatar(
-      photo: buddy.photo,
+      photo: buddy.photo ?? profilePhoto,
       initials: buddy.initials,
       backgroundColor: backgroundColor,
       foregroundColor: foregroundColor,

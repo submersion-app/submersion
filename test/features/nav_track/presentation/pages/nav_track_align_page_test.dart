@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -22,6 +23,7 @@ import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_georef.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -73,8 +75,9 @@ Future<_RecordingNavTrackRepository> _pump(
   Dive? linkedDive,
   DiveSite? site,
   Override? bathymetryOverride,
+  MockSettingsNotifier? settingsNotifier,
 }) async {
-  final overrides = await getBaseOverrides();
+  final overrides = await getBaseOverrides(settingsNotifier: settingsNotifier);
   final repository = _RecordingNavTrackRepository();
   final router = GoRouter(
     initialLocation: '/nav-routes/${route.id}',
@@ -751,13 +754,31 @@ void main() {
       // distance channel reaches 1000 m. A slider that recomputed
       // geometric path length instead of sharing the corrector's own
       // distance-source rule could never show more than ~10 m here.
-      expect(find.textContaining('trusted up to 10 m'), findsNothing);
+      expect(find.textContaining('trusted up to 10m'), findsNothing);
       expect(
-        find.textContaining(RegExp(r'trusted up to (9\d\d|1000) m')),
+        find.textContaining(RegExp(r'trusted up to (9\d\d|1000)m')),
         findsOneWidget,
       );
     },
   );
+
+  testWidgets('the trust summary respects the diver\'s imperial unit setting '
+      '(spec: "Anything displaying units should respect the active diver\'s '
+      'unit settings")', (tester) async {
+    await _pump(
+      tester,
+      route: _route(),
+      settingsNotifier: MockSettingsNotifier(
+        const AppSettings(depthUnit: DepthUnit.feet),
+      ),
+    );
+
+    // With no correction yet, trustFraction defaults to 0, so the trust
+    // summary reads "0ft" -- still enough to prove the imperial unit and
+    // its symbol are used, not a hardcoded "m".
+    expect(find.textContaining(RegExp(r'trusted up to \d+ft')), findsOneWidget);
+    expect(find.textContaining(RegExp(r'trusted up to \d+m\b')), findsNothing);
+  });
 
   group('GPS-fix dots stay put under rotation and trust (item 1)', () {
     // The real fixture with a genuine surface GPS fix event (011.DAT.csv,

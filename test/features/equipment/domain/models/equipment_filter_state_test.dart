@@ -24,10 +24,13 @@ void main() {
         ).hasActiveFilters,
         isTrue,
       );
-      expect(
-        const EquipmentFilterState(serviceDueOnly: true).hasActiveFilters,
-        isTrue,
-      );
+      for (final severity in ServiceDueFilter.values) {
+        expect(
+          EquipmentFilterState(serviceDue: severity).hasActiveFilters,
+          isTrue,
+          reason: severity.name,
+        );
+      }
       expect(
         const EquipmentFilterState(type: EquipmentType.bcd).hasActiveFilters,
         isTrue,
@@ -41,12 +44,58 @@ void main() {
     });
 
     test('service due and a status cannot both be set', () {
+      for (final severity in ServiceDueFilter.values) {
+        expect(
+          () => EquipmentFilterState(
+            status: EquipmentStatus.retired,
+            serviceDue: severity,
+          ),
+          throwsA(isA<AssertionError>()),
+          reason: severity.name,
+        );
+      }
+    });
+
+    test('each service severity is a status narrowing', () {
+      // The status axis decides which provider the list reads, so every
+      // severity has to be recognised as one -- otherwise the list would
+      // read the default view while the filter chip claimed otherwise.
+      for (final severity in ServiceDueFilter.values) {
+        expect(
+          EquipmentFilterState(serviceDue: severity).hasStatusFilter,
+          isTrue,
+          reason: severity.name,
+        );
+      }
+    });
+
+    test('copyWith replaces one service severity with another', () {
+      const overdue = EquipmentFilterState(
+        serviceDue: ServiceDueFilter.overdue,
+      );
       expect(
-        () => EquipmentFilterState(
-          status: EquipmentStatus.retired,
-          serviceDueOnly: true,
-        ),
-        throwsA(isA<AssertionError>()),
+        overdue.copyWith(serviceDue: ServiceDueFilter.dueSoon).serviceDue,
+        ServiceDueFilter.dueSoon,
+      );
+    });
+
+    test('toString names the service severity', () {
+      // The filter prints itself into diagnostics, and "which severity" is
+      // the whole question when a list comes back shorter than expected.
+      expect(
+        const EquipmentFilterState(
+          serviceDue: ServiceDueFilter.overdue,
+        ).toString(),
+        contains('overdue'),
+      );
+    });
+
+    test('filters differing only in service severity are not equal', () {
+      // The two home chips seed states that differ in nothing else, so a
+      // provider keyed on the filter has to tell them apart.
+      expect(
+        const EquipmentFilterState(serviceDue: ServiceDueFilter.overdue),
+        isNot(const EquipmentFilterState(serviceDue: ServiceDueFilter.dueSoon)),
       );
     });
 
@@ -72,12 +121,12 @@ void main() {
 
     test('clearStatus resets both halves of the status axis', () {
       const serviceDue = EquipmentFilterState(
-        serviceDueOnly: true,
+        serviceDue: ServiceDueFilter.overdue,
         type: EquipmentType.bcd,
       );
       final cleared = serviceDue.copyWith(clearStatus: true);
 
-      expect(cleared.serviceDueOnly, isFalse);
+      expect(cleared.serviceDue, isNull);
       expect(cleared.status, isNull);
       // The other axis is untouched.
       expect(cleared.type, EquipmentType.bcd);

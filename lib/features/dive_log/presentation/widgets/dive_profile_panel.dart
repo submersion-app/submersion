@@ -439,7 +439,7 @@ class _DiveProfilePanelContentState
                   diveDurationSeconds: chartProfile.isEmpty
                       ? null
                       : chartProfile.last.timestamp,
-                  tooltipBelow: true,
+                  tooltipPresentation: TooltipPresentation.external,
                   highlightedTimestamp:
                       trackingIndex != null &&
                           trackingIndex < chartProfile.length

@@ -12,6 +12,7 @@ import 'package:submersion/core/services/sync/changeset_log/changeset_log_layout
 import 'package:submersion/core/services/sync/changeset_log/peer_cursor_store.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/library_epoch_store.dart';
+import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/core/services/sync/sync_initializer.dart';
 import 'package:submersion/core/services/sync/sync_service.dart';
@@ -316,6 +317,38 @@ void main() {
       final result = await service.adoptReplacedLibrary();
       expect(result.isSuccess, isFalse);
       expect(await SyncRepository().getLastAcceptedEpochId(), isNull);
+    });
+
+    test('adopt never records this device as its own peer', () async {
+      // Unlike a pull, the adopt scan reads every manifest in the folder,
+      // and this device's own is one of them. PeerDeviceNameStore documents
+      // that this device is never in the map, so anything listing it would
+      // otherwise show the device as a peer of itself.
+      await seedPeerLog(cloud, 'replacer', epochId: 'e1');
+      final names = PeerDeviceNameStore(await SharedPreferences.getInstance());
+      addTearDown(names.dispose);
+      final service = SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+        cloudProvider: cloud,
+        epochStore: epochStore,
+        peerNames: names,
+      );
+
+      // Publish, so this device has a manifest in the folder, and give it a
+      // name worth recording. It needs something of its own to publish.
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'mine-1'),
+      );
+      expect((await service.performSync()).isSuccess, isTrue);
+      final me = await SyncRepository().getDeviceId();
+      await restampPeerDeviceName(cloud, me, deviceName: "Eric's MacBook");
+      await service.writeLibraryEpochMarker(cloud, marker);
+
+      await service.adoptReplacedLibrary();
+
+      expect(names.nameFor(me), isNull);
+      expect(names.all().keys, isNot(contains(me)));
     });
 
     test(

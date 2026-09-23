@@ -688,6 +688,18 @@
   "buddies_field_notesHint": "أضف ملاحظات عن هذا الرفيق...",
   "buddies_field_phone": "الهاتف",
   "buddies_field_phoneHint": "+1 (555) 123-4567",
+  "buddies_field_linkedProfile": "الملف الشخصي المرتبط",
+  "buddies_field_linkedProfileHint": "الملف الشخصي المحلي الذي يمثل هذا الرفيق",
+  "buddies_field_linkedProfileNone": "غير مرتبط",
+  "buddies_linkedProfile_chip": "ملف شخصي",
+  "buddies_linkedProfile_link": "ربط",
+  "buddies_linkedProfile_notNow": "ليس الآن",
+  "buddies_linkedProfile_openBuddy": "فتح الرفيق",
+  "buddies_linkedProfile_pickerTitle": "الربط بملف شخصي",
+  "buddies_linkedProfile_refusedSelf": "لا يمكن ربط الرفيق بملفه الشخصي.",
+  "buddies_linkedProfile_refusedTaken": "{buddyName} مرتبط بالفعل بهذا الملف الشخصي.",
+  "buddies_linkedProfile_suggestion": "لدى {name} ملف شخصي هنا. هل تريد ربط هذا الرفيق به؟",
+  "buddies_merge_refusedDifferentLinks": "هؤلاء الرفاق مرتبطون بملفات شخصية مختلفة. ادمج الملفات الشخصية أولاً.",
   "buddies_label_agency": "الجهة",
   "buddies_label_diveCount": "{count, plural, =1{غطسة واحدة} other{{count} غطسة}}",
   "buddies_label_level": "المستوى",
@@ -2430,6 +2442,10 @@
   "ocrImport_scanPage_engineMissing": "التعرف على النص غير متوفر. ثبّت Tesseract لمسح السجلات الورقية (مثلاً: sudo apt install tesseract-ocr).",
   "ocrImport_editPage_photoAttachFailed": "تم حفظ الغطسة، لكن فشل إرفاق الصفحة الممسوحة",
   "diveLog_listPage_bottomSheet_logManually": "تسجيل غوصة يدويا",
+  "diveLog_listPage_bottomSheet_planDive": "التخطيط لغوصة",
+  "diveLog_listPage_bottomSheet_planDiveSubtitle": "أدخل التفاصيل الآن وأضف بيانات كمبيوتر الغوص لاحقا",
+  "diveLog_edit_planned_switch": "غوصة مخططة",
+  "diveLog_edit_planned_switchSubtitle": "في انتظار بيانات كمبيوتر الغوص. لا رقم للغوصة حتى يتم تسجيلها.",
   "diveLog_listPage_compactTitle": "الغوصات",
   "diveLog_listPage_errorLoading": "خطأ: {error}",
   "diveLog_listPage_fab_addDive": "اضافة غوصة",
@@ -3186,7 +3202,8 @@
   "diveSites_filter_apply": "تطبيق الفلاتر",
   "diveSites_filter_cancel": "إلغاء",
   "diveSites_filter_clearAll": "مسح الكل",
-  "diveSites_filter_country_hint": "مثال: تايلاند",
+  "diveSites_filter_allCountries": "جميع الدول",
+  "diveSites_filter_allRegions": "جميع المناطق",
   "diveSites_filter_country_label": "الدولة",
   "diveSites_filter_depth_max_label": "الأقصى",
   "diveSites_filter_depth_min_label": "الأدنى",
@@ -3197,8 +3214,9 @@
   "diveSites_filter_option_hasDives_subtitle": "إظهار المواقع ذات الغوصات المسجلة فقط",
   "diveSites_filter_option_hasDives_title": "يحتوي على غوصات",
   "diveSites_filter_rating_starsPlus": "{count}+ نجوم",
-  "diveSites_filter_region_hint": "مثال: فوكيت",
   "diveSites_filter_region_label": "المنطقة",
+  "diveSites_filter_searchCountriesHint": "اكتب للبحث عن الدول",
+  "diveSites_filter_searchRegionsHint": "اكتب للبحث عن المناطق",
   "diveSites_filter_section_depthRange": "نطاق أقصى عمق",
   "diveSites_filter_section_difficulty": "الصعوبة",
   "diveSites_filter_section_location": "الموقع",
@@ -3810,6 +3828,7 @@
   "enum_logCategory_serial": "تسلسلي",
   "enum_logCategory_libdc": "libdc",
   "enum_logCategory_database": "قاعدة البيانات",
+  "enum_logCategory_media": "الوسائط",
   "enum_visibility_excellent": "ممتازة (>30m / >100ft)",
   "enum_visibility_good": "جيدة (15-30m / 50-100ft)",
   "enum_visibility_moderate": "معتدلة (5-15m / 15-50ft)",
@@ -4043,15 +4062,21 @@
   "dashboard_serviceDue_more": "+{count} أخرى",
   "dashboard_alerts_clockDue": "{name}: {kind} مستحقة",
   "dashboard_alerts_clockOverdue": "{name}: {kind} متأخرة",
-  "equipment_list_worstClock": "{kind} متأخرة",
   "trips_serviceAlert_count": "{count, plural, zero{لا توجد معدات تحتاج إلى صيانة قبل هذه الرحلة} one{قطعة معدات واحدة تحتاج إلى صيانة قبل هذه الرحلة} two{قطعتا معدات تحتاجان إلى صيانة قبل هذه الرحلة} few{{count} قطع معدات تحتاج إلى صيانة قبل هذه الرحلة} many{{count} قطعة معدات تحتاج إلى صيانة قبل هذه الرحلة} other{{count} قطعة معدات تحتاج إلى صيانة قبل هذه الرحلة}}",
   "trips_serviceAlert_dueBefore": "{kind} مستحقة في {date}",
-  "trips_serviceAlert_overdue": "{kind} متأخرة",
+  "equipment_service_overdue": "{kind} متأخرة",
+  "equipment_service_dueRelative": "{kind} مستحقة {relative}",
+  "equipment_service_shortDives": "{count, plural, other{خلال {count} غوصة}}",
+  "equipment_service_shortHours": "خلال {count} ساعة",
+  "equipment_service_shortSaltHours": "خلال {count} ساعة في الماء المالح",
+  "equipment_service_shortColdDives": "{count, plural, other{خلال {count} غطسة في الماء البارد}}",
+  "equipment_service_shortO2Hours": "خلال {count} ساعة بأكسجين مرتفع",
+  "equipment_service_shortDeepCycles": "{count, plural, other{خلال {count} غطسة عميقة}}",
+  "equipment_service_shortCycles": "{count, plural, other{خلال {count} دورة بطارية}}",
   "settings_notifications_tripLeadTitle": "مهلة التنبيه لصيانة الرحلة",
   "settings_notifications_tripLeadDays": "{days} أيام قبل الرحلة",
   "equipment_detail_serviceIntervalLabel": "فترة الصيانة",
   "equipment_detail_serviceIntervalValue": "{days} يوم",
-  "equipment_detail_serviceOverdue": "الصيانة متأخرة!",
   "equipment_detail_showEquipmentWith": "عرض المعدات التي تحمل {name}",
   "equipment_detail_sizeLabel": "المقاس",
   "equipment_detail_thicknessLabel": "السُمك",
@@ -4131,6 +4156,8 @@
   "equipment_list_emptyState_addPrompt": "أضف معدات الغوص لتتبع الاستخدام والصيانة",
   "equipment_list_emptyState_filterText_equipment": "معدات",
   "equipment_list_emptyState_filterText_serviceDue": "معدات تحتاج صيانة",
+  "equipment_list_emptyState_filterText_serviceDueSoon": "معدات تحتاج صيانة قريبًا",
+  "equipment_list_emptyState_filterText_serviceOverdue": "معدات متأخرة عن الصيانة",
   "equipment_list_emptyState_filterText_status": "معدات {status}",
   "equipment_list_emptyState_filterText_type": "معدات {type}",
   "equipment_list_emptyState_noEquipment": "لا توجد {filterText}",
@@ -4138,9 +4165,13 @@
   "equipment_list_emptyState_noTagMatch": "لا توجد معدات بهذه الوسوم",
   "equipment_list_emptyState_noTypeMatch": "لا توجد معدات في هذه الفئة",
   "equipment_list_emptyState_serviceDueUpToDate": "جميع معداتك محدثة الصيانة!",
+  "equipment_list_emptyState_serviceNoneDueSoon": "لا شيء يحتاج صيانة قريبًا.",
+  "equipment_list_emptyState_serviceNoneOverdue": "لا شيء متأخر عن الصيانة.",
   "equipment_list_errorLoading": "خطأ في تحميل المعدات: {error}",
   "equipment_list_filterAll": "جميع المعدات",
   "equipment_list_filterServiceDue": "الصيانة مستحقة",
+  "equipment_list_filterServiceDueSoon": "قريبًا",
+  "equipment_list_filterServiceOverdue": "متأخرة",
   "equipment_list_typeFilterAll": "جميع الأنواع",
   "equipment_list_filterTooltip": "تصفية المعدات",
   "equipment_list_activeFilter_clear": "مسح",
@@ -5410,6 +5441,8 @@
   "settings_data_import_failed": "فشلت العملية: {error}",
   "settings_data_offlineMaps": "الخرائط غير المتصلة",
   "settings_data_offlineMaps_subtitle": "تنزيل الخرائط للاستخدام بدون اتصال",
+  "settings_data_threeDMaps": "3D Maps",
+  "settings_data_threeDMaps_subtitle": "Manage cached swissBATHY3D and other bathymetry data",
   "settings_data_restore": "استعادة",
   "settings_data_restoreDialog_cancel": "إلغاء",
   "settings_data_restoreDialog_content": "تحذير: ستؤدي الاستعادة من نسخة احتياطية إلى استبدال جميع البيانات الحالية ببيانات النسخة الاحتياطية. لا يمكن التراجع عن هذا الإجراء.\n\nهل أنت متأكد أنك تريد المتابعة؟",
@@ -7015,6 +7048,17 @@
   "universalImport_label_selectCorrectSource": "ليس صحيحاً؟ اختر المصدر الصحيح:",
   "universalImport_label_selected": "{count} محدد",
   "universalImport_label_skip": "تخطي",
+  "universalImport_label_fillPlanned": "إكمال الغوصة المخططة",
+  "universalImport_compare_fillPlannedSubtitle": "إرفاق هذا التنزيل بالغوصة التي خططت لها",
+  "universalImport_label_filledPlanned": "الغوصات المخططة المكتملة",
+  "universalImport_fillPlanned_target": "تكمل الغوصة المخططة: {label}",
+  "universalImport_fillPlanned_replacesProfile": "سيتم استبدال ملفها التقريبي.",
+  "universalImport_fillPlanned_change": "تغيير",
+  "universalImport_fillPlanned_pickerTitle": "اختر غوصة مخططة",
+  "universalImport_fillPlanned_importAsNew": "الاستيراد كغوصة جديدة بدلا من ذلك",
+  "universalImport_fillPlanned_undo": "التراجع عن الإكمال",
+  "universalImport_fillPlanned_undone": "تمت استعادة الغوصات المخططة",
+  "universalImport_fillPlanned_undoFailed": "تعذرت استعادة كل الغوصات المخططة. حاول مرة أخرى.",
   "universalImport_label_taggedAs": "موسوم كـ: {tag}",
   "universalImport_label_unknownDate": "تاريخ غير معروف",
   "universalImport_label_unnamed": "بدون اسم",
@@ -7191,6 +7235,7 @@
   "settings_dataSources_appleHealth_privacy": "Your health data is stored locally and is never shared with third parties.",
   "settings_dataSources_noSources": "No data source integrations are available on this platform.",
   "diveLog_chartOption_metricsFollowViewport": "إبقاء الطبقات الإضافية ضمن العرض",
+  "diveLog_chartOption_tooltipFollowsCursor": "تلميح الأداة يتبع المؤشر",
   "diveLog_chartSection_decompression": "تخفيف الضغط",
   "diveLog_chartSection_display": "العرض",
   "diveLog_chartSection_gasAnalysis": "تحليل الغاز",
@@ -7270,10 +7315,10 @@
   "dashboard_hero_todayLabel": "اليوم!",
   "dashboard_semantics_statsBar": "ملخص إحصائيات الغوص",
   "dashboard_gauges_addGear": "إضافة معدات",
-  "dashboard_gauges_gearOk": "{name} سليم",
-  "dashboard_gauges_gearDueIn": "{name} مستحق خلال {days} يوم",
+  "dashboard_gauges_gearDueIn": "{name} يحتاج صيانة خلال {days} يوم",
   "dashboard_gauges_gearOverdue": "{name} متأخر عن الصيانة",
-  "dashboard_gauges_gearOverdueMore": "+{count} أخرى متأخرة",
+  "dashboard_gauges_gearOverdueCount": "{count, plural, =1{عنصر واحد متأخر عن الصيانة} =2{عنصران متأخران عن الصيانة} other{{count} عناصر متأخرة عن الصيانة}}",
+  "dashboard_gauges_gearDueSoonCount": "{count, plural, =1{عنصر واحد يحتاج صيانة خلال {days} يوم} =2{عنصران يحتاجان صيانة خلال {days} يوم} other{{count} عناصر تحتاج صيانة خلال {days} يوم}}",
   "dashboard_gauges_insuranceOk": "التأمين سليم",
   "dashboard_gauges_insuranceExpires": "ينتهي التأمين في {date}",
   "dashboard_gauges_insuranceExpired": "انتهى التأمين",
@@ -7520,6 +7565,104 @@
   "settings_appearance_bathymetryRefresh_resultUpToDate": "جميع البيانات محدثة",
   "settings_appearance_bathymetryRefresh_resultFailed": "تعذر التحقق من جميع البيانات؛ تم الاحتفاظ بالقيم الحالية",
   "settings_appearance_bathymetryRefresh_resultNothingCached": "لا توجد بيانات أعماق بحيرات مخزّنة بعد",
+  "maps3d_appBar_title": "خرائط ثلاثية الأبعاد",
+  "maps3d_section_all": "كل المزوّدين",
+  "maps3d_section_swissBathy": "swissBATHY3D",
+  "maps3d_swissBathy_delete": "حذف البيانات",
+  "maps3d_swissBathy_delete_subtitle": "يزيل بلاطات العمق وشبكات البحيرات المخزَّنة مؤقتًا من swissBATHY3D",
+  "maps3d_swissBathy_delete_confirmTitle": "حذف بيانات swissBATHY3D؟",
+  "maps3d_swissBathy_delete_confirmMessage": "ستتم إزالة بيانات العمق المخزَّنة مؤقتًا للبحيرات السويسرية وإعادة تحميلها عند فتح العرض ثلاثي الأبعاد لموقع غوص في المرة القادمة.",
+  "maps3d_swissBathy_delete_done": "تم حذف بيانات swissBATHY3D",
+  "maps3d_section_other": "المزوّدون الآخرون",
+  "maps3d_other_reset": "إعادة تعيين بيانات قياس الأعماق المتبقية",
+  "maps3d_other_reset_subtitle": "يزيل البيانات المخزَّنة مؤقتًا من EMODnet وNOAA DEM وGMRT وETOPO",
+  "maps3d_other_reset_confirmTitle": "إعادة تعيين بيانات قياس الأعماق المتبقية؟",
+  "maps3d_other_reset_confirmMessage": "ستتم إزالة البيانات المخزَّنة مؤقتًا من جميع المزوّدين باستثناء swissBATHY3D وإعادة تحميلها عند فتح العرض ثلاثي الأبعاد لموقع غوص في المرة القادمة.",
+  "maps3d_other_reset_done": "تمت إعادة تعيين بيانات قياس الأعماق المتبقية",
+  "maps3d_reload": "إعادة تحميل بيانات الخرائط",
+  "maps3d_reload_subtitle": "يحذف جميع بيانات قياس الأعماق المخزَّنة مؤقتًا ويعيد تنزيلها لكل موقع غوص",
+  "maps3d_reload_confirmTitle": "إعادة تحميل بيانات الخرائط لكل مواقع الغوص؟",
+  "maps3d_reload_confirm_siteCount": "{count, plural, =0{لا يوجد موقع غوص له إحداثيات.} =1{سيُعاد تحميل موقع غوص واحد.} other{سيُعاد تحميل {count} موقع غوص.}}",
+  "@maps3d_reload_confirm_siteCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_confirm_estimatedSize": "التنزيل المقدَّر: حوالي {size}",
+  "@maps3d_reload_confirm_estimatedSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_confirm_duration": "قد يستغرق ذلك عدة دقائق.",
+  "maps3d_reload_confirm_wifiHint": "سيتم تنزيل كمية كبيرة من البيانات، لذا يُنصح باتصال Wi-Fi سريع.",
+  "maps3d_reload_start": "إعادة تحميل",
+  "maps3d_reload_progress": "{completed} من {total} موقع غوص",
+  "@maps3d_reload_progress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_cancel": "إلغاء",
+  "maps3d_reload_done": "تمت إعادة تحميل بيانات الخرائط لكل مواقع الغوص",
+  "maps3d_reload_cancelled": "تم إلغاء إعادة التحميل",
+  "maps3d_reload_failed": "فشلت إعادة التحميل؛ قد لا تكون بعض مواقع الغوص قد أُعيد تحميلها",
+  "maps3d_busy_notice": "هناك إجراء آخر في الخرائط ثلاثية الأبعاد قيد التنفيذ. يُرجى الانتظار حتى ينتهي.",
+  "maps3d_reload_remainingSeconds": "{count, plural, =1{يتبقّى حوالي ثانية واحدة} other{يتبقّى حوالي {count} ثانية}}",
+  "@maps3d_reload_remainingSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_remainingMinutes": "{count, plural, =1{يتبقّى حوالي دقيقة واحدة} other{يتبقّى حوالي {count} دقيقة}}",
+  "@maps3d_reload_remainingMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_warming": "التحضير: البحيرة {index} من {total} ({name})",
+  "@maps3d_reload_warming": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "maps3d_reload_elapsedSeconds": "{count, plural, =1{قيد التشغيل منذ ثانية واحدة} other{قيد التشغيل منذ {count} ثانية}}",
+  "@maps3d_reload_elapsedSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "maps3d_reload_elapsedMinutes": "{count, plural, =1{قيد التشغيل منذ دقيقة واحدة} other{قيد التشغيل منذ {count} دقيقة}}",
+  "@maps3d_reload_elapsedMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "settings_appearance_mapStyle_openStreetMap": "خريطة الشوارع",
   "settings_appearance_mapStyle_openTopoMap": "طبوغرافية",
   "universalImport_bulk_replaceSourceAll": "استبدال الكل ({count})",
@@ -7647,6 +7790,10 @@
   "settings_mediaStorage_transfers_suspended_subtitle": "لم يعد هذا الجهاز والتخزين السحابي متفقين على المخزن المستخدم. تؤدي إعادة توصيل تخزين الوسائط إلى اعتماد المخزن الموجود في السحابة الآن.",
   "settings_mediaStorage_transfers_queued": "{count} في قائمة الانتظار",
   "settings_mediaStorage_transfers_waitingRetry": "{count} في انتظار إعادة المحاولة",
+  "settings_mediaStorage_report_action": "تصدير تقرير الوسائط",
+  "settings_mediaStorage_report_done": "تم تصدير تقرير الوسائط",
+  "settings_mediaStorage_report_note": "يسرد التقرير مسارات الملفات وأسماء الأجهزة. لا يُرسل أي شيء.",
+  "settings_mediaStorage_report_running": "جارٍ إنشاء تقرير الوسائط...",
   "settings_mediaStorage_verify_action": "التحقق من المكتبة",
   "settings_mediaStorage_verify_running": "جارٍ التحقق من مكتبة الوسائط...",
   "settings_mediaStorage_verify_summary": "تم فحص {checked} عنصرًا سحابيًا ({originals, plural, =1{أصل واحد} other{{originals} أصلية}}، {thumbs, plural, =1{صورة مصغرة واحدة} other{{thumbs} صور مصغرة}}، {renditions, plural, =1{نسخة مضغوطة واحدة} other{{renditions} نسخ مضغوطة}}): أزيل {removed} يتيمًا، وأُدرج {repaired} إصلاحًا في قائمة الانتظار، وأُلغي {aborted} رفعًا قديمًا",
@@ -7754,6 +7901,12 @@
   "@dive3d_seascape_chartView": {},
   "dive3d_seascape_orbitView": "عرض ثلاثي الأبعاد",
   "@dive3d_seascape_orbitView": {},
+  "dive3d_seascape_verticalExaggeration": "المبالغة الرأسية",
+  "@dive3d_seascape_verticalExaggeration": {},
+  "dive3d_seascape_verticalExaggerationReset": "إعادة التعيين إلى تلقائي",
+  "@dive3d_seascape_verticalExaggerationReset": {},
+  "dive3d_seascape_verticalExaggerationLabel": "العمق",
+  "@dive3d_seascape_verticalExaggerationLabel": {},
   "dive3d_seascape_appearance_surface": "سطح التضاريس",
   "@dive3d_seascape_appearance_surface": {},
   "dive3d_seascape_appearance_surfaceDepth": "ألوان العمق",
@@ -7832,6 +7985,18 @@
   "@dive3d_seascape_siteTitle": {},
   "dive3d_seascape_seafloorSource": "قاع البحر: {source} (~{resolution} م)",
   "@dive3d_seascape_seafloorSource": {},
+  "dive3d_seascape_detailLimitReached": "This is the most detail available for this location",
+  "@dive3d_seascape_detailLimitReached": {},
+  "dive3d_seascape_lodStageLabel": "Level of detail: {stage} ({span})",
+  "@dive3d_seascape_lodStageLabel": {},
+  "dive3d_seascape_lodStageOverview": "Overview",
+  "@dive3d_seascape_lodStageOverview": {},
+  "dive3d_seascape_lodStageMedium": "Medium",
+  "@dive3d_seascape_lodStageMedium": {},
+  "dive3d_seascape_lodStageFine": "Fine",
+  "@dive3d_seascape_lodStageFine": {},
+  "dive3d_seascape_lodStageSuperFine": "Super-fine",
+  "@dive3d_seascape_lodStageSuperFine": {},
   "dive3d_seascape_noCoordinates": "لا توجد إحداثيات GPS لهذا الموقع",
   "@dive3d_seascape_noCoordinates": {},
   "dive3d_seascape_noData": "لا توجد بيانات قياس أعماق متاحة لهذا الموقع",
@@ -8644,6 +8809,23 @@
   "safetyHub_incidentsLink": "سجل الحوادث الوشيكة",
   "safetyHub_incidentsLink_subtitle": "ملاحظات حوادث خاصة وغير عقابية",
   "diveLog_detail_menu_logNearMiss": "تسجيل حادث وشيك",
+  "diveLog_planned_chip": "مخططة",
+  "diveLog_planned_bannerTitle": "غوصة مخططة",
+  "diveLog_planned_bannerBody": "في انتظار بيانات كمبيوتر الغوص. ضع علامة مسجلة إذا غصت بدون كمبيوتر.",
+  "diveLog_detail_menu_markLogged": "وضع علامة مسجلة",
+  "diveLog_planned_markedLogged": "تم وضع علامة مسجلة",
+  "diveLog_planned_markLoggedFailed": "تعذّر وضع علامة على الغوصة كمسجّلة.",
+  "diveLog_mirror_dialogTitle": "هل تريد تسجيل هذه الغوصة في ملف شخصي آخر أيضا؟",
+  "diveLog_mirror_dialogBody": "لدى هؤلاء الرفاق ملفات شخصية على هذا الجهاز. تضاف الغوصة إلى سجلاتهم كغوصة مخططة حتى تملأها بيانات كمبيوتر الغوص الخاص بهم.",
+  "diveLog_mirror_log": "تسجيل",
+  "diveLog_mirror_notNow": "ليس الآن",
+  "diveLog_mirror_snackbar": "تم التسجيل لـ {names}",
+  "diveLog_mirror_undone": "تمت إزالة الغوصات المنسوخة",
+  "diveLog_mirror_undoFailed": "تعذّر إزالة الغوصات المنسوخة.",
+  "diveLog_mirror_failed": "تعذر التسجيل لـ {names}",
+  "diveLog_detail_menu_logForBuddy": "التسجيل في ملف رفيق",
+  "diveLog_detail_loggedWith": "مسجلة مع",
+  "diveLog_detail_loggedWithPlanned": "في انتظار كمبيوتر الغوص الخاص بهم",
   "diveLog_detail_linkedIncidents": "{count, plural, =1{حادث وشيك واحد مرتبط بهذه الغطسة} other{{count} حوادث وشيكة مرتبطة بهذه الغطسة}}",
   "@diveLog_detail_linkedIncidents": {
     "placeholders": {
@@ -11273,6 +11455,14 @@
   "diveLog_filter_sectionDepthRangeUnit": "نطاق العمق ({unit})",
   "diveLog_filter_sectionDiveComputer": "حاسوب الغوص",
   "diveLog_listPage_semanticsDiveAtSite": "الغوصة {diveNumber} في {siteName}",
+  "diveLog_listPage_semanticsPlannedDiveAtSite": "غوصة مخططة في {siteName}",
+  "@diveLog_listPage_semanticsPlannedDiveAtSite": {
+    "placeholders": {
+      "siteName": {
+        "type": "String"
+      }
+    }
+  },
   "enum_listViewMode_compact": "مضغوط",
   "enum_listViewMode_dense": "كثيف",
   "enum_listViewMode_detailed": "مفصّل",
@@ -11939,7 +12129,9 @@
   "media_info_actionBackUpNow": "انسخ احتياطيًا الآن",
   "media_info_actionRetryUpload": "إعادة محاولة الرفع",
   "media_info_actionReveal": "إظهار في مدير الملفات",
+  "media_info_actionCopyDiagnostics": "نسخ التشخيص",
   "media_info_actionCopyPath": "نسخ المرجع",
+  "media_info_diagnosticsCopied": "تم نسخ التشخيص",
   "media_info_referenceCopied": "تم نسخ المرجع",
   "media_info_checkFound": "تم العثور على المصدر",
   "media_info_checkMissing": "المصدر مفقود",
@@ -12250,7 +12442,7 @@
   "navTrack_align_endMode_sameAsStart": "مثل البداية",
   "navTrack_align_endMode_point": "التعيين على الخريطة",
   "navTrack_align_endMode_gpsFix": "من إصلاح GPS",
-  "navTrack_align_trustSummary": "الموثوقية: موثوق حتى {distanceMeters} م، {minutes} دقيقة",
+  "navTrack_align_trustSummary": "الموثوقية: موثوق حتى {distance}، {minutes} دقيقة",
   "navTrack_align_rotationLabel": "الدوران:",
   "navTrack_align_rotationDegrees": "{degrees}°",
   "navTrack_terrain_summary": "{onLand} نقاط على اليابسة، {below} من {total} تحت قاع البحر{maxPart}، {unknown} غير معروفة{coarsePart}",

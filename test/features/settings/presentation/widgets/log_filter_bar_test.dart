@@ -66,7 +66,7 @@ void main() {
     testWidgets('cannot deselect last remaining chip', (tester) async {
       await tester.pumpWidget(buildTestWidget());
 
-      // Deselect 4 of the 5 chips
+      // Deselect 5 of the 6 chips
       await tester.tap(find.widgetWithText(FilterChip, 'App'));
       await tester.pump();
       await tester.tap(find.widgetWithText(FilterChip, 'Bluetooth'));
@@ -75,6 +75,10 @@ void main() {
       await tester.pump();
       await tester.tap(find.widgetWithText(FilterChip, 'libdc'));
       await tester.pump();
+      await tester.ensureVisible(find.widgetWithText(FilterChip, 'Media'));
+      await tester.tap(find.widgetWithText(FilterChip, 'Media'));
+      await tester.pump();
+      await tester.ensureVisible(find.widgetWithText(FilterChip, 'Database'));
 
       // Only "Database" chip should remain selected
       final dbChip = tester.widget<FilterChip>(

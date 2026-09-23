@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
@@ -10,11 +11,13 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
     : super(settings ?? const AppSettings());
 
   @override
-  Future<void> setFullscreenReadoutCardPosition(double x, double y) async {
-    state = state.copyWith(
-      fullscreenReadoutCardX: x,
-      fullscreenReadoutCardY: y,
-    );
+  Future<void> setPerdixOverlayPosition(double x, double y) async {
+    state = state.copyWith(perdixOverlayX: x, perdixOverlayY: y);
+  }
+
+  @override
+  Future<void> setO2CellUnit(O2CellUnit value) async {
+    state = state.copyWith(o2CellUnit: value);
   }
 
   @override
@@ -24,7 +27,7 @@ class _StubSettingsNotifier extends StateNotifier<AppSettings>
 void main() {
   group('ProfileLegend survives unrelated settings writes', () {
     test(
-      'session toggles persist when the readout card position is saved',
+      'session toggles persist when an unrelated position setting is saved',
       () async {
         final stub = _StubSettingsNotifier();
         final container = ProviderContainer(
@@ -41,8 +44,8 @@ void main() {
         notifier.toggleSac();
         expect(container.read(profileLegendProvider).showSac, isTrue);
 
-        // What dragging the readout card does: an unrelated settings write.
-        await stub.setFullscreenReadoutCardPosition(0.5, 0.5);
+        // What dragging the Perdix overlay does: an unrelated settings write.
+        await stub.setPerdixOverlayPosition(0.5, 0.5);
         await Future<void>.delayed(Duration.zero);
 
         expect(
@@ -54,6 +57,77 @@ void main() {
         );
       },
     );
+  });
+
+  group('ProfileLegend survives an O2 cell unit change', () {
+    test(
+      'picking a unit keeps the session toggles and applies the unit',
+      () async {
+        final stub = _StubSettingsNotifier();
+        final container = ProviderContainer(
+          overrides: [settingsProvider.overrideWith((ref) => stub)],
+        );
+        addTearDown(container.dispose);
+        final sub = container.listen(profileLegendProvider, (_, _) {});
+        addTearDown(sub.close);
+
+        final notifier = container.read(profileLegendProvider.notifier);
+        notifier.toggleO2Cells();
+        notifier.toggleSac();
+
+        // What the chart options dialog does when the unit is picked.
+        notifier.setO2CellUnit(O2CellUnit.millivolts);
+        await stub.setO2CellUnit(O2CellUnit.millivolts);
+        await Future<void>.delayed(Duration.zero);
+
+        final state = container.read(profileLegendProvider);
+        expect(state.o2CellUnit, O2CellUnit.millivolts);
+        expect(
+          state.showO2Cells,
+          isTrue,
+          reason: 'persisting the unit must not switch the cell traces off',
+        );
+        expect(state.showSac, isTrue);
+      },
+    );
+
+    test('a unit arriving from settings is applied without a reset', () async {
+      final stub = _StubSettingsNotifier();
+      final container = ProviderContainer(
+        overrides: [settingsProvider.overrideWith((ref) => stub)],
+      );
+      addTearDown(container.dispose);
+      final sub = container.listen(profileLegendProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      container.read(profileLegendProvider.notifier).toggleO2Cells();
+
+      // E.g. the device-local preference finishing its asynchronous load
+      // after the legend was first built.
+      await stub.setO2CellUnit(O2CellUnit.millivolts);
+      await Future<void>.delayed(Duration.zero);
+
+      final state = container.read(profileLegendProvider);
+      expect(state.o2CellUnit, O2CellUnit.millivolts);
+      expect(state.showO2Cells, isTrue);
+    });
+
+    test('the unit seeds from settings on first build', () {
+      final container = ProviderContainer(
+        overrides: [
+          settingsProvider.overrideWith(
+            (ref) => _StubSettingsNotifier(
+              const AppSettings(o2CellUnit: O2CellUnit.millivolts),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      expect(
+        container.read(profileLegendProvider).o2CellUnit,
+        O2CellUnit.millivolts,
+      );
+    });
   });
 
   group('metricsFollowViewport', () {
@@ -471,24 +545,24 @@ void main() {
   group('O2 cell millivolts (issue #810)', () {
     test('default to hidden and copyWith flips them', () {
       const state = ProfileLegendState();
-      expect(state.showO2CellMv, isFalse);
-      expect(state.copyWith(showO2CellMv: true).showO2CellMv, isTrue);
+      expect(state.showO2Cells, isFalse);
+      expect(state.copyWith(showO2Cells: true).showO2Cells, isTrue);
     });
 
     test('showing them counts as an active secondary toggle', () {
       const off = ProfileLegendState();
-      final on = off.copyWith(showO2CellMv: true);
+      final on = off.copyWith(showO2Cells: true);
       expect(on.activeSecondaryCount, off.activeSecondaryCount + 1);
     });
 
     test('participate in equality and hashCode', () {
       const off = ProfileLegendState();
-      final on = off.copyWith(showO2CellMv: true);
+      final on = off.copyWith(showO2Cells: true);
       expect(on, isNot(equals(off)));
       expect(on.hashCode, isNot(equals(off.hashCode)));
     });
 
-    test('toggleO2CellMv flips the state', () {
+    test('toggleO2Cells flips the state', () {
       final container = ProviderContainer(
         overrides: [
           settingsProvider.overrideWith(
@@ -497,12 +571,12 @@ void main() {
         ],
       );
       addTearDown(container.dispose);
-      expect(container.read(profileLegendProvider).showO2CellMv, isFalse);
-      container.read(profileLegendProvider.notifier).toggleO2CellMv();
-      expect(container.read(profileLegendProvider).showO2CellMv, isTrue);
+      expect(container.read(profileLegendProvider).showO2Cells, isFalse);
+      container.read(profileLegendProvider.notifier).toggleO2Cells();
+      expect(container.read(profileLegendProvider).showO2Cells, isTrue);
     });
 
-    test('showO2CellMv seeds from defaultShowO2CellMv when true', () {
+    test('showO2Cells seeds from defaultShowO2CellMv when true', () {
       final container = ProviderContainer(
         overrides: [
           settingsProvider.overrideWith(
@@ -513,10 +587,10 @@ void main() {
         ],
       );
       addTearDown(container.dispose);
-      expect(container.read(profileLegendProvider).showO2CellMv, isTrue);
+      expect(container.read(profileLegendProvider).showO2Cells, isTrue);
     });
 
-    test('showO2CellMv seeds from defaultShowO2CellMv when false', () {
+    test('showO2Cells seeds from defaultShowO2CellMv when false', () {
       final container = ProviderContainer(
         overrides: [
           settingsProvider.overrideWith(
@@ -527,7 +601,7 @@ void main() {
         ],
       );
       addTearDown(container.dispose);
-      expect(container.read(profileLegendProvider).showO2CellMv, isFalse);
+      expect(container.read(profileLegendProvider).showO2Cells, isFalse);
     });
   });
 

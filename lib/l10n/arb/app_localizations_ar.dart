@@ -1471,6 +1471,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get buddies_field_emailHint => 'email@example.com';
 
   @override
+  String get buddies_field_linkedProfile => 'الملف الشخصي المرتبط';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'الملف الشخصي المحلي الذي يمثل هذا الرفيق';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'غير مرتبط';
+
+  @override
   String get buddies_field_nameHint => 'أدخل اسم الرفيق';
 
   @override
@@ -1679,6 +1689,39 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'استخدام';
+
+  @override
+  String get buddies_linkedProfile_chip => 'ملف شخصي';
+
+  @override
+  String get buddies_linkedProfile_link => 'ربط';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'ليس الآن';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'فتح الرفيق';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'الربط بملف شخصي';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'لا يمكن ربط الرفيق بملفه الشخصي.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName مرتبط بالفعل بهذا الملف الشخصي.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return 'لدى $name ملف شخصي هنا. هل تريد ربط هذا الرفيق به؟';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'هؤلاء الرفاق مرتبطون بملفات شخصية مختلفة. ادمج الملفات الشخصية أولاً.';
 
   @override
   String get buddies_message_added => 'تمت إضافة الرفيق بنجاح';
@@ -3693,13 +3736,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_gauges_addGear => 'إضافة معدات';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name سليم';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
-    return '$name مستحق خلال $days يوم';
+    return '$name يحتاج صيانة خلال $days يوم';
   }
 
   @override
@@ -3708,8 +3746,27 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count أخرى متأخرة';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر متأخرة عن الصيانة',
+      two: 'عنصران متأخران عن الصيانة',
+      one: 'عنصر واحد متأخر عن الصيانة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر تحتاج صيانة خلال $days يوم',
+      two: 'عنصران يحتاجان صيانة خلال $days يوم',
+      one: 'عنصر واحد يحتاج صيانة خلال $days يوم',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -5701,6 +5758,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'الأسطوانات';
 
   @override
+  String get diveLog_edit_planned_switch => 'غوصة مخططة';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'في انتظار بيانات كمبيوتر الغوص. لا رقم للغوصة حتى يتم تسجيلها.';
+
+  @override
   String get diveLog_edit_profile_draw => 'رسم ملف الغوص';
 
   @override
@@ -6531,6 +6595,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'إبقاء الطبقات الإضافية ضمن العرض';
 
   @override
+  String get diveLog_chartOption_tooltipFollowsCursor =>
+      'تلميح الأداة يتبع المؤشر';
+
+  @override
   String get diveLog_pressure_estimatedSuffix => '(تقديري)';
 
   @override
@@ -6575,6 +6643,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_listPage_bottomSheet_logManually => 'تسجيل غوصة يدويا';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'التخطيط لغوصة';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'أدخل التفاصيل الآن وأضف بيانات كمبيوتر الغوص لاحقا';
 
   @override
   String get diveLog_listPage_fab_addDive => 'اضافة غوصة';
@@ -9388,7 +9463,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveSites_filter_clearAll => 'مسح الكل';
 
   @override
-  String get diveSites_filter_country_hint => 'مثال: تايلاند';
+  String get diveSites_filter_allCountries => 'جميع الدول';
+
+  @override
+  String get diveSites_filter_allRegions => 'جميع المناطق';
 
   @override
   String get diveSites_filter_country_label => 'الدولة';
@@ -9426,10 +9504,13 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => 'مثال: فوكيت';
+  String get diveSites_filter_region_label => 'المنطقة';
 
   @override
-  String get diveSites_filter_region_label => 'المنطقة';
+  String get diveSites_filter_searchCountriesHint => 'اكتب للبحث عن الدول';
+
+  @override
+  String get diveSites_filter_searchRegionsHint => 'اكتب للبحث عن المناطق';
 
   @override
   String get diveSites_filter_section_depthRange => 'نطاق أقصى عمق';
@@ -11523,6 +11604,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get enum_logCategory_database => 'قاعدة البيانات';
 
   @override
+  String get enum_logCategory_media => 'الوسائط';
+
+  @override
   String get enum_visibility_excellent => 'ممتازة (>30m / >100ft)';
 
   @override
@@ -12203,11 +12287,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String equipment_list_worstClock(String kind) {
-    return '$kind متأخرة';
-  }
-
-  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -12228,8 +12307,68 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String trips_serviceAlert_overdue(String kind) {
+  String equipment_service_overdue(String kind) {
     return '$kind متأخرة';
+  }
+
+  @override
+  String equipment_service_dueRelative(String kind, String relative) {
+    return '$kind مستحقة $relative';
+  }
+
+  @override
+  String equipment_service_shortDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خلال $count غوصة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortHours(String count) {
+    return 'خلال $count ساعة';
+  }
+
+  @override
+  String equipment_service_shortSaltHours(String count) {
+    return 'خلال $count ساعة في الماء المالح';
+  }
+
+  @override
+  String equipment_service_shortColdDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خلال $count غطسة في الماء البارد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortO2Hours(String count) {
+    return 'خلال $count ساعة بأكسجين مرتفع';
+  }
+
+  @override
+  String equipment_service_shortDeepCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خلال $count غطسة عميقة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'خلال $count دورة بطارية',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12248,9 +12387,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String equipment_detail_serviceIntervalValue(Object days) {
     return '$days يوم';
   }
-
-  @override
-  String get equipment_detail_serviceOverdue => 'الصيانة متأخرة!';
 
   @override
   String equipment_detail_showEquipmentWith(String name) {
@@ -12513,6 +12649,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'معدات تحتاج صيانة';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'معدات تحتاج صيانة قريبًا';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'معدات متأخرة عن الصيانة';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return 'معدات $status';
   }
@@ -12544,6 +12688,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'جميع معداتك محدثة الصيانة!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'لا شيء يحتاج صيانة قريبًا.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'لا شيء متأخر عن الصيانة.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'خطأ في تحميل المعدات: $error';
   }
@@ -12553,6 +12705,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'الصيانة مستحقة';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'قريبًا';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'متأخرة';
 
   @override
   String get equipment_list_typeFilterAll => 'جميع الأنواع';
@@ -17944,6 +18102,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_data_offlineMaps_subtitle =>
       'تنزيل الخرائط للاستخدام بدون اتصال';
+
+  @override
+  String get settings_data_threeDMaps => '3D Maps';
+
+  @override
+  String get settings_data_threeDMaps_subtitle =>
+      'Manage cached swissBATHY3D and other bathymetry data';
 
   @override
   String get settings_data_restore => 'استعادة';
@@ -23599,6 +23764,46 @@ class AppLocalizationsAr extends AppLocalizations {
   String get universalImport_label_skip => 'تخطي';
 
   @override
+  String get universalImport_label_fillPlanned => 'إكمال الغوصة المخططة';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'إرفاق هذا التنزيل بالغوصة التي خططت لها';
+
+  @override
+  String get universalImport_label_filledPlanned => 'الغوصات المخططة المكتملة';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'تكمل الغوصة المخططة: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'سيتم استبدال ملفها التقريبي.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'تغيير';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle => 'اختر غوصة مخططة';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'الاستيراد كغوصة جديدة بدلا من ذلك';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'التراجع عن الإكمال';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'تمت استعادة الغوصات المخططة';
+
+  @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'تعذرت استعادة كل الغوصات المخططة. حاول مرة أخرى.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'موسوم كـ: $tag';
   }
@@ -26270,6 +26475,165 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد بيانات أعماق بحيرات مخزّنة بعد';
 
   @override
+  String get maps3d_appBar_title => 'خرائط ثلاثية الأبعاد';
+
+  @override
+  String get maps3d_section_all => 'كل المزوّدين';
+
+  @override
+  String get maps3d_section_swissBathy => 'swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete => 'حذف البيانات';
+
+  @override
+  String get maps3d_swissBathy_delete_subtitle =>
+      'يزيل بلاطات العمق وشبكات البحيرات المخزَّنة مؤقتًا من swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmTitle =>
+      'حذف بيانات swissBATHY3D؟';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      'ستتم إزالة بيانات العمق المخزَّنة مؤقتًا للبحيرات السويسرية وإعادة تحميلها عند فتح العرض ثلاثي الأبعاد لموقع غوص في المرة القادمة.';
+
+  @override
+  String get maps3d_swissBathy_delete_done => 'تم حذف بيانات swissBATHY3D';
+
+  @override
+  String get maps3d_section_other => 'المزوّدون الآخرون';
+
+  @override
+  String get maps3d_other_reset => 'إعادة تعيين بيانات قياس الأعماق المتبقية';
+
+  @override
+  String get maps3d_other_reset_subtitle =>
+      'يزيل البيانات المخزَّنة مؤقتًا من EMODnet وNOAA DEM وGMRT وETOPO';
+
+  @override
+  String get maps3d_other_reset_confirmTitle =>
+      'إعادة تعيين بيانات قياس الأعماق المتبقية؟';
+
+  @override
+  String get maps3d_other_reset_confirmMessage =>
+      'ستتم إزالة البيانات المخزَّنة مؤقتًا من جميع المزوّدين باستثناء swissBATHY3D وإعادة تحميلها عند فتح العرض ثلاثي الأبعاد لموقع غوص في المرة القادمة.';
+
+  @override
+  String get maps3d_other_reset_done =>
+      'تمت إعادة تعيين بيانات قياس الأعماق المتبقية';
+
+  @override
+  String get maps3d_reload => 'إعادة تحميل بيانات الخرائط';
+
+  @override
+  String get maps3d_reload_subtitle =>
+      'يحذف جميع بيانات قياس الأعماق المخزَّنة مؤقتًا ويعيد تنزيلها لكل موقع غوص';
+
+  @override
+  String get maps3d_reload_confirmTitle =>
+      'إعادة تحميل بيانات الخرائط لكل مواقع الغوص؟';
+
+  @override
+  String maps3d_reload_confirm_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'سيُعاد تحميل $count موقع غوص.',
+      one: 'سيُعاد تحميل موقع غوص واحد.',
+      zero: 'لا يوجد موقع غوص له إحداثيات.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_confirm_estimatedSize(String size) {
+    return 'التنزيل المقدَّر: حوالي $size';
+  }
+
+  @override
+  String get maps3d_reload_confirm_duration => 'قد يستغرق ذلك عدة دقائق.';
+
+  @override
+  String get maps3d_reload_confirm_wifiHint =>
+      'سيتم تنزيل كمية كبيرة من البيانات، لذا يُنصح باتصال Wi-Fi سريع.';
+
+  @override
+  String get maps3d_reload_start => 'إعادة تحميل';
+
+  @override
+  String maps3d_reload_progress(int completed, int total) {
+    return '$completed من $total موقع غوص';
+  }
+
+  @override
+  String get maps3d_reload_cancel => 'إلغاء';
+
+  @override
+  String get maps3d_reload_done =>
+      'تمت إعادة تحميل بيانات الخرائط لكل مواقع الغوص';
+
+  @override
+  String get maps3d_reload_cancelled => 'تم إلغاء إعادة التحميل';
+
+  @override
+  String get maps3d_reload_failed =>
+      'فشلت إعادة التحميل؛ قد لا تكون بعض مواقع الغوص قد أُعيد تحميلها';
+
+  @override
+  String get maps3d_busy_notice =>
+      'هناك إجراء آخر في الخرائط ثلاثية الأبعاد قيد التنفيذ. يُرجى الانتظار حتى ينتهي.';
+
+  @override
+  String maps3d_reload_remainingSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'يتبقّى حوالي $count ثانية',
+      one: 'يتبقّى حوالي ثانية واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_remainingMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'يتبقّى حوالي $count دقيقة',
+      one: 'يتبقّى حوالي دقيقة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_warming(int index, int total, String name) {
+    return 'التحضير: البحيرة $index من $total ($name)';
+  }
+
+  @override
+  String maps3d_reload_elapsedSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'قيد التشغيل منذ $count ثانية',
+      one: 'قيد التشغيل منذ ثانية واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_elapsedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'قيد التشغيل منذ $count دقيقة',
+      one: 'قيد التشغيل منذ دقيقة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get common_action_reparse => 'إعادة التحليل';
 
   @override
@@ -26739,6 +27103,20 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_report_action => 'تصدير تقرير الوسائط';
+
+  @override
+  String get settings_mediaStorage_report_done => 'تم تصدير تقرير الوسائط';
+
+  @override
+  String get settings_mediaStorage_report_note =>
+      'يسرد التقرير مسارات الملفات وأسماء الأجهزة. لا يُرسل أي شيء.';
+
+  @override
+  String get settings_mediaStorage_report_running =>
+      'جارٍ إنشاء تقرير الوسائط...';
+
+  @override
   String get settings_mediaStorage_verify_action => 'التحقق من المكتبة';
 
   @override
@@ -27056,6 +27434,16 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dive3d_seascape_orbitView => 'عرض ثلاثي الأبعاد';
 
   @override
+  String get dive3d_seascape_verticalExaggeration => 'المبالغة الرأسية';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationReset =>
+      'إعادة التعيين إلى تلقائي';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationLabel => 'العمق';
+
+  @override
   String get dive3d_seascape_appearance_surface => 'سطح التضاريس';
 
   @override
@@ -27171,6 +27559,27 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get dive3d_seascape_noCoordinates =>
       'لا توجد إحداثيات GPS لهذا الموقع';
+
+  @override
+  String get dive3d_seascape_detailLimitReached =>
+      'This is the most detail available for this location';
+
+  @override
+  String dive3d_seascape_lodStageLabel(String stage, String span) {
+    return 'Level of detail: $stage ($span)';
+  }
+
+  @override
+  String get dive3d_seascape_lodStageOverview => 'Overview';
+
+  @override
+  String get dive3d_seascape_lodStageMedium => 'Medium';
+
+  @override
+  String get dive3d_seascape_lodStageFine => 'Fine';
+
+  @override
+  String get dive3d_seascape_lodStageSuperFine => 'Super-fine';
 
   @override
   String get dive3d_seascape_noData =>
@@ -28594,6 +29003,66 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'تسجيل حادث وشيك';
+
+  @override
+  String get diveLog_planned_chip => 'مخططة';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'غوصة مخططة';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'في انتظار بيانات كمبيوتر الغوص. ضع علامة مسجلة إذا غصت بدون كمبيوتر.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'وضع علامة مسجلة';
+
+  @override
+  String get diveLog_planned_markedLogged => 'تم وضع علامة مسجلة';
+
+  @override
+  String get diveLog_planned_markLoggedFailed =>
+      'تعذّر وضع علامة على الغوصة كمسجّلة.';
+
+  @override
+  String get diveLog_mirror_dialogTitle =>
+      'هل تريد تسجيل هذه الغوصة في ملف شخصي آخر أيضا؟';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'لدى هؤلاء الرفاق ملفات شخصية على هذا الجهاز. تضاف الغوصة إلى سجلاتهم كغوصة مخططة حتى تملأها بيانات كمبيوتر الغوص الخاص بهم.';
+
+  @override
+  String get diveLog_mirror_log => 'تسجيل';
+
+  @override
+  String get diveLog_mirror_notNow => 'ليس الآن';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'تم التسجيل لـ $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'تمت إزالة الغوصات المنسوخة';
+
+  @override
+  String get diveLog_mirror_undoFailed => 'تعذّر إزالة الغوصات المنسوخة.';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'تعذر التسجيل لـ $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy => 'التسجيل في ملف رفيق';
+
+  @override
+  String get diveLog_detail_loggedWith => 'مسجلة مع';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned =>
+      'في انتظار كمبيوتر الغوص الخاص بهم';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -36889,6 +37358,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'غوصة مخططة في $siteName';
+  }
+
+  @override
   String get enum_listViewMode_compact => 'مضغوط';
 
   @override
@@ -39754,7 +40228,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_info_actionReveal => 'إظهار في مدير الملفات';
 
   @override
+  String get media_info_actionCopyDiagnostics => 'نسخ التشخيص';
+
+  @override
   String get media_info_actionCopyPath => 'نسخ المرجع';
+
+  @override
+  String get media_info_diagnosticsCopied => 'تم نسخ التشخيص';
 
   @override
   String get media_info_referenceCopied => 'تم نسخ المرجع';
@@ -40980,8 +41460,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navTrack_align_endMode_gpsFix => 'من إصلاح GPS';
 
   @override
-  String navTrack_align_trustSummary(String distanceMeters, int minutes) {
-    return 'الموثوقية: موثوق حتى $distanceMeters م، $minutes دقيقة';
+  String navTrack_align_trustSummary(String distance, int minutes) {
+    return 'الموثوقية: موثوق حتى $distance، $minutes دقيقة';
   }
 
   @override

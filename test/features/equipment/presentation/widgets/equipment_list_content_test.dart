@@ -123,7 +123,7 @@ Future<List<Override>> _buildPhoneOverrides({
     equipmentByStatusProvider.overrideWith((ref, status) => items),
     activeEquipmentProvider.overrideWith((ref) async => items),
     allEquipmentProvider.overrideWith((ref) async => items),
-    serviceDueEquipmentProvider.overrideWith((ref) async => serviceDue),
+    serviceDueEquipmentProvider.overrideWith((ref, _) async => serviceDue),
     equipmentListViewModeProvider.overrideWith((ref) => viewMode),
     equipmentTableConfigProvider.overrideWith(
       (ref) => _TestEquipTableConfigNotifier(_testConfig),
@@ -826,7 +826,9 @@ void main() {
 
       final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
       expect(avatar.backgroundColor, scheme.tertiaryContainer);
-      final label = tester.widget<Text>(find.text('Annual service'));
+      // Due soon now carries its relative trigger as well as the kind
+      // name (#2260), so match on the kind; this test is about the colour.
+      final label = tester.widget<Text>(find.textContaining('Annual service'));
       expect(label.style?.color, StatusColors.light.warn.accent);
     });
 
@@ -1732,7 +1734,7 @@ void main() {
             ),
             allEquipmentProvider.overrideWith((ref) async => ref.watch(source)),
             serviceDueEquipmentProvider.overrideWith(
-              (ref) async => const <EquipmentItem>[],
+              (ref, _) async => const <EquipmentItem>[],
             ),
             equipmentListViewModeProvider.overrideWith(
               (ref) => ListViewMode.detailed,

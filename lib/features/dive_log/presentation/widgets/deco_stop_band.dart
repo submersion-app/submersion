@@ -12,12 +12,16 @@ const Color decoStopBandColor = Color(0xFFD32F2F);
 /// so the legend swatch can render the same translucent block the chart draws.
 const double decoStopFillAlpha = 0.18;
 
-/// The band is a filled region only, with no stroke along its upper edge. The
-/// step outline was dropped so the shading reads as a background zone rather
-/// than as a second curve competing with the ceiling line drawn over it.
-const double _decoStopStrokeWidth = 0.0;
+/// Stroke width of the band's own step edge. Thin, matching the rest of the
+/// profile chart's data lines, so the step reads as a line rather than a bar.
+const double _decoStopStrokeWidth = 1.0;
 
 /// Build the stepped deco stop band for the profile chart.
+///
+/// Draws its own thin step-line stroke along the upper edge, not just the
+/// fill: a computer that reports raw stop depths but no separately computed
+/// ceiling curve would otherwise show only a flat shaded region with no line
+/// at all (issue #2228 follow-up).
 ///
 /// The curve is piecewise constant, so it is compressed to its transitions
 /// rather than run through the generic profile decimator, which could drop the
@@ -59,7 +63,7 @@ LineChartBarData buildDecoStopBand({
     // 0 holds each stop value forward from its sample until the next
     // transition, so the vertical edge lands where the level actually changes.
     lineChartStepData: const LineChartStepData(stepDirection: 0),
-    color: Colors.transparent,
+    color: fillColor ?? decoStopBandColor,
     barWidth: _decoStopStrokeWidth,
     isStrokeCapRound: false,
     dotData: const FlDotData(show: false),

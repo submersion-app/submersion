@@ -5,6 +5,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_computer/presentation/utils/last_download_formatter.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 import 'package:submersion/features/dive_computer/domain/entities/clock_sync.dart';
@@ -1046,6 +1047,11 @@ class _LinkedGearRow extends ConsumerWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(item.name, style: theme.textTheme.bodyMedium),
+                const SizedBox(width: 6),
+                ServiceStatusIndicatorFor(
+                  equipmentId: item.id,
+                  density: ServiceIndicatorDensity.dot,
+                ),
                 const SizedBox(width: 4),
                 Icon(
                   Icons.chevron_right,

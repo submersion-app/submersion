@@ -162,7 +162,8 @@ void main() {
       final container = makeContainer();
       final gauges = await container.read(dashboardGaugesProvider.future);
 
-      expect(gauges.gearGauges, isEmpty);
+      expect(gauges.gearOverdue, isNull);
+      expect(gauges.gearDueSoon, isNull);
       expect(gauges.hasGear, isFalse);
       expect(gauges.insurance, isNull);
       expect(gauges.nextTrip, isNull);
@@ -212,7 +213,8 @@ void main() {
       final gauges = await container.read(dashboardGaugesProvider.future);
 
       expect(gauges.hasGear, isTrue);
-      expect(gauges.gearGauges.single.itemName, 'Regulator');
+      expect(gauges.gearOverdue?.count, 1);
+      expect(gauges.gearOverdue?.worst.itemName, 'Regulator');
       expect(gauges.insurance?.provider, 'DAN');
       expect(gauges.daysSinceLastDive, 12);
       expect(gauges.expiringCertCount, 2);
@@ -231,13 +233,14 @@ void main() {
       expect(gauges.firstCourse, isNull);
     });
 
-    test('gear gauges exclude clocks that are not due', () async {
+    test('gear says nothing when every clock is ok', () async {
       final container = makeContainer(
         clocks: [_clocks('Regulator', ServiceClockSeverity.ok)],
       );
       final gauges = await container.read(dashboardGaugesProvider.future);
       expect(gauges.hasGear, isTrue);
-      expect(gauges.gearGauges, isEmpty);
+      expect(gauges.gearOverdue, isNull);
+      expect(gauges.gearDueSoon, isNull);
     });
   });
 }

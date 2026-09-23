@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_label.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_row_labels_of.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_set.dart';
@@ -407,10 +408,20 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
         });
       },
       title: Text(item.name),
-      subtitle: switch (labels[item.id]?.subtitle) {
-        final detail? => Text(detail),
-        null => null,
-      },
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          switch (labels[item.id]?.subtitle) {
+            final detail? => Text(detail),
+            null => const SizedBox.shrink(),
+          },
+          ServiceStatusIndicatorFor(
+            equipmentId: item.id,
+            density: ServiceIndicatorDensity.compact,
+          ),
+        ],
+      ),
       secondary: Icon(
         equipmentTypeIcon(item.type),
         color: Theme.of(context).colorScheme.onSurfaceVariant,

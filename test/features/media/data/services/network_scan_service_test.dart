@@ -11,7 +11,7 @@
 //   `listen(events.add).asFuture<NetworkScanProgress?>(null)` pattern. We
 //   replace it with the simpler `await for ... in svc.scanAll()` loop used
 //   by the rest of the tests; the assertion is the same (mockRepo's
-//   `updateMedia` was called with the expected row).
+//   `stampVerification` was called with the expected verdict).
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -50,7 +50,13 @@ void main() {
       minSpacing: Duration.zero,
     );
     when(mockCreds.headersFor(any)).thenAnswer((_) async => null);
-    when(mockRepo.updateMedia(any)).thenAnswer((_) async {});
+    when(
+      mockRepo.stampVerification(
+        any,
+        isOrphaned: anyNamed('isOrphaned'),
+        verifiedAt: anyNamed('verifiedAt'),
+      ),
+    ).thenAnswer((_) async {});
   });
 
   MediaItem row({
@@ -105,11 +111,15 @@ void main() {
     expect(events.last.available, 1);
     expect(events.last.unreachable, 0);
 
-    final captured = verify(mockRepo.updateMedia(captureAny)).captured;
-    expect(captured.length, 1);
-    final updated = captured.single as MediaItem;
-    expect(updated.isOrphaned, false);
-    expect(updated.lastVerifiedAt, isNotNull);
+    // The narrow verification write, not a whole-row update: the scan's
+    // snapshot would roll back an upload stamp made since it was taken.
+    verify(
+      mockRepo.stampVerification(
+        'a',
+        verifiedAt: anyNamed('verifiedAt'),
+        isOrphaned: false,
+      ),
+    ).called(1);
   });
 
   test('marks 404 responses as orphaned', () async {
@@ -137,10 +147,13 @@ void main() {
 
     await svc.scanAll().drain<void>();
 
-    final updated =
-        (verify(mockRepo.updateMedia(captureAny)).captured.single) as MediaItem;
-    expect(updated.isOrphaned, true);
-    expect(updated.lastVerifiedAt, isNotNull);
+    verify(
+      mockRepo.stampVerification(
+        'b',
+        verifiedAt: anyNamed('verifiedAt'),
+        isOrphaned: true,
+      ),
+    ).called(1);
   });
 
   test('falls back to range-GET when HEAD returns 405', () async {
@@ -180,9 +193,13 @@ void main() {
     expect(sawHead, isTrue);
     expect(sawGet, isTrue);
 
-    final updated =
-        (verify(mockRepo.updateMedia(captureAny)).captured.single) as MediaItem;
-    expect(updated.isOrphaned, false);
+    verify(
+      mockRepo.stampVerification(
+        'c',
+        verifiedAt: anyNamed('verifiedAt'),
+        isOrphaned: false,
+      ),
+    ).called(1);
   });
 
   test('isolates per-row exceptions; loop continues', () async {
@@ -224,7 +241,87 @@ void main() {
     expect(events.last.done, 2);
     expect(events.last.available, 1);
     expect(events.last.unreachable, 1);
-    verify(mockRepo.updateMedia(any)).called(2);
+    // One write, not two: the counters record what the pass saw, but a
+    // transport failure learned nothing about the object, so that row is
+    // not written at all.
+    verify(
+      mockRepo.stampVerification(
+        'ok',
+        isOrphaned: false,
+        verifiedAt: anyNamed('verifiedAt'),
+      ),
+    ).called(1);
+    verifyNever(
+      mockRepo.stampVerification(
+        'boom',
+        isOrphaned: anyNamed('isOrphaned'),
+        verifiedAt: anyNamed('verifiedAt'),
+      ),
+    );
+  });
+
+  test('only a definitive missing verdict orphans a row', () async {
+    // 404 and 410 are the host saying the object is gone. A 401, a 429 and
+    // a 5xx are the host refusing to answer, and the orphan flag is sticky
+    // and syncs, so guessing from them would mark a live library missing on
+    // every device.
+    for (final (code, writes) in [
+      (404, true),
+      (410, true),
+      (401, false),
+      (403, false),
+      (429, false),
+      (500, false),
+      (503, false),
+    ]) {
+      final repo = MockMediaRepository();
+      when(
+        repo.stampVerification(
+          any,
+          isOrphaned: anyNamed('isOrphaned'),
+          verifiedAt: anyNamed('verifiedAt'),
+        ),
+      ).thenAnswer((_) async {});
+      when(repo.getAllBySourceType(MediaSourceType.networkUrl)).thenAnswer(
+        (_) async => [
+          row(
+            id: 'r',
+            type: MediaSourceType.networkUrl,
+            url: 'https://example.com/a.jpg',
+          ),
+        ],
+      );
+      when(
+        repo.getAllBySourceType(MediaSourceType.manifestEntry),
+      ).thenAnswer((_) async => []);
+
+      await NetworkScanService(
+        repository: repo,
+        credentials: mockCreds,
+        subscriptions: mockSubs,
+        rateLimiter: limiter,
+        httpClientFactory: () =>
+            MockClient((_) async => http.Response('', code)),
+      ).scanAll().drain<void>();
+
+      if (writes) {
+        verify(
+          repo.stampVerification(
+            'r',
+            isOrphaned: true,
+            verifiedAt: anyNamed('verifiedAt'),
+          ),
+        ).called(1);
+      } else {
+        verifyNever(
+          repo.stampVerification(
+            any,
+            isOrphaned: anyNamed('isOrphaned'),
+            verifiedAt: anyNamed('verifiedAt'),
+          ),
+        );
+      }
+    }
   });
 
   test('skips rows with null url and counts them in skippedNoUrl', () async {
@@ -259,7 +356,13 @@ void main() {
     expect(report.total, 1);
     expect(report.available, 1);
     expect(report.unreachable, 0);
-    verify(mockRepo.updateMedia(any)).called(1);
+    verify(
+      mockRepo.stampVerification(
+        any,
+        isOrphaned: anyNamed('isOrphaned'),
+        verifiedAt: anyNamed('verifiedAt'),
+      ),
+    ).called(1);
   });
 
   test('lastReport is populated synchronously on the finished event', () async {

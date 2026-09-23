@@ -1,5 +1,6 @@
 import 'package:submersion/core/utils/geo_math.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 
 /// Result of folding a Subsurface `<divesites>` block.
 class FoldedSites {
@@ -65,7 +66,10 @@ FoldedSites foldSubsurfaceSites(List<Map<String, dynamic>> raw) {
     final host = _findNearest(survivors, point, _unnamedFoldMeters);
     if (host == null) {
       final named = Map<String, dynamic>.from(raw[i])
-        ..['name'] = point.toString();
+        ..['name'] = ImportSiteLocation.nameFromCoordinates(
+          point.latitude,
+          point.longitude,
+        );
       survivors.add(_Survivor(order: i, site: named, normalizedName: null));
     } else {
       _absorb(host, raw[i], aliases);
@@ -165,12 +169,11 @@ String? _normalizedName(String? raw) {
   return collapsed.isEmpty ? null : collapsed;
 }
 
-GeoPoint? _pointOf(Map<String, dynamic> site) {
-  final lat = site['latitude'] as double?;
-  final lon = site['longitude'] as double?;
-  if (lat == null || lon == null) return null;
-  return GeoPoint(lat, lon);
-}
+/// [site]'s position under the shared contract, or null. 0,0 is the pair
+/// logbooks write for "no fix", so it neither names a nameless entry nor
+/// places one site on top of another in a fold (#2232).
+GeoPoint? _pointOf(Map<String, dynamic> site) =>
+    ImportSiteLocation.coordinatesOf(site);
 
 bool _isBlank(Object? value) =>
     value == null || (value is String && value.trim().isEmpty);

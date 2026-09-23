@@ -153,7 +153,20 @@ void main() {
         equipmentComponentsIndexProvider.overrideWith(
           (ref) async => ComponentsIndex.fromRows(parts),
         ),
-        equipmentWorstClockProvider.overrideWith((ref) async => worst),
+        // These cards read the rollup now, so a part whose own sub-part is
+        // overdue lights up here exactly as it does in the equipment list
+        // (#2260). The fixtures still describe DueClocks; convert at the
+        // boundary rather than restating every case.
+        equipmentRollupClockProvider.overrideWith(
+          (ref) async => {
+            for (final e in worst.entries)
+              e.key: (
+                ownerId: e.value.item.id,
+                ownerName: e.value.item.name,
+                status: e.value.status,
+              ),
+          },
+        ),
         activeEquipmentProvider.overrideWith(
           (ref) async => const [first, hose, spare],
         ),

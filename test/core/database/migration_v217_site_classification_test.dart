@@ -59,7 +59,9 @@ void main() {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(217));
     expect(AppDatabase.migrationVersions, contains(217));
     // Additive rung: the sync compatibility floor must not move.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 210);
+    // The floor moved to 224 with the media fact clocks; this rung
+    // still did not move it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
 
   test('creates the three site classification tables', () async {

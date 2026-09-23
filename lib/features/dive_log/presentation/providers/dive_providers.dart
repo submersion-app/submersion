@@ -659,7 +659,8 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     // If the dive was created without a dive number, renumber all dives
     // chronologically to ensure proper ordering. Scope to this diver so
     // we don't disturb other profiles' per-diver numbering.
-    if (dive.diveNumber == null) {
+    // A planned dive stays unnumbered until it is promoted (issue #2002).
+    if (dive.diveNumber == null && !dive.isPlanned) {
       await _repository.assignMissingDiveNumbers(
         diverId: newDive.diverId ?? _currentDiverId,
       );
@@ -1180,7 +1181,8 @@ class PaginatedDiveListNotifier
     }
     final newDive = await _repository.createDive(diveWithDiver);
 
-    if (dive.diveNumber == null) {
+    // A planned dive stays unnumbered until it is promoted (issue #2002).
+    if (dive.diveNumber == null && !dive.isPlanned) {
       await _repository.assignMissingDiveNumbers(
         diverId: newDive.diverId ?? _currentDiverId,
       );

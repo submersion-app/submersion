@@ -183,6 +183,32 @@ void main() {
       // the only entry left.
       expect(entries.map((e) => e.label), ['Depth']);
     });
+
+    testWidgets('O2 cells are offered for cells that report only ppO2', (
+      tester,
+    ) async {
+      // A Subsurface or UDDF import carries the cells in bar and no
+      // millivolts at all; gating the chip on millivolts hid it entirely.
+      final entries = await _entries(
+        tester,
+        config: const ProfileLegendConfig(hasO2CellData: true),
+        state: const ProfileLegendState(showO2Cells: true),
+      );
+
+      expect(entries.map((e) => e.label), contains('O2 cells'));
+    });
+
+    testWidgets('O2 cells stay out of the legend with no cell data', (
+      tester,
+    ) async {
+      final entries = await _entries(
+        tester,
+        config: const ProfileLegendConfig(),
+        state: const ProfileLegendState(showO2Cells: true),
+      );
+
+      expect(entries.map((e) => e.label), isNot(contains('O2 cells')));
+    });
   });
 
   group('metric colours match what the chart draws', () {

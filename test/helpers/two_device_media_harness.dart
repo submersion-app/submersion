@@ -35,6 +35,7 @@ import 'package:submersion/features/media/domain/entities/media_source_type.dart
 import 'package:submersion/features/media/domain/services/media_orphan_reconciler.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media_store/data/media_cache_store.dart';
+import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_store_preflight.dart';
 import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
@@ -266,8 +267,10 @@ class HarnessDevice {
   }
 
   /// Runs [body] with this device's view of the disk: every path under the
-  /// other device's root reads as absent.
-  Future<T> _onThisDisk<T>(Future<T> Function() body) => IOOverrides.runZoned(
+  /// other device's root reads as absent. Public so a test that drives a
+  /// resolver directly (the health reporter, a verifier) sees the same disk
+  /// the device's own operations do.
+  Future<T> onThisDisk<T>(Future<T> Function() body) => IOOverrides.runZoned(
     body,
     createFile: (path) => _isForeign(path)
         ? _ForeignFile(path)
@@ -357,7 +360,7 @@ class HarnessDevice {
   /// nondeterministic in a test.
   Future<void> drain() async {
     await activate();
-    await _onThisDisk(() => worker.drain());
+    await onThisDisk(() => worker.drain());
   }
 
   /// Models the app being killed and relaunched: the queue survives, the
@@ -409,7 +412,7 @@ class HarnessDevice {
   Future<TileResolution> tile(String id, {bool thumbnail = false}) async {
     await activate();
     final row = (await MediaRepository().getMediaById(id))!;
-    return _onThisDisk(
+    return onThisDisk(
       () => tileResolver.resolve(
         row,
         thumbnail: thumbnail,
@@ -446,7 +449,7 @@ class HarnessDevice {
   Future<SweepOutcome> verifyAll() async {
     await activate();
     final repo = MediaRepository();
-    return _onThisDisk(
+    return onThisDisk(
       () => MediaVerificationSweep(
         repository: repo,
         verifier: MediaItemVerifier(registry: registry, repository: repo),
@@ -456,7 +459,14 @@ class HarnessDevice {
 
   Future<void> deleteDiver(String id) async {
     await activate();
-    await DiverRepository().deleteDiverWithReassignment(id);
+    // This device's queue: a default coordinator writes to the global cache
+    // database, which the harness never points at a device.
+    await DiverRepository(
+      mediaDeletionCoordinator: MediaDeletionCoordinator(
+        mediaRepository: MediaRepository(),
+        queue: () => queue,
+      ),
+    ).deleteDiverWithReassignment(id);
   }
 
   /// Simulates upload stamps that never arrived or were dropped by a merge.

@@ -71,7 +71,9 @@ Widget _chart({
           child: DiveProfileChart(
             profile: points,
             diveDurationSeconds: points.last.timestamp,
-            tooltipBelow: tooltipBelow,
+            tooltipPresentation: tooltipBelow
+                ? TooltipPresentation.external
+                : TooltipPresentation.inChart,
             onTooltipData: onTooltipData,
             highlightedTimestamp: highlightedTimestamp,
           ),
@@ -321,7 +323,7 @@ void main() {
             child: DiveProfileChart(
               profile: profile,
               diveDurationSeconds: profile.last.timestamp,
-              tooltipBelow: true,
+              tooltipPresentation: TooltipPresentation.external,
               onTooltipData: (r) {
                 if (r != null && r.isNotEmpty) rows = r;
               },

@@ -6,6 +6,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/child_installed_text.dart';
@@ -47,7 +48,9 @@ class ChildrenCard extends ConsumerWidget {
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));
     final childrenAsync = ref.watch(childEquipmentProvider(equipment.id));
-    final worst = ref.watch(equipmentWorstClockProvider).value ?? const {};
+    // The rollup, not the own-clocks map, for the same reason the
+    // Components card uses it (#2260).
+    final worst = ref.watch(equipmentRollupClockProvider).value ?? const {};
 
     return Card(
       child: Padding(

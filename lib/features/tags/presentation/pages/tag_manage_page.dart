@@ -11,6 +11,7 @@ import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tags/presentation/tag_scope_labels.dart';
 import 'package:submersion/features/tags/presentation/tag_usage_messages.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_input_widget.dart';
 import 'package:submersion/features/tags/presentation/widgets/tag_merge_sheet.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -226,13 +227,22 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
     final isSelected = _selectedIds.contains(tag.id);
 
     return ListTile(
+      // Nothing but the checkbox column: the tag itself is the title, since
+      // a chip carries the name and the colour together (issue #2269). A
+      // solid dot here was the last place in the app still claiming the
+      // stored hex was what a tag looks like.
       leading: SelectionLeading(
         isSelectionMode: _isSelectionMode,
         isChecked: isSelected,
         onChanged: (_) => _toggleSelection(tag.id),
-        child: CircleAvatar(radius: 16, backgroundColor: tag.color),
+        child: const SizedBox.shrink(),
       ),
-      title: Text(tag.name),
+      minLeadingWidth: 0,
+      horizontalTitleGap: 0,
+      title: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: TagChip(tag: tag),
+      ),
       // Where the tag is offered (issues #1765, #1942).
       subtitle: Text(
         [
@@ -303,6 +313,9 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                   const SizedBox(height: 8),
                   TagColorPicker(
                     selectedColor: selectedColor,
+                    // Each swatch previews this tag by name, so the colour
+                    // being chosen is the colour that will be seen.
+                    nameController: controller,
                     onColorSelected: (color) =>
                         setDialogState(() => selectedColor = color),
                   ),
@@ -395,6 +408,9 @@ class _TagManagePageState extends ConsumerState<TagManagePage> {
                   const SizedBox(height: 8),
                   TagColorPicker(
                     selectedColor: selectedColor,
+                    // Each swatch previews this tag by name, so the colour
+                    // being chosen is the colour that will be seen.
+                    nameController: controller,
                     onColorSelected: (color) =>
                         setDialogState(() => selectedColor = color),
                   ),

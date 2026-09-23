@@ -13,7 +13,7 @@
 /// subscription broke `shareByDefaultProvider` at build time even though the
 /// read it guarded was fine.
 ///
-/// This test reads each of the 158 tick-subscribing providers once against a
+/// This test reads each of the 159 tick-subscribing providers once against a
 /// real in-memory database and asserts only that the build resolves without
 /// throwing. An empty database returning `null` or an empty list is a PASS --
 /// nothing here asserts on the returned data. Providers that genuinely cannot
@@ -45,6 +45,7 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
@@ -58,6 +59,7 @@ import 'package:submersion/features/media/presentation/providers/site_media_prov
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/planner/presentation/pages/plan_compare_page.dart';
 import 'package:submersion/features/planner/presentation/providers/plan_canvas_providers.dart';
+import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -569,7 +571,8 @@ void main() {
     ),
     (
       name: 'serviceDueEquipmentProvider',
-      read: (c) => c.read(serviceDueEquipmentProvider.future),
+      read: (c) =>
+          c.read(serviceDueEquipmentProvider(ServiceDueFilter.any).future),
     ),
     (
       name: 'serviceDueSoonWindowDaysProvider',
@@ -743,6 +746,15 @@ void main() {
     ),
   ]);
 
+  _tickGroup('pre-dive', [
+    // Subscribes through evaluateServiceClocksForIds, which registers the
+    // same ticks as serviceClockStatusesProvider before its first read.
+    (
+      name: 'sessionServiceClocksProvider',
+      read: (c) => c.read(sessionServiceClocksProvider(_id).future),
+    ),
+  ]);
+
   _tickGroup('settings', [
     (
       name: 'connectedAccountsWithStatusProvider',
@@ -839,7 +851,7 @@ void main() {
       name: 'tripWithStatsProvider',
       read: (c) => c.read(tripWithStatsProvider(_id).future),
     ),
-    // The 158th tick subscriber, `_equipmentFilteredTripsProvider`, is private
+    // The 159th tick subscriber, `_equipmentFilteredTripsProvider`, is private
     // to trip_providers.dart. It is only reachable through
     // `filteredTripsProvider` once an equipment filter is set, so drive it
     // that way and wait for the delegated family to settle.

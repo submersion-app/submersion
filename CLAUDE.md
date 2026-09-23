@@ -59,6 +59,11 @@ GitHub and by the check. Editing the description re-runs the check.
   avoid conflict with Drift's `Table.dateTime` method.
 - Import aliases (`as domain`) resolve naming conflicts between Drift-generated
   classes and domain entities.
+- Paths must be platform-agnostic, in tests and in production code alike. Build
+  them with `p.join(...)`, never by string concatenation, and reach temporary
+  space through `Directory.systemTemp` rather than a literal `/tmp`. CI runs the
+  suite on Linux only, so a path joined with a literal `/` passes every check and
+  then fails for anyone developing on Windows (issue #2279).
 
 ## Code Conventions
 

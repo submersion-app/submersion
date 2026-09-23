@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/domain/services/gear_expander.dart
 import 'package:submersion/features/equipment/domain/services/gear_tree.dart';
 import 'package:submersion/features/equipment/presentation/helpers/gear_expansion.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/plan_buoyancy_twin_provider.dart';
 import 'package:submersion/features/weight_planner/presentation/providers/weight_planner_providers.dart';
@@ -173,6 +174,10 @@ class PlanGearWeightsSection extends ConsumerWidget {
                   for (final id in state.equipmentIds)
                     if (!partIds.contains(id))
                       InputChip(
+                        avatar: ServiceStatusIndicatorFor(
+                          equipmentId: id,
+                          density: ServiceIndicatorDensity.dot,
+                        ),
                         label: Text(switch (partCounts[id]) {
                           final n? when n > 0 =>
                             context.l10n.equipment_assemblyChip_label(

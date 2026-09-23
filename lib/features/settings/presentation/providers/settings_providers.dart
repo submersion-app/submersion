@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/dive_detail_layout.dart';
 import 'package:submersion/core/constants/dive_detail_sections.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/map_style.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/core/constants/place_name_language.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
@@ -100,14 +101,15 @@ class SettingsKeys {
   static const String homeCardOrder = 'home_card_order';
   static const String hiddenHomeCards = 'hidden_home_cards';
 
-  static const String fullscreenReadoutCardX = 'fullscreen_readout_card_x';
-  static const String fullscreenReadoutCardY = 'fullscreen_readout_card_y';
-
   // Whether profile-chart metric overlays follow the visible depth window when
   // zoomed (device-local, stored directly in SharedPreferences rather than
   // per-diver in the DB).
   static const String profileMetricsFollowViewport =
       'profile_metrics_follow_viewport';
+
+  // Which unit the O2 cell traces are drawn in when a dive carries both
+  // (device-local, a viewing preference like the one above).
+  static const String o2CellUnit = 'o2_cell_unit';
 
   // Perdix-style media overlay preferences (device-local, stored directly in
   // SharedPreferences rather than per-diver in the DB).
@@ -512,16 +514,16 @@ class AppSettings {
   /// values). Device-local, not per-diver.
   final Set<String> hiddenHomeCards;
 
-  /// Fullscreen readout card position as fractions (0..1) of the movable
-  /// range; null means the default corner. See DraggableReadoutCard.
-  final double? fullscreenReadoutCardX;
-  final double? fullscreenReadoutCardY;
-
   /// Whether the dive profile chart's secondary-axis metric overlays (NDL,
   /// ppO2, GF, ...) follow the visible depth window when zoomed instead of
   /// magnifying with the depth axis and scrolling out of view. Device-local,
   /// not per-diver. See MetricBand.
   final bool profileMetricsFollowViewport;
+
+  /// Unit for the per-cell O2 traces on dives that log both a calibrated ppO2
+  /// and the raw cell output. The two are the same measurement one calibration
+  /// constant apart, so only one is drawn.
+  final O2CellUnit o2CellUnit;
 
   /// Perdix-style media overlay: shown over photos/videos when enabled.
   /// Device-local, not per-diver.
@@ -535,6 +537,11 @@ class AppSettings {
   /// Seascape terrain appearance (issue #1065 knobs). Device-local, not
   /// per-diver.
   final SeascapeAppearance seascapeAppearance;
+
+  /// Per-site manual override of the site terrain's vertical exaggeration
+  /// (issue #2141 follow-up), keyed by dive site id. A site with no entry
+  /// uses the automatically computed value. Per-diver, so it syncs.
+  final Map<String, double> seascapeVerticalExaggerationOverrides;
 
   const AppSettings({
     this.depthUnit = DepthUnit.meters,
@@ -672,13 +679,13 @@ class AppSettings {
     this.hiddenHomeChips = const <String>{},
     this.homeCardOrder = const <String>[],
     this.hiddenHomeCards = const <String>{},
-    this.fullscreenReadoutCardX,
-    this.fullscreenReadoutCardY,
     this.profileMetricsFollowViewport = false,
+    this.o2CellUnit = O2CellUnit.ppO2,
     this.perdixOverlayEnabled = false,
     this.perdixOverlayX,
     this.perdixOverlayY,
     this.seascapeAppearance = const SeascapeAppearance(),
+    this.seascapeVerticalExaggerationOverrides = const {},
   });
 
   /// Compute the current unit preset based on actual unit values
@@ -850,13 +857,13 @@ class AppSettings {
     Set<String>? hiddenHomeChips,
     List<String>? homeCardOrder,
     Set<String>? hiddenHomeCards,
-    double? fullscreenReadoutCardX,
-    double? fullscreenReadoutCardY,
     bool? profileMetricsFollowViewport,
+    O2CellUnit? o2CellUnit,
     bool? perdixOverlayEnabled,
     double? perdixOverlayX,
     double? perdixOverlayY,
     SeascapeAppearance? seascapeAppearance,
+    Map<String, double>? seascapeVerticalExaggerationOverrides,
   }) {
     return AppSettings(
       depthUnit: depthUnit ?? this.depthUnit,
@@ -1034,16 +1041,16 @@ class AppSettings {
       hiddenHomeChips: hiddenHomeChips ?? this.hiddenHomeChips,
       homeCardOrder: homeCardOrder ?? this.homeCardOrder,
       hiddenHomeCards: hiddenHomeCards ?? this.hiddenHomeCards,
-      fullscreenReadoutCardX:
-          fullscreenReadoutCardX ?? this.fullscreenReadoutCardX,
-      fullscreenReadoutCardY:
-          fullscreenReadoutCardY ?? this.fullscreenReadoutCardY,
       profileMetricsFollowViewport:
           profileMetricsFollowViewport ?? this.profileMetricsFollowViewport,
+      o2CellUnit: o2CellUnit ?? this.o2CellUnit,
       perdixOverlayEnabled: perdixOverlayEnabled ?? this.perdixOverlayEnabled,
       perdixOverlayX: perdixOverlayX ?? this.perdixOverlayX,
       perdixOverlayY: perdixOverlayY ?? this.perdixOverlayY,
       seascapeAppearance: seascapeAppearance ?? this.seascapeAppearance,
+      seascapeVerticalExaggerationOverrides:
+          seascapeVerticalExaggerationOverrides ??
+          this.seascapeVerticalExaggerationOverrides,
     );
   }
 }
@@ -1205,12 +1212,6 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         homeCardOrder = const [];
         hiddenHomeCards = const <String>{};
       }
-      final fullscreenReadoutCardX = prefs.getDouble(
-        SettingsKeys.fullscreenReadoutCardX,
-      );
-      final fullscreenReadoutCardY = prefs.getDouble(
-        SettingsKeys.fullscreenReadoutCardY,
-      );
       // pSCR ratio is a device-local planning preference (kept out of the
       // per-diver settings table), so it is read straight from SharedPreferences
       // like the fullscreen tile prefs above.
@@ -1219,6 +1220,10 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       // kept out of the per-diver settings table like the prefs above.
       final profileMetricsFollowViewport =
           prefs.getBool(SettingsKeys.profileMetricsFollowViewport) ?? false;
+      final o2CellUnit = O2CellUnit.values.firstWhere(
+        (u) => u.name == prefs.getString(SettingsKeys.o2CellUnit),
+        orElse: () => O2CellUnit.ppO2,
+      );
       final perdixOverlayEnabled =
           prefs.getBool(SettingsKeys.perdixOverlayEnabled) ?? false;
       final perdixOverlayX = prefs.getDouble(SettingsKeys.perdixOverlayX);
@@ -1239,10 +1244,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
           hiddenHomeChips: hiddenHomeChips,
           homeCardOrder: homeCardOrder,
           hiddenHomeCards: hiddenHomeCards,
-          fullscreenReadoutCardX: fullscreenReadoutCardX,
-          fullscreenReadoutCardY: fullscreenReadoutCardY,
           pscrRatio: pscrRatio ?? 100.0,
           profileMetricsFollowViewport: profileMetricsFollowViewport,
+          o2CellUnit: o2CellUnit,
           perdixOverlayEnabled: perdixOverlayEnabled,
           perdixOverlayX: perdixOverlayX,
           perdixOverlayY: perdixOverlayY,
@@ -1270,10 +1274,9 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
         hiddenHomeChips: hiddenHomeChips,
         homeCardOrder: homeCardOrder,
         hiddenHomeCards: hiddenHomeCards,
-        fullscreenReadoutCardX: fullscreenReadoutCardX,
-        fullscreenReadoutCardY: fullscreenReadoutCardY,
         pscrRatio: pscrRatio,
         profileMetricsFollowViewport: profileMetricsFollowViewport,
+        o2CellUnit: o2CellUnit,
         perdixOverlayEnabled: perdixOverlayEnabled,
         perdixOverlayX: perdixOverlayX,
         perdixOverlayY: perdixOverlayY,
@@ -1339,19 +1342,12 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
       SettingsKeys.hiddenHomeCards,
       state.hiddenHomeCards.toList()..sort(),
     );
-    final readoutCardX = state.fullscreenReadoutCardX;
-    if (readoutCardX != null) {
-      await prefs.setDouble(SettingsKeys.fullscreenReadoutCardX, readoutCardX);
-    }
-    final readoutCardY = state.fullscreenReadoutCardY;
-    if (readoutCardY != null) {
-      await prefs.setDouble(SettingsKeys.fullscreenReadoutCardY, readoutCardY);
-    }
     await prefs.setDouble(SettingsKeys.pscrRatio, state.pscrRatio);
     await prefs.setBool(
       SettingsKeys.profileMetricsFollowViewport,
       state.profileMetricsFollowViewport,
     );
+    await prefs.setString(SettingsKeys.o2CellUnit, state.o2CellUnit.name);
     await prefs.setBool(
       SettingsKeys.perdixOverlayEnabled,
       state.perdixOverlayEnabled,
@@ -1960,6 +1956,23 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  /// Sets or clears this site's manual vertical-exaggeration override
+  /// (issue #2141 follow-up). [factor] null removes the entry, reverting
+  /// the site to the automatically computed value.
+  Future<void> setSeascapeVerticalExaggerationOverride(
+    String siteId,
+    double? factor,
+  ) async {
+    final overrides = {...state.seascapeVerticalExaggerationOverrides};
+    if (factor == null) {
+      overrides.remove(siteId);
+    } else {
+      overrides[siteId] = factor;
+    }
+    state = state.copyWith(seascapeVerticalExaggerationOverrides: overrides);
+    await _saveSettings();
+  }
+
   Future<void> setTissueVizMode(TissueVizMode mode) async {
     state = state.copyWith(tissueVizMode: mode);
     await _saveSettings();
@@ -2207,23 +2220,13 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  Future<void> setFullscreenReadoutCardPosition(double x, double y) async {
-    // Positions are fractions of the card's movable range; clamp so
-    // persisted values always honor the 0..1 contract (an out-of-range
-    // value would seed the card off-screen on next launch). Dart's clamp
-    // already maps non-finite values in-range (compareTo orders NaN after
-    // all values, so NaN.clamp(0, 1) is 1.0), but canonicalize them to the
-    // default top-right corner (1, 0) explicitly rather than rely on that
-    // ordering accident. Matches DraggableReadoutCard.defaultFraction.
-    state = state.copyWith(
-      fullscreenReadoutCardX: x.isFinite ? x.clamp(0.0, 1.0) : 1.0,
-      fullscreenReadoutCardY: y.isFinite ? y.clamp(0.0, 1.0) : 0.0,
-    );
+  Future<void> setProfileMetricsFollowViewport(bool value) async {
+    state = state.copyWith(profileMetricsFollowViewport: value);
     await _saveSettings();
   }
 
-  Future<void> setProfileMetricsFollowViewport(bool value) async {
-    state = state.copyWith(profileMetricsFollowViewport: value);
+  Future<void> setO2CellUnit(O2CellUnit value) async {
+    state = state.copyWith(o2CellUnit: value);
     await _saveSettings();
   }
 
@@ -2233,8 +2236,13 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
   }
 
   Future<void> setPerdixOverlayPosition(double x, double y) async {
-    // Same 0..1 fraction contract and non-finite canonicalization as
-    // setFullscreenReadoutCardPosition; default corner is top-right (1, 0).
+    // Positions are fractions of the overlay's movable range; clamp so
+    // persisted values always honor the 0..1 contract (an out-of-range value
+    // would seed the overlay off-screen on next launch). Dart's clamp
+    // already maps non-finite values in-range (compareTo orders NaN after
+    // all values, so NaN.clamp(0, 1) is 1.0), but canonicalize them to the
+    // default top-right corner (1, 0) explicitly rather than rely on that
+    // ordering accident.
     state = state.copyWith(
       perdixOverlayX: x.isFinite ? x.clamp(0.0, 1.0) : 1.0,
       perdixOverlayY: y.isFinite ? y.clamp(0.0, 1.0) : 0.0,

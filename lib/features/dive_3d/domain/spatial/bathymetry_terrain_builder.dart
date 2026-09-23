@@ -71,6 +71,105 @@ class BathymetryTerrainBuilder {
     );
   }
 
+  /// The bounding box of only the WET cells (depth > 0), in local
+  /// east-north meters, or null when the grid has no wet cells. Unlike
+  /// [enuBounds], which always spans the full fetched tile
+  /// (BathymetryResolver.defaultSpanMeters, regardless of the site's real
+  /// shape), this reflects the site's actual footprint -- used to size
+  /// vertical exaggeration off the real site rather than the tile
+  /// (issue #2141).
+  static ({double minEast, double maxEast, double minNorth, double maxNorth})?
+  wetEnuBounds(BathymetryGrid grid, GeoPoint center) {
+    final mLon = metersPerDegreeLongitude(center.latitude);
+    double? minEast, maxEast, minNorth, maxNorth;
+    for (var r = 0; r < grid.rows; r++) {
+      for (var c = 0; c < grid.cols; c++) {
+        final d = grid.depthAt(r, c);
+        if (d == null || d <= 0) continue;
+        final east =
+            (grid.originLon + grid.cellSizeLonDeg * c - center.longitude) *
+            mLon;
+        final north =
+            (grid.originLat + grid.cellSizeLatDeg * r - center.latitude) *
+            metersPerDegLat;
+        minEast = minEast == null ? east : math.min(minEast, east);
+        maxEast = maxEast == null ? east : math.max(maxEast, east);
+        minNorth = minNorth == null ? north : math.min(minNorth, north);
+        maxNorth = maxNorth == null ? north : math.max(maxNorth, north);
+      }
+    }
+    if (minEast == null) return null;
+    return (
+      minEast: minEast,
+      maxEast: maxEast!,
+      minNorth: minNorth!,
+      maxNorth: maxNorth!,
+    );
+  }
+
+  /// The wet cells' true narrow-axis width, independent of how the site
+  /// happens to be oriented in the east/north frame (issue #2141 follow-
+  /// up): [wetEnuBounds]' axis-aligned box is inflated in BOTH the east
+  /// and north direction for a thin, DIAGONALLY oriented feature (a long
+  /// narrow alpine lake or valley almost never runs exactly north-south or
+  /// east-west), so its own narrower side overstates the site's real
+  /// width and under-exaggerates it -- the fjord read as too flat.
+  ///
+  /// Computed from the covariance matrix of the wet cells' local
+  /// coordinates: its two eigenvalues are the spread along the site's own
+  /// major and minor axes, and -- the key property that makes this
+  /// rotation-independent -- eigenvalues do not change when the same
+  /// point cloud is rotated, only the eigenVECTORS (the axis directions)
+  /// do. The minor eigenvalue is therefore the site's cross-axis spread
+  /// no matter which way it happens to point on the map. Bathymetry
+  /// samples are roughly uniform over the wet area, and a uniform
+  /// distribution of width W has variance W^2/12, so `sqrt(12 * minor
+  /// eigenvalue)` recovers that width.
+  ///
+  /// Null when there are fewer than 2 wet cells (no meaningful spread).
+  static double? wetPrincipalAxisWidth(BathymetryGrid grid, GeoPoint center) {
+    final mLon = metersPerDegreeLongitude(center.latitude);
+    var n = 0;
+    var sumEast = 0.0, sumNorth = 0.0;
+    var sumEastSq = 0.0, sumNorthSq = 0.0, sumEastNorth = 0.0;
+    for (var r = 0; r < grid.rows; r++) {
+      for (var c = 0; c < grid.cols; c++) {
+        final d = grid.depthAt(r, c);
+        if (d == null || d <= 0) continue;
+        final east =
+            (grid.originLon + grid.cellSizeLonDeg * c - center.longitude) *
+            mLon;
+        final north =
+            (grid.originLat + grid.cellSizeLatDeg * r - center.latitude) *
+            metersPerDegLat;
+        n++;
+        sumEast += east;
+        sumNorth += north;
+        sumEastSq += east * east;
+        sumNorthSq += north * north;
+        sumEastNorth += east * north;
+      }
+    }
+    if (n < 2) return null;
+
+    final meanEast = sumEast / n;
+    final meanNorth = sumNorth / n;
+    final varEast = sumEastSq / n - meanEast * meanEast;
+    final varNorth = sumNorthSq / n - meanNorth * meanNorth;
+    final covEastNorth = sumEastNorth / n - meanEast * meanNorth;
+
+    // Closed-form eigenvalues of the symmetric 2x2 covariance matrix
+    // [[varEast, covEastNorth], [covEastNorth, varNorth]]; the smaller
+    // root is the minor-axis variance. Clamped at 0 to absorb floating-
+    // point noise for a near-perfectly-round wet area.
+    final trace = varEast + varNorth;
+    final det = varEast * varNorth - covEastNorth * covEastNorth;
+    final discriminant = math.max(trace * trace / 4 - det, 0.0);
+    final minorEigenvalue = trace / 2 - math.sqrt(discriminant);
+
+    return math.sqrt(12 * math.max(minorEigenvalue, 0.0));
+  }
+
   static SpatialTerrain build({
     required BathymetryGrid grid,
     required GeoPoint center,

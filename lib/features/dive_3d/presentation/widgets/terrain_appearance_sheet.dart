@@ -3,14 +3,20 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:submersion/core/providers/async_value_extensions.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/features/dive_3d/application/site_seascape_providers.dart';
 import 'package:submersion/features/dive_3d/domain/spatial/seascape_appearance.dart';
+import 'package:submersion/features/dive_3d/domain/spatial/vertical_exaggeration.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Opens the terrain-appearance editor for the seascape views.
-void showTerrainAppearanceSheet(BuildContext context) {
+/// Opens the terrain-appearance editor for the seascape views. [siteId],
+/// when given, shows the per-site vertical-exaggeration section (issue
+/// #2141 follow-up) -- omitted for views with no persistent site (e.g. the
+/// single-dive spatial page), where exaggeration does not apply.
+void showTerrainAppearanceSheet(BuildContext context, {String? siteId}) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -48,8 +54,10 @@ void showTerrainAppearanceSheet(BuildContext context) {
             // Loose fit: the sheet still hugs short content, but a body
             // taller than the cap scrolls under the pinned header instead of
             // pushing it (and the close action) off the screen.
-            const Flexible(
-              child: SingleChildScrollView(child: TerrainAppearanceSheet()),
+            Flexible(
+              child: SingleChildScrollView(
+                child: TerrainAppearanceSheet(siteId: siteId),
+              ),
             ),
           ],
         ),
@@ -96,7 +104,12 @@ class _SheetHeader extends StatelessWidget {
 /// writes straight through SettingsNotifier (device-local persistence),
 /// so both seascape pages and their providers react immediately.
 class TerrainAppearanceSheet extends ConsumerWidget {
-  const TerrainAppearanceSheet({super.key});
+  /// The site this sheet was opened for; null hides the vertical-
+  /// exaggeration section (issue #2141 follow-up), which only makes sense
+  /// for a persistent site, not the single-dive spatial page.
+  final String? siteId;
+
+  const TerrainAppearanceSheet({super.key, this.siteId});
 
   static const List<int?> _palette = [
     null, // default ink
@@ -268,8 +281,90 @@ class TerrainAppearanceSheet extends ConsumerWidget {
             l10n.dive3d_seascape_appearance_wallAngleNote,
             style: Theme.of(context).textTheme.bodySmall,
           ),
+          if (siteId != null) _ExaggerationSection(siteId: siteId!),
         ],
       ),
+    );
+  }
+}
+
+/// Manual override of the site terrain's vertical exaggeration (issue
+/// #2141 follow-up), starting from whatever value the terrain is
+/// currently rendered with (automatic or already overridden).
+///
+/// A separate stateful widget so it can remember the last READY exaggeration
+/// across the provider's own transient rebuilds: every drag writes the
+/// override, which [siteSeascapeProvider] watches, so it rebuilds on every
+/// tick. Reading `.valueOrNull` straight off that rebuild would drop to null
+/// while it is (re)computing and snap the slider to 1.0x and back (Copilot
+/// review) -- [_lastKnownAuto] bridges those gaps instead of depending on
+/// how long Riverpod happens to keep the previous AsyncValue around.
+class _ExaggerationSection extends ConsumerStatefulWidget {
+  final String siteId;
+
+  const _ExaggerationSection({required this.siteId});
+
+  @override
+  ConsumerState<_ExaggerationSection> createState() =>
+      _ExaggerationSectionState();
+}
+
+class _ExaggerationSectionState extends ConsumerState<_ExaggerationSection> {
+  double? _lastKnownAuto;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final override = ref.watch(
+      settingsProvider.select(
+        (s) => s.seascapeVerticalExaggerationOverrides[widget.siteId],
+      ),
+    );
+    final seascapeState = ref
+        .watch(siteSeascapeProvider(widget.siteId))
+        .valueOrNull;
+    if (seascapeState is SiteSeascapeReady) {
+      _lastKnownAuto = seascapeState.axisInputs.verticalExaggeration;
+    }
+    // Clamped once, here, so the thumb, the drag label and the trailing
+    // readout can never disagree: an out-of-range stored override used to
+    // move the thumb to the end of the track while both texts printed the
+    // raw value (Copilot review).
+    final effective = clampManualVerticalExaggeration(
+      override ?? _lastKnownAuto ?? minManualVerticalExaggeration,
+    );
+    void setOverride(double? factor) => ref
+        .read(settingsProvider.notifier)
+        .setSeascapeVerticalExaggerationOverride(widget.siteId, factor);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TerrainAppearanceSheet._sectionRule,
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(l10n.dive3d_seascape_verticalExaggeration),
+          subtitle: Slider(
+            key: const ValueKey('seascapeExaggerationSlider'),
+            min: minManualVerticalExaggeration,
+            max: maxManualVerticalExaggeration,
+            value: effective,
+            label: '${effective.toStringAsFixed(1)}×',
+            onChanged: setOverride,
+          ),
+          trailing: Text('${effective.toStringAsFixed(1)}×'),
+        ),
+        if (override != null)
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              key: const ValueKey('seascapeExaggerationReset'),
+              icon: const Icon(Icons.replay, size: 16),
+              label: Text(l10n.dive3d_seascape_verticalExaggerationReset),
+              onPressed: () => setOverride(null),
+            ),
+          ),
+      ],
     );
   }
 }

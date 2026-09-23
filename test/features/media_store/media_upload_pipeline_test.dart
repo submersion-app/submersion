@@ -64,6 +64,31 @@ class _PutThrowsErrorStore extends InMemoryMediaObjectStore {
   }
 }
 
+/// Throws a store failure whose cause cannot render itself. cause is an
+/// arbitrary Object?, so nothing stops an adapter from wrapping one.
+class _PutThrowsUnrenderableCauseStore extends InMemoryMediaObjectStore {
+  @override
+  Future<void> putFile(
+    String key,
+    File source, {
+    required String contentType,
+    TransferProgressCallback? onProgress,
+    String? resumeStateJson,
+    void Function(String resumeStateJson)? onResumeStateChanged,
+  }) async {
+    throw MediaStoreException(
+      'put $key failed',
+      kind: MediaStoreErrorKind.fatal,
+      cause: _UnrenderableCause(),
+    );
+  }
+}
+
+class _UnrenderableCause {
+  @override
+  String toString() => throw StateError('toString is broken');
+}
+
 class _FakeLocalFileResolver implements MediaSourceResolver {
   _FakeLocalFileResolver(this.data);
 
@@ -524,6 +549,37 @@ void main() {
     expect(row.attempts, 1);
     expect(row.errorMessage, contains('not initialized'));
   });
+
+  // The catch above calls toString to hand markFailed its text. A store
+  // exception now renders its cause, and a cause's toString is allowed to
+  // throw, so an unguarded render would escape the catch and strand the row
+  // exactly as #1270 did.
+  test(
+    'a store failure with an unrenderable cause still fails the row',
+    () async {
+      final registry = MediaSourceResolverRegistry({
+        MediaSourceType.localFile: resolver,
+      });
+      final unrenderablePipeline = MediaUploadPipeline(
+        mediaRepository: mediaRepository,
+        queue: queue,
+        store: _PutThrowsUnrenderableCauseStore(),
+        registry: registry,
+        cache: cache,
+        thumbnails: ThumbnailGenerator(registry: registry, cache: cache),
+        now: () => DateTime(2026, 7, 10, 12),
+      );
+
+      await enqueueLocalFileItem(bytes: [1, 2, 3], name: 'cause.jpg');
+      final entry = (await queue.nextPending(DateTime.now()))!;
+
+      expect(await unrenderablePipeline.process(entry), UploadOutcome.failed);
+      final row = (await queue.allForTesting()).single;
+      expect(row.state, 'pending', reason: 'the drainer must see it again');
+      expect(row.attempts, 1);
+      expect(row.errorMessage, contains('failed'));
+    },
+  );
 
   group('serviceConnector rows', () {
     late _FakeLocalFileResolver connectorResolver;

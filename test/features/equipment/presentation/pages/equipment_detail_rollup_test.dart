@@ -39,6 +39,32 @@ void main() {
     type: EquipmentType.regulator,
   );
 
+  ServiceClockStatus hoseSwap({
+    String equipmentId = 'hose',
+    ServiceClockSeverity severity = ServiceClockSeverity.overdue,
+    DateTime? dueDate,
+  }) => ServiceClockStatus(
+    schedule: ServiceSchedule(
+      id: 's1',
+      equipmentId: equipmentId,
+      serviceKindId: 'hose-swap',
+      createdAt: t0,
+      updatedAt: t0,
+    ),
+    kind: ServiceKind(
+      id: 'hose-swap',
+      name: 'Hose replacement',
+      defaultIntervalDays: 1825,
+      isBuiltIn: false,
+      createdAt: t0,
+      updatedAt: t0,
+    ),
+    anchor: t0,
+    dueDate: dueDate ?? DateTime(2026, 1, 1),
+    severity: severity,
+    now: DateTime(2026, 7, 1),
+  );
+
   RollupClock overdueOnHose() => (
     ownerId: 'hose',
     ownerName: 'Necklace hose',
@@ -67,8 +93,10 @@ void main() {
 
   Future<void> pump(
     WidgetTester tester,
-    Map<String, RollupClock> rollup,
-  ) async {
+    Map<String, RollupClock> rollup, {
+    List<ServiceClockStatus> own = const [],
+    bool embedded = false,
+  }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(600, 1600);
     addTearDown(() {
@@ -86,9 +114,7 @@ void main() {
           serviceRecordNotifierProvider(
             'reg',
           ).overrideWith((ref) => _MockServiceRecordNotifier()),
-          serviceClockStatusesProvider(
-            'reg',
-          ).overrideWith((ref) async => const []),
+          serviceClockStatusesProvider('reg').overrideWith((ref) async => own),
           equipmentComponentsProvider(
             'reg',
           ).overrideWith((ref) async => const []),
@@ -114,26 +140,72 @@ void main() {
           equipmentWorstClockProvider.overrideWith((ref) async => {}),
           equipmentRollupClockProvider.overrideWith((ref) async => rollup),
         ].cast(),
-        child: const MaterialApp(
-          locale: Locale('en'),
+        child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: EquipmentDetailPage(equipmentId: 'reg'),
+          home: EquipmentDetailPage(equipmentId: 'reg', embedded: embedded),
         ),
       ),
     );
     await tester.pumpAndSettle();
   }
 
-  testWidgets('the header lights when a part is overdue', (tester) async {
+  // The banner used to say only "Service is overdue!". It now names the
+  // service, the part that owns it, and when it fell due (#2260).
+  testWidgets('the header names the overdue part and when it fell due', (
+    tester,
+  ) async {
     await pump(tester, {'reg': overdueOnHose()});
-    expect(find.text('Service is overdue!'), findsOneWidget);
+    expect(
+      find.text('Necklace hose: Hose replacement overdue'),
+      findsOneWidget,
+    );
+    expect(find.textContaining('Overdue since'), findsOneWidget);
   });
 
   testWidgets('the header stays calm when nothing in the subtree is due', (
     tester,
   ) async {
     await pump(tester, const {});
-    expect(find.text('Service is overdue!'), findsNothing);
+    expect(find.textContaining('Hose replacement'), findsNothing);
+    expect(find.byIcon(Icons.warning), findsNothing);
+  });
+
+  testWidgets('a due-soon clock gets a banner too', (tester) async {
+    await pump(tester, {
+      'reg': (
+        ownerId: 'reg',
+        ownerName: 'Cold water reg',
+        status: hoseSwap(
+          equipmentId: 'reg',
+          severity: ServiceClockSeverity.dueSoon,
+          dueDate: DateTime(2026, 7, 13),
+        ),
+      ),
+    });
+    expect(find.text('Hose replacement due in 12d'), findsOneWidget);
+  });
+
+  testWidgets('retired gear keeps its warning from its own clocks', (
+    tester,
+  ) async {
+    // A retired item is absent from the active rollup, so the header must
+    // fall back to the item's own clocks or the warning would vanish.
+    await pump(tester, const {}, own: [hoseSwap(equipmentId: 'reg')]);
+    expect(find.text('Hose replacement overdue'), findsOneWidget);
+  });
+
+  testWidgets('the split view shows the named banner exactly once', (
+    tester,
+  ) async {
+    // Embedded mode renders its thin strip AND the page body beneath it,
+    // and the body carries this banner. A status line in the strip as well
+    // would show and announce the same thing twice.
+    await pump(tester, {'reg': overdueOnHose()}, embedded: true);
+    expect(
+      find.text('Necklace hose: Hose replacement overdue'),
+      findsOneWidget,
+    );
   });
 }

@@ -70,6 +70,14 @@ void _useTallScreen(WidgetTester tester) {
   });
 }
 
+/// The Me chip's label is a two-line [Column], and [RawChip] force-redirects
+/// every hit onto the geometric centre of that label, which falls on the role
+/// line rather than on the name. Tapping `find.text('Me')` therefore derives an
+/// offset that never hit-tests the name itself, so target the chip that
+/// actually handles the gesture.
+Finder get _meChip =>
+    find.ancestor(of: find.text('Me'), matching: find.byType(InputChip));
+
 void main() {
   testWidgets('Me chip hidden when onDiverRoleChanged is null', (tester) async {
     await tester.pumpWidget(_buildPicker());
@@ -119,7 +127,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Me'));
+    await tester.tap(_meChip);
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Rear Guard'));
@@ -141,7 +149,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Me'));
+    await tester.tap(_meChip);
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('No role'));

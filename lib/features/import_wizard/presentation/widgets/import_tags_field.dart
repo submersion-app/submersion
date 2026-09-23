@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/features/import_wizard/domain/models/tag_selection.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/autocomplete_options_list.dart';
 
@@ -138,18 +139,11 @@ class _ImportTagsFieldState extends State<ImportTagsField> {
                 ],
               ),
               for (var i = 0; i < widget.tags.length; i++)
-                () {
-                  final tagColor = _resolveColor(widget.tags[i]);
-                  return Chip(
-                    label: Text(widget.tags[i].name),
-                    backgroundColor: tagColor.withValues(alpha: 0.2),
-                    side: BorderSide(color: tagColor),
-                    labelStyle: TextStyle(color: tagColor),
-                    deleteIcon: Icon(Icons.close, size: 18, color: tagColor),
-                    onDeleted: () => widget.onRemove(i),
-                    visualDensity: VisualDensity.compact,
-                  );
-                }(),
+                TagChip.unsaved(
+                  name: widget.tags[i].name,
+                  color: _resolveColor(widget.tags[i]),
+                  onDeleted: () => widget.onRemove(i),
+                ),
               IntrinsicWidth(
                 child: TextField(
                   controller: controller,

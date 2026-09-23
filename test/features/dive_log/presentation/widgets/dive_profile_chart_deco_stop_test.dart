@@ -6,6 +6,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_metric_colors.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -78,7 +79,9 @@ Widget _buildChartHarness({
             ceilingCurve: ceilingCurve,
             decoStopCurve: decoStopCurve,
             showDecoStops: showDecoStops,
-            tooltipBelow: tooltipBelow,
+            tooltipPresentation: tooltipBelow
+                ? TooltipPresentation.external
+                : TooltipPresentation.inChart,
             onTooltipData: onTooltipData,
           ),
         ),
@@ -109,7 +112,11 @@ void main() {
       final chart = tester.widget<LineChart>(find.byType(LineChart));
       final bars = chart.data.lineBarsData;
       final bandIndex = bars.indexWhere((b) => b.isStepLineChart);
-      final ceilingIndex = bars.indexWhere((b) => b.dashArray != null);
+      // The ceiling line is identified by its unique colour (issue #2228: it
+      // is solid now, no longer the dashed bar this test used to look for).
+      final ceilingIndex = bars.indexWhere(
+        (b) => b.color == ProfileMetricColors.ceiling,
+      );
 
       expect(bandIndex, isNonNegative, reason: 'deco stop band should render');
       expect(
@@ -117,6 +124,33 @@ void main() {
         lessThan(ceilingIndex),
         reason: 'band draws first so the dashed ceiling stays legible on top',
       );
+    });
+
+    testWidgets('suppresses the touched-spot indicator on the deco stop band', (
+      tester,
+    ) async {
+      // Regression: the band's spots are compressed to its step
+      // transitions (buildDecoStopBand), so fl_chart's nearest-spot touch
+      // resolution can land on the transition at the start of the
+      // current stop level instead of the cursor's actual position
+      // anywhere within that flat run -- the dot then reads as stuck
+      // rather than tracking the cursor. No indicator is clearer than one
+      // that does not track.
+      await tester.pumpWidget(
+        _buildChartHarness(
+          profile: _sampleProfileWithDeco(),
+          ceilingCurve: const [0.0, 4.2, 4.2, 0.0],
+          decoStopCurve: const [0.0, 6.0, 6.0, 0.0],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final chart = tester.widget<LineChart>(find.byType(LineChart));
+      final bars = chart.data.lineBarsData;
+      final band = bars.firstWhere((b) => b.isStepLineChart);
+
+      final indicator = chart.data.lineTouchData.getTouchedSpotIndicator;
+      expect(indicator(band, const [0]).single, isNull);
     });
 
     testWidgets('omits the band when showDecoStops is false', (tester) async {

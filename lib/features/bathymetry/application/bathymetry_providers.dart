@@ -37,6 +37,14 @@ Future<List<GeoPoint>> _knownDiveSiteLocations(Ref ref) async {
   ];
 }
 
+/// Public wrapper around [_knownDiveSiteLocations], so the "3D Maps"
+/// settings page's reload action can reuse the exact same list
+/// [SwissBathy3dSource]'s sibling pre-cache already reads, instead of
+/// querying [siteRepositoryProvider] a second, independent way.
+final knownDiveSiteLocationsProvider = FutureProvider<List<GeoPoint>>(
+  (ref) => _knownDiveSiteLocations(ref),
+);
+
 /// How long a TRANSIENT null (fetch failure, cache DB not ready) survives
 /// before the grid provider forgets it and lets the next read retry.
 /// Without this, one offline moment would pin "no bathymetry" onto a cell
@@ -45,10 +53,47 @@ Future<List<GeoPoint>> _knownDiveSiteLocations(Ref ref) async {
 @visibleForTesting
 Duration bathymetryTransientRetryBackoff = const Duration(seconds: 30);
 
+/// Shared swissBATHY3D tile cache repository, so the "3D Maps" settings
+/// page's delete action reaches the same table the resolver reads through
+/// [bathymetryRepositoryProvider], without constructing its own throwaway
+/// instance. Null when the local cache database is not initialized,
+/// matching [bathymetryRepositoryProvider].
+final swissBathyTileCacheRepositoryProvider =
+    Provider<SwissBathyTileCacheRepository?>((ref) {
+      try {
+        final db = LocalCacheDatabaseService.instance.database;
+        return SwissBathyTileCacheRepository(db);
+      } on StateError {
+        return null;
+      }
+    });
+
+/// The single [SwissBathy3dSource] instance every provider in this file
+/// shares -- [bathymetryRepositoryProvider]'s resolver, [
+/// swissLakeDepthServiceProvider], and the "3D Maps" reload action's
+/// [swissBathyWarmKnownSitesProvider] (see bathymetry_reset_providers.dart)
+/// all reach the exact same tile cache and known-site-locations wiring
+/// instead of each constructing its own separate, functionally-identical
+/// instance. Null when the local cache database is not initialized,
+/// matching every other provider in this file.
+final swissBathy3dSourceProvider = Provider<SwissBathy3dSource?>((ref) {
+  try {
+    final db = LocalCacheDatabaseService.instance.database;
+    return SwissBathy3dSource(
+      tileCache: SwissBathyTileCacheRepository(db),
+      knownSiteLocations: () => _knownDiveSiteLocations(ref),
+    );
+  } on StateError {
+    return null;
+  }
+});
+
 /// Null when the local cache database is not initialized (early startup,
 /// plain widget tests): bathymetry silently degrades to synthesized
 /// terrain rather than erroring.
 final bathymetryRepositoryProvider = Provider<BathymetryRepository?>((ref) {
+  final swissSource = ref.watch(swissBathy3dSourceProvider);
+  if (swissSource == null) return null;
   try {
     final db = LocalCacheDatabaseService.instance.database;
     return BathymetryRepository(
@@ -62,10 +107,7 @@ final bathymetryRepositoryProvider = Provider<BathymetryRepository?>((ref) {
         // and is never fetched), then global GMRT, then the coarse
         // public-domain fallback.
         sources: [
-          SwissBathy3dSource(
-            tileCache: SwissBathyTileCacheRepository(db),
-            knownSiteLocations: () => _knownDiveSiteLocations(ref),
-          ),
+          swissSource,
           NoaaDemSource(),
           EmodnetSource(),
           GmrtSource(),
@@ -84,17 +126,9 @@ final bathymetryRepositoryProvider = Provider<BathymetryRepository?>((ref) {
 /// terrain grid for rendering. Null when the local cache database is not
 /// initialized, matching [bathymetryRepositoryProvider].
 final swissLakeDepthServiceProvider = Provider<SwissLakeDepthService?>((ref) {
-  try {
-    final db = LocalCacheDatabaseService.instance.database;
-    return SwissLakeDepthService(
-      SwissBathy3dSource(
-        tileCache: SwissBathyTileCacheRepository(db),
-        knownSiteLocations: () => _knownDiveSiteLocations(ref),
-      ),
-    );
-  } on StateError {
-    return null;
-  }
+  final swissSource = ref.watch(swissBathy3dSourceProvider);
+  if (swissSource == null) return null;
+  return SwissLakeDepthService(swissSource);
 });
 
 /// Immediately revalidates every cached swissBATHY3D tile's freshness (the
@@ -149,6 +183,57 @@ final bathymetryGridProvider =
       final center = GeoPoint(cell.lat, cell.lon);
       final grid = await repo.getGrid(center);
       if (grid == null && !await repo.hasCachedAnswer(center)) {
+        retryLater(); // transient failure, not a real "no water here"
+      }
+      return grid;
+    });
+
+/// A smaller, additional LOD patch grid for one site -- the `medium`/`fine`
+/// stages in `bathymetry_lod.dart`. Unlike [bathymetryGridProvider], the
+/// key carries the exact site center (not a quantized cell): a patch is
+/// requested for one specific site's zoomed-in view, not shared across
+/// nearby coordinates the way the always-loaded base square is. Same
+/// never-errors/transient-retry contract as [bathymetryGridProvider].
+///
+/// `autoDispose`, unlike [bathymetryGridProvider]: the base provider is
+/// keyed by a coarse, coalescing quantized cell, so its entry count stays
+/// bounded by how many distinct 0.02 degree cells the diver has ever
+/// visited -- cheap to keep resident for the app session. A patch entry is
+/// keyed by exact coordinate AND LOD stage, so browsing many sites and
+/// zooming into each would otherwise leave an unbounded, never-freed trail
+/// of these heavier (per-site, per-stage) grids in memory. Autodispose lets
+/// a stage/site combination that is no longer being watched (the diver
+/// zoomed back out, or left the site) free its entry instead.
+// no-tick: a write-once cache in the local-only cache database. Rows are keyed
+// by exact coordinate and span and never updated in place -- a span change
+// misses the old key rather than rewriting it -- and the transient-failure
+// case already self-invalidates on a backoff timer.
+final bathymetryPatchGridProvider = FutureProvider.autoDispose
+    .family<
+      BathymetryGrid?,
+      ({double lat, double lon, double spanMeters, int maxDim})
+    >((ref, request) async {
+      void retryLater() {
+        final timer = Timer(
+          bathymetryTransientRetryBackoff,
+          ref.invalidateSelf,
+        );
+        ref.onDispose(timer.cancel);
+      }
+
+      final repo = ref.watch(bathymetryRepositoryProvider);
+      if (repo == null) {
+        retryLater(); // cache DB may simply not be ready yet
+        return null;
+      }
+      final center = GeoPoint(request.lat, request.lon);
+      final grid = await repo.getGridForSpan(
+        center,
+        request.spanMeters,
+        maxDim: request.maxDim,
+      );
+      if (grid == null &&
+          !await repo.hasCachedAnswer(center, spanMeters: request.spanMeters)) {
         retryLater(); // transient failure, not a real "no water here"
       }
       return grid;

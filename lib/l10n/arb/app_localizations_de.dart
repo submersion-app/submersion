@@ -323,7 +323,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String gasCalculators_bestMix_densityCritical(Object limit) {
-    return 'Uber der harten Dichtegrenze von $limit g/L.';
+    return 'Über der harten Dichtegrenze von $limit g/L.';
   }
 
   @override
@@ -331,12 +331,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String gasCalculators_bestMix_densityWarn(Object limit) {
-    return 'Uber der empfohlenen Dichtegrenze von $limit g/L.';
+    return 'Über der empfohlenen Dichtegrenze von $limit g/L.';
   }
 
   @override
   String gasCalculators_bestMix_endExceeded(Object limit) {
-    return 'END uberschreitet dein Limit von $limit.';
+    return 'END überschreitet dein Limit von $limit.';
   }
 
   @override
@@ -347,7 +347,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String gasCalculators_bestMix_heliumAdded(Object limit) {
-    return 'Helium zugefugt, damit END innerhalb deines Limits von $limit bleibt.';
+    return 'Helium zugefügt, damit END innerhalb deines Limits von $limit bleibt.';
   }
 
   @override
@@ -363,7 +363,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_bestMix_nearestStandard =>
-      'Nachstes Standardgemisch fur diese Tiefe';
+      'Nächstes Standardgemisch für diese Tiefe';
 
   @override
   String get gasCalculators_bestMix_recommendedMix => 'Empfohlenes Gemisch';
@@ -373,19 +373,19 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_planningCaveat =>
-      'Planungswert. Setzt einen direkten Aufstieg voraus. Prufe ihn gegen deine Ausbildung und plane Reserve fur die Bedingungen ein.';
+      'Planungswert. Setzt einen direkten Aufstieg voraus. Prüfe ihn gegen deine Ausbildung und plane Reserve für die Bedingungen ein.';
 
   @override
   String gasCalculators_rockBottom_solveGas(Object depth, Object unit) {
-    return 'Gas zur Problemlosung auf $depth$unit';
+    return 'Gas zur Problemlösung auf $depth$unit';
   }
 
   @override
-  String get gasCalculators_rockBottom_solveTime => 'Zeit zur Problemlosung';
+  String get gasCalculators_rockBottom_solveTime => 'Zeit zur Problemlösung';
 
   @override
   String get gasCalculators_rockBottom_solveTimeHint =>
-      'Zeit auf Tiefe, um den Notfall zu losen, bevor der Aufstieg beginnt.';
+      'Zeit auf Tiefe, um den Notfall zu lösen, bevor der Aufstieg beginnt.';
 
   @override
   String o2Toxicity_addedThisDive(Object value) {
@@ -398,7 +398,7 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get o2Toxicity_daily => 'Taglich';
+  String get o2Toxicity_daily => 'Täglich';
 
   @override
   String o2Toxicity_otuSemantics(
@@ -429,7 +429,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get o2Toxicity_thisDive => 'Dieser Tauchgang';
 
   @override
-  String get o2Toxicity_weekly => 'Wochentlich';
+  String get o2Toxicity_weekly => 'Wöchentlich';
 
   @override
   String trips_story_dayLabel(int number) {
@@ -1029,7 +1029,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get accessibility_label_resizeMasterPane =>
-      'Hauptbereich in der Groesse aendern';
+      'Hauptbereich in der Größe ändern';
 
   @override
   String get accessibility_label_sharedWithAllProfiles =>
@@ -1485,6 +1485,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get buddies_field_emailHint => 'email@beispiel.de';
 
   @override
+  String get buddies_field_linkedProfile => 'Verknüpftes Profil';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'Das lokale Profil, das dieser Tauchpartner ist';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'Nicht verknüpft';
+
+  @override
   String get buddies_field_nameHint => 'Tauchpartnername eingeben';
 
   @override
@@ -1697,6 +1707,39 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'Übernehmen';
+
+  @override
+  String get buddies_linkedProfile_chip => 'Profil';
+
+  @override
+  String get buddies_linkedProfile_link => 'Verknüpfen';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'Später';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'Tauchpartner öffnen';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'Mit einem Profil verknüpfen';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'Ein Tauchpartner kann nicht mit dem eigenen Profil verknüpft werden.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName ist bereits mit diesem Profil verknüpft.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return '$name hat hier ein Profil. Diesen Tauchpartner damit verknüpfen?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'Diese Tauchpartner sind mit verschiedenen Profilen verknüpft. Führe zuerst die Profile zusammen.';
 
   @override
   String get buddies_message_added => 'Tauchpartner erfolgreich hinzugefügt';
@@ -3775,23 +3818,35 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dashboard_gauges_addGear => 'Ausrüstung hinzufügen';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name OK';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
-    return '$name fällig in ${days}T';
+    return '$name Wartung fällig in ${days}T';
   }
 
   @override
   String dashboard_gauges_gearOverdue(String name) {
-    return '$name überfällig';
+    return '$name Wartung überfällig';
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count weitere überfällig';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile mit überfälliger Wartung',
+      one: '$count Teil mit überfälliger Wartung',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile zur Wartung in ${days}T',
+      one: '$count Teil zur Wartung in ${days}T',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -4785,7 +4840,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return 'Möchten Sie wirklich $count $_temp0 löschen? Diese Aktion kann nicht rückgängig gemacht werden.';
@@ -4799,7 +4854,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 gelöscht';
@@ -4829,7 +4884,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp1 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
-      other: 'Tauchgaengen',
+      other: 'Tauchgängen',
       one: 'Tauchgang',
     );
     return '$tagCount $_temp0 zu $diveCount $_temp1 hinzugefügt';
@@ -4861,7 +4916,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 zur Reise verschoben';
@@ -4892,7 +4947,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 von Reise entfernt';
@@ -4906,7 +4961,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 bearbeiten';
@@ -4935,7 +4990,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 erfolgreich exportiert';
@@ -4946,7 +5001,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 exportieren';
@@ -5330,7 +5385,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Gegenstaende',
+      other: 'Gegenstände',
       one: 'Gegenstand',
     );
     return '$count $_temp0';
@@ -5813,6 +5868,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'Flaschen';
 
   @override
+  String get diveLog_edit_planned_switch => 'Geplanter Tauchgang';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'Wartet auf Tauchcomputerdaten. Keine Tauchgangsnummer, bis er protokolliert ist.';
+
+  @override
   String get diveLog_edit_profile_draw => 'Profil zeichnen';
 
   @override
@@ -5878,7 +5940,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Gegenstaende',
+      other: 'Gegenstände',
       one: 'Gegenstand',
     );
     return '$count $_temp0 als neues Ausrüstungsset speichern.';
@@ -6656,11 +6718,14 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_chartSection_other => 'Sonstiges';
 
   @override
-  String get diveLog_chartSection_tankPressures => 'Flaschendrucke';
+  String get diveLog_chartSection_tankPressures => 'Flaschendrücke';
 
   @override
   String get diveLog_chartOption_metricsFollowViewport =>
       'Einblendungen im Sichtbereich halten';
+
+  @override
+  String get diveLog_chartOption_tooltipFollowsCursor => 'Tooltip folgt Cursor';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(gesch.)';
@@ -6710,7 +6775,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Tauchgang manuell erfassen';
 
   @override
-  String get diveLog_listPage_fab_addDive => 'Tauchgang hinzufugen';
+  String get diveLog_listPage_bottomSheet_planDive => 'Tauchgang planen';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'Details jetzt eintragen, Tauchcomputerdaten später ergänzen';
+
+  @override
+  String get diveLog_listPage_fab_addDive => 'Tauchgang hinzufügen';
 
   @override
   String get diveLog_listPage_fab_logDive => 'Tauchgang erfassen';
@@ -7724,7 +7796,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 ohne Nummer';
@@ -8173,7 +8245,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0';
@@ -8568,7 +8640,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get divePlanner_field_bailoutGasHint =>
-      'Offenes Gas, mitgefuhrt fur den Fall eines Kreislaufausfalls';
+      'Offenes Gas, mitgeführt für den Fall eines Kreislaufausfalls';
 
   @override
   String get divePlanner_field_hePercent => 'He %';
@@ -9561,7 +9633,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveSites_filter_clearAll => 'Alle löschen';
 
   @override
-  String get diveSites_filter_country_hint => 'z. B. Thailand';
+  String get diveSites_filter_allCountries => 'Alle Länder';
+
+  @override
+  String get diveSites_filter_allRegions => 'Alle Regionen';
 
   @override
   String get diveSites_filter_country_label => 'Land';
@@ -9598,10 +9673,15 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get diveSites_filter_region_hint => 'z. B. Phuket';
+  String get diveSites_filter_region_label => 'Region';
 
   @override
-  String get diveSites_filter_region_label => 'Region';
+  String get diveSites_filter_searchCountriesHint =>
+      'Tippen, um Länder zu suchen';
+
+  @override
+  String get diveSites_filter_searchRegionsHint =>
+      'Tippen, um Regionen zu suchen';
 
   @override
   String get diveSites_filter_section_depthRange => 'Max. Tiefenbereich';
@@ -9800,7 +9880,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchplaetze',
+      other: 'Tauchplätze',
       one: 'Tauchplatz',
     );
     return 'Sind Sie sicher, dass Sie $count $_temp0 löschen möchten? Diese Aktion kann innerhalb von 5 Sekunden rückgängig gemacht werden.';
@@ -9815,7 +9895,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchplaetze',
+      other: 'Tauchplätze',
       one: 'Tauchplatz',
     );
     return '$count $_temp0 gelöscht';
@@ -9836,7 +9916,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchplaetze',
+      other: 'Tauchplätze',
       one: 'Tauchplatz',
     );
     return '$count $_temp0 zusammengeführt';
@@ -11721,6 +11801,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get enum_logCategory_database => 'Datenbank';
 
   @override
+  String get enum_logCategory_media => 'Medien';
+
+  @override
   String get enum_visibility_excellent => 'Ausgezeichnet (>30m / >100ft)';
 
   @override
@@ -12393,11 +12476,6 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String equipment_list_worstClock(String kind) {
-    return '$kind überfällig';
-  }
-
-  @override
   String trips_serviceAlert_count(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -12414,8 +12492,72 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String trips_serviceAlert_overdue(String kind) {
+  String equipment_service_overdue(String kind) {
     return '$kind überfällig';
+  }
+
+  @override
+  String equipment_service_dueRelative(String kind, String relative) {
+    return '$kind fällig $relative';
+  }
+
+  @override
+  String equipment_service_shortDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count Tauchgängen',
+      one: 'in $count Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortHours(String count) {
+    return 'in $count Stunden';
+  }
+
+  @override
+  String equipment_service_shortSaltHours(String count) {
+    return 'in $count Salzwasserstunden';
+  }
+
+  @override
+  String equipment_service_shortColdDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count Kaltwassertauchgängen',
+      one: 'in $count Kaltwassertauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortO2Hours(String count) {
+    return 'in $count Stunden mit hohem O2';
+  }
+
+  @override
+  String equipment_service_shortDeepCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count tiefen Tauchgängen',
+      one: 'in $count tiefen Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_service_shortCycles(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'in $count Batteriezyklen',
+      one: 'in $count Batteriezyklus',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12434,9 +12576,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String equipment_detail_serviceIntervalValue(Object days) {
     return '$days Tage';
   }
-
-  @override
-  String get equipment_detail_serviceOverdue => 'Wartung ist überfällig!';
 
   @override
   String equipment_detail_showEquipmentWith(String name) {
@@ -12707,6 +12846,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'wartungsfällige Ausrüstung';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'bald wartungsfällige Ausrüstung';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'überfällige Ausrüstung';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return '$status Ausrüstung';
   }
@@ -12738,6 +12885,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Alle Ihre Ausrüstungsgegenstände sind wartungstechnisch auf dem neuesten Stand!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'Nichts ist demnächst fällig.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'Nichts ist überfällig.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'Fehler beim Laden der Ausrüstung: $error';
   }
@@ -12747,6 +12902,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'Wartung fällig';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'Bald fällig';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'Überfällig';
 
   @override
   String get equipment_list_typeFilterAll => 'Alle Typen';
@@ -14050,7 +14211,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_billedNone =>
-      'Noch nichts abgerechnet. Schliesse eine Füllung ab und speichere sie hier.';
+      'Noch nichts abgerechnet. Schließe eine Füllung ab und speichere sie hier.';
 
   @override
   String get gasCalculators_blender_billedTo => 'Rechnung an';
@@ -14949,8 +15110,8 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp1 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Verknuepfen',
-      one: 'Verknuepfen',
+      other: 'Verknüpfen',
+      one: 'Verknüpfen',
     );
     return '$_temp0 in der Nähe dieses Tauchgangs gefunden. $_temp1?';
   }
@@ -17092,7 +17253,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveDetailSection_tanks_description =>
-      'Flaschenliste, Gasmischungen, Drucke, Flaschen-Verbrauch';
+      'Flaschenliste, Gasmischungen, Drücke, Flaschen-Verbrauch';
 
   @override
   String get diveDetailSection_buddies_name => 'Buddies';
@@ -18230,6 +18391,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Karten für die Offline-Nutzung herunterladen';
 
   @override
+  String get settings_data_threeDMaps => '3D-Karten';
+
+  @override
+  String get settings_data_threeDMaps_subtitle =>
+      'Gecachte swissBATHY3D- und andere Bathymetrie-Daten verwalten';
+
+  @override
   String get settings_data_restore => 'Wiederherstellen';
 
   @override
@@ -18853,7 +19021,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_notifications_disabled_subtitleUnrequested =>
-      'Serviceerinnerungen benotigen die Berechtigung fur Mitteilungen';
+      'Serviceerinnerungen benötigen die Berechtigung für Mitteilungen';
 
   @override
   String get settings_notifications_disabled_subtitle =>
@@ -22281,11 +22449,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get transfer_pdfExport_includeVerificationAreas =>
-      'Bestaetigungsfelder einfuegen';
+      'Bestätigungsfelder einfügen';
 
   @override
   String get transfer_pdfExport_includeVerificationAreasSubtitle =>
-      'Stempel- und Unterschriftsfelder fuer die Verbandspruefung';
+      'Stempel- und Unterschriftsfelder für die Verbandsprüfung';
 
   @override
   String get transfer_pdfExport_pageSizeA4 => 'A4';
@@ -23859,6 +24027,49 @@ class AppLocalizationsDe extends AppLocalizations {
   String get universalImport_label_skip => 'Überspringen';
 
   @override
+  String get universalImport_label_fillPlanned =>
+      'Geplanten Tauchgang ausfüllen';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'Diesen Download dem geplanten Tauchgang zuordnen';
+
+  @override
+  String get universalImport_label_filledPlanned =>
+      'Ausgefüllte geplante Tauchgänge';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'Füllt geplanten Tauchgang: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'Das skizzierte Profil wird ersetzt.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'Ändern';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle =>
+      'Geplanten Tauchgang wählen';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'Stattdessen als neuen Tauchgang importieren';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'Ausfüllen rückgängig machen';
+
+  @override
+  String get universalImport_fillPlanned_undone =>
+      'Geplante Tauchgänge wiederhergestellt';
+
+  @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'Nicht alle geplanten Tauchgänge konnten wiederhergestellt werden. Versuche es erneut.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'Getaggt als: $tag';
   }
@@ -24049,13 +24260,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get weather_wmo_freezingRain => 'Gefrierender Regen';
 
   @override
-  String get weather_wmo_mainlyClear => 'Uberwiegend klar';
+  String get weather_wmo_mainlyClear => 'Überwiegend klar';
 
   @override
   String get weather_wmo_overcast => 'Bedeckt';
 
   @override
-  String get weather_wmo_partlyCloudy => 'Teilweise bewolkt';
+  String get weather_wmo_partlyCloudy => 'Teilweise bewölkt';
 
   @override
   String get weather_wmo_rain => 'Regen';
@@ -24816,7 +25027,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 heruntergeladen';
@@ -24833,7 +25044,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     return '$count $_temp0 von $name heruntergeladen';
@@ -24897,7 +25108,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     String _temp1 = intl.Intl.pluralLogic(
@@ -24918,7 +25129,7 @@ class AppLocalizationsDe extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       diveCount,
       locale: localeName,
-      other: 'Tauchgaenge',
+      other: 'Tauchgänge',
       one: 'Tauchgang',
     );
     String _temp1 = intl.Intl.pluralLogic(
@@ -26541,7 +26752,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_appearance_bathymetryRefresh =>
-      'Kartendaten aktualisieren';
+      'Bestehende Kartendaten aktualisieren';
 
   @override
   String get settings_appearance_bathymetryRefresh_subtitle =>
@@ -26569,6 +26780,166 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_appearance_bathymetryRefresh_resultNothingCached =>
       'Noch keine Seetiefendaten gespeichert';
+
+  @override
+  String get maps3d_appBar_title => '3D-Karten';
+
+  @override
+  String get maps3d_section_all => 'Alle Anbieter';
+
+  @override
+  String get maps3d_section_swissBathy => 'swissBATHY3D';
+
+  @override
+  String get maps3d_swissBathy_delete => 'Daten löschen';
+
+  @override
+  String get maps3d_swissBathy_delete_subtitle =>
+      'Entfernt gecachte swissBATHY3D-Tiefenkacheln und Seenetze';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmTitle =>
+      'swissBATHY3D-Daten löschen?';
+
+  @override
+  String get maps3d_swissBathy_delete_confirmMessage =>
+      'Gecachte Tiefendaten für Schweizer Seen werden entfernt und beim nächsten Öffnen der 3D-Ansicht eines Tauchplatzes neu geladen.';
+
+  @override
+  String get maps3d_swissBathy_delete_done => 'swissBATHY3D-Daten gelöscht';
+
+  @override
+  String get maps3d_section_other => 'Übrige Anbieter';
+
+  @override
+  String get maps3d_other_reset => 'Übrige Bathymetrie-Daten zurücksetzen';
+
+  @override
+  String get maps3d_other_reset_subtitle =>
+      'Entfernt gecachte Daten von EMODnet, NOAA DEM, GMRT und ETOPO';
+
+  @override
+  String get maps3d_other_reset_confirmTitle =>
+      'Übrige Bathymetrie-Daten zurücksetzen?';
+
+  @override
+  String get maps3d_other_reset_confirmMessage =>
+      'Gecachte Daten aller Anbieter ausser swissBATHY3D werden entfernt und beim nächsten Öffnen der 3D-Ansicht eines Tauchplatzes neu geladen.';
+
+  @override
+  String get maps3d_other_reset_done =>
+      'Übrige Bathymetrie-Daten zurückgesetzt';
+
+  @override
+  String get maps3d_reload => 'Kartendaten neu laden';
+
+  @override
+  String get maps3d_reload_subtitle =>
+      'Löscht alle gecachten Bathymetrie-Daten und lädt sie für jeden Tauchplatz neu herunter';
+
+  @override
+  String get maps3d_reload_confirmTitle =>
+      'Kartendaten für alle Tauchplätze neu laden?';
+
+  @override
+  String maps3d_reload_confirm_siteCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchplätze werden neu geladen.',
+      one: '1 Tauchplatz wird neu geladen.',
+      zero: 'Kein Tauchplatz hat eine Koordinate.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String maps3d_reload_confirm_estimatedSize(String size) {
+    return 'Geschätzter Download: ca. $size';
+  }
+
+  @override
+  String get maps3d_reload_confirm_duration =>
+      'Dies kann mehrere Minuten dauern.';
+
+  @override
+  String get maps3d_reload_confirm_wifiHint =>
+      'Es werden viele Daten heruntergeladen — ein schnelles WLAN wird empfohlen.';
+
+  @override
+  String get maps3d_reload_start => 'Neu laden';
+
+  @override
+  String maps3d_reload_progress(int completed, int total) {
+    return '$completed von $total Tauchplätzen';
+  }
+
+  @override
+  String get maps3d_reload_cancel => 'Abbrechen';
+
+  @override
+  String get maps3d_reload_done =>
+      'Kartendaten für alle Tauchplätze neu geladen';
+
+  @override
+  String get maps3d_reload_cancelled => 'Neu laden abgebrochen';
+
+  @override
+  String get maps3d_reload_failed =>
+      'Neu laden fehlgeschlagen; einige Tauchplätze wurden evtl. nicht neu geladen';
+
+  @override
+  String get maps3d_busy_notice =>
+      'Eine andere 3D-Karten-Aktion läuft gerade. Bitte warten, bis sie abgeschlossen ist.';
+
+  @override
+  String maps3d_reload_remainingSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sekunden',
+      one: '1 Sekunde',
+    );
+    return 'noch ca. $_temp0';
+  }
+
+  @override
+  String maps3d_reload_remainingMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Minuten',
+      one: '1 Minute',
+    );
+    return 'noch ca. $_temp0';
+  }
+
+  @override
+  String maps3d_reload_warming(int index, int total, String name) {
+    return 'Bereite vor: See $index von $total ($name)';
+  }
+
+  @override
+  String maps3d_reload_elapsedSeconds(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Sekunden',
+      one: '1 Sekunde',
+    );
+    return 'läuft seit $_temp0';
+  }
+
+  @override
+  String maps3d_reload_elapsedMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Minuten',
+      one: '1 Minute',
+    );
+    return 'läuft seit $_temp0';
+  }
 
   @override
   String get common_action_reparse => 'Neu auswerten';
@@ -27050,6 +27421,20 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get settings_mediaStorage_report_action => 'Medienbericht exportieren';
+
+  @override
+  String get settings_mediaStorage_report_done => 'Medienbericht exportiert';
+
+  @override
+  String get settings_mediaStorage_report_note =>
+      'Der Bericht enthält Dateipfade und Gerätenamen. Es wird nichts gesendet.';
+
+  @override
+  String get settings_mediaStorage_report_running =>
+      'Medienbericht wird erstellt...';
+
+  @override
   String get settings_mediaStorage_verify_action => 'Bibliothek überprüfen';
 
   @override
@@ -27373,6 +27758,16 @@ class AppLocalizationsDe extends AppLocalizations {
   String get dive3d_seascape_orbitView => '3D-Ansicht';
 
   @override
+  String get dive3d_seascape_verticalExaggeration => 'Vertikale Überhöhung';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationReset =>
+      'Auf automatisch zurücksetzen';
+
+  @override
+  String get dive3d_seascape_verticalExaggerationLabel => 'Tiefe';
+
+  @override
   String get dive3d_seascape_appearance_surface => 'Geländeoberfläche';
 
   @override
@@ -27490,6 +27885,27 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get dive3d_seascape_noCoordinates =>
       'Dieser Tauchplatz hat keine GPS-Koordinaten';
+
+  @override
+  String get dive3d_seascape_detailLimitReached =>
+      'Für diesen Ort ist kein weiteres Detail verfügbar';
+
+  @override
+  String dive3d_seascape_lodStageLabel(String stage, String span) {
+    return 'Detailstufe: $stage ($span)';
+  }
+
+  @override
+  String get dive3d_seascape_lodStageOverview => 'Übersicht';
+
+  @override
+  String get dive3d_seascape_lodStageMedium => 'Mittel';
+
+  @override
+  String get dive3d_seascape_lodStageFine => 'Fein';
+
+  @override
+  String get dive3d_seascape_lodStageSuperFine => 'Superfein';
 
   @override
   String get dive3d_seascape_noData =>
@@ -28933,6 +29349,68 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'Beinahe-Unfall erfassen';
+
+  @override
+  String get diveLog_planned_chip => 'Geplant';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'Geplanter Tauchgang';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'Wartet auf Tauchcomputerdaten. Als protokolliert markieren, wenn du ohne Computer getaucht bist.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'Als protokolliert markieren';
+
+  @override
+  String get diveLog_planned_markedLogged => 'Als protokolliert markiert';
+
+  @override
+  String get diveLog_planned_markLoggedFailed =>
+      'Der Tauchgang konnte nicht als protokolliert markiert werden.';
+
+  @override
+  String get diveLog_mirror_dialogTitle =>
+      'Diesen Tauchgang auch in einem anderen Profil protokollieren?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'Diese Tauchpartner haben Profile auf diesem Gerät. Der Tauchgang wird ihren Logbüchern als geplanter Tauchgang hinzugefügt, bis ihre eigenen Tauchcomputerdaten ihn ausfüllen.';
+
+  @override
+  String get diveLog_mirror_log => 'Protokollieren';
+
+  @override
+  String get diveLog_mirror_notNow => 'Später';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'Protokolliert für $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'Gespiegelte Tauchgänge entfernt';
+
+  @override
+  String get diveLog_mirror_undoFailed =>
+      'Die gespiegelten Tauchgänge konnten nicht entfernt werden.';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'Konnte nicht protokolliert werden für $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy =>
+      'Für das Profil eines Tauchpartners protokollieren';
+
+  @override
+  String get diveLog_detail_loggedWith => 'Protokolliert mit';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned =>
+      'wartet auf ihren Tauchcomputer';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -37183,6 +37661,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'Geplanter Tauchgang bei $siteName';
+  }
+
+  @override
   String get enum_listViewMode_compact => 'Kompakt';
 
   @override
@@ -39969,7 +40452,13 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_info_actionReveal => 'Im Dateimanager anzeigen';
 
   @override
+  String get media_info_actionCopyDiagnostics => 'Diagnose kopieren';
+
+  @override
   String get media_info_actionCopyPath => 'Referenz kopieren';
+
+  @override
+  String get media_info_diagnosticsCopied => 'Diagnose kopiert';
 
   @override
   String get media_info_referenceCopied => 'Referenz kopiert';
@@ -41223,8 +41712,8 @@ class AppLocalizationsDe extends AppLocalizations {
   String get navTrack_align_endMode_gpsFix => 'Aus GPS-Fix';
 
   @override
-  String navTrack_align_trustSummary(String distanceMeters, int minutes) {
-    return 'Vertrauen: bestätigt bis $distanceMeters m, $minutes Min.';
+  String navTrack_align_trustSummary(String distance, int minutes) {
+    return 'Vertrauen: bestätigt bis $distance, $minutes Min.';
   }
 
   @override

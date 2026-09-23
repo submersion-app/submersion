@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/media_item_verifier.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
@@ -79,8 +80,13 @@ class MediaOriginRepublishSweep {
         }
       }
 
+      // Upload facts only. The rows were selected because they carry upload
+      // stamps peers never received; this device's verification verdict is
+      // no fresher than anyone else's and must not be re-clocked over a
+      // peer's newer observation.
       final republished = await _mediaRepository.republishForSync(
         await _mediaRepository.getStoreStampedMediaIdsOwnedBy(me),
+        groups: const [SyncFactGroups.mediaUpload],
       );
 
       await _prefs.setBool(doneFlagKey, true);

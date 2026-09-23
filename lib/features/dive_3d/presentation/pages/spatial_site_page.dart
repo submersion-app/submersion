@@ -306,6 +306,7 @@ class _SpatialSitePageState extends ConsumerState<SpatialSitePage>
         minNorth: inputs.minNorth,
         maxNorth: inputs.maxNorth,
         maxDepth: inputs.maxDepth,
+        verticalExaggeration: inputs.verticalExaggeration,
       ),
       minEast: inputs.minEast,
       maxEast: inputs.maxEast,

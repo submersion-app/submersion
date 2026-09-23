@@ -68,7 +68,9 @@ import 'package:submersion/features/media/presentation/providers/photo_picker_pr
 import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_weight.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_mirror_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/mirror_dive_dialog.dart';
 import 'package:submersion/features/dive_log/presentation/providers/outlier_suggestion_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/custom_field_input_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
@@ -354,6 +356,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   // Existing dive for editing
   Dive? _existingDive;
 
+  /// Planned dive, awaiting its dive computer data (issue #2002). A planned
+  /// dive holds no number; turning the switch off on an existing planned
+  /// dive promotes it on save.
+  bool _isPlanned = false;
+
+  /// A dive holding downloaded data cannot be marked planned, so the switch
+  /// is hidden once a primary data source exists.
+  bool _hasPrimarySource = false;
+
   // Current device location (for new dives - to suggest nearby sites)
   LocationResult? _currentLocation;
   bool _isCapturingLocation = false;
@@ -477,8 +488,10 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     } else {
       // For new dives, capture GPS in the background to suggest nearby sites
       _captureLocationForNearby();
-      if (widget.prefill?.diveNumber == null) {
-        // The async suggestion would overwrite a prefilled number.
+      _isPlanned = widget.prefill?.isPlanned ?? false;
+      if (widget.prefill?.diveNumber == null && !_isPlanned) {
+        // The async suggestion would overwrite a prefilled number, and a
+        // planned dive takes none.
         _suggestNextDiveNumber();
       }
       _applyPrefill();
@@ -670,8 +683,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           );
         }
 
+        final hasPrimarySource = await ref
+            .read(diveRepositoryProvider)
+            .hasPrimaryDataSource(dive.id);
+        if (!mounted) return;
         setState(() {
           _existingDive = dive;
+          _isPlanned = dive.isPlanned;
+          _hasPrimarySource = hasPrimarySource;
           _diverRoleId = dive.diverRoleId;
           _diveNumberController.text = dive.diveNumber != null
               ? _seedInt(dive.diveNumber!)
@@ -952,6 +971,24 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           // the left column and the contextual ones fill the right on wide
           // windows. ResponsiveFormColumns owns the scroll view, so it
           // needs the bounded height Expanded provides.
+          if (!_hasPrimarySource && !widget.isBulk)
+            SwitchListTile(
+              key: const Key('dive_edit_planned_switch'),
+              value: _isPlanned,
+              title: Text(context.l10n.diveLog_edit_planned_switch),
+              subtitle: Text(context.l10n.diveLog_edit_planned_switchSubtitle),
+              secondary: const Icon(Icons.event_available_outlined),
+              onChanged: (value) {
+                setState(() {
+                  _isPlanned = value;
+                  if (value) _diveNumberController.clear();
+                });
+                _markDirty();
+                if (!value && _diveNumberController.text.isEmpty) {
+                  _suggestNextDiveNumber();
+                }
+              },
+            ),
           Expanded(
             child: ResponsiveFormColumns(
               splitIndex: 2,
@@ -2179,6 +2216,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       bottomTimeController: _durationController,
       runtimeController: _runtimeController,
       diveNumberController: _diveNumberController,
+      showDiveNumber: !_isPlanned,
       entryText: _formatEntryText(units),
       onEditEntry: _editEntry,
       exitText: _formatExitText(units),
@@ -3456,6 +3494,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 // pointless reordering of dive_equipment on every save.
                 DiveGearTreeView(
                   links: gearLinksFor(_selectedEquipment, _gearRows),
+                  // The diver is choosing gear right now, so today's
+                  // service state is exactly what they need to see.
+                  showServiceStatus: true,
                   onRemoveSet: (setId) =>
                       _setGear(GearExpander.removeSet(_gearRows, setId)),
                   onRemoveSubtree: (id) =>
@@ -5207,9 +5248,14 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       final dive = Dive(
         id: widget.diveId ?? '',
         diverId: _existingDive?.diverId, // Preserve diver assignment
-        diveNumber: _diveNumberController.text.isNotEmpty
-            ? (parseUserInt(_diveNumberController.text) ?? 0)
-            : null,
+        // A planned dive never holds a number, and a dive being promoted
+        // leaves numbering to convertPlanToActualDive (issue #2002).
+        diveNumber:
+            _isPlanned ||
+                (_existingDive?.isPlanned ?? false) ||
+                _diveNumberController.text.isEmpty
+            ? null
+            : (parseUserInt(_diveNumberController.text) ?? 0),
         name: _nameController.text.trim().isNotEmpty
             ? _nameController.text.trim()
             : null,
@@ -5302,7 +5348,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         // (computerId, the entry/exit location pair) are not at risk and are
         // not listed. The census test in dive_edit_save_field_census_test.dart
         // fails when a new field is added to the writer without a carry here.
-        isPlanned: _existingDive?.isPlanned ?? false,
+        // The switch state, except that an existing planned dive being
+        // promoted keeps the flag here: updateDive must not clear it, since
+        // convertPlanToActualDive below is the one path that also numbers.
+        isPlanned: _isPlanned || (_existingDive?.isPlanned ?? false),
+        outingId: _existingDive?.outingId,
         diveComputerModel: _existingDive?.diveComputerModel,
         diveComputerSerial: _existingDive?.diveComputerSerial,
         diveComputerFirmware: _existingDive?.diveComputerFirmware,
@@ -5348,6 +5398,15 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       if (widget.isEditing) {
         await notifier.updateDive(dive);
         savedDiveId = widget.diveId;
+        if ((_existingDive?.isPlanned ?? false) && !_isPlanned) {
+          // The switch was turned off: promote through the one path that
+          // clears the flag and assigns the next number (issue #2002).
+          await ref
+              .read(diveRepositoryProvider)
+              .convertPlanToActualDive(widget.diveId!);
+          ref.invalidate(diveNumberingInfoProvider);
+          await notifier.refresh();
+        }
       } else {
         final savedDive = await notifier.addDive(dive);
         savedDiveId = savedDive.id;
@@ -5494,6 +5553,34 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       if (savedDiveId != null) {
         scheduleQualityScan([savedDiveId]);
         scheduleSensorSummaryRefresh([savedDiveId]);
+      }
+
+      // Offer to log the dive for linked buddies (issue #2002). Runs before
+      // navigation so the dialog has this page's context; the runner uses
+      // the container so its snackbar and refresh outlive this State. A
+      // planned dive never prompts: a mirrored sibling is itself planned
+      // and must not cascade.
+      if (mounted && savedDiveId != null && !_isPlanned && !widget.isBulk) {
+        final candidates = await ref
+            .read(diveMirrorServiceProvider)
+            .candidates(savedDiveId);
+        if (candidates.isNotEmpty && mounted) {
+          final chosenIds = await showMirrorDiveDialog(
+            context,
+            candidates: candidates,
+          );
+          if (chosenIds != null && chosenIds.isNotEmpty && mounted) {
+            await runDiveMirror(
+              context: context,
+              container: ProviderScope.containerOf(context, listen: false),
+              sourceDiveId: savedDiveId,
+              chosen: [
+                for (final c in candidates)
+                  if (chosenIds.contains(c.diver.id)) c,
+              ],
+            );
+          }
+        }
       }
 
       if (mounted && savedDiveId != null) {

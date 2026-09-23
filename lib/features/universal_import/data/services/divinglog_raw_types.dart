@@ -167,6 +167,17 @@ class DivingLogRawDive {
   /// unset.
   final int? visibilityCode;
   final String? supplyType;
+
+  /// Ids from `Logbook`'s reference columns. Empty when the column is
+  /// absent or blank.
+  final List<int> buddyIds;
+  final List<int> equipmentIds;
+  final List<int> diveTypeIds;
+  final int? placeId;
+  final int? cityId;
+  final int? countryId;
+  final int? shopId;
+  final int? tripId;
   final List<DivingLogRawTank> tanks;
   final List<DivingLogRawSample> samples;
 
@@ -191,6 +202,14 @@ class DivingLogRawDive {
     this.computer,
     this.visibilityCode,
     this.supplyType,
+    this.buddyIds = const [],
+    this.equipmentIds = const [],
+    this.diveTypeIds = const [],
+    this.placeId,
+    this.cityId,
+    this.countryId,
+    this.shopId,
+    this.tripId,
     this.tanks = const [],
     this.samples = const [],
   });
@@ -205,9 +224,229 @@ class DivingLogLogbook {
   /// recorded once per import as diagnostics rather than shown per dive.
   final List<String> schemaNotes;
 
+  final Map<int, DivingLogRawBuddy> buddiesById;
+  final Map<int, DivingLogRawPlace> placesById;
+  final Map<int, String> cityNamesById;
+  final Map<int, String> countryNamesById;
+  final Map<int, DivingLogRawEquipment> equipmentById;
+  final Map<int, DivingLogRawTrip> tripsById;
+  final Map<int, DivingLogRawShop> shopsById;
+  final Map<int, DivingLogRawDiveType> diveTypesById;
+  final List<DivingLogRawCertification> certifications;
+  final Map<int, DivingLogRawSpecies> speciesById;
+
+  /// Dive `Logbook.ID` to the species ids seen on it, from `FishRel`.
+  final Map<int, List<int>> speciesIdsByLogId;
+
+  /// Dive `Logbook.ID` to its `Pictures` rows.
+  final Map<int, List<DivingLogRawPicture>> picturesByLogId;
+
   const DivingLogLogbook({
     required this.dives,
     required this.capabilities,
     this.schemaNotes = const [],
+    this.buddiesById = const {},
+    this.placesById = const {},
+    this.cityNamesById = const {},
+    this.countryNamesById = const {},
+    this.equipmentById = const {},
+    this.tripsById = const {},
+    this.shopsById = const {},
+    this.diveTypesById = const {},
+    this.certifications = const [],
+    this.speciesById = const {},
+    this.speciesIdsByLogId = const {},
+    this.picturesByLogId = const {},
+  });
+}
+
+/// A row of the `Buddy` table. Units and spellings are the source's.
+class DivingLogRawBuddy {
+  final int id;
+  final String? firstName;
+  final String? lastName;
+  final String? email;
+  final String? phone;
+  final String? mobile;
+  final String? comments;
+  final String? url;
+
+  const DivingLogRawBuddy({
+    required this.id,
+    this.firstName,
+    this.lastName,
+    this.email,
+    this.phone,
+    this.mobile,
+    this.comments,
+    this.url,
+  });
+
+  /// The display name, or null when the row has neither name part.
+  String? get fullName {
+    final parts = [
+      firstName,
+      lastName,
+    ].whereType<String>().where((p) => p.trim().isNotEmpty).toList();
+    return parts.isEmpty ? null : parts.join(' ');
+  }
+}
+
+/// A row of the `Place` table, the real dive site record.
+class DivingLogRawPlace {
+  final int id;
+  final int? countryId;
+  final String? place;
+  final double? latitude;
+  final double? longitude;
+  final double? maxDepthMeters;
+  final String? waterName;
+  final String? difficulty;
+  final String? comments;
+
+  const DivingLogRawPlace({
+    required this.id,
+    this.countryId,
+    this.place,
+    this.latitude,
+    this.longitude,
+    this.maxDepthMeters,
+    this.waterName,
+    this.difficulty,
+    this.comments,
+  });
+}
+
+/// A row of the `Equipment` table. There is no type column: [object] is a
+/// free-text name and the type has to be read from it.
+class DivingLogRawEquipment {
+  final int id;
+  final String? object;
+  final String? manufacturer;
+  final String? serial;
+  final DateTime? purchaseDate;
+  final double? price;
+  final double? weightKg;
+  final bool inactive;
+  final DateTime? o2ServiceDate;
+  final String? comments;
+
+  const DivingLogRawEquipment({
+    required this.id,
+    this.object,
+    this.manufacturer,
+    this.serial,
+    this.purchaseDate,
+    this.price,
+    this.weightKg,
+    this.inactive = false,
+    this.o2ServiceDate,
+    this.comments,
+  });
+}
+
+/// A row of the `Trip` table.
+class DivingLogRawTrip {
+  final int id;
+  final String? name;
+  final DateTime? startDate;
+  final DateTime? endDate;
+  final int? shopId;
+  final String? comments;
+
+  const DivingLogRawTrip({
+    required this.id,
+    this.name,
+    this.startDate,
+    this.endDate,
+    this.shopId,
+    this.comments,
+  });
+}
+
+/// A row of the `Shop` table: a dive center, operator or hotel.
+class DivingLogRawShop {
+  final int id;
+  final String? name;
+  final String? shopType;
+  final String? street;
+  final String? city;
+  final String? state;
+  final String? zip;
+  final String? country;
+  final String? phone;
+  final String? email;
+  final String? url;
+  final String? comments;
+
+  const DivingLogRawShop({
+    required this.id,
+    this.name,
+    this.shopType,
+    this.street,
+    this.city,
+    this.state,
+    this.zip,
+    this.country,
+    this.phone,
+    this.email,
+    this.url,
+    this.comments,
+  });
+}
+
+/// A row of the `Divetype` table.
+class DivingLogRawDiveType {
+  final int id;
+  final String? name;
+  final int? sortOrder;
+
+  const DivingLogRawDiveType({required this.id, this.name, this.sortOrder});
+}
+
+/// A row of the `Brevets` table, the diver's certifications.
+class DivingLogRawCertification {
+  final int id;
+  final String? name;
+  final String? organisation;
+  final DateTime? certDate;
+  final String? number;
+  final String? instructor;
+
+  const DivingLogRawCertification({
+    required this.id,
+    this.name,
+    this.organisation,
+    this.certDate,
+    this.number,
+    this.instructor,
+  });
+}
+
+/// A row of the `Fish` table, one species in the catalogue.
+class DivingLogRawSpecies {
+  final int id;
+  final String? commonName;
+  final String? scientificName;
+
+  const DivingLogRawSpecies({
+    required this.id,
+    this.commonName,
+    this.scientificName,
+  });
+}
+
+/// A row of the `Pictures` table.
+class DivingLogRawPicture {
+  final int id;
+  final int logId;
+  final String? path;
+  final String? description;
+
+  const DivingLogRawPicture({
+    required this.id,
+    required this.logId,
+    this.path,
+    this.description,
   });
 }

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 
 /// Index of the profile sample nearest to [timestamp] without going past it.
@@ -20,6 +22,19 @@ int? indexForTimestamp(List<DiveProfilePoint> profile, int timestamp) {
     }
   }
   return low;
+}
+
+/// The lowest and highest pressure reading across every tank's samples, or
+/// null if none of them have any (an empty map, or tanks with empty point
+/// lists).
+({double min, double max})? tankPressureRange(
+  Map<String, List<TankPressurePoint>> tankPressures,
+) {
+  final pressures = tankPressures.values
+      .expand((points) => points)
+      .map((p) => p.pressure);
+  if (pressures.isEmpty) return null;
+  return (min: pressures.reduce(math.min), max: pressures.reduce(math.max));
 }
 
 /// Pressure of the nearest tank sample at or before [timestamp], in bar.

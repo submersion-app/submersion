@@ -66,6 +66,7 @@ class ScriptedSource implements BathymetrySource {
 /// which cached grid.
 class CenterRecordingSource implements BathymetrySource {
   final List<GeoPoint> centers = [];
+  double? lastSpanMeters;
 
   @override
   String get id => 'recorder';
@@ -79,6 +80,7 @@ class CenterRecordingSource implements BathymetrySource {
   @override
   Future<BathymetryGrid> fetch(GeoPoint c, {required double spanMeters}) async {
     centers.add(c);
+    lastSpanMeters = spanMeters;
     return BathymetryGrid(
       originLat: 0,
       originLon: 0,
@@ -89,6 +91,40 @@ class CenterRecordingSource implements BathymetrySource {
       depthsMeters: const [10, 20, 30, 40],
       sourceId: 'recorder',
       resolutionMeters: centers.length.toDouble(),
+      fetchedAt: DateTime.utc(2026, 7, 28),
+    );
+  }
+}
+
+/// A source that ignores [spanMeters] entirely and always returns a wide
+/// (101x101, ~11 km) grid centered exactly on the requested coordinate --
+/// standing in for etopo_erddap_source.dart's 10 km fetch-box floor, which
+/// applies regardless of how narrow an LOD patch actually asked for.
+class OversizedGridSource implements BathymetrySource {
+  static const double cellSizeDeg = 0.001; // ~111 m/cell at these latitudes
+  static const int dim = 101; // spans ~11.1 km, centered on row/col 50
+
+  @override
+  String get id => 'oversized';
+  @override
+  bool get global => true;
+  @override
+  double get minKnownFraction => 0.60;
+  @override
+  Future<SourceCapability?> probe(GeoPoint center) async =>
+      const SourceCapability(cellSizeMeters: 450, detail: 'oversized');
+  @override
+  Future<BathymetryGrid> fetch(GeoPoint c, {required double spanMeters}) async {
+    return BathymetryGrid(
+      originLat: c.latitude - cellSizeDeg * (dim - 1) / 2,
+      originLon: c.longitude - cellSizeDeg * (dim - 1) / 2,
+      cellSizeLatDeg: cellSizeDeg,
+      cellSizeLonDeg: cellSizeDeg,
+      rows: dim,
+      cols: dim,
+      depthsMeters: List<double?>.filled(dim * dim, 10),
+      sourceId: 'oversized',
+      resolutionMeters: 450,
       fetchedAt: DateTime.utc(2026, 7, 28),
     );
   }
@@ -318,6 +354,151 @@ void main() {
     expect(grid.cols, lessThanOrEqualTo(120));
   });
 
+  group('getGridForSpan (additional LOD patch)', () {
+    test('keyFor with an explicit span differs from the base-square key', () {
+      final baseKey = BathymetryRepository.keyFor(bonaire);
+      final patchKey = BathymetryRepository.keyFor(bonaire, spanMeters: 500);
+      expect(patchKey, isNot(baseKey));
+      expect(patchKey, endsWith('@500v5'));
+      // Omitting spanMeters must reproduce the exact base-square key, so
+      // every already-cached base row keeps matching untouched.
+      expect(
+        BathymetryRepository.keyFor(
+          bonaire,
+          spanMeters: BathymetryResolver.defaultSpanMeters,
+        ),
+        baseKey,
+      );
+    });
+
+    test('fetches and caches independently of the base-square grid', () async {
+      final source = CenterRecordingSource();
+      final r = repo(source);
+
+      final base = await r.getGrid(bonaire);
+      final patch = await r.getGridForSpan(bonaire, 500);
+
+      expect(base, isNotNull);
+      expect(patch, isNotNull);
+      // Two distinct fetches (recorder tags resolutionMeters by call index).
+      expect(base!.resolutionMeters, isNot(patch!.resolutionMeters));
+      final rows = await db.select(db.bathymetryCache).get();
+      expect(rows, hasLength(2));
+    });
+
+    test('a second call for the same span reuses the cached row', () async {
+      final source = ScriptedSource(() => BathymetryResolution.ok(wetGrid()));
+      final r = repo(source);
+      final first = await r.getGridForSpan(bonaire, 2000);
+      final second = await r.getGridForSpan(bonaire, 2000);
+      expect(first, isNotNull);
+      expect(second!.depthsMeters, first!.depthsMeters);
+      expect(source.calls, 1);
+    });
+
+    test('passes the requested span through to the resolver/source', () async {
+      final source = CenterRecordingSource();
+      final r = repo(source);
+      await r.getGridForSpan(bonaire, 500);
+      expect(source.lastSpanMeters, 500);
+    });
+
+    test('fetches at the EXACT requested coordinate, not a quantized cell '
+        'center -- a patch span is often narrower than the quantum cell '
+        'offset, so snapping to the cell center could point the patch '
+        'nowhere near the actual site', () async {
+      final source = CenterRecordingSource();
+      final r = repo(source);
+      // Deliberately not aligned to any 0.02 degree cell corner.
+      const exact = GeoPoint(12.171, -68.281);
+      await r.getGridForSpan(exact, 500);
+      expect(source.centers, [exact]);
+    });
+
+    test('the base-square fetch (defaultSpanMeters, via getGrid) still snaps '
+        'to the quantized cell center, unchanged', () async {
+      final source = CenterRecordingSource();
+      final r = repo(source);
+      const c = GeoPoint(12.171, -68.281);
+      await r.getGrid(c);
+      final q = BathymetryRepository.quantize(c);
+      expect(source.centers, [
+        GeoPoint(
+          q.lat + BathymetryRepository.quantumDeg / 2,
+          q.lon + BathymetryRepository.quantumDeg / 2,
+        ),
+      ]);
+    });
+
+    test('two nearby but distinct coordinates in the same 0.02 cell get '
+        'distinct patch cache keys and fetch independently, each at its own '
+        'exact coordinate', () async {
+      final source = CenterRecordingSource();
+      final r = repo(source);
+      const a = GeoPoint(12.16, -68.29);
+      const b = GeoPoint(12.171, -68.281); // same 0.02 cell as a
+      expect(
+        BathymetryRepository.keyFor(a, spanMeters: 500),
+        isNot(BathymetryRepository.keyFor(b, spanMeters: 500)),
+      );
+
+      await r.getGridForSpan(a, 500);
+      await r.getGridForSpan(b, 500);
+
+      expect(source.centers, [a, b]);
+      final rows = await db.select(db.bathymetryCache).get();
+      expect(rows, hasLength(2)); // two rows, not one shared row
+    });
+  });
+
+  group('a source that overshoots the requested span gets cropped back', () {
+    test(
+      'a fine patch (500 m) fetched from a source that always returns an '
+      '~11 km grid (ETOPO\'s 10 km floor) is cropped down to roughly the '
+      'requested footprint, not left at the source\'s oversized extent',
+      () async {
+        final r = repo(OversizedGridSource());
+        final grid = await r.getGridForSpan(bonaire, 500);
+        expect(grid, isNotNull);
+        // The source always hands back a 101x101 (~11 km) grid; cropped to a
+        // 500 m span it should be a small fraction of that, not the full
+        // extent verbatim.
+        expect(grid!.rows, lessThan(20));
+        expect(grid.cols, lessThan(20));
+        // Still centered close to the requested coordinate -- cropping must
+        // not have picked an arbitrary corner of the oversized source grid.
+        final midLat =
+            grid.originLat + grid.cellSizeLatDeg * (grid.rows - 1) / 2;
+        final midLon =
+            grid.originLon + grid.cellSizeLonDeg * (grid.cols - 1) / 2;
+        expect(midLat, closeTo(bonaire.latitude, 0.002));
+        expect(midLon, closeTo(bonaire.longitude, 0.002));
+      },
+    );
+
+    test('the base-square fetch (8 km) from the same oversized (~11 km) source '
+        'is cropped too, since 11 km is still a material overshoot of the '
+        'requested 8 km', () async {
+      final r = repo(OversizedGridSource());
+      final grid = await r.getGrid(bonaire);
+      expect(grid, isNotNull);
+      expect(grid!.rows, lessThan(OversizedGridSource.dim));
+      expect(grid.cols, lessThan(OversizedGridSource.dim));
+    });
+
+    test(
+      'a source whose grid already matches the requested span is left '
+      'untouched (regression guard for every other, well-behaved source)',
+      () async {
+        final source = ScriptedSource(() => BathymetryResolution.ok(wetGrid()));
+        final r = repo(source);
+        final grid = await r.getGridForSpan(bonaire, 500);
+        expect(grid!.rows, wetGrid().rows);
+        expect(grid.cols, wetGrid().cols);
+      },
+    );
+  });
+
   test('the cache key carries the selection generation', () {
     final key = BathymetryRepository.keyFor(const GeoPoint(12.16, -68.29));
     expect(key, endsWith('@8000v5'));
@@ -332,5 +513,100 @@ void main() {
     final legacyKey =
         '${q.lat.toStringAsFixed(2)},${q.lon.toStringAsFixed(2)}@8000';
     expect(BathymetryRepository.keyFor(p), isNot(legacyKey));
+  });
+
+  group('BathymetryRepository.averageCachedGridBytes', () {
+    test('returns null when there are no ok rows to average from', () async {
+      final r = repo(ScriptedSource(() => const BathymetryResolution.empty()));
+      await r.getGrid(bonaire); // caches an 'empty' row, not 'ok'
+      expect(await r.averageCachedGridBytes(), isNull);
+    });
+
+    test('averages the JSON byte size of every ok row', () async {
+      final r = repo(ScriptedSource(() => BathymetryResolution.ok(wetGrid())));
+      await r.getGrid(bonaire);
+      final avg = await r.averageCachedGridBytes();
+      expect(avg, isNotNull);
+      expect(avg, greaterThan(0));
+    });
+  });
+
+  group('BathymetryRepository.clearBySource', () {
+    test('deletes only rows attributed to the given source', () async {
+      final swissSite = repo(
+        ScriptedSource(() {
+          final g = wetGrid();
+          return BathymetryResolution.ok(
+            BathymetryGrid(
+              originLat: g.originLat,
+              originLon: g.originLon,
+              cellSizeLatDeg: g.cellSizeLatDeg,
+              cellSizeLonDeg: g.cellSizeLonDeg,
+              rows: g.rows,
+              cols: g.cols,
+              depthsMeters: g.depthsMeters,
+              sourceId: 'swissbathy3d',
+              resolutionMeters: g.resolutionMeters,
+              fetchedAt: g.fetchedAt,
+            ),
+          );
+        }),
+      );
+      final otherSite = repo(
+        ScriptedSource(() => BathymetryResolution.ok(wetGrid())),
+      );
+
+      await swissSite.getGrid(betlis);
+      await otherSite.getGrid(bonaire);
+
+      await swissSite.clearBySource('swissbathy3d');
+
+      expect(await swissSite.hasCachedAnswer(betlis), isFalse);
+      expect(await otherSite.hasCachedAnswer(bonaire), isTrue);
+    });
+  });
+
+  group('BathymetryRepository.clearAllExceptSource', () {
+    test('deletes rows from other sources and rows with no sourceId at all, '
+        'leaving only rows attributed to the given source', () async {
+      final swissRepo = repo(
+        ScriptedSource(() {
+          final g = wetGrid();
+          return BathymetryResolution.ok(
+            BathymetryGrid(
+              originLat: g.originLat,
+              originLon: g.originLon,
+              cellSizeLatDeg: g.cellSizeLatDeg,
+              cellSizeLonDeg: g.cellSizeLonDeg,
+              rows: g.rows,
+              cols: g.cols,
+              depthsMeters: g.depthsMeters,
+              sourceId: 'swissbathy3d',
+              resolutionMeters: g.resolutionMeters,
+              fetchedAt: g.fetchedAt,
+            ),
+          );
+        }),
+      );
+      final otherRepo = repo(
+        ScriptedSource(() => BathymetryResolution.ok(wetGrid())),
+      );
+      // A definitive "no water here" negative: a global source found dry
+      // land, so the row is cached with no sourceId at all (see _load()'s
+      // 'empty' branch).
+      final dryRepo = repo(
+        ScriptedSource(() => const BathymetryResolution.empty()),
+      );
+
+      await swissRepo.getGrid(betlis);
+      await otherRepo.getGrid(bonaire);
+      await dryRepo.getGrid(murgWest);
+
+      await swissRepo.clearAllExceptSource('swissbathy3d');
+
+      expect(await swissRepo.hasCachedAnswer(betlis), isTrue);
+      expect(await otherRepo.hasCachedAnswer(bonaire), isFalse);
+      expect(await dryRepo.hasCachedAnswer(murgWest), isFalse);
+    });
   });
 }

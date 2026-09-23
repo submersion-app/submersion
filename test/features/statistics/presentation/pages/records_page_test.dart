@@ -33,6 +33,7 @@ import 'package:submersion/features/statistics/presentation/providers/statistics
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/core/constants/o2_cell_unit.dart';
 
 typedef Override = riverpod.Override;
 
@@ -68,6 +69,20 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   @override
   Future<void> setSeascapeAppearance(SeascapeAppearance appearance) async =>
       state = state.copyWith(seascapeAppearance: appearance);
+
+  @override
+  Future<void> setSeascapeVerticalExaggerationOverride(
+    String siteId,
+    double? factor,
+  ) async {
+    final overrides = {...state.seascapeVerticalExaggerationOverrides};
+    if (factor == null) {
+      overrides.remove(siteId);
+    } else {
+      overrides[siteId] = factor;
+    }
+    state = state.copyWith(seascapeVerticalExaggerationOverrides: overrides);
+  }
 
   @override
   Future<void> setChamberHidden(String chamberId, bool hidden) async {
@@ -491,6 +506,10 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(defaultShowO2CellMv: value);
 
   @override
+  Future<void> setO2CellUnit(O2CellUnit value) async =>
+      state = state.copyWith(o2CellUnit: value);
+
+  @override
   Future<void> setDefaultShowGtr(bool value) async =>
       state = state.copyWith(defaultShowGtr: value);
 
@@ -559,13 +578,6 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
       ],
     );
   }
-
-  @override
-  Future<void> setFullscreenReadoutCardPosition(double x, double y) async =>
-      state = state.copyWith(
-        fullscreenReadoutCardX: x,
-        fullscreenReadoutCardY: y,
-      );
 
   @override
   Future<void> setProfileMetricsFollowViewport(bool value) async =>

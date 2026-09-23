@@ -38,7 +38,6 @@ void main() {
         reason: 'the local edit must survive the merge',
       );
     },
-    skip: 'Media sync program S1: turns green in slice 3 (engine merge rule)',
   );
 
   test(
@@ -65,7 +64,6 @@ void main() {
         reason: 'an inconclusive verify must not write the row',
       );
     },
-    skip: 'Media sync program S2: turns green in slice 4 (quiet verification)',
   );
 
   test(
@@ -94,6 +92,5 @@ void main() {
         reason: 'B must converge on the newer value too',
       );
     },
-    skip: 'Media sync program S3: turns green in slice 3 (engine merge rule)',
   );
 }

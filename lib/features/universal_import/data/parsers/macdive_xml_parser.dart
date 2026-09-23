@@ -10,6 +10,7 @@ import 'package:submersion/features/universal_import/data/models/import_payload.
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/models/source_diver.dart';
 import 'package:submersion/features/universal_import/data/parsers/import_parser.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_media_entries.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_value_mapper.dart';
 import 'package:submersion/features/universal_import/data/services/macdive_xml_models.dart';
@@ -139,8 +140,11 @@ class MacDiveXmlParser implements ImportParser {
 
       final site = dive.site;
       if (site != null) {
-        final name = site.name;
-        if (name != null && name.isNotEmpty) {
+        // A `<site>` the diver never named is filed under its own
+        // coordinates rather than dropped, which used to take the `<lat>`
+        // and `<lon>` with it (#2213).
+        final name = _siteKeyFor(site);
+        if (name != null) {
           sitesByName.putIfAbsent(name, () => _mapSite(site, name));
           diveMap['siteName'] = name;
           // UddfEntityImporter links sites via `dive['site']['uddfId']`.
@@ -403,6 +407,16 @@ class MacDiveXmlParser implements ImportParser {
 
     return map;
   }
+
+  /// The identity a `<site>` is filed under, or null when it says nothing
+  /// about where the dive happened. See [ImportSiteLocation].
+  String? _siteKeyFor(MacDiveXmlSite s) =>
+      ImportSiteLocation.named(<String, dynamic>{
+            if (s.name != null) 'name': s.name,
+            if (s.latitude != null) 'latitude': s.latitude,
+            if (s.longitude != null) 'longitude': s.longitude,
+          })?['name']
+          as String?;
 
   Map<String, dynamic> _mapSite(MacDiveXmlSite s, String name) {
     // `uddfId` matches the site name so UddfEntityImporter can resolve

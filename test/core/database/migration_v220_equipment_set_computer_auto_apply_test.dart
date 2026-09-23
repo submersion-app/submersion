@@ -13,7 +13,9 @@ void main() {
   });
 
   test('the column is additive, so the sync floor does not move', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 210);
+    // The floor moved to 224 with the media fact clocks; this rung
+    // still did not move it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
 
   test('a fresh database has the column, defaulting to off', () async {

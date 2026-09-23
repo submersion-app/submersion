@@ -10,10 +10,9 @@ import 'package:submersion/features/media/presentation/widgets/perdix_overlay/pe
 /// this subtree rebuilds per frame; in photo mode it renders one static
 /// sample at [baseElapsedSeconds].
 ///
-/// Drag mechanics mirror [DraggableReadoutCard]: the position is a fraction
-/// of the movable range (stack area minus a 12 px inset, minus the face
-/// size); (0,0) is the inset top-left corner, (1,1) the inset bottom-right.
-/// Must be placed directly inside a [Stack].
+/// The position is a fraction of the movable range (stack area minus a
+/// 12 px inset, minus the face size); (0,0) is the inset top-left corner,
+/// (1,1) the inset bottom-right. Must be placed directly inside a [Stack].
 class DraggablePerdixOverlay extends StatefulWidget {
   const DraggablePerdixOverlay({
     super.key,
@@ -95,9 +94,9 @@ class _DraggablePerdixOverlayState extends State<DraggablePerdixOverlay> {
     widget.initialFraction ?? DraggablePerdixOverlay.defaultFraction,
   );
 
-  /// Same contract as DraggableReadoutCard: persisted values are not
-  /// guaranteed in-range, and the Stack clips, so out-of-range or non-finite
-  /// fractions must never strand the face off-screen.
+  /// Persisted values are not guaranteed in-range, and the Stack clips, so
+  /// out-of-range or non-finite fractions must never strand the face
+  /// off-screen.
   static Offset _sanitize(Offset fraction) => Offset(
     fraction.dx.isFinite
         ? fraction.dx.clamp(0.0, 1.0)

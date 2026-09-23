@@ -1,4 +1,3 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -13,10 +12,10 @@ import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profi
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_review_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/draggable_readout_card.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_transport_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -28,19 +27,6 @@ class _FakeSettingsNotifier extends StateNotifier<AppSettings>
     implements SettingsNotifier {
   _FakeSettingsNotifier([AppSettings? initial])
     : super(initial ?? const AppSettings());
-
-  double? savedCardX;
-  double? savedCardY;
-
-  @override
-  Future<void> setFullscreenReadoutCardPosition(double x, double y) async {
-    savedCardX = x;
-    savedCardY = y;
-    state = state.copyWith(
-      fullscreenReadoutCardX: x,
-      fullscreenReadoutCardY: y,
-    );
-  }
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -124,17 +110,7 @@ void main() {
     expect(find.byIcon(Icons.close), findsOneWidget);
   });
 
-  testWidgets('shows the readout card with the placeholder hint', (
-    tester,
-  ) async {
-    await tester.pumpWidget(_wrap(_defaultOverrides()));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(DraggableReadoutCard), findsOneWidget);
-    expect(find.text('Hover or scrub the profile'), findsOneWidget);
-  });
-
-  testWidgets('chart runs in external-tooltip mode (no painted bubble)', (
+  testWidgets('chart runs its cursor-following in-chart tooltip', (
     tester,
   ) async {
     await tester.pumpWidget(_wrap(_defaultOverrides()));
@@ -143,204 +119,11 @@ void main() {
     final chart = tester.widget<DiveProfileChart>(
       find.byType(DiveProfileChart),
     );
-    expect(chart.tooltipBelow, isTrue);
-    expect(chart.onTooltipData, isNotNull);
-  });
-
-  testWidgets('long-press populates the card and values stick after release', (
-    tester,
-  ) async {
-    await tester.pumpWidget(_wrap(_defaultOverrides()));
-    await tester.pumpAndSettle();
-
-    final chartCenter = tester.getCenter(find.byType(LineChart).first);
-    final gesture = await tester.startGesture(chartCenter);
-    await tester.pump(const Duration(milliseconds: 600));
-    await gesture.moveBy(const Offset(2, 0));
-    await tester.pump();
-
-    // Rows arrived: hint is gone from the card.
-    expect(find.text('Hover or scrub the profile'), findsNothing);
-
-    await gesture.up();
-    await tester.pumpAndSettle();
-
-    // Sticky: hover ended but the card keeps the last values.
-    expect(find.text('Hover or scrub the profile'), findsNothing);
-  });
-
-  testWidgets('playback fills the readout card and keeps it moving', (
-    tester,
-  ) async {
-    await tester.pumpWidget(_wrap(_defaultOverrides(), size: _desktopSize));
-    await tester.pumpAndSettle();
-
-    // Never hovered: the card starts on its hint (issue #2180 left it there
-    // for the whole dive).
-    expect(find.text('Hover or scrub the profile'), findsOneWidget);
-
-    await tester.tap(find.byIcon(Icons.play_arrow));
-    await tester.pump();
-    // One wall-second at the default 30x replays 30 dive-seconds.
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pump();
-
-    expect(find.text('Hover or scrub the profile'), findsNothing);
-    expect(find.textContaining('0:30'), findsWidgets);
-
-    await tester.pump(const Duration(seconds: 1));
-    await tester.pump();
-
-    expect(find.textContaining('1:00'), findsWidgets);
-
-    // Leave no ticker running into the next test.
-    await tester.tap(find.byIcon(Icons.pause));
-    await tester.pumpAndSettle();
-  });
-
-  testWidgets('scrubbing the minimap slider updates the readout card', (
-    tester,
-  ) async {
-    await tester.pumpWidget(_wrap(_defaultOverrides(), size: _desktopSize));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Hover or scrub the profile'), findsOneWidget);
-
-    final slider = find.byType(Slider);
-    expect(slider, findsOneWidget);
-    final track = tester.getRect(slider);
-    // Halfway along a 600s dive.
-    await tester.tapAt(Offset(track.center.dx, track.center.dy));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Hover or scrub the profile'), findsNothing);
-    expect(find.textContaining('5:00'), findsWidgets);
-  });
-
-  testWidgets('dragging the card persists a clamped fraction to settings', (
-    tester,
-  ) async {
-    final fake = _FakeSettingsNotifier();
-    final overrides = _defaultOverrides()
-      ..removeAt(0)
-      ..insert(0, settingsProvider.overrideWith((ref) => fake));
-    await tester.pumpWidget(_wrap(overrides));
-    await tester.pumpAndSettle();
-
-    await tester.drag(
-      find.byKey(const ValueKey('readout-card')),
-      const Offset(-3000, 3000),
-    );
-    await tester.pumpAndSettle();
-
-    expect(fake.savedCardX, 0.0);
-    expect(fake.savedCardY, 1.0);
-  });
-
-  testWidgets('saved position seeds the card at bottom-left', (tester) async {
-    final overrides = _defaultOverrides()
-      ..removeAt(0)
-      ..insert(
-        0,
-        settingsProvider.overrideWith(
-          (ref) => _FakeSettingsNotifier(
-            const AppSettings(
-              fullscreenReadoutCardX: 0,
-              fullscreenReadoutCardY: 1,
-            ),
-          ),
-        ),
-      );
-    await tester.pumpWidget(_wrap(overrides));
-    await tester.pumpAndSettle();
-
-    final chartRect = tester.getRect(find.byType(DiveProfileChart));
-    final cardRect = tester.getRect(find.byKey(const ValueKey('readout-card')));
-    expect(cardRect.left, lessThan(chartRect.center.dx));
-    expect(cardRect.bottom, greaterThan(chartRect.center.dy));
-  });
-
-  testWidgets('without a saved position the card defaults to the corner the '
-      'profile occupies least', (tester) async {
-    // Fast descent, long deep bottom, ascent tail rising into the top-right:
-    // the old fixed top-right default sat exactly on that tail. For this
-    // shape the emptiest corner window is the top-left - the fast descent
-    // leaves it almost immediately, while the max-depth bottom line (which
-    // normalizes to exactly y = 1.0) fills both bottom corner windows.
-    final dive = Dive(
-      id: 'd1',
-      dateTime: DateTime(2026, 1, 1, 10),
-      profile: List.generate(61, (i) {
-        final t = i * 10;
-        final double depth;
-        if (t < 90) {
-          depth = 30.0 * t / 90;
-        } else if (t < 450) {
-          depth = 30;
-        } else {
-          depth = 30.0 * (600 - t) / 150;
-        }
-        return DiveProfilePoint(timestamp: t, depth: depth, temperature: 20);
-      }),
-    );
-    final overrides = _defaultOverrides()
-      ..removeAt(1)
-      ..insert(1, diveProvider(dive.id).overrideWith((ref) async => dive));
-    await tester.pumpWidget(_wrap(overrides, size: _phoneSize));
-    await tester.pumpAndSettle();
-
-    expect(
-      tester
-          .widget<DraggableReadoutCard>(find.byType(DraggableReadoutCard))
-          .initialFraction,
-      const Offset(0, 0),
-      reason: 'the card must seed at the least occupied corner',
-    );
-    final closeButton = find.widgetWithIcon(IconButton, Icons.close);
-    final closeRect = tester.getRect(closeButton);
-    final cardRect = tester.getRect(find.byKey(const ValueKey('readout-card')));
-    expect(
-      cardRect.top,
-      greaterThanOrEqualTo(closeRect.bottom + 8),
-      reason: 'the phone readout must clear the close/title row',
-    );
-
-    await tester.tap(closeButton);
-    await tester.pumpAndSettle();
-    expect(find.byType(FullscreenProfilePage), findsNothing);
-  });
-
-  testWidgets('phone saved upper-left position clears the close button', (
-    tester,
-  ) async {
-    final overrides = _defaultOverrides()
-      ..removeAt(0)
-      ..insert(
-        0,
-        settingsProvider.overrideWith(
-          (ref) => _FakeSettingsNotifier(
-            const AppSettings(
-              fullscreenReadoutCardX: 0,
-              fullscreenReadoutCardY: 0,
-            ),
-          ),
-        ),
-      );
-    await tester.pumpWidget(_wrap(overrides, size: _phoneSize));
-    await tester.pumpAndSettle();
-
-    final closeRect = tester.getRect(
-      find.widgetWithIcon(IconButton, Icons.close),
-    );
-    final cardRect = tester.getRect(find.byKey(const ValueKey('readout-card')));
-    expect(cardRect.top, greaterThanOrEqualTo(closeRect.bottom + 8));
-    expect(
-      tester
-          .widget<DraggableReadoutCard>(find.byType(DraggableReadoutCard))
-          .initialFraction,
-      Offset.zero,
-      reason: 'the saved fraction stays unchanged inside the safer arena',
-    );
+    // Cursor-following ProfileCursorTooltip (issue #2228 follow-up): the
+    // old clipping concern that used to justify the external presentation
+    // here no longer applies, since that tooltip clamps to the plot rect
+    // itself.
+    expect(chart.tooltipPresentation, TooltipPresentation.inChart);
   });
 
   testWidgets('chart fills most of the screen height', (tester) async {
@@ -700,6 +483,86 @@ void main() {
     await tester.pump();
     expect(container.read(playbackProvider('d1')).currentTimestamp, 0);
     expect(container.read(profileReviewProvider('d1')), 0);
+  });
+
+  group('optional fixed tooltip (issue #2228 follow-up)', () {
+    testWidgets(
+      'switching the setting off docks the tooltip instead of following '
+      'the cursor',
+      (tester) async {
+        final container = ProviderContainer(overrides: _defaultOverrides());
+        addTearDown(container.dispose);
+        container.read(profileLegendProvider.notifier).state = container
+            .read(profileLegendProvider)
+            .copyWith(tooltipFollowsCursor: false);
+
+        await tester.pumpWidget(_wrapContainer(container));
+        await tester.pumpAndSettle();
+
+        final chart = tester.widget<DiveProfileChart>(
+          find.byType(DiveProfileChart),
+        );
+        expect(chart.tooltipPresentation, TooltipPresentation.external);
+        expect(chart.onTooltipData, isNotNull);
+
+        chart.onTooltipData!(const [
+          TooltipRow(label: 'Zeit', value: '01:00', bulletColor: Colors.blue),
+        ]);
+        await tester.pump();
+
+        // The label renders padded (padRight) to align the bullet column,
+        // so it is not an exact "Zeit" match.
+        expect(find.textContaining('Zeit'), findsOneWidget);
+        expect(find.text('01:00'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'keeps showing the last reading instead of vanishing when the chart '
+      'reports null -- which it does the instant the pointer moves onto '
+      'the docked panel itself, since the panel sits on top of the chart '
+      'to be draggable (issue #2228 follow-up: this used to unmount the '
+      'panel, and any in-progress drag with it, right as the user reached '
+      'for it)',
+      (tester) async {
+        final container = ProviderContainer(overrides: _defaultOverrides());
+        addTearDown(container.dispose);
+        container.read(profileLegendProvider.notifier).state = container
+            .read(profileLegendProvider)
+            .copyWith(tooltipFollowsCursor: false);
+
+        await tester.pumpWidget(_wrapContainer(container));
+        await tester.pumpAndSettle();
+
+        final chart = tester.widget<DiveProfileChart>(
+          find.byType(DiveProfileChart),
+        );
+        chart.onTooltipData!(const [
+          TooltipRow(label: 'Zeit', value: '01:00', bulletColor: Colors.blue),
+        ]);
+        await tester.pump();
+        expect(find.text('01:00'), findsOneWidget);
+
+        // The chart reporting null (pointer left its own hit-testable area)
+        // must not blank the panel.
+        chart.onTooltipData!(null);
+        await tester.pump();
+        expect(find.text('01:00'), findsOneWidget);
+      },
+    );
+
+    testWidgets('leaving the setting on keeps the default cursor tooltip', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(_defaultOverrides()));
+      await tester.pumpAndSettle();
+
+      final chart = tester.widget<DiveProfileChart>(
+        find.byType(DiveProfileChart),
+      );
+      expect(chart.tooltipPresentation, TooltipPresentation.inChart);
+      expect(chart.onTooltipData, isNull);
+    });
   });
 
   group('phone layout', () {

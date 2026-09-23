@@ -100,10 +100,18 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.byType(CheckedPopupMenuItem<SceneOverlay>), findsNWidgets(5));
-    await tester.tap(find.text('Temperature layers'));
+    // CheckedPopupMenuItem wraps its child in an IgnorePointer, so the label
+    // can never be hit-tested; tap the menu item that handles the gesture.
+    await tester.tap(
+      find.ancestor(
+        of: find.text('Temperature layers'),
+        matching: find.byType(CheckedPopupMenuItem<SceneOverlay>),
+      ),
+    );
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
-    // Re-open: the entry is now unchecked (state flipped without error).
+    // Re-open: the entry started unchecked, so tapping it checked it
+    // (state flipped without error).
     await tester.tap(find.byIcon(Icons.layers));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
@@ -335,7 +343,13 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.byType(CheckedPopupMenuItem<String>), findsNWidgets(2));
-      await tester.tap(find.text('None'));
+      // The label sits inside CheckedPopupMenuItem's IgnorePointer.
+      await tester.tap(
+        find.ancestor(
+          of: find.text('None'),
+          matching: find.byType(CheckedPopupMenuItem<String>),
+        ),
+      );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       expect(find.text('Z axis: None'), findsOneWidget);

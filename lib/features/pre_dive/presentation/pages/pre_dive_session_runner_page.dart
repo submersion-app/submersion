@@ -5,7 +5,6 @@ import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/domain/services/cell_linearity.dart';
 import 'package:submersion/features/pre_dive/domain/services/checklist_session_engine.dart';
@@ -94,9 +93,12 @@ class PreDiveSessionRunnerPage extends ConsumerWidget {
   ) async {
     final equipmentId = item.equipmentId;
     if (equipmentId == null) return null;
-    final statuses = await ref.read(
-      serviceClockStatusesProvider(equipmentId).future,
+    // The same batched evaluation the rows display, so freezing a row never
+    // brings back a provider per row.
+    final clocks = await ref.read(
+      sessionServiceClocksProvider(sessionId).future,
     );
+    final statuses = clocks[equipmentId] ?? const [];
     return [
       for (final status in statuses) OverdueServiceEntry.fromStatus(status),
     ];

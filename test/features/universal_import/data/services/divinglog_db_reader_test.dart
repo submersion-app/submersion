@@ -153,6 +153,124 @@ Uint8List buildOddLogbook({required bool unrecognisable}) {
   return bytes;
 }
 
+/// A logbook with every reference table populated and one dive wired to
+/// all of them.
+Uint8List buildReferenceLogbook() {
+  final dir = Directory.systemTemp.createTempSync('dl_refs');
+  final path = '${dir.path}/logbook.sql';
+  final db = sqlite3.open(path);
+  db.execute("""
+CREATE TABLE Logbook (
+  ID INTEGER PRIMARY KEY, UUID TEXT, Divedate TEXT, Entrytime TEXT,
+  Buddy TEXT, BuddyIDs TEXT, UsedEquip TEXT, Divetype TEXT,
+  PlaceID INTEGER, CityID INTEGER, CountryID INTEGER,
+  ShopID INTEGER, TripID INTEGER, Depth REAL
+)""");
+  db.execute(
+    "INSERT INTO Logbook VALUES (1, 'u1', '2024-06-01', '09:30', "
+    "'Ignored Text', '1,2', '3,7', '5,6', 10, 20, 30, 40, 50, 18.5)",
+  );
+  db.execute("""
+CREATE TABLE Buddy (
+  ID INTEGER PRIMARY KEY, FirstName TEXT, LastName TEXT, Email TEXT,
+  Phone TEXT, Mobile TEXT, Comments TEXT, URL TEXT
+)""");
+  db.execute(
+    "INSERT INTO Buddy VALUES (1, 'Alice', 'Smith', 'a@x.test', '123', "
+    "NULL, 'good buddy', NULL)",
+  );
+  db.execute(
+    "INSERT INTO Buddy VALUES (2, 'Bob', NULL, NULL, NULL, NULL, NULL, NULL)",
+  );
+  db.execute("""
+CREATE TABLE Place (
+  ID INTEGER PRIMARY KEY, CountryID INTEGER, Place TEXT, Lat REAL, Lon REAL,
+  MaxDepth REAL, WaterName TEXT, Difficulty TEXT, Comments TEXT
+)""");
+  db.execute(
+    "INSERT INTO Place VALUES (10, 30, 'Salt Pier', 12.13, -68.28, 24.0, "
+    "'Caribbean', 'Easy', 'pier dive')",
+  );
+  db.execute(
+    'CREATE TABLE City (ID INTEGER PRIMARY KEY, CountryID INTEGER, City TEXT)',
+  );
+  db.execute("INSERT INTO City VALUES (20, 30, 'Kralendijk')");
+  db.execute('CREATE TABLE Country (ID INTEGER PRIMARY KEY, Country TEXT)');
+  db.execute("INSERT INTO Country VALUES (30, 'Bonaire')");
+  db.execute("""
+CREATE TABLE Equipment (
+  ID INTEGER PRIMARY KEY, Object TEXT, Manufacturer TEXT, Serial TEXT,
+  DateP TEXT, Price REAL, Weight REAL, Inactive INTEGER, O2ServiceDate TEXT,
+  Comments TEXT
+)""");
+  db.execute(
+    "INSERT INTO Equipment VALUES (3, 'Go Sport Fins', 'ScubaPro', 'SN1', "
+    "'2020-01-02', 99.0, 1.4968, 0, NULL, 'blue')",
+  );
+  db.execute(
+    "INSERT INTO Equipment VALUES (7, 'Wet Suit (5mm full body)', "
+    "'Henderson', NULL, NULL, NULL, NULL, 1, NULL, NULL)",
+  );
+  db.execute("""
+CREATE TABLE Trip (
+  ID INTEGER PRIMARY KEY, ShopID INTEGER, TripName TEXT, StartDate TEXT,
+  EndDate TEXT, Comments TEXT
+)""");
+  db.execute(
+    "INSERT INTO Trip VALUES (50, 40, 'Bonaire 2024', '2024-05-30', "
+    "'2024-06-08', 'shore week')",
+  );
+  db.execute("""
+CREATE TABLE Shop (
+  ID INTEGER PRIMARY KEY, ShopName TEXT, ShopType TEXT, Street TEXT,
+  City TEXT, State TEXT, Zip TEXT, Country TEXT, Phone TEXT, Email TEXT,
+  URL TEXT, Comments TEXT
+)""");
+  db.execute(
+    "INSERT INTO Shop VALUES (40, 'Dive Friends', 'Dive Center', 'Kaya', "
+    "'Kralendijk', NULL, NULL, 'Bonaire', '555', 'd@x.test', "
+    "'https://x.test', 'friendly')",
+  );
+  db.execute(
+    'CREATE TABLE Divetype '
+    '(ID INTEGER PRIMARY KEY, Typename TEXT, SortOrd INTEGER)',
+  );
+  db.execute("INSERT INTO Divetype VALUES (5, 'Education', 5)");
+  db.execute("INSERT INTO Divetype VALUES (6, 'Live Aboard', 6)");
+  db.execute("""
+CREATE TABLE Brevets (
+  ID INTEGER PRIMARY KEY, Brevet TEXT, Org TEXT, CertDate TEXT,
+  Number TEXT, Instructor TEXT
+)""");
+  db.execute(
+    "INSERT INTO Brevets VALUES (1, 'Rescue Diver', 'PADI', '2023-09-08', "
+    "'12345', 'Jane Doe')",
+  );
+  db.execute(
+    'CREATE TABLE Fish '
+    '(ID INTEGER PRIMARY KEY, CommonName TEXT, ScientificName TEXT)',
+  );
+  db.execute(
+    "INSERT INTO Fish VALUES (99, 'Giant Manta Ray', 'Mobula birostris')",
+  );
+  db.execute(
+    'CREATE TABLE FishRel '
+    '(ID INTEGER PRIMARY KEY, LogID INTEGER, FishID INTEGER)',
+  );
+  db.execute('INSERT INTO FishRel VALUES (1, 1, 99)');
+  db.execute("""
+CREATE TABLE Pictures (
+  ID INTEGER PRIMARY KEY, LogID INTEGER, Path TEXT, Description TEXT
+)""");
+  db.execute(
+    "INSERT INTO Pictures VALUES (1, 1, '/photos/dive1.jpg', 'manta')",
+  );
+  db.close();
+  final bytes = File(path).readAsBytesSync();
+  dir.deleteSync(recursive: true);
+  return bytes;
+}
+
 void main() {
   group('DivingLogDbReader.matchesTables', () {
     test('accepts a Diving Log table set', () {
@@ -437,5 +555,177 @@ void main() {
       expect(d.depthMeters, closeTo(18.5, 1e-9));
       expect(d.weightKg, closeTo(5.5, 1e-9));
     });
+  });
+
+  group('reference tables', () {
+    test('diagnoses a reference table that has lost its key column', () async {
+      // The same shape as the keyless DeletedRecords and Tank cases: the
+      // table is present, so "no Buddy table" would be wrong, but without
+      // its id nothing in it can be matched to a dive.
+      final dir = Directory.systemTemp.createTempSync('dl_keyless_ref');
+      final path = '${dir.path}/logbook.sql';
+      final db = sqlite3.open(path);
+      db.execute(
+        'CREATE TABLE Logbook (ID INTEGER PRIMARY KEY, Divedate TEXT)',
+      );
+      db.execute('CREATE TABLE Buddy (FirstName TEXT, LastName TEXT)');
+      db.close();
+      final bytes = File(path).readAsBytesSync();
+      dir.deleteSync(recursive: true);
+
+      final book = await DivingLogDbReader.readAll(bytes);
+      expect(book.buddiesById, isEmpty);
+      expect(
+        book.schemaNotes.join(' '),
+        contains('Buddy table has no ID column'),
+      );
+    });
+
+    test('diagnoses a FishRel table missing its second join column', () async {
+      // FishRel needs both LogID and FishID. Requiring only LogID let a
+      // drifted table drop every marine-life link with no diagnostic.
+      final dir = Directory.systemTemp.createTempSync('dl_fishrel');
+      final path = '${dir.path}/logbook.sql';
+      final db = sqlite3.open(path);
+      db.execute(
+        'CREATE TABLE Logbook (ID INTEGER PRIMARY KEY, Divedate TEXT)',
+      );
+      db.execute(
+        'CREATE TABLE FishRel (ID INTEGER PRIMARY KEY, LogID INTEGER)',
+      );
+      db.close();
+      final bytes = File(path).readAsBytesSync();
+      dir.deleteSync(recursive: true);
+
+      final book = await DivingLogDbReader.readAll(bytes);
+      expect(book.speciesIdsByLogId, isEmpty);
+      expect(book.schemaNotes.join(' '), contains('FishRel'));
+      expect(book.schemaNotes.join(' '), contains('FishID'));
+    });
+
+    test(
+      'diagnoses a reference table with no usable payload columns',
+      () async {
+        // A Buddy table with an ID and no name parts yields rows the mapper
+        // discards, so the diver loses their buddy list with nothing said.
+        final dir = Directory.systemTemp.createTempSync('dl_no_names');
+        final path = '${dir.path}/logbook.sql';
+        final db = sqlite3.open(path);
+        db.execute(
+          'CREATE TABLE Logbook (ID INTEGER PRIMARY KEY, Divedate TEXT)',
+        );
+        db.execute('CREATE TABLE Buddy (ID INTEGER PRIMARY KEY, Email TEXT)');
+        db.close();
+        final bytes = File(path).readAsBytesSync();
+        dir.deleteSync(recursive: true);
+
+        final book = await DivingLogDbReader.readAll(bytes);
+        final notes = book.schemaNotes.join(' ');
+        expect(notes, contains('Buddy'));
+        expect(notes, contains('FirstName'));
+      },
+    );
+
+    test('reads the id columns off the dive row', () async {
+      final book = await DivingLogDbReader.readAll(buildReferenceLogbook());
+      final d = book.dives.single;
+      expect(d.buddyIds, [1, 2]);
+      expect(d.equipmentIds, [3, 7]);
+      expect(d.diveTypeIds, [5, 6]);
+      expect(d.placeId, 10);
+      expect(d.cityId, 20);
+      expect(d.countryId, 30);
+      expect(d.shopId, 40);
+      expect(d.tripId, 50);
+    });
+
+    test('reads buddies with a joined display name', () async {
+      final book = await DivingLogDbReader.readAll(buildReferenceLogbook());
+      expect(book.buddiesById[1]!.fullName, 'Alice Smith');
+      expect(book.buddiesById[1]!.email, 'a@x.test');
+      expect(book.buddiesById[2]!.fullName, 'Bob');
+    });
+
+    test('reads coordinates stored as degrees minutes seconds', () async {
+      final dir = Directory.systemTemp.createTempSync('dl_dms');
+      final path = '${dir.path}/logbook.sql';
+      final db = sqlite3.open(path);
+      db.execute(
+        'CREATE TABLE Logbook (ID INTEGER PRIMARY KEY, Divedate TEXT)',
+      );
+      db.execute(
+        'CREATE TABLE Place (ID INTEGER PRIMARY KEY, Place TEXT, Lat TEXT, '
+        'Lon TEXT)',
+      );
+      // The real export writes this form, not a decimal.
+      db.execute(
+        'INSERT INTO Place VALUES '
+        '(1, \'Arch Cave\', \'19°38\'\'27.80"N\', \'156°0\'\'31.98"W\')',
+      );
+      db.close();
+      final bytes = File(path).readAsBytesSync();
+      dir.deleteSync(recursive: true);
+
+      final book = await DivingLogDbReader.readAll(bytes);
+      final place = book.placesById[1]!;
+      expect(place.latitude, closeTo(19 + 38 / 60 + 27.80 / 3600, 1e-9));
+      expect(place.longitude, closeTo(-(156 + 0 / 60 + 31.98 / 3600), 1e-9));
+    });
+
+    test('reads places with coordinates', () async {
+      final book = await DivingLogDbReader.readAll(buildReferenceLogbook());
+      final place = book.placesById[10]!;
+      expect(place.place, 'Salt Pier');
+      expect(place.latitude, closeTo(12.13, 1e-9));
+      expect(place.longitude, closeTo(-68.28, 1e-9));
+      expect(place.maxDepthMeters, closeTo(24.0, 1e-9));
+      expect(book.cityNamesById[20], 'Kralendijk');
+      expect(book.countryNamesById[30], 'Bonaire');
+    });
+
+    test('reads equipment including the retired flag and weight', () async {
+      final book = await DivingLogDbReader.readAll(buildReferenceLogbook());
+      expect(book.equipmentById[3]!.object, 'Go Sport Fins');
+      expect(book.equipmentById[3]!.weightKg, closeTo(1.4968, 1e-9));
+      expect(book.equipmentById[3]!.inactive, isFalse);
+      expect(book.equipmentById[7]!.inactive, isTrue);
+    });
+
+    test('reads trips, shops, dive types and certifications', () async {
+      final book = await DivingLogDbReader.readAll(buildReferenceLogbook());
+      expect(book.tripsById[50]!.name, 'Bonaire 2024');
+      expect(book.tripsById[50]!.shopId, 40);
+      expect(book.shopsById[40]!.name, 'Dive Friends');
+      expect(book.shopsById[40]!.shopType, 'Dive Center');
+      expect(book.diveTypesById[5]!.name, 'Education');
+      expect(book.certifications.single.name, 'Rescue Diver');
+      expect(book.certifications.single.organisation, 'PADI');
+    });
+
+    test('reads species and their dive links', () async {
+      final book = await DivingLogDbReader.readAll(buildReferenceLogbook());
+      expect(book.speciesById[99]!.commonName, 'Giant Manta Ray');
+      expect(book.speciesById[99]!.scientificName, 'Mobula birostris');
+      expect(book.speciesIdsByLogId[1], [99]);
+    });
+
+    test('reads pictures keyed by dive', () async {
+      final book = await DivingLogDbReader.readAll(buildReferenceLogbook());
+      expect(book.picturesByLogId[1]!.single.path, '/photos/dive1.jpg');
+      expect(book.picturesByLogId[1]!.single.description, 'manta');
+    });
+
+    test(
+      'leaves the maps empty and notes the gap when tables are absent',
+      () async {
+        // The phase 1 fixture has Logbook and Tank only.
+        final book = await DivingLogDbReader.readAll(buildDivingLogWithRows());
+        expect(book.buddiesById, isEmpty);
+        expect(book.equipmentById, isEmpty);
+        final notes = book.schemaNotes.join(' ');
+        expect(notes, contains('Buddy'));
+        expect(notes, contains('Equipment'));
+      },
+    );
   });
 }

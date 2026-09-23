@@ -278,6 +278,25 @@ void main() {
     },
   );
 
+  test('an explicit spanMeters overrides the default and reaches the '
+      'source (LOD patch fetch)', () async {
+    final a = FakeSource('a', result: gridWith(wet, 'a'));
+    final res = await BathymetryResolver(
+      sources: [a],
+    ).resolve(p, spanMeters: 500);
+    expect(res.grid!.sourceId, 'a');
+    expect(a.lastSpanMeters, 500);
+  });
+
+  test(
+    'omitting spanMeters keeps the existing 8 km default behavior',
+    () async {
+      final a = FakeSource('a', result: gridWith(wet, 'a'));
+      await BathymetryResolver(sources: [a]).resolve(p);
+      expect(a.lastSpanMeters, BathymetryResolver.defaultSpanMeters);
+    },
+  );
+
   test('a probe that throws is treated as not covering', () async {
     final res = await BathymetryResolver(
       sources: [

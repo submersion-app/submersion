@@ -31,6 +31,10 @@ DateTime _dayOnly(DateTime dt) => DateTime(dt.year, dt.month, dt.day);
 /// daylight-saving change lands an hour short and loses a whole calendar day:
 /// from 2026-09-20, `add(Duration(days: 43))` gives 2026-11-01 23:00, not
 /// 2026-11-02, and a four-day trip becomes a three-day one.
+///
+/// The difference only shows in a zone that observes the transition, so this
+/// file is listed in the Timezone Tests CI job; the runners are UTC, where
+/// reverting this helper would change nothing and pass.
 DateTime _daysFrom(DateTime day, int days) =>
     DateTime(day.year, day.month, day.day + days);
 

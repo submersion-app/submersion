@@ -82,6 +82,7 @@ class SpatialGeometryService {
           minNorth: 0.0,
           maxNorth: 0.0,
           maxDepth: 1.0,
+          verticalExaggeration: 1.0,
         ),
         contourLabels: const <ContourLabelSpec>[],
       );
@@ -225,6 +226,9 @@ class SpatialGeometryService {
         minNorth: minN,
         maxNorth: maxN,
         maxDepth: maxDepth,
+        // This scene (a single dive's path, not the site terrain issue
+        // #2141 targets) stays true to scale.
+        verticalExaggeration: 1.0,
       ),
       contourLabels: contours.labels,
     );

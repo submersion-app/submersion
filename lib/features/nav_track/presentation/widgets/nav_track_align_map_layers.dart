@@ -90,6 +90,7 @@ class NavTrackTrustMarkerLayer extends StatelessWidget {
     required this.activeStart,
     required this.cumulative,
     required this.trustedDistance,
+    required this.trustedDistanceLabel,
   });
 
   final NavTrack route;
@@ -98,6 +99,13 @@ class NavTrackTrustMarkerLayer extends StatelessWidget {
   final int activeStart;
   final List<double> cumulative;
   final double trustedDistance;
+
+  /// The diver's own unit (m/ft), already formatted by `UnitFormatter`
+  /// (spec: "Anything displaying units should respect the active diver's
+  /// unit settings") -- computed once by the caller rather than in here,
+  /// since this is a plain [StatelessWidget] with no provider access of its
+  /// own.
+  final String trustedDistanceLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +122,7 @@ class NavTrackTrustMarkerLayer extends StatelessWidget {
           height: 20,
           child: Tooltip(
             message: context.l10n.navTrack_align_trustSummary(
-              trustedDistance.toStringAsFixed(0),
+              trustedDistanceLabel,
               ((route.points[index].timestamp -
                           route.points[activeStart].timestamp) /
                       60)

@@ -50,4 +50,32 @@ void main() {
       () => expect(pressureAtTimestamp(const [], 10), isNull),
     );
   });
+
+  group('tankPressureRange', () {
+    test('spans the min and max across every tank\'s samples', () {
+      final range = tankPressureRange({
+        'tank1': [
+          const TankPressurePoint(tankId: 'tank1', timestamp: 0, pressure: 200),
+          const TankPressurePoint(
+            tankId: 'tank1',
+            timestamp: 60,
+            pressure: 150,
+          ),
+        ],
+        'tank2': [
+          const TankPressurePoint(tankId: 'tank2', timestamp: 0, pressure: 210),
+          const TankPressurePoint(tankId: 'tank2', timestamp: 60, pressure: 90),
+        ],
+      });
+      expect(range, (min: 90.0, max: 210.0));
+    });
+
+    test('returns null for an empty map', () {
+      expect(tankPressureRange(const {}), isNull);
+    });
+
+    test('returns null when every tank has no samples', () {
+      expect(tankPressureRange({'tank1': const [], 'tank2': const []}), isNull);
+    });
+  });
 }

@@ -13,6 +13,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/children_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -142,7 +143,20 @@ Widget host({
       childEquipmentProvider(
         equipment.id,
       ).overrideWith((ref) => load?.call() ?? Future.value(children)),
-      equipmentWorstClockProvider.overrideWith((ref) async => worst),
+      // These cards read the rollup now, so a part whose own sub-part is
+      // overdue lights up here exactly as it does in the equipment list
+      // (#2260). The fixtures still describe DueClocks; convert at the
+      // boundary rather than restating every case.
+      equipmentRollupClockProvider.overrideWith(
+        (ref) async => {
+          for (final e in worst.entries)
+            e.key: (
+              ownerId: e.value.item.id,
+              ownerName: e.value.item.name,
+              status: e.value.status,
+            ),
+        },
+      ),
       if (repo != null) equipmentRepositoryProvider.overrideWithValue(repo),
     ],
     child: MaterialApp.router(
@@ -156,18 +170,23 @@ Widget host({
 
 void main() {
   final now = DateTime.now();
+  // Ages render as an exact calendar-day difference: parentDivesFrom
+  // truncates the install instant to its local calendar day, so an
+  // elapsed-time Duration that crosses a daylight-saving change lands on
+  // the previous day and the card reads "41 days ago" for a 40-day part.
+  final today = DateTime(now.year, now.month, now.day);
   final cell = child(
     'c1',
     'Cell 1',
     EquipmentType.o2Cell,
     slot: 1,
-    installed: now.subtract(const Duration(days: 40)),
+    installed: DateTime(today.year, today.month, today.day - 40),
   );
   final battery = child(
     'b1',
     'Handset battery',
     EquipmentType.battery,
-    installed: now.subtract(const Duration(days: 200)),
+    installed: DateTime(today.year, today.month, today.day - 200),
   );
 
   testWidgets('lists slot, age and the worst clock dot', (tester) async {
@@ -246,7 +265,7 @@ void main() {
       name: 'Spare cell',
       type: EquipmentType.o2Cell,
       parentEquipmentId: 'r1',
-      createdAt: now.subtract(const Duration(days: 12)),
+      createdAt: DateTime(today.year, today.month, today.day - 12),
     );
     await tester.pumpWidget(host(equipment: ccr, children: [bare]));
     await tester.pumpAndSettle();
@@ -311,7 +330,7 @@ void main() {
       'Spare cell',
       EquipmentType.o2Cell,
       slot: 0,
-      installed: now.subtract(const Duration(days: 40)),
+      installed: DateTime(today.year, today.month, today.day - 40),
     );
     await tester.pumpWidget(host(equipment: ccr, children: [odd]));
     await tester.pumpAndSettle();

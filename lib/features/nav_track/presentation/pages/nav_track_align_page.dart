@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/utils/geo_math.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/data/bathymetry_repository.dart';
 import 'package:submersion/features/bathymetry/presentation/bathymetry_depth_overlay_layer.dart';
@@ -28,6 +29,7 @@ import 'package:submersion/features/nav_track/presentation/widgets/nav_track_ali
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_map_layers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_align_rotation_control.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_polyline_layer.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// What the crosshair-and-pan flow is currently placing, or nothing.
@@ -304,6 +306,7 @@ class _AlignPageBody extends ConsumerWidget {
     );
     final totalDistance = cumulative.isEmpty ? 0.0 : cumulative.last;
     final trustedDistance = correction.trustFraction * totalDistance;
+    final units = UnitFormatter(ref.watch(settingsProvider));
     // Computed once per build and shared by every layer that needs it below
     // -- each drag/slider frame already rebuilds this widget, so applying
     // the correction transform again per layer would repeat the same
@@ -371,6 +374,9 @@ class _AlignPageBody extends ConsumerWidget {
                           activeStart: activeStart,
                           cumulative: cumulative,
                           trustedDistance: trustedDistance,
+                          trustedDistanceLabel: units.formatDistance(
+                            trustedDistance,
+                          ),
                         ),
                       if (anchor != null)
                         NavTrackDraggableMarker(
@@ -635,7 +641,9 @@ class _ControlsPanel extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(
               l10n.navTrack_align_trustSummary(
-                trustedDistance.toStringAsFixed(0),
+                UnitFormatter(
+                  ref.watch(settingsProvider),
+                ).formatDistance(trustedDistance),
                 trustedMinutes,
               ),
             ),

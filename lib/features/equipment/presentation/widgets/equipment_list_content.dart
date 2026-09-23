@@ -9,6 +9,7 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_attr_
 import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/bulk_action.dart';
@@ -28,13 +29,13 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
+import 'package:submersion/features/equipment/domain/models/service_due_filter_display.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
 import 'package:submersion/features/equipment/presentation/providers/condition_badge_providers.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_arranger.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
-import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
@@ -212,7 +213,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   /// would leave pull-to-refresh and error-retry showing stale rows.
   void _invalidateCurrentProvider(WidgetRef ref) {
     final filter = ref.read(equipmentFilterProvider);
-    if (filter.serviceDueOnly) {
+    if (filter.serviceDue != null) {
       // The service-due list derives from the clock evaluation, so refresh
       // that base rather than the leaf, which would replay cached verdicts.
       ref.invalidate(activeEquipmentClocksProvider);
@@ -249,8 +250,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     };
 
     final AsyncValue<List<EquipmentItem>> equipmentAsync;
-    if (filter.serviceDueOnly) {
-      equipmentAsync = ref.watch(serviceDueEquipmentProvider);
+    final serviceDue = filter.serviceDue;
+    if (serviceDue != null) {
+      equipmentAsync = ref.watch(serviceDueEquipmentProvider(serviceDue));
     } else if (filter.status == null) {
       // The default view hides retired gear; the Retired status filter is
       // the way to see it (#636).
@@ -881,9 +883,9 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
               },
             ),
             const SizedBox(width: 8),
-            if (filter.serviceDueOnly)
+            if (filter.serviceDue != null)
               _buildActiveFilterChip(
-                context.l10n.equipment_list_filterServiceDue,
+                filter.serviceDue!.localizedName(context.l10n),
                 () => ref.read(equipmentFilterProvider.notifier).state = filter
                     .copyWith(clearStatus: true),
               ),
@@ -1062,8 +1064,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
       filterText = context.l10n.equipment_list_emptyState_filterText_type(
         filter.type!.localizedName(context.l10n),
       );
-    } else if (filter.serviceDueOnly) {
-      filterText = context.l10n.equipment_list_emptyState_filterText_serviceDue;
+    } else if (filter.serviceDue != null) {
+      filterText = filter.serviceDue!.emptyStateFilterText(context.l10n);
     } else if (filter.status == null) {
       filterText = context.l10n.equipment_list_emptyState_filterText_equipment;
     } else {
@@ -1092,8 +1094,8 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                 ? context.l10n.equipment_list_emptyState_noTagMatch
                 : blameCategory
                 ? context.l10n.equipment_list_emptyState_noTypeMatch
-                : filter.serviceDueOnly
-                ? context.l10n.equipment_list_emptyState_serviceDueUpToDate
+                : filter.serviceDue != null
+                ? filter.serviceDue!.emptyStateSubtitle(context.l10n)
                 : filter.status != null
                 ? context.l10n.equipment_list_emptyState_noStatusMatch
                 : context.l10n.equipment_list_emptyState_addPrompt,
@@ -1298,32 +1300,13 @@ class EquipmentListTile extends ConsumerWidget {
     }
 
     if (worstClock != null) {
-      final overdue =
-          worstClock.status.severity == ServiceClockSeverity.overdue;
-      final kindLabel = worstClock.ownerId == item.id
-          ? worstClock.status.kind.name
-          : context.l10n.equipment_components_rollupClock(
-              worstClock.ownerName,
-              worstClock.status.kind.name,
-            );
       return Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           typeLabel,
           const SizedBox(height: 2),
-          Text(
-            overdue
-                ? context.l10n.equipment_list_worstClock(kindLabel)
-                : kindLabel,
-            style: theme.textTheme.labelSmall?.copyWith(
-              color: serviceSeveritySwatch(
-                StatusColors.of(context),
-                worstClock.status.severity,
-              )?.accent,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          ServiceStatusIndicator(clock: worstClock, subjectId: item.id),
         ],
       );
     }

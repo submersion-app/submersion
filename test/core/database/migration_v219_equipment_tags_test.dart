@@ -93,7 +93,9 @@ void main() {
     expect(AppDatabase.migrationVersions, contains(219));
     expect(AppDatabase.migrationStepCount(218), greaterThanOrEqualTo(1));
     // Additive rung: the sync compatibility floor must not move.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 210);
+    // The floor moved to 224 with the media fact clocks; this rung
+    // still did not move it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
 
   test('adds the equipment_tags junction', () async {

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
+import 'package:submersion/core/constants/o2_cell_unit.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -65,9 +66,15 @@ class ProfileLegendState {
   /// Gas time remaining line. Seeds from [AppSettings.defaultShowGtr].
   final bool showGtr;
 
-  /// Raw O2 cell output lines (issue #810). Seeds from the persisted
-  /// [AppSettings.defaultShowO2CellMv] default (issue #1235).
-  final bool showO2CellMv;
+  /// Per-cell O2 traces, in whichever units the dive carries: ppO2 on the
+  /// aggregate's axis (issue #854), raw millivolts on their own (issue #810).
+  /// Seeds from the persisted [AppSettings.defaultShowO2CellMv] default, whose
+  /// name predates the ppO2 traces (issue #1235).
+  final bool showO2Cells;
+
+  /// Which unit the cell traces use on a dive that logs both. Seeds from the
+  /// device-local [AppSettings.o2CellUnit].
+  final O2CellUnit o2CellUnit;
 
   // Per-metric data source preferences (session overrides).
   // The ceiling line has no source toggle: every import path stores only the
@@ -96,6 +103,13 @@ class ProfileLegendState {
   /// [AppSettings.profileMetricsFollowViewport]; this is a rendering mode, not
   /// a series toggle, so it is excluded from [activeSecondaryCount].
   final bool metricsFollowViewport;
+
+  /// Whether the fullscreen profile's cursor tooltip follows the mouse
+  /// (or playback position) versus staying docked in a fixed corner. The
+  /// fixed placement never occludes the plot near the cursor, at the cost
+  /// of not sitting right next to the value it describes (issue #2228
+  /// follow-up).
+  final bool tooltipFollowsCursor;
 
   const ProfileLegendState({
     this.rightAxisMetric,
@@ -126,7 +140,8 @@ class ProfileLegendState {
     this.showTts = false,
     this.showCns = false,
     this.showOtu = false,
-    this.showO2CellMv = false,
+    this.showO2Cells = false,
+    this.o2CellUnit = O2CellUnit.ppO2,
     this.showGtr = false,
     this.ndlSource = MetricDataSource.calculated,
     this.ttsSource = MetricDataSource.calculated,
@@ -146,6 +161,7 @@ class ProfileLegendState {
       'display': false,
     },
     this.metricsFollowViewport = false,
+    this.tooltipFollowsCursor = true,
   });
 
   /// Count of active secondary toggles (for badge display)
@@ -173,7 +189,7 @@ class ProfileLegendState {
     if (showTts) count++;
     if (showCns) count++;
     if (showOtu) count++;
-    if (showO2CellMv) count++;
+    if (showO2Cells) count++;
     if (showGtr) count++;
     count += showTankPressure.values.where((v) => v).length;
     return count;
@@ -212,7 +228,8 @@ class ProfileLegendState {
     bool? showTts,
     bool? showCns,
     bool? showOtu,
-    bool? showO2CellMv,
+    bool? showO2Cells,
+    O2CellUnit? o2CellUnit,
     bool? showGtr,
     MetricDataSource? ndlSource,
     MetricDataSource? ttsSource,
@@ -223,6 +240,7 @@ class ProfileLegendState {
     bool? showGas,
     Map<String, bool>? sectionExpanded,
     bool? metricsFollowViewport,
+    bool? tooltipFollowsCursor,
   }) {
     return ProfileLegendState(
       rightAxisMetric: clearRightAxisMetric
@@ -255,7 +273,8 @@ class ProfileLegendState {
       showTts: showTts ?? this.showTts,
       showCns: showCns ?? this.showCns,
       showOtu: showOtu ?? this.showOtu,
-      showO2CellMv: showO2CellMv ?? this.showO2CellMv,
+      showO2Cells: showO2Cells ?? this.showO2Cells,
+      o2CellUnit: o2CellUnit ?? this.o2CellUnit,
       showGtr: showGtr ?? this.showGtr,
       ndlSource: ndlSource ?? this.ndlSource,
       ttsSource: ttsSource ?? this.ttsSource,
@@ -267,6 +286,7 @@ class ProfileLegendState {
       sectionExpanded: sectionExpanded ?? this.sectionExpanded,
       metricsFollowViewport:
           metricsFollowViewport ?? this.metricsFollowViewport,
+      tooltipFollowsCursor: tooltipFollowsCursor ?? this.tooltipFollowsCursor,
     );
   }
 
@@ -303,7 +323,8 @@ class ProfileLegendState {
           showTts == other.showTts &&
           showCns == other.showCns &&
           showOtu == other.showOtu &&
-          showO2CellMv == other.showO2CellMv &&
+          showO2Cells == other.showO2Cells &&
+          o2CellUnit == other.o2CellUnit &&
           showGtr == other.showGtr &&
           ndlSource == other.ndlSource &&
           ttsSource == other.ttsSource &&
@@ -313,6 +334,7 @@ class ProfileLegendState {
           mapEquals(showTankPressure, other.showTankPressure) &&
           showGas == other.showGas &&
           metricsFollowViewport == other.metricsFollowViewport &&
+          tooltipFollowsCursor == other.tooltipFollowsCursor &&
           mapEquals(sectionExpanded, other.sectionExpanded);
 
   @override
@@ -345,7 +367,8 @@ class ProfileLegendState {
     showTts,
     showCns,
     showOtu,
-    showO2CellMv,
+    showO2Cells,
+    o2CellUnit,
     showGtr,
     ndlSource,
     ttsSource,
@@ -355,6 +378,7 @@ class ProfileLegendState {
     ...showTankPressure.entries,
     showGas,
     metricsFollowViewport,
+    tooltipFollowsCursor,
     ...sectionExpanded.entries,
   ]);
 }
@@ -415,6 +439,14 @@ class ProfileLegend extends _$ProfileLegend {
         ),
       ),
     );
+    // The cell unit is written from the chart itself (chart options dialog),
+    // so watching it would rebuild this provider, and so reset every session
+    // toggle, including the cell traces, on the very pick that persists it.
+    // Seed it once and apply later changes in place instead.
+    ref.listen(
+      settingsProvider.select((s) => s.o2CellUnit),
+      (_, unit) => state = state.copyWith(o2CellUnit: unit),
+    );
     return ProfileLegendState(
       // rightAxisMetric is null initially - uses setting default via fallback
       showTemperature: settings.defaultShowTemperature,
@@ -431,7 +463,8 @@ class ProfileLegend extends _$ProfileLegend {
       showGasSwitchMarkers: settings.defaultShowGasSwitchMarkers,
       showPhotoMarkers: settings.defaultShowPhotoMarkers,
       showGas: settings.defaultShowGasTimeline,
-      showO2CellMv: settings.defaultShowO2CellMv,
+      showO2Cells: settings.defaultShowO2CellMv,
+      o2CellUnit: ref.read(settingsProvider).o2CellUnit,
       showNdl: settings.showNdlOnProfile,
       showPpO2: settings.defaultShowPpO2,
       showPpN2: settings.defaultShowPpN2,
@@ -458,6 +491,12 @@ class ProfileLegend extends _$ProfileLegend {
   /// device-local default untouched.
   void toggleMetricsFollowViewport() {
     state = state.copyWith(metricsFollowViewport: !state.metricsFollowViewport);
+  }
+
+  /// Flip the fullscreen tooltip between cursor-following and a fixed,
+  /// non-occluding corner placement, for this chart session only.
+  void toggleTooltipFollowsCursor() {
+    state = state.copyWith(tooltipFollowsCursor: !state.tooltipFollowsCursor);
   }
 
   /// Set the right axis metric for this session (also un-hides it)
@@ -615,8 +654,12 @@ class ProfileLegend extends _$ProfileLegend {
     state = state.copyWith(showOtu: !state.showOtu);
   }
 
-  void toggleO2CellMv() {
-    state = state.copyWith(showO2CellMv: !state.showO2CellMv);
+  void toggleO2Cells() {
+    state = state.copyWith(showO2Cells: !state.showO2Cells);
+  }
+
+  void setO2CellUnit(O2CellUnit unit) {
+    state = state.copyWith(o2CellUnit: unit);
   }
 
   // Data source set methods (for SegmentedButton)

@@ -115,7 +115,7 @@ class DiveProfileChartHost extends ConsumerWidget {
     required this.dive,
     this.exportKey,
     this.legendLeading,
-    this.tooltipBelow = false,
+    this.tooltipPresentation = TooltipPresentation.inChart,
     this.onTooltipData,
     this.onSafetyFindingDetails,
   });
@@ -131,10 +131,9 @@ class DiveProfileChartHost extends ConsumerWidget {
   /// button and title).
   final Widget? legendLeading;
 
-  /// Hand tooltip rows to the host instead of painting them over the plot.
-  /// Needed where there is no headroom above the chart for the painted
-  /// tooltip to land in.
-  final bool tooltipBelow;
+  /// Which of the three mutually exclusive ways the hosted chart shows the
+  /// touched/hovered sample's readout. See [TooltipPresentation].
+  final TooltipPresentation tooltipPresentation;
 
   final void Function(List<TooltipRow>? rows)? onTooltipData;
 
@@ -184,7 +183,6 @@ class DiveProfileChartHost extends ConsumerWidget {
         .watch(estimatedTankPressuresProvider(diveId))
         .value;
 
-    final playbackState = ref.watch(playbackProvider(diveId));
     final rangeState = ref.watch(rangeSelectionProvider(diveId));
 
     final sourceProfiles =
@@ -266,13 +264,7 @@ class DiveProfileChartHost extends ConsumerWidget {
         (dataSources.length == 1 ? sourceProfiles[dataSources.first.id] : null);
     final chartProfile = resolvedActive?.points ?? dive.profile;
 
-    _keepExtentsOnDrawnSeries(
-      context,
-      ref,
-      chartProfile,
-      playbackState,
-      rangeState,
-    );
+    _keepExtentsOnDrawnSeries(context, ref, chartProfile, rangeState);
 
     final markers = profileChartMarkers(
       profile: chartProfile,
@@ -360,7 +352,7 @@ class DiveProfileChartHost extends ConsumerWidget {
         diveDuration: dive.effectiveRuntime,
         maxDepth: dive.maxDepth,
         legendLeading: legendLeading,
-        tooltipBelow: tooltipBelow,
+        tooltipPresentation: tooltipPresentation,
         onTooltipData: onTooltipData,
         ceilingCurve: analysis?.ceilingCurve,
         decoStopCurve: analysis?.decoStopCurve,
@@ -409,9 +401,28 @@ class DiveProfileChartHost extends ConsumerWidget {
             ? null
             : chartProfile.last.timestamp,
         computerNames: computerNames,
-        playbackTimestamp: playbackState.isActive
-            ? playbackState.currentTimestamp
-            : null,
+        // No playbackTimestamp: the inline chart is never on screen while
+        // playback runs. Playback is only ever activated by
+        // ProfileTransportControls, which exists solely inside
+        // FullscreenProfilePage, and that page is pushed onto the ROOT
+        // navigator, so it covers this chart completely. Feeding the cursor
+        // from here meant watching the 25ms ticker and re-running this whole
+        // build ~31 times a second behind an opaque page (#2231): a covered
+        // route skips layout and paint, but its elements stay in the tree and
+        // still rebuild. The fullscreen chart draws its own playback cursor
+        // from highlightedTimestamp, which ProfileTransportControls keeps in
+        // sync with the ticker.
+        //
+        // DiveProfileChart.playbackTimestamp stays a supported input, covered
+        // by dive_profile_chart_test.dart, for whenever inline playback
+        // returns (c4e70ae1814 removed the entry point "until the
+        // functionality can be more thought-out"). Whatever revives it needs
+        // to scope the subscription to the cursor rather than to the host.
+        //
+        // playbackIsPlaying is likewise not forwarded here for the same
+        // reason: there is no playback ticker subscription on this host to
+        // read it from any more (issue #2228 follow-up forwarded it briefly
+        // before #2231 removed the underlying watch).
         highlightedTimestamp:
             trackingIndex != null && trackingIndex < chartProfile.length
             ? chartProfile[trackingIndex].timestamp
@@ -464,21 +475,25 @@ class DiveProfileChartHost extends ConsumerWidget {
   /// Re-initializing resets playback position and range selection, which is
   /// the wanted behavior when the series underneath them changed.
   ///
-  /// The comparison runs in build, against state this widget already watches,
-  /// so a frame callback is only scheduled on the rare build that has work to
-  /// do. Scheduling unconditionally would queue a no-op closure 40 times a
-  /// second while a profile plays: the playback timer ticks every 25ms and
-  /// this widget watches its state.
+  /// The comparison runs in build, so a frame callback is only scheduled on
+  /// the rare build that has work to do.
+  ///
+  /// Playback's extent is read, not watched: watching it would resubscribe
+  /// this host to the 25ms ticker that #2231 removed. Reading is enough,
+  /// because the only thing that can invalidate playback's extent is the
+  /// drawn series changing, and this widget already rebuilds for that. The
+  /// one other caller of [PlaybackNotifier.initialize],
+  /// `ProfileTransportControls.initState`, derives its value from the same
+  /// dive's drawn series, so it can only ever agree.
   void _keepExtentsOnDrawnSeries(
     BuildContext context,
     WidgetRef ref,
     List<DiveProfilePoint> chartProfile,
-    PlaybackState playbackState,
     RangeSelectionState rangeState,
   ) {
     if (chartProfile.isEmpty) return;
     final maxTimestamp = chartProfile.last.timestamp;
-    if (playbackState.maxTimestamp == maxTimestamp &&
+    if (ref.read(playbackProvider(dive.id)).maxTimestamp == maxTimestamp &&
         rangeState.maxTimestamp == maxTimestamp) {
       return;
     }

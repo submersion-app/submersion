@@ -58,7 +58,9 @@ Widget _harness({
           child: DiveProfileChart(
             profile: profile,
             gtrCurve: gtrCurve,
-            tooltipBelow: tooltipBelow,
+            tooltipPresentation: tooltipBelow
+                ? TooltipPresentation.external
+                : TooltipPresentation.inChart,
             onTooltipData: onTooltipData,
           ),
         ),
