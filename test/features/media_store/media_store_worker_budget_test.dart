@@ -12,6 +12,7 @@ import 'package:submersion/features/media_store/data/media_delete_processor.dart
 import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
@@ -183,6 +184,26 @@ void main() {
     expect(rows.single.attempts, 0);
   });
 
+  // Spec 7.1: a postponement the user should know about is not silent.
+  test('a budget expiry leaves a reason on the entry', () async {
+    await queue.enqueueUpload(mediaId: 'stuck');
+    final pipeline = buildPipeline(hangOn: {'stuck'});
+    addTearDown(pipeline.releaseAll);
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      entryBudget: budget,
+    );
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+
+    expect(
+      (await queue.allForTesting()).single.errorMessage,
+      contains('budget'),
+    );
+  });
+
   // The preflight runs before every entry and reads smv1/store.json out of the
   // bucket. Only the S3 adapter carries HTTP timeouts of its own, so on the
   // others a stalled read wedges the drain before any row is touched.
@@ -193,7 +214,7 @@ void main() {
     final worker = MediaStoreWorker(
       queue: queue,
       pipeline: pipeline,
-      preflight: () => Completer<bool>().future,
+      preflight: () => Completer<MediaTransferHoldKind?>().future,
       preflightBudget: budget,
     );
     addTearDown(worker.dispose);

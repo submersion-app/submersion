@@ -416,12 +416,34 @@ class MediaTransferQueueRepository {
 
   /// Connectivity/policy postponement: unlike markFailed, no attempt is
   /// consumed - the entry is simply not due until [until].
-  Future<void> defer(int id, DateTime until) async {
+  ///
+  /// [reason] is written as the entry's error when given, so a postponement
+  /// the user should know about (a budget expiry) is not silent; a policy
+  /// deferral passes none and leaves any earlier error in place.
+  Future<void> defer(int id, DateTime until, {String? reason}) async {
     await (_db.update(
       _db.mediaTransferQueue,
     )..where((t) => t.id.equals(id))).write(
       MediaTransferQueueCompanion(
         nextAttemptAt: Value(until.millisecondsSinceEpoch),
+        errorMessage: reason == null ? const Value.absent() : Value(reason),
+        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+      ),
+    );
+  }
+
+  /// Fails [id] terminally with [error], counting no attempt: for an entry
+  /// this device can never process, where a retry ladder would only burn
+  /// time before saying the same thing. The Transfers page's Retry is the
+  /// way back in.
+  Future<void> fail(int id, String error) async {
+    await (_db.update(
+      _db.mediaTransferQueue,
+    )..where((t) => t.id.equals(id))).write(
+      MediaTransferQueueCompanion(
+        state: const Value('failed'),
+        nextAttemptAt: const Value(null),
+        errorMessage: Value(error),
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );

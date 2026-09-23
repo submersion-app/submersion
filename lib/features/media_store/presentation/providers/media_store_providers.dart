@@ -470,7 +470,10 @@ final FutureProvider<MediaStoreRuntime?> mediaStoreRuntimeProvider =
         queue: MediaTransferQueueRepository(),
         pipeline: pipeline,
         deleteProcessor: deleteProcessor,
-        preflight: preflight.call,
+        preflight: preflight.check,
+        // Tells a marker read that failed for want of network (a quiet
+        // hold) from a store that could not be checked (a suspension).
+        isOffline: () async => await network.current() == NetworkKind.offline,
         gate: (entry) async {
           // Network policies (design spec section 9): offline halts the
           // drain; cellular defers anything the policy disallows.

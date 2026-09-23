@@ -7,6 +7,7 @@ import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media_store/data/media_delete_processor.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 import 'package:submersion/features/media_store/domain/media_upload_quality.dart';
 
 /// Per-entry admission decision made just before processing.
@@ -20,7 +21,8 @@ class MediaStoreWorker {
     required MediaTransferQueueRepository queue,
     required MediaUploadPipeline pipeline,
     MediaDeleteProcessor? deleteProcessor,
-    Future<bool> Function()? preflight,
+    Future<MediaTransferHoldKind?> Function()? preflight,
+    Future<bool> Function()? isOffline,
     Future<WorkerGate> Function(MediaTransferQueueEntry entry)? gate,
     Duration entryBudget = defaultEntryBudget,
     Duration preflightBudget = defaultPreflightBudget,
@@ -29,6 +31,7 @@ class MediaStoreWorker {
        _pipeline = pipeline,
        _deleteProcessor = deleteProcessor,
        _preflight = preflight,
+       _isOffline = isOffline,
        _gate = gate,
        _entryBudget = entryBudget,
        _preflightBudget = preflightBudget,
@@ -42,9 +45,15 @@ class MediaStoreWorker {
   /// entries are parked in the defer window instead of processed.
   final MediaDeleteProcessor? _deleteProcessor;
 
-  /// Returns false to suspend the drain (store marker mismatch, design
-  /// spec section 13).
-  final Future<bool> Function()? _preflight;
+  /// Returns null to admit the drain, or the kind of refusal that suspends
+  /// it (detached, or a store marker mismatch; design spec section 13).
+  final Future<MediaTransferHoldKind?> Function()? _preflight;
+
+  /// Asked only when the preflight throws, to tell an offline moment (a
+  /// quiet hold) from a store that cannot be checked (a suspension). Null
+  /// reads as online, and so does a throw from it: the reason then shows,
+  /// which is the safer mistake.
+  final Future<bool> Function()? _isOffline;
 
   /// Network/policy admission (design spec section 9). Null admits all.
   final Future<WorkerGate> Function(MediaTransferQueueEntry entry)? _gate;
@@ -93,6 +102,10 @@ class MediaStoreWorker {
   bool _running = false;
   bool _disposed = false;
   bool _suspended = false;
+
+  /// Whether the queue's current hold is one this worker recorded, so
+  /// [dispose] clears only its own.
+  bool _holding = false;
   final _suspensionChanges = StreamController<bool>.broadcast();
   Future<void>? _activeDrain;
   Timer? _wakeup;
@@ -174,6 +187,7 @@ class MediaStoreWorker {
           final decision = await _gate(entry);
           if (decision == WorkerGate.stopDraining) {
             _log.info('Drain stopped by gate (offline or suspended)');
+            _hold(_offlineHold);
             break;
           }
           if (decision == WorkerGate.deferEntry) {
@@ -184,9 +198,14 @@ class MediaStoreWorker {
         if (entry.direction == 'delete') {
           final deleteProcessor = _deleteProcessor;
           if (deleteProcessor == null) {
-            // No processor wired: park the entry so the drain terminates;
-            // a properly wired worker picks it up later.
-            await _queue.defer(entry.id, DateTime.now().add(deferWindow));
+            // This worker can never process it, and a deferral only hid
+            // that behind a retry that could not succeed (spec 7.1). Failed
+            // with a message, it shows, and Retry brings it back once a
+            // wired worker exists.
+            await _queue.fail(
+              entry.id,
+              'No delete processor on this device; retry once it has one',
+            );
             continue;
           }
           await _withinBudget(entry, () => deleteProcessor.process(entry));
@@ -238,7 +257,13 @@ class MediaStoreWorker {
         'Transfer entry ${entry.id} (media ${entry.mediaId}) exceeded its '
         '${_entryBudget.inMinutes}m budget; deferring it and draining on',
       );
-      await _queue.defer(entry.id, DateTime.now().add(deferWindow));
+      await _queue.defer(
+        entry.id,
+        DateTime.now().add(deferWindow),
+        reason:
+            'Took longer than its ${_entryBudget.inMinutes}m budget; '
+            'retrying later',
+      );
     }
   }
 
@@ -259,17 +284,26 @@ class MediaStoreWorker {
     }
   }
 
-  /// Whether the drain may proceed. Null preflight admits everything.
+  /// Whether the drain may proceed. Null preflight admits everything. Every
+  /// outcome is recorded as the queue's hold (spec 7.1: the queue never
+  /// waits silently), and a pass clears it.
   ///
-  /// A preflight that throws suspends the drain exactly like one that returns
-  /// false. It reads the store marker out of the bucket, so an offline moment
-  /// or a transient S3 failure makes it throw rather than answer - and since
-  /// every drain() call site is fire-and-forget (app start, connectivity
-  /// change, the retry wakeup, enqueueAndKick), an escaping throw had no
-  /// handler and surfaced as an uncaught zone error instead of a suspended
-  /// drain (#942). Suspending is also the safe reading: the check exists to
-  /// stop transfers against a store this device may no longer be attached to,
-  /// so "could not verify" must never be treated as "verified".
+  /// A refusal suspends the drain and names its kind: detached, or a marker
+  /// mismatch.
+  ///
+  /// A preflight that throws stops the drain too. It reads the store marker
+  /// out of the bucket, so an offline moment or a transient failure makes it
+  /// throw rather than answer - and since every drain() call site is
+  /// fire-and-forget (app start, connectivity change, the retry wakeup,
+  /// enqueueAndKick), an escaping throw had no handler and surfaced as an
+  /// uncaught zone error instead of a stopped drain (#942). Stopping is also
+  /// the safe reading: the check exists to stop transfers against a store
+  /// this device may no longer be attached to, so "could not verify" must
+  /// never be treated as "verified". What it tells the user depends on
+  /// [_isOffline]: offline holds quietly, because drain() runs this check
+  /// BEFORE the gate that owns offline and an ordinary moment without network
+  /// must not read as a broken store; online, the store itself could not be
+  /// checked, and that suspends with the error as its reason.
   ///
   /// A preflight that never answers is the same case, and reaches the same
   /// handler: [_preflightBudget] turns the stall into a TimeoutException.
@@ -283,30 +317,75 @@ class MediaStoreWorker {
   /// make that state less diagnosable than the uncaught zone error it replaced.
   Future<bool> _preflightPasses() async {
     final preflight = _preflight;
-    if (preflight == null) return true;
+    if (preflight == null) {
+      _hold(null);
+      return true;
+    }
     try {
-      if (await preflight().timeout(_preflightBudget)) {
-        _setSuspended(false);
+      final refusal = await preflight().timeout(_preflightBudget);
+      if (refusal == null) {
+        _hold(null);
         return true;
       }
-      // A determinate refusal: this device has detached, or the store no
-      // longer carries the marker it attached to. Only this answer is
-      // reported as a suspension, because only this one is about the store.
-      _log.warning('Media store preflight failed; drain suspended');
-      _setSuspended(true);
+      _log.warning('Media store preflight refused ($refusal); drain suspended');
+      _hold(MediaTransferHold(refusal, _refusalMessages[refusal]!));
     } on Object catch (e, stackTrace) {
-      // Could not determine, which is not the same thing and must not be
-      // dressed up as a store problem. Being offline lands here on every
-      // provider - the marker read goes to the network, and drain() runs
-      // this check BEFORE the gate that owns offline - and an ordinary
-      // offline moment must not tell the user their store is broken.
-      _log.warning(
-        'Media store preflight could not run; drain suspended',
-        error: e,
-        stackTrace: stackTrace,
-      );
+      if (await _offline()) {
+        _log.info('Media store preflight could not run while offline');
+        _hold(_offlineHold);
+      } else {
+        _log.warning(
+          'Media store preflight could not run; drain suspended',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        _hold(
+          MediaTransferHold(
+            MediaTransferHoldKind.storeUnreachable,
+            'Could not check the media store: $e',
+          ),
+        );
+      }
     }
     return false;
+  }
+
+  static const _offlineHold = MediaTransferHold(
+    MediaTransferHoldKind.offline,
+    'Offline',
+  );
+
+  /// The diagnostic message for each refusal a preflight can answer.
+  static const _refusalMessages = {
+    MediaTransferHoldKind.offline: 'Offline',
+    MediaTransferHoldKind.storeUnreachable: 'Could not check the media store',
+    MediaTransferHoldKind.detached:
+        'This device is no longer attached to this media store',
+    MediaTransferHoldKind.markerMismatch:
+        'The media store no longer carries the marker this device attached to',
+  };
+
+  Future<bool> _offline() async {
+    final isOffline = _isOffline;
+    if (isOffline == null) return false;
+    try {
+      return await isOffline();
+    } on Object {
+      return false;
+    }
+  }
+
+  /// Records [hold] on the queue, where the summary reads it, and mirrors
+  /// its suspension into [isSuspended].
+  ///
+  /// A no-op once disposed: dispose does not stop a drain already running,
+  /// and the queue's hold is shared with the worker that replaced this one,
+  /// which must not have its reason overwritten by a superseded loop.
+  void _hold(MediaTransferHold? hold) {
+    if (_disposed) return;
+    _holding = hold != null;
+    _queue.recordHold(hold);
+    _setSuspended(hold?.suspends ?? false);
   }
 
   /// Arms a single timer for the soonest deferred row, so a retry that comes
@@ -408,11 +487,20 @@ class MediaStoreWorker {
   /// to completion against a store it already opened. That drain's finally
   /// still calls _armWakeup, which is why the flag - not just the cancel -
   /// is what makes disposal stick.
+  ///
+  /// Clears the queue's hold if this worker recorded it: a disconnect builds
+  /// no runtime in its place, and a hold left standing would name a store
+  /// this device no longer uses. A rebuild's new worker records its own on
+  /// its first drain.
   void dispose() {
     _disposed = true;
     _wakeup?.cancel();
     _wakeup = null;
     _wakeupDelay = null;
+    if (_holding) {
+      _holding = false;
+      _queue.recordHold(null);
+    }
     _suspensionChanges.close();
   }
 

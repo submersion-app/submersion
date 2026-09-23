@@ -43,7 +43,6 @@ void main() {
         reason: 'the Transfers page must be able to say why nothing moves',
       );
     },
-    skip: 'Media sync program S8: turns green in slice 10 (queue visibility)',
   );
 
   test(
