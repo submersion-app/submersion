@@ -5,6 +5,7 @@ import 'package:submersion/features/universal_import/data/models/import_warning.
 import 'package:submersion/features/universal_import/data/services/divinglog_equipment_mapper.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_raw_types.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_reference_mapper.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_sightings_mapper.dart';
 
 /// Turns a [DivingLogLogbook] into an [ImportPayload].
@@ -25,6 +26,10 @@ class DivingLogDiveMapper {
     var sawOtu = false;
     // Counts of ids that matched no row, by kind, reported once each.
     final unresolved = <String, int>{};
+    // Dives whose PlaceID names a row the file does not carry, or carries
+    // with neither a name nor coordinates, and that no location text rescued.
+    // They import without a site, which used to happen in silence (#2232).
+    var divesMissingSite = 0;
     final referenceSites = DivingLogReferenceMapper.sites(logbook);
     final referenceBuddies = DivingLogReferenceMapper.buddies(logbook);
     final equipment = DivingLogEquipmentMapper.entities(logbook);
@@ -98,6 +103,7 @@ class DivingLogDiveMapper {
         }
         map['site'] = <String, dynamic>{'uddfId': siteKey};
       }
+      if (raw.placeId != null && map['site'] == null) divesMissingSite++;
 
       // Refs carry the stored entity's id, never this row's spelling.
       // The maps dedupe on lowercase, so a log holding both `Alice` and
@@ -210,6 +216,11 @@ class DivingLogDiveMapper {
       );
     }
 
+    // Aggregated, like MacDive's: a logbook that lost one site reference has
+    // usually lost many, and the summary groups on the code.
+    if (divesMissingSite > 0) {
+      warnings.add(ImportSiteLocation.sitesUnresolved(divesMissingSite));
+    }
     for (final entry in unresolved.entries) {
       if (entry.value == 0) continue;
       warnings.add(

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/dive_types/domain/entities/dive_type_entity.dart';
 import 'package:submersion/features/universal_import/data/services/divinglog_dive_mapper.dart';
@@ -739,6 +740,72 @@ void main() {
       expect(payload.entitiesOf(ImportEntityType.dives).single['buddyRefs'], [
         'Carol',
       ]);
+    });
+  });
+
+  group('unresolved site references', () {
+    // A dive whose PlaceID names a row that yields no site imports without
+    // one. It has to say so (#2232, rule 2), the way MacDive does (#2213),
+    // rather than dropping the location in silence.
+    Iterable<ImportWarning> unresolvedSites(ImportPayload payload) => payload
+        .warnings
+        .where((w) => w.code == ImportWarningCode.sitesUnresolved);
+
+    test('a Place the file lacks, with no location text, is reported', () {
+      final payload = DivingLogDiveMapper.toPayload(
+        book([dive(place: null, city: null, country: null, placeId: 99)]),
+      );
+
+      expect(payload.entitiesOf(ImportEntityType.dives).single['site'], isNull);
+      final warning = unresolvedSites(payload).single;
+      expect(warning.count, 1);
+    });
+
+    test('a Place with neither a name nor coordinates is reported too', () {
+      final payload = DivingLogDiveMapper.toPayload(
+        book(
+          [dive(place: null, city: null, country: null, placeId: 10)],
+          places: {10: const DivingLogRawPlace(id: 10)},
+        ),
+      );
+
+      expect(unresolvedSites(payload).single.count, 1);
+    });
+
+    test('every such dive is counted in one warning', () {
+      final payload = DivingLogDiveMapper.toPayload(
+        book([
+          dive(place: null, city: null, country: null, placeId: 98),
+          dive(
+            id: 2,
+            uuid: 'uuid-2',
+            place: null,
+            city: null,
+            country: null,
+            placeId: 99,
+          ),
+        ]),
+      );
+
+      expect(unresolvedSites(payload).single.count, 2);
+    });
+
+    test('a dangling Place with location text resolves and says nothing', () {
+      final payload = DivingLogDiveMapper.toPayload(book([dive(placeId: 99)]));
+
+      expect(
+        payload.entitiesOf(ImportEntityType.dives).single['site'],
+        isNotNull,
+      );
+      expect(unresolvedSites(payload), isEmpty);
+    });
+
+    test('a dive that names no Place says nothing', () {
+      final payload = DivingLogDiveMapper.toPayload(
+        book([dive(place: null, city: null, country: null)]),
+      );
+
+      expect(unresolvedSites(payload), isEmpty);
     });
   });
 }
