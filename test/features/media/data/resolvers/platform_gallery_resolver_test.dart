@@ -239,18 +239,24 @@ void main() {
     });
 
     // The negative half: a gallery that answered "no such asset" must still
-    // report notFound, or the reconciler could never orphan anything.
-    test('a genuine miss still reports notFound', () async {
-      final r = PlatformGalleryResolver(
-        resolutionService: _unavailableService(),
-      );
-      final data = await r.resolveThumbnail(
-        _gallery(assetId: 'A'),
-        target: const Size(200, 200),
-      );
-      expect((data as UnavailableData).kind, UnavailableKind.notFound);
-      expect(await r.verify(_gallery(assetId: 'A')), VerifyResult.notFound);
-    });
+    // report notFound on the device that linked the photo, or the reconciler
+    // could never orphan anything.
+    test(
+      'a genuine miss on the linking device still reports notFound',
+      () async {
+        final r = PlatformGalleryResolver(
+          resolutionService: _unavailableService(),
+          localDeviceId: () async => 'this-device',
+        );
+        final row = _gallery(assetId: 'A', originDeviceId: 'this-device');
+        final data = await r.resolveThumbnail(
+          row,
+          target: const Size(200, 200),
+        );
+        expect((data as UnavailableData).kind, UnavailableKind.notFound);
+        expect(await r.verify(row), VerifyResult.notFound);
+      },
+    );
   });
 
   test('extractMetadata returns null when assetId missing', () async {
@@ -263,5 +269,81 @@ void main() {
     final r = PlatformGalleryResolver(resolutionService: _unavailableService());
     final v = await r.verify(_gallery(assetId: null));
     expect(v.toString(), contains('notFound'));
+  });
+
+  group('a gallery miss is notFound only on the device that linked it', () {
+    // notFound orphans the row, and the write syncs to every device. Only
+    // the linking device's failed search is evidence the photo is gone
+    // (media sync program spec 6.1); anywhere else the device simply never
+    // had it.
+    PlatformGalleryResolver here({
+      Future<String?> Function(String deviceId)? deviceLabel,
+    }) => PlatformGalleryResolver(
+      resolutionService: _unavailableService(),
+      localDeviceId: () async => 'this-device',
+      deviceLabel: deviceLabel,
+    );
+
+    test('a row linked here is notFound', () async {
+      final row = _gallery(assetId: 'A', originDeviceId: 'this-device');
+      final data = await here().resolve(row);
+      expect((data as UnavailableData).kind, UnavailableKind.notFound);
+      final thumb = await here().resolveThumbnail(
+        row,
+        target: const Size(200, 200),
+      );
+      expect((thumb as UnavailableData).kind, UnavailableKind.notFound);
+      expect(await here().verify(row), VerifyResult.notFound);
+    });
+
+    test('a row linked on another device is fromOtherDevice', () async {
+      final row = _gallery(assetId: 'A', originDeviceId: 'phone');
+      final data = await here().resolve(row);
+      expect((data as UnavailableData).kind, UnavailableKind.fromOtherDevice);
+      final thumb = await here().resolveThumbnail(
+        row,
+        target: const Size(200, 200),
+      );
+      expect((thumb as UnavailableData).kind, UnavailableKind.fromOtherDevice);
+      expect(await here().verify(row), VerifyResult.fromOtherDevice);
+    });
+
+    test('a row with no origin is never notFound', () async {
+      // Linked before gallery rows recorded an origin: no device can prove
+      // it is the one that linked it, so none may orphan it.
+      final row = _gallery(assetId: 'A');
+      final data = await here().resolve(row);
+      expect((data as UnavailableData).kind, UnavailableKind.fromOtherDevice);
+      expect(await here().verify(row), VerifyResult.fromOtherDevice);
+    });
+
+    test('an unknown local device is never notFound', () async {
+      final r = PlatformGalleryResolver(
+        resolutionService: _unavailableService(),
+        localDeviceId: () async => throw StateError('no database yet'),
+      );
+      final row = _gallery(assetId: 'A', originDeviceId: 'this-device');
+      expect(await r.verify(row), VerifyResult.fromOtherDevice);
+    });
+
+    test('names the linking device', () async {
+      final data =
+          await here(
+                deviceLabel: (id) async => id == 'phone' ? 'Dive phone' : null,
+              ).resolve(_gallery(assetId: 'A', originDeviceId: 'phone'))
+              as UnavailableData;
+      expect(data.originDeviceLabel, 'Dive phone');
+    });
+
+    test('access denied is still accessDenied, whatever the origin', () async {
+      final r = PlatformGalleryResolver(
+        resolutionService: _accessDeniedService(),
+        localDeviceId: () async => 'this-device',
+      );
+      expect(
+        await r.verify(_gallery(assetId: 'A', originDeviceId: 'phone')),
+        VerifyResult.accessDenied,
+      );
+    });
   });
 }

@@ -56,6 +56,9 @@ final platformGalleryResolverProvider = Provider<PlatformGalleryResolver>(
     // map is right there; widgets already on screen watch the live stream.
     deviceLabel: (id) async =>
         ref.read(peerDeviceNameStoreProvider).nameFor(id),
+    // Fetched lazily, only when a search fails, and memoized by the
+    // resolver; the provider itself never touches the database.
+    localDeviceId: () => SyncRepository().getDeviceId(),
   ),
 );
 
