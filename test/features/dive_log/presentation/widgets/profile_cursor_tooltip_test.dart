@@ -250,6 +250,7 @@ void main() {
       double width = 300,
       double height = 200,
       double extraHeadroomAbove = 0,
+      bool anchorTopToCursor = true,
     }) {
       return MaterialApp(
         home: Scaffold(
@@ -262,6 +263,7 @@ void main() {
               insets: _insets,
               highlightedMetric: highlightedMetric,
               extraHeadroomAbove: extraHeadroomAbove,
+              anchorTopToCursor: anchorTopToCursor,
             ),
           ),
         ),
@@ -295,6 +297,7 @@ void main() {
             ),
           ],
           cursorLocal: cursorLocal,
+          anchorTopToCursor: false,
         ),
       );
 
@@ -543,7 +546,9 @@ void main() {
         TooltipRow(label: 'Depth', value: '12.3 m', bulletColor: Colors.blue),
         TooltipRow(label: 'Temp', value: '18°C', bulletColor: Colors.blue),
       ];
-      await tester.pumpWidget(harness(rows: rows, cursorLocal: cursorLocal));
+      await tester.pumpWidget(
+        harness(rows: rows, cursorLocal: cursorLocal, anchorTopToCursor: false),
+      );
       await tester.pump();
 
       final containerTop = tester
@@ -567,7 +572,9 @@ void main() {
             bulletColor: AppColors.chartDepth,
           ),
       ];
-      await tester.pumpWidget(harness(rows: rows, cursorLocal: cursorLocal));
+      await tester.pumpWidget(
+        harness(rows: rows, cursorLocal: cursorLocal, anchorTopToCursor: false),
+      );
       await tester.pump();
 
       final containerTop = tester

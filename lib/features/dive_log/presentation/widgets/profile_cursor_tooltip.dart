@@ -281,10 +281,11 @@ class ProfileCursorTooltip extends StatelessWidget {
   /// plot's edge (issue #2228 follow-up).
   final double extraHeadroomAbove;
 
-  /// Experiment (issue #2228 follow-up): anchors the box's TOP edge to the
-  /// cursor instead of its bottom edge, so it grows downward rather than
-  /// upward. False by default (the established behaviour); true is only
-  /// for comparing the two live before deciding which one sticks.
+  /// Anchors the box's TOP edge to the cursor instead of its bottom edge,
+  /// so it grows downward rather than upward (issue #2228 follow-up).
+  /// True by default, confirmed live over the bottom-anchored alternative
+  /// (still available via [computeTooltipBoxPosition], kept as the `else`
+  /// branch in [build] for anyone who wants it back).
   final bool anchorTopToCursor;
 
   const ProfileCursorTooltip({
@@ -294,7 +295,7 @@ class ProfileCursorTooltip extends StatelessWidget {
     required this.insets,
     this.highlightedMetric,
     this.extraHeadroomAbove = 0,
-    this.anchorTopToCursor = false,
+    this.anchorTopToCursor = true,
   });
 
   @override
@@ -341,7 +342,7 @@ class ProfileCursorTooltip extends StatelessWidget {
         double? topOffset;
         double? bottomOffset;
         if (anchorTopToCursor) {
-          // Experiment: TOP edge tracks the cursor, box grows downward. See
+          // Default: TOP edge tracks the cursor, box grows downward. See
           // [computeTooltipBoxPositionTopAnchored].
           final position = computeTooltipBoxPositionTopAnchored(
             cursorLocal: cursorLocal,
