@@ -139,6 +139,32 @@ void main() {
       );
     });
 
+    test('does not persist an unusable ZAR fix on the dive', () async {
+      // The site built from the same GPS is already dropped by the contract;
+      // the dive must agree rather than land in the Atlantic.
+      for (final gps in const ['0,0', '91.5,-156.679867', '20.87,181.0']) {
+        final payload = await parser.parse(
+          Uint8List.fromList(
+            utf8.encode(document(dives: 1, location: 'GPS=[$gps]')),
+          ),
+        );
+
+        final dive = payload.entitiesOf(ImportEntityType.dives).single;
+        expect(dive['latitude'], isNull, reason: gps);
+        expect(dive['longitude'], isNull, reason: gps);
+      }
+    });
+
+    test('keeps a usable ZAR fix on the dive', () async {
+      final payload = await parser.parse(
+        Uint8List.fromList(utf8.encode(document(dives: 1, location: withName))),
+      );
+
+      final dive = payload.entitiesOf(ImportEntityType.dives).single;
+      expect(dive['latitude'], closeTo(20.877432, 1e-9));
+      expect(dive['longitude'], closeTo(-156.679867, 1e-9));
+    });
+
     test('names a nameless ZAR location from its coordinates', () async {
       final sites = await sitesOf(document(dives: 1, location: withoutName));
 

@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-
+import 'package:flutter/foundation.dart';
 import 'package:xml/xml.dart';
 
 import 'package:submersion/core/constants/enums.dart' as enums;
@@ -27,24 +26,46 @@ class UddfFullImportService {
   static const _unresolvedSiteRefKey = '_unresolvedSiteRef';
 
   /// Prefixes a `<link ref>` carries when it names something other than a
-  /// dive site.
+  /// dive site: every id prefix Submersion's own UDDF writers mint, except
+  /// `site_`.
   ///
   /// The same `<link>` elements are walked twice: once by the pass that
   /// reads trip, dive centre, course and buddy references, and once by the
   /// chain that reads sites, buddies, deco models and dive computers. A ref
-  /// the second pass does not recognise is only a lost site when the first
-  /// pass did not claim it, or a dive that merely belongs to a trip would
-  /// raise a `sitesUnresolved` notice about a site it never had.
-  static const _nonSiteRefPrefixes = [
-    'trip_',
-    'center_',
-    'course_',
+  /// the chain does not recognise is only a lost site when it could have
+  /// been one, or a dive that merely belongs to a trip, or whose
+  /// `<divecomputer>` block went missing, would raise a `sitesUnresolved`
+  /// notice about a site it never had. A foreign file's ids carry none of
+  /// these prefixes and are still counted.
+  ///
+  /// `uddf_site_location_test.dart` pins this list to the writers, so a new
+  /// entity type the exporter starts linking fails the test rather than
+  /// being mistaken for a lost site.
+  @visibleForTesting
+  static const nonSiteRefPrefixes = {
     'buddy_',
+    'center_',
+    'cert_',
+    'computer_',
+    'course_',
+    'dc_',
     'dive_',
-  ];
+    'equip_',
+    'gf_',
+    'mix_',
+    'obs_',
+    'owner_',
+    'service_',
+    'set_',
+    'sitefeature_',
+    'species_',
+    'tag_',
+    'tank_',
+    'trip_',
+  };
 
   static bool _isNonSiteRef(String ref) =>
-      _nonSiteRefPrefixes.any(ref.startsWith);
+      nonSiteRefPrefixes.any(ref.startsWith);
 
   static final _logger = LoggerService.forClass(UddfFullImportService);
 

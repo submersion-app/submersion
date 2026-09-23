@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/export/uddf/uddf_full_import_service.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
@@ -134,6 +136,47 @@ void main() {
         }
       },
     );
+
+    test('a dangling dive-computer link is not a dangling site', () async {
+      // Submersion's own exporter mints `dc_` ids for <divecomputer>. A file
+      // that lost that block has lost a computer, not a location.
+      final payload = await parse(
+        document(diveLinks: '<link ref="dc_Perdix_2_1234" />'),
+      );
+
+      expect(
+        payload.warnings.where(
+          (w) => w.code == ImportWarningCode.sitesUnresolved,
+        ),
+        isEmpty,
+      );
+    });
+
+    test('every non-site prefix the exporter mints is excluded', () {
+      // The exclusion list was first built by hand and missed `dc_`. This
+      // pins it to the writers, so a new entity type the exporter starts
+      // linking cannot be mistaken for a lost site.
+      final minted = <String>{};
+      for (final file in Directory(
+        'lib/core/services/export/uddf',
+      ).listSync().whereType<File>().where((f) => f.path.endsWith('.dart'))) {
+        for (final m in RegExp(
+          r"'([a-z]+_)\$",
+        ).allMatches(file.readAsStringSync())) {
+          minted.add(m.group(1)!);
+        }
+      }
+
+      expect(minted, contains('site_'), reason: 'scan found no site ids');
+      expect(
+        minted.difference({'site_'}),
+        everyElement(isIn(UddfFullImportService.nonSiteRefPrefixes)),
+      );
+      expect(
+        UddfFullImportService.nonSiteRefPrefixes,
+        isNot(contains('site_')),
+      );
+    });
 
     test(
       'a dive with a trip link and a dangling site link still counts',

@@ -271,9 +271,13 @@ class DanDl7Parser implements ImportParser {
       final title = zar.title?.trim();
       if (title != null && title.isNotEmpty) result['name'] = title;
       if (zar.diveMode == 0) result['diveMode'] = 'oc';
-      if (zar.latitude != null && zar.longitude != null) {
-        result['latitude'] = zar.latitude;
-        result['longitude'] = zar.longitude;
+      // The dive's own fix is judged by the same rule `_zarSite` applies to
+      // the site built from this GPS, so a 0,0 or off-globe pair the site
+      // path drops cannot reach the dive instead (#2232).
+      final fix = ImportSiteLocation.fix(zar.latitude, zar.longitude);
+      if (fix != null) {
+        result['latitude'] = fix.latitude;
+        result['longitude'] = fix.longitude;
       }
       final site = _zarSite(zar);
       if (site != null) {
