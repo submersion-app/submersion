@@ -1194,3 +1194,35 @@ Expected: no format changes, no analyze issues, all tests pass.
 git add docs/superpowers/specs/2026-09-18-media-sync-program-design.md
 git commit -m "docs(spec): record slice 10's decisions in 7.1"
 ```
+
+---
+
+## As executed
+
+Where the code that shipped differs from the tasks above:
+
+- **`MediaStorePreflight.check()` landed in Task 4**, returning the verdict
+  only, so the harness and the runtime wired straight to it instead of
+  through a bool adapter. Task 5 added the mismatch persistence to it.
+- **`MediaStoreAttachState.setMarkerMismatch` writes only on a change.**
+  The preflight asks before every transfer; the read is served from memory
+  and the write is not.
+- **The worker's `_hold` is a no-op once disposed.** Dispose does not stop a
+  drain already running, and the hold is shared with the worker that
+  replaced it. Covered by "a superseded drain does not record a hold after
+  dispose".
+- **The worker clears the hold when it runs with no preflight**, so a gate's
+  offline hold does not outlive the next drain that runs.
+- **The no-processor delete test** is the existing case in
+  `media_store_worker_delete_test.dart`, rewritten to the new behaviour,
+  rather than a new case in the budget test.
+- **`transfers_page_test.dart` overrides `mediaTransferSummaryProvider`**
+  with a snapshot: the notice now reads the summary, and the live Drift
+  stream deadlocks against `db.close()` in fake async (the test hung for its
+  full ten minutes before the override).
+- **Mutation checks**, each compiling and red on its named test: dropping
+  the lease or the drain's reclaim (Task 1); dropping the hold from the
+  waiting reason or from the re-emit (Task 3); the offline branch, the
+  disposed guard, the gate's offline hold, and S8's suspension kind (Task
+  4); the mismatch write, the reconnect item, the detached notice text and
+  the offline line (Task 5).
