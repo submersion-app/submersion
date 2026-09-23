@@ -26,6 +26,35 @@ class MediaTransferQueueRepository {
   LocalCacheDatabase get _db =>
       _database ?? LocalCacheDatabaseService.instance.database;
 
+  /// Entries some worker in this process is running, per database, counted
+  /// so two overlapping holders of one id (a budget-expired transfer that
+  /// never reached markTransferring, then picked up again) keep it held
+  /// until both settle. Keyed on the database object, so every repository
+  /// over one database shares them (production builds several) and two
+  /// databases never do.
+  static final Expando<Map<int, int>> _leases = Expando('media queue leases');
+
+  Map<int, int> get _held => _leases[_db] ??= <int, int>{};
+
+  /// Runs [work] with [id] leased: [requeueStale] leaves the row alone until
+  /// [work] settles. The lease outlives any timeout a caller puts on the
+  /// returned future, which is the point: a timed-out transfer keeps running
+  /// and still owns its row.
+  Future<T> holdWhile<T>(int id, Future<T> Function() work) async {
+    final held = _held;
+    held[id] = (held[id] ?? 0) + 1;
+    try {
+      return await work();
+    } finally {
+      final left = (held[id] ?? 1) - 1;
+      if (left <= 0) {
+        held.remove(id);
+      } else {
+        held[id] = left;
+      }
+    }
+  }
+
   /// Idempotent per mediaId for every live state: pending/transferring
   /// rows are reused, and a terminally 'failed' row is returned as-is so
   /// backfill or re-import cannot resurrect it with a fresh attempt
@@ -324,11 +353,10 @@ class MediaTransferQueueRepository {
   /// drainer forever and can be neither retried (failed-only) nor cleared
   /// (done-only) from the Transfers UI.
   ///
-  /// Callers MUST invoke this only when no transfer is actively running:
-  /// it is driven once per process by mediaTransferQueueReclaimProvider,
-  /// before any worker drains, where every 'transferring' row is provably
-  /// orphaned by a dead prior process. Running it while a worker is live
-  /// could flip that worker's in-flight row and cause double processing.
+  /// Safe to run at any time: rows a worker in this process holds through
+  /// [holdWhile] are skipped, so only a row no live transfer owns (its
+  /// process died, or its worker was superseded before it started) is
+  /// reclaimed. The worker runs this at the start of every drain.
   ///
   /// A reclaimed row is made immediately due with its stale progress
   /// cleared, but keeps its resume point so a resumable adapter can pick up
@@ -341,18 +369,21 @@ class MediaTransferQueueRepository {
   /// yet a genuinely broken item must still count toward its cap (contrast
   /// retry). Returns the number of rows reclaimed.
   Future<int> requeueStale() {
-    return (_db.update(
-      _db.mediaTransferQueue,
-    )..where((t) => t.state.equals('transferring'))).write(
-      MediaTransferQueueCompanion(
-        state: const Value('pending'),
-        progressBytes: const Value(null),
-        totalBytes: const Value(null),
-        nextAttemptAt: const Value(null),
-        errorMessage: const Value(null),
-        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
-      ),
-    );
+    final held = _held.keys.toList();
+    return (_db.update(_db.mediaTransferQueue)..where((t) {
+          final stranded = t.state.equals('transferring');
+          return held.isEmpty ? stranded : stranded & t.id.isNotIn(held);
+        }))
+        .write(
+          MediaTransferQueueCompanion(
+            state: const Value('pending'),
+            progressBytes: const Value(null),
+            totalBytes: const Value(null),
+            nextAttemptAt: const Value(null),
+            errorMessage: const Value(null),
+            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          ),
+        );
   }
 
   /// Connectivity/policy postponement: unlike markFailed, no attempt is

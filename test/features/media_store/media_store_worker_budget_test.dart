@@ -42,6 +42,9 @@ class _HangingPipeline extends MediaUploadPipeline {
   final processed = <String>[];
   final _stuck = <Completer<UploadOutcome>>[];
 
+  /// How many hanging calls were started, finished or not.
+  int get hangs => _stuck.length;
+
   /// Releases every parked call so the test ends with nothing in flight.
   void releaseAll() {
     for (final completer in _stuck) {
@@ -197,6 +200,42 @@ void main() {
 
     await expectLater(worker.drain(), completes);
     expect(pipeline.processed, isEmpty);
+  });
+
+  // A process killed mid-upload leaves its row in 'transferring', which
+  // nextPending never selects (spec 7.1: reclaimed by every drain).
+  test('a drain reclaims a row stranded in transferring', () async {
+    final id = await queue.enqueueUpload(mediaId: 'stranded');
+    await queue.markTransferring(id);
+    final pipeline = buildPipeline(hangOn: const {});
+    final worker = MediaStoreWorker(queue: queue, pipeline: pipeline);
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+
+    expect(pipeline.processed, ['stranded']);
+  });
+
+  // The budget stops the drain waiting, not the upload. The next drain's
+  // reclaim must leave that row to the transfer still running it, or the
+  // item is uploaded twice at once.
+  test('a drain does not reclaim the row a timed-out transfer still '
+      'runs', () async {
+    await queue.enqueueUpload(mediaId: 'stuck');
+    final pipeline = buildPipeline(hangOn: {'stuck'});
+    addTearDown(pipeline.releaseAll);
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      entryBudget: budget,
+    );
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+    await worker.drain();
+
+    expect(pipeline.hangs, 1);
+    expect((await queue.allForTesting()).single.state, 'transferring');
   });
 
   // Deletes share the drain, so they wedge it the same way an upload does.

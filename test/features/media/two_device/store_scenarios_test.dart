@@ -64,6 +64,5 @@ void main() {
         reason: 'drain must reclaim stranded rows before selecting pending',
       );
     },
-    skip: 'Media sync program S10: turns green in slice 10 (queue visibility)',
   );
 }

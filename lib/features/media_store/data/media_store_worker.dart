@@ -153,6 +153,11 @@ class MediaStoreWorker {
     // about it even though the UI must not.
     var preflightBlocked = false;
     try {
+      // Rows a dead process or a superseded worker left in 'transferring'
+      // are invisible to nextPending. Leases keep this off any row a live
+      // transfer in this process owns, so it runs on every drain: launch,
+      // resume and rebuild alike (spec 7.1).
+      await _reclaimStranded();
       while (true) {
         // Re-checked per entry, not once per drain: a store wipe or user
         // disconnect mid-drain must suspend the rest of the queue.
@@ -219,18 +224,38 @@ class MediaStoreWorker {
   /// right verb either way: a budget expiry is a postponement, not a failed
   /// attempt - the transfer may yet succeed, so it must not burn one of the
   /// five attempts markFailed counts.
+  ///
+  /// The lease taken here outlives the timeout, so a later drain's reclaim
+  /// leaves the row to the transfer still running it.
   Future<void> _withinBudget(
     MediaTransferQueueEntry entry,
     Future<void> Function() work,
   ) async {
     try {
-      await work().timeout(_entryBudget);
+      await _queue.holdWhile(entry.id, work).timeout(_entryBudget);
     } on TimeoutException {
       _log.warning(
         'Transfer entry ${entry.id} (media ${entry.mediaId}) exceeded its '
         '${_entryBudget.inMinutes}m budget; deferring it and draining on',
       );
       await _queue.defer(entry.id, DateTime.now().add(deferWindow));
+    }
+  }
+
+  /// Never throws: a failed reclaim leaves the stranded rows for the next
+  /// drain, and must not stop this one taking the rows that are due.
+  Future<void> _reclaimStranded() async {
+    try {
+      final reclaimed = await _queue.requeueStale();
+      if (reclaimed > 0) {
+        _log.info('Reclaimed $reclaimed stranded transfer(s)');
+      }
+    } on Object catch (e, stackTrace) {
+      _log.warning(
+        'Could not reclaim stranded transfers',
+        error: e,
+        stackTrace: stackTrace,
+      );
     }
   }
 
