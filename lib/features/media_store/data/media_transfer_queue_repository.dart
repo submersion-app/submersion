@@ -193,6 +193,19 @@ class MediaTransferQueueRepository {
     });
   }
 
+  /// Whether any row is still outstanding: pending (due or deferred) or
+  /// stranded in transferring. The resume gate's question, because each of
+  /// those needs a built runtime to move: a drain to take or reclaim it, or
+  /// the worker's wakeup to come back for it.
+  Future<bool> hasOutstandingWork() async {
+    final row =
+        await (_db.select(_db.mediaTransferQueue)
+              ..where((t) => t.state.isIn(['pending', 'transferring']))
+              ..limit(1))
+            .getSingleOrNull();
+    return row != null;
+  }
+
   Future<MediaTransferQueueEntry?> nextPending(DateTime now) {
     final nowMs = now.millisecondsSinceEpoch;
     return (_db.select(_db.mediaTransferQueue)

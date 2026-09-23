@@ -214,9 +214,11 @@ final mediaVerifyRunnerProvider =
 /// runtime opens the keychain and reads the store marker out of the bucket:
 /// [mediaStoreAttachedProvider] is one SharedPreferences read (and is
 /// documented never to error, which is exactly why it exists), and
-/// [MediaTransferQueueRepository.nextPending] is one indexed local read that
-/// means precisely "there is work a drain could take right now". A queue
-/// holding only deferred rows is left to the worker's own wakeup timer.
+/// [MediaTransferQueueRepository.hasOutstandingWork] is one local read that
+/// means "some row still needs a runtime": a due row for the drain, a row
+/// stranded in transferring for its reclaim, or a deferred row for the
+/// worker's wakeup, which exists only once the runtime does (spec 7.1).
+/// Finished and failed rows need nothing.
 ///
 /// Contains its own failures rather than propagating them: both call sites are
 /// fire-and-forget, so an escaping throw would land in the zone handler with
@@ -228,7 +230,7 @@ final mediaTransferResumeProvider = Provider<Future<void> Function()>((ref) {
     try {
       if (!await ref.read(mediaStoreAttachedProvider.future)) return;
       final queue = ref.read(mediaTransferQueueRepositoryProvider);
-      if (await queue.nextPending(DateTime.now()) == null) return;
+      if (!await queue.hasOutstandingWork()) return;
       // Building the runtime is the kick: see the unawaited drain at the end
       // of mediaStoreRuntimeProvider.
       await ref.read(mediaStoreRuntimeProvider.future);
