@@ -10,6 +10,38 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-22-equipment-service-status-everywhere-design.md`
 
+## As Shipped
+
+This plan records what was planned. Five steps changed once the code was
+read, and are marked inline below. The spec's "As shipped" notes give the
+same reasoning at design level.
+
+1. **Task 1, short-form strings.** One generic `equipment_service_shortRemaining`
+   (`"{count} {unit} left"`) became seven per-unit keys
+   (`equipment_service_shortDives` and friends, `"in {count} {unit noun}"`).
+   The only existing per-unit string is a form-field label, so the generic
+   form rendered "in 3 Interval (dives)", and a unit noun cannot be composed
+   generically across locales anyway.
+2. **Task 6 Step 6, the pre-dive N+1: deferred.** Both batch providers would
+   have hidden clocks in a safety checklist: the rollup carries only the
+   worst clock where the tile shows every one, and `activeEquipmentClocksProvider`
+   is active-only where the start sheet offers all gear. Filed separately.
+3. **Task 6 Step 7, three surfaces: not migrated.** `TripServiceAlertBanner`
+   keeps its trip-relative due-soon wording (it adopts the shared overdue
+   key); `GaugeStrip` names the gear item rather than the service kind; the
+   equipment detail header keeps its page-level banner.
+4. **Task 7, the guard: changed target.** Shipped as
+   `test/architecture/service_status_wording_single_source_test.dart`,
+   guarding the status *wording* rather than reads of
+   `equipmentRollupClockProvider`. Six of seven readers of that map are
+   legitimate non-rendering uses, so a read guard would have allowlisted
+   almost everything it existed to catch.
+5. **Task 5, adoption tests.** No single `service_status_adoption_test.dart`;
+   coverage landed per surface in `equipment_picker_service_status_test.dart`,
+   `dive_gear_service_status_test.dart`,
+   `equipment_surfaces_service_status_test.dart` and the scrubber card test,
+   with the chip-avatar mechanism covered in the indicator's own tests.
+
 ## Global Constraints
 
 - Issue link: every commit body and the PR description must reference `#2260`. The PR description must contain `Closes #2260`.
@@ -1146,11 +1178,11 @@ and adjust the dot call sites, which now read `.status.severity` off a `RollupCl
 
 In `equipment_summary_widget.dart:22`, switch the Service Due list from `serviceDueEquipmentProvider` to `dueClocksProvider`, so each row has its own `DueClock` and can render `ServiceStatusIndicator`. Add a test asserting an overdue row and a due-soon row render differently.
 
-- [ ] **Step 6: Remove the pre-dive N+1**
+- [ ] **Step 6: Remove the pre-dive N+1** *(Deferred, see As Shipped item 2.)*
 
 In `session_item_tile.dart:72-87`, replace the per-row `serviceClockStatusesProvider(equipmentId)` watch with a lookup into `equipmentRollupClockProvider`. Keep the frozen `overdueServices` path untouched: a resolved item must keep rendering its frozen snapshot, not today's live state.
 
-- [ ] **Step 7: Migrate the remaining three surfaces**
+- [ ] **Step 7: Migrate the remaining three surfaces** *(Not done, see As Shipped item 3.)*
 
 `trip_service_alert_banner.dart:127`, `gauge_strip.dart:88` and `equipment_detail_page.dart:414` each render their own wording; replace with `ServiceStatusIndicator` at `compact` for the banner and gauges, `full` for the detail header.
 
@@ -1189,6 +1221,8 @@ Refs #2260"
 ---
 
 ### Task 7: Adoption guard, full verification, and the PR
+
+*(The guard shipped with a different target; see As Shipped item 4.)*
 
 The guard lands with the last migration, never before it, so no window exists in which the guard and a violating surface coexist and redden main for every open PR.
 

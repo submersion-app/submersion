@@ -160,7 +160,13 @@ class DenseEquipmentListTile extends ConsumerWidget {
     final theme = Theme.of(context);
 
     if (worstClock != null) {
-      return ServiceStatusIndicator(clock: worstClock, subjectId: item.id);
+      // Right-aligned like every other state in this column and the type
+      // column beside it.
+      return ServiceStatusIndicator(
+        clock: worstClock,
+        subjectId: item.id,
+        textAlign: TextAlign.right,
+      );
     }
 
     if (item.status != EquipmentStatus.active) {

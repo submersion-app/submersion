@@ -92,6 +92,30 @@ void main() {
     }
   });
 
+  testWidgets('the service label stays right-aligned in its column', (
+    tester,
+  ) async {
+    // The 80px status column right-aligns every other state (finding,
+    // retired) and the type column beside it. The label wraps in that
+    // width, so each LINE must align right, not just the text box (#2260).
+    final item = _makeItem();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          equipmentRollupClockProvider.overrideWith(
+            (ref) async => {
+              item.id: _clock(item, ServiceClockSeverity.overdue),
+            },
+          ),
+        ],
+        child: DenseEquipmentListTile(item: item, onTap: () {}),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final label = tester.widget<Text>(find.textContaining('Annual service'));
+    expect(label.textAlign, TextAlign.right);
+  });
+
   group('DenseEquipmentListTile', () {
     testWidgets('a screen reader hears the condition badge', (tester) async {
       // The badge is text and colour on screen. The row's Semantics label

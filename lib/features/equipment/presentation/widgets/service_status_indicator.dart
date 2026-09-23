@@ -36,6 +36,7 @@ class ServiceStatusIndicator extends ConsumerWidget {
     required this.subjectId,
     this.density = ServiceIndicatorDensity.compact,
     this.color,
+    this.textAlign,
   });
 
   final RollupClock? clock;
@@ -51,6 +52,13 @@ class ServiceStatusIndicator extends ConsumerWidget {
   /// container. Such a caller passes the `onContainer` its fill guarantees.
   /// Everything else leaves this null and takes the severity accent.
   final Color? color;
+
+  /// Alignment of each line of the label, for a host column that aligns its
+  /// other states one way (the dense list's right-aligned status column).
+  /// Per line rather than an [Align] around the whole: a label wrapping in a
+  /// narrow column would otherwise leave its lines ragged inside a box that
+  /// merely sits at the edge. Ignored by the dot, which has no text.
+  final TextAlign? textAlign;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -99,7 +107,7 @@ class ServiceStatusIndicator extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(line, style: labelStyle),
+              Text(line, style: labelStyle, textAlign: textAlign),
               Text(
                 formatServiceTriggerText(
                   context,
@@ -111,6 +119,7 @@ class ServiceStatusIndicator extends ConsumerWidget {
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
+                textAlign: textAlign,
               ),
             ],
           ),
@@ -119,7 +128,12 @@ class ServiceStatusIndicator extends ConsumerWidget {
       case ServiceIndicatorDensity.compact:
         return Semantics(
           label: line,
-          child: Text(line, style: labelStyle, overflow: TextOverflow.ellipsis),
+          child: Text(
+            line,
+            style: labelStyle,
+            textAlign: textAlign,
+            overflow: TextOverflow.ellipsis,
+          ),
         );
 
       case ServiceIndicatorDensity.dot:

@@ -86,7 +86,7 @@ class TripScrubberMarginCard extends ConsumerWidget {
               ),
               for (final m in margins) ...[
                 const Divider(),
-                _MarginBlock(margin: m),
+                _MarginBlock(margin: m, isPast: isPast),
               ],
             ],
           ),
@@ -99,7 +99,12 @@ class TripScrubberMarginCard extends ConsumerWidget {
 class _MarginBlock extends StatelessWidget {
   final ScrubberMargin margin;
 
-  const _MarginBlock({required this.margin});
+  /// A past trip reads as of its start, so it carries no service state: a
+  /// live overdue mark beside figures dated to the trip would claim the unit
+  /// was overdue on that trip (#2260).
+  final bool isPast;
+
+  const _MarginBlock({required this.margin, required this.isPast});
 
   @override
   Widget build(BuildContext context) {
@@ -133,6 +138,7 @@ class _MarginBlock extends StatelessWidget {
             ServiceStatusIndicatorFor(
               equipmentId: m.item.id,
               density: ServiceIndicatorDensity.dot,
+              enabled: !isPast,
             ),
           ],
         ),
