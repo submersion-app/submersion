@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:submersion/core/models/log_entry.dart';
@@ -18,9 +19,13 @@ class MediaStoreResolver {
     required MediaObjectStore store,
     required MediaCacheStore cache,
     MediaFetchGate? gate,
+    Duration probeBudget = kMediaFetchSlotBudget,
+    int maxConcurrentProbes = 4,
   }) : _store = store,
        _cache = cache,
-       _gate = gate ?? MediaFetchGate();
+       _gate = gate ?? MediaFetchGate(),
+       _probeBudget = probeBudget,
+       _maxConcurrentProbes = maxConcurrentProbes;
 
   final MediaObjectStore _store;
   final MediaCacheStore _cache;
@@ -35,78 +40,122 @@ class MediaStoreResolver {
     category: LogCategory.media,
   );
 
-  /// Probe answers per content hash and tier for the life of this resolver
-  /// (one store runtime): true found, false absent. A HEAD that failed is
-  /// not recorded, since it says nothing about the object.
+  /// Probe answers per store key for the life of this resolver (one store
+  /// runtime): true found, false absent. Keyed by the full key, not the
+  /// hash: an original's key carries its extension, and one content hash
+  /// can be stored under more than one. A HEAD that failed or ran out of
+  /// time is not recorded, since it says nothing about the object.
   final Map<String, bool> _probes = {};
 
   /// Probes in flight, so tiles asking about the same object share one HEAD.
   final Map<String, Future<bool?>> _probing = {};
 
+  /// How long one probe HEAD may take before the tile gives up on it, and
+  /// how many run at once. Probes bypass [_gate] (it carries fetch results,
+  /// not answers), so they carry the same two bounds of their own: a grid
+  /// scrolling through foreign rows must not burst unbounded HEADs at the
+  /// endpoint, and a stalled provider must not hold a tile forever.
+  final Duration _probeBudget;
+  final int _maxConcurrentProbes;
+  var _probesRunning = 0;
+  final _probeWaiters = <Completer<void>>[];
+  bool _disposed = false;
+
   /// Serves [item] from the store when its synced upload stamps are missing
   /// but the store may hold it anyway (media sync program spec 7.2): a stamp
   /// that is late, or was lost. Each tier the request needs is HEADed once
   /// and remembered, found or absent, so a grid of such rows costs one HEAD
-  /// per row and tier for the life of this resolver. Serving goes through
-  /// [tryResolveRemote] with the found tiers treated as stamped. Read-only:
-  /// nothing is written back, since the stamps are the uploading device's
-  /// facts (decided 2026-09-23).
+  /// per row and tier for the life of this resolver. The tiers are tried in
+  /// [tryResolveRemote]'s order: the thumb (for a thumbnail), the original,
+  /// then the compressed rendition; a video thumbnail never falls back past
+  /// its thumb. Serving goes through [tryResolveRemote] with the found tiers
+  /// treated as stamped. Read-only: nothing is written back, since the
+  /// stamps are the uploading device's facts (decided 2026-09-23).
   Future<MediaSourceData?> tryResolveProbed(
     MediaItem item, {
     required bool thumbnail,
   }) async {
     final hash = item.contentHash;
     if (hash == null) return null;
-    final thumbFound =
-        thumbnail && await _probe(hash, 'thumb', StoreKeys.thumbKey(hash));
-    // A video's original is a video: a thumbnail cannot degrade to it (see
-    // tryResolveRemote), so it is not worth a HEAD either.
-    final wantsOriginal =
-        !thumbnail || (!thumbFound && item.mediaType != MediaType.video);
+    final isVideo = item.mediaType == MediaType.video;
+    final thumbFound = thumbnail && await _probe(StoreKeys.thumbKey(hash));
+    // A video's original and rendition are both video: a thumbnail cannot
+    // degrade to them (see tryResolveRemote), so they are not worth a HEAD.
+    final pastThumb = !thumbnail || (!thumbFound && !isVideo);
     final originalFound =
-        wantsOriginal &&
+        pastThumb &&
         await _probe(
-          hash,
-          'original',
           StoreKeys.objectKey(
             hash,
             extension: StoreKeys.extensionFor(item.originalFilename),
           ),
         );
-    if (!thumbFound && !originalFound) return null;
+    final renditionFound =
+        pastThumb &&
+        !originalFound &&
+        await _probe(
+          StoreKeys.renditionKey(hash, ext: isVideo ? 'mp4' : 'jpg'),
+        );
+    if (!thumbFound && !originalFound && !renditionFound) return null;
     final probed = DateTime.fromMillisecondsSinceEpoch(0);
     return tryResolveRemote(
       item.copyWith(
         remoteThumbUploadedAt: thumbFound ? probed : null,
         remoteUploadedAt: originalFound ? probed : null,
-        remoteCompressedUploadedAt: null,
+        remoteCompressedUploadedAt: renditionFound ? probed : null,
       ),
       thumbnail: thumbnail,
     );
   }
 
-  Future<bool> _probe(String hash, String tier, String key) async {
-    final cacheKey = '$hash#$tier';
-    final known = _probes[cacheKey];
+  Future<bool> _probe(String key) async {
+    final known = _probes[key];
     if (known != null) return known;
     // A block body on purpose: remove() returns the entry, which is this very
     // future, and whenComplete waits on a future its callback returns, so
     // `=> _probing.remove(...)` would wait on itself forever.
-    final found = await (_probing[cacheKey] ??= _head(key).whenComplete(() {
-      _probing.remove(cacheKey);
+    final found = await (_probing[key] ??= _head(key).whenComplete(() {
+      _probing.remove(key);
     }));
     if (found == null) return false;
-    _probes[cacheKey] = found;
+    _probes[key] = found;
     return found;
   }
 
-  /// Whether the store holds [key], or null when it could not say.
+  /// Whether the store holds [key], or null when it could not say (the HEAD
+  /// failed, ran out of its budget, or this resolver was disposed).
   Future<bool?> _head(String key) async {
+    if (!await _acquireProbeSlot()) return null;
     try {
-      return await _store.head(key) != null;
+      return await _store.head(key).timeout(_probeBudget) != null;
     } on Object catch (e) {
       _log.debug('Store probe for $key failed; not remembered', error: e);
       return null;
+    } finally {
+      _releaseProbeSlot();
+    }
+  }
+
+  /// False once disposed: a probe waiting for a slot is let go, not run.
+  Future<bool> _acquireProbeSlot() async {
+    if (_disposed) return false;
+    if (_probesRunning < _maxConcurrentProbes) {
+      _probesRunning++;
+      return true;
+    }
+    final waiter = Completer<void>();
+    _probeWaiters.add(waiter);
+    await waiter.future;
+    if (_disposed) return false;
+    return true;
+  }
+
+  /// Hands the slot straight to the next waiter, or frees it.
+  void _releaseProbeSlot() {
+    if (_probeWaiters.isNotEmpty) {
+      _probeWaiters.removeAt(0).complete();
+    } else {
+      _probesRunning--;
     }
   }
 
@@ -341,8 +390,17 @@ class MediaStoreResolver {
     }
   }
 
-  /// Releases the fetch gate's budget timers. Called when the store runtime
-  /// that owns this resolver is torn down or replaced; see
-  /// [LocalFileResolver.dispose] for why a stray budget timer matters.
-  void dispose() => _gate.dispose();
+  /// Releases the fetch gate's budget timers and lets go of probes waiting
+  /// for a slot. Called when the store runtime that owns this resolver is
+  /// torn down or replaced; see [LocalFileResolver.dispose] for why a stray
+  /// budget timer matters.
+  void dispose() {
+    _disposed = true;
+    final waiters = List.of(_probeWaiters);
+    _probeWaiters.clear();
+    for (final waiter in waiters) {
+      waiter.complete();
+    }
+    _gate.dispose();
+  }
 }

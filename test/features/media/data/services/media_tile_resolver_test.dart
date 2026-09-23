@@ -317,6 +317,11 @@ void main() {
 
       expect(r.data, elsewhere);
       expect(r.nativeFailure, UnavailableKind.fromOtherDevice);
+      expect(
+        r.storeFallbackUsed,
+        isTrue,
+        reason: 'the fallback was attempted, with no store to answer',
+      );
     });
 
     test('a probe that throws keeps the native placeholder', () async {

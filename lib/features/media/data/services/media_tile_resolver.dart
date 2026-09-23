@@ -153,7 +153,13 @@ class MediaTileResolver {
     try {
       final remote = await _remote();
       if (remote == null) {
-        return TileResolution(data: native, nativeFailure: nativeFailure);
+        // The fallback was attempted, with no store here to answer: the same
+        // verdict the confirmed path gives, per storeFallbackUsed's contract.
+        return TileResolution(
+          data: native,
+          storeFallbackUsed: true,
+          nativeFailure: nativeFailure,
+        );
       }
       final served = await remote.tryResolveProbed(item, thumbnail: thumbnail);
       if (served == null) {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
@@ -21,15 +22,28 @@ class _CountingStore extends InMemoryMediaObjectStore {
   final heads = <String>[];
   Exception? failNextHead;
 
+  /// When set, every HEAD waits on it: a stalled provider.
+  Completer<void>? hold;
+  var inFlight = 0;
+  var maxInFlight = 0;
+
   @override
-  Future<StoreObjectInfo?> head(String key) {
+  Future<StoreObjectInfo?> head(String key) async {
     heads.add(key);
     final fail = failNextHead;
     if (fail != null) {
       failNextHead = null;
       throw fail;
     }
-    return super.head(key);
+    inFlight++;
+    if (inFlight > maxInFlight) maxInFlight = inFlight;
+    try {
+      final wait = hold;
+      if (wait != null) await wait.future;
+      return await super.head(key);
+    } finally {
+      inFlight--;
+    }
   }
 }
 
@@ -129,7 +143,10 @@ void main() {
       isNull,
     );
 
-    expect(store.heads, [originalKey()]);
+    expect(store.heads, [
+      originalKey(),
+      StoreKeys.renditionKey(hash, ext: 'jpg'),
+    ], reason: 'each tier asked once, then remembered');
   });
 
   // A failed HEAD says nothing about the object (offline, a blip), so it
@@ -173,5 +190,97 @@ void main() {
 
     expect(served, isNull);
     expect(store.heads, isEmpty);
+  });
+
+  // Some uploads keep only the compressed rendition; with its stamp lost,
+  // the rendition is still in the store.
+  test('a row whose store copy is only the rendition is served', () async {
+    store.objects[StoreKeys.renditionKey(hash, ext: 'jpg')] = bytes;
+
+    final served = await resolver.tryResolveProbed(
+      unstamped(),
+      thumbnail: false,
+    );
+
+    expect(served, isA<FileData>());
+  });
+
+  // The original's key carries its extension, and one content hash can be
+  // stored under more than one: the answer for one key says nothing about
+  // another.
+  test('probe answers are per store key, not per content hash', () async {
+    MediaItem named(String filename) => MediaItem(
+      id: filename,
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.localFile,
+      localPath: p.join('elsewhere', filename),
+      originalFilename: filename,
+      contentHash: hash,
+      takenAt: DateTime(2026, 7, 1),
+      createdAt: DateTime(2026, 7, 1),
+      updatedAt: DateTime(2026, 7, 1),
+    );
+    store.objects[StoreKeys.objectKey(
+          hash,
+          extension: StoreKeys.extensionFor('reef.bin'),
+        )] =
+        bytes;
+
+    expect(
+      await resolver.tryResolveProbed(named('reef.jpg'), thumbnail: false),
+      isNull,
+    );
+    expect(
+      await resolver.tryResolveProbed(named('reef.bin'), thumbnail: false),
+      isA<FileData>(),
+    );
+  });
+
+  // A stalled provider must not hold a tile forever: the probe gives up
+  // after its budget, says nothing, and asks again next time.
+  test('a probe that stalls gives up and is asked again', () async {
+    final stalling = MediaStoreResolver(
+      store: store,
+      cache: MediaCacheStore(database: cacheDb, root: root),
+      probeBudget: const Duration(milliseconds: 20),
+    );
+    addTearDown(stalling.dispose);
+    store.objects[originalKey()] = bytes;
+    store.hold = Completer<void>();
+
+    expect(
+      await stalling.tryResolveProbed(unstamped(), thumbnail: false),
+      isNull,
+    );
+
+    store.hold!.complete();
+    store.hold = null;
+    expect(
+      await stalling.tryResolveProbed(unstamped(), thumbnail: false),
+      isA<FileData>(),
+    );
+  });
+
+  // A grid of foreign rows probes as it scrolls; the HEADs are capped the
+  // way the fetch gate caps fetches.
+  test('probes run a few at a time', () async {
+    store.hold = Completer<void>();
+    final probes = [
+      for (var i = 0; i < 10; i++)
+        resolver.tryResolveProbed(
+          unstamped(contentHash: sha256.convert([i]).toString()),
+          thumbnail: false,
+        ),
+    ];
+    await pumpEventQueue();
+    expect(store.maxInFlight, lessThanOrEqualTo(4));
+
+    store.hold!.complete();
+    await Future.wait(probes);
+    expect(
+      store.heads,
+      hasLength(20),
+      reason: 'every row still asked: its original, then its rendition',
+    );
   });
 }
