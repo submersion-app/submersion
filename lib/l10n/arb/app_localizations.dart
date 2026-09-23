@@ -23542,6 +23542,12 @@ abstract class AppLocalizations {
   /// **'The end pressure must be above the start pressure.'**
   String get gasCalculators_blender_lineInvalidPressure;
 
+  /// No description provided for @gasCalculators_blender_lineNeedsPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a start and an end pressure.'**
+  String get gasCalculators_blender_lineNeedsPressure;
+
   /// No description provided for @gasCalculators_blender_lineNeedsCylinder.
   ///
   /// In en, this message translates to:

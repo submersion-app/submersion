@@ -152,6 +152,7 @@
   "gasCalculators_blender_lineComputedAmount": "סכום: {amount}",
   "gasCalculators_blender_lineNoPrice": "לא הוגדר מחיר לגז זה, ולכן הוא מחויב ב-0.",
   "gasCalculators_blender_lineInvalidPressure": "הלחץ הסופי חייב להיות גבוה מהלחץ ההתחלתי.",
+  "gasCalculators_blender_lineNeedsPressure": "יש להזין לחץ התחלתי ולחץ סופי.",
   "gasCalculators_blender_lineNeedsCylinder": "יש להזין נפח מכל.",
   "gasCalculators_blender_lineDescriptionOptional": "אופציונלי. אם יישאר ריק, הוא ייווצר מתוך המילוי.",
   "gasCalculators_blender_export": "ייצוא",

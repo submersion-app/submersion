@@ -76,6 +76,17 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
   late BlenderLineKind _kind;
   late BlenderGasRole _role;
 
+  /// The exact water volume of the cylinder preset last picked, until the
+  /// field is typed into. The field shows it rounded, which in cubic feet
+  /// loses enough to misprice the fill if it were read back from the text.
+  double? _presetLiters;
+
+  /// The gas fill fields as the sheet opened them, to tell an edit of the
+  /// description alone from a changed fill.
+  late final String _seedCylinder;
+  late final String _seedStart;
+  late final String _seedEnd;
+
   String? _error;
 
   /// Only a new line or one entered by hand may pick its kind. A fill the
@@ -112,28 +123,44 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
     _label = TextEditingController(
       text: fill == null || fill.label == generated ? '' : fill.label,
     );
+    // Seeded for a gas fill too: switching it to a free amount starts from
+    // what it cost rather than from a blank that would leave it unpriced.
     _amount = TextEditingController(
-      text: fill?.total == null || gasLine != null
-          ? ''
-          : formatRoundedForInput(fill!.total!, 2),
+      text: fill?.total == null ? '' : formatRoundedForInput(fill!.total!, 2),
     );
     final double cylinderLiters =
         gasLine?.cylinderLiters ?? ref.read(blenderCylinderLitersProvider);
-    _cylinder = TextEditingController(
-      text: formatRoundedForInput(
-        litersToDisplayVolume(cylinderLiters, settings),
-        2,
-      ),
+    _seedCylinder = formatRoundedForInput(
+      litersToDisplayVolume(cylinderLiters, settings),
+      2,
     );
+    _cylinder = TextEditingController(text: _seedCylinder);
     final double startBar = gasLine?.startBar ?? 0;
     final double endBar =
         gasLine?.endBar ?? ref.read(blenderTargetPressureProvider);
-    _startPressure = TextEditingController(
-      text: formatRoundedForInput(units.convertPressure(startBar), 0),
-    );
-    _endPressure = TextEditingController(
-      text: formatRoundedForInput(units.convertPressure(endBar), 0),
-    );
+    // Two decimals rather than whole numbers, so reopening a fill and saving
+    // it untouched cannot move its pressures.
+    _seedStart = formatRoundedForInput(units.convertPressure(startBar), 2);
+    _seedEnd = formatRoundedForInput(units.convertPressure(endBar), 2);
+    _startPressure = TextEditingController(text: _seedStart);
+    _endPressure = TextEditingController(text: _seedEnd);
+  }
+
+  /// The saved gas fill being edited, when none of its fill fields has
+  /// changed. It then keeps the amount and gas name it was billed with: a
+  /// price or topup gas changed since must not reprice a line reopened only
+  /// to fix its description.
+  BilledGasLine? get _unchangedGasLine {
+    final line = widget.fill?.manualGasLine;
+    if (line == null || line.role != _role || _presetLiters != null) {
+      return null;
+    }
+    if (_cylinder.text != _seedCylinder ||
+        _startPressure.text != _seedStart ||
+        _endPressure.text != _seedEnd) {
+      return null;
+    }
+    return line;
   }
 
   @override
@@ -176,6 +203,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
       role.index < prices.length ? prices[role.index] : null;
 
   double? _cylinderLiters(AppSettings settings) {
+    if (_presetLiters != null) return _presetLiters;
     final shown = parseUserDecimal(_cylinder.text);
     if (shown == null || shown <= 0) return null;
     return displayVolumeToLiters(shown, settings);
@@ -221,10 +249,36 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
 
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
+    final unchanged = _unchangedGasLine;
+    if (unchanged != null) {
+      final fill = widget.fill!;
+      Navigator.of(context).pop(
+        BlenderLineEdit(
+          label: label.isNotEmpty
+              ? label
+              : _generatedLabel(
+                  unchanged.gas,
+                  unchanged.cylinderLiters,
+                  unchanged.addedBar,
+                  units,
+                ),
+          amount: fill.total,
+          lines: [unchanged],
+        ),
+      );
+      return;
+    }
     final liters = _cylinderLiters(settings);
     if (liters == null) {
       setState(
         () => _error = context.l10n.gasCalculators_blender_lineNeedsCylinder,
+      );
+      return;
+    }
+    if (parseUserDecimal(_startPressure.text) == null ||
+        parseUserDecimal(_endPressure.text) == null) {
+      setState(
+        () => _error = context.l10n.gasCalculators_blender_lineNeedsPressure,
       );
       return;
     }
@@ -372,8 +426,13 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
     final prices = ref.watch(blenderGasPricesProvider);
     final topupO2 = ref.watch(blenderTopupO2PercentProvider);
     final currency = ref.watch(blenderCurrencyProvider);
-    final cost = _gasCost(settings, units, prices);
-    final unpriced = _priceFor(_role, prices) == null;
+    // An untouched saved fill shows what it was billed at, the same amount
+    // saving it will keep.
+    final unchanged = _unchangedGasLine;
+    final cost = unchanged == null ? _gasCost(settings, units, prices) : null;
+    final addedBar = unchanged?.addedBar ?? cost?.addedBar;
+    final amount = unchanged != null ? widget.fill!.total : cost?.cost;
+    final unpriced = unchanged == null && _priceFor(_role, prices) == null;
     final resultStyle = theme.textTheme.titleSmall;
     return [
       DropdownButtonFormField<BlenderGasRole>(
@@ -423,7 +482,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
       const SizedBox(height: 12),
       Text(
         context.l10n.gasCalculators_blender_lineFillPressure(
-          cost == null ? '--' : units.formatPressure(cost.addedBar),
+          addedBar == null ? '--' : units.formatPressure(addedBar),
         ),
         key: const Key('blender-line-fill-pressure'),
         style: resultStyle,
@@ -431,7 +490,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
       const SizedBox(height: 4),
       Text(
         context.l10n.gasCalculators_blender_lineComputedAmount(
-          cost == null ? '--' : formatMoney(cost.cost, currency),
+          amount == null ? '--' : formatMoney(amount, currency),
         ),
         key: const Key('blender-line-computed-amount'),
         style: resultStyle?.copyWith(fontWeight: FontWeight.w700),
@@ -468,6 +527,8 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
             _cylinder,
             '${context.l10n.gasCalculators_blender_cylinderVolume} '
             '(${units.volumeSymbol})',
+            // Typing a size replaces the preset's exact one.
+            onChanged: () => _presetLiters = null,
           ),
         ),
         const SizedBox(width: 8),
@@ -503,14 +564,16 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
             // what the cylinder is filled to (issue #2302). Still editable
             // afterwards, since only the last gas of a blend reaches it.
             onSelected: (preset) => setState(() {
+              _presetLiters = preset.volumeLiters;
               _cylinder.text = formatRoundedForInput(
                 litersToDisplayVolume(preset.volumeLiters, settings),
                 2,
               );
               _endPressure.text = formatRoundedForInput(
                 units.convertPressure(preset.workingPressureBar),
-                0,
+                2,
               );
+              _error = null;
             }),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
@@ -528,13 +591,21 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
     );
   }
 
-  Widget _numberField(Key key, TextEditingController controller, String label) {
+  Widget _numberField(
+    Key key,
+    TextEditingController controller,
+    String label, {
+    VoidCallback? onChanged,
+  }) {
     return TextField(
       key: key,
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
-      onChanged: (_) => setState(() => _error = null),
+      onChanged: (_) => setState(() {
+        onChanged?.call();
+        _error = null;
+      }),
       decoration: InputDecoration(
         labelText: label,
         isDense: true,

@@ -14055,6 +14055,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The end pressure must be above the start pressure.';
 
   @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'Enter a start and an end pressure.';
+
+  @override
   String get gasCalculators_blender_lineNeedsCylinder =>
       'Enter a cylinder volume.';
 

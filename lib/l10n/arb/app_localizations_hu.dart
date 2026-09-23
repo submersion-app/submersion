@@ -14237,6 +14237,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'A végnyomásnak nagyobbnak kell lennie a kezdőnyomásnál.';
 
   @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'Adjon meg egy kezdő- és egy végnyomást.';
+
+  @override
   String get gasCalculators_blender_lineNeedsCylinder =>
       'Adja meg a palack térfogatát.';
 

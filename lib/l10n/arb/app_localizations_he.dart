@@ -13945,6 +13945,10 @@ class AppLocalizationsHe extends AppLocalizations {
       'הלחץ הסופי חייב להיות גבוה מהלחץ ההתחלתי.';
 
   @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'יש להזין לחץ התחלתי ולחץ סופי.';
+
+  @override
   String get gasCalculators_blender_lineNeedsCylinder => 'יש להזין נפח מכל.';
 
   @override

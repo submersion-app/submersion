@@ -14263,6 +14263,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Der Enddruck muss über dem Anfangsdruck liegen.';
 
   @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'Gib einen Anfangs- und einen Enddruck ein.';
+
+  @override
   String get gasCalculators_blender_lineNeedsCylinder =>
       'Gib ein Flaschenvolumen ein.';
 

@@ -14174,6 +14174,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'De einddruk moet boven de begindruk liggen.';
 
   @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'Voer een begin- en een einddruk in.';
+
+  @override
   String get gasCalculators_blender_lineNeedsCylinder =>
       'Voer een flesinhoud in.';
 

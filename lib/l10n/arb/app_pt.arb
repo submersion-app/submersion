@@ -152,6 +152,7 @@
   "gasCalculators_blender_lineComputedAmount": "Valor: {amount}",
   "gasCalculators_blender_lineNoPrice": "Não há preço definido para este gás, por isso é cobrado a 0.",
   "gasCalculators_blender_lineInvalidPressure": "A pressão final tem de ser superior à pressão inicial.",
+  "gasCalculators_blender_lineNeedsPressure": "Introduza uma pressão inicial e uma final.",
   "gasCalculators_blender_lineNeedsCylinder": "Introduza um volume de cilindro.",
   "gasCalculators_blender_lineDescriptionOptional": "Opcional. Se ficar vazio, é gerado a partir do enchimento.",
   "gasCalculators_blender_export": "Exportar",

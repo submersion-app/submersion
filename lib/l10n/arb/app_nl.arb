@@ -152,6 +152,7 @@
   "gasCalculators_blender_lineComputedAmount": "Bedrag: {amount}",
   "gasCalculators_blender_lineNoPrice": "Voor dit gas is geen prijs ingesteld, dus het wordt tegen 0 berekend.",
   "gasCalculators_blender_lineInvalidPressure": "De einddruk moet boven de begindruk liggen.",
+  "gasCalculators_blender_lineNeedsPressure": "Voer een begin- en een einddruk in.",
   "gasCalculators_blender_lineNeedsCylinder": "Voer een flesinhoud in.",
   "gasCalculators_blender_lineDescriptionOptional": "Optioneel. Leeg gelaten wordt het uit de vulling gemaakt.",
   "gasCalculators_blender_export": "Exporteren",

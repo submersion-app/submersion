@@ -750,6 +750,167 @@ void main() {
       expect(fill.label, endsWith('psi'));
     });
 
+    testWidgets('reopening a gas fill to change only its description keeps '
+        'what it was billed at (#2302 review)', (tester) async {
+      final ref = await _pump(tester);
+      // Priced since at a rate that would make this line 41.85.
+      ref.read(blenderGasPricesProvider.notifier).state = const [1.0, 1.5, 0.1];
+      ref.read(blenderBilledFillsProvider.notifier).state = const [
+        BilledFill(
+          id: 'a',
+          label: 'Twinset',
+          lines: [
+            BilledGasLine(
+              gas: 'Helium',
+              addedBar: 232.5,
+              cost: 27,
+              freeGasLiters: 2790,
+              cylinderLiters: 12,
+              role: BlenderGasRole.he,
+              startBar: 0,
+            ),
+          ],
+          total: 27,
+        ),
+      ];
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Actions for Twinset'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit Twinset'));
+      await tester.pumpAndSettle();
+
+      // Not rounded to a whole number, so an untouched save cannot move it.
+      expect(
+        tester
+            .widget<TextField>(
+              find.byKey(const Key('blender-line-end-pressure')),
+            )
+            .controller!
+            .text,
+        '232.5',
+      );
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('blender-line-computed-amount')))
+            .data,
+        contains('27.00'),
+      );
+
+      await tester.enterText(
+        find.byKey(const Key('blender-line-description')),
+        'Doubles',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      final fill = ref.read(blenderBilledFillsProvider).single;
+      expect(fill.label, 'Doubles');
+      expect(fill.total, 27);
+      expect(fill.manualGasLine!.addedBar, 232.5);
+      expect(fill.manualGasLine!.cost, 27);
+    });
+
+    testWidgets('switching a gas fill to a free amount starts from what it '
+        'cost (#2302 review)', (tester) async {
+      final ref = await _pump(tester);
+      ref.read(blenderBilledFillsProvider.notifier).state = const [
+        BilledFill(
+          id: 'a',
+          label: 'Twinset',
+          lines: [
+            BilledGasLine(
+              gas: 'Helium',
+              addedBar: 150,
+              cost: 27,
+              cylinderLiters: 12,
+              role: BlenderGasRole.he,
+              startBar: 50,
+            ),
+          ],
+          total: 27,
+        ),
+      ];
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip('Actions for Twinset'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit Twinset'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Free amount'));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('blender-line-amount')))
+            .controller!
+            .text,
+        '27',
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      final fill = ref.read(blenderBilledFillsProvider).single;
+      expect(fill.isManual, isTrue);
+      expect(fill.total, 27);
+    });
+
+    testWidgets('an empty pressure asks for one rather than blaming the '
+        'order (#2302 review)', (tester) async {
+      final ref = await _pump(tester);
+      await _openAddLine(tester);
+
+      await tester.enterText(
+        find.byKey(const Key('blender-line-start-pressure')),
+        '',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('Enter a start and an end pressure'),
+        findsOneWidget,
+      );
+      expect(ref.read(blenderBilledFillsProvider), isEmpty);
+    });
+
+    testWidgets('a preset picked in cubic feet bills its exact water volume '
+        '(#2302 review)', (tester) async {
+      final ref = await _pump(
+        tester,
+        settings: const AppSettings(
+          defaultCurrency: 'CHF',
+          volumeUnit: VolumeUnit.cubicFeet,
+        ),
+        presets: [
+          TankPresetEntity(
+            id: 'al80',
+            name: 'al80',
+            displayName: 'AL80',
+            volumeLiters: 11.1,
+            workingPressureBar: 207,
+            material: TankMaterial.aluminum,
+            createdAt: DateTime(2024),
+            updatedAt: DateTime(2024),
+          ),
+        ],
+      );
+      await _openAddLine(tester);
+
+      await tester.tap(find.byKey(const Key('blender-line-cylinder-presets')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('AL80').last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      final line = ref.read(blenderBilledFillsProvider).single.manualGasLine!;
+      expect(line.cylinderLiters, 11.1);
+      expect(line.addedBar, 207);
+    });
+
     testWidgets('a computed fill offers neither the kind switch nor the gas '
         'fields when re-edited', (tester) async {
       final ref = await _pump(tester);

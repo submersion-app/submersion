@@ -41,6 +41,9 @@ class BilledGasLine {
   /// The fill gas a hand-entered gas fill was billed for (issue #2302).
   /// Null on every line the blender computed: set only by "Add a line", so
   /// editing that line can reopen the form on the same gas.
+  ///
+  /// [BilledFill.manualGasLine] tells a hand-entered fill apart by this field
+  /// alone, so a computed line must keep leaving it null.
   final BlenderGasRole? role;
 
   /// The pressure a hand-entered gas fill started from, in bar. The end

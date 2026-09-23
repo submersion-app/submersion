@@ -152,6 +152,7 @@
   "gasCalculators_blender_lineComputedAmount": "Összeg: {amount}",
   "gasCalculators_blender_lineNoPrice": "Ehhez a gázhoz nincs ár megadva, ezért 0-val számolunk.",
   "gasCalculators_blender_lineInvalidPressure": "A végnyomásnak nagyobbnak kell lennie a kezdőnyomásnál.",
+  "gasCalculators_blender_lineNeedsPressure": "Adjon meg egy kezdő- és egy végnyomást.",
   "gasCalculators_blender_lineNeedsCylinder": "Adja meg a palack térfogatát.",
   "gasCalculators_blender_lineDescriptionOptional": "Nem kötelező. Ha üresen marad, a töltésből jön létre.",
   "gasCalculators_blender_export": "Exportálás",

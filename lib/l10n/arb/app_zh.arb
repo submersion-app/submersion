@@ -152,6 +152,7 @@
   "gasCalculators_blender_lineComputedAmount": "金额：{amount}",
   "gasCalculators_blender_lineNoPrice": "此气体未设置价格，按 0 计费。",
   "gasCalculators_blender_lineInvalidPressure": "最终压力必须高于初始压力。",
+  "gasCalculators_blender_lineNeedsPressure": "请输入初始压力和最终压力。",
   "gasCalculators_blender_lineNeedsCylinder": "请输入气瓶容积。",
   "gasCalculators_blender_lineDescriptionOptional": "可选。留空时根据充填自动生成。",
   "gasCalculators_blender_export": "导出",

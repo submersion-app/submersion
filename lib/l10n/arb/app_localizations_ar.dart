@@ -14044,6 +14044,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'يجب أن يكون الضغط النهائي أعلى من الضغط الابتدائي.';
 
   @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'أدخل ضغطًا ابتدائيًا وضغطًا نهائيًا.';
+
+  @override
   String get gasCalculators_blender_lineNeedsCylinder => 'أدخل سعة الأسطوانة.';
 
   @override

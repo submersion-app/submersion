@@ -13601,6 +13601,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_lineInvalidPressure => '最终压力必须高于初始压力。';
 
   @override
+  String get gasCalculators_blender_lineNeedsPressure => '请输入初始压力和最终压力。';
+
+  @override
   String get gasCalculators_blender_lineNeedsCylinder => '请输入气瓶容积。';
 
   @override

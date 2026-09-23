@@ -14281,6 +14281,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'A pressão final tem de ser superior à pressão inicial.';
 
   @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'Introduza uma pressão inicial e uma final.';
+
+  @override
   String get gasCalculators_blender_lineNeedsCylinder =>
       'Introduza um volume de cilindro.';
 

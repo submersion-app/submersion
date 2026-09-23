@@ -152,6 +152,7 @@
   "gasCalculators_blender_lineComputedAmount": "Importo: {amount}",
   "gasCalculators_blender_lineNoPrice": "Nessun prezzo impostato per questo gas, quindi viene addebitato a 0.",
   "gasCalculators_blender_lineInvalidPressure": "La pressione finale deve essere superiore a quella iniziale.",
+  "gasCalculators_blender_lineNeedsPressure": "Inserisci una pressione iniziale e una finale.",
   "gasCalculators_blender_lineNeedsCylinder": "Inserisci un volume della bombola.",
   "gasCalculators_blender_lineDescriptionOptional": "Facoltativo. Se lasciato vuoto, viene generato dalla ricarica.",
   "gasCalculators_blender_export": "Esporta",
