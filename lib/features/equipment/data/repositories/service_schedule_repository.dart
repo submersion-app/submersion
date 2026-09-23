@@ -8,6 +8,7 @@ import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart'
     as domain;
@@ -40,6 +41,25 @@ class ServiceScheduleRepository {
       _db.serviceSchedules,
     )..where((t) => t.equipmentId.equals(equipmentId))).get();
     return rows.map(_mapRow).toList();
+  }
+
+  /// [getSchedulesForEquipment] for many items at once, keyed by equipment
+  /// id; an item without schedules is absent. One statement per chunk of
+  /// ids instead of one per item.
+  Future<Map<String, List<domain.ServiceSchedule>>> getSchedulesForEquipmentIds(
+    List<String> equipmentIds,
+  ) async {
+    if (equipmentIds.isEmpty) return {};
+    final byItem = <String, List<domain.ServiceSchedule>>{};
+    for (final chunk in seriesIdChunks(equipmentIds)) {
+      final rows = await (_db.select(
+        _db.serviceSchedules,
+      )..where((t) => t.equipmentId.isIn(chunk))).get();
+      for (final row in rows) {
+        byItem.putIfAbsent(row.equipmentId, () => []).add(_mapRow(row));
+      }
+    }
+    return byItem;
   }
 
   Future<List<domain.ServiceSchedule>> getAllSchedules() async {

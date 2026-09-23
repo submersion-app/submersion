@@ -7,13 +7,13 @@ import 'package:submersion/features/equipment/domain/entities/equipment_finding.
 import 'package:submersion/features/equipment/domain/entities/overdue_service_entry.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
-import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/utils/condition_finding_text.dart';
 import 'package:submersion/features/equipment/presentation/utils/service_severity_colors.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_trigger_text.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/domain/services/checklist_session_engine.dart';
+import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -78,8 +78,13 @@ class SessionItemTile extends ConsumerWidget {
     }
     final equipmentId = item.equipmentId;
     if (equipmentId == null) return (const [], DateTime.now());
+    // One evaluation for the whole session, indexed by this row's gear,
+    // rather than one provider per row.
     final statuses =
-        ref.watch(serviceClockStatusesProvider(equipmentId)).value ?? const [];
+        ref
+            .watch(sessionServiceClocksProvider(session.id))
+            .value?[equipmentId] ??
+        const [];
     return (
       [for (final status in statuses) OverdueServiceEntry.fromStatus(status)],
       DateTime.now(),
