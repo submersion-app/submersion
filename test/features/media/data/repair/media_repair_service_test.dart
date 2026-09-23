@@ -7,12 +7,14 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
 import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 
+import '../../../../helpers/fake_photo_picker_service.dart';
 import '../../../../helpers/test_database.dart';
 
 void main() {
@@ -39,11 +41,13 @@ void main() {
   MediaRepairService service({
     Future<Uint8List> Function(String path)? createBookmark,
     Future<void> Function(String ref, Uint8List blob)? writeBookmark,
+    CloudIdentifierSource? cloudIdentifiers,
   }) => MediaRepairService(
     repository: repo,
     queue: queue,
     createBookmark: createBookmark,
     writeBookmark: writeBookmark,
+    cloudIdentifiers: cloudIdentifiers,
   );
 
   Future<MediaItem> seed(
@@ -202,6 +206,89 @@ void main() {
     expect(repaired.sourceType, MediaSourceType.platformGallery);
     expect(repaired.platformAssetId, 'asset-9');
     expect(repaired.isOrphaned, isFalse);
+  });
+
+  RepairProposal galleryProposal(MediaItem item, String assetId) =>
+      RepairProposal(
+        item: item,
+        confidence: RepairConfidence.probable,
+        candidate: RepairCandidate.galleryAsset(
+          assetId: assetId,
+          sizeBytes: null,
+        ),
+      );
+
+  test('a gallery relink records the new asset\'s cloud id', () async {
+    await seed('a');
+    final library = FakePhotoPickerService(
+      assets: [
+        FakeGalleryAsset(
+          id: 'asset-9',
+          bytes: Uint8List.fromList([1]),
+          takenAt: DateTime(2026, 6, 1),
+          cloudId: 'C-9',
+        ),
+      ],
+    );
+
+    await service(
+      cloudIdentifiers: library,
+    ).apply([galleryProposal((await repo.getMediaById('a'))!, 'asset-9')]);
+
+    expect((await repo.getMediaById('a'))!.cloudAssetId, 'C-9');
+  });
+
+  // The old id named the old asset. Empty, not null: a null never reaches a
+  // peer, whose cloud tier would go on resolving the old photo.
+  test('a relink to an asset with no cloud id clears it to empty', () async {
+    await seed('a');
+    await db.customStatement(
+      "UPDATE media SET cloud_asset_id = 'C-old' WHERE id = 'a'",
+    );
+
+    await service(
+      cloudIdentifiers: FakePhotoPickerService(),
+    ).apply([galleryProposal((await repo.getMediaById('a'))!, 'asset-9')]);
+
+    expect((await repo.getMediaById('a'))!.cloudAssetId, '');
+  });
+
+  test('a failed lookup clears it to empty too', () async {
+    await seed('a');
+    await db.customStatement(
+      "UPDATE media SET cloud_asset_id = 'C-old' WHERE id = 'a'",
+    );
+    final library = FakePhotoPickerService()..cloudIdError = StateError('x');
+
+    final report = await service(
+      cloudIdentifiers: library,
+    ).apply([galleryProposal((await repo.getMediaById('a'))!, 'asset-9')]);
+
+    expect(report.relinked, 1, reason: 'the relink itself still lands');
+    expect((await repo.getMediaById('a'))!.cloudAssetId, '');
+  });
+
+  test('a file relink leaves the cloud id alone', () async {
+    final (file, hash) = await tempFile('a.jpg', 'aaaa');
+    await seed(
+      'a',
+      contentHash: hash,
+      sourceType: MediaSourceType.platformGallery,
+      platformAssetId: 'dead-asset',
+    );
+    await db.customStatement(
+      "UPDATE media SET cloud_asset_id = 'C-old' WHERE id = 'a'",
+    );
+
+    await service(cloudIdentifiers: FakePhotoPickerService()).apply([
+      RepairProposal(
+        item: (await repo.getMediaById('a'))!,
+        confidence: RepairConfidence.exact,
+        candidate: RepairCandidate.file(path: file.path, sizeBytes: 4),
+      ),
+    ]);
+
+    expect((await repo.getMediaById('a'))!.cloudAssetId, 'C-old');
   });
 
   test('file proposal on a gallery row retargets it to localFile', () async {

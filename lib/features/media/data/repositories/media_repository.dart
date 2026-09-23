@@ -2092,6 +2092,12 @@ class MediaRepository {
             // Null for a file repair: the old asset id addresses an asset
             // that no longer exists on this device.
             platformAssetId: Value(write.newPlatformAssetId),
+            // A relink to the gallery replaces the cloud id with the new
+            // asset's ('' when it has none); any other repair leaves it,
+            // since only a gallery row is ever resolved by it.
+            cloudAssetId: toGallery
+                ? Value(write.newCloudAssetId ?? '')
+                : const Value.absent(),
             sourceType: Value(write.newSourceType.name),
             // Written even when null: a shared source records no origin at
             // link time, and the old one described an address this row no
