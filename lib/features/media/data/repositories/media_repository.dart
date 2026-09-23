@@ -252,7 +252,15 @@ class MediaRepository {
   /// Caller-provided originDeviceId is always preserved.
   Future<String?> _effectiveOriginDeviceId(domain.MediaItem item) async {
     if (item.originDeviceId != null) return item.originDeviceId;
-    switch (item.sourceType) {
+    return _originFor(item.sourceType);
+  }
+
+  /// This device's id for a source only this device can resolve, else null.
+  /// Every write that points a row at such a source (a new link, a repair
+  /// relink) records it, so the origin always names the device that holds
+  /// the address.
+  Future<String?> _originFor(MediaSourceType sourceType) async {
+    switch (sourceType) {
       case MediaSourceType.localFile:
       case MediaSourceType.serviceConnector:
       // Only the linking device holds the stored asset id, and only its
@@ -2016,8 +2024,16 @@ class MediaRepository {
   Future<void> applyRepairWrites(List<RepairWrite> writes) async {
     if (writes.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
+    // A relink points the row at an address only this device can resolve,
+    // so this device becomes its origin: kept foreign or missing, the device
+    // that relinked it could never call it gone (spec 6.1).
+    final origins = {
+      for (final type in {for (final w in writes) w.newSourceType})
+        type: await _originFor(type),
+    };
     await _db.transaction(() async {
       for (final write in writes) {
+        final origin = origins[write.newSourceType];
         // sourceType is the resolver dispatch key, so a repair must always
         // restate it: relinking a dead gallery row to a file on disk while
         // leaving sourceType alone would keep routing the row through
@@ -2039,6 +2055,9 @@ class MediaRepository {
             // that no longer exists on this device.
             platformAssetId: Value(write.newPlatformAssetId),
             sourceType: Value(write.newSourceType.name),
+            originDeviceId: origin == null
+                ? const Value.absent()
+                : Value(origin),
             isOrphaned: const Value(false),
             lastVerifiedAt: Value(now),
             updatedAt: Value(now),

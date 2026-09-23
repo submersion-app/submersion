@@ -407,7 +407,9 @@ returns null for `platformGallery`), and the origin republish sweep only
 selects rows this device already owns. Slice 7 therefore adds two things:
 gallery links stamp the linking device's id at insert from then on, and a
 one-time origin backfill stamps this device's id (a narrow write, one clock
-bump) on every null-origin row that resolves natively here. Until a row has
+bump) on every null-origin row that resolves natively here. A repair that
+relinks a row to a gallery asset or a file records the repairing device as
+its origin too, since the new address resolves only there. Until a row has
 an origin it is never `notFound`, on any device (decided 2026-09-23). The
 spec first kept today's behaviour on a device with a cache hit, but the
 first failed thumbnail fetch clears that mapping, so the verdict would flip
