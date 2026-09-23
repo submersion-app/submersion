@@ -6385,6 +6385,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_chartOption_metricsFollowViewport => '保持叠加层在视图内';
 
   @override
+  String get diveLog_chartOption_tooltipFollowsCursor =>
+      'Tooltip follows cursor';
+
+  @override
   String get diveLog_pressure_estimatedSuffix => '(估算)';
 
   @override

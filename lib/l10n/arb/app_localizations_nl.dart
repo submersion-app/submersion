@@ -6677,6 +6677,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'Overlays in beeld houden';
 
   @override
+  String get diveLog_chartOption_tooltipFollowsCursor =>
+      'Tooltip follows cursor';
+
+  @override
   String get diveLog_pressure_estimatedSuffix => '(gesch.)';
 
   @override

@@ -97,6 +97,13 @@ class ProfileLegendState {
   /// a series toggle, so it is excluded from [activeSecondaryCount].
   final bool metricsFollowViewport;
 
+  /// Whether the fullscreen profile's cursor tooltip follows the mouse
+  /// (or playback position) versus staying docked in a fixed corner. The
+  /// fixed placement never occludes the plot near the cursor, at the cost
+  /// of not sitting right next to the value it describes (issue #2228
+  /// follow-up).
+  final bool tooltipFollowsCursor;
+
   const ProfileLegendState({
     this.rightAxisMetric,
     this.rightAxisHidden = false,
@@ -146,6 +153,7 @@ class ProfileLegendState {
       'display': false,
     },
     this.metricsFollowViewport = false,
+    this.tooltipFollowsCursor = true,
   });
 
   /// Count of active secondary toggles (for badge display)
@@ -223,6 +231,7 @@ class ProfileLegendState {
     bool? showGas,
     Map<String, bool>? sectionExpanded,
     bool? metricsFollowViewport,
+    bool? tooltipFollowsCursor,
   }) {
     return ProfileLegendState(
       rightAxisMetric: clearRightAxisMetric
@@ -267,6 +276,7 @@ class ProfileLegendState {
       sectionExpanded: sectionExpanded ?? this.sectionExpanded,
       metricsFollowViewport:
           metricsFollowViewport ?? this.metricsFollowViewport,
+      tooltipFollowsCursor: tooltipFollowsCursor ?? this.tooltipFollowsCursor,
     );
   }
 
@@ -313,6 +323,7 @@ class ProfileLegendState {
           mapEquals(showTankPressure, other.showTankPressure) &&
           showGas == other.showGas &&
           metricsFollowViewport == other.metricsFollowViewport &&
+          tooltipFollowsCursor == other.tooltipFollowsCursor &&
           mapEquals(sectionExpanded, other.sectionExpanded);
 
   @override
@@ -355,6 +366,7 @@ class ProfileLegendState {
     ...showTankPressure.entries,
     showGas,
     metricsFollowViewport,
+    tooltipFollowsCursor,
     ...sectionExpanded.entries,
   ]);
 }
@@ -458,6 +470,12 @@ class ProfileLegend extends _$ProfileLegend {
   /// device-local default untouched.
   void toggleMetricsFollowViewport() {
     state = state.copyWith(metricsFollowViewport: !state.metricsFollowViewport);
+  }
+
+  /// Flip the fullscreen tooltip between cursor-following and a fixed,
+  /// non-occluding corner placement, for this chart session only.
+  void toggleTooltipFollowsCursor() {
+    state = state.copyWith(tooltipFollowsCursor: !state.tooltipFollowsCursor);
   }
 
   /// Set the right axis metric for this session (also un-hides it)

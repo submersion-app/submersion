@@ -6725,6 +6725,9 @@ class AppLocalizationsDe extends AppLocalizations {
       'Einblendungen im Sichtbereich halten';
 
   @override
+  String get diveLog_chartOption_tooltipFollowsCursor => 'Tooltip folgt Cursor';
+
+  @override
   String get diveLog_pressure_estimatedSuffix => '(gesch.)';
 
   @override

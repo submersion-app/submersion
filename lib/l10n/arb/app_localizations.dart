@@ -10935,6 +10935,12 @@ abstract class AppLocalizations {
   /// **'Keep overlays in view'**
   String get diveLog_chartOption_metricsFollowViewport;
 
+  /// No description provided for @diveLog_chartOption_tooltipFollowsCursor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tooltip follows cursor'**
+  String get diveLog_chartOption_tooltipFollowsCursor;
+
   /// Short suffix appended to a tank label when its pressure line is a linear start-to-end estimate rather than measured air-integrated data. Abbreviation of 'estimated'.
   ///
   /// In en, this message translates to:

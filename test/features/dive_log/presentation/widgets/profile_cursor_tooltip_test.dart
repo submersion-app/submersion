@@ -124,6 +124,47 @@ void main() {
       expect(position.bottom, isNull);
     });
 
+    test('ceilingHeadroom extends the ceiling past local y = 0, so a box that '
+        'would otherwise detach from the cursor can keep tracking it a bit '
+        'further -- letting it grow into the legend above the plot before '
+        'its text has to shrink (issue #2228 follow-up)', () {
+      const boxHeight = 150.0;
+      // Cursor at y = 100: a 150-tall box tracking it would need its top
+      // at -50, past local y = 0 -- normally enough to detach.
+      final withoutHeadroom = computeTooltipBoxPosition(
+        cursorLocal: const Offset(50, 100),
+        boxSize: const Size(80, boxHeight),
+        plotRect: _plotRect,
+        gap: 8,
+      );
+      expect(withoutHeadroom.bottom, isNull);
+
+      // With 80px of headroom, the box's top (-50) is still within the
+      // extended ceiling (-80 + margin), so it keeps tracking the cursor.
+      final withHeadroom = computeTooltipBoxPosition(
+        cursorLocal: const Offset(50, 100),
+        boxSize: const Size(80, boxHeight),
+        plotRect: _plotRect,
+        gap: 8,
+        ceilingHeadroom: 80,
+      );
+      expect(withHeadroom.bottom, 100);
+    });
+
+    test('pinnedTop moves up by ceilingHeadroom once the box does detach, so '
+        'the pinned box\'s top can sit above local y = 0 (issue #2228 '
+        'follow-up)', () {
+      final position = computeTooltipBoxPosition(
+        cursorLocal: const Offset(50, 10),
+        boxSize: const Size(80, 400),
+        plotRect: _plotRect,
+        gap: 8,
+        ceilingHeadroom: 60,
+      );
+      expect(position.bottom, isNull);
+      expect(position.pinnedTop, tooltipCeilingMargin - 60);
+    });
+
     test('stops following the cursor once it goes low enough that the '
         'bottom edge would pass plotRect.bottom - tooltipTopMargin, using '
         'the same margin as the top clamp', () {
@@ -134,6 +175,22 @@ void main() {
         gap: 8,
       );
       final maxBottom = _plotRect.bottom - tooltipTopMargin;
+      expect(position.bottom, maxBottom);
+    });
+
+    test('floorHeadroom extends that same floor further down, past '
+        'plotRect.bottom and into the time-axis labels below the plot, '
+        'symmetric to ceilingHeadroom above (issue #2228 follow-up)', () {
+      // Cursor past both the un-extended floor (192) and the extended one
+      // (222), so it still clamps -- just further down than before.
+      final position = computeTooltipBoxPosition(
+        cursorLocal: const Offset(50, 250),
+        boxSize: const Size(80, 40),
+        plotRect: _plotRect,
+        gap: 8,
+        floorHeadroom: 30,
+      );
+      final maxBottom = _plotRect.bottom - tooltipTopMargin + 30;
       expect(position.bottom, maxBottom);
     });
 
@@ -190,17 +247,21 @@ void main() {
       required List<TooltipRow> rows,
       Offset cursorLocal = const Offset(100, 100),
       ProfileRightAxisMetric? highlightedMetric,
+      double width = 300,
+      double height = 200,
+      double extraHeadroomAbove = 0,
     }) {
       return MaterialApp(
         home: Scaffold(
           body: SizedBox(
-            width: 300,
-            height: 200,
+            width: width,
+            height: height,
             child: ProfileCursorTooltip(
               rows: rows,
               cursorLocal: cursorLocal,
               insets: _insets,
               highlightedMetric: highlightedMetric,
+              extraHeadroomAbove: extraHeadroomAbove,
             ),
           ),
         ),
@@ -318,6 +379,158 @@ void main() {
 
       expect(shrunkWidth, lessThan(unshrunkWidth));
     });
+
+    testWidgets(
+      'caps the box height at the plot\'s short side in a landscape chart, '
+      'as long as shrinking the text to fit stays above the legibility '
+      'floor (issue #2228 follow-up: the box grows to use all the room the '
+      'short side allows before its text starts shrinking at all)',
+      (tester) async {
+        // Landscape: width (300) > height (200), so the short side is the
+        // height and the cap is 200. Enough rows to need more than that at
+        // full size, but not so many that reaching it would need a font
+        // smaller than tooltipMinFontSize.
+        final rows = [
+          for (var i = 0; i < 15; i++)
+            TooltipRow(
+              label: 'Metric $i',
+              value: '$i.0',
+              bulletColor: AppColors.chartDepth,
+            ),
+        ];
+        await tester.pumpWidget(harness(rows: rows, width: 300, height: 200));
+        await tester.pump();
+
+        final boxHeight = tester
+            .getRect(find.byType(DecoratedBox).first)
+            .height;
+        expect(boxHeight, lessThanOrEqualTo(200.5));
+      },
+    );
+
+    testWidgets(
+      'caps the box height at the plot\'s short side in a portrait chart '
+      'too, where the short side is the width, as long as the legibility '
+      'floor is not reached (issue #2228 follow-up: a narrow portrait '
+      'window)',
+      (tester) async {
+        // Portrait: width (200) < height (300), so the short side is the
+        // width and the cap is 200.
+        final rows = [
+          for (var i = 0; i < 15; i++)
+            TooltipRow(
+              label: 'Metric $i',
+              value: '$i.0',
+              bulletColor: AppColors.chartDepth,
+            ),
+        ];
+        await tester.pumpWidget(
+          harness(
+            rows: rows,
+            width: 200,
+            height: 300,
+            cursorLocal: const Offset(50, 150),
+          ),
+        );
+        await tester.pump();
+
+        final boxHeight = tester
+            .getRect(find.byType(DecoratedBox).first)
+            .height;
+        expect(boxHeight, lessThanOrEqualTo(200.5));
+      },
+    );
+
+    testWidgets(
+      'lets the box grow past the short-side cap once fitting within it '
+      'would shrink the font below tooltipMinFontSize -- legibility wins '
+      'over the height cap for a pathological row count (issue #2228 '
+      'follow-up)',
+      (tester) async {
+        // Portrait, not landscape: the short-side cap (150, the width) and
+        // the hard cap (the container's real height, 400 minus a small
+        // margin) are now far enough apart for the floor to matter -- in
+        // landscape the short side already *is* the real height, so the
+        // hard cap (fractionally smaller, for the corner-radius margin)
+        // always wins first and the floor never gets a chance to.
+        final rows = [
+          for (var i = 0; i < 25; i++)
+            TooltipRow(
+              label: 'Metric $i',
+              value: '$i.0',
+              bulletColor: AppColors.chartDepth,
+            ),
+        ];
+        await tester.pumpWidget(
+          harness(
+            rows: rows,
+            width: 150,
+            height: 400,
+            cursorLocal: const Offset(50, 200),
+          ),
+        );
+        await tester.pump();
+
+        final boxHeight = tester
+            .getRect(find.byType(DecoratedBox).first)
+            .height;
+        expect(boxHeight, greaterThan(150.5));
+        expect(boxHeight, lessThanOrEqualTo(400.5));
+      },
+    );
+
+    testWidgets(
+      'never lets the box grow past the container\'s own height even once '
+      'the legibility floor is reached -- an unbounded pathological row '
+      'count must not run the box off the visible chart entirely (issue '
+      '#2228 follow-up)',
+      (tester) async {
+        // 200 rows would demand a huge box even at the font floor; the hard
+        // ceiling is the container's own height (200), not the soft 2/3 cap
+        // (133.33).
+        final rows = [
+          for (var i = 0; i < 200; i++)
+            TooltipRow(
+              label: 'Metric $i',
+              value: '$i.0',
+              bulletColor: AppColors.chartDepth,
+            ),
+        ];
+        await tester.pumpWidget(harness(rows: rows, width: 300, height: 200));
+        await tester.pump();
+
+        final boxHeight = tester
+            .getRect(find.byType(DecoratedBox).first)
+            .height;
+        expect(boxHeight, lessThanOrEqualTo(200.5));
+      },
+    );
+
+    testWidgets(
+      'extraHeadroomAbove raises that hard ceiling, letting the box use '
+      'the room above the plot (the legend) too, before its text has to '
+      'shrink (issue #2228 follow-up)',
+      (tester) async {
+        final rows = [
+          for (var i = 0; i < 200; i++)
+            TooltipRow(
+              label: 'Metric $i',
+              value: '$i.0',
+              bulletColor: AppColors.chartDepth,
+            ),
+        ];
+        await tester.pumpWidget(
+          harness(rows: rows, width: 300, height: 200, extraHeadroomAbove: 150),
+        );
+        await tester.pump();
+
+        final boxHeight = tester
+            .getRect(find.byType(DecoratedBox).first)
+            .height;
+        expect(boxHeight, lessThanOrEqualTo(350.5));
+        expect(boxHeight, greaterThan(200.5));
+      },
+    );
 
     testWidgets('the box\'s bottom edge stays exactly at the cursor for an '
         'ordinary row count nowhere near the hard ceiling', (tester) async {

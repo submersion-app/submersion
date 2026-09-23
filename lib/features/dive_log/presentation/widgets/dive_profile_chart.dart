@@ -74,7 +74,7 @@ const double ceilingFillAlpha = 0.10;
 /// across a banded scale (issue #2228 follow-up), so they never drive the
 /// right axis, but that is no reason to leave them out of the same
 /// hover-highlight/bold-row treatment every axis-driven metric gets.
-enum ChartOnlyMetric { ceiling, decoStop, mod }
+enum ChartOnlyMetric { ceiling, decoStop, mod, depth }
 
 /// Which of the three mutually exclusive ways [DiveProfileChart] shows the
 /// touched/hovered sample's readout.
@@ -1084,6 +1084,22 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   // Zoom/pan state; see core/ui/chart_viewport.dart.
   ChartViewport _viewport = ChartViewport.reset;
+
+  // Measured height of the legend row above the plot, so the in-chart
+  // cursor tooltip knows how much further it may grow upward -- past the
+  // plot's own top edge, into the legend -- before its text has to start
+  // shrinking (issue #2228 follow-up). Read after each frame rather than
+  // computed, since the legend wraps to a second row once enough metrics
+  // are active, and its real height is not otherwise known ahead of layout.
+  final _legendKey = GlobalKey();
+  double _legendHeight = 0;
+
+  void _measureLegendHeight() {
+    final height = _legendKey.currentContext?.size?.height;
+    if (height != null && height != _legendHeight) {
+      setState(() => _legendHeight = height);
+    }
+  }
 
   // Snapshot of the viewport at the start of a continuous gesture; continuous
   // gestures report cumulative scale/pan, so we apply them against this.
@@ -2847,6 +2863,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       hasOtuData: hasOtuData,
     );
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _measureLegendHeight();
+    });
+
     return LayoutBuilder(
       builder: (context, constraints) {
         // Left axis offset = axisNameSize + sideTitles reservedSize
@@ -2873,6 +2893,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           children: [
             // Chart header with legend and zoom controls (decluttered)
             Row(
+              key: _legendKey,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (widget.legendLeading != null) widget.legendLeading!,
@@ -2894,27 +2915,51 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
             ),
 
             // Fill bounded parents (e.g. fullscreen); keep the 200px default
-            // in unbounded contexts such as inline scroll views.
+            // in unbounded contexts such as inline scroll views. The zoom
+            // hint and the plot share a Stack (not separate Column children)
+            // so the hint paints first, behind the plot -- an oversized
+            // in-chart tooltip is allowed to spill past the plot's own
+            // bounds (issue #2228 follow-up: legibility over occlusion for a
+            // pathological number of active metrics), and with the hint as a
+            // later Column sibling it used to paint over that overflow
+            // instead of the other way around.
             if (constraints.hasBoundedHeight)
-              Expanded(child: plot)
+              Expanded(child: _plotWithZoomHint(context, plot))
             else
-              SizedBox(height: 200, child: plot),
-            // Zoom hint
-            if (_viewport.isZoomed)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  context.l10n.diveLog_profile_zoomHint(
-                    _viewport.zoom.toStringAsFixed(1),
-                  ),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ),
+              SizedBox(height: 200, child: _plotWithZoomHint(context, plot)),
           ],
         );
       },
+    );
+  }
+
+  /// Stacks the zoom hint behind [plot] instead of laying it out below as a
+  /// separate Column child (see the call site's comment for why).
+  Widget _plotWithZoomHint(BuildContext context, Widget plot) {
+    if (!_viewport.isZoomed) return plot;
+    final colorScheme = Theme.of(context).colorScheme;
+    return Stack(
+      children: [
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          child: IgnorePointer(
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Text(
+                context.l10n.diveLog_profile_zoomHint(
+                  _viewport.zoom.toStringAsFixed(1),
+                ),
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ),
+        ),
+        Positioned.fill(child: plot),
+      ],
     );
   }
 
@@ -3510,10 +3555,11 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
       combinedSig,
       () => [
         ..._barsCache.series('base', _baseSig, () {
-          // Depth line segments (colored by active gas if
-          // present). No right-axis metric represents depth
-          // (it is the chart's own primary/left axis), so these
-          // never highlight/drive the right axis.
+          // Depth line segments (colored by active gas if present). Tagged
+          // with ChartOnlyMetric.depth, not a ProfileRightAxisMetric: depth
+          // is the chart's own primary/left axis, so hovering it highlights
+          // the line (issue #2228 follow-up) but never drives the right
+          // axis the way a secondary metric's tag does.
           final depthLines = _buildGasColoredDepthLines(colorScheme, units);
 
           // Gas switch markers (if showing and data available).
@@ -3554,7 +3600,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
               : const <LineChartBarData>[];
 
           return [
-            ..._tagAll(depthLines, null),
+            ..._tagAll(depthLines, ChartOnlyMetric.depth),
             ..._tagAll(gasSwitchMarkers, null),
             ..._tagAll(temperatureLines, ProfileRightAxisMetric.temperature),
             ..._tagAll(tankPressureLines, ProfileRightAxisMetric.pressure),
@@ -4672,6 +4718,10 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                 highlightedMetric: playbackCursorTooltip != null
                     ? null
                     : _highlightedTooltipMetric,
+                extraHeadroomAbove: _legendHeight,
+                // TEMP for live comparison (issue #2228 follow-up): flip
+                // back to false to restore the bottom-anchored default.
+                anchorTopToCursor: true,
               ),
             ),
           ),

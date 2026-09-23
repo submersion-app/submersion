@@ -12,6 +12,7 @@ import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profi
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_review_provider.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -482,6 +483,86 @@ void main() {
     await tester.pump();
     expect(container.read(playbackProvider('d1')).currentTimestamp, 0);
     expect(container.read(profileReviewProvider('d1')), 0);
+  });
+
+  group('optional fixed tooltip (issue #2228 follow-up)', () {
+    testWidgets(
+      'switching the setting off docks the tooltip instead of following '
+      'the cursor',
+      (tester) async {
+        final container = ProviderContainer(overrides: _defaultOverrides());
+        addTearDown(container.dispose);
+        container.read(profileLegendProvider.notifier).state = container
+            .read(profileLegendProvider)
+            .copyWith(tooltipFollowsCursor: false);
+
+        await tester.pumpWidget(_wrapContainer(container));
+        await tester.pumpAndSettle();
+
+        final chart = tester.widget<DiveProfileChart>(
+          find.byType(DiveProfileChart),
+        );
+        expect(chart.tooltipPresentation, TooltipPresentation.external);
+        expect(chart.onTooltipData, isNotNull);
+
+        chart.onTooltipData!(const [
+          TooltipRow(label: 'Zeit', value: '01:00', bulletColor: Colors.blue),
+        ]);
+        await tester.pump();
+
+        // The label renders padded (padRight) to align the bullet column,
+        // so it is not an exact "Zeit" match.
+        expect(find.textContaining('Zeit'), findsOneWidget);
+        expect(find.text('01:00'), findsOneWidget);
+      },
+    );
+
+    testWidgets(
+      'keeps showing the last reading instead of vanishing when the chart '
+      'reports null -- which it does the instant the pointer moves onto '
+      'the docked panel itself, since the panel sits on top of the chart '
+      'to be draggable (issue #2228 follow-up: this used to unmount the '
+      'panel, and any in-progress drag with it, right as the user reached '
+      'for it)',
+      (tester) async {
+        final container = ProviderContainer(overrides: _defaultOverrides());
+        addTearDown(container.dispose);
+        container.read(profileLegendProvider.notifier).state = container
+            .read(profileLegendProvider)
+            .copyWith(tooltipFollowsCursor: false);
+
+        await tester.pumpWidget(_wrapContainer(container));
+        await tester.pumpAndSettle();
+
+        final chart = tester.widget<DiveProfileChart>(
+          find.byType(DiveProfileChart),
+        );
+        chart.onTooltipData!(const [
+          TooltipRow(label: 'Zeit', value: '01:00', bulletColor: Colors.blue),
+        ]);
+        await tester.pump();
+        expect(find.text('01:00'), findsOneWidget);
+
+        // The chart reporting null (pointer left its own hit-testable area)
+        // must not blank the panel.
+        chart.onTooltipData!(null);
+        await tester.pump();
+        expect(find.text('01:00'), findsOneWidget);
+      },
+    );
+
+    testWidgets('leaving the setting on keeps the default cursor tooltip', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_wrap(_defaultOverrides()));
+      await tester.pumpAndSettle();
+
+      final chart = tester.widget<DiveProfileChart>(
+        find.byType(DiveProfileChart),
+      );
+      expect(chart.tooltipPresentation, TooltipPresentation.inChart);
+      expect(chart.onTooltipData, isNull);
+    });
   });
 
   group('phone layout', () {

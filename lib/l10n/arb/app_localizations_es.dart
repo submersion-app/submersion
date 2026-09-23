@@ -6729,6 +6729,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Mantener las superposiciones a la vista';
 
   @override
+  String get diveLog_chartOption_tooltipFollowsCursor =>
+      'Tooltip follows cursor';
+
+  @override
   String get diveLog_pressure_estimatedSuffix => '(est.)';
 
   @override

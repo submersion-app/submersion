@@ -3685,6 +3685,7 @@
   "diveLog_chartSection_other": "Other",
   "diveLog_chartSection_tankPressures": "Tank Pressures",
   "diveLog_chartOption_metricsFollowViewport": "Keep overlays in view",
+  "diveLog_chartOption_tooltipFollowsCursor": "Tooltip follows cursor",
   "diveLog_pressure_estimatedSuffix": "(est.)",
   "@diveLog_pressure_estimatedSuffix": {
     "description": "Short suffix appended to a tank label when its pressure line is a linear start-to-end estimate rather than measured air-integrated data. Abbreviation of 'estimated'."

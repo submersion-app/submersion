@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -13,12 +15,15 @@ import 'package:submersion/features/dive_log/presentation/providers/chart_tank_p
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_analysis_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/profile_legend_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_playback_provider.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_review_provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/features/dive_log/presentation/providers/safety_review_providers.dart';
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/profile_cursor_tooltip.dart'
+    show TooltipCard, computeTooltipCardSize;
 import 'package:submersion/features/dive_log/presentation/widgets/photo_marker_layout.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_transport_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/safety_finding_highlight.dart';
@@ -59,6 +64,7 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
   /// asked for (and the 25ms ticker doesn't keep running in the background).
   late final bool _wasPlaybackActiveOnEntry;
   bool _isPlaybackActiveNow = false;
+  List<TooltipRow>? _fixedTooltipRows;
 
   @override
   void initState() {
@@ -198,6 +204,9 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
             null;
       }
     });
+    final tooltipFollowsCursor = ref.watch(
+      profileLegendProvider.select((s) => s.tooltipFollowsCursor),
+    );
     final showMaxDepthMarker = ref.watch(showMaxDepthMarkerProvider);
     final showPressureThresholdMarkers = ref.watch(
       showPressureThresholdMarkersProvider,
@@ -369,11 +378,22 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           activeComputerId: activeProfile?.computerId,
                           diveDuration: dive.effectiveRuntime,
                           maxDepth: dive.maxDepth,
-                          // Uses the default cursor-following in-chart
-                          // tooltip (TooltipPresentation.inChart, issue #2228
+                          // Cursor-following in-chart tooltip by default
+                          // (TooltipPresentation.inChart, issue #2228
                           // follow-up): it clamps to the plot rect itself, so
                           // the old clipping concern that used to justify the
                           // external presentation here no longer applies.
+                          // Optionally docked in a fixed corner instead (see
+                          // "Tooltip follows cursor" in the chart's Display
+                          // options), which never sits over the plot near
+                          // the cursor -- requested after #2228 shipped.
+                          tooltipPresentation: tooltipFollowsCursor
+                              ? TooltipPresentation.inChart
+                              : TooltipPresentation.external,
+                          onTooltipData: tooltipFollowsCursor
+                              ? null
+                              : (rows) =>
+                                    setState(() => _fixedTooltipRows = rows),
                           playbackIsPlaying: playbackIsPlaying,
                           legendLeading: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -512,6 +532,8 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
                           },
                         ),
                       ),
+                      if (!tooltipFollowsCursor)
+                        _FixedTooltipPanel(rows: _fixedTooltipRows),
                     ],
                   ),
                 ),
@@ -627,5 +649,93 @@ class _FullscreenProfilePageState extends ConsumerState<FullscreenProfilePage> {
     }
 
     return markers;
+  }
+}
+
+/// The cursor readout for [TooltipPresentation.external]: docked in the
+/// chart's top-left corner instead of following the cursor, so it never
+/// covers the plot area the user is currently scrubbing through (requested
+/// after #2228 shipped -- the cursor-following tooltip made it hard to see
+/// what lies just ahead of or behind the touched sample, and on narrow
+/// screens it could sit on top of the touch point itself).
+class _FixedTooltipPanel extends StatefulWidget {
+  final List<TooltipRow>? rows;
+
+  const _FixedTooltipPanel({required this.rows});
+
+  @override
+  State<_FixedTooltipPanel> createState() => _FixedTooltipPanelState();
+}
+
+class _FixedTooltipPanelState extends State<_FixedTooltipPanel> {
+  Offset _offset = const Offset(8, 8);
+
+  // The chart reports null the instant the pointer leaves its own
+  // hit-testable area -- which includes the moment it moves onto this very
+  // panel, since the panel sits on top of the chart to be draggable. Without
+  // this cache, that transition cleared widget.rows and unmounted the panel
+  // (and its in-progress drag) the instant the user tried to reach for it
+  // (issue #2228 follow-up). Kept until the next real reading, not cleared
+  // back to null, so the panel reads as a static readout of the
+  // last-touched sample rather than flickering in and out.
+  List<TooltipRow>? _lastRows;
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = widget.rows ?? _lastRows;
+    if (rows == null || rows.isEmpty) return const SizedBox.shrink();
+    if (widget.rows != null) _lastRows = widget.rows;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Same size cap as ProfileCursorTooltip (see [computeTooltipCardSize]):
+        // switching "Tooltip follows cursor" off must not also lift the limit
+        // on how much of the chart the tooltip can occlude.
+        final shortSide = math.min(constraints.maxWidth, constraints.maxHeight);
+        final boxSize = computeTooltipCardSize(
+          rowCount: rows.length,
+          maxWidth: constraints.maxWidth,
+          shortSideForCap: shortSide,
+          hardMaxHeight: constraints.maxHeight,
+        );
+        final maxLeft = math.max(0.0, constraints.maxWidth - boxSize.width);
+        final maxTop = math.max(0.0, constraints.maxHeight - boxSize.height);
+        final left = _offset.dx.clamp(0.0, maxLeft);
+        final top = _offset.dy.clamp(0.0, maxTop);
+
+        // Positioned needs a Stack as its direct parent, not the
+        // LayoutBuilder this widget is only using to read the available
+        // area -- this inner Stack is that parent (this widget itself is a
+        // plain, unpositioned child of the fullscreen page's outer Stack).
+        return Stack(
+          children: [
+            // A Stack with only Positioned children collapses to zero size
+            // (RenderStack sizes itself to constraints.smallest when it has
+            // no non-positioned child, regardless of what its Positioned
+            // children paint). That left the panel visible -- painting
+            // ignores a zero-size ancestor -- but not draggable: the outer
+            // Stack's hit-testing only descends into a child's subtree
+            // within that child's own reported bounds, which was nowhere
+            // near where the panel actually rendered. This invisible filler
+            // gives the Stack a real size to hit-test against.
+            const SizedBox.expand(),
+            Positioned(
+              left: left,
+              top: top,
+              child: GestureDetector(
+                onPanUpdate: (details) =>
+                    setState(() => _offset += details.delta),
+                child: TooltipCard(
+                  rows: rows,
+                  maxWidth: constraints.maxWidth,
+                  shortSideForCap: shortSide,
+                  hardMaxHeight: constraints.maxHeight,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

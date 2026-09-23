@@ -540,6 +540,12 @@ class ChartOptionsDialog extends StatelessWidget {
             isEnabled: legendState.metricsFollowViewport,
             onTap: legendNotifier.toggleMetricsFollowViewport,
           ),
+          buildBehaviorItem(
+            context,
+            label: context.l10n.diveLog_chartOption_tooltipFollowsCursor,
+            isEnabled: legendState.tooltipFollowsCursor,
+            onTap: legendNotifier.toggleTooltipFollowsCursor,
+          ),
         ],
       ),
     );
