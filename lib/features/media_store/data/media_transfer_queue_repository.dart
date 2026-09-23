@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
 
 /// Row type alias so callers do not depend on the Drift-generated name.
@@ -35,6 +37,19 @@ class MediaTransferQueueRepository {
   static final Expando<Map<int, int>> _leases = Expando('media queue leases');
 
   Map<int, int> get _held => _leases[_db] ??= <int, int>{};
+
+  static final Expando<_HoldBoard> _boards = Expando('media queue holds');
+
+  _HoldBoard get _board => _boards[_db] ??= _HoldBoard();
+
+  /// Why the drain over this database is holding, or null when it is not.
+  /// In memory like the leases: it describes this process's worker, and the
+  /// next process's first drain derives it again.
+  MediaTransferHold? get currentHold => _board.hold;
+
+  /// Records (or, with null, clears) the drain's hold. Every repository over
+  /// this database sees it, and every open [watchSummary] re-emits.
+  void recordHold(MediaTransferHold? hold) => _board.set(hold);
 
   /// Runs [work] with [id] leased: [requeueStale] leaves the row alone until
   /// [work] settles. The lease outlives any timeout a caller puts on the
@@ -431,17 +446,38 @@ class MediaTransferQueueRepository {
   /// evaluated per emission against [now]; a row that becomes due purely by
   /// the passage of time does not re-emit on its own, which is why the
   /// worker arms a timer at [earliestPendingWakeup] - that drain writes,
-  /// and the write is what refreshes this stream.
+  /// and the write is what refreshes this stream. A change of hold
+  /// ([recordHold]) re-emits too, with no row written.
   Stream<MediaTransferSummary> watchSummary({DateTime Function()? now}) {
     final clock = now ?? DateTime.now;
     final query = _db.select(_db.mediaTransferQueue)
       ..where((t) => t.state.isIn(['pending', 'transferring']));
-    return query.watch().map((rows) => _summarize(rows, clock()));
+    final board = _board;
+    return Stream.multi((controller) {
+      List<MediaTransferQueueEntry>? rows;
+      void emit() {
+        final current = rows;
+        if (current != null) {
+          controller.add(_summarize(current, clock(), board.hold));
+        }
+      }
+
+      final rowSub = query.watch().listen((next) {
+        rows = next;
+        emit();
+      }, onError: controller.addError);
+      final holdSub = board.changes.listen((_) => emit());
+      controller.onCancel = () async {
+        await holdSub.cancel();
+        await rowSub.cancel();
+      };
+    });
   }
 
   static MediaTransferSummary _summarize(
     List<MediaTransferQueueEntry> rows,
     DateTime now,
+    MediaTransferHold? hold,
   ) {
     final nowMs = now.millisecondsSinceEpoch;
     var transferring = 0;
@@ -472,7 +508,8 @@ class MediaTransferQueueRepository {
       transferring: transferring,
       queued: queued,
       waiting: waiting,
-      waitingReason: reason,
+      waitingReason: hold?.message ?? reason,
+      hold: hold,
     );
   }
 
@@ -519,5 +556,22 @@ class MediaTransferQueueRepository {
         updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
       ),
     );
+  }
+}
+
+/// The hold for one database, and a tick whenever it changes.
+class _HoldBoard {
+  MediaTransferHold? hold;
+
+  /// Synchronous, so a summary re-emits within the recordHold call that
+  /// changed it, not a microtask later behind a row write.
+  final _changes = StreamController<void>.broadcast(sync: true);
+
+  Stream<void> get changes => _changes.stream;
+
+  void set(MediaTransferHold? next) {
+    if (next == hold) return;
+    hold = next;
+    _changes.add(null);
   }
 }
