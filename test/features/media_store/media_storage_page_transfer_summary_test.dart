@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/services/media_store/media_store_credentials_store.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
 import 'package:submersion/features/media_store/presentation/pages/media_storage_page.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -153,5 +154,102 @@ void main() {
 
     expect(find.byKey(const Key('media-transfers-suspended')), findsNothing);
     expect(find.text('Transfers paused'), findsNothing);
+  });
+
+  // Spec 7.1: the suspended notice names the reason.
+  group('the notice names the hold', () {
+    testWidgets('a marker mismatch keeps the reconnect wording', (
+      tester,
+    ) async {
+      await settle(
+        tester,
+        const MediaTransferSummary(
+          queued: 2,
+          hold: MediaTransferHold(
+            MediaTransferHoldKind.markerMismatch,
+            'The media store no longer carries the marker',
+          ),
+        ),
+        suspended: true,
+      );
+
+      expect(
+        find.textContaining('Reconnecting media storage adopts'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a detached device says so', (tester) async {
+      await settle(
+        tester,
+        const MediaTransferSummary(
+          queued: 2,
+          hold: MediaTransferHold(MediaTransferHoldKind.detached, 'Detached'),
+        ),
+        suspended: true,
+      );
+
+      expect(
+        find.text(
+          'This device is no longer connected to this media store. '
+          'Connect it again in Media Storage.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('an unreachable store shows its error beneath', (tester) async {
+      await settle(
+        tester,
+        const MediaTransferSummary(
+          queued: 2,
+          hold: MediaTransferHold(
+            MediaTransferHoldKind.storeUnreachable,
+            'Could not check the media store: marker unreadable',
+          ),
+        ),
+        suspended: true,
+      );
+
+      expect(
+        find.textContaining('The media store could not be checked.'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('marker unreadable'), findsOneWidget);
+    });
+
+    // Offline is quiet, not silent: no suspended notice, but the queued work
+    // says what it waits for.
+    testWidgets('an offline hold shows a waiting line and no notice', (
+      tester,
+    ) async {
+      await settle(
+        tester,
+        const MediaTransferSummary(
+          queued: 2,
+          hold: MediaTransferHold(MediaTransferHoldKind.offline, 'Offline'),
+        ),
+      );
+
+      expect(find.byKey(const Key('media-transfers-suspended')), findsNothing);
+      expect(find.byKey(const Key('media-transfer-offline')), findsOneWidget);
+      expect(find.text('Waiting for a connection'), findsOneWidget);
+    });
+
+    // Offline with nothing due right now (every row deferred, or one still
+    // moving) is still waiting for a connection.
+    testWidgets('an offline hold explains itself with no row queued', (
+      tester,
+    ) async {
+      await settle(
+        tester,
+        const MediaTransferSummary(
+          waiting: 3,
+          hold: MediaTransferHold(MediaTransferHoldKind.offline, 'Offline'),
+        ),
+      );
+
+      expect(find.byKey(const Key('media-transfer-offline')), findsOneWidget);
+    });
   });
 }

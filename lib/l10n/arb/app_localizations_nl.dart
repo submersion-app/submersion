@@ -27255,6 +27255,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dit apparaat en de cloudopslag zijn het niet meer eens over welke opslag in gebruik is. Opnieuw verbinden neemt de opslag over die de cloud nu bevat.';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      'Dit apparaat is niet meer gekoppeld aan deze mediaopslag. Opnieuw koppelen kan via Mediaopslag.';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      'De mediaopslag kon niet worden gecontroleerd. Overdrachten worden automatisch opnieuw geprobeerd.';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count in wachtrij';
   }
@@ -27263,6 +27271,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count wachten op nieuwe poging';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection =>
+      'Wachten op verbinding';
 
   @override
   String get settings_mediaStorage_report_action => 'Mediarapport exporteren';
@@ -27970,6 +27982,11 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String settings_setup_mediaStoreAttach(String hint) {
     return 'Mediaopslag koppelen ($hint)';
+  }
+
+  @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return 'Mediaopslag opnieuw koppelen ($hint)';
   }
 
   @override

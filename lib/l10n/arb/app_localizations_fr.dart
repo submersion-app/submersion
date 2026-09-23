@@ -27557,6 +27557,14 @@ class AppLocalizationsFr extends AppLocalizations {
       'Cet appareil et le stockage cloud ne s\'accordent plus sur le magasin utilisé. Reconnecter le stockage des médias adopte celui que le cloud contient désormais.';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      'Cet appareil n\'est plus connecté à ce stockage multimédia. Il peut être reconnecté dans Stockage multimédia.';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      'Le stockage multimédia n\'a pas pu être vérifié. Les transferts seront relancés automatiquement.';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count en file';
   }
@@ -27565,6 +27573,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count en attente de nouvelle tentative';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection =>
+      'En attente d\'une connexion';
 
   @override
   String get settings_mediaStorage_report_action =>
@@ -28278,6 +28290,11 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String settings_setup_mediaStoreAttach(String hint) {
     return 'Connecter le stockage multimédia ($hint)';
+  }
+
+  @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return 'Reconnecter le stockage multimédia ($hint)';
   }
 
   @override

@@ -26795,6 +26795,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'המכשיר הזה ואחסון הענן כבר לא מסכימים על המאגר שבשימוש. חיבור מחדש של אחסון המדיה מאמץ את המאגר שנמצא כעת בענן.';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      'המכשיר הזה כבר לא מחובר לאחסון המדיה הזה. אפשר לחבר אותו מחדש בהגדרות אחסון המדיה.';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      'לא ניתן היה לבדוק את אחסון המדיה. ההעברות ינוסו שוב באופן אוטומטי.';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count בתור';
   }
@@ -26803,6 +26811,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count ממתינים לניסיון חוזר';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection =>
+      'ממתין לחיבור';
 
   @override
   String get settings_mediaStorage_report_action => 'ייצוא דוח מדיה';
@@ -27496,6 +27508,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String settings_setup_mediaStoreAttach(String hint) {
     return 'חיבור אחסון מדיה ($hint)';
+  }
+
+  @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return 'חיבור מחדש של אחסון מדיה ($hint)';
   }
 
   @override

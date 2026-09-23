@@ -17839,6 +17839,14 @@
   "settings_mediaStorage_transfers_state_failed": "Failed",
   "settings_mediaStorage_transfers_suspended_title": "Transfers paused",
   "settings_mediaStorage_transfers_suspended_subtitle": "This device and the cloud store no longer agree on which store is in use. Reconnecting media storage adopts the store the cloud holds now.",
+  "settings_mediaStorage_transfers_suspended_detached": "This device is no longer connected to this media store. Connect it again in Media Storage.",
+  "@settings_mediaStorage_transfers_suspended_detached": {
+    "description": "Suspended transfers notice when this device detached from the media store"
+  },
+  "settings_mediaStorage_transfers_suspended_unreachable": "The media store could not be checked. Transfers retry automatically.",
+  "@settings_mediaStorage_transfers_suspended_unreachable": {
+    "description": "Suspended transfers notice when the media store could not be checked; the raw error is shown beneath"
+  },
   "settings_mediaStorage_transfers_queued": "{count} queued",
   "@settings_mediaStorage_transfers_queued": {
     "placeholders": {
@@ -17854,6 +17862,10 @@
         "type": "int"
       }
     }
+  },
+  "settings_mediaStorage_transfers_waitingConnection": "Waiting for a connection",
+  "@settings_mediaStorage_transfers_waitingConnection": {
+    "description": "Media Storage summary line while queued transfers wait for the device to come online"
   },
   "settings_mediaStorage_report_action": "Export media report",
   "settings_mediaStorage_report_done": "Media report exported",
@@ -18369,6 +18381,15 @@
   "settings_setup_pendingTitle": "Finish setting up this device",
   "settings_setup_mediaStoreAttach": "Connect media storage ({hint})",
   "@settings_setup_mediaStoreAttach": {
+    "placeholders": {
+      "hint": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_setup_mediaStoreReconnect": "Reconnect media storage ({hint})",
+  "@settings_setup_mediaStoreReconnect": {
+    "description": "Pending setup item when the media store no longer carries this device's marker",
     "placeholders": {
       "hint": {
         "type": "String"

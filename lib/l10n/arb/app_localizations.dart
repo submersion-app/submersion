@@ -43840,6 +43840,18 @@ abstract class AppLocalizations {
   /// **'This device and the cloud store no longer agree on which store is in use. Reconnecting media storage adopts the store the cloud holds now.'**
   String get settings_mediaStorage_transfers_suspended_subtitle;
 
+  /// Suspended transfers notice when this device detached from the media store
+  ///
+  /// In en, this message translates to:
+  /// **'This device is no longer connected to this media store. Connect it again in Media Storage.'**
+  String get settings_mediaStorage_transfers_suspended_detached;
+
+  /// Suspended transfers notice when the media store could not be checked; the raw error is shown beneath
+  ///
+  /// In en, this message translates to:
+  /// **'The media store could not be checked. Transfers retry automatically.'**
+  String get settings_mediaStorage_transfers_suspended_unreachable;
+
   /// No description provided for @settings_mediaStorage_transfers_queued.
   ///
   /// In en, this message translates to:
@@ -43851,6 +43863,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} waiting to retry'**
   String settings_mediaStorage_transfers_waitingRetry(int count);
+
+  /// Media Storage summary line while queued transfers wait for the device to come online
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for a connection'**
+  String get settings_mediaStorage_transfers_waitingConnection;
 
   /// No description provided for @settings_mediaStorage_report_action.
   ///
@@ -45071,6 +45089,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Connect media storage ({hint})'**
   String settings_setup_mediaStoreAttach(String hint);
+
+  /// Pending setup item when the media store no longer carries this device's marker
+  ///
+  /// In en, this message translates to:
+  /// **'Reconnect media storage ({hint})'**
+  String settings_setup_mediaStoreReconnect(String hint);
 
   /// No description provided for @settings_setup_accountSignIn.
   ///

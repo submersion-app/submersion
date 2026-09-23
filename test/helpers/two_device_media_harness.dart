@@ -41,6 +41,7 @@ import 'package:submersion/features/media_store/data/media_store_preflight.dart'
 import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 
 import 'fake_cloud_storage_provider.dart';
 import 'fake_photo_picker_service.dart';
@@ -168,8 +169,8 @@ class HarnessDevice {
 
   /// The preflight the worker consults before every entry. Defaults to the
   /// production [MediaStorePreflight]; a scenario replaces it to script a
-  /// marker failure on one device.
-  late Future<bool> Function() preflight;
+  /// marker failure on one device. Null admits the drain.
+  late Future<MediaTransferHoldKind?> Function() preflight;
 
   static Future<HarnessDevice> _create(
     TwoDeviceMediaHarness h,
@@ -237,7 +238,7 @@ class HarnessDevice {
       attachState: attach,
       store: h.bucket,
       attachedStoreId: h.storeId,
-    ).call;
+    ).check;
     d.worker = d._buildWorker();
     return d;
   }

@@ -26017,6 +26017,14 @@ class AppLocalizationsZh extends AppLocalizations {
       '此设备与云存储对正在使用的存储库不再一致。重新连接媒体存储将采用云端当前保存的存储库。';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      '此设备已不再连接到此媒体存储。可在媒体存储中重新连接。';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      '无法检查媒体存储。传输将自动重试。';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count 个排队中';
   }
@@ -26025,6 +26033,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count 个等待重试';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection => '正在等待网络连接';
 
   @override
   String get settings_mediaStorage_report_action => '导出媒体报告';
@@ -26693,6 +26704,11 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String settings_setup_mediaStoreAttach(String hint) {
     return '连接媒体存储（$hint）';
+  }
+
+  @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return '重新连接媒体存储（$hint）';
   }
 
   @override

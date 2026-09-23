@@ -27485,6 +27485,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Este dispositivo y el almacenamiento en la nube ya no coinciden en qué almacén está en uso. Volver a conectar adopta el almacén que la nube tiene ahora.';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      'Este dispositivo ya no está conectado a este almacenamiento de medios. Se puede volver a conectar en Almacenamiento de medios.';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      'No se pudo comprobar el almacenamiento de medios. Las transferencias se reintentan automáticamente.';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count en cola';
   }
@@ -27493,6 +27501,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count esperando para reintentar';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection =>
+      'Esperando una conexión';
 
   @override
   String get settings_mediaStorage_report_action =>
@@ -28203,6 +28215,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String settings_setup_mediaStoreAttach(String hint) {
     return 'Conectar almacenamiento de medios ($hint)';
+  }
+
+  @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return 'Volver a conectar el almacenamiento de medios ($hint)';
   }
 
   @override

@@ -27090,6 +27090,14 @@ class AppLocalizationsAr extends AppLocalizations {
       'لم يعد هذا الجهاز والتخزين السحابي متفقين على المخزن المستخدم. تؤدي إعادة توصيل تخزين الوسائط إلى اعتماد المخزن الموجود في السحابة الآن.';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      'لم يعد هذا الجهاز متصلاً بتخزين الوسائط هذا. يمكن إعادة الاتصال به من إعدادات تخزين الوسائط.';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      'تعذّر التحقق من تخزين الوسائط. تتم إعادة محاولة عمليات النقل تلقائيًا.';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count في قائمة الانتظار';
   }
@@ -27098,6 +27106,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count في انتظار إعادة المحاولة';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection =>
+      'في انتظار الاتصال';
 
   @override
   String get settings_mediaStorage_report_action => 'تصدير تقرير الوسائط';
@@ -27795,6 +27807,11 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String settings_setup_mediaStoreAttach(String hint) {
     return 'الاتصال بتخزين الوسائط ($hint)';
+  }
+
+  @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return 'إعادة الاتصال بتخزين الوسائط ($hint)';
   }
 
   @override

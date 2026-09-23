@@ -473,18 +473,33 @@ a burst pair, before asking the reporter to confirm.
 
 ### 7.1 The queue never waits silently
 
-- A preflight throw records suspension with a reason; the Transfers page
-  and the Media Storage summary row show the existing suspended notice with
-  that reason; the retry window is armed as today.
+- Every stop of the drain records a hold with a reason, which the transfer
+  summary carries. A preflight throw while offline holds quietly: no
+  suspended notice, and the Media Storage summary row says the queue is
+  waiting for a connection. Any other throw suspends with the error as its
+  reason. A refusal suspends and names itself (detached, or a marker
+  mismatch). The Transfers page and the Media Storage summary row show the
+  existing suspended notice, naming the reason; the retry window is armed as
+  today. (Decided 2026-09-23: offline stays quiet, because an ordinary
+  moment without network must not read as a broken store.)
 - A per-entry budget expiry writes a waiting reason on the entry.
 - A `delete` entry with no processor is marked failed with a message rather
   than deferred.
-- Stranded `transferring` rows are reclaimed before the first drain and
-  again on every resume, by making the reclaim part of `drain` rather than a
-  process-cached provider.
-- The resume gate arms a wakeup for a queue that holds only deferred rows.
-- A marker mismatch or epoch failure raises the existing pending-setup card
-  with a one-tap reconnect, and the queue's suspended notice names it.
+- Stranded `transferring` rows are reclaimed at the start of every drain.
+  Leases on the entries a worker is running keep the reclaim off a transfer
+  still in flight, which is what the once-per-process reclaim provider
+  existed to protect.
+- The resume gate builds the runtime for any outstanding row: due,
+  deferred, or stranded in `transferring`.
+- A marker mismatch (another store's marker, or none) is remembered on the
+  attach state and raises a pending-setup card that opens Media Storage,
+  where disconnecting and connecting again adopts the store the cloud now
+  holds; the queue's suspended notice names it. A one-tap reconnect is the
+  guided adopt / rebuild / detach choice of design spec section 13, not
+  this slice: `media` rows carry no store id, so adopting silently would
+  leave upload stamps pointing at objects the new store never held. (The
+  earlier "epoch failure" wording is dropped: the media store has no
+  epoch.)
 
 ### 7.2 Store gate probe
 

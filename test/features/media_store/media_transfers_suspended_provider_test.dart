@@ -13,6 +13,7 @@ import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
@@ -57,7 +58,8 @@ void main() {
           registry: MediaSourceResolverRegistry({}),
           cache: cache,
         ),
-        preflight: () async => verified,
+        preflight: () async =>
+            verified ? null : MediaTransferHoldKind.markerMismatch,
       );
       addTearDown(worker.dispose);
       final runtime = MediaStoreRuntime(
@@ -112,7 +114,7 @@ void main() {
         registry: MediaSourceResolverRegistry({}),
         cache: cache,
       ),
-      preflight: () async => false,
+      preflight: () async => MediaTransferHoldKind.markerMismatch,
     );
     addTearDown(worker.dispose);
     await worker.drain();

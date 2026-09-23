@@ -27408,6 +27408,14 @@ class AppLocalizationsDe extends AppLocalizations {
       'Dieses Gerät und der Cloud-Speicher sind sich nicht mehr einig, welcher Speicher verwendet wird. Beim erneuten Verbinden wird der Speicher übernommen, den die Cloud jetzt enthält.';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      'Dieses Gerät ist nicht mehr mit diesem Medienspeicher verbunden. Unter Medienspeicher erneut verbinden.';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      'Der Medienspeicher konnte nicht geprüft werden. Übertragungen werden automatisch wiederholt.';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count in Warteschlange';
   }
@@ -27416,6 +27424,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count warten auf Wiederholung';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection =>
+      'Warten auf eine Verbindung';
 
   @override
   String get settings_mediaStorage_report_action => 'Medienbericht exportieren';
@@ -28125,6 +28137,11 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String settings_setup_mediaStoreAttach(String hint) {
     return 'Medienspeicher verbinden ($hint)';
+  }
+
+  @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return 'Medienspeicher erneut verbinden ($hint)';
   }
 
   @override

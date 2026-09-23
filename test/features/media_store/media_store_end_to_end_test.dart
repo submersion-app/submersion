@@ -18,6 +18,7 @@ import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 
 import '../../helpers/fake_dropbox_server.dart';
 import '../../helpers/in_memory_media_object_store.dart';
@@ -134,7 +135,7 @@ void main() {
         cache: cache,
       ),
       // The bucket's marker no longer matches this device's attach state.
-      preflight: () async => false,
+      preflight: () async => MediaTransferHoldKind.markerMismatch,
     );
 
     final photo = File('${rootA.path}/wreck.jpg')..writeAsBytesSync([1, 2]);
@@ -183,7 +184,8 @@ void main() {
       ),
       // Valid for the first entry, then the store detaches (marker wiped
       // or the user disconnected) while the drain is still running.
-      preflight: () async => ++preflightCalls <= 1,
+      preflight: () async =>
+          ++preflightCalls <= 1 ? null : MediaTransferHoldKind.markerMismatch,
     );
 
     final photo = File('${rootA.path}/two.jpg')..writeAsBytesSync([3, 4, 5]);
