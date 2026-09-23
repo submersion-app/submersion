@@ -27011,6 +27011,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'This device and the cloud store no longer agree on which store is in use. Reconnecting media storage adopts the store the cloud holds now.';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      'This device is no longer connected to this media store. Connect it again in Media Storage.';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      'The media store could not be checked. Transfers retry automatically.';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count queued';
   }
@@ -27019,6 +27027,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count waiting to retry';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection =>
+      'Waiting for a connection';
 
   @override
   String get settings_mediaStorage_report_action => 'Export media report';
@@ -27719,6 +27731,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String settings_setup_mediaStoreAttach(String hint) {
     return 'Connect media storage ($hint)';
+  }
+
+  @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return 'Reconnect media storage ($hint)';
   }
 
   @override

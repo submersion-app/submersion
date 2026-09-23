@@ -16,6 +16,7 @@ class MediaStoreAttachState {
   static const String storeIdKey = 'media_store_attached_store_id';
   static const String providerTypeKey = 'media_store_provider_type';
   static const String accountIdKey = 'media_store_account_id';
+  static const String markerMismatchKey = 'media_store_marker_mismatch';
 
   Future<SharedPreferences> get _resolved async =>
       _prefs ?? await SharedPreferences.getInstance();
@@ -48,6 +49,7 @@ class MediaStoreAttachState {
     final prefs = await _resolved;
     await prefs.setString(storeIdKey, storeId);
     await prefs.setString(providerTypeKey, providerType.name);
+    await prefs.remove(markerMismatchKey);
     if (accountId != null) {
       await prefs.setString(accountIdKey, accountId);
     } else {
@@ -60,5 +62,26 @@ class MediaStoreAttachState {
     await prefs.remove(storeIdKey);
     await prefs.remove(providerTypeKey);
     await prefs.remove(accountIdKey);
+    await prefs.remove(markerMismatchKey);
   }
+
+  /// Records whether the last preflight found the attached store carrying
+  /// another store's marker, or none. Persisted so the pending-setup card
+  /// can offer a reconnect without building a runtime; cleared by any attach
+  /// change ([setAttached], [clear]), since reconnecting is the fix.
+  ///
+  /// Writes only on a change: the preflight asks before every transfer, and
+  /// the read is served from memory while the write is not.
+  Future<void> setMarkerMismatch(bool mismatch) async {
+    final prefs = await _resolved;
+    if ((prefs.getBool(markerMismatchKey) ?? false) == mismatch) return;
+    if (mismatch) {
+      await prefs.setBool(markerMismatchKey, true);
+    } else {
+      await prefs.remove(markerMismatchKey);
+    }
+  }
+
+  Future<bool> hasMarkerMismatch() async =>
+      (await _resolved).getBool(markerMismatchKey) ?? false;
 }

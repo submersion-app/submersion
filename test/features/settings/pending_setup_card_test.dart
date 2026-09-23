@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/providers/account_providers.dart';
 import 'package:submersion/core/services/accounts/account_kind.dart';
 import 'package:submersion/core/services/accounts/account_provider_adapter.dart';
 import 'package:submersion/core/services/accounts/account_provider_registry.dart';
 import 'package:submersion/core/services/accounts/connected_account.dart'
     as domain;
+import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/widgets/pending_setup_card.dart';
@@ -90,5 +92,32 @@ void main() {
 
     expect(find.text('Finish setting up this device'), findsNothing);
     expect(prefs.getBool('setup_item_dismissed_store_store-1'), isTrue);
+  });
+
+  // The preflight remembered a store that no longer carries this device's
+  // marker (media sync program spec 7.1).
+  testWidgets('shows the reconnect item for a remembered marker mismatch', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      await MediaStoresRepository().upsertActive(
+        storeId: 'store-1',
+        providerType: 's3',
+        displayHint: 'dive-media @ minio',
+      );
+      final attach = MediaStoreAttachState(prefs: prefs);
+      await attach.setAttached('store-1', providerType: CloudProviderType.s3);
+      await attach.setMarkerMismatch(true);
+    });
+
+    await tester.pumpWidget(app());
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pump();
+
+    expect(
+      find.text('Reconnect media storage (dive-media @ minio)'),
+      findsOneWidget,
+    );
+    expect(find.byIcon(Icons.sync_problem_outlined), findsOneWidget);
   });
 }

@@ -64,14 +64,17 @@ class PendingSetupCard extends ConsumerWidget {
             for (final item in items)
               ListTile(
                 dense: true,
-                leading: Icon(
-                  item.kind == SetupItemKind.mediaStoreAttach
-                      ? Icons.cloud_upload_outlined
-                      : Icons.account_circle_outlined,
-                ),
+                leading: Icon(switch (item.kind) {
+                  SetupItemKind.mediaStoreAttach => Icons.cloud_upload_outlined,
+                  SetupItemKind.mediaStoreReconnect =>
+                    Icons.sync_problem_outlined,
+                  SetupItemKind.accountSignIn => Icons.account_circle_outlined,
+                }),
                 title: Text(switch (item.kind) {
                   SetupItemKind.mediaStoreAttach =>
                     l10n.settings_setup_mediaStoreAttach(item.label),
+                  SetupItemKind.mediaStoreReconnect =>
+                    l10n.settings_setup_mediaStoreReconnect(item.label),
                   SetupItemKind.accountSignIn =>
                     l10n.settings_setup_accountSignIn(item.label),
                 }),

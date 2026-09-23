@@ -35,15 +35,20 @@ class MediaStorePreflight {
 
   /// Null when the drain may proceed, else why it may not. Throws when the
   /// marker cannot be read; the worker separates that from a refusal.
+  ///
+  /// A marker answer is remembered on the attach state, so the pending-setup
+  /// card can offer a reconnect for a mismatch and drop it once the marker
+  /// matches again. A throw remembers nothing: it says nothing about the
+  /// marker.
   Future<MediaTransferHoldKind?> check() async {
     final currentId = await _attachState.attachedStoreId();
     if (currentId == null || currentId != _attachedStoreId) {
       return MediaTransferHoldKind.detached;
     }
     final marker = await StoreMarkerStore(store: _store).read();
-    return marker != null && marker.storeId == currentId
-        ? null
-        : MediaTransferHoldKind.markerMismatch;
+    final mismatch = marker == null || marker.storeId != currentId;
+    await _attachState.setMarkerMismatch(mismatch);
+    return mismatch ? MediaTransferHoldKind.markerMismatch : null;
   }
 
   /// Whether the drain may proceed, for callers that need only that.

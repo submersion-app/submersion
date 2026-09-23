@@ -27370,6 +27370,14 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ez az eszköz és a felhőtároló már nem egyezik abban, melyik tárolót használják. A médiatároló újracsatlakoztatása a felhőben most található tárolót veszi át.';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      'Ez az eszköz már nem csatlakozik ehhez a médiatárolóhoz. Az újracsatlakoztatás a Médiatároló beállításoknál lehetséges.';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      'A médiatárolót nem sikerült ellenőrizni. Az átvitelek automatikusan újrapróbálkoznak.';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count sorban áll';
   }
@@ -27378,6 +27386,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count újrapróbálkozásra vár';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection =>
+      'Várakozás kapcsolatra';
 
   @override
   String get settings_mediaStorage_report_action => 'Médiajelentés exportálása';
@@ -28065,6 +28077,11 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String settings_setup_mediaStoreAttach(String hint) {
     return 'Médiatároló csatlakoztatása ($hint)';
+  }
+
+  @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return 'Médiatároló újracsatlakoztatása ($hint)';
   }
 
   @override

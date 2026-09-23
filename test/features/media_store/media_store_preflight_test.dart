@@ -7,6 +7,7 @@ import 'package:submersion/core/services/media_store/media_object_store.dart';
 import 'package:submersion/core/services/media_store/media_store_attach_state.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
 import 'package:submersion/features/media_store/data/media_store_preflight.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 
 import '../../helpers/in_memory_media_object_store.dart';
 
@@ -110,5 +111,83 @@ void main() {
       attachedStoreId: 'a',
     );
     await expectLater(preflight(), throwsA(isA<MediaStoreException>()));
+  });
+
+  // The worker names each refusal to the user (spec 7.1), and a marker
+  // mismatch is remembered so the pending-setup card can offer a reconnect
+  // without a runtime.
+  group('check', () {
+    MediaStorePreflight preflightFor(String attachedStoreId) =>
+        MediaStorePreflight(
+          attachState: attachState,
+          store: store,
+          attachedStoreId: attachedStoreId,
+        );
+
+    test('a detached device answers detached', () async {
+      writeMarker('a');
+      expect(await preflightFor('a').check(), MediaTransferHoldKind.detached);
+    });
+
+    test('another attachment answers detached', () async {
+      await attach('c');
+      writeMarker('c');
+      expect(await preflightFor('a').check(), MediaTransferHoldKind.detached);
+    });
+
+    test('a foreign marker is a mismatch, and is remembered', () async {
+      await attach('a');
+      writeMarker('b');
+
+      expect(
+        await preflightFor('a').check(),
+        MediaTransferHoldKind.markerMismatch,
+      );
+      expect(await attachState.hasMarkerMismatch(), isTrue);
+    });
+
+    test('a missing marker is a mismatch', () async {
+      await attach('a');
+
+      expect(
+        await preflightFor('a').check(),
+        MediaTransferHoldKind.markerMismatch,
+      );
+      expect(await attachState.hasMarkerMismatch(), isTrue);
+    });
+
+    test('a matching marker admits and forgets a mismatch', () async {
+      await attach('a');
+      await attachState.setMarkerMismatch(true);
+      writeMarker('a');
+
+      expect(await preflightFor('a').check(), isNull);
+      expect(await attachState.hasMarkerMismatch(), isFalse);
+    });
+
+    test('an unreadable marker remembers nothing', () async {
+      await attach('a');
+      store.failNextWith = const MediaStoreException(
+        'still downloading: smv1/store.json',
+        kind: MediaStoreErrorKind.transient,
+      );
+
+      await expectLater(
+        preflightFor('a').check(),
+        throwsA(isA<MediaStoreException>()),
+      );
+      expect(await attachState.hasMarkerMismatch(), isFalse);
+    });
+
+    // Reconnecting is the fix, so any attach change forgets the mismatch.
+    test('attaching or detaching forgets a mismatch', () async {
+      await attachState.setMarkerMismatch(true);
+      await attach('a');
+      expect(await attachState.hasMarkerMismatch(), isFalse);
+
+      await attachState.setMarkerMismatch(true);
+      await attachState.clear();
+      expect(await attachState.hasMarkerMismatch(), isFalse);
+    });
   });
 }

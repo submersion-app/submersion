@@ -73,6 +73,48 @@ void main() {
     },
   );
 
+  // The preflight remembers a store that no longer carries this device's
+  // marker; the queue is suspended until the user reconnects (spec 7.1).
+  group('marker mismatch', () {
+    Future<MediaStoreAttachState> attachedWithMismatch() async {
+      await stores.upsertActive(
+        storeId: 'store-1',
+        providerType: 's3',
+        displayHint: 'dive-media @ minio',
+      );
+      final attach = MediaStoreAttachState(prefs: prefs);
+      await attach.setAttached('store-1', providerType: CloudProviderType.s3);
+      await attach.setMarkerMismatch(true);
+      return attach;
+    }
+
+    test('offers a reconnect to the media storage page', () async {
+      await attachedWithMismatch();
+
+      final items = await service().compute();
+
+      expect(items, hasLength(1));
+      expect(items.single.kind, SetupItemKind.mediaStoreReconnect);
+      expect(items.single.key, 'store_marker_store-1');
+      expect(items.single.label, 'dive-media @ minio');
+      expect(items.single.route, '/settings/media-storage');
+    });
+
+    test('a dismissed reconnect stays dismissed', () async {
+      await attachedWithMismatch();
+      await service().dismiss('store_marker_store-1');
+
+      expect(await service().compute(), isEmpty);
+    });
+
+    test('no mismatch, no reconnect', () async {
+      final attach = await attachedWithMismatch();
+      await attach.setMarkerMismatch(false);
+
+      expect(await service().compute(), isEmpty);
+    });
+  });
+
   test('an attached device gets no store item', () async {
     await stores.upsertActive(
       storeId: 'store-1',
