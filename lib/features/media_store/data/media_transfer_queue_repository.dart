@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
@@ -84,12 +85,25 @@ class MediaTransferQueueRepository {
       final entry = await nextPending(now);
       if (entry == null) return null;
       if (!_held.add(entry.id)) continue;
-      final fresh = await _dueRow(entry.id, now);
+      final MediaTransferQueueEntry? fresh;
+      try {
+        fresh = await _dueRow(entry.id, now);
+      } on Object {
+        // No caller will ever hold this claim, so it goes back now; kept, it
+        // would hide the row from every later drain in the process.
+        release(entry.id);
+        rethrow;
+      }
       if (fresh != null) return fresh;
       // Settled or re-deferred since the read: not this caller's to take.
       release(entry.id);
     }
   }
+
+  /// Whether [id] is claimed in this process, for tests that cannot ask
+  /// the database (it is what failed).
+  @visibleForTesting
+  bool isClaimedForTesting(int id) => _held.contains(id);
 
   Future<MediaTransferQueueEntry?> _dueRow(int id, DateTime now) {
     final nowMs = now.millisecondsSinceEpoch;

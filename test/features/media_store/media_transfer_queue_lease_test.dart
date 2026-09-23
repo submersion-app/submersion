@@ -117,6 +117,19 @@ void main() {
     expect(claimed?.attempts, 1, reason: 'the fresh row, not the old read');
   });
 
+  // A claim whose re-read throws (a database closing under it, say) must
+  // not stay taken: nothing would ever release it, and the row would be
+  // hidden from every later drain in the process.
+  test('a claim whose re-read fails is given back', () async {
+    final closing = LocalCacheDatabase(NativeDatabase.memory());
+    final repo = _ClosesAfterRead(closing);
+    final id = await repo.enqueueUpload(mediaId: 'm1');
+
+    await expectLater(repo.claimNextPending(DateTime.now()), throwsA(anything));
+
+    expect(repo.isClaimedForTesting(id), isFalse);
+  });
+
   test('two workers claiming at once never take the same row', () async {
     await repo.enqueueUpload(mediaId: 'm1');
     final other = MediaTransferQueueRepository(database: db);
@@ -168,5 +181,19 @@ class _ServesOnce extends MediaTransferQueueRepository {
     if (_served) return super.nextPending(now);
     _served = true;
     return stale;
+  }
+}
+
+/// Closes its database right after the query that finds a row, so the
+/// claim's re-read of that row fails.
+class _ClosesAfterRead extends MediaTransferQueueRepository {
+  _ClosesAfterRead(this.db) : super(database: db);
+  final LocalCacheDatabase db;
+
+  @override
+  Future<MediaTransferQueueEntry?> nextPending(DateTime now) async {
+    final entry = await super.nextPending(now);
+    await db.close();
+    return entry;
   }
 }
