@@ -94,6 +94,35 @@ class _FailsOncePipeline extends MediaUploadPipeline {
   }
 }
 
+/// Marks its row transferring, waits on [release], then fails it back into
+/// the queue behind an hour's backoff: a transfer that outlives the budget
+/// and fails late.
+class _LateFailPipeline extends MediaUploadPipeline {
+  _LateFailPipeline({
+    required this.queueRef,
+    required super.mediaRepository,
+    required super.queue,
+    required super.store,
+    required super.registry,
+    required super.cache,
+  });
+
+  final MediaTransferQueueRepository queueRef;
+  final release = Completer<void>();
+
+  @override
+  Future<UploadOutcome> process(MediaTransferQueueEntry entry) async {
+    await queueRef.markTransferring(entry.id);
+    await release.future;
+    await queueRef.markFailed(
+      entry.id,
+      'late',
+      retryAfter: const Duration(hours: 1),
+    );
+    return UploadOutcome.failed;
+  }
+}
+
 class _HangingDeleteProcessor extends MediaDeleteProcessor {
   _HangingDeleteProcessor({
     required super.queue,
@@ -310,6 +339,42 @@ void main() {
     await worker.drain();
 
     expect(pipeline.hangs, 1);
+  });
+
+  // The drain that timed out finished long ago, and saw the row as
+  // transferring, so it armed nothing for it. When the transfer later fails
+  // back into the queue, something must schedule the retry.
+  test('a transfer that fails after its budget still gets a retry '
+      'scheduled', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final pipeline = _LateFailPipeline(
+      queueRef: queue,
+      mediaRepository: mediaRepository,
+      queue: queue,
+      store: InMemoryMediaObjectStore(),
+      registry: MediaSourceResolverRegistry({}),
+      cache: MediaCacheStore(database: cacheDb, root: root),
+    );
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      entryBudget: budget,
+    );
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+    expect(worker.wakeupDelayForTesting, isNull);
+
+    pipeline.release.complete();
+    for (var i = 0; i < 50 && worker.wakeupDelayForTesting == null; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+
+    expect(
+      worker.wakeupDelayForTesting,
+      greaterThan(const Duration(minutes: 55)),
+      reason: 'armed for the row the late failure deferred',
+    );
   });
 
   // The claim goes back when the transfer settles, whatever its outcome: a

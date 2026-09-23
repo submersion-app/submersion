@@ -408,6 +408,29 @@ void main() {
     expect(queue.currentHold, isNull);
   });
 
+  // The hold is shared by every worker over one database. A worker disposed
+  // after its replacement recorded a reason must leave that reason alone.
+  test('dispose leaves a hold its replacement recorded', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final superseded = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      preflight: () async => _mismatch,
+    );
+    final replacement = MediaStoreWorker(
+      queue: MediaTransferQueueRepository(database: cacheDb),
+      pipeline: pipeline,
+      preflight: () async => MediaTransferHoldKind.detached,
+    );
+    addTearDown(replacement.dispose);
+
+    await superseded.drain();
+    await replacement.drain();
+    superseded.dispose();
+
+    expect(queue.currentHold?.kind, MediaTransferHoldKind.detached);
+  });
+
   // Dispose does not stop a drain already running, and the hold is shared
   // with the worker that replaced this one.
   test('a superseded drain does not record a hold after dispose', () async {

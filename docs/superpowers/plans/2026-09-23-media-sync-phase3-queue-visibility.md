@@ -1235,6 +1235,14 @@ Where the code that shipped differs from the tasks above:
   `detached`; the mismatch flag is written only while still attached to the
   store it describes (`setMarkerMismatch(..., whileAttachedTo:)`, check and
   write with no await between them).
+- **Second PR review round.** A transfer that outlives its budget kicks a
+  fresh drain when it settles (its own drain armed nothing for a row it saw
+  as transferring, so a late failure's backoff had no wakeup).
+  `requeueStale` reads the transferring ids first and drops claimed ones
+  after the read, instead of snapshotting claims before an async update; a
+  live row is always claimed before it is marked transferring, so what is
+  left is stranded. The hold board records its owner, and a disposed worker
+  clears the hold only if it still owns it.
 - **Mutation checks**, each compiling and red on its named test: dropping
   the lease or the drain's reclaim (Task 1); dropping the hold from the
   waiting reason or from the re-emit (Task 3); the offline branch, the

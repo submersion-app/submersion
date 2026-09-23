@@ -45,6 +45,38 @@ void main() {
     expect(await repo.requeueStale(), 1, reason: 'released, so stranded');
   });
 
+  // The reclaim reads the transferring rows, then drops the claimed ones.
+  // A row claimed and marked transferring while the reclaim runs must come
+  // through untouched, whichever side of the read it lands on.
+  test('a row claimed while a reclaim runs is left alone', () async {
+    await repo.enqueueUpload(mediaId: 'm1');
+    final other = MediaTransferQueueRepository(database: db);
+
+    final reclaim = repo.requeueStale();
+    final claimed = (await other.claimNextPending(DateTime.now()))!;
+    await other.markTransferring(claimed.id);
+
+    expect(await reclaim, 0);
+    expect(await repo.requeueStale(), 0);
+    expect((await repo.allForTesting()).single.state, 'transferring');
+  });
+
+  test('stranded and live rows together: only the stranded one is '
+      'reclaimed', () async {
+    final stranded = await repo.enqueueUpload(mediaId: 'dead');
+    await repo.markTransferring(stranded);
+    final liveId = await repo.enqueueUpload(mediaId: 'live');
+    final live = (await repo.claimNextPending(DateTime.now()))!;
+    expect(live.id, liveId);
+    await repo.markTransferring(live.id);
+
+    expect(await repo.requeueStale(), 1);
+
+    final rows = {for (final r in await repo.allForTesting()) r.id: r.state};
+    expect(rows[stranded], 'pending');
+    expect(rows[liveId], 'transferring');
+  });
+
   // A budget-expired transfer that never reached markTransferring leaves its
   // row pending; once its deferral passes, another drain must not select it
   // while the first transfer still runs.

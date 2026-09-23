@@ -47,7 +47,20 @@ class MediaTransferQueueRepository {
 
   /// Records (or, with null, clears) the drain's hold. Every repository over
   /// this database sees it, and every open [watchSummary] re-emits.
-  void recordHold(MediaTransferHold? hold) => _board.set(hold);
+  ///
+  /// [owner] names who recorded it, so [clearHoldOwnedBy] can clear only
+  /// its own: several workers can share one database for a moment (a
+  /// rebuild), and one retiring must not wipe the reason its replacement
+  /// just recorded.
+  void recordHold(MediaTransferHold? hold, {Object? owner}) =>
+      _board.set(hold, owner: owner);
+
+  /// Clears the hold if [owner] recorded the current one; otherwise leaves
+  /// it alone.
+  void clearHoldOwnedBy(Object owner) {
+    final board = _board;
+    if (identical(board.owner, owner)) board.set(null);
+  }
 
   /// Selects the next due row no one holds and claims it for the caller,
   /// who must [release] it once done with it. Until then no other caller in
@@ -402,12 +415,28 @@ class MediaTransferQueueRepository {
   /// untouched: an interruption is not a failed attempt (contrast markFailed),
   /// yet a genuinely broken item must still count toward its cap (contrast
   /// retry). Returns the number of rows reclaimed.
-  Future<int> requeueStale() {
-    final held = _held.toList();
-    return (_db.update(_db.mediaTransferQueue)..where((t) {
-          final stranded = t.state.equals('transferring');
-          return held.isEmpty ? stranded : stranded & t.id.isNotIn(held);
-        }))
+  Future<int> requeueStale() async {
+    final transferring =
+        await (_db.selectOnly(_db.mediaTransferQueue)
+              ..addColumns([_db.mediaTransferQueue.id])
+              ..where(_db.mediaTransferQueue.state.equals('transferring')))
+            .map((row) => row.read(_db.mediaTransferQueue.id)!)
+            .get();
+    // Claims are consulted AFTER the read, with no await between: a live
+    // row is claimed before it is marked transferring and released only
+    // after its final state is written, so a row still transferring and
+    // unclaimed now is stranded. A claim snapshot taken before the read
+    // could miss a row claimed and marked during it.
+    final held = _held;
+    final stranded = [
+      for (final id in transferring)
+        if (!held.contains(id)) id,
+    ];
+    if (stranded.isEmpty) return 0;
+    // By id, and still transferring: a stranded row cannot be claimed in
+    // the meantime (only pending rows are), so this touches nothing live.
+    return (_db.update(_db.mediaTransferQueue)
+          ..where((t) => t.id.isIn(stranded) & t.state.equals('transferring')))
         .write(
           MediaTransferQueueCompanion(
             state: const Value('pending'),
@@ -591,13 +620,17 @@ class MediaTransferQueueRepository {
 class _HoldBoard {
   MediaTransferHold? hold;
 
+  /// Who recorded [hold], or null when it is clear or no owner was named.
+  Object? owner;
+
   /// Synchronous, so a summary re-emits within the recordHold call that
   /// changed it, not a microtask later behind a row write.
   final _changes = StreamController<void>.broadcast(sync: true);
 
   Stream<void> get changes => _changes.stream;
 
-  void set(MediaTransferHold? next) {
+  void set(MediaTransferHold? next, {Object? owner}) {
+    this.owner = next == null ? null : owner;
     if (next == hold) return;
     hold = next;
     _changes.add(null);

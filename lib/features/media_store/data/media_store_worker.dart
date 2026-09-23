@@ -102,10 +102,6 @@ class MediaStoreWorker {
   bool _running = false;
   bool _disposed = false;
   bool _suspended = false;
-
-  /// Whether the queue's current hold is one this worker recorded, so
-  /// [dispose] clears only its own.
-  bool _holding = false;
   final _suspensionChanges = StreamController<bool>.broadcast();
   Future<void>? _activeDrain;
   Timer? _wakeup;
@@ -272,12 +268,22 @@ class MediaStoreWorker {
       _queue.release(entry.id);
       rethrow;
     }
+    var outlivedBudget = false;
     // Its own listener, so the release outlives the timeout below. Errors
     // surface through the awaited timeout; this copy of them is dropped.
-    running.whenComplete(() => _queue.release(entry.id)).ignore();
+    running.whenComplete(() {
+      _queue.release(entry.id);
+      // The drain that gave up on this transfer has finished, and it saw
+      // the row as transferring, so it armed nothing for it. A late failure
+      // parks the row behind a backoff that nothing would wake. A fresh
+      // drain arms it; drain() itself is single-flight and a no-op once
+      // disposed.
+      if (outlivedBudget) unawaited(drain());
+    }).ignore();
     try {
       await running.timeout(_entryBudget);
     } on TimeoutException {
+      outlivedBudget = true;
       _log.warning(
         'Transfer entry ${entry.id} (media ${entry.mediaId}) exceeded its '
         '${_entryBudget.inMinutes}m budget; deferring it and draining on',
@@ -408,8 +414,7 @@ class MediaStoreWorker {
   /// which must not have its reason overwritten by a superseded loop.
   void _hold(MediaTransferHold? hold) {
     if (_disposed) return;
-    _holding = hold != null;
-    _queue.recordHold(hold);
+    _queue.recordHold(hold, owner: this);
     _setSuspended(hold?.suspends ?? false);
   }
 
@@ -513,19 +518,16 @@ class MediaStoreWorker {
   /// still calls _armWakeup, which is why the flag - not just the cancel -
   /// is what makes disposal stick.
   ///
-  /// Clears the queue's hold if this worker recorded it: a disconnect builds
-  /// no runtime in its place, and a hold left standing would name a store
-  /// this device no longer uses. A rebuild's new worker records its own on
-  /// its first drain.
+  /// Clears the queue's hold if this worker recorded the current one: a
+  /// disconnect builds no runtime in its place, and a hold left standing
+  /// would name a store this device no longer uses. The board tracks who
+  /// recorded it, so a replacement's reason survives this worker retiring.
   void dispose() {
     _disposed = true;
     _wakeup?.cancel();
     _wakeup = null;
     _wakeupDelay = null;
-    if (_holding) {
-      _holding = false;
-      _queue.recordHold(null);
-    }
+    _queue.clearHoldOwnedBy(this);
     _suspensionChanges.close();
   }
 
