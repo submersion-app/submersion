@@ -231,6 +231,14 @@ Future<List<domain.MediaItem>> recheckDoomed(
 /// argument leaves the column unchanged, because `x = NULL` is never true.
 ///
 /// Sends no local-change notice: the caller announces the whole deletion.
+///
+/// One transaction per survivor, so a row's unlink and its pending mark land
+/// together or not at all, and one row that cannot be written does not roll
+/// the others back: each survivor's unlink is the only thing that publishes
+/// it. A failure is rethrown after the rest have been tried, so the caller
+/// still hears about it. A survivor left unpublished this way is not lost:
+/// its dying link is gone locally, and every peer clears the same link
+/// itself when it applies the parent's tombstone.
 Future<void> unlinkMediaFromDeletedParents(
   AppDatabase db,
   SyncRepository sync,
@@ -238,34 +246,52 @@ Future<void> unlinkMediaFromDeletedParents(
 ) async {
   if (survivors.isEmpty) return;
   final now = DateTime.now().millisecondsSinceEpoch;
-  await db.transaction(() async {
-    for (final s in survivors) {
-      final written = await db.customUpdate(
-        'UPDATE media SET '
-        'dive_id = NULLIF(dive_id, ?), '
-        'site_id = NULLIF(site_id, ?), '
-        'equipment_id = NULLIF(equipment_id, ?), '
-        'signer_id = NULLIF(signer_id, ?), '
-        'updated_at = ? '
-        'WHERE id = ?',
-        variables: [
-          Variable<String>(s.diveId),
-          Variable<String>(s.siteId),
-          Variable<String>(s.equipmentId),
-          Variable<String>(s.signerId),
-          Variable<int>(now),
-          Variable<String>(s.id),
-        ],
-        updates: {db.media},
-        updateKind: UpdateKind.update,
-      );
-      // Deleted since the plan: nothing survived to publish.
-      if (written == 0) continue;
-      await sync.markRecordPending(
-        entityType: 'media',
-        recordId: s.id,
-        localUpdatedAt: now,
-      );
+  Object? firstError;
+  StackTrace? firstStack;
+  var failed = 0;
+  for (final s in survivors) {
+    try {
+      await db.transaction(() async {
+        final written = await db.customUpdate(
+          'UPDATE media SET '
+          'dive_id = NULLIF(dive_id, ?), '
+          'site_id = NULLIF(site_id, ?), '
+          'equipment_id = NULLIF(equipment_id, ?), '
+          'signer_id = NULLIF(signer_id, ?), '
+          'updated_at = ? '
+          'WHERE id = ?',
+          variables: [
+            Variable<String>(s.diveId),
+            Variable<String>(s.siteId),
+            Variable<String>(s.equipmentId),
+            Variable<String>(s.signerId),
+            Variable<int>(now),
+            Variable<String>(s.id),
+          ],
+          updates: {db.media},
+          updateKind: UpdateKind.update,
+        );
+        // Deleted since the plan: nothing survived to publish.
+        if (written == 0) return;
+        await sync.markRecordPending(
+          entityType: 'media',
+          recordId: s.id,
+          localUpdatedAt: now,
+        );
+      });
+    } on Object catch (e, stackTrace) {
+      failed++;
+      firstError ??= e;
+      firstStack ??= stackTrace;
     }
-  });
+  }
+  if (firstError != null) {
+    Error.throwWithStackTrace(
+      StateError(
+        '$failed of ${survivors.length} surviving media rows could not be '
+        'unlinked: $firstError',
+      ),
+      firstStack!,
+    );
+  }
 }

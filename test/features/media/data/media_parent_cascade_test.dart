@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:path/path.dart' as p;
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/sync_fact_groups.dart';
 import 'package:submersion/features/media/data/repositories/media_parent_cascade.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -320,6 +321,31 @@ void main() {
       expect((await row(id)).diveId, 'd-kept');
     });
 
+    test('one survivor failing does not undo the others', () async {
+      // Each survivor's unlink is the only thing that publishes it, so one
+      // row that cannot be marked must not roll the rest back with it.
+      final bad = await photo(dive: 'd-dying', site: 's-kept');
+      final good = await photo(dive: 'd-dying', site: 's-kept');
+      await SyncRepository().clearPendingRecords();
+
+      await expectLater(
+        unlinkMediaFromDeletedParents(db, _PendingFailsFor(bad), [
+          MediaSurvivor(bad, diveId: 'd-dying'),
+          MediaSurvivor(good, diveId: 'd-dying'),
+        ]),
+        throwsA(isA<StateError>()),
+        reason: 'the caller still hears about the failure',
+      );
+
+      expect((await row(good)).diveId, isNull);
+      expect(await isPending(good), isTrue);
+      expect(
+        (await row(bad)).diveId,
+        'd-dying',
+        reason: 'its own unlink rolled back with its failed mark',
+      );
+    });
+
     test('a row deleted since the plan is not marked', () async {
       await unlinkMediaFromDeletedParents(db, SyncRepository(), const [
         MediaSurvivor('gone', diveId: 'd-dying'),
@@ -328,4 +354,31 @@ void main() {
       expect(await isPending('gone'), isFalse);
     });
   });
+}
+
+/// Fails to mark one record pending, the way a full disk or a locked
+/// database would for a single write.
+class _PendingFailsFor extends SyncRepository {
+  _PendingFailsFor(this.failingId);
+  final String failingId;
+
+  @override
+  Future<void> markRecordPending({
+    required String entityType,
+    required String recordId,
+    required int localUpdatedAt,
+    List<SyncFactGroup> alsoStamp = const [],
+    bool stampClock = true,
+  }) {
+    if (recordId == failingId) {
+      return Future<void>.error(StateError('could not mark $recordId'));
+    }
+    return super.markRecordPending(
+      entityType: entityType,
+      recordId: recordId,
+      localUpdatedAt: localUpdatedAt,
+      alsoStamp: alsoStamp,
+      stampClock: stampClock,
+    );
+  }
 }
