@@ -10,6 +10,16 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-18-media-sync-program-design.md`, section 5.4 (and 5.3 for the enrichment tombstones). Sub-issue #2108, closes #1954, part of #2090. Stacked on slice 4 (#2239).
 
+> **Revised in review (PR #2289).** Two changes to what the tasks below
+> describe. The plan is read inside the delete's transaction, after Step 0
+> reassigns the shared sites and before any delete, not before the
+> transaction; so `_dyingMediaParents` takes no `hasSurvivor` and no longer
+> predicts Step 0 with `is_shared = 0`. And `recheckDoomed` reads each doomed
+> row again before it is deleted, sparing one relinked between the commit
+> and the apply. Every id list is read in chunks of `mediaCascadeIdChunk`
+> (900): the bundled SQLite (3.53.3) binds at most 32766 variables per
+> statement, measured.
+
 ## Global Constraints
 
 - Originals are never touched: only media rows and uploaded copies are at stake (spec 5.4, issue #1954).

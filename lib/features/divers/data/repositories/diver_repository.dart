@@ -339,31 +339,27 @@ class DiverRepository {
   }
 
   /// The parents of media that [deleteDiverWithReassignment] removes,
-  /// mirroring its step lists (`diver_delete_steps.dart`): every dive, piece
-  /// of gear and buddy of the diver, and the sites Step 0 does not hand to a
-  /// survivor. Read before the transaction, so it has to predict Step 0:
-  /// with a survivor the shared sites are reassigned and live on.
-  Future<DyingMediaParents> _dyingMediaParents(
-    String id, {
-    required bool hasSurvivor,
-  }) async => DyingMediaParents(
-    // stats-scope-exempt: a deletion cascade, not a statistic.
-    diveIds: (await _idsOf('SELECT id FROM dives WHERE diver_id = ?', [
-      id,
-    ])).toSet(),
-    siteIds: (await _idsOf(
-      hasSurvivor
-          ? 'SELECT id FROM dive_sites WHERE diver_id = ? AND is_shared = 0'
-          : 'SELECT id FROM dive_sites WHERE diver_id = ?',
-      [id],
-    )).toSet(),
-    equipmentIds: (await _idsOf('SELECT id FROM equipment WHERE diver_id = ?', [
-      id,
-    ])).toSet(),
-    buddyIds: (await _idsOf('SELECT id FROM buddies WHERE diver_id = ?', [
-      id,
-    ])).toSet(),
-  );
+  /// mirroring its step lists (`diver_delete_steps.dart`): every dive, site,
+  /// piece of gear and buddy the diver still owns. Read inside the delete's
+  /// transaction after Step 0, when the shared sites already belong to the
+  /// survivor, so what remains is exactly what the transaction deletes.
+  Future<DyingMediaParents> _dyingMediaParents(String id) async =>
+      DyingMediaParents(
+        // stats-scope-exempt: a deletion cascade, not a statistic.
+        diveIds: (await _idsOf('SELECT id FROM dives WHERE diver_id = ?', [
+          id,
+        ])).toSet(),
+        siteIds: (await _idsOf('SELECT id FROM dive_sites WHERE diver_id = ?', [
+          id,
+        ])).toSet(),
+        equipmentIds: (await _idsOf(
+          'SELECT id FROM equipment WHERE diver_id = ?',
+          [id],
+        )).toSet(),
+        buddyIds: (await _idsOf('SELECT id FROM buddies WHERE diver_id = ?', [
+          id,
+        ])).toSet(),
+      );
 
   /// Deletes the media only this diver's rows linked, with tombstones and
   /// blob-delete intents, and unlinks, stamps and marks pending the media a
@@ -374,10 +370,23 @@ class DiverRepository {
   /// it was. A failure here is logged, not rethrown: the diver is gone and
   /// cannot be restored, and what is left is recoverable (unlinked rows for
   /// the orphan sweep, a missed blob intent for the Verify Library sweep).
+  ///
+  /// The doomed rows are checked again first, because one can be relinked
+  /// to a surviving parent between the commit and here. They go to the
+  /// coordinator in bounded batches: it tombstones their enrichment with one
+  /// list per call, and a whole library can pass what one statement binds.
   Future<void> _applyMediaCascade(String diverId, MediaCascadePlan plan) async {
     try {
-      if (plan.doomed.isNotEmpty) {
-        await _mediaDeletionCoordinator.deleteMediaItems(plan.doomed);
+      final doomed = await recheckDoomed(_db, plan);
+      for (var i = 0; i < doomed.length; i += mediaCascadeIdChunk) {
+        await _mediaDeletionCoordinator.deleteMediaItems(
+          doomed.sublist(
+            i,
+            i + mediaCascadeIdChunk < doomed.length
+                ? i + mediaCascadeIdChunk
+                : doomed.length,
+          ),
+        );
       }
       await unlinkMediaFromDeletedParents(_db, _syncRepository, plan.survivors);
     } catch (e, stackTrace) {
@@ -424,13 +433,8 @@ class DiverRepository {
         targetName = allDiversRows.first.name;
       }
 
-      // Read before the transaction, while the links still name the
-      // parents: the deletes below fire ON DELETE SET NULL on media, which
-      // clears them locally with no stamp (issue #1954).
-      final mediaPlan = await planMediaCascade(
-        _db,
-        await _dyingMediaParents(id, hasSurvivor: targetId != null),
-      );
+      // Set inside the transaction, applied after it commits.
+      late final MediaCascadePlan mediaPlan;
 
       await _db.transaction(() async {
         // Step 0: Reassign shared records to the surviving diver (if any).
@@ -493,6 +497,13 @@ class DiverRepository {
             );
           }
         }
+
+        // Step 0b: Plan the media cascade (issue #1954). Here, after the
+        // shared sites have gone to the survivor and before any delete: the
+        // links still name the parents, which the deletes below clear with
+        // ON DELETE SET NULL and no stamp, and in one transaction the plan
+        // names exactly the rows this delete removes.
+        mediaPlan = await planMediaCascade(_db, await _dyingMediaParents(id));
 
         // Step 1: Null out cross-diver FK references to this diver's
         // computers.

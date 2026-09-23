@@ -379,8 +379,10 @@ advancing the cursor after `apply` is correct.
 ### 5.4 Diver delete (#1954)
 
 `deleteDiverWithReassignment` gains the same media partition the single
-entity deletes use, computed before the transaction and applied through
-`MediaDeletionCoordinator` after it: media linked only to the diver's dives,
+entity deletes use, computed inside the transaction (after the shared rows
+are reassigned, before any delete, so it names exactly what the transaction
+removes) and applied through `MediaDeletionCoordinator` after it commits,
+each doomed row read again first so one relinked in between is spared: media linked only to the diver's dives,
 sites and gear is deleted with `media` and `mediaEnrichment` tombstones and
 a blob-delete intent for anything store-backed; media also linked to a
 surviving row is unlinked, stamped and marked pending. Originals are never

@@ -186,6 +186,24 @@ void main() {
       expect(plan.enrichmentIds, ['e-dying']);
     });
 
+    test(
+      'a dying set past the bind-variable limit is read in chunks',
+      () async {
+        // The bundled SQLite binds at most 32766 variables in one statement,
+        // and a diver's whole library arrives as one set. Past that limit, one
+        // list per query fails before the delete even starts.
+        final id = await photo(dive: 'd-dying');
+        final many = {'d-dying', for (var i = 0; i < 33000; i++) 'absent-$i'};
+
+        final plan = await planMediaCascade(
+          db,
+          DyingMediaParents(diveIds: many),
+        );
+
+        expect(plan.doomed.single.id, id);
+      },
+    );
+
     test('no dying parents plans nothing', () async {
       await photo(dive: 'd-dying');
 
@@ -194,6 +212,52 @@ void main() {
       expect(plan.doomed, isEmpty);
       expect(plan.survivors, isEmpty);
       expect(plan.enrichmentIds, isEmpty);
+    });
+  });
+
+  group('recheckDoomed', () {
+    // The plan is applied after the delete commits, and a row can be
+    // relinked in between (a sync pull, say). Deleting by the planned id
+    // alone would destroy it, uploaded copy included.
+    test('a doomed row relinked to a surviving parent is spared', () async {
+      final id = await photo(dive: 'd-dying');
+      final plan = await planMediaCascade(db, dying);
+      await db.customStatement(
+        "UPDATE media SET dive_id = 'd-kept' WHERE id = ?",
+        [id],
+      );
+
+      expect(await recheckDoomed(db, plan), isEmpty);
+    });
+
+    test('a doomed row the delete detached is still doomed', () async {
+      final id = await photo(dive: 'd-dying', site: 's-dying');
+      final plan = await planMediaCascade(db, dying);
+      // What ON DELETE SET NULL leaves once both parents are gone.
+      await db.customStatement(
+        'UPDATE media SET dive_id = NULL, site_id = NULL WHERE id = ?',
+        [id],
+      );
+
+      expect((await recheckDoomed(db, plan)).map((m) => m.id), [id]);
+    });
+
+    test(
+      'a doomed row still naming its dying parents is still doomed',
+      () async {
+        final id = await photo(dive: 'd-dying');
+        final plan = await planMediaCascade(db, dying);
+
+        expect((await recheckDoomed(db, plan)).map((m) => m.id), [id]);
+      },
+    );
+
+    test('a doomed row deleted since the plan is dropped', () async {
+      final id = await photo(dive: 'd-dying');
+      final plan = await planMediaCascade(db, dying);
+      await db.customStatement('DELETE FROM media WHERE id = ?', [id]);
+
+      expect(await recheckDoomed(db, plan), isEmpty);
     });
   });
 

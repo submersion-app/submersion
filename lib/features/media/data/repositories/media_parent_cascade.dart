@@ -57,15 +57,37 @@ class MediaSurvivor {
   final String? signerId;
 }
 
+/// Ids per statement. The bundled SQLite binds at most 32766 variables, and
+/// a diver's whole library can pass that in one list; 900 is the bound the
+/// rest of the codebase already chunks by. Public so a caller handing the
+/// doomed rows onward can bound those calls too.
+const mediaCascadeIdChunk = 900;
+
+Iterable<List<T>> _chunks<T>(List<T> items) sync* {
+  for (var i = 0; i < items.length; i += mediaCascadeIdChunk) {
+    yield items.sublist(
+      i,
+      i + mediaCascadeIdChunk < items.length
+          ? i + mediaCascadeIdChunk
+          : items.length,
+    );
+  }
+}
+
 /// What a deletion does to its parents' media, read before it runs.
 class MediaCascadePlan {
   const MediaCascadePlan({
+    this.parents = const DyingMediaParents(),
     this.doomed = const [],
     this.survivors = const [],
     this.enrichmentIds = const [],
   });
 
   static const empty = MediaCascadePlan();
+
+  /// The dying parents this plan was read against, kept so the doomed set
+  /// can be checked again right before it is deleted ([recheckDoomed]).
+  final DyingMediaParents parents;
 
   /// Rows whose every logbook link is dying. Full items, because the
   /// blob-delete intent needs the content hash, filename and type.
@@ -79,6 +101,17 @@ class MediaCascadePlan {
   /// dive deletes remove them with no tombstone; the caller logs these.
   final List<String> enrichmentIds;
 }
+
+String? _dyingOf(String? link, Set<String> dying) =>
+    link != null && dying.contains(link) ? link : null;
+
+/// Whether some logbook link on [row] names a parent that is not dying.
+/// That link alone keeps the row, whatever else dies around it.
+bool _livesOn(MediaData row, DyingMediaParents parents) =>
+    (row.diveId != null && !parents.diveIds.contains(row.diveId)) ||
+    (row.siteId != null && !parents.siteIds.contains(row.siteId)) ||
+    (row.equipmentId != null &&
+        !parents.equipmentIds.contains(row.equipmentId));
 
 /// Reads what a deletion of [parents] does to media. Call it before the
 /// deletion: afterwards ON DELETE SET NULL has already cleared the links
@@ -94,64 +127,87 @@ Future<MediaCascadePlan> planMediaCascade(
 ) async {
   if (parents.isEmpty) return MediaCascadePlan.empty;
 
-  final rows =
-      await (db.select(db.media)..where((m) {
-            final reaches = <Expression<bool>>[
-              if (parents.diveIds.isNotEmpty) m.diveId.isIn(parents.diveIds),
-              if (parents.siteIds.isNotEmpty) m.siteId.isIn(parents.siteIds),
-              if (parents.equipmentIds.isNotEmpty)
-                m.equipmentId.isIn(parents.equipmentIds),
-              if (parents.buddyIds.isNotEmpty)
-                m.signerId.isIn(parents.buddyIds),
-            ];
-            return reaches.reduce((a, b) => a | b);
-          }))
-          .get();
+  // One read per column and chunk, merged by id: a row reached through two
+  // dying parents must be classified once.
+  final byId = <String, MediaData>{};
+  Future<void> reach(
+    Set<String> ids,
+    Expression<bool> Function($MediaTable m, List<String> chunk) where,
+  ) async {
+    for (final chunk in _chunks(ids.toList())) {
+      for (final row in await (db.select(
+        db.media,
+      )..where((m) => where(m, chunk))).get()) {
+        byId[row.id] = row;
+      }
+    }
+  }
 
-  String? dyingOf(String? link, Set<String> dying) =>
-      link != null && dying.contains(link) ? link : null;
+  await reach(parents.diveIds, (m, c) => m.diveId.isIn(c));
+  await reach(parents.siteIds, (m, c) => m.siteId.isIn(c));
+  await reach(parents.equipmentIds, (m, c) => m.equipmentId.isIn(c));
+  await reach(parents.buddyIds, (m, c) => m.signerId.isIn(c));
 
   final doomed = <domain.MediaItem>[];
   final survivors = <MediaSurvivor>[];
-  for (final row in rows) {
-    final dive = dyingOf(row.diveId, parents.diveIds);
-    final site = dyingOf(row.siteId, parents.siteIds);
-    final gear = dyingOf(row.equipmentId, parents.equipmentIds);
+  for (final row in byId.values) {
     final linked =
         row.diveId != null || row.siteId != null || row.equipmentId != null;
-    final kept =
-        (row.diveId != null && dive == null) ||
-        (row.siteId != null && site == null) ||
-        (row.equipmentId != null && gear == null);
-    if (linked && !kept) {
+    if (linked && !_livesOn(row, parents)) {
       doomed.add(mediaItemFromRow(row));
     } else {
       survivors.add(
         MediaSurvivor(
           row.id,
-          diveId: dive,
-          siteId: site,
-          equipmentId: gear,
-          signerId: dyingOf(row.signerId, parents.buddyIds),
+          diveId: _dyingOf(row.diveId, parents.diveIds),
+          siteId: _dyingOf(row.siteId, parents.siteIds),
+          equipmentId: _dyingOf(row.equipmentId, parents.equipmentIds),
+          signerId: _dyingOf(row.signerId, parents.buddyIds),
         ),
       );
     }
   }
 
-  final enrichmentIds = parents.diveIds.isEmpty
-      ? const <String>[]
-      : [
-          for (final e in await (db.select(
-            db.mediaEnrichment,
-          )..where((t) => t.diveId.isIn(parents.diveIds))).get())
-            e.id,
-        ];
+  final enrichmentIds = <String>{};
+  for (final chunk in _chunks(parents.diveIds.toList())) {
+    for (final e in await (db.select(
+      db.mediaEnrichment,
+    )..where((t) => t.diveId.isIn(chunk))).get()) {
+      enrichmentIds.add(e.id);
+    }
+  }
 
   return MediaCascadePlan(
+    parents: parents,
     doomed: doomed,
     survivors: survivors,
-    enrichmentIds: enrichmentIds,
+    enrichmentIds: enrichmentIds.toList(),
   );
+}
+
+/// The planned doomed rows that are still doomed now, read fresh.
+///
+/// The plan is applied after the deletion commits, and a row can be
+/// relinked to a surviving parent in between (a sync pull, say). Deleting by
+/// the planned id alone would destroy that row and queue its uploaded copy
+/// for removal. So each row is read again and deleted only while no logbook
+/// link names a live parent: links the deletion's SET NULL cleared, and
+/// links still naming a dying parent, both leave it doomed. A row already
+/// gone is dropped. The items are the fresh reads, so a blob-delete intent
+/// is built from the row as it is now.
+Future<List<domain.MediaItem>> recheckDoomed(
+  AppDatabase db,
+  MediaCascadePlan plan,
+) async {
+  final still = <domain.MediaItem>[];
+  for (final chunk in _chunks([for (final m in plan.doomed) m.id])) {
+    for (final row in await (db.select(
+      db.media,
+    )..where((m) => m.id.isIn(chunk))).get()) {
+      if (!_livesOn(row, plan.parents)) still.add(mediaItemFromRow(row));
+    }
+  }
+  return still;
 }
 
 /// Clears each survivor's links to the parents a deletion removed, stamps
