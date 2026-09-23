@@ -4077,7 +4077,6 @@
   "settings_notifications_tripLeadDays": "{days} dagen vóór een reis",
   "equipment_detail_serviceIntervalLabel": "Serviceinterval",
   "equipment_detail_serviceIntervalValue": "{days} dagen",
-  "equipment_detail_serviceOverdue": "Service is achterstallig!",
   "equipment_detail_showEquipmentWith": "Uitrusting met {name} tonen",
   "equipment_detail_sizeLabel": "Maat",
   "equipment_detail_thicknessLabel": "Dikte",

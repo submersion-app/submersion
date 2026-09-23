@@ -3975,7 +3975,6 @@
   "settings_notifications_tripLeadDays": "{days} ימים לפני טיול",
   "equipment_detail_serviceIntervalLabel": "מרווח טיפול",
   "equipment_detail_serviceIntervalValue": "{days} ימים",
-  "equipment_detail_serviceOverdue": "הטיפול באיחור!",
   "equipment_detail_showEquipmentWith": "הצג ציוד עם {name}",
   "equipment_detail_sizeLabel": "מידה",
   "equipment_detail_thicknessLabel": "עובי",

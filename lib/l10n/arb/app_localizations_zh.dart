@@ -12016,9 +12016,6 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_serviceOverdue => '维护已逾期！';
-
-  @override
   String equipment_detail_showEquipmentWith(String name) {
     return '显示带有 $name 的装备';
   }

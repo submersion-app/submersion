@@ -4077,7 +4077,6 @@
   "settings_notifications_tripLeadDays": "{days} أيام قبل الرحلة",
   "equipment_detail_serviceIntervalLabel": "فترة الصيانة",
   "equipment_detail_serviceIntervalValue": "{days} يوم",
-  "equipment_detail_serviceOverdue": "الصيانة متأخرة!",
   "equipment_detail_showEquipmentWith": "عرض المعدات التي تحمل {name}",
   "equipment_detail_sizeLabel": "المقاس",
   "equipment_detail_thicknessLabel": "السُمك",

@@ -107,7 +107,16 @@ class ServiceStatusIndicator extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(line, style: labelStyle, textAlign: textAlign),
+              // The roomy density: body size and bold, since it stands in
+              // for a whole banner rather than a chip.
+              Text(
+                line,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: color ?? swatch?.accent,
+                  fontWeight: FontWeight.bold,
+                ),
+                textAlign: textAlign,
+              ),
               Text(
                 formatServiceTriggerText(
                   context,
@@ -116,8 +125,10 @@ class ServiceStatusIndicator extends ConsumerWidget {
                   dueDate: c.status.dueDate,
                   usageByUnit: c.status.usageByUnit,
                 ),
+                // The override reaches this line too: on a status fill the
+                // default grey would not read against the container.
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
+                  color: color ?? theme.colorScheme.onSurfaceVariant,
                 ),
                 textAlign: textAlign,
               ),

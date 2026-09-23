@@ -3975,7 +3975,6 @@
   "settings_notifications_tripLeadDays": "{days} nappal az utazás előtt",
   "equipment_detail_serviceIntervalLabel": "Szerviz intervallum",
   "equipment_detail_serviceIntervalValue": "{days} nap",
-  "equipment_detail_serviceOverdue": "A szerviz lejártt!",
   "equipment_detail_showEquipmentWith": "Felszerelés ezzel: {name}",
   "equipment_detail_sizeLabel": "Méret",
   "equipment_detail_thicknessLabel": "Vastagság",

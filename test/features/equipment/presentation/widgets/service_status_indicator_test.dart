@@ -176,6 +176,32 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('full applies a color override to both of its lines', (
+    tester,
+  ) async {
+    // The detail header puts this on a solid status fill, where the default
+    // grey of the trigger line would not read. The override is the fill's
+    // own onContainer, and it must reach the second line too.
+    await tester.pumpWidget(
+      wrap(
+        ServiceStatusIndicator(
+          clock: clock(),
+          subjectId: 'reg',
+          density: ServiceIndicatorDensity.full,
+          color: const Color(0xFF00FF00),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    for (final text in tester.widgetList<Text>(find.byType(Text))) {
+      expect(
+        text.style?.color,
+        const Color(0xFF00FF00),
+        reason: '"${text.data}" ignored the override',
+      );
+    }
+  });
+
   testWidgets('full renders nothing for an ok clock', (tester) async {
     await tester.pumpWidget(
       wrap(

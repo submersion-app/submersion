@@ -3975,7 +3975,6 @@
   "settings_notifications_tripLeadDays": "{days} jours avant un voyage",
   "equipment_detail_serviceIntervalLabel": "Intervalle de révision",
   "equipment_detail_serviceIntervalValue": "{days} jours",
-  "equipment_detail_serviceOverdue": "La révision est en retard !",
   "equipment_detail_showEquipmentWith": "Afficher l'équipement avec {name}",
   "equipment_detail_sizeLabel": "Taille",
   "equipment_detail_thicknessLabel": "Épaisseur",

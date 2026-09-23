@@ -4222,7 +4222,6 @@
   "settings_notifications_tripLeadDays": "行程前 {days} 天",
   "equipment_detail_serviceIntervalLabel": "维护间隔",
   "equipment_detail_serviceIntervalValue": "{days} 天",
-  "equipment_detail_serviceOverdue": "维护已逾期！",
   "equipment_detail_showEquipmentWith": "显示带有 {name} 的装备",
   "equipment_detail_sizeLabel": "尺寸",
   "equipment_detail_thicknessLabel": "厚度",

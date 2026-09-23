@@ -12306,9 +12306,6 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_serviceOverdue => 'הטיפול באיחור!';
-
-  @override
   String equipment_detail_showEquipmentWith(String name) {
     return 'הצג ציוד עם $name';
   }

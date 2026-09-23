@@ -7367,7 +7367,6 @@
   },
   "equipment_detail_serviceIntervalLabel": "Service Interval",
   "equipment_detail_serviceIntervalValue": "{days} days",
-  "equipment_detail_serviceOverdue": "Service is overdue!",
   "equipment_detail_showEquipmentWith": "Show equipment with {name}",
   "@equipment_detail_showEquipmentWith": {
     "description": "Tooltip on a tag chip on equipment detail; tapping it opens the equipment list filtered to that tag",

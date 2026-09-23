@@ -12580,9 +12580,6 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_serviceOverdue => 'Manutenção em atraso!';
-
-  @override
   String equipment_detail_showEquipmentWith(String name) {
     return 'Mostrar equipamentos com $name';
   }

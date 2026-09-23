@@ -12546,9 +12546,6 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_serviceOverdue => 'A szerviz lejártt!';
-
-  @override
   String equipment_detail_showEquipmentWith(String name) {
     return 'Felszerelés ezzel: $name';
   }

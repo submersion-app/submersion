@@ -12385,9 +12385,6 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_serviceOverdue => 'الصيانة متأخرة!';
-
-  @override
   String equipment_detail_showEquipmentWith(String name) {
     return 'عرض المعدات التي تحمل $name';
   }

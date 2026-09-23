@@ -20744,12 +20744,6 @@ abstract class AppLocalizations {
   /// **'{days} days'**
   String equipment_detail_serviceIntervalValue(Object days);
 
-  /// No description provided for @equipment_detail_serviceOverdue.
-  ///
-  /// In en, this message translates to:
-  /// **'Service is overdue!'**
-  String get equipment_detail_serviceOverdue;
-
   /// Tooltip on a tag chip on equipment detail; tapping it opens the equipment list filtered to that tag
   ///
   /// In en, this message translates to:

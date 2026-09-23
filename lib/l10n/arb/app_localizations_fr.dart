@@ -12627,9 +12627,6 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_serviceOverdue => 'La révision est en retard !';
-
-  @override
   String equipment_detail_showEquipmentWith(String name) {
     return 'Afficher l\'équipement avec $name';
   }

@@ -4180,7 +4180,6 @@
   "settings_notifications_tripLeadDays": "{days} Tage vor einer Reise",
   "equipment_detail_serviceIntervalLabel": "Wartungsintervall",
   "equipment_detail_serviceIntervalValue": "{days} Tage",
-  "equipment_detail_serviceOverdue": "Wartung ist überfällig!",
   "equipment_detail_showEquipmentWith": "Ausrüstung mit {name} anzeigen",
   "equipment_detail_sizeLabel": "Größe",
   "equipment_detail_thicknessLabel": "Dicke",

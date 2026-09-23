@@ -4077,7 +4077,6 @@
   "settings_notifications_tripLeadDays": "{days} días antes de un viaje",
   "equipment_detail_serviceIntervalLabel": "Intervalo de servicio",
   "equipment_detail_serviceIntervalValue": "{days} días",
-  "equipment_detail_serviceOverdue": "El servicio está atrasado!",
   "equipment_detail_showEquipmentWith": "Mostrar equipo con {name}",
   "equipment_detail_sizeLabel": "Talla",
   "equipment_detail_thicknessLabel": "Grosor",

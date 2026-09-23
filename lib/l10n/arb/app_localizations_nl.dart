@@ -12490,9 +12490,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_serviceOverdue => 'Service is achterstallig!';
-
-  @override
   String equipment_detail_showEquipmentWith(String name) {
     return 'Uitrusting met $name tonen';
   }

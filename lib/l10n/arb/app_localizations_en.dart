@@ -12393,9 +12393,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get equipment_detail_serviceOverdue => 'Service is overdue!';
-
-  @override
   String equipment_detail_showEquipmentWith(String name) {
     return 'Show equipment with $name';
   }

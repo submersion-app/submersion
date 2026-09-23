@@ -3975,7 +3975,6 @@
   "settings_notifications_tripLeadDays": "{days} giorni prima di un viaggio",
   "equipment_detail_serviceIntervalLabel": "Intervallo manutenzione",
   "equipment_detail_serviceIntervalValue": "{days} giorni",
-  "equipment_detail_serviceOverdue": "Manutenzione scaduta!",
   "equipment_detail_showEquipmentWith": "Mostra l'attrezzatura con {name}",
   "equipment_detail_sizeLabel": "Taglia",
   "equipment_detail_thicknessLabel": "Spessore",
