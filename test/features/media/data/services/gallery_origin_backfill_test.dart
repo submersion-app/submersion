@@ -164,6 +164,69 @@ void main() {
       expect(await originOf(bad), isNull);
     },
   );
+
+  // A probe that could not answer says nothing about the row. The pass is
+  // not complete until every candidate has been probed, so the next sync
+  // tries the rest again.
+  test('a failed probe leaves the backfill to run again', () async {
+    gallery.add(FakeGalleryAsset(id: 'boom', bytes: bytes, takenAt: taken));
+    final bad = await legacyRow('boom');
+
+    await backfill(reader: _ThrowsFor('boom', gallery)).run();
+    expect(GalleryOriginBackfill.isDone(prefs), isFalse);
+
+    expect(await backfill().run(), (checked: 1, stamped: 1));
+    expect(await originOf(bad), me);
+    expect(GalleryOriginBackfill.isDone(prefs), isTrue);
+  });
+
+  // The candidates are read before a probe loop that can run long. A row
+  // the user converts in the meantime (here to a cloud-backed row) no longer
+  // points at the asset that was probed, and must not gain a gallery origin.
+  test('a row converted during the probe is not stamped', () async {
+    gallery.add(FakeGalleryAsset(id: 'A-1', bytes: bytes, takenAt: taken));
+    gallery.add(FakeGalleryAsset(id: 'A-2', bytes: bytes, takenAt: taken));
+    final converted = await legacyRow('A-1');
+    final relinked = await legacyRow('A-2');
+
+    final outcome = await backfill(
+      reader: _ChangesDuringProbe(gallery, () async {
+        await db.customStatement(
+          "UPDATE media SET source_type = 'mediaStore' WHERE id = ?",
+          [converted],
+        );
+        await db.customStatement(
+          "UPDATE media SET platform_asset_id = 'A-9' WHERE id = ?",
+          [relinked],
+        );
+      }),
+    ).run();
+
+    expect(outcome, (checked: 2, stamped: 0));
+    expect(await originOf(converted), isNull);
+    expect(await originOf(relinked), isNull);
+  });
+}
+
+/// Runs [change] on the first probe, then delegates: the rows move while the
+/// backfill is still probing.
+class _ChangesDuringProbe implements GalleryAssetReader {
+  _ChangesDuringProbe(this.inner, this.change);
+  final GalleryAssetReader inner;
+  final Future<void> Function() change;
+  var _changed = false;
+
+  @override
+  Future<bool> exists(String assetId) async {
+    if (!_changed) {
+      _changed = true;
+      await change();
+    }
+    return inner.exists(assetId);
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// Delegates to [inner] except that probing [id] throws, the way a platform

@@ -407,7 +407,7 @@ git commit -m "feat(media): a gallery link records the device that made it"
 **Interfaces:**
 - Produces:
   - `Future<List<({String id, String platformAssetId})>> MediaRepository.getGalleryMediaWithoutOrigin()`
-  - `Future<int> MediaRepository.stampOriginDevice(List<String> ids, String deviceId)`
+  - `Future<int> MediaRepository.stampOriginDevice(List<({String id, String platformAssetId})> probed, String deviceId)`
   - `class GalleryOriginBackfill { GalleryOriginBackfill({required MediaRepository mediaRepository, required GalleryAssetReader reader, required PhotoPickerService photos, required Future<PhotoPermissionStatus> Function() permissionStatus, required Future<String> Function() deviceId, required SharedPreferences prefs}); static const doneFlagKey; static bool isDone(SharedPreferences); Future<GalleryOriginBackfillOutcome?> run(); }`
   - `typedef GalleryOriginBackfillOutcome = ({int checked, int stamped});`
   - `final galleryOriginBackfillProvider = Provider<Future<void> Function()>(...)`
@@ -610,23 +610,37 @@ In `media_repository.dart`, directly after `getStoreStampedMediaIdsOwnedBy`, add
     ];
   }
 
-  /// Records [deviceId] as the origin of each of [ids] that still records
-  /// none, and marks each row it stamps pending so peers learn it. Returns
-  /// how many it stamped.
+  /// Records [deviceId] as the origin of each [probed] row that is still
+  /// exactly what was probed: a gallery row, under the same asset id, with
+  /// no origin yet. Marks each row it stamps pending so peers learn it.
+  /// Returns how many it stamped.
   ///
   /// The origin belongs to no fact group, so this bumps the row clock and
-  /// republishes the whole row; see [GalleryOriginBackfill] for why that
-  /// happens only right after a sync. The null guard keeps an origin a sync
-  /// delivered in the meantime.
-  Future<int> stampOriginDevice(List<String> ids, String deviceId) async {
-    if (ids.isEmpty) return 0;
+  /// republishes the whole row; the gallery origin backfill runs it only
+  /// right after a sync for that reason. The rows are probed before this
+  /// runs, and the probe loop can be long: the null guard keeps an origin a
+  /// sync delivered meanwhile, and the source and asset guards skip a row
+  /// the user converted or relinked meanwhile, which the probe no longer
+  /// speaks for.
+  Future<int> stampOriginDevice(
+    List<({String id, String platformAssetId})> probed,
+    String deviceId,
+  ) async {
+    if (probed.isEmpty) return 0;
     final now = DateTime.now().millisecondsSinceEpoch;
     var stamped = 0;
     await _db.transaction(() async {
-      for (final id in ids) {
+      for (final row in probed) {
+        final id = row.id;
         final written =
             await (_db.update(_db.media)..where(
-                  (t) => t.id.equals(id) & t.originDeviceId.isNull(),
+                  (t) =>
+                      t.id.equals(id) &
+                      t.originDeviceId.isNull() &
+                      t.sourceType.equals(
+                        MediaSourceType.platformGallery.name,
+                      ) &
+                      t.platformAssetId.equals(row.platformAssetId),
                 ))
                 .write(
                   MediaCompanion(
@@ -745,21 +759,27 @@ class GalleryOriginBackfill {
       }
       final me = await _deviceId();
       final candidates = await _mediaRepository.getGalleryMediaWithoutOrigin();
-      final mine = <String>[];
+      final mine = <({String id, String platformAssetId})>[];
+      var unanswered = 0;
       for (final row in candidates) {
         try {
-          if (await _reader.exists(row.platformAssetId)) mine.add(row.id);
+          if (await _reader.exists(row.platformAssetId)) mine.add(row);
         } on Object catch (e) {
           // One asset the platform cannot answer for must not hold the rest
-          // back; it simply stays unstamped, which is the safe state.
+          // back; it stays unstamped, which is the safe state, and keeps the
+          // pass from counting as complete.
+          unanswered++;
           _log.warning('Could not probe ${row.id}; left unstamped', error: e);
         }
       }
       final stamped = await _mediaRepository.stampOriginDevice(mine, me);
-      await _prefs.setBool(doneFlagKey, true);
+      // Done only once every candidate had an answer: a probe that failed
+      // said nothing about its row, so the next sync asks again.
+      if (unanswered == 0) await _prefs.setBool(doneFlagKey, true);
       _log.info(
-        'Gallery origin backfill done: checked ${candidates.length}, '
-        'stamped $stamped',
+        'Gallery origin backfill ${unanswered == 0 ? 'done' : 'partial'}: '
+        'checked ${candidates.length}, stamped $stamped, '
+        'unanswered $unanswered',
       );
       return (checked: candidates.length, stamped: stamped);
     } on Object catch (e, stackTrace) {

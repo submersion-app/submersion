@@ -90,21 +90,27 @@ class GalleryOriginBackfill {
       }
       final me = await _deviceId();
       final candidates = await _mediaRepository.getGalleryMediaWithoutOrigin();
-      final mine = <String>[];
+      final mine = <({String id, String platformAssetId})>[];
+      var unanswered = 0;
       for (final row in candidates) {
         try {
-          if (await _reader.exists(row.platformAssetId)) mine.add(row.id);
+          if (await _reader.exists(row.platformAssetId)) mine.add(row);
         } on Object catch (e) {
           // One asset the platform cannot answer for must not hold the rest
-          // back; it simply stays unstamped, which is the safe state.
+          // back; it stays unstamped, which is the safe state, and keeps the
+          // pass from counting as complete.
+          unanswered++;
           _log.warning('Could not probe ${row.id}; left unstamped', error: e);
         }
       }
       final stamped = await _mediaRepository.stampOriginDevice(mine, me);
-      await _prefs.setBool(doneFlagKey, true);
+      // Done only once every candidate had an answer: a probe that failed
+      // said nothing about its row, so the next sync asks again.
+      if (unanswered == 0) await _prefs.setBool(doneFlagKey, true);
       _log.info(
-        'Gallery origin backfill done: checked ${candidates.length}, '
-        'stamped $stamped',
+        'Gallery origin backfill ${unanswered == 0 ? 'done' : 'partial'}: '
+        'checked ${candidates.length}, stamped $stamped, '
+        'unanswered $unanswered',
       );
       return (checked: candidates.length, stamped: stamped);
     } on Object catch (e, stackTrace) {

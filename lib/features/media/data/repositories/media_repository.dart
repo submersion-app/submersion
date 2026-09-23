@@ -1087,29 +1087,44 @@ class MediaRepository {
     ];
   }
 
-  /// Records [deviceId] as the origin of each of [ids] that still records
-  /// none, and marks each row it stamps pending so peers learn it. Returns
-  /// how many it stamped.
+  /// Records [deviceId] as the origin of each [probed] row that is still
+  /// exactly what was probed: a gallery row, under the same asset id, with
+  /// no origin yet. Marks each row it stamps pending so peers learn it.
+  /// Returns how many it stamped.
   ///
   /// The origin belongs to no fact group, so this bumps the row clock and
   /// republishes the whole row; the gallery origin backfill runs it only
-  /// right after a sync for that reason. The null guard keeps an origin a
-  /// sync delivered in the meantime.
-  Future<int> stampOriginDevice(List<String> ids, String deviceId) async {
-    if (ids.isEmpty) return 0;
+  /// right after a sync for that reason. The rows are probed before this
+  /// runs, and the probe loop can be long: the null guard keeps an origin a
+  /// sync delivered meanwhile, and the source and asset guards skip a row
+  /// the user converted or relinked meanwhile, which the probe no longer
+  /// speaks for.
+  Future<int> stampOriginDevice(
+    List<({String id, String platformAssetId})> probed,
+    String deviceId,
+  ) async {
+    if (probed.isEmpty) return 0;
     final now = DateTime.now().millisecondsSinceEpoch;
     var stamped = 0;
     await _db.transaction(() async {
-      for (final id in ids) {
+      for (final row in probed) {
+        final id = row.id;
         final written =
-            await (_db.update(
-              _db.media,
-            )..where((t) => t.id.equals(id) & t.originDeviceId.isNull())).write(
-              MediaCompanion(
-                originDeviceId: Value(deviceId),
-                updatedAt: Value(now),
-              ),
-            );
+            await (_db.update(_db.media)..where(
+                  (t) =>
+                      t.id.equals(id) &
+                      t.originDeviceId.isNull() &
+                      t.sourceType.equals(
+                        MediaSourceType.platformGallery.name,
+                      ) &
+                      t.platformAssetId.equals(row.platformAssetId),
+                ))
+                .write(
+                  MediaCompanion(
+                    originDeviceId: Value(deviceId),
+                    updatedAt: Value(now),
+                  ),
+                );
         if (written == 0) continue;
         stamped++;
         await _syncRepository.markRecordPending(
