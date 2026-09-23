@@ -279,6 +279,14 @@ class _NavTrackAlignPageState extends ConsumerState<NavTrackAlignPage> {
             body: Center(child: Text(l10n.navTrack_common_notFound)),
           );
         }
+        // The repository hands back an empty points list for a synced blob
+        // it cannot decode; everything below needs at least two samples.
+        if (route.points.length < 2) {
+          return Scaffold(
+            appBar: AppBar(title: Text(l10n.navTrack_align_title)),
+            body: Center(child: Text(l10n.navTrack_common_loadError)),
+          );
+        }
         _initFromRoute(route);
         return _AlignPageBody(state: this, route: route);
       },

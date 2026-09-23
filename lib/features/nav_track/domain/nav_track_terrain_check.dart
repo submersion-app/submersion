@@ -124,6 +124,10 @@ class NavTrackTerrainCheck {
     BathymetryGrid grid,
   ) {
     final tolerance = math.max(2.0, 0.15 * grid.resolutionMeters);
+    // On a coarse grid the seafloor value is too smoothed to call a point
+    // below it; only land conflicts are reported there, as the summary says.
+    final supportsBelowSeafloor =
+        grid.resolutionMeters < _coarseResolutionThresholdMeters;
     final classifications = <NavTrackTerrainClass>[];
     final penetrations = <double>[];
 
@@ -149,7 +153,7 @@ class NavTrackTerrainCheck {
         continue;
       }
       final penetration = point.depth - seafloorDepth;
-      if (penetration > tolerance) {
+      if (supportsBelowSeafloor && penetration > tolerance) {
         classifications.add(NavTrackTerrainClass.belowSeafloor);
         penetrations.add(penetration);
       } else {
@@ -161,8 +165,7 @@ class NavTrackTerrainCheck {
     return NavTrackTerrainCheckResult(
       classifications: classifications,
       penetrationMeters: penetrations,
-      resolutionSupportsBelowSeafloorCheck:
-          grid.resolutionMeters < _coarseResolutionThresholdMeters,
+      resolutionSupportsBelowSeafloorCheck: supportsBelowSeafloor,
     );
   }
 }

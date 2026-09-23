@@ -119,10 +119,12 @@ void main() {
       'tolerance scales with resolution: same depths, coarser grid tolerates more',
       () {
         final fineGrid = _flatGrid(depth: 10, resolutionMeters: 10); // tol = 2
+        // 90 m stays under the coarse cutoff, so this still exercises the
+        // tolerance itself rather than the coarse-grid skip.
         final coarseGrid = _flatGrid(
           depth: 10,
-          resolutionMeters: 100,
-        ); // tol = 15
+          resolutionMeters: 90,
+        ); // tol = 13.5
 
         final fine = NavTrackTerrainCheck.run(
           [_point(depth: 16)],
@@ -152,6 +154,33 @@ void main() {
         expect(result.resolutionSupportsBelowSeafloorCheck, isFalse);
       },
     );
+
+    test(
+      'a coarse grid does not flag below-seafloor points, only land conflicts',
+      () {
+        final coarseGrid = _flatGrid(depth: 10, resolutionMeters: 115);
+        final result = NavTrackTerrainCheck.run(
+          [_point(depth: 200)],
+          _anchor,
+          coarseGrid,
+        );
+        expect(result.classifications, [NavTrackTerrainClass.ok]);
+        expect(result.belowSeafloorCount, 0);
+        expect(result.maxPenetrationMeters, 0);
+        expect(result.conflictingIndices, isEmpty);
+      },
+    );
+
+    test('a coarse grid still flags points over land', () {
+      final coarseGrid = _flatGrid(depth: -1, resolutionMeters: 115);
+      final result = NavTrackTerrainCheck.run(
+        [_point(depth: 5)],
+        _anchor,
+        coarseGrid,
+      );
+      expect(result.classifications, [NavTrackTerrainClass.onLand]);
+      expect(result.conflictingIndices, [0]);
+    });
 
     test('a fine grid (<100m) supports the below-seafloor check', () {
       final fineGrid = _flatGrid(depth: 10, resolutionMeters: 10);

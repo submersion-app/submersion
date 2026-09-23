@@ -15,6 +15,7 @@ Future<void> _pump(WidgetTester tester) async {
     ProviderScope(
       overrides: base,
       child: MaterialApp(
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(

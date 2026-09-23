@@ -37,6 +37,7 @@ void main() {
     });
     await tester.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: [
           ...overrides,
           // Never completes during the test: pump once without settling to
@@ -63,6 +64,7 @@ void main() {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: [
           ...overrides,
           navTrackSceneProvider('t1').overrideWith((ref) async => null),
@@ -84,6 +86,7 @@ void main() {
     final scene = const SpatialGeometryService().build(path, siteMaxDepth: 15);
     await tester.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: [
           ...overrides,
           navTrackSceneProvider('t1').overrideWith(
@@ -112,6 +115,7 @@ void main() {
     final scene = const SpatialGeometryService().build(path, siteMaxDepth: 15);
     await tester.pumpWidget(
       testApp(
+        locale: const Locale('en'),
         overrides: [
           ...overrides,
           navTrackSceneProvider(

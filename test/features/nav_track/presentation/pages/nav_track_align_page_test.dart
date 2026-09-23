@@ -780,6 +780,31 @@ void main() {
     expect(find.textContaining(RegExp(r'trusted up to \d+m\b')), findsNothing);
   });
 
+  testWidgets('a route whose points blob could not be decoded shows a load '
+      'error instead of crashing (the repository returns an empty points '
+      'list for an unreadable synced blob)', (tester) async {
+    final degraded = NavTrack(
+      id: 'r1',
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: 'r1.csv',
+      startTime: 1755856800000,
+      endTime: 1755860400000,
+      pointCount: 10,
+      points: const [],
+      createdAt: DateTime(2026, 8, 22),
+      updatedAt: DateTime(2026, 8, 22),
+    );
+
+    await _pump(tester, route: degraded);
+
+    expect(tester.takeException(), isNull);
+    expect(find.text('Could not load this route.'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('nav-track-align-trust-slider')),
+      findsNothing,
+    );
+  });
+
   group('GPS-fix dots stay put under rotation and trust (item 1)', () {
     // The real fixture with a genuine surface GPS fix event (011.DAT.csv,
     // spec "A surface GPS fix inside the same file"): the yellow dots must
