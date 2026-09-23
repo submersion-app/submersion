@@ -255,6 +255,72 @@ void main() {
     expect(all, lessThanOrEqualTo(4));
   });
 
+  test('items beyond one statement still get their own samples', () async {
+    // The owners go to SQL 200 at a time; a dropped or misaligned tail
+    // chunk would leave the last items reading as never dived.
+    await insertDive('d1', t1);
+    await insertDive('d2', t2);
+    final ids = [
+      for (var i = 0; i < 201; i++) 'gear-${i.toString().padLeft(3, '0')}',
+    ];
+    await db.batch((b) {
+      b.insertAll(db.equipment, [
+        for (final id in ids)
+          EquipmentCompanion.insert(
+            id: id,
+            name: id,
+            type: 'mask',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+      ]);
+      b.insertAll(db.diveEquipment, [
+        for (final id in ids)
+          DiveEquipmentCompanion.insert(diveId: 'd1', equipmentId: id),
+        DiveEquipmentCompanion.insert(diveId: 'd2', equipmentId: ids.last),
+      ]);
+    });
+    final items = await repo.getEquipmentByIds(ids);
+
+    final batched = await repo.getItemExposures(items);
+
+    List<String> dives(String id) => [
+      for (final s in batched[id]!.samples) s.diveId,
+    ];
+    expect(batched, hasLength(201));
+    expect(dives(ids.first), ['d1']);
+    expect(dives(ids[199]), ['d1']);
+    expect(dives(ids.last), ['d1', 'd2']);
+  });
+
+  test(
+    'an unknown dive mode reads as open circuit, as the single query does',
+    () async {
+      await insertDive('d1', t1, mode: 'not-a-mode');
+      final mask = await repo.createEquipment(
+        const EquipmentItem(id: '', name: 'Mask', type: EquipmentType.mask),
+      );
+      await link('d1', mask.id);
+
+      final batched = await repo.getItemExposures([mask]);
+      final single = await repo.getItemExposure(mask);
+
+      expect(batched[mask.id]!.samples.single.diveMode, DiveMode.oc);
+      expect(shape(batched[mask.id]!), shape(single));
+    },
+  );
+
+  test('a failed read throws rather than reading as no wear', () async {
+    // Swallowing it would hand every clock an empty dive list, so gear
+    // would look less worn than it is: the unsafe direction.
+    final mask = await repo.createEquipment(
+      const EquipmentItem(id: '', name: 'Mask', type: EquipmentType.mask),
+    );
+    await db.customStatement('DROP TABLE dive_sensor_summaries');
+
+    await expectLater(repo.getItemExposures([mask]), throwsA(anything));
+  });
+
   test('an empty list reads nothing', () async {
     expect(await repo.getItemExposures(const []), isEmpty);
   });

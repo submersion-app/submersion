@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/database/database.dart' show AppDatabase;
+import 'package:submersion/core/database/database.dart'
+    show AppDatabase, DivesCompanion, TransmittersCompanion;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
@@ -13,7 +15,9 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/exposure_unit.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/pre_dive/data/repositories/pre_dive_session_repository.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_template.dart';
@@ -256,6 +260,84 @@ void main() {
       );
     }
     expect(severity, isNot(ServiceClockSeverity.overdue));
+  });
+
+  test("a registry edit reaches a transmitter row's clocks", () async {
+    // A transmitter's dives are the tanks that carried its registered
+    // serials, and assigning a serial writes only the registry, so the
+    // batch must subscribe to it as the per-item family does.
+    final tx = await equipment.createEquipment(
+      EquipmentItem(
+        id: '',
+        name: 'Tx',
+        type: EquipmentType.transmitter,
+        diverId: diverId,
+        purchaseDate: DateTime(2025, 1, 1),
+      ),
+    );
+    final schedule = await ServiceScheduleRepository().createSchedule(
+      ServiceSchedule(
+        id: '',
+        equipmentId: tx.id,
+        serviceKindId: 'regulator-service',
+        exposureIntervals: const {ExposureUnit.dives: 10},
+        createdAt: DateTime(2026),
+        updatedAt: DateTime(2026),
+      ),
+    );
+    final ms = DateTime.utc(2026, 1, 1).millisecondsSinceEpoch;
+    await db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: 'd1',
+            diveDateTime: ms,
+            createdAt: ms,
+            updatedAt: ms,
+          ).copyWith(runtime: const Value(3600)),
+        );
+    await db.customStatement(
+      "INSERT INTO dive_tanks (id, dive_id, transmitter_serial) "
+      "VALUES ('t1', 'd1', '555')",
+    );
+    final session = await sessionLinking([tx.id]);
+    final container = makeContainer();
+    final sub = container.listen(
+      sessionServiceClocksProvider(session.id),
+      (_, _) {},
+    );
+    addTearDown(sub.close);
+    Future<double?> since() async =>
+        (await container.read(
+              sessionServiceClocksProvider(session.id).future,
+            ))[tx.id]!
+            .firstWhere((s) => s.schedule.id == schedule.id)
+            .usageByUnit[ExposureUnit.dives]
+            ?.since;
+    expect(await since(), 0);
+
+    // Through drift, so the registry's change stream ticks as the app's
+    // own writes do.
+    await db
+        .into(db.transmitters)
+        .insert(
+          TransmittersCompanion.insert(
+            id: 'r1',
+            label: 'Main',
+            tankRole: 'backGas',
+            createdAt: 1,
+            updatedAt: 1,
+          ).copyWith(
+            transmitterSerial: const Value('555'),
+            transmitterEquipmentId: Value(tx.id),
+          ),
+        );
+    var now = await since();
+    for (var i = 0; i < 50 && now != 1; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+      now = await since();
+    }
+    expect(now, 1);
   });
 
   test('ticking a row off does not re-evaluate the clocks', () async {
