@@ -62,6 +62,9 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byType(TextField), findsWidgets);
 
+    // Expanding Gas pushes the Environment header below the fold, so the tap
+    // derived an offset that hit nothing and the section never opened.
+    await tester.ensureVisible(find.text('Environment'));
     await tester.tap(find.text('Environment'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
