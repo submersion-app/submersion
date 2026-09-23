@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
@@ -182,7 +184,15 @@ class _AscentRateBarPainter extends CustomPainter {
       final nextBucket = i + 1 < sortedKeys.length
           ? sortedKeys[i + 1]
           : bucket + 1;
-      final right = insets.left + nextBucket * _pixelsPerBar;
+      // The last bar's own bucket boundary can land past the plot's right
+      // edge (a sample at exactly visibleMaxSeconds floors into the last
+      // bucket, whose +1 edge is bucket-quantized, not clipped to the real
+      // pixel width); the parent stack paints with Clip.none, so an
+      // unclamped edge here would bleed into the right-axis gutter.
+      final right = math.min(
+        insets.left + nextBucket * _pixelsPerBar,
+        insets.left + plotWidth,
+      );
       final barLength = magnitude * halfBand;
       final descending = rate < 0;
       // Eased, not linear: a plain lerp on `magnitude` left medium and fast

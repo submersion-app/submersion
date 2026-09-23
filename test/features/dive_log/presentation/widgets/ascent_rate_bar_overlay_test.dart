@@ -107,4 +107,27 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  testWidgets(
+    'clamps the final bar to the plot width instead of bleeding into the '
+    'axis gutter (a sample at exactly visibleMaxSeconds floors into a '
+    'bucket whose own +1 edge overshoots the real pixel width)',
+    (tester) async {
+      // plotWidth 400 / _pixelsPerBar 3.0 = 133.33: the last bucket's own
+      // +1 edge (134 * 3.0 = 402) lands 2px past the plot's right edge.
+      await tester.pumpWidget(
+        _harness(
+          ascentRates: [_point(100, 5)],
+          visibleMinSeconds: 0,
+          visibleMaxSeconds: 100,
+          maxAbsRateMetersPerMin: 10,
+        ),
+      );
+
+      expect(
+        find.byType(AscentRateBarOverlay),
+        paints..rect(rect: const Rect.fromLTRB(399, 75, 400, 150)),
+      );
+    },
+  );
 }
