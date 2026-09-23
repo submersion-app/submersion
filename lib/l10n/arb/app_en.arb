@@ -2306,15 +2306,7 @@
   },
   "dashboard_semantics_statsBar": "Dive statistics summary",
   "dashboard_gauges_addGear": "Add gear",
-  "dashboard_gauges_gearOk": "{name} OK",
-  "@dashboard_gauges_gearOk": {
-    "placeholders": {
-      "name": {
-        "type": "String"
-      }
-    }
-  },
-  "dashboard_gauges_gearDueIn": "{name} due in {days}d",
+  "dashboard_gauges_gearDueIn": "{name} service due in {days}d",
   "@dashboard_gauges_gearDueIn": {
     "placeholders": {
       "name": {
@@ -2325,7 +2317,7 @@
       }
     }
   },
-  "dashboard_gauges_gearOverdue": "{name} overdue",
+  "dashboard_gauges_gearOverdue": "{name} service overdue",
   "@dashboard_gauges_gearOverdue": {
     "placeholders": {
       "name": {
@@ -2333,10 +2325,21 @@
       }
     }
   },
-  "dashboard_gauges_gearOverdueMore": "+{count} more overdue",
-  "@dashboard_gauges_gearOverdueMore": {
+  "dashboard_gauges_gearOverdueCount": "{count, plural, one{{count} item overdue for service} other{{count} items overdue for service}}",
+  "@dashboard_gauges_gearOverdueCount": {
     "placeholders": {
       "count": {
+        "type": "int"
+      }
+    }
+  },
+  "dashboard_gauges_gearDueSoonCount": "{count, plural, one{{count} item due for service in {days}d} other{{count} items due for service in {days}d}}",
+  "@dashboard_gauges_gearDueSoonCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "days": {
         "type": "int"
       }
     }
@@ -7384,6 +7387,8 @@
   "equipment_list_emptyState_addPrompt": "Add your diving equipment to track usage and service",
   "equipment_list_emptyState_filterText_equipment": "equipment",
   "equipment_list_emptyState_filterText_serviceDue": "equipment needing service",
+  "equipment_list_emptyState_filterText_serviceDueSoon": "equipment due for service soon",
+  "equipment_list_emptyState_filterText_serviceOverdue": "equipment overdue for service",
   "equipment_list_emptyState_filterText_status": "{status} equipment",
   "equipment_list_emptyState_filterText_type": "{type} equipment",
   "equipment_list_emptyState_noEquipment": "No {filterText}",
@@ -7391,9 +7396,13 @@
   "equipment_list_emptyState_noTagMatch": "No equipment with these tags",
   "equipment_list_emptyState_noTypeMatch": "No equipment in this category",
   "equipment_list_emptyState_serviceDueUpToDate": "All your equipment is up to date on service!",
+  "equipment_list_emptyState_serviceNoneDueSoon": "Nothing is due for service soon.",
+  "equipment_list_emptyState_serviceNoneOverdue": "Nothing is overdue for service.",
   "equipment_list_errorLoading": "Error loading equipment: {error}",
   "equipment_list_filterAll": "All Equipment",
   "equipment_list_filterServiceDue": "Service Due",
+  "equipment_list_filterServiceDueSoon": "Due Soon",
+  "equipment_list_filterServiceOverdue": "Overdue",
   "equipment_list_typeFilterAll": "All Types",
   "equipment_list_filterTooltip": "Filter equipment",
   "equipment_list_activeFilter_clear": "Clear",

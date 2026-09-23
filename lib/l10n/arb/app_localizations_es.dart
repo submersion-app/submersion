@@ -3805,13 +3805,8 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dashboard_gauges_addGear => 'Añadir equipo';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name OK';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
-    return '$name vence en ${days}d';
+    return '$name con servicio en ${days}d';
   }
 
   @override
@@ -3820,8 +3815,25 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count más vencidos';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipos con servicio vencido',
+      one: '$count equipo con servicio vencido',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipos con servicio en ${days}d',
+      one: '$count equipo con servicio en ${days}d',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12776,6 +12788,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'equipo que necesita servicio';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'equipo con servicio próximo';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'equipo con servicio vencido';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return 'equipo $status';
   }
@@ -12807,6 +12827,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Todo tu equipo esta al dia con el servicio!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'Nada necesita servicio próximamente.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'Nada tiene el servicio vencido.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'Error al cargar el equipo: $error';
   }
@@ -12816,6 +12844,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'Servicio pendiente';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'Próximo';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'Vencido';
 
   @override
   String get equipment_list_typeFilterAll => 'Todos los tipos';

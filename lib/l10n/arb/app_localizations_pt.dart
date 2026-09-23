@@ -3808,23 +3808,35 @@ class AppLocalizationsPt extends AppLocalizations {
   String get dashboard_gauges_addGear => 'Adicionar equipamento';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name OK';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
-    return '$name vence em ${days}d';
+    return '$name com manutencao em ${days}d';
   }
 
   @override
   String dashboard_gauges_gearOverdue(String name) {
-    return '$name atrasado';
+    return '$name com manutencao atrasada';
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count mais atrasados';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipamentos com manutencao atrasada',
+      one: '$count equipamento com manutencao atrasada',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count equipamentos com manutencao em ${days}d',
+      one: '$count equipamento com manutencao em ${days}d',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -12780,6 +12792,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'equipamento com manutencao pendente';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'equipamento com manutencao em breve';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'equipamento com manutencao atrasada';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return 'equipamento $status';
   }
@@ -12811,6 +12831,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Todo o seu equipamento esta em dia com a manutencao!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'Nada precisa de manutencao em breve.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'Nada esta com manutencao atrasada.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'Erro ao carregar equipamento: $error';
   }
@@ -12820,6 +12848,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'Manutencao Pendente';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'Em Breve';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'Atrasada';
 
   @override
   String get equipment_list_typeFilterAll => 'Todos os Tipos';

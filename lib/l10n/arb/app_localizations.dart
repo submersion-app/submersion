@@ -6219,29 +6219,29 @@ abstract class AppLocalizations {
   /// **'Add gear'**
   String get dashboard_gauges_addGear;
 
-  /// No description provided for @dashboard_gauges_gearOk.
-  ///
-  /// In en, this message translates to:
-  /// **'{name} OK'**
-  String dashboard_gauges_gearOk(String name);
-
   /// No description provided for @dashboard_gauges_gearDueIn.
   ///
   /// In en, this message translates to:
-  /// **'{name} due in {days}d'**
+  /// **'{name} service due in {days}d'**
   String dashboard_gauges_gearDueIn(String name, int days);
 
   /// No description provided for @dashboard_gauges_gearOverdue.
   ///
   /// In en, this message translates to:
-  /// **'{name} overdue'**
+  /// **'{name} service overdue'**
   String dashboard_gauges_gearOverdue(String name);
 
-  /// No description provided for @dashboard_gauges_gearOverdueMore.
+  /// No description provided for @dashboard_gauges_gearOverdueCount.
   ///
   /// In en, this message translates to:
-  /// **'+{count} more overdue'**
-  String dashboard_gauges_gearOverdueMore(int count);
+  /// **'{count, plural, one{{count} item overdue for service} other{{count} items overdue for service}}'**
+  String dashboard_gauges_gearOverdueCount(int count);
+
+  /// No description provided for @dashboard_gauges_gearDueSoonCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item due for service in {days}d} other{{count} items due for service in {days}d}}'**
+  String dashboard_gauges_gearDueSoonCount(int count, int days);
 
   /// No description provided for @dashboard_gauges_insuranceOk.
   ///
@@ -21182,6 +21182,18 @@ abstract class AppLocalizations {
   /// **'equipment needing service'**
   String get equipment_list_emptyState_filterText_serviceDue;
 
+  /// No description provided for @equipment_list_emptyState_filterText_serviceDueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'equipment due for service soon'**
+  String get equipment_list_emptyState_filterText_serviceDueSoon;
+
+  /// No description provided for @equipment_list_emptyState_filterText_serviceOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'equipment overdue for service'**
+  String get equipment_list_emptyState_filterText_serviceOverdue;
+
   /// No description provided for @equipment_list_emptyState_filterText_status.
   ///
   /// In en, this message translates to:
@@ -21224,6 +21236,18 @@ abstract class AppLocalizations {
   /// **'All your equipment is up to date on service!'**
   String get equipment_list_emptyState_serviceDueUpToDate;
 
+  /// No description provided for @equipment_list_emptyState_serviceNoneDueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is due for service soon.'**
+  String get equipment_list_emptyState_serviceNoneDueSoon;
+
+  /// No description provided for @equipment_list_emptyState_serviceNoneOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing is overdue for service.'**
+  String get equipment_list_emptyState_serviceNoneOverdue;
+
   /// No description provided for @equipment_list_errorLoading.
   ///
   /// In en, this message translates to:
@@ -21241,6 +21265,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Service Due'**
   String get equipment_list_filterServiceDue;
+
+  /// No description provided for @equipment_list_filterServiceDueSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Due Soon'**
+  String get equipment_list_filterServiceDueSoon;
+
+  /// No description provided for @equipment_list_filterServiceOverdue.
+  ///
+  /// In en, this message translates to:
+  /// **'Overdue'**
+  String get equipment_list_filterServiceOverdue;
 
   /// Label of the chip that clears the category filter and shows equipment of every type
   ///

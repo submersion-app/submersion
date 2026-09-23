@@ -787,8 +787,11 @@ class MediaRepository {
         final rowsWritten =
             await (_db.update(_db.media)..where((t) {
                   // Matching on the OPPOSITE flag makes this a no-op when the
-                  // row already agrees, so a poller that re-reports the same
-                  // state publishes nothing.
+                  // row already agrees. SubscriptionPoller calls this for
+                  // every entry on every poll, so without the guard a healthy
+                  // library would take a fresh verification clock each time
+                  // and re-export its snapshot over a peer's newer
+                  // observation (media sync program spec 5.1).
                   final match =
                       t.id.equals(id) & t.isOrphaned.equals(!isOrphaned);
                   if (!ifLastVerifiedAt.present) return match;
