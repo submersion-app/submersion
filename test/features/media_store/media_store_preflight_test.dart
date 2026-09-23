@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -179,6 +180,37 @@ void main() {
       expect(await attachState.hasMarkerMismatch(), isFalse);
     });
 
+    // The marker read is a network call. A reconnect landing during it
+    // clears the flag for the new store, and this stale check must not set
+    // it again, or the new store shows a reconnect card it does not need.
+    test('a reconnect during the marker read is not answered for', () async {
+      await attach('a');
+      final reconnecting = _ReconnectsDuringRead(() => attach('c'));
+      reconnecting.objects[StoreKeys.markerKey] = utf8.encode(
+        jsonEncode({'storeId': 'b', 'formatVersion': 1, 'createdAt': ''}),
+      );
+
+      final verdict = await MediaStorePreflight(
+        attachState: attachState,
+        store: reconnecting,
+        attachedStoreId: 'a',
+      ).check();
+
+      expect(verdict, MediaTransferHoldKind.detached);
+      expect(await attachState.hasMarkerMismatch(), isFalse);
+    });
+
+    test('a mismatch is written only while still attached to that '
+        'store', () async {
+      await attach('c');
+
+      await attachState.setMarkerMismatch(true, whileAttachedTo: 'a');
+      expect(await attachState.hasMarkerMismatch(), isFalse);
+
+      await attachState.setMarkerMismatch(true, whileAttachedTo: 'c');
+      expect(await attachState.hasMarkerMismatch(), isTrue);
+    });
+
     // Reconnecting is the fix, so any attach change forgets the mismatch.
     test('attaching or detaching forgets a mismatch', () async {
       await attachState.setMarkerMismatch(true);
@@ -190,4 +222,21 @@ void main() {
       expect(await attachState.hasMarkerMismatch(), isFalse);
     });
   });
+}
+
+/// Runs [onRead] while the marker is being fetched, the way a user's
+/// reconnect can land during that network call.
+class _ReconnectsDuringRead extends InMemoryMediaObjectStore {
+  _ReconnectsDuringRead(this.onRead);
+  final Future<void> Function() onRead;
+
+  @override
+  Future<void> getFile(
+    String key,
+    File destination, {
+    TransferProgressCallback? onProgress,
+  }) async {
+    await onRead();
+    return super.getFile(key, destination, onProgress: onProgress);
+  }
 }

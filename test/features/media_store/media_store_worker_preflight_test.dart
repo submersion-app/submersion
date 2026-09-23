@@ -373,6 +373,25 @@ void main() {
     expect(queue.currentHold?.kind, MediaTransferHoldKind.offline);
   });
 
+  // The drain claims a row before the gate sees it. A claim the gate turns
+  // away must go back, or no later drain could select the row.
+  test('a row the gate stops for is taken by a later drain', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    var gate = WorkerGate.stopDraining;
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      gate: (_) async => gate,
+    );
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+    gate = WorkerGate.proceed;
+    await worker.drain();
+
+    expect(pipeline.processed, ['m1']);
+  });
+
   // A disconnect disposes the runtime and builds none in its place, so a
   // hold left standing would name a store this device no longer uses.
   test('dispose clears the hold it recorded', () async {

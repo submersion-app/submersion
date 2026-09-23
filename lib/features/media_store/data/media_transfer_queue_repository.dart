@@ -28,15 +28,13 @@ class MediaTransferQueueRepository {
   LocalCacheDatabase get _db =>
       _database ?? LocalCacheDatabaseService.instance.database;
 
-  /// Entries some worker in this process is running, per database, counted
-  /// so two overlapping holders of one id (a budget-expired transfer that
-  /// never reached markTransferring, then picked up again) keep it held
-  /// until both settle. Keyed on the database object, so every repository
-  /// over one database shares them (production builds several) and two
-  /// databases never do.
-  static final Expando<Map<int, int>> _leases = Expando('media queue leases');
+  /// Entries some worker in this process has claimed ([claimNextPending]) and
+  /// not yet released, per database. Keyed on the database object, so every
+  /// repository over one database shares them (production builds several)
+  /// and two databases never do.
+  static final Expando<Set<int>> _leases = Expando('media queue leases');
 
-  Map<int, int> get _held => _leases[_db] ??= <int, int>{};
+  Set<int> get _held => _leases[_db] ??= <int>{};
 
   static final Expando<_HoldBoard> _boards = Expando('media queue holds');
 
@@ -51,24 +49,27 @@ class MediaTransferQueueRepository {
   /// this database sees it, and every open [watchSummary] re-emits.
   void recordHold(MediaTransferHold? hold) => _board.set(hold);
 
-  /// Runs [work] with [id] leased: [requeueStale] leaves the row alone until
-  /// [work] settles. The lease outlives any timeout a caller puts on the
-  /// returned future, which is the point: a timed-out transfer keeps running
-  /// and still owns its row.
-  Future<T> holdWhile<T>(int id, Future<T> Function() work) async {
-    final held = _held;
-    held[id] = (held[id] ?? 0) + 1;
-    try {
-      return await work();
-    } finally {
-      final left = (held[id] ?? 1) - 1;
-      if (left <= 0) {
-        held.remove(id);
-      } else {
-        held[id] = left;
-      }
+  /// Selects the next due row no one holds and claims it for the caller,
+  /// who must [release] it once done with it. Until then no other caller in
+  /// this process selects it ([nextPending] and this skip it) and
+  /// [requeueStale] leaves it alone.
+  ///
+  /// Exclusive: two workers draining one queue at once (a runtime rebuild
+  /// leaves the superseded one running) never take the same row. The claim
+  /// is checked and taken synchronously once the query returns, so nothing
+  /// can run between the two; a row another caller claimed while this one
+  /// was reading is skipped by asking again.
+  Future<MediaTransferQueueEntry?> claimNextPending(DateTime now) async {
+    while (true) {
+      final entry = await nextPending(now);
+      if (entry == null) return null;
+      if (_held.add(entry.id)) return entry;
     }
   }
+
+  /// Gives back a claim from [claimNextPending]. Releasing an id that is
+  /// not held does nothing.
+  void release(int id) => _held.remove(id);
 
   /// Idempotent per mediaId for every live state: pending/transferring
   /// rows are reused, and a terminally 'failed' row is returned as-is so
@@ -221,15 +222,20 @@ class MediaTransferQueueRepository {
     return row != null;
   }
 
+  /// The next due row no worker in this process has claimed. Workers take
+  /// rows through [claimNextPending]; this is the read-only question "is
+  /// there work a drain could take right now".
   Future<MediaTransferQueueEntry?> nextPending(DateTime now) {
     final nowMs = now.millisecondsSinceEpoch;
+    final held = _held.toList();
     return (_db.select(_db.mediaTransferQueue)
-          ..where(
-            (t) =>
+          ..where((t) {
+            final due =
                 t.state.equals('pending') &
                 (t.nextAttemptAt.isNull() |
-                    t.nextAttemptAt.isSmallerOrEqualValue(nowMs)),
-          )
+                    t.nextAttemptAt.isSmallerOrEqualValue(nowMs));
+            return held.isEmpty ? due : due & t.id.isNotIn(held);
+          })
           ..orderBy([
             (t) => OrderingTerm.desc(t.priority),
             (t) => OrderingTerm.asc(t.id),
@@ -381,10 +387,10 @@ class MediaTransferQueueRepository {
   /// drainer forever and can be neither retried (failed-only) nor cleared
   /// (done-only) from the Transfers UI.
   ///
-  /// Safe to run at any time: rows a worker in this process holds through
-  /// [holdWhile] are skipped, so only a row no live transfer owns (its
-  /// process died, or its worker was superseded before it started) is
-  /// reclaimed. The worker runs this at the start of every drain.
+  /// Safe to run at any time: rows a worker in this process has claimed
+  /// ([claimNextPending]) are skipped, so only a row no live transfer owns
+  /// (its process died) is reclaimed. The worker runs this at the start of
+  /// every drain.
   ///
   /// A reclaimed row is made immediately due with its stale progress
   /// cleared, but keeps its resume point so a resumable adapter can pick up
@@ -397,7 +403,7 @@ class MediaTransferQueueRepository {
   /// yet a genuinely broken item must still count toward its cap (contrast
   /// retry). Returns the number of rows reclaimed.
   Future<int> requeueStale() {
-    final held = _held.keys.toList();
+    final held = _held.toList();
     return (_db.update(_db.mediaTransferQueue)..where((t) {
           final stranded = t.state.equals('transferring');
           return held.isEmpty ? stranded : stranded & t.id.isNotIn(held);

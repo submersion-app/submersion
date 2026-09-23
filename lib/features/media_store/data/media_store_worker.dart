@@ -178,42 +178,55 @@ class MediaStoreWorker {
           preflightBlocked = true;
           return;
         }
-        final entry = await _queue.nextPending(DateTime.now());
+        // Claimed, not just selected: another worker draining this queue (a
+        // rebuild leaves the superseded one running) must not take the same
+        // row, from here through the gate to the end of its transfer.
+        final entry = await _queue.claimNextPending(DateTime.now());
         if (entry == null) {
           drainedToEmpty = true;
           break;
         }
-        if (_gate != null) {
-          final decision = await _gate(entry);
-          if (decision == WorkerGate.stopDraining) {
-            _log.info('Drain stopped by gate (offline or suspended)');
-            _hold(_offlineHold);
-            break;
+        // Whether the claim went to a transfer, which releases it when the
+        // transfer settles. Every other way out of this iteration gives it
+        // back here.
+        var handedOff = false;
+        try {
+          if (_gate != null) {
+            final decision = await _gate(entry);
+            if (decision == WorkerGate.stopDraining) {
+              _log.info('Drain stopped by gate (offline or suspended)');
+              _hold(_offlineHold);
+              break;
+            }
+            if (decision == WorkerGate.deferEntry) {
+              await _queue.defer(entry.id, DateTime.now().add(deferWindow));
+              continue;
+            }
           }
-          if (decision == WorkerGate.deferEntry) {
-            await _queue.defer(entry.id, DateTime.now().add(deferWindow));
+          if (entry.direction == 'delete') {
+            final deleteProcessor = _deleteProcessor;
+            if (deleteProcessor == null) {
+              // This worker can never process it, and a deferral only hid
+              // that behind a retry that could not succeed (spec 7.1).
+              // Failed with a message, it shows, and Retry brings it back
+              // once a wired worker exists.
+              await _queue.fail(
+                entry.id,
+                'No delete processor on this device; retry once it has one',
+              );
+              continue;
+            }
+            handedOff = true;
+            await _withinBudget(entry, () => deleteProcessor.process(entry));
             continue;
           }
+          handedOff = true;
+          await _withinBudget(entry, () async {
+            await _pipeline.process(entry);
+          });
+        } finally {
+          if (!handedOff) _queue.release(entry.id);
         }
-        if (entry.direction == 'delete') {
-          final deleteProcessor = _deleteProcessor;
-          if (deleteProcessor == null) {
-            // This worker can never process it, and a deferral only hid
-            // that behind a retry that could not succeed (spec 7.1). Failed
-            // with a message, it shows, and Retry brings it back once a
-            // wired worker exists.
-            await _queue.fail(
-              entry.id,
-              'No delete processor on this device; retry once it has one',
-            );
-            continue;
-          }
-          await _withinBudget(entry, () => deleteProcessor.process(entry));
-          continue;
-        }
-        await _withinBudget(entry, () async {
-          await _pipeline.process(entry);
-        });
       }
     } finally {
       _running = false;
@@ -244,14 +257,26 @@ class MediaStoreWorker {
   /// attempt - the transfer may yet succeed, so it must not burn one of the
   /// five attempts markFailed counts.
   ///
-  /// The lease taken here outlives the timeout, so a later drain's reclaim
-  /// leaves the row to the transfer still running it.
+  /// Owns the entry's claim, and releases it only when [work] settles, not
+  /// when the budget runs out: a timed-out transfer keeps running, and until
+  /// it stops no later drain may select its row (still pending, if the hang
+  /// came before markTransferring) or reclaim it (transferring).
   Future<void> _withinBudget(
     MediaTransferQueueEntry entry,
     Future<void> Function() work,
   ) async {
+    final Future<void> running;
     try {
-      await _queue.holdWhile(entry.id, work).timeout(_entryBudget);
+      running = work();
+    } on Object {
+      _queue.release(entry.id);
+      rethrow;
+    }
+    // Its own listener, so the release outlives the timeout below. Errors
+    // surface through the awaited timeout; this copy of them is dropped.
+    running.whenComplete(() => _queue.release(entry.id)).ignore();
+    try {
+      await running.timeout(_entryBudget);
     } on TimeoutException {
       _log.warning(
         'Transfer entry ${entry.id} (media ${entry.mediaId}) exceeded its '

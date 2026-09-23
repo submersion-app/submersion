@@ -67,6 +67,33 @@ class _HangingPipeline extends MediaUploadPipeline {
   }
 }
 
+/// Fails its first attempt back into the queue as immediately due, then
+/// succeeds: the shape of a transient failure with no backoff left.
+class _FailsOncePipeline extends MediaUploadPipeline {
+  _FailsOncePipeline({
+    required this.queueRef,
+    required super.mediaRepository,
+    required super.queue,
+    required super.store,
+    required super.registry,
+    required super.cache,
+  });
+
+  final MediaTransferQueueRepository queueRef;
+  var attempts = 0;
+
+  @override
+  Future<UploadOutcome> process(MediaTransferQueueEntry entry) async {
+    attempts++;
+    if (attempts == 1) {
+      await queueRef.markFailed(entry.id, 'blip', retryAfter: Duration.zero);
+      return UploadOutcome.failed;
+    }
+    await queueRef.markDone(entry.id);
+    return UploadOutcome.uploaded;
+  }
+}
+
 class _HangingDeleteProcessor extends MediaDeleteProcessor {
   _HangingDeleteProcessor({
     required super.queue,
@@ -257,6 +284,86 @@ void main() {
 
     expect(pipeline.hangs, 1);
     expect((await queue.allForTesting()).single.state, 'transferring');
+  });
+
+  // A hang BEFORE markTransferring leaves the row pending, deferred only for
+  // the defer window. Once that passes, a drain must still not select the row
+  // while the first transfer runs.
+  test('a timed-out transfer that never marked its row is not taken '
+      'twice', () async {
+    final id = await queue.enqueueUpload(mediaId: 'stuck');
+    final pipeline = buildPipeline(
+      hangOn: {'stuck'},
+      markTransferringFirst: false,
+    );
+    addTearDown(pipeline.releaseAll);
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      entryBudget: budget,
+    );
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+    // The defer window passes while the transfer still hangs.
+    await queue.defer(id, DateTime.now().subtract(const Duration(minutes: 1)));
+    await worker.drain();
+
+    expect(pipeline.hangs, 1);
+  });
+
+  // The claim goes back when the transfer settles, whatever its outcome: a
+  // row that failed back into the queue must be selectable again.
+  test('a row that failed back into the queue is taken again', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final pipeline = _FailsOncePipeline(
+      queueRef: queue,
+      mediaRepository: mediaRepository,
+      queue: queue,
+      store: InMemoryMediaObjectStore(),
+      registry: MediaSourceResolverRegistry({}),
+      cache: MediaCacheStore(database: cacheDb, root: root),
+    );
+    final worker = MediaStoreWorker(queue: queue, pipeline: pipeline);
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+
+    expect(pipeline.attempts, 2);
+    expect((await queue.allForTesting()).single.state, 'done');
+  });
+
+  // A runtime rebuild leaves the superseded worker draining while its
+  // replacement starts. A row one worker has selected (here, held at the
+  // gate) must not be selected by the other.
+  test('two workers never process the same row', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final pipeline = buildPipeline(hangOn: const {});
+    final atGate = Completer<void>();
+    final pass = Completer<WorkerGate>();
+    final superseded = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      gate: (_) {
+        if (!atGate.isCompleted) atGate.complete();
+        return pass.future;
+      },
+    );
+    addTearDown(superseded.dispose);
+    final replacement = MediaStoreWorker(
+      queue: MediaTransferQueueRepository(database: cacheDb),
+      pipeline: pipeline,
+    );
+    addTearDown(replacement.dispose);
+
+    final first = superseded.drain();
+    await atGate.future;
+    await replacement.drain();
+    expect(pipeline.processed, isEmpty, reason: 'the row is taken');
+
+    pass.complete(WorkerGate.proceed);
+    await first;
+    expect(pipeline.processed, ['m1']);
   });
 
   // Deletes share the drain, so they wedge it the same way an upload does.

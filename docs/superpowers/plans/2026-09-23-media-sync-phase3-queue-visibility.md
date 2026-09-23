@@ -1220,6 +1220,21 @@ Where the code that shipped differs from the tasks above:
   with a snapshot: the notice now reads the summary, and the live Drift
   stream deadlocks against `db.close()` in fake async (the test hung for its
   full ten minutes before the override).
+- **Leases became exclusive claims (PR review).** A lease consulted only by
+  `requeueStale` let two workers select one pending row: a superseded
+  worker holding it at the gate while its replacement drained, or a later
+  drain taking a budget-expired row that never reached `markTransferring`.
+  `holdWhile` is gone. `claimNextPending` selects a due, unclaimed row and
+  claims it synchronously once the query returns (re-asking if another
+  caller got there first); `nextPending` and `requeueStale` skip claimed
+  rows; the worker claims at selection, gives the claim back on every early
+  exit (gate stop, deferral, fail) and releases a processed row only when
+  its work settles, timeout or not.
+- **A stale preflight answer is dropped (PR review).** The attachment is
+  read again after the marker read, and a change during it answers
+  `detached`; the mismatch flag is written only while still attached to the
+  store it describes (`setMarkerMismatch(..., whileAttachedTo:)`, check and
+  write with no await between them).
 - **Mutation checks**, each compiling and red on its named test: dropping
   the lease or the drain's reclaim (Task 1); dropping the hold from the
   waiting reason or from the re-emit (Task 3); the offline branch, the

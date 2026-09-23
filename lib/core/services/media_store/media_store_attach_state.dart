@@ -72,8 +72,22 @@ class MediaStoreAttachState {
   ///
   /// Writes only on a change: the preflight asks before every transfer, and
   /// the read is served from memory while the write is not.
-  Future<void> setMarkerMismatch(bool mismatch) async {
+  ///
+  /// With [whileAttachedTo], writes only while this device is still attached
+  /// to that store. The preflight's marker read is a network call, and a
+  /// reconnect landing during it must not be answered for by the old store's
+  /// result. The check and the write happen with no await between them, and
+  /// [setAttached] records the new store id in the same synchronous way, so
+  /// the two cannot interleave.
+  Future<void> setMarkerMismatch(
+    bool mismatch, {
+    String? whileAttachedTo,
+  }) async {
     final prefs = await _resolved;
+    if (whileAttachedTo != null &&
+        prefs.getString(storeIdKey) != whileAttachedTo) {
+      return;
+    }
     if ((prefs.getBool(markerMismatchKey) ?? false) == mismatch) return;
     if (mismatch) {
       await prefs.setBool(markerMismatchKey, true);
