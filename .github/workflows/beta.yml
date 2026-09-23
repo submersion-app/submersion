@@ -556,6 +556,30 @@ jobs:
             sleep 30
           done
 
+      # Closed testers are eligible for production and their closed track only,
+      # never open testing, so the release is copied onto the closed track too.
+      # A separate step from the upload so a failure here retries the copy and
+      # never the upload: Play accepts each version code exactly once. Nothing
+      # depends on this job, so a failed copy turns it red without holding up
+      # TestFlight or the beta-builds release.
+      - name: Copy the beta to Play closed testing
+        working-directory: android
+        env:
+          GOOGLE_PLAY_JSON_KEY_PATH: fastlane/play-store-key.json
+          PLAY_VERSION_CODE: ${{ needs.precheck.outputs.build-number }}
+        run: |
+          for attempt in 1 2; do
+            if bundle exec fastlane mirror_beta; then
+              break
+            fi
+            if [ "$attempt" -eq 2 ]; then
+              echo "Copying the beta to the closed track failed after 2 attempts"
+              exit 1
+            fi
+            echo "Copy attempt $attempt failed, retrying in 30s..."
+            sleep 30
+          done
+
       - name: Cleanup sensitive files
         if: always()
         run: rm -f android/fastlane/play-store-key.json

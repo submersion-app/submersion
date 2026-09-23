@@ -161,6 +161,18 @@ The track remains a single switch: `PLAY_BETA_TRACK` (default `beta` in
 `android/fastlane/Fastfile`), so a one-off run can still target `alpha`
 without a code change.
 
+**Closed testers get every beta too.** Play makes closed testers eligible for
+production and their closed track only, never open testing, so a beta that
+went only to open testing would reach none of them. After the upload, the
+`mirror_beta` lane copies the same release, notes included, onto the closed
+`alpha` track. It is a copy of the release, not a second upload, since Play
+takes each version code once.
+
+It runs as its own step in `beta.yml` for the same reason: a retry repeats
+only the copy, never the upload. A failed copy turns the Play job red without
+holding up TestFlight or the beta-builds release. `PLAY_BETA_MIRROR_TRACK`
+overrides the target, and an empty value switches the copy off.
+
 **Rollout fraction:** `play-rollout` on `promote.yml` defaults to `1.0`,
 every user at once, and that is deliberate. A staged rollout needs enough
 installs for the crash rate to mean anything, and at this install base a

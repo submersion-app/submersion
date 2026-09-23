@@ -95,6 +95,45 @@ platform :android do
     UI.success("AAB released to the '#{track}' track!")
   end
 
+  desc "Copy the beta release onto the closed track too (PLAY_BETA_MIRROR_TRACK, default alpha)"
+  # A separate lane, run as a separate workflow step, rather than a second call
+  # inside upload_beta: beta.yml retries upload_beta on failure, and Play accepts
+  # each version code exactly once. An upload that succeeded followed by a mirror
+  # that failed would be retried into a duplicate-upload error. Here, a retry
+  # only repeats the copy, which is idempotent.
+  lane :mirror_beta do |options|
+    target = mirror_track
+    if target.nil?
+      UI.message("No mirror track for the '#{beta_track}' beta; nothing to copy.")
+      next
+    end
+
+    version_code = (options[:version_code] || ENV["PLAY_VERSION_CODE"]).to_s.strip
+    UI.user_error!("PLAY_VERSION_CODE is required to choose the build to copy.") if version_code.empty?
+    unless version_code.match?(/\A\d+\z/)
+      UI.user_error!("PLAY_VERSION_CODE must be digits only; got '#{version_code}'.")
+    end
+
+    source = beta_track
+    UI.message("Copying build #{version_code} from '#{source}' to '#{target}'...")
+    # track_promote_to copies the release, notes included, without taking it off
+    # the source track. No rollout: a fraction would stage the closed release.
+    upload_to_play_store(
+      track: source,
+      track_promote_to: target,
+      track_promote_release_status: "completed",
+      version_code: version_code,
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_metadata: true,
+      skip_upload_changelogs: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+    )
+
+    UI.success("Build #{version_code} is on both the '#{source}' and '#{target}' tracks.")
+  end
+
   desc "Promote a build from the beta testing track (PLAY_BETA_TRACK, default beta) to production"
   lane :promote_to_production do |options|
     version_code = options[:version_code] || UI.user_error!("version_code is required")
@@ -138,6 +177,36 @@ platform :android do
       )
     end
     track
+  end
+
+  # The second track each beta is copied onto, or nil when there is none.
+  #
+  # Closed testers are eligible for production and their closed track only,
+  # never open testing (Play Console help, answer 9845334). With betas on open
+  # testing, closed testers would otherwise receive nothing until a stable
+  # release reaches production. Mirroring the open beta onto the closed track
+  # keeps them current.
+  #
+  # PLAY_BETA_MIRROR_TRACK overrides the default; an empty value switches the
+  # mirror off. A mirror naming the primary track is a no-op rather than an
+  # error, so pointing PLAY_BETA_TRACK back at 'alpha' for a one-off run needs
+  # no second variable.
+  def mirror_track
+    configured = ENV["PLAY_BETA_MIRROR_TRACK"]
+    track = configured.nil? ? default_mirror_track : configured.strip
+    return nil if track.empty? || track == beta_track
+
+    unless ["alpha", "beta"].include?(track)
+      UI.user_error!(
+        "PLAY_BETA_MIRROR_TRACK must be 'alpha', 'beta' or empty; got '#{track}'. " \
+        "Mirroring to production would ship every beta."
+      )
+    end
+    track
+  end
+
+  def default_mirror_track
+    beta_track == "beta" ? "alpha" : ""
   end
 
   # Reads the notes the beta pipeline generated.

@@ -355,6 +355,101 @@ if params
   check(!params[:metadata_path].nil?, 'the lane passed a nil metadata_path')
 end
 
+# --- Mirroring the beta to the closed track ----------------------------------
+# Closed testers are eligible for production and their closed track only, never
+# open testing (Play Console help, answer 9845334). Once betas moved to open
+# testing, closed testers stopped receiving them. The mirror copies each open
+# beta's release onto the closed track so they keep getting builds.
+
+def mirror_track_or_error
+  mirror_track
+rescue ArgumentError => e
+  e
+end
+
+with_env('PLAY_BETA_TRACK' => nil, 'PLAY_BETA_MIRROR_TRACK' => nil) do
+  check(mirror_track == 'alpha',
+        "betas on open testing mirror to #{mirror_track.inspect}, not the closed track")
+end
+
+with_env('PLAY_BETA_TRACK' => 'alpha', 'PLAY_BETA_MIRROR_TRACK' => nil) do
+  check(mirror_track.nil?,
+        'a beta already on the closed track was mirrored onto itself')
+end
+
+with_env('PLAY_BETA_TRACK' => nil, 'PLAY_BETA_MIRROR_TRACK' => '') do
+  check(mirror_track.nil?, 'an empty PLAY_BETA_MIRROR_TRACK did not switch mirroring off')
+end
+
+with_env('PLAY_BETA_TRACK' => nil, 'PLAY_BETA_MIRROR_TRACK' => 'beta') do
+  check(mirror_track.nil?, 'a mirror naming the primary track was not treated as off')
+end
+
+with_env('PLAY_BETA_TRACK' => nil, 'PLAY_BETA_MIRROR_TRACK' => 'production') do
+  check(mirror_track_or_error.is_a?(ArgumentError),
+        'mirroring was allowed to target production, which would ship every beta')
+end
+
+# The upload lane must never promote. beta.yml retries upload_beta on failure,
+# and Play accepts a version code only once, so a lane that uploaded and then
+# failed while mirroring would be retried into a duplicate-upload failure.
+params = run_upload_beta_lane
+if params
+  check(params[:track_promote_to].nil?,
+        'upload_beta promotes as well as uploading, so a retry would re-upload the AAB')
+end
+
+$mirror_params = nil
+def upload_to_play_store(params)
+  $upload_params = params
+  $mirror_params = params
+end
+
+def run_mirror_lane(options = {})
+  $mirror_params = nil
+  lane_body = LANES[:mirror_beta]
+  unless lane_body
+    check(false, 'the android Fastfile no longer defines a mirror_beta lane to check')
+    return :missing
+  end
+  lane_body.call(options)
+  $mirror_params
+rescue ArgumentError => e
+  e
+end
+
+with_env('PLAY_BETA_TRACK' => nil, 'PLAY_BETA_MIRROR_TRACK' => nil, 'PLAY_VERSION_CODE' => '8375') do
+  params = run_mirror_lane
+  if params.is_a?(Hash)
+    check(params[:track] == 'beta', "the mirror copied from #{params[:track].inspect}, not open testing")
+    check(params[:track_promote_to] == 'alpha', "the mirror copied to #{params[:track_promote_to].inspect}")
+    check(params[:version_code] == '8375', "the mirror selected build #{params[:version_code].inspect}")
+    check(params[:track_promote_release_status] == 'completed',
+          'the mirrored release was not made available to testers')
+    check(params[:skip_upload_aab] == true, 'the mirror tried to upload the AAB a second time')
+    check(params[:rollout].nil?, 'the mirror passed a rollout, which would stage the closed release')
+  elsif params != :missing
+    check(false, "the mirror lane did not call the Play action (got #{params.inspect})")
+  end
+end
+
+with_env('PLAY_BETA_TRACK' => 'alpha', 'PLAY_BETA_MIRROR_TRACK' => nil, 'PLAY_VERSION_CODE' => '8375') do
+  params = run_mirror_lane
+  check(params.nil? || params == :missing, 'the mirror lane ran with mirroring off')
+end
+
+with_env('PLAY_BETA_TRACK' => nil, 'PLAY_BETA_MIRROR_TRACK' => nil, 'PLAY_VERSION_CODE' => nil) do
+  params = run_mirror_lane
+  check(params.is_a?(ArgumentError) || params == :missing,
+        'the mirror lane ran without knowing which build to copy')
+end
+
+with_env('PLAY_BETA_TRACK' => nil, 'PLAY_BETA_MIRROR_TRACK' => nil, 'PLAY_VERSION_CODE' => 'v1.8.0') do
+  params = run_mirror_lane
+  check(params.is_a?(ArgumentError) || params == :missing,
+        'the mirror lane accepted a non-numeric version code')
+end
+
 # --- Report -----------------------------------------------------------------
 
 if $failures.empty?
