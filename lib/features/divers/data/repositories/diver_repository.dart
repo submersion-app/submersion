@@ -19,6 +19,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart'
 import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
 import 'package:submersion/features/media/data/repositories/media_parent_cascade.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media_store/data/media_deletion_coordinator.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/planner/data/repositories/dive_plan_dive_links.dart';
@@ -368,33 +369,66 @@ class DiverRepository {
   /// After the delete commits, never inside it: the coordinator's queue
   /// lives in another database, and a failed delete must leave the media as
   /// it was. A failure here is logged, not rethrown: the diver is gone and
-  /// cannot be restored, and what is left is recoverable (unlinked rows for
-  /// the orphan sweep, a missed blob intent for the Verify Library sweep).
+  /// cannot be restored.
   ///
-  /// The doomed rows are checked again first, because one can be relinked
-  /// to a surviving parent between the commit and here. They go to the
-  /// coordinator in bounded batches: it tombstones their enrichment with one
-  /// list per call, and a whole library can pass what one statement binds.
+  /// The survivors go first and on their own. The commit already cleared
+  /// their dying links with SET NULL and no stamp, and their live links keep
+  /// them out of every sweep, so a lost unlink would leave peers with the
+  /// stale link for good. A doomed row the deletion misses is recoverable
+  /// (the orphan sweep collects it, and the Verify Library sweep a missed
+  /// blob intent), so each deletion batch is isolated and a failed one does
+  /// not stop the rest.
+  ///
+  /// Each doomed row is judged again inside the delete's own transaction
+  /// ([mediaRowLivesOn] as `keepIf`), so one relinked to a surviving parent
+  /// since the plan survives, even if the relink lands during the
+  /// coordinator's queue write. [recheckDoomed] only drops the rows already
+  /// relinked beforehand. Batches are bounded: the coordinator tombstones
+  /// their enrichment with one list per call, and a whole library can pass
+  /// what one statement binds.
   Future<void> _applyMediaCascade(String diverId, MediaCascadePlan plan) async {
     try {
-      final doomed = await recheckDoomed(_db, plan);
-      for (var i = 0; i < doomed.length; i += mediaCascadeIdChunk) {
-        await _mediaDeletionCoordinator.deleteMediaItems(
-          doomed.sublist(
-            i,
-            i + mediaCascadeIdChunk < doomed.length
-                ? i + mediaCascadeIdChunk
-                : doomed.length,
-          ),
-        );
-      }
       await unlinkMediaFromDeletedParents(_db, _syncRepository, plan.survivors);
     } catch (e, stackTrace) {
       _log.error(
-        'Deleted diver $diverId, but could not clean up their media',
+        'Deleted diver $diverId, but could not publish the unlinks of the '
+        'media that outlived it',
         error: e,
         stackTrace: stackTrace,
       );
+    }
+
+    final List<MediaItem> doomed;
+    try {
+      doomed = await recheckDoomed(_db, plan);
+    } catch (e, stackTrace) {
+      _log.error(
+        'Deleted diver $diverId, but could not read the media only it linked',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return;
+    }
+    for (var i = 0; i < doomed.length; i += mediaCascadeIdChunk) {
+      final batch = doomed.sublist(
+        i,
+        i + mediaCascadeIdChunk < doomed.length
+            ? i + mediaCascadeIdChunk
+            : doomed.length,
+      );
+      try {
+        await _mediaDeletionCoordinator.deleteMediaItems(
+          batch,
+          keepIf: (row) => mediaRowLivesOn(row, plan.parents),
+        );
+      } catch (e, stackTrace) {
+        _log.error(
+          'Deleted diver $diverId, but could not delete ${batch.length} of '
+          'the media only it linked',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
     }
   }
 

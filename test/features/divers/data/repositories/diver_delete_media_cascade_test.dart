@@ -326,6 +326,60 @@ void main() {
     },
   );
 
+  test(
+    'a failed deletion still publishes the unlinks of surviving media',
+    () async {
+      // The commit already cleared the survivor's dying link with SET NULL
+      // and no stamp, and its live link keeps it out of every sweep. If this
+      // write is lost, its peers keep the stale link for good.
+      await insertDive('d1', 'diver-a');
+      await insertSite('s1', 'diver-a', isShared: true);
+      await photo(dive: 'd1');
+      final survivor = await photo(dive: 'd1', site: 's1');
+      await SyncRepository().clearPendingRecords();
+
+      await DiverRepository(
+        mediaDeletionCoordinator: _FailingCoordinator(),
+      ).deleteDiverWithReassignment('diver-a');
+
+      final kept = await row(survivor);
+      expect(kept!.diveId, isNull);
+      expect(kept.siteId, 's1');
+      expect(await isPending(survivor), isTrue);
+    },
+  );
+
+  test('a photo relinked while its deletion is under way is kept', () async {
+    // The row is read again before deletion, but the coordinator awaits its
+    // queue write before deleting by id, and a relink can land in between.
+    // The liveness check has to travel with the delete itself.
+    await insertDive('d1', 'diver-a');
+    await insertDive('d-b', 'diver-b');
+    final id = await photo(dive: 'd1');
+    // Uploaded, so the coordinator writes to the queue: the relink lands
+    // inside that write.
+    await uploaded(id);
+    final relinking = _RelinkingQueue(
+      cacheDb,
+      () => db.customStatement(
+        "UPDATE media SET dive_id = 'd-b' WHERE id = ?",
+        [id],
+      ),
+    );
+
+    await DiverRepository(
+      mediaDeletionCoordinator: MediaDeletionCoordinator(
+        mediaRepository: MediaRepository(),
+        queue: () => relinking,
+      ),
+    ).deleteDiverWithReassignment('diver-a');
+
+    final kept = await row(id);
+    expect(kept, isNotNull, reason: 'a surviving dive shows it now');
+    expect(kept!.diveId, 'd-b');
+    expect(await tombstonesFor('media', id), 0);
+  });
+
   test('a delete that fails changes no media', () async {
     await insertDive('d1', 'diver-a');
     final id = await photo(dive: 'd1');
@@ -347,6 +401,31 @@ void main() {
   });
 }
 
+/// Runs [relink] inside the coordinator's queue write, which is exactly the
+/// window between its liveness recheck and its delete.
+class _RelinkingQueue extends MediaTransferQueueRepository {
+  _RelinkingQueue(LocalCacheDatabase database, this.relink)
+    : super(database: database);
+
+  final Future<void> Function() relink;
+
+  @override
+  Future<int> enqueueDelete({
+    required String mediaId,
+    required String contentHash,
+    required String originalExt,
+    required String renditionExt,
+  }) async {
+    await relink();
+    return super.enqueueDelete(
+      mediaId: mediaId,
+      contentHash: contentHash,
+      originalExt: originalExt,
+      renditionExt: renditionExt,
+    );
+  }
+}
+
 /// Fails the way a media store problem after the commit would.
 class _FailingCoordinator extends MediaDeletionCoordinator {
   _FailingCoordinator()
@@ -356,6 +435,8 @@ class _FailingCoordinator extends MediaDeletionCoordinator {
       );
 
   @override
-  Future<void> deleteMediaItems(List<MediaItem> items) async =>
-      throw StateError('media store unavailable');
+  Future<void> deleteMediaItems(
+    List<MediaItem> items, {
+    bool Function(MediaData row)? keepIf,
+  }) async => throw StateError('media store unavailable');
 }

@@ -107,7 +107,10 @@ String? _dyingOf(String? link, Set<String> dying) =>
 
 /// Whether some logbook link on [row] names a parent that is not dying.
 /// That link alone keeps the row, whatever else dies around it.
-bool _livesOn(MediaData row, DyingMediaParents parents) =>
+///
+/// Public so a caller can hand it to `MediaDeletionCoordinator` as `keepIf`,
+/// where it is judged inside the delete's own transaction.
+bool mediaRowLivesOn(MediaData row, DyingMediaParents parents) =>
     (row.diveId != null && !parents.diveIds.contains(row.diveId)) ||
     (row.siteId != null && !parents.siteIds.contains(row.siteId)) ||
     (row.equipmentId != null &&
@@ -153,7 +156,7 @@ Future<MediaCascadePlan> planMediaCascade(
   for (final row in byId.values) {
     final linked =
         row.diveId != null || row.siteId != null || row.equipmentId != null;
-    if (linked && !_livesOn(row, parents)) {
+    if (linked && !mediaRowLivesOn(row, parents)) {
       doomed.add(mediaItemFromRow(row));
     } else {
       survivors.add(
@@ -188,13 +191,17 @@ Future<MediaCascadePlan> planMediaCascade(
 /// The planned doomed rows that are still doomed now, read fresh.
 ///
 /// The plan is applied after the deletion commits, and a row can be
-/// relinked to a surviving parent in between (a sync pull, say). Deleting by
-/// the planned id alone would destroy that row and queue its uploaded copy
-/// for removal. So each row is read again and deleted only while no logbook
-/// link names a live parent: links the deletion's SET NULL cleared, and
-/// links still naming a dying parent, both leave it doomed. A row already
-/// gone is dropped. The items are the fresh reads, so a blob-delete intent
-/// is built from the row as it is now.
+/// relinked to a surviving parent in between (a sync pull, say). A row is
+/// kept here while some logbook link names a live parent: links the
+/// deletion's SET NULL cleared, and links still naming a dying parent, both
+/// leave it doomed. A row already gone is dropped. The items are the fresh
+/// reads, so a blob-delete intent is built from the row as it is now.
+///
+/// A pre-filter, not the guard: the delete that follows awaits a queue write
+/// before it runs, and a relink can land in that gap too. The guard is
+/// [mediaRowLivesOn] passed to the delete as `keepIf`, which judges each row
+/// inside the delete's own transaction. This only spares the rows already
+/// relinked the cost of a blob intent.
 Future<List<domain.MediaItem>> recheckDoomed(
   AppDatabase db,
   MediaCascadePlan plan,
@@ -204,7 +211,9 @@ Future<List<domain.MediaItem>> recheckDoomed(
     for (final row in await (db.select(
       db.media,
     )..where((m) => m.id.isIn(chunk))).get()) {
-      if (!_livesOn(row, plan.parents)) still.add(mediaItemFromRow(row));
+      if (!mediaRowLivesOn(row, plan.parents)) {
+        still.add(mediaItemFromRow(row));
+      }
     }
   }
   return still;

@@ -510,16 +510,36 @@ class MediaRepository {
 
   /// Delete multiple media items in a single transaction.
   /// Logs each deletion for sync tracking.
-  Future<void> deleteMultipleMedia(List<String> ids) async {
+  ///
+  /// [keepIf], when given, is asked about each row as it stands inside the
+  /// same transaction, and a row it keeps is neither deleted nor
+  /// tombstoned. That makes a caller's "is this row still doomed?" check
+  /// atomic with the delete: one made earlier, outside the transaction, can
+  /// be overtaken by a relink before the delete runs.
+  Future<void> deleteMultipleMedia(
+    List<String> ids, {
+    bool Function(MediaData row)? keepIf,
+  }) async {
     if (ids.isEmpty) return;
     try {
       _log.info('Deleting ${ids.length} media items');
       await _db.transaction(() async {
+        var targets = ids;
+        if (keepIf != null) {
+          final rows = await (_db.select(
+            _db.media,
+          )..where((t) => t.id.isIn(ids))).get();
+          targets = [
+            for (final row in rows)
+              if (!keepIf(row)) row.id,
+          ];
+          if (targets.isEmpty) return;
+        }
         // Before the parents: the enrichment rows would otherwise vanish on
         // the FK cascade, which removes them without logging anything. See
         // [_dropEnrichmentRows] for why the tombstone matters.
-        await _dropEnrichmentRows(ids);
-        for (final id in ids) {
+        await _dropEnrichmentRows(targets);
+        for (final id in targets) {
           await (_db.delete(_db.media)..where((t) => t.id.equals(id))).go();
           await _syncRepository.logDeletion(entityType: 'media', recordId: id);
         }
