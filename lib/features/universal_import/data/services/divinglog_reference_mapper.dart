@@ -65,7 +65,7 @@ class DivingLogReferenceMapper {
     final out = <String, Map<String, dynamic>>{};
     for (final dive in book.dives) {
       final key = siteKeyFor(book, dive);
-      if (key == null || out.containsKey(key)) continue;
+      if (key == null) continue;
       final place = dive.placeId == null ? null : book.placesById[dive.placeId];
       final placeName = placeNameFor(book, dive);
       final city = cityNameFor(book, dive);
@@ -85,7 +85,13 @@ class DivingLogReferenceMapper {
         if (place?.comments != null) place!.comments!,
       ].join('\n');
       if (notes.isNotEmpty) map['description'] = notes;
-      out[key] = map;
+      // Several dives share a site, and they need not all carry the same
+      // detail: one whose PlaceID dangles reaches this key only through the
+      // free-text fallback and has no Place row behind it. Taking the first
+      // occurrence would then drop the coordinates a later dive's Place row
+      // supplies, so later occurrences fill whatever is still missing while
+      // anything already set is kept.
+      out[key] = {...map, ...?out[key]};
     }
     return out;
   }

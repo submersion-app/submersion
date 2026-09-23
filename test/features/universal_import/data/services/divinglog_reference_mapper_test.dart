@@ -124,6 +124,43 @@ void main() {
     });
   });
 
+  group('site enrichment', () {
+    test('a later Place-backed dive fills what an earlier one lacked', () {
+      // The first dive's PlaceID dangles, so it reaches the same key only
+      // through the free-text fallback and carries no Place data. The
+      // second dive's Place row has the coordinates. First-wins would
+      // emit the site without them.
+      final book = logbook(
+        places: {
+          10: const DivingLogRawPlace(
+            id: 10,
+            countryId: 30,
+            place: 'Salt Pier',
+            latitude: 12.13,
+            longitude: -68.28,
+            maxDepthMeters: 24.0,
+          ),
+        },
+        countries: const {30: 'Bonaire'},
+        dives: [
+          const DivingLogRawDive(
+            id: 1,
+            placeId: 999,
+            countryId: 30,
+            place: 'Salt Pier',
+          ),
+          const DivingLogRawDive(id: 2, placeId: 10, countryId: 30),
+        ],
+      );
+      final sites = DivingLogReferenceMapper.sites(book);
+      expect(sites, hasLength(1));
+      final site = sites.values.single;
+      expect(site['latitude'], closeTo(12.13, 1e-9));
+      expect(site['longitude'], closeTo(-68.28, 1e-9));
+      expect(site['maxDepth'], closeTo(24.0, 1e-9));
+    });
+  });
+
   group('zero sentinels', () {
     test('omits a zero max depth rather than storing it as a depth', () {
       final book = logbook(
