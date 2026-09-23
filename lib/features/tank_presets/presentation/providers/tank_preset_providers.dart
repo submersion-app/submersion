@@ -25,9 +25,17 @@ final tankPresetRepositoryProvider = Provider<TankPresetRepository>((ref) {
 /// a cached one-shot snapshot.
 final tankPresetsProvider = FutureProvider<List<TankPresetEntity>>((ref) async {
   final repository = ref.watch(tankPresetRepositoryProvider);
-  final hidden = ref.watch(
-    settingsProvider.select((s) => s.hiddenTankPresetIds),
-  );
+  // Selected by content, not by the Set instance: every settings reload
+  // decodes a fresh Set, which must not re-run this provider on its own.
+  final hidden = ref
+      .watch(
+        settingsProvider.select(
+          (s) => (s.hiddenTankPresetIds.toList()..sort()).join('\n'),
+        ),
+      )
+      .split('\n')
+      .where((name) => name.isNotEmpty)
+      .toSet();
   final defaultPresetName = ref.watch(
     settingsProvider.select((s) => s.defaultTankPreset),
   );

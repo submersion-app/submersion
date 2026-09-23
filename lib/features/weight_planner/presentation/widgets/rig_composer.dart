@@ -123,11 +123,6 @@ class RigComposer extends ConsumerWidget {
     final theme = Theme.of(context);
     final visiblePresets =
         ref.watch(tankPresetsProvider).valueOrNull ?? const [];
-    // A tank already in the rig keeps its preset in the dropdown even after
-    // the diver hides it (issue #2305); adding a tank offers visible ones.
-    final presets = withKeptTankPresets(visiblePresets, [
-      for (final tank in tanks) tank.name,
-    ]);
 
     return Card(
       child: Padding(
@@ -213,7 +208,13 @@ class RigComposer extends ConsumerWidget {
                 ),
               ],
             ),
-            for (var i = 0; i < tanks.length; i++)
+            // Each tank keeps its own preset in its dropdown even after the
+            // diver hides it (issue #2305), without offering it to the
+            // other tanks; adding a tank offers visible presets only.
+            for (final (i, presets) in [
+              for (var i = 0; i < tanks.length; i++)
+                (i, withKeptTankPresets(visiblePresets, [tanks[i].name])),
+            ])
               Row(
                 children: [
                   Expanded(

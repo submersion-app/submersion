@@ -159,9 +159,10 @@ class TankPresetsPage extends ConsumerWidget {
     );
 
     return ListTile(
-      // A hidden built-in preset stays listed so it can be shown again, but
-      // reads as inactive. The trailing controls stay usable.
-      enabled: !isHidden,
+      // A hidden built-in preset stays listed so it can be shown again, and
+      // only its text and icon are dimmed: the tile is not disabled, since
+      // its star and switch stay usable.
+      textColor: isHidden ? Theme.of(context).disabledColor : null,
       leading: Icon(
         MdiIcons.divingScubaTank,
         color: isHidden
@@ -214,11 +215,9 @@ class TankPresetsPage extends ConsumerWidget {
                 child: Switch(
                   key: ValueKey('tank-preset-visible-${preset.name}'),
                   value: !isHidden,
-                  onChanged: isDefault
-                      ? null
-                      : (visible) => ref
-                            .read(settingsProvider.notifier)
-                            .setTankPresetHidden(preset.name, !visible),
+                  onChanged: (visible) => ref
+                      .read(settingsProvider.notifier)
+                      .setTankPresetHidden(preset.name, !visible),
                 ),
               ),
             ),

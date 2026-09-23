@@ -288,7 +288,9 @@ void main() {
       final tile = tester.widget<ListTile>(
         find.ancestor(of: find.text('HP80'), matching: find.byType(ListTile)),
       );
-      expect(tile.enabled, isFalse);
+      // Dimmed, but not disabled: its star and switch stay usable.
+      expect(tile.enabled, isTrue);
+      expect(tile.textColor, isNotNull);
 
       await tester.tap(switchFor('hp80'));
       await tester.pumpAndSettle();
