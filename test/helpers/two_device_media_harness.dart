@@ -218,6 +218,7 @@ class HarnessDevice {
         resolutionService: AssetResolutionService(
           cacheRepository: d.assetCache,
           photoPickerService: d.gallery,
+          cloudIdentifiers: d.gallery,
         ),
         assetReader: d.gallery,
         localDeviceId: () async => d.deviceId,
@@ -336,11 +337,16 @@ class HarnessDevice {
   }) async {
     await activate();
     gallery.add(asset);
+    // As MediaImportService stamps it at link time (spec 6.2). The counter
+    // is reset so tests count only resolution's lookups.
+    final cloudIds = await gallery.cloudIdentifiers([asset.id]);
+    gallery.cloudIdCalls = 0;
     final created = await MediaRepository().createMedia(
       MediaItem(
         id: '',
         diveId: diveId,
         platformAssetId: asset.id,
+        cloudAssetId: cloudIds[asset.id],
         mediaType: asset.type == AssetType.video
             ? MediaType.video
             : MediaType.photo,

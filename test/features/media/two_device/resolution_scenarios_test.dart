@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 
@@ -81,11 +82,21 @@ void main() {
     );
     final dive = await h.a.createDive();
     final id1 = await h.a.linkGalleryPhoto(
-      FakeGalleryAsset(id: 'A-b1', bytes: frame1, takenAt: taken),
+      FakeGalleryAsset(
+        id: 'A-b1',
+        bytes: frame1,
+        takenAt: taken,
+        cloudId: 'C-b1',
+      ),
       diveId: dive,
     );
     final id2 = await h.a.linkGalleryPhoto(
-      FakeGalleryAsset(id: 'A-b2', bytes: frame2, takenAt: taken),
+      FakeGalleryAsset(
+        id: 'A-b2',
+        bytes: frame2,
+        takenAt: taken,
+        cloudId: 'C-b2',
+      ),
       diveId: dive,
     );
     // Same iCloud library on B: same photos, different local ids, and no
@@ -96,6 +107,7 @@ void main() {
         bytes: frame1,
         takenAt: taken,
         filename: null,
+        cloudId: 'C-b1',
       ),
     );
     h.b.gallery.add(
@@ -104,6 +116,7 @@ void main() {
         bytes: frame2,
         takenAt: taken,
         filename: null,
+        cloudId: 'C-b2',
       ),
     );
     await h.a.sync();
@@ -118,8 +131,11 @@ void main() {
     );
     expect((t1.data as BytesData).bytes, frame1);
     expect((t2.data as BytesData).bytes, frame2);
-    // Slice 8 gives FakeGalleryAsset a cloudId and stamps it at link time.
-  }, skip: 'Media sync program S6: turns green in slice 8 (cloud identifier)');
+    expect(
+      await h.b.assetCache.getCacheEntry(id1),
+      isA<CacheEntry>().having((e) => e.resolutionMethod, 'method', 'cloud_id'),
+    );
+  });
 
   test(
     'S7: limited photo access on the origin device is inconclusive, '
