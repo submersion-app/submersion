@@ -3885,6 +3885,45 @@ class SyncService {
     };
   }
 
+  /// Marks pending, before the replay is applied, each replayed row that
+  /// cannot be ordered against the adopted copy: a fact-carrying row whose
+  /// row clock is null (a legacy row whose only unsent write was a fact), so
+  /// [restampRowForReplay] left it without one. The merge applies an
+  /// unordered copy whole, which let this device's snapshot fields (a stale
+  /// caption) overwrite newer ones a peer published. Marked pending first,
+  /// the row takes the merge's pending-unorderable path instead: the adopted
+  /// row keeps its fields and only the fact groups the replay's clocks win
+  /// come over.
+  ///
+  /// Only rows the adoption holds. That path skips a copy with no local row
+  /// at all, and for such a row the replay is its only way back.
+  Future<void> _markUnorderableReplayPending(
+    Map<String, dynamic> restamped,
+  ) async {
+    final nowMillis = DateTime.now().millisecondsSinceEpoch;
+    for (final entry in restamped.entries) {
+      final rows = entry.value;
+      if (rows is! List || SyncFactGroups.of(entry.key).isEmpty) continue;
+      final ids = [
+        for (final row in rows)
+          if (row is Map<String, dynamic> &&
+              row['hlc'] == null &&
+              row['id'] is String)
+            row['id'] as String,
+      ];
+      if (ids.isEmpty) continue;
+      final adopted = await _serializer.fetchRecords(entry.key, ids);
+      for (final id in adopted.keys) {
+        await _syncRepository.markRecordPending(
+          entityType: entry.key,
+          recordId: id,
+          localUpdatedAt: nowMillis,
+          stampClock: false,
+        );
+      }
+    }
+  }
+
   /// Re-applies the pre-fence pending snapshot with FRESH HLC stamps. The
   /// adopted watermark (maxRowHlc after the rebuild) is at or above the
   /// snapshot's original stamps, so without re-stamping the rows would sort
@@ -3932,6 +3971,7 @@ class SyncService {
       data: data,
       deletions: pending.deletions,
     );
+    await _markUnorderableReplayPending(restamped);
     await _applyRemotePayload(payload, null);
     // Re-mark the replayed rows pending: the fence's resetSyncState cleared
     // the pending table, and the remote-apply path above does not repopulate
