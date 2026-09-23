@@ -4730,9 +4730,6 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
                     ? null
                     : _highlightedTooltipMetric,
                 extraHeadroomAbove: _legendHeight,
-                // TEMP for live comparison (issue #2228 follow-up): flip
-                // back to false to restore the bottom-anchored default.
-                anchorTopToCursor: true,
               ),
             ),
           ),
