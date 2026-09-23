@@ -55,6 +55,11 @@ void main() {
     // fold has had its chance to merge the entry into a named neighbour.
     'lib/features/universal_import/data/parsers/subsurface/subsurface_inline_site.dart':
         'hands its unnamed map to foldSubsurfaceSites, which names it',
+    // A photo's coordinates, which belong to the picture rather than to the
+    // place the dive happened. Diving Log's pictures table has no GPS, so
+    // the mapper writes nulls in the same shape as MacDive's media entries.
+    'lib/features/universal_import/data/services/divinglog_sightings_mapper.dart':
+        "a photo's coordinates, not a site",
   };
 
   /// Assignment of a `latitude` key into a map, in either of the two shapes
