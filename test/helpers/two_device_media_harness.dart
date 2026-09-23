@@ -23,6 +23,7 @@ import 'package:submersion/features/media/data/resolvers/media_store_resolver.da
 import 'package:submersion/features/media/data/resolvers/platform_gallery_resolver.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
+import 'package:submersion/features/media/data/services/gallery_cloud_id_backfill.dart';
 import 'package:submersion/features/media/data/services/gallery_origin_backfill.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
@@ -506,6 +507,25 @@ class HarnessDevice {
     await GalleryOriginBackfill(
       mediaRepository: MediaRepository(),
       reader: gallery,
+      photos: gallery,
+      permissionStatus: () async => gallery.permission,
+      deviceId: () async => deviceId,
+      prefs: prefs,
+    ).run();
+  }
+
+  /// Runs this device's one-time gallery cloud id backfill. The preference
+  /// store is shared by both devices, so the flag is cleared first, and the
+  /// origin backfill it waits for is marked done: harness gallery rows
+  /// record their origin at link time.
+  Future<void> backfillGalleryCloudIds() async {
+    await activate();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(GalleryCloudIdBackfill.doneFlagKey);
+    await prefs.setBool(GalleryOriginBackfill.doneFlagKey, true);
+    await GalleryCloudIdBackfill(
+      mediaRepository: MediaRepository(),
+      cloudIdentifiers: gallery,
       photos: gallery,
       permissionStatus: () async => gallery.permission,
       deviceId: () async => deviceId,

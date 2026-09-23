@@ -2,7 +2,6 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
@@ -193,18 +192,9 @@ void main() {
       'unresolved',
     );
 
-    // A learns the id again (by the backfill, Task 6, or any stamp) and
-    // syncs; the row clock moves so the peer takes the row.
-    await h.a.activate();
-    await h.a.db.customStatement(
-      "UPDATE media SET cloud_asset_id = 'C-b1' WHERE id = ?",
-      [id1],
-    );
-    await SyncRepository().markRecordPending(
-      entityType: 'media',
-      recordId: id1,
-      localUpdatedAt: DateTime.now().millisecondsSinceEpoch,
-    );
+    // A's one-time backfill stamps it, and the stamp moves the row clock,
+    // so the peer takes the row.
+    await h.a.backfillGalleryCloudIds();
     await h.a.sync();
     await h.b.sync();
 

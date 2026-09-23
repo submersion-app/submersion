@@ -1160,6 +1160,72 @@ class MediaRepository {
     return stamped;
   }
 
+  /// This device's own gallery rows with no cloud id yet (null, or empty
+  /// after a relink that found none), with the asset id each was linked
+  /// under: the rows the gallery cloud id backfill looks up (spec 6.2).
+  Future<List<({String id, String platformAssetId})>>
+  getOwnGalleryMediaWithoutCloudId(String deviceId) async {
+    final rows =
+        await (_db.select(_db.media)..where(
+              (t) =>
+                  t.sourceType.equals(MediaSourceType.platformGallery.name) &
+                  t.originDeviceId.equals(deviceId) &
+                  t.platformAssetId.isNotNull() &
+                  t.platformAssetId.equals('').not() &
+                  (t.cloudAssetId.isNull() | t.cloudAssetId.equals('')),
+            ))
+            .get();
+    return [
+      for (final r in rows) (id: r.id, platformAssetId: r.platformAssetId!),
+    ];
+  }
+
+  /// Records each of [found]'s cloud id on its row, if the row is still
+  /// exactly what was looked up: a gallery row, under the same asset id,
+  /// with no cloud id yet. Marks each row it stamps pending. Returns how
+  /// many it stamped.
+  ///
+  /// The cloud id belongs to no fact group, so this bumps the row clock and
+  /// republishes the whole row, which is why the backfill runs only right
+  /// after a sync (as [stampOriginDevice] does). The guards keep a cloud id
+  /// a sync delivered meanwhile, and skip a row relinked meanwhile.
+  Future<int> stampCloudAssetIds(
+    List<({String id, String platformAssetId, String cloudAssetId})> found,
+  ) async {
+    if (found.isEmpty) return 0;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    var stamped = 0;
+    await _db.transaction(() async {
+      for (final row in found) {
+        final written =
+            await (_db.update(_db.media)..where(
+                  (t) =>
+                      t.id.equals(row.id) &
+                      t.sourceType.equals(
+                        MediaSourceType.platformGallery.name,
+                      ) &
+                      t.platformAssetId.equals(row.platformAssetId) &
+                      (t.cloudAssetId.isNull() | t.cloudAssetId.equals('')),
+                ))
+                .write(
+                  MediaCompanion(
+                    cloudAssetId: Value(row.cloudAssetId),
+                    updatedAt: Value(now),
+                  ),
+                );
+        if (written == 0) continue;
+        stamped++;
+        await _syncRepository.markRecordPending(
+          entityType: 'media',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+    if (stamped > 0) SyncEventBus.notifyLocalChange();
+    return stamped;
+  }
+
   /// Marks [ids] pending for sync without changing a column, so the next
   /// changeset carries the rows' facts exactly as they are. Returns how many.
   ///

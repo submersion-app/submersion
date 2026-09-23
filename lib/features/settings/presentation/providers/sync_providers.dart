@@ -50,6 +50,7 @@ import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
+import 'package:submersion/features/media/presentation/providers/gallery_cloud_id_backfill_provider.dart';
 import 'package:submersion/features/media/presentation/providers/gallery_origin_backfill_provider.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -1411,6 +1412,11 @@ class SyncNotifier extends StateNotifier<SyncState> {
           await _ref.read(galleryOriginBackfillProvider)();
           // The notifier can be disposed while the backfill runs, and the
           // settle below reads state.
+          if (!mounted) return;
+          // Then the iCloud identifiers of this device's own gallery rows
+          // (spec 6.2), for the same reasons, once the origins it relies on
+          // are stamped. Once per device, and contains its own failures.
+          await _ref.read(galleryCloudIdBackfillProvider)();
           if (!mounted) return;
         } else {
           state = state.copyWith(
