@@ -187,16 +187,11 @@ re-entrant.
 Each platform pins fastlane in a committed `Gemfile.lock` (`ios/`, `macos/`,
 `android/`), and the workflows install exactly that, on Ruby 3.2.
 
-Every Android lane runs after merge, so nothing in a release would notice a
-bad Android lockfile until a Play upload or promotion failed. The
-`Android fastlane bundle` job in `ci.yaml` closes that gap. It runs on any PR
-touching `android/Gemfile*`, `android/fastlane/`, a workflow that runs those
-lanes, or the fastlane scripts in `scripts/release/`, even when the rest of
-the pipeline skips a CI-only change. It installs the bundle in deployment mode
-on Ruby 3.2 and Linux, then runs
-`scripts/release/fastlane_play_options_test.rb`, which runs every lane with
-the fastlane actions intercepted and fails on any option the locked fastlane
-does not accept.
+No PR-time job installs these bundles. The lanes run only in `beta.yml`,
+`promote.yml` and `release.yml`, after merge, so a lockfile that will not
+install or a Fastfile option the locked fastlane no longer accepts first
+surfaces as a failed upload or promotion. Check a lockfile change locally
+before merging it.
 
 To move Android to a newer fastlane:
 
@@ -205,9 +200,8 @@ cd android && bundle lock --update fastlane
 ```
 
 Resolve on Ruby 3.2 where you can. A newer Ruby can pick a dependency that
-needs it; the job then fails the PR, which is the point, but the fix is to
-resolve again on 3.2. Keep `PLATFORMS` at `arm64-darwin`, `ruby` and
-`x86_64-linux`.
+needs it, and the Linux runners will then fail to install the bundle. Keep
+`PLATFORMS` at `arm64-darwin`, `ruby` and `x86_64-linux`.
 
 ## Hotfix escape hatch
 

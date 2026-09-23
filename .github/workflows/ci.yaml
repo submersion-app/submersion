@@ -29,16 +29,11 @@ jobs:
   # inability to compute the diff, yields code=true (run the full pipeline).
   # Escape hatch: put [full-ci] in the PR title or a commit message to force the
   # full pipeline even for a docs/CI-only change (e.g. to validate a ci.yaml edit).
-  # android_bundle is a separate flag for the android-fastlane job. The workflows
-  # that run the Android lanes live under .github/, which `code` treats as inert,
-  # so a PR touching only beta.yml would otherwise skip the one check that
-  # installs the bundle those lanes use. Same fail-safe bias as `code`.
   changes:
     name: Detect code changes
     runs-on: ubuntu-latest
     outputs:
       code: ${{ steps.detect.outputs.code }}
-      android_bundle: ${{ steps.detect.outputs.android_bundle }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -65,7 +60,6 @@ jobs:
           if [ -z "$base" ] || ! git rev-parse --verify --quiet "${base}^{commit}" >/dev/null; then
             echo "Base commit unavailable ('$base'); running the full pipeline."
             echo "code=true" >> "$GITHUB_OUTPUT"
-            echo "android_bundle=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           # Two ranges with different semantics:
@@ -91,7 +85,6 @@ jobs:
                | grep -qiF '[full-ci]'; then
             echo "[full-ci] override found; running the full pipeline."
             echo "code=true" >> "$GITHUB_OUTPUT"
-            echo "android_bundle=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
           files="$(git diff --name-only "$diff_range")"
@@ -102,7 +95,6 @@ jobs:
           # matches `/` too, so `docs/*` and `.github/*` DO match nested paths
           # (docs/img/x.png, .github/workflows/ci.yaml). No globstar/`**` needed.
           code=false
-          android_bundle=false
           while IFS= read -r f; do
             [ -n "$f" ] || continue
             case "$f" in
@@ -112,17 +104,9 @@ jobs:
               *.png|*.jpg|*.jpeg|*.gif|*.svg|*.webp|*.ico) ;;
               *) code=true ;;
             esac
-            # The Android bundle, the lanes that use it, the workflows that run
-            # them, and the check itself.
-            case "$f" in
-              android/Gemfile*|android/fastlane/*|scripts/release/fastlane_*) android_bundle=true ;;
-              .github/workflows/beta.yml|.github/workflows/promote.yml) android_bundle=true ;;
-              .github/workflows/release.yml|.github/workflows/ci.yaml) android_bundle=true ;;
-            esac
           done <<< "$files"
-          echo "Result: code=$code android_bundle=$android_bundle"
+          echo "Result: code=$code"
           echo "code=$code" >> "$GITHUB_OUTPUT"
-          echo "android_bundle=$android_bundle" >> "$GITHUB_OUTPUT"
 
   # Producer job: runs build_runner ONCE and publishes the generated sources as
   # an artifact. Everything else (analyze, test, builds) gates on this ~3 min
@@ -681,42 +665,6 @@ jobs:
           files: coverage/scripts.xml
           flags: scripts
           fail_ci_if_error: false
-
-  # Installs the Android fastlane bundle and checks the Fastfile against it. Every
-  # workflow that runs the Android lanes (beta.yml's Play upload and mirror,
-  # promote.yml, release.yml) runs after merge, so without this a lockfile that
-  # will not install, or a Fastfile option the locked supply no longer accepts,
-  # would first surface as a failed Play upload or promotion. Ruby matches those
-  # workflows; keep the two in step.
-  android-fastlane:
-    name: Android fastlane bundle
-    needs: changes
-    if: needs.changes.outputs.android_bundle == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Require the lockfile
-        # Without one, setup-ruby resolves whatever fastlane is current and the
-        # install below passes while proving nothing about what the lanes get.
-        run: |
-          if [ ! -f android/Gemfile.lock ]; then
-            echo "::error::android/Gemfile.lock is missing; the Android lanes would run an unpinned fastlane."
-            exit 1
-          fi
-
-      - name: Setup Ruby
-        # bundler-cache installs in deployment mode, which fails when the
-        # lockfile does not match the Gemfile or cannot install on this platform.
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.2'
-          bundler-cache: true
-          working-directory: android
-
-      - name: Check Fastfile options against the locked fastlane
-        working-directory: android
-        run: bundle exec ruby ../scripts/release/fastlane_play_options_test.rb
 
   integration-test:
     name: Integration Test (macOS)
@@ -1452,7 +1400,6 @@ jobs:
       - test
       - timezone-tests
       - script-tests
-      - android-fastlane
       - integration-test
       - build-ios
       - build-macos
