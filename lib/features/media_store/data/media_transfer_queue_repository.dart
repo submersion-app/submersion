@@ -455,16 +455,23 @@ class MediaTransferQueueRepository {
   /// [reason] is written as the entry's error when given, so a postponement
   /// the user should know about (a budget expiry) is not silent; a policy
   /// deferral passes none and leaves any earlier error in place.
+  ///
+  /// Only while the row is still in play (pending or transferring): a
+  /// budget-expired transfer can settle between its timeout and this write,
+  /// and a deferral landing after it would write over what it settled to,
+  /// burying a failed row's real error or leaving one on a done row.
   Future<void> defer(int id, DateTime until, {String? reason}) async {
-    await (_db.update(
-      _db.mediaTransferQueue,
-    )..where((t) => t.id.equals(id))).write(
-      MediaTransferQueueCompanion(
-        nextAttemptAt: Value(until.millisecondsSinceEpoch),
-        errorMessage: reason == null ? const Value.absent() : Value(reason),
-        updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
-      ),
-    );
+    await (_db.update(_db.mediaTransferQueue)..where(
+          (t) =>
+              t.id.equals(id) & t.state.isIn(const ['pending', 'transferring']),
+        ))
+        .write(
+          MediaTransferQueueCompanion(
+            nextAttemptAt: Value(until.millisecondsSinceEpoch),
+            errorMessage: reason == null ? const Value.absent() : Value(reason),
+            updatedAt: Value(DateTime.now().millisecondsSinceEpoch),
+          ),
+        );
   }
 
   /// Fails [id] terminally with [error], counting no attempt: for an entry

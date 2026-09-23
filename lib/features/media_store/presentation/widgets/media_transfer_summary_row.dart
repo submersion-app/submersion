@@ -65,10 +65,10 @@ class MediaTransferSummaryRow extends ConsumerWidget {
             ),
           ),
         // Offline is quiet, not silent (spec 7.1): no suspended notice,
-        // because nothing is wrong with the store, but the queued work says
-        // what it is waiting for.
-        if (summary.queued > 0 &&
-            summary.hold?.kind == MediaTransferHoldKind.offline)
+        // because nothing is wrong with the store, but the outstanding work
+        // says what it is waiting for, due or deferred alike. (Only reached
+        // with outstanding work: an empty summary returned above.)
+        if (summary.hold?.kind == MediaTransferHoldKind.offline)
           Padding(
             key: const Key('media-transfer-offline'),
             padding: const EdgeInsets.only(top: 4, left: 16),

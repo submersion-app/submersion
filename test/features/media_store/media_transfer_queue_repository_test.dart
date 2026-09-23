@@ -381,6 +381,55 @@ void main() {
     expect((await repo.allForTesting()).single.state, 'failed');
   });
 
+  // A transfer can settle between its budget running out and the drain's
+  // deferral landing. The deferral must not write over what it settled to:
+  // a failed row keeps its real failure, a done row gains no error.
+  group('defer touches only a row still in play', () {
+    test('a finished row keeps its state and gains no reason', () async {
+      final id = await repo.enqueueUpload(mediaId: 'm1');
+      await repo.markDone(id);
+
+      await repo.defer(
+        id,
+        DateTime.now().add(const Duration(minutes: 10)),
+        reason: 'Took longer than its 30m budget; retrying later',
+      );
+
+      final row = (await repo.allForTesting()).single;
+      expect(row.state, 'done');
+      expect(row.errorMessage, isNull);
+      expect(row.nextAttemptAt, isNull);
+    });
+
+    test('a terminally failed row keeps its failure', () async {
+      final id = await repo.enqueueUpload(mediaId: 'm1');
+      await repo.fail(id, 'source gone');
+
+      await repo.defer(
+        id,
+        DateTime.now().add(const Duration(minutes: 10)),
+        reason: 'Took longer than its 30m budget; retrying later',
+      );
+
+      expect((await repo.allForTesting()).single.errorMessage, 'source gone');
+    });
+
+    test('a transferring row is deferred with its reason', () async {
+      final id = await repo.enqueueUpload(mediaId: 'm1');
+      await repo.markTransferring(id);
+
+      await repo.defer(
+        id,
+        DateTime.now().add(const Duration(minutes: 10)),
+        reason: 'budget',
+      );
+
+      final row = (await repo.allForTesting()).single;
+      expect(row.errorMessage, 'budget');
+      expect(row.nextAttemptAt, isNotNull);
+    });
+  });
+
   test('enqueueRepairUpload re-arms a terminally failed row', () async {
     final id = await repo.enqueueUpload(mediaId: 'm1');
     for (var i = 0; i < 5; i++) {

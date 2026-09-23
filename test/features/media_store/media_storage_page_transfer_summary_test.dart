@@ -235,5 +235,21 @@ void main() {
       expect(find.byKey(const Key('media-transfer-offline')), findsOneWidget);
       expect(find.text('Waiting for a connection'), findsOneWidget);
     });
+
+    // Offline with nothing due right now (every row deferred, or one still
+    // moving) is still waiting for a connection.
+    testWidgets('an offline hold explains itself with no row queued', (
+      tester,
+    ) async {
+      await settle(
+        tester,
+        const MediaTransferSummary(
+          waiting: 3,
+          hold: MediaTransferHold(MediaTransferHoldKind.offline, 'Offline'),
+        ),
+      );
+
+      expect(find.byKey(const Key('media-transfer-offline')), findsOneWidget);
+    });
   });
 }
