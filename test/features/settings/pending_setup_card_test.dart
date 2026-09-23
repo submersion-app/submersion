@@ -120,4 +120,41 @@ void main() {
     );
     expect(find.byIcon(Icons.sync_problem_outlined), findsOneWidget);
   });
+
+  // The preflight finds the mismatch while Settings may already be open. The
+  // card must pick it up then, and drop it when a reconnect clears it,
+  // without waiting for the screen to be reopened.
+  testWidgets('a mismatch found while the card is showing appears, and a '
+      'reconnect clears it', (tester) async {
+    final attach = MediaStoreAttachState(prefs: prefs);
+    await tester.runAsync(() async {
+      await MediaStoresRepository().upsertActive(
+        storeId: 'store-1',
+        providerType: 's3',
+        displayHint: 'dive-media @ minio',
+      );
+      await attach.setAttached('store-1', providerType: CloudProviderType.s3);
+    });
+    await tester.pumpWidget(app());
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pump();
+    expect(find.byIcon(Icons.sync_problem_outlined), findsNothing);
+
+    await tester.runAsync(() => attach.setMarkerMismatch(true));
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pump();
+    await tester.pump();
+    expect(
+      find.text('Reconnect media storage (dive-media @ minio)'),
+      findsOneWidget,
+    );
+
+    await tester.runAsync(
+      () => attach.setAttached('store-1', providerType: CloudProviderType.s3),
+    );
+    await tester.runAsync(() => Future<void>.delayed(Duration.zero));
+    await tester.pump();
+    await tester.pump();
+    expect(find.byIcon(Icons.sync_problem_outlined), findsNothing);
+  });
 }

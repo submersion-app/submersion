@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -21,6 +23,16 @@ class MediaStoreAttachState {
 
   Future<SharedPreferences> get _resolved async =>
       _prefs ?? await SharedPreferences.getInstance();
+
+  static final _markerMismatchChanges = StreamController<void>.broadcast();
+
+  /// Fires when the marker mismatch flag may have changed: set or cleared
+  /// by a preflight, or cleared by an attach change. The pending-setup card
+  /// listens, so a mismatch found while Settings is open shows at once. Its
+  /// own signal rather than the sync event bus, which would also schedule a
+  /// sync for what is device-local state.
+  static Stream<void> get markerMismatchChanges =>
+      _markerMismatchChanges.stream;
 
   Future<String?> attachedStoreId() async =>
       (await _resolved).getString(storeIdKey);
@@ -52,6 +64,7 @@ class MediaStoreAttachState {
     await prefs.setString(storeIdKey, storeId);
     await prefs.setString(providerTypeKey, providerType.name);
     await prefs.remove(markerMismatchKey);
+    _markerMismatchChanges.add(null);
     if (accountId != null) {
       await prefs.setString(accountIdKey, accountId);
     } else {
@@ -66,6 +79,7 @@ class MediaStoreAttachState {
     await prefs.remove(providerTypeKey);
     await prefs.remove(accountIdKey);
     await prefs.remove(markerMismatchKey);
+    _markerMismatchChanges.add(null);
   }
 
   /// Records whether the last preflight found the attached store carrying
@@ -96,6 +110,7 @@ class MediaStoreAttachState {
     } else {
       await prefs.remove(markerMismatchKey);
     }
+    _markerMismatchChanges.add(null);
   }
 
   Future<bool> hasMarkerMismatch() async =>
