@@ -148,3 +148,11 @@ with `_probe` mirroring the confirmed branch: look up the remote (null keeps nat
 
 - [ ] Add to spec 7.2: "Read-only (decided 2026-09-23): a successful probe serves the tile and writes nothing; the stamps stay the uploading device's facts. Only `fromOtherDevice` is probed, and a failed HEAD is not remembered."
 - [ ] `dart format .`, `flutter analyze`, `flutter test`. Commit `docs(spec): record slice 11's decisions in 7.2`.
+
+---
+
+## As executed
+
+- **Coalescing uses the resolver's own in-flight map.** `MediaFetchGate.run` is typed to `MediaSourceData?`, so concurrent probes for one tier share a `Future<bool?>` in `_probing` instead; the fetch that follows a positive probe still goes through the gate.
+- **A self-waiting future.** The first version removed the in-flight entry with `whenComplete(() => _probing.remove(key))`. `remove` returns the entry, which is that same future, and `whenComplete` waits on a future its callback returns, so every probe waited on itself forever (the tests timed out at 30 s). The callback is now a block that returns nothing, with a comment saying why.
+- **Mutation checks**, each compiling and red on its named test: dropping the negative cache, caching a failed HEAD, dropping the video-thumbnail guard (Task 1); dropping the probe branch (S4), probing `notFound`, probing without a content hash (Task 2).
