@@ -506,11 +506,24 @@ class MediaTransferQueueRepository {
   /// budget-expired transfer can settle between its timeout and this write,
   /// and a deferral landing after it would write over what it settled to,
   /// burying a failed row's real error or leaving one on a done row.
-  Future<void> defer(int id, DateTime until, {String? reason}) async {
-    await (_db.update(_db.mediaTransferQueue)..where(
-          (t) =>
-              t.id.equals(id) & t.state.isIn(const ['pending', 'transferring']),
-        ))
+  ///
+  /// [ifAttempts] makes it a compare-and-set on the attempt count the
+  /// caller saw: a non-terminal failure leaves the row pending too, with
+  /// its own retry time and error, and moves the count, which is how a
+  /// deferral landing after it knows to leave it alone.
+  Future<void> defer(
+    int id,
+    DateTime until, {
+    String? reason,
+    int? ifAttempts,
+  }) async {
+    await (_db.update(_db.mediaTransferQueue)..where((t) {
+          final inPlay =
+              t.id.equals(id) & t.state.isIn(const ['pending', 'transferring']);
+          return ifAttempts == null
+              ? inPlay
+              : inPlay & t.attempts.equals(ifAttempts);
+        }))
         .write(
           MediaTransferQueueCompanion(
             nextAttemptAt: Value(until.millisecondsSinceEpoch),

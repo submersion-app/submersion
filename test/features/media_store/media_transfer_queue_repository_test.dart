@@ -414,6 +414,26 @@ void main() {
       expect((await repo.allForTesting()).single.errorMessage, 'source gone');
     });
 
+    // A non-terminal failure leaves the row pending, which the state check
+    // alone cannot tell from a row still waiting on its transfer. The
+    // attempt count can: a failure moves it, nothing else here does.
+    test('a row a failure already rescheduled keeps its failure', () async {
+      final id = await repo.enqueueUpload(mediaId: 'm1');
+      await repo.markFailed(id, 'real', retryAfter: const Duration(hours: 1));
+      final before = (await repo.allForTesting()).single;
+
+      await repo.defer(
+        id,
+        DateTime.now().add(const Duration(minutes: 10)),
+        reason: 'budget',
+        ifAttempts: 0,
+      );
+
+      final row = (await repo.allForTesting()).single;
+      expect(row.errorMessage, 'real');
+      expect(row.nextAttemptAt, before.nextAttemptAt);
+    });
+
     test('a transferring row is deferred with its reason', () async {
       final id = await repo.enqueueUpload(mediaId: 'm1');
       await repo.markTransferring(id);

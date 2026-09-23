@@ -94,6 +94,37 @@ class _FailsOncePipeline extends MediaUploadPipeline {
   }
 }
 
+/// Fails its row back into the queue behind an hour's backoff, then never
+/// returns: a transfer whose real failure landed just before its budget ran
+/// out.
+class _FailsThenHangsPipeline extends MediaUploadPipeline {
+  _FailsThenHangsPipeline({
+    required this.queueRef,
+    required super.mediaRepository,
+    required super.queue,
+    required super.store,
+    required super.registry,
+    required super.cache,
+  });
+
+  final MediaTransferQueueRepository queueRef;
+  final _never = Completer<UploadOutcome>();
+
+  void releaseAll() {
+    if (!_never.isCompleted) _never.complete(UploadOutcome.failed);
+  }
+
+  @override
+  Future<UploadOutcome> process(MediaTransferQueueEntry entry) async {
+    await queueRef.markFailed(
+      entry.id,
+      'real failure',
+      retryAfter: const Duration(hours: 1),
+    );
+    return _never.future;
+  }
+}
+
 /// Marks its row transferring, waits on [release], then fails it back into
 /// the queue behind an hour's backoff: a transfer that outlives the budget
 /// and fails late.
@@ -238,6 +269,40 @@ void main() {
     // still be uploading, and burning one of its five attempts would retire a
     // healthy-but-slow item.
     expect(rows.single.attempts, 0);
+  });
+
+  // The transfer's own failure landed before the budget ran out: its error
+  // and retry time are the truth, and the deferral must not replace them.
+  test('a budget expiry does not overwrite a failure the transfer already '
+      'recorded', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final pipeline = _FailsThenHangsPipeline(
+      queueRef: queue,
+      mediaRepository: mediaRepository,
+      queue: queue,
+      store: InMemoryMediaObjectStore(),
+      registry: MediaSourceResolverRegistry({}),
+      cache: MediaCacheStore(database: cacheDb, root: root),
+    );
+    addTearDown(pipeline.releaseAll);
+    final worker = MediaStoreWorker(
+      queue: queue,
+      pipeline: pipeline,
+      entryBudget: budget,
+    );
+    addTearDown(worker.dispose);
+
+    await worker.drain();
+
+    final row = (await queue.allForTesting()).single;
+    expect(row.errorMessage, 'real failure');
+    expect(
+      row.nextAttemptAt,
+      greaterThan(
+        DateTime.now().add(const Duration(minutes: 55)).millisecondsSinceEpoch,
+      ),
+      reason: 'the failure\'s hour, not the deferral\'s ten minutes',
+    );
   });
 
   // Spec 7.1: a postponement the user should know about is not silent.

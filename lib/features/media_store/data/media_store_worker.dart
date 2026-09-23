@@ -297,6 +297,10 @@ class MediaStoreWorker {
         reason:
             'Took longer than its ${_entryBudget.inMinutes}m budget; '
             'retrying later',
+        // As claimed (a fresh read): a failure the transfer recorded before
+        // the budget ran out moved it, and its own retry time and error
+        // stand.
+        ifAttempts: entry.attempts,
       );
     }
   }
