@@ -1456,6 +1456,16 @@ class AppLocalizationsHe extends AppLocalizations {
   String get buddies_field_emailHint => 'email@example.com';
 
   @override
+  String get buddies_field_linkedProfile => 'פרופיל מקושר';
+
+  @override
+  String get buddies_field_linkedProfileHint =>
+      'הפרופיל המקומי שהוא חבר צוללים זה';
+
+  @override
+  String get buddies_field_linkedProfileNone => 'לא מקושר';
+
+  @override
   String get buddies_field_nameHint => 'הזן שם חבר צוללים';
 
   @override
@@ -1665,6 +1675,39 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get buddies_linkText_useSuggestion => 'שימוש';
+
+  @override
+  String get buddies_linkedProfile_chip => 'פרופיל';
+
+  @override
+  String get buddies_linkedProfile_link => 'קישור';
+
+  @override
+  String get buddies_linkedProfile_notNow => 'לא עכשיו';
+
+  @override
+  String get buddies_linkedProfile_openBuddy => 'פתיחת חבר צוללים';
+
+  @override
+  String get buddies_linkedProfile_pickerTitle => 'קישור לפרופיל';
+
+  @override
+  String get buddies_linkedProfile_refusedSelf =>
+      'לא ניתן לקשר חבר צוללים לפרופיל של עצמו.';
+
+  @override
+  String buddies_linkedProfile_refusedTaken(String buddyName) {
+    return '$buddyName כבר מקושר לפרופיל זה.';
+  }
+
+  @override
+  String buddies_linkedProfile_suggestion(String name) {
+    return 'ל$name יש פרופיל כאן. לקשר אליו את חבר הצוללים הזה?';
+  }
+
+  @override
+  String get buddies_merge_refusedDifferentLinks =>
+      'חברי צוללים אלה מקושרים לפרופילים שונים. יש למזג את הפרופילים תחילה.';
 
   @override
   String get buddies_message_added => 'חבר צוללים נוסף בהצלחה';
@@ -3669,11 +3712,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dashboard_gauges_addGear => 'הוסף ציוד';
 
   @override
-  String dashboard_gauges_gearOk(String name) {
-    return '$name תקין';
-  }
-
-  @override
   String dashboard_gauges_gearDueIn(String name, int days) {
     return '$name דורש טיפול בעוד $days ימים';
   }
@@ -3684,8 +3722,25 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String dashboard_gauges_gearOverdueMore(int count) {
-    return '+$count נוספים באיחור';
+  String dashboard_gauges_gearOverdueCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים באיחור בטיפול',
+      one: 'פריט אחד באיחור בטיפול',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String dashboard_gauges_gearDueSoonCount(int count, int days) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים דורשים טיפול בעוד $days ימים',
+      one: 'פריט אחד דורש טיפול בעוד $days ימים',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -5672,6 +5727,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_edit_overline_tanks => 'מיכלים';
 
   @override
+  String get diveLog_edit_planned_switch => 'צלילה מתוכננת';
+
+  @override
+  String get diveLog_edit_planned_switchSubtitle =>
+      'ממתין לנתוני מחשב הצלילה. אין מספר צלילה עד שהיא נרשמת.';
+
+  @override
   String get diveLog_edit_profile_draw => 'שרטוט פרופיל';
 
   @override
@@ -6542,6 +6604,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_listPage_bottomSheet_logManually => 'רישום צלילה ידנית';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDive => 'תכנון צלילה';
+
+  @override
+  String get diveLog_listPage_bottomSheet_planDiveSubtitle =>
+      'מלאו את הפרטים עכשיו והוסיפו את נתוני מחשב הצלילה מאוחר יותר';
 
   @override
   String get diveLog_listPage_fab_addDive => 'הוספת צלילה';
@@ -12479,6 +12548,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'ציוד הדורש טיפול';
 
   @override
+  String get equipment_list_emptyState_filterText_serviceDueSoon =>
+      'ציוד הדורש טיפול בקרוב';
+
+  @override
+  String get equipment_list_emptyState_filterText_serviceOverdue =>
+      'ציוד באיחור בטיפול';
+
+  @override
   String equipment_list_emptyState_filterText_status(Object status) {
     return 'ציוד $status';
   }
@@ -12507,6 +12584,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'כל הציוד שלך מעודכן בטיפול!';
 
   @override
+  String get equipment_list_emptyState_serviceNoneDueSoon =>
+      'שום דבר לא דורש טיפול בקרוב.';
+
+  @override
+  String get equipment_list_emptyState_serviceNoneOverdue =>
+      'שום דבר לא באיחור בטיפול.';
+
+  @override
   String equipment_list_errorLoading(Object error) {
     return 'שגיאה בטעינת ציוד: $error';
   }
@@ -12516,6 +12601,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_list_filterServiceDue => 'טיפול נדרש';
+
+  @override
+  String get equipment_list_filterServiceDueSoon => 'בקרוב';
+
+  @override
+  String get equipment_list_filterServiceOverdue => 'באיחור';
 
   @override
   String get equipment_list_typeFilterAll => 'כל הסוגים';
@@ -23381,6 +23472,45 @@ class AppLocalizationsHe extends AppLocalizations {
   String get universalImport_label_skip => 'דלג';
 
   @override
+  String get universalImport_label_fillPlanned => 'השלמת צלילה מתוכננת';
+
+  @override
+  String get universalImport_compare_fillPlannedSubtitle =>
+      'שיוך ההורדה הזו לצלילה שתכננתם';
+
+  @override
+  String get universalImport_label_filledPlanned => 'צלילות מתוכננות שהושלמו';
+
+  @override
+  String universalImport_fillPlanned_target(String label) {
+    return 'משלים צלילה מתוכננת: $label';
+  }
+
+  @override
+  String get universalImport_fillPlanned_replacesProfile =>
+      'הפרופיל המשורטט שלה יוחלף.';
+
+  @override
+  String get universalImport_fillPlanned_change => 'שינוי';
+
+  @override
+  String get universalImport_fillPlanned_pickerTitle => 'בחירת צלילה מתוכננת';
+
+  @override
+  String get universalImport_fillPlanned_importAsNew =>
+      'ייבוא כצלילה חדשה במקום';
+
+  @override
+  String get universalImport_fillPlanned_undo => 'ביטול ההשלמות';
+
+  @override
+  String get universalImport_fillPlanned_undone => 'צלילות מתוכננות שוחזרו';
+
+  @override
+  String get universalImport_fillPlanned_undoFailed =>
+      'לא ניתן היה לשחזר את כל הצלילות המתוכננות. נסו שוב.';
+
+  @override
   String universalImport_label_taggedAs(Object tag) {
     return 'מתויג כ: $tag';
   }
@@ -28532,6 +28662,66 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_detail_menu_logNearMiss => 'רישום כמעט-תאונה';
+
+  @override
+  String get diveLog_planned_chip => 'מתוכננת';
+
+  @override
+  String get diveLog_planned_bannerTitle => 'צלילה מתוכננת';
+
+  @override
+  String get diveLog_planned_bannerBody =>
+      'ממתין לנתוני מחשב הצלילה. סמנו כנרשמה אם צללתם בלי מחשב.';
+
+  @override
+  String get diveLog_detail_menu_markLogged => 'סימון כנרשמה';
+
+  @override
+  String get diveLog_planned_markedLogged => 'סומנה כנרשמה';
+
+  @override
+  String get diveLog_planned_markLoggedFailed =>
+      'לא ניתן היה לסמן את הצלילה כרשומה.';
+
+  @override
+  String get diveLog_mirror_dialogTitle =>
+      'לרשום את הצלילה הזו גם בפרופיל אחר?';
+
+  @override
+  String get diveLog_mirror_dialogBody =>
+      'לחברי צוללים אלה יש פרופילים במכשיר זה. הצלילה מתווספת ליומן שלהם כצלילה מתוכננת עד שנתוני מחשב הצלילה שלהם ימלאו אותה.';
+
+  @override
+  String get diveLog_mirror_log => 'רישום';
+
+  @override
+  String get diveLog_mirror_notNow => 'לא עכשיו';
+
+  @override
+  String diveLog_mirror_snackbar(String names) {
+    return 'נרשמה עבור $names';
+  }
+
+  @override
+  String get diveLog_mirror_undone => 'צלילות משוכפלות הוסרו';
+
+  @override
+  String get diveLog_mirror_undoFailed =>
+      'לא ניתן היה להסיר את הצלילות המשוכפלות.';
+
+  @override
+  String diveLog_mirror_failed(String names) {
+    return 'לא ניתן היה לרשום עבור $names';
+  }
+
+  @override
+  String get diveLog_detail_menu_logForBuddy => 'רישום בפרופיל של חבר צוללים';
+
+  @override
+  String get diveLog_detail_loggedWith => 'נרשמה עם';
+
+  @override
+  String get diveLog_detail_loggedWithPlanned => 'ממתין למחשב הצלילה שלהם';
 
   @override
   String diveLog_detail_linkedIncidents(int count) {
@@ -36743,6 +36933,11 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {
     return 'צלילה $diveNumber באתר $siteName';
+  }
+
+  @override
+  String diveLog_listPage_semanticsPlannedDiveAtSite(String siteName) {
+    return 'צלילה מתוכננת ב־$siteName';
   }
 
   @override

@@ -15,6 +15,7 @@
 // provided by the `Equatable` mixin on `MediaItem`, so the comparison
 // ignores nothing. This avoids a verbose field-by-field diff and lets the
 // row's `updatedAt` advance only on real changes.
+import 'package:drift/drift.dart' show Value;
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
 import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
@@ -194,12 +195,32 @@ class SubscriptionPoller {
         width: entry.width ?? existingRow.width,
         height: entry.height ?? existingRow.height,
         durationSeconds: entry.durationSeconds ?? existingRow.durationSeconds,
-        // A row that was previously orphaned (because the manifest had
-        // dropped it) is no longer orphaned now that it reappeared.
-        isOrphaned: false,
       );
       if (patched != existingRow) {
         await mediaRepo.updateMedia(patched);
+      }
+      // A row that was previously orphaned (because the manifest had dropped
+      // it) is no longer orphaned now that it reappeared. Its own writer,
+      // not a field on the patch above: updateMedia writes user fields from
+      // a snapshot read before this poll's network round-trip, so it must
+      // not carry verification facts.
+      //
+      // Only when THIS POLL'S SNAPSHOT saw it orphaned, and only while the
+      // row still carries the verification stamp that snapshot saw. The
+      // rows are read after the manifest fetch returns, but this loop then
+      // awaits its way through every entry, so a verifier has room to land
+      // in between and its newer, better-informed verdict must not be
+      // reversed and republished under a fresh verification clock. The flag
+      // alone cannot detect one: a verifier RE-CONFIRMING "orphaned" leaves
+      // the flag exactly where the snapshot found it, and moves only the
+      // date. A snapshot that already said "not orphaned" has nothing to
+      // clear, and a stamp that moved leaves the row to the next poll.
+      if (existingRow.isOrphaned) {
+        await mediaRepo.markOrphaned(
+          existingRow.id,
+          false,
+          ifLastVerifiedAt: Value(existingRow.lastVerifiedAt),
+        );
       }
     }
 

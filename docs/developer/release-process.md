@@ -152,11 +152,23 @@ file; the no-emoji rule in CLAUDE.md governs everything except this format.
 
 ## Play Store state
 
-Until Google grants production access (earned by a closed test with 12+
-testers over 14 days), betas target the closed `alpha` track and the
-`promote-play` leg cannot succeed. The track is a single switch:
-`PLAY_BETA_TRACK` (default `alpha` in `android/fastlane/Fastfile`); flip to
-`beta` (open testing) once access is granted.
+Google granted production access on 2026-09-22, so betas target the open
+`beta` track and the `promote-play` leg works. Before that they targeted the
+closed `alpha` track, because open testing is gated behind production access
+and a closed test with 12+ testers over 14 days is what earns it.
+
+The track remains a single switch: `PLAY_BETA_TRACK` (default `beta` in
+`android/fastlane/Fastfile`), so a one-off run can still target `alpha`
+without a code change.
+
+**Rollout fraction:** `play-rollout` on `promote.yml` defaults to `1.0`,
+every user at once, and that is deliberate. A staged rollout needs enough
+installs for the crash rate to mean anything, and at this install base a
+fraction would delay releases while telling you very little.
+
+The lever is there if a release ever warrants it: dispatch with a smaller
+fraction, then dispatch again at a higher one. `promote_to_production` is
+re-entrant.
 
 ## Hotfix escape hatch
 
@@ -170,7 +182,7 @@ a build number above the current commit count. Expected to be rare.
 | Symptom | Cause | Action |
 |---|---|---|
 | Beta run fails in seconds with "already has a stable release" | Bump PR from the last promotion has not landed | Merge it (check CI ran; close/reopen kicks it if needed) |
-| Play upload: `Precondition check failed` | Track not set up in Play Console, or targeting open testing without production access | Configure the closed track / check `PLAY_BETA_TRACK` |
+| Play upload: `Precondition check failed` | Track not set up in Play Console | Check the track exists and that `PLAY_BETA_TRACK` names it |
 | TestFlight upload slow (~10+ min) | External distribution waits for Apple build processing | Normal; 45-minute job timeout absorbs it |
 | Testers not seeing a new TestFlight build | First build of a new version train awaits Beta App Review | Normal; once per train, internal testers unaffected |
 | Promotion: "pruned or never built" | The build aged out of the newest-30 window | Promote a retained build instead |

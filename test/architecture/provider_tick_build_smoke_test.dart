@@ -45,6 +45,7 @@ import 'package:submersion/features/dive_types/presentation/providers/dive_type_
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
@@ -569,7 +570,8 @@ void main() {
     ),
     (
       name: 'serviceDueEquipmentProvider',
-      read: (c) => c.read(serviceDueEquipmentProvider.future),
+      read: (c) =>
+          c.read(serviceDueEquipmentProvider(ServiceDueFilter.any).future),
     ),
     (
       name: 'serviceDueSoonWindowDaysProvider',

@@ -20,6 +20,7 @@ import 'package:submersion/features/media/data/parsers/manifest_entry.dart';
 import 'package:submersion/features/media/data/parsers/manifest_format.dart';
 import 'package:submersion/features/media/data/parsers/manifest_parse_result.dart';
 import 'package:submersion/features/media/data/repositories/manifest_subscription_repository.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/dive_link_matcher.dart';
 import 'package:submersion/features/media/data/services/manifest_fetch_service.dart';
@@ -487,6 +488,134 @@ void main() {
     expect(k2.isOrphaned, isTrue);
   });
 
+  test('a verifier orphaning mid-poll is not reversed', () async {
+    // The window is between the poller reading its rows and writing them,
+    // not during the manifest request: the read happens after the fetch.
+    // A verifier landing in that window must not be reversed by a clear
+    // decided from the snapshot taken just before it.
+    final sub = await subscriptions.createSubscription(
+      manifestUrl: 'https://feed.example.com/m.json',
+      format: ManifestFormat.json,
+      pollIntervalSeconds: 3600,
+    );
+    final fetcher = _StaticFetcher({
+      'https://feed.example.com/m.json': ManifestFetchSuccess(
+        parsed: _parsed([_entry('k1', 'https://feed.example.com/p1.jpg')]),
+        etag: null,
+        lastModified: null,
+      ),
+    });
+    SubscriptionPoller pollerWith(MediaRepository repo) => SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: repo,
+      fetchService: fetcher,
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    );
+
+    final t0 = DateTime.utc(2024, 4, 27, 10, 0, 0);
+    await pollerWith(mediaRepo).pollAllDue(t0);
+    expect(
+      (await mediaRepo.getAllBySubscription(sub.id)).single.isOrphaned,
+      isFalse,
+    );
+
+    await pollerWith(
+      _OrphaningAfterRead(),
+    ).pollAllDue(t0.add(const Duration(hours: 2)));
+
+    expect(
+      (await mediaRepo.getAllBySubscription(sub.id)).single.isOrphaned,
+      isTrue,
+      reason: "the verifier's newer verdict stands",
+    );
+  });
+
+  test('a verifier re-confirming mid-poll is not reversed', () async {
+    // The mirror of the case above. Here the snapshot ALREADY says
+    // orphaned, so the clear is allowed to run and the flag guard cannot
+    // help: the row the verifier leaves behind still carries the flag the
+    // clear expects. Only the verification stamp says a fresher verdict
+    // landed in between, and it is the better one, because the verifier
+    // probed the object while the manifest merely lists it.
+    final sub = await subscriptions.createSubscription(
+      manifestUrl: 'https://feed.example.com/m.json',
+      format: ManifestFormat.json,
+      pollIntervalSeconds: 3600,
+    );
+    final fetcher = _StaticFetcher({
+      'https://feed.example.com/m.json': ManifestFetchSuccess(
+        parsed: _parsed([_entry('k1', 'https://feed.example.com/p1.jpg')]),
+        etag: null,
+        lastModified: null,
+      ),
+    });
+    SubscriptionPoller pollerWith(MediaRepository repo) => SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: repo,
+      fetchService: fetcher,
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    );
+
+    final t0 = DateTime.utc(2024, 4, 27, 10, 0, 0);
+    await pollerWith(mediaRepo).pollAllDue(t0);
+    final row = (await mediaRepo.getAllBySubscription(sub.id)).single;
+    // An earlier manifest had dropped it, so the poller orphaned it.
+    await mediaRepo.markOrphaned(row.id, true);
+
+    await pollerWith(
+      _ReverifyingAfterRead(),
+    ).pollAllDue(t0.add(const Duration(hours: 2)));
+
+    expect(
+      (await mediaRepo.getAllBySubscription(sub.id)).single.isOrphaned,
+      isTrue,
+      reason: "the verifier's fresher probe stands over a listing",
+    );
+  });
+
+  test('a clear still lands when no verifier intervened', () async {
+    // The guard above must not strand a row: an ordinary reappearance,
+    // with nothing racing it, still clears on the very next poll.
+    final sub = await subscriptions.createSubscription(
+      manifestUrl: 'https://feed.example.com/m.json',
+      format: ManifestFormat.json,
+      pollIntervalSeconds: 3600,
+    );
+    final poller = SubscriptionPoller(
+      subscriptions: subscriptions,
+      mediaRepo: mediaRepo,
+      fetchService: _StaticFetcher({
+        'https://feed.example.com/m.json': ManifestFetchSuccess(
+          parsed: _parsed([_entry('k1', 'https://feed.example.com/p1.jpg')]),
+          etag: null,
+          lastModified: null,
+        ),
+      }),
+      pipeline: pipeline,
+      diveLinkMatcher: matcher,
+    );
+
+    final t0 = DateTime.utc(2024, 4, 27, 10, 0, 0);
+    await poller.pollAllDue(t0);
+    final row = (await mediaRepo.getAllBySubscription(sub.id)).single;
+    // Orphaned with a verification date already on the row, so the clear
+    // compares against a real stamp rather than a null one.
+    await mediaRepo.stampVerification(
+      row.id,
+      verifiedAt: DateTime.utc(2024, 4, 27, 10, 30),
+      isOrphaned: true,
+    );
+
+    await poller.pollAllDue(t0.add(const Duration(hours: 2)));
+
+    expect(
+      (await mediaRepo.getAllBySubscription(sub.id)).single.isOrphaned,
+      isFalse,
+    );
+  });
+
   test('change: existing rows are patched when fields change', () async {
     final sub = await subscriptions.createSubscription(
       manifestUrl: 'https://feed.example.com/m.json',
@@ -545,4 +674,43 @@ void main() {
     // ID is preserved across the patch.
     expect(rows.single.id, firstRow.id);
   });
+}
+
+/// Re-confirms an ALREADY orphaned row immediately after the poller has
+/// read its snapshot. The flag does not move, so the only trace the verifier
+/// leaves is a newer verification date: exactly what the clear has to
+/// compare against, because the flag still reads as the snapshot saw it.
+class _ReverifyingAfterRead extends MediaRepository {
+  bool _done = false;
+
+  @override
+  Future<List<MediaItem>> getAllBySubscription(String subscriptionId) async {
+    final rows = await super.getAllBySubscription(subscriptionId);
+    if (!_done && rows.isNotEmpty) {
+      _done = true;
+      await stampVerification(
+        rows.first.id,
+        verifiedAt: DateTime.utc(2024, 4, 27, 11),
+        isOrphaned: true,
+      );
+    }
+    return rows;
+  }
+}
+
+/// Flips the row to orphaned immediately after the poller has read its
+/// snapshot, which is the window a clear decided from that snapshot would
+/// reverse.
+class _OrphaningAfterRead extends MediaRepository {
+  bool _done = false;
+
+  @override
+  Future<List<MediaItem>> getAllBySubscription(String subscriptionId) async {
+    final rows = await super.getAllBySubscription(subscriptionId);
+    if (!_done && rows.isNotEmpty) {
+      _done = true;
+      await markOrphaned(rows.first.id, true);
+    }
+    return rows;
+  }
 }

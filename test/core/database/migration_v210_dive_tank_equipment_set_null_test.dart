@@ -164,12 +164,17 @@ void main() {
     expect(AppDatabase.migrationVersions, contains(210));
   });
 
-  test('the sync compatibility floor is 210', () {
+  test('the sync compatibility floor holds readers below 210', () {
     // An older peer's code deletes an equipment row with no regard for
     // the linked cylinders, so under its NO ACTION link a tombstone from
     // this build fails there and the item lingers. Holding readers below
-    // 210 until they update is what makes the tombstone apply.
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 210);
+    // 210 until they update is what makes the tombstone apply. A later
+    // rung may raise the floor further (v224 did); the newest one owns the
+    // exact value, and this rung only needs it never to fall below 210.
+    expect(
+      AppDatabase.minimumCompatibleSchemaVersion,
+      greaterThanOrEqualTo(210),
+    );
   });
 
   test('a fresh database creates the link with ON DELETE SET NULL', () async {

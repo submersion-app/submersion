@@ -14,7 +14,9 @@ void main() {
   });
 
   test('the columns are additive, so the sync floor does not move', () {
-    expect(AppDatabase.minimumCompatibleSchemaVersion, 210);
+    // The floor moved to 224 with the media fact clocks; this rung
+    // still did not move it.
+    expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
 
   test('a fresh database has both site detail columns, nullable', () async {

@@ -25,6 +25,7 @@ import 'package:submersion/features/site_scape/presentation/site_scape_view.dart
 import 'package:submersion/features/site_scape/presentation/site_terrain_pane.dart';
 import 'package:submersion/features/site_types/domain/entities/site_type_entity.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
+import 'package:submersion/features/tags/presentation/widgets/tag_chip.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -1359,7 +1360,7 @@ void main() {
 
         await tester.scrollUntilVisible(find.text('To try'), 200);
         expect(find.text('Tags'), findsOneWidget);
-        expect(find.widgetWithText(ActionChip, 'To try'), findsOneWidget);
+        expect(find.widgetWithText(TagChip, 'To try'), findsOneWidget);
       });
     });
   });

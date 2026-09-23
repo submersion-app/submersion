@@ -729,7 +729,11 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       avgDepth: _timeWeightedAverageDepth(series),
     );
 
-    final created = await ref.read(diveRepositoryProvider).createDive(dive);
+    // The logged dive is a planned, unnumbered entry until the diver's
+    // download fills it or they mark it as logged (issue #2002).
+    final created = await ref
+        .read(diveRepositoryProvider)
+        .createPlannedDive(dive);
     notifier.setLinkedDive(created.id);
     await notifier.save(
       summary: PlanSummaryData(
