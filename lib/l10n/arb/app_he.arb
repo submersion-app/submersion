@@ -7228,6 +7228,7 @@
   "settings_dataSources_appleHealth_privacy": "Your health data is stored locally and is never shared with third parties.",
   "settings_dataSources_noSources": "No data source integrations are available on this platform.",
   "diveLog_chartOption_metricsFollowViewport": "שמירת שכבות העל בתצוגה",
+  "diveLog_chartOption_tooltipFollowsCursor": "הרמז הצף עוקב אחר הסמן",
   "diveLog_chartSection_decompression": "דקומפרסיה",
   "diveLog_chartSection_display": "תצוגה",
   "diveLog_chartSection_gasAnalysis": "ניתוח גזים",

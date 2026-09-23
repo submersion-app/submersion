@@ -6561,7 +6561,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
-      'Tooltip follows cursor';
+      'הרמז הצף עוקב אחר הסמן';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(משוער)';

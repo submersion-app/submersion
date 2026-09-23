@@ -2084,6 +2084,7 @@
   "diveLog_ccr_sectionSetpoints": "设定点 (bar)",
   "diveLog_ccr_title": "密闭循环呼吸器设置",
   "diveLog_chartOption_metricsFollowViewport": "保持叠加层在视图内",
+  "diveLog_chartOption_tooltipFollowsCursor": "提示框跟随光标",
   "diveLog_chartSection_decompression": "减压",
   "diveLog_chartSection_display": "显示",
   "diveLog_chartSection_gasAnalysis": "气体分析",

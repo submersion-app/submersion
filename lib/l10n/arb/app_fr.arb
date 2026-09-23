@@ -7126,6 +7126,7 @@
   "settings_dataSources_appleHealth_privacy": "Your health data is stored locally and is never shared with third parties.",
   "settings_dataSources_noSources": "No data source integrations are available on this platform.",
   "diveLog_chartOption_metricsFollowViewport": "Garder les superpositions visibles",
+  "diveLog_chartOption_tooltipFollowsCursor": "L'infobulle suit le curseur",
   "diveLog_chartSection_decompression": "Décompression",
   "diveLog_chartSection_display": "Affichage",
   "diveLog_chartSection_gasAnalysis": "Analyse des gaz",

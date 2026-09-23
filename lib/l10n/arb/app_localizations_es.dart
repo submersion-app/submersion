@@ -6730,7 +6730,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get diveLog_chartOption_tooltipFollowsCursor =>
-      'Tooltip follows cursor';
+      'El tooltip sigue al cursor';
 
   @override
   String get diveLog_pressure_estimatedSuffix => '(est.)';
