@@ -200,14 +200,38 @@ void main() {
       expect(await attachState.hasMarkerMismatch(), isFalse);
     });
 
-    test('a mismatch is written only while still attached to that '
-        'store', () async {
-      await attach('c');
+    // Reconnecting to the SAME store clears the flag as well, and a check
+    // that began before it must not set it again: comparing store ids alone
+    // would not notice.
+    test('a same-store reconnect during the marker read is not answered '
+        'for', () async {
+      await attach('a');
+      final reconnecting = _ReconnectsDuringRead(() => attach('a'));
+      reconnecting.objects[StoreKeys.markerKey] = utf8.encode(
+        jsonEncode({'storeId': 'b', 'formatVersion': 1, 'createdAt': ''}),
+      );
 
-      await attachState.setMarkerMismatch(true, whileAttachedTo: 'a');
+      final verdict = await MediaStorePreflight(
+        attachState: attachState,
+        store: reconnecting,
+        attachedStoreId: 'a',
+      ).check();
+
+      expect(verdict, MediaTransferHoldKind.detached);
+      expect(await attachState.hasMarkerMismatch(), isFalse);
+    });
+
+    test('a mismatch is written only within the attachment it was read '
+        'in', () async {
+      await attach('a');
+      final before = await attachState.attachGeneration();
+      await attach('a');
+
+      await attachState.setMarkerMismatch(true, withinGeneration: before);
       expect(await attachState.hasMarkerMismatch(), isFalse);
 
-      await attachState.setMarkerMismatch(true, whileAttachedTo: 'c');
+      final now = await attachState.attachGeneration();
+      await attachState.setMarkerMismatch(true, withinGeneration: now);
       expect(await attachState.hasMarkerMismatch(), isTrue);
     });
 

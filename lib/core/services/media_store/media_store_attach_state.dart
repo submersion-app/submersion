@@ -17,6 +17,7 @@ class MediaStoreAttachState {
   static const String providerTypeKey = 'media_store_provider_type';
   static const String accountIdKey = 'media_store_account_id';
   static const String markerMismatchKey = 'media_store_marker_mismatch';
+  static const String generationKey = 'media_store_attach_generation';
 
   Future<SharedPreferences> get _resolved async =>
       _prefs ?? await SharedPreferences.getInstance();
@@ -47,6 +48,7 @@ class MediaStoreAttachState {
     String? accountId,
   }) async {
     final prefs = await _resolved;
+    await _bumpGeneration(prefs);
     await prefs.setString(storeIdKey, storeId);
     await prefs.setString(providerTypeKey, providerType.name);
     await prefs.remove(markerMismatchKey);
@@ -59,6 +61,7 @@ class MediaStoreAttachState {
 
   Future<void> clear() async {
     final prefs = await _resolved;
+    await _bumpGeneration(prefs);
     await prefs.remove(storeIdKey);
     await prefs.remove(providerTypeKey);
     await prefs.remove(accountIdKey);
@@ -73,19 +76,18 @@ class MediaStoreAttachState {
   /// Writes only on a change: the preflight asks before every transfer, and
   /// the read is served from memory while the write is not.
   ///
-  /// With [whileAttachedTo], writes only while this device is still attached
-  /// to that store. The preflight's marker read is a network call, and a
-  /// reconnect landing during it must not be answered for by the old store's
-  /// result. The check and the write happen with no await between them, and
-  /// [setAttached] records the new store id in the same synchronous way, so
-  /// the two cannot interleave.
-  Future<void> setMarkerMismatch(
-    bool mismatch, {
-    String? whileAttachedTo,
-  }) async {
+  /// With [withinGeneration], writes only while the attachment is still the
+  /// one of that [attachGeneration]. The preflight's marker read is a
+  /// network call, and any attach change landing during it, a reconnect to
+  /// the SAME store included, must not be answered for by its result. The
+  /// check and the write happen with no await between them, and every
+  /// attach change bumps the generation the same synchronous way before it
+  /// clears the flag, so either the write lands first and the change clears
+  /// it, or the change lands first and the write is skipped.
+  Future<void> setMarkerMismatch(bool mismatch, {int? withinGeneration}) async {
     final prefs = await _resolved;
-    if (whileAttachedTo != null &&
-        prefs.getString(storeIdKey) != whileAttachedTo) {
+    if (withinGeneration != null &&
+        (prefs.getInt(generationKey) ?? 0) != withinGeneration) {
       return;
     }
     if ((prefs.getBool(markerMismatchKey) ?? false) == mismatch) return;
@@ -98,4 +100,14 @@ class MediaStoreAttachState {
 
   Future<bool> hasMarkerMismatch() async =>
       (await _resolved).getBool(markerMismatchKey) ?? false;
+
+  /// Changes on every attach change ([setAttached], [clear]), a reconnect to
+  /// the same store included, which an id comparison cannot see.
+  Future<int> attachGeneration() async =>
+      (await _resolved).getInt(generationKey) ?? 0;
+
+  // The in-memory value changes within this call, before its first await,
+  // which is what setMarkerMismatch's check relies on.
+  Future<void> _bumpGeneration(SharedPreferences prefs) =>
+      prefs.setInt(generationKey, (prefs.getInt(generationKey) ?? 0) + 1);
 }

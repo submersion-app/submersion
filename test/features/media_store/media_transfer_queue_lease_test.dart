@@ -91,6 +91,32 @@ void main() {
     expect((await repo.claimNextPending(DateTime.now()))?.id, claimed.id);
   });
 
+  // A query can return a row that another worker claimed, finished and
+  // released while it was in flight. The claim must not trust that stale
+  // read.
+  test('a claim on a stale read of a settled row is not kept', () async {
+    final id = await repo.enqueueUpload(mediaId: 'm1');
+    final stale = (await repo.nextPending(DateTime.now()))!;
+    await repo.markDone(id);
+    final reader = _ServesOnce(db, stale);
+
+    expect(await reader.claimNextPending(DateTime.now()), isNull);
+    expect(await reader.nextPending(DateTime.now()), isNull);
+  });
+
+  test('a claim returns the row as it is now', () async {
+    final id = await repo.enqueueUpload(mediaId: 'm1');
+    final stale = (await repo.nextPending(DateTime.now()))!;
+    await repo.markFailed(id, 'blip', retryAfter: Duration.zero);
+
+    final claimed = await _ServesOnce(
+      db,
+      stale,
+    ).claimNextPending(DateTime.now());
+
+    expect(claimed?.attempts, 1, reason: 'the fresh row, not the old read');
+  });
+
   test('two workers claiming at once never take the same row', () async {
     await repo.enqueueUpload(mediaId: 'm1');
     final other = MediaTransferQueueRepository(database: db);
@@ -127,4 +153,20 @@ void main() {
 
     expect(await otherRepo.requeueStale(), 1);
   });
+}
+
+/// Answers its first [nextPending] with [stale], a row read before it
+/// settled: the result a query in flight hands back after another worker
+/// claimed, finished and released the row.
+class _ServesOnce extends MediaTransferQueueRepository {
+  _ServesOnce(LocalCacheDatabase db, this.stale) : super(database: db);
+  final MediaTransferQueueEntry stale;
+  var _served = false;
+
+  @override
+  Future<MediaTransferQueueEntry?> nextPending(DateTime now) async {
+    if (_served) return super.nextPending(now);
+    _served = true;
+    return stale;
+  }
 }

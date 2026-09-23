@@ -1243,6 +1243,20 @@ Where the code that shipped differs from the tasks above:
   live row is always claimed before it is marked transferring, so what is
   left is stranded. The hold board records its owner, and a disposed worker
   clears the hold only if it still owns it.
+- **Later PR review rounds.** A claim re-reads its row once taken and keeps
+  it only while still pending and due, so a query result that went stale
+  (another worker claimed, finished and released the row meanwhile) is not
+  processed twice. A settled transfer's claim is released with a
+  per-database signal (`releaseSettled`, `claimReleases`), and every idle
+  worker over that database drains on it, which arms the retry for a
+  backoff left by a transfer that settled late or after its worker was
+  replaced; this replaced the budget-only kick. A claim given back without
+  work (gate stop, deferral) stays silent. The attach state keeps a
+  generation bumped by every attach change, and the preflight answers, and
+  writes the mismatch flag, only within the generation it began in, which
+  catches a reconnect to the same store. `defer` writes only while the row
+  is pending or transferring, and the offline line shows for any
+  outstanding work.
 - **Mutation checks**, each compiling and red on its named test: dropping
   the lease or the drain's reclaim (Task 1); dropping the hold from the
   waiting reason or from the re-emit (Task 3); the offline branch, the

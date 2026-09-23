@@ -39,22 +39,28 @@ class MediaStorePreflight {
   /// A marker answer is remembered on the attach state, so the pending-setup
   /// card can offer a reconnect for a mismatch and drop it once the marker
   /// matches again. A throw remembers nothing: it says nothing about the
-  /// marker. Neither does an answer that outlived its attachment: a reconnect
-  /// during the read makes it detached, and the flag is written only while
-  /// still attached to the store it describes.
+  /// marker. Neither does an answer that outlived its attachment: any attach
+  /// change during the read (a reconnect to the same store included) makes
+  /// it detached, and the flag is written only within the attachment the
+  /// check began in.
   Future<MediaTransferHoldKind?> check() async {
+    // Read first: every attach change after this point moves it.
+    final generation = await _attachState.attachGeneration();
     final currentId = await _attachState.attachedStoreId();
     if (currentId == null || currentId != _attachedStoreId) {
       return MediaTransferHoldKind.detached;
     }
     final marker = await StoreMarkerStore(store: _store).read();
     // The read is a network call: the attachment may have changed under it,
-    // and then this answer is about a store this device has left.
-    if (await _attachState.attachedStoreId() != currentId) {
+    // and then this answer is about an attachment this device has left.
+    if (await _attachState.attachGeneration() != generation) {
       return MediaTransferHoldKind.detached;
     }
     final mismatch = marker == null || marker.storeId != currentId;
-    await _attachState.setMarkerMismatch(mismatch, whileAttachedTo: currentId);
+    await _attachState.setMarkerMismatch(
+      mismatch,
+      withinGeneration: generation,
+    );
     return mismatch ? MediaTransferHoldKind.markerMismatch : null;
   }
 

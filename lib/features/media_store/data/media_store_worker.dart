@@ -35,7 +35,18 @@ class MediaStoreWorker {
        _gate = gate,
        _entryBudget = entryBudget,
        _preflightBudget = preflightBudget,
-       _preflightRetryWindow = preflightRetryWindow;
+       _preflightRetryWindow = preflightRetryWindow {
+    // A claim released while this worker is idle is a transfer that
+    // settled outside any drain of its own: late, past its budget, or after
+    // the worker that started it was replaced. A backoff it left behind has
+    // no wakeup, so drain, which arms one. While draining, the release is
+    // this drain's own and the loop carries on.
+    _releaseSub = queue.claimReleases.listen((_) {
+      if (!_disposed && !_running) unawaited(drain());
+    });
+  }
+
+  late final StreamSubscription<void> _releaseSub;
 
   final MediaTransferQueueRepository _queue;
   final MediaUploadPipeline _pipeline;
@@ -268,22 +279,14 @@ class MediaStoreWorker {
       _queue.release(entry.id);
       rethrow;
     }
-    var outlivedBudget = false;
     // Its own listener, so the release outlives the timeout below. Errors
-    // surface through the awaited timeout; this copy of them is dropped.
-    running.whenComplete(() {
-      _queue.release(entry.id);
-      // The drain that gave up on this transfer has finished, and it saw
-      // the row as transferring, so it armed nothing for it. A late failure
-      // parks the row behind a backoff that nothing would wake. A fresh
-      // drain arms it; drain() itself is single-flight and a no-op once
-      // disposed.
-      if (outlivedBudget) unawaited(drain());
-    }).ignore();
+    // surface through the awaited timeout; this copy of them is dropped. A
+    // release after the drain gave up is heard by every idle worker over
+    // this queue (see the constructor), which arms the retry.
+    running.whenComplete(() => _queue.releaseSettled(entry.id)).ignore();
     try {
       await running.timeout(_entryBudget);
     } on TimeoutException {
-      outlivedBudget = true;
       _log.warning(
         'Transfer entry ${entry.id} (media ${entry.mediaId}) exceeded its '
         '${_entryBudget.inMinutes}m budget; deferring it and draining on',
@@ -528,6 +531,7 @@ class MediaStoreWorker {
     _wakeup = null;
     _wakeupDelay = null;
     _queue.clearHoldOwnedBy(this);
+    unawaited(_releaseSub.cancel());
     _suspensionChanges.close();
   }
 

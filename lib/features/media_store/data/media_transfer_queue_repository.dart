@@ -72,17 +72,63 @@ class MediaTransferQueueRepository {
   /// is checked and taken synchronously once the query returns, so nothing
   /// can run between the two; a row another caller claimed while this one
   /// was reading is skipped by asking again.
+  ///
+  /// The read that found the row may be stale: another worker can claim,
+  /// finish and release it while the query is in flight. So the row is read
+  /// again once claimed, and kept only while still pending and due; the
+  /// fresh row is what the caller gets. That second read cannot be stale:
+  /// with the claim held no one else takes the row, and a previous holder
+  /// released it only after its final state was written.
   Future<MediaTransferQueueEntry?> claimNextPending(DateTime now) async {
     while (true) {
       final entry = await nextPending(now);
       if (entry == null) return null;
-      if (_held.add(entry.id)) return entry;
+      if (!_held.add(entry.id)) continue;
+      final fresh = await _dueRow(entry.id, now);
+      if (fresh != null) return fresh;
+      // Settled or re-deferred since the read: not this caller's to take.
+      release(entry.id);
     }
   }
 
-  /// Gives back a claim from [claimNextPending]. Releasing an id that is
-  /// not held does nothing.
+  Future<MediaTransferQueueEntry?> _dueRow(int id, DateTime now) {
+    final nowMs = now.millisecondsSinceEpoch;
+    return (_db.select(_db.mediaTransferQueue)..where(
+          (t) =>
+              t.id.equals(id) &
+              t.state.equals('pending') &
+              (t.nextAttemptAt.isNull() |
+                  t.nextAttemptAt.isSmallerOrEqualValue(nowMs)),
+        ))
+        .getSingleOrNull();
+  }
+
+  /// Gives back a claim from [claimNextPending] whose row no transfer
+  /// touched (a gate stop, a deferral). Releasing an id that is not held
+  /// does nothing.
   void release(int id) => _held.remove(id);
+
+  /// Gives back the claim of a transfer that has settled, and announces it
+  /// on [claimReleases], so an idle worker over this database can come back
+  /// for what the row settled into: a transfer can settle long after the
+  /// drain that started it finished, even after its worker was replaced,
+  /// and a backoff it left behind has no other wakeup.
+  void releaseSettled(int id) {
+    if (_held.remove(id)) _releaseSignal.add(null);
+  }
+
+  static final Expando<StreamController<void>> _releaseSignals = Expando(
+    'media queue claim releases',
+  );
+
+  // Synchronous, so a worker still draining sees its own release while its
+  // drain is marked running, and ignores it.
+  StreamController<void> get _releaseSignal =>
+      _releaseSignals[_db] ??= StreamController<void>.broadcast(sync: true);
+
+  /// Fires each time a transfer over this database settles and gives back
+  /// its claim ([releaseSettled]).
+  Stream<void> get claimReleases => _releaseSignal.stream;
 
   /// Idempotent per mediaId for every live state: pending/transferring
   /// rows are reused, and a terminally 'failed' row is returned as-is so

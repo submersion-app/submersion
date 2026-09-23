@@ -377,6 +377,50 @@ void main() {
     );
   });
 
+  // A runtime rebuild disposes the old worker while its transfer runs. The
+  // replacement saw the row claimed and armed nothing; when the old transfer
+  // then fails into a backoff inside its budget, the disposed worker cannot
+  // arm a timer. The replacement must hear of it.
+  test('a transfer that settles after its worker was replaced still gets a '
+      'retry scheduled', () async {
+    await queue.enqueueUpload(mediaId: 'm1');
+    final pipeline = _LateFailPipeline(
+      queueRef: queue,
+      mediaRepository: mediaRepository,
+      queue: queue,
+      store: InMemoryMediaObjectStore(),
+      registry: MediaSourceResolverRegistry({}),
+      cache: MediaCacheStore(database: cacheDb, root: root),
+    );
+    final superseded = MediaStoreWorker(queue: queue, pipeline: pipeline);
+    final replacement = MediaStoreWorker(
+      queue: MediaTransferQueueRepository(database: cacheDb),
+      pipeline: buildPipeline(hangOn: const {}),
+    );
+    addTearDown(replacement.dispose);
+
+    final first = superseded.drain();
+    for (var i = 0; i < 50; i++) {
+      final rows = await queue.allForTesting();
+      if (rows.single.state == 'transferring') break;
+      await Future<void>.delayed(const Duration(milliseconds: 5));
+    }
+    superseded.dispose();
+    await replacement.drain();
+    expect(replacement.wakeupDelayForTesting, isNull);
+
+    pipeline.release.complete();
+    await first;
+    for (var i = 0; i < 50 && replacement.wakeupDelayForTesting == null; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+
+    expect(
+      replacement.wakeupDelayForTesting,
+      greaterThan(const Duration(minutes: 55)),
+    );
+  });
+
   // The claim goes back when the transfer settles, whatever its outcome: a
   // row that failed back into the queue must be selectable again.
   test('a row that failed back into the queue is taken again', () async {
