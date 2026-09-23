@@ -323,6 +323,7 @@ class MediaRepository {
               connectorAccountId: Value(item.connectorAccountId),
               remoteAssetId: Value(item.remoteAssetId),
               originDeviceId: Value(effectiveDeviceId),
+              cloudAssetId: Value(item.cloudAssetId),
               contentHash: Value(item.contentHash),
               contentSizeBytes: Value(item.contentSizeBytes),
               remoteUploadedAt: Value(
@@ -474,7 +475,8 @@ class MediaRepository {
             // that beats the stamp it erased (media sync program spec 5.1).
             // A caller that really means to change them uses
             // stampContentIdentity, stampRemoteUploaded and friends, or
-            // convertToCloudBacked.
+            // convertToCloudBacked. The cloud asset id is absent for the
+            // same reason: the gallery cloud id backfill stamps it narrowly.
             retainInLibrary: Value(item.retainInLibrary),
             manualElapsedSeconds: Value(item.manualElapsedSeconds),
             updatedAt: Value(now),
