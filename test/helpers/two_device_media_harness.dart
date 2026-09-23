@@ -23,6 +23,7 @@ import 'package:submersion/features/media/data/resolvers/media_store_resolver.da
 import 'package:submersion/features/media/data/resolvers/platform_gallery_resolver.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
+import 'package:submersion/features/media/data/services/gallery_origin_backfill.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
 import 'package:submersion/features/media/data/services/media_item_verifier.dart';
@@ -217,6 +218,7 @@ class HarnessDevice {
           photoPickerService: d.gallery,
         ),
         assetReader: d.gallery,
+        localDeviceId: () async => d.deviceId,
       ),
       MediaSourceType.localFile: LocalFileResolver(
         bookmarkStorage: _NullBookmarkStorage(),
@@ -459,6 +461,30 @@ class HarnessDevice {
   Future<void> deleteDiver(String id) async {
     await activate();
     await DiverRepository().deleteDiverWithReassignment(id);
+  }
+
+  /// Simulates a gallery row linked before links recorded an origin.
+  Future<void> clearOrigin(String id) async {
+    await activate();
+    await db.customStatement(
+      'UPDATE media SET origin_device_id = NULL WHERE id = ?',
+      [id],
+    );
+  }
+
+  /// Runs this device's one-time gallery origin backfill. The preference
+  /// store is shared by both devices, so the flag is cleared first.
+  Future<void> backfillGalleryOrigins() async {
+    await activate();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(GalleryOriginBackfill.doneFlagKey);
+    await GalleryOriginBackfill(
+      mediaRepository: MediaRepository(),
+      reader: gallery,
+      photos: gallery,
+      deviceId: () async => deviceId,
+      prefs: prefs,
+    ).run();
   }
 
   /// Simulates upload stamps that never arrived or were dropped by a merge.
