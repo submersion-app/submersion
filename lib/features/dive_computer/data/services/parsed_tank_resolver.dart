@@ -480,7 +480,7 @@ Map<int, double> _sampleTankReadings(pigeon.ProfileSample sample) {
   if (perTank != null) {
     return {
       for (var index = 0; index < perTank.length; index++)
-        if (perTank[index] case final pressure?) index: pressure,
+        index: ?perTank[index],
     };
   }
   final pressure = sample.pressureBar;
