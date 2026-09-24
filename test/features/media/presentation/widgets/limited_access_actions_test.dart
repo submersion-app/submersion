@@ -46,15 +46,37 @@ void main() {
     ),
   );
 
-  testWidgets('Allow full access opens the settings, then refreshes', (
+  // Opening the settings returns at once, while the user is still there:
+  // the refresh waits until they come back to the app.
+  testWidgets('Allow full access refreshes when the user returns', (
     tester,
   ) async {
     await pump(tester);
 
     await tester.tap(find.text('Allow full access'));
     await tester.pumpAndSettle();
-
     expect(actions.calls, ['settings']);
+    expect(changes, 0, reason: 'the user is still in the settings');
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+
+    expect(changes, 1);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.inactive);
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    expect(changes, 1, reason: 'one refresh per trip to the settings');
+  });
+
+  testWidgets('settings that fail to open refresh at once', (tester) async {
+    actions.error = StateError('no settings');
+    await pump(tester);
+
+    await tester.tap(find.text('Allow full access'));
+    await tester.pumpAndSettle();
+
     expect(changes, 1);
   });
 

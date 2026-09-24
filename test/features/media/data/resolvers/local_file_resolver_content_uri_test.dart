@@ -83,6 +83,17 @@ void main() {
     expect(searches, 1);
   });
 
+  // The search could not look (no permission, a failed query, a limited
+  // selection): a failed read is then inconclusive too, not notFound.
+  test('an inconclusive search keeps a failed read inconclusive', () async {
+    final data = await resolver(
+      'READ_FAILED',
+      found: const UnavailableData(kind: UnavailableKind.accessDenied),
+    ).resolve(row());
+
+    expect((data as UnavailableData).kind, UnavailableKind.accessDenied);
+  });
+
   // Another device's content URI never had a grant here, so it is not a
   // lost grant and not worth a library search per render.
   test('another device\'s content URI is not searched', () async {
