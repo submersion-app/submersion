@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/services/sync/media_resolution_hints.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 
 /// Cache entry with all fields for inspection.
@@ -92,6 +93,36 @@ class LocalAssetCacheRepository {
     await (_db.delete(
       _db.localAssetCache,
     )..where((t) => t.mediaId.equals(mediaId))).go();
+  }
+
+  /// Drops the `unresolved` entries among [mediaIds], so their next view
+  /// searches again instead of waiting out the backoff. Called when a sync
+  /// brings a row something new to be found by (spec 6.2). A resolved
+  /// mapping stays: it was found, and a failed fetch re-resolves it.
+  Future<void> clearUnresolved(Iterable<String> mediaIds) async {
+    final ids = mediaIds.toList();
+    if (ids.isEmpty) return;
+    await (_db.delete(
+      _db.localAssetCache,
+    )..where((t) => t.mediaId.isIn(ids) & t.localAssetId.isNull())).go();
+  }
+
+  /// Applies what a sync merge learned about media rows (spec 6.2): a row
+  /// with something new to be found by retries a search that gave up, and a
+  /// relinked row drops whatever this device cached for its old photo.
+  Future<void> applyResolutionHints(MediaResolutionHints hints) async {
+    await clearUnresolved(hints.retry);
+    await clearEntries(hints.remap);
+  }
+
+  /// Drops the cached entries of [mediaIds], found or not: for rows that now
+  /// name another photo (a relink), whose mapping is about the old one.
+  Future<void> clearEntries(Iterable<String> mediaIds) async {
+    final ids = mediaIds.toList();
+    if (ids.isEmpty) return;
+    await (_db.delete(
+      _db.localAssetCache,
+    )..where((t) => t.mediaId.isIn(ids))).go();
   }
 
   /// Check if an unresolved entry has exceeded its backoff period.

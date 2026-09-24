@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
 import 'package:submersion/features/media/data/services/enrichment_service.dart';
 import 'package:submersion/features/media/data/services/local_file_handle_factory.dart';
 import 'package:submersion/features/media/data/services/local_file_link_service.dart';
@@ -270,6 +271,7 @@ final mediaImportServiceProvider = Provider<MediaImportService>((ref) {
     enrichmentService: ref.watch(enrichmentServiceProvider),
     onMediaCreated: ref.watch(mediaStoreEnqueueProvider),
     linkedGalleryAssets: ref.watch(linkedGalleryAssetsProvider),
+    cloudIdentifiers: const PhotoManagerCloudIdentifierSource(),
   );
 });
 

@@ -446,6 +446,23 @@ hides rows the device did link.
 - Cache invalidation: when a sync applies a new `cloud_asset_id` or new
   upload facts to a row, its `unresolved` cache entry is deleted, so the
   next view retries instead of waiting out the backoff.
+- Decided 2026-09-23 while planning: rung 226 (PR #1978 holds 225); the
+  floor stays 224; the batch `getCloudIdentifiers` call everywhere, since
+  `AssetEntity.darwin.cloudIdentifier` wraps it one id at a time and throws
+  off Apple platforms; the backfill is the slice 7 origin backfill's twin
+  (own rows, after a sync, full access), not the origin republish sweep,
+  and it waits for the origin backfill. It repeats at most once a day
+  rather than once ever (review of #2312): a photo linked before iCloud
+  Photos uploaded it, or before iCloud Photos was on, has no cloud id yet
+  and gains one later. A relink synced from a peer drops this device's
+  cached mapping outright, found or not, since it names the old photo; a
+  new cloud id or upload fact still retries only a search that gave up. A
+  gallery relink restamps
+  the cloud id, with an empty string for "none" because a null never
+  reaches a peer through the merge's nullToAbsent upsert. "New upload
+  facts" means an upload value this device did not have, not a won upload
+  clock: a group with no clock of its own falls back to the row clock, so
+  a plain edit can win it.
 
 ### 6.3 Android (#1625)
 
@@ -520,6 +537,15 @@ media store, the tile probes the store for the row's `contentHash` once per
 row per session, negative-cached in memory, and falls back to the store when
 the object exists. Section 5.1 makes lost stamps rare; this makes a late or
 lost stamp cosmetic.
+
+Read-only (decided 2026-09-23): a successful probe serves the tile and
+writes nothing; the stamps stay the uploading device's facts, and a grid
+render never publishes a sync write. Only `fromOtherDevice` is probed
+(`notFound` is the linking device's own verdict that the bytes are gone),
+each tier the request needs is asked about once per store key for the
+life of the store runtime (an original's key carries its extension, so one
+content hash can have several), and a HEAD that failed or timed out is not
+remembered.
 
 ## 8. Phase 4: verification matrix
 

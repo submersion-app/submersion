@@ -24,7 +24,7 @@ void main() {
       TileOutcome.store,
       reason: 'the bytes are in the store B is attached to',
     );
-  }, skip: 'Media sync program S4: turns green in slice 11 (store gate probe)');
+  });
 
   test(
     'S8: a throwing preflight suspends the worker with a visible reason',

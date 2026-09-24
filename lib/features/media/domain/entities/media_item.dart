@@ -107,6 +107,11 @@ class MediaItem extends Equatable {
   final String? connectorAccountId;
   final String? remoteAssetId;
   final String? originDeviceId;
+
+  /// PhotoKit's cloud identifier for a gallery link: the same photo on any
+  /// device sharing this iCloud Photos library (spec 6.2). Null or empty
+  /// means none is known; resolution then matches by metadata alone.
+  final String? cloudAssetId;
   final String? contentHash;
   final int? contentSizeBytes;
   final DateTime? remoteUploadedAt;
@@ -162,6 +167,7 @@ class MediaItem extends Equatable {
     this.connectorAccountId,
     this.remoteAssetId,
     this.originDeviceId,
+    this.cloudAssetId,
     this.contentHash,
     this.contentSizeBytes,
     this.remoteUploadedAt,
@@ -310,6 +316,7 @@ class MediaItem extends Equatable {
     Object? connectorAccountId = _undefined,
     Object? remoteAssetId = _undefined,
     Object? originDeviceId = _undefined,
+    Object? cloudAssetId = _undefined,
     Object? contentHash = _undefined,
     Object? contentSizeBytes = _undefined,
     Object? remoteUploadedAt = _undefined,
@@ -388,6 +395,9 @@ class MediaItem extends Equatable {
       originDeviceId: originDeviceId == _undefined
           ? this.originDeviceId
           : originDeviceId as String?,
+      cloudAssetId: cloudAssetId == _undefined
+          ? this.cloudAssetId
+          : cloudAssetId as String?,
       contentHash: contentHash == _undefined
           ? this.contentHash
           : contentHash as String?,
@@ -455,6 +465,7 @@ class MediaItem extends Equatable {
     connectorAccountId,
     remoteAssetId,
     originDeviceId,
+    cloudAssetId,
     contentHash,
     contentSizeBytes,
     remoteUploadedAt,

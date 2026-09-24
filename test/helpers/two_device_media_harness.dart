@@ -23,6 +23,7 @@ import 'package:submersion/features/media/data/resolvers/media_store_resolver.da
 import 'package:submersion/features/media/data/resolvers/platform_gallery_resolver.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/data/services/exif_extractor.dart';
+import 'package:submersion/features/media/data/services/gallery_cloud_id_backfill.dart';
 import 'package:submersion/features/media/data/services/gallery_origin_backfill.dart';
 import 'package:submersion/features/media/data/services/local_bookmark_storage.dart';
 import 'package:submersion/features/media/data/services/local_media_platform.dart';
@@ -218,6 +219,7 @@ class HarnessDevice {
         resolutionService: AssetResolutionService(
           cacheRepository: d.assetCache,
           photoPickerService: d.gallery,
+          cloudIdentifiers: d.gallery,
         ),
         assetReader: d.gallery,
         localDeviceId: () async => d.deviceId,
@@ -336,11 +338,16 @@ class HarnessDevice {
   }) async {
     await activate();
     gallery.add(asset);
+    // As MediaImportService stamps it at link time (spec 6.2). The counter
+    // is reset so tests count only resolution's lookups.
+    final cloudIds = await gallery.cloudIdentifiers([asset.id]);
+    gallery.cloudIdCalls = 0;
     final created = await MediaRepository().createMedia(
       MediaItem(
         id: '',
         diveId: diveId,
         platformAssetId: asset.id,
+        cloudAssetId: cloudIds[asset.id],
         mediaType: asset.type == AssetType.video
             ? MediaType.video
             : MediaType.photo,
@@ -380,6 +387,7 @@ class HarnessDevice {
       syncRepository: SyncRepository(),
       serializer: SyncDataSerializer(),
       cloudProvider: _harness.cloud,
+      onMediaResolutionHints: assetCache.applyResolutionHints,
     ).performSync();
     if (expectSuccess && !result.isSuccess) {
       throw StateError('$name sync failed: ${result.status} ${result.message}');
@@ -481,6 +489,15 @@ class HarnessDevice {
     );
   }
 
+  /// Simulates a gallery row linked before links recorded a cloud id.
+  Future<void> clearCloudAssetId(String id) async {
+    await activate();
+    await db.customStatement(
+      'UPDATE media SET cloud_asset_id = NULL WHERE id = ?',
+      [id],
+    );
+  }
+
   /// Runs this device's one-time gallery origin backfill. The preference
   /// store is shared by both devices, so the flag is cleared first.
   Future<void> backfillGalleryOrigins() async {
@@ -494,6 +511,26 @@ class HarnessDevice {
       permissionStatus: () async => gallery.permission,
       deviceId: () async => deviceId,
       prefs: prefs,
+    ).run();
+  }
+
+  /// Runs this device's gallery cloud id backfill now. The preference store
+  /// is shared by both devices, so the last run is cleared first, and the
+  /// origin backfill it waits for is marked done: harness gallery rows
+  /// record their origin at link time.
+  Future<void> backfillGalleryCloudIds() async {
+    await activate();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(GalleryCloudIdBackfill.lastRunKey);
+    await prefs.setBool(GalleryOriginBackfill.doneFlagKey, true);
+    await GalleryCloudIdBackfill(
+      mediaRepository: MediaRepository(),
+      cloudIdentifiers: gallery,
+      photos: gallery,
+      permissionStatus: () async => gallery.permission,
+      deviceId: () async => deviceId,
+      prefs: prefs,
+      assetCache: assetCache,
     ).run();
   }
 

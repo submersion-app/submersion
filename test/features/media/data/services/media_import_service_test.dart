@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
@@ -11,6 +13,7 @@ import 'package:submersion/features/media/data/services/photo_picker_service.dar
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
+import '../../../../helpers/fake_photo_picker_service.dart';
 @GenerateMocks([MediaRepository, EnrichmentService])
 import 'media_import_service_test.mocks.dart';
 
@@ -224,6 +227,40 @@ void main() {
         expect(result.allSucceeded, isTrue);
 
         verify(mockMediaRepository.createMedia(any)).called(2);
+      });
+
+      test('records each gallery link\'s iCloud identifier', () async {
+        final library = FakePhotoPickerService(
+          assets: [
+            FakeGalleryAsset(
+              id: 'asset-1',
+              bytes: Uint8List.fromList([1]),
+              takenAt: DateTime(2024, 1, 15, 10, 30),
+              cloudId: 'C-1',
+            ),
+          ],
+        );
+        final withCloud = MediaImportService(
+          mediaRepository: mockMediaRepository,
+          enrichmentService: mockEnrichmentService,
+          cloudIdentifiers: library,
+        );
+        when(
+          mockMediaRepository.getGalleryLinksForDive('dive-1'),
+        ).thenAnswer((_) async => _linkedRows(<String>{}));
+        when(mockMediaRepository.createMedia(any)).thenAnswer((
+          invocation,
+        ) async {
+          final item = invocation.positionalArguments[0] as MediaItem;
+          return item.copyWith(id: 'media-${item.platformAssetId}');
+        });
+
+        final result = await withCloud.importPhotosForDive(
+          selectedAssets: [library.infoFor('asset-1')],
+          dive: testDive,
+        );
+
+        expect(result.imported.single.cloudAssetId, 'C-1');
       });
 
       test(

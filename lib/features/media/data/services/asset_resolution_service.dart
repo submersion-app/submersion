@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
+import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -49,8 +50,8 @@ class ResolutionResult {
 ///
 /// When a database is synced from another device, the platformAssetId
 /// values won't resolve locally. This service finds the matching local
-/// asset by metadata (filename, timestamp, dimensions) and caches the
-/// mapping for future lookups.
+/// asset by its iCloud identifier, else by metadata (filename, timestamp,
+/// dimensions), and caches the mapping for future lookups.
 ///
 /// Gallery query coalescing: when multiple photos from the same dive
 /// trigger resolution concurrently (e.g., opening a dive with 20 photos),
@@ -60,6 +61,7 @@ class ResolutionResult {
 class AssetResolutionService {
   final LocalAssetCacheRepository _cacheRepository;
   final PhotoPickerService _photoPickerService;
+  final CloudIdentifierSource? _cloudIdentifiers;
   final _log = LoggerService.forClass(
     AssetResolutionService,
     category: LogCategory.media,
@@ -68,6 +70,11 @@ class AssetResolutionService {
   /// In-flight resolution futures keyed by mediaId to prevent duplicate work.
   final Map<String, Future<ResolutionResult>> _pendingResolutions = {};
 
+  /// Short-lived cloud id lookups keyed by candidate set, so the rows of one
+  /// dive, resolving together over one time window, share one platform call
+  /// the way they share one gallery query.
+  final Map<String, _CloudIdLookup> _cloudIdLookups = {};
+
   /// Short-lived cache of gallery query results to coalesce concurrent queries.
   /// Keyed by a time-range bucket string (start~end in ms epoch).
   final Map<String, _GalleryQueryCacheEntry> _galleryQueryCache = {};
@@ -75,15 +82,18 @@ class AssetResolutionService {
   AssetResolutionService({
     required LocalAssetCacheRepository cacheRepository,
     required PhotoPickerService photoPickerService,
+    CloudIdentifierSource? cloudIdentifiers,
   }) : _cacheRepository = cacheRepository,
-       _photoPickerService = photoPickerService;
+       _photoPickerService = photoPickerService,
+       _cloudIdentifiers = cloudIdentifiers;
 
   /// Resolve the local asset ID for a media item.
   ///
   /// Resolution order:
   /// 1. Check local cache
   /// 2. Try original platformAssetId (works on originating device)
-  /// 3. Search gallery by metadata (tiered matching)
+  /// 3. Search the gallery's time window by iCloud identifier, then by
+  ///    metadata (tiered matching)
   Future<ResolutionResult> resolveAssetId(MediaItem item) async {
     // Desktop platforms don't use gallery asset IDs
     if (!_photoPickerService.supportsGalleryBrowsing) {
@@ -310,6 +320,24 @@ class AssetResolutionService {
       return const ResolutionResult(status: ResolutionStatus.unavailable);
     }
 
+    // Tier 0: the iCloud identifier (media sync program spec 6.2). It names
+    // one photo on every device sharing the library, so it separates what
+    // metadata cannot (a burst pair shot in the same second), and it wins
+    // before any metadata tier.
+    final cloudMatch = await _matchByCloudIdentifier(item, candidates);
+    if (cloudMatch != null) {
+      await _cacheRepository.cacheResolution(
+        mediaId: item.id,
+        localAssetId: cloudMatch,
+        method: 'cloud_id',
+      );
+      _log.debug('Resolved via cloud identifier: $cloudMatch');
+      return ResolutionResult(
+        localAssetId: cloudMatch,
+        status: ResolutionStatus.resolved,
+      );
+    }
+
     // Tier 1: filename + timestamp
     final tier1Match = matchByFilenameAndTimestamp(item, candidates);
     if (tier1Match != null) {
@@ -398,6 +426,71 @@ class AssetResolutionService {
     } catch (_) {
       return false;
     }
+  }
+
+  /// The one candidate whose iCloud identifier is [item]'s, or null: when
+  /// the row has none (null, or empty after a relink that found none),
+  /// when there is no source, when the lookup fails, or when the match is
+  /// not unique. The candidates are the ones the metadata tiers already
+  /// fetched for the photo's time window, looked up in one batch; PhotoKit
+  /// has no cloud-to-local lookup, so this maps them forward.
+  Future<String?> _matchByCloudIdentifier(
+    MediaItem item,
+    List<AssetInfo> candidates,
+  ) async {
+    final cloudId = item.cloudAssetId;
+    final source = _cloudIdentifiers;
+    if (source == null ||
+        !source.isSupported ||
+        cloudId == null ||
+        cloudId.isEmpty) {
+      return null;
+    }
+    final Map<String, String> ids;
+    try {
+      ids = await _cloudIdsCoalesced(source, [
+        for (final c in candidates) c.id,
+      ]);
+    } on Object catch (e) {
+      _log.warning(
+        'Cloud identifier lookup failed for media ${item.id}; '
+        'matching by metadata',
+        error: e,
+      );
+      return null;
+    }
+    final matches = [
+      for (final c in candidates)
+        if (ids[c.id] == cloudId) c.id,
+    ];
+    return matches.length == 1 ? matches.single : null;
+  }
+
+  /// [source]'s cloud ids for [ids], shared with any lookup of the same set
+  /// made in the last 30 seconds or still in flight. A lookup that fails is
+  /// dropped, so the next row asks again.
+  Future<Map<String, String>> _cloudIdsCoalesced(
+    CloudIdentifierSource source,
+    List<String> ids,
+  ) {
+    final key = ([...ids]..sort()).join('|');
+    _cloudIdLookups.removeWhere((_, lookup) => lookup.isExpired);
+    final cached = _cloudIdLookups[key];
+    if (cached != null) return cached.result;
+    final result = source.cloudIdentifiers(ids);
+    _cloudIdLookups[key] = _CloudIdLookup(
+      result: result,
+      createdAt: DateTime.now(),
+    );
+    result.then<void>(
+      (_) {},
+      onError: (Object _) {
+        if (identical(_cloudIdLookups[key]?.result, result)) {
+          _cloudIdLookups.remove(key);
+        }
+      },
+    );
+    return result;
   }
 
   Future<void> _cacheUnresolved(String mediaId) async {
@@ -632,4 +725,15 @@ class _GalleryQueryCacheEntry {
   _GalleryQueryCacheEntry({required this.results, required this.createdAt});
 
   bool get isExpired => DateTime.now().isAfter(createdAt.add(_ttl));
+}
+
+/// One shared cloud id lookup, kept as long as a gallery query result.
+class _CloudIdLookup {
+  final Future<Map<String, String>> result;
+  final DateTime createdAt;
+
+  _CloudIdLookup({required this.result, required this.createdAt});
+
+  bool get isExpired =>
+      DateTime.now().isAfter(createdAt.add(_GalleryQueryCacheEntry._ttl));
 }

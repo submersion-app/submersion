@@ -3,8 +3,10 @@ import 'dart:typed_data';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repair_log_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
 import 'package:submersion/features/media/data/services/repair/folder_candidate_source.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/services/media_repair_types.dart';
@@ -18,6 +20,7 @@ class RepairWrite {
     this.newBookmarkRef,
     this.newPlatformAssetId,
     this.newSourceType = MediaSourceType.localFile,
+    this.newCloudAssetId,
   });
 
   final String mediaId;
@@ -31,6 +34,12 @@ class RepairWrite {
   /// asset, and [MediaSourceType.platformGallery] pairs with
   /// [newPlatformAssetId].
   final MediaSourceType newSourceType;
+
+  /// The new gallery asset's iCloud identifier, or null when it has none or
+  /// the lookup failed. The repository writes null as '': the old id named
+  /// the old asset, and an empty string (unlike null) reaches every peer.
+  /// Unused for other sources.
+  final String? newCloudAssetId;
 }
 
 /// Outcome counts of one apply pass, in wizard-summary terms.
@@ -66,6 +75,8 @@ class MediaRepairService {
     required this.createBookmark,
     required this.writeBookmark,
     this.log,
+    this.cloudIdentifiers,
+    this.assetCache,
   });
 
   final MediaRepository repository;
@@ -79,8 +90,53 @@ class MediaRepairService {
   /// constructible in tests that do not care about history.
   final MediaRepairLogRepository? log;
 
+  /// Looks up a relinked gallery asset's iCloud identifier (spec 6.2);
+  /// null leaves every gallery relink's cloud id empty.
+  final CloudIdentifierSource? cloudIdentifiers;
+
+  /// This device's resolution cache. It trusts a found mapping without
+  /// re-proving it, so a relinked row's entry, which names the photo the
+  /// row used to point at, is dropped after the relink commits. Peers drop
+  /// theirs through the sync hook when the relink reaches them.
+  final LocalAssetCacheRepository? assetCache;
+
   static const _log = LoggerService('MediaRepairService');
   static const _uuid = Uuid();
+
+  /// [writes] with each gallery relink's new iCloud identifier, looked up
+  /// in one batch (spec 6.2). A relink whose asset has none, or whose
+  /// lookup failed, keeps null, which the repository writes as ''.
+  Future<List<RepairWrite>> _withCloudIds(List<RepairWrite> writes) async {
+    final galleryIds = [
+      for (final w in writes)
+        if (w.newSourceType == MediaSourceType.platformGallery &&
+            w.newPlatformAssetId != null)
+          w.newPlatformAssetId!,
+    ];
+    if (galleryIds.isEmpty) return writes;
+    var cloudIds = const <String, String>{};
+    final source = cloudIdentifiers;
+    if (source != null) {
+      try {
+        cloudIds = await source.cloudIdentifiers(galleryIds);
+      } on Object catch (e) {
+        _log.warning('Could not read cloud ids for relinked assets: $e');
+      }
+    }
+    return [
+      for (final w in writes)
+        w.newSourceType == MediaSourceType.platformGallery
+            ? RepairWrite(
+                mediaId: w.mediaId,
+                newLocalPath: w.newLocalPath,
+                newBookmarkRef: w.newBookmarkRef,
+                newPlatformAssetId: w.newPlatformAssetId,
+                newSourceType: w.newSourceType,
+                newCloudAssetId: cloudIds[w.newPlatformAssetId],
+              )
+            : w,
+    ];
+  }
 
   Future<RepairApplyReport> apply(
     List<RepairProposal> accepted, {
@@ -205,7 +261,14 @@ class MediaRepairService {
     }
 
     // Stage B: one transaction for every surviving write.
-    await repository.applyRepairWrites(writes);
+    await repository.applyRepairWrites(await _withCloudIds(writes));
+    try {
+      await assetCache?.clearEntries([for (final w in writes) w.mediaId]);
+    } on Object catch (e) {
+      // The relink has committed; a stale entry costs one failed fetch,
+      // after which the resolver re-resolves the row.
+      _log.warning('Could not drop cached mappings for relinked rows: $e');
+    }
 
     // Stage C: store side effects.
     for (final stamp in editedStamps) {

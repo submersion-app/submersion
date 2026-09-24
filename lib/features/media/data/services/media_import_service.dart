@@ -7,6 +7,7 @@ import 'package:submersion/core/constants/app_directories.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
+import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
 import 'package:submersion/features/media/data/services/enrichment_service.dart';
 import 'package:submersion/features/media/data/services/linked_gallery_assets.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
@@ -60,11 +61,13 @@ class MediaImportService {
     Future<Directory> Function()? documentsDirectory,
     this.onMediaCreated,
     LinkedGalleryAssets linkedGalleryAssets = const LinkedGalleryAssets(),
+    CloudIdentifierSource? cloudIdentifiers,
   }) : _mediaRepository = mediaRepository,
        _enrichmentService = enrichmentService,
        _documentsDirectory =
            documentsDirectory ?? getApplicationDocumentsDirectory,
-       _linkedGalleryAssets = linkedGalleryAssets;
+       _linkedGalleryAssets = linkedGalleryAssets,
+       _cloudIdentifiers = cloudIdentifiers;
 
   final Future<Directory> Function() _documentsDirectory;
 
@@ -73,6 +76,34 @@ class MediaImportService {
   /// synced id; production passes one backed by the asset resolver so a
   /// photo linked on another device is recognised too (#885).
   final LinkedGalleryAssets _linkedGalleryAssets;
+
+  /// Looks up each picked gallery asset's iCloud identifier, recorded on
+  /// the row so another device sharing the library finds the exact photo
+  /// (spec 6.2). Null where there is none to ask; the photo_manager source
+  /// production passes answers nothing off Apple platforms.
+  final CloudIdentifierSource? _cloudIdentifiers;
+
+  /// The cloud id of each gallery asset in [assets], in one lookup. Empty
+  /// when there is no source or the lookup fails: the id is a hint for
+  /// other devices, and a link without one resolves by metadata as before.
+  Future<Map<String, String>> _cloudIdsFor(List<AssetInfo> assets) async {
+    final source = _cloudIdentifiers;
+    final gallery = [
+      for (final a in assets)
+        if (a.filePath == null || a.filePath!.isEmpty) a.id,
+    ];
+    if (source == null || gallery.isEmpty) return const {};
+    try {
+      return await source.cloudIdentifiers(gallery);
+    } on Object catch (e, stackTrace) {
+      _log.warning(
+        'Could not read cloud ids for ${gallery.length} picked assets',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const {};
+    }
+  }
 
   /// Invoked after every successful createMedia so the media store can
   /// enqueue an upload. Null when no store is configured.
@@ -194,10 +225,15 @@ class MediaImportService {
       _log.info('Skipped $skippedCount duplicate assets for dive ${dive.id}');
     }
 
+    final cloudIds = await _cloudIdsFor(newAssets);
     for (final asset in newAssets) {
       try {
         // Create MediaItem
-        final mediaItem = _createMediaItemFromAsset(asset, diveId: dive.id);
+        final mediaItem = _createMediaItemFromAsset(
+          asset,
+          diveId: dive.id,
+          cloudAssetId: cloudIds[asset.id],
+        );
 
         // Save to database
         final saved = await _mediaRepository.createMedia(mediaItem);
@@ -274,9 +310,14 @@ class MediaImportService {
     }).toList();
     final skippedCount = selectedAssets.length - newAssets.length;
 
+    final cloudIds = await _cloudIdsFor(newAssets);
     for (final asset in newAssets) {
       try {
-        final mediaItem = _createMediaItemFromAsset(asset, siteId: siteId);
+        final mediaItem = _createMediaItemFromAsset(
+          asset,
+          siteId: siteId,
+          cloudAssetId: cloudIds[asset.id],
+        );
         final saved = await _mediaRepository.createMedia(mediaItem);
         imported.add(saved);
         onMediaCreated?.call(saved.id);
@@ -324,6 +365,7 @@ class MediaImportService {
     AssetInfo asset, {
     String? diveId,
     String? siteId,
+    String? cloudAssetId,
   }) {
     final now = DateTime.now();
 
@@ -351,6 +393,7 @@ class MediaImportService {
       // through photo_manager, which has no backend there. Duplicate
       // detection for these rows keys on localPath instead.
       platformAssetId: isLocalFile ? null : asset.id,
+      cloudAssetId: isLocalFile ? null : cloudAssetId,
       originalFilename: asset.filename,
       mediaType: asset.isVideo ? MediaType.video : MediaType.photo,
       sourceType: isLocalFile
