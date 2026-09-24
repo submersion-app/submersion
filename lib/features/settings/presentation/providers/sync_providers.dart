@@ -50,8 +50,10 @@ import 'package:submersion/core/services/sync/sync_service.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gps_log/presentation/providers/gps_log_providers.dart';
+import 'package:submersion/features/media/presentation/providers/gallery_cloud_id_backfill_provider.dart';
 import 'package:submersion/features/media/presentation/providers/gallery_origin_backfill_provider.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_service_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/storage_providers.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
@@ -521,6 +523,9 @@ final peerDeviceNamesProvider = StreamProvider<Map<String, String>>((ref) {
 });
 
 /// Sync service provider
+// no-tick: the value is a SERVICE, not a query result. Its one repository
+// call (applyResolutionHints) is a write made inside a callback at merge
+// time, so there is no cached row to go stale.
 final syncServiceProvider = Provider<SyncService>((ref) {
   return SyncService(
     syncRepository: ref.watch(syncRepositoryProvider),
@@ -531,6 +536,10 @@ final syncServiceProvider = Provider<SyncService>((ref) {
     encryptionService: ref.watch(syncEncryptionServiceProvider),
     localizations: () => l10nForLocaleTag(ref.read(localeProvider)),
     peerNames: ref.watch(peerDeviceNameStoreProvider),
+    // A synced cloud id or upload lifts a gallery search's backoff, and a
+    // relink drops the old photo's mapping (spec 6.2).
+    onMediaResolutionHints: (hints) =>
+        ref.read(localAssetCacheRepositoryProvider).applyResolutionHints(hints),
   );
 });
 
@@ -1420,6 +1429,11 @@ class SyncNotifier extends StateNotifier<SyncState> {
           await _ref.read(galleryOriginBackfillProvider)();
           // The notifier can be disposed while the backfill runs, and the
           // settle below reads state.
+          if (!mounted) return;
+          // Then the iCloud identifiers of this device's own gallery rows
+          // (spec 6.2), for the same reasons, once the origins it relies on
+          // are stamped. At most once a day, and contains its own failures.
+          await _ref.read(galleryCloudIdBackfillProvider)();
           if (!mounted) return;
         } else {
           state = state.copyWith(

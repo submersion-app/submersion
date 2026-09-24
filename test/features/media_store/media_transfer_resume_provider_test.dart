@@ -75,14 +75,40 @@ void main() {
     expect(harness.builds, isEmpty);
   });
 
-  // A row parked behind markFailed's backoff (up to 25 hours) is not due, so
-  // there is nothing for a drain to take. The worker's own wakeup timer owns
-  // that case once the runtime exists.
-  test('a queue holding only deferred rows does not build the '
-      'runtime', () async {
-    await queue.enqueueUpload(mediaId: 'm1');
-    final entry = (await queue.nextPending(DateTime.now()))!;
-    await queue.defer(entry.id, DateTime.now().add(const Duration(hours: 25)));
+  // A row parked behind markFailed's backoff (up to 25 hours) has no trigger
+  // but the worker's wakeup, and the worker exists only once the runtime is
+  // built (spec 7.1).
+  test('a queue holding only deferred rows builds the runtime', () async {
+    final id = await queue.enqueueUpload(mediaId: 'm1');
+    await queue.defer(id, DateTime.now().add(const Duration(hours: 25)));
+    final harness = buildContainer(attached: true);
+
+    await harness.container.read(mediaTransferResumeProvider)();
+
+    expect(harness.builds, hasLength(1));
+  });
+
+  // A row stranded in 'transferring' by a killed process is reclaimed only
+  // by a drain, and nextPending never selects it.
+  test('a queue holding only a stranded row builds the runtime', () async {
+    final id = await queue.enqueueUpload(mediaId: 'm1');
+    await queue.markTransferring(id);
+    final harness = buildContainer(attached: true);
+
+    await harness.container.read(mediaTransferResumeProvider)();
+
+    expect(harness.builds, hasLength(1));
+  });
+
+  // Finished and terminally failed rows need nothing from a runtime; a
+  // failed one comes back only through an explicit retry.
+  test('a queue of finished and failed rows does not build it', () async {
+    final done = await queue.enqueueUpload(mediaId: 'm1');
+    await queue.markDone(done);
+    final failed = await queue.enqueueUpload(mediaId: 'm2');
+    for (var i = 0; i < 5; i++) {
+      await queue.markFailed(failed, 'gone');
+    }
     final harness = buildContainer(attached: true);
 
     await harness.container.read(mediaTransferResumeProvider)();

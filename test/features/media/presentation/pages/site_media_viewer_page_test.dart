@@ -14,6 +14,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/pages/site_media_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media/presentation/providers/site_media_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/media_item_view.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../support/media_widget_harness.dart';
@@ -131,6 +132,16 @@ void main() {
     expect(find.text('No photos available'), findsNothing);
     // First of two photos.
     expect(find.text('1 / 2'), findsOneWidget);
+  });
+
+  // A full-screen pager, like the dive viewer: a photo outside a limited
+  // selection must offer the ways back here too (spec 6.3).
+  testWidgets('the pager offers limited-access actions', (tester) async {
+    await pumpViewer(tester);
+
+    final views = tester.widgetList<MediaItemView>(find.byType(MediaItemView));
+    expect(views, isNotEmpty);
+    expect(views.every((v) => v.showAccessActions), isTrue);
   });
 
   testWidgets('initialMediaId selects that item rather than the first', (

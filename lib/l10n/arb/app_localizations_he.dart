@@ -434,6 +434,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String trips_story_dockedDay_goToDay(int number) {
+    return 'מעבר ליום $number';
+  }
+
+  @override
   String get trips_story_surfaceDay => 'יום פני השטח';
 
   @override
@@ -26798,6 +26803,14 @@ class AppLocalizationsHe extends AppLocalizations {
       'המכשיר הזה ואחסון הענן כבר לא מסכימים על המאגר שבשימוש. חיבור מחדש של אחסון המדיה מאמץ את המאגר שנמצא כעת בענן.';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      'המכשיר הזה כבר לא מחובר לאחסון המדיה הזה. אפשר לחבר אותו מחדש בהגדרות אחסון המדיה.';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      'לא ניתן היה לבדוק את אחסון המדיה. ההעברות ינוסו שוב באופן אוטומטי.';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count בתור';
   }
@@ -26806,6 +26819,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count ממתינים לניסיון חוזר';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection =>
+      'ממתין לחיבור';
 
   @override
   String get settings_mediaStorage_report_action => 'ייצוא דוח מדיה';
@@ -27513,6 +27530,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return 'חיבור מחדש של אחסון מדיה ($hint)';
+  }
+
+  @override
   String settings_setup_accountSignIn(String label) {
     return 'התחברות אל $label';
   }
@@ -27638,6 +27660,16 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get media_unavailablePlaceholder_accessDenied =>
       'אין גישה לספריית התמונות';
+
+  @override
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'לא בין התמונות המורשות';
+
+  @override
+  String get media_limitedAccess_allowFullAccess => 'אפשר גישה מלאה';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain => 'בחר את התמונה שוב';
 
   @override
   String get attrLabel_hose_length_m => 'אורך הצינור';

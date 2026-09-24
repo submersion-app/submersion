@@ -440,6 +440,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String trips_story_dockedDay_goToDay(int number) {
+    return 'Ir al día $number';
+  }
+
+  @override
   String get trips_story_surfaceDay => 'Día de superficie';
 
   @override
@@ -27488,6 +27493,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Este dispositivo y el almacenamiento en la nube ya no coinciden en qué almacén está en uso. Volver a conectar adopta el almacén que la nube tiene ahora.';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      'Este dispositivo ya no está conectado a este almacenamiento de medios. Se puede volver a conectar en Almacenamiento de medios.';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      'No se pudo comprobar el almacenamiento de medios. Las transferencias se reintentan automáticamente.';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count en cola';
   }
@@ -27496,6 +27509,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count esperando para reintentar';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection =>
+      'Esperando una conexión';
 
   @override
   String get settings_mediaStorage_report_action =>
@@ -28220,6 +28237,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return 'Volver a conectar el almacenamiento de medios ($hint)';
+  }
+
+  @override
   String settings_setup_accountSignIn(String label) {
     return 'Iniciar sesión en $label';
   }
@@ -28354,6 +28376,16 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get media_unavailablePlaceholder_accessDenied =>
       'Sin acceso a la fototeca';
+
+  @override
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'No está entre las fotos permitidas';
+
+  @override
+  String get media_limitedAccess_allowFullAccess => 'Permitir acceso completo';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain => 'Volver a elegir la foto';
 
   @override
   String get attrLabel_hose_length_m => 'Longitud del latiguillo';

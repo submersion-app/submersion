@@ -45,6 +45,7 @@ import 'package:submersion/features/equipment/presentation/widgets/assembly_chip
 import 'package:submersion/features/equipment/presentation/widgets/dense_equipment_list_tile.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_filter_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_header_bar.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_sort_sheet.dart';
 import 'package:submersion/features/equipment/presentation/widgets/bulk_equipment_tag_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -59,7 +60,24 @@ class EquipmentListContent extends ConsumerStatefulWidget {
   final String? selectedId;
   final bool showAppBar;
   final Widget? floatingActionButton;
-  final Widget? headerExtension;
+
+  /// Builds the Equipment / Sets toggle into this list's own header bar.
+  ///
+  /// Null on phone, where the page's app bar carries it instead.
+  final EquipmentHeaderToggleBuilder? toggleBuilder;
+
+  /// Drives bulk selection from outside the list when set.
+  ///
+  /// On phone the page's app bar carries the actions, "Select items" among
+  /// them, so the page has to reach the same controller the rows use. Left
+  /// null, the list owns its own.
+  final SelectionController? selectionController;
+
+  /// Whether the list draws its own header bar.
+  ///
+  /// False on phone, where the page's app bar carries the switcher and the
+  /// actions. The selection bar still appears here while selecting.
+  final bool showHeader;
 
   const EquipmentListContent({
     super.key,
@@ -67,8 +85,15 @@ class EquipmentListContent extends ConsumerStatefulWidget {
     this.selectedId,
     this.showAppBar = true,
     this.floatingActionButton,
-    this.headerExtension,
+    this.toggleBuilder,
+    this.selectionController,
+    this.showHeader = true,
   });
+
+  /// Whether the list draws type groups in [mode]. The flat modes (table,
+  /// dense) ignore the grouping, so their sort sheet leaves it out.
+  static bool showsGrouping(ListViewMode mode) =>
+      mode == ListViewMode.detailed || mode == ListViewMode.compact;
 
   @override
   ConsumerState<EquipmentListContent> createState() =>
@@ -76,8 +101,19 @@ class EquipmentListContent extends ConsumerStatefulWidget {
 }
 
 class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
-  /// Owns the bulk-selection state machine for this list.
-  final SelectionController _selection = SelectionController();
+  /// The bulk-selection state machine for this list: the page's when it
+  /// passes one, otherwise this list's own.
+  late final SelectionController _selection = _adoptSelection();
+
+  /// Only a controller this list created is this list's to dispose. Set in
+  /// the same step that picks the controller, so the two cannot disagree.
+  bool _ownsSelection = false;
+
+  SelectionController _adoptSelection() {
+    final external = widget.selectionController;
+    _ownsSelection = external == null;
+    return external ?? SelectionController();
+  }
 
   /// Convenience mirrors of the controller, so the widget tree reads clearly.
   bool get _isSelectionMode => _selection.value.isActive;
@@ -106,7 +142,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
   @override
   void dispose() {
     _scrollController.dispose();
-    _selection.dispose();
+    if (_ownsSelection) _selection.dispose();
     super.dispose();
   }
 
@@ -148,7 +184,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
 
   /// Whether [mode] draws the shared arrangement: the card modes only.
   static bool _honoursArrangement(ListViewMode mode) =>
-      mode == ListViewMode.detailed || mode == ListViewMode.compact;
+      EquipmentListContent.showsGrouping(mode);
 
   /// Orders the flat modes by the page sort alone: with no type order the
   /// arranger draws no headings and [arrangeEquipment]'s item comparator,
@@ -361,10 +397,22 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           valueListenable: _selection,
           builder: (context, selection, _) => Column(
             children: [
-              selection.isActive
-                  ? _buildSelectionBar(sortedVisible, SelectionBarShell.pane)
-                  : _buildCompactAppBar(context),
-              if (widget.headerExtension != null) widget.headerExtension!,
+              // The toggle outlives the actions it scopes. The master pane
+              // has no app bar above it, so letting the header go away with
+              // the action row would strand the diver in Equipment until they
+              // left selection mode.
+              if (selection.isActive) ...[
+                if (widget.toggleBuilder != null)
+                  EquipmentHeaderBar(
+                    toggleBuilder: widget.toggleBuilder,
+                    actionsBuilder: _noActions,
+                  ),
+                _buildSelectionBar(sortedVisible, SelectionBarShell.pane),
+              ] else if (widget.showHeader)
+                EquipmentHeaderBar(
+                  toggleBuilder: widget.toggleBuilder,
+                  actionsBuilder: _buildHeaderActions,
+                ),
               if (filter.hasActiveFilters)
                 _buildActiveFiltersBar(context, filter),
               Expanded(child: buildContent()),
@@ -636,7 +684,11 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
         valueListenable: _selection,
         builder: (context, selection, _) => Column(
           children: [
-            if (widget.headerExtension != null) widget.headerExtension!,
+            if (widget.toggleBuilder != null)
+              EquipmentHeaderBar(
+                toggleBuilder: widget.toggleBuilder,
+                actionsBuilder: _noActions,
+              ),
             // Table mode has no app bar of its own, so both bars live here:
             // the contextual one while selecting, and the Select affordance
             // while not. They share a slot and a height, so the table does
@@ -734,89 +786,82 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     );
   }
 
-  Widget _buildCompactAppBar(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(
-            color: Theme.of(context).colorScheme.outlineVariant,
-            width: 1,
-          ),
+  /// A header carrying the toggle alone: table mode keeps its actions in the
+  /// surrounding scaffold, and selection mode replaces them with its own bar.
+  static List<Widget> _noActions(BuildContext context, {required bool dense}) =>
+      const <Widget>[];
+
+  /// The list's own actions, for [EquipmentHeaderBar].
+  ///
+  /// They act on whichever of Equipment or Sets the toggle has selected, which
+  /// is why the bar always draws the toggle ahead of them.
+  List<Widget> _buildHeaderActions(
+    BuildContext context, {
+    required bool dense,
+  }) {
+    return [
+      equipmentHeaderIconButton(
+        icon: const Icon(Icons.search, size: 20),
+        tooltip: context.l10n.equipment_list_searchTooltip,
+        dense: dense,
+        onPressed: () {
+          showSearch(
+            context: context,
+            delegate: EquipmentSearchDelegate(context.l10n),
+          );
+        },
+      ),
+      _buildFilterAction(
+        context,
+        ref.watch(equipmentFilterProvider),
+        iconSize: 20,
+        dense: dense,
+      ),
+      equipmentHeaderIconButton(
+        icon: const Icon(Icons.sort, size: 20),
+        tooltip: context.l10n.equipment_list_sortTooltip,
+        dense: dense,
+        onPressed: () => _showSortSheet(context),
+      ),
+      // The only way into bulk actions: entry by long-press was removed,
+      // so nothing but this control opens selection mode on touch.
+      equipmentHeaderIconButton(
+        key: const ValueKey('enter_selection'),
+        icon: const Icon(Icons.checklist, size: 20),
+        tooltip: context.l10n.common_selection_enterTooltip,
+        dense: dense,
+        onPressed: _selection.enterExplicit,
+      ),
+      equipmentHeaderMenuSlot(
+        dense: dense,
+        child: PopupMenuButton<String>(
+          icon: const Icon(Icons.more_vert, size: 20),
+          padding: dense ? EdgeInsets.zero : const EdgeInsets.all(8),
+          onSelected: (value) {
+            if (value.startsWith('view_')) {
+              final mode = ListViewMode.fromName(
+                value.replaceFirst('view_', ''),
+              );
+              ref.read(equipmentListViewModeProvider.notifier).state = mode;
+            }
+          },
+          itemBuilder: (context) {
+            final currentMode = ref.read(equipmentListViewModeProvider);
+            return [
+              ...ListViewModeToggle.menuItems(
+                context,
+                currentMode: currentMode,
+                modes: const [
+                  ListViewMode.detailed,
+                  ListViewMode.compact,
+                  ListViewMode.table,
+                ],
+              ),
+            ];
+          },
         ),
       ),
-      child: Row(
-        children: [
-          const SizedBox(width: 8),
-          // Expanded, and no Spacer: the title must be the row's only flexible
-          // child, or Spacer takes half the free space and the leftover half
-          // lands after the last icon (see trip_list_content for the detail).
-          Expanded(
-            child: FeatureAppBarTitle(
-              featureId: 'equipment',
-              title: context.l10n.equipment_appBar_title,
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
-            ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.search, size: 20),
-            tooltip: context.l10n.equipment_list_searchTooltip,
-            onPressed: () {
-              showSearch(
-                context: context,
-                delegate: EquipmentSearchDelegate(context.l10n),
-              );
-            },
-          ),
-          _buildFilterAction(
-            context,
-            ref.watch(equipmentFilterProvider),
-            iconSize: 20,
-          ),
-          IconButton(
-            icon: const Icon(Icons.sort, size: 20),
-            tooltip: context.l10n.equipment_list_sortTooltip,
-            onPressed: () => _showSortSheet(context),
-          ),
-          // The only way into bulk actions: entry by long-press was removed,
-          // so nothing but this control opens selection mode on touch.
-          IconButton(
-            key: const ValueKey('enter_selection'),
-            icon: const Icon(Icons.checklist, size: 20),
-            tooltip: context.l10n.common_selection_enterTooltip,
-            onPressed: _selection.enterExplicit,
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, size: 20),
-            onSelected: (value) {
-              if (value.startsWith('view_')) {
-                final mode = ListViewMode.fromName(
-                  value.replaceFirst('view_', ''),
-                );
-                ref.read(equipmentListViewModeProvider.notifier).state = mode;
-              }
-            },
-            itemBuilder: (context) {
-              final currentMode = ref.read(equipmentListViewModeProvider);
-              return [
-                ...ListViewModeToggle.menuItems(
-                  context,
-                  currentMode: currentMode,
-                  modes: const [
-                    ListViewMode.detailed,
-                    ListViewMode.compact,
-                    ListViewMode.table,
-                  ],
-                ),
-              ];
-            },
-          ),
-        ],
-      ),
-    );
+    ];
   }
 
   void _showSortSheet(BuildContext context) {
@@ -836,14 +881,16 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     BuildContext context,
     EquipmentFilterState filter, {
     double? iconSize,
+    bool dense = false,
   }) {
-    return IconButton(
+    return equipmentHeaderIconButton(
       key: const ValueKey('equipment_filter_button'),
       icon: Badge(
         isLabelVisible: filter.hasActiveFilters,
         child: Icon(Icons.filter_list, size: iconSize),
       ),
       tooltip: context.l10n.equipment_list_filterTooltip,
+      dense: dense,
       onPressed: () => showEquipmentFilterSheet(context, ref),
     );
   }

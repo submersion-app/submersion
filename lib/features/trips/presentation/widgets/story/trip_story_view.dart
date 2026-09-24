@@ -11,17 +11,19 @@ import 'package:submersion/features/trips/domain/entities/trip_day_weather.dart'
 import 'package:submersion/features/trips/presentation/providers/trip_day_weather_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_flight_countdown_card.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_card.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_band.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_story_band_extents.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_day_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_hero.dart';
+import 'package:submersion/features/trips/presentation/widgets/story/trip_stat_strip.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_story_map_header.dart';
 import 'package:submersion/features/trips/presentation/widgets/story/trip_vessel_section.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-const double _wideBreakpoint = 900;
-const double _mapHeaderMaxExtent = 260;
 const Duration _scrollThrottle = Duration(milliseconds: 100);
 
-/// The assembled trip story: pinned map + hero + day chapters.
+/// The assembled trip story: one pinned band (docked day plus map), hero and
+/// day chapters.
 class TripStoryView extends ConsumerStatefulWidget {
   final TripStory story;
   final TripWithStats stats;
@@ -118,46 +120,99 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     );
   }
 
-  bool _onScroll(ScrollUpdateNotification notification) {
+  bool _onScroll(ScrollNotification notification) {
     // Horizontal photo strips inside the chapters bubble up their own scroll
     // notifications; ignore them so swiping photos doesn't move the map/active
     // day or consume the throttle window meant for the vertical story scroll.
     if (notification.metrics.axis != Axis.vertical) return false;
+    // A scroll coming to rest always resolves, past the throttle. The throttle
+    // keeps the first update of each window and drops the rest, so without
+    // this the final positions of a fling were never resolved and the band
+    // stayed a day behind until the next scroll.
+    if (notification is ScrollEndNotification) {
+      _resolveDockedDay(notification);
+      return false;
+    }
+    if (notification is! ScrollUpdateNotification) return false;
     final now = SchedulerBinding.instance.currentSystemFrameTimeStamp;
     if (now - _lastResolve < _scrollThrottle) return false;
     _lastResolve = now;
+    _resolveDockedDay(notification);
+    return false;
+  }
 
-    final viewportHeight = notification.metrics.viewportDimension;
+  void _resolveDockedDay(ScrollNotification notification) {
+    final metrics = notification.metrics;
     // Day positions come from localToGlobal (screen coordinates), so anchor the
-    // threshold to the scrollable's global top rather than 0 — the story may sit
+    // threshold to the scrollable's global top rather than 0: the story may sit
     // below the top of the screen (e.g. under an app bar).
     final scrollBox = notification.context?.findRenderObject() as RenderBox?;
     final viewportTop = (scrollBox != null && scrollBox.attached)
         ? scrollBox.localToGlobal(Offset.zero).dy
         : 0.0;
-    final threshold = viewportTop + viewportHeight / 3;
+    final viewportBottom = viewportTop + metrics.viewportDimension;
+    final band = _bandExtents(context).docked;
+
+    // At the end of the scroll the last chapters can never climb to the line:
+    // the story runs out first. The last day whose heading is at or above the
+    // bottom of the screen docks instead, so the tail of a trip is not
+    // permanently stranded. That heading is either on screen, or already past
+    // the top with its own chapter filling the screen; no later heading can
+    // be visible in that case, since every later day sits below it.
+    if (metrics.pixels >= metrics.maxScrollExtent - 0.5) {
+      for (var i = _dayKeys.length - 1; i >= 0; i--) {
+        final top = _headingTop(i);
+        if (top != null && top < viewportBottom) {
+          _selectDay(i);
+          return;
+        }
+      }
+    }
+
+    // The band names the day whose heading most recently crossed a line a
+    // third of the way down the space below it: the day that has taken over
+    // the screen. Waiting for the heading to reach the band itself switched
+    // only as the day's top was about to scroll away, which read as late.
+    final threshold =
+        viewportTop + band + (metrics.viewportDimension - band) / 3;
     for (var i = _dayKeys.length - 1; i >= 0; i--) {
-      final keyContext = _dayKeys[i].currentContext;
-      if (keyContext == null) continue;
-      final box = keyContext.findRenderObject() as RenderBox?;
-      if (box == null || !box.attached) continue;
-      final top = box.localToGlobal(Offset.zero).dy;
-      if (top <= threshold) {
+      final top = _headingTop(i);
+      if (top != null && top <= threshold) {
         _selectDay(i);
-        return false;
+        return;
       }
     }
     // Scrolled above the first chapter's threshold (near the top): fall back to
     // day 0 so the map doesn't stay stuck on a later day.
     if (_dayKeys.isNotEmpty) _selectDay(0);
-    return false;
+  }
+
+  /// Screen-space top of a day's chapter heading, or null when it is not
+  /// mounted (scrolled far enough away to be culled).
+  double? _headingTop(int index) {
+    final keyContext = _dayKeys[index].currentContext;
+    if (keyContext == null) return null;
+    final box = keyContext.findRenderObject() as RenderBox?;
+    if (box == null || !box.attached) return null;
+    return box.localToGlobal(Offset.zero).dy;
+  }
+
+  /// The band's heights for the current text scale, measured against the
+  /// styles the docked panel actually renders with rather than assumed ones.
+  TripStoryBandExtents _bandExtents(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return TripStoryBandExtents.forScaler(
+      MediaQuery.textScalerOf(context),
+      title: textTheme.titleMedium,
+      subtitle: textTheme.bodySmall,
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final tripId = widget.story.trip.id;
-    // One read for the whole story. Watched here rather than inside the
-    // LayoutBuilder below, whose builder runs at layout time, not build time.
+    // One read for the whole story, shared by the band's docked panel and
+    // every chapter heading.
     final storedWeather =
         ref.watch(tripDayWeatherProvider(tripId)).asData?.value ??
         const <int, TripDayWeather>{};
@@ -165,55 +220,47 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     // above via the table tick, so a row landing re-renders its day header.
     ref.watch(tripDayWeatherBackfillProvider(tripId));
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= _wideBreakpoint;
-        if (!wide) {
-          return NotificationListener<ScrollUpdateNotification>(
-            onNotification: _onScroll,
-            child: CustomScrollView(
-              slivers: [
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: _mapHeaderDelegate(),
-                ),
-                SliverToBoxAdapter(
-                  child: TripStatStrip(
-                    stats: widget.stats,
-                    siteCount: _siteCount,
-                  ),
-                ),
-                ..._contentSlivers(storedWeather),
-              ],
+    final extents = _bandExtents(context);
+    // Built here rather than inside the delegate so a scroll that changes only
+    // the band's shrink offset re-runs layout without rebuilding the map's
+    // subtree. Its identity changes when the active day does, which is once
+    // per chapter, not once per frame.
+    final map = TripStoryMap(
+      geometry: widget.story.mapGeometry,
+      activeDayIndex: _activeDayIndex,
+      mapController: _mapController,
+      onDaySelected: _onPinSelected,
+    );
+    final days = widget.story.days;
+    final dockedDay = days.isEmpty
+        ? null
+        : days[_activeDayIndex.clamp(0, days.length - 1)];
+
+    return NotificationListener<ScrollNotification>(
+      onNotification: _onScroll,
+      child: CustomScrollView(
+        slivers: [
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: TripStoryBandDelegate(
+              extents: extents,
+              map: map,
+              dockedDay: dockedDay,
+              dockedWeather: dockedDay == null
+                  ? null
+                  : storedWeather[tripDayMillis(dockedDay.date)]
+                        ?.toStoryWeather(),
+              onDockedDayTap: dockedDay == null
+                  ? null
+                  : () => _scrollToDay(_activeDayIndex),
             ),
-          );
-        }
-        return Row(
-          key: const Key('trip-story-wide-layout'),
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SizedBox(
-              width: 380,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: _mapHeaderDelegate().build(context, 0, false),
-                  ),
-                  TripStatStrip(stats: widget.stats, siteCount: _siteCount),
-                ],
-              ),
-            ),
-            Expanded(
-              child: NotificationListener<ScrollUpdateNotification>(
-                onNotification: _onScroll,
-                child: CustomScrollView(
-                  slivers: _contentSlivers(storedWeather),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+          ),
+          SliverToBoxAdapter(
+            child: TripStatStrip(stats: widget.stats, siteCount: _siteCount),
+          ),
+          ..._contentSlivers(storedWeather),
+        ],
+      ),
     );
   }
 
@@ -227,16 +274,6 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
       }
     }
     return ids.length;
-  }
-
-  TripStoryMapHeaderDelegate _mapHeaderDelegate() {
-    return TripStoryMapHeaderDelegate(
-      geometry: widget.story.mapGeometry,
-      activeDayIndex: _activeDayIndex,
-      mapController: _mapController,
-      onDaySelected: _onPinSelected,
-      maxExtentValue: _mapHeaderMaxExtent,
-    );
   }
 
   /// One day chapter: a SliverMainAxisGroup whose pinned header sticks below
@@ -259,19 +296,29 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
       padding: EdgeInsets.symmetric(horizontal: 16),
       sliver: SliverToBoxAdapter(child: _TodayDivider()),
     );
-    // Unconditional, even for the days whose card renders nothing (surface
-    // days, content-less planned days). It looks like dead weight there but is
-    // not: it carries _dayKeys[index], which _onScroll and _scrollToDay read
-    // positions from, and they skip days whose key context is unmounted -- so
-    // dropping it would quietly take those days out of active-day resolution.
-    // Its 8px bottom inset is also the gap between consecutive chapters; the
-    // headers carry a surfaceContainer tint, so the page-surface gap reads as
+    // Ordinary scrolling content, not a PinnedHeaderSliver: the band is the
+    // only pinned layer now, and it shows this same day in compact form once
+    // the heading passes under it. Unconditional, even for days whose card
+    // renders nothing (surface days, content-less planned days), because it
+    // carries _dayKeys[index], which _onScroll and _scrollToDay read positions
+    // from; dropping it would quietly take those days out of docked-day
+    // resolution.
+    final heading = SliverToBoxAdapter(
+      child: KeyedSubtree(
+        key: _dayKeys[index],
+        child: TripStoryDayHeader(
+          day: day,
+          storedWeather: stored?.toStoryWeather(),
+        ),
+      ),
+    );
+    // Its 8px bottom inset is the gap between consecutive chapters; the
+    // headings carry a surfaceContainer tint, so the page-surface gap reads as
     // air between one chapter's card and the next chapter's tinted band.
     final body = SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
       sliver: SliverToBoxAdapter(
         child: Column(
-          key: _dayKeys[index],
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [TripStoryDayCard(day: day, tripId: story.trip.id)],
         ),
@@ -279,19 +326,7 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     );
 
     return SliverMainAxisGroup(
-      slivers: [
-        if (showTodayDivider) divider,
-        // PinnedHeaderSliver (not SliverPersistentHeader) so the header sizes
-        // itself: scaled accessibility text grows the band instead of being
-        // clipped by a fixed extent we would have to predict.
-        PinnedHeaderSliver(
-          child: TripStoryDayHeader(
-            day: day,
-            storedWeather: stored?.toStoryWeather(),
-          ),
-        ),
-        body,
-      ],
+      slivers: [if (showTodayDivider) divider, heading, body],
     );
   }
 

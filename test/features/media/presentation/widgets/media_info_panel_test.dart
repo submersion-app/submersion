@@ -2,10 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
+import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
 import 'package:submersion/features/media/data/services/media_health_report.dart';
 import 'package:submersion/features/media/data/services/media_health_reporter.dart';
 import 'package:submersion/features/media/data/services/media_item_verifier.dart';
+import 'package:submersion/features/media/data/services/photo_access_actions.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
+import 'package:submersion/features/media/presentation/providers/photo_access_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -30,6 +35,7 @@ import 'package:submersion/features/media_store/presentation/providers/media_sto
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
+import '../../../../helpers/fake_photo_picker_service.dart';
 import '../../../../helpers/l10n_test_helpers.dart';
 import '../../../../helpers/mock_providers.dart';
 
@@ -231,6 +237,78 @@ void main() {
       );
 
       expect(find.text('Unknown'), findsWidgets);
+    });
+  });
+
+  // Under limited photo access a gallery photo may be outside what the user
+  // allowed, so the panel offers the two ways back (spec 6.3).
+  group('Limited photo access', () {
+    testWidgets('a gallery row offers full access and the selection', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _item(),
+        extra: [galleryAccessLimitedProvider.overrideWith((ref) async => true)],
+      );
+
+      expect(find.text('Allow full access'), findsOneWidget);
+      expect(find.text('Choose photo again'), findsOneWidget);
+    });
+
+    // Coming back from the selection sheet re-reads the access state, so
+    // the buttons go once the user has granted what the photo needs.
+    testWidgets('an action refreshes the access state', (tester) async {
+      var reads = 0;
+      await pump(
+        tester,
+        _item(),
+        extra: [
+          galleryAccessLimitedProvider.overrideWith((ref) async {
+            reads++;
+            return true;
+          }),
+          photoAccessActionsProvider.overrideWithValue(_NoopAccessActions()),
+          assetResolutionServiceProvider.overrideWithValue(
+            AssetResolutionService(
+              cacheRepository: LocalAssetCacheRepository(),
+              photoPickerService: FakePhotoPickerService(),
+            ),
+          ),
+        ],
+      );
+      expect(reads, 1);
+
+      await tester.tap(find.text('Choose photo again'));
+      await tester.pumpAndSettle();
+
+      expect(reads, 2);
+    });
+
+    testWidgets('full access offers neither', (tester) async {
+      await pump(
+        tester,
+        _item(),
+        extra: [
+          galleryAccessLimitedProvider.overrideWith((ref) async => false),
+        ],
+      );
+
+      expect(find.text('Allow full access'), findsNothing);
+    });
+
+    testWidgets('a file row offers neither', (tester) async {
+      await pump(
+        tester,
+        _item(
+          sourceType: MediaSourceType.localFile,
+          platformAssetId: null,
+          localPath: 'reef.jpg',
+        ),
+        extra: [galleryAccessLimitedProvider.overrideWith((ref) async => true)],
+      );
+
+      expect(find.text('Allow full access'), findsNothing);
     });
   });
 
@@ -868,4 +946,12 @@ void main() {
       expect((applied.single as MediaTimePinned).elapsedSeconds, 300);
     });
   });
+}
+
+class _NoopAccessActions implements PhotoAccessActions {
+  @override
+  Future<void> openSettings() async {}
+
+  @override
+  Future<void> chooseMorePhotos() async {}
 }

@@ -10,6 +10,9 @@ import 'package:submersion/features/media/presentation/providers/photo_picker_pr
 /// Holds both permission calls open until [gate] completes, and fails them
 /// instead when [fail] is set.
 class _GatedPermissionService implements PhotoPickerService {
+  @override
+  Future<PhotoPermissionStatus> currentPermission() => checkPermission();
+
   final gate = Completer<void>();
   bool fail = false;
 

@@ -446,6 +446,23 @@ hides rows the device did link.
 - Cache invalidation: when a sync applies a new `cloud_asset_id` or new
   upload facts to a row, its `unresolved` cache entry is deleted, so the
   next view retries instead of waiting out the backoff.
+- Decided 2026-09-23 while planning: rung 226 (PR #1978 holds 225); the
+  floor stays 224; the batch `getCloudIdentifiers` call everywhere, since
+  `AssetEntity.darwin.cloudIdentifier` wraps it one id at a time and throws
+  off Apple platforms; the backfill is the slice 7 origin backfill's twin
+  (own rows, after a sync, full access), not the origin republish sweep,
+  and it waits for the origin backfill. It repeats at most once a day
+  rather than once ever (review of #2312): a photo linked before iCloud
+  Photos uploaded it, or before iCloud Photos was on, has no cloud id yet
+  and gains one later. A relink synced from a peer drops this device's
+  cached mapping outright, found or not, since it names the old photo; a
+  new cloud id or upload fact still retries only a search that gave up. A
+  gallery relink restamps
+  the cloud id, with an empty string for "none" because a null never
+  reaches a peer through the merge's nullToAbsent upsert. "New upload
+  facts" means an upload value this device did not have, not a won upload
+  clock: a group with no clock of its own falls back to the row clock, so
+  a plain edit can win it.
 
 ### 6.3 Android (#1625)
 
@@ -460,6 +477,18 @@ hides rows the device did link.
 - Reproduction plan: ask the #1625 reporter for a single-row health report;
   reproduce on the maintainer's Android phone with limited access, with a
   moved file, and across an OS re-index.
+- Decided 2026-09-23 while planning: the actions appear in the full-screen
+  viewer and the media info panel, not on grid tiles, which show a distinct
+  "Not in your allowed photos" placeholder; "Choose photo again" opens the
+  system's limited-selection sheet (`PhotoManager.presentLimited`) and the
+  row keeps its link; a lost content-URI grant on the linking device searches
+  the library by the metadata tiers (`AssetResolutionService.findInLibrary`,
+  which needs no stored asset id) and is `accessDenied` if nothing matches;
+  resolution reads permission through a new, non-prompting
+  `PhotoPickerService.currentPermission`, so the OS prompt comes only from
+  the picker and "Allow full access". A gallery query that throws is
+  `accessDenied` too, since `unavailable` read as `notFound` on the linking
+  device. The PR refs #1625 rather than closing it (section 10).
 
 ### 6.4 #425
 
@@ -473,18 +502,33 @@ a burst pair, before asking the reporter to confirm.
 
 ### 7.1 The queue never waits silently
 
-- A preflight throw records suspension with a reason; the Transfers page
-  and the Media Storage summary row show the existing suspended notice with
-  that reason; the retry window is armed as today.
+- Every stop of the drain records a hold with a reason, which the transfer
+  summary carries. A preflight throw while offline holds quietly: no
+  suspended notice, and the Media Storage summary row says the queue is
+  waiting for a connection. Any other throw suspends with the error as its
+  reason. A refusal suspends and names itself (detached, or a marker
+  mismatch). The Transfers page and the Media Storage summary row show the
+  existing suspended notice, naming the reason; the retry window is armed as
+  today. (Decided 2026-09-23: offline stays quiet, because an ordinary
+  moment without network must not read as a broken store.)
 - A per-entry budget expiry writes a waiting reason on the entry.
 - A `delete` entry with no processor is marked failed with a message rather
   than deferred.
-- Stranded `transferring` rows are reclaimed before the first drain and
-  again on every resume, by making the reclaim part of `drain` rather than a
-  process-cached provider.
-- The resume gate arms a wakeup for a queue that holds only deferred rows.
-- A marker mismatch or epoch failure raises the existing pending-setup card
-  with a one-tap reconnect, and the queue's suspended notice names it.
+- Stranded `transferring` rows are reclaimed at the start of every drain.
+  Leases on the entries a worker is running keep the reclaim off a transfer
+  still in flight, which is what the once-per-process reclaim provider
+  existed to protect.
+- The resume gate builds the runtime for any outstanding row: due,
+  deferred, or stranded in `transferring`.
+- A marker mismatch (another store's marker, or none) is remembered on the
+  attach state and raises a pending-setup card that opens Media Storage,
+  where disconnecting and connecting again adopts the store the cloud now
+  holds; the queue's suspended notice names it. A one-tap reconnect is the
+  guided adopt / rebuild / detach choice of design spec section 13, not
+  this slice: `media` rows carry no store id, so adopting silently would
+  leave upload stamps pointing at objects the new store never held. (The
+  earlier "epoch failure" wording is dropped: the media store has no
+  epoch.)
 
 ### 7.2 Store gate probe
 
@@ -493,6 +537,15 @@ media store, the tile probes the store for the row's `contentHash` once per
 row per session, negative-cached in memory, and falls back to the store when
 the object exists. Section 5.1 makes lost stamps rare; this makes a late or
 lost stamp cosmetic.
+
+Read-only (decided 2026-09-23): a successful probe serves the tile and
+writes nothing; the stamps stay the uploading device's facts, and a grid
+render never publishes a sync write. Only `fromOtherDevice` is probed
+(`notFound` is the linking device's own verdict that the bytes are gone),
+each tier the request needs is asked about once per store key for the
+life of the store runtime (an original's key carries its extension, so one
+content hash can have several), and a HEAD that failed or timed out is not
+remembered.
 
 ## 8. Phase 4: verification matrix
 

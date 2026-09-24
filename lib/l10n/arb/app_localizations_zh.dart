@@ -421,6 +421,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String trips_story_dockedDay_goToDay(int number) {
+    return '跳转到第 $number 天';
+  }
+
+  @override
   String get trips_story_surfaceDay => '水面日';
 
   @override
@@ -26020,6 +26025,14 @@ class AppLocalizationsZh extends AppLocalizations {
       '此设备与云存储对正在使用的存储库不再一致。重新连接媒体存储将采用云端当前保存的存储库。';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      '此设备已不再连接到此媒体存储。可在媒体存储中重新连接。';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      '无法检查媒体存储。传输将自动重试。';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count 个排队中';
   }
@@ -26028,6 +26041,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count 个等待重试';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection => '正在等待网络连接';
 
   @override
   String get settings_mediaStorage_report_action => '导出媒体报告';
@@ -26710,6 +26726,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return '重新连接媒体存储（$hint）';
+  }
+
+  @override
   String settings_setup_accountSignIn(String label) {
     return '登录 $label';
   }
@@ -26827,6 +26848,15 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get media_unavailablePlaceholder_accessDenied => '无照片库访问权限';
+
+  @override
+  String get media_unavailablePlaceholder_limitedAccess => '不在已允许的照片中';
+
+  @override
+  String get media_limitedAccess_allowFullAccess => '允许完全访问';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain => '重新选择照片';
 
   @override
   String get attrLabel_hose_length_m => '软管长度';

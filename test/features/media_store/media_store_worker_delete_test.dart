@@ -113,22 +113,23 @@ void main() {
     expect(pipeline.processed, ['alive']);
   });
 
-  test(
-    'delete entries are deferred when no delete processor is wired',
-    () async {
-      await queue.enqueueDelete(
-        mediaId: 'dead',
-        contentHash: 'aa',
-        originalExt: 'jpg',
-        renditionExt: 'jpg',
-      );
-      final worker = MediaStoreWorker(queue: queue, pipeline: pipeline);
-      await worker.drain(); // must terminate, not spin
+  // A deferral hid an entry this worker can never process behind a retry
+  // that could not succeed (media sync program spec 7.1).
+  test('delete entries are failed with a message when no delete processor is '
+      'wired', () async {
+    await queue.enqueueDelete(
+      mediaId: 'dead',
+      contentHash: 'aa',
+      originalExt: 'jpg',
+      renditionExt: 'jpg',
+    );
+    final worker = MediaStoreWorker(queue: queue, pipeline: pipeline);
+    await worker.drain(); // must terminate, not spin
 
-      final row = (await queue.allForTesting()).single;
-      expect(row.state, 'pending');
-      expect(row.nextAttemptAt, isNotNull); // parked in the defer window
-      expect(pipeline.processed, isEmpty);
-    },
-  );
+    final row = (await queue.allForTesting()).single;
+    expect(row.state, 'failed');
+    expect(row.errorMessage, isNotNull);
+    expect(row.attempts, 0, reason: 'no attempt was made');
+    expect(pipeline.processed, isEmpty);
+  });
 }

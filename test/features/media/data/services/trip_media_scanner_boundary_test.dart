@@ -16,6 +16,9 @@ AssetInfo _asset(String id, DateTime createdAt) => AssetInfo(
 );
 
 class _Picker implements PhotoPickerService {
+  @override
+  Future<PhotoPermissionStatus> currentPermission() => checkPermission();
+
   _Picker(this.assets);
 
   final List<AssetInfo> assets;

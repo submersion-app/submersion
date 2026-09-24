@@ -24,7 +24,7 @@ void main() {
       TileOutcome.store,
       reason: 'the bytes are in the store B is attached to',
     );
-  }, skip: 'Media sync program S4: turns green in slice 11 (store gate probe)');
+  });
 
   test(
     'S8: a throwing preflight suspends the worker with a visible reason',
@@ -43,7 +43,6 @@ void main() {
         reason: 'the Transfers page must be able to say why nothing moves',
       );
     },
-    skip: 'Media sync program S8: turns green in slice 10 (queue visibility)',
   );
 
   test(
@@ -64,6 +63,5 @@ void main() {
         reason: 'drain must reclaim stranded rows before selecting pending',
       );
     },
-    skip: 'Media sync program S10: turns green in slice 10 (queue visibility)',
   );
 }

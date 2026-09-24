@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
 
-/// v209 adds the nav_tracks table for measured underwater routes (spec
+/// v228 adds the nav_tracks table for measured underwater routes (spec
 /// 2026-09-10-underwater-nav-track-design.md, issues #1195, #1445).
 
 Future<Set<String>> _tables(AppDatabase db) async {
@@ -26,11 +26,12 @@ Future<void> _insertMinimalDive(AppDatabase db, String id) {
 }
 
 void main() {
-  test('v209 is in the ladder', () {
-    // Relaxed once v210 (dive_tanks.equipment_id ON DELETE SET NULL) landed
-    // on top; the newest rung owns the exact assertion.
-    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(209));
-    expect(AppDatabase.migrationVersions, contains(209));
+  test('v228 is the current schema version and is in the ladder', () {
+    // The newest rung owns the exact assertion; relax it to
+    // greaterThanOrEqualTo when the next one lands.
+    expect(AppDatabase.currentSchemaVersion, 228);
+    expect(AppDatabase.migrationVersions, contains(228));
+    expect(AppDatabase.migrationVersions, isNot(contains(209)));
   });
 
   test('a fresh database has the nav_tracks table and its columns', () async {
@@ -76,10 +77,10 @@ void main() {
     );
   });
 
-  test('a database stranded before v209 gains the table', () async {
+  test('a database stranded before v228 gains the table', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 208');
+        rawDb.execute('PRAGMA user_version = 226');
         rawDb.execute('''
           CREATE TABLE dives (
             id TEXT NOT NULL PRIMARY KEY,
@@ -99,7 +100,7 @@ void main() {
   test('a database that never runs onUpgrade still gets the table via the '
       'beforeOpen backstop', () async {
     // Simulates a restore or a sync-adopted database: already at the
-    // current version, so onUpgrade's own v209 rung never fires, and the
+    // current version, so onUpgrade's own v228 rung never fires, and the
     // table can only appear because beforeOpen re-asserts it too.
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {

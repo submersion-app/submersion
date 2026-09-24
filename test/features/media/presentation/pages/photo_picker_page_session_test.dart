@@ -26,6 +26,9 @@ import '../../../../helpers/mock_providers.dart';
 /// Gallery service with library access and two photos in every range.
 class _GalleryService implements PhotoPickerService {
   @override
+  Future<PhotoPermissionStatus> currentPermission() => checkPermission();
+
+  @override
   bool get supportsGalleryBrowsing => true;
 
   @override

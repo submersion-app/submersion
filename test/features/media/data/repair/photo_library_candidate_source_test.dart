@@ -5,6 +5,9 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
 class _FakePicker implements PhotoPickerService {
+  @override
+  Future<PhotoPermissionStatus> currentPermission() => checkPermission();
+
   _FakePicker(this.assets);
   final List<AssetInfo> assets;
   final windows = <(DateTime, DateTime)>[];

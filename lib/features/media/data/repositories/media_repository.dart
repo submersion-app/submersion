@@ -323,6 +323,7 @@ class MediaRepository {
               connectorAccountId: Value(item.connectorAccountId),
               remoteAssetId: Value(item.remoteAssetId),
               originDeviceId: Value(effectiveDeviceId),
+              cloudAssetId: Value(item.cloudAssetId),
               contentHash: Value(item.contentHash),
               contentSizeBytes: Value(item.contentSizeBytes),
               remoteUploadedAt: Value(
@@ -474,7 +475,8 @@ class MediaRepository {
             // that beats the stamp it erased (media sync program spec 5.1).
             // A caller that really means to change them uses
             // stampContentIdentity, stampRemoteUploaded and friends, or
-            // convertToCloudBacked.
+            // convertToCloudBacked. The cloud asset id is absent for the
+            // same reason: the gallery cloud id backfill stamps it narrowly.
             retainInLibrary: Value(item.retainInLibrary),
             manualElapsedSeconds: Value(item.manualElapsedSeconds),
             updatedAt: Value(now),
@@ -1155,6 +1157,72 @@ class MediaRepository {
       }
     });
     if (stamped > 0) SyncEventBus.notifyLocalChange();
+    return stamped;
+  }
+
+  /// This device's own gallery rows with no cloud id yet (null, or empty
+  /// after a relink that found none), with the asset id each was linked
+  /// under: the rows the gallery cloud id backfill looks up (spec 6.2).
+  Future<List<({String id, String platformAssetId})>>
+  getOwnGalleryMediaWithoutCloudId(String deviceId) async {
+    final rows =
+        await (_db.select(_db.media)..where(
+              (t) =>
+                  t.sourceType.equals(MediaSourceType.platformGallery.name) &
+                  t.originDeviceId.equals(deviceId) &
+                  t.platformAssetId.isNotNull() &
+                  t.platformAssetId.equals('').not() &
+                  (t.cloudAssetId.isNull() | t.cloudAssetId.equals('')),
+            ))
+            .get();
+    return [
+      for (final r in rows) (id: r.id, platformAssetId: r.platformAssetId!),
+    ];
+  }
+
+  /// Records each of [found]'s cloud id on its row, if the row is still
+  /// exactly what was looked up: a gallery row, under the same asset id,
+  /// with no cloud id yet. Marks each row it stamps pending. Returns the
+  /// ids it stamped.
+  ///
+  /// The cloud id belongs to no fact group, so this bumps the row clock and
+  /// republishes the whole row, which is why the backfill runs only right
+  /// after a sync (as [stampOriginDevice] does). The guards keep a cloud id
+  /// a sync delivered meanwhile, and skip a row relinked meanwhile.
+  Future<List<String>> stampCloudAssetIds(
+    List<({String id, String platformAssetId, String cloudAssetId})> found,
+  ) async {
+    if (found.isEmpty) return const [];
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final stamped = <String>[];
+    await _db.transaction(() async {
+      for (final row in found) {
+        final written =
+            await (_db.update(_db.media)..where(
+                  (t) =>
+                      t.id.equals(row.id) &
+                      t.sourceType.equals(
+                        MediaSourceType.platformGallery.name,
+                      ) &
+                      t.platformAssetId.equals(row.platformAssetId) &
+                      (t.cloudAssetId.isNull() | t.cloudAssetId.equals('')),
+                ))
+                .write(
+                  MediaCompanion(
+                    cloudAssetId: Value(row.cloudAssetId),
+                    updatedAt: Value(now),
+                  ),
+                );
+        if (written == 0) continue;
+        stamped.add(row.id);
+        await _syncRepository.markRecordPending(
+          entityType: 'media',
+          recordId: row.id,
+          localUpdatedAt: now,
+        );
+      }
+    });
+    if (stamped.isNotEmpty) SyncEventBus.notifyLocalChange();
     return stamped;
   }
 
@@ -2090,6 +2158,12 @@ class MediaRepository {
             // Null for a file repair: the old asset id addresses an asset
             // that no longer exists on this device.
             platformAssetId: Value(write.newPlatformAssetId),
+            // A relink to the gallery replaces the cloud id with the new
+            // asset's ('' when it has none); any other repair leaves it,
+            // since only a gallery row is ever resolved by it.
+            cloudAssetId: toGallery
+                ? Value(write.newCloudAssetId ?? '')
+                : const Value.absent(),
             sourceType: Value(write.newSourceType.name),
             // Written even when null: a shared source records no origin at
             // link time, and the old one described an address this row no

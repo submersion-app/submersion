@@ -28,7 +28,7 @@ const _junctions = [
 void main() {
   test('v207 is at or below the current schema version and in the ladder', () {
     // greaterThanOrEqualTo, not an exact match: a later rung (v208's
-    // imported-file store, v209's nav_tracks table, v210's tank-link fix,
+    // imported-file store, v210's tank-link fix,
     // v211's auto-tag-imports, v213's service anchor, and the planner's
     // stop-minimums (214) and gas-options (215)) legitimately raises
     // currentSchemaVersion further, and that must not break this test --

@@ -440,6 +440,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String trips_story_dockedDay_goToDay(int number) {
+    return 'Vai al giorno $number';
+  }
+
+  @override
   String get trips_story_surfaceDay => 'Giorno di superficie';
 
   @override
@@ -27468,6 +27473,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Questo dispositivo e l\'archivio cloud non concordano più su quale archivio sia in uso. Riconnettere l\'archivio multimediale adotta quello che il cloud contiene ora.';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      'Questo dispositivo non è più collegato a questo archivio multimediale. Può essere ricollegato in Archiviazione multimediale.';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      'Non è stato possibile verificare l\'archivio multimediale. I trasferimenti vengono ritentati automaticamente.';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count in coda';
   }
@@ -27476,6 +27489,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count in attesa di riprovare';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection =>
+      'In attesa di connessione';
 
   @override
   String get settings_mediaStorage_report_action => 'Esporta rapporto media';
@@ -28200,6 +28217,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return 'Ricollega archiviazione multimediale ($hint)';
+  }
+
+  @override
   String settings_setup_accountSignIn(String label) {
     return 'Accedi a $label';
   }
@@ -28332,6 +28354,16 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get media_unavailablePlaceholder_accessDenied =>
       'Nessun accesso alla libreria foto';
+
+  @override
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'Non tra le foto consentite';
+
+  @override
+  String get media_limitedAccess_allowFullAccess => 'Consenti accesso completo';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain => 'Scegli di nuovo la foto';
 
   @override
   String get attrLabel_hose_length_m => 'Lunghezza della frusta';

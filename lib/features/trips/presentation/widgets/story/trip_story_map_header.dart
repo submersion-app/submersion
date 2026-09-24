@@ -3,14 +3,11 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
-import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/domain/map_utils.dart';
 import 'package:submersion/features/maps/presentation/providers/map_tile_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/trackpad_zoom_map.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story_day.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -57,66 +54,18 @@ class MapCameraAnimator {
   }
 }
 
-/// Pinned header hosting the story map.
-class TripStoryMapHeaderDelegate extends SliverPersistentHeaderDelegate {
-  final TripStoryMapGeometry geometry;
-  final int activeDayIndex;
-  final MapController mapController;
-  final ValueChanged<int> onDaySelected;
-  final double maxExtentValue;
-  final double minExtentValue;
-
-  const TripStoryMapHeaderDelegate({
-    required this.geometry,
-    required this.activeDayIndex,
-    required this.mapController,
-    required this.onDaySelected,
-    required this.maxExtentValue,
-    this.minExtentValue = 180,
-  });
-
-  @override
-  double get maxExtent => maxExtentValue;
-
-  @override
-  double get minExtent => minExtentValue;
-
-  @override
-  bool shouldRebuild(TripStoryMapHeaderDelegate oldDelegate) =>
-      oldDelegate.geometry != geometry ||
-      oldDelegate.activeDayIndex != activeDayIndex ||
-      oldDelegate.mapController != mapController ||
-      oldDelegate.onDaySelected != onDaySelected ||
-      oldDelegate.maxExtentValue != maxExtentValue ||
-      oldDelegate.minExtentValue != minExtentValue;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return Material(
-      elevation: overlapsContent ? 2 : 0,
-      child: geometry.hasPoints
-          ? _StoryMap(
-              geometry: geometry,
-              activeDayIndex: activeDayIndex,
-              mapController: mapController,
-              onDaySelected: onDaySelected,
-            )
-          : const _MapFallback(),
-    );
-  }
-}
-
-class _StoryMap extends ConsumerWidget {
+/// The story map: the trip's route and its day pins.
+///
+/// It renders the gradient fallback itself when the trip has no mappable
+/// points, so the band can hold one map instance either way.
+class TripStoryMap extends ConsumerWidget {
   final TripStoryMapGeometry geometry;
   final int activeDayIndex;
   final MapController mapController;
   final ValueChanged<int> onDaySelected;
 
-  const _StoryMap({
+  const TripStoryMap({
+    super.key,
     required this.geometry,
     required this.activeDayIndex,
     required this.mapController,
@@ -125,6 +74,8 @@ class _StoryMap extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    if (!geometry.hasPoints) return const _MapFallback();
+
     final colorScheme = Theme.of(context).colorScheme;
     final points = geometry.points
         .map((p) => LatLng(p.latitude, p.longitude))
@@ -242,68 +193,6 @@ class _MapFallback extends StatelessWidget {
         Icons.scuba_diving,
         size: 48,
         color: colorScheme.onPrimaryContainer.withValues(alpha: 0.5),
-      ),
-    );
-  }
-}
-
-/// Horizontal trip-level stat strip pinned under the map.
-class TripStatStrip extends ConsumerWidget {
-  final TripWithStats stats;
-
-  /// Distinct dive sites visited across the trip (0 hides the tile).
-  final int siteCount;
-
-  const TripStatStrip({super.key, required this.stats, this.siteCount = 0});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
-    final l10n = context.l10n;
-    final theme = Theme.of(context);
-
-    final entries = <(String, String)>[
-      (l10n.trips_detail_stat_totalDives, '${stats.diveCount}'),
-      (l10n.trips_detail_stat_totalRuntime, stats.formattedRuntime),
-      if (stats.maxDepth != null)
-        (l10n.trips_detail_stat_maxDepth, units.formatDepth(stats.maxDepth)),
-      if (siteCount > 0) (l10n.trips_detail_stat_sitesVisited, '$siteCount'),
-    ];
-
-    return Container(
-      // One tonal step above the page surface: welds the strip to the map
-      // above it so the two read as a single trip-summary region.
-      color: theme.colorScheme.surfaceContainerLow,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          for (final (label, value) in entries)
-            Expanded(
-              child: Semantics(
-                label: '$label: $value',
-                child: Column(
-                  children: [
-                    Text(
-                      value,
-                      style: theme.textTheme.titleSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      label,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-        ],
       ),
     );
   }

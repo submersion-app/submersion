@@ -7,7 +7,8 @@ import 'package:submersion/features/media/domain/value_objects/media_source_data
 
 /// Looks up the store-backed resolver for this device, or null when no media
 /// store is attached. Deferred so building it (keychain read, store
-/// construction) happens only when a row is confirmed uploaded.
+/// construction) happens only when a row is confirmed uploaded, or is a
+/// foreign row with a content hash the store may hold without a stamp.
 typedef RemoteResolverLookup = Future<MediaStoreResolver?> Function();
 
 /// Whether the row's synced stamps say the media store holds bytes for it.
@@ -58,17 +59,28 @@ class TileResolution {
 ///
 /// The store fallback only engages when the native source cannot produce
 /// bytes on this device and the row is confirmed uploaded (see
-/// [storeConfirmed]). Rows without any confirmed upload skip the runtime
-/// entirely. Any store failure keeps the native placeholder.
+/// [storeConfirmed]), or when the row is foreign (`fromOtherDevice`) with a
+/// content hash but no stamps, which the store is then asked about directly
+/// (spec 7.2). Other rows skip the runtime entirely. Any store failure keeps
+/// the native placeholder.
 class MediaTileResolver {
   MediaTileResolver({
     required MediaSourceResolverRegistry registry,
     required RemoteResolverLookup remote,
+    RemoteResolverLookup? probeRemote,
   }) : _registry = registry,
-       _remote = remote;
+       _remote = remote,
+       _probeRemote = probeRemote ?? remote;
 
   final MediaSourceResolverRegistry _registry;
   final RemoteResolverLookup _remote;
+
+  /// The lookup the store gate probe uses. Separate from [_remote] because
+  /// in production that one builds the store runtime, which drains the
+  /// transfer queue and may run a verify sweep: a probe answers a grid
+  /// render and must write nothing (spec 7.2), so production passes a
+  /// resolver built on the store adapter alone. Defaults to [_remote].
+  final RemoteResolverLookup _probeRemote;
 
   Future<TileResolution> resolve(
     MediaItem item, {
@@ -84,6 +96,14 @@ class MediaTileResolver {
     }
     final nativeFailure = native.kind;
     if (!storeConfirmed(item, thumbnail: thumbnail)) {
+      // A foreign row whose stamps have not reached this device (late, or
+      // lost in a merge) may still be in the store this device is attached
+      // to (media sync program spec 7.2). Only fromOtherDevice: notFound is
+      // the linking device's own verdict that the bytes are gone.
+      if (nativeFailure == UnavailableKind.fromOtherDevice &&
+          item.contentHash != null) {
+        return _probe(item, native, thumbnail: thumbnail);
+      }
       return TileResolution(data: native, nativeFailure: nativeFailure);
     }
     try {
@@ -118,6 +138,49 @@ class MediaTileResolver {
         data: native,
         videoPosterMissing:
             thumbnail && item.isVideo && item.remoteThumbUploadedAt == null,
+        storeFallbackUsed: true,
+        nativeFailure: nativeFailure,
+      );
+    } catch (_) {
+      return TileResolution(
+        data: native,
+        storeFallbackUsed: true,
+        nativeFailure: nativeFailure,
+      );
+    }
+  }
+
+  /// Asks the attached store directly for a row its stamps say nothing
+  /// about ([MediaStoreResolver.tryResolveProbed]). Any miss or failure
+  /// keeps the native placeholder, exactly as the confirmed path does.
+  Future<TileResolution> _probe(
+    MediaItem item,
+    UnavailableData native, {
+    required bool thumbnail,
+  }) async {
+    final nativeFailure = native.kind;
+    try {
+      final remote = await _probeRemote();
+      if (remote == null) {
+        // The fallback was attempted, with no store here to answer: the same
+        // verdict the confirmed path gives, per storeFallbackUsed's contract.
+        return TileResolution(
+          data: native,
+          storeFallbackUsed: true,
+          nativeFailure: nativeFailure,
+        );
+      }
+      final served = await remote.tryResolveProbed(item, thumbnail: thumbnail);
+      if (served == null) {
+        return TileResolution(
+          data: native,
+          storeFallbackUsed: true,
+          nativeFailure: nativeFailure,
+        );
+      }
+      return TileResolution(
+        data: served,
+        documentRenderable: thumbnail && served is FileData && served.isPoster,
         storeFallbackUsed: true,
         nativeFailure: nativeFailure,
       );

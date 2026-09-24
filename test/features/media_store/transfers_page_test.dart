@@ -9,6 +9,7 @@ import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_summary.dart';
 import 'package:submersion/features/media_store/presentation/pages/transfers_page.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -65,6 +66,12 @@ void main() {
       mediaTransferLabelsProvider.overrideWith((ref) async => labels),
       mediaTransfersSuspendedProvider.overrideWith(
         (ref) => Stream.value(suspended),
+      ),
+      // The suspended notice names the queue's hold from the summary. A
+      // snapshot, for the same reason as the entries: the live Drift stream
+      // deadlocks against db.close() in the fake-async zone.
+      mediaTransferSummaryProvider.overrideWith(
+        (ref) => Stream.value(const MediaTransferSummary()),
       ),
     ],
     child: const MaterialApp(

@@ -232,4 +232,79 @@ void main() {
       reason: 'a fact-only row must come through the replay unre-stamped',
     );
   });
+
+  // A legacy row has no row clock, and a fact write leaves it that way, so
+  // the replayed copy cannot be ordered against the adopted one. The merge
+  // treats a copy with a missing clock as applicable, which let this
+  // device's stale snapshot fields (the caption) overwrite the newer ones a
+  // peer published, while only the fact was this device's to send.
+  // The merge reads a blank clock as missing too, so both shapes of a
+  // legacy row must take the same path.
+  for (final (label, sqlClock) in [('no', 'NULL'), ('a blank', "''")]) {
+    test('a legacy row with $label row clock replays only its facts over a '
+        'newer caption', () async {
+      final cloud = FakeCloudStorageProvider();
+      final folder = await cloud.getOrCreateSyncFolder();
+      final repo = MediaRepository();
+
+      MediaItem photo(String caption) => MediaItem(
+        id: 'm1',
+        mediaType: MediaType.photo,
+        sourceType: MediaSourceType.localFile,
+        localPath: '/nowhere/reef.jpg',
+        caption: caption,
+        takenAt: DateTime(2026, 7, 1),
+        createdAt: DateTime(2026, 7, 1),
+        updatedAt: DateTime(2026, 7, 1),
+      );
+
+      // The peer's copy, with the newer caption.
+      await DiveRepository().createDive(
+        createTestDiveWithBottomTime(id: 'keep-1', diveNumber: 1),
+      );
+      await repo.createMedia(photo('new'));
+      await seedPeerLog(cloud, 'peer-1'); // resets the local DB afterwards
+
+      // This device's copy of the same row: legacy, so no row clock.
+      await repo.createMedia(photo('old'));
+      final db = DatabaseService.instance.database;
+      await db.customStatement(
+        "UPDATE media SET hlc = $sqlClock WHERE id = 'm1'",
+      );
+
+      final svc = SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+        cloudProvider: cloud,
+      );
+      expect((await svc.performSync()).status, SyncResultStatus.success);
+
+      // The only local write since publishing is a fact write.
+      await db.customStatement(
+        "UPDATE media SET hlc = $sqlClock WHERE id = 'm1'",
+      );
+      await repo.stampRemoteUploaded('m1', uploadedAt: DateTime(2026, 8, 1));
+
+      final deviceId = await SyncRepository().getDeviceId();
+      await svc.deleteDeviceSyncFile(deviceId);
+      await cloud.uploadFile(
+        RetirementMarker(
+          deviceId: deviceId,
+          retiredAt: DateTime.now().millisecondsSinceEpoch,
+        ).toBytes(),
+        ChangesetLogLayout.retiredMarkerName(deviceId),
+        folderId: folder,
+      );
+
+      expect((await svc.performSync()).status, SyncResultStatus.success);
+
+      final after = (await repo.getMediaById('m1'))!;
+      expect(after.caption, 'new', reason: 'the adopted caption stands');
+      expect(
+        after.remoteUploadedAt,
+        isNotNull,
+        reason: 'this device\'s unsent fact still lands',
+      );
+    });
+  }
 }

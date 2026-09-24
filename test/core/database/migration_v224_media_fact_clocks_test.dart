@@ -61,13 +61,12 @@ void main() {
     };
   }
 
-  test('v224 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 224);
+  test('v224 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v226 (media cloud asset id) landed on top; the newest
+    // rung owns the exact assertions.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(224));
     expect(AppDatabase.migrationVersions, contains(224));
-    // One step above v223, which landed on main while this was in review.
-    expect(AppDatabase.migrationStepCount(223), 1);
+    expect(AppDatabase.migrationStepCount(223), greaterThanOrEqualTo(1));
     // This rung RAISES the floor: the columns are additive, but the
     // semantics are not. A pre-v224 reader knows nothing of the fact clocks
     // and blind-upserts media, so a fact-only export from this build would

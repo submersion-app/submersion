@@ -11,6 +11,7 @@ import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/data/media_store_worker.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
+import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 
 import '../../helpers/in_memory_media_object_store.dart';
 import '../../helpers/test_database.dart';
@@ -190,7 +191,7 @@ void main() {
     final suspended = MediaStoreWorker(
       queue: queue,
       pipeline: pipeline,
-      preflight: () async => false,
+      preflight: () async => MediaTransferHoldKind.markerMismatch,
     );
     addTearDown(suspended.dispose);
     await queue.enqueueUpload(mediaId: 'm1');

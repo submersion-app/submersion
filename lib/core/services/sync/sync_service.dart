@@ -14,6 +14,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/peer_device_name_store.dart';
 import 'package:submersion/core/services/sync/sync_fact_groups.dart';
+import 'package:submersion/core/services/sync/media_resolution_hints.dart';
 import 'package:submersion/core/services/sync/conflict_reference.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_apply_progress.dart';
 import 'package:submersion/core/services/sync/changeset_log/base_json_stream_reader.dart';
@@ -251,6 +252,12 @@ class SyncService {
   /// labels such as "From Eric's MacBook" need no cloud read. Optional:
   /// the legacy tests build the service without one.
   final PeerDeviceNameStore? _peerNames;
+
+  /// Told which media rows a merge gave something new to be found by, so
+  /// their cached "not found here" searches retry at once (spec 6.2).
+  /// Optional: most tests build the service without one.
+  final Future<void> Function(MediaResolutionHints hints)?
+  _onMediaResolutionHints;
   final _log = LoggerService.forClass(SyncService);
   final _uuid = const Uuid();
 
@@ -315,6 +322,7 @@ class SyncService {
     SyncEncryptionService? encryptionService,
     AppLocalizations Function()? localizations,
     PeerDeviceNameStore? peerNames,
+    Future<void> Function(MediaResolutionHints hints)? onMediaResolutionHints,
   }) : _syncRepository = syncRepository,
        _serializer = serializer,
        _cloudProvider = cloudProvider,
@@ -322,6 +330,7 @@ class SyncService {
        _epochStore = epochStore,
        _encryptionService = encryptionService,
        _peerNames = peerNames,
+       _onMediaResolutionHints = onMediaResolutionHints,
        _localizations = localizations ?? _englishLocalizations;
 
   /// Set a callback to receive progress updates during sync
@@ -3027,6 +3036,9 @@ class SyncService {
     // [inBatch] records whether this row also went into the batched upsert,
     // so a batch that fails can take its own fact writes down with it. A
     // fact write whose row never joined the batch is independent of it.
+    // Media rows this merge gave something new to be found by (spec 6.2),
+    // and whether each rode the batch, so a failed batch drops its own.
+    final hinted = <({String id, MediaResolutionHint hint, bool inBatch})>[];
     final factWrites =
         <
           ({
@@ -3208,6 +3220,16 @@ class SyncService {
             local: local,
             remote: recordToApply,
           );
+          final hint = entityType == 'media'
+              ? mediaResolutionHintFor(
+                  local: local,
+                  applied: resolved.row,
+                  rowFromRemote: rowFromRemote,
+                )
+              : null;
+          if (hint != null) {
+            hinted.add((id: recordId, hint: hint, inBatch: rowFromRemote));
+          }
           if (rowFromRemote) {
             toUpsert.add(resolved.row);
             factWrites.add((
@@ -3347,6 +3369,26 @@ class SyncService {
           stackTrace: stackTrace,
         );
         rethrow;
+      }
+    }
+
+    // After the writes, so a row the batch failed to write is not treated
+    // as if it had landed. The cache is another database and outside this
+    // payload's transaction: if the payload later rolls back, the only
+    // cost is a search that runs sooner than it would have.
+    final hints = MediaResolutionHints.of([
+      for (final h in hinted)
+        if (!(batchFailed && h.inBatch)) (h.id, h.hint),
+    ]);
+    final onHints = _onMediaResolutionHints;
+    if (!hints.isEmpty && onHints != null) {
+      try {
+        await onHints(hints);
+      } on Object catch (e) {
+        _log.warning(
+          'Could not apply resolution hints for '
+          '${hints.retry.length + hints.remap.length} media rows: $e',
+        );
       }
     }
 
@@ -4182,6 +4224,58 @@ class SyncService {
     };
   }
 
+  /// Marks pending, before the replay is applied, each replayed row that
+  /// cannot be ordered against the adopted copy: a fact-carrying row whose
+  /// row clock is null (a legacy row whose only unsent write was a fact), so
+  /// [restampRowForReplay] left it without one. The merge applies an
+  /// unordered copy whole, which let this device's snapshot fields (a stale
+  /// caption) overwrite newer ones a peer published. Marked pending first,
+  /// the row takes the merge's pending-unorderable path instead: the adopted
+  /// row keeps its fields and only the fact groups the replay's clocks win
+  /// come over.
+  ///
+  /// Only rows the adoption holds. That path skips a copy with no local row
+  /// at all, and for such a row the replay is its only way back.
+  ///
+  /// "No row clock" is read the way the merge reads it ([_extractHlc]):
+  /// absent, blank or malformed alike, so every row the merge would find
+  /// unorderable is marked. All marks commit in one transaction; each
+  /// mark's own transaction nests as a savepoint, so a library with many
+  /// legacy rows pays one commit, not one per row.
+  Future<void> _markUnorderableReplayPending(
+    Map<String, dynamic> restamped,
+  ) async {
+    final nowMillis = DateTime.now().millisecondsSinceEpoch;
+    final toMark = <({String entityType, String id})>[];
+    for (final entry in restamped.entries) {
+      final rows = entry.value;
+      if (rows is! List || SyncFactGroups.of(entry.key).isEmpty) continue;
+      final ids = [
+        for (final row in rows)
+          if (row is Map<String, dynamic> &&
+              _extractHlc(row) == null &&
+              row['id'] is String)
+            row['id'] as String,
+      ];
+      if (ids.isEmpty) continue;
+      final adopted = await _serializer.fetchRecords(entry.key, ids);
+      toMark.addAll([
+        for (final id in adopted.keys) (entityType: entry.key, id: id),
+      ]);
+    }
+    if (toMark.isEmpty) return;
+    await DatabaseService.instance.database.transaction(() async {
+      for (final row in toMark) {
+        await _syncRepository.markRecordPending(
+          entityType: row.entityType,
+          recordId: row.id,
+          localUpdatedAt: nowMillis,
+          stampClock: false,
+        );
+      }
+    });
+  }
+
   /// Re-applies the pre-fence pending snapshot with FRESH HLC stamps. The
   /// adopted watermark (maxRowHlc after the rebuild) is at or above the
   /// snapshot's original stamps, so without re-stamping the rows would sort
@@ -4229,33 +4323,38 @@ class SyncService {
       data: data,
       deletions: pending.deletions,
     );
+    await _markUnorderableReplayPending(restamped);
     await _applyRemotePayload(payload, null);
     // Re-mark the replayed rows pending: the fence's resetSyncState cleared
     // the pending table, and the remote-apply path above does not repopulate
     // it, so without this _shouldSkipPublishAfterAdopt would read "nothing to
     // say" and the replayed records would never publish until an unrelated
     // later edit re-tripped the gate. (The publish CONTENT is selected by the
-    // HLC watermark; these marks only open the gate.)
+    // HLC watermark; these marks only open the gate.) One transaction for
+    // all of them, each mark nesting as a savepoint: one commit for the
+    // snapshot, not one per row.
     final nowMillis = DateTime.now().millisecondsSinceEpoch;
-    for (final entry in restamped.entries) {
-      final rows = entry.value;
-      if (rows is! List) continue;
-      for (final row in rows) {
-        final id = row is Map<String, dynamic> ? row['id'] : null;
-        if (id is! String) continue;
-        // No stamp: restampRowForReplay already chose this row's clocks and
-        // the apply above wrote them. Stamping here would bump the row clock
-        // even for a row that is pending on a fact write alone, republishing
-        // this device's whole snapshot of it over a peer's newer edit, which
-        // is exactly what that restamp avoids.
-        await _syncRepository.markRecordPending(
-          entityType: entry.key,
-          recordId: id,
-          localUpdatedAt: nowMillis,
-          stampClock: false,
-        );
+    await DatabaseService.instance.database.transaction(() async {
+      for (final entry in restamped.entries) {
+        final rows = entry.value;
+        if (rows is! List) continue;
+        for (final row in rows) {
+          final id = row is Map<String, dynamic> ? row['id'] : null;
+          if (id is! String) continue;
+          // No stamp: restampRowForReplay already chose this row's clocks
+          // and the apply above wrote them. Stamping here would bump the row
+          // clock even for a row that is pending on a fact write alone,
+          // republishing this device's whole snapshot of it over a peer's
+          // newer edit, which is exactly what that restamp avoids.
+          await _syncRepository.markRecordPending(
+            entityType: entry.key,
+            recordId: id,
+            localUpdatedAt: nowMillis,
+            stampClock: false,
+          );
+        }
       }
-    }
+    });
     for (final entry in pending.deletions.entries) {
       for (final d in entry.value) {
         await _syncRepository.logDeletion(

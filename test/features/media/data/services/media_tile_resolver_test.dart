@@ -34,6 +34,20 @@ class _ScriptedRemote extends MediaStoreResolver {
     if (throwWith != null) throw throwWith!;
     return answer;
   }
+
+  MediaSourceData? probeAnswer;
+  Object? probeThrowWith;
+  int probes = 0;
+
+  @override
+  Future<MediaSourceData?> tryResolveProbed(
+    MediaItem item, {
+    required bool thumbnail,
+  }) async {
+    probes++;
+    if (probeThrowWith != null) throw probeThrowWith!;
+    return probeAnswer;
+  }
 }
 
 MediaItem _item({
@@ -223,5 +237,146 @@ void main() {
         expect(native.resolvedFullSize, isEmpty);
       },
     );
+  });
+
+  // A foreign row's stamps can arrive late, or be lost in a merge, while the
+  // store this device is attached to holds its bytes all along (media sync
+  // program spec 7.2). The tile asks the store directly.
+  group('store gate probe', () {
+    const elsewhere = UnavailableData(kind: UnavailableKind.fromOtherDevice);
+    final served = BytesData(bytes: Uint8List.fromList([9, 9]));
+
+    test('an unstamped foreign row is served by the probe', () async {
+      native.data = elsewhere;
+      remote.probeAnswer = served;
+
+      final r = await resolver.resolve(
+        _item(contentHash: 'abc'),
+        thumbnail: true,
+        thumbnailTarget: target,
+      );
+
+      expect(r.data, served);
+      expect(r.storeFallbackUsed, isTrue);
+      expect(r.nativeFailure, UnavailableKind.fromOtherDevice);
+      expect(remote.calls, 0, reason: 'the confirmed path is not taken');
+    });
+
+    // In production the confirmed path's lookup builds the store runtime,
+    // which drains the queue and may run a verify sweep; a probe from a grid
+    // render must write nothing, so it has a side-effect-free lookup.
+    test('the probe asks its own lookup, never the runtime', () async {
+      native.data = elsewhere;
+      remote.probeAnswer = served;
+      var runtimeBuilt = false;
+      final probing = MediaTileResolver(
+        registry: MediaSourceResolverRegistry({
+          MediaSourceType.localFile: native,
+        }),
+        remote: () async {
+          runtimeBuilt = true;
+          return remote;
+        },
+        probeRemote: () async => remote,
+      );
+
+      final r = await probing.resolve(
+        _item(contentHash: 'abc'),
+        thumbnail: true,
+        thumbnailTarget: target,
+      );
+
+      expect(r.data, served);
+      expect(runtimeBuilt, isFalse);
+    });
+
+    // notFound is the linking device's own verdict that the bytes are gone.
+    test('a row this device linked and lost is not probed', () async {
+      native.data = const UnavailableData(kind: UnavailableKind.notFound);
+      remote.probeAnswer = served;
+
+      final r = await resolver.resolve(
+        _item(contentHash: 'abc'),
+        thumbnail: true,
+        thumbnailTarget: target,
+      );
+
+      expect(r.data, isA<UnavailableData>());
+      expect(remote.probes, 0);
+    });
+
+    test('a row with no content hash is not probed', () async {
+      native.data = elsewhere;
+      var lookups = 0;
+      final counted = MediaTileResolver(
+        registry: MediaSourceResolverRegistry({
+          MediaSourceType.localFile: native,
+        }),
+        remote: () async {
+          lookups++;
+          return remote;
+        },
+      );
+
+      final r = await counted.resolve(
+        _item(),
+        thumbnail: true,
+        thumbnailTarget: target,
+      );
+
+      expect(r.data, isA<UnavailableData>());
+      expect(lookups, 0, reason: 'nothing to probe, so no runtime is built');
+    });
+
+    test('no store attached keeps the native placeholder', () async {
+      native.data = elsewhere;
+      final detached = MediaTileResolver(
+        registry: MediaSourceResolverRegistry({
+          MediaSourceType.localFile: native,
+        }),
+        remote: () async => null,
+      );
+
+      final r = await detached.resolve(
+        _item(contentHash: 'abc'),
+        thumbnail: true,
+        thumbnailTarget: target,
+      );
+
+      expect(r.data, elsewhere);
+      expect(r.nativeFailure, UnavailableKind.fromOtherDevice);
+      expect(
+        r.storeFallbackUsed,
+        isTrue,
+        reason: 'the fallback was attempted, with no store to answer',
+      );
+    });
+
+    test('a probe that throws keeps the native placeholder', () async {
+      native.data = elsewhere;
+      remote.probeThrowWith = StateError('offline');
+
+      final r = await resolver.resolve(
+        _item(contentHash: 'abc'),
+        thumbnail: true,
+        thumbnailTarget: target,
+      );
+
+      expect(r.data, elsewhere);
+    });
+
+    test('a stamped foreign row still takes the confirmed path', () async {
+      native.data = elsewhere;
+      remote.answer = served;
+
+      await resolver.resolve(
+        _item(contentHash: 'abc', remoteUploadedAt: DateTime(2026)),
+        thumbnail: false,
+        thumbnailTarget: target,
+      );
+
+      expect(remote.calls, 1);
+      expect(remote.probes, 0);
+    });
   });
 }

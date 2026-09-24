@@ -1793,6 +1793,11 @@ class Media extends Table {
   TextColumn get connectorAccountId => text().nullable()();
   TextColumn get remoteAssetId => text().nullable()();
   TextColumn get originDeviceId => text().nullable()();
+  // v226: PhotoKit's cloud identifier for a gallery link (media sync
+  // program spec 6.2), which names the same photo on every device sharing
+  // an iCloud Photos library. Null when unknown; empty when a relink found
+  // none, since a null never clears a peer's copy (nullToAbsent).
+  TextColumn get cloudAssetId => text().nullable()();
   // Media store (v103) - content identity + upload confirmation stamps.
   // Nullable adds; a row with remote_uploaded_at set has its original bytes
   // confirmed present in the library's media store at the content-hash key.
@@ -4396,7 +4401,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 224;
+  static const int currentSchemaVersion = 228;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4971,12 +4976,6 @@ class AppDatabase extends _$AppDatabase {
     // 185: main landed 185 through 207 while this branch was open, and a rung
     // at or below the shipped version never runs its onUpgrade step.
     208,
-    // v209: nav_tracks -- measured underwater routes from Seacraft ENC
-    // navigation consoles and similar IMU-equipped computers (issues #1195,
-    // #1445). 207 landed on main while this branch was open, and 208 is
-    // claimed by the auto-tag-dive-computer-imports branch, so this rung
-    // takes 209.
-    209,
     // v210: dive_tanks.equipment_id ON DELETE SET NULL. The link was NO
     // ACTION from the initial schema, so deleting a gear item a cylinder
     // was linked to failed. Rebuilds the table from its stored definition.
@@ -5052,6 +5051,18 @@ class AppDatabase extends _$AppDatabase {
     // Renumbered from 223, which buddy profile links took while this was
     // in review.
     224,
+    // v226: media.cloud_asset_id, the PhotoKit cloud identifier (media sync
+    // program spec 6.2). Column only; the one-time backfill runs after a
+    // sync, not here. Additive and nullable, so the floor stays at 224.
+    // 225 is held by PR #1978 (tissue loading import).
+    226,
+    // v228: nav_tracks -- measured underwater routes from Seacraft ENC
+    // navigation consoles and similar IMU-equipped computers (issues #1195,
+    // #1445). Table-only rung, additive, so the floor stays at 224.
+    // Renumbered from 209: main shipped up to 226 while this branch was
+    // open, and a rung at or below the shipped version never runs its
+    // onUpgrade step. 227 is claimed by the hide-tank-presets branch.
+    228,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5467,9 +5478,9 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// v209: the nav_tracks table for measured underwater routes (spec
+  /// v228: the nav_tracks table for measured underwater routes (spec
   /// 2026-09-10-underwater-nav-track-design.md, issues #1195, #1445).
-  /// Idempotent (createTable is IF NOT EXISTS); called from the v209
+  /// Idempotent (createTable is IF NOT EXISTS); called from the v228
   /// onUpgrade step and the beforeOpen backstop.
   Future<void> _assertNavTracksSchema() async {
     await createMigrator().createTable(navTracks);
@@ -7981,6 +7992,15 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'ALTER TABLE media ADD COLUMN verify_facts_hlc TEXT',
       );
+    }
+  }
+
+  Future<void> _assertMediaCloudAssetIdColumn() async {
+    final cols = await customSelect("PRAGMA table_info('media')").get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('cloud_asset_id')) {
+      await customStatement('ALTER TABLE media ADD COLUMN cloud_asset_id TEXT');
     }
   }
 
@@ -12555,16 +12575,6 @@ class AppDatabase extends _$AppDatabase {
           await _assertImportedFilesSchema();
         }
         if (from < 208) await reportProgress();
-        // v209: nav_tracks -- measured underwater routes from Seacraft ENC
-        // navigation consoles and similar IMU-equipped computers (spec
-        // 2026-09-10-underwater-nav-track-design.md, issues #1195, #1445).
-        // A new synced table, so onUpgrade need only create it; idempotent
-        // and re-asserted in the beforeOpen backstop against the
-        // parallel-branch version collisions noted above.
-        if (from < 209) {
-          await _assertNavTracksSchema();
-        }
-        if (from < 209) await reportProgress();
         // v210: dive_tanks.equipment_id ON DELETE SET NULL, a table rebuild
         // (see _assertDiveTankEquipmentSetNull). Re-asserted in the
         // beforeOpen backstop, which runs it before foreign keys are
@@ -12658,6 +12668,21 @@ class AppDatabase extends _$AppDatabase {
           await _backfillMediaFactClocks();
         }
         if (from < 224) await reportProgress();
+        // v226: media.cloud_asset_id. Column only, no backfill.
+        if (from < 226) {
+          await _assertMediaCloudAssetIdColumn();
+        }
+        if (from < 226) await reportProgress();
+        // v228: nav_tracks -- measured underwater routes from Seacraft ENC
+        // navigation consoles and similar IMU-equipped computers (spec
+        // 2026-09-10-underwater-nav-track-design.md, issues #1195, #1445).
+        // A new synced table, so onUpgrade need only create it; idempotent
+        // and re-asserted in the beforeOpen backstop against the
+        // parallel-branch version collisions noted above.
+        if (from < 228) {
+          await _assertNavTracksSchema();
+        }
+        if (from < 228) await reportProgress();
       },
       beforeOpen: (details) async {
         // v222 backstop: the per-site vertical exaggeration overrides.
@@ -12683,7 +12708,7 @@ class AppDatabase extends _$AppDatabase {
         // Enable foreign keys
         await customStatement('PRAGMA foreign_keys = ON');
 
-        // v209 backstop: re-assert the nav_tracks table. A database that
+        // v228 backstop: re-assert the nav_tracks table. A database that
         // arrives by restore or sync-adopt never runs onUpgrade.
         await _assertNavTracksSchema();
 
@@ -13154,6 +13179,11 @@ class AppDatabase extends _$AppDatabase {
         // branch version-collision self-heal). Columns only, no backfill: a
         // null clock falls back to the row clock, so nothing is lost.
         await _assertMediaFactClockColumns();
+
+        // v226 backstop: re-assert media.cloud_asset_id (parallel-branch
+        // version-collision self-heal). Column only, so it cannot touch
+        // diver data.
+        await _assertMediaCloudAssetIdColumn();
 
         // v194 backstop: re-assert dive_tanks.transmitter_serial. Every tank
         // read selects the whole row, so a database that arrives by restore

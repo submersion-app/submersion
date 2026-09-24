@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/services/asset_resolution_service.dart';
+import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
 import 'package:submersion/features/media/data/services/linked_gallery_assets.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
@@ -21,6 +22,7 @@ final assetResolutionServiceProvider = Provider<AssetResolutionService>((ref) {
   return AssetResolutionService(
     cacheRepository: ref.watch(localAssetCacheRepositoryProvider),
     photoPickerService: ref.watch(photoPickerServiceProvider),
+    cloudIdentifiers: const PhotoManagerCloudIdentifierSource(),
   );
 });
 

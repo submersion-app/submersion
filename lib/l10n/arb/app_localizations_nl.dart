@@ -436,6 +436,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String trips_story_dockedDay_goToDay(int number) {
+    return 'Ga naar dag $number';
+  }
+
+  @override
   String get trips_story_surfaceDay => 'Oppervlaktedag';
 
   @override
@@ -27258,6 +27263,14 @@ class AppLocalizationsNl extends AppLocalizations {
       'Dit apparaat en de cloudopslag zijn het niet meer eens over welke opslag in gebruik is. Opnieuw verbinden neemt de opslag over die de cloud nu bevat.';
 
   @override
+  String get settings_mediaStorage_transfers_suspended_detached =>
+      'Dit apparaat is niet meer gekoppeld aan deze mediaopslag. Opnieuw koppelen kan via Mediaopslag.';
+
+  @override
+  String get settings_mediaStorage_transfers_suspended_unreachable =>
+      'De mediaopslag kon niet worden gecontroleerd. Overdrachten worden automatisch opnieuw geprobeerd.';
+
+  @override
   String settings_mediaStorage_transfers_queued(int count) {
     return '$count in wachtrij';
   }
@@ -27266,6 +27279,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String settings_mediaStorage_transfers_waitingRetry(int count) {
     return '$count wachten op nieuwe poging';
   }
+
+  @override
+  String get settings_mediaStorage_transfers_waitingConnection =>
+      'Wachten op verbinding';
 
   @override
   String get settings_mediaStorage_report_action => 'Mediarapport exporteren';
@@ -27987,6 +28004,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String settings_setup_mediaStoreReconnect(String hint) {
+    return 'Mediaopslag opnieuw koppelen ($hint)';
+  }
+
+  @override
   String settings_setup_accountSignIn(String label) {
     return 'Aanmelden bij $label';
   }
@@ -28120,6 +28142,17 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get media_unavailablePlaceholder_accessDenied =>
       'Geen toegang tot fotobibliotheek';
+
+  @override
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'Niet bij de toegestane foto\'s';
+
+  @override
+  String get media_limitedAccess_allowFullAccess =>
+      'Volledige toegang toestaan';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain => 'Foto opnieuw kiezen';
 
   @override
   String get attrLabel_hose_length_m => 'Slanglengte';

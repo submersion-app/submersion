@@ -12,6 +12,7 @@ import 'package:submersion/features/media/domain/value_objects/media_source_data
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/limited_access_actions.dart';
 import 'package:submersion/features/media/presentation/widgets/unavailable_media_placeholder.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
@@ -62,12 +63,18 @@ class MediaItemView extends ConsumerStatefulWidget {
   /// the full-resolution original, with or without a [targetSize].
   final bool thumbnail;
 
+  /// Whether a photo outside the user's limited selection offers "Allow
+  /// full access" and "Choose photo again" (spec 6.3). The full-screen
+  /// viewer sets it; a grid tile has no room for buttons.
+  final bool showAccessActions;
+
   const MediaItemView({
     super.key,
     required this.item,
     this.fit = BoxFit.cover,
     this.targetSize,
     this.thumbnail = false,
+    this.showAccessActions = false,
   });
 
   @override
@@ -301,12 +308,16 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
     // live in MediaTileResolver (design spec section 10), so tests and
     // diagnostics can ask for the same verdict without a widget tree. The
     // runtime lookup is deferred: rows without any confirmed upload never
-    // build it (no keychain read, no store construction).
+    // build it (no keychain read, no store construction). A foreign row
+    // with no stamps is probed through a resolver on the store adapter
+    // alone, so a grid render never builds the runtime, whose construction
+    // drains the queue and may run a verify sweep (spec 7.2).
     final tile =
         await MediaTileResolver(
           registry: registry,
           remote: () async =>
               (await ref.read(mediaStoreRuntimeProvider.future))?.resolver,
+          probeRemote: () => ref.read(mediaStoreProbeResolverProvider.future),
         ).resolve(
           widget.item,
           thumbnail: widget.thumbnail,
@@ -423,6 +434,21 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
               // to whatever is behind the grid.
               behavior: HitTestBehavior.opaque,
               child: UnavailableMediaPlaceholder(data: data),
+            ),
+          // The viewer offers the ways back to a photo outside a limited
+          // selection (spec 6.3); a grid tile has no room for buttons and
+          // shows the placeholder alone. Only the viewer sets the flag, and
+          // it lays this out in bounded height.
+          UnavailableData(
+            kind: UnavailableKind.accessDenied,
+            limitedAccess: true,
+          )
+              when widget.showAccessActions =>
+            Column(
+              children: [
+                Expanded(child: UnavailableMediaPlaceholder(data: data)),
+                LimitedAccessActions(onChanged: _retry),
+              ],
             ),
           UnavailableData() => UnavailableMediaPlaceholder(data: data),
         };

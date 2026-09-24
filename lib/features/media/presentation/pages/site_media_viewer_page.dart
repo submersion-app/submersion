@@ -326,7 +326,13 @@ class _MediaGalleryPager extends StatelessWidget {
         return PhotoViewGalleryPageOptions.customChild(
           minScale: PhotoViewComputedScale.contained,
           maxScale: PhotoViewComputedScale.covered * 3.0,
-          child: MediaItemView(item: item, fit: BoxFit.contain),
+          // A full-screen pager: a photo outside a limited selection offers
+          // the ways back here, as in the dive viewer (spec 6.3).
+          child: MediaItemView(
+            item: item,
+            fit: BoxFit.contain,
+            showAccessActions: true,
+          ),
         );
       },
       loadingBuilder: (context, event) =>

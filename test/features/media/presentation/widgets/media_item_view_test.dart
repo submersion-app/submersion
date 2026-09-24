@@ -366,4 +366,58 @@ void main() {
     await tester.pumpAndSettle();
     expect(stub.resolveCalls, 2);
   });
+
+  group('a photo outside a limited selection', () {
+    const limited = UnavailableData(
+      kind: UnavailableKind.accessDenied,
+      limitedAccess: true,
+    );
+
+    // The viewer shows the ways back; a grid tile has no room for them.
+    testWidgets('the viewer offers full access and the selection', (
+      tester,
+    ) async {
+      final resolver = _StubResolver(limited, MediaSourceType.platformGallery);
+      await tester.pumpWidget(
+        _wrap(
+          resolver: resolver,
+          child: MediaItemView(item: _item(), showAccessActions: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Allow full access'), findsOneWidget);
+      expect(find.text('Choose photo again'), findsOneWidget);
+    });
+
+    testWidgets('a grid tile shows the placeholder alone', (tester) async {
+      final resolver = _StubResolver(limited, MediaSourceType.platformGallery);
+      await tester.pumpWidget(
+        _wrap(
+          resolver: resolver,
+          child: MediaItemView(item: _item(), thumbnail: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Not in your allowed photos'), findsOneWidget);
+      expect(find.text('Allow full access'), findsNothing);
+    });
+
+    testWidgets('plain denied access offers no actions', (tester) async {
+      final resolver = _StubResolver(
+        const UnavailableData(kind: UnavailableKind.accessDenied),
+        MediaSourceType.platformGallery,
+      );
+      await tester.pumpWidget(
+        _wrap(
+          resolver: resolver,
+          child: MediaItemView(item: _item(), showAccessActions: true),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Allow full access'), findsNothing);
+    });
+  });
 }

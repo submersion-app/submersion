@@ -1,5 +1,6 @@
 import 'dart:typed_data';
 
+import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
 import 'package:submersion/features/media/data/services/gallery_asset_reader.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_metadata.dart';
@@ -14,6 +15,7 @@ class FakeGalleryAsset {
     this.height = 3024,
     this.filename = 'IMG_0001.JPG',
     this.type = AssetType.image,
+    this.cloudId,
   });
 
   final String id;
@@ -26,6 +28,10 @@ class FakeGalleryAsset {
   /// often omits on a peer's fast date-range query.
   final String? filename;
   final AssetType type;
+
+  /// PhotoKit's cloud identifier. Two devices sharing an iCloud library
+  /// hold the same photo under different ids and the SAME cloud id.
+  final String? cloudId;
 
   AssetInfo get info => AssetInfo(
     id: id,
@@ -44,7 +50,8 @@ class FakeGalleryAsset {
 /// reads `PlatformGalleryResolver` runs through [GalleryAssetReader]. Two
 /// devices get two instances; a shared iCloud library is modelled by giving
 /// both the same bytes under different ids.
-class FakePhotoPickerService implements PhotoPickerService, GalleryAssetReader {
+class FakePhotoPickerService
+    implements PhotoPickerService, GalleryAssetReader, CloudIdentifierSource {
   FakePhotoPickerService({
     List<FakeGalleryAsset> assets = const [],
     this.permission = PhotoPermissionStatus.authorized,
@@ -61,8 +68,18 @@ class FakePhotoPickerService implements PhotoPickerService, GalleryAssetReader {
   @override
   final bool supportsGalleryBrowsing;
 
+  /// How many times the app asked for access, which shows the OS prompt on
+  /// a real device. Background resolution must leave it at zero.
+  int prompts = 0;
+
+  /// When set, gallery queries throw it (a platform channel failure).
+  Object? queryError;
+
   void add(FakeGalleryAsset asset) => _assets[asset.id] = asset;
   void remove(String id) => _assets.remove(id);
+
+  /// The picker's view of asset [id], as a selection hands it over.
+  AssetInfo infoFor(String id) => _assets[id]!.info;
 
   FakeGalleryAsset? _visible(String id) {
     final asset = _assets[id];
@@ -86,6 +103,8 @@ class FakePhotoPickerService implements PhotoPickerService, GalleryAssetReader {
     DateTime start,
     DateTime end,
   ) async {
+    final error = queryError;
+    if (error != null) throw error;
     final matches = [
       for (final a in _assets.values)
         if (_visible(a.id) != null &&
@@ -105,10 +124,19 @@ class FakePhotoPickerService implements PhotoPickerService, GalleryAssetReader {
       _visible(assetId)?.bytes;
 
   @override
-  Future<PhotoPermissionStatus> checkPermission() async => permission;
+  Future<PhotoPermissionStatus> checkPermission() async {
+    prompts++;
+    return permission;
+  }
 
   @override
-  Future<PhotoPermissionStatus> requestPermission() async => permission;
+  Future<PhotoPermissionStatus> currentPermission() async => permission;
+
+  @override
+  Future<PhotoPermissionStatus> requestPermission() async {
+    prompts++;
+    return permission;
+  }
 
   @override
   Future<String?> getFilePath(String assetId) async => null;
@@ -143,5 +171,32 @@ class FakePhotoPickerService implements PhotoPickerService, GalleryAssetReader {
       height: a.height,
       mimeType: a.type == AssetType.video ? 'video/quicktime' : 'image/jpeg',
     );
+  }
+
+  // CloudIdentifierSource
+
+  /// How many batch lookups ran: resolution must not ask for a row that
+  /// has no cloud id to match.
+  int cloudIdCalls = 0;
+
+  /// When set, the lookups throw it (a platform channel failure).
+  Object? cloudIdError;
+
+  /// False models a platform with no iCloud identifiers (Android, desktop).
+  bool supportsCloudIdentifiers = true;
+
+  @override
+  bool get isSupported => supportsCloudIdentifiers;
+
+  @override
+  Future<Map<String, String>> cloudIdentifiers(List<String> localIds) async {
+    cloudIdCalls++;
+    final error = cloudIdError;
+    if (error != null) throw error;
+    return {
+      for (final id in localIds)
+        if (_visible(id)?.cloudId case final cloudId? when cloudId.isNotEmpty)
+          id: cloudId,
+    };
   }
 }

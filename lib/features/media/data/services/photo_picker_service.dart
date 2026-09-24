@@ -111,7 +111,15 @@ abstract class PhotoPickerService {
   Future<Uint8List?> getFileBytes(String assetId);
 
   /// Check the current photo library permission status.
+  ///
+  /// On mobile this is a request: it shows the OS prompt when access was
+  /// never decided. Work the user did not start reads [currentPermission].
   Future<PhotoPermissionStatus> checkPermission();
+
+  /// The current photo library access, read without asking. What a tile
+  /// render or a background pass uses, so the OS prompt only ever appears
+  /// from something the user did (media sync program spec 6.3).
+  Future<PhotoPermissionStatus> currentPermission();
 
   /// Request photo library permission from the user.
   ///
