@@ -3923,6 +3923,58 @@ class SyncService {
     };
   }
 
+  /// Marks pending, before the replay is applied, each replayed row that
+  /// cannot be ordered against the adopted copy: a fact-carrying row whose
+  /// row clock is null (a legacy row whose only unsent write was a fact), so
+  /// [restampRowForReplay] left it without one. The merge applies an
+  /// unordered copy whole, which let this device's snapshot fields (a stale
+  /// caption) overwrite newer ones a peer published. Marked pending first,
+  /// the row takes the merge's pending-unorderable path instead: the adopted
+  /// row keeps its fields and only the fact groups the replay's clocks win
+  /// come over.
+  ///
+  /// Only rows the adoption holds. That path skips a copy with no local row
+  /// at all, and for such a row the replay is its only way back.
+  ///
+  /// "No row clock" is read the way the merge reads it ([_extractHlc]):
+  /// absent, blank or malformed alike, so every row the merge would find
+  /// unorderable is marked. All marks commit in one transaction; each
+  /// mark's own transaction nests as a savepoint, so a library with many
+  /// legacy rows pays one commit, not one per row.
+  Future<void> _markUnorderableReplayPending(
+    Map<String, dynamic> restamped,
+  ) async {
+    final nowMillis = DateTime.now().millisecondsSinceEpoch;
+    final toMark = <({String entityType, String id})>[];
+    for (final entry in restamped.entries) {
+      final rows = entry.value;
+      if (rows is! List || SyncFactGroups.of(entry.key).isEmpty) continue;
+      final ids = [
+        for (final row in rows)
+          if (row is Map<String, dynamic> &&
+              _extractHlc(row) == null &&
+              row['id'] is String)
+            row['id'] as String,
+      ];
+      if (ids.isEmpty) continue;
+      final adopted = await _serializer.fetchRecords(entry.key, ids);
+      toMark.addAll([
+        for (final id in adopted.keys) (entityType: entry.key, id: id),
+      ]);
+    }
+    if (toMark.isEmpty) return;
+    await DatabaseService.instance.database.transaction(() async {
+      for (final row in toMark) {
+        await _syncRepository.markRecordPending(
+          entityType: row.entityType,
+          recordId: row.id,
+          localUpdatedAt: nowMillis,
+          stampClock: false,
+        );
+      }
+    });
+  }
+
   /// Re-applies the pre-fence pending snapshot with FRESH HLC stamps. The
   /// adopted watermark (maxRowHlc after the rebuild) is at or above the
   /// snapshot's original stamps, so without re-stamping the rows would sort
@@ -3970,33 +4022,38 @@ class SyncService {
       data: data,
       deletions: pending.deletions,
     );
+    await _markUnorderableReplayPending(restamped);
     await _applyRemotePayload(payload, null);
     // Re-mark the replayed rows pending: the fence's resetSyncState cleared
     // the pending table, and the remote-apply path above does not repopulate
     // it, so without this _shouldSkipPublishAfterAdopt would read "nothing to
     // say" and the replayed records would never publish until an unrelated
     // later edit re-tripped the gate. (The publish CONTENT is selected by the
-    // HLC watermark; these marks only open the gate.)
+    // HLC watermark; these marks only open the gate.) One transaction for
+    // all of them, each mark nesting as a savepoint: one commit for the
+    // snapshot, not one per row.
     final nowMillis = DateTime.now().millisecondsSinceEpoch;
-    for (final entry in restamped.entries) {
-      final rows = entry.value;
-      if (rows is! List) continue;
-      for (final row in rows) {
-        final id = row is Map<String, dynamic> ? row['id'] : null;
-        if (id is! String) continue;
-        // No stamp: restampRowForReplay already chose this row's clocks and
-        // the apply above wrote them. Stamping here would bump the row clock
-        // even for a row that is pending on a fact write alone, republishing
-        // this device's whole snapshot of it over a peer's newer edit, which
-        // is exactly what that restamp avoids.
-        await _syncRepository.markRecordPending(
-          entityType: entry.key,
-          recordId: id,
-          localUpdatedAt: nowMillis,
-          stampClock: false,
-        );
+    await DatabaseService.instance.database.transaction(() async {
+      for (final entry in restamped.entries) {
+        final rows = entry.value;
+        if (rows is! List) continue;
+        for (final row in rows) {
+          final id = row is Map<String, dynamic> ? row['id'] : null;
+          if (id is! String) continue;
+          // No stamp: restampRowForReplay already chose this row's clocks
+          // and the apply above wrote them. Stamping here would bump the row
+          // clock even for a row that is pending on a fact write alone,
+          // republishing this device's whole snapshot of it over a peer's
+          // newer edit, which is exactly what that restamp avoids.
+          await _syncRepository.markRecordPending(
+            entityType: entry.key,
+            recordId: id,
+            localUpdatedAt: nowMillis,
+            stampClock: false,
+          );
+        }
       }
-    }
+    });
     for (final entry in pending.deletions.entries) {
       for (final d in entry.value) {
         await _syncRepository.logDeletion(
