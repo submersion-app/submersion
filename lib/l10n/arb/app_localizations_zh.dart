@@ -24805,6 +24805,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tankPresets_builtInPresets => '内置预设';
 
   @override
+  String get tankPresets_builtInPresets_description =>
+      '关闭不使用的预设，即可在气瓶选择列表中隐藏它们。默认预设始终显示。';
+
+  @override
   String get tankPresets_currentDefault => '当前默认';
 
   @override
@@ -24950,6 +24954,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => '设为默认';
+
+  @override
+  String get tankPresets_showInPickers => '在气瓶选择列表中显示';
 
   @override
   String get tankPresets_title => '气瓶预设';

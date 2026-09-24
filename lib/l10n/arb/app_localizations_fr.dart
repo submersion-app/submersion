@@ -26271,6 +26271,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tankPresets_builtInPresets => 'Presets intégrés';
 
   @override
+  String get tankPresets_builtInPresets_description =>
+      'Désactivez les presets que vous n\'utilisez pas pour les masquer dans les sélecteurs de bloc. Le preset par défaut est toujours affiché.';
+
+  @override
   String get tankPresets_currentDefault => 'Par défaut actuel';
 
   @override
@@ -26421,6 +26425,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'Définir par défaut';
+
+  @override
+  String get tankPresets_showInPickers =>
+      'Afficher dans les sélecteurs de bloc';
 
   @override
   String get tankPresets_title => 'Presets de blocs';

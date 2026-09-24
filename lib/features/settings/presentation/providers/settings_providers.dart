@@ -205,6 +205,10 @@ class AppSettings {
   final String? defaultTankPreset;
   final bool applyDefaultTankToImports;
 
+  /// Built-in tank preset slugs hidden from the pickers (issue #2305). The
+  /// Tank Presets page still lists them, import matching still uses them.
+  final Set<String> hiddenTankPresetIds;
+
   // Decompression & Safety settings
   /// Gradient Factor Low (0-100, typically 30)
   final int gfLow;
@@ -573,6 +577,7 @@ class AppSettings {
     this.defaultStartPressure = 200,
     this.defaultTankPreset = 'al80',
     this.applyDefaultTankToImports = false,
+    this.hiddenTankPresetIds = const {},
     // Decompression defaults
     this.gfLow = 50,
     this.gfHigh = 85,
@@ -752,6 +757,7 @@ class AppSettings {
     String? defaultTankPreset,
     bool clearDefaultTankPreset = false,
     bool? applyDefaultTankToImports,
+    Set<String>? hiddenTankPresetIds,
     int? gfLow,
     int? gfHigh,
     double? ppO2MaxWorking,
@@ -903,6 +909,7 @@ class AppSettings {
           : (defaultTankPreset ?? this.defaultTankPreset),
       applyDefaultTankToImports:
           applyDefaultTankToImports ?? this.applyDefaultTankToImports,
+      hiddenTankPresetIds: hiddenTankPresetIds ?? this.hiddenTankPresetIds,
       gfLow: gfLow ?? this.gfLow,
       gfHigh: gfHigh ?? this.gfHigh,
       ppO2MaxWorking: ppO2MaxWorking ?? this.ppO2MaxWorking,
@@ -1531,11 +1538,30 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  /// Also shows [presetName] again if it was hidden: the default preset is
+  /// always offered in the pickers (issue #2305).
   Future<void> setDefaultTankPreset(String? presetName) async {
     state = state.copyWith(
       defaultTankPreset: presetName,
       clearDefaultTankPreset: presetName == null,
+      hiddenTankPresetIds: presetName == null
+          ? null
+          : ({...state.hiddenTankPresetIds}..remove(presetName)),
     );
+    await _saveSettings();
+  }
+
+  /// Hides or shows a built-in tank preset in the pickers (issue #2305).
+  /// The current default preset cannot be hidden, so hiding it is a no-op.
+  Future<void> setTankPresetHidden(String presetName, bool hidden) async {
+    if (hidden && presetName == state.defaultTankPreset) return;
+    final ids = {...state.hiddenTankPresetIds};
+    if (hidden) {
+      ids.add(presetName);
+    } else {
+      ids.remove(presetName);
+    }
+    state = state.copyWith(hiddenTankPresetIds: ids);
     await _saveSettings();
   }
 

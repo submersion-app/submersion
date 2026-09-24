@@ -25538,6 +25538,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tankPresets_builtInPresets => 'תבניות מובנות';
 
   @override
+  String get tankPresets_builtInPresets_description =>
+      'כבה תבניות שאינך משתמש בהן כדי להסתיר אותן מבוררי הבלונים. תבנית ברירת המחדל מוצגת תמיד.';
+
+  @override
   String get tankPresets_currentDefault => 'ברירת מחדל נוכחית';
 
   @override
@@ -25686,6 +25690,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'הגדר כברירת מחדל';
+
+  @override
+  String get tankPresets_showInPickers => 'הצג בבוררי הבלונים';
 
   @override
   String get tankPresets_title => 'תבניות מיכל';

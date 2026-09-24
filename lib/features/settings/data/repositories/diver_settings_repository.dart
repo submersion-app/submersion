@@ -139,6 +139,9 @@ class DiverSettingsRepository {
               ),
               hiddenChamberIds: Value(_encodeDisabledRules(s.hiddenChamberIds)),
               emergencyRegion: Value(s.emergencyRegion),
+              hiddenTankPresetIds: Value(
+                _encodeDisabledRules(s.hiddenTankPresetIds),
+              ),
               showAscentRateColors: Value(s.showAscentRateColors),
               showNdlOnProfile: Value(s.showNdlOnProfile),
               lastStopDepth: Value(s.lastStopDepth),
@@ -329,6 +332,9 @@ class DiverSettingsRepository {
             _encodeDisabledRules(settings.hiddenChamberIds),
           ),
           emergencyRegion: Value(settings.emergencyRegion),
+          hiddenTankPresetIds: Value(
+            _encodeDisabledRules(settings.hiddenTankPresetIds),
+          ),
           showAscentRateColors: Value(settings.showAscentRateColors),
           showNdlOnProfile: Value(settings.showNdlOnProfile),
           lastStopDepth: Value(settings.lastStopDepth),
@@ -561,6 +567,7 @@ class DiverSettingsRepository {
       conditionDisabledRules: _decodeDisabledRules(row.conditionDisabledRules),
       hiddenChamberIds: _decodeDisabledRules(row.hiddenChamberIds),
       emergencyRegion: row.emergencyRegion,
+      hiddenTankPresetIds: _decodeDisabledRules(row.hiddenTankPresetIds),
       showAscentRateColors: row.showAscentRateColors,
       showNdlOnProfile: row.showNdlOnProfile,
       lastStopDepth: row.lastStopDepth,

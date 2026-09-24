@@ -26124,6 +26124,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get tankPresets_builtInPresets => 'Integrierte Vorlagen';
 
   @override
+  String get tankPresets_builtInPresets_description =>
+      'Schalte Vorlagen aus, die du nicht verwendest, um sie in der Tankauswahl auszublenden. Die Standardvorlage wird immer angezeigt.';
+
+  @override
   String get tankPresets_currentDefault => 'Aktueller Standard';
 
   @override
@@ -26274,6 +26278,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'Als Standard festlegen';
+
+  @override
+  String get tankPresets_showInPickers => 'In der Tankauswahl anzeigen';
 
   @override
   String get tankPresets_title => 'Flaschenvorlagen';

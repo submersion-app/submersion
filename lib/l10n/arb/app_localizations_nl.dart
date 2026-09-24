@@ -25973,6 +25973,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get tankPresets_builtInPresets => 'Standaard instellingen';
 
   @override
+  String get tankPresets_builtInPresets_description =>
+      'Schakel voorinstellingen uit die je niet gebruikt om ze te verbergen in de flessenkiezers. De standaardvoorinstelling wordt altijd getoond.';
+
+  @override
   String get tankPresets_currentDefault => 'Huidige standaard';
 
   @override
@@ -26123,6 +26127,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'Als standaard instellen';
+
+  @override
+  String get tankPresets_showInPickers => 'Tonen in flessenkiezers';
 
   @override
   String get tankPresets_title => 'Flesinstellingen';

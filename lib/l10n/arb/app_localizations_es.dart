@@ -26198,6 +26198,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tankPresets_builtInPresets => 'Presets incluidos';
 
   @override
+  String get tankPresets_builtInPresets_description =>
+      'Desactiva los presets que no uses para ocultarlos en los selectores de tanque. El preset predeterminado siempre se muestra.';
+
+  @override
   String get tankPresets_currentDefault => 'Predeterminado actual';
 
   @override
@@ -26349,6 +26353,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'Establecer como predeterminado';
+
+  @override
+  String get tankPresets_showInPickers => 'Mostrar en los selectores de tanque';
 
   @override
   String get tankPresets_title => 'Presets de tanque';

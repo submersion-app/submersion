@@ -26096,6 +26096,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tankPresets_builtInPresets => 'Beépített sablonok';
 
   @override
+  String get tankPresets_builtInPresets_description =>
+      'Kapcsold ki a nem használt sablonokat, hogy ne jelenjenek meg a palackválasztókban. Az alapértelmezett sablon mindig látható.';
+
+  @override
   String get tankPresets_currentDefault => 'Jelenlegi alapértelmezett';
 
   @override
@@ -26245,6 +26249,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'Beállítás alapértelmezettként';
+
+  @override
+  String get tankPresets_showInPickers => 'Megjelenítés a palackválasztókban';
 
   @override
   String get tankPresets_title => 'Palacksablonok';

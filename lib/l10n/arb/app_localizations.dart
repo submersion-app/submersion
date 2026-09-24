@@ -41808,6 +41808,12 @@ abstract class AppLocalizations {
   /// **'Built-in Presets'**
   String get tankPresets_builtInPresets;
 
+  /// No description provided for @tankPresets_builtInPresets_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch off the presets you don\'t use to hide them from the tank pickers. The default preset is always shown.'**
+  String get tankPresets_builtInPresets_description;
+
   /// No description provided for @tankPresets_currentDefault.
   ///
   /// In en, this message translates to:
@@ -42053,6 +42059,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Set as default'**
   String get tankPresets_setAsDefault;
+
+  /// No description provided for @tankPresets_showInPickers.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in tank pickers'**
+  String get tankPresets_showInPickers;
 
   /// No description provided for @tankPresets_title.
   ///

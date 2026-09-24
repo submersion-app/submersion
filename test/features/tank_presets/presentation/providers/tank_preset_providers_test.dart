@@ -11,6 +11,7 @@ import 'package:submersion/features/tank_presets/data/repositories/tank_preset_r
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
 Diver _makeDiver({String name = 'Default', bool isDefault = true}) {
@@ -121,6 +122,74 @@ void main() {
         );
       },
     );
+  });
+
+  group('hidden built-in presets (issue #2305)', () {
+    late MockSettingsNotifier settings;
+
+    ProviderContainer makeHidingContainer() {
+      settings = MockSettingsNotifier();
+      return ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          settingsProvider.overrideWith((ref) => settings),
+        ],
+      );
+    }
+
+    test('tankPresetsProvider leaves hidden built-in presets out', () async {
+      await seedCurrentDiver();
+      final container = makeHidingContainer();
+      addTearDown(container.dispose);
+      await settings.setTankPresetHidden('hp80', true);
+
+      final names = (await container.read(
+        tankPresetsProvider.future,
+      )).map((p) => p.name);
+      expect(names, isNot(contains('hp80')));
+      expect(names, contains('al80'));
+    });
+
+    test('tankPresetsProvider follows a change to the hidden set', () async {
+      await seedCurrentDiver();
+      final container = makeHidingContainer();
+      addTearDown(container.dispose);
+      final sub = container.listen(tankPresetsProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      expect(
+        (await container.read(tankPresetsProvider.future)).map((p) => p.name),
+        contains('lp85'),
+      );
+      await settings.setTankPresetHidden('lp85', true);
+      expect(
+        (await container.read(tankPresetsProvider.future)).map((p) => p.name),
+        isNot(contains('lp85')),
+      );
+      await settings.setTankPresetHidden('lp85', false);
+      expect(
+        (await container.read(tankPresetsProvider.future)).map((p) => p.name),
+        contains('lp85'),
+      );
+    });
+
+    test('the settings page list keeps every preset', () async {
+      await seedCurrentDiver();
+      final container = makeHidingContainer();
+      addTearDown(container.dispose);
+      await settings.setTankPresetHidden('hp80', true);
+      final sub = container.listen(tankPresetListNotifierProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      while (container.read(tankPresetListNotifierProvider).isLoading) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      final names = container
+          .read(tankPresetListNotifierProvider)
+          .value!
+          .map((p) => p.name);
+      expect(names, contains('hp80'));
+    });
   });
 
   group('tankPresetListNotifierProvider '
