@@ -189,15 +189,24 @@ class AssetResolutionService {
     // what lets a caller tell "the gallery says no" apart from "the gallery
     // would not answer". A caller that orphans rows on unavailable would
     // otherwise mark the whole library missing the moment permission lapses.
+    //
+    // Read, never asked: this runs from thumbnail renders, and on a phone
+    // asking shows the OS prompt, which must come only from the picker or
+    // the "Allow full access" action (media sync program spec 6.3).
     final PhotoPermissionStatus permission;
     try {
-      permission = await _photoPickerService.checkPermission();
-    } catch (e) {
-      // checkPermission() ultimately hits platform code; treat a
-      // platform-channel failure like any other gallery failure rather than
-      // letting it bubble out of resolveAssetId() and break a Riverpod
-      // provider watching it.
-      _log.error('Permission check failed for media ${item.id}', error: e);
+      permission = await _photoPickerService.currentPermission();
+    } on Object catch (e, stackTrace) {
+      // The read ultimately hits platform code; treat a platform-channel
+      // failure like any other gallery failure rather than letting it bubble
+      // out of resolveAssetId() and break a Riverpod provider watching it.
+      // Logged under the media category, with the exception, so a health
+      // report export shows why the row was inconclusive.
+      _log.error(
+        'Permission check failed for media ${item.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
       return const ResolutionResult(status: ResolutionStatus.accessDenied);
     }
     if (permission != PhotoPermissionStatus.authorized &&
@@ -224,9 +233,16 @@ class AssetResolutionService {
         for (final asset in found) {
           byId[asset.id] = asset;
         }
-      } catch (e) {
-        _log.error('Gallery query failed for media ${item.id}', error: e);
-        return const ResolutionResult(status: ResolutionStatus.unavailable);
+      } on Object catch (e, stackTrace) {
+        // The gallery could not be consulted, which says nothing about the
+        // photo: unavailable would read as notFound on the device that
+        // linked it and orphan the row everywhere.
+        _log.error(
+          'Gallery query failed for media ${item.id}',
+          error: e,
+          stackTrace: stackTrace,
+        );
+        return const ResolutionResult(status: ResolutionStatus.accessDenied);
       }
     }
     final candidates = byId.values.toList();

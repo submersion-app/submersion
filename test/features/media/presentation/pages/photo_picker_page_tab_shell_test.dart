@@ -35,6 +35,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 class _StubPhotoPickerService implements PhotoPickerService {
   @override
+  Future<PhotoPermissionStatus> currentPermission() => checkPermission();
+
+  @override
   bool get supportsGalleryBrowsing => true;
   @override
   Future<List<AssetInfo>> getAssetsInDateRange(DateTime s, DateTime e) async =>

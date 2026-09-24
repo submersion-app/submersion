@@ -96,7 +96,7 @@ void main() {
           mockPicker.getThumbnail('original-asset-id', size: 50),
         ).thenAnswer((_) async => null);
         when(
-          mockPicker.checkPermission(),
+          mockPicker.currentPermission(),
         ).thenAnswer((_) async => PhotoPermissionStatus.authorized);
         // Gallery search returns a match
         when(mockPicker.getAssetsInDateRange(any, any)).thenAnswer(
@@ -174,7 +174,7 @@ void main() {
       // reading, reopening it on every cancel.
       when(mockPicker.supportsGalleryBrowsing).thenReturn(false);
       when(
-        mockPicker.checkPermission(),
+        mockPicker.currentPermission(),
       ).thenAnswer((_) async => PhotoPermissionStatus.authorized);
       when(
         mockPicker.getThumbnail(any, size: anyNamed('size')),
@@ -219,7 +219,7 @@ void main() {
       when(
         mockPicker.getThumbnail('original-asset-id', size: 50),
       ).thenAnswer((_) async => null);
-      when(mockPicker.checkPermission()).thenAnswer((_) async => status);
+      when(mockPicker.currentPermission()).thenAnswer((_) async => status);
     }
 
     test(
@@ -293,13 +293,13 @@ void main() {
       },
     );
 
-    // checkPermission() ultimately hits platform code (see
-    // PhotoPickerServiceMobile.checkPermission()); a platform-channel
+    // currentPermission() ultimately hits platform code (see
+    // PhotoPickerServiceMobile.currentPermission()); a platform-channel
     // exception must not bubble out of resolveAssetId() and break a
     // Riverpod provider watching it. It should be treated like any other
-    // gallery failure: log and report unavailable without caching.
+    // gallery failure: log and report accessDenied without caching.
     test(
-      'returns accessDenied without caching when checkPermission throws',
+      'returns accessDenied without caching when the permission read throws',
       () async {
         when(mockPicker.supportsGalleryBrowsing).thenReturn(true);
         when(
@@ -310,7 +310,7 @@ void main() {
           mockPicker.getThumbnail('original-asset-id', size: 50),
         ).thenAnswer((_) async => null);
         when(
-          mockPicker.checkPermission(),
+          mockPicker.currentPermission(),
         ).thenThrow(PlatformException(code: 'permission_check_failed'));
 
         final result = await service.resolveAssetId(createTestItem());
@@ -343,7 +343,7 @@ void main() {
         mockPicker.getThumbnail('original-asset-id', size: 50),
       ).thenAnswer((_) async => null);
       when(
-        mockPicker.checkPermission(),
+        mockPicker.currentPermission(),
       ).thenAnswer((_) async => PhotoPermissionStatus.authorized);
       when(
         mockPicker.getAssetsInDateRange(any, any),

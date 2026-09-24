@@ -43,6 +43,9 @@ MediaItem _linkedRow(String id, {required String platformAssetId}) => MediaItem(
 /// Stub photo picker that records calls and returns the provided
 /// [_assets] from `getAssetsInDateRange`.
 class _StubPhotoPicker implements PhotoPickerService {
+  @override
+  Future<PhotoPermissionStatus> currentPermission() => checkPermission();
+
   _StubPhotoPicker({
     this.permission = PhotoPermissionStatus.authorized,
     List<AssetInfo>? assets,

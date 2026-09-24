@@ -61,6 +61,13 @@ class FakePhotoPickerService implements PhotoPickerService, GalleryAssetReader {
   @override
   final bool supportsGalleryBrowsing;
 
+  /// How many times the app asked for access, which shows the OS prompt on
+  /// a real device. Background resolution must leave it at zero.
+  int prompts = 0;
+
+  /// When set, gallery queries throw it (a platform channel failure).
+  Object? queryError;
+
   void add(FakeGalleryAsset asset) => _assets[asset.id] = asset;
   void remove(String id) => _assets.remove(id);
 
@@ -86,6 +93,8 @@ class FakePhotoPickerService implements PhotoPickerService, GalleryAssetReader {
     DateTime start,
     DateTime end,
   ) async {
+    final error = queryError;
+    if (error != null) throw error;
     final matches = [
       for (final a in _assets.values)
         if (_visible(a.id) != null &&
@@ -105,10 +114,19 @@ class FakePhotoPickerService implements PhotoPickerService, GalleryAssetReader {
       _visible(assetId)?.bytes;
 
   @override
-  Future<PhotoPermissionStatus> checkPermission() async => permission;
+  Future<PhotoPermissionStatus> checkPermission() async {
+    prompts++;
+    return permission;
+  }
 
   @override
-  Future<PhotoPermissionStatus> requestPermission() async => permission;
+  Future<PhotoPermissionStatus> currentPermission() async => permission;
+
+  @override
+  Future<PhotoPermissionStatus> requestPermission() async {
+    prompts++;
+    return permission;
+  }
 
   @override
   Future<String?> getFilePath(String assetId) async => null;
