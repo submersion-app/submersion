@@ -188,6 +188,38 @@ void main() {
       expect(icon.color, FeatureAccentColors.light.of('dives'));
     });
 
+    // A header whose title is itself a control (the equipment section
+    // switcher) passes a widget in place of the text; the accent icon still
+    // has to lead it so the header matches every other titled pane.
+    const customKey = ValueKey('custom-title');
+    const customTitle = FeatureAppBarTitle.custom(
+      featureId: 'equipment',
+      child: SizedBox(key: customKey, width: 120, height: 20),
+    );
+
+    testWidgets('renders a custom title alone with the toggle off', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_harness(customTitle));
+
+      expect(find.byKey(customKey), findsOneWidget);
+      expect(find.byType(Icon), findsNothing);
+    });
+
+    testWidgets('leads a custom title with the tinted icon when on', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_harness(customTitle, headerOn: true));
+
+      final icon = tester.widget<Icon>(find.byType(Icon));
+      expect(icon.icon, Icons.backpack);
+      expect(icon.color, FeatureAccentColors.light.of('equipment'));
+      expect(
+        tester.getRect(find.byType(Icon)).right,
+        lessThanOrEqualTo(tester.getRect(find.byKey(customKey)).left),
+      );
+    });
+
     // Compact app bars style their own title, so the style has to survive the
     // accent wrapping in both states.
     const styledTitle = FeatureAppBarTitle(

@@ -21,7 +21,6 @@ import 'package:submersion/features/equipment/presentation/pages/equipment_detai
 import 'package:submersion/features/equipment/presentation/pages/equipment_edit_page.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/shared/widgets/feature_accent.dart';
 
 class EquipmentListPage extends ConsumerStatefulWidget {
   const EquipmentListPage({super.key});
@@ -206,22 +205,15 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
   Widget _buildMobileLayout(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // The toggle rides as an action rather than off `bottom`, which cost a
-        // third stacked bar and left the page title and the list's own title
-        // both reading "Equipment" (issue #2256). As an action it keeps its
-        // natural width and the title yields, which is the right priority: the
-        // toggle is a control, the title is a label the toggle already repeats.
-        title: FeatureAppBarTitle(
-          featureId: 'equipment',
-          title: context.l10n.equipment_appBar_title,
-        ),
-        actions: [
-          // Flexible because AppBar hands its actions row unbounded main-axis
-          // constraints: without it a long translation on a small phone
-          // overflows the bar instead of ellipsising.
-          Flexible(child: _buildSectionToggle(context, showIcons: true)),
-          const SizedBox(width: 8),
-        ],
+        // The title is the section switcher: "Equipment" and "Sets" sit where
+        // the title would, the unselected one dimmer. The toggle used to hang
+        // off `bottom`, which cost a third stacked bar and left the page title
+        // and the list's own title both reading "Equipment" (issue #2256).
+        // 8 here plus the switcher's own 8px label padding puts the text at
+        // the 16px every other app bar title sits at, with the pill reaching
+        // into the margin.
+        titleSpacing: 8,
+        title: _buildSectionToggle(context),
       ),
       body: TabBarView(
         controller: _tabController,
@@ -240,15 +232,12 @@ class _EquipmentListPageState extends ConsumerState<EquipmentListPage>
         : _buildSetsMasterDetail();
   }
 
-  /// The Equipment / Sets toggle, for whichever header bar is hosting it.
+  /// The Equipment / Sets switcher, for whichever header is hosting it.
   ///
   /// The same [TabController] drives it everywhere, so the phone layout keeps
   /// the swipe gesture its `TabBarView` provides.
-  Widget _buildSectionToggle(BuildContext context, {required bool showIcons}) {
-    return EquipmentSectionToggle(
-      controller: _tabController,
-      showIcons: showIcons,
-    );
+  Widget _buildSectionToggle(BuildContext context) {
+    return EquipmentSectionToggle(controller: _tabController);
   }
 
   Widget _buildEquipmentMasterDetail() {

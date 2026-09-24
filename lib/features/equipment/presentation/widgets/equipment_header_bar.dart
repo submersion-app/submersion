@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 /// a single row.
 ///
 /// Below it they stack, toggle first. The master pane is user-resizable down
-/// to 280px, and the leanest merged row measures 360px (371px in German), so
-/// there is no arrangement that keeps them on one row at the minimum.
+/// to 280px, and the merged row needs about 325px in English and 380px in
+/// French (the longest pair of section names), so no arrangement keeps them on
+/// one row at the minimum.
 const double kEquipmentHeaderMergeWidth = 400;
 
 /// Width and height of an action icon's slot in the merged desktop row.
@@ -14,13 +15,11 @@ const double kEquipmentHeaderMergeWidth = 400;
 /// icons cost 240px on a 440px pane whatever size the glyphs are drawn at.
 /// That floor exists for fingers; the merged row only ever appears in the
 /// desktop master pane, so the icons take a pointer-sized slot there and the
-/// toggle gets the 80px back.
+/// section names get the 80px back, which is what fits French at 440px.
 const double kEquipmentHeaderDenseSlot = 32;
 
-/// Builds the section toggle. [showIcons] is false in the merged row, which
-/// has no width for the leading glyphs.
-typedef EquipmentHeaderToggleBuilder =
-    Widget Function(BuildContext context, {required bool showIcons});
+/// Builds the section toggle, which the bar styles as its title.
+typedef EquipmentHeaderToggleBuilder = Widget Function(BuildContext context);
 
 /// Builds the action icons. [dense] is true in the merged row, where the
 /// icons take [kEquipmentHeaderDenseSlot] rather than the touch floor.
@@ -34,9 +33,12 @@ typedef EquipmentHeaderActionsBuilder =
 /// the row above them, or to their left once the pane is wide enough for one
 /// row (issue #2256, where the wide pane rendered it after them).
 ///
-/// [toggleBuilder] is null on phone, where the page's own app bar carries both
-/// the title and the toggle. This bar then holds the actions alone, with no
-/// title of its own to repeat the one directly above it.
+/// The toggle is the bar's title: the section names sit where a pane title
+/// would, so the header stays titled like every other list pane.
+///
+/// [toggleBuilder] is null on phone, where the page's own app bar carries the
+/// toggle as its title. This bar then holds the actions alone, with no title
+/// of its own to repeat the one directly above it.
 class EquipmentHeaderBar extends StatelessWidget {
   const EquipmentHeaderBar({
     super.key,
@@ -77,7 +79,7 @@ class EquipmentHeaderBar extends StatelessWidget {
                 Expanded(
                   child: Align(
                     alignment: AlignmentDirectional.centerStart,
-                    child: toggle(context, showIcons: false),
+                    child: _title(context, toggle),
                   ),
                 ),
                 ...actions,
@@ -90,17 +92,26 @@ class EquipmentHeaderBar extends StatelessWidget {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // Start-aligned like any pane title: it is the header's title, so
+            // it sits where titles sit rather than centred like a control.
             _shell(
               context,
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [Flexible(child: toggle(context, showIcons: true))],
-              ),
+              Row(children: [Flexible(child: _title(context, toggle))]),
             ),
             if (actions.isNotEmpty) _shell(context, _actionRow(actions)),
           ],
         );
       },
+    );
+  }
+
+  /// The toggle in the style every compact pane header gives its title.
+  Widget _title(BuildContext context, EquipmentHeaderToggleBuilder toggle) {
+    return DefaultTextStyle.merge(
+      style: Theme.of(
+        context,
+      ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+      child: Builder(builder: toggle),
     );
   }
 
