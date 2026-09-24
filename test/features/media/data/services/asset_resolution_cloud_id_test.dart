@@ -169,4 +169,37 @@ void main() {
 
     expect(r.status, ResolutionStatus.unavailable);
   });
+
+  // Opening a dive resolves its photos together, over the same time window:
+  // one lookup answers them all, as one gallery query already does.
+  test('rows resolving together share one cloud id lookup', () async {
+    addBurstPair();
+    final second = MediaItem(
+      id: 'm2',
+      platformAssetId: 'A-2',
+      cloudAssetId: 'C-2',
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.platformGallery,
+      takenAt: DateTime.utc(2026, 7, 1, 10, 30),
+      createdAt: DateTime.utc(2026, 7, 1),
+      updatedAt: DateTime.utc(2026, 7, 1),
+    );
+
+    final results = await Future.wait([
+      service.resolveAssetId(row(cloudAssetId: 'C-1')),
+      service.resolveAssetId(second),
+    ]);
+
+    expect([for (final r in results) r.localAssetId], ['B-1', 'B-2']);
+    expect(library.cloudIdCalls, 1);
+  });
+
+  test('a platform with no cloud identifiers is never asked', () async {
+    addBurstPair();
+    library.supportsCloudIdentifiers = false;
+
+    await service.resolveAssetId(row(cloudAssetId: 'C-1'));
+
+    expect(library.cloudIdCalls, 0);
+  });
 }

@@ -7,6 +7,11 @@ import 'package:photo_manager/photo_manager.dart';
 /// program spec 6.2). A cloud identifier names the same photo on every
 /// device sharing an iCloud Photos library, where local ids differ.
 abstract interface class CloudIdentifierSource {
+  /// Whether this platform can answer at all: false where there are no
+  /// iCloud identifiers (Android, Windows, Linux), so callers skip the work
+  /// of asking instead of asking and hearing nothing.
+  bool get isSupported;
+
   /// The cloud identifier of each of [localIds] that has one. An id with
   /// none (iCloud Photos off, an OS before iOS 15 or macOS 12, an asset
   /// that is not in the library) is absent from the result.
@@ -36,14 +41,15 @@ class PhotoManagerCloudIdentifierSource implements CloudIdentifierSource {
   final Future<Map<String, String?>> Function(List<String> ids)? _fetch;
   final int _chunkSize;
 
-  bool get _isSupported => _supported ?? (Platform.isIOS || Platform.isMacOS);
+  @override
+  bool get isSupported => _supported ?? (Platform.isIOS || Platform.isMacOS);
 
   Future<Map<String, String?>> _call(List<String> ids) =>
       (_fetch ?? PhotoManager.plugin.getCloudIdentifiers)(ids);
 
   @override
   Future<Map<String, String>> cloudIdentifiers(List<String> localIds) async {
-    if (localIds.isEmpty || !_isSupported) return const {};
+    if (localIds.isEmpty || !isSupported) return const {};
     final found = <String, String>{};
     for (var i = 0; i < localIds.length; i += _chunkSize) {
       final end = i + _chunkSize < localIds.length

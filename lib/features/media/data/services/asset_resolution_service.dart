@@ -61,6 +61,11 @@ class AssetResolutionService {
   /// In-flight resolution futures keyed by mediaId to prevent duplicate work.
   final Map<String, Future<ResolutionResult>> _pendingResolutions = {};
 
+  /// Short-lived cloud id lookups keyed by candidate set, so the rows of one
+  /// dive, resolving together over one time window, share one platform call
+  /// the way they share one gallery query.
+  final Map<String, _CloudIdLookup> _cloudIdLookups = {};
+
   /// Short-lived cache of gallery query results to coalesce concurrent queries.
   /// Keyed by a time-range bucket string (start~end in ms epoch).
   final Map<String, _GalleryQueryCacheEntry> _galleryQueryCache = {};
@@ -360,10 +365,17 @@ class AssetResolutionService {
   ) async {
     final cloudId = item.cloudAssetId;
     final source = _cloudIdentifiers;
-    if (source == null || cloudId == null || cloudId.isEmpty) return null;
+    if (source == null ||
+        !source.isSupported ||
+        cloudId == null ||
+        cloudId.isEmpty) {
+      return null;
+    }
     final Map<String, String> ids;
     try {
-      ids = await source.cloudIdentifiers([for (final c in candidates) c.id]);
+      ids = await _cloudIdsCoalesced(source, [
+        for (final c in candidates) c.id,
+      ]);
     } on Object catch (e) {
       _log.warning(
         'Cloud identifier lookup failed for media ${item.id}; '
@@ -377,6 +389,33 @@ class AssetResolutionService {
         if (ids[c.id] == cloudId) c.id,
     ];
     return matches.length == 1 ? matches.single : null;
+  }
+
+  /// [source]'s cloud ids for [ids], shared with any lookup of the same set
+  /// made in the last 30 seconds or still in flight. A lookup that fails is
+  /// dropped, so the next row asks again.
+  Future<Map<String, String>> _cloudIdsCoalesced(
+    CloudIdentifierSource source,
+    List<String> ids,
+  ) {
+    final key = ([...ids]..sort()).join('|');
+    _cloudIdLookups.removeWhere((_, lookup) => lookup.isExpired);
+    final cached = _cloudIdLookups[key];
+    if (cached != null) return cached.result;
+    final result = source.cloudIdentifiers(ids);
+    _cloudIdLookups[key] = _CloudIdLookup(
+      result: result,
+      createdAt: DateTime.now(),
+    );
+    result.then<void>(
+      (_) {},
+      onError: (Object _) {
+        if (identical(_cloudIdLookups[key]?.result, result)) {
+          _cloudIdLookups.remove(key);
+        }
+      },
+    );
+    return result;
   }
 
   Future<void> _cacheUnresolved(String mediaId) async {
@@ -611,4 +650,15 @@ class _GalleryQueryCacheEntry {
   _GalleryQueryCacheEntry({required this.results, required this.createdAt});
 
   bool get isExpired => DateTime.now().isAfter(createdAt.add(_ttl));
+}
+
+/// One shared cloud id lookup, kept as long as a gallery query result.
+class _CloudIdLookup {
+  final Future<Map<String, String>> result;
+  final DateTime createdAt;
+
+  _CloudIdLookup({required this.result, required this.createdAt});
+
+  bool get isExpired =>
+      DateTime.now().isAfter(createdAt.add(_GalleryQueryCacheEntry._ttl));
 }

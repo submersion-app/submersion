@@ -58,4 +58,22 @@ void main() {
     expect(await source.cloudIdentifiers(const []), isEmpty);
     expect(asked, isFalse);
   });
+
+  test('says whether this platform can answer at all', () {
+    Future<Map<String, String?>> fetch(List<String> ids) async => {};
+    expect(
+      PhotoManagerCloudIdentifierSource.withFetch(
+        supported: true,
+        fetch: fetch,
+      ).isSupported,
+      isTrue,
+    );
+    expect(
+      PhotoManagerCloudIdentifierSource.withFetch(
+        supported: false,
+        fetch: fetch,
+      ).isSupported,
+      isFalse,
+    );
+  });
 }

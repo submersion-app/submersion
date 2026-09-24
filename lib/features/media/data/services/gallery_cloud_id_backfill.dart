@@ -95,6 +95,12 @@ class GalleryCloudIdBackfill {
         await _recordRun();
         return (checked: 0, stamped: 0);
       }
+      // No iCloud identifiers on this platform (Android): nothing to ask,
+      // so the pass is recorded without reading a row.
+      if (!_cloudIdentifiers.isSupported) {
+        await _recordRun();
+        return (checked: 0, stamped: 0);
+      }
       if (!GalleryOriginBackfill.isDone(_prefs)) {
         _log.info('Gallery cloud id backfill waiting for the origin backfill');
         return null;

@@ -164,6 +164,19 @@ void main() {
     expect(library.cloudIdCalls, 0);
   });
 
+  // Android and desktop have no iCloud identifiers: a daily pass there
+  // would read the rows and ask a platform that always answers nothing.
+  test('a platform with no cloud identifiers skips the pass', () async {
+    library
+      ..add(asset('a1', cloudId: 'C-1'))
+      ..supportsCloudIdentifiers = false;
+    await link('a1');
+
+    expect(await backfill().run(), (checked: 0, stamped: 0));
+    expect(library.cloudIdCalls, 0);
+    expect(ranToday(), isTrue);
+  });
+
   test('a failed lookup leaves the flag unset', () async {
     library
       ..add(asset('a1', cloudId: 'C-1'))

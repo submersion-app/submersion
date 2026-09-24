@@ -164,6 +164,12 @@ class FakePhotoPickerService
   /// When set, the lookups throw it (a platform channel failure).
   Object? cloudIdError;
 
+  /// False models a platform with no iCloud identifiers (Android, desktop).
+  bool supportsCloudIdentifiers = true;
+
+  @override
+  bool get isSupported => supportsCloudIdentifiers;
+
   @override
   Future<Map<String, String>> cloudIdentifiers(List<String> localIds) async {
     cloudIdCalls++;
