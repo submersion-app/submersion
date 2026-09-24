@@ -522,6 +522,9 @@ final peerDeviceNamesProvider = StreamProvider<Map<String, String>>((ref) {
 });
 
 /// Sync service provider
+// no-tick: the value is a SERVICE, not a query result. Its one repository
+// call (clearUnresolved) is a write made inside a callback at merge time,
+// so there is no cached row to go stale.
 final syncServiceProvider = Provider<SyncService>((ref) {
   return SyncService(
     syncRepository: ref.watch(syncRepositoryProvider),
