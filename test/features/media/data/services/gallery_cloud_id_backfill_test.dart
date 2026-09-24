@@ -22,6 +22,7 @@ void main() {
   late AppDatabase db;
   late FakePhotoPickerService library;
   late SharedPreferences prefs;
+  late DateTime clock;
   final bytes = Uint8List.fromList(List<int>.generate(64, (i) => i));
   final taken = DateTime(2026, 7, 1);
 
@@ -32,7 +33,11 @@ void main() {
     });
     prefs = await SharedPreferences.getInstance();
     library = FakePhotoPickerService();
+    clock = DateTime(2026, 9, 23, 12);
   });
+
+  /// Whether today's pass is done, so the next sync skips it.
+  bool ranToday() => !GalleryCloudIdBackfill.isDue(prefs, clock);
   tearDown(() async => tearDownTestDatabase());
 
   /// A gallery row this device linked (createMedia records it as origin),
@@ -73,6 +78,7 @@ void main() {
     permissionStatus: () async => permission,
     deviceId: () => SyncRepository().getDeviceId(),
     prefs: prefs,
+    now: () => clock,
   );
 
   FakeGalleryAsset asset(String id, {String? cloudId}) =>
@@ -92,7 +98,7 @@ void main() {
     expect(await cloudIdOf(withCloud), 'C-1');
     expect(await cloudIdOf(without), isNull, reason: 'no iCloud copy');
     expect(library.cloudIdCalls, 1);
-    expect(GalleryCloudIdBackfill.isDone(prefs), isTrue);
+    expect(ranToday(), isTrue);
     expect(await isPending(withCloud), isTrue, reason: 'peers must learn it');
     expect(await isPending(without), isFalse);
   });
@@ -133,7 +139,7 @@ void main() {
     await link('a1');
 
     expect(await backfill().run(), isNull);
-    expect(GalleryCloudIdBackfill.isDone(prefs), isFalse);
+    expect(ranToday(), isFalse);
     expect(library.cloudIdCalls, 0);
   });
 
@@ -145,7 +151,7 @@ void main() {
       await backfill(permission: PhotoPermissionStatus.limited).run(),
       isNull,
     );
-    expect(GalleryCloudIdBackfill.isDone(prefs), isFalse);
+    expect(ranToday(), isFalse);
     expect(await cloudIdOf(id), isNull);
   });
 
@@ -154,7 +160,7 @@ void main() {
       checked: 0,
       stamped: 0,
     ));
-    expect(GalleryCloudIdBackfill.isDone(prefs), isTrue);
+    expect(ranToday(), isTrue);
     expect(library.cloudIdCalls, 0);
   });
 
@@ -165,17 +171,34 @@ void main() {
     final id = await link('a1');
 
     expect(await backfill().run(), isNull);
-    expect(GalleryCloudIdBackfill.isDone(prefs), isFalse);
+    expect(ranToday(), isFalse);
     expect(await cloudIdOf(id), isNull);
   });
 
-  test('runs once', () async {
+  test('runs at most once a day', () async {
     library.add(asset('a1', cloudId: 'C-1'));
     await link('a1');
 
     await backfill().run();
+    clock = clock.add(const Duration(hours: 23));
     expect(await backfill().run(), isNull);
     expect(library.cloudIdCalls, 1);
+  });
+
+  // A photo linked before iCloud Photos uploaded it, or before the user
+  // turned iCloud Photos on, has no cloud id yet. The pass keeps asking
+  // about such rows, once a day, until iCloud has one to give.
+  test('a day later it asks again, and stamps what iCloud now has', () async {
+    library.add(asset('a1'));
+    final id = await link('a1');
+
+    expect(await backfill().run(), (checked: 1, stamped: 0));
+    expect(await cloudIdOf(id), isNull);
+
+    library.add(asset('a1', cloudId: 'C-1'));
+    clock = clock.add(const Duration(days: 1));
+    expect(await backfill().run(), (checked: 1, stamped: 1));
+    expect(await cloudIdOf(id), 'C-1');
   });
 
   // The lookup can take a while; a cloud id a sync delivered meanwhile is
@@ -195,7 +218,7 @@ void main() {
 
     await backfill(source: linkedLater).run();
 
-    expect(GalleryCloudIdBackfill.isDone(prefs), isFalse);
+    expect(ranToday(), isFalse);
   });
 }
 

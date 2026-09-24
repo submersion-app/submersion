@@ -450,8 +450,14 @@ hides rows the device did link.
   floor stays 224; the batch `getCloudIdentifiers` call everywhere, since
   `AssetEntity.darwin.cloudIdentifier` wraps it one id at a time and throws
   off Apple platforms; the backfill is the slice 7 origin backfill's twin
-  (own rows, after a sync, full access, once), not the origin republish
-  sweep, and it waits for the origin backfill; a gallery relink restamps
+  (own rows, after a sync, full access), not the origin republish sweep,
+  and it waits for the origin backfill. It repeats at most once a day
+  rather than once ever (review of #2312): a photo linked before iCloud
+  Photos uploaded it, or before iCloud Photos was on, has no cloud id yet
+  and gains one later. A relink synced from a peer drops this device's
+  cached mapping outright, found or not, since it names the old photo; a
+  new cloud id or upload fact still retries only a search that gave up. A
+  gallery relink restamps
   the cloud id, with an empty string for "none" because a null never
   reaches a peer through the merge's nullToAbsent upsert. "New upload
   facts" means an upload value this device did not have, not a won upload

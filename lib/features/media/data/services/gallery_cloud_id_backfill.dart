@@ -16,9 +16,13 @@ typedef GalleryCloudIdBackfillOutcome = ({
   int stamped,
 });
 
-/// One-time stamp of the iCloud identifier on the gallery rows this device
-/// linked before links recorded one (media sync program spec 6.2), so a
-/// peer sharing the library can find each exact photo.
+/// Stamps the iCloud identifier on this device's gallery rows that carry
+/// none (media sync program spec 6.2), so a peer sharing the library can
+/// find each exact photo: rows linked before links recorded one, and rows
+/// whose photo had no cloud id at link time because iCloud Photos had not
+/// uploaded it yet, or was off. Those can gain one later, so the pass
+/// repeats, at most once a day ([interval]): one batch lookup over the rows
+/// still missing an id, and a stamp only for those iCloud now answers.
 ///
 /// Only this device's own rows (its id is their origin): only here does a
 /// row's stored asset id name an asset in this library. So it waits for the
@@ -29,8 +33,8 @@ typedef GalleryCloudIdBackfillOutcome = ({
 /// reason: the cloud id has no fact group, so a stamp bumps the row clock
 /// and republishes the row, and right after a pull that is least likely to
 /// overwrite a peer's unseen newer edit. Only with full photo access, and
-/// never prompting. Flagged in SharedPreferences, set only after a complete
-/// pass, so a failed or waiting run tries again after the next sync.
+/// never prompting. The last complete pass is recorded in SharedPreferences,
+/// so a failed or waiting run tries again after the next sync.
 class GalleryCloudIdBackfill {
   GalleryCloudIdBackfill({
     required MediaRepository mediaRepository,
@@ -39,18 +43,31 @@ class GalleryCloudIdBackfill {
     required Future<PhotoPermissionStatus> Function() permissionStatus,
     required Future<String> Function() deviceId,
     required SharedPreferences prefs,
+    DateTime Function()? now,
   }) : _mediaRepository = mediaRepository,
        _cloudIdentifiers = cloudIdentifiers,
        _photos = photos,
        _permissionStatus = permissionStatus,
        _deviceId = deviceId,
-       _prefs = prefs;
+       _prefs = prefs,
+       _now = now ?? DateTime.now;
 
-  static const String doneFlagKey = 'media_gallery_cloud_id_backfill_v1';
+  /// When the last complete pass ran, epoch milliseconds.
+  static const String lastRunKey =
+      'media_gallery_cloud_id_backfill_last_run_v1';
 
-  /// Whether this device has already run the backfill.
-  static bool isDone(SharedPreferences prefs) =>
-      prefs.getBool(doneFlagKey) ?? false;
+  /// The least time between two passes.
+  static const Duration interval = Duration(days: 1);
+
+  /// Whether a pass is due at [now]. Cheap, so callers can ask before
+  /// building anything the pass needs.
+  static bool isDue(SharedPreferences prefs, DateTime now) {
+    final last = prefs.getInt(lastRunKey);
+    if (last == null) return true;
+    return !now.isBefore(
+      DateTime.fromMillisecondsSinceEpoch(last).add(interval),
+    );
+  }
 
   final MediaRepository _mediaRepository;
   final CloudIdentifierSource _cloudIdentifiers;
@@ -60,21 +77,22 @@ class GalleryCloudIdBackfill {
   final Future<PhotoPermissionStatus> Function() _permissionStatus;
   final Future<String> Function() _deviceId;
   final SharedPreferences _prefs;
+  final DateTime Function() _now;
   final _log = LoggerService.forClass(
     GalleryCloudIdBackfill,
     category: LogCategory.media,
   );
 
-  /// Runs the backfill, or returns null when it already ran, is waiting
-  /// (for the origin backfill or full photo access), or could not complete
-  /// (logged; the flag stays unset).
+  /// Runs a pass, or returns null when one is not due yet, is waiting (for
+  /// the origin backfill or full photo access), or could not complete
+  /// (logged; the pass is not recorded).
   Future<GalleryCloudIdBackfillOutcome?> run() async {
-    if (isDone(_prefs)) return null;
+    if (!isDue(_prefs, _now())) return null;
     try {
       // No photo library here (Windows, Linux): no gallery row was ever
       // linked on this device.
       if (!_photos.supportsGalleryBrowsing) {
-        await _prefs.setBool(doneFlagKey, true);
+        await _recordRun();
         return (checked: 0, stamped: 0);
       }
       if (!GalleryOriginBackfill.isDone(_prefs)) {
@@ -101,17 +119,17 @@ class GalleryCloudIdBackfill {
             ),
       ];
       final stamped = await _mediaRepository.stampCloudAssetIds(found);
-      // Done once nothing is left that this pass did not ask about. Rows
-      // whose asset has no cloud id stay candidates, but they were asked; a
-      // row linked or relinked during the lookup was not, so it holds the
-      // flag open for the next sync.
+      // Complete once nothing is left that this pass did not ask about. Rows
+      // whose asset has no cloud id stay candidates for tomorrow's pass, but
+      // they were asked; a row linked or relinked during the lookup was not,
+      // so the pass is not recorded and the next sync asks again.
       final asked = candidates.toSet();
       final unasked = (await _mediaRepository.getOwnGalleryMediaWithoutCloudId(
         me,
       )).where((row) => !asked.contains(row)).length;
-      if (unasked == 0) await _prefs.setBool(doneFlagKey, true);
+      if (unasked == 0) await _recordRun();
       _log.info(
-        'Gallery cloud id backfill ${unasked == 0 ? 'done' : 'partial'}: '
+        'Gallery cloud id backfill ${unasked == 0 ? 'complete' : 'partial'}: '
         'checked ${candidates.length}, stamped $stamped, unasked $unasked',
       );
       return (checked: candidates.length, stamped: stamped);
@@ -124,4 +142,7 @@ class GalleryCloudIdBackfill {
       return null;
     }
   }
+
+  Future<void> _recordRun() =>
+      _prefs.setInt(lastRunKey, _now().millisecondsSinceEpoch);
 }

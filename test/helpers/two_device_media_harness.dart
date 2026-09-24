@@ -514,14 +514,14 @@ class HarnessDevice {
     ).run();
   }
 
-  /// Runs this device's one-time gallery cloud id backfill. The preference
-  /// store is shared by both devices, so the flag is cleared first, and the
+  /// Runs this device's gallery cloud id backfill now. The preference store
+  /// is shared by both devices, so the last run is cleared first, and the
   /// origin backfill it waits for is marked done: harness gallery rows
   /// record their origin at link time.
   Future<void> backfillGalleryCloudIds() async {
     await activate();
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(GalleryCloudIdBackfill.doneFlagKey);
+    await prefs.remove(GalleryCloudIdBackfill.lastRunKey);
     await prefs.setBool(GalleryOriginBackfill.doneFlagKey, true);
     await GalleryCloudIdBackfill(
       mediaRepository: MediaRepository(),

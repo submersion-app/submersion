@@ -1418,7 +1418,7 @@ class SyncNotifier extends StateNotifier<SyncState> {
           if (!mounted) return;
           // Then the iCloud identifiers of this device's own gallery rows
           // (spec 6.2), for the same reasons, once the origins it relies on
-          // are stamped. Once per device, and contains its own failures.
+          // are stamped. At most once a day, and contains its own failures.
           await _ref.read(galleryCloudIdBackfillProvider)();
           if (!mounted) return;
         } else {
