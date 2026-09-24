@@ -119,6 +119,79 @@ Future<void> pumpView(
   await tester.pump(const Duration(seconds: 1));
 }
 
+/// Top of a day's full-width chapter heading, or null when it is not built.
+double? _headingTop(WidgetTester tester, int dayNumber) {
+  final matches = find
+      .byWidgetPredicate(
+        (w) =>
+            w is TripStoryDayHeader &&
+            !w.compact &&
+            w.day.dayNumber == dayNumber,
+      )
+      .evaluate();
+  if (matches.isEmpty) return null;
+  return tester.getTopLeft(find.byWidget(matches.first.widget)).dy;
+}
+
+int _dockedDayNumber(WidgetTester tester) => tester
+    .widget<TripStoryDockedDay>(find.byType(TripStoryDockedDay))
+    .day
+    .dayNumber;
+
+/// Where the band switches days for a viewport [height] tall: a third of the
+/// way down the space below the docked band.
+double _switchLineFor(double height) =>
+    TripStoryBandExtents.dockedFloor +
+    (height - TripStoryBandExtents.dockedFloor) / 3;
+
+/// The switch line on the 500x700 phone most of these tests use.
+double get _switchLine => _switchLineFor(700);
+
+ScrollPosition _storyScroll(WidgetTester tester) => tester
+    .state<ScrollableState>(
+      find
+          .descendant(
+            of: find.byType(CustomScrollView),
+            matching: find.byType(Scrollable),
+          )
+          .first,
+    )
+    .position;
+
+/// Drags in steps past the touch slop until day [dayNumber]'s heading sits
+/// strictly between [above] and [below], then fails loudly if it never did.
+Future<double> _creepHeadingInto(
+  WidgetTester tester,
+  int dayNumber, {
+  required double above,
+  required double below,
+}) async {
+  // jumpTo rather than drags: it moves an exact distance with no momentum to
+  // coast past a narrow window, and still fires real scroll notifications.
+  for (var i = 0; i < 200; i++) {
+    final top = _headingTop(tester, dayNumber);
+    if (top != null && top > above && top < below) return top;
+    final position = _storyScroll(tester);
+    position.jumpTo(position.pixels + 20);
+    await tester.pump(const Duration(milliseconds: 150));
+  }
+  fail('day $dayNumber heading never landed between $above and $below');
+}
+
+/// Forces one resolution at the settled position, independent of how the
+/// view handles a scroll coming to rest, so a test about WHERE the line is
+/// does not also depend on WHEN resolution runs.
+Future<void> _resolveInPlace(WidgetTester tester) async {
+  final position = _storyScroll(tester);
+  final settled = position.pixels;
+  await tester.pump(const Duration(milliseconds: 150));
+  position.jumpTo(settled - 1);
+  await tester.pump(const Duration(milliseconds: 150));
+  position.jumpTo(settled);
+  await tester.pump(const Duration(milliseconds: 150));
+  await tester.pump(const Duration(milliseconds: 400));
+}
+
 void main() {
   testWidgets('past trip renders day chapters, hero, and stat strip', (
     tester,
@@ -340,7 +413,9 @@ void main() {
     expect(markerOpacity('Site a'), lessThan(1.0));
   });
 
-  testWidgets('the docked day replaces its full-width heading', (tester) async {
+  testWidgets('the band names the day whose heading last crossed the line', (
+    tester,
+  ) async {
     final trip = _trip(
       start: DateTime(2026, 3, 25),
       end: DateTime(2026, 3, 30),
@@ -373,35 +448,27 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
 
     // The band names a day.
-    final panel = find.byType(TripStoryDockedDay);
-    expect(panel, findsOneWidget);
-    final dockedDate = tester.widget<TripStoryDockedDay>(panel).day.date;
+    expect(find.byType(TripStoryDockedDay), findsOneWidget);
 
-    // Nothing sticks below the band: that day's full-width heading has either
-    // scrolled off or sits below the band as ordinary content, never pinned
-    // against its bottom edge.
-    for (final element
-        in find
-            .byWidgetPredicate(
-              (w) =>
-                  w is TripStoryDayHeader &&
-                  !w.compact &&
-                  w.day.date == dockedDate,
-            )
-            .evaluate()) {
-      final top = tester.getTopLeft(find.byWidget(element.widget)).dy;
-      expect(
-        top,
-        lessThan(TripStoryBandExtents.dockedFloor),
-        reason: 'a full-width heading is pinned under the band',
-      );
+    // The band names the day whose heading most recently crossed the line:
+    // that heading, if still on screen, is above the line, and the next
+    // day's heading, if on screen, is still below it.
+    await _resolveInPlace(tester);
+    final docked = _dockedDayNumber(tester);
+    final dockedTop = _headingTop(tester, docked);
+    if (dockedTop != null) {
+      expect(dockedTop, lessThanOrEqualTo(_switchLine + 1));
+    }
+    final nextTop = _headingTop(tester, docked + 1);
+    if (nextTop != null) {
+      expect(nextTop, greaterThan(_switchLine - 1));
     }
 
     // The first day is well out of view by now.
     expect(find.textContaining('Mar 25'), findsNothing);
   });
 
-  testWidgets('the docked day changes at the band edge, not mid-viewport', (
+  testWidgets('the band switches a third of the way below itself', (
     tester,
   ) async {
     final trip = _trip(
@@ -417,55 +484,109 @@ void main() {
     );
     await pumpView(tester, story, viewSize: const Size(500, 700));
 
-    double? headingTop(int dayNumber) {
-      final matches = find
-          .byWidgetPredicate(
-            (w) =>
-                w is TripStoryDayHeader &&
-                !w.compact &&
-                w.day.dayNumber == dayNumber,
-          )
-          .evaluate();
-      if (matches.isEmpty) return null;
-      return tester.getTopLeft(find.byWidget(matches.first.widget)).dy;
-    }
-
-    int dockedDayNumber() => tester
-        .widget<TripStoryDockedDay>(find.byType(TripStoryDockedDay))
-        .day
-        .dayNumber;
-
-    // Creep down until day 2's heading sits in the middle of the gap between
-    // the band's bottom edge (96) and the old one-third threshold (233 at this
-    // viewport). In that gap the diver can still see the heading in mid-screen,
-    // so the band must still be showing day 1.
-    const oldThreshold = 700 / 3;
-    for (var i = 0; i < 40; i++) {
-      final top = headingTop(2);
-      if (top != null && top < 200 && top > 130) break;
-      await tester.drag(find.byType(CustomScrollView), const Offset(0, -60));
-      await tester.pump(const Duration(milliseconds: 150));
-    }
-
-    // _onScroll resolves on the first notification of a drag, so the last
-    // resolution so far reflects the position before the final drag. Nudge
-    // just past the touch slop to force one resolution at the settled
-    // position, which is what the assertions below are about.
-    await tester.pump(const Duration(milliseconds: 150));
-    await tester.drag(find.byType(CustomScrollView), const Offset(0, -19));
-    await tester.pump(const Duration(milliseconds: 150));
-
-    final settled = headingTop(2);
-    expect(
-      settled,
-      isNotNull,
-      reason: 'never found day 2 heading in the discriminating gap',
+    // Just below the line: day 1 still owns the screen. A halfway line (398)
+    // would already have switched here.
+    await _creepHeadingInto(
+      tester,
+      2,
+      above: _switchLine + 12,
+      below: _switchLine + 85,
     );
-    // Well inside the gap, so neither assertion rides on a pixel.
-    expect(settled, lessThan(oldThreshold - 20));
-    expect(settled, greaterThan(TripStoryBandExtents.dockedFloor + 20));
-    // The old viewport/3 threshold would have docked day 2 here.
-    expect(dockedDayNumber(), 1);
+    await _resolveInPlace(tester);
+    expect(_dockedDayNumber(tester), 1);
+
+    // Just above the line, but still below both earlier rules: the band edge
+    // (96) and a third of the whole viewport (233). Both would still show
+    // day 1 here, which is the late switch this line exists to fix.
+    await _creepHeadingInto(tester, 2, above: 235, below: _switchLine - 12);
+    await _resolveInPlace(tester);
+    expect(_dockedDayNumber(tester), 2);
+  });
+
+  testWidgets('the last day docks once the story is scrolled to the end', (
+    tester,
+  ) async {
+    // The last chapter plus the closers is shorter than the space below the
+    // band, so its heading can never reach the line on its own: the scroll
+    // runs out first. At the end the last day still has to get its turn.
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    // A tall viewport pushes the line down to 397, below where the last
+    // heading bottoms out, so only the end-of-scroll rule can dock it.
+    await pumpView(tester, story, viewSize: const Size(500, 1000));
+
+    final position = _storyScroll(tester);
+    position.jumpTo(position.maxScrollExtent);
+    await tester.pump(const Duration(milliseconds: 150));
+    await _resolveInPlace(tester);
+
+    final lastTop = _headingTop(tester, 6);
+    expect(lastTop, isNotNull);
+    expect(
+      lastTop,
+      greaterThan(_switchLineFor(1000)),
+      reason: 'the fixture no longer strands the last heading below the line',
+    );
+    expect(_dockedDayNumber(tester), 6);
+  });
+
+  testWidgets('the band catches up when a scroll comes to rest', (
+    tester,
+  ) async {
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 6; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    // Day 2's heading comfortably below the line, band on day 1.
+    await _creepHeadingInto(
+      tester,
+      2,
+      above: _switchLine + 60,
+      below: _switchLine + 110,
+    );
+    await _resolveInPlace(tester);
+    expect(_dockedDayNumber(tester), 1);
+
+    // One slow drag that carries the heading well above the line: every move
+    // lands in the same frame, so the throttle resolves only the first (with
+    // the heading still below the line) and drops the rest. The finger then
+    // rests before lifting, so there is no momentum and no later update. Only
+    // the scroll coming to rest can switch the band now.
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(CustomScrollView)),
+    );
+    for (var i = 0; i < 12; i++) {
+      await gesture.moveBy(const Offset(0, -20));
+    }
+    await tester.pump(const Duration(milliseconds: 200));
+    await gesture.up();
+    await tester.pump(const Duration(milliseconds: 150));
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(
+      _headingTop(tester, 2),
+      lessThan(_switchLine - 40),
+      reason: 'the drag did not carry the heading past the line',
+    );
+    expect(_dockedDayNumber(tester), 2);
   });
 
   testWidgets('tapping the docked day scrolls its chapter back into view', (

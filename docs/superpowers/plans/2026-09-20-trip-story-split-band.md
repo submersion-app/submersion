@@ -1520,6 +1520,14 @@ running app: the gutters either side read as a broken page on desktop. The
 story and its band now span the full window, and the width test asserts that
 instead. The rest of the plan stands as executed.
 
+## Amendment, 2026-09-23
+
+Task 6's band-edge switch line was moved a third of the way down the space
+below the band, after it read as late in the running app and stranded the last
+days of a trip. The view also docks the last visible day once the story is
+scrolled to its end, and resolves on `ScrollEndNotification` past the throttle.
+The spec's docking section records the reasoning.
+
 ## Notes for the executor
 
 - This worktree is `ericgriffin/trips-map-screen-space-f72bd0`. Run every

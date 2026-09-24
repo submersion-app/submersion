@@ -96,17 +96,33 @@ Each chapter's `TripStoryDayHeader` moves into its `SliverMainAxisGroup` as
 ordinary content. It still scrolls with its chapter and still carries
 `_dayKeys[index]`; it simply no longer sticks.
 
-`_onScroll` keeps its existing machinery (frame-timestamp throttle,
-`_dayKeys` positions, reverse iteration, the day 0 fallback) with one change:
-the threshold moves from `viewportTop + viewportHeight / 3` to
-`viewportTop + currentBandExtent`. The docked day is therefore the last
-chapter whose heading has travelled above the band's bottom edge, which is
-the exact moment its full-width heading disappears under the band. That
-timing is what makes the swap read as a hand-off rather than a glitch.
+The docked day is the last chapter whose heading has crossed a line a third
+of the way down the space below the band:
+`viewportTop + band + (viewportHeight - band) / 3`, about 300px on a phone.
+That is the day that has taken over the screen.
 
-The map camera follows the same index. The accepted consequence is that the
-camera eases to a new day later than it does today: on reaching the chapter
-rather than when the chapter is a third of the way up the viewport.
+This was first built with the line at the band's bottom edge, on the theory
+that switching only as a heading disappeared under the band would read as a
+hand-off. In the running app it read as late: the band kept naming the
+previous day for most of the new chapter, and switched only as the new day's
+top was about to scroll away. It also stranded the tail of every trip, since
+the last chapters run out of scroll before their headings can climb that far.
+The line was moved on 2026-09-23. The band may now name a day whose
+full-width heading is still visible below it, which is accepted.
+
+Three rules resolve the docked day:
+
+- **The line.** Above, for every chapter that can reach it.
+- **The end of the scroll.** Once the story is scrolled to its end, the last
+  day whose heading is on screen docks, because the last chapters can never
+  climb to the line on their own.
+- **Coming to rest.** Updates stay throttled to one resolution per 100ms, but
+  a `ScrollEndNotification` always resolves. The throttle keeps the first
+  update of each window and drops the rest, so without a resolution at rest
+  a gesture that stops just past the line left the band a day behind.
+
+The map camera follows the same index, so the band's two halves never name
+different days.
 
 The panel cross-fades with an `AnimatedSwitcher` of about 200ms, paired with
 a small upward slide, so the incoming day appears to continue the travel the
@@ -185,10 +201,12 @@ Written first. Ten tests, two of which replace existing ones.
 
 1. Scrolling docks the band: its extent equals the docked height and the panel
    shows the expected day.
-2. The docked day's full-width heading is no longer on screen. Replaces
+2. The band names the day whose heading last crossed the line. Replaces
    `day header sticks below the collapsed map while scrolling`.
-3. The panel changes as a heading crosses the band's bottom edge, not at a
-   third of the viewport.
+3. The band switches as a heading crosses the line, and not at the band
+   edge, a third of the whole viewport, or halfway. Also: the last day docks
+   once the story is scrolled to its end, and a slow drag that stops just
+   past the line still switches the band.
 4. The map camera follows the docked index, reusing the existing
    marker-opacity assertion.
 5. Tapping the panel scrolls that chapter's heading back into view.

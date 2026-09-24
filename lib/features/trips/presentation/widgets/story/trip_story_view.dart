@@ -120,15 +120,29 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     );
   }
 
-  bool _onScroll(ScrollUpdateNotification notification) {
+  bool _onScroll(ScrollNotification notification) {
     // Horizontal photo strips inside the chapters bubble up their own scroll
     // notifications; ignore them so swiping photos doesn't move the map/active
     // day or consume the throttle window meant for the vertical story scroll.
     if (notification.metrics.axis != Axis.vertical) return false;
+    // A scroll coming to rest always resolves, past the throttle. The throttle
+    // keeps the first update of each window and drops the rest, so without
+    // this the final positions of a fling were never resolved and the band
+    // stayed a day behind until the next scroll.
+    if (notification is ScrollEndNotification) {
+      _resolveDockedDay(notification);
+      return false;
+    }
+    if (notification is! ScrollUpdateNotification) return false;
     final now = SchedulerBinding.instance.currentSystemFrameTimeStamp;
     if (now - _lastResolve < _scrollThrottle) return false;
     _lastResolve = now;
+    _resolveDockedDay(notification);
+    return false;
+  }
 
+  void _resolveDockedDay(ScrollNotification notification) {
+    final metrics = notification.metrics;
     // Day positions come from localToGlobal (screen coordinates), so anchor the
     // threshold to the scrollable's global top rather than 0: the story may sit
     // below the top of the screen (e.g. under an app bar).
@@ -136,27 +150,48 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     final viewportTop = (scrollBox != null && scrollBox.attached)
         ? scrollBox.localToGlobal(Offset.zero).dy
         : 0.0;
-    // The docked day is the last chapter whose heading has travelled above the
-    // band's bottom edge, which is the moment that heading disappears under the
-    // band. Resolving earlier (this was viewport/3) swapped the band's day
-    // while the diver could still see the full-width heading in mid-screen,
-    // which reads as a glitch rather than a hand-off.
-    final threshold = viewportTop + _bandExtents(context).docked;
+    final viewportBottom = viewportTop + metrics.viewportDimension;
+    final band = _bandExtents(context).docked;
+
+    // At the end of the scroll the last chapters can never climb to the line:
+    // the story runs out first. The last day whose heading is on screen gets
+    // its turn instead, so the tail of a trip is not permanently stranded.
+    if (metrics.pixels >= metrics.maxScrollExtent - 0.5) {
+      for (var i = _dayKeys.length - 1; i >= 0; i--) {
+        final top = _headingTop(i);
+        if (top != null && top < viewportBottom) {
+          _selectDay(i);
+          return;
+        }
+      }
+    }
+
+    // The band names the day whose heading most recently crossed a line a
+    // third of the way down the space below it: the day that has taken over
+    // the screen. Waiting for the heading to reach the band itself switched
+    // only as the day's top was about to scroll away, which read as late.
+    final threshold =
+        viewportTop + band + (metrics.viewportDimension - band) / 3;
     for (var i = _dayKeys.length - 1; i >= 0; i--) {
-      final keyContext = _dayKeys[i].currentContext;
-      if (keyContext == null) continue;
-      final box = keyContext.findRenderObject() as RenderBox?;
-      if (box == null || !box.attached) continue;
-      final top = box.localToGlobal(Offset.zero).dy;
-      if (top <= threshold) {
+      final top = _headingTop(i);
+      if (top != null && top <= threshold) {
         _selectDay(i);
-        return false;
+        return;
       }
     }
     // Scrolled above the first chapter's threshold (near the top): fall back to
     // day 0 so the map doesn't stay stuck on a later day.
     if (_dayKeys.isNotEmpty) _selectDay(0);
-    return false;
+  }
+
+  /// Screen-space top of a day's chapter heading, or null when it is not
+  /// mounted (scrolled far enough away to be culled).
+  double? _headingTop(int index) {
+    final keyContext = _dayKeys[index].currentContext;
+    if (keyContext == null) return null;
+    final box = keyContext.findRenderObject() as RenderBox?;
+    if (box == null || !box.attached) return null;
+    return box.localToGlobal(Offset.zero).dy;
   }
 
   /// The band's heights for the current text scale, measured against the
@@ -198,7 +233,7 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
         ? null
         : days[_activeDayIndex.clamp(0, days.length - 1)];
 
-    return NotificationListener<ScrollUpdateNotification>(
+    return NotificationListener<ScrollNotification>(
       onNotification: _onScroll,
       child: CustomScrollView(
         slivers: [
