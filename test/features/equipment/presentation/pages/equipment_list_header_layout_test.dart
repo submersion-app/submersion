@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,11 +15,13 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_p
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_list_content.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_section_colors.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_section_toggle.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_set_list_content.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/selection/selection_app_bar.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -388,6 +391,122 @@ void main() {
           paneWidth: pane,
           locale: const Locale('fr'),
         );
+        expect(tester.takeException(), isNull);
+      });
+    }
+  });
+
+  group('Phone header on one row', () {
+    Future<AppLocalizations> en() =>
+        AppLocalizations.delegate.load(const Locale('en'));
+    final appBar = find.byType(AppBar);
+    Finder inAppBar(Finder f) => find.descendant(of: appBar, matching: f);
+
+    /// The narrowest phone the switcher and its four actions share a row on,
+    /// measured in whatever font the test runs with: the switcher's natural
+    /// width, the 8px title spacing on both sides, four 48px actions.
+    Future<double> oneRowWidth(WidgetTester tester) async {
+      await _pump(tester, window: const Size(600, 844));
+      final l10n = await en();
+      final style = tester
+          .renderObject<RenderParagraph>(
+            find.descendant(
+              of: _switcher,
+              matching: find.text(l10n.equipment_tab_equipment),
+            ),
+          )
+          .text
+          .style!;
+      return EquipmentSectionToggle.naturalWidth(
+            tester.element(_switcher),
+            style,
+            withAccentIcon: false,
+          ) +
+          2 * 8 +
+          4 * kMinInteractiveDimension;
+    }
+
+    bool sameRow(WidgetTester tester) =>
+        (tester.getCenter(_switcher).dy -
+                tester.getCenter(find.byIcon(Icons.search)).dy)
+            .abs() <
+        1.0;
+
+    testWidgets('where they fit, the switcher and actions share one row', (
+      tester,
+    ) async {
+      final width = (await oneRowWidth(tester)).ceilToDouble();
+      await _pump(tester, window: Size(width, 844));
+
+      expect(inAppBar(find.byIcon(Icons.search)), findsOneWidget);
+      expect(sameRow(tester), isTrue);
+
+      // Deciding "it fits" wrongly would not overflow, the names would just
+      // scroll out of sight, so check both are on screen at the boundary.
+      final l10n = await en();
+      final sets = find.descendant(
+        of: _switcher,
+        matching: find.text(l10n.equipment_tab_sets),
+      );
+      expect(
+        tester.getRect(sets).right,
+        lessThanOrEqualTo(tester.getRect(_switcher).right + 0.5),
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a pixel narrower, the actions drop to a second row', (
+      tester,
+    ) async {
+      final width = (await oneRowWidth(tester)).floorToDouble() - 1;
+      await _pump(tester, window: Size(width, 844));
+
+      expect(sameRow(tester), isFalse);
+      expect(
+        tester.getRect(_switcher).bottom,
+        lessThanOrEqualTo(tester.getRect(find.byIcon(Icons.search)).top + 0.5),
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the names use the 18px phone title size', (tester) async {
+      await _pump(tester, window: const Size(390, 844));
+      final l10n = await en();
+      final paragraph = tester.renderObject<RenderParagraph>(
+        find.descendant(
+          of: _switcher,
+          matching: find.text(l10n.equipment_tab_equipment),
+        ),
+      );
+      expect(paragraph.text.style?.fontSize, 18);
+    });
+
+    testWidgets('Select items lives in the overflow menu', (tester) async {
+      await _pump(tester, window: const Size(390, 844));
+      final l10n = await en();
+
+      expect(find.byIcon(Icons.checklist), findsNothing);
+
+      await tester.tap(inAppBar(find.byIcon(Icons.more_vert)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(l10n.common_selection_enterTooltip));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SelectionAppBar), findsOneWidget);
+      // The actions step aside while selecting, as the row they came from did.
+      expect(inAppBar(find.byIcon(Icons.search)), findsNothing);
+    });
+
+    for (final (label, window, locale) in <(String, Size, Locale)>[
+      ('French on a 390px phone', const Size(390, 844), const Locale('fr')),
+      ('English on a 320px phone', const Size(320, 700), const Locale('en')),
+    ]) {
+      testWidgets('falls back to two rows for $label', (tester) async {
+        await _pump(tester, window: window, locale: locale);
+
+        final toggle = tester.getRect(_switcher);
+        final action = tester.getRect(find.byIcon(Icons.search));
+        expect(toggle.bottom, lessThanOrEqualTo(action.top + 0.5));
         expect(tester.takeException(), isNull);
       });
     }

@@ -31,6 +31,48 @@ class EquipmentSectionToggle extends StatelessWidget {
 
   final TabController controller;
 
+  /// Horizontal padding either side of each name, inside its pill.
+  static const double labelPadding = 8;
+
+  /// The icon and gap [FeatureAppBarTitle] puts in front of a title when the
+  /// section-headers accent is on.
+  static const double _accentLead = 24 + 8;
+
+  /// The width the switcher needs to show both names in full in [style].
+  ///
+  /// Lets a host decide whether the switcher and its actions fit on one row
+  /// before anything is laid out. Deciding wrongly would not overflow: a
+  /// scrollable [TabBar] that is too narrow scrolls a name out of sight.
+  static double naturalWidth(
+    BuildContext context,
+    TextStyle style, {
+    required bool withAccentIcon,
+  }) {
+    final scaler = MediaQuery.textScalerOf(context);
+    final direction = Directionality.of(context);
+    double measure(String text) {
+      final painter = TextPainter(
+        text: TextSpan(text: text, style: style),
+        textDirection: direction,
+        textScaler: scaler,
+        maxLines: 1,
+      )..layout();
+      final width = painter.width;
+      painter.dispose();
+      return width;
+    }
+
+    final names = [
+      context.l10n.equipment_tab_equipment,
+      context.l10n.equipment_tab_sets,
+    ];
+    final labels = names.fold(
+      0.0,
+      (width, name) => width + measure(name) + 2 * labelPadding,
+    );
+    return labels + (withAccentIcon ? _accentLead : 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = EquipmentSectionColors.of(Theme.of(context).colorScheme);
@@ -48,7 +90,7 @@ class EquipmentSectionToggle extends StatelessWidget {
         // Symmetric, so the pill and the hover highlight are both centred on
         // the name. Padding on one side only put the highlight visibly off to
         // that side.
-        labelPadding: const EdgeInsets.symmetric(horizontal: 8),
+        labelPadding: const EdgeInsets.symmetric(horizontal: labelPadding),
         indicatorSize: TabBarIndicatorSize.tab,
         indicatorPadding: const EdgeInsets.symmetric(vertical: 7),
         indicator: BoxDecoration(color: colors.pill, borderRadius: pillRadius),
