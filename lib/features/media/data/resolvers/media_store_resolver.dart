@@ -67,15 +67,22 @@ class MediaStoreResolver {
   /// but the store may hold it anyway (media sync program spec 7.2): a stamp
   /// that is late, or was lost. Each tier the request needs is HEADed once
   /// and remembered, found or absent, so a grid of such rows costs one HEAD
-  /// per row and tier for the life of this resolver. The tiers are tried in
-  /// [tryResolveRemote]'s order: the thumb (for a thumbnail), the original,
-  /// then the compressed rendition; a video thumbnail never falls back past
-  /// its thumb. Serving goes through [tryResolveRemote] with each found tier
-  /// treated as stamped at the store's own modification time, the only
-  /// version a probe has: the rendition's cache checks freshness against
-  /// it, so a copy cached before the object was overwritten is not served.
-  /// Read-only: nothing is written back, since the stamps are the uploading
-  /// device's facts (decided 2026-09-23).
+  /// per row and tier for the life of this resolver.
+  ///
+  /// The tiers are tried in [tryResolveRemote]'s order, the thumb (for a
+  /// thumbnail), the original, then the compressed rendition, one at a time:
+  /// a found tier is served through [tryResolveRemote] with only that tier
+  /// stamped, and only if its fetch fails (a broken GET, bytes that do not
+  /// match the hash) is the next tier asked about. So a row whose first tier
+  /// serves costs one HEAD, and a found tier that cannot be read still falls
+  /// through as a stamped row would. A video thumbnail never falls back past
+  /// its thumb: its original and rendition are both video.
+  ///
+  /// A found tier is treated as stamped at the store's own modification
+  /// time, the only version a probe has: the rendition's cache checks
+  /// freshness against it, so a copy cached before the object was
+  /// overwritten is not served. Read-only: nothing is written back, since
+  /// the stamps are the uploading device's facts (decided 2026-09-23).
   Future<MediaSourceData?> tryResolveProbed(
     MediaItem item, {
     required bool thumbnail,
@@ -83,32 +90,41 @@ class MediaStoreResolver {
     final hash = item.contentHash;
     if (hash == null) return null;
     final isVideo = item.mediaType == MediaType.video;
-    final thumb = thumbnail ? await _probe(StoreKeys.thumbKey(hash)) : null;
-    // A video's original and rendition are both video: a thumbnail cannot
-    // degrade to them (see tryResolveRemote), so they are not worth a HEAD.
-    final pastThumb = !thumbnail || (thumb == null && !isVideo);
-    final original = pastThumb
-        ? await _probe(
-            StoreKeys.objectKey(
-              hash,
-              extension: StoreKeys.extensionFor(item.originalFilename),
-            ),
-          )
-        : null;
-    final rendition = pastThumb && original == null
-        ? await _probe(
-            StoreKeys.renditionKey(hash, ext: isVideo ? 'mp4' : 'jpg'),
-          )
-        : null;
-    if (thumb == null && original == null && rendition == null) return null;
-    return tryResolveRemote(
-      item.copyWith(
-        remoteThumbUploadedAt: thumb,
-        remoteUploadedAt: original,
-        remoteCompressedUploadedAt: rendition,
-      ),
-      thumbnail: thumbnail,
+    final unstamped = item.copyWith(
+      remoteThumbUploadedAt: null,
+      remoteUploadedAt: null,
+      remoteCompressedUploadedAt: null,
     );
+    final tiers = <(String, MediaItem Function(DateTime))>[
+      if (thumbnail)
+        (
+          StoreKeys.thumbKey(hash),
+          (at) => unstamped.copyWith(remoteThumbUploadedAt: at),
+        ),
+      if (!thumbnail || !isVideo) ...[
+        (
+          StoreKeys.objectKey(
+            hash,
+            extension: StoreKeys.extensionFor(item.originalFilename),
+          ),
+          (at) => unstamped.copyWith(remoteUploadedAt: at),
+        ),
+        (
+          StoreKeys.renditionKey(hash, ext: isVideo ? 'mp4' : 'jpg'),
+          (at) => unstamped.copyWith(remoteCompressedUploadedAt: at),
+        ),
+      ],
+    ];
+    for (final (key, stampedAt) in tiers) {
+      final modified = await _probe(key);
+      if (modified == null) continue;
+      final served = await tryResolveRemote(
+        stampedAt(modified),
+        thumbnail: thumbnail,
+      );
+      if (served != null) return served;
+    }
+    return null;
   }
 
   /// When the store last modified [key], or null when it does not hold it

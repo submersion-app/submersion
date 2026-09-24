@@ -205,6 +205,28 @@ void main() {
     expect(served, isA<FileData>());
   });
 
+  // A found tier whose fetch fails (a broken GET, bytes that do not match
+  // the hash) is not the end: the tiers after it are asked about too, as
+  // tryResolveRemote falls through for a stamped row.
+  test(
+    'a found original that fails to fetch falls back to the rendition',
+    () async {
+      store.objects[originalKey()] = List<int>.filled(16, 1);
+      store.objects[StoreKeys.renditionKey(hash, ext: 'jpg')] = bytes;
+
+      final served = await resolver.tryResolveProbed(
+        unstamped(),
+        thumbnail: false,
+      );
+
+      expect((served! as FileData).file.readAsBytesSync(), bytes);
+      expect(store.heads, [
+        originalKey(),
+        StoreKeys.renditionKey(hash, ext: 'jpg'),
+      ]);
+    },
+  );
+
   // A rendition can be overwritten in place (a re-upload at another level).
   // With the stamp lost, the store's own modification time is the only
   // version there is, and a copy cached before it must not be served.
