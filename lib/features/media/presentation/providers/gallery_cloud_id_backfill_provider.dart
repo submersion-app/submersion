@@ -5,7 +5,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
 import 'package:submersion/features/media/data/services/gallery_cloud_id_backfill.dart';
-import 'package:submersion/features/media/data/services/photo_picker_service_mobile.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
@@ -26,9 +25,7 @@ final galleryCloudIdBackfillProvider = Provider<Future<void> Function()>((ref) {
         cloudIdentifiers: const PhotoManagerCloudIdentifierSource(),
         photos: photos,
         // Read, never asked: this runs after a sync, unasked.
-        permissionStatus: photos is PhotoPickerServiceMobile
-            ? photos.currentPermission
-            : photos.checkPermission,
+        permissionStatus: photos.currentPermission,
         deviceId: () => SyncRepository().getDeviceId(),
         prefs: prefs,
         assetCache: ref.read(localAssetCacheRepositoryProvider),
