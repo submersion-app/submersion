@@ -240,6 +240,11 @@ class AssetResolutionService {
     }
   }
 
+  /// Drops the shared gallery queries, so the next search sees the library
+  /// as it is now. Called when the user comes back from changing photo
+  /// access, since a changed limited selection keeps the same permission.
+  void forgetGalleryQueries() => _galleryQueryCache.clear();
+
   /// The answer for a row whose earlier search gave up and is backing off.
   /// That miss is evidence the photo is gone only if the search saw the
   /// whole library, and it may not have: every build before this one cached
@@ -326,6 +331,7 @@ class AssetResolutionService {
         final found = await _getAssetsCoalesced(
           reading.subtract(timeWindow),
           reading.add(timeWindow),
+          permission,
         );
         for (final asset in found) {
           byId[asset.id] = asset;
@@ -591,13 +597,20 @@ class AssetResolutionService {
   /// When opening a dive with many photos, all providers fire near-simultaneously
   /// with overlapping time windows. This method caches the gallery query results
   /// for 30 seconds so only one actual gallery scan is performed per time window.
+  ///
+  /// Keyed by [permission] too: a query taken under full access shows photos
+  /// a limited selection hides, and answering a limited search with it would
+  /// match a photo this device can no longer read (spec 6.3). A change of
+  /// selection under the same permission goes through [forgetGalleryQueries].
   Future<List<AssetInfo>> _getAssetsCoalesced(
     DateTime start,
     DateTime end,
+    PhotoPermissionStatus permission,
   ) async {
     final (bucketStart, bucketEnd) = galleryQueryBucket(start, end);
     final cacheKey =
-        '${bucketStart.millisecondsSinceEpoch}~${bucketEnd.millisecondsSinceEpoch}';
+        '${permission.name}:${bucketStart.millisecondsSinceEpoch}~'
+        '${bucketEnd.millisecondsSinceEpoch}';
 
     // Check for a valid cached result
     final cached = _galleryQueryCache[cacheKey];

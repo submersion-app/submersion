@@ -252,6 +252,44 @@ void main() {
     expect(r.limitedAccess, isTrue);
   });
 
+  // Gallery queries are shared for 30 seconds. One taken under full access
+  // must not answer a search made after the user narrowed access: it would
+  // match a photo that is now hidden.
+  test('a query from full access is not reused under limited access', () async {
+    addPhoto();
+    await service.resolveAssetId(row());
+    await cache.clearEntry('m1');
+    library
+      ..permission = PhotoPermissionStatus.limited
+      ..hiddenFromLimitedAccess.add('B-1');
+
+    final r = await service.resolveAssetId(row());
+
+    expect(r.status, ResolutionStatus.accessDenied);
+    expect(r.limitedAccess, isTrue);
+  });
+
+  // "Choose photo again" changes the selection without changing the
+  // permission: the shared queries are dropped so the added photo shows.
+  test(
+    'a photo added to the selection is found once queries are forgotten',
+    () async {
+      addPhoto();
+      library
+        ..permission = PhotoPermissionStatus.limited
+        ..hiddenFromLimitedAccess.add('B-1');
+      expect(
+        (await service.resolveAssetId(row())).status,
+        ResolutionStatus.accessDenied,
+      );
+
+      library.hiddenFromLimitedAccess.remove('B-1');
+      service.forgetGalleryQueries();
+
+      expect((await service.resolveAssetId(row())).localAssetId, 'B-1');
+    },
+  );
+
   test('a permission read that fails is inconclusive', () async {
     final failing = _FailingPermission();
     final r = await AssetResolutionService(

@@ -4,6 +4,7 @@ import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/media/presentation/providers/photo_access_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// "Allow full access" and "Choose photo again", for a photo outside the
@@ -45,7 +46,11 @@ class _LimitedAccessActionsState extends ConsumerState<LimitedAccessActions> {
   }
 
   void _changed() {
-    if (mounted) widget.onChanged();
+    if (!mounted) return;
+    // The shared gallery queries show the library as it was; a selection
+    // changed under the same permission would stay invisible behind them.
+    ref.read(assetResolutionServiceProvider).forgetGalleryQueries();
+    widget.onChanged();
   }
 
   Future<void> _openSettings() async {
