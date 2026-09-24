@@ -199,10 +199,15 @@ _ResolvedCylinders _resolveCylinders(
   // every real tank/sample index so they never capture per-sample pressure.
   // These are sensorless cylinders, so they get the same roles a tankless dive
   // gives its gases: the gas's own usage tag first, then on CCR the bailout
-  // ranking (issue #2318).
+  // ranking (issue #2318). The breathed diluent goes first, so a dive whose
+  // diluent has no transmitter still gets the one used, not merely the first
+  // programmed one, from [resolveDiluentGas].
+  final breathedDiluent = _breathedDiluentIndex(parsed.samples, gasMixes);
   final unclaimed = [
+    if (breathedDiluent != null && !consumed.contains(breathedDiluent))
+      breathedDiluent,
     for (var i = 0; i < gasMixes.length; i++)
-      if (!consumed.contains(i)) i,
+      if (!consumed.contains(i) && i != breathedDiluent) i,
   ];
   final unclaimedRoles = _inferSensorlessRoles(
     gasMixes,
@@ -408,8 +413,13 @@ int? _breathedDiluentIndex(
   return first >= 0 ? first : null;
 }
 
-/// The most frequent gas-mix index among the samples in which [tankIndex]
-/// reported a pressure, or null when none of them carries a gas mix.
+/// The most frequent gas-mix index among the pressure samples of [tankIndex],
+/// or null when none of that tank's samples carry a gas mix.
+///
+/// Deliberately keyed on the sample's own `tankIndex` rather than on every
+/// transmitter the sample carries: a transmitter reports all dive long, so
+/// crediting every reporting tank would hand each one the dive's main gas and
+/// override a computer's own tank->gas link (review on #2318).
 int? _dominantGasIndex(
   int tankIndex,
   List<pigeon.ProfileSample> samples,
@@ -417,9 +427,7 @@ int? _dominantGasIndex(
 ) => _mostFrequent([
   for (final s in samples)
     if (s.gasMixIndex case final gasIndex?
-        when gasIndex >= 0 &&
-            gasIndex < gasCount &&
-            _sampleTankReadings(s).containsKey(tankIndex))
+        when s.tankIndex == tankIndex && gasIndex >= 0 && gasIndex < gasCount)
       gasIndex,
 ]);
 
@@ -471,7 +479,8 @@ int _firstFreeIndex(pigeon.ParsedDive parsed) {
 /// libdivecomputer reports one pressure per air-integrated transmitter, so a
 /// sample can carry several, and `pressureBar`/`tankIndex` hold only the last
 /// of them (on a Shearwater CCR, always the oxygen transmitter). Reading the
-/// pair alone credited that one transmitter with everything (issue #2318).
+/// pair alone left every other transmitter without a reading at surfacing, so
+/// the diluent kept its post-surfacing bleed-down (issue #2318).
 /// `tankPressuresBar` is the complete record; the pair remains the fallback
 /// for sources that never report more than one tank per sample, the same rule
 /// `groupPressuresByTank` applies to the stored pressure series.

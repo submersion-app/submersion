@@ -194,10 +194,75 @@ void main() {
     });
   });
 
+  group('CCR dive with only an oxygen transmitter', () {
+    test('the dive-level diluent is the breathed one, not the first '
+        'programmed one', () {
+      // DIL1 21/0 is enabled but never breathed; DIL2 15/55 is on the loop.
+      // Neither has a transmitter, so both become pressureless cylinders.
+      final parsed = pigeon.ParsedDive(
+        fingerprint: 'test',
+        dateTimeYear: 2026,
+        dateTimeMonth: 9,
+        dateTimeDay: 12,
+        dateTimeHour: 8,
+        dateTimeMinute: 56,
+        dateTimeSecond: 33,
+        maxDepthMeters: 61.9,
+        avgDepthMeters: 30.0,
+        durationSeconds: 3900,
+        diveMode: 'ccr',
+        samples: [
+          for (final t in [0, 600, 1200])
+            pigeon.ProfileSample(
+              timeSeconds: t,
+              depthMeters: 30.0,
+              pressureBar: 100.0,
+              tankIndex: 0,
+              tankPressuresBar: const [100.0],
+              gasMixIndex: 2,
+            ),
+        ],
+        tanks: [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: unknownGasMixIndex,
+            startPressureBar: 107.7,
+            usage: oxygenUsage,
+          ),
+        ],
+        gasMixes: [
+          pigeon.GasMix(index: 0, o2Percent: 99.0, hePercent: 0.0),
+          pigeon.GasMix(
+            index: 1,
+            o2Percent: 21.0,
+            hePercent: 0.0,
+            usage: diluentUsage,
+          ),
+          pigeon.GasMix(
+            index: 2,
+            o2Percent: 15.0,
+            hePercent: 55.0,
+            usage: diluentUsage,
+          ),
+        ],
+        events: const [],
+      );
+      final resolved = resolveParsedTanks(parsed);
+      expect(tankAt(resolved, 0).o2Percent, 100.0);
+      final diluent = resolveDiluentGas(resolved);
+      expect(diluent, isNotNull);
+      expect(diluent!.o2, 15.0);
+      expect(diluent.he, 55.0);
+    });
+  });
+
   group('open circuit with two transmitters in one sample', () {
-    test('both sidemount cylinders are labeled with the breathed gas', () {
-      // Before #2318 only the last-reported transmitter was attributed a gas;
-      // the other fell back to the first gas mix (here the 50% deco gas).
+    test("a computer's own tank->gas link survives a transmitter that "
+        'reports all dive long', () {
+      // Tank 0 is linked to the 50% deco gas and reports in every sample, but
+      // tank 1 is always the last reading, so tank 0 never owns a sample's
+      // tankIndex. Crediting every reporting transmitter with the breathed
+      // gas would override that link with the 32% bottom gas.
       final parsed = pigeon.ParsedDive(
         fingerprint: 'test',
         dateTimeYear: 2026,
@@ -222,7 +287,7 @@ void main() {
             ),
         ],
         tanks: [
-          pigeon.TankInfo(index: 0, gasMixIndex: unknownGasMixIndex),
+          pigeon.TankInfo(index: 0, gasMixIndex: 0),
           pigeon.TankInfo(index: 1, gasMixIndex: unknownGasMixIndex),
         ],
         gasMixes: [
@@ -232,7 +297,7 @@ void main() {
         events: const [],
       );
       final resolved = resolveParsedTanks(parsed);
-      expect(tankAt(resolved, 0).o2Percent, 32.0);
+      expect(tankAt(resolved, 0).o2Percent, 50.0);
       expect(tankAt(resolved, 1).o2Percent, 32.0);
     });
   });
