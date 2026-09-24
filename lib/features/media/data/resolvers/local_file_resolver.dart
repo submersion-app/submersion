@@ -372,13 +372,6 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
     return const UnavailableData(kind: UnavailableKind.notFound);
   }
 
-  /// [_volumeOnline], with a probe that itself failed treated as online.
-  ///
-  /// The probe is a filesystem call and can throw on the exact mounts it
-  /// exists to classify. Reporting volumeOffline on a throw would be a guess;
-  /// assuming online falls through to the file itself, which is what this
-  /// resolver did before the probe was hoisted ahead of it, and lets the
-  /// existing exists() / open() path produce the real answer.
   /// A content URI that did not read, on this device (spec 6.3). Another
   /// device's URI never had a grant here, so it is left to [resolve]'s
   /// origin rule. Otherwise the library is searched by metadata before
@@ -406,6 +399,13 @@ class LocalFileResolver implements MediaSourceResolver, DiagnosticProbe {
     );
   }
 
+  /// [_volumeOnline], with a probe that itself failed treated as online.
+  ///
+  /// The probe is a filesystem call and can throw on the exact mounts it
+  /// exists to classify. Reporting volumeOffline on a throw would be a guess;
+  /// assuming online falls through to the file itself, which is what this
+  /// resolver did before the probe was hoisted ahead of it, and lets the
+  /// existing exists() / open() path produce the real answer.
   Future<bool> _volumeOnlineOrAssumed(String path) async {
     try {
       return await _volumeOnline(path);

@@ -157,6 +157,41 @@ void main() {
     expect(r.localAssetId, 'B-1');
   });
 
+  // A mapping this search cached can go stale (a second re-index). It runs
+  // only after a read has failed, so it proves the mapping before trusting
+  // it: a stale one would otherwise be served as nothing, forever, and read
+  // as notFound on the linking device.
+  test(
+    'findInLibrary searches again past a cached mapping that is gone',
+    () async {
+      addPhoto();
+      await cache.cacheResolution(
+        mediaId: 'f1',
+        localAssetId: 'B-gone',
+        method: 'filename_timestamp',
+      );
+
+      final r = await service.findInLibrary(fileRow());
+
+      expect(r.localAssetId, 'B-1');
+      expect((await cache.getCacheEntry('f1'))!.localAssetId, 'B-1');
+    },
+  );
+
+  test('findInLibrary keeps a cached mapping that still loads', () async {
+    addPhoto();
+    await cache.cacheResolution(
+      mediaId: 'f1',
+      localAssetId: 'B-1',
+      method: 'filename_timestamp',
+    );
+    library.queryError = StateError('a search would fail');
+
+    final r = await service.findInLibrary(fileRow());
+
+    expect(r.localAssetId, 'B-1', reason: 'no search was needed');
+  });
+
   test('findInLibrary under limited access is inconclusive', () async {
     addPhoto();
     library

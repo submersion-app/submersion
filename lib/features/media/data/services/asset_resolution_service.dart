@@ -204,16 +204,26 @@ class AssetResolutionService {
   /// grant was lost, which is usually still in the library (media sync
   /// program spec 6.3). Needs no stored asset id. Honors the same cache and
   /// backoff as [resolveAssetId], and shares its in-flight searches.
+  ///
+  /// Unlike [resolveAssetId], a cached mapping is proven before it is
+  /// trusted. This runs only after a read has already failed, so the check
+  /// costs nothing on the hot path, and a mapping gone stale (a second
+  /// re-index) would otherwise be served as nothing on every render, which
+  /// reads as notFound on the linking device.
   Future<ResolutionResult> findInLibrary(MediaItem item) async {
     if (!_photoPickerService.supportsGalleryBrowsing) {
       return const ResolutionResult(status: ResolutionStatus.unavailable);
     }
     final cachedId = await _cacheRepository.getCachedAssetId(item.id);
     if (cachedId != null) {
-      return ResolutionResult(
-        localAssetId: cachedId,
-        status: ResolutionStatus.resolved,
-      );
+      if (await _verifyAssetLoadable(cachedId)) {
+        return ResolutionResult(
+          localAssetId: cachedId,
+          status: ResolutionStatus.resolved,
+        );
+      }
+      _log.info('Cached library match for media ${item.id} is gone');
+      await _cacheRepository.clearEntry(item.id);
     }
     final cacheEntry = await _cacheRepository.getCacheEntry(item.id);
     if (cacheEntry != null &&
