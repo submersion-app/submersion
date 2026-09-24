@@ -3,7 +3,10 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
+import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/photo_picker_service.dart';
+import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 
 import '../../../helpers/fake_photo_picker_service.dart';
@@ -205,6 +208,59 @@ void main() {
     );
     final tile = await h.b.tile(id1);
     expect((tile.data as BytesData).bytes, frame1);
+  });
+
+  // A relink points the row at another photo. A mapping the peer found for
+  // the old one, even a cloud id match, now names the wrong photo.
+  test('a peer that found a photo follows a relink to another', () async {
+    final photo2 = Uint8List.fromList(
+      List<int>.generate(512, (i) => (i * 3) % 251),
+    );
+    final dive = await h.a.createDive();
+    final id = await h.a.linkGalleryPhoto(
+      FakeGalleryAsset(id: 'A-1', bytes: photo, takenAt: taken, cloudId: 'C-1'),
+      diveId: dive,
+    );
+    h.b.gallery
+      ..add(
+        FakeGalleryAsset(
+          id: 'B-1',
+          bytes: photo,
+          takenAt: taken,
+          filename: null,
+          cloudId: 'C-1',
+        ),
+      )
+      ..add(
+        FakeGalleryAsset(
+          id: 'B-2',
+          bytes: photo2,
+          takenAt: taken,
+          filename: null,
+          cloudId: 'C-2',
+        ),
+      );
+    await h.a.sync();
+    await h.b.sync();
+    expect(((await h.b.tile(id)).data as BytesData).bytes, photo);
+
+    await h.a.activate();
+    await MediaRepository().applyRepairWrites([
+      RepairWrite(
+        mediaId: id,
+        newPlatformAssetId: 'A-2',
+        newSourceType: MediaSourceType.platformGallery,
+        newCloudAssetId: 'C-2',
+      ),
+    ]);
+    await h.a.sync();
+    await h.b.sync();
+
+    expect(
+      ((await h.b.tile(id)).data as BytesData).bytes,
+      photo2,
+      reason: 'the old mapping was dropped with the relink',
+    );
   });
 
   test('a plain edit from the peer does not lift the backoff', () async {

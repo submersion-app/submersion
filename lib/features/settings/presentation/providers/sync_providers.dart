@@ -523,8 +523,8 @@ final peerDeviceNamesProvider = StreamProvider<Map<String, String>>((ref) {
 
 /// Sync service provider
 // no-tick: the value is a SERVICE, not a query result. Its one repository
-// call (clearUnresolved) is a write made inside a callback at merge time,
-// so there is no cached row to go stale.
+// call (applyResolutionHints) is a write made inside a callback at merge
+// time, so there is no cached row to go stale.
 final syncServiceProvider = Provider<SyncService>((ref) {
   return SyncService(
     syncRepository: ref.watch(syncRepositoryProvider),
@@ -535,10 +535,10 @@ final syncServiceProvider = Provider<SyncService>((ref) {
     encryptionService: ref.watch(syncEncryptionServiceProvider),
     localizations: () => l10nForLocaleTag(ref.read(localeProvider)),
     peerNames: ref.watch(peerDeviceNameStoreProvider),
-    // A synced cloud id or upload lifts a gallery search's backoff (spec
-    // 6.2).
-    onMediaResolutionHints: (ids) =>
-        ref.read(localAssetCacheRepositoryProvider).clearUnresolved(ids),
+    // A synced cloud id or upload lifts a gallery search's backoff, and a
+    // relink drops the old photo's mapping (spec 6.2).
+    onMediaResolutionHints: (hints) =>
+        ref.read(localAssetCacheRepositoryProvider).applyResolutionHints(hints),
   );
 });
 

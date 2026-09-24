@@ -387,7 +387,7 @@ class HarnessDevice {
       syncRepository: SyncRepository(),
       serializer: SyncDataSerializer(),
       cloudProvider: _harness.cloud,
-      onMediaResolutionHints: assetCache.clearUnresolved,
+      onMediaResolutionHints: assetCache.applyResolutionHints,
     ).performSync();
     if (expectSuccess && !result.isSuccess) {
       throw StateError('$name sync failed: ${result.status} ${result.message}');

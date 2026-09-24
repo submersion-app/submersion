@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/core/services/sync/media_resolution_hints.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
 
 /// Cache entry with all fields for inspection.
@@ -104,6 +105,18 @@ class LocalAssetCacheRepository {
     await (_db.delete(
       _db.localAssetCache,
     )..where((t) => t.mediaId.isIn(ids) & t.localAssetId.isNull())).go();
+  }
+
+  /// Applies what a sync merge learned about media rows (spec 6.2): a row
+  /// with something new to be found by retries a search that gave up, and a
+  /// relinked row drops whatever this device cached for its old photo.
+  Future<void> applyResolutionHints(MediaResolutionHints hints) async {
+    await clearUnresolved(hints.retry);
+    final remap = hints.remap.toList();
+    if (remap.isEmpty) return;
+    await (_db.delete(
+      _db.localAssetCache,
+    )..where((t) => t.mediaId.isIn(remap))).go();
   }
 
   /// Check if an unresolved entry has exceeded its backoff period.

@@ -4,6 +4,7 @@ import 'package:drift/drift.dart' hide isNull, isNotNull;
 
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/core/services/sync/media_resolution_hints.dart';
 import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 
 void main() {
@@ -233,5 +234,33 @@ void main() {
 
     expect(await repository.getCacheEntry('u'), isNull);
     expect((await repository.getCacheEntry('r'))!.localAssetId, 'B-1');
+  });
+
+  // A relink on a peer points the row at another photo, so even a mapping
+  // this device found is about the old one.
+  test('applyResolutionHints drops remapped rows whatever they say', () async {
+    await repository.cacheResolution(
+      mediaId: 'u',
+      localAssetId: null,
+      method: 'unresolved',
+    );
+    await repository.cacheResolution(
+      mediaId: 'r',
+      localAssetId: 'B-1',
+      method: 'cloud_id',
+    );
+    await repository.cacheResolution(
+      mediaId: 'moved',
+      localAssetId: 'B-2',
+      method: 'cloud_id',
+    );
+
+    await repository.applyResolutionHints(
+      const MediaResolutionHints(retry: {'u', 'r'}, remap: {'moved'}),
+    );
+
+    expect(await repository.getCacheEntry('u'), isNull);
+    expect((await repository.getCacheEntry('r'))!.localAssetId, 'B-1');
+    expect(await repository.getCacheEntry('moved'), isNull);
   });
 }
