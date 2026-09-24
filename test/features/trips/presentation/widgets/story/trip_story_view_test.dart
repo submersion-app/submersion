@@ -539,6 +539,49 @@ void main() {
     expect(_dockedDayNumber(tester), 6);
   });
 
+  testWidgets('a last chapter taller than the screen still docks its own day', (
+    tester,
+  ) async {
+    // The last day carries enough dives that its chapter is taller than the
+    // screen, so at the end of the scroll its heading has gone up past the top
+    // while its body is still what fills the screen. No other heading can be
+    // visible then, since every earlier day is further up, so the band should
+    // name the last day rather than skip back to an earlier one.
+    final trip = _trip(
+      start: DateTime(2026, 3, 25),
+      end: DateTime(2026, 3, 30),
+    );
+    final story = _story(
+      trip,
+      dives: [
+        for (var i = 0; i < 5; i++) _dive('d$i', DateTime(2026, 3, 25 + i, 9)),
+        for (var j = 0; j < 12; j++)
+          _dive('last$j', DateTime(2026, 3, 30, 7 + j)),
+      ],
+      today: DateTime(2026, 6, 1),
+    );
+    await pumpView(tester, story, viewSize: const Size(500, 700));
+
+    final position = _storyScroll(tester);
+    position.jumpTo(position.maxScrollExtent);
+    await tester.pump(const Duration(milliseconds: 150));
+    await _resolveInPlace(tester);
+
+    // Guard: the scenario is actually reached. Headings are box slivers, so
+    // they stay mounted however far off screen they go; look past offstage.
+    final heading = find.byWidgetPredicate(
+      (w) => w is TripStoryDayHeader && !w.compact && w.day.dayNumber == 6,
+      skipOffstage: false,
+    );
+    expect(heading, findsOneWidget);
+    expect(
+      tester.getTopLeft(heading).dy,
+      lessThan(0),
+      reason: 'the last chapter no longer outgrows the screen',
+    );
+    expect(_dockedDayNumber(tester), 6);
+  });
+
   testWidgets('the band catches up when a scroll comes to rest', (
     tester,
   ) async {

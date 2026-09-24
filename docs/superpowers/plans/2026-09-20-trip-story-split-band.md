@@ -9,9 +9,12 @@ the map at the end edge, cutting permanent chrome from 232px to 96px.
 **Architecture:** A single `SliverPersistentHeader` whose delegate interpolates
 the map's width from 100% to 50% against its own `shrinkOffset`, fading a
 compact day panel in beside it. Per-day headers become ordinary scrolling
-content, and the day the band shows is resolved from scroll position at the
-band's bottom edge. The 900px wide-layout branch is deleted, so one layout
-serves every width.
+content, and the day the band shows is the one whose heading last crossed a
+line a third of the way down the space below the band, with the last visible
+day docking once the story is scrolled to its end. The 900px wide-layout
+branch is deleted, so one layout serves every width, spanning the full
+window. (Both the switch line and the full width were revised after this plan
+was executed; see the amendments at the end.)
 
 **Tech Stack:** Flutter, Riverpod, flutter_map, Drift-backed providers,
 flutter_test widget tests.
@@ -872,14 +875,20 @@ docked day fades in beside it over the back half of the morph."
 
 ### Task 5: Wire the band into the view and delete the wide branch
 
+> **Superseded in part (2026-09-22).** The centred `_maxContentWidth = 900`
+> below was removed: the story spans the full window, and the width test
+> asserts that instead. Do not reintroduce the cap. See the amendment at the
+> end of this plan.
+
 **Files:**
 - Modify: `lib/features/trips/presentation/widgets/story/trip_story_view.dart`
 - Test: `test/features/trips/presentation/widgets/story/trip_story_view_test.dart`
 
 **Interfaces:**
 - Consumes: `TripStoryBandDelegate`, `TripStoryBandExtents`, `TripStoryMap`.
-- Produces: a view with one `CustomScrollView` at every width, constrained to
-  `_maxContentWidth = 900` and centered, whose first sliver is the pinned band.
+- Produces: a view with one `CustomScrollView` at every width, spanning the
+  full width it is given, whose first sliver is the pinned band. (As first
+  executed it was centred at a 900px maximum; that cap was removed.)
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -1036,15 +1045,23 @@ story is centered at 900px instead of stretching."
 
 ### Task 6: Demote the day headers and retime the dock
 
+> **Superseded in part (2026-09-23).** The band-edge threshold below read as
+> late in the running app and stranded the last days of a trip. The switch
+> line is now a third of the way down the space below the band, the last
+> visible day docks once the story is scrolled to its end, and a
+> `ScrollEndNotification` always resolves. Do not restore the band-edge
+> threshold. See the amendment at the end of this plan.
+
 **Files:**
 - Modify: `lib/features/trips/presentation/widgets/story/trip_story_view.dart`
 - Test: `test/features/trips/presentation/widgets/story/trip_story_view_test.dart`
 
 **Interfaces:**
 - Consumes: everything from Task 5.
-- Produces: no new API. `_onScroll`'s threshold becomes
-  `viewportTop + extents.docked`, and `_dayKeys[index]` moves from the card
-  column onto the chapter heading.
+- Produces: no new API. `_dayKeys[index]` moves from the card column onto
+  the chapter heading. The threshold was first executed as
+  `viewportTop + extents.docked` and later moved to
+  `viewportTop + band + (viewportHeight - band) / 3`.
 
 - [ ] **Step 1: Write the failing tests**
 

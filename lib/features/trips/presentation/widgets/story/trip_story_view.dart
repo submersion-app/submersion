@@ -154,8 +154,11 @@ class _TripStoryViewState extends ConsumerState<TripStoryView>
     final band = _bandExtents(context).docked;
 
     // At the end of the scroll the last chapters can never climb to the line:
-    // the story runs out first. The last day whose heading is on screen gets
-    // its turn instead, so the tail of a trip is not permanently stranded.
+    // the story runs out first. The last day whose heading is at or above the
+    // bottom of the screen docks instead, so the tail of a trip is not
+    // permanently stranded. That heading is either on screen, or already past
+    // the top with its own chapter filling the screen; no later heading can
+    // be visible in that case, since every later day sits below it.
     if (metrics.pixels >= metrics.maxScrollExtent - 0.5) {
       for (var i = _dayKeys.length - 1; i >= 0; i--) {
         final top = _headingTop(i);
