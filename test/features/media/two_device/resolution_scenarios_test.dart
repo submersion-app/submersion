@@ -121,29 +121,25 @@ void main() {
     // Slice 8 gives FakeGalleryAsset a cloudId and stamps it at link time.
   }, skip: 'Media sync program S6: turns green in slice 8 (cloud identifier)');
 
-  test(
-    'S7: limited photo access on the origin device is inconclusive, '
-    'not missing',
-    () async {
-      final dive = await h.b.createDive();
-      final id = await h.b.linkGalleryPhoto(
-        FakeGalleryAsset(id: 'B-7', bytes: photo, takenAt: taken),
-        diveId: dive,
-      );
-      expect(await h.b.tileOutcome(id), TileOutcome.native);
+  test('S7: limited photo access on the origin device is inconclusive, '
+      'not missing', () async {
+    final dive = await h.b.createDive();
+    final id = await h.b.linkGalleryPhoto(
+      FakeGalleryAsset(id: 'B-7', bytes: photo, takenAt: taken),
+      diveId: dive,
+    );
+    expect(await h.b.tileOutcome(id), TileOutcome.native);
 
-      // The user later grants limited access and this photo is outside the
-      // selected subset.
-      h.b.gallery.permission = PhotoPermissionStatus.limited;
-      h.b.gallery.hiddenFromLimitedAccess.add('B-7');
-      await h.b.assetCache.clearEntry(id);
+    // The user later grants limited access and this photo is outside the
+    // selected subset.
+    h.b.gallery.permission = PhotoPermissionStatus.limited;
+    h.b.gallery.hiddenFromLimitedAccess.add('B-7');
+    await h.b.assetCache.clearEntry(id);
 
-      final tile = await h.b.tile(id);
-      expect((tile.data as UnavailableData).kind, UnavailableKind.accessDenied);
-      await h.b.checkTile(id);
-      expect((await h.b.media(id))!.isOrphaned, isFalse);
-    },
-    skip:
-        'Media sync program S7: turns green in slice 9 (Android limited access)',
-  );
+    final tile = await h.b.tile(id);
+    expect((tile.data as UnavailableData).kind, UnavailableKind.accessDenied);
+    expect((tile.data as UnavailableData).limitedAccess, isTrue);
+    await h.b.checkTile(id);
+    expect((await h.b.media(id))!.isOrphaned, isFalse);
+  });
 }

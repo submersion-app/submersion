@@ -154,7 +154,10 @@ class PlatformGalleryResolver implements MediaSourceResolver {
     // and collapsing the two would report "your photo is gone" for what is
     // really "let me look at your photos".
     if (resolution.status == ResolutionStatus.accessDenied) {
-      return const UnavailableData(kind: UnavailableKind.accessDenied);
+      return UnavailableData(
+        kind: UnavailableKind.accessDenied,
+        limitedAccess: resolution.limitedAccess,
+      );
     }
     final resolvedId = resolution.localAssetId;
     if (resolvedId == null) return _missing(item);
@@ -191,9 +194,12 @@ class PlatformGalleryResolver implements MediaSourceResolver {
       // Load-bearing: grid tiles call resolveThumbnail, so without this every
       // tile on a permission-revoked device reports notFound and the
       // reconciler would orphan the whole library.
-      final status = (await _resolutionService.resolveAssetId(item)).status;
-      if (status == ResolutionStatus.accessDenied) {
-        return const UnavailableData(kind: UnavailableKind.accessDenied);
+      final again = await _resolutionService.resolveAssetId(item);
+      if (again.status == ResolutionStatus.accessDenied) {
+        return UnavailableData(
+          kind: UnavailableKind.accessDenied,
+          limitedAccess: again.limitedAccess,
+        );
       }
       return _missing(item);
     }

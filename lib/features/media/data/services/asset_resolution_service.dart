@@ -33,7 +33,16 @@ class ResolutionResult {
   final String? localAssetId;
   final ResolutionStatus status;
 
-  const ResolutionResult({this.localAssetId, required this.status});
+  /// With [ResolutionStatus.accessDenied] only: the gallery was searched
+  /// through a limited selection, so a miss may be a photo the user did not
+  /// select rather than one that is gone.
+  final bool limitedAccess;
+
+  const ResolutionResult({
+    this.localAssetId,
+    required this.status,
+    this.limitedAccess = false,
+  });
 }
 
 /// Service for resolving cross-device photo asset IDs.
@@ -247,7 +256,17 @@ class AssetResolutionService {
     }
     final candidates = byId.values.toList();
 
+    // A limited selection hides photos the device does have (spec 6.3): a
+    // miss under it is not evidence of absence, and caching it would back
+    // off a photo the user can make visible in a moment.
+    final limited = permission == PhotoPermissionStatus.limited;
+    const limitedMiss = ResolutionResult(
+      status: ResolutionStatus.accessDenied,
+      limitedAccess: true,
+    );
+
     if (candidates.isEmpty) {
+      if (limited) return limitedMiss;
       await _cacheUnresolved(item.id);
       return const ResolutionResult(status: ResolutionStatus.unavailable);
     }
@@ -310,6 +329,7 @@ class AssetResolutionService {
     }
 
     // Tier 4: unresolved
+    if (limited) return limitedMiss;
     await _cacheUnresolved(item.id);
     _log.info('Could not resolve media ${item.id} -- marked unresolved');
     return const ResolutionResult(status: ResolutionStatus.unavailable);

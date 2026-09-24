@@ -78,6 +78,60 @@ void main() {
     },
   );
 
+  // A limited selection hides photos the device does have: a miss is not
+  // evidence of absence, and caching it would back off a photo the user can
+  // make visible in a moment.
+  test(
+    'under limited access a photo outside the selection is inconclusive',
+    () async {
+      addPhoto();
+      library
+        ..permission = PhotoPermissionStatus.limited
+        ..hiddenFromLimitedAccess.add('B-1');
+
+      final r = await service.resolveAssetId(row());
+
+      expect(r.status, ResolutionStatus.accessDenied);
+      expect(r.limitedAccess, isTrue);
+      expect(await cache.getCacheEntry('m1'), isNull);
+    },
+  );
+
+  test(
+    'under limited access a photo in the selection still resolves',
+    () async {
+      addPhoto();
+      library.permission = PhotoPermissionStatus.limited;
+
+      final r = await service.resolveAssetId(row());
+
+      expect(r.localAssetId, 'B-1');
+    },
+  );
+
+  // Candidates in the window, none of them this photo: still a limited
+  // view, so still inconclusive.
+  test('under limited access a miss past the tiers is inconclusive', () async {
+    library
+      ..add(
+        FakeGalleryAsset(
+          id: 'B-other',
+          bytes: Uint8List.fromList([2]),
+          takenAt: taken,
+          width: 10,
+          height: 10,
+          filename: 'OTHER.JPG',
+        ),
+      )
+      ..permission = PhotoPermissionStatus.limited;
+
+    final r = await service.resolveAssetId(row());
+
+    expect(r.status, ResolutionStatus.accessDenied);
+    expect(r.limitedAccess, isTrue);
+    expect(await cache.getCacheEntry('m1'), isNull);
+  });
+
   test('a permission read that fails is inconclusive', () async {
     final failing = _FailingPermission();
     final r = await AssetResolutionService(

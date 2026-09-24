@@ -234,6 +234,38 @@ void main() {
       expect((data as UnavailableData).kind, UnavailableKind.accessDenied);
     });
 
+    // A limited selection hides photos the library does have; the flag is
+    // what the viewer's "Allow full access" actions key on (spec 6.3).
+    test('a limited search reports accessDenied, flagged limited', () async {
+      final r = PlatformGalleryResolver(
+        resolutionService: _FakeAssetResolutionService(
+          const ResolutionResult(
+            status: ResolutionStatus.accessDenied,
+            limitedAccess: true,
+          ),
+        ),
+      );
+
+      final full = await r.resolve(_gallery(assetId: 'A'));
+      final thumb = await r.resolveThumbnail(
+        _gallery(assetId: 'A'),
+        target: const Size(200, 200),
+      );
+
+      for (final data in [full, thumb]) {
+        expect((data as UnavailableData).kind, UnavailableKind.accessDenied);
+        expect(data.limitedAccess, isTrue);
+      }
+    });
+
+    test('plain denied access is not flagged limited', () async {
+      final r = PlatformGalleryResolver(
+        resolutionService: _accessDeniedService(),
+      );
+      final data = await r.resolve(_gallery(assetId: 'A'));
+      expect((data as UnavailableData).limitedAccess, isFalse);
+    });
+
     test('verify reports accessDenied', () async {
       final r = PlatformGalleryResolver(
         resolutionService: _accessDeniedService(),
