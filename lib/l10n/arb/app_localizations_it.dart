@@ -28337,6 +28337,16 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun accesso alla libreria foto';
 
   @override
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'Non tra le foto consentite';
+
+  @override
+  String get media_limitedAccess_allowFullAccess => 'Consenti accesso completo';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain => 'Scegli di nuovo la foto';
+
+  @override
   String get attrLabel_hose_length_m => 'Lunghezza della frusta';
 
   @override

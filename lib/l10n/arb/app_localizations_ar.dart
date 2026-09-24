@@ -27945,6 +27945,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يوجد وصول إلى مكتبة الصور';
 
   @override
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'ليست ضمن الصور المسموح بها';
+
+  @override
+  String get media_limitedAccess_allowFullAccess => 'السماح بالوصول الكامل';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain => 'اختيار الصورة مجددًا';
+
+  @override
   String get attrLabel_hose_length_m => 'طول الخرطوم';
 
   @override

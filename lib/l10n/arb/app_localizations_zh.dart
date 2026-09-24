@@ -26831,6 +26831,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_unavailablePlaceholder_accessDenied => '无照片库访问权限';
 
   @override
+  String get media_unavailablePlaceholder_limitedAccess => '不在已允许的照片中';
+
+  @override
+  String get media_limitedAccess_allowFullAccess => '允许完全访问';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain => '重新选择照片';
+
+  @override
   String get attrLabel_hose_length_m => '软管长度';
 
   @override

@@ -28336,6 +28336,17 @@ class AppLocalizationsPt extends AppLocalizations {
       'Sem acesso à biblioteca de fotos';
 
   @override
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'Fora das fotos permitidas';
+
+  @override
+  String get media_limitedAccess_allowFullAccess => 'Permitir acesso total';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain =>
+      'Escolher a foto novamente';
+
+  @override
   String get attrLabel_hose_length_m => 'Comprimento da mangueira';
 
   @override

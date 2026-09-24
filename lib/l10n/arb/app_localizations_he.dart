@@ -27643,6 +27643,16 @@ class AppLocalizationsHe extends AppLocalizations {
       'אין גישה לספריית התמונות';
 
   @override
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'לא בין התמונות המורשות';
+
+  @override
+  String get media_limitedAccess_allowFullAccess => 'אפשר גישה מלאה';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain => 'בחר את התמונה שוב';
+
+  @override
   String get attrLabel_hose_length_m => 'אורך הצינור';
 
   @override

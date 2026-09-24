@@ -28433,6 +28433,18 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucun accès à la photothèque';
 
   @override
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'Hors des photos autorisées';
+
+  @override
+  String get media_limitedAccess_allowFullAccess =>
+      'Autoriser l\'accès complet';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain =>
+      'Choisir à nouveau la photo';
+
+  @override
   String get attrLabel_hose_length_m => 'Longueur du flexible';
 
   @override

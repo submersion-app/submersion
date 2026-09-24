@@ -27873,6 +27873,16 @@ class AppLocalizationsEn extends AppLocalizations {
       'No photo library access';
 
   @override
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'Not in your allowed photos';
+
+  @override
+  String get media_limitedAccess_allowFullAccess => 'Allow full access';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain => 'Choose photo again';
+
+  @override
   String get attrLabel_hose_length_m => 'Hose length';
 
   @override

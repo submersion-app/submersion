@@ -109,4 +109,32 @@ void main() {
     expect(find.text('Still loading. Tap to retry.'), findsOneWidget);
     expect(find.byIcon(Icons.hourglass_empty), findsOneWidget);
   });
+
+  // The photo may be in the library, outside what the user allowed
+  // (spec 6.3): not the same message as no access at all.
+  testWidgets('renders a limited selection distinctly', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        const UnavailableMediaPlaceholder(
+          data: UnavailableData(
+            kind: UnavailableKind.accessDenied,
+            limitedAccess: true,
+          ),
+        ),
+      ),
+    );
+    expect(find.text('Not in your allowed photos'), findsOneWidget);
+    expect(find.byIcon(Icons.photo_library_outlined), findsOneWidget);
+  });
+
+  testWidgets('renders plain denied access as before', (tester) async {
+    await tester.pumpWidget(
+      _wrap(
+        const UnavailableMediaPlaceholder(
+          data: UnavailableData(kind: UnavailableKind.accessDenied),
+        ),
+      ),
+    );
+    expect(find.text('No photo library access'), findsOneWidget);
+  });
 }

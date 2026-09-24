@@ -28223,6 +28223,17 @@ class AppLocalizationsHu extends AppLocalizations {
       'Nincs hozzáférés a fotókönyvtárhoz';
 
   @override
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'Nincs az engedélyezett fotók között';
+
+  @override
+  String get media_limitedAccess_allowFullAccess =>
+      'Teljes hozzáférés engedélyezése';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain => 'Fotó újbóli kiválasztása';
+
+  @override
   String get attrLabel_hose_length_m => 'Tömlő hossza';
 
   @override

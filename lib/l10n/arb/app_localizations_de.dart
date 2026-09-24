@@ -28280,6 +28280,16 @@ class AppLocalizationsDe extends AppLocalizations {
       'Kein Zugriff auf die Fotomediathek';
 
   @override
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'Nicht unter den freigegebenen Fotos';
+
+  @override
+  String get media_limitedAccess_allowFullAccess => 'Vollzugriff erlauben';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain => 'Foto erneut auswählen';
+
+  @override
   String get attrLabel_hose_length_m => 'Schlauchlänge';
 
   @override

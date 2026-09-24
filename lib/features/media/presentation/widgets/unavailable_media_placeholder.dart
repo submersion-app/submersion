@@ -30,7 +30,7 @@ class UnavailableMediaPlaceholder extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(_iconFor(data.kind), size: iconSize, color: scheme.outline),
+            Icon(_iconFor(data), size: iconSize, color: scheme.outline),
             const SizedBox(height: 4),
             Text(
               _messageFor(context, data),
@@ -45,7 +45,7 @@ class UnavailableMediaPlaceholder extends StatelessWidget {
     );
   }
 
-  IconData _iconFor(UnavailableKind kind) => switch (kind) {
+  IconData _iconFor(UnavailableData d) => switch (d.kind) {
     UnavailableKind.notFound => Icons.broken_image_outlined,
     UnavailableKind.unauthenticated => Icons.lock_outline,
     UnavailableKind.signInRequired => Icons.lock_outline,
@@ -53,6 +53,10 @@ class UnavailableMediaPlaceholder extends StatelessWidget {
     UnavailableKind.networkError => Icons.cloud_off_outlined,
     UnavailableKind.volumeOffline => Icons.usb_off_outlined,
     UnavailableKind.stillFetching => Icons.hourglass_empty,
+    // A limited selection: the photo may be there, outside what the user
+    // allowed (spec 6.3), which is not the same as no access at all.
+    UnavailableKind.accessDenied when d.limitedAccess =>
+      Icons.photo_library_outlined,
     UnavailableKind.accessDenied => Icons.no_photography_outlined,
   };
 
@@ -78,6 +82,8 @@ class UnavailableMediaPlaceholder extends StatelessWidget {
         l10n.media_unavailablePlaceholder_volumeOffline,
       UnavailableKind.stillFetching =>
         l10n.media_unavailablePlaceholder_stillFetching,
+      UnavailableKind.accessDenied when d.limitedAccess =>
+        l10n.media_unavailablePlaceholder_limitedAccess,
       UnavailableKind.accessDenied =>
         l10n.media_unavailablePlaceholder_accessDenied,
     };

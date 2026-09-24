@@ -6,6 +6,7 @@ import 'package:submersion/features/media/data/services/media_health_report.dart
 import 'package:submersion/features/media/data/services/media_health_reporter.dart';
 import 'package:submersion/features/media/data/services/media_item_verifier.dart';
 import 'package:submersion/features/media/domain/value_objects/verify_result.dart';
+import 'package:submersion/features/media/presentation/providers/photo_access_providers.dart';
 import 'package:submersion/features/media_store/data/media_transfer_queue_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -231,6 +232,49 @@ void main() {
       );
 
       expect(find.text('Unknown'), findsWidgets);
+    });
+  });
+
+  // Under limited photo access a gallery photo may be outside what the user
+  // allowed, so the panel offers the two ways back (spec 6.3).
+  group('Limited photo access', () {
+    testWidgets('a gallery row offers full access and the selection', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        _item(),
+        extra: [galleryAccessLimitedProvider.overrideWith((ref) async => true)],
+      );
+
+      expect(find.text('Allow full access'), findsOneWidget);
+      expect(find.text('Choose photo again'), findsOneWidget);
+    });
+
+    testWidgets('full access offers neither', (tester) async {
+      await pump(
+        tester,
+        _item(),
+        extra: [
+          galleryAccessLimitedProvider.overrideWith((ref) async => false),
+        ],
+      );
+
+      expect(find.text('Allow full access'), findsNothing);
+    });
+
+    testWidgets('a file row offers neither', (tester) async {
+      await pump(
+        tester,
+        _item(
+          sourceType: MediaSourceType.localFile,
+          platformAssetId: null,
+          localPath: 'reef.jpg',
+        ),
+        extra: [galleryAccessLimitedProvider.overrideWith((ref) async => true)],
+      );
+
+      expect(find.text('Allow full access'), findsNothing);
     });
   });
 

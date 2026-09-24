@@ -21,6 +21,8 @@ import 'package:submersion/features/media/presentation/providers/media_health_pr
 import 'package:submersion/features/media/presentation/providers/media_provenance_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
+import 'package:submersion/features/media/presentation/providers/photo_access_providers.dart';
+import 'package:submersion/features/media/presentation/widgets/limited_access_actions.dart';
 import 'package:submersion/features/media/presentation/widgets/set_media_time_dialog.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -260,6 +262,17 @@ class _OriginSection extends ConsumerWidget {
       title: l10n.media_info_originSection,
       actions: [
         _CheckNowButton(item: item),
+        // Under limited photo access a gallery photo may be outside what the
+        // user allowed (spec 6.3). Offered whenever access is limited: the
+        // panel reads stored facts, not this device's live verdict.
+        if (origin.sourceType == MediaSourceType.platformGallery &&
+            ref.watch(galleryAccessLimitedProvider).value == true)
+          LimitedAccessActions(
+            onChanged: () {
+              ref.invalidate(galleryAccessLimitedProvider);
+              ref.invalidate(mediaByIdProvider(item.id));
+            },
+          ),
         // The repair engine's file candidate only makes sense for a row that
         // points at a path, so this is not offered for a missing gallery
         // asset, where picking a file would relink it to the wrong source

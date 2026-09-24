@@ -28125,6 +28125,17 @@ class AppLocalizationsNl extends AppLocalizations {
       'Geen toegang tot fotobibliotheek';
 
   @override
+  String get media_unavailablePlaceholder_limitedAccess =>
+      'Niet bij de toegestane foto\'s';
+
+  @override
+  String get media_limitedAccess_allowFullAccess =>
+      'Volledige toegang toestaan';
+
+  @override
+  String get media_limitedAccess_choosePhotoAgain => 'Foto opnieuw kiezen';
+
+  @override
   String get attrLabel_hose_length_m => 'Slanglengte';
 
   @override

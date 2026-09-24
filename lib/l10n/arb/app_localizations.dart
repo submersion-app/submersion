@@ -45324,6 +45324,24 @@ abstract class AppLocalizations {
   /// **'No photo library access'**
   String get media_unavailablePlaceholder_accessDenied;
 
+  /// No description provided for @media_unavailablePlaceholder_limitedAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Not in your allowed photos'**
+  String get media_unavailablePlaceholder_limitedAccess;
+
+  /// No description provided for @media_limitedAccess_allowFullAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Allow full access'**
+  String get media_limitedAccess_allowFullAccess;
+
+  /// No description provided for @media_limitedAccess_choosePhotoAgain.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose photo again'**
+  String get media_limitedAccess_choosePhotoAgain;
+
   /// No description provided for @attrLabel_hose_length_m.
   ///
   /// In en, this message translates to:
