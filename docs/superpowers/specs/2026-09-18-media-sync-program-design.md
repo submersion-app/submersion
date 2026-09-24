@@ -460,6 +460,18 @@ hides rows the device did link.
 - Reproduction plan: ask the #1625 reporter for a single-row health report;
   reproduce on the maintainer's Android phone with limited access, with a
   moved file, and across an OS re-index.
+- Decided 2026-09-23 while planning: the actions appear in the full-screen
+  viewer and the media info panel, not on grid tiles, which show a distinct
+  "Not in your allowed photos" placeholder; "Choose photo again" opens the
+  system's limited-selection sheet (`PhotoManager.presentLimited`) and the
+  row keeps its link; a lost content-URI grant on the linking device searches
+  the library by the metadata tiers (`AssetResolutionService.findInLibrary`,
+  which needs no stored asset id) and is `accessDenied` if nothing matches;
+  resolution reads permission through a new, non-prompting
+  `PhotoPickerService.currentPermission`, so the OS prompt comes only from
+  the picker and "Allow full access". A gallery query that throws is
+  `accessDenied` too, since `unavailable` read as `notFound` on the linking
+  device. The PR refs #1625 rather than closing it (section 10).
 
 ### 6.4 #425
 

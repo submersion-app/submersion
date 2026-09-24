@@ -166,3 +166,12 @@
 - [ ] Mutation-check each guard (limited exits, query-failure verdict, `currentPermission` in resolution, the grant-lost classification, the peer-row skip, `verify`'s mapping, the actions' `showAccessActions` gate, the info panel's source-type gate). Each mutation must compile and fail its named test.
 - [ ] `dart format .`, `flutter analyze`, `flutter test`, and `test/architecture` explicitly.
 - [ ] Commit `docs(spec): record slice 9's decisions in 6.3`. PR body: `Closes #2121`, `Refs #1625`, `Part of #2090`.
+
+## Execution notes (2026-09-23)
+
+- Task 1: adding `currentPermission` to `PhotoPickerService` meant a one-line override in ten hand-written test fakes that `implement` it (the two that extend `Fake` needed none); each returns what its `checkPermission` does, so their behaviour is unchanged. The mockito stubs in `asset_resolution_service_test.dart` moved to `currentPermission`.
+- Task 2: under limited access both "not found" exits return `accessDenied` flagged `limitedAccess` (the no-candidates exit and the one after tier 3), each with its own test. The thumbnail path in `PlatformGalleryResolver` keeps the re-derived result, not just its status.
+- Task 3: the Android branch of `LocalFileResolver` is now behind an injectable `readsContentUris`, so it runs in the Linux test shards instead of being `coverage:ignore`d.
+- Task 4: the info panel reuses `LimitedAccessActions` inside its actions `Wrap`. The panel's `galleryAccessLimitedProvider` swallows a platform failure as false, so the existing panel tests, which do not override it, are unchanged.
+- Mutation pass: 12 mutations, each compiling and failing its named test: the non-prompting read, the query-failure verdict, both limited exits (S7 and the tier-3 test), the resolver's pass-through, the grant-lost classification, the peer-row skip, serving a recovered photo, `verify`'s mapping, the viewer-only actions gate, the panel's gallery-only gate, and the limited placeholder message.
+
