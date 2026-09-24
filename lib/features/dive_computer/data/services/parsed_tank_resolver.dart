@@ -127,7 +127,9 @@ _ResolvedCylinders _resolveCylinders(
       return const _ResolvedCylinders([], {});
     }
     final tanks = <DownloadedTank>[];
-    final roles = _inferSensorlessRoles(gasMixes, parsed.diveMode);
+    final roles = _inferSensorlessRoles(gasMixes, [
+      for (var i = 0; i < gasMixes.length; i++) i,
+    ], parsed.diveMode);
     for (var i = 0; i < gasMixes.length; i++) {
       final g = gasMixes[i];
       gasIndexToTankIndex[i] = g.index;
@@ -195,18 +197,27 @@ _ResolvedCylinders _resolveCylinders(
 
   // Pressureless cylinder for any gas not on a transmitter; indices sit above
   // every real tank/sample index so they never capture per-sample pressure.
+  // These are sensorless cylinders, so they get the same roles a tankless dive
+  // gives its gases: the gas's own usage tag first, then on CCR the bailout
+  // ranking (issue #2318).
+  final unclaimed = [
+    for (var i = 0; i < gasMixes.length; i++)
+      if (!consumed.contains(i)) i,
+  ];
+  final unclaimedRoles = _inferSensorlessRoles(
+    gasMixes,
+    unclaimed,
+    parsed.diveMode,
+  );
   var nextIndex = _firstFreeIndex(parsed);
-  for (var i = 0; i < gasMixes.length; i++) {
-    if (consumed.contains(i)) {
-      continue;
-    }
+  for (final i in unclaimed) {
     gasIndexToTankIndex[i] = nextIndex;
     result.add(
       DownloadedTank(
         index: nextIndex++,
         o2Percent: gasMixes[i].o2Percent,
         hePercent: gasMixes[i].hePercent,
-        role: _inferRole(null, gasMixes[i].o2Percent, gasMixes[i].hePercent),
+        role: unclaimedRoles[i],
       ),
     );
   }
@@ -236,7 +247,9 @@ String _inferRole(int? usage, double o2Percent, double hePercent) {
   return TankRole.backGas.name;
 }
 
-/// Role for each of [gasMixes], in order, on a sensorless (tankless) dive.
+/// Role for each gas in [indices] (positions into [gasMixes]) that has no
+/// transmitter: every gas on a tankless dive, or the gases left unclaimed by
+/// the transmitters on one that has tank records. Keyed by gas index.
 ///
 /// A gas whose usage the computer reported directly on the gas mix itself
 /// (`dc_gasmix_t.usage`, independent of any tank/transmitter record) is
@@ -260,13 +273,14 @@ String _inferRole(int? usage, double o2Percent, double hePercent) {
 ///
 /// On any other recognized dive mode, a gas with no reported usage keeps
 /// [_inferRole]'s original single-threshold heuristic, unaffected by this.
-List<String> _inferSensorlessRoles(
+Map<int, String> _inferSensorlessRoles(
   List<pigeon.GasMix> gasMixes,
+  List<int> indices,
   String? diveMode,
 ) {
-  final roles = List<String?>.filled(gasMixes.length, null);
+  final roles = <int, String>{};
   final unranked = <int>[];
-  for (var i = 0; i < gasMixes.length; i++) {
+  for (final i in indices) {
     final g = gasMixes[i];
     switch (g.usage) {
       case 1: // DC_USAGE_OXYGEN
@@ -285,7 +299,7 @@ List<String> _inferSensorlessRoles(
       final g = gasMixes[i];
       roles[i] = _inferRole(null, g.o2Percent, g.hePercent);
     }
-    return [for (final role in roles) role!];
+    return roles;
   }
 
   if (unranked.isNotEmpty) {
@@ -304,14 +318,14 @@ List<String> _inferSensorlessRoles(
       }
     }
     for (final i in unranked) {
-      if (roles[i] != null) continue;
+      if (roles.containsKey(i)) continue;
       roles[i] = gasMixes[i].o2Percent >= 41.0
           ? TankRole.deco.name
           : TankRole.stage.name;
     }
   }
 
-  return [for (final role in roles) role!];
+  return roles;
 }
 
 /// Whether two gas percentages are the same value within floating-point
@@ -324,7 +338,7 @@ bool _nearlyEqualPercent(double a, double b) => (a - b).abs() < 1e-6;
 
 /// The gas-mix index (position in [gasMixes]) for [tank], preferring the gas
 /// actually breathed on it. Returns null when there are no gas mixes, or for
-/// a CCR oxygen supply tank that matched neither of the first two rules.
+/// a CCR oxygen supply tank the computer gave no gas mix of its own.
 int? _resolveTankGasIndex(
   pigeon.TankInfo tank,
   List<pigeon.ProfileSample> samples,
@@ -333,49 +347,87 @@ int? _resolveTankGasIndex(
   if (gasMixes.isEmpty) {
     return null;
   }
+  final linked = tank.gasMixIndex >= 0 && tank.gasMixIndex < gasMixes.length
+      ? tank.gasMixIndex
+      : null;
+  // A CCR supply cylinder is never breathed the way rule 1 below measures it:
+  // on the loop the active gas is always the diluent, so every transmitter
+  // reporting during the dive would be credited with it, and the oxygen
+  // cylinder came out as the diluent (issue #2318). Its usage tag decides.
+  switch (tank.usage) {
+    case 1: // DC_USAGE_OXYGEN
+      // The computer's own link, else a gas mix it tagged as oxygen (some
+      // computers report one without index-linking the tank, caught in review
+      // on #1972). Otherwise left gasless so the caller applies the 100% O2
+      // default (#726): Shearwater never links it and never tags a gas oxygen.
+      if (linked != null) return linked;
+      final oxygenGasIndex = gasMixes.indexWhere((g) => g.usage == 1);
+      return oxygenGasIndex >= 0 ? oxygenGasIndex : null;
+    case 2: // DC_USAGE_DILUENT
+      // The computer's own link, else the diluent actually breathed. Only
+      // when the computer tagged no gas as a diluent do the generic rules
+      // below apply.
+      final diluent = linked ?? _breathedDiluentIndex(samples, gasMixes);
+      if (diluent != null) return diluent;
+  }
   // 1. The gas breathed on this transmitter (per-sample DC_SAMPLE_GASMIX).
   final breathed = _dominantGasIndex(tank.index, samples, gasMixes.length);
   if (breathed != null) {
     return breathed;
   }
   // 2. The computer's own tank->gas link, when it set one (non-Shearwater).
-  if (tank.gasMixIndex >= 0 && tank.gasMixIndex < gasMixes.length) {
-    return tank.gasMixIndex;
-  }
-  // A CCR oxygen supply cylinder is never "breathed" in the OC sense rule 1
-  // tracks, and libdivecomputer's Shearwater parser never links it to a gas
-  // mix (rule 2), so falling through to rule 3 below would mislabel pure O2
-  // as whatever gas happens to be first (#726). Some other computers DO
-  // report an explicit usage-tagged gas mix for it without index-linking the
-  // tank to it, though -- match that by its usage tag first, so it's
-  // consumed here rather than synthesized a second time as an unclaimed gas
-  // mix (caught in review on #1972). Only when no such entry exists is it
-  // left gasless, so the caller can apply the correct 100% O2 default.
-  if (tank.usage == 1 /* DC_USAGE_OXYGEN */ ) {
-    final oxygenGasIndex = gasMixes.indexWhere((g) => g.usage == 1);
-    return oxygenGasIndex >= 0 ? oxygenGasIndex : null;
+  if (linked != null) {
+    return linked;
   }
   // 3. Last resort: the dive's primary (first) mix -- never a hardcoded air
   //    default, which would mislabel an EAN dive.
   return 0;
 }
 
-/// The most frequent gas-mix index among the pressure samples of [tankIndex],
-/// or null when none of that tank's samples carry a gas mix.
+/// The diluent-tagged gas mix (`usage == 2`) breathed in the most samples, or
+/// the first diluent-tagged one when none was breathed. Null when the computer
+/// tagged no gas mix as a diluent.
+///
+/// Shearwater reports every enabled diluent, not only the one used, and its
+/// gas list puts the open-circuit gases first, so neither "the first gas" nor
+/// "the first diluent" is safe on its own.
+int? _breathedDiluentIndex(
+  List<pigeon.ProfileSample> samples,
+  List<pigeon.GasMix> gasMixes,
+) {
+  bool isDiluent(int? i) =>
+      i != null && i >= 0 && i < gasMixes.length && gasMixes[i].usage == 2;
+  final breathed = _mostFrequent([
+    for (final s in samples)
+      if (isDiluent(s.gasMixIndex)) s.gasMixIndex!,
+  ]);
+  if (breathed != null) {
+    return breathed;
+  }
+  final first = gasMixes.indexWhere((g) => g.usage == 2);
+  return first >= 0 ? first : null;
+}
+
+/// The most frequent gas-mix index among the samples in which [tankIndex]
+/// reported a pressure, or null when none of them carries a gas mix.
 int? _dominantGasIndex(
   int tankIndex,
   List<pigeon.ProfileSample> samples,
   int gasCount,
-) {
+) => _mostFrequent([
+  for (final s in samples)
+    if (s.gasMixIndex case final gasIndex?
+        when gasIndex >= 0 &&
+            gasIndex < gasCount &&
+            _sampleTankReadings(s).containsKey(tankIndex))
+      gasIndex,
+]);
+
+/// The most frequent value in [values], or null when it is empty.
+int? _mostFrequent(List<int> values) {
   final counts = <int, int>{};
-  for (final s in samples) {
-    final gasIndex = s.gasMixIndex;
-    if (s.tankIndex == tankIndex &&
-        gasIndex != null &&
-        gasIndex >= 0 &&
-        gasIndex < gasCount) {
-      counts[gasIndex] = (counts[gasIndex] ?? 0) + 1;
-    }
+  for (final value in values) {
+    counts[value] = (counts[value] ?? 0) + 1;
   }
   if (counts.isEmpty) {
     return null;
@@ -406,20 +458,45 @@ int _firstFreeIndex(pigeon.ParsedDive parsed) {
     if (tankIndex != null && tankIndex > maxIndex) {
       maxIndex = tankIndex;
     }
+    final perTank = s.tankPressuresBar;
+    if (perTank != null && perTank.length - 1 > maxIndex) {
+      maxIndex = perTank.length - 1;
+    }
   }
   return maxIndex + 1;
 }
 
+/// Every transmitter reading [sample] carries, keyed by tank index.
+///
+/// libdivecomputer reports one pressure per air-integrated transmitter, so a
+/// sample can carry several, and `pressureBar`/`tankIndex` hold only the last
+/// of them (on a Shearwater CCR, always the oxygen transmitter). Reading the
+/// pair alone credited that one transmitter with everything (issue #2318).
+/// `tankPressuresBar` is the complete record; the pair remains the fallback
+/// for sources that never report more than one tank per sample, the same rule
+/// `groupPressuresByTank` applies to the stored pressure series.
+Map<int, double> _sampleTankReadings(pigeon.ProfileSample sample) {
+  final perTank = sample.tankPressuresBar;
+  if (perTank != null) {
+    return {
+      for (var index = 0; index < perTank.length; index++)
+        if (perTank[index] case final pressure?) index: pressure,
+    };
+  }
+  final pressure = sample.pressureBar;
+  final tankIndex = sample.tankIndex;
+  return pressure != null && tankIndex != null
+      ? {tankIndex: pressure}
+      : const {};
+}
+
 /// Reduce libdivecomputer samples to the depth-plus-pressure points the
-/// surfacing rule reads. A sample carries at most one transmitter reading, so
-/// each point holds either one entry or none.
+/// surfacing rule reads, with every transmitter the sample carries.
 List<SurfacingProfilePoint> _surfacingPoints(List<pigeon.ProfileSample> s) => [
   for (final sample in s)
     SurfacingProfilePoint(
       timeSeconds: sample.timeSeconds,
       depthMeters: sample.depthMeters,
-      tankPressuresBar: sample.pressureBar != null && sample.tankIndex != null
-          ? {sample.tankIndex!: sample.pressureBar!}
-          : const {},
+      tankPressuresBar: _sampleTankReadings(sample),
     ),
 ];
