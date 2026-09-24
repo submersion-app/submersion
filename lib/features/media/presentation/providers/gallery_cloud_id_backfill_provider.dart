@@ -8,6 +8,7 @@ import 'package:submersion/features/media/data/services/gallery_cloud_id_backfil
 import 'package:submersion/features/media/data/services/photo_picker_service_mobile.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 
 /// Runs [GalleryCloudIdBackfill] after a successful sync, once the origin
 /// backfill is done, at most once a day. One preference read otherwise.
@@ -30,6 +31,7 @@ final galleryCloudIdBackfillProvider = Provider<Future<void> Function()>((ref) {
             : photos.checkPermission,
         deviceId: () => SyncRepository().getDeviceId(),
         prefs: prefs,
+        assetCache: ref.read(localAssetCacheRepositoryProvider),
       ).run();
     } on Object catch (e, stackTrace) {
       LoggerService.forClass(GalleryCloudIdBackfill).warning(

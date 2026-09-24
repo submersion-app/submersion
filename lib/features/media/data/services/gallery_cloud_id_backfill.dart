@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/models/log_entry.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
 import 'package:submersion/features/media/data/services/gallery_origin_backfill.dart';
@@ -44,13 +45,15 @@ class GalleryCloudIdBackfill {
     required Future<String> Function() deviceId,
     required SharedPreferences prefs,
     DateTime Function()? now,
+    LocalAssetCacheRepository? assetCache,
   }) : _mediaRepository = mediaRepository,
        _cloudIdentifiers = cloudIdentifiers,
        _photos = photos,
        _permissionStatus = permissionStatus,
        _deviceId = deviceId,
        _prefs = prefs,
-       _now = now ?? DateTime.now;
+       _now = now ?? DateTime.now,
+       _assetCache = assetCache;
 
   /// When the last complete pass ran, epoch milliseconds.
   static const String lastRunKey =
@@ -78,6 +81,11 @@ class GalleryCloudIdBackfill {
   final Future<String> Function() _deviceId;
   final SharedPreferences _prefs;
   final DateTime Function() _now;
+
+  /// This device's resolution cache. A stamp is something new to find the
+  /// photo by, and the sync hint that lifts a search's backoff covers only
+  /// a peer's writes, so the pass lifts it for the rows it stamps itself.
+  final LocalAssetCacheRepository? _assetCache;
   final _log = LoggerService.forClass(
     GalleryCloudIdBackfill,
     category: LogCategory.media,
@@ -124,7 +132,9 @@ class GalleryCloudIdBackfill {
               cloudAssetId: cloudId,
             ),
       ];
-      final stamped = await _mediaRepository.stampCloudAssetIds(found);
+      final stampedIds = await _mediaRepository.stampCloudAssetIds(found);
+      await _assetCache?.clearUnresolved(stampedIds);
+      final stamped = stampedIds.length;
       // Complete once nothing is left that this pass did not ask about. Rows
       // whose asset has no cloud id stay candidates for tomorrow's pass, but
       // they were asked; a row linked or relinked during the lookup was not,

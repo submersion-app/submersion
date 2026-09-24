@@ -3,7 +3,10 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:drift/native.dart' show NativeDatabase;
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/database/local_cache_database.dart';
+import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/gallery_cloud_id_backfill.dart';
 import 'package:submersion/features/media/data/services/gallery_origin_backfill.dart';
@@ -23,6 +26,8 @@ void main() {
   late FakePhotoPickerService library;
   late SharedPreferences prefs;
   late DateTime clock;
+  late LocalCacheDatabase cacheDb;
+  late LocalAssetCacheRepository assetCache;
   final bytes = Uint8List.fromList(List<int>.generate(64, (i) => i));
   final taken = DateTime(2026, 7, 1);
 
@@ -34,7 +39,10 @@ void main() {
     prefs = await SharedPreferences.getInstance();
     library = FakePhotoPickerService();
     clock = DateTime(2026, 9, 23, 12);
+    cacheDb = LocalCacheDatabase(NativeDatabase.memory());
+    assetCache = LocalAssetCacheRepository(database: cacheDb);
   });
+  tearDown(() => cacheDb.close());
 
   /// Whether today's pass is done, so the next sync skips it.
   bool ranToday() => !GalleryCloudIdBackfill.isDue(prefs, clock);
@@ -79,6 +87,7 @@ void main() {
     deviceId: () => SyncRepository().getDeviceId(),
     prefs: prefs,
     now: () => clock,
+    assetCache: assetCache,
   );
 
   FakeGalleryAsset asset(String id, {String? cloudId}) =>
@@ -105,6 +114,34 @@ void main() {
 
   // Only the linking device's asset id names an asset in its library; a
   // peer's id could name a different photo here.
+  // This device may have searched for the photo and backed off (a
+  // transient failure to load its own asset). The stamp is new to find it
+  // by, and a sync hint only covers a peer's writes, so the pass lifts its
+  // own backoff for the rows it stamped.
+  test('a stamp lifts this device\'s backoff for that row', () async {
+    library
+      ..add(asset('a1', cloudId: 'C-1'))
+      ..add(asset('a2'));
+    final stamped = await link('a1');
+    final unstamped = await link('a2');
+    for (final id in [stamped, unstamped]) {
+      await assetCache.cacheResolution(
+        mediaId: id,
+        localAssetId: null,
+        method: 'unresolved',
+      );
+    }
+
+    await backfill().run();
+
+    expect(await assetCache.getCacheEntry(stamped), isNull);
+    expect(
+      (await assetCache.getCacheEntry(unstamped))!.resolutionMethod,
+      'unresolved',
+      reason: 'nothing new to find it by',
+    );
+  });
+
   test('never touches a peer\'s rows', () async {
     library.add(asset('a1', cloudId: 'C-1'));
     final id = await link('a1');

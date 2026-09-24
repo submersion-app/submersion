@@ -530,6 +530,7 @@ class HarnessDevice {
       permissionStatus: () async => gallery.permission,
       deviceId: () async => deviceId,
       prefs: prefs,
+      assetCache: assetCache,
     ).run();
   }
 

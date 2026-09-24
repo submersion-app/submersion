@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repair_log_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
@@ -75,6 +76,7 @@ class MediaRepairService {
     required this.writeBookmark,
     this.log,
     this.cloudIdentifiers,
+    this.assetCache,
   });
 
   final MediaRepository repository;
@@ -91,6 +93,12 @@ class MediaRepairService {
   /// Looks up a relinked gallery asset's iCloud identifier (spec 6.2);
   /// null leaves every gallery relink's cloud id empty.
   final CloudIdentifierSource? cloudIdentifiers;
+
+  /// This device's resolution cache. It trusts a found mapping without
+  /// re-proving it, so a relinked row's entry, which names the photo the
+  /// row used to point at, is dropped after the relink commits. Peers drop
+  /// theirs through the sync hook when the relink reaches them.
+  final LocalAssetCacheRepository? assetCache;
 
   static const _log = LoggerService('MediaRepairService');
   static const _uuid = Uuid();
@@ -254,6 +262,13 @@ class MediaRepairService {
 
     // Stage B: one transaction for every surviving write.
     await repository.applyRepairWrites(await _withCloudIds(writes));
+    try {
+      await assetCache?.clearEntries([for (final w in writes) w.mediaId]);
+    } on Object catch (e) {
+      // The relink has committed; a stale entry costs one failed fetch,
+      // after which the resolver re-resolves the row.
+      _log.warning('Could not drop cached mappings for relinked rows: $e');
+    }
 
     // Stage C: store side effects.
     for (final stamp in editedStamps) {

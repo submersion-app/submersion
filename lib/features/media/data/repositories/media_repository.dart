@@ -1182,19 +1182,19 @@ class MediaRepository {
 
   /// Records each of [found]'s cloud id on its row, if the row is still
   /// exactly what was looked up: a gallery row, under the same asset id,
-  /// with no cloud id yet. Marks each row it stamps pending. Returns how
-  /// many it stamped.
+  /// with no cloud id yet. Marks each row it stamps pending. Returns the
+  /// ids it stamped.
   ///
   /// The cloud id belongs to no fact group, so this bumps the row clock and
   /// republishes the whole row, which is why the backfill runs only right
   /// after a sync (as [stampOriginDevice] does). The guards keep a cloud id
   /// a sync delivered meanwhile, and skip a row relinked meanwhile.
-  Future<int> stampCloudAssetIds(
+  Future<List<String>> stampCloudAssetIds(
     List<({String id, String platformAssetId, String cloudAssetId})> found,
   ) async {
-    if (found.isEmpty) return 0;
+    if (found.isEmpty) return const [];
     final now = DateTime.now().millisecondsSinceEpoch;
-    var stamped = 0;
+    final stamped = <String>[];
     await _db.transaction(() async {
       for (final row in found) {
         final written =
@@ -1214,7 +1214,7 @@ class MediaRepository {
                   ),
                 );
         if (written == 0) continue;
-        stamped++;
+        stamped.add(row.id);
         await _syncRepository.markRecordPending(
           entityType: 'media',
           recordId: row.id,
@@ -1222,7 +1222,7 @@ class MediaRepository {
         );
       }
     });
-    if (stamped > 0) SyncEventBus.notifyLocalChange();
+    if (stamped.isNotEmpty) SyncEventBus.notifyLocalChange();
     return stamped;
   }
 

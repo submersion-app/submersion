@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/services/media_store/store_keys.dart';
+import 'package:submersion/features/media/data/repositories/local_asset_cache_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/data/services/cloud_identifier_source.dart';
 import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
@@ -42,12 +43,14 @@ void main() {
     Future<Uint8List> Function(String path)? createBookmark,
     Future<void> Function(String ref, Uint8List blob)? writeBookmark,
     CloudIdentifierSource? cloudIdentifiers,
+    LocalAssetCacheRepository? assetCache,
   }) => MediaRepairService(
     repository: repo,
     queue: queue,
     createBookmark: createBookmark,
     writeBookmark: writeBookmark,
     cloudIdentifiers: cloudIdentifiers,
+    assetCache: assetCache,
   );
 
   Future<MediaItem> seed(
@@ -266,6 +269,32 @@ void main() {
 
     expect(report.relinked, 1, reason: 'the relink itself still lands');
     expect((await repo.getMediaById('a'))!.cloudAssetId, '');
+  });
+
+  // The resolution cache trusts a found mapping without re-proving it, so a
+  // mapping for the photo the row used to name would keep showing it here.
+  test('a relink drops this device\'s cached mapping for the row', () async {
+    await seed('a');
+    await seed('b');
+    final assetCache = LocalAssetCacheRepository(database: cacheDb);
+    for (final id in ['a', 'b']) {
+      await assetCache.cacheResolution(
+        mediaId: id,
+        localAssetId: 'old-$id',
+        method: 'original_id',
+      );
+    }
+
+    await service(
+      assetCache: assetCache,
+    ).apply([galleryProposal((await repo.getMediaById('a'))!, 'asset-9')]);
+
+    expect(await assetCache.getCacheEntry('a'), isNull);
+    expect(
+      (await assetCache.getCacheEntry('b'))!.localAssetId,
+      'old-b',
+      reason: 'a row the pass did not relink keeps its mapping',
+    );
   });
 
   test('a file relink leaves the cloud id alone', () async {

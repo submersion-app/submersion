@@ -16,6 +16,7 @@ import 'package:submersion/features/media/presentation/providers/media_library_p
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_resolver_providers.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/media/presentation/providers/resolved_asset_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 /// Which places the wizard searches.
@@ -193,6 +194,7 @@ final mediaRepairServiceProvider = Provider<MediaRepairService>((ref) {
     writeBookmark: storage.write,
     log: ref.watch(mediaRepairLogRepositoryProvider),
     cloudIdentifiers: const PhotoManagerCloudIdentifierSource(),
+    assetCache: ref.watch(localAssetCacheRepositoryProvider),
   );
 });
 

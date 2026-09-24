@@ -112,11 +112,17 @@ class LocalAssetCacheRepository {
   /// relinked row drops whatever this device cached for its old photo.
   Future<void> applyResolutionHints(MediaResolutionHints hints) async {
     await clearUnresolved(hints.retry);
-    final remap = hints.remap.toList();
-    if (remap.isEmpty) return;
+    await clearEntries(hints.remap);
+  }
+
+  /// Drops the cached entries of [mediaIds], found or not: for rows that now
+  /// name another photo (a relink), whose mapping is about the old one.
+  Future<void> clearEntries(Iterable<String> mediaIds) async {
+    final ids = mediaIds.toList();
+    if (ids.isEmpty) return;
     await (_db.delete(
       _db.localAssetCache,
-    )..where((t) => t.mediaId.isIn(remap))).go();
+    )..where((t) => t.mediaId.isIn(ids))).go();
   }
 
   /// Check if an unresolved entry has exceeded its backoff period.
