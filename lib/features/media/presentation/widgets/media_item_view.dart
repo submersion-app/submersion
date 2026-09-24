@@ -301,12 +301,16 @@ class _MediaItemViewState extends ConsumerState<MediaItemView> {
     // live in MediaTileResolver (design spec section 10), so tests and
     // diagnostics can ask for the same verdict without a widget tree. The
     // runtime lookup is deferred: rows without any confirmed upload never
-    // build it (no keychain read, no store construction).
+    // build it (no keychain read, no store construction). A foreign row
+    // with no stamps is probed through a resolver on the store adapter
+    // alone, so a grid render never builds the runtime, whose construction
+    // drains the queue and may run a verify sweep (spec 7.2).
     final tile =
         await MediaTileResolver(
           registry: registry,
           remote: () async =>
               (await ref.read(mediaStoreRuntimeProvider.future))?.resolver,
+          probeRemote: () => ref.read(mediaStoreProbeResolverProvider.future),
         ).resolve(
           widget.item,
           thumbnail: widget.thumbnail,

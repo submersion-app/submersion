@@ -262,6 +262,34 @@ void main() {
       expect(remote.calls, 0, reason: 'the confirmed path is not taken');
     });
 
+    // In production the confirmed path's lookup builds the store runtime,
+    // which drains the queue and may run a verify sweep; a probe from a grid
+    // render must write nothing, so it has a side-effect-free lookup.
+    test('the probe asks its own lookup, never the runtime', () async {
+      native.data = elsewhere;
+      remote.probeAnswer = served;
+      var runtimeBuilt = false;
+      final probing = MediaTileResolver(
+        registry: MediaSourceResolverRegistry({
+          MediaSourceType.localFile: native,
+        }),
+        remote: () async {
+          runtimeBuilt = true;
+          return remote;
+        },
+        probeRemote: () async => remote,
+      );
+
+      final r = await probing.resolve(
+        _item(contentHash: 'abc'),
+        thumbnail: true,
+        thumbnailTarget: target,
+      );
+
+      expect(r.data, served);
+      expect(runtimeBuilt, isFalse);
+    });
+
     // notFound is the linking device's own verdict that the bytes are gone.
     test('a row this device linked and lost is not probed', () async {
       native.data = const UnavailableData(kind: UnavailableKind.notFound);

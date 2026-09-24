@@ -411,6 +411,29 @@ final FutureProvider<MediaObjectStore?> attachedMediaObjectStoreProvider =
       return buildMediaObjectStore(legacyType, s3Config: s3Config);
     });
 
+/// A store resolver for the store gate probe (media sync program spec
+/// 7.2), built on the attached adapter alone: no worker, no drain, no sweep,
+/// so a probe a grid render makes writes nothing. The runtime's own
+/// resolver is not used for it because building the runtime kicks a queue
+/// drain and may run a verify sweep. Null when nothing is attached. Kept for
+/// the container's life, so its probe answers last the session.
+// no-tick: builds a resolver SERVICE from the store adapter, not a cached
+// query result. Attach changes invalidate the adapter, which rebuilds this.
+final FutureProvider<MediaStoreResolver?> mediaStoreProbeResolverProvider =
+    FutureProvider<MediaStoreResolver?>((ref) async {
+      final store = await ref.watch(attachedMediaObjectStoreProvider.future);
+      if (store == null) return null;
+      final resolver = MediaStoreResolver(
+        store: store,
+        cache: MediaCacheStore(
+          database: LocalCacheDatabaseService.instance.database,
+          root: await mediaCacheRoot(),
+        ),
+      );
+      ref.onDispose(resolver.dispose);
+      return resolver;
+    });
+
 /// The configured media store runtime, or null when this device has no
 /// store attached. Lazy: the first watcher (a media view or the settings
 /// page) triggers construction and a queue drain. Invalidate after connect

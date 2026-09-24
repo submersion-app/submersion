@@ -67,11 +67,20 @@ class MediaTileResolver {
   MediaTileResolver({
     required MediaSourceResolverRegistry registry,
     required RemoteResolverLookup remote,
+    RemoteResolverLookup? probeRemote,
   }) : _registry = registry,
-       _remote = remote;
+       _remote = remote,
+       _probeRemote = probeRemote ?? remote;
 
   final MediaSourceResolverRegistry _registry;
   final RemoteResolverLookup _remote;
+
+  /// The lookup the store gate probe uses. Separate from [_remote] because
+  /// in production that one builds the store runtime, which drains the
+  /// transfer queue and may run a verify sweep: a probe answers a grid
+  /// render and must write nothing (spec 7.2), so production passes a
+  /// resolver built on the store adapter alone. Defaults to [_remote].
+  final RemoteResolverLookup _probeRemote;
 
   Future<TileResolution> resolve(
     MediaItem item, {
@@ -151,7 +160,7 @@ class MediaTileResolver {
   }) async {
     final nativeFailure = native.kind;
     try {
-      final remote = await _remote();
+      final remote = await _probeRemote();
       if (remote == null) {
         // The fallback was attempted, with no store here to answer: the same
         // verdict the confirmed path gives, per storeFallbackUsed's contract.
