@@ -205,6 +205,32 @@ void main() {
     expect(served, isA<FileData>());
   });
 
+  // A rendition can be overwritten in place (a re-upload at another level).
+  // With the stamp lost, the store's own modification time is the only
+  // version there is, and a copy cached before it must not be served.
+  test('a probed rendition does not serve an older cached copy', () async {
+    final renditionKey = StoreKeys.renditionKey(hash, ext: 'jpg');
+    final staleBytes = List<int>.filled(64, 7);
+    final staging = File(p.join(root.path, 'old.jpg'))
+      ..writeAsBytesSync(staleBytes);
+    await MediaCacheStore(database: cacheDb, root: root).put(
+      hash,
+      MediaCacheKind.rendition,
+      staging,
+      sourceVersion: DateTime(2026, 7, 1).millisecondsSinceEpoch,
+      extension: 'jpg',
+    );
+    store.objects[renditionKey] = bytes;
+    store.modified[renditionKey] = DateTime(2026, 8, 1);
+
+    final served = await resolver.tryResolveProbed(
+      unstamped(),
+      thumbnail: false,
+    );
+
+    expect((served! as FileData).file.readAsBytesSync(), bytes);
+  });
+
   // The original's key carries its extension, and one content hash can be
   // stored under more than one: the answer for one key says nothing about
   // another.
@@ -276,6 +302,33 @@ void main() {
 
     expect(() => build(maxConcurrentProbes: 0), throwsA(isA<AssertionError>()));
     expect(() => build(probeBudget: Duration.zero), throwsAssertionError);
+  });
+
+  // A timeout stops the waiting, not the request. The slot stays taken
+  // until the stalled HEAD itself settles, so a dead endpoint never has
+  // more than the cap in flight; a probe that cannot get a slot within the
+  // budget gives up rather than holding its tile.
+  test('a timed-out HEAD keeps its slot until it settles', () async {
+    final single = MediaStoreResolver(
+      store: store,
+      cache: MediaCacheStore(database: cacheDb, root: root),
+      maxConcurrentProbes: 1,
+      probeBudget: const Duration(milliseconds: 20),
+    );
+    addTearDown(single.dispose);
+    store.hold = Completer<void>();
+    MediaItem other(int i) =>
+        unstamped(contentHash: sha256.convert([i]).toString());
+
+    expect(await single.tryResolveProbed(other(1), thumbnail: false), isNull);
+    expect(await single.tryResolveProbed(other(2), thumbnail: false), isNull);
+    expect(store.heads, hasLength(1), reason: 'the stalled HEAD holds it');
+
+    store.hold!.complete();
+    store.hold = null;
+    await pumpEventQueue();
+    await single.tryResolveProbed(other(2), thumbnail: false);
+    expect(store.heads, hasLength(3), reason: 'freed once it settled');
   });
 
   // A store runtime torn down mid-scroll must not leave tiles waiting for a

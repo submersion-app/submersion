@@ -43,14 +43,14 @@ class MediaStoreResolver {
   );
 
   /// Probe answers per store key for the life of this resolver (one store
-  /// runtime): true found, false absent. Keyed by the full key, not the
-  /// hash: an original's key carries its extension, and one content hash
-  /// can be stored under more than one. A HEAD that failed or ran out of
-  /// time is not recorded, since it says nothing about the object.
-  final Map<String, bool> _probes = {};
+  /// runtime). Keyed by the full key, not the hash: an original's key
+  /// carries its extension, and one content hash can be stored under more
+  /// than one. A HEAD that failed or ran out of time is not recorded, since
+  /// it says nothing about the object.
+  final Map<String, _ProbeAnswer> _probes = {};
 
   /// Probes in flight, so tiles asking about the same object share one HEAD.
-  final Map<String, Future<bool?>> _probing = {};
+  final Map<String, Future<_ProbeAnswer?>> _probing = {};
 
   /// How long one probe HEAD may take before the tile gives up on it, and
   /// how many run at once. Probes bypass [_gate] (it carries fetch results,
@@ -70,9 +70,12 @@ class MediaStoreResolver {
   /// per row and tier for the life of this resolver. The tiers are tried in
   /// [tryResolveRemote]'s order: the thumb (for a thumbnail), the original,
   /// then the compressed rendition; a video thumbnail never falls back past
-  /// its thumb. Serving goes through [tryResolveRemote] with the found tiers
-  /// treated as stamped. Read-only: nothing is written back, since the
-  /// stamps are the uploading device's facts (decided 2026-09-23).
+  /// its thumb. Serving goes through [tryResolveRemote] with each found tier
+  /// treated as stamped at the store's own modification time, the only
+  /// version a probe has: the rendition's cache checks freshness against
+  /// it, so a copy cached before the object was overwritten is not served.
+  /// Read-only: nothing is written back, since the stamps are the uploading
+  /// device's facts (decided 2026-09-23).
   Future<MediaSourceData?> tryResolveProbed(
     MediaItem item, {
     required bool thumbnail,
@@ -80,65 +83,83 @@ class MediaStoreResolver {
     final hash = item.contentHash;
     if (hash == null) return null;
     final isVideo = item.mediaType == MediaType.video;
-    final thumbFound = thumbnail && await _probe(StoreKeys.thumbKey(hash));
+    final thumb = thumbnail ? await _probe(StoreKeys.thumbKey(hash)) : null;
     // A video's original and rendition are both video: a thumbnail cannot
     // degrade to them (see tryResolveRemote), so they are not worth a HEAD.
-    final pastThumb = !thumbnail || (!thumbFound && !isVideo);
-    final originalFound =
-        pastThumb &&
-        await _probe(
-          StoreKeys.objectKey(
-            hash,
-            extension: StoreKeys.extensionFor(item.originalFilename),
-          ),
-        );
-    final renditionFound =
-        pastThumb &&
-        !originalFound &&
-        await _probe(
-          StoreKeys.renditionKey(hash, ext: isVideo ? 'mp4' : 'jpg'),
-        );
-    if (!thumbFound && !originalFound && !renditionFound) return null;
-    final probed = DateTime.fromMillisecondsSinceEpoch(0);
+    final pastThumb = !thumbnail || (thumb == null && !isVideo);
+    final original = pastThumb
+        ? await _probe(
+            StoreKeys.objectKey(
+              hash,
+              extension: StoreKeys.extensionFor(item.originalFilename),
+            ),
+          )
+        : null;
+    final rendition = pastThumb && original == null
+        ? await _probe(
+            StoreKeys.renditionKey(hash, ext: isVideo ? 'mp4' : 'jpg'),
+          )
+        : null;
+    if (thumb == null && original == null && rendition == null) return null;
     return tryResolveRemote(
       item.copyWith(
-        remoteThumbUploadedAt: thumbFound ? probed : null,
-        remoteUploadedAt: originalFound ? probed : null,
-        remoteCompressedUploadedAt: renditionFound ? probed : null,
+        remoteThumbUploadedAt: thumb,
+        remoteUploadedAt: original,
+        remoteCompressedUploadedAt: rendition,
       ),
       thumbnail: thumbnail,
     );
   }
 
-  Future<bool> _probe(String key) async {
+  /// When the store last modified [key], or null when it does not hold it
+  /// or could not say.
+  Future<DateTime?> _probe(String key) async {
     final known = _probes[key];
-    if (known != null) return known;
+    if (known != null) return known.modified;
     // A block body on purpose: remove() returns the entry, which is this very
     // future, and whenComplete waits on a future its callback returns, so
     // `=> _probing.remove(...)` would wait on itself forever.
-    final found = await (_probing[key] ??= _head(key).whenComplete(() {
+    final answer = await (_probing[key] ??= _head(key).whenComplete(() {
       _probing.remove(key);
     }));
-    if (found == null) return false;
-    _probes[key] = found;
-    return found;
+    if (answer == null) return null;
+    _probes[key] = answer;
+    return answer.modified;
   }
 
-  /// Whether the store holds [key], or null when it could not say (the HEAD
-  /// failed, ran out of its budget, or this resolver was disposed).
-  Future<bool?> _head(String key) async {
+  /// The store's answer for [key], or null when it could not say (the HEAD
+  /// failed, ran out of its budget, found no free slot within it, or this
+  /// resolver was disposed).
+  Future<_ProbeAnswer?> _head(String key) async {
     if (!await _acquireProbeSlot()) return null;
+    final Future<StoreObjectInfo?> head;
     try {
-      return await _store.head(key).timeout(_probeBudget) != null;
+      head = _store.head(key);
+    } on Object catch (e) {
+      _releaseProbeSlot();
+      _log.debug('Store probe for $key failed; not remembered', error: e);
+      return null;
+    }
+    // The slot follows the request, not the wait for it. A timeout stops
+    // the waiting but cannot cancel the HEAD, so a stalled one keeps its
+    // slot until it settles, and a dead endpoint never has more than the
+    // cap in flight however often tiles retry.
+    unawaited(
+      head.then<void>((_) {}, onError: (Object _) {}).whenComplete(() {
+        _releaseProbeSlot();
+      }),
+    );
+    try {
+      final info = await head.timeout(_probeBudget);
+      return (modified: info?.lastModified);
     } on Object catch (e) {
       _log.debug('Store probe for $key failed; not remembered', error: e);
       return null;
-    } finally {
-      _releaseProbeSlot();
     }
   }
 
-  /// False once disposed: a probe waiting for a slot is let go, not run.
+  /// False when no slot came free within the budget, or once disposed: a
+  /// probe waiting for a slot gives up rather than holding its tile.
   Future<bool> _acquireProbeSlot() async {
     if (_disposed) return false;
     if (_probesRunning < _maxConcurrentProbes) {
@@ -147,7 +168,14 @@ class MediaStoreResolver {
     }
     final waiter = Completer<void>();
     _probeWaiters.add(waiter);
-    await waiter.future;
+    try {
+      await waiter.future.timeout(_probeBudget);
+    } on TimeoutException {
+      // A slot handed over just as the wait ran out is ours to give back.
+      // After dispose the waiter was dropped without one.
+      if (!_disposed && !_probeWaiters.remove(waiter)) _releaseProbeSlot();
+      return false;
+    }
     if (_disposed) return false;
     return true;
   }
@@ -406,3 +434,7 @@ class MediaStoreResolver {
     _gate.dispose();
   }
 }
+
+/// One probe's answer: when the store last modified the object, or null
+/// [modified] when the store does not hold it.
+typedef _ProbeAnswer = ({DateTime? modified});
