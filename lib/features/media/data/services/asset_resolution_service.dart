@@ -124,9 +124,7 @@ class AssetResolutionService {
     final cacheEntry = await _cacheRepository.getCacheEntry(item.id);
     if (cacheEntry != null && cacheEntry.localAssetId == null) {
       final expired = await _cacheRepository.isExpired(item.id);
-      if (!expired) {
-        return const ResolutionResult(status: ResolutionStatus.unavailable);
-      }
+      if (!expired) return _backedOff(item);
     }
 
     // Deduplicate concurrent resolution requests for the same media
@@ -229,7 +227,7 @@ class AssetResolutionService {
     if (cacheEntry != null &&
         cacheEntry.localAssetId == null &&
         !await _cacheRepository.isExpired(item.id)) {
-      return const ResolutionResult(status: ResolutionStatus.unavailable);
+      return _backedOff(item);
     }
     final pending = _pendingResolutions[item.id];
     if (pending != null) return pending;
@@ -240,6 +238,37 @@ class AssetResolutionService {
     } finally {
       _pendingResolutions.remove(item.id);
     }
+  }
+
+  /// The answer for a row whose earlier search gave up and is backing off.
+  /// That miss is evidence the photo is gone only if the search saw the
+  /// whole library, and it may not have: every build before this one cached
+  /// a miss under limited access, and the user may have narrowed access
+  /// since (spec 6.3). So it stands only under full access, read without
+  /// prompting; anything less is inconclusive. Only backed-off rows pay for
+  /// the read.
+  Future<ResolutionResult> _backedOff(MediaItem item) async {
+    final PhotoPermissionStatus permission;
+    try {
+      permission = await _photoPickerService.currentPermission();
+    } on Object catch (e, stackTrace) {
+      _log.error(
+        'Permission check failed for backed-off media ${item.id}',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      return const ResolutionResult(status: ResolutionStatus.accessDenied);
+    }
+    return switch (permission) {
+      PhotoPermissionStatus.authorized => const ResolutionResult(
+        status: ResolutionStatus.unavailable,
+      ),
+      PhotoPermissionStatus.limited => const ResolutionResult(
+        status: ResolutionStatus.accessDenied,
+        limitedAccess: true,
+      ),
+      _ => const ResolutionResult(status: ResolutionStatus.accessDenied),
+    };
   }
 
   /// The permission gate and the metadata tiers: everything a search does

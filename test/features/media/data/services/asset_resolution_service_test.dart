@@ -147,6 +147,10 @@ void main() {
           ),
         );
         when(mockCache.isExpired('media-1')).thenAnswer((_) async => false);
+        // A backoff is evidence of absence only under full access.
+        when(
+          mockPicker.currentPermission(),
+        ).thenAnswer((_) async => PhotoPermissionStatus.authorized);
 
         final result = await service.resolveAssetId(createTestItem());
 

@@ -204,6 +204,54 @@ void main() {
     expect(r.limitedAccess, isTrue);
   });
 
+  /// A search that gave up on the row earlier and is still backing off.
+  Future<void> backedOff(String mediaId) => cache.cacheResolution(
+    mediaId: mediaId,
+    localAssetId: null,
+    method: 'unresolved',
+  );
+
+  // A miss cached before limited access was honoured (every older build
+  // cached one under limited access), or before the user narrowed access,
+  // may not have seen the photo: it is evidence only under full access.
+  test('a backed-off row under limited access is inconclusive', () async {
+    await backedOff('m1');
+    library.permission = PhotoPermissionStatus.limited;
+
+    final r = await service.resolveAssetId(row());
+
+    expect(r.status, ResolutionStatus.accessDenied);
+    expect(r.limitedAccess, isTrue);
+  });
+
+  test('a backed-off row under full access is still unavailable', () async {
+    await backedOff('m1');
+
+    final r = await service.resolveAssetId(row());
+
+    expect(r.status, ResolutionStatus.unavailable);
+  });
+
+  test('a backed-off row with access denied is inconclusive', () async {
+    await backedOff('m1');
+    library.permission = PhotoPermissionStatus.denied;
+
+    final r = await service.resolveAssetId(row());
+
+    expect(r.status, ResolutionStatus.accessDenied);
+    expect(r.limitedAccess, isFalse);
+  });
+
+  test('a backed-off file row under limited access is inconclusive', () async {
+    await backedOff('f1');
+    library.permission = PhotoPermissionStatus.limited;
+
+    final r = await service.findInLibrary(fileRow());
+
+    expect(r.status, ResolutionStatus.accessDenied);
+    expect(r.limitedAccess, isTrue);
+  });
+
   test('a permission read that fails is inconclusive', () async {
     final failing = _FailingPermission();
     final r = await AssetResolutionService(
