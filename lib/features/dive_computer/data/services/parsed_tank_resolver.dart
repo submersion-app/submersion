@@ -267,7 +267,8 @@ String _inferRole(int? usage, double o2Percent, double hePercent) {
 /// For a dive recognized as CCR, the gases left with no reported usage are
 /// the open-circuit bailout candidates and are ranked against each other
 /// instead of scored in isolation:
-/// 1. Bottom gas: the lowest O2 percentage among them becomes
+/// 1. Bottom gas: the lowest O2 percentage among every gas of the dive with no
+///    reported usage (one on a transmitter included) becomes
 ///    [TankRole.bailout]; a tie is broken by the higher helium percentage,
 ///    and a further tie gives Bailout to every still-tied gas. A gas that
 ///    only loses the helium tie-break gets no automatic Bailout role and
@@ -287,6 +288,7 @@ Map<int, String> _inferSensorlessRoles(
   final unranked = <int>[];
   for (final i in indices) {
     final g = gasMixes[i];
+    // Keep in step with _hasReportedUsage.
     switch (g.usage) {
       case 1: // DC_USAGE_OXYGEN
         roles[i] = TankRole.oxygenSupply.name;
@@ -308,17 +310,26 @@ Map<int, String> _inferSensorlessRoles(
   }
 
   if (unranked.isNotEmpty) {
-    final lowestO2 = unranked
+    // Ranked against every gas of the dive with no reported usage, including
+    // one a transmitter claimed: a bailout cylinder on its own transmitter is
+    // still the bottom gas, and leaving it out would promote the leanest
+    // remaining gas (say a 50% deco gas) to Bailout (review on #2318).
+    final candidates = [
+      for (var i = 0; i < gasMixes.length; i++)
+        if (!_hasReportedUsage(gasMixes[i])) i,
+    ];
+    final lowestO2 = candidates
         .map((i) => gasMixes[i].o2Percent)
         .reduce((a, b) => a < b ? a : b);
-    final atLowestO2 = unranked.where(
+    final atLowestO2 = candidates.where(
       (i) => _nearlyEqualPercent(gasMixes[i].o2Percent, lowestO2),
     );
     final highestHeAtLowestO2 = atLowestO2
         .map((i) => gasMixes[i].hePercent)
         .reduce((a, b) => a > b ? a : b);
     for (final i in atLowestO2) {
-      if (_nearlyEqualPercent(gasMixes[i].hePercent, highestHeAtLowestO2)) {
+      if (unranked.contains(i) &&
+          _nearlyEqualPercent(gasMixes[i].hePercent, highestHeAtLowestO2)) {
         roles[i] = TankRole.bailout.name;
       }
     }
@@ -332,6 +343,11 @@ Map<int, String> _inferSensorlessRoles(
 
   return roles;
 }
+
+/// Whether the computer tagged [gas] with a usage that fixes its role
+/// (oxygen, diluent or sidemount), taking it out of the bailout ranking.
+bool _hasReportedUsage(pigeon.GasMix gas) =>
+    gas.usage == 1 || gas.usage == 2 || gas.usage == 3;
 
 /// Whether two gas percentages are the same value within floating-point
 /// noise. Each of the four platform converters independently computes

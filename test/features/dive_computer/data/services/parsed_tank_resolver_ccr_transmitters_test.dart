@@ -256,6 +256,54 @@ void main() {
     });
   });
 
+  group('CCR dive with a bailout cylinder on its own transmitter', () {
+    test('a leaner deco gas without a transmitter stays deco, not bailout', () {
+      final parsed = pigeon.ParsedDive(
+        fingerprint: 'test',
+        dateTimeYear: 2026,
+        dateTimeMonth: 9,
+        dateTimeDay: 12,
+        dateTimeHour: 8,
+        dateTimeMinute: 56,
+        dateTimeSecond: 33,
+        maxDepthMeters: 61.9,
+        avgDepthMeters: 30.0,
+        durationSeconds: 3900,
+        diveMode: 'ccr',
+        samples: [
+          for (final t in [0, 600, 1200])
+            pigeon.ProfileSample(
+              timeSeconds: t,
+              depthMeters: 30.0,
+              pressureBar: 100.0,
+              tankIndex: 1,
+              tankPressuresBar: const [120.0, 100.0, 200.0],
+              gasMixIndex: 2,
+            ),
+        ],
+        tanks: [
+          ...tanks,
+          // An untagged third transmitter on the 15/55 bailout cylinder,
+          // linked by the computer to its gas.
+          pigeon.TankInfo(index: 2, gasMixIndex: 1, startPressureBar: 200.0),
+        ],
+        gasMixes: [
+          pigeon.GasMix(index: 0, o2Percent: 50.0, hePercent: 0.0),
+          pigeon.GasMix(index: 1, o2Percent: 15.0, hePercent: 55.0),
+          pigeon.GasMix(
+            index: 2,
+            o2Percent: 15.0,
+            hePercent: 55.0,
+            usage: diluentUsage,
+          ),
+        ],
+        events: const [],
+      );
+      final resolved = resolveParsedTanks(parsed);
+      expect(resolved.firstWhere((t) => t.o2Percent == 50.0).role, 'deco');
+    });
+  });
+
   group('open circuit with two transmitters in one sample', () {
     test("a computer's own tank->gas link survives a transmitter that "
         'reports all dive long', () {
