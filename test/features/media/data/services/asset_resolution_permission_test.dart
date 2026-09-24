@@ -290,6 +290,37 @@ void main() {
     },
   );
 
+  test(
+    'findInLibrary on a host with no photo library is unavailable',
+    () async {
+      final none = AssetResolutionService(
+        cacheRepository: cache,
+        photoPickerService: FakePhotoPickerService(
+          supportsGalleryBrowsing: false,
+        ),
+      );
+
+      final r = await none.findInLibrary(fileRow());
+
+      expect(r.status, ResolutionStatus.unavailable);
+    },
+  );
+
+  test(
+    'a backed-off row whose permission read fails is inconclusive',
+    () async {
+      await backedOff('m1');
+
+      final r = await AssetResolutionService(
+        cacheRepository: cache,
+        photoPickerService: _FailingPermission(),
+      ).resolveAssetId(row());
+
+      expect(r.status, ResolutionStatus.accessDenied);
+      expect(r.limitedAccess, isFalse);
+    },
+  );
+
   test('a permission read that fails is inconclusive', () async {
     final failing = _FailingPermission();
     final r = await AssetResolutionService(

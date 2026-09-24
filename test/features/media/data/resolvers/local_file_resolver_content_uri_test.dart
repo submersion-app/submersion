@@ -94,6 +94,24 @@ void main() {
     expect((data as UnavailableData).kind, UnavailableKind.accessDenied);
   });
 
+  // A search that throws said nothing about the file: the read's own
+  // verdict stands, and the render does not fail.
+  test(
+    'a library search that throws falls back to the read\'s verdict',
+    () async {
+      final data = await LocalFileResolver(
+        bookmarkStorage: _NullBookmarkStorage(),
+        platform: _FailingUriPlatform('PERMISSION_DENIED'),
+        exifExtractor: ExifExtractor(),
+        readsContentUris: () => true,
+        localDeviceId: () async => 'me',
+        findInLibrary: (item) async => throw StateError('channel'),
+      ).resolve(row());
+
+      expect((data as UnavailableData).kind, UnavailableKind.accessDenied);
+    },
+  );
+
   // Another device's content URI never had a grant here, so it is not a
   // lost grant and not worth a library search per render.
   test('another device\'s content URI is not searched', () async {

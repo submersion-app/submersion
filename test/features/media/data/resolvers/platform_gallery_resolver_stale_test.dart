@@ -113,6 +113,24 @@ void main() {
     expect((data as UnavailableData).kind, UnavailableKind.notFound);
   });
 
+  test('verify finds a cached photo re-found under a new id', () async {
+    library.add(
+      FakeGalleryAsset(
+        id: 'B-2',
+        bytes: Uint8List.fromList([5]),
+        takenAt: DateTime(2024),
+      ),
+    );
+    final service = _StaleCacheService(
+      const ResolutionResult(
+        localAssetId: 'B-2',
+        status: ResolutionStatus.resolved,
+      ),
+    );
+
+    expect(await resolver(service).verify(row()), VerifyResult.available);
+  });
+
   test('verify re-searches a cached photo that no longer exists', () async {
     final service = _StaleCacheService(limited);
 
