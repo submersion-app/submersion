@@ -27,6 +27,10 @@ class TripStoryDockedDay extends StatelessWidget {
     return Semantics(
       button: onTap != null,
       label: context.l10n.trips_story_dockedDay_goToDay(day.dayNumber),
+      // excludeSemantics drops the child's tree, which keeps the label to one
+      // clean phrase but also discards the InkWell's tap action. Supplying it
+      // here is what lets a screen reader press the button it announces.
+      onTap: onTap,
       excludeSemantics: true,
       child: InkWell(
         onTap: onTap,

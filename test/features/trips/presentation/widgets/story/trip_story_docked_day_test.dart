@@ -80,4 +80,29 @@ void main() {
     final semantics = tester.getSemantics(find.byType(TripStoryDockedDay));
     expect(semantics.label, contains('Go to day'));
   });
+
+  testWidgets('a screen reader can activate the panel', (tester) async {
+    // A label alone is not enough: the node must carry the tap action, or a
+    // screen reader announces a button it cannot press. Excluding the child's
+    // semantics (to keep the label clean) also drops the InkWell's action,
+    // so the Semantics wrapper has to supply it.
+    final handle = tester.ensureSemantics();
+    var taps = 0;
+    await pumpPanel(tester, futureDayFixture(), onTap: () => taps++);
+
+    final finder = find.byType(TripStoryDockedDay);
+    expect(
+      tester.getSemantics(finder),
+      matchesSemantics(
+        label: 'Go to day 3',
+        isButton: true,
+        hasTapAction: true,
+      ),
+    );
+
+    tester.semantics.tap(find.semantics.byLabel('Go to day 3'));
+    await tester.pump();
+    expect(taps, 1);
+    handle.dispose();
+  });
 }
