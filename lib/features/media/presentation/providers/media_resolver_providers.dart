@@ -28,6 +28,7 @@ import 'package:submersion/features/media/data/services/subscription_poller.dart
 import 'package:submersion/features/media/data/services/subscription_poller_scheduler.dart';
 import 'package:submersion/features/media/data/services/video_thumbnail_service.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/value_objects/media_source_data.dart';
 import 'package:submersion/features/media/data/resolvers/media_store_source_resolver.dart';
 import 'package:submersion/features/media/data/services/gallery_asset_reader.dart';
 import 'package:submersion/features/media/presentation/providers/lightroom_providers.dart';
@@ -124,6 +125,19 @@ final localFileResolverProvider = Provider<LocalFileResolver>((ref) {
     localDeviceId: () => SyncRepository().getDeviceId(),
     deviceLabel: (id) async =>
         ref.read(peerDeviceNameStoreProvider).nameFor(id),
+    // A content URI that stopped reading on Android is searched for in the
+    // photo library by metadata before anything is decided (spec 6.3).
+    findInLibrary: (item) async {
+      final found = await ref
+          .read(assetResolutionServiceProvider)
+          .findInLibrary(item);
+      final id = found.localAssetId;
+      if (id == null) return null;
+      final bytes = await const PhotoManagerAssetReader().originBytes(id);
+      return bytes == null
+          ? null
+          : BytesData(bytes: bytes, servedFrom: ServedFrom.platformGallery);
+    },
   );
   // The resolver's fetch gate holds timers that outlive the fetch they bound,
   // so a rebuild or a container teardown with a tile still resolving would

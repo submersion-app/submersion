@@ -132,6 +132,43 @@ void main() {
     expect(await cache.getCacheEntry('m1'), isNull);
   });
 
+  /// A file linked on this device, not a gallery asset: no stored asset id,
+  /// only the metadata the tiers match on.
+  MediaItem fileRow() => MediaItem(
+    id: 'f1',
+    originalFilename: 'IMG_0001.JPG',
+    mediaType: MediaType.photo,
+    sourceType: MediaSourceType.localFile,
+    bookmarkRef: 'content://media/external/images/media/42',
+    width: 4032,
+    height: 3024,
+    takenAt: DateTime.utc(2026, 7, 1, 10, 30),
+    createdAt: DateTime.utc(2026, 7, 1),
+    updatedAt: DateTime.utc(2026, 7, 1),
+  );
+
+  // A file whose read grant was lost is usually still in the photo library
+  // (spec 6.3): the metadata tiers find it without a stored asset id.
+  test('findInLibrary matches a row with no asset id by metadata', () async {
+    addPhoto();
+
+    final r = await service.findInLibrary(fileRow());
+
+    expect(r.localAssetId, 'B-1');
+  });
+
+  test('findInLibrary under limited access is inconclusive', () async {
+    addPhoto();
+    library
+      ..permission = PhotoPermissionStatus.limited
+      ..hiddenFromLimitedAccess.add('B-1');
+
+    final r = await service.findInLibrary(fileRow());
+
+    expect(r.status, ResolutionStatus.accessDenied);
+    expect(r.limitedAccess, isTrue);
+  });
+
   test('a permission read that fails is inconclusive', () async {
     final failing = _FailingPermission();
     final r = await AssetResolutionService(

@@ -186,6 +186,45 @@ class AssetResolutionService {
       );
     }
 
+    return _searchGallery(item);
+  }
+
+  /// Finds [item] in the photo library by the metadata tiers alone, for a
+  /// row whose stored pointer no longer reads: a file whose Android read
+  /// grant was lost, which is usually still in the library (media sync
+  /// program spec 6.3). Needs no stored asset id. Honors the same cache and
+  /// backoff as [resolveAssetId], and shares its in-flight searches.
+  Future<ResolutionResult> findInLibrary(MediaItem item) async {
+    if (!_photoPickerService.supportsGalleryBrowsing) {
+      return const ResolutionResult(status: ResolutionStatus.unavailable);
+    }
+    final cachedId = await _cacheRepository.getCachedAssetId(item.id);
+    if (cachedId != null) {
+      return ResolutionResult(
+        localAssetId: cachedId,
+        status: ResolutionStatus.resolved,
+      );
+    }
+    final cacheEntry = await _cacheRepository.getCacheEntry(item.id);
+    if (cacheEntry != null &&
+        cacheEntry.localAssetId == null &&
+        !await _cacheRepository.isExpired(item.id)) {
+      return const ResolutionResult(status: ResolutionStatus.unavailable);
+    }
+    final pending = _pendingResolutions[item.id];
+    if (pending != null) return pending;
+    final future = _searchGallery(item);
+    _pendingResolutions[item.id] = future;
+    try {
+      return await future;
+    } finally {
+      _pendingResolutions.remove(item.id);
+    }
+  }
+
+  /// The permission gate and the metadata tiers: everything a search does
+  /// once the stored id has failed or there is none.
+  Future<ResolutionResult> _searchGallery(MediaItem item) async {
     // A gallery query against a library the app cannot access yet returns
     // zero candidates -- indistinguishable from "genuinely no matching
     // photo" unless permission is checked directly. Skip the query (and,
