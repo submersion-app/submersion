@@ -89,6 +89,19 @@ class RewriteDartTest(unittest.TestCase):
     def test_route_prefix_needs_a_boundary(self):
         self.assertEqual(self.rewrite("'/statisticsfoo'"), "'/statisticsfoo'")
 
+    def test_git_show_of_an_old_commit_keeps_its_path(self):
+        # The path names a file inside that commit, where it still lives
+        # under the old name.
+        line = ("// `git show 30234a3:lib/features/statistics/data/repositories/"
+                "statistics_repository.dart`\n")
+        self.assertEqual(
+            rename.rewrite_dart(line, {"statistics_repository.dart":
+                                       "insights_repository.dart"}, False),
+            line)
+        self.assertTrue(rename.is_historical_reference(line))
+        self.assertFalse(rename.is_historical_reference(
+            "import 'package:submersion/features/statistics/x.dart';"))
+
     def test_bare_id_only_where_allowed(self):
         self.assertEqual(self.rewrite("id: 'statistics',"),
                          "id: 'statistics',")

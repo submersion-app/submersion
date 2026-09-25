@@ -32623,13 +32623,13 @@ abstract class AppLocalizations {
   /// **'Species'**
   String get insights_category_marineLife_title;
 
-  /// Title for the Overview entry in the Statistics category list
+  /// Title for the Overview entry in the Insights category list
   ///
   /// In en, this message translates to:
   /// **'Overview'**
   String get insights_category_overview_title;
 
-  /// Subtitle for the Overview entry in the Statistics category list
+  /// Subtitle for the Overview entry in the Insights category list
   ///
   /// In en, this message translates to:
   /// **'Totals, records, and breakdowns at a glance'**

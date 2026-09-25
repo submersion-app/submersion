@@ -117,6 +117,7 @@ void main() {
       testAppRouter(
         router: router,
         overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        locale: const Locale('en'),
       ),
     );
     await tester.pumpAndSettle();

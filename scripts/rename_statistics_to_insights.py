@@ -112,6 +112,7 @@ _WIDGET_KEY = re.compile(
 _BARE_ID = re.compile(r"""(['"])statistics(['"])""")
 _IDENTIFIER = re.compile(r"\b(%s)\b" % "|".join(sorted(IDENTIFIERS, key=len, reverse=True)))
 _WORKFLOW_PATH = "test/features/statistics/"
+_HISTORICAL = re.compile(r"git show [0-9a-f]{7,40}:")
 
 # --- keys phase tables ------------------------------------------------------
 
@@ -225,6 +226,10 @@ EN_DESCRIPTIONS = (
      "Navigation label for the Insights section"),
     ("Keyboard shortcut label for navigating to statistics",
      "Keyboard shortcut label for navigating to Insights"),
+    ("Title for the Overview entry in the Statistics category list",
+     "Title for the Overview entry in the Insights category list"),
+    ("Subtitle for the Overview entry in the Statistics category list",
+     "Subtitle for the Overview entry in the Insights category list"),
 )
 
 
@@ -283,8 +288,26 @@ def basename_map(root):
     return mapping
 
 
+def is_historical_reference(line):
+    """True for a `git show <sha>:<path>` line.
+
+    Its path names a file inside an old commit, where the feature still lives
+    under its old name, so renaming it would point at a file that never
+    existed there.
+    """
+    return bool(_HISTORICAL.search(line))
+
+
 def rewrite_dart(text, basenames, bare_ids):
     """Apply the code-phase renames to one Dart file's text."""
+    return "".join(
+        line if is_historical_reference(line)
+        else _rewrite_line(line, basenames, bare_ids)
+        for line in text.splitlines(keepends=True)
+    )
+
+
+def _rewrite_line(text, basenames, bare_ids):
     text = text.replace("features/statistics/", "features/insights/")
     for old, new in basenames.items():
         text = re.sub(r"(?<![\w])%s(?![\w])" % re.escape(old), new, text)
@@ -356,6 +379,8 @@ def set_arb_value(text, key, value):
 def _findings(root, path, text, patterns):
     out = []
     for lineno, line in enumerate(text.splitlines(), 1):
+        if is_historical_reference(line):
+            continue
         for label, rx in patterns:
             if rx.search(line):
                 out.append(f"{path}:{lineno}: {label}: {line.strip()}")

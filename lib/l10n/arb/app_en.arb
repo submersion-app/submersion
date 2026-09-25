@@ -12152,11 +12152,11 @@
   "insights_category_marineLife_title": "Species",
   "insights_category_overview_title": "Overview",
   "@insights_category_overview_title": {
-    "description": "Title for the Overview entry in the Statistics category list"
+    "description": "Title for the Overview entry in the Insights category list"
   },
   "insights_category_overview_subtitle": "Totals, records, and breakdowns at a glance",
   "@insights_category_overview_subtitle": {
-    "description": "Subtitle for the Overview entry in the Statistics category list"
+    "description": "Subtitle for the Overview entry in the Insights category list"
   },
   "insights_category_profile_subtitle": "Ascent rates & deco",
   "insights_category_profile_title": "Profile Analysis",
