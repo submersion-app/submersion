@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
-import 'package:submersion/features/media/presentation/pages/media_viewer_page.dart';
+import 'package:submersion/features/media/presentation/pages/media_viewer_launcher.dart';
 import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_grid.dart';
 import 'package:submersion/features/media/presentation/widgets/media_selection_bar.dart';
@@ -48,15 +48,10 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     List<MediaLibraryEntry> entries,
     MediaLibraryEntry entry,
   ) {
-    Navigator.of(context).push(
-      MaterialPageRoute<void>(
-        fullscreenDialog: true,
-        builder: (_) => MediaViewerPage(
-          mediaList: entries.map((e) => e.item).toList(),
-          initialMediaId: entry.item.id,
-          showGoToDive: true,
-        ),
-      ),
+    openMediaViewer(
+      context,
+      entries.map((e) => e.item).toList(),
+      entry.item.id,
     );
   }
 
