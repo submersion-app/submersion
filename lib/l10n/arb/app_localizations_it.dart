@@ -21479,6 +21479,17 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile scrivere in questa cartella. Scegline un\'altra.';
 
   @override
+  String importWizard_photos_downloadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos to download',
+      one: '$count photo to download',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String importWizard_review_olderDivesSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

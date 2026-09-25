@@ -20331,6 +20331,17 @@ class AppLocalizationsZh extends AppLocalizations {
   String get importWizard_photos_destinationUnwritable => '无法写入该文件夹。请选择其他文件夹。';
 
   @override
+  String importWizard_photos_downloadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos to download',
+      one: '$count photo to download',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String importWizard_review_olderDivesSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

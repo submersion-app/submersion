@@ -13216,6 +13216,14 @@
   "@importWizard_photos_destinationUnwritable": {
     "description": "Snackbar shown when the folder chosen for bundled archive photos cannot be written to"
   },
+  "importWizard_photos_downloadCount": "{count, plural, one{{count} photo to download} other{{count} photos to download}}",
+  "@importWizard_photos_downloadCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "importWizard_review_olderDivesSkipped": "{count, plural, one{1 older dive skipped — already in your log} other{{count} older dives skipped — already in your log}}",
   "@importWizard_review_olderDivesSkipped": {
     "description": "Title for the collapsed ExpansionTile summarizing auto-skipped dives that fall at or before the diver's first-sync cutoff",

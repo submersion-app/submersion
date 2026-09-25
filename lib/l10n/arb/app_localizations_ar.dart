@@ -21095,6 +21095,17 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يمكن الكتابة في هذا المجلد. اختر مجلدًا آخر.';
 
   @override
+  String importWizard_photos_downloadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos to download',
+      one: '$count photo to download',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String importWizard_review_olderDivesSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

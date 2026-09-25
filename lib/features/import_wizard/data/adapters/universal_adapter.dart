@@ -129,7 +129,8 @@ bool _hasBundledPhotos(Map<String, List<String>> byBaseName) =>
     byBaseName.values.any((paths) => paths.isNotEmpty);
 
 /// True when the import carries no photos at all: the parsed payload
-/// references none and no imported archive bundled any.
+/// references none, no imported archive bundled any, and no remote source
+/// listed any.
 ///
 /// Used as the Photos step's auto-advance condition, so the step is invisible
 /// for every import that has nothing to ask about.
@@ -140,8 +141,11 @@ final universalAdapterNoPhotosProvider = Provider<bool>((ref) {
   final bundled = ref.watch(
     universalImportNotifierProvider.select((s) => s.photoPathsByBaseName),
   );
+  final remote = ref.watch(
+    universalImportNotifierProvider.select((s) => s.remotePhotoCount),
+  );
   final referenced = payload?.entitiesOf(ui.ImportEntityType.media) ?? const [];
-  return referenced.isEmpty && !_hasBundledPhotos(bundled);
+  return referenced.isEmpty && !_hasBundledPhotos(bundled) && remote == 0;
 });
 
 /// True when the Photos step has nothing left to ask.
@@ -158,9 +162,12 @@ final universalAdapterPhotosReadyProvider = Provider<bool>((ref) {
   final referenced =
       state.payload?.entitiesOf(ui.ImportEntityType.media) ?? const [];
   final referencedReady = referenced.isEmpty || state.photoResolution != null;
+  // Remote photos are written into the same chosen folder as bundled ones.
+  final needsDestination =
+      _hasBundledPhotos(state.photoPathsByBaseName) ||
+      state.remotePhotoCount > 0;
   final bundledReady =
-      !_hasBundledPhotos(state.photoPathsByBaseName) ||
-      state.bundledPhotoFolderPath != null;
+      !needsDestination || state.bundledPhotoFolderPath != null;
   return referencedReady && bundledReady;
 });
 
