@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
@@ -41,8 +43,13 @@ void main() {
   Future<void> pump(
     WidgetTester tester, {
     CylinderFillRepository? repository,
+    AppSettings? settings,
   }) async {
-    final overrides = await getBaseOverrides();
+    final overrides = await getBaseOverrides(
+      settingsNotifier: settings == null
+          ? null
+          : MockSettingsNotifier(settings),
+    );
     await tester.pumpWidget(
       testApp(
         overrides: [
@@ -109,6 +116,58 @@ void main() {
     );
     expect(save.onPressed, isNotNull);
   });
+  testWidgets('saves in metric from imperial input and closes', (tester) async {
+    final repo = _CapturingFillRepository();
+    await pump(
+      tester,
+      repository: repo,
+      settings: const AppSettings(
+        pressureUnit: PressureUnit.psi,
+        temperatureUnit: TemperatureUnit.fahrenheit,
+      ),
+    );
+    final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
+    await tester.enterText(find.byKey(const Key('logFill_o2')), '32');
+    await tester.enterText(find.byKey(const Key('logFill_pressure')), '3,000');
+    await tester.enterText(find.byKey(const Key('logFill_temperature')), '68');
+    await tester.enterText(
+      find.widgetWithText(TextField, l10n.passport_logFill_station),
+      'Blue Water Fills',
+    );
+    await tester.tap(find.text(l10n.forms_save));
+    await tester.pumpAndSettle();
+
+    final saved = repo.created.single;
+    expect(saved.passportId, 'pp-1');
+    expect(saved.equipmentId, 'eq-1');
+    expect(saved.o2Percent, 32);
+    expect(saved.pressureBar, closeTo(206.84, 0.01));
+    expect(saved.temperatureC, closeTo(20, 1e-9));
+    expect(saved.stationName, 'Blue Water Fills');
+    expect(saved.source, FillSource.manual);
+    expect(find.byType(LogFillSheet), findsNothing);
+  });
+
+  testWidgets('the date opens the shared picker', (tester) async {
+    await pump(tester);
+    final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
+    await tester.tap(find.text(l10n.passport_logFill_date));
+    await tester.pumpAndSettle();
+    expect(find.byType(DatePickerDialog), findsOneWidget);
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(find.byType(DatePickerDialog), findsNothing);
+  });
+}
+
+class _CapturingFillRepository extends CylinderFillRepository {
+  final created = <CylinderFill>[];
+
+  @override
+  Future<CylinderFill> create(CylinderFill fill) async {
+    created.add(fill);
+    return fill;
+  }
 }
 
 class _ThrowingFillRepository extends CylinderFillRepository {

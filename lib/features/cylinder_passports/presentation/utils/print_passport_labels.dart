@@ -14,14 +14,27 @@ import 'package:submersion/features/equipment/presentation/utils/equipment_attri
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// Hands finished labels on: the PDF share sheet in the app, a capture in
+/// tests. [origin] anchors the share popover on iPad and macOS.
+typedef PassportLabelExport =
+    Future<void> Function(List<PassportLabelData> labels, Rect? origin);
+
+Future<void> _shareLabelPdf(List<PassportLabelData> labels, Rect? origin) =>
+    PassportLabelPdfExportService().exportToPdf(
+      labels,
+      sharePositionOrigin: origin,
+    );
+
 /// Builds one label per cylinder among [equipmentIds] (other types are
-/// skipped), minting passport ids where missing, and opens the share sheet
-/// with the PDF. Shares nothing when no cylinder was selected.
+/// skipped), minting passport ids where missing, and passes them to
+/// [export], the PDF share sheet by default. Exports nothing when no
+/// cylinder was selected.
 Future<void> printPassportLabels(
   BuildContext context,
   WidgetRef ref,
-  List<String> equipmentIds,
-) async {
+  List<String> equipmentIds, {
+  PassportLabelExport export = _shareLabelPdf,
+}) async {
   final l10n = context.l10n;
   final units = UnitFormatter(ref.read(settingsProvider));
   final equipmentRepo = ref.read(equipmentRepositoryProvider);
@@ -73,10 +86,8 @@ Future<void> printPassportLabels(
   }
   if (labels.isEmpty || !context.mounted) return;
   final box = context.findRenderObject() as RenderBox?;
-  await PassportLabelPdfExportService().exportToPdf(
+  await export(
     labels,
-    sharePositionOrigin: box == null
-        ? null
-        : box.localToGlobal(Offset.zero) & box.size,
+    box == null ? null : box.localToGlobal(Offset.zero) & box.size,
   );
 }

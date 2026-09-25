@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_entry_card.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -26,7 +27,11 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<AppLocalizations> pump(WidgetTester tester, EquipmentItem item) async {
+  Future<AppLocalizations> pump(
+    WidgetTester tester,
+    EquipmentItem item, {
+    CylinderFill? newest,
+  }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(600, 3000);
     addTearDown(() {
@@ -41,6 +46,12 @@ void main() {
           path: '/equipment/:id',
           builder: (context, state) =>
               EquipmentDetailPage(equipmentId: item.id),
+          routes: [
+            GoRoute(
+              path: 'passport',
+              builder: (context, state) => const Text('passport route'),
+            ),
+          ],
         ),
       ],
     );
@@ -51,7 +62,7 @@ void main() {
           equipmentItemProvider(item.id).overrideWith((ref) async => item),
           equipmentDiveCountProvider(item.id).overrideWith((ref) async => 0),
           passportIdProvider(item.id).overrideWith((ref) async => null),
-          newestFillProvider(item.id).overrideWith((ref) async => null),
+          newestFillProvider(item.id).overrideWith((ref) async => newest),
           serviceClockStatusesProvider(item.id).overrideWith((ref) async => []),
         ].cast(),
         child: MaterialApp.router(
@@ -92,5 +103,33 @@ void main() {
       ),
     );
     expect(find.byType(PassportEntryCard), findsNothing);
+  });
+
+  testWidgets('shows the newest fill and opens the passport', (tester) async {
+    final t = DateTime(2026, 9, 20);
+    final l10n = await pump(
+      tester,
+      const EquipmentItem(
+        id: 'tank',
+        name: 'Faber 12',
+        type: EquipmentType.tank,
+      ),
+      newest: CylinderFill(
+        id: 'f1',
+        passportId: 'pp',
+        equipmentId: 'tank',
+        filledAt: t,
+        o2Percent: 32,
+        pressureBar: 220,
+        createdAt: t,
+        updatedAt: t,
+      ),
+    );
+    expect(find.textContaining('EAN32'), findsOneWidget);
+    expect(find.textContaining('220 bar'), findsOneWidget);
+
+    await tester.tap(find.text(l10n.passport_open));
+    await tester.pumpAndSettle();
+    expect(find.text('passport route'), findsOneWidget);
   });
 }
