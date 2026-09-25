@@ -24,4 +24,19 @@ void main() {
     const palette = FigurePalette.light;
     expect(palette.colorFor(FigureRole.outline, 0xFF4080C0), palette.outline);
   });
+
+  test('palettes with the same colours are equal', () {
+    const copy = FigurePalette(
+      body: 0xFFCBD3DB,
+      bodyShade: 0xFFB2BCC6,
+      gearDark: 0xFF2A2A2E,
+      gearLight: 0xFF8FD3FF,
+      metal: 0xFF9AA3AD,
+      outline: 0xFF1B1B1F,
+      badge: 0xFF0B57D0,
+      onBadge: 0xFFFFFFFF,
+    );
+    expect(copy, FigurePalette.light);
+    expect(copy.hashCode, FigurePalette.light.hashCode);
+  });
 }

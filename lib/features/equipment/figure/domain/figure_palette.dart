@@ -10,8 +10,8 @@ class FigurePalette {
     required this.gearLight,
     required this.metal,
     required this.outline,
-    required this.disc,
-    required this.onDisc,
+    required this.badge,
+    required this.onBadge,
   });
 
   /// The share image and the PDFs draw with this whatever the app theme.
@@ -22,8 +22,8 @@ class FigurePalette {
     gearLight: 0xFF8FD3FF,
     metal: 0xFF9AA3AD,
     outline: 0xFF1B1B1F,
-    disc: 0xFF0B57D0,
-    onDisc: 0xFFFFFFFF,
+    badge: 0xFF0B57D0,
+    onBadge: 0xFFFFFFFF,
   );
 
   final int body;
@@ -32,8 +32,10 @@ class FigurePalette {
   final int gearLight;
   final int metal;
   final int outline;
-  final int disc;
-  final int onDisc;
+
+  /// The number badge's fill and its digit.
+  final int badge;
+  final int onBadge;
 
   /// The colour for [role] on an item whose own colour is [itemColor].
   int colorFor(FigureRole role, int itemColor) => switch (role) {
@@ -46,6 +48,30 @@ class FigurePalette {
     FigureRole.itemShade => darken(itemColor, 0.25),
     FigureRole.outline => outline,
   };
+
+  @override
+  bool operator ==(Object other) =>
+      other is FigurePalette &&
+      other.body == body &&
+      other.bodyShade == bodyShade &&
+      other.gearDark == gearDark &&
+      other.gearLight == gearLight &&
+      other.metal == metal &&
+      other.outline == outline &&
+      other.badge == badge &&
+      other.onBadge == onBadge;
+
+  @override
+  int get hashCode => Object.hash(
+    body,
+    bodyShade,
+    gearDark,
+    gearLight,
+    metal,
+    outline,
+    badge,
+    onBadge,
+  );
 
   /// Scales the RGB channels of [argb] down by [fraction], keeping alpha.
   static int darken(int argb, double fraction) {

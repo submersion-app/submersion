@@ -30,9 +30,9 @@ void main() {
         expect(palette.bodyShade, isNot(palette.body));
       });
 
-      test('$name: the disc digit reads on the disc', () {
+      test('$name: the badge digit reads on the badge', () {
         expect(
-          contrastRatio(Color(palette.onDisc), Color(palette.disc)),
+          contrastRatio(Color(palette.onBadge), Color(palette.badge)),
           greaterThanOrEqualTo(4.5),
         );
       });

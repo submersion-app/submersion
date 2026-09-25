@@ -204,4 +204,10 @@ void main() {
     ]);
     expect(model.numbered.map((p) => p.item.id), ['tool', 'mask']);
   });
+
+  test('a signed or short hex is not a colour', () {
+    expect(parseFigureColor('#-00001'), isNull);
+    expect(parseFigureColor('#+FFFFF'), isNull);
+    expect(parseFigureColor('#0a0B0c'), 0xFF0A0B0C);
+  });
 }

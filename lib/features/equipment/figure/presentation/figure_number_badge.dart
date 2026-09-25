@@ -24,21 +24,21 @@ class FigureNumberBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = figurePaletteFor(Theme.of(context).colorScheme);
-    final disc = Color(palette.disc);
-    final onDisc = Color(palette.onDisc);
+    final fill = Color(palette.badge);
+    final digit = Color(palette.onBadge);
     final circle = Container(
       width: size,
       height: size,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: disc,
-        border: Border.all(color: onDisc, width: selected ? 2.5 : 1),
+        color: fill,
+        border: Border.all(color: digit, width: selected ? 2.5 : 1),
       ),
       child: Text(
         '$number',
         style: TextStyle(
-          color: onDisc,
+          color: digit,
           fontSize: size * 0.5,
           fontWeight: FontWeight.w700,
           height: 1,

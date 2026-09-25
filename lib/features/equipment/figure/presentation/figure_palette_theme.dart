@@ -6,12 +6,12 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_sec
 ///
 /// The mannequin is a blend of `onSurface` over `surface`, walked up until
 /// it stands 1.6:1 off both the page surface and the container tint a card
-/// sits on. Gear greys are fixed. The disc uses `primary` with whichever of
+/// sits on. Gear greys are fixed. The number badge uses `primary` with whichever of
 /// `onPrimary`, black or white reads on it.
 FigurePalette figurePaletteFor(ColorScheme scheme) {
   final body = _bodyTone(scheme);
   final shade = Color.alphaBlend(scheme.surface.withValues(alpha: 0.35), body);
-  final onDisc = EquipmentSectionColors.readableOn(scheme.primary, [
+  final onBadge = EquipmentSectionColors.readableOn(scheme.primary, [
     scheme.onPrimary,
   ]);
   return FigurePalette(
@@ -21,8 +21,8 @@ FigurePalette figurePaletteFor(ColorScheme scheme) {
     gearLight: FigurePalette.light.gearLight,
     metal: FigurePalette.light.metal,
     outline: FigurePalette.light.outline,
-    disc: scheme.primary.toARGB32(),
-    onDisc: onDisc.toARGB32(),
+    badge: scheme.primary.toARGB32(),
+    onBadge: onBadge.toARGB32(),
   );
 }
 

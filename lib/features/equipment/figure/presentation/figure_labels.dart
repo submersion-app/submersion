@@ -127,8 +127,8 @@ List<FigureLabelSlot> _stack(
 }
 
 /// Wide layout (spec 8.3): a pill beside every placed item on the outward
-/// side of its anchor, placed in number order and stepped down until it
-/// clears the pills already placed. [widthOf] is the pill's natural width;
+/// side of its anchor, placed in number order at the nearest row, above or
+/// below its anchor, that clears the pills already placed. [widthOf] is the pill's natural width;
 /// it is capped at [maxWidth] and at the room between the anchor and the
 /// edge of the box, or the edge of the other figure when that is nearer, so
 /// a pill never lies across the other view.
@@ -165,19 +165,50 @@ List<FigureLabelSlot> labelPills({
     final x = onLeft
         ? anchor.dx - kFigureLeaderGap - w
         : anchor.dx + kFigureLeaderGap;
-    var rect = Rect.fromLTWH(
+    final level = Rect.fromLTWH(
       x,
       math.max(0, anchor.dy - labelHeight / 2),
       w,
       labelHeight,
     );
-    while (taken.any((t) => t.overlaps(rect))) {
-      rect = rect.shift(Offset(0, labelHeight + kFigureLabelGap));
-    }
+    final rect = _nearestFreeRow(level, taken, labelHeight + kFigureLabelGap);
     taken.add(rect);
     slots.add(
       FigureLabelSlot(item: p, rect: rect, anchor: anchor, onLeft: onLeft),
     );
   }
   return slots;
+}
+
+/// [level] itself if nothing overlaps it; otherwise the free position
+/// nearest to it, trying each spot flush against the edge of a pill in the
+/// way (just below it or just above it), never above the top of the box.
+/// If none of those is free it falls back to stepping down a row at a time,
+/// which always ends because the rows below are empty.
+Rect _nearestFreeRow(Rect level, List<Rect> taken, double step) {
+  bool free(Rect r) => r.top >= 0 && !taken.any((t) => t.overlaps(r));
+  if (free(level)) return level;
+  final gap = step - level.height;
+  final candidates = <Rect>[
+    for (final t in taken)
+      if (t.left < level.right && level.left < t.right) ...[
+        Rect.fromLTWH(level.left, t.bottom + gap, level.width, level.height),
+        Rect.fromLTWH(
+          level.left,
+          t.top - gap - level.height,
+          level.width,
+          level.height,
+        ),
+      ],
+  ].where(free).toList();
+  if (candidates.isNotEmpty) {
+    double distance(Rect r) => (r.center.dy - level.center.dy).abs();
+    candidates.sort((a, b) => distance(a).compareTo(distance(b)));
+    return candidates.first;
+  }
+  var rect = level;
+  while (!free(rect)) {
+    rect = rect.shift(Offset(0, step));
+  }
+  return rect;
 }

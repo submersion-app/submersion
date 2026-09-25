@@ -212,6 +212,30 @@ void main() {
       }
     });
 
+    test('a crowded pill takes the nearest free spot, above or below', () {
+      // The regulator's pill blocks above the clipped light and the octo's
+      // blocks below it. Stepping down a whole row at a time put the light
+      // two rows (84 pt) from its gear; the nearest free spot, flush under
+      // the octo's pill, is closer.
+      final model = composeFigure([
+        item('octo', EquipmentType.secondStage),
+        item('reg', EquipmentType.regulator),
+        item('clip', EquipmentType.light),
+        item('light2', EquipmentType.light),
+        item('light3', EquipmentType.light),
+      ]);
+      final slots = pills(model);
+      expectNoOverlaps(slots);
+      const row = kFigureLabelHeight + kFigureLabelGap;
+      for (final s in slots) {
+        expect(
+          (s.rect.center.dy - s.anchor.dy).abs(),
+          lessThan(2 * row - 1),
+          reason: '${s.item.item.id} sits two rows or more from its gear',
+        );
+      }
+    });
+
     test('crowded pills step down until none overlap', () {
       final model = composeFigure([
         item('mask', EquipmentType.mask),

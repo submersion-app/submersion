@@ -8,12 +8,14 @@ import 'package:submersion/features/equipment/figure/domain/figure_zone.dart';
 /// the catalog; the composer honours it from the start).
 const String kFigureColorAttribute = 'color';
 
-/// `#RRGGBB` to ARGB, or null for anything else.
+final RegExp _hexColor = RegExp(r'^#[0-9A-Fa-f]{6}$');
+
+/// `#RRGGBB` to ARGB, or null for anything else. The pattern is checked
+/// first because `int.tryParse` accepts a sign, which would turn `#-00001`
+/// into a negative colour instead of the type default.
 int? parseFigureColor(String? hex) {
-  if (hex == null || hex.length != 7 || !hex.startsWith('#')) return null;
-  final value = int.tryParse(hex.substring(1), radix: 16);
-  if (value == null) return null;
-  return 0xFF000000 | value;
+  if (hex == null || !_hexColor.hasMatch(hex)) return null;
+  return 0xFF000000 | int.parse(hex.substring(1), radix: 16);
 }
 
 /// Places [items] on the figure and numbers them (spec sections 4.2 to 4.4).
