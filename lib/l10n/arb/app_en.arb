@@ -9921,9 +9921,68 @@
   "@media_library_viewMode_grid": {
     "description": "Library view mode: flat grid"
   },
+  "media_library_viewMode_map": "Map",
+  "@media_library_viewMode_map": {
+    "description": "Library view mode: thumbnails placed on a map"
+  },
   "media_library_viewMode_timeline": "Timeline",
   "@media_library_viewMode_timeline": {
     "description": "Library view mode: date-grouped timeline"
+  },
+  "media_map_closeStrip": "Close",
+  "@media_map_closeStrip": {
+    "description": "Tooltip on the button that dismisses the media map place strip"
+  },
+  "media_map_clusterSemantics": "{count, plural, one{{count} item at {place}} other{{count} items at {place}}}",
+  "@media_map_clusterSemantics": {
+    "description": "Screen-reader label for a cluster of media on the map",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "place": {
+        "type": "String"
+      }
+    }
+  },
+  "media_map_emptyHint": "Photos and videos are placed by their own GPS, their dive's entry point, or their dive's site.",
+  "@media_map_emptyHint": {
+    "description": "Media map empty state: how items get a location"
+  },
+  "media_map_emptyTitle": "No media with a location",
+  "@media_map_emptyTitle": {
+    "description": "Media map empty state title"
+  },
+  "media_map_errorLoading": "Error loading media locations: {error}",
+  "@media_map_errorLoading": {
+    "description": "Media map error state",
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "media_map_markerSemantics": "Open media",
+  "@media_map_markerSemantics": {
+    "description": "Screen-reader label for a single media thumbnail on the map"
+  },
+  "media_map_placeItemCount": "{count, plural, one{{count} item} other{{count} items}}",
+  "@media_map_placeItemCount": {
+    "description": "Item count shown in the media map place strip",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "media_map_unlocatedCount": "{count, plural, one{{count} item without a location} other{{count} items without a location}}",
+  "@media_map_unlocatedCount": {
+    "description": "Label on the media map for in-scope items that could not be placed",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   },
   "media_viewer_goToDive": "Go to dive",
   "@media_viewer_goToDive": {

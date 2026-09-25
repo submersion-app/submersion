@@ -15868,7 +15868,61 @@ class AppLocalizationsEn extends AppLocalizations {
   String get media_library_viewMode_grid => 'Grid';
 
   @override
+  String get media_library_viewMode_map => 'Map';
+
+  @override
   String get media_library_viewMode_timeline => 'Timeline';
+
+  @override
+  String get media_map_closeStrip => 'Close';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items at $place',
+      one: '$count item at $place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint =>
+      'Photos and videos are placed by their own GPS, their dive\'s entry point, or their dive\'s site.';
+
+  @override
+  String get media_map_emptyTitle => 'No media with a location';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return 'Error loading media locations: $error';
+  }
+
+  @override
+  String get media_map_markerSemantics => 'Open media';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items',
+      one: '$count item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count items without a location',
+      one: '$count item without a location',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => 'Go to dive';

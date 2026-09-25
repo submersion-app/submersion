@@ -16185,7 +16185,61 @@ class AppLocalizationsFr extends AppLocalizations {
   String get media_library_viewMode_grid => 'Grille';
 
   @override
+  String get media_library_viewMode_map => 'Carte';
+
+  @override
   String get media_library_viewMode_timeline => 'Chronologie';
+
+  @override
+  String get media_map_closeStrip => 'Fermer';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments à $place',
+      one: '$count élément à $place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint =>
+      'Les photos et vidéos sont placées d\'après leur propre GPS, le point de mise à l\'eau de la plongée ou le site de plongée.';
+
+  @override
+  String get media_map_emptyTitle => 'Aucun média localisé';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return 'Erreur de chargement des positions des médias : $error';
+  }
+
+  @override
+  String get media_map_markerSemantics => 'Ouvrir le média';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments',
+      one: '$count élément',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments sans position',
+      one: '$count élément sans position',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => 'Aller à la plongée';

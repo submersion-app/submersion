@@ -16110,7 +16110,61 @@ class AppLocalizationsDe extends AppLocalizations {
   String get media_library_viewMode_grid => 'Raster';
 
   @override
+  String get media_library_viewMode_map => 'Karte';
+
+  @override
   String get media_library_viewMode_timeline => 'Zeitleiste';
+
+  @override
+  String get media_map_closeStrip => 'Schließen';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente bei $place',
+      one: '$count Element bei $place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint =>
+      'Fotos und Videos werden nach ihrem eigenen GPS, dem Einstiegspunkt des Tauchgangs oder dem Tauchplatz platziert.';
+
+  @override
+  String get media_map_emptyTitle => 'Keine Medien mit Ort';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return 'Fehler beim Laden der Medienorte: $error';
+  }
+
+  @override
+  String get media_map_markerSemantics => 'Medium öffnen';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente',
+      one: '$count Element',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Elemente ohne Ort',
+      one: '$count Element ohne Ort',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => 'Zum Tauchgang';

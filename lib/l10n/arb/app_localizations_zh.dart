@@ -15355,7 +15355,57 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_library_viewMode_grid => '网格';
 
   @override
+  String get media_library_viewMode_map => '地图';
+
+  @override
   String get media_library_viewMode_timeline => '时间线';
+
+  @override
+  String get media_map_closeStrip => '关闭';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$place：$count 项',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint => '照片和视频按其自身 GPS、潜水入水点或潜点放置。';
+
+  @override
+  String get media_map_emptyTitle => '没有带位置的媒体';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return '加载媒体位置时出错：$error';
+  }
+
+  @override
+  String get media_map_markerSemantics => '打开媒体';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 项没有位置',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => '前往潜水';

@@ -15739,7 +15739,61 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_library_viewMode_grid => 'רשת';
 
   @override
+  String get media_library_viewMode_map => 'מפה';
+
+  @override
   String get media_library_viewMode_timeline => 'ציר זמן';
+
+  @override
+  String get media_map_closeStrip => 'סגירה';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים ב-$place',
+      one: 'פריט אחד ב-$place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint =>
+      'תמונות וסרטונים ממוקמים לפי ה-GPS שלהם, נקודת הכניסה של הצלילה או אתר הצלילה.';
+
+  @override
+  String get media_map_emptyTitle => 'אין מדיה עם מיקום';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return 'שגיאה בטעינת מיקומי המדיה: $error';
+  }
+
+  @override
+  String get media_map_markerSemantics => 'פתיחת מדיה';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים ללא מיקום',
+      one: 'פריט אחד ללא מיקום',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => 'מעבר לצלילה';

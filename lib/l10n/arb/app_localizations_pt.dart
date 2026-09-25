@@ -16129,7 +16129,61 @@ class AppLocalizationsPt extends AppLocalizations {
   String get media_library_viewMode_grid => 'Grade';
 
   @override
+  String get media_library_viewMode_map => 'Mapa';
+
+  @override
   String get media_library_viewMode_timeline => 'Linha do tempo';
+
+  @override
+  String get media_map_closeStrip => 'Fechar';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens em $place',
+      one: '$count item em $place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint =>
+      'As fotos e os vídeos são colocados pelo seu próprio GPS, pelo ponto de entrada do mergulho ou pelo local de mergulho.';
+
+  @override
+  String get media_map_emptyTitle => 'Sem multimédia com localização';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return 'Erro ao carregar as localizações da multimédia: $error';
+  }
+
+  @override
+  String get media_map_markerSemantics => 'Abrir multimédia';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens',
+      one: '$count item',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens sem localização',
+      one: '$count item sem localização',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => 'Ir para o mergulho';
