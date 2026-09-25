@@ -64,7 +64,7 @@ class QuickActionsCard extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: () => context.go('/insights'),
                 icon: const Icon(Icons.bar_chart),
-                label: Text(context.l10n.dashboard_quickActions_statistics),
+                label: Text(context.l10n.dashboard_quickActions_insights),
               ),
             ),
             const SizedBox(height: 8),

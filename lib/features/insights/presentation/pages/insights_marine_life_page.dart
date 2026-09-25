@@ -41,7 +41,7 @@ class InsightsMarineLifePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.statistics_marineLife_appBar_title),
+        title: Text(context.l10n.insights_marineLife_appBar_title),
       ),
       body: content,
     );
@@ -53,7 +53,7 @@ class InsightsMarineLifePage extends ConsumerWidget {
     return speciesCountAsync.when(
       data: (count) => Semantics(
         label: statLabel(
-          name: context.l10n.statistics_marineLife_speciesSpotted,
+          name: context.l10n.insights_marineLife_speciesSpotted,
           value: count.toString(),
         ),
         child: Row(
@@ -61,7 +61,7 @@ class InsightsMarineLifePage extends ConsumerWidget {
             Expanded(
               child: StatValueCard(
                 icon: MdiIcons.fish,
-                label: context.l10n.statistics_marineLife_speciesSpotted,
+                label: context.l10n.insights_marineLife_speciesSpotted,
                 value: count.toString(),
                 iconColor: Colors.teal,
               ),
@@ -87,10 +87,8 @@ class InsightsMarineLifePage extends ConsumerWidget {
       child: ListTile(
         key: const ValueKey('see_all_species'),
         leading: const Icon(MdiIcons.fish, color: Colors.teal),
-        title: Text(context.l10n.statistics_marineLife_seeAllSpecies_title),
-        subtitle: Text(
-          context.l10n.statistics_marineLife_seeAllSpecies_subtitle,
-        ),
+        title: Text(context.l10n.insights_marineLife_seeAllSpecies_title),
+        subtitle: Text(context.l10n.insights_marineLife_seeAllSpecies_subtitle),
         trailing: const Icon(Icons.chevron_right),
         onTap: () => context.push('/species'),
       ),
@@ -101,25 +99,25 @@ class InsightsMarineLifePage extends ConsumerWidget {
     final sightingsAsync = ref.watch(mostCommonSightingsProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_marineLife_mostCommon_title,
-      subtitle: context.l10n.statistics_marineLife_mostCommon_subtitle,
+      title: context.l10n.insights_marineLife_mostCommon_title,
+      subtitle: context.l10n.insights_marineLife_mostCommon_subtitle,
       child: sightingsAsync.when(
         data: (rawData) {
           final data = rawData
               .map((item) => _localized(item, context.l10n))
               .toList();
           final summary = data.isNotEmpty
-              ? context.l10n.statistics_marineLife_mostCommon_summary(
+              ? context.l10n.insights_marineLife_mostCommon_summary(
                   data.length,
                   data.first.name,
                   data.first.count,
                 )
-              : context.l10n.statistics_marineLife_mostCommon_empty;
+              : context.l10n.insights_marineLife_mostCommon_empty;
           return Semantics(
             label: summary,
             child: RankingList(
               items: data,
-              countLabel: context.l10n.statistics_ranking_countLabel_sightings,
+              countLabel: context.l10n.insights_ranking_countLabel_sightings,
               maxItems: 10,
               onItemTap: (item) => context.push('/species/${item.id}'),
             ),
@@ -131,7 +129,7 @@ class InsightsMarineLifePage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_marineLife_mostCommon_error,
+          message: context.l10n.insights_marineLife_mostCommon_error,
         ),
       ),
     );
@@ -141,22 +139,22 @@ class InsightsMarineLifePage extends ConsumerWidget {
     final sitesAsync = ref.watch(bestSitesForMarineLifeProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_marineLife_bestSites_title,
-      subtitle: context.l10n.statistics_marineLife_bestSites_subtitle,
+      title: context.l10n.insights_marineLife_bestSites_title,
+      subtitle: context.l10n.insights_marineLife_bestSites_subtitle,
       child: sitesAsync.when(
         data: (data) {
           final summary = data.isNotEmpty
-              ? context.l10n.statistics_marineLife_bestSites_summary(
+              ? context.l10n.insights_marineLife_bestSites_summary(
                   data.length,
                   data.first.name,
                   data.first.count,
                 )
-              : context.l10n.statistics_marineLife_bestSites_empty;
+              : context.l10n.insights_marineLife_bestSites_empty;
           return Semantics(
             label: summary,
             child: RankingList(
               items: data,
-              countLabel: context.l10n.statistics_ranking_countLabel_species,
+              countLabel: context.l10n.insights_ranking_countLabel_species,
               maxItems: 10,
               onItemTap: (item) => context.push('/sites/${item.id}'),
             ),
@@ -168,7 +166,7 @@ class InsightsMarineLifePage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_marineLife_bestSites_error,
+          message: context.l10n.insights_marineLife_bestSites_error,
         ),
       ),
     );

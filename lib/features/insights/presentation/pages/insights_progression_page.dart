@@ -50,7 +50,7 @@ class InsightsProgressionPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.statistics_progression_appBar_title),
+        title: Text(context.l10n.insights_progression_appBar_title),
         actions: const [InsightsFilterAction()],
       ),
       // Expanded is required: content is a SingleChildScrollView, and a
@@ -72,10 +72,10 @@ class InsightsProgressionPage extends ConsumerWidget {
     return TrendChartSection(
       chartId: TrendChartIds.depth,
       onDiveSelected: (diveId) => context.push('/dives/$diveId'),
-      title: context.l10n.statistics_progression_depthProgression_title,
-      subtitle: context.l10n.statistics_progression_depthProgression_subtitle,
+      title: context.l10n.insights_progression_depthProgression_title,
+      subtitle: context.l10n.insights_progression_depthProgression_subtitle,
       pointsAsync: ref.watch(depthProgressionTrendProvider),
-      errorMessage: context.l10n.statistics_progression_depthProgression_error,
+      errorMessage: context.l10n.insights_progression_depthProgression_error,
       lineColor: Colors.indigo,
       valueFormatter: (value) => units.formatDepth(value),
       rateFormatter: (value) => units.formatDepth(value),
@@ -89,10 +89,10 @@ class InsightsProgressionPage extends ConsumerWidget {
     return TrendChartSection(
       chartId: TrendChartIds.bottomTime,
       onDiveSelected: (diveId) => context.push('/dives/$diveId'),
-      title: context.l10n.statistics_progression_bottomTime_title,
-      subtitle: context.l10n.statistics_progression_bottomTime_subtitle,
+      title: context.l10n.insights_progression_bottomTime_title,
+      subtitle: context.l10n.insights_progression_bottomTime_subtitle,
       pointsAsync: ref.watch(bottomTimeTrendProvider),
-      errorMessage: context.l10n.statistics_progression_bottomTime_error,
+      errorMessage: context.l10n.insights_progression_bottomTime_error,
       lineColor: Colors.teal,
       valueFormatter: minutes,
       rateFormatter: minutes,
@@ -103,14 +103,14 @@ class InsightsProgressionPage extends ConsumerWidget {
     final divesPerYearAsync = ref.watch(divesPerYearProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_progression_divesPerYear_title,
-      subtitle: context.l10n.statistics_progression_divesPerYear_subtitle,
+      title: context.l10n.insights_progression_divesPerYear_title,
+      subtitle: context.l10n.insights_progression_divesPerYear_subtitle,
       child: divesPerYearAsync.when(
         data: (data) {
           if (data.isEmpty) {
             return StatEmptyState(
               icon: Icons.bar_chart,
-              message: context.l10n.statistics_progression_divesPerYear_empty,
+              message: context.l10n.insights_progression_divesPerYear_empty,
             );
           }
           final chartData = data
@@ -118,16 +118,17 @@ class InsightsProgressionPage extends ConsumerWidget {
               .toList();
           final description = data
               .map(
-                (d) => context.l10n
-                    .statistics_progression_divesPerYear_countInYear(
+                (d) =>
+                    context.l10n.insights_progression_divesPerYear_countInYear(
                       d.count,
                       '${d.year}',
                     ),
               )
               .join(', ');
           return Semantics(
-            label: context.l10n
-                .statistics_progression_divesPerYear_semanticLabel(description),
+            label: context.l10n.insights_progression_divesPerYear_semanticLabel(
+              description,
+            ),
             child: CategoryBarChart(
               data: chartData,
               barColor: Theme.of(context).colorScheme.primary,
@@ -144,7 +145,7 @@ class InsightsProgressionPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_progression_divesPerYear_error,
+          message: context.l10n.insights_progression_divesPerYear_error,
         ),
       ),
     );
@@ -162,9 +163,8 @@ class InsightsProgressionPage extends ConsumerWidget {
         mm == mm.roundToDouble() ? '${mm.toStringAsFixed(0)} mm' : '$mm mm';
 
     return StatSectionCard(
-      title: context.l10n.statistics_progression_divesBySuitThickness_title,
-      subtitle:
-          context.l10n.statistics_progression_divesBySuitThickness_subtitle,
+      title: context.l10n.insights_progression_divesBySuitThickness_title,
+      subtitle: context.l10n.insights_progression_divesBySuitThickness_subtitle,
       child: thicknessAsync.when(
         data: (stats) {
           // Thickness bars ascending, then the suits a thickness cannot
@@ -176,7 +176,7 @@ class InsightsProgressionPage extends ConsumerWidget {
               (
                 label: context
                     .l10n
-                    .statistics_progression_divesBySuitThickness_unknown,
+                    .insights_progression_divesBySuitThickness_unknown,
                 count: stats.unknownThicknessCount,
               ),
             if (stats.drysuitCount > 0)
@@ -188,9 +188,8 @@ class InsightsProgressionPage extends ConsumerWidget {
           if (chartData.isEmpty) {
             return StatEmptyState(
               icon: Icons.bar_chart,
-              message: context
-                  .l10n
-                  .statistics_progression_divesBySuitThickness_empty,
+              message:
+                  context.l10n.insights_progression_divesBySuitThickness_empty,
             );
           }
           // Locale-neutral label:count pairs so the screen-reader summary
@@ -200,7 +199,7 @@ class InsightsProgressionPage extends ConsumerWidget {
               .join(', ');
           return Semantics(
             label: context.l10n
-                .statistics_progression_divesBySuitThickness_semanticLabel(
+                .insights_progression_divesBySuitThickness_semanticLabel(
                   description,
                 ),
             child: CategoryBarChart(
@@ -215,8 +214,7 @@ class InsightsProgressionPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message:
-              context.l10n.statistics_progression_divesBySuitThickness_error,
+          message: context.l10n.insights_progression_divesBySuitThickness_error,
         ),
       ),
     );
@@ -226,8 +224,8 @@ class InsightsProgressionPage extends ConsumerWidget {
     final cumulativeAsync = ref.watch(cumulativeDiveCountProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_progression_cumulative_title,
-      subtitle: context.l10n.statistics_progression_cumulative_subtitle,
+      title: context.l10n.insights_progression_cumulative_title,
+      subtitle: context.l10n.insights_progression_cumulative_subtitle,
       child: cumulativeAsync.when(
         // A date axis, not the index axis: the count now steps once per dive,
         // so a trip is a run of steps rather than one. No aggregation or fit
@@ -244,7 +242,7 @@ class InsightsProgressionPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_progression_cumulative_error,
+          message: context.l10n.insights_progression_cumulative_error,
         ),
       ),
     );

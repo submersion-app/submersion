@@ -53,11 +53,11 @@ class TrendControlStrip extends StatelessWidget {
   String _modeLabel(BuildContext context, TrendAggregation mode) {
     switch (mode) {
       case TrendAggregation.none:
-        return context.l10n.statistics_trend_aggregation_perDive;
+        return context.l10n.insights_trend_aggregation_perDive;
       case TrendAggregation.weekly:
-        return context.l10n.statistics_trend_aggregation_weekly;
+        return context.l10n.insights_trend_aggregation_weekly;
       case TrendAggregation.monthly:
-        return context.l10n.statistics_trend_aggregation_monthly;
+        return context.l10n.insights_trend_aggregation_monthly;
     }
   }
 
@@ -75,7 +75,7 @@ class TrendControlStrip extends StatelessWidget {
         children: [
           PopupMenuButton<TrendAggregation>(
             key: ValueKey('trend-aggregation-$chartId'),
-            tooltip: context.l10n.statistics_trend_aggregation_tooltip,
+            tooltip: context.l10n.insights_trend_aggregation_tooltip,
             initialValue: aggregation,
             onSelected: onAggregationChanged,
             itemBuilder: (context) => TrendAggregation.values
@@ -110,7 +110,7 @@ class TrendControlStrip extends StatelessWidget {
           _LegendToggle(
             toggleKey: ValueKey('trend-legend-rolling-$chartId'),
             color: rollingColor,
-            label: context.l10n.statistics_trend_legend_rollingAverage,
+            label: context.l10n.insights_trend_legend_rollingAverage,
             enabled: showRollingMean,
             onTap: onToggleRollingMean,
           ),
@@ -118,8 +118,8 @@ class TrendControlStrip extends StatelessWidget {
             toggleKey: ValueKey('trend-legend-rate-$chartId'),
             color: rateColor,
             label: showLinearFit && rate != null
-                ? context.l10n.statistics_trend_rate_perYear(rate)
-                : context.l10n.statistics_trend_legend_rate,
+                ? context.l10n.insights_trend_rate_perYear(rate)
+                : context.l10n.insights_trend_legend_rate,
             enabled: showLinearFit,
             onTap: onToggleLinearFit,
           ),

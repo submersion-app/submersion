@@ -89,12 +89,12 @@ class InsightsMobileContent extends ConsumerWidget {
       appBar: AppBar(
         title: FeatureAppBarTitle(
           featureId: 'insights',
-          title: context.l10n.statistics_appBar_title,
+          title: context.l10n.insights_appBar_title,
         ),
         actions: [
           IconButton(
             icon: const Icon(Icons.emoji_events),
-            tooltip: context.l10n.statistics_tooltip_diveRecords,
+            tooltip: context.l10n.insights_tooltip_diveRecords,
             onPressed: () => context.push('/records'),
           ),
           const InsightsFilterAction(),

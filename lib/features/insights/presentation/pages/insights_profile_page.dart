@@ -38,7 +38,7 @@ class InsightsProfilePage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.statistics_profile_appBar_title)),
+      appBar: AppBar(title: Text(context.l10n.insights_profile_appBar_title)),
       body: content,
     );
   }
@@ -51,14 +51,14 @@ class InsightsProfilePage extends ConsumerWidget {
     final ratesAsync = ref.watch(ascentDescentRatesProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_profile_ascentDescent_title,
-      subtitle: context.l10n.statistics_profile_ascentDescent_subtitle,
+      title: context.l10n.insights_profile_ascentDescent_title,
+      subtitle: context.l10n.insights_profile_ascentDescent_subtitle,
       child: ratesAsync.when(
         data: (data) {
           if (data.avgAscent == null && data.avgDescent == null) {
             return StatEmptyState(
               icon: Icons.trending_up,
-              message: context.l10n.statistics_profile_ascentDescent_empty,
+              message: context.l10n.insights_profile_ascentDescent_empty,
             );
           }
 
@@ -68,7 +68,7 @@ class InsightsProfilePage extends ConsumerWidget {
                 Expanded(
                   child: _buildRateStat(
                     context,
-                    context.l10n.statistics_profile_avgAscent,
+                    context.l10n.insights_profile_avgAscent,
                     '${units.convertDepth(data.avgAscent!).toStringAsFixed(1)} ${units.depthSymbol}/min',
                     Icons.arrow_upward,
                     Colors.green,
@@ -80,7 +80,7 @@ class InsightsProfilePage extends ConsumerWidget {
                 Expanded(
                   child: _buildRateStat(
                     context,
-                    context.l10n.statistics_profile_avgDescent,
+                    context.l10n.insights_profile_avgDescent,
                     '${units.convertDepth(data.avgDescent!).toStringAsFixed(1)} ${units.depthSymbol}/min',
                     Icons.arrow_downward,
                     Colors.blue,
@@ -95,7 +95,7 @@ class InsightsProfilePage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_profile_ascentDescent_error,
+          message: context.l10n.insights_profile_ascentDescent_error,
         ),
       ),
     );
@@ -148,14 +148,14 @@ class InsightsProfilePage extends ConsumerWidget {
     final depthRangesAsync = ref.watch(timeAtDepthRangesProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_profile_timeAtDepth_title,
-      subtitle: context.l10n.statistics_profile_timeAtDepth_subtitle,
+      title: context.l10n.insights_profile_timeAtDepth_title,
+      subtitle: context.l10n.insights_profile_timeAtDepth_subtitle,
       child: depthRangesAsync.when(
         data: (data) {
           if (data.isEmpty) {
             return StatEmptyState(
               icon: Icons.layers,
-              message: context.l10n.statistics_profile_timeAtDepth_empty,
+              message: context.l10n.insights_profile_timeAtDepth_empty,
             );
           }
           // The repository emits numeric bucket edges in meters; convert to
@@ -171,7 +171,7 @@ class InsightsProfilePage extends ConsumerWidget {
             }).toList(),
             barColor: Colors.indigo,
             valueFormatter: (value) =>
-                context.l10n.statistics_profile_timeAtDepth_valueFormat(value),
+                context.l10n.insights_profile_timeAtDepth_valueFormat(value),
             xAxisLabel: units.depthSymbol,
             yAxisLabel: context.l10n.units_profileMetric_min,
           );
@@ -182,7 +182,7 @@ class InsightsProfilePage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_profile_timeAtDepth_error,
+          message: context.l10n.insights_profile_timeAtDepth_error,
         ),
       ),
     );
@@ -192,8 +192,8 @@ class InsightsProfilePage extends ConsumerWidget {
     final decoAsync = ref.watch(decoObligationStatsProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_profile_deco_title,
-      subtitle: context.l10n.statistics_profile_deco_subtitle,
+      title: context.l10n.insights_profile_deco_title,
+      subtitle: context.l10n.insights_profile_deco_subtitle,
       child: decoAsync.when(
         data: (data) {
           // The rate is over classified dives only. Dives whose source
@@ -205,7 +205,7 @@ class InsightsProfilePage extends ConsumerWidget {
           if (classified == 0 && data.unknownCount == 0) {
             return StatEmptyState(
               icon: Icons.stop_circle,
-              message: context.l10n.statistics_profile_deco_empty,
+              message: context.l10n.insights_profile_deco_empty,
             );
           }
 
@@ -220,19 +220,19 @@ class InsightsProfilePage extends ConsumerWidget {
                 children: [
                   _buildDecoStat(
                     context,
-                    context.l10n.statistics_profile_deco_decoDives,
+                    context.l10n.insights_profile_deco_decoDives,
                     data.decoCount.toString(),
                     Colors.orange,
                   ),
                   _buildDecoStat(
                     context,
-                    context.l10n.statistics_profile_deco_noDeco,
+                    context.l10n.insights_profile_deco_noDeco,
                     data.noDecoCount.toString(),
                     Colors.green,
                   ),
                   _buildDecoStat(
                     context,
-                    context.l10n.statistics_profile_deco_decoRate,
+                    context.l10n.insights_profile_deco_decoRate,
                     '${percentage.toStringAsFixed(1)}%',
                     Colors.blue,
                   ),
@@ -241,7 +241,7 @@ class InsightsProfilePage extends ConsumerWidget {
               if (data.unknownCount > 0) ...[
                 const SizedBox(height: 8),
                 Text(
-                  context.l10n.statistics_profile_deco_notRecordedHint(
+                  context.l10n.insights_profile_deco_notRecordedHint(
                     data.unknownCount,
                   ),
                   textAlign: TextAlign.center,
@@ -252,7 +252,7 @@ class InsightsProfilePage extends ConsumerWidget {
               ],
               const SizedBox(height: 16),
               Semantics(
-                label: context.l10n.statistics_profile_deco_semanticLabel(
+                label: context.l10n.insights_profile_deco_semanticLabel(
                   percentage.toStringAsFixed(1),
                 ),
                 child: ClipRRect(
@@ -276,13 +276,13 @@ class InsightsProfilePage extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      context.l10n.statistics_profile_deco_decoLabel,
+                      context.l10n.insights_profile_deco_decoLabel,
                       style: Theme.of(
                         context,
                       ).textTheme.bodySmall?.copyWith(color: Colors.orange),
                     ),
                     Text(
-                      context.l10n.statistics_profile_deco_noDeco,
+                      context.l10n.insights_profile_deco_noDeco,
                       style: Theme.of(
                         context,
                       ).textTheme.bodySmall?.copyWith(color: Colors.green),
@@ -299,7 +299,7 @@ class InsightsProfilePage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_profile_deco_error,
+          message: context.l10n.insights_profile_deco_error,
         ),
       ),
     );

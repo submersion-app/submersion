@@ -37,7 +37,7 @@ class RankingList extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                context.l10n.statistics_ranking_emptyState,
+                context.l10n.insights_ranking_emptyState,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -70,9 +70,7 @@ class RankingList extends StatelessWidget {
           const SizedBox(height: 8),
           Center(
             child: Text(
-              context.l10n.statistics_ranking_moreItems(
-                items.length - maxItems!,
-              ),
+              context.l10n.insights_ranking_moreItems(items.length - maxItems!),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -178,7 +176,7 @@ class _RankingTile extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        context.l10n.statistics_ranking_itemCount(
+                        context.l10n.insights_ranking_itemCount(
                           item.count,
                           countLabel,
                         ),
@@ -227,7 +225,7 @@ class _RankingTile extends StatelessWidget {
     if (onTap != null) {
       tile = Semantics(
         button: true,
-        label: context.l10n.statistics_ranking_semanticLabel(
+        label: context.l10n.insights_ranking_semanticLabel(
           item.name,
           rank,
           item.count,

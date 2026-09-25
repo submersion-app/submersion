@@ -25,7 +25,7 @@ class InsightsFilterAction extends ConsumerWidget {
         isLabelVisible: ref.watch(insightsFilterProvider).hasActiveFilters,
         child: Icon(Icons.filter_list, size: iconSize),
       ),
-      tooltip: context.l10n.statistics_tooltip_filter,
+      tooltip: context.l10n.insights_tooltip_filter,
       onPressed: () => showModalBottomSheet(
         context: context,
         isScrollControlled: true,

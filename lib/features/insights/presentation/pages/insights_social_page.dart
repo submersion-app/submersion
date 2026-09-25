@@ -35,7 +35,7 @@ class InsightsSocialPage extends ConsumerWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.statistics_social_appBar_title)),
+      appBar: AppBar(title: Text(context.l10n.insights_social_appBar_title)),
       body: content,
     );
   }
@@ -44,15 +44,15 @@ class InsightsSocialPage extends ConsumerWidget {
     final soloVsBuddyAsync = ref.watch(soloVsBuddyCountProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_social_soloVsBuddy_title,
-      subtitle: context.l10n.statistics_social_soloVsBuddy_subtitle,
+      title: context.l10n.insights_social_soloVsBuddy_title,
+      subtitle: context.l10n.insights_social_soloVsBuddy_subtitle,
       child: soloVsBuddyAsync.when(
         data: (data) {
           final total = data.solo + data.buddy + data.notRecorded;
           if (total == 0) {
             return StatEmptyState(
               icon: Icons.people,
-              message: context.l10n.statistics_social_soloVsBuddy_empty,
+              message: context.l10n.insights_social_soloVsBuddy_empty,
             );
           }
 
@@ -61,18 +61,18 @@ class InsightsSocialPage extends ConsumerWidget {
           return DistributionPieChart(
             data: [
               DistributionSegment(
-                label: context.l10n.statistics_social_soloVsBuddy_withBuddy,
+                label: context.l10n.insights_social_soloVsBuddy_withBuddy,
                 count: data.buddy,
                 percentage: data.buddy / total * 100,
               ),
               DistributionSegment(
-                label: context.l10n.statistics_social_soloVsBuddy_solo,
+                label: context.l10n.insights_social_soloVsBuddy_solo,
                 count: data.solo,
                 percentage: data.solo / total * 100,
               ),
               if (data.notRecorded > 0)
                 DistributionSegment(
-                  label: context.l10n.statistics_chart_notRecorded,
+                  label: context.l10n.insights_chart_notRecorded,
                   count: data.notRecorded,
                   percentage: data.notRecorded / total * 100,
                 ),
@@ -86,7 +86,7 @@ class InsightsSocialPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_social_soloVsBuddy_error,
+          message: context.l10n.insights_social_soloVsBuddy_error,
         ),
       ),
     );
@@ -96,12 +96,12 @@ class InsightsSocialPage extends ConsumerWidget {
     final topBuddiesAsync = ref.watch(topBuddiesProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_social_topBuddies_title,
-      subtitle: context.l10n.statistics_social_topBuddies_subtitle,
+      title: context.l10n.insights_social_topBuddies_title,
+      subtitle: context.l10n.insights_social_topBuddies_subtitle,
       child: topBuddiesAsync.when(
         data: (data) => RankingList(
           items: data,
-          countLabel: context.l10n.statistics_ranking_countLabel_dives,
+          countLabel: context.l10n.insights_ranking_countLabel_dives,
           maxItems: 5,
           onItemTap: (item) => context.push('/buddies/${item.id}'),
         ),
@@ -111,7 +111,7 @@ class InsightsSocialPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_social_topBuddies_error,
+          message: context.l10n.insights_social_topBuddies_error,
         ),
       ),
     );
@@ -121,12 +121,12 @@ class InsightsSocialPage extends ConsumerWidget {
     final topCentersAsync = ref.watch(topDiveCentersProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_social_topDiveCenters_title,
-      subtitle: context.l10n.statistics_social_topDiveCenters_subtitle,
+      title: context.l10n.insights_social_topDiveCenters_title,
+      subtitle: context.l10n.insights_social_topDiveCenters_subtitle,
       child: topCentersAsync.when(
         data: (data) => RankingList(
           items: data,
-          countLabel: context.l10n.statistics_ranking_countLabel_dives,
+          countLabel: context.l10n.insights_ranking_countLabel_dives,
           maxItems: 5,
           onItemTap: (item) => context.push('/dive-centers/${item.id}'),
         ),
@@ -136,7 +136,7 @@ class InsightsSocialPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_social_topDiveCenters_error,
+          message: context.l10n.insights_social_topDiveCenters_error,
         ),
       ),
     );

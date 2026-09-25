@@ -34,7 +34,7 @@ class InsightsGeographicPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.statistics_geographic_appBar_title),
+        title: Text(context.l10n.insights_geographic_appBar_title),
       ),
       body: content,
     );
@@ -44,22 +44,22 @@ class InsightsGeographicPage extends ConsumerWidget {
     final countriesAsync = ref.watch(countriesVisitedProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_geographic_countries_title,
-      subtitle: context.l10n.statistics_geographic_countries_subtitle,
+      title: context.l10n.insights_geographic_countries_title,
+      subtitle: context.l10n.insights_geographic_countries_subtitle,
       child: countriesAsync.when(
         data: (data) {
           final summary = data.isNotEmpty
-              ? context.l10n.statistics_geographic_countries_summary(
+              ? context.l10n.insights_geographic_countries_summary(
                   data.length,
                   data.first.name,
                   data.first.count,
                 )
-              : context.l10n.statistics_geographic_countries_empty;
+              : context.l10n.insights_geographic_countries_empty;
           return Semantics(
             label: summary,
             child: RankingList(
               items: data,
-              countLabel: context.l10n.statistics_ranking_countLabel_dives,
+              countLabel: context.l10n.insights_ranking_countLabel_dives,
               maxItems: 10,
             ),
           );
@@ -70,7 +70,7 @@ class InsightsGeographicPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_geographic_countries_error,
+          message: context.l10n.insights_geographic_countries_error,
         ),
       ),
     );
@@ -80,22 +80,22 @@ class InsightsGeographicPage extends ConsumerWidget {
     final regionsAsync = ref.watch(regionsExploredProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_geographic_regions_title,
-      subtitle: context.l10n.statistics_geographic_regions_subtitle,
+      title: context.l10n.insights_geographic_regions_title,
+      subtitle: context.l10n.insights_geographic_regions_subtitle,
       child: regionsAsync.when(
         data: (data) {
           final summary = data.isNotEmpty
-              ? context.l10n.statistics_geographic_regions_summary(
+              ? context.l10n.insights_geographic_regions_summary(
                   data.length,
                   data.first.name,
                   data.first.count,
                 )
-              : context.l10n.statistics_geographic_regions_empty;
+              : context.l10n.insights_geographic_regions_empty;
           return Semantics(
             label: summary,
             child: RankingList(
               items: data,
-              countLabel: context.l10n.statistics_ranking_countLabel_dives,
+              countLabel: context.l10n.insights_ranking_countLabel_dives,
               maxItems: 10,
             ),
           );
@@ -106,7 +106,7 @@ class InsightsGeographicPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_geographic_regions_error,
+          message: context.l10n.insights_geographic_regions_error,
         ),
       ),
     );
@@ -116,22 +116,22 @@ class InsightsGeographicPage extends ConsumerWidget {
     final tripsAsync = ref.watch(divesPerTripProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_geographic_trips_title,
-      subtitle: context.l10n.statistics_geographic_trips_subtitle,
+      title: context.l10n.insights_geographic_trips_title,
+      subtitle: context.l10n.insights_geographic_trips_subtitle,
       child: tripsAsync.when(
         data: (data) {
           final summary = data.isNotEmpty
-              ? context.l10n.statistics_geographic_trips_summary(
+              ? context.l10n.insights_geographic_trips_summary(
                   data.length,
                   data.first.name,
                   data.first.count,
                 )
-              : context.l10n.statistics_geographic_trips_empty;
+              : context.l10n.insights_geographic_trips_empty;
           return Semantics(
             label: summary,
             child: RankingList(
               items: data,
-              countLabel: context.l10n.statistics_ranking_countLabel_dives,
+              countLabel: context.l10n.insights_ranking_countLabel_dives,
               maxItems: 10,
               onItemTap: (item) => context.push('/trips/${item.id}'),
             ),
@@ -143,7 +143,7 @@ class InsightsGeographicPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_geographic_trips_error,
+          message: context.l10n.insights_geographic_trips_error,
         ),
       ),
     );

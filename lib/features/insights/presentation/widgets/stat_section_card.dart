@@ -72,7 +72,7 @@ class StatSectionCard extends StatelessWidget {
     if (onTap != null) {
       return Semantics(
         button: true,
-        label: context.l10n.statistics_sectionCard_semanticLabel(title),
+        label: context.l10n.insights_sectionCard_semanticLabel(title),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -144,7 +144,7 @@ class StatValueCard extends StatelessWidget {
     if (onTap != null) {
       return Semantics(
         button: true,
-        label: context.l10n.statistics_valueCard_semanticLabel(label, value),
+        label: context.l10n.insights_valueCard_semanticLabel(label, value),
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
@@ -184,7 +184,7 @@ class StatCategoryCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: Semantics(
         button: true,
-        label: context.l10n.statistics_categoryCard_semanticLabel(title),
+        label: context.l10n.insights_categoryCard_semanticLabel(title),
         child: InkWell(
           onTap: onTap,
           child: Padding(

@@ -48,23 +48,23 @@ class WaterTempBandMetricsTable extends ConsumerWidget {
         ExcludeSemantics(
           child: _row(
             band: Text(
-              l10n.statistics_conditions_waterTempBands_table_band,
+              l10n.insights_conditions_waterTempBands_table_band,
               style: headerStyle,
             ),
             dives: Text(
-              l10n.statistics_conditions_waterTempBands_table_dives,
+              l10n.insights_conditions_waterTempBands_table_dives,
               style: headerStyle,
               textAlign: TextAlign.end,
             ),
             consumption: Text(
               isRmv
-                  ? l10n.statistics_conditions_waterTempBands_table_avgRmv
-                  : l10n.statistics_conditions_waterTempBands_table_avgSac,
+                  ? l10n.insights_conditions_waterTempBands_table_avgRmv
+                  : l10n.insights_conditions_waterTempBands_table_avgSac,
               style: headerStyle,
               textAlign: TextAlign.end,
             ),
             bottomTime: Text(
-              l10n.statistics_conditions_waterTempBands_table_avgBottomTime,
+              l10n.insights_conditions_waterTempBands_table_avgBottomTime,
               style: headerStyle,
               textAlign: TextAlign.end,
             ),
@@ -101,18 +101,18 @@ class WaterTempBandMetricsTable extends ConsumerWidget {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
     String spoken(String? value, int dives) => value == null
-        ? l10n.statistics_conditions_waterTempBands_table_noData
-        : l10n.statistics_conditions_waterTempBands_table_averageOver(
+        ? l10n.insights_conditions_waterTempBands_table_noData
+        : l10n.insights_conditions_waterTempBands_table_averageOver(
             value,
-            l10n.statistics_summary_tagUsage_diveCount(dives),
+            l10n.insights_summary_tagUsage_diveCount(dives),
           );
 
     return Semantics(
       container: true,
       excludeSemantics: true,
-      label: l10n.statistics_conditions_waterTempBands_table_rowSemanticLabel(
+      label: l10n.insights_conditions_waterTempBands_table_rowSemanticLabel(
         label,
-        l10n.statistics_summary_tagUsage_diveCount(band.diveCount),
+        l10n.insights_summary_tagUsage_diveCount(band.diveCount),
         laneName,
         spoken(consumption, band.sacDiveCount),
         spoken(bottomTime, band.bottomTimeDiveCount),
@@ -197,7 +197,7 @@ class _AverageCell extends StatelessWidget {
           textAlign: TextAlign.end,
         ),
         Text(
-          l10n.statistics_summary_tagUsage_diveCount(diveCount),
+          l10n.insights_summary_tagUsage_diveCount(diveCount),
           style: theme.textTheme.bodySmall?.copyWith(color: muted),
           textAlign: TextAlign.end,
         ),

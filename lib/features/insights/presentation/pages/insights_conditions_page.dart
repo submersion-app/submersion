@@ -59,7 +59,7 @@ class InsightsConditionsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.statistics_conditions_appBar_title),
+        title: Text(context.l10n.insights_conditions_appBar_title),
         actions: const [InsightsFilterAction()],
       ),
       // Expanded is required: content is a SingleChildScrollView, and a
@@ -77,8 +77,8 @@ class InsightsConditionsPage extends ConsumerWidget {
     final visibilityAsync = ref.watch(visibilityDistributionProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_conditions_visibility_title,
-      subtitle: context.l10n.statistics_conditions_visibility_subtitle,
+      title: context.l10n.insights_conditions_visibility_title,
+      subtitle: context.l10n.insights_conditions_visibility_subtitle,
       child: visibilityAsync.when(
         data: (raw) {
           // The repository returns stable keys; localization happens here.
@@ -100,7 +100,7 @@ class InsightsConditionsPage extends ConsumerWidget {
               .map((d) => '${d.label}: ${d.percentage.toStringAsFixed(0)}%')
               .join(', ');
           return Semantics(
-            label: context.l10n.statistics_conditions_visibility_semanticLabel(
+            label: context.l10n.insights_conditions_visibility_semanticLabel(
               description,
             ),
             child: DistributionPieChart(
@@ -120,7 +120,7 @@ class InsightsConditionsPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_conditions_visibility_error,
+          message: context.l10n.insights_conditions_visibility_error,
         ),
       ),
     );
@@ -130,8 +130,8 @@ class InsightsConditionsPage extends ConsumerWidget {
     final waterTypeAsync = ref.watch(waterTypeDistributionProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_conditions_waterType_title,
-      subtitle: context.l10n.statistics_conditions_waterType_subtitle,
+      title: context.l10n.insights_conditions_waterType_title,
+      subtitle: context.l10n.insights_conditions_waterType_subtitle,
       child: waterTypeAsync.when(
         data: (raw) {
           // The repository emits stable WaterType enum names; localization
@@ -144,7 +144,7 @@ class InsightsConditionsPage extends ConsumerWidget {
               .map((d) => '${d.label}: ${d.percentage.toStringAsFixed(0)}%')
               .join(', ');
           return Semantics(
-            label: context.l10n.statistics_conditions_waterType_semanticLabel(
+            label: context.l10n.insights_conditions_waterType_semanticLabel(
               description,
             ),
             child: DistributionPieChart(
@@ -159,7 +159,7 @@ class InsightsConditionsPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_conditions_waterType_error,
+          message: context.l10n.insights_conditions_waterType_error,
         ),
       ),
     );
@@ -183,8 +183,8 @@ class InsightsConditionsPage extends ConsumerWidget {
     final typesById = ref.watch(siteTypesByIdProvider).value ?? const {};
 
     return StatSectionCard(
-      title: context.l10n.statistics_conditions_siteType_title,
-      subtitle: context.l10n.statistics_conditions_siteType_subtitle,
+      title: context.l10n.insights_conditions_siteType_title,
+      subtitle: context.l10n.insights_conditions_siteType_subtitle,
       child: distAsync.when(
         data: (raw) {
           // The repository emits a built-in's slug, translated here, and a
@@ -201,7 +201,7 @@ class InsightsConditionsPage extends ConsumerWidget {
               .map((d) => '${d.label}: ${d.count}')
               .join(', ');
           return Semantics(
-            label: context.l10n.statistics_conditions_siteType_semanticLabel(
+            label: context.l10n.insights_conditions_siteType_semanticLabel(
               description,
             ),
             child: HorizontalCategoryBarChart(
@@ -216,7 +216,7 @@ class InsightsConditionsPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_conditions_siteType_error,
+          message: context.l10n.insights_conditions_siteType_error,
         ),
       ),
     );
@@ -226,14 +226,14 @@ class InsightsConditionsPage extends ConsumerWidget {
     final entryMethodAsync = ref.watch(entryMethodDistributionProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_conditions_entryMethod_title,
-      subtitle: context.l10n.statistics_conditions_entryMethod_subtitle,
+      title: context.l10n.insights_conditions_entryMethod_title,
+      subtitle: context.l10n.insights_conditions_entryMethod_subtitle,
       child: entryMethodAsync.when(
         data: (data) {
           if (data.isEmpty) {
             return StatEmptyState(
               icon: Icons.directions_boat,
-              message: context.l10n.statistics_conditions_entryMethod_empty,
+              message: context.l10n.insights_conditions_entryMethod_empty,
             );
           }
           final l10n = context.l10n;
@@ -249,11 +249,11 @@ class InsightsConditionsPage extends ConsumerWidget {
           final description = chartData
               .map(
                 (d) =>
-                    '${d.label}: ${l10n.statistics_summary_tagUsage_diveCount(d.count)}',
+                    '${d.label}: ${l10n.insights_summary_tagUsage_diveCount(d.count)}',
               )
               .join(', ');
           return Semantics(
-            label: l10n.statistics_conditions_entryMethod_semanticLabel(
+            label: l10n.insights_conditions_entryMethod_semanticLabel(
               description,
             ),
             child: CategoryBarChart(data: chartData, barColor: Colors.teal),
@@ -265,7 +265,7 @@ class InsightsConditionsPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_conditions_entryMethod_error,
+          message: context.l10n.insights_conditions_entryMethod_error,
         ),
       ),
     );
@@ -285,10 +285,10 @@ class InsightsConditionsPage extends ConsumerWidget {
     return TrendChartSection(
       chartId: TrendChartIds.waterTemp,
       onDiveSelected: (diveId) => context.push('/dives/$diveId'),
-      title: context.l10n.statistics_conditions_tempTrend_title,
-      subtitle: context.l10n.statistics_conditions_tempTrend_subtitle,
+      title: context.l10n.insights_conditions_tempTrend_title,
+      subtitle: context.l10n.insights_conditions_tempTrend_subtitle,
       pointsAsync: ref.watch(waterTempTrendProvider),
-      errorMessage: context.l10n.statistics_conditions_tempTrend_error,
+      errorMessage: context.l10n.insights_conditions_tempTrend_error,
       lineColor: Colors.teal,
       valueFormatter: (value) => units.formatTemperature(value),
       rateFormatter: (value) => units.formatTemperature(value),
@@ -303,30 +303,30 @@ class InsightsConditionsPage extends ConsumerWidget {
     final temperatureAsync = ref.watch(temperatureByMonthProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_conditions_temperature_title,
-      subtitle: context.l10n.statistics_conditions_temperature_subtitle,
+      title: context.l10n.insights_conditions_temperature_title,
+      subtitle: context.l10n.insights_conditions_temperature_subtitle,
       child: temperatureAsync.when(
         data: (data) {
           if (data.isEmpty) {
             return StatEmptyState(
               icon: Icons.thermostat,
-              message: context.l10n.statistics_conditions_temperature_empty,
+              message: context.l10n.insights_conditions_temperature_empty,
             );
           }
 
           final months = [
-            context.l10n.statistics_timePatterns_month_jan,
-            context.l10n.statistics_timePatterns_month_feb,
-            context.l10n.statistics_timePatterns_month_mar,
-            context.l10n.statistics_timePatterns_month_apr,
-            context.l10n.statistics_timePatterns_month_may,
-            context.l10n.statistics_timePatterns_month_jun,
-            context.l10n.statistics_timePatterns_month_jul,
-            context.l10n.statistics_timePatterns_month_aug,
-            context.l10n.statistics_timePatterns_month_sep,
-            context.l10n.statistics_timePatterns_month_oct,
-            context.l10n.statistics_timePatterns_month_nov,
-            context.l10n.statistics_timePatterns_month_dec,
+            context.l10n.insights_timePatterns_month_jan,
+            context.l10n.insights_timePatterns_month_feb,
+            context.l10n.insights_timePatterns_month_mar,
+            context.l10n.insights_timePatterns_month_apr,
+            context.l10n.insights_timePatterns_month_may,
+            context.l10n.insights_timePatterns_month_jun,
+            context.l10n.insights_timePatterns_month_jul,
+            context.l10n.insights_timePatterns_month_aug,
+            context.l10n.insights_timePatterns_month_sep,
+            context.l10n.insights_timePatterns_month_oct,
+            context.l10n.insights_timePatterns_month_nov,
+            context.l10n.insights_timePatterns_month_dec,
           ];
 
           List<TrendDataPoint> toTrendData(double? Function(dynamic) selector) {
@@ -346,9 +346,9 @@ class InsightsConditionsPage extends ConsumerWidget {
           return MultiTrendLineChart(
             dataSeries: [minData, avgData, maxData],
             seriesLabels: [
-              context.l10n.statistics_conditions_temperature_seriesMin,
-              context.l10n.statistics_conditions_temperature_seriesAvg,
-              context.l10n.statistics_conditions_temperature_seriesMax,
+              context.l10n.insights_conditions_temperature_seriesMin,
+              context.l10n.insights_conditions_temperature_seriesAvg,
+              context.l10n.insights_conditions_temperature_seriesMax,
             ],
             seriesColors: const [Colors.blue, Colors.green, Colors.red],
             valueFormatter: (value) => units.formatTemperature(value),
@@ -360,7 +360,7 @@ class InsightsConditionsPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_conditions_temperature_error,
+          message: context.l10n.insights_conditions_temperature_error,
         ),
       ),
     );
@@ -380,14 +380,14 @@ class InsightsConditionsPage extends ConsumerWidget {
     final l10n = context.l10n;
 
     return StatSectionCard(
-      title: l10n.statistics_conditions_waterTempBands_title,
-      subtitle: l10n.statistics_conditions_waterTempBands_subtitle,
+      title: l10n.insights_conditions_waterTempBands_title,
+      subtitle: l10n.insights_conditions_waterTempBands_subtitle,
       child: bandsAsync.when(
         data: (bands) {
           if (bands.isEmpty) {
             return StatEmptyState(
               icon: Icons.thermostat,
-              message: l10n.statistics_conditions_waterTempBands_empty,
+              message: l10n.insights_conditions_waterTempBands_empty,
             );
           }
           final symbol = units.temperatureSymbol;
@@ -401,20 +401,20 @@ class InsightsConditionsPage extends ConsumerWidget {
           final description = chartData
               .map(
                 (d) =>
-                    '${d.label}$symbol: ${l10n.statistics_summary_tagUsage_diveCount(d.count)}',
+                    '${d.label}$symbol: ${l10n.insights_summary_tagUsage_diveCount(d.count)}',
               )
               .join(', ');
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Semantics(
-                label: l10n.statistics_conditions_waterTempBands_semanticLabel(
+                label: l10n.insights_conditions_waterTempBands_semanticLabel(
                   description,
                 ),
                 child: CategoryBarChart(
                   data: chartData,
                   barColor: Colors.cyan.shade600,
-                  valueFormatter: l10n.statistics_summary_tagUsage_diveCount,
+                  valueFormatter: l10n.insights_summary_tagUsage_diveCount,
                   xAxisLabel: symbol,
                 ),
               ),
@@ -428,7 +428,7 @@ class InsightsConditionsPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: l10n.statistics_conditions_waterTempBands_error,
+          message: l10n.insights_conditions_waterTempBands_error,
         ),
       ),
     );
@@ -454,7 +454,7 @@ class InsightsConditionsPage extends ConsumerWidget {
           error: (_, _) => StatEmptyState(
             icon: Icons.error_outline,
             message:
-                context.l10n.statistics_conditions_waterTempBands_table_error,
+                context.l10n.insights_conditions_waterTempBands_table_error,
           ),
         );
   }

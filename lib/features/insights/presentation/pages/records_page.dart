@@ -23,11 +23,11 @@ class RecordsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.statistics_records_appBar_title),
+        title: Text(context.l10n.insights_records_appBar_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: context.l10n.statistics_tooltip_refreshRecords,
+            tooltip: context.l10n.insights_tooltip_refreshRecords,
             onPressed: () => ref.invalidate(filteredDiveRecordsProvider),
           ),
         ],
@@ -49,12 +49,12 @@ class RecordsPage extends ConsumerWidget {
                       color: Theme.of(context).colorScheme.error,
                     ),
                     const SizedBox(height: 16),
-                    Text(context.l10n.statistics_records_error),
+                    Text(context.l10n.insights_records_error),
                     const SizedBox(height: 8),
                     FilledButton(
                       onPressed: () =>
                           ref.invalidate(filteredDiveRecordsProvider),
-                      child: Text(context.l10n.statistics_records_retry),
+                      child: Text(context.l10n.insights_records_retry),
                     ),
                   ],
                 ),
@@ -110,7 +110,7 @@ class RecordsPage extends ConsumerWidget {
             Text(
               filtered
                   ? context.l10n.diveLog_emptyFiltered_title
-                  : context.l10n.statistics_records_emptyTitle,
+                  : context.l10n.insights_records_emptyTitle,
               style: Theme.of(context).textTheme.headlineSmall,
               textAlign: TextAlign.center,
             ),
@@ -118,7 +118,7 @@ class RecordsPage extends ConsumerWidget {
             Text(
               filtered
                   ? context.l10n.diveLog_emptyFiltered_subtitle
-                  : context.l10n.statistics_records_emptySubtitle,
+                  : context.l10n.insights_records_emptySubtitle,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
@@ -136,7 +136,7 @@ class RecordsPage extends ConsumerWidget {
           _buildRecordCard(
             context,
             units,
-            title: context.l10n.statistics_records_deepestDive,
+            title: context.l10n.insights_records_deepestDive,
             icon: Icons.arrow_downward,
             color: Colors.blue,
             record: records.deepestDive!,
@@ -146,11 +146,11 @@ class RecordsPage extends ConsumerWidget {
           _buildRecordCard(
             context,
             units,
-            title: context.l10n.statistics_records_longestDive,
+            title: context.l10n.insights_records_longestDive,
             icon: Icons.timer,
             color: Colors.green,
             record: records.longestDive!,
-            value: context.l10n.statistics_records_longestDiveValue(
+            value: context.l10n.insights_records_longestDiveValue(
               records.longestDive!.effectiveRuntime?.inMinutes ?? 0,
             ),
           ),
@@ -158,7 +158,7 @@ class RecordsPage extends ConsumerWidget {
           _buildRecordCard(
             context,
             units,
-            title: context.l10n.statistics_records_coldestDive,
+            title: context.l10n.insights_records_coldestDive,
             icon: Icons.ac_unit,
             color: Colors.cyan,
             record: records.coldestDive!,
@@ -168,7 +168,7 @@ class RecordsPage extends ConsumerWidget {
           _buildRecordCard(
             context,
             units,
-            title: context.l10n.statistics_records_warmestDive,
+            title: context.l10n.insights_records_warmestDive,
             icon: Icons.whatshot,
             color: Colors.orange,
             record: records.warmestDive!,
@@ -178,7 +178,7 @@ class RecordsPage extends ConsumerWidget {
           _buildRecordCard(
             context,
             units,
-            title: context.l10n.statistics_records_shallowestDive,
+            title: context.l10n.insights_records_shallowestDive,
             icon: Icons.arrow_upward,
             color: Colors.teal,
             record: records.shallowestDive!,
@@ -186,7 +186,7 @@ class RecordsPage extends ConsumerWidget {
           ),
         const SizedBox(height: 24),
         Text(
-          context.l10n.statistics_records_milestones,
+          context.l10n.insights_records_milestones,
           style: Theme.of(
             context,
           ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -196,7 +196,7 @@ class RecordsPage extends ConsumerWidget {
           _buildMilestoneCard(
             context,
             units,
-            title: context.l10n.statistics_records_firstDive,
+            title: context.l10n.insights_records_firstDive,
             icon: Icons.flag,
             color: Colors.purple,
             record: records.firstDive!,
@@ -205,7 +205,7 @@ class RecordsPage extends ConsumerWidget {
           _buildMilestoneCard(
             context,
             units,
-            title: context.l10n.statistics_records_mostRecentDive,
+            title: context.l10n.insights_records_mostRecentDive,
             icon: Icons.update,
             color: Colors.indigo,
             record: records.lastDive!,
@@ -227,10 +227,10 @@ class RecordsPage extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: Semantics(
         button: true,
-        label: context.l10n.statistics_records_recordSemanticLabel(
+        label: context.l10n.insights_records_recordSemanticLabel(
           title,
           value,
-          record.siteName ?? context.l10n.statistics_records_unknownSite,
+          record.siteName ?? context.l10n.insights_records_unknownSite,
         ),
         child: InkWell(
           onTap: () => context.push('/dives/${record.diveId}'),
@@ -262,7 +262,7 @@ class RecordsPage extends ConsumerWidget {
                       const SizedBox(height: 4),
                       Text(
                         record.siteName ??
-                            context.l10n.statistics_records_unknownSite,
+                            context.l10n.insights_records_unknownSite,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -291,7 +291,7 @@ class RecordsPage extends ConsumerWidget {
                       ),
                       if (record.diveNumber != null)
                         Text(
-                          context.l10n.statistics_records_diveNumber(
+                          context.l10n.insights_records_diveNumber(
                             record.diveNumber!,
                           ),
                           style: Theme.of(context).textTheme.bodySmall
@@ -331,9 +331,9 @@ class RecordsPage extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: Semantics(
         button: true,
-        label: context.l10n.statistics_records_milestoneSemanticLabel(
+        label: context.l10n.insights_records_milestoneSemanticLabel(
           title,
-          record.siteName ?? context.l10n.statistics_records_unknownSite,
+          record.siteName ?? context.l10n.insights_records_unknownSite,
         ),
         child: InkWell(
           onTap: () => context.push('/dives/${record.diveId}'),
@@ -365,7 +365,7 @@ class RecordsPage extends ConsumerWidget {
                       ),
                       Text(
                         record.siteName ??
-                            context.l10n.statistics_records_unknownSite,
+                            context.l10n.insights_records_unknownSite,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -384,7 +384,7 @@ class RecordsPage extends ConsumerWidget {
                       ),
                       if (record.diveNumber != null)
                         Text(
-                          context.l10n.statistics_records_diveNumber(
+                          context.l10n.insights_records_diveNumber(
                             record.diveNumber!,
                           ),
                           style: Theme.of(context).textTheme.bodySmall

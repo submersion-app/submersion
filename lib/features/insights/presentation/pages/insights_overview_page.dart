@@ -36,7 +36,7 @@ class InsightsOverviewPage extends ConsumerWidget {
     if (embedded) return body;
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.statistics_category_overview_title),
+        title: Text(context.l10n.insights_category_overview_title),
       ),
       body: body,
     );
@@ -94,7 +94,7 @@ class _OverviewBody extends ConsumerWidget {
             const SizedBox(height: 8),
             Center(
               child: Text(
-                context.l10n.statistics_divingSince(
+                context.l10n.insights_divingSince(
                   career.divingSinceResolved!.year,
                 ),
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -107,7 +107,7 @@ class _OverviewBody extends ConsumerWidget {
           recordsAsync.when(
             loading: () => const SizedBox.shrink(),
             error: (e, st) => _InlineError(
-              message: context.l10n.statistics_records_unavailable,
+              message: context.l10n.insights_records_unavailable,
             ),
             data: (records) => _RecordsSection(records: records, fmt: fmt),
           ),
@@ -127,9 +127,7 @@ class _OverviewBody extends ConsumerWidget {
                         child: Center(
                           child: Text(
                             key: const Key('insights-excluded-footnote'),
-                            context.l10n.statistics_excludedDivesFootnote(
-                              count,
-                            ),
+                            context.l10n.insights_excludedDivesFootnote(count),
                             textAlign: TextAlign.center,
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(
@@ -210,10 +208,10 @@ class _AggregateGrid extends StatelessWidget {
     final cards = <_StatCard>[
       _StatCard(
         icon: Icons.waves,
-        label: context.l10n.statistics_summary_totalDives,
+        label: context.l10n.insights_summary_totalDives,
         value: '${career.combinedDives}',
         subtitle: career.hasPriorDives
-            ? context.l10n.statistics_priorBreakdown(
+            ? context.l10n.insights_priorBreakdown(
                 '${career.loggedDives}',
                 '${career.priorDives}',
               )
@@ -222,10 +220,10 @@ class _AggregateGrid extends StatelessWidget {
       ),
       _StatCard(
         icon: Icons.timer,
-        label: context.l10n.statistics_summary_totalTime,
+        label: context.l10n.insights_summary_totalTime,
         value: career.combinedTimeFormatted,
         subtitle: career.hasPriorTime
-            ? context.l10n.statistics_priorBreakdown(
+            ? context.l10n.insights_priorBreakdown(
                 career.loggedTimeFormatted,
                 career.priorTimeFormatted,
               )
@@ -234,33 +232,33 @@ class _AggregateGrid extends StatelessWidget {
       ),
       _StatCard(
         icon: Icons.arrow_downward,
-        label: context.l10n.statistics_summary_maxDepth,
+        label: context.l10n.insights_summary_maxDepth,
         value: fmt.formatDepth(stats.maxDepth),
         color: Colors.indigo,
       ),
       _StatCard(
         icon: Icons.straighten,
-        label: context.l10n.statistics_summary_avgDepth,
+        label: context.l10n.insights_summary_avgDepth,
         value: fmt.formatDepth(stats.avgMaxDepth),
         color: Colors.purple,
       ),
       if (stats.divesPerMonth != null)
         _StatCard(
           icon: Icons.calendar_month,
-          label: context.l10n.statistics_summary_divesPerMonth,
+          label: context.l10n.insights_summary_divesPerMonth,
           value: stats.divesPerMonth!.toStringAsFixed(1),
           color: Colors.green,
         ),
       if (stats.divesPerYear != null)
         _StatCard(
           icon: Icons.date_range,
-          label: context.l10n.statistics_summary_divesPerYear,
+          label: context.l10n.insights_summary_divesPerYear,
           value: stats.divesPerYear!.toStringAsFixed(1),
           color: Colors.green.shade700,
         ),
       _StatCard(
         icon: Icons.location_on,
-        label: context.l10n.statistics_summary_sitesVisited,
+        label: context.l10n.insights_summary_sitesVisited,
         value: '${stats.totalSites}',
         color: Colors.orange,
       ),
@@ -377,11 +375,11 @@ class _ErrorCard extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline, size: 48),
             const SizedBox(height: 12),
-            Text(context.l10n.statistics_error_loadingStatistics),
+            Text(context.l10n.insights_error_loadingInsights),
             const SizedBox(height: 12),
             FilledButton(
               onPressed: onRetry,
-              child: Text(context.l10n.statistics_records_retry),
+              child: Text(context.l10n.insights_records_retry),
             ),
           ],
         ),
@@ -426,7 +424,7 @@ class _RecordsSection extends StatelessWidget {
               ),
               _RecordTile(
                 icon: Icons.flag,
-                label: context.l10n.statistics_records_firstDive,
+                label: context.l10n.insights_records_firstDive,
                 value: fmt.formatDepth(record.maxDepth),
                 subtitle: fmt.formatDate(record.dateTime),
                 color: Colors.blue,
@@ -443,7 +441,7 @@ class _RecordsSection extends StatelessWidget {
       rows.add(
         _RecordTile(
           icon: Icons.arrow_downward,
-          label: context.l10n.statistics_records_deepestDive,
+          label: context.l10n.insights_records_deepestDive,
           value: fmt.formatDepth(records.deepestDive!.maxDepth),
           subtitle: fmt.formatDate(records.deepestDive!.dateTime),
           color: Colors.indigo,
@@ -456,8 +454,8 @@ class _RecordsSection extends StatelessWidget {
       rows.add(
         _RecordTile(
           icon: Icons.timer,
-          label: context.l10n.statistics_records_longestDive,
-          value: context.l10n.statistics_records_longestDiveValue(minutes),
+          label: context.l10n.insights_records_longestDive,
+          value: context.l10n.insights_records_longestDiveValue(minutes),
           subtitle: fmt.formatDate(records.longestDive!.dateTime),
           color: Colors.teal,
           onTap: () => context.push('/dives/${records.longestDive!.diveId}'),
@@ -468,7 +466,7 @@ class _RecordsSection extends StatelessWidget {
       rows.add(
         _RecordTile(
           icon: Icons.ac_unit,
-          label: context.l10n.statistics_records_coldestDive,
+          label: context.l10n.insights_records_coldestDive,
           value: fmt.formatTemperature(records.coldestDive!.waterTemp),
           subtitle: fmt.formatDate(records.coldestDive!.dateTime),
           color: Colors.blue,
@@ -480,7 +478,7 @@ class _RecordsSection extends StatelessWidget {
       rows.add(
         _RecordTile(
           icon: Icons.whatshot,
-          label: context.l10n.statistics_records_warmestDive,
+          label: context.l10n.insights_records_warmestDive,
           value: fmt.formatTemperature(records.warmestDive!.waterTemp),
           subtitle: fmt.formatDate(records.warmestDive!.dateTime),
           color: Colors.orange,
@@ -598,7 +596,7 @@ class _TopSitesSection extends StatelessWidget {
                 contentPadding: EdgeInsets.zero,
                 title: Text(site.siteName),
                 subtitle: Text(
-                  context.l10n.statistics_summary_tagUsage_diveCount(
+                  context.l10n.insights_summary_tagUsage_diveCount(
                     site.diveCount,
                   ),
                 ),
@@ -659,9 +657,8 @@ class _DistributionsSection extends ConsumerWidget {
         height: 160,
         child: Center(child: CircularProgressIndicator()),
       ),
-      error: (_, _) => _InlineError(
-        message: context.l10n.statistics_summary_diveTypes_error,
-      ),
+      error: (_, _) =>
+          _InlineError(message: context.l10n.insights_summary_diveTypes_error),
       // The repository emits dive-type ids as stable keys, so built-in
       // types are translated here instead of rendering a capitalized slug.
       data: (diveTypes) => _TypePieCard(
@@ -697,7 +694,7 @@ class _DistributionsSection extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
               child: Text(
-                context.l10n.statistics_summary_distributions_title,
+                context.l10n.insights_summary_distributions_title,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -723,7 +720,7 @@ class _DistributionsSection extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8, bottom: 4),
                 child: Text(
-                  context.l10n.statistics_summary_depthDistribution_title,
+                  context.l10n.insights_summary_depthDistribution_title,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
@@ -736,7 +733,7 @@ class _DistributionsSection extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8, bottom: 4),
                 child: Text(
-                  context.l10n.statistics_summary_diveTypes_title,
+                  context.l10n.insights_summary_diveTypes_title,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
               ),
@@ -763,7 +760,7 @@ class _DiveTypeStatRow extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       title: Text(diveTypeDistributionLabel(segment.label, l10n)),
       trailing: Text(
-        '${l10n.statistics_filterBar_diveCount(segment.count)} • '
+        '${l10n.insights_filterBar_diveCount(segment.count)} • '
         '${duration.inHours}h ${duration.inMinutes % 60}m',
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -787,7 +784,7 @@ class _DepthRangeStatRow extends StatelessWidget {
       contentPadding: EdgeInsets.zero,
       title: Text(_depthBucketLabel(segment, fmt, l10n)),
       trailing: Text(
-        '${l10n.statistics_filterBar_diveCount(segment.count)} • '
+        '${l10n.insights_filterBar_diveCount(segment.count)} • '
         '${duration.inHours}h ${duration.inMinutes % 60}m',
         style: Theme.of(context).textTheme.bodySmall?.copyWith(
           color: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -807,8 +804,8 @@ String _depthBucketLabel(
   final minDisplay = fmt.convertDepth(data.minDepth.toDouble()).round();
   final maxDisplay = fmt.convertDepth(data.maxDepth.toDouble()).round();
   return data.openEnded
-      ? l10n.statistics_summary_depthBucket_over('$minDisplay', fmt.depthSymbol)
-      : l10n.statistics_summary_depthBucket_range(
+      ? l10n.insights_summary_depthBucket_over('$minDisplay', fmt.depthSymbol)
+      : l10n.insights_summary_depthBucket_range(
           '$minDisplay',
           '$maxDisplay',
           fmt.depthSymbol,
@@ -830,7 +827,7 @@ class _DepthPieCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          context.l10n.statistics_summary_depthDistribution_title,
+          context.l10n.insights_summary_depthDistribution_title,
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 8),
@@ -844,7 +841,7 @@ class _DepthPieCard extends StatelessWidget {
                       child: Semantics(
                         label: context
                             .l10n
-                            .statistics_summary_depthDistribution_semanticLabel,
+                            .insights_summary_depthDistribution_semanticLabel,
                         child: PieChart(
                           PieChartData(
                             sectionsSpace: 2,
@@ -955,7 +952,7 @@ class _TypePieCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          context.l10n.statistics_summary_diveTypes_title,
+          context.l10n.insights_summary_diveTypes_title,
           style: Theme.of(context).textTheme.titleSmall,
         ),
         const SizedBox(height: 8),
@@ -969,7 +966,7 @@ class _TypePieCard extends StatelessWidget {
                       child: Semantics(
                         label: context
                             .l10n
-                            .statistics_summary_diveTypes_semanticLabel,
+                            .insights_summary_diveTypes_semanticLabel,
                         child: PieChart(
                           PieChartData(
                             sectionsSpace: 2,

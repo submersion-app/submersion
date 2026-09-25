@@ -36,7 +36,7 @@ class HorizontalCategoryBarChart extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                context.l10n.statistics_chart_noBarData,
+                context.l10n.insights_chart_noBarData,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -51,7 +51,7 @@ class HorizontalCategoryBarChart extends StatelessWidget {
     final maxCount = data.map((e) => e.count).reduce((a, b) => a > b ? a : b);
 
     return Semantics(
-      label: context.l10n.statistics_chart_barSemanticLabel(data.length),
+      label: context.l10n.insights_chart_barSemanticLabel(data.length),
       child: Column(
         children: [
           for (final item in data)

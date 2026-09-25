@@ -129,7 +129,7 @@ class DiveSummaryWidget extends ConsumerWidget {
               value: '${career.combinedDives}',
               label: context.l10n.diveLog_summary_stat_totalDives,
               subtitle: career.hasPriorDives
-                  ? context.l10n.statistics_priorBreakdown(
+                  ? context.l10n.insights_priorBreakdown(
                       '${career.loggedDives}',
                       '${career.priorDives}',
                     )
@@ -142,7 +142,7 @@ class DiveSummaryWidget extends ConsumerWidget {
               value: timeString,
               label: context.l10n.diveLog_summary_stat_diveTime,
               subtitle: career.hasPriorTime
-                  ? context.l10n.statistics_priorBreakdown(
+                  ? context.l10n.insights_priorBreakdown(
                       career.loggedTimeFormatted,
                       career.priorTimeFormatted,
                     )
@@ -443,7 +443,7 @@ class DiveSummaryWidget extends ConsumerWidget {
             OutlinedButton.icon(
               onPressed: () => context.go('/insights'),
               icon: const Icon(Icons.bar_chart),
-              label: Text(context.l10n.diveLog_summary_action_viewStats),
+              label: Text(context.l10n.diveLog_summary_action_viewInsights),
             ),
           ],
         ),

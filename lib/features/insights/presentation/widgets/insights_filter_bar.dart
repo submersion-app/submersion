@@ -18,7 +18,7 @@ class InsightsFilterBar extends ConsumerWidget {
 
     final statsAsync = ref.watch(filteredDiveStatisticsProvider);
     final countText = statsAsync.maybeWhen(
-      data: (s) => context.l10n.statistics_filterBar_diveCount(s.totalDives),
+      data: (s) => context.l10n.insights_filterBar_diveCount(s.totalDives),
       orElse: () => '',
     );
 
@@ -37,7 +37,7 @@ class InsightsFilterBar extends ConsumerWidget {
           ),
           IconButton(
             icon: const Icon(Icons.close, size: 18),
-            tooltip: context.l10n.statistics_filterBar_clear,
+            tooltip: context.l10n.insights_filterBar_clear,
             onPressed: () => ref.read(insightsFilterProvider.notifier).state =
                 const DiveFilterState(),
           ),

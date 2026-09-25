@@ -76,7 +76,7 @@ class _FinishStepState extends ConsumerState<FinishStep> {
       ),
       (
         Icons.query_stats,
-        l10n.setup_finish_feature_statistics,
+        l10n.setup_finish_feature_insights,
         kSetupFinishFeatureRoutes[2],
       ),
       (

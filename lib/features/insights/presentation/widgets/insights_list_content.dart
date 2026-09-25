@@ -30,71 +30,71 @@ List<InsightsCategory> insightsCategoriesOf(BuildContext context) => [
   InsightsCategory(
     id: 'overview',
     icon: Icons.dashboard_outlined,
-    title: context.l10n.statistics_category_overview_title,
-    subtitle: context.l10n.statistics_category_overview_subtitle,
+    title: context.l10n.insights_category_overview_title,
+    subtitle: context.l10n.insights_category_overview_subtitle,
     color: Colors.blueGrey,
   ),
   InsightsCategory(
     id: 'gas',
     icon: Icons.air,
-    title: context.l10n.statistics_category_gas_title,
-    subtitle: context.l10n.statistics_category_gas_subtitle,
+    title: context.l10n.insights_category_gas_title,
+    subtitle: context.l10n.insights_category_gas_subtitle,
     color: Colors.blue,
   ),
   InsightsCategory(
     id: 'progression',
     icon: Icons.trending_up,
-    title: context.l10n.statistics_category_progression_title,
-    subtitle: context.l10n.statistics_category_progression_subtitle,
+    title: context.l10n.insights_category_progression_title,
+    subtitle: context.l10n.insights_category_progression_subtitle,
     color: Colors.green,
   ),
   InsightsCategory(
     id: 'conditions',
     icon: Icons.thermostat,
-    title: context.l10n.statistics_category_conditions_title,
-    subtitle: context.l10n.statistics_category_conditions_subtitle,
+    title: context.l10n.insights_category_conditions_title,
+    subtitle: context.l10n.insights_category_conditions_subtitle,
     color: Colors.orange,
   ),
   InsightsCategory(
     id: 'social',
     icon: Icons.people,
-    title: context.l10n.statistics_category_social_title,
-    subtitle: context.l10n.statistics_category_social_subtitle,
+    title: context.l10n.insights_category_social_title,
+    subtitle: context.l10n.insights_category_social_subtitle,
     color: Colors.purple,
   ),
   InsightsCategory(
     id: 'geographic',
     icon: Icons.public,
-    title: context.l10n.statistics_category_geographic_title,
-    subtitle: context.l10n.statistics_category_geographic_subtitle,
+    title: context.l10n.insights_category_geographic_title,
+    subtitle: context.l10n.insights_category_geographic_subtitle,
     color: Colors.teal,
   ),
   InsightsCategory(
     id: 'marine-life',
     icon: MdiIcons.fish,
-    title: context.l10n.statistics_category_marineLife_title,
-    subtitle: context.l10n.statistics_category_marineLife_subtitle,
+    title: context.l10n.insights_category_marineLife_title,
+    subtitle: context.l10n.insights_category_marineLife_subtitle,
     color: Colors.cyan,
   ),
   InsightsCategory(
     id: 'time-patterns',
     icon: Icons.schedule,
-    title: context.l10n.statistics_category_timePatterns_title,
-    subtitle: context.l10n.statistics_category_timePatterns_subtitle,
+    title: context.l10n.insights_category_timePatterns_title,
+    subtitle: context.l10n.insights_category_timePatterns_subtitle,
     color: Colors.amber,
   ),
   InsightsCategory(
     id: 'equipment',
     icon: Icons.build,
-    title: context.l10n.statistics_category_equipment_title,
-    subtitle: context.l10n.statistics_category_equipment_subtitle,
+    title: context.l10n.insights_category_equipment_title,
+    subtitle: context.l10n.insights_category_equipment_subtitle,
     color: Colors.brown,
   ),
   InsightsCategory(
     id: 'profile',
     icon: Icons.show_chart,
-    title: context.l10n.statistics_category_profile_title,
-    subtitle: context.l10n.statistics_category_profile_subtitle,
+    title: context.l10n.insights_category_profile_title,
+    subtitle: context.l10n.insights_category_profile_subtitle,
     color: Colors.indigo,
   ),
 ];
@@ -151,11 +151,11 @@ class InsightsListContent extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.statistics_appBar_title),
+        title: Text(context.l10n.insights_appBar_title),
         actions: [
           IconButton(
             icon: const Icon(Icons.emoji_events),
-            tooltip: context.l10n.statistics_tooltip_diveRecords,
+            tooltip: context.l10n.insights_tooltip_diveRecords,
             onPressed: () {
               context.push('/records');
             },
@@ -183,7 +183,7 @@ class InsightsListContent extends ConsumerWidget {
         children: [
           const SizedBox(width: 8),
           Text(
-            context.l10n.statistics_appBar_title,
+            context.l10n.insights_appBar_title,
             style: Theme.of(
               context,
             ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -191,7 +191,7 @@ class InsightsListContent extends ConsumerWidget {
           const Spacer(),
           IconButton(
             icon: const Icon(Icons.emoji_events, size: 20),
-            tooltip: context.l10n.statistics_tooltip_diveRecords,
+            tooltip: context.l10n.insights_tooltip_diveRecords,
             onPressed: () {
               context.push('/records');
             },
@@ -218,7 +218,7 @@ class _InsightsCategoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final selectedLabel = isSelected
-        ? context.l10n.statistics_listContent_selectedSuffix
+        ? context.l10n.insights_listContent_selectedSuffix
         : '';
 
     return Semantics(

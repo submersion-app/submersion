@@ -430,11 +430,11 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
         widget.secondarySeries.fold<int>(0, (n, s) => n + s.points.length);
     return Semantics(
       label: yAxisLabel != null
-          ? context.l10n.statistics_chart_trendSemanticLabelWithAxis(
+          ? context.l10n.insights_chart_trendSemanticLabelWithAxis(
               pointCount,
               yAxisLabel,
             )
-          : context.l10n.statistics_chart_trendSemanticLabel(pointCount),
+          : context.l10n.insights_chart_trendSemanticLabel(pointCount),
       child: SizedBox(
         height: height,
         child: LineChart(
@@ -490,18 +490,18 @@ class _DiveTrendChartState extends State<DiveTrendChart> {
   ) {
     final l10n = context.l10n;
     final mode = switch (widget.aggregation) {
-      TrendAggregation.none => l10n.statistics_trend_aggregation_perDive,
-      TrendAggregation.weekly => l10n.statistics_trend_aggregation_weekly,
-      TrendAggregation.monthly => l10n.statistics_trend_aggregation_monthly,
+      TrendAggregation.none => l10n.insights_trend_aggregation_perDive,
+      TrendAggregation.weekly => l10n.insights_trend_aggregation_weekly,
+      TrendAggregation.monthly => l10n.insights_trend_aggregation_monthly,
     };
     return <String>[
       mode,
       if (!isRaw) ...[
-        l10n.statistics_trend_tooltip_lowest,
-        l10n.statistics_trend_tooltip_highest,
+        l10n.insights_trend_tooltip_lowest,
+        l10n.insights_trend_tooltip_highest,
       ],
-      if (smoothed.isNotEmpty) l10n.statistics_trend_legend_rollingAverage,
-      if (fit != null) l10n.statistics_trend_legend_rate,
+      if (smoothed.isNotEmpty) l10n.insights_trend_legend_rollingAverage,
+      if (fit != null) l10n.insights_trend_legend_rate,
       for (final s in widget.secondarySeries) s.label,
     ];
   }
@@ -819,7 +819,7 @@ class _EmptyChart extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              context.l10n.statistics_chart_noTrendData,
+              context.l10n.insights_chart_noTrendData,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),

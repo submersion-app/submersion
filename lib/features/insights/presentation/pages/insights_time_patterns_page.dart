@@ -13,27 +13,27 @@ class InsightsTimePatternsPage extends ConsumerWidget {
   const InsightsTimePatternsPage({super.key, this.embedded = false});
 
   List<String> _dayNames(BuildContext context) => [
-    context.l10n.statistics_timePatterns_dayOfWeek_sun,
-    context.l10n.statistics_timePatterns_dayOfWeek_mon,
-    context.l10n.statistics_timePatterns_dayOfWeek_tue,
-    context.l10n.statistics_timePatterns_dayOfWeek_wed,
-    context.l10n.statistics_timePatterns_dayOfWeek_thu,
-    context.l10n.statistics_timePatterns_dayOfWeek_fri,
-    context.l10n.statistics_timePatterns_dayOfWeek_sat,
+    context.l10n.insights_timePatterns_dayOfWeek_sun,
+    context.l10n.insights_timePatterns_dayOfWeek_mon,
+    context.l10n.insights_timePatterns_dayOfWeek_tue,
+    context.l10n.insights_timePatterns_dayOfWeek_wed,
+    context.l10n.insights_timePatterns_dayOfWeek_thu,
+    context.l10n.insights_timePatterns_dayOfWeek_fri,
+    context.l10n.insights_timePatterns_dayOfWeek_sat,
   ];
   List<String> _monthNames(BuildContext context) => [
-    context.l10n.statistics_timePatterns_month_jan,
-    context.l10n.statistics_timePatterns_month_feb,
-    context.l10n.statistics_timePatterns_month_mar,
-    context.l10n.statistics_timePatterns_month_apr,
-    context.l10n.statistics_timePatterns_month_may,
-    context.l10n.statistics_timePatterns_month_jun,
-    context.l10n.statistics_timePatterns_month_jul,
-    context.l10n.statistics_timePatterns_month_aug,
-    context.l10n.statistics_timePatterns_month_sep,
-    context.l10n.statistics_timePatterns_month_oct,
-    context.l10n.statistics_timePatterns_month_nov,
-    context.l10n.statistics_timePatterns_month_dec,
+    context.l10n.insights_timePatterns_month_jan,
+    context.l10n.insights_timePatterns_month_feb,
+    context.l10n.insights_timePatterns_month_mar,
+    context.l10n.insights_timePatterns_month_apr,
+    context.l10n.insights_timePatterns_month_may,
+    context.l10n.insights_timePatterns_month_jun,
+    context.l10n.insights_timePatterns_month_jul,
+    context.l10n.insights_timePatterns_month_aug,
+    context.l10n.insights_timePatterns_month_sep,
+    context.l10n.insights_timePatterns_month_oct,
+    context.l10n.insights_timePatterns_month_nov,
+    context.l10n.insights_timePatterns_month_dec,
   ];
 
   @override
@@ -60,7 +60,7 @@ class InsightsTimePatternsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.statistics_timePatterns_appBar_title),
+        title: Text(context.l10n.insights_timePatterns_appBar_title),
       ),
       body: content,
     );
@@ -70,14 +70,14 @@ class InsightsTimePatternsPage extends ConsumerWidget {
     final dayOfWeekAsync = ref.watch(divesByDayOfWeekProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_timePatterns_dayOfWeek_title,
-      subtitle: context.l10n.statistics_timePatterns_dayOfWeek_subtitle,
+      title: context.l10n.insights_timePatterns_dayOfWeek_title,
+      subtitle: context.l10n.insights_timePatterns_dayOfWeek_subtitle,
       child: dayOfWeekAsync.when(
         data: (data) {
           if (data.isEmpty) {
             return StatEmptyState(
               icon: Icons.calendar_today,
-              message: context.l10n.statistics_timePatterns_dayOfWeek_empty,
+              message: context.l10n.insights_timePatterns_dayOfWeek_empty,
             );
           }
           // Fill in missing days with 0
@@ -94,7 +94,7 @@ class InsightsTimePatternsPage extends ConsumerWidget {
               .map((d) => '${d.label}: ${d.count}')
               .join(', ');
           return Semantics(
-            label: context.l10n.statistics_timePatterns_dayOfWeek_semanticLabel(
+            label: context.l10n.insights_timePatterns_dayOfWeek_semanticLabel(
               description,
             ),
             child: CategoryBarChart(data: fullData, barColor: Colors.blue),
@@ -106,7 +106,7 @@ class InsightsTimePatternsPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_timePatterns_dayOfWeek_error,
+          message: context.l10n.insights_timePatterns_dayOfWeek_error,
         ),
       ),
     );
@@ -116,8 +116,8 @@ class InsightsTimePatternsPage extends ConsumerWidget {
     final timeOfDayAsync = ref.watch(divesByTimeOfDayProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_timePatterns_timeOfDay_title,
-      subtitle: context.l10n.statistics_timePatterns_timeOfDay_subtitle,
+      title: context.l10n.insights_timePatterns_timeOfDay_title,
+      subtitle: context.l10n.insights_timePatterns_timeOfDay_subtitle,
       child: timeOfDayAsync.when(
         data: (raw) {
           // The repository's bucket names are stable keys -- they are also its
@@ -130,7 +130,7 @@ class InsightsTimePatternsPage extends ConsumerWidget {
               .map((d) => '${d.label}: ${d.percentage.toStringAsFixed(0)}%')
               .join(', ');
           return Semantics(
-            label: context.l10n.statistics_timePatterns_timeOfDay_semanticLabel(
+            label: context.l10n.insights_timePatterns_timeOfDay_semanticLabel(
               description,
             ),
             child: DistributionPieChart(
@@ -150,7 +150,7 @@ class InsightsTimePatternsPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_timePatterns_timeOfDay_error,
+          message: context.l10n.insights_timePatterns_timeOfDay_error,
         ),
       ),
     );
@@ -160,14 +160,14 @@ class InsightsTimePatternsPage extends ConsumerWidget {
     final seasonalAsync = ref.watch(divesBySeasonProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_timePatterns_seasonal_title,
-      subtitle: context.l10n.statistics_timePatterns_seasonal_subtitle,
+      title: context.l10n.insights_timePatterns_seasonal_title,
+      subtitle: context.l10n.insights_timePatterns_seasonal_subtitle,
       child: seasonalAsync.when(
         data: (data) {
           if (data.isEmpty) {
             return StatEmptyState(
               icon: Icons.calendar_month,
-              message: context.l10n.statistics_timePatterns_seasonal_empty,
+              message: context.l10n.insights_timePatterns_seasonal_empty,
             );
           }
           // Fill in missing months with 0
@@ -185,7 +185,7 @@ class InsightsTimePatternsPage extends ConsumerWidget {
               .map((d) => '${d.label}: ${d.count}')
               .join(', ');
           return Semantics(
-            label: context.l10n.statistics_timePatterns_seasonal_semanticLabel(
+            label: context.l10n.insights_timePatterns_seasonal_semanticLabel(
               description,
             ),
             child: CategoryBarChart(data: fullData, barColor: Colors.teal),
@@ -197,7 +197,7 @@ class InsightsTimePatternsPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_timePatterns_seasonal_error,
+          message: context.l10n.insights_timePatterns_seasonal_error,
         ),
       ),
     );
@@ -207,15 +207,14 @@ class InsightsTimePatternsPage extends ConsumerWidget {
     final siStatsAsync = ref.watch(surfaceIntervalStatsProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_timePatterns_surfaceInterval_title,
-      subtitle: context.l10n.statistics_timePatterns_surfaceInterval_subtitle,
+      title: context.l10n.insights_timePatterns_surfaceInterval_title,
+      subtitle: context.l10n.insights_timePatterns_surfaceInterval_subtitle,
       child: siStatsAsync.when(
         data: (data) {
           if (data.avgMinutes == null) {
             return StatEmptyState(
               icon: Icons.timer,
-              message:
-                  context.l10n.statistics_timePatterns_surfaceInterval_empty,
+              message: context.l10n.insights_timePatterns_surfaceInterval_empty,
             );
           }
 
@@ -224,7 +223,7 @@ class InsightsTimePatternsPage extends ConsumerWidget {
               Expanded(
                 child: _buildSiStat(
                   context,
-                  context.l10n.statistics_timePatterns_surfaceInterval_average,
+                  context.l10n.insights_timePatterns_surfaceInterval_average,
                   _formatMinutes(context, data.avgMinutes!),
                   Colors.blue,
                 ),
@@ -233,7 +232,7 @@ class InsightsTimePatternsPage extends ConsumerWidget {
               Expanded(
                 child: _buildSiStat(
                   context,
-                  context.l10n.statistics_timePatterns_surfaceInterval_minimum,
+                  context.l10n.insights_timePatterns_surfaceInterval_minimum,
                   _formatMinutes(context, data.minMinutes ?? 0),
                   Colors.green,
                 ),
@@ -242,7 +241,7 @@ class InsightsTimePatternsPage extends ConsumerWidget {
               Expanded(
                 child: _buildSiStat(
                   context,
-                  context.l10n.statistics_timePatterns_surfaceInterval_maximum,
+                  context.l10n.insights_timePatterns_surfaceInterval_maximum,
                   _formatMinutes(context, data.maxMinutes ?? 0),
                   Colors.orange,
                 ),
@@ -256,7 +255,7 @@ class InsightsTimePatternsPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_timePatterns_surfaceInterval_error,
+          message: context.l10n.insights_timePatterns_surfaceInterval_error,
         ),
       ),
     );
@@ -269,7 +268,7 @@ class InsightsTimePatternsPage extends ConsumerWidget {
     Color color,
   ) {
     return Semantics(
-      label: context.l10n.statistics_timePatterns_surfaceInterval_statLabel(
+      label: context.l10n.insights_timePatterns_surfaceInterval_statLabel(
         label,
         value,
       ),
@@ -303,16 +302,13 @@ class InsightsTimePatternsPage extends ConsumerWidget {
 
   String _formatMinutes(BuildContext context, double minutes) {
     if (minutes < 60) {
-      return context.l10n.statistics_timePatterns_surfaceInterval_formatMinutes(
+      return context.l10n.insights_timePatterns_surfaceInterval_formatMinutes(
         minutes.round(),
       );
     }
     final hours = (minutes / 60).floor();
     final mins = (minutes % 60).round();
     return context.l10n
-        .statistics_timePatterns_surfaceInterval_formatHoursMinutes(
-          hours,
-          mins,
-        );
+        .insights_timePatterns_surfaceInterval_formatHoursMinutes(hours, mins);
   }
 }

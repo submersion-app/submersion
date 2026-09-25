@@ -131,7 +131,7 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     route: '/insights',
     icon: Icons.bar_chart_outlined,
     selectedIcon: Icons.bar_chart,
-    label: (l10n) => l10n.nav_statistics,
+    label: (l10n) => l10n.nav_insights,
   ),
   NavDestination(
     id: 'planning',

@@ -55,7 +55,7 @@ class InsightsGasPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(context.l10n.statistics_gas_appBar_title),
+        title: Text(context.l10n.insights_gas_appBar_title),
         actions: const [InsightsFilterAction()],
       ),
       // Expanded is required: content is a SingleChildScrollView, and a
@@ -114,10 +114,10 @@ class InsightsGasPage extends ConsumerWidget {
     return TrendChartSection(
       chartId: TrendChartIds.sac,
       onDiveSelected: (diveId) => context.push('/dives/$diveId'),
-      title: context.l10n.statistics_gas_sacTrend_title,
-      subtitle: context.l10n.statistics_gas_sacTrend_subtitle,
+      title: context.l10n.insights_gas_sacTrend_title,
+      subtitle: context.l10n.insights_gas_sacTrend_subtitle,
       pointsAsync: ref.watch(sacTrendProvider),
-      errorMessage: context.l10n.statistics_gas_sacTrend_error,
+      errorMessage: context.l10n.insights_gas_sacTrend_error,
       lineColor: Colors.blue,
       yAxisLabel: unitSymbol,
       valueFormatter: format,
@@ -130,8 +130,8 @@ class InsightsGasPage extends ConsumerWidget {
     final gasMixAsync = ref.watch(gasMixDistributionProvider);
 
     return StatSectionCard(
-      title: context.l10n.statistics_gas_gasMix_title,
-      subtitle: context.l10n.statistics_gas_gasMix_subtitle,
+      title: context.l10n.insights_gas_gasMix_title,
+      subtitle: context.l10n.insights_gas_gasMix_subtitle,
       child: gasMixAsync.when(
         data: (data) => DistributionPieChart(
           data: data,
@@ -147,7 +147,7 @@ class InsightsGasPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_gas_gasMix_error,
+          message: context.l10n.insights_gas_gasMix_error,
         ),
       ),
     );
@@ -166,28 +166,28 @@ class InsightsGasPage extends ConsumerWidget {
     // Map tank role keys to display names
     String getRoleDisplayName(String role) {
       return switch (role) {
-        'backGas' => context.l10n.statistics_gas_tankRole_backGas,
-        'stage' => context.l10n.statistics_gas_tankRole_stage,
-        'deco' => context.l10n.statistics_gas_tankRole_deco,
-        'bailout' => context.l10n.statistics_gas_tankRole_bailout,
-        'sidemountLeft' => context.l10n.statistics_gas_tankRole_sidemountLeft,
-        'sidemountRight' => context.l10n.statistics_gas_tankRole_sidemountRight,
-        'pony' => context.l10n.statistics_gas_tankRole_pony,
-        'diluent' => context.l10n.statistics_gas_tankRole_diluent,
-        'oxygenSupply' => context.l10n.statistics_gas_tankRole_oxygenSupply,
+        'backGas' => context.l10n.insights_gas_tankRole_backGas,
+        'stage' => context.l10n.insights_gas_tankRole_stage,
+        'deco' => context.l10n.insights_gas_tankRole_deco,
+        'bailout' => context.l10n.insights_gas_tankRole_bailout,
+        'sidemountLeft' => context.l10n.insights_gas_tankRole_sidemountLeft,
+        'sidemountRight' => context.l10n.insights_gas_tankRole_sidemountRight,
+        'pony' => context.l10n.insights_gas_tankRole_pony,
+        'diluent' => context.l10n.insights_gas_tankRole_diluent,
+        'oxygenSupply' => context.l10n.insights_gas_tankRole_oxygenSupply,
         _ => role,
       };
     }
 
     return StatSectionCard(
-      title: context.l10n.statistics_gas_sacByRole_title,
-      subtitle: context.l10n.statistics_gas_sacByRole_subtitle,
+      title: context.l10n.insights_gas_sacByRole_title,
+      subtitle: context.l10n.insights_gas_sacByRole_subtitle,
       child: sacByRoleAsync.when(
         data: (data) {
           if (data.isEmpty) {
             return StatEmptyState(
               icon: MdiIcons.divingScubaTank,
-              message: context.l10n.statistics_gas_sacByRole_empty,
+              message: context.l10n.insights_gas_sacByRole_empty,
             );
           }
 
@@ -239,7 +239,7 @@ class InsightsGasPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_gas_sacByRole_error,
+          message: context.l10n.insights_gas_sacByRole_error,
         ),
       ),
     );
@@ -257,14 +257,14 @@ class InsightsGasPage extends ConsumerWidget {
     String format(double v) => isRmv ? units.formatRmv(v) : units.formatSac(v);
 
     return StatSectionCard(
-      title: context.l10n.statistics_gas_sacRecords_title,
-      subtitle: context.l10n.statistics_gas_sacRecords_subtitle,
+      title: context.l10n.insights_gas_sacRecords_title,
+      subtitle: context.l10n.insights_gas_sacRecords_subtitle,
       child: sacRecordsAsync.when(
         data: (records) {
           if (records.best == null && records.worst == null) {
             return StatEmptyState(
               icon: Icons.air,
-              message: context.l10n.statistics_gas_sacRecords_empty,
+              message: context.l10n.insights_gas_sacRecords_empty,
             );
           }
 
@@ -276,8 +276,8 @@ class InsightsGasPage extends ConsumerWidget {
               if (records.best != null)
                 ValueRankingCard(
                   title: isRmv
-                      ? context.l10n.statistics_gas_sacRecords_bestRmv
-                      : context.l10n.statistics_gas_sacRecords_bestSac,
+                      ? context.l10n.insights_gas_sacRecords_bestRmv
+                      : context.l10n.insights_gas_sacRecords_bestSac,
                   value: formatSacRecord(records.best!.value),
                   subtitle: units.formatDate(records.best!.date),
                   icon: Icons.emoji_events,
@@ -289,8 +289,8 @@ class InsightsGasPage extends ConsumerWidget {
               if (records.worst != null)
                 ValueRankingCard(
                   title: isRmv
-                      ? context.l10n.statistics_gas_sacRecords_highestRmv
-                      : context.l10n.statistics_gas_sacRecords_highestSac,
+                      ? context.l10n.insights_gas_sacRecords_highestRmv
+                      : context.l10n.insights_gas_sacRecords_highestSac,
                   value: formatSacRecord(records.worst!.value),
                   subtitle: units.formatDate(records.worst!.date),
                   icon: Icons.speed,
@@ -306,7 +306,7 @@ class InsightsGasPage extends ConsumerWidget {
         ),
         error: (_, _) => StatEmptyState(
           icon: Icons.error_outline,
-          message: context.l10n.statistics_gas_sacRecords_error,
+          message: context.l10n.insights_gas_sacRecords_error,
         ),
       ),
     );

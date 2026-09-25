@@ -46,7 +46,7 @@ class TrendLineChart extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                context.l10n.statistics_chart_noTrendData,
+                context.l10n.insights_chart_noTrendData,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -64,11 +64,11 @@ class TrendLineChart extends StatelessWidget {
 
     return Semantics(
       label: yAxisLabel != null
-          ? context.l10n.statistics_chart_trendSemanticLabelWithAxis(
+          ? context.l10n.insights_chart_trendSemanticLabelWithAxis(
               data.length,
               yAxisLabel!,
             )
-          : context.l10n.statistics_chart_trendSemanticLabel(data.length),
+          : context.l10n.insights_chart_trendSemanticLabel(data.length),
       child: SizedBox(
         height: height,
         child: LineChart(
@@ -232,7 +232,7 @@ class DistributionPieChart extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                context.l10n.statistics_chart_noDistributionData,
+                context.l10n.insights_chart_noDistributionData,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -257,9 +257,7 @@ class DistributionPieChart extends StatelessWidget {
     final chartColors = colors ?? defaultColors;
 
     return Semantics(
-      label: context.l10n.statistics_chart_distributionSemanticLabel(
-        data.length,
-      ),
+      label: context.l10n.insights_chart_distributionSemanticLabel(data.length),
       child: SizedBox(
         height: height,
         child: Row(
@@ -385,7 +383,7 @@ class CategoryBarChart extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                context.l10n.statistics_chart_noBarData,
+                context.l10n.insights_chart_noBarData,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -403,7 +401,7 @@ class CategoryBarChart extends StatelessWidget {
         .toDouble();
 
     return Semantics(
-      label: context.l10n.statistics_chart_barSemanticLabel(data.length),
+      label: context.l10n.insights_chart_barSemanticLabel(data.length),
       child: SizedBox(
         height: height,
         child: LayoutBuilder(
@@ -603,7 +601,7 @@ class MultiTrendLineChart extends StatelessWidget {
               ),
               const SizedBox(height: 8),
               Text(
-                context.l10n.statistics_chart_noTrendData,
+                context.l10n.insights_chart_noTrendData,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
@@ -633,7 +631,7 @@ class MultiTrendLineChart extends StatelessWidget {
     );
 
     return Semantics(
-      label: context.l10n.statistics_chart_multiTrendSemanticLabel(
+      label: context.l10n.insights_chart_multiTrendSemanticLabel(
         seriesLabels.join(', '),
       ),
       child: Column(

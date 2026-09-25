@@ -25,10 +25,10 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 /// `InsightsRepository.getDivesByTimeOfDay`.
 String timeOfDayDistributionLabel(String key, AppLocalizations l10n) =>
     switch (key) {
-      'Morning' => l10n.statistics_timePatterns_timeOfDay_morning,
-      'Afternoon' => l10n.statistics_timePatterns_timeOfDay_afternoon,
-      'Evening' => l10n.statistics_timePatterns_timeOfDay_evening,
-      'Night' => l10n.statistics_timePatterns_timeOfDay_night,
+      'Morning' => l10n.insights_timePatterns_timeOfDay_morning,
+      'Afternoon' => l10n.insights_timePatterns_timeOfDay_afternoon,
+      'Evening' => l10n.insights_timePatterns_timeOfDay_evening,
+      'Night' => l10n.insights_timePatterns_timeOfDay_night,
       _ => key,
     };
 
@@ -36,7 +36,7 @@ String timeOfDayDistributionLabel(String key, AppLocalizations l10n) =>
 /// [kNotRecordedDistributionKey].
 String waterTypeDistributionLabel(String key, AppLocalizations l10n) =>
     key == kNotRecordedDistributionKey
-    ? l10n.statistics_chart_notRecorded
+    ? l10n.insights_chart_notRecorded
     : WaterType.values
               .where((w) => w.name == key)
               .firstOrNull
@@ -47,7 +47,7 @@ String waterTypeDistributionLabel(String key, AppLocalizations l10n) =>
 /// [kNotRecordedDistributionKey].
 String entryMethodDistributionLabel(String key, AppLocalizations l10n) =>
     key == kNotRecordedDistributionKey
-    ? l10n.statistics_chart_notRecorded
+    ? l10n.insights_chart_notRecorded
     : EntryMethod.values
               .where((e) => e.name == key)
               .firstOrNull
@@ -60,7 +60,7 @@ String entryMethodDistributionLabel(String key, AppLocalizations l10n) =>
 /// keeps the diver's own slug. An empty id means the join row carries no type.
 String diveTypeDistributionLabel(String key, AppLocalizations l10n) =>
     key.isEmpty
-    ? l10n.statistics_summary_diveTypes_unknown
+    ? l10n.insights_summary_diveTypes_unknown
     : diveTypeLabel(l10n, key);
 
 /// [segments] with every label replaced by [label] applied to its key.
