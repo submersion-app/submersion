@@ -104,7 +104,8 @@ files you touched) before committing.
    see (files under `lib/**/presentation/`, `lib/shared/widgets/`,
    `lib/core/theme/`, `lib/core/ui/` or `lib/core/icons/`, or platform UI
    resources such as launch screens, app icons and window chrome) must include
-   before and after screenshots in the description. If the PR touches those
+   before and after screenshots in the description (only the after for a
+   brand-new screen, which has no before). If the PR touches those
    paths without changing what anyone sees, tick "No visible UI change" in the
    template and say why. See
    [Screenshots for UI Changes](docs/contributing/pull-requests.md#screenshots-for-ui-changes).

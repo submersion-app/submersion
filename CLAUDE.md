@@ -56,8 +56,9 @@ GitHub and by the check. Editing the description re-runs the check.
 ### Screenshots for UI changes
 
 Every PR that changes anything a user can see must show it in screenshots in
-its description: before and after, plus light and dark mode when colours
-change and phone and desktop widths when layout changes. A PR counts as a UI
+its description: before and after (only the after for a brand-new screen),
+plus light and dark mode when colours change and phone and desktop widths
+when layout changes. A PR counts as a UI
 change when it touches `lib/**/presentation/`, `lib/shared/widgets/`,
 `lib/core/theme/`, `lib/core/ui/`, `lib/core/icons/`, or platform UI resources
 (launch screens, app icons, window chrome) under `android/`, `ios/`, `macos/`,

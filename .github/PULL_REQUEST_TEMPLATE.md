@@ -41,9 +41,9 @@ under:
   UI resources in android/, ios/, macos/, windows/ or linux/
   (launch screens, app icons, window chrome)
 
-Drag the images into this description on github.com. Show before and after,
-light and dark mode when colours change, and phone and desktop widths when
-the layout changes.
+Drag the images into this description on github.com. Show before and after
+(only the after for a brand-new screen), light and dark mode when colours
+change, and phone and desktop widths when the layout changes.
 
 Touched those paths but nothing looks different (a refactor, a provider
 change)? Tick the box below and say why in the Summary. Touched none of them?
