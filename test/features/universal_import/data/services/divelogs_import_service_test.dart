@@ -88,6 +88,19 @@ void main() {
     expect(payload.warnings, isEmpty);
   });
 
+  test('a later dive backfills a position its site lacked', () async {
+    final payload = await payloadOf(
+      service([
+        {...diveJson(1), 'lat': 0, 'lng': 0},
+        diveJson(2, time: '18:00:00'),
+      ]),
+    );
+    final site = payload.entitiesOf(ImportEntityType.sites).single;
+    expect(site['name'], 'Shinenead');
+    expect(site['latitude'], 24.6);
+    expect(site['longitude'], 35.1);
+  });
+
   test('skipped dives become one coded warning with a count', () async {
     final result = await service([
       diveJson(1),

@@ -9,6 +9,7 @@ import 'package:submersion/features/universal_import/data/models/import_payload.
 import 'package:submersion/features/universal_import/data/models/import_warning.dart';
 import 'package:submersion/features/universal_import/data/services/divelogs_dive_mapper.dart';
 import 'package:submersion/features/universal_import/data/services/divelogs_reference_mappers.dart';
+import 'package:submersion/features/universal_import/data/services/import_site_location.dart';
 
 /// What one fetch of a divelogs.de logbook produced.
 class DivelogsFetchResult {
@@ -103,13 +104,12 @@ class DivelogsImportService {
       final existing = sitesByKey[key];
       if (existing == null) {
         sitesByKey[key] = site;
-      } else if (existing['latitude'] == null && site['latitude'] != null) {
-        // Same site on an earlier dive: backfill a position it lacked.
-        sitesByKey[key] = {
-          ...existing,
-          'latitude': site['latitude'],
-          'longitude': site['longitude'],
-        };
+      } else if (ImportSiteLocation.coordinatesOf(existing) == null &&
+          ImportSiteLocation.coordinatesOf(site) != null) {
+        // Same site on an earlier dive: backfill a position it lacked. The
+        // incoming map was built by mapSite, so its pair already passed the
+        // contract.
+        sitesByKey[key] = {...existing, ...site};
       }
     }
 
