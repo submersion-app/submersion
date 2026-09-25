@@ -5,6 +5,9 @@ import 'package:submersion/core/services/divelogs/divelogs_api_client.dart';
 import 'package:submersion/core/services/divelogs/divelogs_auth.dart';
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/remote_photo_attacher.dart';
+import 'package:submersion/features/import_wizard/presentation/widgets/photo_folder_step.dart';
+import 'package:submersion/features/universal_import/data/services/divelogs_import_service.dart';
+import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Sign-in step for the divelogs.de import wizard.
@@ -275,7 +278,13 @@ class _DivelogsSignInStepState extends ConsumerState<DivelogsSignInStep> {
   }
 }
 
-class DivelogsFetchStep extends StatelessWidget {
+/// Fetch step for the divelogs.de import wizard.
+///
+/// Fetches the whole logbook in one go (divelogs.de has no paging) and, when
+/// asked and the Photos step can pick a folder on this platform, lists each
+/// dive's photos. What was found, and any list that could not be fetched,
+/// stays on screen until the diver moves on.
+class DivelogsFetchStep extends ConsumerStatefulWidget {
   const DivelogsFetchStep({
     super.key,
     required this.client,
@@ -286,5 +295,199 @@ class DivelogsFetchStep extends StatelessWidget {
   final ValueChanged<Map<String, List<RemotePhoto>>> onPhotosListed;
 
   @override
-  Widget build(BuildContext context) => const SizedBox.shrink();
+  ConsumerState<DivelogsFetchStep> createState() => _DivelogsFetchStepState();
+}
+
+enum _FetchPhase { idle, fetching, done, empty, failed, expired }
+
+class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
+  _FetchPhase _phase = _FetchPhase.idle;
+  DivelogsFetchResult? _result;
+  (int, int)? _photoProgress;
+
+  Future<void> _fetch() async {
+    final client = widget.client;
+    if (client == null) return;
+    final includePhotos =
+        PhotoFolderStep.canPickFolder &&
+        ref.read(divelogsIncludePhotosProvider);
+    setState(() {
+      _phase = _FetchPhase.fetching;
+      _photoProgress = null;
+    });
+    try {
+      final result = await DivelogsImportService(api: client).fetchLogbook(
+        includePhotos: includePhotos,
+        onPhotoListingProgress: (current, total) {
+          if (mounted) setState(() => _photoProgress = (current, total));
+        },
+      );
+      if (!mounted) return;
+      if (result.payload.isEmpty) {
+        setState(() => _phase = _FetchPhase.empty);
+        return;
+      }
+      widget.onPhotosListed(result.photosBySourceUuid);
+      await ref
+          .read(universalImportNotifierProvider.notifier)
+          .setExternalPayload(
+            result.payload,
+            remotePhotoCount: result.photoCount,
+          );
+      if (!mounted) return;
+      setState(() {
+        _result = result;
+        _phase = _FetchPhase.done;
+      });
+      ref.read(divelogsFetchedProvider.notifier).state = true;
+    } on DivelogsSessionExpiredException {
+      if (!mounted) return;
+      ref.read(divelogsSignedInProvider.notifier).state = false;
+      setState(() => _phase = _FetchPhase.expired);
+    } on DivelogsApiException {
+      if (!mounted) return;
+      setState(() => _phase = _FetchPhase.failed);
+    } on DivelogsAuthException {
+      // A token renewal mid-fetch could not reach divelogs.de.
+      if (!mounted) return;
+      setState(() => _phase = _FetchPhase.failed);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final theme = Theme.of(context);
+    final canListPhotos = PhotoFolderStep.canPickFolder;
+
+    Widget fetchButton() => FilledButton.icon(
+      onPressed: widget.client == null ? null : _fetch,
+      icon: const Icon(Icons.cloud_download),
+      label: Text(l10n.divelogsImport_fetch_button),
+    );
+
+    Widget problem(String text) => Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Text(
+        text,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.error,
+        ),
+      ),
+    );
+
+    final children = <Widget>[];
+    switch (_phase) {
+      case _FetchPhase.idle:
+        if (canListPhotos) {
+          children.add(
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.divelogsImport_fetch_includePhotos),
+              subtitle: Text(l10n.divelogsImport_fetch_includePhotosHint),
+              value: ref.watch(divelogsIncludePhotosProvider),
+              onChanged: (value) =>
+                  ref.read(divelogsIncludePhotosProvider.notifier).state =
+                      value,
+            ),
+          );
+          children.add(const SizedBox(height: 16));
+        }
+        children.add(fetchButton());
+      case _FetchPhase.fetching:
+        final progress = _photoProgress;
+        children.add(
+          Row(
+            children: [
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  progress == null
+                      ? l10n.divelogsImport_fetch_fetching
+                      : l10n.divelogsImport_fetch_listingPhotos(
+                          progress.$1,
+                          progress.$2,
+                        ),
+                ),
+              ),
+            ],
+          ),
+        );
+      case _FetchPhase.done:
+        final result = _result!;
+        children.add(
+          Text(
+            l10n.divelogsImport_fetch_foundDives(result.diveCount),
+            style: theme.textTheme.titleMedium,
+          ),
+        );
+        if (result.photoCount > 0 || result.photoListingFailures > 0) {
+          children.add(
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                l10n.divelogsImport_fetch_foundPhotos(result.photoCount),
+              ),
+            ),
+          );
+        }
+        if (result.skippedDives > 0) {
+          children.add(
+            problem(
+              l10n.divelogsImport_fetch_skippedDives(result.skippedDives),
+            ),
+          );
+        }
+        if (result.gearUnavailable) {
+          children.add(problem(l10n.divelogsImport_fetch_gearUnavailable));
+        }
+        if (result.certificationsUnavailable) {
+          children.add(
+            problem(l10n.divelogsImport_fetch_certificationsUnavailable),
+          );
+        }
+        if (result.photoListingFailures > 0) {
+          children.add(
+            problem(
+              l10n.divelogsImport_fetch_photoListingsFailed(
+                result.photoListingFailures,
+              ),
+            ),
+          );
+        }
+      case _FetchPhase.empty:
+        children.add(Text(l10n.divelogsImport_fetch_empty));
+        children.add(const SizedBox(height: 16));
+        children.add(fetchButton());
+      case _FetchPhase.failed:
+        children.add(
+          Text(
+            l10n.divelogsImport_fetch_failedTitle,
+            style: theme.textTheme.titleMedium,
+          ),
+        );
+        children.add(const SizedBox(height: 16));
+        children.add(
+          FilledButton(
+            onPressed: _fetch,
+            child: Text(l10n.divelogsImport_fetch_retry),
+          ),
+        );
+      case _FetchPhase.expired:
+        children.add(Text(l10n.divelogsImport_fetch_sessionExpired));
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
 }

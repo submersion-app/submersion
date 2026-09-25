@@ -6284,6 +6284,59 @@
       }
     }
   },
+  "divelogsImport_fetch_button": "Fetch Logbook",
+  "divelogsImport_fetch_certificationsUnavailable": "Certifications could not be fetched and will not be imported.",
+  "divelogsImport_fetch_empty": "Your divelogs.de logbook has nothing to import.",
+  "divelogsImport_fetch_failedTitle": "Could not fetch your logbook",
+  "divelogsImport_fetch_fetching": "Fetching your logbook…",
+  "divelogsImport_fetch_foundDives": "{count, plural, one{Found {count} dive} other{Found {count} dives}}",
+  "@divelogsImport_fetch_foundDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "divelogsImport_fetch_foundPhotos": "{count, plural, =0{No photos to import} one{{count} photo to import} other{{count} photos to import}}",
+  "@divelogsImport_fetch_foundPhotos": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "divelogsImport_fetch_gearUnavailable": "Gear could not be fetched; dives will import without gear links.",
+  "divelogsImport_fetch_includePhotos": "Include photos",
+  "divelogsImport_fetch_includePhotosHint": "Photos are downloaded during the import into a folder you choose.",
+  "divelogsImport_fetch_listingPhotos": "Listing photos for dive {current} of {total}…",
+  "@divelogsImport_fetch_listingPhotos": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "divelogsImport_fetch_photoListingsFailed": "{count, plural, one{Photos for {count} dive could not be listed.} other{Photos for {count} dives could not be listed.}}",
+  "@divelogsImport_fetch_photoListingsFailed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "divelogsImport_fetch_retry": "Try Again",
+  "divelogsImport_fetch_sessionExpired": "Your divelogs.de session expired. Go back and sign in again.",
+  "divelogsImport_fetch_skippedDives": "{count, plural, one{{count} dive could not be read and will be skipped.} other{{count} dives could not be read and will be skipped.}}",
+  "@divelogsImport_fetch_skippedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "divelogsImport_signIn_badCredentials": "divelogs.de rejected the username or password.",
   "divelogsImport_signIn_button": "Sign In",
   "divelogsImport_signIn_description": "Sign in with your divelogs.de account to import your logbook. Your password is never stored; only the resulting session is cached.",

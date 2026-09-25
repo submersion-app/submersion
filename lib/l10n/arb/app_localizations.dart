@@ -17200,6 +17200,96 @@ abstract class AppLocalizations {
   /// **'Updated \"{name}\"'**
   String diveTypes_snackbar_updated(Object name);
 
+  /// No description provided for @divelogsImport_fetch_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch Logbook'**
+  String get divelogsImport_fetch_button;
+
+  /// No description provided for @divelogsImport_fetch_certificationsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications could not be fetched and will not be imported.'**
+  String get divelogsImport_fetch_certificationsUnavailable;
+
+  /// No description provided for @divelogsImport_fetch_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your divelogs.de logbook has nothing to import.'**
+  String get divelogsImport_fetch_empty;
+
+  /// No description provided for @divelogsImport_fetch_failedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not fetch your logbook'**
+  String get divelogsImport_fetch_failedTitle;
+
+  /// No description provided for @divelogsImport_fetch_fetching.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching your logbook…'**
+  String get divelogsImport_fetch_fetching;
+
+  /// No description provided for @divelogsImport_fetch_foundDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Found {count} dive} other{Found {count} dives}}'**
+  String divelogsImport_fetch_foundDives(int count);
+
+  /// No description provided for @divelogsImport_fetch_foundPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No photos to import} one{{count} photo to import} other{{count} photos to import}}'**
+  String divelogsImport_fetch_foundPhotos(int count);
+
+  /// No description provided for @divelogsImport_fetch_gearUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear could not be fetched; dives will import without gear links.'**
+  String get divelogsImport_fetch_gearUnavailable;
+
+  /// No description provided for @divelogsImport_fetch_includePhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Include photos'**
+  String get divelogsImport_fetch_includePhotos;
+
+  /// No description provided for @divelogsImport_fetch_includePhotosHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos are downloaded during the import into a folder you choose.'**
+  String get divelogsImport_fetch_includePhotosHint;
+
+  /// No description provided for @divelogsImport_fetch_listingPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing photos for dive {current} of {total}…'**
+  String divelogsImport_fetch_listingPhotos(int current, int total);
+
+  /// No description provided for @divelogsImport_fetch_photoListingsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Photos for {count} dive could not be listed.} other{Photos for {count} dives could not be listed.}}'**
+  String divelogsImport_fetch_photoListingsFailed(int count);
+
+  /// No description provided for @divelogsImport_fetch_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get divelogsImport_fetch_retry;
+
+  /// No description provided for @divelogsImport_fetch_sessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your divelogs.de session expired. Go back and sign in again.'**
+  String get divelogsImport_fetch_sessionExpired;
+
+  /// No description provided for @divelogsImport_fetch_skippedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive could not be read and will be skipped.} other{{count} dives could not be read and will be skipped.}}'**
+  String divelogsImport_fetch_skippedDives(int count);
+
   /// No description provided for @divelogsImport_signIn_badCredentials.
   ///
   /// In en, this message translates to:

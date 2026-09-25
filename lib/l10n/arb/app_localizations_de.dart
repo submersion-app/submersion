@@ -10524,6 +10524,91 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get divelogsImport_fetch_button => 'Fetch Logbook';
+
+  @override
+  String get divelogsImport_fetch_certificationsUnavailable =>
+      'Certifications could not be fetched and will not be imported.';
+
+  @override
+  String get divelogsImport_fetch_empty =>
+      'Your divelogs.de logbook has nothing to import.';
+
+  @override
+  String get divelogsImport_fetch_failedTitle => 'Could not fetch your logbook';
+
+  @override
+  String get divelogsImport_fetch_fetching => 'Fetching your logbook…';
+
+  @override
+  String divelogsImport_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Found $count dives',
+      one: 'Found $count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divelogsImport_fetch_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count photos to import',
+      one: '$count photo to import',
+      zero: 'No photos to import',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_gearUnavailable =>
+      'Gear could not be fetched; dives will import without gear links.';
+
+  @override
+  String get divelogsImport_fetch_includePhotos => 'Include photos';
+
+  @override
+  String get divelogsImport_fetch_includePhotosHint =>
+      'Photos are downloaded during the import into a folder you choose.';
+
+  @override
+  String divelogsImport_fetch_listingPhotos(int current, int total) {
+    return 'Listing photos for dive $current of $total…';
+  }
+
+  @override
+  String divelogsImport_fetch_photoListingsFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Photos for $count dives could not be listed.',
+      one: 'Photos for $count dive could not be listed.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_retry => 'Try Again';
+
+  @override
+  String get divelogsImport_fetch_sessionExpired =>
+      'Your divelogs.de session expired. Go back and sign in again.';
+
+  @override
+  String divelogsImport_fetch_skippedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives could not be read and will be skipped.',
+      one: '$count dive could not be read and will be skipped.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get divelogsImport_signIn_badCredentials =>
       'divelogs.de rejected the username or password.';
 
