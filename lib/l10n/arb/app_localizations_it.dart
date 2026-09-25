@@ -10525,6 +10525,51 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get divelogsImport_signIn_badCredentials =>
+      'divelogs.de rejected the username or password.';
+
+  @override
+  String get divelogsImport_signIn_button => 'Sign In';
+
+  @override
+  String get divelogsImport_signIn_description =>
+      'Sign in with your divelogs.de account to import your logbook. Your password is never stored; only the resulting session is cached.';
+
+  @override
+  String get divelogsImport_signIn_passwordLabel => 'Password';
+
+  @override
+  String get divelogsImport_signIn_passwordRequired => 'Password is required';
+
+  @override
+  String divelogsImport_signIn_signedInAs(String username) {
+    return 'Signed in as $username';
+  }
+
+  @override
+  String get divelogsImport_signIn_signingIn => 'Signing in…';
+
+  @override
+  String get divelogsImport_signIn_signOut => 'Sign out';
+
+  @override
+  String get divelogsImport_signIn_title => 'Sign in to divelogs.de';
+
+  @override
+  String get divelogsImport_signIn_unexpected =>
+      'divelogs.de sent an unexpected response. Try again later.';
+
+  @override
+  String get divelogsImport_signIn_unreachable =>
+      'Could not reach divelogs.de. Check your connection and try again.';
+
+  @override
+  String get divelogsImport_signIn_usernameLabel => 'Username';
+
+  @override
+  String get divelogsImport_signIn_usernameRequired => 'Username is required';
+
+  @override
   String get divers_detail_activeDiver => 'Subacqueo attivo';
 
   @override

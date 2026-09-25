@@ -17200,6 +17200,84 @@ abstract class AppLocalizations {
   /// **'Updated \"{name}\"'**
   String diveTypes_snackbar_updated(Object name);
 
+  /// No description provided for @divelogsImport_signIn_badCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'divelogs.de rejected the username or password.'**
+  String get divelogsImport_signIn_badCredentials;
+
+  /// No description provided for @divelogsImport_signIn_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get divelogsImport_signIn_button;
+
+  /// No description provided for @divelogsImport_signIn_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with your divelogs.de account to import your logbook. Your password is never stored; only the resulting session is cached.'**
+  String get divelogsImport_signIn_description;
+
+  /// No description provided for @divelogsImport_signIn_passwordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get divelogsImport_signIn_passwordLabel;
+
+  /// No description provided for @divelogsImport_signIn_passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get divelogsImport_signIn_passwordRequired;
+
+  /// No description provided for @divelogsImport_signIn_signedInAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as {username}'**
+  String divelogsImport_signIn_signedInAs(String username);
+
+  /// No description provided for @divelogsImport_signIn_signingIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in…'**
+  String get divelogsImport_signIn_signingIn;
+
+  /// No description provided for @divelogsImport_signIn_signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get divelogsImport_signIn_signOut;
+
+  /// No description provided for @divelogsImport_signIn_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to divelogs.de'**
+  String get divelogsImport_signIn_title;
+
+  /// No description provided for @divelogsImport_signIn_unexpected.
+  ///
+  /// In en, this message translates to:
+  /// **'divelogs.de sent an unexpected response. Try again later.'**
+  String get divelogsImport_signIn_unexpected;
+
+  /// No description provided for @divelogsImport_signIn_unreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach divelogs.de. Check your connection and try again.'**
+  String get divelogsImport_signIn_unreachable;
+
+  /// No description provided for @divelogsImport_signIn_usernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get divelogsImport_signIn_usernameLabel;
+
+  /// No description provided for @divelogsImport_signIn_usernameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Username is required'**
+  String get divelogsImport_signIn_usernameRequired;
+
   /// No description provided for @divers_detail_activeDiver.
   ///
   /// In en, this message translates to:

@@ -6284,6 +6284,26 @@
       }
     }
   },
+  "divelogsImport_signIn_badCredentials": "divelogs.de rejected the username or password.",
+  "divelogsImport_signIn_button": "Sign In",
+  "divelogsImport_signIn_description": "Sign in with your divelogs.de account to import your logbook. Your password is never stored; only the resulting session is cached.",
+  "divelogsImport_signIn_passwordLabel": "Password",
+  "divelogsImport_signIn_passwordRequired": "Password is required",
+  "divelogsImport_signIn_signedInAs": "Signed in as {username}",
+  "@divelogsImport_signIn_signedInAs": {
+    "placeholders": {
+      "username": {
+        "type": "String"
+      }
+    }
+  },
+  "divelogsImport_signIn_signingIn": "Signing in…",
+  "divelogsImport_signIn_signOut": "Sign out",
+  "divelogsImport_signIn_title": "Sign in to divelogs.de",
+  "divelogsImport_signIn_unexpected": "divelogs.de sent an unexpected response. Try again later.",
+  "divelogsImport_signIn_unreachable": "Could not reach divelogs.de. Check your connection and try again.",
+  "divelogsImport_signIn_usernameLabel": "Username",
+  "divelogsImport_signIn_usernameRequired": "Username is required",
   "divers_detail_activeDiver": "Active Diver",
   "divers_detail_allergiesLabel": "Allergies",
   "divers_detail_appBarTitle": "Diver",
