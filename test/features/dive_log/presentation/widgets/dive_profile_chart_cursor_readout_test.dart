@@ -386,4 +386,47 @@ void main() {
 
     expect(rows, isNull);
   });
+
+  // The depth line is tagged ChartOnlyMetric.depth, and a tooltip row renders
+  // bold when its metric equals the hovered line's tag. A Depth row without
+  // that metric could never match, so hovering the depth line left its row
+  // plain while every other metric's row lit up.
+  testWidgets('the Depth row carries the depth line\'s hover identity', (
+    tester,
+  ) async {
+    List<TooltipRow>? rows;
+    await tester.pumpWidget(_chart(onTooltipData: (r) => rows = r));
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      _chart(onTooltipData: (r) => rows = r, highlightedTimestamp: 150),
+    );
+    await tester.pumpAndSettle();
+
+    final depthRow = rows?.where((r) => r.label == 'Depth').firstOrNull;
+    expect(depthRow, isNotNull);
+    expect(depthRow!.metric, ChartOnlyMetric.depth);
+  });
+
+  testWidgets('the Depth row keeps its hover identity on the surface lead-in', (
+    tester,
+  ) async {
+    List<TooltipRow>? rows;
+    final profile = _leadInProfile();
+    await tester.pumpWidget(
+      _chart(onTooltipData: (r) => rows = r, profile: profile),
+    );
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      _chart(
+        onTooltipData: (r) => rows = r,
+        profile: profile,
+        highlightedTimestamp: 5,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(_rowValue(rows, 'Time'), '0:00');
+    final depthRow = rows?.where((r) => r.label == 'Depth').firstOrNull;
+    expect(depthRow?.metric, ChartOnlyMetric.depth);
+  });
 }

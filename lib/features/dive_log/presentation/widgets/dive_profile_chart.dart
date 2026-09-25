@@ -1888,6 +1888,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
         label: l10n.diveLog_tooltip_depth,
         value: units.formatDepth(point.depth),
         bulletColor: AppColors.chartDepth,
+        metric: ChartOnlyMetric.depth,
       ),
     );
 
