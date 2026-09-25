@@ -143,7 +143,7 @@ converts for display. Everything but `f` and `p` is optional.
 | `f` | format version | `1` |
 | `p` | passport id, UUID v4, lower case | `8f3a5c1e-...` |
 | `w` | date the tag was written, `YYYY-MM-DD` | `2026-09-25` |
-| `n` | name or identifier, at most 40 characters | `Steel%2012%20L` |
+| `n` | name or identifier, at most 40 characters | `Steel+12+L` |
 | `sn` | stamped serial | `AB12345` |
 | `v` | volume, litres, up to one decimal | `12` |
 | `wp` | working pressure, bar, integer | `232` |
@@ -153,8 +153,8 @@ converts for display. Everything but `f` and `p` is optional.
 | `vi` | last visual inspection, `YYYY-MM-DD` | `2026-03-02` |
 | `oc` | `1` when O2 clean at write time | `1` |
 
-A full payload is about 150 characters, a version 7 QR at medium error
-correction, comfortable on a 25 mm label.
+A full payload is at most 160 characters, a version 9 QR (53 modules) at
+medium error correction, about half a millimetre per module on a 26 mm label.
 
 `h`, `vi` and `oc` are written from the clocks: the newest `hydro` and `vip`
 service record dates (or the schedule's baseline when it outranks them), and
