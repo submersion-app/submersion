@@ -1175,6 +1175,65 @@ void main() {
       expect(fill.label, endsWith('150.5 bar'));
     });
 
+    testWidgets('a label generated under a comma-decimal locale still '
+        'regenerates after the app language changes (#2302 review)', (
+      tester,
+    ) async {
+      final previousLocale = Intl.defaultLocale;
+      addTearDown(() => Intl.defaultLocale = previousLocale);
+      Intl.defaultLocale = 'de';
+      final ref = await _pump(tester);
+
+      await _openAddLine(tester);
+      await _pickGas(tester, 'Helium');
+      await tester.enterText(
+        find.byKey(const Key('blender-line-cylinder')),
+        '12,5',
+      );
+      await tester.enterText(
+        find.byKey(const Key('blender-line-start-pressure')),
+        '0',
+      );
+      await tester.enterText(
+        find.byKey(const Key('blender-line-end-pressure')),
+        '150',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+      final saved = ref.read(blenderBilledFillsProvider).single.label;
+      expect(saved, 'Helium · 12,5 L · 150,0 bar');
+
+      Intl.defaultLocale = 'en';
+      await tester.tap(find.byTooltip('Actions for $saved'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Edit $saved'));
+      await tester.pumpAndSettle();
+
+      // Recognised as generated, so it is left blank to be regenerated.
+      expect(
+        tester
+            .widget<TextField>(
+              find.byKey(const Key('blender-line-description')),
+            )
+            .controller!
+            .text,
+        isEmpty,
+      );
+      await tester.enterText(
+        find.byKey(const Key('blender-line-end-pressure')),
+        '200',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(
+        ref.read(blenderBilledFillsProvider).single.label,
+        'Helium · 12.5 L · 200.0 bar',
+      );
+    });
+
     testWidgets('a computed fill offers neither the kind switch nor the gas '
         'fields when re-edited', (tester) async {
       final ref = await _pump(tester);

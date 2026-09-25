@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
@@ -14,6 +15,7 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/blender
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The two kinds of line "Add a line" can put on the bill (issue #2302).
@@ -113,7 +115,8 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
 
     // A label this sheet generated is left blank rather than kept as typed
     // text, so changing the pressure or the gas regenerates it. Checked in
-    // every unit combination: the diver may have switched units since.
+    // every unit combination and app language: the diver may have switched
+    // either since.
     final generated =
         gasLine != null && _isGeneratedLabel(fill!.label, gasLine, settings);
     _label = TextEditingController(
@@ -170,25 +173,32 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
   }
 
   /// Whether [label] is what [_generatedLabel] made for [line], in any
-  /// pressure and volume unit.
+  /// pressure and volume unit and under any of the app's languages.
+  ///
+  /// The language matters because the label's numbers carry that locale's
+  /// decimal separator: "12,5 L" written under de is not "12.5 L" read back
+  /// under en.
   bool _isGeneratedLabel(
     String label,
     BilledGasLine line,
     AppSettings settings,
   ) {
-    for (final pressure in PressureUnit.values) {
-      for (final volume in VolumeUnit.values) {
-        final units = UnitFormatter(
-          settings.copyWith(pressureUnit: pressure, volumeUnit: volume),
-        );
-        if (label ==
-            _generatedLabel(
+    for (final locale in AppLocalizations.supportedLocales) {
+      for (final pressure in PressureUnit.values) {
+        for (final volume in VolumeUnit.values) {
+          final units = UnitFormatter(
+            settings.copyWith(pressureUnit: pressure, volumeUnit: volume),
+          );
+          final candidate = Intl.withLocale(
+            locale.toLanguageTag(),
+            () => _generatedLabel(
               line.gas,
               line.cylinderLiters,
               line.addedBar,
               units,
-            )) {
-          return true;
+            ),
+          );
+          if (label == candidate) return true;
         }
       }
     }
