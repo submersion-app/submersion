@@ -63,7 +63,7 @@ Core functionality:
 - Dive logging with all fields
 - Dive site database
 - Equipment management
-- Statistics dashboards
+- Insights dashboards
 - UDDF/CSV import/export
 - Multi-diver support
 

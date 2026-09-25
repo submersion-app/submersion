@@ -63,7 +63,7 @@ void main() {
 
       await _pumpTile(tester, width: 500, repo: repo);
 
-      expect(find.text('Equipment · Buddies · Statistics'), findsOneWidget);
+      expect(find.text('Equipment · Buddies · Insights'), findsOneWidget);
     });
 
     testWidgets('at or above the 800px breakpoint, previews the rail order', (
