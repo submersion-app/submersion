@@ -313,4 +313,33 @@ void main() {
     expect(cleared.unlocatedCount, 5);
     expect(cleared.isLoading, isFalse);
   });
+
+  test('a reload that only stamps media-store uploads keeps the list '
+      'instance', () async {
+    repo.points = [_point('a')];
+    await start();
+    final before = container.read(mediaMapPointsProvider).points;
+
+    final stamped = _point('a');
+    repo.points = [
+      MediaMapPoint(
+        entry: MediaLibraryEntry(
+          item: stamped.item.copyWith(
+            remoteUploadedAt: DateTime.utc(2026, 9, 25),
+            updatedAt: DateTime.utc(2026, 9, 25, 12),
+          ),
+        ),
+        point: stamped.point,
+        placement: stamped.placement,
+      ),
+    ];
+    repo.changes.add(null);
+    await _settle();
+    await _settle();
+
+    expect(
+      identical(container.read(mediaMapPointsProvider).points, before),
+      isTrue,
+    );
+  });
 }

@@ -30,13 +30,34 @@ class MediaMapPoint extends Equatable {
 
   MediaItem get item => entry.item;
 
-  /// The whole item, not just its id: the map notifier treats an equal
-  /// reload as "nothing changed" and keeps the list instance, so a favorite
-  /// toggle (which changes a cluster's representative) or any other item
-  /// edit must compare unequal.
+  /// A map-specific key: every field the map draws, orders by, places by, or
+  /// resolves a thumbnail from, and nothing else.
+  ///
+  /// MediaMapNotifier treats an equal reload as "nothing changed" and keeps
+  /// the list instance, which is what stops the cluster layer re-clustering
+  /// and the place strip closing. Media-store bookkeeping (upload stamps,
+  /// content hash and size, compression, verification and edit timestamps)
+  /// is written row by row while a store drains and changes none of that, so
+  /// it is deliberately left out. A favorite toggle (the cluster's
+  /// representative), a new thumbnail, a source change or a move all still
+  /// compare unequal.
   @override
   List<Object?> get props => [
-    entry.item,
+    item.id,
+    item.mediaType,
+    item.isFavorite,
+    item.takenAt,
+    item.isOrphaned,
+    item.sourceType,
+    item.platformAssetId,
+    item.cloudAssetId,
+    item.filePath,
+    item.localPath,
+    item.bookmarkRef,
+    item.url,
+    item.remoteAssetId,
+    item.connectorAccountId,
+    item.thumbnailPath,
     entry.diveNumber,
     entry.diveDateTime,
     entry.siteName,
