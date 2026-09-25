@@ -133,14 +133,31 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
           l10n.diveLab_handoff_note_lostTankKept,
       };
 
+  /// Today's rebuild sheet, over the lab. The sheet pushes the planner itself
+  /// (it pops, then pushes the route), which would leave the planner beneath
+  /// this page; so once the sheet has closed and the router reports the
+  /// planner as the current location, the lab leaves too. A sheet dismissed
+  /// without opening the planner leaves the lab where it was.
+  Future<void> _rebuildInPlanner(LabRequestInputs inputs) async {
+    final router = GoRouter.of(context);
+    final rootNavigator = Navigator.of(context, rootNavigator: true);
+    await showWhatIfSheet(context, inputs.dive);
+    final location =
+        router.routerDelegate.currentConfiguration.last.matchedLocation;
+    if (location == '/planning/dive-planner' && mounted) {
+      rootNavigator.pop();
+    }
+  }
+
   /// Hands the current draft to the planner as an unsaved plan and opens the
-  /// planner on top of the lab, so back returns here. The engine runs once
-  /// more in re-plan mode (the hand-off needs the compiled remainder even for
-  /// a replay draft); the result is loaded only after it is fully built.
+  /// planner in place of the lab. The engine runs once more in re-plan mode
+  /// (the hand-off needs the compiled remainder even for a replay draft); the
+  /// result is loaded only after it is fully built.
   Future<void> _openInPlanner(LabRequestInputs inputs) async {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
+    final rootNavigator = Navigator.of(context, rootNavigator: true);
     final units = UnitFormatter(ref.read(settingsProvider));
     final draft = ref.read(labDraftProvider(diveId));
     if (!draft.isSeeded) return;
@@ -191,6 +208,11 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
           ),
         );
       }
+      // The lab is an imperative route on the root navigator, above every
+      // page the router manages; a route pushed while it is up lands beneath
+      // it. Leave first, then push. The draft survives in its provider, so
+      // reopening the lab from the dive shows the same scenario.
+      rootNavigator.pop();
       router.push('/planning/dive-planner');
     } catch (e) {
       messenger.showSnackBar(
@@ -290,7 +312,7 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
                 case 'planner':
                   _openInPlanner(inputs);
                 case 'rebuild':
-                  showWhatIfSheet(context, inputs.dive);
+                  _rebuildInPlanner(inputs);
               }
             },
             itemBuilder: (context) {

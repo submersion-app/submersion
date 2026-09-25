@@ -127,6 +127,9 @@ void main() {
     expect(state.sourceDiveId, 'd');
     expect(state.name, startsWith('What if: Wreck'));
     expect(state.segments, isNotEmpty);
+    // The lab is an imperative route above the router's pages, so it must
+    // leave before the planner is pushed or the planner lands beneath it.
+    expect(find.byType(DiveLabPage), findsNothing);
     expect(find.text('planner page'), findsOneWidget);
     expect(
       router.routerDelegate.currentConfiguration.last.matchedLocation,
@@ -155,17 +158,24 @@ void main() {
     );
   });
 
-  testWidgets('Rebuild in planner opens the rebuild sheet over the lab', (
-    tester,
-  ) async {
-    final router = _router();
-    addTearDown(router.dispose);
-    await tester.pumpWidget(_app(router, _inputs()));
-    await tester.pumpAndSettle();
-    await _openLabAndMenu(tester);
-    await tester.tap(find.text('Rebuild in planner...'));
-    await tester.pumpAndSettle();
-    expect(find.byType(WhatIfSheet), findsOneWidget);
-    expect(find.byType(DiveLabPage), findsOneWidget);
-  });
+  testWidgets(
+    'Rebuild in planner opens the sheet, then the lab leaves for the planner',
+    (tester) async {
+      final router = _router();
+      addTearDown(router.dispose);
+      await tester.pumpWidget(_app(router, _inputs()));
+      await tester.pumpAndSettle();
+      await _openLabAndMenu(tester);
+      await tester.tap(find.text('Rebuild in planner...'));
+      await tester.pumpAndSettle();
+      expect(find.byType(WhatIfSheet), findsOneWidget);
+      expect(find.byType(DiveLabPage), findsOneWidget);
+      // The sheet pushes the planner itself; once it has, the lab leaves so the
+      // planner is not left beneath it.
+      await tester.tap(find.text('Open in planner'));
+      await tester.pumpAndSettle();
+      expect(find.byType(DiveLabPage), findsNothing);
+      expect(find.text('planner page'), findsOneWidget);
+    },
+  );
 }
