@@ -70,6 +70,9 @@ void main() {
   test('v228 is at or below the current schema version and in the ladder', () {
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(228));
     expect(AppDatabase.migrationVersions, contains(228));
+    // The newest rung owns the exact assertion; relax it to
+    // greaterThanOrEqualTo when the next one lands.
+    expect(AppDatabase.migrationStepCount(227), 1);
     // A new table is additive: the compatibility floor stays put.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
