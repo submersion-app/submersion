@@ -2910,16 +2910,6 @@ class _DataSectionContent extends ConsumerWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/offline-maps'),
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.terrain),
-                  title: Text(context.l10n.settings_data_threeDMaps),
-                  subtitle: Text(
-                    context.l10n.settings_data_threeDMaps_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/3d-maps'),
-                ),
               ],
             ),
           ),
