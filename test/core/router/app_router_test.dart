@@ -953,6 +953,40 @@ void main() {
       );
     });
 
+    testWidgets('the equipment condition route builds its settings page', (
+      tester,
+    ) async {
+      final config = router.configuration;
+      final route = _findRouteByName(
+        config.routes,
+        'equipmentConditionSettings',
+      );
+      expect(route, isNotNull);
+
+      late BuildContext capturedContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              capturedContext = context;
+              return const SizedBox.shrink();
+            },
+          ),
+        ),
+      );
+
+      final state = GoRouterState(
+        config,
+        uri: Uri.parse('/settings/safety/equipment-condition'),
+        matchedLocation: '/settings/safety/equipment-condition',
+        fullPath: '/settings/safety/equipment-condition',
+        pathParameters: const {},
+        pageKey: const ValueKey('/settings/safety/equipment-condition'),
+      );
+      final widget = route!.builder!(capturedContext, state);
+      expect(widget.runtimeType.toString(), 'EquipmentConditionSettingsPage');
+    });
+
     test('a section child route exists under /settings', () {
       final route = _findRouteByName(
         router.configuration.routes,
