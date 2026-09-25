@@ -397,7 +397,19 @@ final QueryEntity diveQueryEntity = QueryEntity(
       tables: const ['dive_equipment', 'dive_tanks'],
     ),
     _child('tanks', QuerySubject.tanks),
-    _child('weights', QuerySubject.weights),
+    QueryRelation(
+      key: 'weights',
+      target: QuerySubject.weights,
+      shape: RelationShape.child,
+      joinSql: '{to}.dive_id = {from}.id',
+      isMany: true,
+      labelKey: _label('weights'),
+      // The legacy scalar the edit form migrates into the table on load is
+      // a weight entry too, so `weights:none` and `weight:none` agree.
+      emptySql:
+          '({from}.weight_amount IS NULL AND NOT EXISTS '
+          '(SELECT 1 FROM dive_weights j WHERE j.dive_id = {from}.id))',
+    ),
     _child('customFields', QuerySubject.customFields),
     _child('sightings', QuerySubject.sightings),
     _child('media', QuerySubject.media),

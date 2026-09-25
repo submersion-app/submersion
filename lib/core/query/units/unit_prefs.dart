@@ -30,6 +30,17 @@ const kMetricPrefs = UnitPrefs(
   volume: VolumeUnit.liters,
 );
 
+/// The dimension a typed unit belongs to, so `depth > 100f` is refused
+/// rather than read in the diver's depth unit.
+FieldDimension dimensionOfUnit(QueryUnit unit) => switch (unit) {
+  QueryUnit.m || QueryUnit.ft => FieldDimension.depth,
+  QueryUnit.c || QueryUnit.f => FieldDimension.temperature,
+  QueryUnit.bar || QueryUnit.psi => FieldDimension.pressure,
+  QueryUnit.kg || QueryUnit.lb => FieldDimension.weight,
+  QueryUnit.l || QueryUnit.cuft => FieldDimension.volume,
+  QueryUnit.min => FieldDimension.minutes,
+};
+
 /// Converts a typed number to storage units. An explicit [unit] wins; a bare
 /// number takes the diver's unit for [dimension]; a unitless dimension is
 /// returned unchanged whatever [unit] says.

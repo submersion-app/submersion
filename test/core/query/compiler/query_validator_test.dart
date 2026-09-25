@@ -141,4 +141,20 @@ void main() {
       contains('free text'),
     ]);
   });
+
+  test('a unit from another dimension, an empty group and empty text', () {
+    expect(
+      messages(
+        ConditionNode(
+          const FieldPath(['depth']),
+          QueryOp.gt,
+          const NumberValue(30, QueryUnit.f),
+        ),
+      ),
+      [contains('unit')],
+    );
+    expect(messages(const AndNode([])), [contains('empty')]);
+    expect(messages(const OrNode([])), [contains('empty')]);
+    expect(messages(const TextNode([])), [contains('empty')]);
+  });
 }

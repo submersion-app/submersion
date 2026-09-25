@@ -48,6 +48,7 @@ const certificationQueryEntity = QueryEntity(
     QueryField(
       key: 'issueDate',
       type: FieldType.date,
+      dateFrame: DateFrame.localInstant,
       sql: '{r}.issue_date',
       emptySql: '{r}.issue_date IS NULL',
       labelKey: 'query_certifications_issueDate',
@@ -55,6 +56,7 @@ const certificationQueryEntity = QueryEntity(
     QueryField(
       key: 'expiryDate',
       type: FieldType.date,
+      dateFrame: DateFrame.localInstant,
       sql: '{r}.expiry_date',
       emptySql: '{r}.expiry_date IS NULL',
       labelKey: 'query_certifications_expiryDate',

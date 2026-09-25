@@ -25,6 +25,7 @@ const tripQueryEntity = QueryEntity(
     QueryField(
       key: 'startDate',
       type: FieldType.date,
+      dateFrame: DateFrame.localInstant,
       sql: '{r}.start_date',
       emptySql: '{r}.start_date IS NULL',
       labelKey: 'query_trips_startDate',
@@ -32,6 +33,7 @@ const tripQueryEntity = QueryEntity(
     QueryField(
       key: 'endDate',
       type: FieldType.date,
+      dateFrame: DateFrame.localInstant,
       sql: '{r}.end_date',
       emptySql: '{r}.end_date IS NULL',
       labelKey: 'query_trips_endDate',

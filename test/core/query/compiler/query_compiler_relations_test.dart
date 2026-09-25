@@ -114,9 +114,9 @@ void main() {
     );
     expect(
       q.where,
-      '(NOT (EXISTS (SELECT 1 FROM equipment r1 WHERE r1.id IN '
+      '(NOT COALESCE((EXISTS (SELECT 1 FROM equipment r1 WHERE r1.id IN '
       '(SELECT de.equipment_id FROM dive_equipment de WHERE de.dive_id = r0.id) '
-      'AND (r1.type IN (?, ?)))))',
+      'AND (r1.type IN (?, ?)))), 0))',
     );
     expect(q.params, ['wetsuit', 'drysuit']);
     expect(q.tablesTouched, {'dives', 'equipment', 'dive_equipment'});

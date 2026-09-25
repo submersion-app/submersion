@@ -25,6 +25,7 @@ const courseQueryEntity = QueryEntity(
     QueryField(
       key: 'startDate',
       type: FieldType.date,
+      dateFrame: DateFrame.localInstant,
       sql: '{r}.start_date',
       emptySql: '{r}.start_date IS NULL',
       labelKey: 'query_courses_startDate',
@@ -32,6 +33,7 @@ const courseQueryEntity = QueryEntity(
     QueryField(
       key: 'completionDate',
       type: FieldType.date,
+      dateFrame: DateFrame.localInstant,
       sql: '{r}.completion_date',
       emptySql: '{r}.completion_date IS NULL',
       labelKey: 'query_courses_completionDate',

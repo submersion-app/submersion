@@ -3,6 +3,7 @@ import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/registry/query_entity.dart';
 import 'package:submersion/core/query/registry/query_field.dart';
 import 'package:submersion/core/query/registry/query_registry.dart';
+import 'package:submersion/core/query/units/unit_prefs.dart';
 
 /// Every problem in [node], for the editor to show at once. The compiler is
 /// only called on a tree this returns nothing for.
@@ -29,12 +30,16 @@ void _walk(
   switch (n) {
     case AndNode(:final children):
     case OrNode(:final children):
+      if (children.isEmpty) {
+        out.add(const QueryError('an empty group matches nothing'));
+      }
       for (final c in children) {
         _walk(c, scope, registry, out);
       }
     case NotNode(:final child):
       _walk(child, scope, registry, out);
-    case TextNode():
+    case TextNode(:final words):
+      if (words.isEmpty) out.add(const QueryError('empty text'));
       if (scope.textSearchSql.isEmpty) {
         out.add(
           QueryError('free text cannot be searched inside ${scope.table}'),
@@ -155,8 +160,16 @@ void _checkValue(
         FieldDimension.percent,
         FieldDimension.count,
       }.contains(field.dimension);
-      if (value.typedUnit != null && unitless) {
+      final unit = value.typedUnit;
+      if (unit != null && unitless) {
         out.add(QueryError('${field.key} takes no unit', path: path));
+      } else if (unit != null && dimensionOfUnit(unit) != field.dimension) {
+        out.add(
+          QueryError(
+            '"${unit.suffix}" is not a ${field.dimension.name} unit',
+            path: path,
+          ),
+        );
       }
       final s = field.sanity;
       if (s != null && (value.value < s.min || value.value > s.max)) {

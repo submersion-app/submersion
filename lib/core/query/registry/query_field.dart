@@ -4,6 +4,18 @@ import 'package:submersion/core/query/domain/query_node.dart';
 
 enum FieldType { number, text, bool, enumName, date, id }
 
+/// How a date column stores its instant, which decides what "the calendar
+/// day D" binds to.
+enum DateFrame {
+  /// A wall clock flagged as UTC (`dives.dive_date_time`): day D is
+  /// `DateTime.utc(D)`.
+  wallClockUtc,
+
+  /// A local instant stored as `millisecondsSinceEpoch` (trips,
+  /// certifications, courses): day D is the device's local midnight.
+  localInstant,
+}
+
 enum FieldDimension {
   depth,
   temperature,
@@ -77,6 +89,9 @@ class QueryField {
   /// Validation range in storage units, inclusive.
   final ({double min, double max})? sanity;
 
+  /// For [FieldType.date]: the frame the column stores.
+  final DateFrame dateFrame;
+
   /// Tables this field's SQL reads besides the entity's own (dive_weights
   /// inside weight's emptySql, the profile tables inside deco), for ticks.
   final List<String> tables;
@@ -94,6 +109,7 @@ class QueryField {
     this.enumSqlValues,
     this.boolSql,
     this.sanity,
+    this.dateFrame = DateFrame.wallClockUtc,
     this.tables = const [],
   }) : _ops = ops;
 

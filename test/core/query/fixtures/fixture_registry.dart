@@ -129,6 +129,14 @@ const fixtureDives = QueryEntity(
       emptySql: '{r}.dive_date_time IS NULL',
       labelKey: 'x',
     ),
+    QueryField(
+      key: 'localDay',
+      type: FieldType.date,
+      dateFrame: DateFrame.localInstant,
+      sql: '{r}.local_day',
+      emptySql: '{r}.local_day IS NULL',
+      labelKey: 'x',
+    ),
   ],
   relations: [
     QueryRelation(

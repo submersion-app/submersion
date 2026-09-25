@@ -243,6 +243,52 @@ void main() {
     );
   });
 
+  test('date shorthand and date lists never throw (review fix)', () {
+    expect(
+      ok(metric(), 'date:2025'),
+      ConditionNode(
+        const FieldPath(['date']),
+        QueryOp.inList,
+        DateRangeValue(DateTime(2025, 1, 1), DateTime(2025, 12, 31)),
+      ),
+    );
+    expect(
+      ok(metric(), 'date:2025-03-14'),
+      ConditionNode(
+        const FieldPath(['date']),
+        QueryOp.eq,
+        DateValue(DateTime(2025, 3, 14)),
+      ),
+    );
+    expect(
+      ok(metric(), 'date in [2025-01-05, 2025-03]'),
+      OrNode([
+        ConditionNode(
+          const FieldPath(['date']),
+          QueryOp.eq,
+          DateValue(DateTime(2025, 1, 5)),
+        ),
+        ConditionNode(
+          const FieldPath(['date']),
+          QueryOp.inList,
+          DateRangeValue(DateTime(2025, 3, 1), DateTime(2025, 3, 31)),
+        ),
+      ]),
+    );
+    expect(bad(metric(), 'date in []').error.message, contains('empty'));
+  });
+
+  test('a unit from another dimension is an error, not a fallback', () {
+    expect(bad(metric(), 'depth > 100f').error.message, contains('depth'));
+    expect(bad(metric(), 'temp > 20ft').error.message, contains('unit'));
+    expect(bad(metric(), 'temp > 20ft').error.offset, 7);
+  });
+
+  test('empty quoted text is an error', () {
+    expect(bad(metric(), '""').error.message, contains('empty'));
+    expect(bad(metric(), 'notes ~ ""').error.message, contains('empty'));
+  });
+
   test('refs resolve by name and report candidates when they do not', () {
     expect(
       ok(metric(), 'site = "Salt Pier"'),

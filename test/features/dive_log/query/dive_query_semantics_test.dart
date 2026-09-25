@@ -58,10 +58,11 @@ void main() {
 
   test('the request: missing weight, exposure gear, temperature', () async {
     expect(await ids('weights:none'), {
-      'd2',
       'd3',
       'd4',
-    }, reason: 'no weight ROWS; d2 has only the legacy scalar');
+    }, reason: 'the legacy scalar is a weight entry too (review fix)');
+    expect(await ids('weights:any'), {'d1', 'd2', 'd5'});
+    expect(await ids('buddies:any'), {'d1', 'd2', 'd5'});
     expect(await ids('weight:none'), {
       'd3',
       'd4',
@@ -125,6 +126,12 @@ void main() {
     }, reason: 'site name is a search column');
     expect(await ids('notes ~ "100%"'), {'d3'});
     expect(await ids('notes:none'), {'d2', 'd4', 'd5'});
+  });
+
+  test('NOT never drops a dive for a NULL column (review fix)', () async {
+    expect(await ids('-manta'), {'d2', 'd3', 'd4', 'd5'});
+    expect(await ids('NOT notes ~ shark'), QueryFixtureIds.mine.toSet());
+    expect(await ids('NOT depth > 30'), {'d1', 'd2', 'd3', 'd4'});
   });
 
   test('the empty query matches every dive of the diver', () async {

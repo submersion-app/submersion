@@ -185,9 +185,9 @@ class QueryParser {
     }
     if (t.kind == TokenKind.quoted) {
       _next();
-      return TextNode(
-        t.text.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList(),
-      );
+      final words = t.text.split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
+      if (words.isEmpty) throw _Abort(_err('empty text', t));
+      return TextNode(words.toList());
     }
     if (t.kind == TokenKind.number) {
       _next();
@@ -262,6 +262,9 @@ class QueryParser {
       final field = _fieldOrAbort(res, pathTok);
       final op = field.type == FieldType.text ? QueryOp.contains : QueryOp.eq;
       _requireOp(field, op, opTok);
+      if (field.type == FieldType.date) {
+        return _dateCondition(path, QueryOp.eq, field);
+      }
       return ConditionNode(path, op, _value(field, op));
     }
 
@@ -278,6 +281,21 @@ class QueryParser {
         throw _Abort(_err('expected "[" after "in"', _peek));
       }
       final open = _next();
+      if (field.type == FieldType.date) {
+        // A list of days or periods: each is its own condition, ORed, so
+        // `date in [2025-01-05, 2025-03]` keeps the whole of March.
+        final days = <QueryNode>[];
+        while (!_isSymbol(_peek, ']')) {
+          if (_peek.kind == TokenKind.end) {
+            throw _Abort(_err('expected "]"', _peek));
+          }
+          days.add(_dateCondition(path, QueryOp.eq, field));
+          if (_isSymbol(_peek, ',')) _next();
+        }
+        _next();
+        if (days.isEmpty) throw _Abort(_err('the list is empty', open));
+        return days.length == 1 ? days.first : OrNode(days);
+      }
       final items = <QueryValue>[];
       while (!_isSymbol(_peek, ']')) {
         if (_peek.kind == TokenKind.end) {
@@ -467,10 +485,17 @@ class QueryParser {
             FieldDimension.percent,
             FieldDimension.count,
           }.contains(field.dimension);
-          if (unitless ||
-              (field.dimension == FieldDimension.minutes &&
-                  unit != QueryUnit.min)) {
+          if (unitless) {
             throw _Abort(_err('${field.key} takes no unit', tok));
+          }
+          if (dimensionOfUnit(unit) != field.dimension) {
+            throw _Abort(
+              _err(
+                '"$suffix" is not a ${field.dimension.name} unit; '
+                '${field.key} is measured in ${field.dimension.name}',
+                tok,
+              ),
+            );
           }
         }
         if (_isSymbol(_peek, ',') && op != QueryOp.inList) {
@@ -486,6 +511,7 @@ class QueryParser {
         if (tok.kind == TokenKind.symbol) {
           throw _Abort(_err('expected text', tok));
         }
+        if (tok.text.trim().isEmpty) throw _Abort(_err('empty text', tok));
         return StringValue(tok.text);
       case FieldType.bool:
         final tok = _next();

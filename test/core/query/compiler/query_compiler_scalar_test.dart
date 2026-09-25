@@ -282,7 +282,8 @@ void main() {
     );
     expect(
       q.where,
-      '(((r0.max_depth > ?) AND (NOT (r0.is_favorite = ?))) OR (r0.rating >= ?))',
+      '(((r0.max_depth > ?) AND (NOT COALESCE((r0.is_favorite = ?), 0))) '
+      'OR (r0.rating >= ?))',
     );
     expect(q.params, [30.0, 1, 4.0]);
   });
@@ -324,5 +325,42 @@ void main() {
       ).where,
       '(d.max_depth > ?)',
     );
+  });
+
+  test('NOT is two-valued: a NULL operand counts as not matching', () {
+    final q = c(
+      NotNode(
+        ConditionNode(
+          const FieldPath(['notes']),
+          QueryOp.contains,
+          const StringValue('shark'),
+        ),
+      ),
+    );
+    expect(q.where, "(NOT COALESCE((r0.notes LIKE ? ESCAPE '\\'), 0))");
+  });
+
+  test(
+    'a local-instant date field binds local midnight, not the UTC frame',
+    () {
+      final q = compileQuery(
+        ConditionNode(
+          const FieldPath(['localDay']),
+          QueryOp.eq,
+          DateValue(DateTime(2025, 3, 14)),
+        ),
+        fixtureDives,
+        fixtureRegistry,
+      );
+      expect(q.params, [
+        DateTime(2025, 3, 14).millisecondsSinceEpoch,
+        DateTime(2025, 3, 15).millisecondsSinceEpoch,
+      ]);
+    },
+  );
+
+  test('an empty group or empty text is a compile error, never bad SQL', () {
+    expect(() => c(const AndNode([])), throwsA(isA<Error>()));
+    expect(() => c(const TextNode([])), throwsA(isA<Error>()));
   });
 }

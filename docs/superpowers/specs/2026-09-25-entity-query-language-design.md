@@ -635,6 +635,33 @@ The plan is authoritative where they differ.
   remain (the buddy providers use one); only the dive-list notifiers moved
   off them.
 
+Decided in the whole-branch review of PR 1:
+
+- **NOT is two-valued.** `NOT x` compiles to `NOT COALESCE(x, 0)`, so a
+  row whose operand is NULL (no notes under `NOT notes ~ shark`, no depth
+  under `NOT depth > 30`) is KEPT: NOT is the exact complement of its
+  operand. SQL's three-valued NOT dropped almost every dive from a negated
+  text search, because the legacy `buddy` column is usually NULL. The
+  scalar `!=` operator is unchanged and still excludes unrecorded values;
+  `field:none` is how "unrecorded" is asked for.
+- **`:any` is the exact complement of `:none`.** A relation with an
+  `emptySql` (buddies, weights) counts its legacy scalar as present under
+  `:any` too, so `buddies:any` and `NOT buddies:none` agree.
+- **`weights:none` counts the legacy scalar as a weight entry** (the edit
+  form migrates it into the table on load), so `weights:none` and
+  `weight:none` select the same dives. The plan had pinned the opposite.
+- **Date fields declare their frame.** `QueryField.dateFrame` is
+  `wallClockUtc` (dives) or `localInstant` (trips, certifications,
+  courses, which store `millisecondsSinceEpoch` of a local value); day
+  bounds are computed per frame, so `trip.startDate = 2025-03-14` does not
+  miss the trip by the diver's UTC offset (#1368's class).
+- **A unit from another dimension is an error** (`depth > 100f`), never a
+  silent fallback to the diver's unit.
+- **Date shorthand and date lists parse**: `date:2025` is the year range,
+  `date in [2025-01-05, 2025-03]` is an OR of day and period conditions.
+- **Empty groups and empty text are errors** in the parser, the validator
+  and the compiler, never SQL.
+
 ## Open items for the implementation plans
 
 - PR 1 must re-grep `currentSchemaVersion` only if it adds a table; it does

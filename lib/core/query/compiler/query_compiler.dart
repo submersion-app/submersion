@@ -75,11 +75,12 @@ class _Ctx {
   String nextAlias() => 'r${++_aliasCounter}';
 
   String emit(QueryNode n, QueryEntity entity, String alias) => switch (n) {
-    AndNode(:final children) =>
-      '(${children.map((c) => emit(c, entity, alias)).join(' AND ')})',
-    OrNode(:final children) =>
-      '(${children.map((c) => emit(c, entity, alias)).join(' OR ')})',
-    NotNode(:final child) => '(NOT ${emit(child, entity, alias)})',
+    AndNode(:final children) => _group(children, ' AND ', entity, alias),
+    OrNode(:final children) => _group(children, ' OR ', entity, alias),
+    // Two-valued: a NULL operand (an unrecorded column under LIKE or a
+    // comparison) counts as "did not match", so its negation keeps the
+    // row. SQL's own NOT NULL is NULL and would drop it.
+    NotNode(:final child) => '(NOT COALESCE(${emit(child, entity, alias)}, 0))',
     TextNode(:final words) => _text(words, entity, alias),
     ScopedNode(:final path, :final inner) => _scoped(
       path,
@@ -96,7 +97,18 @@ class _Ctx {
     ),
   };
 
+  String _group(
+    List<QueryNode> children,
+    String joiner,
+    QueryEntity entity,
+    String alias,
+  ) {
+    if (children.isEmpty) throw QueryCompileError('empty group');
+    return '(${children.map((c) => emit(c, entity, alias)).join(joiner)})';
+  }
+
   String _text(List<String> words, QueryEntity entity, String alias) {
+    if (words.isEmpty) throw QueryCompileError('empty text');
     if (entity.textSearchSql.isEmpty) {
       throw QueryCompileError(
         '${entity.table} declares no text search columns',
@@ -199,6 +211,14 @@ class _Ctx {
         final ph = List.filled(items.length, '?').join(', ');
         return '(${_hops(res.hops, alias, (a) => '$a.${target.idColumn} IN ($ph)')})';
       case QueryOp.isSet:
+        // `:any` is the exact complement of `:none`, so a relation whose
+        // emptiness counts a legacy scalar (buddies, weights) counts it as
+        // present too.
+        if (rel.emptySql != null && res.hops.length == 1) {
+          tables.add(target.table);
+          tables.addAll(rel.tables);
+          return '(NOT ${substituteJoin(rel.emptySql!, alias, '_unused')})';
+        }
         return '(${_hops(res.hops, alias, null)})';
       case QueryOp.isEmpty:
         if (rel.emptySql != null && res.hops.length == 1) {
@@ -235,7 +255,7 @@ class _Ctx {
         return '(${_cmp(f, col, '>=', items[0])} '
             'AND ${_cmp(f, col, '<=', items[1])})';
       case QueryOp.inList:
-        if (value is DateRangeValue) return _dateRange(col, value);
+        if (value is DateRangeValue) return _dateRange(col, value, f);
         final items = (value as ListValue).items;
         if (f.type == FieldType.text) {
           for (final v in items) {
@@ -288,8 +308,8 @@ class _Ctx {
     if (f.type == FieldType.date) {
       final day = (value as DateValue).day;
       params
-        ..add(_ms(day))
-        ..add(_ms(_plusDay(day)));
+        ..add(_ms(day, f.dateFrame))
+        ..add(_ms(_plusDay(day), f.dateFrame));
       final eq = '($col >= ? AND $col < ?)';
       return positive ? eq : '(NOT $eq)';
     }
@@ -312,16 +332,16 @@ class _Ctx {
       // the day after, mirroring DiveFilterState's endDateBoundMs.
       switch (sym) {
         case '<':
-          params.add(_ms(day));
+          params.add(_ms(day, f.dateFrame));
           return '$col < ?';
         case '<=':
-          params.add(_ms(_plusDay(day)));
+          params.add(_ms(_plusDay(day), f.dateFrame));
           return '$col < ?';
         case '>':
-          params.add(_ms(_plusDay(day)));
+          params.add(_ms(_plusDay(day), f.dateFrame));
           return '$col >= ?';
         default:
-          params.add(_ms(day));
+          params.add(_ms(day, f.dateFrame));
           return '$col >= ?';
       }
     }
@@ -329,10 +349,10 @@ class _Ctx {
     return '$col $sym ?';
   }
 
-  String _dateRange(String col, DateRangeValue r) {
+  String _dateRange(String col, DateRangeValue r, QueryField f) {
     params
-      ..add(_ms(r.start))
-      ..add(_ms(_plusDay(r.end)));
+      ..add(_ms(r.start, f.dateFrame))
+      ..add(_ms(_plusDay(r.end), f.dateFrame));
     return '($col >= ? AND $col < ?)';
   }
 
@@ -342,11 +362,19 @@ class _Ctx {
     BoolValue(:final value) => value ? 1 : 0,
     EnumValue(:final name) => f.enumSqlValues?[name] ?? name,
     RefValue(:final id) => id,
-    DateValue(:final day) => _ms(day),
+    DateValue(:final day) => _ms(day, f.dateFrame),
     DateRangeValue() ||
     ListValue() => throw QueryCompileError('cannot bind $v'),
   };
 
-  int _ms(DateTime day) => wallClockUtcDayStart(day).millisecondsSinceEpoch;
+  /// The start of calendar day [day] in the column's frame.
+  int _ms(DateTime day, DateFrame frame) => switch (frame) {
+    DateFrame.wallClockUtc => wallClockUtcDayStart(day).millisecondsSinceEpoch,
+    DateFrame.localInstant => DateTime(
+      day.year,
+      day.month,
+      day.day,
+    ).millisecondsSinceEpoch,
+  };
   DateTime _plusDay(DateTime day) => DateTime(day.year, day.month, day.day + 1);
 }

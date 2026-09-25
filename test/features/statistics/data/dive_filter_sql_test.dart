@@ -71,6 +71,19 @@ void main() {
   /// Registers a dive computer. Issue #1064: these carry no serial number,
   /// mirroring the firmware that never reports one -- attribution must still
   /// work.
+  Future<void> insertComputer(String id) async {
+    await db
+        .into(db.diveComputers)
+        .insert(
+          DiveComputersCompanion.insert(
+            id: id,
+            name: 'Computer $id',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+  }
+
   Future<void> insertSite(String id) async {
     await db
         .into(db.diveSites)
@@ -136,9 +149,93 @@ void main() {
         );
   }
 
+  Future<void> insertDiveCenter(String id) async {
+    await db
+        .into(db.diveCenters)
+        .insert(
+          DiveCentersCompanion(
+            id: Value(id),
+            name: Value('Center $id'),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+  }
+
+  Future<void> insertTrip(String id) async {
+    await db
+        .into(db.trips)
+        .insert(
+          TripsCompanion(
+            id: Value(id),
+            name: Value('Trip $id'),
+            startDate: Value(now),
+            endDate: Value(now),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+  }
+
+  Future<void> insertEquipment(String id) async {
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion(
+            id: Value(id),
+            name: Value('Equipment $id'),
+            type: const Value('other'),
+            createdAt: Value(now),
+            updatedAt: Value(now),
+          ),
+        );
+  }
+
+  Future<void> linkEquipment(String diveId, String equipmentId) async {
+    await db
+        .into(db.diveEquipment)
+        .insert(
+          DiveEquipmentCompanion(
+            diveId: Value(diveId),
+            equipmentId: Value(equipmentId),
+          ),
+        );
+  }
+
   // dive_dive_types.dive_type_id carries no FK (see DiveDiveTypes in
   // database.dart), so arbitrary slug strings are valid without seeding a
   // dive_types row.
+  Future<void> insertDiveType(String diveId, String diveTypeId) async {
+    await db
+        .into(db.diveDiveTypes)
+        .insert(
+          DiveDiveTypesCompanion(
+            id: Value('$diveId-$diveTypeId'),
+            diveId: Value(diveId),
+            diveTypeId: Value(diveTypeId),
+            createdAt: Value(now),
+          ),
+        );
+  }
+
+  Future<void> insertTank(
+    String diveId,
+    String tankId, {
+    required double o2Percent,
+  }) async {
+    await db
+        .into(db.diveTanks)
+        .insert(
+          DiveTanksCompanion(
+            id: Value(tankId),
+            diveId: Value(diveId),
+            o2Percent: Value(o2Percent),
+            hePercent: const Value(0.0),
+            tankOrder: const Value(0),
+          ),
+        );
+  }
+
   Future<void> insertProfilePoint(
     String diveId,
     String id, {
@@ -175,6 +272,24 @@ void main() {
             diveId: Value(diveId),
             timestamp: const Value(0),
             eventType: Value(eventType),
+            createdAt: Value(now),
+          ),
+        );
+  }
+
+  Future<void> insertCustomField(
+    String diveId,
+    String key,
+    String value,
+  ) async {
+    await db
+        .into(db.diveCustomFields)
+        .insert(
+          DiveCustomFieldsCompanion(
+            id: Value('$diveId-$key'),
+            diveId: Value(diveId),
+            fieldKey: Value(key),
+            fieldValue: Value(value),
             createdAt: Value(now),
           ),
         );
@@ -392,4 +507,340 @@ void main() {
       }
     },
   );
+
+  test('broad parity: the id set and buildFilteredDiveIdSubquery agree across '
+      'every implemented DiveFilterState axis (spec 9.3 invariant)', () async {
+    // This is the general form of the two parity tests above: instead of
+    // hand-rolling matching domain Dive + DB row pairs per axis, seed one
+    // rich dataset into the real DB, hydrate the domain side the same way
+    // production code does (DiveRepository().getAllDives()), and assert
+    // getDiveIdsMatching() and buildFilteredDiveIdSubquery() select the
+    // same ids for a battery of filters -- one per axis, plus a few
+    // multi-axis combinations. That "SQL mirrors apply()" property is what
+    // lets getStatistics/getSacVolumePerDive/etc. push filtering into SQL
+    // instead of loading every dive into Dart.
+    //
+    // decoOnly is the one axis deliberately left out of the battery: it is
+    // SQL-only. getAllDives does not hydrate profiles and deco-stop events
+    // never reach the entity, so apply() cannot classify a dive and does not
+    // try. Its own coverage is the decoOnly test above plus
+    // deco_filter_providers_test.dart, which pins the entity-backed surfaces
+    // to the SQL answer via decoFilteredDiveIdsProvider.
+
+    // --- Parents (FK=ON: must precede the dives that reference them) ---
+    await insertSite('s1');
+    await insertSite('s2');
+    await insertSite('s3');
+    await insertDiveCenter('c1');
+    await insertDiveCenter('c2');
+    await insertTrip('t1');
+    await insertTag('dry');
+    await insertTag('night');
+    await insertEquipment('eq1');
+    await insertEquipment('eq2');
+    await insertComputer('dc-a');
+    await insertComputer('dc-b');
+    await insertComputer('dc-c');
+
+    // --- Dives: deliberately varied so every axis below both includes and
+    // excludes at least one dive (a filter that trivially matches
+    // everything, or nothing, couldn't catch a real apply()/SQL mismatch).
+    await insertDive(
+      'd1',
+      date: DateTime(2026, 1, 10),
+      siteId: 's1',
+      diveCenterId: 'c1',
+      tripId: 't1',
+      maxDepth: 18.0,
+      rating: 3,
+      bottomTimeSeconds: 2400, // 40 min
+      buddy: 'Alice Diver',
+    );
+    await insertDive(
+      'd2',
+      date: DateTime(2026, 2, 5),
+      siteId: 's2',
+      diveCenterId: 'c1',
+      maxDepth: 30.0,
+      rating: 5,
+      bottomTimeSeconds: 3300, // 55 min
+      favorite: true,
+      computerId: 'dc-b',
+      buddy: 'Bob Buddy',
+    );
+    // d3: nulls across depth/rating/computerId, and no tanks/tags/
+    // equipment/custom fields at all -- exercises every null-exclusion and
+    // empty-membership branch on both sides.
+    await insertDive(
+      'd3',
+      date: DateTime(2026, 3, 20),
+      tripId: 't1',
+      bottomTimeSeconds: 900, // 15 min
+    );
+    await insertDive(
+      'd4',
+      date: DateTime(2026, 4, 1),
+      siteId: 's1',
+      diveCenterId: 'c2',
+      maxDepth: 45.0,
+      rating: 2,
+      bottomTimeSeconds: 1200, // 20 min
+      computerId: 'dc-a',
+    );
+    // d5: two tanks (100% and 21%) so the O2 axis actually exercises
+    // ANY-tank-matches semantics rather than a single-tank dive.
+    await insertDive(
+      'd5',
+      date: DateTime(2026, 5, 15),
+      siteId: 's3',
+      diveCenterId: 'c2',
+      maxDepth: 12.0,
+      rating: 4,
+      bottomTimeSeconds: 3600, // 60 min
+      favorite: true,
+      computerId: 'dc-c',
+    );
+    await insertDive(
+      'd6',
+      date: DateTime(2026, 6, 25, 23, 0),
+      siteId: 's2',
+      maxDepth: 25.0,
+      bottomTimeSeconds: 480, // 8 min
+      computerId: 'dc-b',
+    );
+    await insertDive(
+      'd7',
+      date: DateTime(2025, 12, 31),
+      siteId: 's1',
+      diveCenterId: 'c1',
+      maxDepth: 5.0,
+      rating: 1,
+      bottomTimeSeconds: 6000, // 100 min
+    );
+
+    // dive_dive_types: no FK, so slugs need no parent row.
+    await insertDiveType('d1', 'wreck');
+    await insertDiveType('d2', 'cave');
+    await insertDiveType('d3', 'training');
+    await insertDiveType('d4', 'deep');
+    await insertDiveType('d5', 'reef');
+    await insertDiveType('d6', 'wreck');
+    await insertDiveType('d7', 'training');
+
+    // tags: multi-membership so single- and multi-tag (ANY) both discriminate.
+    await linkTag('d1', 'dry');
+    await linkTag('d2', 'dry');
+    await linkTag('d2', 'night');
+    await linkTag('d4', 'night');
+    await linkTag('d5', 'dry');
+    await linkTag('d7', 'night');
+
+    // buddies: d6 has NO legacy dives.buddy text, only a junction-table
+    // buddy whose name matches the 'alice' filter. The modern dive editor
+    // writes only the junction, so the buddy filter must match through it
+    // (#757); d1 covers the legacy scalar column.
+    await insertBuddy('b1', 'Alice Junction');
+    await linkBuddy('d6', 'b1');
+
+    // equipment: ANY-match axis.
+    await linkEquipment('d1', 'eq1');
+    await linkEquipment('d2', 'eq1');
+    await linkEquipment('d2', 'eq2');
+    await linkEquipment('d4', 'eq2');
+    await linkEquipment('d6', 'eq1');
+
+    // tanks: ANY-tank O2 axis. d3 has none (must be excluded once an O2
+    // bound is set); d5 has two, only one of which clears a high bound.
+    await insertTank('d1', 'tank-d1', o2Percent: 21.0);
+    await insertTank('d2', 'tank-d2', o2Percent: 32.0);
+    await insertTank('d4', 'tank-d4', o2Percent: 18.0);
+    await insertTank('d5', 'tank-d5-a', o2Percent: 100.0);
+    await insertTank('d5', 'tank-d5-b', o2Percent: 21.0);
+    await insertTank('d6', 'tank-d6', o2Percent: 21.0);
+    await insertTank('d7', 'tank-d7', o2Percent: 21.0);
+
+    // equipment through a tank link: a cylinder the registry matched to
+    // d5's first tank, with no dive_equipment row at all.
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'cyl1',
+            name: 'Cylinder',
+            type: 'tank',
+            createdAt: 1,
+            updatedAt: 1,
+          ),
+        );
+    await (db.update(db.diveTanks)..where((t) => t.id.equals('tank-d5-a')))
+        .write(const DiveTanksCompanion(equipmentId: Value('cyl1')));
+
+    // custom fields: shared key with varied values so key-only and
+    // key+value-substring both discriminate.
+    await insertCustomField('d1', 'visMeters', '20');
+    await insertCustomField('d2', 'visMeters', '5');
+    await insertCustomField('d4', 'buddyCert', 'AOW');
+    await insertCustomField('d6', 'visMeters', '15');
+
+    // The other id path: what the table, map and export views narrow by.
+    final repo = DiveRepository();
+    expect(
+      (await repo.getAllDives()).length,
+      7,
+      reason: 'all seeded dives hydrated',
+    );
+
+    final battery = <String, DiveFilterState>{
+      'date range': DiveFilterState(
+        startDate: DateTime(2026, 1, 1),
+        endDate: DateTime(2026, 6, 1),
+      ),
+      'siteId': const DiveFilterState(siteId: 's1'),
+      'diveTypeId': const DiveFilterState(diveTypeId: 'wreck'),
+      'diveCenterId': const DiveFilterState(diveCenterId: 'c1'),
+      'tripId': const DiveFilterState(tripId: 't1'),
+      'single tag': const DiveFilterState(tagIds: ['dry']),
+      'weekday (ANY)': DiveFilterState(
+        weekdays: [DateTime(2026, 1, 10).weekday, DateTime(2026, 4, 1).weekday],
+      ),
+      'multi tag (ANY)': const DiveFilterState(tagIds: ['dry', 'night']),
+      'equipment (ANY)': const DiveFilterState(equipmentIds: ['eq1']),
+      'equipment via a tank link': const DiveFilterState(
+        equipmentIds: ['cyl1'],
+      ),
+      'minDepth (null-exclusion)': const DiveFilterState(minDepth: 20),
+      'maxDepth (null-exclusion)': const DiveFilterState(maxDepth: 20),
+      'favoritesOnly': const DiveFilterState(favoritesOnly: true),
+      'buddyNameFilter': const DiveFilterState(buddyNameFilter: 'alice'),
+      'noBuddyOnly': const DiveFilterState(noBuddyOnly: true),
+      'buddyId': const DiveFilterState(buddyId: 'b1'),
+      // The buddy page's "View all" shape: a saved id list plus the live
+      // link. d1 is in the list but only names Alice in legacy text.
+      'buddyId + saved diveIds': const DiveFilterState(
+        diveIds: ['d1', 'd6'],
+        buddyId: 'b1',
+      ),
+      'diveIds': const DiveFilterState(diveIds: ['d1', 'd4']),
+      'minO2Percent (any-tank)': const DiveFilterState(minO2Percent: 30),
+      'maxO2Percent (any-tank)': const DiveFilterState(maxO2Percent: 20),
+      'minRating (null-exclusion)': const DiveFilterState(minRating: 4),
+      'minBottomTimeMinutes': const DiveFilterState(minBottomTimeMinutes: 30),
+      'maxBottomTimeMinutes': const DiveFilterState(maxBottomTimeMinutes: 20),
+      'computerId': const DiveFilterState(computerId: 'dc-a'),
+      'customFieldKey only': const DiveFilterState(customFieldKey: 'visMeters'),
+      'customFieldKey + value substring': const DiveFilterState(
+        customFieldKey: 'visMeters',
+        customFieldValue: '1',
+      ),
+      'combo: tag + O2': const DiveFilterState(
+        tagIds: ['dry'],
+        minO2Percent: 30,
+      ),
+      'combo: center + rating': const DiveFilterState(
+        diveCenterId: 'c1',
+        minRating: 3,
+      ),
+      'combo: equipment + favorites': const DiveFilterState(
+        equipmentIds: ['eq1', 'eq2'],
+        favoritesOnly: true,
+      ),
+    };
+
+    for (final entry in battery.entries) {
+      final filter = entry.value;
+      final applied = await DiveRepository().getDiveIdsMatching(filter);
+      final sqld = await idsMatching(filter);
+      expect(
+        sqld,
+        applied,
+        reason:
+            '${entry.key}: buildFilteredDiveIdSubquery and '
+            'getDiveIdsMatching must select the same dive ids '
+            '(filter: $filter)',
+      );
+    }
+
+    // Hand-verified expected sets for the axes prioritized by the review
+    // (O2 any-tank, equipment any-match, multi-tag, custom field
+    // key/value, computerId, diveCenterId, depth/rating
+    // null-exclusion), so a bug shared by BOTH apply() and the SQL builder
+    // can't hide behind their mutual agreement.
+    expect(await idsMatching(battery['siteId']!), {'d1', 'd4', 'd7'});
+    // A cylinder used on a dive through its tank counts as used there, as
+    // the equipment statistics count it.
+    expect(await idsMatching(battery['equipment via a tank link']!), {'d5'});
+    expect(await idsMatching(battery['diveCenterId']!), {'d1', 'd2', 'd7'});
+    expect(await idsMatching(battery['equipment (ANY)']!), {'d1', 'd2', 'd6'});
+    expect(await idsMatching(battery['multi tag (ANY)']!), {
+      'd1',
+      'd2',
+      'd4',
+      'd5',
+      'd7',
+    });
+    expect(await idsMatching(battery['minDepth (null-exclusion)']!), {
+      'd2',
+      'd4',
+      'd6',
+    }, reason: 'd3 (null maxDepth) must be excluded once minDepth is set');
+    expect(await idsMatching(battery['minRating (null-exclusion)']!), {
+      'd2',
+      'd5',
+    }, reason: 'd3/d6 (null rating) must be excluded once minRating is set');
+    expect(await idsMatching(battery['minO2Percent (any-tank)']!), {
+      'd2',
+      'd5',
+    }, reason: 'ANY-tank semantics: d5 matches via its second (100%) tank');
+    expect(await idsMatching(battery['computerId']!), {'d4'});
+    expect(
+      await idsMatching(battery['buddyNameFilter']!),
+      {'d1', 'd6'},
+      reason:
+          'buddy filter must match junction-table buddies (d6, no legacy '
+          'scalar) as well as the legacy dives.buddy column (d1) -- #757',
+    );
+    expect(await repo.getDiveIdsMatching(battery['buddyNameFilter']!), {
+      'd1',
+      'd6',
+    }, reason: 'the id set must consult dive_buddies, not only dives.buddy');
+    expect(
+      await idsMatching(battery['noBuddyOnly']!),
+      {'d3', 'd4', 'd5', 'd7'},
+      reason:
+          'no-buddy filter must exclude both the legacy scalar column (d1, '
+          'd2) and junction-linked buddies (d6)',
+    );
+    expect(
+      (await DiveRepository().getDiveSummaries(
+        filter: battery['buddyNameFilter']!,
+      )).map((s) => s.id).toSet(),
+      {'d1', 'd6'},
+      reason:
+          'repository SQL filter (getDiveSummaries) must match junction '
+          'buddies too',
+    );
+    // buddyId is a live junction-link check (#1919): the dive list's SQL,
+    // this subquery and apply() must all keep only d6, never d1's legacy
+    // "Alice" text, and must drop a saved id that has no link.
+    for (final key in ['buddyId', 'buddyId + saved diveIds']) {
+      final filter = battery[key]!;
+      expect(await idsMatching(filter), {'d6'}, reason: '$key: subquery');
+      expect(await repo.getDiveIdsMatching(filter), {
+        'd6',
+      }, reason: '$key: id set');
+      expect(
+        (await DiveRepository().getDiveSummaries(
+          filter: filter,
+        )).map((s) => s.id).toSet(),
+        {'d6'},
+        reason: '$key: repository SQL filter (getDiveSummaries)',
+      );
+    }
+    expect(await idsMatching(battery['customFieldKey + value substring']!), {
+      'd6',
+    }, reason: "only d6's visMeters value ('15') contains '1'");
+    expect(await idsMatching(battery['combo: tag + O2']!), {'d2', 'd5'});
+    expect(await idsMatching(battery['combo: center + rating']!), {'d1', 'd2'});
+    expect(await idsMatching(battery['combo: equipment + favorites']!), {'d2'});
+  });
 }
