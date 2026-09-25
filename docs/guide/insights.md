@@ -1,13 +1,13 @@
-# Statistics & Analytics
+# Insights
 
 Submersion provides eleven specialized dashboards for deep insights into your diving history.
 
-## Statistics Dashboard
+## Insights Dashboard
 
-The **Stats** tab is your analytics hub with multiple specialized pages.
+The **Insights** tab is your analytics hub with multiple specialized pages.
 
 <div class="screenshot-placeholder">
-  <strong>Screenshot: Main Statistics Dashboard</strong><br>
+  <strong>Screenshot: Main Insights Dashboard</strong><br>
   <em>Overview statistics with key metrics and charts</em>
 </div>
 
@@ -184,7 +184,7 @@ All charts support:
 
 ### Date Range
 
-Filter statistics by:
+Filter insights by:
 
 - **All Time** - Complete history
 - **This Year** - Current year
@@ -220,7 +220,7 @@ Export raw data for external analysis:
 3. Choose what to include
 4. Download CSV
 
-## Tips for Using Statistics
+## Tips for Using Insights
 
 ### Regular Review
 

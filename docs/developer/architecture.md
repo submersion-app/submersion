@@ -145,7 +145,7 @@ lib/
 │   ├── dive_sites/
 │   ├── dive_computer/
 │   ├── equipment/
-│   ├── statistics/
+│   ├── insights/
 │   ├── import_export/
 │   ├── settings/
 │   ├── divers/
