@@ -109,16 +109,22 @@ class DivelogsImportService {
     var certificationsUnavailable = false;
     try {
       geartypes = await _api.getGeartypes();
+    } on DivelogsUnauthorizedException {
+      rethrow;
     } on DivelogsApiException {
       // Types degrade to EquipmentType.other; not worth a notice.
     }
     try {
       gear = await _api.getGear();
+    } on DivelogsUnauthorizedException {
+      rethrow;
     } on DivelogsApiException {
       gearUnavailable = true;
     }
     try {
       certs = await _api.getCertifications();
+    } on DivelogsUnauthorizedException {
+      rethrow;
     } on DivelogsApiException {
       certificationsUnavailable = true;
     }
@@ -169,6 +175,8 @@ class DivelogsImportService {
             photosBySourceUuid[DivelogsDiveMapper.sourceUuidFor(remoteId)] =
                 photos;
           }
+        } on DivelogsUnauthorizedException {
+          rethrow;
         } on DivelogsApiException {
           photoListingFailures++;
         }

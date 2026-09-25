@@ -359,4 +359,23 @@ void main() {
     expect(match.matchedExistingSource, isFalse);
     expect(result.diveMatches[1], isNull);
   });
+
+  test('a lost session is not mistaken for a missing gear list', () async {
+    final lost = DivelogsImportService(
+      api: DivelogsApiClient(
+        getBearerToken: () async => 't',
+        onTokenRejected: () {},
+        httpClient: MockClient((req) async {
+          if (req.url.path == '/api/dives') {
+            return http.Response(jsonEncode([diveJson(1)]), 200);
+          }
+          return http.Response('', 401);
+        }),
+      ),
+    );
+    await expectLater(
+      lost.fetchLogbook(includePhotos: true),
+      throwsA(isA<DivelogsUnauthorizedException>()),
+    );
+  });
 }

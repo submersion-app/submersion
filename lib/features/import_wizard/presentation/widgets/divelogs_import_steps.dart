@@ -347,9 +347,10 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
       });
       ref.read(divelogsFetchedProvider.notifier).state = true;
     } on DivelogsSessionExpiredException {
-      if (!mounted) return;
-      ref.read(divelogsSignedInProvider.notifier).state = false;
-      setState(() => _phase = _FetchPhase.expired);
+      _markExpired();
+    } on DivelogsUnauthorizedException {
+      // divelogs.de refused the session even after renewing it.
+      _markExpired();
     } on DivelogsApiException {
       if (!mounted) return;
       setState(() => _phase = _FetchPhase.failed);
@@ -358,6 +359,12 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
       if (!mounted) return;
       setState(() => _phase = _FetchPhase.failed);
     }
+  }
+
+  void _markExpired() {
+    if (!mounted) return;
+    ref.read(divelogsSignedInProvider.notifier).state = false;
+    setState(() => _phase = _FetchPhase.expired);
   }
 
   @override

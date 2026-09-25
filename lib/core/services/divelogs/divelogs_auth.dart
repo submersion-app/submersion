@@ -51,11 +51,20 @@ class DivelogsAuth {
   String? _token;
   Future<String>? _renewal;
 
+  /// Bumped by every sign-in and sign-out. A renewal that started under an
+  /// earlier generation must not install its token: the account it belongs
+  /// to has been signed out of, or replaced, while it was in flight.
+  int _generation = 0;
+
   String? get username => _username;
 
   /// Logs in and caches the session. Throws [DivelogsAuthException].
   Future<void> signIn(String username, String password) async {
+    final generation = ++_generation;
     final token = await _login(username, password);
+    if (generation != _generation) {
+      throw const DivelogsSessionExpiredException();
+    }
     _username = username;
     _password = password;
     _token = token;
@@ -89,7 +98,11 @@ class DivelogsAuth {
   }
 
   Future<String> _renew(String username, String password) async {
+    final generation = _generation;
     final token = await _login(username, password);
+    if (generation != _generation) {
+      throw const DivelogsSessionExpiredException();
+    }
     _token = token;
     await _store.save(DivelogsSession(username: username, token: token));
     return token;
@@ -101,6 +114,8 @@ class DivelogsAuth {
   }
 
   Future<void> signOut() async {
+    _generation++;
+    _renewal = null;
     _username = null;
     _password = null;
     _token = null;

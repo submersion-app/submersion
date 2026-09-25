@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -135,4 +136,37 @@ void main() {
       throwsA(isA<DivelogsSessionExpiredException>()),
     );
   });
+
+  test(
+    'signing out during a renewal does not bring the session back',
+    () async {
+      final gate = Completer<void>();
+      var calls = 0;
+      final auth = DivelogsAuth(
+        httpClient: MockClient((req) async {
+          calls++;
+          if (calls == 2) await gate.future;
+          return http.Response(jsonEncode({'bearer_token': 'jwt-$calls'}), 200);
+        }),
+        store: store,
+      );
+      await auth.signIn('rainer', 'secret');
+      auth.invalidateToken();
+      final renewal = auth.getToken();
+      await Future<void>.delayed(Duration.zero);
+
+      await auth.signOut();
+      gate.complete();
+
+      await expectLater(
+        renewal,
+        throwsA(isA<DivelogsSessionExpiredException>()),
+      );
+      expect(await store.load(), isNull);
+      await expectLater(
+        auth.getToken(),
+        throwsA(isA<DivelogsSessionExpiredException>()),
+      );
+    },
+  );
 }

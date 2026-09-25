@@ -157,4 +157,21 @@ void main() {
     expect(map.containsKey('weightUsed'), isFalse);
     expect(map.containsKey('airTemp'), isFalse);
   });
+
+  test('sub-zero temperatures are kept, only zero means unset', () {
+    final d = DivelogsDive(
+      id: '1',
+      dateTime: DateTime.utc(2022, 1, 3, 10),
+      durationSeconds: 1800,
+      maxDepth: 20,
+      samples: const [],
+      tanks: const [],
+      airTemp: -12,
+      depthTemp: -1.5,
+      surfaceTemp: 0,
+    );
+    final map = mapper.mapDive(d);
+    expect(map['waterTemp'], -1.5);
+    expect(map['airTemp'], -12.0);
+  });
 }

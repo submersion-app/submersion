@@ -286,4 +286,23 @@ void main() {
       expect(container.read(universalImportNotifierProvider).payload, isNull);
     });
   });
+
+  testWidgets('a refused session reads as expired, not as a retryable error', (
+    tester,
+  ) async {
+    divesStatus = 401;
+    container.read(divelogsSignedInProvider.notifier).state = true;
+    await withPlatform(TargetPlatform.macOS, () async {
+      await pumpStep(tester, client());
+      await fetch(tester);
+
+      expect(
+        find.text(
+          'Your divelogs.de session expired. Go back and sign in again.',
+        ),
+        findsOneWidget,
+      );
+      expect(container.read(divelogsSignedInProvider), isFalse);
+    });
+  });
 }

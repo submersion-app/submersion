@@ -32,9 +32,9 @@ class DivelogsDiveMapper {
       'notes': _buildNotes(dive),
     };
 
-    final waterTemp = _positive(dive.depthTemp) ?? _positive(dive.surfaceTemp);
+    final waterTemp = _nonZero(dive.depthTemp) ?? _nonZero(dive.surfaceTemp);
     if (waterTemp != null) map['waterTemp'] = waterTemp;
-    final airTemp = _positive(dive.airTemp);
+    final airTemp = _nonZero(dive.airTemp);
     if (airTemp != null) map['airTemp'] = airTemp;
     final weight = _positive(dive.weightsKg);
     if (weight != null) map['weightUsed'] = weight;
@@ -118,6 +118,11 @@ class DivelogsDiveMapper {
 
   double? _positive(double? value) =>
       (value != null && value > 0) ? value : null;
+
+  /// Temperatures may be below zero (ice diving, winter air); only 0 is the
+  /// "not set" placeholder divelogs.de writes.
+  double? _nonZero(double? value) =>
+      (value != null && value != 0) ? value : null;
 
   String _buildNotes(DivelogsDive dive) {
     final parts = <String>[
