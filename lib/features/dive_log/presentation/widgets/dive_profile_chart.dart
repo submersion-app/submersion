@@ -5784,6 +5784,7 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           label: row.label,
           value: context.l10n.diveLog_tooltip_interpolated(row.value),
           bulletColor: row.bulletColor,
+          metric: row.metric,
         ),
   ];
 

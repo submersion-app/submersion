@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -428,5 +429,37 @@ void main() {
     expect(_rowValue(rows, 'Time'), '0:00');
     final depthRow = rows?.where((r) => r.label == 'Depth').firstOrNull;
     expect(depthRow?.metric, ChartOnlyMetric.depth);
+  });
+
+  // On the lead-in, rows whose value is only carried over from the first
+  // sample are rebuilt with an "interpolated" value. The rebuilt row must
+  // keep its metric, or hovering that line at t=0 would leave its row plain.
+  testWidgets('an interpolated lead-in row keeps its hover identity', (
+    tester,
+  ) async {
+    List<TooltipRow>? rows;
+    final profile = _leadInProfile();
+    await tester.pumpWidget(
+      _chart(onTooltipData: (r) => rows = r, profile: profile),
+    );
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      _chart(
+        onTooltipData: (r) => rows = r,
+        profile: profile,
+        highlightedTimestamp: 5,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(_rowValue(rows, 'Time'), '0:00');
+    final tempRow = rows?.where((r) => r.label == 'Temp').firstOrNull;
+    expect(tempRow, isNotNull);
+    expect(
+      tempRow!.value,
+      endsWith('(interpolated)'),
+      reason: 'the row must actually have been rebuilt as interpolated',
+    );
+    expect(tempRow.metric, ProfileRightAxisMetric.temperature);
   });
 }
