@@ -213,26 +213,32 @@ class _CustomVisibilityScaleFormState extends State<CustomVisibilityScaleForm> {
   late final TextEditingController _excellent;
   late final TextEditingController _good;
   late final TextEditingController _moderate;
+
+  /// The text each field was seeded with and the meters it stands for, so a
+  /// field the diver never edited saves the stored value itself.
+  late final Map<TextEditingController, ({String text, double meters})> _seeds;
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    // One decimal, because Save stores exactly what the field holds: seeding a
-    // custom 2.5 m as "3" would move the threshold without the diver touching
-    // it. Rendered through the locale formatter so the text shares one
+    // One decimal, so a custom 2.5 m reads "2.5" rather than a misleading
+    // "3". Rendered through the locale formatter so the text shares one
     // convention with [_metersFrom].
-    String initial(double meters) => formatRoundedForInput(
-      widget.units.convertDepth(meters),
-      widget.wholeUnits ? 0 : 1,
+    ({String text, double meters}) seed(double meters) => (
+      text: formatRoundedForInput(
+        widget.units.convertDepth(meters),
+        widget.wholeUnits ? 0 : 1,
+      ),
+      meters: meters,
     );
-    _excellent = TextEditingController(
-      text: initial(widget.initial.excellentAtOrAboveM),
-    );
-    _good = TextEditingController(text: initial(widget.initial.goodAtOrAboveM));
-    _moderate = TextEditingController(
-      text: initial(widget.initial.moderateAtOrAboveM),
-    );
+    final excellent = seed(widget.initial.excellentAtOrAboveM);
+    final good = seed(widget.initial.goodAtOrAboveM);
+    final moderate = seed(widget.initial.moderateAtOrAboveM);
+    _excellent = TextEditingController(text: excellent.text);
+    _good = TextEditingController(text: good.text);
+    _moderate = TextEditingController(text: moderate.text);
+    _seeds = {_excellent: excellent, _good: good, _moderate: moderate};
   }
 
   @override
@@ -244,6 +250,10 @@ class _CustomVisibilityScaleFormState extends State<CustomVisibilityScaleForm> {
   }
 
   double? _metersFrom(TextEditingController c) {
+    // Re-parsing untouched text would store its rounding (2.56 m saved as 2.6)
+    // or a unit round trip's drift (2.5 m through "8.2" ft is 2.499 m).
+    final seeded = _seeds[c];
+    if (seeded != null && c.text == seeded.text) return seeded.meters;
     final parsed = parseUserDecimal(c.text);
     return parsed == null ? null : widget.units.depthToMeters(parsed);
   }

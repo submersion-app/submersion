@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
@@ -39,6 +40,20 @@ class _RecordingSettingsNotifier extends StateNotifier<AppSettings>
 void main() {
   const metric = UnitFormatter(AppSettings(depthUnit: DepthUnit.meters));
   const imperial = UnitFormatter(AppSettings(depthUnit: DepthUnit.feet));
+
+  // The form seeds and parses through Intl.defaultLocale, a process global
+  // that MaterialApp's locale does not set. Pin it so "2.5" is not riding on
+  // intl's implicit fallback, and restore it for the next file.
+  late String? previousLocale;
+
+  setUp(() {
+    previousLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+
+  tearDown(() {
+    Intl.defaultLocale = previousLocale;
+  });
 
   Widget host(Widget child) => MaterialApp(
     locale: const Locale('en'),
@@ -195,6 +210,117 @@ void main() {
       expect(find.widgetWithText(TextField, '2.5'), findsOneWidget);
       expect(find.widgetWithText(TextField, '3'), findsNothing);
       expect(find.widgetWithText(TextField, '18'), findsOneWidget);
+    });
+
+    testWidgets('saves an untouched field at its stored precision', (
+      tester,
+    ) async {
+      VisibilityScale? submitted;
+      await tester.pumpWidget(
+        host(
+          CustomVisibilityScaleForm(
+            initial: const VisibilityScale(
+              excellentAtOrAboveM: 18,
+              goodAtOrAboveM: 9,
+              moderateAtOrAboveM: 2.56,
+            ),
+            units: metric,
+            onSubmit: (s) => submitted = s,
+            onCancel: () {},
+          ),
+        ),
+      );
+      // Shown at one decimal, but Save must not store the rounded 2.6.
+      expect(find.widgetWithText(TextField, '2.6'), findsOneWidget);
+
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+
+      expect(submitted!.moderateAtOrAboveM, 2.56);
+    });
+
+    testWidgets('saves an untouched field exactly through a feet round trip', (
+      tester,
+    ) async {
+      VisibilityScale? submitted;
+      await tester.pumpWidget(
+        host(
+          CustomVisibilityScaleForm(
+            initial: const VisibilityScale(
+              excellentAtOrAboveM: 18,
+              goodAtOrAboveM: 9,
+              moderateAtOrAboveM: 2.5,
+            ),
+            units: imperial,
+            onSubmit: (s) => submitted = s,
+            onCancel: () {},
+          ),
+        ),
+      );
+
+      // 2.5 m shows as 8.2 ft, which reads back as 2.499 m.
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+
+      expect(submitted!.excellentAtOrAboveM, 18);
+      expect(submitted!.goodAtOrAboveM, 9);
+      expect(submitted!.moderateAtOrAboveM, 2.5);
+    });
+
+    testWidgets('an edited field saves what was typed, not the stored value', (
+      tester,
+    ) async {
+      VisibilityScale? submitted;
+      await tester.pumpWidget(
+        host(
+          CustomVisibilityScaleForm(
+            initial: const VisibilityScale(
+              excellentAtOrAboveM: 18,
+              goodAtOrAboveM: 9,
+              moderateAtOrAboveM: 2.56,
+            ),
+            units: metric,
+            onSubmit: (s) => submitted = s,
+            onCancel: () {},
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField).at(2), '2.7');
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+
+      expect(submitted!.moderateAtOrAboveM, 2.7);
+    });
+
+    testWidgets('seeds and saves with a comma decimal separator', (
+      tester,
+    ) async {
+      Intl.defaultLocale = 'de';
+      VisibilityScale? submitted;
+      await tester.pumpWidget(
+        host(
+          CustomVisibilityScaleForm(
+            initial: const VisibilityScale(
+              excellentAtOrAboveM: 18,
+              goodAtOrAboveM: 9,
+              moderateAtOrAboveM: 2.5,
+            ),
+            units: metric,
+            onSubmit: (s) => submitted = s,
+            onCancel: () {},
+          ),
+        ),
+      );
+      expect(find.widgetWithText(TextField, '2,5'), findsOneWidget);
+
+      // Under de '.' groups thousands, so an edit must be read with ','.
+      await tester.enterText(find.byType(TextField).at(1), '9,5');
+      await tester.tap(find.text('Save'));
+      await tester.pump();
+
+      expect(submitted!.goodAtOrAboveM, 9.5);
+      expect(submitted!.moderateAtOrAboveM, 2.5);
     });
 
     testWidgets('seeds a feet entry back as the whole number typed', (
