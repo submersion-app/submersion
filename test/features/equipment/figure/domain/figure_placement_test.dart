@@ -176,4 +176,15 @@ void main() {
       expect(FigurePlacement.trayTypes, contains(type));
     }
   });
+
+  test('fins and boots are drawn on both views', () {
+    expect(
+      FigurePlacement.forType(EquipmentType.fins).piecesFor(FigureZone.fins),
+      ['fins_front', 'fins_back'],
+    );
+    expect(
+      FigurePlacement.forType(EquipmentType.boots).piecesFor(FigureZone.feet),
+      ['boots_front', 'boots_back'],
+    );
+  });
 }

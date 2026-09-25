@@ -289,7 +289,7 @@ abstract final class FigurePlacement {
         return const FigurePlacementSpec(
           zones: [FigureZone.feet],
           piecesByZone: {
-            FigureZone.feet: ['boots_front'],
+            FigureZone.feet: ['boots_front', 'boots_back'],
           },
           defaultColor: FigureColors.black,
         );
@@ -297,7 +297,7 @@ abstract final class FigurePlacement {
         return const FigurePlacementSpec(
           zones: [FigureZone.fins],
           piecesByZone: {
-            FigureZone.fins: ['fins_front'],
+            FigureZone.fins: ['fins_front', 'fins_back'],
           },
           defaultColor: FigureColors.black,
         );

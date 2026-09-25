@@ -206,4 +206,18 @@ void main() {
       isTrue,
     );
   });
+
+  testWidgets('fins and boots show on the back view too', (tester) async {
+    await tester.runAsync(() async {
+      final fins = await paint(composeFigure([item('f', EquipmentType.fins)]));
+      // Below the foot, where only a fin blade can be.
+      expect(fins(layout.toBox(FigureView.back, 70, 372)), FigureColors.black);
+
+      final boots = await paint(
+        composeFigure([item('b', EquipmentType.boots)]),
+      );
+      // On the foot, which is bare body without the boot.
+      expect(boots(layout.toBox(FigureView.back, 80, 346)), FigureColors.black);
+    });
+  });
 }

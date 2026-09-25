@@ -119,6 +119,10 @@
     {"id": "knife_hip_front", "view": "front", "layer": 80,
      "roles": ["itemShade", "itemColor"]},
     {"id": "dpv_front", "view": "front", "layer": 85,
-     "roles": ["itemColor", "itemShade", "gearDark", "gearDark"]}
+     "roles": ["itemColor", "itemShade", "gearDark", "gearDark"]},
+    {"id": "fins_back", "view": "back", "layer": 110,
+     "roles": ["itemColor", "itemColor", "itemShade", "itemShade", "gearDark", "gearDark"]},
+    {"id": "boots_back", "view": "back", "layer": 110,
+     "roles": ["itemColor", "itemColor", "itemShade", "itemShade", "itemShade", "itemShade"]}
   ]
 }
