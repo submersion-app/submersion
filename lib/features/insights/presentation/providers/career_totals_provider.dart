@@ -9,12 +9,12 @@ import 'package:submersion/features/insights/domain/career_totals.dart';
 /// prior-experience offset (issue #331).
 ///
 /// Reads [diveStatisticsProvider], the UNFILTERED totals -- not
-/// `filteredDiveStatisticsProvider` -- so a filter set on the Statistics tab
+/// `filteredDiveStatisticsProvider` -- so a filter set on the Insights tab
 /// never leaks into the home dashboard.
 ///
-/// Before this existed, only the Statistics overview combined the two, so the
+/// Before this existed, only the Insights overview combined the two, so the
 /// home hero header and the milestones card reported a smaller total than the
-/// Statistics page for any diver with a pre-app logbook (issue #808).
+/// Insights page for any diver with a pre-app logbook (issue #808).
 final careerTotalsProvider = FutureProvider<CareerTotals>((ref) async {
   // Both watches happen synchronously, before either await: the two reads are
   // independent, so this lets them resolve in parallel and registers both

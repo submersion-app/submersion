@@ -164,7 +164,7 @@ void main() {
     expect(await listIds(filter), {'steel'});
   });
 
-  test('Statistics, the list and the id query select the same dives', () async {
+  test('Insights, the list and the id query select the same dives', () async {
     await seedSuits();
     await insertDive('steel');
     await insertItem(

@@ -14,9 +14,9 @@ import '../../../../helpers/test_database.dart';
 
 /// Regression guard for the final "filterable statistics" review (issue
 /// #453): [speciesInsightsProvider]'s only consumer is the species detail
-/// page (route `/species/:id`), which has no filter UI and is not a
-/// Statistics-tab surface. If the provider watched
-/// [insightsFilterProvider], an active Statistics-tab filter would
+/// page (route `/species/:id`), which has no filter UI and is not an
+/// Insights-tab surface. If the provider watched
+/// [insightsFilterProvider], an active Insights-tab filter would
 /// silently rescope that page's per-species stats.
 void main() {
   late AppDatabase db;
@@ -85,7 +85,7 @@ void main() {
   test('speciesInsightsProvider ignores an active insightsFilterProvider '
       'filter (issue #453 finding #1)', () async {
     await insertSpecies('clownfish');
-    // A minDepth:30 Statistics filter would keep only 'deep'. If the
+    // A minDepth:30 Insights filter would keep only 'deep'. If the
     // provider were filter-aware, activating it would drop 'shallow's
     // sighting from the result.
     await insertDive('shallow', maxDepth: 10);
@@ -116,7 +116,7 @@ void main() {
     const reason =
         'speciesInsightsProvider must ignore insightsFilterProvider; '
         'a filtered result here would mean the species-detail page (which '
-        'has no filter UI) is silently scoped by the Statistics tab.';
+        'has no filter UI) is silently scoped by the Insights tab.';
     expect(
       withActiveFilter.totalSightings,
       unfiltered.totalSightings,

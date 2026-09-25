@@ -18,7 +18,7 @@ import '../../helpers/test_database.dart';
 /// exactly one line in the entire app, inside `PaginatedDiveListNotifier`.
 /// Merge, consolidate, import, and sync pulls never reached it.
 ///
-/// The user-visible symptom: merge two dives, open Statistics inside the
+/// The user-visible symptom: merge two dives, open Insights inside the
 /// five-minute keepAlive window, and every chart still counts the merged-away
 /// dive. `_keepAliveWithExpiry`'s own doc comment claimed the providers
 /// "refresh when dives are mutated", which is what let this go unnoticed
@@ -82,7 +82,7 @@ void main() {
       final container = makeContainer();
       addTearDown(container.dispose);
 
-      // Statistics page is open: an active listener builds the provider.
+      // Insights page is open: an active listener builds the provider.
       final onScreen = container.listen(divesPerYearProvider, (_, _) {});
       addTearDown(onScreen.close);
 
@@ -106,7 +106,7 @@ void main() {
         after.map((e) => e.count).fold<int>(0, (a, b) => a + b),
         2,
         reason:
-            'After a merge removes a dive, an open Statistics page must stop '
+            'After a merge removes a dive, an open Insights page must stop '
             'counting it. Before #974 the five-minute keepAlive served the '
             'stale count because statisticsVersionProvider was never bumped '
             'by the merge path.',

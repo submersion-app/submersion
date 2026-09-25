@@ -28,7 +28,7 @@ final insightsRepositoryProvider = Provider<InsightsRepository>((ref) {
 ///
 /// Backs the Overview footnote, which exists so the statistics dive count and
 /// the logbook dive count differing is self-explaining rather than a support
-/// ticket six months later. Deliberately unaffected by the Statistics filter:
+/// ticket six months later. Deliberately unaffected by the Insights filter:
 /// it describes a persistent property of the logbook, not the current view.
 final excludedDiveCountProvider = FutureProvider<int>((ref) async {
   final repository = ref.watch(insightsRepositoryProvider);
@@ -37,7 +37,7 @@ final excludedDiveCountProvider = FutureProvider<int>((ref) async {
   return repository.countExcludedDives(diverId: currentDiverId);
 });
 
-/// Overview totals scoped by the Statistics filter. Kept separate from
+/// Overview totals scoped by the Insights filter. Kept separate from
 /// diveStatisticsProvider so the home dashboard and dive-log summary (which
 /// read diveStatisticsProvider) stay unfiltered.
 final filteredDiveStatisticsProvider = FutureProvider<DiveStatistics>((
@@ -54,13 +54,13 @@ final filteredDiveStatisticsProvider = FutureProvider<DiveStatistics>((
   return repository.getStatistics(diverId: currentDiverId, filter: filter);
 });
 
-/// Personal records (superlatives) scoped by the Statistics filter.
+/// Personal records (superlatives) scoped by the Insights filter.
 ///
 /// Split from diveRecordsProvider for the same reason
 /// [filteredDiveStatisticsProvider] is split from diveStatisticsProvider: the
 /// dive-log summary widget reads the unfiltered one and has no filter UI, so
-/// the Statistics tab's scope must not reach it. Issue #1028: before this
-/// split, the Statistics tab's records were the only panel on the page that
+/// the Insights tab's scope must not reach it. Issue #1028: before this
+/// split, the Insights tab's records were the only panel on the page that
 /// ignored the filter.
 ///
 /// Takes the same dives tick as its unfiltered sibling (issue #217): a merge,
@@ -86,7 +86,7 @@ final filteredDiveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
 /// exactly one line in the app, inside `PaginatedDiveListNotifier`. Merge,
 /// consolidate, import, and sync pulls never bumped it, so the cache this doc
 /// comment claimed was reactive stayed stale for up to five minutes: merge two
-/// dives, open Statistics, and every chart still counted the merged-away dive
+/// dives, open Insights, and every chart still counted the merged-away dive
 /// (issue #974).
 void _keepAliveWithExpiry(Ref ref) {
   ref.invalidateSelfWhen(
@@ -519,10 +519,10 @@ final bestSitesForMarineLifeProvider = FutureProvider<List<RankingItem>>((
 /// Per-species statistics (sightings, depth range, sites, first/last seen).
 ///
 /// Deliberately UNFILTERED: its only consumer is the species detail page
-/// (route `/species/:id`), which is not a Statistics-tab surface and has no
+/// (route `/species/:id`), which is not an Insights-tab surface and has no
 /// filter UI. Watching [insightsFilterProvider] here would silently scope
 /// each species' detail stats to whatever filter is currently active on the
-/// (unrelated) Statistics tab.
+/// (unrelated) Insights tab.
 final speciesInsightsProvider = FutureProvider.family<SpeciesInsights, String>((
   ref,
   speciesId,

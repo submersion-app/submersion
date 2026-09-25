@@ -5,7 +5,7 @@ import 'package:submersion/features/insights/presentation/providers/insights_fil
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Summary bar shown at the top of the Statistics tab when a filter is active.
+/// Summary bar shown at the top of the Insights tab when a filter is active.
 /// Shows the matching dive count and a clear affordance so a scoped total is
 /// never mysterious.
 class InsightsFilterBar extends ConsumerWidget {

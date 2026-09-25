@@ -8,7 +8,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_action.dart';
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
 
-/// Statistics category data model.
+/// Insights category data model.
 class InsightsCategory {
   final String id;
   final IconData icon;

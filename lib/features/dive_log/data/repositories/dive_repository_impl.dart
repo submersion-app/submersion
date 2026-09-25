@@ -2627,9 +2627,9 @@ class DiveRepository {
         }
       }
     }
-    // Equipment attributes: the same EXISTS Statistics uses, one per
+    // Equipment attributes: the same EXISTS Insights uses, one per
     // condition. Missing until #1805, so the list and its count ignored the
-    // Suit thickness filter that the table view and Statistics applied.
+    // Suit thickness filter that the table view and Insights applied.
     for (final condition in filter.equipmentAttrConditions) {
       final c = equipmentAttrConditionSql(condition, diveIdRef: 'd.id');
       clauses.add(c.sql);
@@ -3411,7 +3411,7 @@ class DiveRepository {
   /// Get dive records (superlatives)
   ///
   /// Optionally filter by [diverId] for per-diver records, and by [filter] for
-  /// a narrowed scope. Issue #1028: the Statistics tab shows these superlatives
+  /// a narrowed scope. Issue #1028: the Insights tab shows these superlatives
   /// beside totals that already honour its filter, so a deepest dive drawn from
   /// the whole logbook contradicted the panel right above it.
   Future<DiveRecords> getRecords({

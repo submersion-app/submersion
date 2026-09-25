@@ -20903,7 +20903,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get insights_summary_header_subtitle =>
-      'Sélectionne une catégorie pour explorer les analyses détaillées';
+      'Sélectionnez une catégorie pour explorer les analyses détaillées';
 
   @override
   String get insights_summary_header_title => 'Aperçu des analyses';

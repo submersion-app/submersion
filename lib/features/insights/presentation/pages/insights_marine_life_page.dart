@@ -80,7 +80,7 @@ class InsightsMarineLifePage extends ConsumerWidget {
   }
 
   /// Entry point to the Species page. Carries no count on purpose: the card
-  /// above it is scoped by the Statistics filter and the Species page is
+  /// above it is scoped by the Insights filter and the Species page is
   /// not, so two different numbers side by side would read as a bug.
   Widget _buildSeeAllSpeciesCard(BuildContext context) {
     return Card(

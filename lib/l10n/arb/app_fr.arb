@@ -6044,7 +6044,7 @@
   "insights_summary_divesByMonth_semanticLabel": "Diagramme en barres montrant les plongées par mois",
   "insights_summary_divesByMonth_title": "Plongées par mois",
   "insights_summary_divesByMonth_tooltip": "{fullLabel}\n{count} plongées",
-  "insights_summary_header_subtitle": "Sélectionne une catégorie pour explorer les analyses détaillées",
+  "insights_summary_header_subtitle": "Sélectionnez une catégorie pour explorer les analyses détaillées",
   "insights_summary_header_title": "Aperçu des analyses",
   "insights_summary_maxDepth": "Prof. max",
   "insights_summary_sitesVisited": "Sites visites",

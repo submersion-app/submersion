@@ -10,8 +10,8 @@ import 'package:submersion/features/insights/presentation/providers/insights_pro
 import 'package:submersion/features/insights/presentation/widgets/insights_filter_bar.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Full-page personal records, reached from the Statistics tab's trophy
-/// action. Scoped by the Statistics filter (issue #1028) so it agrees with the
+/// Full-page personal records, reached from the Insights tab's trophy
+/// action. Scoped by the Insights filter (issue #1028) so it agrees with the
 /// records card on the overview page one tap behind it; the filter bar keeps
 /// the narrowed scope visible and clearable here too.
 class RecordsPage extends ConsumerWidget {

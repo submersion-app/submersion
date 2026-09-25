@@ -11,7 +11,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
-/// Regression coverage for #1079: opening Advanced Search from the Statistics
+/// Regression coverage for #1079: opening Advanced Search from the Insights
 /// tab used to hijack the dive-list filter and dump the user on the dive list.
 /// The page now targets whichever filter provider opened it, and returns to
 /// the surface it was pushed from unless that surface is the dive list.

@@ -20,7 +20,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 /// compact greeting + headline stats layout.
 ///
 /// Dive and time totals come from [careerTotalsProvider], so they include the
-/// diver's pre-app logbook and agree with the Statistics overview (issue #808).
+/// diver's pre-app logbook and agree with the Insights overview (issue #808).
 class HeroHeader extends ConsumerWidget {
   const HeroHeader({super.key});
 
@@ -166,7 +166,7 @@ class HeroHeader extends ConsumerWidget {
 
     // "N dives logged" would misdescribe a total that includes the diver's
     // prior offset -- those dives are precisely the ones NOT logged in-app, and
-    // the Statistics breakdown reserves "logged" for the in-app count. Divers
+    // the Insights breakdown reserves "logged" for the in-app count. Divers
     // without prior experience keep the original copy.
     final String diveText;
     if (career.hasPriorDives) {

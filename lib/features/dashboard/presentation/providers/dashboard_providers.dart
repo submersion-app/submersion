@@ -175,10 +175,10 @@ class DashboardQuickStats {
 /// Quick stats provider for dashboard.
 ///
 /// Deliberately UNFILTERED: the home dashboard has no filter UI, so it must
-/// not inherit whatever filter is active on the (unrelated) Statistics tab.
+/// not inherit whatever filter is active on the (unrelated) Insights tab.
 /// [topBuddiesProvider], [countriesVisitedProvider], and
 /// [uniqueSpeciesCountProvider] themselves stay filter-aware -- they also
-/// back the Statistics Social/Geographic/Marine-Life pages -- so this reads
+/// back the Insights Social/Geographic/Marine-Life pages -- so this reads
 /// the shared repository directly instead of watching those providers, and
 /// re-implements their diver scoping (but not their filter scoping).
 /// The statistics change tick preserves the dive-mutation reactivity that used

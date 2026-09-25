@@ -624,7 +624,7 @@ void main() {
 
     /// Helper to create common provider overrides.
     ///
-    /// [filter] drives the Statistics scope the page now follows (issue
+    /// [filter] drives the Insights scope the page now follows (issue
     /// #1028); an active one also makes InsightsFilterBar read the filtered
     /// statistics, hence the paired override.
     List<Override> getOverrides({
@@ -694,7 +694,7 @@ void main() {
       );
     });
 
-    // Issue #1028: the page follows the Statistics filter, so an empty result
+    // Issue #1028: the page follows the Insights filter, so an empty result
     // can mean "the filter is too narrow" rather than "no dives logged".
     testWidgets('shows the filtered empty state when a filter is active', (
       tester,

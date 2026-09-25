@@ -384,7 +384,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'search',
                 name: 'diveSearch',
-                // Sections with their own filter (Statistics) push this page
+                // Sections with their own filter (Insights) push this page
                 // with their filter provider as `extra` so the form edits and
                 // applies to that filter (#1079). Every other entry point,
                 // such as a deep link or the keyboard shortcut, gets the dive

@@ -14,7 +14,7 @@ import 'package:submersion/features/marine_life/domain/entities/species_sighting
 ///
 /// Kept apart from `SpeciesRepository` (already at the file-size cap) and
 /// from `InsightsRepository`: unlike the statistics queries these never
-/// take the Statistics filter, and they let errors propagate so the page can
+/// take the Insights filter, and they let errors propagate so the page can
 /// show an error state instead of an empty list that lies.
 class SeenSpeciesRepository {
   AppDatabase get _db => DatabaseService.instance.database;

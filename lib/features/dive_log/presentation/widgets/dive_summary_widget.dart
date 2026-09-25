@@ -16,7 +16,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// including total dives, hours logged, records, and recent activity.
 ///
 /// Dive count and dive time are career totals (logged + prior dives), matching
-/// the Statistics overview and the home hero header (issue #808).
+/// the Insights overview and the home hero header (issue #808).
 class DiveSummaryWidget extends ConsumerWidget {
   const DiveSummaryWidget({super.key});
 

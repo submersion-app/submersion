@@ -152,10 +152,11 @@ app links to it (no app-links or home-widget package).
 ### l10n keys
 
 All 363 `statistics_*` keys become `insights_*`, with their `@statistics_*`
-metadata entries. Some locales carry fewer (`app_de.arb` has 361 and falls
-back to English for the rest), so the script renames whichever keys each file
-actually holds rather than assuming every key is present. Six keys outside
-that prefix also name the section:
+metadata entries. Every locale currently holds all of them (each ARB file
+changed 369 key lines, the 363 plus the six below), but the script still
+renames whichever keys each file actually holds rather than assuming every key
+is present, so a locale that later falls back to English for a key is handled.
+Six keys outside that prefix also name the section:
 
 | Old | New |
 | --- | --- |
@@ -240,7 +241,7 @@ redesigns that page.
 | pt | Estatísticas | Análises | analysis |
 | nl | Statistieken | Inzichten | literal |
 | hu | Statisztikák | Elemzések | analysis |
-| ar | الإحصائيات | رؤى | literal |
+| ar | الإحصائيات | الرؤى | literal |
 | he | סטטיסטיקות | תובנות | literal |
 | zh | 统计 | 洞察 | literal |
 

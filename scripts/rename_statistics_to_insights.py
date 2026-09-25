@@ -173,7 +173,7 @@ VALUES = {
         "Analyses", "Aller aux analyses", "Voir les analyses",
         "Voir les analyses de plongée", "Explorez les analyses de vos plongées",
         "Aperçu des analyses",
-        "Sélectionne une catégorie pour explorer les analyses détaillées",
+        "Sélectionnez une catégorie pour explorer les analyses détaillées",
         "Catégorie d'analyses {title}", "Filtrer les analyses",
         "Actualiser les analyses", "Erreur de chargement des analyses"),
     "it": _row(

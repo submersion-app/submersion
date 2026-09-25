@@ -9,11 +9,11 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
-/// Coverage for the Statistics category list/grid surfaces (issue #453): the
+/// Coverage for the Insights category list/grid surfaces (issue #453): the
 /// mobile grid ([InsightsMobileContent]), the master-detail list
 /// ([InsightsListContent] with and without its own app bar), and the badged
 /// filter buttons that open the shared [DiveFilterSheet] scoped to the
-/// Statistics filter.
+/// Insights filter.
 void main() {
   setUp(() async {
     await setUpTestDatabase();

@@ -9,7 +9,7 @@ import 'package:submersion/features/insights/presentation/providers/insights_pro
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
-/// Smoke coverage for every Statistics-tab provider (issue #453). Each provider
+/// Smoke coverage for every Insights-tab provider (issue #453). Each provider
 /// is a thin delegate that reads the repository + current diver + active
 /// [insightsFilterProvider] and forwards to a single repository aggregate.
 /// Reading each `.future` against an empty in-memory database exercises the
@@ -40,10 +40,10 @@ void main() {
     return container;
   }
 
-  test('all Statistics providers resolve against an empty database', () async {
+  test('all Insights providers resolve against an empty database', () async {
     final container = await makeContainer();
 
-    // Every non-family Statistics provider is read here. On an empty database
+    // Every non-family Insights provider is read here. On an empty database
     // each returns an empty/zero aggregate, but crucially the provider body
     // and its repository call both execute.
     expect(

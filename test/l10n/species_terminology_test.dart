@@ -5,7 +5,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// The app calls the catalog, the per-dive sightings and the browse page
 /// "Species". "Marine Life" was the older term and survived on a handful of
-/// section headers, the picker title and the Statistics tab, which read as a
+/// section headers, the picker title and the Insights tab, which read as a
 /// second, separate feature sitting next to the Species page.
 ///
 /// The safety incident category is deliberately excluded: there "marine life"

@@ -12,10 +12,10 @@ import 'package:submersion/features/insights/presentation/providers/insights_pro
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
-/// Issue #1028: personal records on the Statistics tab must follow the tab's
+/// Issue #1028: personal records on the Insights tab must follow the tab's
 /// filter, the way every other panel on that page already does. The unfiltered
 /// [diveRecordsProvider] stays as-is for the dive-log summary widget, which is
-/// not a Statistics-tab surface.
+/// not an Insights-tab surface.
 void main() {
   late AppDatabase db;
 
@@ -54,7 +54,7 @@ void main() {
   );
 
   test('filteredDiveRecordsProvider narrows the records to the active '
-      'Statistics filter', () async {
+      'Insights filter', () async {
     await insertDive('shallow', maxDepth: 10);
     await insertDive('deep', maxDepth: 40);
 
@@ -89,7 +89,7 @@ void main() {
   });
 
   test(
-    'diveRecordsProvider stays unfiltered for non-Statistics surfaces',
+    'diveRecordsProvider stays unfiltered for non-Insights surfaces',
     () async {
       await insertDive('shallow', maxDepth: 10);
       await insertDive('deep', maxDepth: 40);
@@ -104,7 +104,7 @@ void main() {
         'deep',
         reason:
             'the dive-log summary widget reads diveRecordsProvider and has no '
-            'filter UI of its own; the Statistics filter must not reach it',
+            'filter UI of its own; the Insights filter must not reach it',
       );
     },
   );

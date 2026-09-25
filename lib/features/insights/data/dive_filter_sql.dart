@@ -246,7 +246,7 @@ import 'package:submersion/features/equipment/domain/models/equipment_attr_condi
 /// This is the only implementation of the dive filter's attribute axis. It
 /// is shared by [buildFilteredDiveIdSubquery],
 /// `DiveRepository._buildFilterWhereClauses` and
-/// `DiveRepository.getDiveIdsMatchingEquipmentAttrs`, so Statistics, the
+/// `DiveRepository.getDiveIdsMatchingEquipmentAttrs`, so Insights, the
 /// paginated list and the entity-backed views cannot disagree.
 ({String sql, List<Object> params}) equipmentAttrConditionSql(
   EquipmentAttrCondition condition, {
@@ -296,7 +296,7 @@ import 'package:submersion/features/equipment/domain/models/equipment_attr_condi
 /// Recorded deco-signal SQL condition (no bind params), shared by
 /// [buildFilteredDiveIdSubquery], `DiveRepository._buildFilterWhereClauses`
 /// and `DiveRepository.getDiveIdsWithDecoSignal` so the three SQL paths
-/// (Statistics, the paginated dive list, and the id set the entity-backed
+/// (Insights, the paginated dive list, and the id set the entity-backed
 /// surfaces intersect with) can't drift apart. Mirrors
 /// `InsightsRepository.scanRecordedDecoSignals`:
 ///

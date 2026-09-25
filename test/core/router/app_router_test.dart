@@ -1121,7 +1121,7 @@ void main() {
   });
 
   group('diveSearch route carries the calling section filter (#1079)', () {
-    // Statistics keeps its own filter, so the advanced search form has to be
+    // Insights keeps its own filter, so the advanced search form has to be
     // told which filter it is editing. The section pushes its provider as the
     // route `extra`; anything else (deep link, keyboard shortcut) falls back
     // to the dive list's filter.

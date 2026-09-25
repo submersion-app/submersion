@@ -31,7 +31,7 @@ final speciesTagCountsProvider = FutureProvider<Map<String, int>>((ref) async {
 
 /// Every photo tagged with a species, newest first, for the current diver.
 ///
-/// Not scoped by the Statistics filter: the species detail page is a
+/// Not scoped by the Insights filter: the species detail page is a
 /// logbook surface. Ticks on tags and on media (a photo edit, unlink or
 /// delete changes the gallery without touching `media_species`).
 final mediaForSpeciesProvider = FutureProvider.family<List<MediaItem>, String>((
