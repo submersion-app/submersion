@@ -10503,29 +10503,30 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get divelogsImport_fetch_button => 'Fetch Logbook';
+  String get divelogsImport_fetch_button => 'Napló letöltése';
 
   @override
   String get divelogsImport_fetch_certificationsUnavailable =>
-      'Certifications could not be fetched and will not be imported.';
+      'A képesítéseket nem sikerült letölteni, ezért nem lesznek importálva.';
 
   @override
   String get divelogsImport_fetch_empty =>
-      'Your divelogs.de logbook has nothing to import.';
+      'A divelogs.de naplódban nincs mit importálni.';
 
   @override
-  String get divelogsImport_fetch_failedTitle => 'Could not fetch your logbook';
+  String get divelogsImport_fetch_failedTitle =>
+      'Nem sikerült letölteni a naplódat';
 
   @override
-  String get divelogsImport_fetch_fetching => 'Fetching your logbook…';
+  String get divelogsImport_fetch_fetching => 'A napló letöltése…';
 
   @override
   String divelogsImport_fetch_foundDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Found $count dives',
-      one: 'Found $count dive',
+      other: '$count merülés található',
+      one: '$count merülés található',
     );
     return '$_temp0';
   }
@@ -10535,27 +10536,27 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count photos to import',
-      one: '$count photo to import',
-      zero: 'No photos to import',
+      other: '$count importálandó fénykép',
+      one: '$count importálandó fénykép',
+      zero: 'Nincs importálandó fénykép',
     );
     return '$_temp0';
   }
 
   @override
   String get divelogsImport_fetch_gearUnavailable =>
-      'Gear could not be fetched; dives will import without gear links.';
+      'A felszerelést nem sikerült letölteni; a merülések felszerelés-hivatkozások nélkül lesznek importálva.';
 
   @override
-  String get divelogsImport_fetch_includePhotos => 'Include photos';
+  String get divelogsImport_fetch_includePhotos => 'Fényképek belefoglalása';
 
   @override
   String get divelogsImport_fetch_includePhotosHint =>
-      'Photos are downloaded during the import into a folder you choose.';
+      'A fényképek az importálás során egy általad választott mappába töltődnek le.';
 
   @override
   String divelogsImport_fetch_listingPhotos(int current, int total) {
-    return 'Listing photos for dive $current of $total…';
+    return '$total merülésből a(z) $current fényképeinek listázása…';
   }
 
   @override
@@ -10563,74 +10564,77 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Photos for $count dives could not be listed.',
-      one: 'Photos for $count dive could not be listed.',
+      other: '$count merülés fényképeit nem sikerült listázni.',
+      one: '$count merülés fényképeit nem sikerült listázni.',
     );
     return '$_temp0';
   }
 
   @override
-  String get divelogsImport_fetch_retry => 'Try Again';
+  String get divelogsImport_fetch_retry => 'Újra';
 
   @override
   String get divelogsImport_fetch_sessionExpired =>
-      'Your divelogs.de session expired. Go back and sign in again.';
+      'A divelogs.de munkameneted lejárt. Lépj vissza, és jelentkezz be újra.';
 
   @override
   String divelogsImport_fetch_skippedDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dives could not be read and will be skipped.',
-      one: '$count dive could not be read and will be skipped.',
+      other: '$count merülést nem sikerült beolvasni, ezért kimaradnak.',
+      one: '$count merülést nem sikerült beolvasni, ezért kimarad.',
     );
     return '$_temp0';
   }
 
   @override
   String get divelogsImport_signIn_badCredentials =>
-      'divelogs.de rejected the username or password.';
+      'A divelogs.de elutasította a felhasználónevet vagy a jelszót.';
 
   @override
-  String get divelogsImport_signIn_button => 'Sign In';
+  String get divelogsImport_signIn_button => 'Bejelentkezés';
 
   @override
   String get divelogsImport_signIn_description =>
-      'Sign in with your divelogs.de account to import your logbook. Your password is never stored; only the resulting session is cached.';
+      'Jelentkezz be a divelogs.de fiókoddal a naplód importálásához. A jelszavadat soha nem tároljuk; csak a létrejövő munkamenetet tároljuk gyorsítótárban.';
 
   @override
-  String get divelogsImport_signIn_passwordLabel => 'Password';
+  String get divelogsImport_signIn_passwordLabel => 'Jelszó';
 
   @override
-  String get divelogsImport_signIn_passwordRequired => 'Password is required';
+  String get divelogsImport_signIn_passwordRequired =>
+      'A jelszó megadása kötelező';
 
   @override
   String divelogsImport_signIn_signedInAs(String username) {
-    return 'Signed in as $username';
+    return 'Bejelentkezve mint $username';
   }
 
   @override
-  String get divelogsImport_signIn_signingIn => 'Signing in…';
+  String get divelogsImport_signIn_signingIn => 'Bejelentkezés…';
 
   @override
-  String get divelogsImport_signIn_signOut => 'Sign out';
+  String get divelogsImport_signIn_signOut => 'Kijelentkezés';
 
   @override
-  String get divelogsImport_signIn_title => 'Sign in to divelogs.de';
+  String get divelogsImport_signIn_title =>
+      'Bejelentkezés a divelogs.de fiókba';
 
   @override
   String get divelogsImport_signIn_unexpected =>
-      'divelogs.de sent an unexpected response. Try again later.';
+      'A divelogs.de váratlan választ küldött. Próbáld újra később.';
 
   @override
   String get divelogsImport_signIn_unreachable =>
-      'Could not reach divelogs.de. Check your connection and try again.';
+      'A divelogs.de nem érhető el. Ellenőrizd a kapcsolatot, és próbáld újra.';
 
   @override
-  String get divelogsImport_signIn_usernameLabel => 'Username';
+  String get divelogsImport_signIn_usernameLabel => 'Felhasználónév';
 
   @override
-  String get divelogsImport_signIn_usernameRequired => 'Username is required';
+  String get divelogsImport_signIn_usernameRequired =>
+      'A felhasználónév megadása kötelező';
 
   @override
   String get divers_detail_activeDiver => 'Aktív merülő';
@@ -21547,8 +21551,8 @@ class AppLocalizationsHu extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count photos to download',
-      one: '$count photo to download',
+      other: '$count letöltendő fotó',
+      one: '$count letöltendő fotó',
     );
     return '$_temp0';
   }
@@ -23960,23 +23964,23 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeGearUnavailableTitle =>
-      'Gear not imported';
+      'A felszerelés nem lett importálva';
 
   @override
   String get universalImport_summary_noticeGearUnavailableBody =>
-      'The gear list could not be fetched, so no gear was imported and dives were not linked to their gear. Import again later to add it.';
+      'A felszereléslistát nem sikerült letölteni, ezért nem lett importálva felszerelés, és a merülések nincsenek összekapcsolva a felszerelésükkel. A hozzáadásához importálj újra később.';
 
   @override
   String get universalImport_summary_noticeCertificationsUnavailableTitle =>
-      'Certifications not imported';
+      'A képesítések nem lettek importálva';
 
   @override
   String get universalImport_summary_noticeCertificationsUnavailableBody =>
-      'The certification list could not be fetched, so no certifications were imported. Import again later to add them.';
+      'A képesítések listáját nem sikerült letölteni, ezért nem lett importálva képesítés. A hozzáadásukhoz importálj újra később.';
 
   @override
   String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
-      'Some photos not listed';
+      'Néhány fényképet nem sikerült listázni';
 
   @override
   String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
@@ -23984,16 +23988,16 @@ class AppLocalizationsHu extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'Photos for $count dives could not be listed, so they were not imported.',
+          '$count merülés fényképeit nem sikerült listázni, ezért nem lettek importálva.',
       one:
-          'Photos for $count dive could not be listed, so they were not imported.',
+          '$count merülés fényképeit nem sikerült listázni, ezért nem lettek importálva.',
     );
     return '$_temp0';
   }
 
   @override
   String get universalImport_summary_noticePhotosNotDownloadedTitle =>
-      'Some photos not downloaded';
+      'Néhány fénykép nem lett letöltve';
 
   @override
   String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
@@ -24001,9 +24005,9 @@ class AppLocalizationsHu extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '$count photos could not be downloaded. Import again to retry; photos already saved are not duplicated.',
+          '$count fényképet nem sikerült letölteni. Az újrapróbáláshoz importálj újra; a már mentett fényképek nem duplikálódnak.',
       one:
-          '$count photo could not be downloaded. Import again to retry; photos already saved are not duplicated.',
+          '$count fényképet nem sikerült letölteni. Az újrapróbáláshoz importálj újra; a már mentett fényképek nem duplikálódnak.',
     );
     return '$_temp0';
   }
@@ -41192,7 +41196,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get transfer_importCloud_divelogsSubtitle =>
-      'Import your logbook, sites, gear, certifications and photos from divelogs.de';
+      'Napló, merülőhelyek, felszerelés, képesítések és fényképek importálása a divelogs.de oldalról';
 
   @override
   String get transfer_section_cloudTitle => 'Felhő';

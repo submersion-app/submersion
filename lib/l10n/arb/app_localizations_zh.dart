@@ -10013,29 +10013,27 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get divelogsImport_fetch_button => 'Fetch Logbook';
+  String get divelogsImport_fetch_button => '获取日志';
 
   @override
   String get divelogsImport_fetch_certificationsUnavailable =>
-      'Certifications could not be fetched and will not be imported.';
+      '无法获取证书，证书将不会被导入。';
 
   @override
-  String get divelogsImport_fetch_empty =>
-      'Your divelogs.de logbook has nothing to import.';
+  String get divelogsImport_fetch_empty => '您的 divelogs.de 日志中没有可导入的内容。';
 
   @override
-  String get divelogsImport_fetch_failedTitle => 'Could not fetch your logbook';
+  String get divelogsImport_fetch_failedTitle => '无法获取您的日志';
 
   @override
-  String get divelogsImport_fetch_fetching => 'Fetching your logbook…';
+  String get divelogsImport_fetch_fetching => '正在获取您的日志…';
 
   @override
   String divelogsImport_fetch_foundDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Found $count dives',
-      one: 'Found $count dive',
+      other: '找到 $count 次潜水',
     );
     return '$_temp0';
   }
@@ -10045,27 +10043,25 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count photos to import',
-      one: '$count photo to import',
-      zero: 'No photos to import',
+      other: '$count 张照片待导入',
+      zero: '没有要导入的照片',
     );
     return '$_temp0';
   }
 
   @override
   String get divelogsImport_fetch_gearUnavailable =>
-      'Gear could not be fetched; dives will import without gear links.';
+      '无法获取装备；潜水记录将在不关联装备的情况下导入。';
 
   @override
-  String get divelogsImport_fetch_includePhotos => 'Include photos';
+  String get divelogsImport_fetch_includePhotos => '包含照片';
 
   @override
-  String get divelogsImport_fetch_includePhotosHint =>
-      'Photos are downloaded during the import into a folder you choose.';
+  String get divelogsImport_fetch_includePhotosHint => '照片会在导入过程中下载到您选择的文件夹。';
 
   @override
   String divelogsImport_fetch_listingPhotos(int current, int total) {
-    return 'Listing photos for dive $current of $total…';
+    return '正在列出第 $current 次潜水的照片，共 $total 次…';
   }
 
   @override
@@ -10073,74 +10069,70 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Photos for $count dives could not be listed.',
-      one: 'Photos for $count dive could not be listed.',
+      other: '无法列出 $count 次潜水的照片。',
     );
     return '$_temp0';
   }
 
   @override
-  String get divelogsImport_fetch_retry => 'Try Again';
+  String get divelogsImport_fetch_retry => '重试';
 
   @override
   String get divelogsImport_fetch_sessionExpired =>
-      'Your divelogs.de session expired. Go back and sign in again.';
+      '您的 divelogs.de 会话已过期。请返回并重新登录。';
 
   @override
   String divelogsImport_fetch_skippedDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dives could not be read and will be skipped.',
-      one: '$count dive could not be read and will be skipped.',
+      other: '有 $count 次潜水无法读取，将被跳过。',
     );
     return '$_temp0';
   }
 
   @override
-  String get divelogsImport_signIn_badCredentials =>
-      'divelogs.de rejected the username or password.';
+  String get divelogsImport_signIn_badCredentials => 'divelogs.de 拒绝了用户名或密码。';
 
   @override
-  String get divelogsImport_signIn_button => 'Sign In';
+  String get divelogsImport_signIn_button => '登录';
 
   @override
   String get divelogsImport_signIn_description =>
-      'Sign in with your divelogs.de account to import your logbook. Your password is never stored; only the resulting session is cached.';
+      '使用您的 divelogs.de 账户登录，即可导入您的日志。您的密码不会被保存；仅缓存由此生成的会话。';
 
   @override
-  String get divelogsImport_signIn_passwordLabel => 'Password';
+  String get divelogsImport_signIn_passwordLabel => '密码';
 
   @override
-  String get divelogsImport_signIn_passwordRequired => 'Password is required';
+  String get divelogsImport_signIn_passwordRequired => '请输入密码';
 
   @override
   String divelogsImport_signIn_signedInAs(String username) {
-    return 'Signed in as $username';
+    return '已登录为 $username';
   }
 
   @override
-  String get divelogsImport_signIn_signingIn => 'Signing in…';
+  String get divelogsImport_signIn_signingIn => '正在登录…';
 
   @override
-  String get divelogsImport_signIn_signOut => 'Sign out';
+  String get divelogsImport_signIn_signOut => '退出登录';
 
   @override
-  String get divelogsImport_signIn_title => 'Sign in to divelogs.de';
+  String get divelogsImport_signIn_title => '登录 divelogs.de';
 
   @override
-  String get divelogsImport_signIn_unexpected =>
-      'divelogs.de sent an unexpected response. Try again later.';
+  String get divelogsImport_signIn_unexpected => 'divelogs.de 返回了意外的响应。请稍后重试。';
 
   @override
   String get divelogsImport_signIn_unreachable =>
-      'Could not reach divelogs.de. Check your connection and try again.';
+      '无法连接到 divelogs.de。请检查网络连接后重试。';
 
   @override
-  String get divelogsImport_signIn_usernameLabel => 'Username';
+  String get divelogsImport_signIn_usernameLabel => '用户名';
 
   @override
-  String get divelogsImport_signIn_usernameRequired => 'Username is required';
+  String get divelogsImport_signIn_usernameRequired => '请输入用户名';
 
   @override
   String get divers_detail_activeDiver => '当前潜水员';
@@ -20465,8 +20457,7 @@ class AppLocalizationsZh extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count photos to download',
-      one: '$count photo to download',
+      other: '$count 张照片待下载',
     );
     return '$_temp0';
   }
@@ -22775,51 +22766,44 @@ class AppLocalizationsZh extends AppLocalizations {
       '这些潜水引用了文件中没有描述的潜水点，因此导入时没有潜水点。您可以通过编辑潜水来设置潜水点。';
 
   @override
-  String get universalImport_summary_noticeGearUnavailableTitle =>
-      'Gear not imported';
+  String get universalImport_summary_noticeGearUnavailableTitle => '未导入装备';
 
   @override
   String get universalImport_summary_noticeGearUnavailableBody =>
-      'The gear list could not be fetched, so no gear was imported and dives were not linked to their gear. Import again later to add it.';
+      '无法获取装备列表，因此未导入任何装备，潜水记录也未关联到其装备。请稍后重新导入以添加装备。';
 
   @override
   String get universalImport_summary_noticeCertificationsUnavailableTitle =>
-      'Certifications not imported';
+      '未导入证书';
 
   @override
   String get universalImport_summary_noticeCertificationsUnavailableBody =>
-      'The certification list could not be fetched, so no certifications were imported. Import again later to add them.';
+      '无法获取证书列表，因此未导入任何证书。请稍后重新导入以添加证书。';
 
   @override
   String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
-      'Some photos not listed';
+      '部分照片未能列出';
 
   @override
   String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          'Photos for $count dives could not be listed, so they were not imported.',
-      one:
-          'Photos for $count dive could not be listed, so they were not imported.',
+      other: '无法列出 $count 次潜水的照片，因此这些照片未导入。',
     );
     return '$_temp0';
   }
 
   @override
   String get universalImport_summary_noticePhotosNotDownloadedTitle =>
-      'Some photos not downloaded';
+      '部分照片未下载';
 
   @override
   String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other:
-          '$count photos could not be downloaded. Import again to retry; photos already saved are not duplicated.',
-      one:
-          '$count photo could not be downloaded. Import again to retry; photos already saved are not duplicated.',
+      other: '$count 张照片无法下载。请重新导入以重试；已保存的照片不会重复。',
     );
     return '$_temp0';
   }
@@ -38947,7 +38931,7 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get transfer_importCloud_divelogsSubtitle =>
-      'Import your logbook, sites, gear, certifications and photos from divelogs.de';
+      '从 divelogs.de 导入您的日志、潜水点、装备、证书和照片';
 
   @override
   String get transfer_section_cloudTitle => '云端';

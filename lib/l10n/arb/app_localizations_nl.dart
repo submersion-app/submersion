@@ -10443,29 +10443,29 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get divelogsImport_fetch_button => 'Fetch Logbook';
+  String get divelogsImport_fetch_button => 'Logboek ophalen';
 
   @override
   String get divelogsImport_fetch_certificationsUnavailable =>
-      'Certifications could not be fetched and will not be imported.';
+      'Brevetten konden niet worden opgehaald en worden niet geïmporteerd.';
 
   @override
   String get divelogsImport_fetch_empty =>
-      'Your divelogs.de logbook has nothing to import.';
+      'Je divelogs.de-logboek bevat niets om te importeren.';
 
   @override
-  String get divelogsImport_fetch_failedTitle => 'Could not fetch your logbook';
+  String get divelogsImport_fetch_failedTitle => 'Kan je logboek niet ophalen';
 
   @override
-  String get divelogsImport_fetch_fetching => 'Fetching your logbook…';
+  String get divelogsImport_fetch_fetching => 'Je logboek wordt opgehaald…';
 
   @override
   String divelogsImport_fetch_foundDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Found $count dives',
-      one: 'Found $count dive',
+      other: '$count duiken gevonden',
+      one: '$count duik gevonden',
     );
     return '$_temp0';
   }
@@ -10475,27 +10475,27 @@ class AppLocalizationsNl extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count photos to import',
-      one: '$count photo to import',
-      zero: 'No photos to import',
+      other: '$count foto\'s om te importeren',
+      one: '$count foto om te importeren',
+      zero: 'Geen foto\'s om te importeren',
     );
     return '$_temp0';
   }
 
   @override
   String get divelogsImport_fetch_gearUnavailable =>
-      'Gear could not be fetched; dives will import without gear links.';
+      'De uitrusting kon niet worden opgehaald; duiken worden geïmporteerd zonder koppeling aan hun uitrusting.';
 
   @override
-  String get divelogsImport_fetch_includePhotos => 'Include photos';
+  String get divelogsImport_fetch_includePhotos => 'Foto\'s meenemen';
 
   @override
   String get divelogsImport_fetch_includePhotosHint =>
-      'Photos are downloaded during the import into a folder you choose.';
+      'Foto\'s worden tijdens het importeren gedownload naar een map die je zelf kiest.';
 
   @override
   String divelogsImport_fetch_listingPhotos(int current, int total) {
-    return 'Listing photos for dive $current of $total…';
+    return 'Foto\'s voor duik $current van $total worden opgevraagd…';
   }
 
   @override
@@ -10503,74 +10503,76 @@ class AppLocalizationsNl extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: 'Photos for $count dives could not be listed.',
-      one: 'Photos for $count dive could not be listed.',
+      other: 'Foto\'s voor $count duiken konden niet worden opgevraagd.',
+      one: 'Foto\'s voor $count duik konden niet worden opgevraagd.',
     );
     return '$_temp0';
   }
 
   @override
-  String get divelogsImport_fetch_retry => 'Try Again';
+  String get divelogsImport_fetch_retry => 'Opnieuw proberen';
 
   @override
   String get divelogsImport_fetch_sessionExpired =>
-      'Your divelogs.de session expired. Go back and sign in again.';
+      'Je divelogs.de-sessie is verlopen. Ga terug en meld je opnieuw aan.';
 
   @override
   String divelogsImport_fetch_skippedDives(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count dives could not be read and will be skipped.',
-      one: '$count dive could not be read and will be skipped.',
+      other: '$count duiken konden niet worden gelezen en worden overgeslagen.',
+      one: '$count duik kon niet worden gelezen en wordt overgeslagen.',
     );
     return '$_temp0';
   }
 
   @override
   String get divelogsImport_signIn_badCredentials =>
-      'divelogs.de rejected the username or password.';
+      'divelogs.de heeft de gebruikersnaam of het wachtwoord geweigerd.';
 
   @override
-  String get divelogsImport_signIn_button => 'Sign In';
+  String get divelogsImport_signIn_button => 'Aanmelden';
 
   @override
   String get divelogsImport_signIn_description =>
-      'Sign in with your divelogs.de account to import your logbook. Your password is never stored; only the resulting session is cached.';
+      'Meld je aan met je divelogs.de-account om je logboek te importeren. Je wachtwoord wordt nooit opgeslagen; alleen de resulterende sessie wordt in de cache bewaard.';
 
   @override
-  String get divelogsImport_signIn_passwordLabel => 'Password';
+  String get divelogsImport_signIn_passwordLabel => 'Wachtwoord';
 
   @override
-  String get divelogsImport_signIn_passwordRequired => 'Password is required';
+  String get divelogsImport_signIn_passwordRequired =>
+      'Wachtwoord is verplicht';
 
   @override
   String divelogsImport_signIn_signedInAs(String username) {
-    return 'Signed in as $username';
+    return 'Aangemeld als $username';
   }
 
   @override
-  String get divelogsImport_signIn_signingIn => 'Signing in…';
+  String get divelogsImport_signIn_signingIn => 'Bezig met aanmelden…';
 
   @override
-  String get divelogsImport_signIn_signOut => 'Sign out';
+  String get divelogsImport_signIn_signOut => 'Afmelden';
 
   @override
-  String get divelogsImport_signIn_title => 'Sign in to divelogs.de';
+  String get divelogsImport_signIn_title => 'Aanmelden bij divelogs.de';
 
   @override
   String get divelogsImport_signIn_unexpected =>
-      'divelogs.de sent an unexpected response. Try again later.';
+      'divelogs.de stuurde een onverwacht antwoord. Probeer het later opnieuw.';
 
   @override
   String get divelogsImport_signIn_unreachable =>
-      'Could not reach divelogs.de. Check your connection and try again.';
+      'Kan divelogs.de niet bereiken. Controleer je verbinding en probeer het opnieuw.';
 
   @override
-  String get divelogsImport_signIn_usernameLabel => 'Username';
+  String get divelogsImport_signIn_usernameLabel => 'Gebruikersnaam';
 
   @override
-  String get divelogsImport_signIn_usernameRequired => 'Username is required';
+  String get divelogsImport_signIn_usernameRequired =>
+      'Gebruikersnaam is verplicht';
 
   @override
   String get divers_detail_activeDiver => 'Actieve duiker';
@@ -21433,8 +21435,8 @@ class AppLocalizationsNl extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '$count photos to download',
-      one: '$count photo to download',
+      other: '$count foto\'s om te downloaden',
+      one: '$count foto om te downloaden',
     );
     return '$_temp0';
   }
@@ -23842,23 +23844,23 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get universalImport_summary_noticeGearUnavailableTitle =>
-      'Gear not imported';
+      'Uitrusting niet geïmporteerd';
 
   @override
   String get universalImport_summary_noticeGearUnavailableBody =>
-      'The gear list could not be fetched, so no gear was imported and dives were not linked to their gear. Import again later to add it.';
+      'De uitrustingslijst kon niet worden opgehaald, dus er is geen uitrusting geïmporteerd en de duiken zijn niet aan hun uitrusting gekoppeld. Importeer later opnieuw om deze toe te voegen.';
 
   @override
   String get universalImport_summary_noticeCertificationsUnavailableTitle =>
-      'Certifications not imported';
+      'Brevetten niet geïmporteerd';
 
   @override
   String get universalImport_summary_noticeCertificationsUnavailableBody =>
-      'The certification list could not be fetched, so no certifications were imported. Import again later to add them.';
+      'De lijst met brevetten kon niet worden opgehaald, dus er zijn geen brevetten geïmporteerd. Importeer later opnieuw om ze toe te voegen.';
 
   @override
   String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
-      'Some photos not listed';
+      'Sommige foto\'s niet opgevraagd';
 
   @override
   String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
@@ -23866,16 +23868,16 @@ class AppLocalizationsNl extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          'Photos for $count dives could not be listed, so they were not imported.',
+          'Foto\'s voor $count duiken konden niet worden opgevraagd en zijn daarom niet geïmporteerd.',
       one:
-          'Photos for $count dive could not be listed, so they were not imported.',
+          'Foto\'s voor $count duik konden niet worden opgevraagd en zijn daarom niet geïmporteerd.',
     );
     return '$_temp0';
   }
 
   @override
   String get universalImport_summary_noticePhotosNotDownloadedTitle =>
-      'Some photos not downloaded';
+      'Sommige foto\'s niet gedownload';
 
   @override
   String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
@@ -23883,9 +23885,9 @@ class AppLocalizationsNl extends AppLocalizations {
       count,
       locale: localeName,
       other:
-          '$count photos could not be downloaded. Import again to retry; photos already saved are not duplicated.',
+          '$count foto\'s konden niet worden gedownload. Importeer opnieuw om het nog eens te proberen; al opgeslagen foto\'s worden niet gedupliceerd.',
       one:
-          '$count photo could not be downloaded. Import again to retry; photos already saved are not duplicated.',
+          '$count foto kon niet worden gedownload. Importeer opnieuw om het nog eens te proberen; al opgeslagen foto\'s worden niet gedupliceerd.',
     );
     return '$_temp0';
   }
@@ -41079,7 +41081,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get transfer_importCloud_divelogsSubtitle =>
-      'Import your logbook, sites, gear, certifications and photos from divelogs.de';
+      'Je logboek, duikstekken, uitrusting, brevetten en foto\'s importeren uit divelogs.de';
 
   @override
   String get transfer_section_cloudTitle => 'Cloud';
