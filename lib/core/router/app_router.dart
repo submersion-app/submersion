@@ -77,6 +77,7 @@ import 'package:submersion/features/trips/presentation/pages/trip_detail_page.da
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_gallery_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_overview_page.dart';
+import 'package:submersion/features/connections/presentation/pages/connections_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/records_page.dart';
 import 'package:submersion/features/statistics/presentation/pages/statistics_gas_page.dart';
@@ -911,6 +912,24 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const StatisticsProfilePage(),
               ),
             ],
+          ),
+
+          // Connections
+          GoRoute(
+            path: '/connections',
+            name: 'connections',
+            pageBuilder: (context, state) {
+              final q = state.uri.queryParameters;
+              return NoTransitionPage(
+                key: state.pageKey,
+                child: ConnectionsPage(
+                  lensId: q['lens'],
+                  kindAName: q['a'],
+                  kindBName: q['b'],
+                  focusWire: q['focus'],
+                ),
+              );
+            },
           ),
 
           // Records

@@ -21,6 +21,7 @@ void main() {
       ('courses', '/courses'),
       ('species', '/species'),
       ('statistics', '/statistics'),
+      ('connections', '/connections'),
       ('planning', '/planning'),
       ('transfer', '/transfer'),
       ('gps-log', '/gps-log'),

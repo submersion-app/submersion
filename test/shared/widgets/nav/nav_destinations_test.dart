@@ -3,8 +3,8 @@ import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 
 void main() {
   group('kNavDestinations', () {
-    test('has exactly 17 entries (16 routable + more sentinel)', () {
-      expect(kNavDestinations.length, 17);
+    test('has exactly 18 entries (17 routable + more sentinel)', () {
+      expect(kNavDestinations.length, 18);
     });
 
     test('exactly two entries are pinned (dashboard and more)', () {
@@ -25,7 +25,7 @@ void main() {
       }
     });
 
-    test('contains the expected 16 routable ids plus more sentinel', () {
+    test('contains the expected 17 routable ids plus more sentinel', () {
       expect(kNavDestinations.map((d) => d.id).toList(), [
         'dashboard',
         'dives',
@@ -39,6 +39,7 @@ void main() {
         'courses',
         'species',
         'statistics',
+        'connections',
         'planning',
         'transfer',
         'gps-log',
@@ -75,6 +76,7 @@ void main() {
         'courses',
         'species',
         'statistics',
+        'connections',
         'planning',
         'transfer',
         'gps-log',
@@ -82,8 +84,15 @@ void main() {
       ]);
     });
 
-    test('has exactly 15 entries', () {
-      expect(movableNavIds.length, 15);
+    test('has exactly 16 entries', () {
+      expect(movableNavIds.length, 16);
+    });
+
+    test('connections is routable and movable', () {
+      final d = kNavDestinations.singleWhere((d) => d.id == 'connections');
+      expect(d.route, '/connections');
+      expect(d.isPinned, isFalse);
+      expect(movableNavIds, contains('connections'));
     });
   });
 }

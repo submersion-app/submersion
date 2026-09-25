@@ -191,6 +191,16 @@ void main() {
   });
 
   group('app_router route configuration', () {
+    test('connections is a named section root that accepts query params', () {
+      final routes = router.configuration.routes;
+      expect(_findRouteByName(routes, 'connections'), isNotNull);
+      expect(_locationOfRoute(routes, 'connections'), '/connections');
+      final match = router.configuration.findMatch(
+        Uri.parse('/connections?lens=circle&focus=buddy:abc'),
+      );
+      expect(match.fullPath, '/connections');
+    });
+
     test('contains universalImport route', () {
       final names = _collectRouteNames(router.configuration.routes);
       expect(names, contains('universalImport'));
