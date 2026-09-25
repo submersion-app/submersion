@@ -12610,7 +12610,7 @@
   "gasCalculators_blender_invoiceArchiveDelete": "حذف هذه الفاتورة",
   "gasCalculators_blender_invoiceArchiveDeleteTitle": "حذف الفاتورة؟",
   "gasCalculators_blender_invoiceArchiveDeleteBody": "لا يمكن التراجع عن هذا الإجراء.",
-  "diveLog_detail_menu_whatIf": "Replan this dive",
+  "diveLog_detail_menu_whatIf": "ماذا لو…",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
   "@plannerCanvas_issue_repeated": {

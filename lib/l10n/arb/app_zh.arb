@@ -12610,7 +12610,7 @@
   "gasCalculators_blender_invoiceArchiveDelete": "删除此发票",
   "gasCalculators_blender_invoiceArchiveDeleteTitle": "删除发票？",
   "gasCalculators_blender_invoiceArchiveDeleteBody": "此操作无法撤销。",
-  "diveLog_detail_menu_whatIf": "Replan this dive",
+  "diveLog_detail_menu_whatIf": "如果当时…",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
   "@plannerCanvas_issue_repeated": {

@@ -12610,7 +12610,7 @@
   "gasCalculators_blender_invoiceArchiveDelete": "Deze factuur verwijderen",
   "gasCalculators_blender_invoiceArchiveDeleteTitle": "Factuur verwijderen?",
   "gasCalculators_blender_invoiceArchiveDeleteBody": "Dit kan niet ongedaan worden gemaakt.",
-  "diveLog_detail_menu_whatIf": "Replan this dive",
+  "diveLog_detail_menu_whatIf": "Wat als…",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
   "@plannerCanvas_issue_repeated": {

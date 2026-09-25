@@ -67940,7 +67940,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_detail_menu_whatIf.
   ///
   /// In en, this message translates to:
-  /// **'Replan this dive'**
+  /// **'What if…'**
   String get diveLog_detail_menu_whatIf;
 
   /// No description provided for @plannerCanvas_sourceCompare_title.

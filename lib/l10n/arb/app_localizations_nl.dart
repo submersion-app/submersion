@@ -42097,7 +42097,7 @@ class AppLocalizationsNl extends AppLocalizations {
       'Hoe uitrusting bij een duik wordt gegroepeerd en gesorteerd';
 
   @override
-  String get diveLog_detail_menu_whatIf => 'Replan this dive';
+  String get diveLog_detail_menu_whatIf => 'Wat als…';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. original dive';

@@ -42035,7 +42035,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'كيفية تجميع المعدات وترتيبها في الغوصة';
 
   @override
-  String get diveLog_detail_menu_whatIf => 'Replan this dive';
+  String get diveLog_detail_menu_whatIf => 'ماذا لو…';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. original dive';

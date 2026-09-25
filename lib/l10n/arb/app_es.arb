@@ -12610,7 +12610,7 @@
   "gasCalculators_blender_invoiceArchiveDelete": "Eliminar esta factura",
   "gasCalculators_blender_invoiceArchiveDeleteTitle": "¿Eliminar factura?",
   "gasCalculators_blender_invoiceArchiveDeleteBody": "Esto no se puede deshacer.",
-  "diveLog_detail_menu_whatIf": "Replan this dive",
+  "diveLog_detail_menu_whatIf": "Y si…",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
   "@plannerCanvas_issue_repeated": {

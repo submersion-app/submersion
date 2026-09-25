@@ -42429,7 +42429,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Cómo se agrupa y ordena el equipo en una inmersión';
 
   @override
-  String get diveLog_detail_menu_whatIf => 'Replan this dive';
+  String get diveLog_detail_menu_whatIf => 'Y si…';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. original dive';

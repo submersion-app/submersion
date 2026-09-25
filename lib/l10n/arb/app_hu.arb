@@ -12610,7 +12610,7 @@
   "gasCalculators_blender_invoiceArchiveDelete": "Számla törlése",
   "gasCalculators_blender_invoiceArchiveDeleteTitle": "Törli a számlát?",
   "gasCalculators_blender_invoiceArchiveDeleteBody": "Ez a művelet nem vonható vissza.",
-  "diveLog_detail_menu_whatIf": "Replan this dive",
+  "diveLog_detail_menu_whatIf": "Mi lett volna, ha…",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
   "@plannerCanvas_issue_repeated": {

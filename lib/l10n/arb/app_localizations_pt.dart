@@ -42398,7 +42398,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Como o equipamento é agrupado e ordenado num mergulho';
 
   @override
-  String get diveLog_detail_menu_whatIf => 'Replan this dive';
+  String get diveLog_detail_menu_whatIf => 'E se…';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. original dive';

@@ -42215,7 +42215,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Hogyan csoportosuljon és rendeződjön a felszerelés egy merülésnél';
 
   @override
-  String get diveLog_detail_menu_whatIf => 'Replan this dive';
+  String get diveLog_detail_menu_whatIf => 'Mi lett volna, ha…';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. original dive';

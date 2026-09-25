@@ -41525,7 +41525,7 @@ class AppLocalizationsHe extends AppLocalizations {
       'כיצד הציוד מקובץ וממוין בצלילה';
 
   @override
-  String get diveLog_detail_menu_whatIf => 'Replan this dive';
+  String get diveLog_detail_menu_whatIf => 'מה אם…';
 
   @override
   String get plannerCanvas_sourceCompare_title => 'vs. original dive';

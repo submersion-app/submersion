@@ -25877,7 +25877,7 @@
   "equipment_arrange_saveFailed": "Could not save the arrangement",
   "settings_appearance_gearArrangement": "Gear arrangement",
   "settings_appearance_gearArrangementSubtitle": "How equipment is grouped and sorted on a dive",
-  "diveLog_detail_menu_whatIf": "Replan this dive",
+  "diveLog_detail_menu_whatIf": "What if…",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
   "@plannerCanvas_issue_repeated": {

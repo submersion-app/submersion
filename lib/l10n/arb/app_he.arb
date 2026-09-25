@@ -12610,7 +12610,7 @@
   "gasCalculators_blender_invoiceArchiveDelete": "מחק חשבונית זו",
   "gasCalculators_blender_invoiceArchiveDeleteTitle": "למחוק את החשבונית?",
   "gasCalculators_blender_invoiceArchiveDeleteBody": "לא ניתן לבטל פעולה זו.",
-  "diveLog_detail_menu_whatIf": "Replan this dive",
+  "diveLog_detail_menu_whatIf": "מה אם…",
   "plannerCanvas_sourceCompare_title": "vs. original dive",
   "plannerCanvas_issue_repeated": "{message} ({count} legs)",
   "@plannerCanvas_issue_repeated": {
