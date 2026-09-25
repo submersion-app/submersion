@@ -22,8 +22,9 @@ class _TestSettingsNotifier extends StateNotifier<AppSettings>
 Future<WidgetRef> _pump(
   WidgetTester tester, {
   AppSettings settings = const AppSettings(),
+  Size size = const Size(900, 2400),
 }) async {
-  tester.view.physicalSize = const Size(900, 2400);
+  tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.reset);
 
@@ -185,6 +186,26 @@ void main() {
       find.text('Equivalent air density depth (EADD): 131ft'),
       findsOneWidget,
     );
+  });
+
+  testWidgets('temperature and water type sit side by side when wide', (
+    tester,
+  ) async {
+    await _pump(tester);
+    final temperature = tester.getTopLeft(find.text('Gas temperature'));
+    final water = tester.getTopLeft(find.text('Water type'));
+    expect(water.dy, temperature.dy);
+    expect(water.dx, greaterThan(temperature.dx));
+  });
+
+  testWidgets('temperature and water type stack on a narrow screen', (
+    tester,
+  ) async {
+    await _pump(tester, size: const Size(360, 2400));
+    final temperature = tester.getTopLeft(find.text('Gas temperature'));
+    final water = tester.getTopLeft(find.text('Water type'));
+    expect(water.dy, greaterThan(temperature.dy));
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('the info card states the limits from the constants', (

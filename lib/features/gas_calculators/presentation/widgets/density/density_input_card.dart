@@ -146,42 +146,55 @@ class DensityInputCard extends ConsumerWidget {
                       .depthToMeters(value),
             ),
             const SizedBox(height: 24),
-            _Labelled(
-              label: l10n.gasCalculators_density_temperature,
-              child: SegmentedButton<GasDensityTemperature>(
-                segments: [
-                  for (final option in GasDensityTemperature.values)
-                    ButtonSegment(
-                      value: option,
-                      label: Text(
-                        units.formatTemperature(option.celsius, decimals: 0),
-                      ),
-                    ),
-                ],
-                selected: {temperature},
-                showSelectedIcon: false,
-                onSelectionChanged: (selection) =>
-                    ref.read(densityTemperatureProvider.notifier).state =
-                        selection.first,
-              ),
-            ),
-            const SizedBox(height: 16),
-            _Labelled(
-              label: l10n.decoCalculator_waterType,
-              child: SegmentedButton<WaterType>(
-                segments: [
-                  for (final type in const [WaterType.salt, WaterType.fresh])
-                    ButtonSegment(
-                      value: type,
-                      label: Text(type.localizedName(l10n)),
-                    ),
-                ],
-                selected: {waterType},
-                showSelectedIcon: false,
-                onSelectionChanged: (selection) =>
-                    ref.read(densityWaterTypeProvider.notifier).state =
-                        selection.first,
-              ),
+            // Side by side where they fit, one below the other on a narrow
+            // screen.
+            Wrap(
+              spacing: 32,
+              runSpacing: 16,
+              children: [
+                _Labelled(
+                  label: l10n.gasCalculators_density_temperature,
+                  child: SegmentedButton<GasDensityTemperature>(
+                    segments: [
+                      for (final option in GasDensityTemperature.values)
+                        ButtonSegment(
+                          value: option,
+                          label: Text(
+                            units.formatTemperature(
+                              option.celsius,
+                              decimals: 0,
+                            ),
+                          ),
+                        ),
+                    ],
+                    selected: {temperature},
+                    showSelectedIcon: false,
+                    onSelectionChanged: (selection) =>
+                        ref.read(densityTemperatureProvider.notifier).state =
+                            selection.first,
+                  ),
+                ),
+                _Labelled(
+                  label: l10n.decoCalculator_waterType,
+                  child: SegmentedButton<WaterType>(
+                    segments: [
+                      for (final type in const [
+                        WaterType.salt,
+                        WaterType.fresh,
+                      ])
+                        ButtonSegment(
+                          value: type,
+                          label: Text(type.localizedName(l10n)),
+                        ),
+                    ],
+                    selected: {waterType},
+                    showSelectedIcon: false,
+                    onSelectionChanged: (selection) =>
+                        ref.read(densityWaterTypeProvider.notifier).state =
+                            selection.first,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
