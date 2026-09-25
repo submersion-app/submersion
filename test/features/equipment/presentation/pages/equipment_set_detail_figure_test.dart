@@ -27,6 +27,7 @@ void main() {
     WidgetTester tester,
     List<EquipmentItem> items, {
     double width = 900,
+    bool showFigure = true,
   }) async {
     tester.view.physicalSize = Size(width, 2400);
     tester.view.devicePixelRatio = 1.0;
@@ -36,6 +37,7 @@ void main() {
       name: 'Reef set',
       equipmentIds: [for (final item in items) item.id],
       items: items,
+      showFigure: showFigure,
       createdAt: DateTime(2026),
       updatedAt: DateTime(2026),
     );
@@ -82,6 +84,15 @@ void main() {
       find.bySemanticsLabel(RegExp(r'^[1-3], BCD, Hollis SMS75$')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('with the figure off, the page shows no figure and no numbers', (
+    tester,
+  ) async {
+    await pump(tester, three, showFigure: false);
+    expect(find.byType(DiverFigure), findsNothing);
+    expect(find.byType(FigureNumberBadge), findsNothing);
+    expect(find.text('Hollis SMS75'), findsOneWidget);
   });
 
   testWidgets('no items, no figure', (tester) async {

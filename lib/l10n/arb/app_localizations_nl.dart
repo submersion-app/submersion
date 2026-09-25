@@ -249,6 +249,13 @@ class AppLocalizationsNl extends AppLocalizations {
       'Als deze set een duikcomputer bevat, wordt de hele set automatisch toegevoegd aan een duik die van deze computer is gedownload of geïmporteerd';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Toont de uitrusting van deze set op een duiker op de setpagina';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => 'Duikerfiguur tonen';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
@@ -289,6 +296,12 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Standaard';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Duikerfiguur verbergen';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Duikerfiguur tonen';
 
   @override
   String get equipment_setDetail_setAsDefault => 'Als standaard instellen';

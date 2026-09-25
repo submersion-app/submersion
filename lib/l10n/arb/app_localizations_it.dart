@@ -252,6 +252,14 @@ class AppLocalizationsIt extends AppLocalizations {
       'Se questo set include un computer da immersione, aggiunge automaticamente l\'intero set a un\'immersione scaricata o importata da esso';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Mostra l\'attrezzatura di questo set su un subacqueo nella sua pagina';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title =>
+      'Mostra figura del subacqueo';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofence';
 
   @override
@@ -292,6 +300,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Predefinito';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Nascondi figura del subacqueo';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Mostra figura del subacqueo';
 
   @override
   String get equipment_setDetail_setAsDefault => 'Imposta come predefinito';

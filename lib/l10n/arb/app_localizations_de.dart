@@ -251,6 +251,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Enthält dieses Set einen Tauchcomputer, wird das ganze Set automatisch zu einem von diesem heruntergeladenen oder importierten Tauchgang hinzugefügt';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Die Ausrüstung dieses Sets auf der Set-Seite an einer Taucherfigur zeigen';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => 'Taucherfigur anzeigen';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
@@ -291,6 +298,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Standard';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Taucherfigur ausblenden';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Taucherfigur anzeigen';
 
   @override
   String get equipment_setDetail_setAsDefault => 'Als Standard festlegen';

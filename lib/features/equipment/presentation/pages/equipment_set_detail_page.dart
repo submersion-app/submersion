@@ -129,7 +129,11 @@ class _EquipmentSetDetailPageState
     final model = composeFigure(
       figureInputsFromItems(ordered, components: components),
     );
-    final numberById = {for (final p in model.numbered) p.item.id: p.number};
+    // The figure is opt-in per set; without it the list's numbers would
+    // point at nothing, so they go too.
+    final numberById = set.showFigure
+        ? {for (final p in model.numbered) p.item.id: p.number}
+        : const <String, int>{};
     return Scaffold(
       appBar: AppBar(
         title: Text(set.name),
@@ -142,6 +146,22 @@ class _EquipmentSetDetailPageState
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(context, ref, value, set),
             itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'toggleFigure',
+                child: ListTile(
+                  leading: Icon(
+                    set.showFigure
+                        ? Icons.visibility_off_outlined
+                        : Icons.accessibility_new,
+                  ),
+                  title: Text(
+                    set.showFigure
+                        ? context.l10n.equipment_setDetail_hideFigure
+                        : context.l10n.equipment_setDetail_showFigure,
+                  ),
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
               if (!set.isDefault)
                 PopupMenuItem(
                   value: 'setAsDefault',
@@ -246,7 +266,7 @@ class _EquipmentSetDetailPageState
               ),
             ),
             const SizedBox(height: 24),
-            if (ordered.isNotEmpty) ...[
+            if (set.showFigure && ordered.isNotEmpty) ...[
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -443,6 +463,12 @@ class _EquipmentSetDetailPageState
     String action,
     EquipmentSet set,
   ) async {
+    if (action == 'toggleFigure') {
+      await ref
+          .read(equipmentSetListNotifierProvider.notifier)
+          .updateSet(set.copyWith(showFigure: !set.showFigure));
+      return;
+    }
     if (action == 'setAsDefault') {
       await ref
           .read(equipmentSetListNotifierProvider.notifier)

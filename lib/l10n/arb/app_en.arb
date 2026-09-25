@@ -90,6 +90,8 @@
   "equipment_setEdit_defaultSwitch_subtitle": "Auto-applied to new dives that have no equipment yet",
   "equipment_setEdit_computerAutoApplySwitch_title": "Apply when this set's computer is imported",
   "equipment_setEdit_computerAutoApplySwitch_subtitle": "If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it",
+  "equipment_setEdit_figureSwitch_subtitle": "Draw this set's gear on a diver on the set page",
+  "equipment_setEdit_figureSwitch_title": "Show diver figure",
   "equipment_setEdit_geofencesTitle": "Geofences",
   "equipment_setEdit_geofencesSubtitle": "Auto-suggest this set for dives near these locations",
   "equipment_setEdit_addGeofence": "Add geofence",
@@ -110,6 +112,8 @@
   "equipment_geofenceEditor_noCenter": "Choose a center point",
   "equipment_geofenceEditor_save": "Save geofence",
   "equipment_sets_defaultBadge": "Default",
+  "equipment_setDetail_hideFigure": "Hide diver figure",
+  "equipment_setDetail_showFigure": "Show diver figure",
   "equipment_setDetail_setAsDefault": "Set as default",
   "equipment_setDetail_setAsDefaultSnackbar": "\"{name}\" is now your default set",
   "@equipment_setDetail_setAsDefaultSnackbar": {

@@ -248,6 +248,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'אם סט זה כולל מחשב צלילה, הסט כולו יתווסף אוטומטית לצלילה שהורדה או יובאה ממנו';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'הצגת הציוד של הערכה על צולל בדף שלה';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => 'הצגת דמות הצולל';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'גדרות גאוגרפיות';
 
   @override
@@ -288,6 +295,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'ברירת מחדל';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'הסתרת דמות הצולל';
+
+  @override
+  String get equipment_setDetail_showFigure => 'הצגת דמות הצולל';
 
   @override
   String get equipment_setDetail_setAsDefault => 'הגדר כברירת מחדל';

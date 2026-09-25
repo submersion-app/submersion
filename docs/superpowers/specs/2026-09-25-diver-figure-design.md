@@ -42,6 +42,7 @@ Non-goals for this program:
 | Figure style | Illustrated diver whose gear changes the picture, not a silhouette or a tile layout |
 | View | Front and back pair, so every type has a visible anchor |
 | Labels | Names on the figure, each led by a small number: label columns beside one figure with a Front / Back switch on a phone, name pills beside the gear on a pair on wider screens; the list keeps matching number badges |
+| On or off | A per-set switch, off by default and off for every existing set: "Show diver figure" on the set edit page and Show / Hide in the set page's menu (section 8.7) |
 | BCD position | Worn on the back: the bladder is drawn behind the tank and every BCD style labels on the back view; the front shows only straps, cummerbund, and inflator |
 | What counts as a gap | A per-set required list, seeded from a per-diver default |
 | How far the drawing adapts | Type, the choice attributes that already exist, and a new per-item colour |
@@ -389,6 +390,25 @@ example "Reef set, 9 items, 2 missing". Each label, pill, and tray tile is a
 button whose semantics read "3, BCD, Hollis SMS75". Thumbnails carry only the
 summary label.
 
+### 8.7 The per-set switch
+
+- `equipment_sets.show_figure` (v229), not null, default 0, so every set
+  that existed before the column and every new set starts with the figure
+  off. Added by an idempotent helper called from the upgrade step and the
+  `beforeOpen` backstop, like the v220 auto-apply column. Sets sync as whole
+  rows, so the flag syncs with no new registration.
+- `EquipmentSet.showFigure`, read and written by the repository.
+- The set edit page has a "Show diver figure" switch beside the default-set
+  and auto-apply switches. The set page's overflow menu offers "Show diver
+  figure" or "Hide diver figure" and saves at once.
+- Off, the set page is exactly as it was before the figure: no figure card
+  and no number badges on the list, since the numbers only mean something
+  beside the figure.
+- Every figure surface that belongs to a set follows its switch: the set
+  list thumbnail (phase 4), the share image (phase 5), and the gear sheet
+  PDF (phase 6). The dive detail figure is not tied to one set; phase 4
+  decides whether it follows the dive's sets or its own switch.
+
 ## 9. Gaps
 
 ### 9.1 Diver default
@@ -423,8 +443,9 @@ class EquipmentSetRequiredTypes extends Table {
 }
 ```
 
-Schema rung: 228 at the time of writing (main is 226, PR #2315 claims 227,
-225 is held by PR #1978). Re-verify before the phase 2 PR is cut. The migration
+Schema rung: the next free one when phase 2 is cut. Phase 1 took 229 for
+the per-set switch (228 is held by PRs #2364 and #2331), so re-verify
+against main and open PRs before choosing. The migration
 creates the table and seeds one row per existing set and built-in type, so gap
 spotting works for sets that predate the feature (see section 16).
 

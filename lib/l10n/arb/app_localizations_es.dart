@@ -251,6 +251,14 @@ class AppLocalizationsEs extends AppLocalizations {
       'Si este set incluye un ordenador de buceo, añade automáticamente todo el set a una inmersión descargada o importada desde él';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Muestra el equipo de este conjunto sobre un buceador en su página';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title =>
+      'Mostrar figura del buceador';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geocercas';
 
   @override
@@ -291,6 +299,12 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Predeterminado';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Ocultar figura del buceador';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Mostrar figura del buceador';
 
   @override
   String get equipment_setDetail_setAsDefault =>

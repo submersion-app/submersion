@@ -428,6 +428,18 @@ abstract class AppLocalizations {
   /// **'If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it'**
   String get equipment_setEdit_computerAutoApplySwitch_subtitle;
 
+  /// No description provided for @equipment_setEdit_figureSwitch_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw this set\'s gear on a diver on the set page'**
+  String get equipment_setEdit_figureSwitch_subtitle;
+
+  /// No description provided for @equipment_setEdit_figureSwitch_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Show diver figure'**
+  String get equipment_setEdit_figureSwitch_title;
+
   /// No description provided for @equipment_setEdit_geofencesTitle.
   ///
   /// In en, this message translates to:
@@ -505,6 +517,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Default'**
   String get equipment_sets_defaultBadge;
+
+  /// No description provided for @equipment_setDetail_hideFigure.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide diver figure'**
+  String get equipment_setDetail_hideFigure;
+
+  /// No description provided for @equipment_setDetail_showFigure.
+  ///
+  /// In en, this message translates to:
+  /// **'Show diver figure'**
+  String get equipment_setDetail_showFigure;
 
   /// No description provided for @equipment_setDetail_setAsDefault.
   ///

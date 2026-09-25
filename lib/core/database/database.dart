@@ -1324,6 +1324,11 @@ class EquipmentSets extends Table {
   BoolColumn get autoApplyOnComputerImport =>
       boolean().withDefault(const Constant(false))();
 
+  /// Whether the set page draws this set's gear on the diver figure
+  /// (issue #2326, v229). Opt-in per set and off by default, including for
+  /// every set that existed before the column.
+  BoolColumn get showFigure => boolean().withDefault(const Constant(false))();
+
   /// Hybrid Logical Clock for cross-device conflict resolution
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
@@ -4299,7 +4304,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 227;
+  static const int currentSchemaVersion = 229;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4960,6 +4965,10 @@ class AppDatabase extends _$AppDatabase {
     // shows every built-in preset. Renumbered from 225, which is held by PR
     // #1978, after v226 landed while this was in review.
     227,
+    // v229: equipment_sets.show_figure, the per-set diver figure switch
+    // (issue #2326). Additive, default off, no backfill, so the floor stays.
+    // 228 is held by PRs #2364 and #2331.
+    229,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6447,6 +6456,24 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'ALTER TABLE diver_settings '
         'ADD COLUMN seascape_vertical_exaggeration_overrides TEXT',
+      );
+    }
+  }
+
+  /// v229: equipment_sets.show_figure (issue #2326). Additive, not null,
+  /// default 0, so every existing set comes up with the figure off.
+  /// Idempotent, so it is safe to call from both onUpgrade and the
+  /// beforeOpen backstop.
+  Future<void> _assertEquipmentSetShowFigureColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('equipment_sets')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('show_figure')) {
+      await customStatement(
+        'ALTER TABLE equipment_sets '
+        'ADD COLUMN show_figure INTEGER NOT NULL DEFAULT 0',
       );
     }
   }
@@ -12579,8 +12606,17 @@ class AppDatabase extends _$AppDatabase {
           await _assertHiddenTankPresetIdsColumn();
         }
         if (from < 227) await reportProgress();
+        // v229: equipment_sets.show_figure (issue #2326). Column-only rung,
+        // default off, no backfill.
+        if (from < 229) {
+          await _assertEquipmentSetShowFigureColumn();
+        }
+        if (from < 229) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v229 backstop: the per-set diver figure switch.
+        await _assertEquipmentSetShowFigureColumn();
+
         // v227 backstop: the hidden built-in tank presets.
         await _assertHiddenTankPresetIdsColumn();
 
