@@ -141,7 +141,7 @@ converts for display. Everything but `f` and `p` is optional.
 | Key | Meaning | Example |
 | --- | --- | --- |
 | `f` | format version | `1` |
-| `p` | passport id, UUID v4, lower case | `8f3a5c1e-...` |
+| `p` | passport id, a UUID (Submersion mints v5), lower case | `8f3a5c1e-...` |
 | `w` | date the tag was written, `YYYY-MM-DD` | `2026-09-25` |
 | `n` | name or identifier, at most 40 characters | `Steel+12+L` |
 | `sn` | stamped serial | `AB12345` |
@@ -189,7 +189,9 @@ records it does not know.
 ### 6.5 The passport id
 
 Stored as the tank attribute `passport_id` (`EquipmentAttrKeys.passportId`),
-minted with `const Uuid().v4()` the first time the diver opens the Tag card.
+minted as a UUID v5 of the equipment id (`kCylinderPassportNamespace`) the
+first time the diver opens the passport, so two devices that mint before they
+sync agree.
 It syncs with the row, survives edits and a profile transfer, and needs no
 schema rung. The catalog entry carries a new `AttributeGroup.system` group,
 which the edit form does not render, so the id is never a text field a user

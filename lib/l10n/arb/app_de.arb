@@ -3881,6 +3881,7 @@
   "passport_fill_end": "END {depth} an der Arbeits-MOD",
   "passport_fill_station": "Gefüllt von {station}",
   "passport_fill_analyzer": "Analysiert mit {analyzer}",
+  "passport_fill_temperature": "Gastemperatur {temperature}",
   "passport_fill_unsigned": "Unsigniert",
   "passport_history_title": "Füllhistorie",
   "passport_history_sinceHydro": "{count, plural, =0{Keine Füllungen seit der letzten Druckprüfung} =1{{count} Füllung seit der letzten Druckprüfung} other{{count} Füllungen seit der letzten Druckprüfung}}",

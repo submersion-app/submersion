@@ -19906,6 +19906,12 @@ abstract class AppLocalizations {
   /// **'Analyzed with {analyzer}'**
   String passport_fill_analyzer(String analyzer);
 
+  /// No description provided for @passport_fill_temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas temperature {temperature}'**
+  String passport_fill_temperature(String temperature);
+
   /// No description provided for @passport_fill_unsigned.
   ///
   /// In en, this message translates to:

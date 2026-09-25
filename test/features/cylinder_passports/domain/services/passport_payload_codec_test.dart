@@ -130,6 +130,22 @@ void main() {
       }
     });
 
+    test('a longer path on the tag host is not a tag', () {
+      for (final text in [
+        'https://submersion.app/cfoo?f=1&p=$id',
+        'https://submersion.app/community#f=1&p=$id',
+        'https://submersion.app/c/extra#f=1&p=$id',
+        'submersion://cx?f=1&p=$id',
+      ]) {
+        final result = PassportPayloadCodec.decode(text);
+        expect(
+          (result as PassportRejected).reason,
+          PassportRejectReason.notATag,
+          reason: text,
+        );
+      }
+    });
+
     test('rejects text that is not a tag', () {
       final result = PassportPayloadCodec.decode('https://example.com/x');
       expect((result as PassportRejected).reason, PassportRejectReason.notATag);

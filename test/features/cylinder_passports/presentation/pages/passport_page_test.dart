@@ -101,6 +101,7 @@ void main() {
     filledAt: DateTime(2026, 9, 20),
     o2Percent: o2,
     pressureBar: 220,
+    temperatureC: 21.5,
     stationName: 'Blue Water Fills',
     createdAt: now,
     updatedAt: now,
@@ -189,6 +190,8 @@ void main() {
       findsOneWidget,
     );
     expect(find.text(l10n.passport_fill_unsigned), findsWidgets);
+    // The gas temperature at the analysis is shown in the diver's units.
+    expect(find.textContaining('21.5°C'), findsOneWidget);
     // EAN32: 33.75 m at 1.4, 40.0 m at 1.6.
     expect(find.text(l10n.passport_fill_mod('33.8m', '1.4')), findsOneWidget);
     expect(find.text(l10n.passport_fill_mod('40.0m', '1.6')), findsOneWidget);

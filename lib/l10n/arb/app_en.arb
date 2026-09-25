@@ -6884,6 +6884,12 @@
       "analyzer": {"type": "String"}
     }
   },
+  "passport_fill_temperature": "Gas temperature {temperature}",
+  "@passport_fill_temperature": {
+    "placeholders": {
+      "temperature": {"type": "String"}
+    }
+  },
   "passport_fill_unsigned": "Unsigned",
   "passport_history_title": "Fill history",
   "passport_history_sinceHydro": "{count, plural, =0{No fills since the last hydro} =1{{count} fill since the last hydro} other{{count} fills since the last hydro}}",

@@ -11695,6 +11695,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String passport_fill_temperature(String temperature) {
+    return 'טמפרטורת הגז $temperature';
+  }
+
+  @override
   String get passport_fill_unsigned => 'לא חתום';
 
   @override

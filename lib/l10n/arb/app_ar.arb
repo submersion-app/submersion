@@ -3869,6 +3869,7 @@
   "passport_fill_end": "END {depth} عند MOD العمل",
   "passport_fill_station": "عبّأها {station}",
   "passport_fill_analyzer": "حُلِّلت بجهاز {analyzer}",
+  "passport_fill_temperature": "درجة حرارة الغاز {temperature}",
   "passport_fill_unsigned": "غير موقَّعة",
   "passport_history_title": "سجل التعبئة",
   "passport_history_sinceHydro": "{count, plural, =0{لا تعبئات منذ آخر اختبار هيدروستاتيكي} =1{{count} تعبئة منذ آخر اختبار هيدروستاتيكي} other{{count} تعبئات منذ آخر اختبار هيدروستاتيكي}}",

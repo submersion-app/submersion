@@ -11423,6 +11423,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String passport_fill_temperature(String temperature) {
+    return '气体温度 $temperature';
+  }
+
+  @override
   String get passport_fill_unsigned => '未签名';
 
   @override

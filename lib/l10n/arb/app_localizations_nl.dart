@@ -11869,6 +11869,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String passport_fill_temperature(String temperature) {
+    return 'Gastemperatuur $temperature';
+  }
+
+  @override
   String get passport_fill_unsigned => 'Niet ondertekend';
 
   @override

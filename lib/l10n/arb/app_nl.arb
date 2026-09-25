@@ -3869,6 +3869,7 @@
   "passport_fill_end": "END {depth} op de werk-MOD",
   "passport_fill_station": "Gevuld door {station}",
   "passport_fill_analyzer": "Geanalyseerd met {analyzer}",
+  "passport_fill_temperature": "Gastemperatuur {temperature}",
   "passport_fill_unsigned": "Niet ondertekend",
   "passport_history_title": "Vulgeschiedenis",
   "passport_history_sinceHydro": "{count, plural, =0{Geen vullingen sinds de laatste hydrotest} =1{{count} vulling sinds de laatste hydrotest} other{{count} vullingen sinds de laatste hydrotest}}",

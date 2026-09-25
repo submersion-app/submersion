@@ -3869,6 +3869,7 @@
   "passport_fill_end": "END {depth} na MOD de trabalho",
   "passport_fill_station": "Carregado por {station}",
   "passport_fill_analyzer": "Analisado com {analyzer}",
+  "passport_fill_temperature": "Temperatura do gás {temperature}",
   "passport_fill_unsigned": "Sem assinatura",
   "passport_history_title": "Histórico de cargas",
   "passport_history_sinceHydro": "{count, plural, =0{Nenhuma carga desde o último teste hidrostático} =1{{count} carga desde o último teste hidrostático} other{{count} cargas desde o último teste hidrostático}}",

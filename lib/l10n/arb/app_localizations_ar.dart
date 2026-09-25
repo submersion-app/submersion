@@ -11760,6 +11760,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String passport_fill_temperature(String temperature) {
+    return 'درجة حرارة الغاز $temperature';
+  }
+
+  @override
   String get passport_fill_unsigned => 'غير موقَّعة';
 
   @override

@@ -142,6 +142,11 @@ abstract final class PassportPayloadCodec {
     }
     if (rest != null) {
       if (rest.startsWith('/')) rest = rest.substring(1);
+      // The path ends at /c: anything else on the host (/cfoo, /community,
+      // /c/extra) is some other page, not a cylinder tag.
+      if (rest.isNotEmpty && !rest.startsWith('#') && !rest.startsWith('?')) {
+        return null;
+      }
       final hash = rest.indexOf('#');
       if (hash >= 0) return rest.substring(hash + 1);
       final q = rest.indexOf('?');

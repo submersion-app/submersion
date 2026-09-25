@@ -3767,6 +3767,7 @@
   "passport_fill_end": "END {depth} alla MOD di lavoro",
   "passport_fill_station": "Ricaricata da {station}",
   "passport_fill_analyzer": "Analizzata con {analyzer}",
+  "passport_fill_temperature": "Temperatura del gas {temperature}",
   "passport_fill_unsigned": "Non firmata",
   "passport_history_title": "Storico ricariche",
   "passport_history_sinceHydro": "{count, plural, =0{Nessuna ricarica dall'ultimo collaudo} =1{{count} ricarica dall'ultimo collaudo} other{{count} ricariche dall'ultimo collaudo}}",

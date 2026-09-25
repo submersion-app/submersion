@@ -3767,6 +3767,7 @@
   "passport_fill_end": "PEN {depth} à la PMU de travail",
   "passport_fill_station": "Gonflée par {station}",
   "passport_fill_analyzer": "Analysée avec {analyzer}",
+  "passport_fill_temperature": "Température du gaz {temperature}",
   "passport_fill_unsigned": "Non signé",
   "passport_history_title": "Historique des gonflages",
   "passport_history_sinceHydro": "{count, plural, =0{Aucun gonflage depuis la dernière requalification} =1{{count} gonflage depuis la dernière requalification} other{{count} gonflages depuis la dernière requalification}}",

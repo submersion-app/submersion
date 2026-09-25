@@ -3767,6 +3767,7 @@
   "passport_fill_end": "END {depth} a munka-MOD-on",
   "passport_fill_station": "Töltötte: {station}",
   "passport_fill_analyzer": "Elemezve: {analyzer}",
+  "passport_fill_temperature": "Gázhőmérséklet: {temperature}",
   "passport_fill_unsigned": "Aláíratlan",
   "passport_history_title": "Töltési előzmények",
   "passport_history_sinceHydro": "{count, plural, =0{Nincs töltés a legutóbbi nyomáspróba óta} =1{{count} töltés a legutóbbi nyomáspróba óta} other{{count} töltés a legutóbbi nyomáspróba óta}}",

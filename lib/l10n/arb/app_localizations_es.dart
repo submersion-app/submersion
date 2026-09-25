@@ -11958,6 +11958,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String passport_fill_temperature(String temperature) {
+    return 'Temperatura del gas $temperature';
+  }
+
+  @override
   String get passport_fill_unsigned => 'Sin firmar';
 
   @override

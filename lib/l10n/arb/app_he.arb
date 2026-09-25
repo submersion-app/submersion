@@ -3767,6 +3767,7 @@
   "passport_fill_end": "END {depth} ב-MOD העבודה",
   "passport_fill_station": "מולא על ידי {station}",
   "passport_fill_analyzer": "נותח באמצעות {analyzer}",
+  "passport_fill_temperature": "טמפרטורת הגז {temperature}",
   "passport_fill_unsigned": "לא חתום",
   "passport_history_title": "היסטוריית מילויים",
   "passport_history_sinceHydro": "{count, plural, =0{אין מילויים מאז מבחן הלחץ האחרון} =1{{count} מילוי מאז מבחן הלחץ האחרון} other{{count} מילויים מאז מבחן הלחץ האחרון}}",

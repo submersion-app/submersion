@@ -4015,6 +4015,7 @@
   "passport_fill_end": "工作 MOD 处 END {depth}",
   "passport_fill_station": "由 {station} 充气",
   "passport_fill_analyzer": "使用 {analyzer} 分析",
+  "passport_fill_temperature": "气体温度 {temperature}",
   "passport_fill_unsigned": "未签名",
   "passport_history_title": "充气历史",
   "passport_history_sinceHydro": "{count, plural, =0{上次水压测试以来无充气} =1{上次水压测试以来 {count} 次充气} other{上次水压测试以来 {count} 次充气}}",

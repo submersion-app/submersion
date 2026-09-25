@@ -27,7 +27,7 @@ metric. Only `f` and `p` are required.
 | Key | Meaning | Example |
 | --- | --- | --- |
 | `f` | format version | `1` |
-| `p` | passport id, UUID v4, lower case | `8f3a5c1e-1b2c-4d5e-8f90-1234567890ab` |
+| `p` | passport id, a UUID, lower case | `8f3a5c1e-1b2c-4d5e-8f90-1234567890ab` |
 | `w` | date the tag was written, `YYYY-MM-DD` | `2026-09-25` |
 | `n` | name or identifier, at most 40 characters | `Steel+12+L` |
 | `sn` | stamped serial | `AB12345` |
@@ -46,11 +46,20 @@ Example:
 The gas mix is never on the tag. It changes every fill and travels in a fill
 record instead.
 
+## Passport ids
+
+Submersion mints `p` as a UUID version 5 of the cylinder's equipment id, so
+two devices that create the same cylinder's tag before they sync arrive at
+the same id. A tag linked from another source keeps the id it was printed
+with. Readers must treat `p` as an opaque identifier and must not try to
+derive anything from it; third-party producers may use any UUID version.
+
 ## Reading rules
 
 - Unknown keys are ignored, so a future format still opens in an older app.
 - `f` greater than 1 opens with a "newer format" note.
-- A missing or malformed `p` rejects the tag.
+- A missing or malformed `p` rejects the tag. Any UUID version is accepted;
+  compare ids case-insensitively.
 - Out-of-range numbers and unparseable dates are dropped, not trusted.
 - Everything on the tag except `p` is a snapshot from `w`; Submersion compares
   it with the live record and reports a stale tag.

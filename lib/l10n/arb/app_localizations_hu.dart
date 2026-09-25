@@ -11931,6 +11931,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String passport_fill_temperature(String temperature) {
+    return 'Gázhőmérséklet: $temperature';
+  }
+
+  @override
   String get passport_fill_unsigned => 'Aláíratlan';
 
   @override

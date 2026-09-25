@@ -102,6 +102,12 @@ class _FillSummary extends StatelessWidget {
           Text(l10n.passport_fill_station(fill.stationName!)),
         if (fill.analyzer != null)
           Text(l10n.passport_fill_analyzer(fill.analyzer!)),
+        if (fill.temperatureC != null)
+          Text(
+            l10n.passport_fill_temperature(
+              units.formatTemperature(fill.temperatureC),
+            ),
+          ),
         const SizedBox(height: 8),
         Text(
           l10n.passport_fill_mod(
