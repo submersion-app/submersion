@@ -315,6 +315,12 @@ void main() {
     expect(await idsMatching(const DiveFilterState()), {'a', 'b'});
   });
 
+  test('an active axis yields a self-contained fq-aliased subquery', () {
+    final s = buildFilteredDiveIdSubquery(const DiveFilterState(siteId: 's1'));
+    expect(s.subquery, startsWith('SELECT fq.id FROM dives fq WHERE'));
+    expect(s.params, ['s1']);
+  });
+
   test('date range filters inclusively through the end day', () async {
     await insertDive('before', date: DateTime(2026, 1, 1));
     await insertDive('inside', date: DateTime(2026, 6, 15));

@@ -1,235 +1,22 @@
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
 
-/// Builds a self-contained SQL subquery `SELECT id FROM dives WHERE ...` that
-/// selects the ids of all dives matching [filter], mirroring
-/// [DiveFilterState.apply] semantics exactly.
+/// Builds a self-contained SQL subquery `SELECT fq.id FROM dives fq WHERE
+/// ...` selecting the ids of all dives matching [filter], for Statistics'
+/// `id IN (...)` fragments.
 ///
-/// [params] are raw bind values (ints/strings/doubles) in the same order as
-/// the `?` placeholders in [subquery]. Returns an empty no-op
-/// (`subquery: ''`, `params: []`) when the filter has no translatable active
-/// axes, so callers can skip injecting anything.
+/// A wrapper over the one compiler every dive path uses (#2365): the tree
+/// `DiveFilterState.toQuery()` returns, compiled with the `fq` alias so
+/// its correlated subqueries never collide with the caller's `d` or
+/// `dives`. Returns an empty no-op (`subquery: ''`, `params: []`) when the
+/// filter has no active axes, so callers can skip injecting anything.
 ({String subquery, List<Object?> params}) buildFilteredDiveIdSubquery(
   DiveFilterState filter,
 ) {
-  final conditions = <String>[];
-  final params = <Object?>[];
-
-  // Date range. dive_date_time is epoch MILLISECONDS (wall-clock-as-UTC), and
-  // the bounds are already normalized to that frame by DiveFilterState, so the
-  // two sides of the comparison agree on where a day starts (issue #1368).
-  // Half-open: the end bound is the start of the day AFTER endDate, which
-  // keeps the whole end day and matches apply() and the paginated list.
-  final startBoundMs = filter.startDateBoundMs;
-  if (startBoundMs != null) {
-    conditions.add('dive_date_time >= ?');
-    params.add(startBoundMs);
-  }
-  final endBoundMs = filter.endDateBoundMs;
-  if (endBoundMs != null) {
-    conditions.add('dive_date_time < ?');
-    params.add(endBoundMs);
-  }
-
-  // Dive type: membership against the many-to-many junction.
-  if (filter.diveTypeId != null) {
-    conditions.add(
-      'id IN (SELECT dive_id FROM dive_dive_types WHERE dive_type_id = ?)',
-    );
-    params.add(filter.diveTypeId);
-  }
-
-  if (filter.siteId != null) {
-    conditions.add('site_id = ?');
-    params.add(filter.siteId);
-  }
-  if (filter.tripId != null) {
-    conditions.add('trip_id = ?');
-    params.add(filter.tripId);
-  }
-  if (filter.diveCenterId != null) {
-    conditions.add('dive_center_id = ?');
-    params.add(filter.diveCenterId);
-  }
-
-  // Tags: match ANY selected tag.
-  if (filter.tagIds.isNotEmpty) {
-    final ph = List.filled(filter.tagIds.length, '?').join(', ');
-    conditions.add(
-      'id IN (SELECT dive_id FROM dive_tags WHERE tag_id IN ($ph))',
-    );
-    params.addAll(filter.tagIds);
-  }
-
-  // Weekdays: match ANY selected weekday. dive_date_time is wall-clock-as-UTC
-  // epoch ms, so strftime('%w', ...) (0=Sunday..6=Saturday) already lines up
-  // with the wall-clock day -- no 'utc' modifier needed. Converting
-  // DateTime.weekday (1=Monday..7=Sunday) via `% 7` matches that numbering.
-  if (filter.weekdays.isNotEmpty) {
-    final ph = List.filled(filter.weekdays.length, '?').join(', ');
-    conditions.add(
-      "CAST(strftime('%w', dive_date_time / 1000, 'unixepoch') AS INTEGER) "
-      'IN ($ph)',
-    );
-    params.addAll(filter.weekdays.map((w) => w % 7));
-  }
-
-  // Equipment: match ANY selected item, linked to the dive directly or
-  // through a tank (a cylinder the transmitter registry matched), as the
-  // equipment statistics count it. Kept in step with apply() and the
-  // dive list's clause.
-  if (filter.equipmentIds.isNotEmpty) {
-    final ph = List.filled(filter.equipmentIds.length, '?').join(', ');
-    conditions.add(
-      'id IN (SELECT dive_id FROM dive_equipment WHERE equipment_id IN ($ph) '
-      'UNION SELECT dive_id FROM dive_tanks WHERE equipment_id IN ($ph))',
-    );
-    params
-      ..addAll(filter.equipmentIds)
-      ..addAll(filter.equipmentIds);
-  }
-
-  // Equipment attributes: one EXISTS per condition, so they AND.
-  for (final condition in filter.equipmentAttrConditions) {
-    final c = equipmentAttrConditionSql(condition, diveIdRef: 'dives.id');
-    conditions.add(c.sql);
-    params.addAll(c.params);
-  }
-
-  // Depth: null depth excluded when a bound is set.
-  if (filter.minDepth != null) {
-    conditions.add('max_depth IS NOT NULL AND max_depth >= ?');
-    params.add(filter.minDepth);
-  }
-  if (filter.maxDepth != null) {
-    conditions.add('max_depth IS NOT NULL AND max_depth <= ?');
-    params.add(filter.maxDepth);
-  }
-
-  if (filter.favoritesOnly == true) {
-    conditions.add('is_favorite = 1');
-  }
-
-  // Finds the dives the diver excluded. Enforcement of the exclusion is
-  // DiveStatsScope's job and is applied alongside this subquery, never
-  // inside it.
-  if (filter.excludedFromStatsOnly == true) {
-    conditions.add('excluded_from_stats = 1');
-  }
-
-  if (filter.decoOnly != null) {
-    conditions.add(
-      decoSignalCondition(wantDeco: filter.decoOnly!, diveIdRef: 'dives.id'),
-    );
-  }
-
-  // No buddy: neither the legacy scalar column nor a junction-linked buddy
-  // is set, mirroring DiveRepository and DiveFilterState.apply.
-  if (filter.noBuddyOnly == true) {
-    conditions.add(
-      "(buddy IS NULL OR buddy = '') AND "
-      'NOT EXISTS (SELECT 1 FROM dive_buddies WHERE dive_buddies.dive_id = dives.id)',
-    );
-  }
-
-  // Buddy free-text: case-insensitive substring against the legacy scalar
-  // column OR any junction-linked buddy's name. The dive editor writes only
-  // the dive_buddies junction; the scalar covers old data (#757).
-  // Comma-separated names must each match (AND semantics), mirroring
-  // DiveRepository and DiveFilterState.apply.
-  if (filter.buddyNameFilter != null && filter.buddyNameFilter!.isNotEmpty) {
-    final names = filter.buddyNameFilter!
-        .split(',')
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty);
-    for (final name in names) {
-      conditions.add(
-        "((buddy IS NOT NULL AND LOWER(buddy) LIKE '%' || LOWER(?) || '%') "
-        'OR id IN (SELECT db.dive_id FROM dive_buddies db '
-        'JOIN buddies b ON b.id = db.buddy_id '
-        "WHERE LOWER(b.name) LIKE '%' || LOWER(?) || '%'))",
-      );
-      params.add(name);
-      params.add(name);
-    }
-  }
-
-  // Linked buddy: a live junction check, never the legacy scalar column,
-  // mirroring DiveRepository and DiveFilterState.apply (#1919).
-  if (filter.buddyId != null) {
-    conditions.add(
-      'id IN (SELECT dive_id FROM dive_buddies WHERE buddy_id = ?)',
-    );
-    params.add(filter.buddyId);
-  }
-
-  if (filter.diveIds.isNotEmpty) {
-    final ph = List.filled(filter.diveIds.length, '?').join(', ');
-    conditions.add('id IN ($ph)');
-    params.addAll(filter.diveIds);
-  }
-
-  // Gas O2: ANY tank within the present bounds (dives with no tanks excluded).
-  if (filter.minO2Percent != null || filter.maxO2Percent != null) {
-    final tankConds = <String>[];
-    if (filter.minO2Percent != null) {
-      tankConds.add('o2_percent >= ?');
-      params.add(filter.minO2Percent);
-    }
-    if (filter.maxO2Percent != null) {
-      tankConds.add('o2_percent <= ?');
-      params.add(filter.maxO2Percent);
-    }
-    conditions.add(
-      'id IN (SELECT dive_id FROM dive_tanks WHERE ${tankConds.join(' AND ')})',
-    );
-  }
-
-  if (filter.minRating != null) {
-    conditions.add('rating IS NOT NULL AND rating >= ?');
-    params.add(filter.minRating);
-  }
-
-  // Bottom time: compare truncated whole minutes, mirroring Duration.inMinutes.
-  if (filter.minBottomTimeMinutes != null) {
-    conditions.add('bottom_time IS NOT NULL AND bottom_time / 60 >= ?');
-    params.add(filter.minBottomTimeMinutes);
-  }
-  if (filter.maxBottomTimeMinutes != null) {
-    conditions.add('bottom_time IS NOT NULL AND bottom_time / 60 <= ?');
-    params.add(filter.maxBottomTimeMinutes);
-  }
-
-  if (filter.computerId != null) {
-    conditions.add('computer_id = ?');
-    params.add(filter.computerId);
-  }
-
-  // Custom fields: key match + optional value substring.
-  if (filter.customFieldKey != null && filter.customFieldKey!.isNotEmpty) {
-    if (filter.customFieldValue != null &&
-        filter.customFieldValue!.isNotEmpty) {
-      conditions.add(
-        "id IN (SELECT dive_id FROM dive_custom_fields "
-        "WHERE field_key = ? AND LOWER(field_value) LIKE '%' || LOWER(?) || '%')",
-      );
-      params.add(filter.customFieldKey);
-      params.add(filter.customFieldValue);
-    } else {
-      conditions.add(
-        'id IN (SELECT dive_id FROM dive_custom_fields WHERE field_key = ?)',
-      );
-      params.add(filter.customFieldKey);
-    }
-  }
-
-  if (conditions.isEmpty) {
-    return (subquery: '', params: const <Object?>[]);
-  }
-  return (
-    subquery: 'SELECT id FROM dives WHERE ${conditions.join(' AND ')}',
-    params: params,
-  );
+  final compiled = compileDiveFilter(filter, rootAlias: 'fq');
+  if (compiled.isEmpty) return (subquery: '', params: const <Object?>[]);
+  return (subquery: compiled.idSubquery(), params: compiled.params);
 }
 
 /// SQL for one [EquipmentAttrCondition] (issue #1805): a correlated EXISTS
@@ -312,9 +99,9 @@ import 'package:submersion/features/equipment/domain/models/equipment_attr_condi
 ///   only classifiable via the computed fallback, which this SQL-only axis
 ///   does not have access to.
 ///
-/// This is the only place the deco axis is evaluated. `DiveFilterState.apply`
-/// deliberately skips it, because list-view entities carry neither profile
-/// points nor deco-stop events.
+/// The dive query registry's `deco` field reads this at every depth through
+/// the `{r}` placeholder (#2365), so every dive path evaluates it the same
+/// way.
 ///
 /// [diveIdRef] must be a reference to the enclosing query's `dives.id`
 /// resolvable from inside these correlated subqueries (e.g. `d.id` when the
