@@ -76,7 +76,9 @@ void main() {
       await tester.binding.setSurfaceSize(const Size(400, 2000));
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
-      await tester.pumpWidget(await buildWidget(debugEnabled: false));
+      await tester.pumpWidget(
+        await buildWidget(debugEnabled: false, locale: const Locale('en')),
+      );
       await tester.pumpAndSettle();
 
       expect(find.text('Units'), findsOneWidget);
