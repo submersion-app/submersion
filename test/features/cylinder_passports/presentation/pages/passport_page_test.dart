@@ -1,0 +1,221 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/test_database.dart';
+
+void main() {
+  late String? savedIntlLocale;
+  setUp(() async {
+    savedIntlLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+    await setUpTestDatabase();
+  });
+  tearDown(() async {
+    Intl.defaultLocale = savedIntlLocale;
+    await tearDownTestDatabase();
+  });
+
+  const id = 'eq-1';
+  const pid = '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
+  final now = DateTime(2026, 9, 25);
+  const tank = EquipmentItem(
+    id: id,
+    name: 'Faber 12',
+    type: EquipmentType.tank,
+    brand: 'Faber',
+    serialNumber: 'F123',
+    attributes: [
+      EquipmentAttribute(
+        id: 'a2',
+        equipmentId: id,
+        key: EquipmentAttrKeys.volumeL,
+        valueNum: 12,
+      ),
+      EquipmentAttribute(
+        id: 'a3',
+        equipmentId: id,
+        key: EquipmentAttrKeys.workingPressureBar,
+        valueNum: 232,
+      ),
+      EquipmentAttribute(
+        id: 'a4',
+        equipmentId: id,
+        key: EquipmentAttrKeys.tankMaterial,
+        valueText: 'steel',
+      ),
+    ],
+  );
+
+  ServiceClockStatus clock(String kindId, ServiceClockSeverity severity) =>
+      ServiceClockStatus(
+        schedule: ServiceSchedule(
+          id: 's-$kindId',
+          equipmentId: id,
+          serviceKindId: kindId,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        kind: ServiceKind(
+          id: kindId,
+          name: kindId,
+          createdAt: now,
+          updatedAt: now,
+        ),
+        anchor: DateTime(2025, 1, 1),
+        dueDate: DateTime(2027, 1, 1),
+        severity: severity,
+        now: now,
+      );
+
+  CylinderFill fill(double o2) => CylinderFill(
+    id: 'f-$o2',
+    passportId: pid,
+    equipmentId: id,
+    filledAt: DateTime(2026, 9, 20),
+    o2Percent: o2,
+    pressureBar: 220,
+    stationName: 'Blue Water Fills',
+    createdAt: now,
+    updatedAt: now,
+  );
+
+  Future<AppLocalizations> pump(
+    WidgetTester tester, {
+    List<CylinderFill> fills = const [],
+    List<ServiceClockStatus> clocks = const [],
+  }) async {
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(600, 2800);
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          equipmentItemProvider(id).overrideWith((ref) async => tank),
+          passportIdProvider(id).overrideWith((ref) async => pid),
+          fillsForEquipmentProvider(id).overrideWith((ref) async => fills),
+          newestFillProvider(
+            id,
+          ).overrideWith((ref) async => fills.isEmpty ? null : fills.first),
+          serviceClockStatusesProvider(id).overrideWith((ref) async => clocks),
+          equipmentRollupClockProvider.overrideWith((ref) async => {}),
+          serviceKindsProvider.overrideWith(
+            (ref) async => [
+              ServiceKind(
+                id: 'o2-clean',
+                name: 'O2 clean',
+                createdAt: now,
+                updatedAt: now,
+              ),
+            ],
+          ),
+        ].cast(),
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: PassportPage(equipmentId: id),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    return AppLocalizations.of(tester.element(find.byType(PassportPage)));
+  }
+
+  testWidgets('shows the spec and derived figures', (tester) async {
+    final l10n = await pump(tester);
+    expect(find.text('Faber 12'), findsWidgets);
+    expect(find.text(l10n.passport_spec_title), findsOneWidget);
+    expect(find.text('12 L'), findsOneWidget);
+    expect(find.text('232 bar'), findsOneWidget);
+    expect(find.text(l10n.passport_spec_buoyancyEmpty), findsOneWidget);
+    expect(find.text(l10n.passport_spec_buoyancyFull), findsOneWidget);
+    expect(
+      find.textContaining(l10n.passport_spec_freeGas('232 bar')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('with no fill shows the empty state and the log button', (
+    tester,
+  ) async {
+    final l10n = await pump(tester);
+    expect(find.text(l10n.passport_fill_none), findsOneWidget);
+    expect(find.text(l10n.passport_fill_log), findsOneWidget);
+    expect(find.text(l10n.passport_history_sinceHydro(0)), findsOneWidget);
+  });
+
+  testWidgets('shows the current fill with MOD at both limits', (tester) async {
+    final l10n = await pump(tester, fills: [fill(32)]);
+    expect(find.text('EAN32'), findsWidgets);
+    expect(
+      find.text(l10n.passport_fill_station('Blue Water Fills')),
+      findsOneWidget,
+    );
+    expect(find.text(l10n.passport_fill_unsigned), findsWidgets);
+    // EAN32: 33.75 m at 1.4, 40.0 m at 1.6.
+    expect(find.text(l10n.passport_fill_mod('33.8m', '1.4')), findsOneWidget);
+    expect(find.text(l10n.passport_fill_mod('40.0m', '1.6')), findsOneWidget);
+  });
+
+  testWidgets('warns when a rich fill meets an untracked O2 clean clock', (
+    tester,
+  ) async {
+    final l10n = await pump(
+      tester,
+      fills: [fill(50)],
+      clocks: [clock('hydro', ServiceClockSeverity.ok)],
+    );
+    expect(find.text(l10n.passport_o2Warning_untracked('50%')), findsOneWidget);
+    expect(find.text(l10n.passport_service_trackO2Clean), findsOneWidget);
+  });
+
+  testWidgets('an untracked O2 clean row shows the kind name', (tester) async {
+    final l10n = await pump(tester);
+    expect(find.text('O2 clean'), findsOneWidget);
+    expect(find.text('o2-clean'), findsNothing);
+    expect(find.text(l10n.passport_service_notTracked), findsOneWidget);
+  });
+
+  testWidgets('no warning when the O2 clean clock is current', (tester) async {
+    final l10n = await pump(
+      tester,
+      fills: [fill(50)],
+      clocks: [clock('o2-clean', ServiceClockSeverity.ok)],
+    );
+    expect(find.text(l10n.passport_o2Warning_untracked('50%')), findsNothing);
+    expect(find.text(l10n.passport_service_trackO2Clean), findsNothing);
+  });
+
+  testWidgets('lists service clocks with their last date', (tester) async {
+    final l10n = await pump(
+      tester,
+      clocks: [clock('hydro', ServiceClockSeverity.overdue)],
+    );
+    expect(find.text('hydro'), findsWidgets);
+    expect(
+      find.textContaining(l10n.passport_service_lastDone('')),
+      findsWidgets,
+    );
+  });
+}
