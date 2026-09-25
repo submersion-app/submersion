@@ -7494,9 +7494,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'חיפוש לפי אתר, שותף או הערות';
 
   @override
-  String get diveLog_listPage_title => 'יומן צלילה';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'חזרה';
 
   @override
@@ -13914,8 +13911,51 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_lineAmount => 'סכום';
 
   @override
-  String get gasCalculators_blender_lineNeedsDescription =>
-      'יש להזין תיאור, או מכל ותערובת.';
+  String get gasCalculators_blender_lineNeedsDescription => 'יש להזין תיאור.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'מילוי גז';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'סכום חופשי';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'מילוי';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'לחץ התחלתי';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'לחץ סופי';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'לחץ מילוי: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'סכום: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'לא הוגדר מחיר לגז זה, ולכן הוא מחויב ב-0.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'הלחץ הסופי חייב להיות גבוה מהלחץ ההתחלתי.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'יש להזין לחץ התחלתי ולחץ סופי.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder => 'יש להזין נפח מכל.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'אופציונלי. אם יישאר ריק, הוא ייווצר מתוך המילוי.';
 
   @override
   String get gasCalculators_blender_export => 'ייצוא';
@@ -14047,6 +14087,88 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => 'גבול עומק הנרקוזה לתערובת';
+
+  @override
+  String get gasCalculators_tab_density => 'צפיפות גז';
+
+  @override
+  String get gasCalculators_desc_density => 'צפיפות גז הנשימה בעומק, OC או CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters => 'תערובת גז ותנאים';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'עומק';
+
+  @override
+  String get gasCalculators_density_mode => 'מצב';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'ב-CCR, התערובת שלמעלה היא הגז המדלל.';
+
+  @override
+  String get gasCalculators_density_temperature => 'טמפרטורת הגז';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'צפיפות גז';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'בתוך הגבול המומלץ של $limit g/L.';
+  }
+
+  @override
+  String get gasCalculators_density_eaddLabel =>
+      'עומק שקול לצפיפות אוויר (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'EADD הוא העומק שבו אוויר היה צפוף כמו הגז הזה. בניגוד לצפיפות ב-g/L, הוא אינו תלוי בטמפרטורה.';
+
+  @override
+  String get gasCalculators_density_loopGasTitle => 'גז הלולאה בעומק';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'כאן ה-Setpoint גבוה מהלחץ הסביבתי, ולכן הלולאה מכילה חמצן טהור.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'הגז המדלל לבדו נותן כאן ppO2 של $ppO2, מעל ה-Setpoint. הצפיפות מחושבת לפי ה-ppO2 של הגז המדלל.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => 'על צפיפות גז';
+
+  @override
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'גז צפוף קשה יותר לנשימה ומעלה את הסיכון לאגירת CO2. שמרו על צפיפות של $warn g/L לכל היותר; $critical g/L הוא הגבול העליון המוחלט.\n\nב-CCR קובעת צפיפות גז הלולאה: חמצן לפי ה-Setpoint, והשאר מחולק בין חנקן להליום ביחס של הגז המדלל.\n\nגז קר יותר צפוף יותר, ולכן אפשרות הטמפרטורה הקרה יותר היא השמרנית. החישוב מניח גז אידיאלי.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'נוהל מילוי לתערובת היעד';
@@ -17968,14 +18090,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_data_offlineMaps => 'מפות לא מקוונות';
 
   @override
-  String get settings_data_offlineMaps_subtitle => 'הורד מפות לשימוש לא מקוון';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+  String get settings_data_offlineMaps_subtitle =>
+      'אריחי מפה ונתוני פני שטח בתלת-ממד';
 
   @override
   String get settings_data_restore => 'שחזור';
@@ -25378,14 +25494,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps_offline_clearAll => 'נקה הכל';
 
   @override
-  String get maps_offline_clearAllCache => 'נקה את כל המטמון';
-
-  @override
   String get maps_offline_clearAllCacheMessage =>
       'למחוק את כל אזורי המפה שהורדו ואריחים שמורים?';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'לנקות את כל המטמון?';
+
+  @override
+  String get maps_offline_clearAllTiles => 'נקה את כל אריחי המפה';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -25495,6 +25611,12 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get maps_offline_section_terrain => 'פני שטח בתלת-ממד';
+
+  @override
+  String get maps_offline_section_tiles => 'אריחי מפה';
+
+  @override
   String get maps_offline_size => 'גודל';
 
   @override
@@ -25536,6 +25658,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tankPresets_builtInPresets => 'תבניות מובנות';
+
+  @override
+  String get tankPresets_builtInPresets_description =>
+      'כבה תבניות שאינך משתמש בהן כדי להסתיר אותן מבוררי הבלונים. תבנית ברירת המחדל מוצגת תמיד.';
 
   @override
   String get tankPresets_currentDefault => 'ברירת מחדל נוכחית';
@@ -25686,6 +25812,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'הגדר כברירת מחדל';
+
+  @override
+  String get tankPresets_showInPickers => 'הצג בבוררי הבלונים';
 
   @override
   String get tankPresets_title => 'תבניות מיכל';
@@ -26188,9 +26317,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'עדיין לא נשמרו נתוני עומק אגמים';
 
   @override
-  String get maps3d_appBar_title => 'מפות תלת-ממד';
-
-  @override
   String get maps3d_section_all => 'כל הספקים';
 
   @override
@@ -26293,7 +26419,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get maps3d_busy_notice =>
-      'פעולה אחרת של מפות תלת-ממד פועלת כעת. יש להמתין עד לסיומה.';
+      'פעולה אחרת של פני שטח בתלת-ממד פועלת כעת. יש להמתין עד לסיומה.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {
@@ -30325,6 +30451,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return '$min $unit ומעלה';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'פורמט קואורדינטות';
 
   @override
@@ -30360,7 +30491,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'אילו מרחקים נחשבים ראות טובה במקום שבו אתה צולל';
+      'כיצד פרטי הצלילה והסטטיסטיקה מתארים את הראות שמדדת';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'בחר אילו מרחקים שנמדדו ייחשבו מצוינת, טובה, בינונית או ירודה בפרטי הצלילה ובסטטיסטיקה. שינוי ההגדרה משנה רק את התוויות של הצלילות; הוא לעולם לא משנה את המרחקים שתיעדת.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'טרופי';
@@ -30386,6 +30521,18 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_visibilityScale_invalidOrder =>
       'כל ערך חייב להיות קטן מזה שמעליו וגדול מאפס';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset => 'הגדר מרחקים משלך';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'הזן לכל דרגה את המרחק הקצר ביותר שעדיין נחשב לה.';
 
   @override
   String statistics_conditions_visibility_legacySuffix(String band) {

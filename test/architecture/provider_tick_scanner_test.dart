@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 import 'provider_tick_scanner.dart';
 
@@ -16,7 +17,7 @@ void main() {
   tearDown(() => temp.deleteSync(recursive: true));
 
   File write(String name, String source) =>
-      File('${temp.path}/$name')..writeAsStringSync(source);
+      File(p.join(temp.path, name))..writeAsStringSync(source);
 
   const repositorySource = '''
 class FooRepository {
@@ -34,7 +35,7 @@ class BareRepository {
     return scanForTickViolations(
       repositoryFiles: [repository],
       providerFiles: [providers],
-      relativize: (path) => path.split('/').last,
+      relativize: p.basename,
     );
   }
 

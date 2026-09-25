@@ -7550,9 +7550,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Search by site, buddy, or notes';
 
   @override
-  String get diveLog_listPage_title => 'Dive Log';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Back';
 
   @override
@@ -14024,7 +14021,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_lineNeedsDescription =>
-      'Enter a description, or a cylinder and mix.';
+      'Enter a description.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'Gas fill';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'Free amount';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'Fill';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'Start pressure';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'End pressure';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'Fill pressure: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'Amount: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'No price is set for this gas, so it is charged at 0.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'The end pressure must be above the start pressure.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'Enter a start and an end pressure.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder =>
+      'Enter a cylinder volume.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'Optional. Left empty, it is generated from the fill.';
 
   @override
   String get gasCalculators_blender_export => 'Export';
@@ -14157,6 +14199,89 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => 'Narcosis depth limit for a mix';
+
+  @override
+  String get gasCalculators_tab_density => 'Gas Density';
+
+  @override
+  String get gasCalculators_desc_density =>
+      'Breathing gas density at depth, OC or CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters => 'Gas Mix & Conditions';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'Depth';
+
+  @override
+  String get gasCalculators_density_mode => 'Mode';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'On CCR, the mix above is the diluent.';
+
+  @override
+  String get gasCalculators_density_temperature => 'Gas temperature';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'Gas Density';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'Within the recommended $limit g/L limit.';
+  }
+
+  @override
+  String get gasCalculators_density_eaddLabel =>
+      'Equivalent air density depth (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'EADD is the depth at which air would be as dense as this gas. Unlike the density in g/L, it does not depend on the temperature.';
+
+  @override
+  String get gasCalculators_density_loopGasTitle => 'Loop gas at depth';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'The setpoint is above ambient pressure here, so the loop is pure oxygen.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'The diluent alone gives ppO2 $ppO2 here, above the setpoint. The density uses the diluent\'s ppO2.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => 'About Gas Density';
+
+  @override
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'Dense gas is harder to breathe and raises the risk of CO2 retention. Keep the density at or below $warn g/L; $critical g/L is the hard ceiling.\n\nOn CCR the density is that of the loop gas: oxygen at the setpoint, the rest split between nitrogen and helium in the diluent\'s ratio.\n\nColder gas is denser, so the colder temperature option is the conservative one. The calculation assumes an ideal gas.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'Fill procedure for a target mix';
@@ -18123,14 +18248,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_data_offlineMaps_subtitle =>
-      'Download maps for offline use';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+      'Map tiles and 3D terrain data';
 
   @override
   String get settings_data_restore => 'Restore';
@@ -25587,14 +25705,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get maps_offline_clearAll => 'Clear All';
 
   @override
-  String get maps_offline_clearAllCache => 'Clear All Cache';
-
-  @override
   String get maps_offline_clearAllCacheMessage =>
       'Delete all downloaded map regions and cached tiles?';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'Clear All Cache?';
+
+  @override
+  String get maps_offline_clearAllTiles => 'Clear all map tiles';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -25704,6 +25822,12 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get maps_offline_section_terrain => '3D terrain';
+
+  @override
+  String get maps_offline_section_tiles => 'Map tiles';
+
+  @override
   String get maps_offline_size => 'Size';
 
   @override
@@ -25746,6 +25870,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tankPresets_builtInPresets => 'Built-in Presets';
+
+  @override
+  String get tankPresets_builtInPresets_description =>
+      'Switch off the presets you don\'t use to hide them from the tank pickers. The default preset is always shown.';
 
   @override
   String get tankPresets_currentDefault => 'Current default';
@@ -25897,6 +26025,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'Set as default';
+
+  @override
+  String get tankPresets_showInPickers => 'Show in tank pickers';
 
   @override
   String get tankPresets_title => 'Tank Presets';
@@ -26401,9 +26532,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'No lake depth data cached yet';
 
   @override
-  String get maps3d_appBar_title => '3D Maps';
-
-  @override
   String get maps3d_section_all => 'All Providers';
 
   @override
@@ -26506,7 +26634,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get maps3d_busy_notice =>
-      'Another 3D Maps action is running. Please wait until it finishes.';
+      'Another 3D terrain action is running. Please wait until it finishes.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {
@@ -30582,6 +30710,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return '$min $unit+';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'Coordinate format';
 
   @override
@@ -30617,7 +30750,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'Which distances count as good visibility where you dive';
+      'How dive details and statistics describe the visibility you measured';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'Choose which measured distances count as Excellent, Good, Moderate or Poor in dive details and statistics. Changing this relabels your dives; it never changes the distances you logged.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'Tropical';
@@ -30644,6 +30781,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_visibilityScale_invalidOrder =>
       'Each value must be smaller than the one above it, and greater than zero';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset => 'Set your own distances';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'Enter the shortest distance that still counts for each label.';
 
   @override
   String statistics_conditions_visibility_legacySuffix(String band) {

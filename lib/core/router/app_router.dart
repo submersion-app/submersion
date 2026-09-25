@@ -119,7 +119,6 @@ import 'package:submersion/features/settings/presentation/pages/language_setting
 import 'package:submersion/features/settings/presentation/pages/nav_customization_page.dart';
 import 'package:submersion/features/settings/presentation/pages/theme_gallery_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_settings_page.dart';
-import 'package:submersion/features/settings/presentation/pages/three_d_maps_page.dart';
 import 'package:submersion/features/backup/presentation/pages/unrecognized_backups_page.dart';
 import 'package:submersion/features/settings/presentation/pages/storage_usage_page.dart';
 import 'package:submersion/features/settings/presentation/pages/diver_profile_hub_page.dart';
@@ -297,7 +296,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'gas-calculators',
                 name: 'gasCalculators',
                 builder: (context, state) => const GasCalculatorsPage(),
-                // The six calculators are children, not tabs. On a narrow
+                // The calculators are children, not tabs. On a narrow
                 // window each is pushed as its own page; in split view they
                 // ride in ?calc= instead and these routes go unused.
                 routes: [
@@ -1149,12 +1148,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'safety',
                 name: 'safetySettings',
                 builder: (context, state) => const SafetySettingsPage(),
-              ),
-              GoRoute(
-                path: 'equipment-condition',
-                name: 'equipmentConditionSettings',
-                builder: (context, state) =>
-                    const EquipmentConditionSettingsPage(),
+                routes: [
+                  GoRoute(
+                    path: 'equipment-condition',
+                    name: 'equipmentConditionSettings',
+                    builder: (context, state) =>
+                        const EquipmentConditionSettingsPage(),
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'default-metrics',
@@ -1175,11 +1176,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'offline-maps',
                 name: 'offlineMaps',
                 builder: (context, state) => const OfflineMapsPage(),
-              ),
-              GoRoute(
-                path: '3d-maps',
-                name: 'threeDMaps',
-                builder: (context, state) => const ThreeDMapsPage(),
               ),
               GoRoute(
                 path: 'wearable-import',

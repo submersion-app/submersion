@@ -62,6 +62,7 @@ import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twi
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
@@ -253,7 +254,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// query param -- the DetailScrollRetainer then keeps the scroll offset, so
   /// the same section stays in view. Standalone replaces the route so stepping
   /// through dives does not pile up the back stack.
+  ///
+  /// The list lights the row it opened through [highlightedDiveIdProvider] as
+  /// well as the selected param, so the highlight moves with the pane. Left
+  /// behind, it keeps the first dive lit next to the one on show (#2345).
   void _navigateToDive(String neighborId) {
+    ref.read(highlightedDiveIdProvider.notifier).state = neighborId;
     if (widget.embedded) {
       context.go('/dives?selected=$neighborId');
     } else {
@@ -1166,6 +1172,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final favoriteLabel = dive.isFavorite
         ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
         : context.l10n.diveLog_detail_tooltip_addToFavorites;
+    final canLogForBuddy = _hasMirrorCandidates(ref, dive);
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.diveLog_detail_appBar),
@@ -1274,7 +1281,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-              if (_hasMirrorCandidates(ref, dive))
+              if (canLogForBuddy)
                 PopupMenuItem(
                   value: 'logForBuddy',
                   child: ListTile(
@@ -1346,6 +1353,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final linkedPreDive = ref
         .watch(preDiveSessionForDiveProvider(dive.id))
         .value;
+    final canLogForBuddy = _hasMirrorCandidates(ref, dive);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -1534,7 +1542,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
-                  if (_hasMirrorCandidates(ref, dive))
+                  if (canLogForBuddy)
                     PopupMenuItem(
                       value: 'logForBuddy',
                       child: ListTile(
@@ -1604,7 +1612,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   /// Whether any linked buddy on this dive still lacks a sibling (issue
-  /// #2002). Watched in the menu builders, so the item follows the ticks.
+  /// #2002). Call it while the page builds and hand the result to the menu,
+  /// never from a menu's itemBuilder: that runs outside build, so its first
+  /// read is still loading and the next rebuild drops the subscription,
+  /// which disposes the provider before the menu opens again (issue #2367).
   bool _hasMirrorCandidates(WidgetRef ref, Dive dive) {
     if (dive.isPlanned) return false;
     final candidates = ref.watch(mirrorCandidatesProvider(dive.id)).value;

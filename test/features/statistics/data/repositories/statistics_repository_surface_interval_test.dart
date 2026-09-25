@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/unique_ids.dart';
 
 void main() {
   late StatisticsRepository repository;
@@ -23,7 +24,7 @@ void main() {
   // ---------------------------------------------------------------------------
 
   Future<String> insertDiver({String? id, String name = 'Test Diver'}) async {
-    final diverId = id ?? 'diver-${DateTime.now().microsecondsSinceEpoch}';
+    final diverId = id ?? uniqueTestId('diver');
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.divers)
@@ -48,7 +49,7 @@ void main() {
     int? exitTimeMs,
     int? surfaceIntervalSeconds,
   }) async {
-    final diveId = id ?? 'dive-${DateTime.now().microsecondsSinceEpoch}';
+    final diveId = id ?? uniqueTestId('dive');
     final now = DateTime.now().millisecondsSinceEpoch;
     final diveDateTime = entryTimeMs ?? now;
     await db

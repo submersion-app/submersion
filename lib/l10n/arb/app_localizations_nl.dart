@@ -7625,9 +7625,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Zoek op stek, buddy of notities';
 
   @override
-  String get diveLog_listPage_title => 'Duiklogboek';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Terug';
 
   @override
@@ -14143,7 +14140,52 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_lineNeedsDescription =>
-      'Voer een omschrijving in, of een fles en mengsel.';
+      'Voer een omschrijving in.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'Gasvulling';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'Vrij bedrag';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'Vulling';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'Begindruk';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'Einddruk';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'Vuldruk: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'Bedrag: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'Voor dit gas is geen prijs ingesteld, dus het wordt tegen 0 berekend.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'De einddruk moet boven de begindruk liggen.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'Voer een begin- en een einddruk in.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder =>
+      'Voer een flesinhoud in.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'Optioneel. Leeg gelaten wordt het uit de vulling gemaakt.';
 
   @override
   String get gasCalculators_blender_export => 'Exporteren';
@@ -14281,6 +14323,90 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => 'Narcosediepte-limiet voor een mengsel';
+
+  @override
+  String get gasCalculators_tab_density => 'Gasdichtheid';
+
+  @override
+  String get gasCalculators_desc_density =>
+      'Dichtheid van het ademgas op diepte, OC of CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters =>
+      'Gasmengsel en omstandigheden';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'Diepte';
+
+  @override
+  String get gasCalculators_density_mode => 'Modus';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'Bij CCR is het mengsel hierboven het diluent gas.';
+
+  @override
+  String get gasCalculators_density_temperature => 'Gastemperatuur';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'Gasdichtheid';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'Binnen de aanbevolen grens van $limit g/L.';
+  }
+
+  @override
+  String get gasCalculators_density_eaddLabel =>
+      'Equivalente luchtdichtheidsdiepte (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'De EADD is de diepte waarop lucht even dicht zou zijn als dit gas. Anders dan de dichtheid in g/L hangt ze niet af van de temperatuur.';
+
+  @override
+  String get gasCalculators_density_loopGasTitle => 'Loopgas op diepte';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'Het setpoint ligt hier boven de omgevingsdruk, dus de loop is zuivere zuurstof.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'Het diluent alleen geeft hier een ppO2 van $ppO2, boven het setpoint. De dichtheid rekent met de ppO2 van het diluent.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => 'Over gasdichtheid';
+
+  @override
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'Dicht gas ademt zwaarder en verhoogt het risico op CO2-retentie. Houd de dichtheid op maximaal $warn g/L; $critical g/L is de harde bovengrens.\n\nBij CCR telt de dichtheid van het loopgas: zuurstof op het setpoint, de rest verdeeld over stikstof en helium in de verhouding van het diluent.\n\nKouder gas is dichter, dus de koudere temperatuuroptie is de conservatieve keuze. De berekening gaat uit van een ideaal gas.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'Vulprocedure voor een doelmengsel';
@@ -18282,14 +18408,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_data_offlineMaps_subtitle =>
-      'Download kaarten voor offline gebruik';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+      'Kaarttegels en 3D-terreingegevens';
 
   @override
   String get settings_data_restore => 'Herstellen';
@@ -25811,14 +25930,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get maps_offline_clearAll => 'Alles wissen';
 
   @override
-  String get maps_offline_clearAllCache => 'Alle cache wissen';
-
-  @override
   String get maps_offline_clearAllCacheMessage =>
       'Alle gedownloade kaartregio\'s en gecachte tegels verwijderen?';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'Alle cache wissen?';
+
+  @override
+  String get maps_offline_clearAllTiles => 'Alle kaarttegels wissen';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -25928,6 +26047,12 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get maps_offline_section_terrain => '3D-terrein';
+
+  @override
+  String get maps_offline_section_tiles => 'Kaarttegels';
+
+  @override
   String get maps_offline_size => 'Grootte';
 
   @override
@@ -25971,6 +26096,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tankPresets_builtInPresets => 'Standaard instellingen';
+
+  @override
+  String get tankPresets_builtInPresets_description =>
+      'Schakel voorinstellingen uit die je niet gebruikt om ze te verbergen in de flessenkiezers. De standaardvoorinstelling wordt altijd getoond.';
 
   @override
   String get tankPresets_currentDefault => 'Huidige standaard';
@@ -26123,6 +26252,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'Als standaard instellen';
+
+  @override
+  String get tankPresets_showInPickers => 'Tonen in flessenkiezers';
 
   @override
   String get tankPresets_title => 'Flesinstellingen';
@@ -26633,9 +26765,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Nog geen meerdieptegegevens opgeslagen';
 
   @override
-  String get maps3d_appBar_title => '3D-kaarten';
-
-  @override
   String get maps3d_section_all => 'Alle aanbieders';
 
   @override
@@ -26740,7 +26869,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get maps3d_busy_notice =>
-      'Er wordt al een andere 3D-kaartenactie uitgevoerd. Wacht tot deze klaar is.';
+      'Er wordt al een andere 3D-terreinactie uitgevoerd. Wacht tot deze klaar is.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {
@@ -30854,6 +30983,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return 'vanaf $min $unit';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'Coördinaatformaat';
 
   @override
@@ -30889,7 +31023,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'Welke afstanden gelden als goed zicht waar jij duikt';
+      'Hoe duikdetails en statistieken het zicht beschrijven dat je hebt gemeten';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'Kies welke gemeten afstanden gelden als Uitstekend, Goed, Matig of Slecht in duikdetails en statistieken. Een wijziging geeft je duiken alleen een ander label; de gelogde afstanden blijven altijd ongewijzigd.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'Tropisch';
@@ -30916,6 +31054,19 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_visibilityScale_invalidOrder =>
       'Elke waarde moet kleiner zijn dan die erboven en groter dan nul';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset =>
+      'Stel je eigen afstanden in';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'Voer per niveau de kortste afstand in die nog meetelt.';
 
   @override
   String statistics_conditions_visibility_legacySuffix(String band) {

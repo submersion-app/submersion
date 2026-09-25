@@ -1,3 +1,5 @@
+import 'package:submersion/features/gas_calculators/domain/blending/blender_gas_role.dart';
+
 /// Enough for a busy Saturday without letting a synced blob grow forever.
 const int kMaxBilledFills = 100;
 
@@ -9,6 +11,8 @@ class BilledGasLine {
     required this.cost,
     this.freeGasLiters,
     this.cylinderLiters,
+    this.role,
+    this.startBar,
   });
 
   /// The gas as it was labelled when the fill was saved, e.g. "He" or
@@ -34,12 +38,30 @@ class BilledGasLine {
   /// recovered from settings that have since moved on.
   final double? cylinderLiters;
 
+  /// The fill gas a hand-entered gas fill was billed for (issue #2302).
+  /// Null on every line the blender computed: set only by "Add a line", so
+  /// editing that line can reopen the form on the same gas.
+  ///
+  /// [BilledFill.manualGasLine] tells a hand-entered fill apart by this field
+  /// alone, so a computed line must keep leaving it null.
+  final BlenderGasRole? role;
+
+  /// The pressure a hand-entered gas fill started from, in bar. The end
+  /// pressure is [startBar] + [addedBar] rather than a field of its own, so
+  /// the two can never disagree.
+  final double? startBar;
+
+  /// The pressure a hand-entered gas fill ended at, when its start is known.
+  double? get endBar => startBar == null ? null : startBar! + addedBar;
+
   Map<String, dynamic> toJson() => {
     'gas': gas,
     'addedBar': addedBar,
     if (cost != null) 'cost': cost,
     if (freeGasLiters != null) 'freeGasLiters': freeGasLiters,
     if (cylinderLiters != null) 'cylinderLiters': cylinderLiters,
+    if (role != null) 'role': role!.name,
+    if (startBar != null) 'startBar': startBar,
   };
 
   static BilledGasLine? fromJson(Object? json) {
@@ -50,49 +72,16 @@ class BilledGasLine {
     final cost = json['cost'];
     final liters = json['freeGasLiters'];
     final cylinderLiters = json['cylinderLiters'];
+    final role = json['role'];
+    final startBar = json['startBar'];
     return BilledGasLine(
       gas: gas,
       addedBar: bar.toDouble(),
       cost: cost is num ? cost.toDouble() : null,
       freeGasLiters: liters is num ? liters.toDouble() : null,
       cylinderLiters: cylinderLiters is num ? cylinderLiters.toDouble() : null,
-    );
-  }
-}
-
-/// The cylinder and mix behind a manually entered bill line.
-///
-/// Kept alongside the free-typed [BilledFill.total] rather than replacing it:
-/// the amount charged at a real counter is still whatever the blender typed,
-/// this only records what was actually filled so the line reads as more than
-/// a bare number (issue #1335).
-class BilledCustomMix {
-  const BilledCustomMix({
-    required this.cylinderLiters,
-    required this.o2,
-    required this.he,
-  });
-
-  final double cylinderLiters;
-  final double o2;
-  final double he;
-
-  Map<String, dynamic> toJson() => {
-    'cylinderLiters': cylinderLiters,
-    'o2': o2,
-    'he': he,
-  };
-
-  static BilledCustomMix? fromJson(Object? json) {
-    if (json is! Map) return null;
-    final liters = json['cylinderLiters'];
-    final o2 = json['o2'];
-    final he = json['he'];
-    if (liters is! num || o2 is! num || he is! num) return null;
-    return BilledCustomMix(
-      cylinderLiters: liters.toDouble(),
-      o2: o2.toDouble(),
-      he: he.toDouble(),
+      role: role is String ? BlenderGasRole.fromName(role) : null,
+      startBar: startBar is num ? startBar.toDouble() : null,
     );
   }
 }
@@ -110,7 +99,6 @@ class BilledFill {
     required this.label,
     required this.lines,
     required this.total,
-    this.customMix,
   });
 
   final String id;
@@ -119,18 +107,19 @@ class BilledFill {
   /// line such as "O2 analyser cell".
   final String label;
 
-  /// Empty for a manually added line: there is no fill behind it to itemise.
+  /// Empty for a free-amount line: there is no fill behind it to itemise.
   final List<BilledGasLine> lines;
 
   /// Null when the fill was saved before every gas had a price.
   final double? total;
 
-  /// The cylinder and mix entered for a manual line, when the blender chose
-  /// to record one. Always null for a computed fill: [lines] already
-  /// itemises it.
-  final BilledCustomMix? customMix;
-
+  /// A free-amount line, typed in by hand with nothing to itemise.
   bool get isManual => lines.isEmpty;
+
+  /// The single gas line of a gas fill entered through "Add a line" (issue
+  /// #2302), or null for a free-amount line or a fill the blender computed.
+  BilledGasLine? get manualGasLine =>
+      lines.length == 1 && lines.single.role != null ? lines.single : null;
 
   /// [clearTotal] is how an amount gets removed. Null is meaningful here: it
   /// marks a line as not yet priced, which is what makes the grand total
@@ -141,21 +130,19 @@ class BilledFill {
   /// gives up compile-time typing: `copyWith(total: 40)` then compiles and
   /// throws at run time on the int literal.
   ///
-  /// [clearCustomMix] follows the same shape: re-editing a manual line to
-  /// remove its mix has to be expressible, and `customMix ?? this.customMix`
-  /// could not tell "unchanged" from "cleared" any more than `total` could.
+  /// [lines] is replaced only when given: a hand-entered line can switch
+  /// between a free amount and a gas fill when it is edited (issue #2302),
+  /// while a computed fill keeps the itemisation it was saved with.
   BilledFill copyWith({
     String? label,
+    List<BilledGasLine>? lines,
     double? total,
     bool clearTotal = false,
-    BilledCustomMix? customMix,
-    bool clearCustomMix = false,
   }) => BilledFill(
     id: id,
     label: label ?? this.label,
-    lines: lines,
+    lines: lines ?? this.lines,
     total: clearTotal ? null : (total ?? this.total),
-    customMix: clearCustomMix ? null : (customMix ?? this.customMix),
   );
 
   Map<String, dynamic> toJson() => {
@@ -163,7 +150,6 @@ class BilledFill {
     'label': label,
     'lines': lines.map((l) => l.toJson()).toList(),
     if (total != null) 'total': total,
-    if (customMix != null) 'customMix': customMix!.toJson(),
   };
 
   static BilledFill? fromJson(Object? json) {
@@ -183,7 +169,6 @@ class BilledFill {
                 .toList()
           : const [],
       total: total is num ? total.toDouble() : null,
-      customMix: BilledCustomMix.fromJson(json['customMix']),
     );
   }
 }

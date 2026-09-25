@@ -14,6 +14,7 @@ import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/tank_presets/domain/services/tank_preset_visibility.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
@@ -472,17 +473,23 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         // Tank preset dropdown
         Expanded(
           child: presetsAsync.when(
+            // A reload (a synced settings change, a preset edit) keeps the
+            // dropdown in place instead of swapping it for a progress bar.
+            skipLoadingOnReload: true,
             loading: () => const LinearProgressIndicator(),
             error: (e, st) => Text('Error: $e'),
-            data: (presets) {
+            data: (visiblePresets) {
+              final presetName =
+                  _selectedPreset?.name ?? widget.tank.presetName;
+              // A tank logged with a preset the diver has since hidden keeps
+              // showing it (issue #2305).
+              final presets = withKeptTankPresets(visiblePresets, [presetName]);
               final customPresets = presets.where((p) => !p.isBuiltIn).toList();
               final builtInPresets = presets.where((p) => p.isBuiltIn).toList();
 
               // Find the matching preset from the loaded list to ensure object equality
               // This is necessary because DropdownButtonFormField requires the value
               // to be the exact same instance as one of the items
-              final presetName =
-                  _selectedPreset?.name ?? widget.tank.presetName;
               final matchingPreset = presetName != null
                   ? presets.where((p) => p.name == presetName).firstOrNull
                   : null;

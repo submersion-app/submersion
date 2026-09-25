@@ -19,11 +19,23 @@ void main() {
 
   final epoch = DateTime(2026, 1, 1).millisecondsSinceEpoch;
 
-  Future<void> insertDive(String id) => db
+  Future<void> insertDiver(String id) => db
+      .into(db.divers)
+      .insert(
+        DiversCompanion(
+          id: Value(id),
+          name: Value(id),
+          createdAt: Value(epoch),
+          updatedAt: Value(epoch),
+        ),
+      );
+
+  Future<void> insertDive(String id, {String? diverId}) => db
       .into(db.dives)
       .insert(
         DivesCompanion(
           id: Value(id),
+          diverId: Value(diverId),
           diveDateTime: Value(epoch),
           createdAt: Value(epoch),
           updatedAt: Value(epoch),
@@ -128,6 +140,38 @@ void main() {
 
     final result = await repo.getRecentMedia();
     expect(result.map((m) => m.originalFilename), ['dive.jpg']);
+  });
+
+  group('diver scope', () {
+    setUp(() async {
+      await insertDiver('alice');
+      await insertDiver('bob');
+      await insertDive('alice-dive', diverId: 'alice');
+      await insertDive('bob-dive', diverId: 'bob');
+      await repo.createMedia(
+        item('alice.jpg', DateTime(2026, 3, 1), diveId: 'alice-dive'),
+      );
+      await repo.createMedia(
+        item('bob.jpg', DateTime(2026, 4, 1), diveId: 'bob-dive'),
+      );
+    });
+
+    test('returns only media from the given diver\'s dives', () async {
+      final result = await repo.getRecentMedia(diverId: 'alice');
+      expect(result.map((m) => m.originalFilename), ['alice.jpg']);
+    });
+
+    // A secondary diver with no dives of their own must see an empty ribbon,
+    // not the primary diver's photos.
+    test('is empty for a diver with no dives', () async {
+      await insertDiver('carol');
+      expect(await repo.getRecentMedia(diverId: 'carol'), isEmpty);
+    });
+
+    test('a null diver id stays unscoped', () async {
+      final result = await repo.getRecentMedia();
+      expect(result.map((m) => m.originalFilename), ['bob.jpg', 'alice.jpg']);
+    });
   });
 
   test('empty table returns empty list', () async {

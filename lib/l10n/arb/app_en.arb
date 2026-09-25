@@ -4264,7 +4264,6 @@
   "diveLog_listPage_searchLimitNotice": "Showing the first {limit} matches. Refine your search to narrow results.",
   "diveLog_listPage_searchNoResults": "No dives found for \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Search by site, buddy, or notes",
-  "diveLog_listPage_title": "Dive Log",
   "diveLog_listPage_tooltip_back": "Back",
   "diveLog_listPage_tooltip_backToDiveList": "Back to dive list",
   "diveLog_listPage_tooltip_clearSearch": "Clear search",
@@ -8318,7 +8317,33 @@
   "gasCalculators_blender_addManualLine": "Add a line",
   "gasCalculators_blender_lineDescription": "Description",
   "gasCalculators_blender_lineAmount": "Amount",
-  "gasCalculators_blender_lineNeedsDescription": "Enter a description, or a cylinder and mix.",
+  "gasCalculators_blender_lineNeedsDescription": "Enter a description.",
+  "gasCalculators_blender_lineKindGas": "Gas fill",
+  "gasCalculators_blender_lineKindAmount": "Free amount",
+  "gasCalculators_blender_lineGas": "Fill",
+  "gasCalculators_blender_lineStartPressure": "Start pressure",
+  "gasCalculators_blender_lineEndPressure": "End pressure",
+  "gasCalculators_blender_lineFillPressure": "Fill pressure: {pressure}",
+  "gasCalculators_blender_lineComputedAmount": "Amount: {amount}",
+  "gasCalculators_blender_lineNoPrice": "No price is set for this gas, so it is charged at 0.",
+  "gasCalculators_blender_lineInvalidPressure": "The end pressure must be above the start pressure.",
+  "gasCalculators_blender_lineNeedsPressure": "Enter a start and an end pressure.",
+  "gasCalculators_blender_lineNeedsCylinder": "Enter a cylinder volume.",
+  "gasCalculators_blender_lineDescriptionOptional": "Optional. Left empty, it is generated from the fill.",
+  "@gasCalculators_blender_lineFillPressure": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "@gasCalculators_blender_lineComputedAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_blender_export": "Export",
   "gasCalculators_blender_exportPdf": "Export as PDF",
   "gasCalculators_blender_exportImage": "Export as Image",
@@ -8457,6 +8482,65 @@
   "gasCalculators_desc_consumption": "Gas a planned dive will use",
   "gasCalculators_desc_rockBottom": "Reserve to bring two divers up",
   "gasCalculators_desc_mnd": "Narcosis depth limit for a mix",
+  "gasCalculators_tab_density": "Gas Density",
+  "gasCalculators_desc_density": "Breathing gas density at depth, OC or CCR",
+  "gasCalculators_density_inputParameters": "Gas Mix & Conditions",
+  "gasCalculators_density_o2Percent": "O2 %",
+  "gasCalculators_density_hePercent": "He %",
+  "gasCalculators_density_depth": "Depth",
+  "gasCalculators_density_mode": "Mode",
+  "gasCalculators_density_modeOc": "OC",
+  "gasCalculators_density_modeCcr": "CCR",
+  "gasCalculators_density_setpoint": "Setpoint (bar)",
+  "gasCalculators_density_diluentHint": "On CCR, the mix above is the diluent.",
+  "gasCalculators_density_temperature": "Gas temperature",
+  "gasCalculators_density_resultTitle": "Gas Density",
+  "gasCalculators_density_withinLimit": "Within the recommended {limit} g/L limit.",
+  "@gasCalculators_density_withinLimit": {
+    "placeholders": {
+      "limit": {
+        "type": "Object"
+      }
+    }
+  },
+  "gasCalculators_density_eaddLabel": "Equivalent air density depth (EADD)",
+  "gasCalculators_density_eaddInfo": "EADD is the depth at which air would be as dense as this gas. Unlike the density in g/L, it does not depend on the temperature.",
+  "gasCalculators_density_loopGasTitle": "Loop gas at depth",
+  "gasCalculators_density_loopComposition": "O2 {o2} % · He {he} % · N2 {n2} %",
+  "@gasCalculators_density_loopComposition": {
+    "placeholders": {
+      "o2": {
+        "type": "Object"
+      },
+      "he": {
+        "type": "Object"
+      },
+      "n2": {
+        "type": "Object"
+      }
+    }
+  },
+  "gasCalculators_density_setpointCapped": "The setpoint is above ambient pressure here, so the loop is pure oxygen.",
+  "gasCalculators_density_diluentAboveSetpoint": "The diluent alone gives ppO2 {ppO2} here, above the setpoint. The density uses the diluent's ppO2.",
+  "@gasCalculators_density_diluentAboveSetpoint": {
+    "placeholders": {
+      "ppO2": {
+        "type": "Object"
+      }
+    }
+  },
+  "gasCalculators_density_infoTitle": "About Gas Density",
+  "gasCalculators_density_infoContent": "Dense gas is harder to breathe and raises the risk of CO2 retention. Keep the density at or below {warn} g/L; {critical} g/L is the hard ceiling.\n\nOn CCR the density is that of the loop gas: oxygen at the setpoint, the rest split between nitrogen and helium in the diluent's ratio.\n\nColder gas is denser, so the colder temperature option is the conservative one. The calculation assumes an ideal gas.",
+  "@gasCalculators_density_infoContent": {
+    "placeholders": {
+      "warn": {
+        "type": "Object"
+      },
+      "critical": {
+        "type": "Object"
+      }
+    }
+  },
   "gasCalculators_desc_blender": "Fill procedure for a target mix",
   "gasCalculators_summary_prompt": "Select a calculator to get started",
   "marineLife_siteSection_editExpectedTooltip": "Edit expected species",
@@ -11105,9 +11189,7 @@
   "settings_data_import_completed": "Operation completed",
   "settings_data_import_failed": "Operation failed: {error}",
   "settings_data_offlineMaps": "Offline Maps",
-  "settings_data_offlineMaps_subtitle": "Download maps for offline use",
-  "settings_data_threeDMaps": "3D Maps",
-  "settings_data_threeDMaps_subtitle": "Manage cached swissBATHY3D and other bathymetry data",
+  "settings_data_offlineMaps_subtitle": "Map tiles and 3D terrain data",
   "settings_data_restore": "Restore",
   "settings_data_restoreDialog_cancel": "Cancel",
   "settings_data_restoreDialog_content": "Warning: Restoring from a backup will replace ALL current data with the backup data. This action cannot be undone.  Are you sure you want to continue?",
@@ -16743,9 +16825,9 @@
   "maps_offline_cacheStatistics": "Cache Statistics",
   "maps_offline_cancelDownload": "Cancel Download",
   "maps_offline_clearAll": "Clear All",
-  "maps_offline_clearAllCache": "Clear All Cache",
   "maps_offline_clearAllCacheMessage": "Delete all downloaded map regions and cached tiles?",
   "maps_offline_clearAllCacheTitle": "Clear All Cache?",
+  "maps_offline_clearAllTiles": "Clear all map tiles",
   "maps_offline_clearCacheStats": "This will delete {count} tiles ({size}).",
   "@maps_offline_clearCacheStats": {
     "placeholders": {
@@ -16888,6 +16970,8 @@
       }
     }
   },
+  "maps_offline_section_terrain": "3D terrain",
+  "maps_offline_section_tiles": "Map tiles",
   "maps_offline_size": "Size",
   "maps_offline_sizeUnknown": "Unknown",
   "@maps_offline_sizeUnknown": {
@@ -16921,6 +17005,7 @@
   "maps_regionSelector_selectRegionButton": "Select Region",
   "tankPresets_addPreset": "Add tank preset",
   "tankPresets_builtInPresets": "Built-in Presets",
+  "tankPresets_builtInPresets_description": "Switch off the presets you don't use to hide them from the tank pickers. The default preset is always shown.",
   "tankPresets_currentDefault": "Current default",
   "tankPresets_customPresets": "Custom Presets",
   "tankPresets_defaultSettings": "Default Tank",
@@ -17046,6 +17131,7 @@
   "tankPresets_new_title": "New Tank Preset",
   "tankPresets_noPresets": "No tank presets available",
   "tankPresets_setAsDefault": "Set as default",
+  "tankPresets_showInPickers": "Show in tank pickers",
   "tankPresets_title": "Tank Presets",
   "tools_gpsLogger_description": "Record your position during a dive day and match imported dives to GPS locations automatically.",
   "tools_gpsLogger_subtitle": "Record a surface track",
@@ -17234,7 +17320,6 @@
   "settings_appearance_bathymetryRefresh_resultUpToDate": "All data is up to date",
   "settings_appearance_bathymetryRefresh_resultFailed": "Couldn't check all data; existing values were kept",
   "settings_appearance_bathymetryRefresh_resultNothingCached": "No lake depth data cached yet",
-  "maps3d_appBar_title": "3D Maps",
   "maps3d_section_all": "All Providers",
   "maps3d_section_swissBathy": "swissBATHY3D",
   "maps3d_swissBathy_delete": "Delete data",
@@ -17285,7 +17370,7 @@
   "maps3d_reload_done": "Map data reloaded for every dive site",
   "maps3d_reload_cancelled": "Reload cancelled",
   "maps3d_reload_failed": "Reload failed; some dive sites may not have been reloaded",
-  "maps3d_busy_notice": "Another 3D Maps action is running. Please wait until it finishes.",
+  "maps3d_busy_notice": "Another 3D terrain action is running. Please wait until it finishes.",
   "maps3d_reload_remainingSeconds": "about {count, plural, =1{1 second} other{{count} seconds}} remaining",
   "@maps3d_reload_remainingSeconds": {
     "placeholders": {
@@ -20143,6 +20228,17 @@
       }
     }
   },
+  "visibility_range_atLeast": "{min} {unit}+",
+  "@visibility_range_atLeast": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "settings_coordinateFormat_title": "Coordinate format",
   "settings_coordinateFormat_subtitle": "How GPS positions are shown and entered",
   "settings_placeNameLanguage_title": "Place name language",
@@ -20153,7 +20249,8 @@
   "settings_coordinateFormat_utm": "UTM",
   "settings_coordinateFormat_mgrs": "MGRS",
   "settings_visibilityScale_title": "Visibility scale",
-  "settings_visibilityScale_subtitle": "Which distances count as good visibility where you dive",
+  "settings_visibilityScale_subtitle": "How dive details and statistics describe the visibility you measured",
+  "settings_visibilityScale_intro": "Choose which measured distances count as Excellent, Good, Moderate or Poor in dive details and statistics. Changing this relabels your dives; it never changes the distances you logged.",
   "settings_visibilityScale_preset_tropical": "Tropical",
   "settings_visibilityScale_preset_temperate": "Temperate",
   "settings_visibilityScale_preset_coldWater": "Cold water / Inland",
@@ -20162,6 +20259,19 @@
   "settings_visibilityScale_customGood": "Good at or above",
   "settings_visibilityScale_customModerate": "Moderate at or above",
   "settings_visibilityScale_invalidOrder": "Each value must be smaller than the one above it, and greater than zero",
+  "settings_visibilityScale_bandRange": "{band} {range}",
+  "@settings_visibilityScale_bandRange": {
+    "placeholders": {
+      "band": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_visibilityScale_customUnset": "Set your own distances",
+  "settings_visibilityScale_customHelp": "Enter the shortest distance that still counts for each label.",
   "statistics_conditions_visibility_legacySuffix": "{band} (logged before measurement)",
   "@statistics_conditions_visibility_legacySuffix": {
     "placeholders": {

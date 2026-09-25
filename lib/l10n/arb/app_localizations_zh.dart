@@ -7292,9 +7292,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_listPage_searchSuggestion => '按潜水点、潜伴或备注搜索';
 
   @override
-  String get diveLog_listPage_title => '潜水日志';
-
-  @override
   String get diveLog_listPage_tooltip_back => '返回';
 
   @override
@@ -13572,7 +13569,48 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_blender_lineAmount => '金额';
 
   @override
-  String get gasCalculators_blender_lineNeedsDescription => '请输入说明，或气瓶与混合气。';
+  String get gasCalculators_blender_lineNeedsDescription => '请输入说明。';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => '气体充填';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => '自由金额';
+
+  @override
+  String get gasCalculators_blender_lineGas => '充填';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => '初始压力';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => '最终压力';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return '充填压力：$pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return '金额：$amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice => '此气体未设置价格，按 0 计费。';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure => '最终压力必须高于初始压力。';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure => '请输入初始压力和最终压力。';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder => '请输入气瓶容积。';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      '可选。留空时根据充填自动生成。';
 
   @override
   String get gasCalculators_blender_export => '导出';
@@ -13698,6 +13736,85 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => '混合气体的麻醉深度极限';
+
+  @override
+  String get gasCalculators_tab_density => '气体密度';
+
+  @override
+  String get gasCalculators_desc_density => '深度处呼吸气体的密度，开路或 CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters => '混合气与条件';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => '深度';
+
+  @override
+  String get gasCalculators_density_mode => '模式';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => '设定点 (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint => '在 CCR 模式下，上面的混合气即稀释气体。';
+
+  @override
+  String get gasCalculators_density_temperature => '气体温度';
+
+  @override
+  String get gasCalculators_density_resultTitle => '气体密度';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return '在建议的 $limit g/L 限值以内。';
+  }
+
+  @override
+  String get gasCalculators_density_eaddLabel => '等效空气密度深度 (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'EADD 是空气密度与该气体相同时所处的深度。与以 g/L 表示的密度不同，它不受温度影响。';
+
+  @override
+  String get gasCalculators_density_loopGasTitle => '深度处的回路气体';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped => '此处设定点高于环境压力，因此回路为纯氧。';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return '仅稀释气体在此处即产生 $ppO2 的 ppO2，高于设定点。密度按稀释气体的 ppO2 计算。';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => '关于气体密度';
+
+  @override
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return '高密度气体更难呼吸，并会增加 CO2 潴留的风险。请将密度保持在 $warn g/L 或以下；$critical g/L 为硬性上限。\n\n在 CCR 模式下，计算的是回路气体的密度：氧气按设定点，其余按稀释气体的比例分配给氮气和氦气。\n\n较冷的气体密度更高，因此较冷的温度选项更保守。计算假定为理想气体。';
+  }
 
   @override
   String get gasCalculators_desc_blender => '目标混合气的充填流程';
@@ -14982,7 +15099,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_unavailablePlaceholder_notOnDevice => '不在此设备上';
 
   @override
-  String get media_unavailablePlaceholder_signInRequired => 'Sign in to view';
+  String get media_unavailablePlaceholder_signInRequired => '登录后查看';
 
   @override
   String get media_writeMetadata_cancelButton => '取消';
@@ -17162,7 +17279,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_selectProviderHint => '选择一个云服务提供商以启用同步';
 
   @override
-  String get settings_cloudSync_signOut => '签名出';
+  String get settings_cloudSync_signOut => '退出登录';
 
   @override
   String get settings_cloudSync_signOutDialog_cancel => '取消';
@@ -17172,10 +17289,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '这将断开与云服务提供商的连接。您的本地数据将保持不变。';
 
   @override
-  String get settings_cloudSync_signOutDialog_signOut => '签名出';
+  String get settings_cloudSync_signOutDialog_signOut => '退出登录';
 
   @override
-  String get settings_cloudSync_signOutDialog_title => '签名出?';
+  String get settings_cloudSync_signOutDialog_title => '退出登录？';
 
   @override
   String get settings_cloudSync_signOutSuccess => '已退出云服务提供商';
@@ -17494,14 +17611,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_data_offlineMaps => '离线地图';
 
   @override
-  String get settings_data_offlineMaps_subtitle => '下载地图以供离线使用';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+  String get settings_data_offlineMaps_subtitle => '地图瓦片和 3D 地形数据';
 
   @override
   String get settings_data_restore => '恢复';
@@ -24647,13 +24757,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maps_offline_clearAll => '清除全部';
 
   @override
-  String get maps_offline_clearAllCache => '清除所有缓存';
-
-  @override
   String get maps_offline_clearAllCacheMessage => '删除所有已下载的地图区域和缓存瓦片吗？';
 
   @override
   String get maps_offline_clearAllCacheTitle => '清除所有缓存？';
+
+  @override
+  String get maps_offline_clearAllTiles => '清除所有地图瓦片';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -24762,6 +24872,12 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get maps_offline_section_terrain => '3D 地形';
+
+  @override
+  String get maps_offline_section_tiles => '地图瓦片';
+
+  @override
   String get maps_offline_size => '尺寸';
 
   @override
@@ -24803,6 +24919,10 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tankPresets_builtInPresets => '内置预设';
+
+  @override
+  String get tankPresets_builtInPresets_description =>
+      '关闭不使用的预设，即可在气瓶选择列表中隐藏它们。默认预设始终显示。';
 
   @override
   String get tankPresets_currentDefault => '当前默认';
@@ -24950,6 +25070,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => '设为默认';
+
+  @override
+  String get tankPresets_showInPickers => '在气瓶选择列表中显示';
 
   @override
   String get tankPresets_title => '气瓶预设';
@@ -25435,9 +25558,6 @@ class AppLocalizationsZh extends AppLocalizations {
       '尚未缓存湖泊深度数据';
 
   @override
-  String get maps3d_appBar_title => '3D 地图';
-
-  @override
   String get maps3d_section_all => '所有数据源';
 
   @override
@@ -25533,7 +25653,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maps3d_reload_failed => '重新加载失败，部分潜水点可能未重新加载';
 
   @override
-  String get maps3d_busy_notice => '另一项 3D 地图操作正在运行，请等待其完成。';
+  String get maps3d_busy_notice => '另一项 3D 地形操作正在运行，请等待其完成。';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {
@@ -29456,6 +29576,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return '$min $unit 及以上';
+  }
+
+  @override
   String get settings_coordinateFormat_title => '坐标格式';
 
   @override
@@ -29487,7 +29612,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_visibilityScale_title => '能见度标准';
 
   @override
-  String get settings_visibilityScale_subtitle => '在你潜水的水域，多远算是良好能见度';
+  String get settings_visibilityScale_subtitle => '潜水详情和统计中如何描述你测得的能见度';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      '选择在潜水详情和统计中，多远的实测距离算作极佳、良好、一般或较差。更改此设置只会重新标注你的潜水，绝不会改动你记录的距离。';
 
   @override
   String get settings_visibilityScale_preset_tropical => '热带';
@@ -29512,6 +29641,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_invalidOrder => '每个数值必须小于上一个，且大于零';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset => '设置你自己的距离';
+
+  @override
+  String get settings_visibilityScale_customHelp => '为每个等级输入仍可计入该等级的最短距离。';
 
   @override
   String statistics_conditions_visibility_legacySuffix(String band) {

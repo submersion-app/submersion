@@ -12471,12 +12471,6 @@ abstract class AppLocalizations {
   /// **'Search by site, buddy, or notes'**
   String get diveLog_listPage_searchSuggestion;
 
-  /// No description provided for @diveLog_listPage_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Log'**
-  String get diveLog_listPage_title;
-
   /// No description provided for @diveLog_listPage_tooltip_back.
   ///
   /// In en, this message translates to:
@@ -23491,8 +23485,80 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_blender_lineNeedsDescription.
   ///
   /// In en, this message translates to:
-  /// **'Enter a description, or a cylinder and mix.'**
+  /// **'Enter a description.'**
   String get gasCalculators_blender_lineNeedsDescription;
+
+  /// No description provided for @gasCalculators_blender_lineKindGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas fill'**
+  String get gasCalculators_blender_lineKindGas;
+
+  /// No description provided for @gasCalculators_blender_lineKindAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Free amount'**
+  String get gasCalculators_blender_lineKindAmount;
+
+  /// No description provided for @gasCalculators_blender_lineGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill'**
+  String get gasCalculators_blender_lineGas;
+
+  /// No description provided for @gasCalculators_blender_lineStartPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Start pressure'**
+  String get gasCalculators_blender_lineStartPressure;
+
+  /// No description provided for @gasCalculators_blender_lineEndPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'End pressure'**
+  String get gasCalculators_blender_lineEndPressure;
+
+  /// No description provided for @gasCalculators_blender_lineFillPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill pressure: {pressure}'**
+  String gasCalculators_blender_lineFillPressure(String pressure);
+
+  /// No description provided for @gasCalculators_blender_lineComputedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount: {amount}'**
+  String gasCalculators_blender_lineComputedAmount(String amount);
+
+  /// No description provided for @gasCalculators_blender_lineNoPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'No price is set for this gas, so it is charged at 0.'**
+  String get gasCalculators_blender_lineNoPrice;
+
+  /// No description provided for @gasCalculators_blender_lineInvalidPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'The end pressure must be above the start pressure.'**
+  String get gasCalculators_blender_lineInvalidPressure;
+
+  /// No description provided for @gasCalculators_blender_lineNeedsPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a start and an end pressure.'**
+  String get gasCalculators_blender_lineNeedsPressure;
+
+  /// No description provided for @gasCalculators_blender_lineNeedsCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a cylinder volume.'**
+  String get gasCalculators_blender_lineNeedsCylinder;
+
+  /// No description provided for @gasCalculators_blender_lineDescriptionOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Left empty, it is generated from the fill.'**
+  String get gasCalculators_blender_lineDescriptionOptional;
 
   /// No description provided for @gasCalculators_blender_export.
   ///
@@ -23715,6 +23781,142 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Narcosis depth limit for a mix'**
   String get gasCalculators_desc_mnd;
+
+  /// No description provided for @gasCalculators_tab_density.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Density'**
+  String get gasCalculators_tab_density;
+
+  /// No description provided for @gasCalculators_desc_density.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathing gas density at depth, OC or CCR'**
+  String get gasCalculators_desc_density;
+
+  /// No description provided for @gasCalculators_density_inputParameters.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Mix & Conditions'**
+  String get gasCalculators_density_inputParameters;
+
+  /// No description provided for @gasCalculators_density_o2Percent.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 %'**
+  String get gasCalculators_density_o2Percent;
+
+  /// No description provided for @gasCalculators_density_hePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'He %'**
+  String get gasCalculators_density_hePercent;
+
+  /// No description provided for @gasCalculators_density_depth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get gasCalculators_density_depth;
+
+  /// No description provided for @gasCalculators_density_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get gasCalculators_density_mode;
+
+  /// No description provided for @gasCalculators_density_modeOc.
+  ///
+  /// In en, this message translates to:
+  /// **'OC'**
+  String get gasCalculators_density_modeOc;
+
+  /// No description provided for @gasCalculators_density_modeCcr.
+  ///
+  /// In en, this message translates to:
+  /// **'CCR'**
+  String get gasCalculators_density_modeCcr;
+
+  /// No description provided for @gasCalculators_density_setpoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint (bar)'**
+  String get gasCalculators_density_setpoint;
+
+  /// No description provided for @gasCalculators_density_diluentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'On CCR, the mix above is the diluent.'**
+  String get gasCalculators_density_diluentHint;
+
+  /// No description provided for @gasCalculators_density_temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas temperature'**
+  String get gasCalculators_density_temperature;
+
+  /// No description provided for @gasCalculators_density_resultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Density'**
+  String get gasCalculators_density_resultTitle;
+
+  /// No description provided for @gasCalculators_density_withinLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Within the recommended {limit} g/L limit.'**
+  String gasCalculators_density_withinLimit(Object limit);
+
+  /// No description provided for @gasCalculators_density_eaddLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Equivalent air density depth (EADD)'**
+  String get gasCalculators_density_eaddLabel;
+
+  /// No description provided for @gasCalculators_density_eaddInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'EADD is the depth at which air would be as dense as this gas. Unlike the density in g/L, it does not depend on the temperature.'**
+  String get gasCalculators_density_eaddInfo;
+
+  /// No description provided for @gasCalculators_density_loopGasTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop gas at depth'**
+  String get gasCalculators_density_loopGasTitle;
+
+  /// No description provided for @gasCalculators_density_loopComposition.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 {o2} % · He {he} % · N2 {n2} %'**
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  );
+
+  /// No description provided for @gasCalculators_density_setpointCapped.
+  ///
+  /// In en, this message translates to:
+  /// **'The setpoint is above ambient pressure here, so the loop is pure oxygen.'**
+  String get gasCalculators_density_setpointCapped;
+
+  /// No description provided for @gasCalculators_density_diluentAboveSetpoint.
+  ///
+  /// In en, this message translates to:
+  /// **'The diluent alone gives ppO2 {ppO2} here, above the setpoint. The density uses the diluent\'s ppO2.'**
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2);
+
+  /// No description provided for @gasCalculators_density_infoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About Gas Density'**
+  String get gasCalculators_density_infoTitle;
+
+  /// No description provided for @gasCalculators_density_infoContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Dense gas is harder to breathe and raises the risk of CO2 retention. Keep the density at or below {warn} g/L; {critical} g/L is the hard ceiling.\n\nOn CCR the density is that of the loop gas: oxygen at the setpoint, the rest split between nitrogen and helium in the diluent\'s ratio.\n\nColder gas is denser, so the colder temperature option is the conservative one. The calculation assumes an ideal gas.'**
+  String gasCalculators_density_infoContent(Object warn, Object critical);
 
   /// No description provided for @gasCalculators_desc_blender.
   ///
@@ -29890,20 +30092,8 @@ abstract class AppLocalizations {
   /// No description provided for @settings_data_offlineMaps_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Download maps for offline use'**
+  /// **'Map tiles and 3D terrain data'**
   String get settings_data_offlineMaps_subtitle;
-
-  /// No description provided for @settings_data_threeDMaps.
-  ///
-  /// In en, this message translates to:
-  /// **'3D Maps'**
-  String get settings_data_threeDMaps;
-
-  /// No description provided for @settings_data_threeDMaps_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage cached swissBATHY3D and other bathymetry data'**
-  String get settings_data_threeDMaps_subtitle;
 
   /// No description provided for @settings_data_restore.
   ///
@@ -41567,12 +41757,6 @@ abstract class AppLocalizations {
   /// **'Clear All'**
   String get maps_offline_clearAll;
 
-  /// No description provided for @maps_offline_clearAllCache.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear All Cache'**
-  String get maps_offline_clearAllCache;
-
   /// No description provided for @maps_offline_clearAllCacheMessage.
   ///
   /// In en, this message translates to:
@@ -41584,6 +41768,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear All Cache?'**
   String get maps_offline_clearAllCacheTitle;
+
+  /// No description provided for @maps_offline_clearAllTiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all map tiles'**
+  String get maps_offline_clearAllTiles;
 
   /// No description provided for @maps_offline_clearCacheStats.
   ///
@@ -41730,6 +41920,18 @@ abstract class AppLocalizations {
     Object maxZoom,
   );
 
+  /// No description provided for @maps_offline_section_terrain.
+  ///
+  /// In en, this message translates to:
+  /// **'3D terrain'**
+  String get maps_offline_section_terrain;
+
+  /// No description provided for @maps_offline_section_tiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Map tiles'**
+  String get maps_offline_section_tiles;
+
   /// No description provided for @maps_offline_size.
   ///
   /// In en, this message translates to:
@@ -41807,6 +42009,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Built-in Presets'**
   String get tankPresets_builtInPresets;
+
+  /// No description provided for @tankPresets_builtInPresets_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch off the presets you don\'t use to hide them from the tank pickers. The default preset is always shown.'**
+  String get tankPresets_builtInPresets_description;
 
   /// No description provided for @tankPresets_currentDefault.
   ///
@@ -42053,6 +42261,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Set as default'**
   String get tankPresets_setAsDefault;
+
+  /// No description provided for @tankPresets_showInPickers.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in tank pickers'**
+  String get tankPresets_showInPickers;
 
   /// No description provided for @tankPresets_title.
   ///
@@ -42954,12 +43168,6 @@ abstract class AppLocalizations {
   /// **'No lake depth data cached yet'**
   String get settings_appearance_bathymetryRefresh_resultNothingCached;
 
-  /// No description provided for @maps3d_appBar_title.
-  ///
-  /// In en, this message translates to:
-  /// **'3D Maps'**
-  String get maps3d_appBar_title;
-
   /// No description provided for @maps3d_section_all.
   ///
   /// In en, this message translates to:
@@ -43119,7 +43327,7 @@ abstract class AppLocalizations {
   /// No description provided for @maps3d_busy_notice.
   ///
   /// In en, this message translates to:
-  /// **'Another 3D Maps action is running. Please wait until it finishes.'**
+  /// **'Another 3D terrain action is running. Please wait until it finishes.'**
   String get maps3d_busy_notice;
 
   /// No description provided for @maps3d_reload_remainingSeconds.
@@ -49678,6 +49886,12 @@ abstract class AppLocalizations {
   /// **'under {max} {unit}'**
   String visibility_range_under(String max, String unit);
 
+  /// No description provided for @visibility_range_atLeast.
+  ///
+  /// In en, this message translates to:
+  /// **'{min} {unit}+'**
+  String visibility_range_atLeast(String min, String unit);
+
   /// No description provided for @settings_coordinateFormat_title.
   ///
   /// In en, this message translates to:
@@ -49741,8 +49955,14 @@ abstract class AppLocalizations {
   /// No description provided for @settings_visibilityScale_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Which distances count as good visibility where you dive'**
+  /// **'How dive details and statistics describe the visibility you measured'**
   String get settings_visibilityScale_subtitle;
+
+  /// No description provided for @settings_visibilityScale_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which measured distances count as Excellent, Good, Moderate or Poor in dive details and statistics. Changing this relabels your dives; it never changes the distances you logged.'**
+  String get settings_visibilityScale_intro;
 
   /// No description provided for @settings_visibilityScale_preset_tropical.
   ///
@@ -49791,6 +50011,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Each value must be smaller than the one above it, and greater than zero'**
   String get settings_visibilityScale_invalidOrder;
+
+  /// No description provided for @settings_visibilityScale_bandRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{band} {range}'**
+  String settings_visibilityScale_bandRange(String band, String range);
+
+  /// No description provided for @settings_visibilityScale_customUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your own distances'**
+  String get settings_visibilityScale_customUnset;
+
+  /// No description provided for @settings_visibilityScale_customHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the shortest distance that still counts for each label.'**
+  String get settings_visibilityScale_customHelp;
 
   /// No description provided for @statistics_conditions_visibility_legacySuffix.
   ///

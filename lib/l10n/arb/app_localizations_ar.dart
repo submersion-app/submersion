@@ -7534,9 +7534,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'البحث حسب الموقع أو زميل الغوص أو الملاحظات';
 
   @override
-  String get diveLog_listPage_title => 'سجل الغوص';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'رجوع';
 
   @override
@@ -14013,8 +14010,51 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_blender_lineAmount => 'المبلغ';
 
   @override
-  String get gasCalculators_blender_lineNeedsDescription =>
-      'أدخل وصفًا، أو أسطوانة ومزيجًا.';
+  String get gasCalculators_blender_lineNeedsDescription => 'أدخل وصفًا.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'تعبئة غاز';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'مبلغ حر';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'التعبئة';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'الضغط الابتدائي';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'الضغط النهائي';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'ضغط التعبئة: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'المبلغ: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'لم يُحدَّد سعر لهذا الغاز، لذا يُحتسب بصفر.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'يجب أن يكون الضغط النهائي أعلى من الضغط الابتدائي.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'أدخل ضغطًا ابتدائيًا وضغطًا نهائيًا.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder => 'أدخل سعة الأسطوانة.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'اختياري. إذا تُرك فارغًا، يُنشأ من التعبئة.';
 
   @override
   String get gasCalculators_blender_export => 'تصدير';
@@ -14148,6 +14188,89 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => 'حد عمق التخدير للخليط';
+
+  @override
+  String get gasCalculators_tab_density => 'كثافة الغاز';
+
+  @override
+  String get gasCalculators_desc_density =>
+      'كثافة غاز التنفس على العمق، OC أو CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters => 'خليط الغاز والظروف';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'العمق';
+
+  @override
+  String get gasCalculators_density_mode => 'الوضع';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'نقطة الضبط (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'في وضع CCR، الخليط أعلاه هو غاز المخفف.';
+
+  @override
+  String get gasCalculators_density_temperature => 'درجة حرارة الغاز';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'كثافة الغاز';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'ضمن الحد الموصى به البالغ $limit g/L.';
+  }
+
+  @override
+  String get gasCalculators_density_eaddLabel =>
+      'العمق المكافئ لكثافة الهواء (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'EADD هو العمق الذي يكون فيه الهواء بكثافة هذا الغاز. وعلى خلاف الكثافة بوحدة g/L، لا يعتمد على درجة الحرارة.';
+
+  @override
+  String get gasCalculators_density_loopGasTitle => 'غاز الدائرة على العمق';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'نقطة الضبط هنا أعلى من الضغط المحيط، لذا فإن الدائرة أكسجين نقي.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'غاز المخفف وحده يعطي هنا ppO2 قدره $ppO2، وهو أعلى من نقطة الضبط. تُحسب الكثافة بـ ppO2 غاز المخفف.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => 'حول كثافة الغاز';
+
+  @override
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'الغاز الكثيف أصعب في التنفس ويزيد خطر احتباس CO2. حافظ على الكثافة عند $warn g/L أو أقل؛ و$critical g/L هو الحد الأقصى المطلق.\n\nفي وضع CCR تُحتسب كثافة غاز الدائرة: الأكسجين عند نقطة الضبط، والباقي موزع بين النيتروجين والهيليوم بنسبة غاز المخفف.\n\nالغاز الأبرد أكثف، لذا فإن خيار درجة الحرارة الأبرد هو الخيار المتحفظ. يفترض الحساب غازًا مثاليًا.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'إجراء التعبئة لخليط مستهدف';
@@ -18106,14 +18229,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_data_offlineMaps_subtitle =>
-      'تنزيل الخرائط للاستخدام بدون اتصال';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+      'بلاطات الخريطة وبيانات التضاريس ثلاثية الأبعاد';
 
   @override
   String get settings_data_restore => 'استعادة';
@@ -25665,14 +25781,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps_offline_clearAll => 'مسح الكل';
 
   @override
-  String get maps_offline_clearAllCache => 'مسح كل التخزين المؤقت';
-
-  @override
   String get maps_offline_clearAllCacheMessage =>
       'حذف جميع مناطق الخرائط المنزّلة والبلاطات المخزنة مؤقتًا؟';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'مسح كل التخزين المؤقت؟';
+
+  @override
+  String get maps_offline_clearAllTiles => 'مسح كل بلاطات الخريطة';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -25782,6 +25898,12 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get maps_offline_section_terrain => 'التضاريس ثلاثية الأبعاد';
+
+  @override
+  String get maps_offline_section_tiles => 'بلاطات الخريطة';
+
+  @override
   String get maps_offline_size => 'الحجم';
 
   @override
@@ -25824,6 +25946,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tankPresets_builtInPresets => 'الإعدادات المدمجة';
+
+  @override
+  String get tankPresets_builtInPresets_description =>
+      'أوقف الإعدادات التي لا تستخدمها لإخفائها من قوائم اختيار الأسطوانة. يظهر الإعداد الافتراضي دائمًا.';
 
   @override
   String get tankPresets_currentDefault => 'الافتراضي الحالي';
@@ -25974,6 +26100,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'تعيين كافتراضي';
+
+  @override
+  String get tankPresets_showInPickers => 'إظهار في قوائم اختيار الأسطوانة';
 
   @override
   String get tankPresets_title => 'إعدادات الأسطوانات';
@@ -26477,9 +26606,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد بيانات أعماق بحيرات مخزّنة بعد';
 
   @override
-  String get maps3d_appBar_title => 'خرائط ثلاثية الأبعاد';
-
-  @override
   String get maps3d_section_all => 'كل المزوّدين';
 
   @override
@@ -26584,7 +26710,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get maps3d_busy_notice =>
-      'هناك إجراء آخر في الخرائط ثلاثية الأبعاد قيد التنفيذ. يُرجى الانتظار حتى ينتهي.';
+      'هناك إجراء آخر للتضاريس ثلاثية الأبعاد قيد التنفيذ. يُرجى الانتظار حتى ينتهي.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {
@@ -30646,6 +30772,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return '$min $unit فأكثر';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'تنسيق الإحداثيات';
 
   @override
@@ -30681,7 +30812,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'المسافات التي تُعد رؤية جيدة في مواقع غوصك';
+      'كيف تصف تفاصيل الغوص والإحصاءات مدى الرؤية الذي قسته';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'اختر المسافات المقيسة التي تُعد ممتازة أو جيدة أو متوسطة أو ضعيفة في تفاصيل الغوص والإحصاءات. تغيير هذا الإعداد يعيد تسمية غطساتك فقط؛ ولا يغيّر أبدًا المسافات التي سجلتها.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'استوائية';
@@ -30707,6 +30842,18 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_visibilityScale_invalidOrder =>
       'يجب أن تكون كل قيمة أصغر من التي فوقها وأكبر من صفر';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset => 'حدّد مسافاتك الخاصة';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'أدخل لكل تصنيف أقصر مسافة لا تزال تُحتسب ضمنه.';
 
   @override
   String statistics_conditions_visibility_legacySuffix(String band) {

@@ -7664,9 +7664,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Keresés merülőhely, buddy vagy jegyzetek alapján';
 
   @override
-  String get diveLog_listPage_title => 'Merülési napló';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Vissza';
 
   @override
@@ -14206,7 +14203,52 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_lineNeedsDescription =>
-      'Adjon meg egy leírást, vagy egy palackot és keveréket.';
+      'Adjon meg egy leírást.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'Gáztöltés';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'Szabad összeg';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'Töltés';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'Kezdőnyomás';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'Végnyomás';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'Töltési nyomás: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'Összeg: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'Ehhez a gázhoz nincs ár megadva, ezért 0-val számolunk.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'A végnyomásnak nagyobbnak kell lennie a kezdőnyomásnál.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'Adjon meg egy kezdő- és egy végnyomást.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder =>
+      'Adja meg a palack térfogatát.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'Nem kötelező. Ha üresen marad, a töltésből jön létre.';
 
   @override
   String get gasCalculators_blender_export => 'Exportálás';
@@ -14346,6 +14388,90 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get gasCalculators_desc_mnd =>
       'Narkózis szerinti mélységhatár egy keverékhez';
+
+  @override
+  String get gasCalculators_tab_density => 'Gázsűrűség';
+
+  @override
+  String get gasCalculators_desc_density =>
+      'A légzőgáz sűrűsége mélységben, OC vagy CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters =>
+      'Gázkeverék és körülmények';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'Mélység';
+
+  @override
+  String get gasCalculators_density_mode => 'Mód';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'CCR esetén a fenti keverék a hígítógáz.';
+
+  @override
+  String get gasCalculators_density_temperature => 'Gázhőmérséklet';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'Gázsűrűség';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'Az ajánlott $limit g/L-es határon belül.';
+  }
+
+  @override
+  String get gasCalculators_density_eaddLabel =>
+      'Egyenértékű levegősűrűség-mélység (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'Az EADD az a mélység, ahol a levegő ugyanolyan sűrű lenne, mint ez a gáz. A g/L-ben megadott sűrűséggel ellentétben nem függ a hőmérséklettől.';
+
+  @override
+  String get gasCalculators_density_loopGasTitle => 'Hurokgáz mélységben';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'A setpoint itt meghaladja a környezeti nyomást, így a hurokban tiszta oxigén van.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'A hígítógáz önmagában itt $ppO2 ppO2-t ad, ami a setpoint felett van. A sűrűség a hígítógáz ppO2-jével számol.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => 'A gázsűrűségről';
+
+  @override
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'A sűrű gázt nehezebb belélegezni, és növeli a CO2-visszatartás kockázatát. Tartsd a sűrűséget legfeljebb $warn g/L-en; $critical g/L az abszolút felső határ.\n\nCCR esetén a hurokgáz sűrűsége számít: oxigén a setpoint szerint, a maradék nitrogén és hélium a hígítógáz arányában.\n\nA hidegebb gáz sűrűbb, ezért a hidegebb hőmérséklet a konzervatív választás. A számítás ideális gázt feltételez.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'Töltési eljárás a célkeverékhez';
@@ -18367,14 +18493,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_data_offlineMaps_subtitle =>
-      'Térképek letöltése offline használathoz';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+      'Térképcsempék és 3D domborzati adatok';
 
   @override
   String get settings_data_restore => 'Visszaállítás';
@@ -25933,14 +26052,14 @@ class AppLocalizationsHu extends AppLocalizations {
   String get maps_offline_clearAll => 'Összes törlése';
 
   @override
-  String get maps_offline_clearAllCache => 'Teljes gyorstár törlése';
-
-  @override
   String get maps_offline_clearAllCacheMessage =>
       'Törli az összes letöltött térképrégiit és gyorsított csempét?';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'Teljes gyorstár törlése?';
+
+  @override
+  String get maps_offline_clearAllTiles => 'Összes térképcsempe törlése';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -26050,6 +26169,12 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get maps_offline_section_terrain => '3D domborzat';
+
+  @override
+  String get maps_offline_section_tiles => 'Térképcsempék';
+
+  @override
   String get maps_offline_size => 'Méret';
 
   @override
@@ -26094,6 +26219,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tankPresets_builtInPresets => 'Beépített sablonok';
+
+  @override
+  String get tankPresets_builtInPresets_description =>
+      'Kapcsold ki a nem használt sablonokat, hogy ne jelenjenek meg a palackválasztókban. Az alapértelmezett sablon mindig látható.';
 
   @override
   String get tankPresets_currentDefault => 'Jelenlegi alapértelmezett';
@@ -26245,6 +26374,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'Beállítás alapértelmezettként';
+
+  @override
+  String get tankPresets_showInPickers => 'Megjelenítés a palackválasztókban';
 
   @override
   String get tankPresets_title => 'Palacksablonok';
@@ -26752,9 +26884,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Még nincsenek tárolt tómélységadatok';
 
   @override
-  String get maps3d_appBar_title => '3D térképek';
-
-  @override
   String get maps3d_section_all => 'Összes szolgáltató';
 
   @override
@@ -26859,7 +26988,7 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get maps3d_busy_notice =>
-      'Egy másik művelet fut a 3D térképek oldalon. Kérjük, várja meg, amíg befejeződik.';
+      'Egy másik 3D domborzati művelet fut. Kérjük, várja meg, amíg befejeződik.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {
@@ -30959,6 +31088,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return 'legalább $min $unit';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'Koordináta-formátum';
 
   @override
@@ -30994,7 +31128,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'Mekkora távolság számít jó látásnak ott, ahol merülsz';
+      'Hogyan írják le a merülés részletei és a statisztikák a mért látótávolságot';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'Válaszd ki, mely mért távolságok számítanak Kiválónak, Jónak, Közepesnek vagy Gyengének a merülés részleteiben és a statisztikákban. A módosítás csak a merülések címkéit változtatja meg; a rögzített távolságokat soha.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'Trópusi';
@@ -31020,6 +31158,19 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_visibilityScale_invalidOrder =>
       'Minden értéknek kisebbnek kell lennie a felette lévőnél és nagyobbnak nullánál';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset =>
+      'Add meg a saját távolságaidat';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'Add meg minden szinthez a legrövidebb távolságot, amely még oda számít.';
 
   @override
   String statistics_conditions_visibility_legacySuffix(String band) {
