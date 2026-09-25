@@ -150,6 +150,70 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('BUDDY_LIST_PAGE'), findsNothing);
     });
+
+    testWidgets('Open in Connections pushes the ego deep link', (tester) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await getBaseOverrides();
+
+      final router = GoRouter(
+        initialLocation: '/buddies/buddy-1',
+        routes: [
+          GoRoute(
+            path: '/buddies',
+            builder: (context, state) =>
+                const Scaffold(body: Text('BUDDY_LIST_PAGE')),
+          ),
+          GoRoute(
+            path: '/buddies/:id',
+            builder: (context, state) =>
+                BuddyDetailPage(buddyId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/connections',
+            builder: (context, state) =>
+                Scaffold(body: Text('CONNECTIONS ${state.uri.query}')),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            buddyListViewModeProvider.overrideWith((ref) => ListViewMode.table),
+            buddyByIdProvider(buddy.id).overrideWith((ref) async => buddy),
+            buddyStatsProvider(
+              buddy.id,
+            ).overrideWith((ref) async => const BuddyStats(totalDives: 0)),
+            diveIdsForBuddyProvider(
+              buddy.id,
+            ).overrideWith((ref) async => <String>[]),
+            divesForBuddyProvider(buddy.id).overrideWith((ref) async => []),
+          ].cast(),
+          child: MaterialApp.router(
+            routerConfig: router,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(PopupMenuButton<String>).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Open in Connections'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('CONNECTIONS lens=circle&focus=buddy:buddy-1'),
+        findsOneWidget,
+      );
+    });
   });
 
   group('BuddyDetailPage bottomTime coverage', () {

@@ -182,13 +182,31 @@ class _BuddyDetailContent extends ConsumerWidget {
           ),
           PopupMenuButton<String>(
             onSelected: (value) async {
-              if (value == 'share') {
+              if (value == 'connections') {
+                context.push(
+                  '/connections?lens=circle&focus=buddy:${buddy.id}',
+                );
+              } else if (value == 'share') {
                 await _shareDivesWithBuddy(context, ref);
               } else if (value == 'delete') {
                 await _handleDelete(context, ref);
               }
             },
             itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'connections',
+                child: Row(
+                  children: [
+                    const Icon(Icons.hub_outlined),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        context.l10n.connections_action_openInConnections,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               PopupMenuItem(
                 value: 'share',
                 child: Row(
@@ -283,13 +301,31 @@ class _BuddyDetailContent extends ConsumerWidget {
           PopupMenuButton<String>(
             icon: const Icon(Icons.more_vert, size: 20),
             onSelected: (value) async {
-              if (value == 'share') {
+              if (value == 'connections') {
+                context.push(
+                  '/connections?lens=circle&focus=buddy:${buddy.id}',
+                );
+              } else if (value == 'share') {
                 await _shareDivesWithBuddy(context, ref);
               } else if (value == 'delete') {
                 await _handleDelete(context, ref);
               }
             },
             itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'connections',
+                child: Row(
+                  children: [
+                    const Icon(Icons.hub_outlined),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        context.l10n.connections_action_openInConnections,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               PopupMenuItem(
                 value: 'share',
                 child: Row(
