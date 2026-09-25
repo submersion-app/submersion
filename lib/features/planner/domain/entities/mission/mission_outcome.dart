@@ -8,17 +8,34 @@ enum MissionIssueType {
   emptyRoute,
   scooterUnspecified,
   memberSacUnset,
+  memberSwimSpeedUnset,
   untraversableLeg,
   scenarioFailed,
 }
 
 enum MissionIssueSeverity { info, warning, blocking }
 
-/// How a team gets a diver with a dead scooter back to the start.
-enum MissionExitMode { swim, tow }
+/// A way out for a team whose member's scooter has died. In an overhead,
+/// [swim] and [tow] retrace the route; in open water they go straight home.
+/// [surface] is open water only: ascend in place, then swim at the surface.
+enum MissionExitMode { swim, tow, surface }
 
-/// The first thing that stops a member going further.
-enum MissionBindingFactor { battery, ownGas, noFeasibleTow, swimGas }
+/// The first thing that stops a member going further. The order is the
+/// tie-break priority when two members bind at the same waypoint.
+///
+/// [teamGas]: the member could get out, but a teammate's gas cannot cover
+/// the exit. [blockedByCurrent]: no exit can make headway. [noFeasibleTow]:
+/// only when the member has a teammate whose tow was possible but failed.
+/// [surfaceSwimLimit]: open water, the only way out is a surface swim longer
+/// than the mission's limit.
+enum MissionBindingFactor {
+  battery,
+  ownGas,
+  teamGas,
+  blockedByCurrent,
+  noFeasibleTow,
+  surfaceSwimLimit,
+}
 
 /// One issue found while computing a mission. Carries ids, not prose; the
 /// UI localises the message.
@@ -95,6 +112,23 @@ class ExitOutcome extends Equatable {
   /// beat at cruise can still stop a swim or a slow tow.
   final bool blockedByCurrent;
 
+  /// Surface exit only: seconds at the surface after the ascent, swimming
+  /// and, via a shore, walking.
+  final int surfaceSeconds;
+
+  /// Surface exit only: metres swum at the surface.
+  final double? surfaceSwimM;
+
+  /// Surface exit only: metres walked from the shore to the entry.
+  final double? walkM;
+
+  /// Surface exit only: whether it lands on the waypoint's shore exit
+  /// rather than swimming straight to the entry.
+  final bool viaShore;
+
+  /// Surface exit only: no surface route is within the mission's limit.
+  final bool surfaceLimitExceeded;
+
   const ExitOutcome({
     required this.mode,
     this.towerId,
@@ -105,9 +139,14 @@ class ExitOutcome extends Equatable {
     this.gasShortfallMemberIds = const {},
     this.batteryShortfallMemberIds = const {},
     this.blockedByCurrent = false,
+    this.surfaceSeconds = 0,
+    this.surfaceSwimM,
+    this.walkM,
+    this.viaShore = false,
+    this.surfaceLimitExceeded = false,
   });
 
-  int get exitSeconds => exitBottomSeconds + ttsSeconds;
+  int get exitSeconds => exitBottomSeconds + ttsSeconds + surfaceSeconds;
 
   @override
   List<Object?> get props => [
@@ -120,6 +159,11 @@ class ExitOutcome extends Equatable {
     gasShortfallMemberIds,
     batteryShortfallMemberIds,
     blockedByCurrent,
+    surfaceSeconds,
+    surfaceSwimM,
+    walkM,
+    viaShore,
+    surfaceLimitExceeded,
   ];
 }
 
@@ -132,8 +176,14 @@ class MemberWaypointOutcome extends Equatable {
   final double? gasRemainingBar;
   final ExitOutcome swim;
 
-  /// The best tow exit (feasible if any is), or null with no teammate.
+  /// The best tow exit (feasible if any is), or null when the member has no
+  /// teammate: a solo diver has no buddy to tow them.
   final ExitOutcome? tow;
+
+  /// Open water only: ascend in place and continue at the surface. Shared
+  /// by every member, because the ascent does not depend on whose scooter
+  /// failed. Null in an overhead, or when the scenario could not be run.
+  final ExitOutcome? surface;
   final bool survivable;
 
   const MemberWaypointOutcome({
@@ -141,11 +191,19 @@ class MemberWaypointOutcome extends Equatable {
     required this.gasRemainingBar,
     required this.swim,
     this.tow,
+    this.surface,
     required this.survivable,
   });
 
   @override
-  List<Object?> get props => [memberId, gasRemainingBar, swim, tow, survivable];
+  List<Object?> get props => [
+    memberId,
+    gasRemainingBar,
+    swim,
+    tow,
+    surface,
+    survivable,
+  ];
 }
 
 /// One waypoint of the route with every member's failure evaluated there.

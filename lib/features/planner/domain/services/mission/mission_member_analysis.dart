@@ -76,7 +76,7 @@ class MissionMemberAnalysis {
         if (swimShort.contains(member.id)) {
           factor = MissionBindingFactor.ownGas;
         } else if (swimShort.isNotEmpty) {
-          factor = MissionBindingFactor.swimGas;
+          factor = MissionBindingFactor.teamGas;
         } else {
           factor = MissionBindingFactor.noFeasibleTow;
         }

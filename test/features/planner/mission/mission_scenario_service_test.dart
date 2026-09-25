@@ -182,7 +182,7 @@ void main() {
   });
 
   test('a generous tank and battery make both exits feasible', () {
-    for (final mode in MissionExitMode.values) {
+    for (final mode in [MissionExitMode.swim, MissionExitMode.tow]) {
       final exit = service.evaluate(
         plan: _plan(tankLiters: 40, startBar: 230),
         mission: _mission(),

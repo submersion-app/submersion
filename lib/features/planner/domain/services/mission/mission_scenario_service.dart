@@ -70,6 +70,11 @@ class MissionScenarioService {
         failedMemberId: failedMemberId,
         towerId: towerId!,
       ),
+      MissionExitMode.surface => throw ArgumentError.value(
+        mode,
+        'mode',
+        'the surface exit has its own evaluation',
+      ),
     };
     if (!_exitTraversable(mission, waypointIndex, exitSpeed)) {
       return ExitOutcome(
