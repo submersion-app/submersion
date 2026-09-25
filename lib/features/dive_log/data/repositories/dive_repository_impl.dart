@@ -40,6 +40,8 @@ import 'package:submersion/features/dive_log/domain/services/profile_series_merg
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/core/query/compiler/query_compiler.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
@@ -2162,7 +2164,8 @@ class DiveRepository {
           args.add(Variable(cursor.id));
         }
 
-        _buildFilterWhereClauses(filter, whereClauses, args);
+        final compiled = compileDiveFilter(filter, rootAlias: 'd');
+        _buildFilterWhereClauses(compiled, whereClauses, args);
 
         final whereClause = whereClauses.isNotEmpty
             ? 'WHERE ${whereClauses.join(' AND ')}'
@@ -2223,13 +2226,8 @@ class DiveRepository {
                 // Renaming a trip changes a header the list is showing.
                 _db.trips,
                 _db.diveSafetyFindings,
-                _db.diveProfileSeries,
-                _db.diveProfileEvents,
-                // The equipment-attribute filter (#1805) reads these.
-                _db.diveEquipment,
-                _db.diveTanks,
-                _db.equipment,
-                _db.equipmentAttributes,
+                // Whatever the filter joined (#2365).
+                ...tablesNamed(compiled.tablesTouched),
               },
             )
             .get();
@@ -2274,7 +2272,8 @@ class DiveRepository {
           args.add(Variable(diverId));
         }
 
-        _buildFilterWhereClauses(filter, whereClauses, args);
+        final compiled = compileDiveFilter(filter, rootAlias: 'd');
+        _buildFilterWhereClauses(compiled, whereClauses, args);
 
         final whereClause = whereClauses.isNotEmpty
             ? 'WHERE ${whereClauses.join(' AND ')}'
@@ -2298,13 +2297,7 @@ class DiveRepository {
               readsFrom: {
                 _db.dives,
                 _db.diveSites,
-                _db.diveProfileSeries,
-                _db.diveProfileEvents,
-                // The equipment-attribute filter (#1805) reads these.
-                _db.diveEquipment,
-                _db.diveTanks,
-                _db.equipment,
-                _db.equipmentAttributes,
+                ...tablesNamed(compiled.tablesTouched),
               },
             )
             .get();
@@ -2344,7 +2337,8 @@ class DiveRepository {
           args.add(Variable(diverId));
         }
 
-        _buildFilterWhereClauses(filter, whereClauses, args);
+        final compiled = compileDiveFilter(filter, rootAlias: 'd');
+        _buildFilterWhereClauses(compiled, whereClauses, args);
 
         final whereClause = whereClauses.isNotEmpty
             ? 'WHERE ${whereClauses.join(' AND ')}'
@@ -2354,16 +2348,7 @@ class DiveRepository {
             .customSelect(
               'SELECT COUNT(*) AS count FROM dives d $whereClause',
               variables: args,
-              readsFrom: {
-                _db.dives,
-                _db.diveProfileSeries,
-                _db.diveProfileEvents,
-                // The equipment-attribute filter (#1805) reads these.
-                _db.diveEquipment,
-                _db.diveTanks,
-                _db.equipment,
-                _db.equipmentAttributes,
-              },
+              readsFrom: {_db.dives, ...tablesNamed(compiled.tablesTouched)},
             )
             .getSingle();
         return result.read<int>('count');
@@ -2518,206 +2503,81 @@ class DiveRepository {
     }
   }
 
-  /// Translates each active filter field into parameterized SQL.
-  /// Junction-table filters (tags, equipment, buddies) use EXISTS subqueries.
+  /// Splices the filter, compiled once by the caller from
+  /// `DiveFilterState.toQuery()` (#2365), into the `d`-aliased WHERE list.
+  /// Every axis, old or typed, lives in the dive query registry; nothing is
+  /// hand-written here any more.
   // stats-scope-exempt: this IS the view filter; the scope is applied alongside it
   void _buildFilterWhereClauses(
-    DiveFilterState filter,
+    CompiledQuery compiled,
     List<String> clauses,
     List<Variable<Object>> args,
   ) {
-    // Bounds come pre-normalized to the wall-clock-as-UTC frame the column
-    // stores, so a locally-built filter date lands on the right day boundary
-    // whatever the device's UTC offset is (issue #1368). Half-open, matching
-    // buildFilteredDiveIdSubquery and DiveFilterState.apply.
-    final startBoundMs = filter.startDateBoundMs;
-    if (startBoundMs != null) {
-      clauses.add('d.dive_date_time >= ?');
-      args.add(Variable(startBoundMs));
-    }
-    final endBoundMs = filter.endDateBoundMs;
-    if (endBoundMs != null) {
-      clauses.add('d.dive_date_time < ?');
-      args.add(Variable(endBoundMs));
-    }
-    if (filter.diveTypeId != null) {
-      clauses.add(
-        'EXISTS (SELECT 1 FROM dive_dive_types ddt '
-        'WHERE ddt.dive_id = d.id AND ddt.dive_type_id = ?)',
-      );
-      args.add(Variable(filter.diveTypeId!));
-    }
-    if (filter.siteId != null) {
-      clauses.add('d.site_id = ?');
-      args.add(Variable(filter.siteId!));
-    }
-    if (filter.tripId != null) {
-      clauses.add('d.trip_id = ?');
-      args.add(Variable(filter.tripId!));
-    }
-    if (filter.diveCenterId != null) {
-      clauses.add('d.dive_center_id = ?');
-      args.add(Variable(filter.diveCenterId!));
-    }
-    if (filter.minDepth != null) {
-      clauses.add('d.max_depth >= ?');
-      args.add(Variable(filter.minDepth!));
-    }
-    if (filter.maxDepth != null) {
-      clauses.add('d.max_depth <= ?');
-      args.add(Variable(filter.maxDepth!));
-    }
-    if (filter.favoritesOnly == true) {
-      clauses.add('d.is_favorite = 1');
-    }
-    if (filter.excludedFromStatsOnly == true) {
-      clauses.add('d.excluded_from_stats = 1');
-    }
-    if (filter.decoOnly != null) {
-      clauses.add(
-        decoSignalCondition(wantDeco: filter.decoOnly!, diveIdRef: 'd.id'),
-      );
-    }
-    if (filter.noBuddyOnly == true) {
-      clauses.add(
-        "(d.buddy IS NULL OR d.buddy = '') AND "
-        'NOT EXISTS (SELECT 1 FROM dive_buddies db WHERE db.dive_id = d.id)',
-      );
-    }
-    if (filter.tagIds.isNotEmpty) {
-      final placeholders = List.filled(filter.tagIds.length, '?').join(', ');
-      clauses.add(
-        'EXISTS (SELECT 1 FROM dive_tags dt '
-        'WHERE dt.dive_id = d.id AND dt.tag_id IN ($placeholders))',
-      );
-      for (final tagId in filter.tagIds) {
-        args.add(Variable(tagId));
-      }
-    }
-    if (filter.weekdays.isNotEmpty) {
-      // d.dive_date_time is wall-clock-as-UTC epoch ms, so strftime('%w', ...)
-      // (0=Sunday..6=Saturday) already lines up with the wall-clock day.
-      // Converting DateTime.weekday (1=Monday..7=Sunday) via `% 7` matches
-      // that numbering, mirroring buildFilteredDiveIdSubquery.
-      final placeholders = List.filled(filter.weekdays.length, '?').join(', ');
-      clauses.add(
-        "CAST(strftime('%w', d.dive_date_time / 1000, 'unixepoch') AS INTEGER) "
-        'IN ($placeholders)',
-      );
-      for (final weekday in filter.weekdays) {
-        args.add(Variable(weekday % 7));
-      }
-    }
-    if (filter.equipmentIds.isNotEmpty) {
-      final placeholders = List.filled(
-        filter.equipmentIds.length,
-        '?',
-      ).join(', ');
-      // Directly linked, or through a tank the registry matched to a
-      // cylinder, in step with the statistics filter and apply().
-      clauses.add(
-        '(EXISTS (SELECT 1 FROM dive_equipment de '
-        'WHERE de.dive_id = d.id AND de.equipment_id IN ($placeholders)) '
-        'OR EXISTS (SELECT 1 FROM dive_tanks dt '
-        'WHERE dt.dive_id = d.id AND dt.equipment_id IN ($placeholders)))',
-      );
-      for (var pass = 0; pass < 2; pass++) {
-        for (final eqId in filter.equipmentIds) {
-          args.add(Variable(eqId));
-        }
-      }
-    }
-    // Equipment attributes: the same EXISTS Statistics uses, one per
-    // condition. Missing until #1805, so the list and its count ignored the
-    // Suit thickness filter that the table view and Statistics applied.
-    for (final condition in filter.equipmentAttrConditions) {
-      final c = equipmentAttrConditionSql(condition, diveIdRef: 'd.id');
-      clauses.add(c.sql);
-      args.addAll(c.params.map((p) => Variable<Object>(p)));
-    }
-    if (filter.buddyNameFilter != null && filter.buddyNameFilter!.isNotEmpty) {
-      // The dive editor writes buddies only to the dive_buddies junction;
-      // d.buddy is a legacy text column kept for old data (#757).
-      final names = filter.buddyNameFilter!
-          .split(',')
-          .map((s) => s.trim())
-          .where((s) => s.isNotEmpty)
-          .toList();
+    if (compiled.isEmpty) return;
+    clauses.add(compiled.where);
+    args.addAll(compiled.params.map((p) => Variable<Object>(p as Object)));
+  }
 
-      for (final name in names) {
-        clauses.add(
-          '(LOWER(d.buddy) LIKE LOWER(?) OR '
-          'EXISTS (SELECT 1 FROM dive_buddies db '
-          'JOIN buddies b ON db.buddy_id = b.id '
-          'WHERE db.dive_id = d.id AND LOWER(b.name) LIKE LOWER(?)))',
-        );
-        args.add(Variable('%$name%'));
-        args.add(Variable('%$name%'));
-      }
-    }
-    if (filter.buddyId != null) {
-      clauses.add(
-        'EXISTS (SELECT 1 FROM dive_buddies db '
-        'WHERE db.dive_id = d.id AND db.buddy_id = ?)',
+  /// The ids of every dive [filter] keeps, for the entity-backed views
+  /// (table, maps, export) that hold hydrated dives and narrow them by id.
+  // stats-scope-exempt: backs a view-filter axis; consumers apply the scope themselves
+  Future<Set<String>> getDiveIdsMatching(
+    DiveFilterState filter, {
+    String? diverId,
+  }) async {
+    try {
+      return await PerfTimer.measure('getDiveIdsMatching', () async {
+        final compiled = compileDiveFilter(filter, rootAlias: 'd');
+        final clauses = <String>[
+          if (diverId != null) 'd.diver_id = ?',
+          if (!compiled.isEmpty) compiled.where,
+        ];
+        final args = <Variable<Object>>[
+          if (diverId != null) Variable(diverId),
+          ...compiled.params.map((p) => Variable<Object>(p as Object)),
+        ];
+        final where = clauses.isEmpty ? '' : 'WHERE ${clauses.join(' AND ')}';
+        final rows = await _db
+            .customSelect(
+              'SELECT d.id AS id FROM dives d $where',
+              variables: args,
+              readsFrom: tablesNamed(compiled.tablesTouched),
+            )
+            .get();
+        return rows.map((r) => r.read<String>('id')).toSet();
+      });
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to resolve query-filtered dive ids',
+        error: e,
+        stackTrace: stackTrace,
       );
-      args.add(Variable(filter.buddyId!));
+      rethrow;
     }
-    if (filter.diveIds.isNotEmpty) {
-      final placeholders = List.filled(filter.diveIds.length, '?').join(', ');
-      clauses.add('d.id IN ($placeholders)');
-      for (final diveId in filter.diveIds) {
-        args.add(Variable(diveId));
-      }
-    }
-    if (filter.computerId != null) {
-      clauses.add('d.computer_id = ?');
-      args.add(Variable(filter.computerId!));
-    }
-    if (filter.minO2Percent != null || filter.maxO2Percent != null) {
-      final tankClauses = <String>[];
-      if (filter.minO2Percent != null) {
-        tankClauses.add('t.o2_percent >= ?');
-        args.add(Variable(filter.minO2Percent!));
-      }
-      if (filter.maxO2Percent != null) {
-        tankClauses.add('t.o2_percent <= ?');
-        args.add(Variable(filter.maxO2Percent!));
-      }
-      clauses.add(
-        'EXISTS (SELECT 1 FROM dive_tanks t '
-        'WHERE t.dive_id = d.id AND ${tankClauses.join(' AND ')})',
-      );
-    }
-    if (filter.minRating != null) {
-      clauses.add('d.rating >= ?');
-      args.add(Variable(filter.minRating!));
-    }
-    if (filter.minBottomTimeMinutes != null) {
-      clauses.add('d.bottom_time >= ?');
-      args.add(Variable(filter.minBottomTimeMinutes! * 60));
-    }
-    if (filter.maxBottomTimeMinutes != null) {
-      clauses.add('d.bottom_time <= ?');
-      args.add(Variable(filter.maxBottomTimeMinutes! * 60));
-    }
-    if (filter.customFieldKey != null && filter.customFieldKey!.isNotEmpty) {
-      if (filter.customFieldValue != null &&
-          filter.customFieldValue!.isNotEmpty) {
-        clauses.add(
-          'EXISTS (SELECT 1 FROM dive_custom_fields cf '
-          'WHERE cf.dive_id = d.id AND cf.field_key = ? '
-          'AND cf.field_value LIKE ?)',
-        );
-        args.add(Variable(filter.customFieldKey!));
-        args.add(Variable('%${filter.customFieldValue}%'));
-      } else {
-        clauses.add(
-          'EXISTS (SELECT 1 FROM dive_custom_fields cf '
-          'WHERE cf.dive_id = d.id AND cf.field_key = ?)',
-        );
-        args.add(Variable(filter.customFieldKey!));
-      }
-    }
+  }
+
+  /// Drift tables by their SQL names, for `readsFrom` and [watchTables].
+  Set<TableInfo> tablesNamed(Set<String> names) => {
+    for (final n in names)
+      _db.allTables.firstWhere(
+        (t) => t.actualTableName == n,
+        orElse: () => throw ArgumentError.value(n, 'names', 'unknown table'),
+      ),
+  };
+
+  /// A debounced change tick over exactly [tableNames]: the tables a
+  /// compiled query read (`CompiledQuery.tablesTouched`), so a list follows
+  /// every table its filter joins and no other. Replaces the hand-kept
+  /// per-axis ticks (#1915, #1817).
+  Stream<void> watchTables(Set<String> tableNames) {
+    final tables = tablesNamed(tableNames);
+    return _db
+        .tableUpdates(
+          TableUpdateQuery.allOf([
+            for (final t in tables) TableUpdateQuery.onTable(t),
+          ]),
+        )
+        .debounce(changeTickDebounce);
   }
 
   // ============================================================================
