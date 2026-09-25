@@ -14169,7 +14169,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_density_depth => 'العمق';
 
   @override
-  String get gasCalculators_density_mode => 'وضع التنفس';
+  String get gasCalculators_density_mode => 'الوضع';
 
   @override
   String get gasCalculators_density_modeOc => 'OC';

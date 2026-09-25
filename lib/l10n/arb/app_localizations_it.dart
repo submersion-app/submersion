@@ -14414,7 +14414,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get gasCalculators_density_depth => 'Profondità';
 
   @override
-  String get gasCalculators_density_mode => 'Modalità di respirazione';
+  String get gasCalculators_density_mode => 'Modalità';
 
   @override
   String get gasCalculators_density_modeOc => 'OC';

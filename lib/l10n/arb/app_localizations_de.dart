@@ -14393,7 +14393,7 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_density_depth => 'Tiefe';
 
   @override
-  String get gasCalculators_density_mode => 'Atemsystem';
+  String get gasCalculators_density_mode => 'Modus';
 
   @override
   String get gasCalculators_density_modeOc => 'OC';

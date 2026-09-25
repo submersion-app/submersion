@@ -13718,7 +13718,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_density_depth => '深度';
 
   @override
-  String get gasCalculators_density_mode => '呼吸模式';
+  String get gasCalculators_density_mode => '模式';
 
   @override
   String get gasCalculators_density_modeOc => 'OC';

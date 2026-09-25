@@ -4443,7 +4443,7 @@
   "gasCalculators_density_o2Percent": "O2 %",
   "gasCalculators_density_hePercent": "He %",
   "gasCalculators_density_depth": "Profundidad",
-  "gasCalculators_density_mode": "Modo de respiración",
+  "gasCalculators_density_mode": "Modo",
   "gasCalculators_density_modeOc": "OC",
   "gasCalculators_density_modeCcr": "CCR",
   "gasCalculators_density_setpoint": "Setpoint (bar)",

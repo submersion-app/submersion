@@ -23755,7 +23755,7 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_density_mode.
   ///
   /// In en, this message translates to:
-  /// **'Breathing mode'**
+  /// **'Mode'**
   String get gasCalculators_density_mode;
 
   /// No description provided for @gasCalculators_density_modeOc.

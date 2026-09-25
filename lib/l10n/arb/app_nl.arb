@@ -4443,7 +4443,7 @@
   "gasCalculators_density_o2Percent": "O2 %",
   "gasCalculators_density_hePercent": "He %",
   "gasCalculators_density_depth": "Diepte",
-  "gasCalculators_density_mode": "Ademsysteem",
+  "gasCalculators_density_mode": "Modus",
   "gasCalculators_density_modeOc": "OC",
   "gasCalculators_density_modeCcr": "CCR",
   "gasCalculators_density_setpoint": "Setpoint (bar)",

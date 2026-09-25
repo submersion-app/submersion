@@ -14368,7 +14368,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_density_depth => 'Mélység';
 
   @override
-  String get gasCalculators_density_mode => 'Légzési mód';
+  String get gasCalculators_density_mode => 'Mód';
 
   @override
   String get gasCalculators_density_modeOc => 'OC';
