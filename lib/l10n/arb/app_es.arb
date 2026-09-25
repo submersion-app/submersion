@@ -12339,7 +12339,7 @@
   "diveLab_pdf_branch": "Ramificación",
   "diveLab_pdf_mode": "Modo",
   "diveLab_pdf_interventions": "Intervenciones",
-  "diveLab_pdf_settings": "Ajustes: GF {gfLow}/{gfHigh}, Bühlmann ZH-L16C, gas {gasModel}",
+  "diveLab_pdf_settings": "Ajustes: GF {gfLow}/{gfHigh}, Buhlmann ZH-L16C, gas {gasModel}",
   "diveLab_pdf_generated": "Generado por Submersion",
   "diveLab_sublab_notes": "Compartido mediante un archivo de escenario del laboratorio de buceo",
   "statistics_trend_aggregation_monthly": "Media mensual",

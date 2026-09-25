@@ -41352,7 +41352,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String diveLab_pdf_settings(int gfLow, int gfHigh, String gasModel) {
-    return 'Ajustes: GF $gfLow/$gfHigh, Bühlmann ZH-L16C, gas $gasModel';
+    return 'Ajustes: GF $gfLow/$gfHigh, Buhlmann ZH-L16C, gas $gasModel';
   }
 
   @override

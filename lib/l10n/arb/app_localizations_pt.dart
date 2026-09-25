@@ -19,7 +19,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get diveLab_handoff_note_lostTankKept =>
-      'A garrafa perdida continua listada porque foi respirada antes da ramificação; remove-a no planeador se necessário.';
+      'A garrafa perdida permanece listada porque foi respirada antes da ramificação; remove-a no planeador se necessário.';
 
   @override
   String get diveLab_handoff_note_replay =>
@@ -41319,7 +41319,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String diveLab_pdf_settings(int gfLow, int gfHigh, String gasModel) {
-    return 'Definições: GF $gfLow/$gfHigh, Bühlmann ZH-L16C, gás $gasModel';
+    return 'Definições: GF $gfLow/$gfHigh, Buhlmann ZH-L16C, gás $gasModel';
   }
 
   @override
