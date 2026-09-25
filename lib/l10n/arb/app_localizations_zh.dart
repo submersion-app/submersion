@@ -22634,6 +22634,56 @@ class AppLocalizationsZh extends AppLocalizations {
       '这些潜水引用了文件中没有描述的潜水点，因此导入时没有潜水点。您可以通过编辑潜水来设置潜水点。';
 
   @override
+  String get universalImport_summary_noticeGearUnavailableTitle =>
+      'Gear not imported';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableBody =>
+      'The gear list could not be fetched, so no gear was imported and dives were not linked to their gear. Import again later to add it.';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
+      'Certifications not imported';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableBody =>
+      'The certification list could not be fetched, so no certifications were imported. Import again later to add them.';
+
+  @override
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
+      'Some photos not listed';
+
+  @override
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Photos for $count dives could not be listed, so they were not imported.',
+      one:
+          'Photos for $count dive could not be listed, so they were not imported.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
+      'Some photos not downloaded';
+
+  @override
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count photos could not be downloaded. Import again to retry; photos already saved are not duplicated.',
+      one:
+          '$count photo could not be downloaded. Import again to retry; photos already saved are not duplicated.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       '文件中没有证书和维护记录';
 

@@ -14574,6 +14574,28 @@
   },
   "universalImport_summary_noticeSitesUnresolvedTitle": "Some dives have no dive site",
   "universalImport_summary_noticeSitesUnresolvedBody": "These dives referred to a dive site the file does not describe, so they were imported without one. You can set a site by editing the dive.",
+  "universalImport_summary_noticeGearUnavailableTitle": "Gear not imported",
+  "universalImport_summary_noticeGearUnavailableBody": "The gear list could not be fetched, so no gear was imported and dives were not linked to their gear. Import again later to add it.",
+  "universalImport_summary_noticeCertificationsUnavailableTitle": "Certifications not imported",
+  "universalImport_summary_noticeCertificationsUnavailableBody": "The certification list could not be fetched, so no certifications were imported. Import again later to add them.",
+  "universalImport_summary_noticePhotoListingsUnavailableTitle": "Some photos not listed",
+  "universalImport_summary_noticePhotoListingsUnavailableBody": "{count, plural, one{Photos for {count} dive could not be listed, so they were not imported.} other{Photos for {count} dives could not be listed, so they were not imported.}}",
+  "@universalImport_summary_noticePhotoListingsUnavailableBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "universalImport_summary_noticePhotosNotDownloadedTitle": "Some photos not downloaded",
+  "universalImport_summary_noticePhotosNotDownloadedBody": "{count, plural, one{{count} photo could not be downloaded. Import again to retry; photos already saved are not duplicated.} other{{count} photos could not be downloaded. Import again to retry; photos already saved are not duplicated.}}",
+  "@universalImport_summary_noticePhotosNotDownloadedBody": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "universalImport_summary_noticeMacdiveXmlCertsTitle": "Certifications and service records not in the file",
   "universalImport_summary_noticeMacdiveXmlCertsBody": "MacDive leaves certifications and equipment service records out of its XML export. To bring them in, import your MacDive.sqlite database.",
   "universalImport_summary_noticeMacdiveLogbooksTitle": "MacDive logbooks not imported",

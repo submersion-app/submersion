@@ -38276,6 +38276,54 @@ abstract class AppLocalizations {
   /// **'These dives referred to a dive site the file does not describe, so they were imported without one. You can set a site by editing the dive.'**
   String get universalImport_summary_noticeSitesUnresolvedBody;
 
+  /// No description provided for @universalImport_summary_noticeGearUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear not imported'**
+  String get universalImport_summary_noticeGearUnavailableTitle;
+
+  /// No description provided for @universalImport_summary_noticeGearUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The gear list could not be fetched, so no gear was imported and dives were not linked to their gear. Import again later to add it.'**
+  String get universalImport_summary_noticeGearUnavailableBody;
+
+  /// No description provided for @universalImport_summary_noticeCertificationsUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications not imported'**
+  String get universalImport_summary_noticeCertificationsUnavailableTitle;
+
+  /// No description provided for @universalImport_summary_noticeCertificationsUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The certification list could not be fetched, so no certifications were imported. Import again later to add them.'**
+  String get universalImport_summary_noticeCertificationsUnavailableBody;
+
+  /// No description provided for @universalImport_summary_noticePhotoListingsUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some photos not listed'**
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle;
+
+  /// No description provided for @universalImport_summary_noticePhotoListingsUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Photos for {count} dive could not be listed, so they were not imported.} other{Photos for {count} dives could not be listed, so they were not imported.}}'**
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count);
+
+  /// No description provided for @universalImport_summary_noticePhotosNotDownloadedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some photos not downloaded'**
+  String get universalImport_summary_noticePhotosNotDownloadedTitle;
+
+  /// No description provided for @universalImport_summary_noticePhotosNotDownloadedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} photo could not be downloaded. Import again to retry; photos already saved are not duplicated.} other{{count} photos could not be downloaded. Import again to retry; photos already saved are not duplicated.}}'**
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count);
+
   /// No description provided for @universalImport_summary_noticeMacdiveXmlCertsTitle.
   ///
   /// In en, this message translates to:

@@ -78,6 +78,17 @@ enum ImportWarningCode {
   /// were imported without one. [ImportWarning.count] is the number of dives.
   sitesUnresolved,
 
+  /// A remote source's gear list could not be fetched, so no gear was
+  /// imported and dives carry no gear links.
+  gearUnavailable,
+
+  /// A remote source's certification list could not be fetched.
+  certificationsUnavailable,
+
+  /// A remote source could not list the photos of some dives.
+  /// [ImportWarning.count] is the number of dives.
+  photoListingsUnavailable,
+
   /// Recorded for logs and tests only; deliberately never shown to the diver.
   diagnostic,
 }

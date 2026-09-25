@@ -23572,6 +23572,56 @@ class AppLocalizationsAr extends AppLocalizations {
       'أشارت هذه الغطسات إلى موقع غوص لا يصفه الملف، فاستُوردت بدون موقع. يمكنك تعيين موقع بتحرير الغطسة.';
 
   @override
+  String get universalImport_summary_noticeGearUnavailableTitle =>
+      'Gear not imported';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableBody =>
+      'The gear list could not be fetched, so no gear was imported and dives were not linked to their gear. Import again later to add it.';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
+      'Certifications not imported';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableBody =>
+      'The certification list could not be fetched, so no certifications were imported. Import again later to add them.';
+
+  @override
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
+      'Some photos not listed';
+
+  @override
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Photos for $count dives could not be listed, so they were not imported.',
+      one:
+          'Photos for $count dive could not be listed, so they were not imported.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
+      'Some photos not downloaded';
+
+  @override
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count photos could not be downloaded. Import again to retry; photos already saved are not duplicated.',
+      one:
+          '$count photo could not be downloaded. Import again to retry; photos already saved are not duplicated.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
       'الشهادات وسجلات الصيانة غير موجودة في الملف';
 
