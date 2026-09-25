@@ -15058,7 +15058,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get media_unavailablePlaceholder_notOnDevice => '不在此设备上';
 
   @override
-  String get media_unavailablePlaceholder_signInRequired => 'Sign in to view';
+  String get media_unavailablePlaceholder_signInRequired => '登录后查看';
 
   @override
   String get media_writeMetadata_cancelButton => '取消';
@@ -17238,7 +17238,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_cloudSync_selectProviderHint => '选择一个云服务提供商以启用同步';
 
   @override
-  String get settings_cloudSync_signOut => '签名出';
+  String get settings_cloudSync_signOut => '退出登录';
 
   @override
   String get settings_cloudSync_signOutDialog_cancel => '取消';
@@ -17248,10 +17248,10 @@ class AppLocalizationsZh extends AppLocalizations {
       '这将断开与云服务提供商的连接。您的本地数据将保持不变。';
 
   @override
-  String get settings_cloudSync_signOutDialog_signOut => '签名出';
+  String get settings_cloudSync_signOutDialog_signOut => '退出登录';
 
   @override
-  String get settings_cloudSync_signOutDialog_title => '签名出?';
+  String get settings_cloudSync_signOutDialog_title => '退出登录？';
 
   @override
   String get settings_cloudSync_signOutSuccess => '已退出云服务提供商';
