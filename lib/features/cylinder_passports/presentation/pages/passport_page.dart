@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/print_passport_labels.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_current_fill_card.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_fill_history_card.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_o2_warning_banner.dart';
@@ -82,7 +83,8 @@ class _PassportPageState extends ConsumerState<PassportPage> {
                 PassportTagCard(
                   equipment: equipment,
                   scannedTag: widget.scannedTag,
-                  // Task 15 wires onPrintLabel.
+                  onPrintLabel: () =>
+                      printPassportLabels(context, ref, [equipment.id]),
                 ),
               ],
             ),

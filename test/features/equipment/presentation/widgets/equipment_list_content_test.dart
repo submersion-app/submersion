@@ -374,6 +374,44 @@ void main() {
       expect(entry, findsOneWidget);
       expect(tester.widget<PopupMenuItem<String>>(entry).enabled, isTrue);
     });
+
+    // Issue #2334: printing passport labels is a cylinder-only action.
+    Future<PopupMenuItem<String>> printEntry(
+      WidgetTester tester,
+      List<EquipmentItem> items,
+    ) async {
+      await tester.pumpWidget(await host(items));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      final entry = find.byKey(const ValueKey('selection_menu_printLabels'));
+      expect(entry, findsOneWidget);
+      return tester.widget<PopupMenuItem<String>>(entry);
+    }
+
+    testWidgets('print labels is offered for a cylinders-only selection', (
+      tester,
+    ) async {
+      final entry = await printEntry(tester, const [
+        EquipmentItem(id: 't1', name: 'Faber 12', type: EquipmentType.tank),
+        EquipmentItem(id: 't2', name: 'AL80', type: EquipmentType.tank),
+      ]);
+      expect(entry.enabled, isTrue);
+    });
+
+    testWidgets('print labels is refused when a non-cylinder is checked', (
+      tester,
+    ) async {
+      final entry = await printEntry(tester, const [
+        EquipmentItem(id: 't1', name: 'Faber 12', type: EquipmentType.tank),
+        EquipmentItem(id: 'r1', name: 'Apeks', type: EquipmentType.regulator),
+      ]);
+      expect(entry.enabled, isFalse);
+    });
   });
 
   group('selection contract', () {
