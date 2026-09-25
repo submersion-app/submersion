@@ -40532,6 +40532,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'ייבוא צלילות מחשבון Garmin Connect שלך';
 
   @override
+  String get transfer_importCloud_divelogsTitle => 'divelogs.de';
+
+  @override
+  String get transfer_importCloud_divelogsSubtitle =>
+      'Import your logbook, sites, gear, certifications and photos from divelogs.de';
+
+  @override
   String get transfer_section_cloudTitle => 'ענן';
 
   @override

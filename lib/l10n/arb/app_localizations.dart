@@ -66250,6 +66250,18 @@ abstract class AppLocalizations {
   /// **'Import dives from your Garmin Connect account'**
   String get transfer_importCloud_garminSubtitle;
 
+  /// No description provided for @transfer_importCloud_divelogsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'divelogs.de'**
+  String get transfer_importCloud_divelogsTitle;
+
+  /// No description provided for @transfer_importCloud_divelogsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import your logbook, sites, gear, certifications and photos from divelogs.de'**
+  String get transfer_importCloud_divelogsSubtitle;
+
   /// No description provided for @transfer_section_cloudTitle.
   ///
   /// In en, this message translates to:

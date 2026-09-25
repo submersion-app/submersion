@@ -41399,6 +41399,13 @@ class AppLocalizationsEs extends AppLocalizations {
       'Importa inmersiones desde tu cuenta de Garmin Connect';
 
   @override
+  String get transfer_importCloud_divelogsTitle => 'divelogs.de';
+
+  @override
+  String get transfer_importCloud_divelogsSubtitle =>
+      'Import your logbook, sites, gear, certifications and photos from divelogs.de';
+
+  @override
   String get transfer_section_cloudTitle => 'Nube';
 
   @override

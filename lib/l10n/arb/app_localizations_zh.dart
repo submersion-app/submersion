@@ -38943,6 +38943,13 @@ class AppLocalizationsZh extends AppLocalizations {
       '从您的 Garmin Connect 账户导入潜水记录';
 
   @override
+  String get transfer_importCloud_divelogsTitle => 'divelogs.de';
+
+  @override
+  String get transfer_importCloud_divelogsSubtitle =>
+      'Import your logbook, sites, gear, certifications and photos from divelogs.de';
+
+  @override
   String get transfer_section_cloudTitle => '云端';
 
   @override
