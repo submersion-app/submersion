@@ -292,12 +292,13 @@ class QueryParser {
     }
     if (_isKeyword(opTok, 'between')) {
       _requireOp(field, QueryOp.between, opTok);
-      final a = _value(field, QueryOp.between);
+      final isDate = field.type == FieldType.date;
+      final a = isDate ? _singleDay() : _value(field, QueryOp.between);
       if (!_isKeyword(_peek, 'and')) {
         throw _Abort(_err('expected "and"', _peek));
       }
       _next();
-      final b = _value(field, QueryOp.between);
+      final b = isDate ? _singleDay() : _value(field, QueryOp.between);
       return ConditionNode(path, QueryOp.between, ListValue([a, b]));
     }
     final op = switch (opTok.text) {
@@ -389,6 +390,20 @@ class QueryParser {
       );
     }
     return ref;
+  }
+
+  /// One side of `date between a and b`: a single calendar day.
+  DateValue _singleDay() {
+    final t = _next();
+    if (t.kind == TokenKind.end || t.kind == TokenKind.symbol) {
+      throw _Abort(_err('expected a date', t));
+    }
+    final range = parseDateText(t.text, now: context.now);
+    final start = range?.start;
+    if (range == null || start == null || range.end != start) {
+      throw _Abort(_err('"${t.text}" is not a single day', t));
+    }
+    return DateValue(start);
   }
 
   /// A date value is one token; a range collapses to `inList` and an

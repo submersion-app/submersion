@@ -219,6 +219,21 @@ void main() {
       ),
     );
     expect(
+      ok(metric(), 'date between 2025-03-14 and 2025-03-15'),
+      ConditionNode(
+        const FieldPath(['date']),
+        QueryOp.between,
+        ListValue([
+          DateValue(DateTime(2025, 3, 14)),
+          DateValue(DateTime(2025, 3, 15)),
+        ]),
+      ),
+    );
+    expect(
+      bad(metric(), 'date between 2025 and 2026').error.message,
+      contains('single day'),
+    );
+    expect(
       ok(metric(), 'date in "since 2024"'),
       ConditionNode(
         const FieldPath(['date']),

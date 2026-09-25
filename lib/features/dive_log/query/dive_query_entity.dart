@@ -116,9 +116,12 @@ QueryRelation _junction(
   aliases: aliases,
   target: target,
   shape: RelationShape.junction,
+  // `IN (subquery)` rather than a nested EXISTS: SQLite then probes the
+  // target by its primary key instead of scanning it and testing the
+  // junction per row (the EXPLAIN QUERY PLAN test pins this).
   joinSql:
-      'EXISTS (SELECT 1 FROM $junction j WHERE j.dive_id = {from}.id '
-      'AND j.$targetColumn = {to}.id)',
+      '{to}.id IN (SELECT j.$targetColumn FROM $junction j '
+      'WHERE j.dive_id = {from}.id)',
   isMany: true,
   labelKey: _label(key),
   emptySql: emptySql,
