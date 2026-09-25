@@ -49678,6 +49678,12 @@ abstract class AppLocalizations {
   /// **'under {max} {unit}'**
   String visibility_range_under(String max, String unit);
 
+  /// No description provided for @visibility_range_atLeast.
+  ///
+  /// In en, this message translates to:
+  /// **'{min} {unit}+'**
+  String visibility_range_atLeast(String min, String unit);
+
   /// No description provided for @settings_coordinateFormat_title.
   ///
   /// In en, this message translates to:
@@ -49741,8 +49747,14 @@ abstract class AppLocalizations {
   /// No description provided for @settings_visibilityScale_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Which distances count as good visibility where you dive'**
+  /// **'How dive details and statistics describe the visibility you measured'**
   String get settings_visibilityScale_subtitle;
+
+  /// No description provided for @settings_visibilityScale_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which measured distances count as Excellent, Good, Moderate or Poor in dive details and statistics. Changing this relabels your dives; it never changes the distances you logged.'**
+  String get settings_visibilityScale_intro;
 
   /// No description provided for @settings_visibilityScale_preset_tropical.
   ///
@@ -49791,6 +49803,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Each value must be smaller than the one above it, and greater than zero'**
   String get settings_visibilityScale_invalidOrder;
+
+  /// No description provided for @settings_visibilityScale_bandRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{band} {range}'**
+  String settings_visibilityScale_bandRange(String band, String range);
+
+  /// No description provided for @settings_visibilityScale_customUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your own distances'**
+  String get settings_visibilityScale_customUnset;
+
+  /// No description provided for @settings_visibilityScale_customHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the shortest distance that still counts for each label.'**
+  String get settings_visibilityScale_customHelp;
 
   /// No description provided for @statistics_conditions_visibility_legacySuffix.
   ///

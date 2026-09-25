@@ -29456,6 +29456,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return '$min $unit 及以上';
+  }
+
+  @override
   String get settings_coordinateFormat_title => '坐标格式';
 
   @override
@@ -29487,7 +29492,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_visibilityScale_title => '能见度标准';
 
   @override
-  String get settings_visibilityScale_subtitle => '在你潜水的水域，多远算是良好能见度';
+  String get settings_visibilityScale_subtitle => '潜水详情和统计中如何描述你测得的能见度';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      '选择在潜水详情和统计中，多远的实测距离算作极佳、良好、一般或较差。更改此设置只会重新标注你的潜水，绝不会改动你记录的距离。';
 
   @override
   String get settings_visibilityScale_preset_tropical => '热带';
@@ -29512,6 +29521,17 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_invalidOrder => '每个数值必须小于上一个，且大于零';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset => '设置你自己的距离';
+
+  @override
+  String get settings_visibilityScale_customHelp => '为每个等级输入仍可计入该等级的最短距离。';
 
   @override
   String statistics_conditions_visibility_legacySuffix(String band) {

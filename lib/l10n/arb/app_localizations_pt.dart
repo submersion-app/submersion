@@ -31077,6 +31077,11 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return '$min $unit ou mais';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'Formato das coordenadas';
 
   @override
@@ -31112,7 +31117,11 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'Que distâncias contam como boa visibilidade onde mergulha';
+      'Como os detalhes do mergulho e as estatísticas descrevem a visibilidade que mediu';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'Escolha que distâncias medidas contam como Excelente, Boa, Moderada ou Fraca nos detalhes do mergulho e nas estatísticas. Alterar isto apenas reclassifica os seus mergulhos; nunca altera as distâncias registadas.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'Tropical';
@@ -31140,6 +31149,19 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get settings_visibilityScale_invalidOrder =>
       'Cada valor deve ser menor que o acima e maior que zero';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset =>
+      'Defina as suas próprias distâncias';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'Introduza a distância mais curta que ainda conta para cada nível.';
 
   @override
   String statistics_conditions_visibility_legacySuffix(String band) {

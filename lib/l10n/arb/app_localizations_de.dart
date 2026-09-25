@@ -31020,6 +31020,11 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return 'ab $min $unit';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'Koordinatenformat';
 
   @override
@@ -31055,7 +31060,11 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'Welche Entfernungen an deinen Tauchplätzen als gute Sicht gelten';
+      'Wie Tauchgangsdetails und Statistiken deine gemessene Sichtweite beschreiben';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'Lege fest, welche gemessenen Entfernungen in Tauchgangsdetails und Statistiken als Ausgezeichnet, Gut, Mäßig oder Schlecht gelten. Eine Änderung benennt deine Tauchgänge nur neu; die erfassten Entfernungen bleiben unverändert.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'Tropisch';
@@ -31082,6 +31091,19 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get settings_visibilityScale_invalidOrder =>
       'Jeder Wert muss kleiner als der darüber und größer als null sein';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset =>
+      'Eigene Entfernungen festlegen';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'Gib für jede Stufe die kürzeste Entfernung ein, die noch dazu zählt.';
 
   @override
   String statistics_conditions_visibility_legacySuffix(String band) {

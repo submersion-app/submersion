@@ -30854,6 +30854,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return 'vanaf $min $unit';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'Coördinaatformaat';
 
   @override
@@ -30889,7 +30894,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'Welke afstanden gelden als goed zicht waar jij duikt';
+      'Hoe duikdetails en statistieken het zicht beschrijven dat je hebt gemeten';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'Kies welke gemeten afstanden gelden als Uitstekend, Goed, Matig of Slecht in duikdetails en statistieken. Een wijziging geeft je duiken alleen een ander label; de gelogde afstanden blijven altijd ongewijzigd.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'Tropisch';
@@ -30916,6 +30925,19 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_visibilityScale_invalidOrder =>
       'Elke waarde moet kleiner zijn dan die erboven en groter dan nul';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset =>
+      'Stel je eigen afstanden in';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'Voer per niveau de kortste afstand in die nog meetelt.';
 
   @override
   String statistics_conditions_visibility_legacySuffix(String band) {

@@ -30582,6 +30582,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return '$min $unit+';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'Coordinate format';
 
   @override
@@ -30617,7 +30622,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'Which distances count as good visibility where you dive';
+      'How dive details and statistics describe the visibility you measured';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'Choose which measured distances count as Excellent, Good, Moderate or Poor in dive details and statistics. Changing this relabels your dives; it never changes the distances you logged.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'Tropical';
@@ -30644,6 +30653,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settings_visibilityScale_invalidOrder =>
       'Each value must be smaller than the one above it, and greater than zero';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset => 'Set your own distances';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'Enter the shortest distance that still counts for each label.';
 
   @override
   String statistics_conditions_visibility_legacySuffix(String band) {

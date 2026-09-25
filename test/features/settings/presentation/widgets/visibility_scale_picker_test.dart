@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -47,21 +48,73 @@ void main() {
     home: Scaffold(body: SingleChildScrollView(child: child)),
   );
 
-  group('visibilityScaleBoundsLabel', () {
-    test('renders the three thresholds in metric', () {
+  group('visibilityScaleBandLabels', () {
+    final l10n = lookupAppLocalizations(const Locale('en'));
+
+    test('names every band with its range in metric', () {
       expect(
-        visibilityScaleBoundsLabel(VisibilityScale.coldWater, metric),
-        '12 / 6 / 2m',
+        visibilityScaleBandLabels(VisibilityScale.tropical, l10n, metric),
+        [
+          'Excellent 30 m+',
+          'Good 15-30 m',
+          'Moderate 5-15 m',
+          'Poor under 5 m',
+        ],
       );
     });
 
     test('converts to the diver depth unit', () {
-      final label = visibilityScaleBoundsLabel(
-        VisibilityScale.coldWater,
-        imperial,
+      // 12 m, 6 m and 2 m are about 39, 20 and 7 ft.
+      expect(
+        visibilityScaleBandLabels(VisibilityScale.coldWater, l10n, imperial),
+        [
+          'Excellent 39 ft+',
+          'Good 20-39 ft',
+          'Moderate 7-20 ft',
+          'Poor under 7 ft',
+        ],
       );
-      expect(label, endsWith('ft'));
-      expect(label, contains('39'));
+    });
+  });
+
+  group('retainedCustomVisibilityScale', () {
+    test('is null until the diver has saved custom thresholds', () {
+      expect(retainedCustomVisibilityScale(const AppSettings()), isNull);
+    });
+
+    test(
+      'returns the saved thresholds even while a named preset is active',
+      () {
+        final scale = retainedCustomVisibilityScale(
+          const AppSettings(
+            visibilityScalePreset: VisibilityScalePreset.coldWater,
+            visibilityScaleExcellentM: 18,
+            visibilityScaleGoodM: 9,
+            visibilityScaleModerateM: 3,
+          ),
+        );
+        expect(
+          scale,
+          const VisibilityScale(
+            excellentAtOrAboveM: 18,
+            goodAtOrAboveM: 9,
+            moderateAtOrAboveM: 3,
+          ),
+        );
+      },
+    );
+
+    test('is null for an invalid saved set', () {
+      expect(
+        retainedCustomVisibilityScale(
+          const AppSettings(
+            visibilityScaleExcellentM: 3,
+            visibilityScaleGoodM: 9,
+            visibilityScaleModerateM: 18,
+          ),
+        ),
+        isNull,
+      );
     });
   });
 
@@ -81,9 +134,121 @@ void main() {
       expect(find.text('Temperate'), findsOneWidget);
       expect(find.text('Cold water / Inland'), findsOneWidget);
       expect(find.text('Custom'), findsOneWidget);
-      // Named presets advertise their bounds; Custom has none to show yet.
-      expect(find.text('30 / 15 / 5m'), findsOneWidget);
-      expect(find.text('12 / 6 / 2m'), findsOneWidget);
+      // Named presets spell out every band's range, Poor included.
+      expect(find.text('Excellent 30 m+ ·'), findsOneWidget);
+      expect(find.text('Good 15-30 m'), findsOneWidget);
+      expect(find.text('Moderate 5-15 m ·'), findsOneWidget);
+      expect(find.text('Poor under 5 m'), findsOneWidget);
+      expect(find.text('Excellent 12 m+ ·'), findsOneWidget);
+      expect(find.text('Good 6-12 m'), findsOneWidget);
+      expect(find.text('Moderate 2-6 m ·'), findsOneWidget);
+      expect(find.text('Poor under 2 m'), findsOneWidget);
+    });
+
+    testWidgets('never splits a band across lines in a narrow dialog', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          SizedBox(
+            // Wide enough for one band per line in the test font, too narrow
+            // for two, so every line has to break between bands.
+            width: 300,
+            child: VisibilityScalePresetList(
+              selected: VisibilityScalePreset.tropical,
+              units: metric,
+              onSelected: (_) {},
+            ),
+          ),
+        ),
+      );
+
+      // The narrow width really did push Good below Excellent.
+      expect(
+        tester.getTopLeft(find.text('Good 15-30 m')).dy,
+        greaterThan(tester.getTopLeft(find.text('Excellent 30 m+ ·')).dy),
+      );
+
+      // A band may move to the next line as a whole, but its label and range
+      // must stay together: every glyph box shares one line.
+      for (final band in [
+        'Excellent 30 m+ ·',
+        'Good 15-30 m',
+        'Moderate 5-15 m ·',
+        'Poor under 5 m',
+      ]) {
+        final paragraph = tester.renderObject<RenderParagraph>(find.text(band));
+        final tops = paragraph
+            .getBoxesForSelection(
+              TextSelection(baseOffset: 0, extentOffset: band.length),
+            )
+            .map((box) => box.top)
+            .toSet();
+        expect(tops, hasLength(1), reason: '"$band" wrapped');
+      }
+    });
+
+    testWidgets('explains what the scale is for and that dives are kept', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          VisibilityScalePresetList(
+            selected: VisibilityScalePreset.tropical,
+            units: metric,
+            onSelected: (_) {},
+          ),
+        ),
+      );
+
+      expect(
+        find.textContaining('in dive details and statistics'),
+        findsOneWidget,
+      );
+      expect(
+        find.textContaining('never changes the distances you logged'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('Custom invites the diver to set distances when none are '
+        'saved', (tester) async {
+      await tester.pumpWidget(
+        host(
+          VisibilityScalePresetList(
+            selected: VisibilityScalePreset.tropical,
+            units: metric,
+            onSelected: (_) {},
+          ),
+        ),
+      );
+
+      expect(find.text('Set your own distances'), findsOneWidget);
+    });
+
+    testWidgets('Custom shows the saved ranges once they exist', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          VisibilityScalePresetList(
+            selected: VisibilityScalePreset.tropical,
+            units: metric,
+            custom: const VisibilityScale(
+              excellentAtOrAboveM: 18,
+              goodAtOrAboveM: 9,
+              moderateAtOrAboveM: 3,
+            ),
+            onSelected: (_) {},
+          ),
+        ),
+      );
+
+      expect(find.text('Set your own distances'), findsNothing);
+      expect(find.text('Excellent 18 m+ ·'), findsOneWidget);
+      expect(find.text('Good 9-18 m'), findsOneWidget);
+      expect(find.text('Moderate 3-9 m ·'), findsOneWidget);
+      expect(find.text('Poor under 3 m'), findsOneWidget);
     });
 
     testWidgets('marks the active preset', (tester) async {
@@ -152,6 +317,70 @@ void main() {
       expect(find.widgetWithText(TextField, '12'), findsOneWidget);
       expect(find.widgetWithText(TextField, '6'), findsOneWidget);
       expect(find.widgetWithText(TextField, '2'), findsOneWidget);
+    });
+
+    testWidgets('explains what each field means', (tester) async {
+      await tester.pumpWidget(
+        host(
+          CustomVisibilityScaleForm(
+            initial: VisibilityScale.coldWater,
+            units: metric,
+            onSubmit: (_) {},
+            onCancel: () {},
+          ),
+        ),
+      );
+
+      expect(
+        find.text(
+          'Enter the shortest distance that still counts for each label.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('shows where Poor begins, following the Moderate field', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          CustomVisibilityScaleForm(
+            initial: VisibilityScale.coldWater,
+            units: metric,
+            onSubmit: (_) {},
+            onCancel: () {},
+          ),
+        ),
+      );
+      expect(find.text('Poor under 2 m'), findsOneWidget);
+
+      await tester.enterText(find.byType(TextField).at(2), '3');
+      await tester.pump();
+      expect(find.text('Poor under 3 m'), findsOneWidget);
+      expect(find.text('Poor under 2 m'), findsNothing);
+    });
+
+    testWidgets('hides the Poor line while Moderate is unusable', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          CustomVisibilityScaleForm(
+            initial: VisibilityScale.coldWater,
+            units: metric,
+            onSubmit: (_) {},
+            onCancel: () {},
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField).at(2), 'abc');
+      await tester.pump();
+      expect(find.textContaining('Poor'), findsNothing);
+
+      await tester.enterText(find.byType(TextField).at(2), '0');
+      await tester.pump();
+      expect(find.textContaining('Poor'), findsNothing);
     });
 
     testWidgets('seeds in the diver depth unit', (tester) async {
@@ -348,6 +577,23 @@ void main() {
       await pumpPicker(tester, const AppSettings());
       expect(find.text('Visibility scale'), findsOneWidget);
       expect(find.text('Cold water / Inland'), findsOneWidget);
+    });
+
+    testWidgets('the Custom row shows retained thresholds', (tester) async {
+      await pumpPicker(
+        tester,
+        const AppSettings(
+          visibilityScalePreset: VisibilityScalePreset.coldWater,
+          visibilityScaleExcellentM: 18,
+          visibilityScaleGoodM: 9,
+          visibilityScaleModerateM: 3,
+        ),
+      );
+
+      expect(find.text('Excellent 18 m+ ·'), findsOneWidget);
+      expect(find.text('Good 9-18 m'), findsOneWidget);
+      expect(find.text('Moderate 3-9 m ·'), findsOneWidget);
+      expect(find.text('Poor under 3 m'), findsOneWidget);
     });
 
     testWidgets('choosing a named preset saves it and closes', (tester) async {

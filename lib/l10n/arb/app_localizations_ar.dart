@@ -30646,6 +30646,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return '$min $unit فأكثر';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'تنسيق الإحداثيات';
 
   @override
@@ -30681,7 +30686,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'المسافات التي تُعد رؤية جيدة في مواقع غوصك';
+      'كيف تصف تفاصيل الغوص والإحصاءات مدى الرؤية الذي قسته';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'اختر المسافات المقيسة التي تُعد ممتازة أو جيدة أو متوسطة أو ضعيفة في تفاصيل الغوص والإحصاءات. تغيير هذا الإعداد يعيد تسمية غطساتك فقط؛ ولا يغيّر أبدًا المسافات التي سجلتها.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'استوائية';
@@ -30707,6 +30716,18 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_visibilityScale_invalidOrder =>
       'يجب أن تكون كل قيمة أصغر من التي فوقها وأكبر من صفر';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset => 'حدّد مسافاتك الخاصة';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'أدخل لكل تصنيف أقصر مسافة لا تزال تُحتسب ضمنه.';
 
   @override
   String statistics_conditions_visibility_legacySuffix(String band) {

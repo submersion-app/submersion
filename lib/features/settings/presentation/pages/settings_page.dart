@@ -581,6 +581,7 @@ class _UnitsSectionContent extends ConsumerWidget {
                 _buildUnitTile(
                   context,
                   title: context.l10n.settings_visibilityScale_title,
+                  subtitle: context.l10n.settings_visibilityScale_subtitle,
                   value: visibilityPresetLabel(
                     context.l10n,
                     settings.visibilityScalePreset,
@@ -710,11 +711,13 @@ class _UnitsSectionContent extends ConsumerWidget {
   Widget _buildUnitTile(
     BuildContext context, {
     required String title,
+    String? subtitle,
     required String value,
     required VoidCallback onTap,
   }) {
     return ListTile(
       title: Text(title),
+      subtitle: subtitle == null ? null : Text(subtitle),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

@@ -30959,6 +30959,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return 'legalább $min $unit';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'Koordináta-formátum';
 
   @override
@@ -30994,7 +30999,11 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'Mekkora távolság számít jó látásnak ott, ahol merülsz';
+      'Hogyan írják le a merülés részletei és a statisztikák a mért látótávolságot';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'Válaszd ki, mely mért távolságok számítanak Kiválónak, Jónak, Közepesnek vagy Gyengének a merülés részleteiben és a statisztikákban. A módosítás csak a merülések címkéit változtatja meg; a rögzített távolságokat soha.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'Trópusi';
@@ -31020,6 +31029,19 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get settings_visibilityScale_invalidOrder =>
       'Minden értéknek kisebbnek kell lennie a felette lévőnél és nagyobbnak nullánál';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset =>
+      'Add meg a saját távolságaidat';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'Add meg minden szinthez a legrövidebb távolságot, amely még oda számít.';
 
   @override
   String statistics_conditions_visibility_legacySuffix(String band) {

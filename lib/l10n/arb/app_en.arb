@@ -20143,6 +20143,17 @@
       }
     }
   },
+  "visibility_range_atLeast": "{min} {unit}+",
+  "@visibility_range_atLeast": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "settings_coordinateFormat_title": "Coordinate format",
   "settings_coordinateFormat_subtitle": "How GPS positions are shown and entered",
   "settings_placeNameLanguage_title": "Place name language",
@@ -20153,7 +20164,8 @@
   "settings_coordinateFormat_utm": "UTM",
   "settings_coordinateFormat_mgrs": "MGRS",
   "settings_visibilityScale_title": "Visibility scale",
-  "settings_visibilityScale_subtitle": "Which distances count as good visibility where you dive",
+  "settings_visibilityScale_subtitle": "How dive details and statistics describe the visibility you measured",
+  "settings_visibilityScale_intro": "Choose which measured distances count as Excellent, Good, Moderate or Poor in dive details and statistics. Changing this relabels your dives; it never changes the distances you logged.",
   "settings_visibilityScale_preset_tropical": "Tropical",
   "settings_visibilityScale_preset_temperate": "Temperate",
   "settings_visibilityScale_preset_coldWater": "Cold water / Inland",
@@ -20162,6 +20174,19 @@
   "settings_visibilityScale_customGood": "Good at or above",
   "settings_visibilityScale_customModerate": "Moderate at or above",
   "settings_visibilityScale_invalidOrder": "Each value must be smaller than the one above it, and greater than zero",
+  "settings_visibilityScale_bandRange": "{band} {range}",
+  "@settings_visibilityScale_bandRange": {
+    "placeholders": {
+      "band": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_visibilityScale_customUnset": "Set your own distances",
+  "settings_visibilityScale_customHelp": "Enter the shortest distance that still counts for each label.",
   "statistics_conditions_visibility_legacySuffix": "{band} (logged before measurement)",
   "@statistics_conditions_visibility_legacySuffix": {
     "placeholders": {
