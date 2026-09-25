@@ -56,7 +56,7 @@ void main() {
                 heightCmController: controllers[1],
                 heightFeetController: controllers[2],
                 heightInchesController: controllers[3],
-                units: UnitFormatter(const AppSettings()),
+                units: const UnitFormatter(AppSettings()),
                 showSaveBodyWeight: false,
                 onGearAdded: (_) {},
                 onGearSetAdded: (_, _) {},
