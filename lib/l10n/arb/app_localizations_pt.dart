@@ -3398,6 +3398,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get connections_empty_sites => 'Nenhum mergulho tem ainda um local.';
 
   @override
+  String get connections_empty_filtered => 'Nada corresponde ao filtro atual.';
+
+  @override
   String get connections_focusMissing => 'Esse item já não está no diário.';
 
   @override

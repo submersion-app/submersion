@@ -3338,6 +3338,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connections_empty_sites => 'لا توجد غوصة لها موقع بعد.';
 
   @override
+  String get connections_empty_filtered => 'لا شيء يطابق التصفية الحالية.';
+
+  @override
   String get connections_focusMissing => 'هذا العنصر لم يعد موجودًا في السجل.';
 
   @override

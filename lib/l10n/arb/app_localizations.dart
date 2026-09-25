@@ -5451,6 +5451,12 @@ abstract class AppLocalizations {
   /// **'No dives have a site yet.'**
   String get connections_empty_sites;
 
+  /// No description provided for @connections_empty_filtered.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing matches the current filter.'**
+  String get connections_empty_filtered;
+
   /// No description provided for @connections_focusMissing.
   ///
   /// In en, this message translates to:

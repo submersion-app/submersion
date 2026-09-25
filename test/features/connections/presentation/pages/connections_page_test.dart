@@ -9,9 +9,11 @@ import 'package:submersion/features/connections/domain/entities/connection_kind.
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/pages/connections_page.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_lens_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -41,6 +43,8 @@ Future<ProviderContainer> _pump(
   ConnectionGraph? graph,
   Object? error,
   String location = '/connections',
+  List<Override> extraOverrides = const [],
+  List<NodeRef?>? seenFocus,
 }) async {
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
@@ -68,9 +72,11 @@ Future<ProviderContainer> _pump(
       overrides: [
         ...overrides,
         connectionGraphProvider.overrideWith((ref, budget) async {
+          seenFocus?.add(ref.read(connectionsFocusProvider));
           if (error != null) throw error;
           return graph ?? _graph;
         }),
+        ...extraOverrides,
         connectionsYearSpanProvider.overrideWith(
           (ref) async => (first: 2019, last: 2024),
         ),
@@ -172,5 +178,51 @@ void main() {
     await _pump(tester, size: const Size(732, 1000), error: StateError('boom'));
     expect(find.text('Could not load connections.'), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
+  });
+
+  testWidgets('an empty lens keeps the lens chips and filter controls', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      size: const Size(732, 1000),
+      graph: ConnectionGraph.empty,
+    );
+    expect(find.text('Dive circle'), findsOneWidget);
+    expect(find.text('Who dives where'), findsOneWidget);
+    expect(find.byType(RangeSlider), findsOneWidget);
+    expect(find.textContaining('Data Tools'), findsOneWidget);
+  });
+
+  testWidgets('an empty result under an active filter blames the filter', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      size: const Size(732, 1000),
+      graph: ConnectionGraph.empty,
+      extraOverrides: [
+        connectionsFilterProvider.overrideWith(
+          (ref) => const DiveFilterState(siteId: 's1'),
+        ),
+      ],
+    );
+    expect(find.text('Nothing matches the current filter.'), findsOneWidget);
+    expect(find.textContaining('Data Tools'), findsNothing);
+    expect(find.byTooltip('Clear filter'), findsOneWidget);
+  });
+
+  testWidgets('a deep link focus is applied before the first graph load', (
+    tester,
+  ) async {
+    final seen = <NodeRef?>[];
+    await _pump(
+      tester,
+      size: const Size(732, 1000),
+      location: '/connections?lens=circle&focus=buddy:jane',
+      seenFocus: seen,
+    );
+    expect(seen, isNotEmpty);
+    expect(seen.first, _b('jane'), reason: 'no whole-web query before ego');
   });
 }

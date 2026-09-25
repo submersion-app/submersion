@@ -10,6 +10,7 @@ import 'package:submersion/features/connections/presentation/providers/connectio
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_hit_tester.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_painter.dart';
+import 'package:submersion/features/connections/presentation/canvas/decoded_photo_cache.dart';
 import 'package:submersion/features/connections/presentation/canvas/graph_viewport.dart';
 import 'package:submersion/features/connections/presentation/canvas/node_metrics.dart';
 
@@ -50,7 +51,13 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
   double _scaleBase = 1;
   double _panZoomBase = 1;
   Offset? _doubleTapPosition;
-  final Map<NodeRef, ui.Image> _photos = {};
+  late final _photos = DecodedPhotoCache<ui.Image>(
+    dispose: (img) => img.dispose(),
+  );
+  final Map<NodeRef, TextPainter> _labelCache = {};
+  final Map<NodeRef, TextPainter> _dimLabelCache = {};
+  final Map<(NodeRef, int), TextPainter> _initialsCache = {};
+  TextStyle? _cachedLabelStyle;
 
   @override
   void initState() {
@@ -68,6 +75,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
     }
     if (old.graph != widget.graph) {
       _fitted = false;
+      _clearTextCaches();
       _decodePhotos();
     }
   }
@@ -75,9 +83,8 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
   @override
   void dispose() {
     widget.controller.removeListener(_onFrame);
-    for (final img in _photos.values) {
-      img.dispose();
-    }
+    _photos.disposeAll();
+    _clearTextCaches();
     super.dispose();
   }
 
@@ -92,28 +99,24 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
     });
   }
 
-  Future<void> _decodePhotos() async {
+  Future<void> _decodePhotos() {
     final wanted = {
       for (final n in widget.graph.nodes)
         if (n.photo != null) n.ref: n.photo!,
     };
-    for (final ref
-        in _photos.keys.where((r) => !wanted.containsKey(r)).toList()) {
-      _photos.remove(ref)?.dispose();
-    }
-    for (final entry in wanted.entries) {
-      if (_photos.containsKey(entry.key)) continue;
-      try {
-        final img = await decodeImageFromList(entry.value);
-        if (!mounted) {
-          img.dispose();
-          return;
-        }
-        setState(() => _photos[entry.key] = img);
-      } catch (_) {
-        // A corrupt photo falls back to initials.
-      }
-    }
+    return _photos.sync(
+      wanted,
+      decodeImageFromList,
+      onChanged: () {
+        if (mounted) setState(() {});
+      },
+    );
+  }
+
+  void _clearTextCaches() {
+    _labelCache.clear();
+    _dimLabelCache.clear();
+    _initialsCache.clear();
   }
 
   double _radiusOf(NodeRef ref) {
@@ -169,6 +172,10 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
     final labelStyle = theme.textTheme.labelSmall!.copyWith(
       color: theme.colorScheme.onSurface,
     );
+    if (labelStyle != _cachedLabelStyle) {
+      _clearTextCaches();
+      _cachedLabelStyle = labelStyle;
+    }
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = Size(constraints.maxWidth, constraints.maxHeight);
@@ -187,7 +194,10 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
           labelStyle: labelStyle,
           selection: widget.selection,
           hovered: _hovered,
-          photos: Map.unmodifiable(_photos),
+          photos: _photos.images,
+          labelCache: _labelCache,
+          dimLabelCache: _dimLabelCache,
+          initialsCache: _initialsCache,
         );
         final gestures = RawGestureDetector(
           behavior: HitTestBehavior.opaque,

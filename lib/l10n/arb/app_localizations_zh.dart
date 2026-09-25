@@ -3214,6 +3214,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_empty_sites => '还没有潜水记录了潜点。';
 
   @override
+  String get connections_empty_filtered => '没有符合当前筛选的内容。';
+
+  @override
   String get connections_focusMissing => '该项目已不在日志中。';
 
   @override

@@ -6,14 +6,13 @@ import 'package:submersion/features/connections/domain/entities/connection_node.
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/layout/layout_frame.dart';
-
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 import 'package:submersion/features/connections/presentation/canvas/graph_viewport.dart';
 import 'package:submersion/features/connections/presentation/canvas/label_collision.dart';
 import 'package:submersion/features/connections/presentation/canvas/node_metrics.dart';
 
 /// Draws edges, nodes and labels for one frame. Pure function of its inputs;
-/// the canvas widget owns gesture state and decoded photos.
+/// the canvas widget owns gesture state, decoded photos and the text caches.
 class ConnectionsPainter extends CustomPainter {
   ConnectionsPainter({
     required this.graph,
@@ -26,7 +25,12 @@ class ConnectionsPainter extends CustomPainter {
     this.photos = const {},
     this.labelZoomThreshold = 0.6,
     this.maxLabelsAtLowZoom = 12,
-  });
+    Map<NodeRef, TextPainter>? labelCache,
+    Map<NodeRef, TextPainter>? dimLabelCache,
+    Map<(NodeRef, int), TextPainter>? initialsCache,
+  }) : labelCache = labelCache ?? {},
+       dimLabelCache = dimLabelCache ?? {},
+       initialsCache = initialsCache ?? {};
 
   final ConnectionGraph graph;
   final LayoutFrame frame;
@@ -40,6 +44,14 @@ class ConnectionsPainter extends CustomPainter {
   final Map<NodeRef, ui.Image> photos;
   final double labelZoomThreshold;
   final int maxLabelsAtLowZoom;
+
+  /// Laid-out text, owned by the canvas state so a frame never re-runs
+  /// paragraph layout for every node (measured at about 7 ms per frame for
+  /// 160 nodes without the cache). The canvas clears these when the graph or
+  /// the label style changes.
+  final Map<NodeRef, TextPainter> labelCache;
+  final Map<NodeRef, TextPainter> dimLabelCache;
+  final Map<(NodeRef, int), TextPainter> initialsCache;
 
   /// The nodes lit up by [selection]: a node's far ends, or both ends of an
   /// edge. Empty without a selection.
@@ -60,6 +72,28 @@ class ConnectionsPainter extends CustomPainter {
   double radiusOf(ConnectionNode n) =>
       NodeMetrics.radiusFor(n.diveCount, graph.maxDiveCount) *
       viewport.scale.clamp(0.5, 1.5);
+
+  TextPainter _label(
+    ConnectionNode n, {
+    required bool dimmed,
+    required Color ink,
+  }) {
+    final cache = dimmed ? dimLabelCache : labelCache;
+    return cache.putIfAbsent(
+      n.ref,
+      () => TextPainter(
+        text: TextSpan(
+          text: n.label,
+          style: dimmed
+              ? labelStyle.copyWith(color: ink.withValues(alpha: 0.4))
+              : labelStyle,
+        ),
+        textDirection: TextDirection.ltr,
+        maxLines: 1,
+        ellipsis: '…',
+      )..layout(maxWidth: 140),
+    );
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -95,11 +129,12 @@ class ConnectionsPainter extends CustomPainter {
     final nodesByDives = [...graph.nodes]
       ..sort((x, y) => y.diveCount.compareTo(x.diveCount));
     final labelCandidates = <({NodeRef ref, Rect rect})>[];
-    final painters = <NodeRef, TextPainter>{};
+    final nodesByRef = <NodeRef, ConnectionNode>{};
 
     for (final n in nodesByDives) {
       final p = frame.positions[n.ref];
       if (p == null) continue;
+      nodesByRef[n.ref] = n;
       final centre = viewport.toScreen(p);
       final r = radiusOf(n);
       final isSelected = n.ref == selectedNode;
@@ -123,17 +158,21 @@ class ConnectionsPainter extends CustomPainter {
         );
         canvas.restore();
       } else if (r >= 12) {
-        final tp = TextPainter(
-          text: TextSpan(
-            text: NodeMetrics.initialsFor(n.label),
-            style: labelStyle.copyWith(
-              color: Colors.white,
-              fontSize: r * 0.8,
-              fontWeight: FontWeight.w600,
+        final fontSize = (r * 0.8).round();
+        final tp = initialsCache.putIfAbsent(
+          (n.ref, fontSize),
+          () => TextPainter(
+            text: TextSpan(
+              text: NodeMetrics.initialsFor(n.label),
+              style: labelStyle.copyWith(
+                color: Colors.white,
+                fontSize: fontSize.toDouble(),
+                fontWeight: FontWeight.w600,
+              ),
             ),
-          ),
-          textDirection: TextDirection.ltr,
-        )..layout();
+            textDirection: TextDirection.ltr,
+          )..layout(),
+        );
         tp.paint(canvas, centre - Offset(tp.width / 2, tp.height / 2));
       }
       if (isSelected || isLit) {
@@ -146,13 +185,7 @@ class ConnectionsPainter extends CustomPainter {
             ..color = ink,
         );
       }
-      final tp = TextPainter(
-        text: TextSpan(text: n.label, style: labelStyle),
-        textDirection: TextDirection.ltr,
-        maxLines: 1,
-        ellipsis: '…',
-      )..layout(maxWidth: 140);
-      painters[n.ref] = tp;
+      final tp = _label(n, dimmed: false, ink: ink);
       labelCandidates.add((
         ref: n.ref,
         rect: Rect.fromLTWH(
@@ -175,15 +208,8 @@ class ConnectionsPainter extends CustomPainter {
     final visible = LabelCollision.visible(ranked);
     for (final c in ranked) {
       if (!visible.contains(c.ref)) continue;
-      final tp = painters[c.ref]!;
-      final alpha = dim && !forced.contains(c.ref) ? 0.4 : 1.0;
-      if (alpha < 1) {
-        tp.text = TextSpan(
-          text: (tp.text as TextSpan).text,
-          style: labelStyle.copyWith(color: ink.withValues(alpha: alpha)),
-        );
-        tp.layout(maxWidth: 140);
-      }
+      final dimmed = dim && !forced.contains(c.ref);
+      final tp = _label(nodesByRef[c.ref]!, dimmed: dimmed, ink: ink);
       tp.paint(canvas, c.rect.topLeft);
     }
   }

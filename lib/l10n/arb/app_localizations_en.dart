@@ -3342,6 +3342,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connections_empty_sites => 'No dives have a site yet.';
 
   @override
+  String get connections_empty_filtered =>
+      'Nothing matches the current filter.';
+
+  @override
   String get connections_focusMissing => 'That item is no longer in the log.';
 
   @override

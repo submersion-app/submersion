@@ -1299,6 +1299,7 @@
   "connections_empty_noDives": "אין עדיין צלילות. הקשרים יופיעו כשביומן יהיו צלילות.",
   "connections_empty_buddies": "אין עדיין שותפים המקושרים לצלילות. הוסיפו שותפים לצלילות או המירו שמות שותפים ישנים בהגדרות, כלי נתונים.",
   "connections_empty_sites": "לאף צלילה אין עדיין אתר.",
+  "connections_empty_filtered": "אין פריטים שמתאימים לסינון הנוכחי.",
   "connections_focusMissing": "הפריט הזה כבר אינו ביומן.",
   "connections_error_load": "לא ניתן לטעון את הקשרים.",
   "connections_legend_title": "מקרא",

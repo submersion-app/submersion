@@ -3316,6 +3316,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get connections_empty_sites => 'לאף צלילה אין עדיין אתר.';
 
   @override
+  String get connections_empty_filtered => 'אין פריטים שמתאימים לסינון הנוכחי.';
+
+  @override
   String get connections_focusMissing => 'הפריט הזה כבר אינו ביומן.';
 
   @override

@@ -8,6 +8,7 @@ import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/lenses/connection_lens.dart';
 import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
 import 'package:submersion/features/connections/presentation/canvas/connections_canvas.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_layout_controller.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_lens_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
@@ -56,10 +57,23 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   NodeRef? _laidOutFocus;
   bool _focusWarned = false;
 
+  /// True until a deep link's lens and focus have been written to their
+  /// providers. Riverpod forbids provider writes inside initState, so the
+  /// write waits for the first frame; deferring the first graph watch until
+  /// then avoids loading the whole web only to replace it with the ego graph.
+  late bool _deepLinkPending =
+      widget.lensId != null ||
+      widget.focusWire != null ||
+      (widget.kindAName != null && widget.kindBName != null);
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _applyDeepLink());
+    if (!_deepLinkPending) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _applyDeepLink();
+      if (mounted) setState(() => _deepLinkPending = false);
+    });
   }
 
   void _applyDeepLink() {
@@ -90,9 +104,13 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     if (_focusWarned || !mounted) return;
     _focusWarned = true;
     ref.read(connectionsFocusProvider.notifier).state = null;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.l10n.connections_focusMissing)),
-    );
+    // initState has no Scaffold above it yet; the snackbar waits a frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.l10n.connections_focusMissing)),
+      );
+    });
   }
 
   @override
@@ -139,6 +157,12 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    if (_deepLinkPending) {
+      return Scaffold(
+        appBar: AppBar(title: Text(l10n.connections_title)),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
     final width = MediaQuery.sizeOf(context).width;
     final wide = width >= ResponsiveBreakpoints.masterDetail;
     final budget =
@@ -176,68 +200,77 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
             ),
       data: (graph) {
         _syncLayout(graph, focus);
+        final kinds = graph.nodes.map((n) => n.ref.kind).toSet();
+        final Widget centre;
         if (graph.isEmpty) {
           final span = ref.watch(connectionsYearSpanProvider).value;
-          return ConnectionsEmptyState(lens: lens, hasAnyDives: span != null);
-        }
-        final kinds = graph.nodes.map((n) => n.ref.kind).toSet();
-        final canvas = ConnectionsCanvas(
-          graph: graph,
-          controller: _layout,
-          colors: colors,
-          selection: selection,
-          semanticsLabel: l10n.connections_semantics_summary(
-            graph.nodes.length,
-            graph.edges.length,
-          ),
-          onSelect: (s) =>
-              ref.read(connectionsSelectionProvider.notifier).state = s,
-          onFocus: (node) {
-            ref.read(connectionsFocusProvider.notifier).state = node;
-            ref.read(connectionsSelectionProvider.notifier).state =
-                NodeSelection(node);
-          },
-        );
-        final overlay = Stack(
-          children: [
-            Positioned.fill(child: canvas),
-            Positioned(
-              left: 12,
-              bottom: 12,
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: ConnectionsLegend(
-                    kinds: kinds,
-                    colors: colors,
-                    showTitle: false,
+          centre = ConnectionsEmptyState(
+            lens: lens,
+            hasAnyDives: span != null,
+            hasActiveFilter: ref
+                .watch(connectionsFilterProvider)
+                .hasActiveFilters,
+          );
+        } else {
+          final canvas = ConnectionsCanvas(
+            graph: graph,
+            controller: _layout,
+            colors: colors,
+            selection: selection,
+            semanticsLabel: l10n.connections_semantics_summary(
+              graph.nodes.length,
+              graph.edges.length,
+            ),
+            onSelect: (s) =>
+                ref.read(connectionsSelectionProvider.notifier).state = s,
+            onFocus: (node) {
+              ref.read(connectionsFocusProvider.notifier).state = node;
+              ref.read(connectionsSelectionProvider.notifier).state =
+                  NodeSelection(node);
+            },
+          );
+          centre = Stack(
+            children: [
+              Positioned.fill(child: canvas),
+              if (!wide)
+                Positioned(
+                  left: 12,
+                  bottom: 12,
+                  child: Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: ConnectionsLegend(
+                        kinds: kinds,
+                        colors: colors,
+                        showTitle: false,
+                      ),
+                    ),
                   ),
                 ),
+              Positioned(
+                right: 12,
+                top: 12,
+                child: HiddenNodesChip(
+                  count: graph.hiddenNodeCount,
+                  onShowAll: () =>
+                      _showAll(graph.nodes.length + graph.hiddenNodeCount),
+                ),
               ),
-            ),
-            Positioned(
-              right: 12,
-              top: 12,
-              child: HiddenNodesChip(
-                count: graph.hiddenNodeCount,
-                onShowAll: () =>
-                    _showAll(graph.nodes.length + graph.hiddenNodeCount),
-              ),
-            ),
-            if (!wide && selection != null)
-              SelectionCard(
-                graph: graph,
-                selection: selection,
-                onClose: () =>
-                    ref.read(connectionsSelectionProvider.notifier).state =
-                        null,
-              ),
-          ],
-        );
+              if (!wide && selection != null)
+                SelectionCard(
+                  graph: graph,
+                  selection: selection,
+                  onClose: () =>
+                      ref.read(connectionsSelectionProvider.notifier).state =
+                          null,
+                ),
+            ],
+          );
+        }
         if (wide) {
           return Row(
             children: [
-              Expanded(child: overlay),
+              Expanded(child: centre),
               SelectionPanel(
                 graph: graph,
                 selection: selection,
@@ -257,7 +290,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
             const LensChipRow(),
             ConnectionsFilterBar(graph: graphAsync),
             const YearRangeSlider(),
-            Expanded(child: overlay),
+            Expanded(child: centre),
           ],
         );
       },

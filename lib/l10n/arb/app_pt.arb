@@ -1299,6 +1299,7 @@
   "connections_empty_noDives": "Ainda não há mergulhos. As ligações aparecem quando o diário tiver mergulhos.",
   "connections_empty_buddies": "Ainda não há parceiros ligados a mergulhos. Adicione parceiros aos seus mergulhos ou converta nomes antigos em Definições, Ferramentas de dados.",
   "connections_empty_sites": "Nenhum mergulho tem ainda um local.",
+  "connections_empty_filtered": "Nada corresponde ao filtro atual.",
   "connections_focusMissing": "Esse item já não está no diário.",
   "connections_error_load": "Não foi possível carregar as ligações.",
   "connections_legend_title": "Legenda",

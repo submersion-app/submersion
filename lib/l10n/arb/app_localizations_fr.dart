@@ -3407,6 +3407,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get connections_empty_sites => 'Aucune plongée n\'a encore de site.';
 
   @override
+  String get connections_empty_filtered =>
+      'Rien ne correspond au filtre actuel.';
+
+  @override
   String get connections_focusMissing =>
       'Cet élément n\'est plus dans le carnet.';
 

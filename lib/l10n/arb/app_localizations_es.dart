@@ -3401,6 +3401,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'Ninguna inmersión tiene punto de buceo todavía.';
 
   @override
+  String get connections_empty_filtered =>
+      'Nada coincide con el filtro actual.';
+
+  @override
   String get connections_focusMissing =>
       'Ese elemento ya no está en el diario.';
 

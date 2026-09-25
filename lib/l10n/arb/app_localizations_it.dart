@@ -3396,6 +3396,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get connections_empty_sites => 'Nessuna immersione ha ancora un sito.';
 
   @override
+  String get connections_empty_filtered =>
+      'Nulla corrisponde al filtro attuale.';
+
+  @override
   String get connections_focusMissing =>
       'Quell\'elemento non è più nel diario.';
 

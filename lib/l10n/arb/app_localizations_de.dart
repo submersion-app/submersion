@@ -3407,6 +3407,10 @@ class AppLocalizationsDe extends AppLocalizations {
       'Noch kein Tauchgang hat einen Tauchplatz.';
 
   @override
+  String get connections_empty_filtered =>
+      'Nichts entspricht dem aktuellen Filter.';
+
+  @override
   String get connections_focusMissing =>
       'Dieser Eintrag ist nicht mehr im Logbuch.';
 

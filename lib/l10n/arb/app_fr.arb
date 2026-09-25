@@ -1299,6 +1299,7 @@
   "connections_empty_noDives": "Aucune plongée pour l'instant. Les connexions apparaissent dès que le carnet contient des plongées.",
   "connections_empty_buddies": "Aucun binôme n'est encore lié à une plongée. Ajoutez des binômes à vos plongées ou convertissez les anciens noms dans Réglages, Outils de données.",
   "connections_empty_sites": "Aucune plongée n'a encore de site.",
+  "connections_empty_filtered": "Rien ne correspond au filtre actuel.",
   "connections_focusMissing": "Cet élément n'est plus dans le carnet.",
   "connections_error_load": "Impossible de charger les connexions.",
   "connections_legend_title": "Légende",

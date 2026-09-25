@@ -1299,6 +1299,7 @@
   "connections_empty_noDives": "Nessuna immersione ancora. Le connessioni compaiono quando il diario contiene immersioni.",
   "connections_empty_buddies": "Nessun compagno è ancora collegato alle immersioni. Aggiungi compagni alle tue immersioni o converti i vecchi nomi in Impostazioni, Strumenti dati.",
   "connections_empty_sites": "Nessuna immersione ha ancora un sito.",
+  "connections_empty_filtered": "Nulla corrisponde al filtro attuale.",
   "connections_focusMissing": "Quell'elemento non è più nel diario.",
   "connections_error_load": "Impossibile caricare le connessioni.",
   "connections_legend_title": "Legenda",

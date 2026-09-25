@@ -3378,6 +3378,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get connections_empty_sites => 'Nog geen duik heeft een duikplek.';
 
   @override
+  String get connections_empty_filtered =>
+      'Niets komt overeen met het huidige filter.';
+
+  @override
   String get connections_focusMissing =>
       'Dat item staat niet meer in het logboek.';
 

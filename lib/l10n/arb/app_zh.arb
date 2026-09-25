@@ -1393,6 +1393,7 @@
   "connections_empty_noDives": "还没有潜水记录。日志中有潜水后会显示关联。",
   "connections_empty_buddies": "还没有潜伴与潜水关联。请为潜水添加潜伴，或在“设置”的“数据工具”中转换旧的潜伴名称。",
   "connections_empty_sites": "还没有潜水记录了潜点。",
+  "connections_empty_filtered": "没有符合当前筛选的内容。",
   "connections_focusMissing": "该项目已不在日志中。",
   "connections_error_load": "无法加载关联。",
   "connections_legend_title": "图例",

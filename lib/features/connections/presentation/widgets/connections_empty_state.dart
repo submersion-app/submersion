@@ -9,10 +9,15 @@ class ConnectionsEmptyState extends StatelessWidget {
     super.key,
     required this.lens,
     required this.hasAnyDives,
+    this.hasActiveFilter = false,
   });
 
   final LensSelection lens;
   final bool hasAnyDives;
+
+  /// True when the diver's own filter is what emptied the graph; the message
+  /// then blames the filter rather than missing data.
+  final bool hasActiveFilter;
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +27,8 @@ class ConnectionsEmptyState extends StatelessWidget {
         lens.kindB == ConnectionKind.buddy;
     final text = !hasAnyDives
         ? l10n.connections_empty_noDives
+        : hasActiveFilter
+        ? l10n.connections_empty_filtered
         : involvesBuddies
         ? l10n.connections_empty_buddies
         : l10n.connections_empty_sites;

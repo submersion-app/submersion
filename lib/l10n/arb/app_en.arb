@@ -2085,6 +2085,7 @@
   "connections_empty_noDives": "No dives yet. Connections appear once your log has dives in it.",
   "connections_empty_buddies": "No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names in Settings, Data Tools.",
   "connections_empty_sites": "No dives have a site yet.",
+  "connections_empty_filtered": "Nothing matches the current filter.",
   "connections_focusMissing": "That item is no longer in the log.",
   "connections_error_load": "Could not load connections.",
   "connections_legend_title": "Legend",

@@ -1299,6 +1299,7 @@
   "connections_empty_noDives": "Még nincsenek merülések. A kapcsolatok akkor jelennek meg, ha a napló merüléseket tartalmaz.",
   "connections_empty_buddies": "Még nincs merüléshez kapcsolt búvártárs. Adj búvártársakat a merüléseidhez, vagy alakítsd át a régi neveket a Beállítások, Adateszközök menüben.",
   "connections_empty_sites": "Még egyik merülésnek sincs merülőhelye.",
+  "connections_empty_filtered": "Semmi nem felel meg a jelenlegi szűrőnek.",
   "connections_focusMissing": "Ez az elem már nincs a naplóban.",
   "connections_error_load": "A kapcsolatok betöltése nem sikerült.",
   "connections_legend_title": "Jelmagyarázat",

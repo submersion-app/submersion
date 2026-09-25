@@ -1299,6 +1299,7 @@
   "connections_empty_noDives": "Nog geen duiken. Verbindingen verschijnen zodra je logboek duiken bevat.",
   "connections_empty_buddies": "Nog geen buddy's gekoppeld aan duiken. Voeg buddy's toe aan je duiken of zet oude buddynamen om via Instellingen, Gegevenshulpmiddelen.",
   "connections_empty_sites": "Nog geen duik heeft een duikplek.",
+  "connections_empty_filtered": "Niets komt overeen met het huidige filter.",
   "connections_focusMissing": "Dat item staat niet meer in het logboek.",
   "connections_error_load": "Verbindingen konden niet worden geladen.",
   "connections_legend_title": "Legenda",

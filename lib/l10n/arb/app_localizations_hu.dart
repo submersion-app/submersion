@@ -3395,6 +3395,10 @@ class AppLocalizationsHu extends AppLocalizations {
       'Még egyik merülésnek sincs merülőhelye.';
 
   @override
+  String get connections_empty_filtered =>
+      'Semmi nem felel meg a jelenlegi szűrőnek.';
+
+  @override
   String get connections_focusMissing => 'Ez az elem már nincs a naplóban.';
 
   @override

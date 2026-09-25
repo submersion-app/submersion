@@ -1299,6 +1299,7 @@
   "connections_empty_noDives": "Aún no hay inmersiones. Las conexiones aparecen cuando el diario tiene inmersiones.",
   "connections_empty_buddies": "Aún no hay compañeros vinculados a inmersiones. Añade compañeros a tus inmersiones o convierte los nombres antiguos en Ajustes, Herramientas de datos.",
   "connections_empty_sites": "Ninguna inmersión tiene punto de buceo todavía.",
+  "connections_empty_filtered": "Nada coincide con el filtro actual.",
   "connections_focusMissing": "Ese elemento ya no está en el diario.",
   "connections_error_load": "No se pudieron cargar las conexiones.",
   "connections_legend_title": "Leyenda",
