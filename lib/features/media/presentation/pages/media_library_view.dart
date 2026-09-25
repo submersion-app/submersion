@@ -8,6 +8,7 @@ import 'package:submersion/features/media/presentation/widgets/media_library_gri
 import 'package:submersion/features/media/presentation/widgets/media_selection_bar.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_active_filter_chips.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_toolbar.dart';
+import 'package:submersion/features/media/presentation/widgets/media_map_content.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_grouped_list.dart';
 import 'package:submersion/features/media/presentation/widgets/media_library_groupers.dart';
 import 'package:submersion/features/media/presentation/widgets/media_missing_banner.dart';
@@ -182,6 +183,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
         selectedIds: checkedIds,
         isSelectionMode: selection.isActive,
       ),
+      MediaLibraryViewMode.map => const MediaMapContent(),
     };
   }
 }
