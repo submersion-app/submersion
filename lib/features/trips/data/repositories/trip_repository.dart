@@ -364,6 +364,8 @@ class TripRepository {
         variables: [Variable.withString(tripId), Variable.withString(diveId)],
         updates: {_db.dives},
       );
+      // The cleared tank links are staged; tell auto-sync.
+      SyncEventBus.notifyLocalChange();
       _log.info('Assigned dive to trip');
     } catch (e, stackTrace) {
       _log.error(
@@ -392,6 +394,8 @@ class TripRepository {
         variables: [Variable.withString(diveId)],
         updates: {_db.dives},
       );
+      // The cleared tank links are staged; tell auto-sync.
+      SyncEventBus.notifyLocalChange();
       _log.info('Removed dive from trip');
     } catch (e, stackTrace) {
       _log.error(

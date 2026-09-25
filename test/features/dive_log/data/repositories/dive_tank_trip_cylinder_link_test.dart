@@ -184,4 +184,40 @@ void main() {
     final d2 = (await repo.getDiveById('d2'))!;
     expect(d2.tanks.single.tripCylinderId, 'slot-a');
   });
+
+  test('a new dive with no id drops a link into another trip', () async {
+    // The repository mints the id; the link check must use the minted one.
+    final created = await repo.createDive(
+      createTestDiveWithBottomTime(id: '').copyWith(
+        tripId: tripB,
+        tanks: const [DiveTank(id: 't1', tripCylinderId: 'slot-a')],
+      ),
+    );
+    expect(created.id, isNotEmpty);
+    expect(await linkOf('t1'), isNull);
+  });
+
+  test(
+    'a link to a slot that does not exist is dropped, not a failure',
+    () async {
+      await repo.createDive(
+        createTestDiveWithBottomTime(id: 'd1').copyWith(
+          tripId: tripA,
+          tanks: const [DiveTank(id: 't1', tripCylinderId: 'gone')],
+        ),
+      );
+      expect(await linkOf('t1'), isNull);
+
+      final dive = (await repo.getDiveById('d1'))!;
+      await repo.updateDive(
+        dive.copyWith(
+          tanks: [
+            ...dive.tanks,
+            const DiveTank(id: 't2', tripCylinderId: 'gone', order: 1),
+          ],
+        ),
+      );
+      expect(await linkOf('t2'), isNull);
+    },
+  );
 }

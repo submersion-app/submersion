@@ -68,3 +68,24 @@ Future<void> clearForeignTripCylinderLinks(
     );
   }
 }
+
+/// The ids of the slots on [tripId]; empty when the dive has no trip. A dive
+/// save checks each tank's link against this set before the tank row is
+/// written, so a link to a slot that does not exist, or to another trip's
+/// slot, is dropped instead of failing the save on the foreign key.
+Future<Set<String>> tripCylinderIdsForTrip(
+  AppDatabase db,
+  String? tripId,
+) async {
+  if (tripId == null) return const {};
+  final rows =
+      await (db.selectOnly(db.tripCylinders)
+            ..addColumns([db.tripCylinders.id])
+            ..where(db.tripCylinders.tripId.equals(tripId)))
+          .get();
+  return {for (final r in rows) r.read(db.tripCylinders.id)!};
+}
+
+/// [link] when it names one of [validSlots], else null.
+String? validTripCylinderLink(String? link, Set<String> validSlots) =>
+    link != null && validSlots.contains(link) ? link : null;

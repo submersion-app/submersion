@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value, Variable;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/database/database.dart'
     show AppDatabase, DivesCompanion, DiveTanksCompanion;
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
@@ -169,4 +170,20 @@ void main() {
     expect(await linkOf('t1'), isNull);
     expect(await linkOf('t2'), slotB);
   });
+
+  test(
+    'moving or removing a dive tells sync, so the cleared links go out',
+    () async {
+      await insertDiveWithTank('d1', 't1', tripId: tripA, cylinderId: slotA);
+
+      final moved = SyncEventBus.changes.first;
+      await trips.assignDiveToTrip('d1', tripB);
+      await expectLater(moved.timeout(const Duration(seconds: 1)), completes);
+
+      await insertDiveWithTank('d2', 't2', tripId: tripB, cylinderId: slotB);
+      final removed = SyncEventBus.changes.first;
+      await trips.removeDiveFromTrip('d2');
+      await expectLater(removed.timeout(const Duration(seconds: 1)), completes);
+    },
+  );
 }

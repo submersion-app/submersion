@@ -337,4 +337,22 @@ void main() {
     await repository.createCylinder(slot());
     await expectLater(fired, completes);
   });
+
+  test('a linked tank on a dive of another trip is not counted', () async {
+    // A cross-device race: one device links the tank, the other moves the
+    // dive to another trip. The board must count only this trip's dives.
+    final a = await repository.createCylinder(slot(label: 'A'));
+    await insertDiveWithTank(
+      diveId: 'd1',
+      tankId: 't1',
+      entryMillis: at.millisecondsSinceEpoch,
+      cylinderId: a.id,
+    );
+    await db.customUpdate(
+      'UPDATE dives SET trip_id = ? WHERE id = ?',
+      variables: [Variable<String>(otherTripId), const Variable<String>('d1')],
+    );
+
+    expect(await repository.getTankUsesForTrip(tripId), isEmpty);
+  });
 }

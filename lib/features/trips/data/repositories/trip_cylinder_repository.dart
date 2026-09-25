@@ -363,8 +363,9 @@ class TripCylinderRepository {
                  t.trip_cylinder_id
           FROM dive_tanks t
           JOIN dives d ON d.id = t.dive_id
-          WHERE t.trip_cylinder_id IN
-                (SELECT id FROM trip_cylinders WHERE trip_id = ?)
+          WHERE d.trip_id = ?1
+            AND t.trip_cylinder_id IN
+                (SELECT id FROM trip_cylinders WHERE trip_id = ?1)
           ORDER BY d.dive_date_time ASC, t.tank_order ASC
           ''',
           variables: [Variable.withString(tripId)],

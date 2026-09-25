@@ -1419,6 +1419,15 @@ class DiveRepository {
       _log.info('Creating dive: ${dive.diveNumber ?? "new"}');
       final id = dive.id.isEmpty ? _uuid.v4() : dive.id;
       final now = DateTime.now().millisecondsSinceEpoch;
+      // A tank may only link a slot on the dive's own trip. Checked before
+      // the tank rows are written: a link to a missing slot would otherwise
+      // fail the save on the foreign key. The trip resolves as the row write
+      // resolves it, since the editor saves Dive(trip: selected) with a null
+      // tripId.
+      final validSlots = await tripCylinderIdsForTrip(
+        _db,
+        dive.tripId ?? dive.trip?.id,
+      );
 
       // One transaction for the dive and every child it owns. The profile
       // used to be written inside the child batch below and is now a
@@ -1592,7 +1601,9 @@ class DiveRepository {
                 computerId: Value(tank.computerId),
                 transmitterSerial: Value(tank.transmitterSerial),
                 regulatorEquipmentId: Value(tank.regulatorEquipmentId),
-                tripCylinderId: Value(tank.tripCylinderId),
+                tripCylinderId: Value(
+                  validTripCylinderLink(tank.tripCylinderId, validSlots),
+                ),
                 sourceTankIndex: Value(tank.sourceTankIndex),
               ),
             );
@@ -1655,17 +1666,6 @@ class DiveRepository {
             localUpdatedAt: now,
           );
         }
-        // A link into another trip's slot means nothing on this dive. The
-        // trip is resolved as the row write above resolves it: the editor
-        // saves Dive(trip: selected) with tripId null, and null here would
-        // read as "no trip" and wipe every link on each save.
-        await clearForeignTripCylinderLinks(
-          _db,
-          _syncRepository,
-          dive.id,
-          tripId: dive.tripId ?? dive.trip?.id,
-          now: now,
-        );
         for (final weightId in weightIds) {
           await _syncRepository.markRecordPending(
             entityType: 'diveWeights',
@@ -1735,6 +1735,15 @@ class DiveRepository {
       }
 
       final now = DateTime.now().millisecondsSinceEpoch;
+      // A tank may only link a slot on the dive's own trip. Checked before
+      // the tank rows are written: a link to a missing slot would otherwise
+      // fail the save on the foreign key. The trip resolves as the row write
+      // resolves it, since the editor saves Dive(trip: selected) with a null
+      // tripId.
+      final validSlots = await tripCylinderIdsForTrip(
+        _db,
+        dive.tripId ?? dive.trip?.id,
+      );
 
       // One transaction for the dive and every child it owns, the way
       // createDive already does it. Without one, a throw partway through
@@ -1900,7 +1909,9 @@ class DiveRepository {
                 regulatorEquipmentId: Value(tank.regulatorEquipmentId),
                 // The slot link is user-authored like the regulator, so an
                 // edit writes it; every rebuild site must carry it.
-                tripCylinderId: Value(tank.tripCylinderId),
+                tripCylinderId: Value(
+                  validTripCylinderLink(tank.tripCylinderId, validSlots),
+                ),
               ),
             );
             // Log as pending update (assuming sync handles updates)
@@ -1931,7 +1942,9 @@ class DiveRepository {
                     computerId: Value(tank.computerId),
                     transmitterSerial: Value(tank.transmitterSerial),
                     regulatorEquipmentId: Value(tank.regulatorEquipmentId),
-                    tripCylinderId: Value(tank.tripCylinderId),
+                    tripCylinderId: Value(
+                      validTripCylinderLink(tank.tripCylinderId, validSlots),
+                    ),
                     sourceTankIndex: Value(tank.sourceTankIndex),
                   ),
                 );
@@ -1955,18 +1968,6 @@ class DiveRepository {
             recordId: tankId,
           );
         }
-
-        // A link into another trip's slot means nothing on this dive. The
-        // trip is resolved as the row write above resolves it: the editor
-        // saves Dive(trip: selected) with tripId null, and null here would
-        // read as "no trip" and wipe every link on each save.
-        await clearForeignTripCylinderLinks(
-          _db,
-          _syncRepository,
-          dive.id,
-          tripId: dive.tripId ?? dive.trip?.id,
-          now: now,
-        );
 
         // Weights: a diff keyed by row id, so an unchanged row is neither
         // tombstoned nor re-marked pending (issue #1727).
