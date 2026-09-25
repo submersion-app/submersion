@@ -12640,8 +12640,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get equipment_fab_addSet => 'إضافة طقم';
 
   @override
+  String equipment_figure_backCount(int count) {
+    return 'الخلف · $count';
+  }
+
+  @override
   String equipment_figure_discLabel(int number, String type, String name) {
     return '$number، $type، $name';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'الأمام · $count';
   }
 
   @override

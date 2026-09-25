@@ -7459,12 +7459,24 @@
   "equipment_edit_useCustomRemindersSubtitle": "Set different reminder days for this item",
   "equipment_fab_addEquipment": "Add Equipment",
   "equipment_fab_addSet": "Add Set",
+  "equipment_figure_backCount": "Back · {count}",
+  "@equipment_figure_backCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "equipment_figure_discLabel": "{number}, {type}, {name}",
   "@equipment_figure_discLabel": {
     "placeholders": {
       "number": {"type": "int"},
       "type": {"type": "String"},
       "name": {"type": "String"}
+    }
+  },
+  "equipment_figure_frontCount": "Front · {count}",
+  "@equipment_figure_frontCount": {
+    "placeholders": {
+      "count": {"type": "int"}
     }
   },
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} item} other{{count} items}}",

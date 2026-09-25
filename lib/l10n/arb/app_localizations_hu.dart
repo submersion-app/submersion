@@ -12808,8 +12808,18 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_fab_addSet => 'Készlet hozzáadása';
 
   @override
+  String equipment_figure_backCount(int count) {
+    return 'Hátul · $count';
+  }
+
+  @override
   String equipment_figure_discLabel(int number, String type, String name) {
     return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Elöl · $count';
   }
 
   @override

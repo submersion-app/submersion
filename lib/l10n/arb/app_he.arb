@@ -4240,6 +4240,8 @@
   "equipment_figure_discLabel": "{number}, {type}, {name}",
   "equipment_figure_summary": "{name}, {count, plural, =1{פריט אחד} other{{count} פריטים}}",
   "equipment_figure_trayTitle": "נלקח גם",
+  "equipment_figure_frontCount": "חזית · {count}",
+  "equipment_figure_backCount": "גב · {count}",
   "equipment_sets_retryButton": "נסה שוב",
   "equipment_snackbar_deleted": "הציוד נמחק",
   "equipment_snackbar_markedAsServiced": "סומן כטופל",

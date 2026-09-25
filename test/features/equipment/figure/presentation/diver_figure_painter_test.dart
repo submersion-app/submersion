@@ -141,4 +141,36 @@ void main() {
       });
     },
   );
+
+  testWidgets(
+    'with only one view, the painter draws that view in the single layout',
+    (tester) async {
+      await tester.runAsync(() async {
+        const box = Size(400, 400);
+        final single = FigureLayout.forSingle(box);
+        Future<int> sample(FigureView only) async {
+          final recorder = PictureRecorder();
+          DiverFigurePainter(
+            model: composeFigure(const []),
+            palette: FigurePalette.light,
+            layout: single,
+            only: only,
+          ).paint(Canvas(recorder), box);
+          final image = await recorder.endRecording().toImage(400, 400);
+          final bytes = (await image.toByteData())!;
+          final p = single.toBox(only, 100, 140);
+          final i = (p.dy.round() * 400 + p.dx.round()) * 4;
+          return (bytes.getUint8(i + 3) << 24) |
+              (bytes.getUint8(i) << 16) |
+              (bytes.getUint8(i + 1) << 8) |
+              bytes.getUint8(i + 2);
+        }
+
+        // The centre of the torso is plain body in front and the spine
+        // shade behind, so the two samples tell the views apart.
+        expect(await sample(FigureView.front), FigurePalette.light.body);
+        expect(await sample(FigureView.back), FigurePalette.light.bodyShade);
+      });
+    },
+  );
 }

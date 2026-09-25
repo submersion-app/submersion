@@ -4240,6 +4240,8 @@
   "equipment_figure_discLabel": "{number}, {type}, {name}",
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} elemento} other{{count} elementi}}",
   "equipment_figure_trayTitle": "Portato anche",
+  "equipment_figure_frontCount": "Davanti · {count}",
+  "equipment_figure_backCount": "Dietro · {count}",
   "equipment_sets_retryButton": "Riprova",
   "equipment_snackbar_deleted": "Attrezzatura eliminata",
   "equipment_snackbar_markedAsServiced": "Segnato come revisionato",

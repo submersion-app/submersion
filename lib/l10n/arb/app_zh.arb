@@ -4488,6 +4488,8 @@
   "equipment_figure_discLabel": "{number}, {type}, {name}",
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} 件} other{{count} 件}}",
   "equipment_figure_trayTitle": "另外携带",
+  "equipment_figure_frontCount": "正面 · {count}",
+  "equipment_figure_backCount": "背面 · {count}",
   "equipment_sets_retryButton": "重试",
   "equipment_snackbar_deleted": "装备已删除",
   "equipment_snackbar_markedAsServiced": "已标记为已维护",

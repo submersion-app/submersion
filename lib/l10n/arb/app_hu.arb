@@ -4240,6 +4240,8 @@
   "equipment_figure_discLabel": "{number}, {type}, {name}",
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} tétel} other{{count} tétel}}",
   "equipment_figure_trayTitle": "Egyéb felszerelés",
+  "equipment_figure_frontCount": "Elöl · {count}",
+  "equipment_figure_backCount": "Hátul · {count}",
   "equipment_sets_retryButton": "Újra",
   "equipment_snackbar_deleted": "Felszerelés törölve",
   "equipment_snackbar_markedAsServiced": "Szervizeltnek jelölve",

@@ -15,19 +15,36 @@ import 'package:submersion/features/equipment/figure/presentation/figure_paths.d
 /// role's colour. A piece on a mirrored zone is flipped about the figure's
 /// centre line. Discs are not painted here; the widget positions them.
 class DiverFigurePainter extends CustomPainter {
-  DiverFigurePainter({required this.model, required this.palette});
+  DiverFigurePainter({
+    required this.model,
+    required this.palette,
+    this.layout,
+    this.only,
+  });
 
   final FigureModel model;
   final FigurePalette palette;
 
+  /// The layout to draw in; defaults to the pair, or the single figure when
+  /// [only] is set. The widget passes its own so labels and art agree.
+  final FigureLayout? layout;
+
+  /// Draw just this view (the phone layout).
+  final FigureView? only;
+
   @override
   void paint(Canvas canvas, Size size) {
-    final layout = FigureLayout.forSize(size);
+    final l =
+        layout ??
+        (only == null
+            ? FigureLayout.forSize(size)
+            : FigureLayout.forSingle(size));
     for (final view in FigureView.values) {
-      final rect = layout.rectFor(view);
+      if (only != null && view != only) continue;
+      final rect = l.rectFor(view);
       canvas.save();
       canvas.translate(rect.left, rect.top);
-      canvas.scale(layout.scale);
+      canvas.scale(l.scale);
       _paintView(canvas, view);
       canvas.restore();
     }
@@ -79,7 +96,9 @@ class DiverFigurePainter extends CustomPainter {
   @override
   bool shouldRepaint(DiverFigurePainter oldDelegate) =>
       !identical(oldDelegate.model, model) ||
-      !identical(oldDelegate.palette, palette);
+      !identical(oldDelegate.palette, palette) ||
+      oldDelegate.only != only ||
+      oldDelegate.layout?.front != layout?.front;
 }
 
 class _Entry {

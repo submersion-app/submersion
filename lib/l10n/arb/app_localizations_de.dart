@@ -12836,8 +12836,18 @@ class AppLocalizationsDe extends AppLocalizations {
   String get equipment_fab_addSet => 'Set hinzufügen';
 
   @override
+  String equipment_figure_backCount(int count) {
+    return 'Hinten · $count';
+  }
+
+  @override
   String equipment_figure_discLabel(int number, String type, String name) {
     return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Vorne · $count';
   }
 
   @override

@@ -12838,8 +12838,18 @@ class AppLocalizationsEs extends AppLocalizations {
   String get equipment_fab_addSet => 'Agregar Conjunto';
 
   @override
+  String equipment_figure_backCount(int count) {
+    return 'Detrás · $count';
+  }
+
+  @override
   String equipment_figure_discLabel(int number, String type, String name) {
     return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Delante · $count';
   }
 
   @override

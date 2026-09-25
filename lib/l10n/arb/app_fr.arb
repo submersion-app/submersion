@@ -4240,6 +4240,8 @@
   "equipment_figure_discLabel": "{number}, {type}, {name}",
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} élément} other{{count} éléments}}",
   "equipment_figure_trayTitle": "Également emporté",
+  "equipment_figure_frontCount": "Devant · {count}",
+  "equipment_figure_backCount": "Dos · {count}",
   "equipment_sets_retryButton": "Réessayer",
   "equipment_snackbar_deleted": "Équipement supprimé",
   "equipment_snackbar_markedAsServiced": "Marqué comme révisé",

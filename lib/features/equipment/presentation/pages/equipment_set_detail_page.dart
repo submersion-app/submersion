@@ -19,6 +19,7 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_gro
 import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_composer.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_inputs.dart';
+import 'package:submersion/features/equipment/figure/domain/figure_view.dart';
 import 'package:submersion/features/equipment/figure/presentation/diver_figure.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
@@ -255,9 +256,13 @@ class _EquipmentSetDetailPageState
                       set.name,
                       model.itemCount,
                     ),
+                    labelText: (placed) => placed.item.name,
+                    sideLabel: (view, count) => view == FigureView.front
+                        ? context.l10n.equipment_figure_frontCount(count)
+                        : context.l10n.equipment_figure_backCount(count),
                     selectedItemId: _selectedId,
                     onItemTap: (placed) => _select(placed.item.id),
-                    discLabel: (placed) =>
+                    itemSemantics: (placed) =>
                         context.l10n.equipment_figure_discLabel(
                           placed.number,
                           placed.item.type.localizedName(context.l10n),

@@ -4342,6 +4342,8 @@
   "equipment_figure_discLabel": "{number}, {type}, {name}",
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} item} other{{count} items}}",
   "equipment_figure_trayTitle": "Ook meegenomen",
+  "equipment_figure_frontCount": "Voorkant · {count}",
+  "equipment_figure_backCount": "Achterkant · {count}",
   "equipment_sets_retryButton": "Opnieuw proberen",
   "equipment_snackbar_deleted": "Uitrusting verwijderd",
   "equipment_snackbar_markedAsServiced": "Gemarkeerd als onderhouden",

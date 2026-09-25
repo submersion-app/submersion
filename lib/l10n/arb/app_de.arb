@@ -4445,6 +4445,8 @@
   "equipment_figure_discLabel": "{number}, {type}, {name}",
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} Gegenstand} other{{count} Gegenstände}}",
   "equipment_figure_trayTitle": "Außerdem dabei",
+  "equipment_figure_frontCount": "Vorne · {count}",
+  "equipment_figure_backCount": "Hinten · {count}",
   "equipment_sets_retryButton": "Erneut versuchen",
   "equipment_snackbar_deleted": "Ausrüstung gelöscht",
   "equipment_snackbar_markedAsServiced": "Als gewartet markiert",

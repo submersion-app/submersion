@@ -23,8 +23,12 @@ void main() {
   EquipmentItem gear(String id, String name, EquipmentType type) =>
       EquipmentItem(id: id, name: name, type: type);
 
-  Future<void> pump(WidgetTester tester, List<EquipmentItem> items) async {
-    tester.view.physicalSize = const Size(900, 2400);
+  Future<void> pump(
+    WidgetTester tester,
+    List<EquipmentItem> items, {
+    double width = 900,
+  }) async {
+    tester.view.physicalSize = Size(width, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     final set = EquipmentSet(
@@ -89,7 +93,7 @@ void main() {
     tester,
   ) async {
     await pump(tester, three);
-    await tester.tap(find.byKey(const ValueKey('figure-disc-b')));
+    await tester.tap(find.byKey(const ValueKey('figure-label-b')));
     await tester.pump();
     final selected = tester
         .widgetList<FigureNumberBadge>(find.byType(FigureNumberBadge))
@@ -112,7 +116,7 @@ void main() {
     tester,
   ) async {
     await pump(tester, three);
-    await tester.tap(find.byKey(const ValueKey('figure-disc-b')));
+    await tester.tap(find.byKey(const ValueKey('figure-label-b')));
     await tester.pump();
     final context = tester.element(find.byType(DiverFigure));
     final highlight = figureHighlightFor(Theme.of(context).colorScheme);
@@ -128,6 +132,31 @@ void main() {
     );
     expect(card.color, highlight.fill);
     await tester.pump(const Duration(seconds: 2));
+  });
+
+  testWidgets("on a phone, tapping a back item's badge shows the back", (
+    tester,
+  ) async {
+    await pump(tester, three, width: 390);
+    expect(find.text('Front · 2'), findsOneWidget);
+    expect(find.text('Back · 1'), findsOneWidget);
+    expect(find.byKey(const ValueKey('figure-label-b')), findsNothing);
+    final bcdRow = find.ancestor(
+      of: find.text('Hollis SMS75'),
+      matching: find.byType(ListTile),
+    );
+    await tester.tap(
+      find.descendant(of: bcdRow, matching: find.byType(FigureNumberBadge)),
+    );
+    await tester.pump();
+    expect(find.byKey(const ValueKey('figure-label-b')), findsOneWidget);
+    await tester.pump(const Duration(seconds: 2));
+  });
+
+  testWidgets('the wide figure names every item', (tester) async {
+    await pump(tester, three);
+    expect(find.text('Hollis M1'), findsNWidgets(2)); // the label and the row
+    expect(find.text('Jet Fins'), findsNWidgets(2));
   });
 
   testWidgets('a tray item shows the carried heading', (tester) async {

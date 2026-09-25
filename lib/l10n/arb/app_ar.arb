@@ -4342,6 +4342,8 @@
   "equipment_figure_discLabel": "{number}، {type}، {name}",
   "equipment_figure_summary": "{name}، {count, plural, =1{عنصر واحد} other{{count} عناصر}}",
   "equipment_figure_trayTitle": "يُحمل أيضًا",
+  "equipment_figure_frontCount": "الأمام · {count}",
+  "equipment_figure_backCount": "الخلف · {count}",
   "equipment_sets_retryButton": "إعادة المحاولة",
   "equipment_snackbar_deleted": "تم حذف المعدات",
   "equipment_snackbar_markedAsServiced": "تم تحديدها كمصانة",
