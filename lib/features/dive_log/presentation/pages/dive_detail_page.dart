@@ -1254,6 +1254,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 }
               },
               itemBuilder: (context) => [
+                displayOptionsMenuItem(context, 'displayOptions'),
                 if (compactActions)
                   PopupMenuItem(
                     value: 'toggleFavorite',
@@ -1268,7 +1269,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       contentPadding: EdgeInsets.zero,
                     ),
                   ),
-                displayOptionsMenuItem(context, 'displayOptions'),
                 PopupMenuItem(
                   value: 'export',
                   child: ListTile(

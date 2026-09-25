@@ -69,6 +69,25 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  testWidgets('phone overflow lists display options before favorite', (
+    tester,
+  ) async {
+    // Below the compact app-bar width the favorite toggle joins the
+    // overflow; display options still lead the list.
+    tester.view.devicePixelRatio = 1.0;
+    tester.view.physicalSize = const Size(400, 900);
+    addTearDown(tester.view.reset);
+    await pumpDetail(tester);
+
+    await tester.tap(find.byIcon(Icons.more_vert).last);
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getTopLeft(find.text('Display options')).dy,
+      lessThan(tester.getTopLeft(find.text('Add to favorites')).dy),
+    );
+  });
+
   for (final embedded in [false, true]) {
     final mode = embedded ? 'embedded' : 'standalone';
 
