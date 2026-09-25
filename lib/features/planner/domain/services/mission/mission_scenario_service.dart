@@ -1,44 +1,37 @@
 import 'dart:math' as math;
 
-import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
-import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
-import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/mission/battery_burn_service.dart';
-import 'package:submersion/features/planner/domain/services/mission/leg_speed_resolver.dart';
-import 'package:submersion/features/planner/domain/services/mission/member_gas_service.dart';
+import 'package:submersion/features/planner/domain/services/mission/exit_path_evaluator.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_geometry.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_segment_builder.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_team.dart';
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
-/// Evaluates one scooter failure: a member's scooter dies on arrival at a
-/// waypoint and the team exits by swimming or by towing.
+/// One way home after a member's scooter dies on arrival at a waypoint:
+/// the underwater swim or tow (retracing the route in an overhead, straight
+/// home in open water), or in open water the surface exit.
 ///
-/// Each scenario is a plan copy whose segments run out to the waypoint at
-/// cruise and back at the exit speed. The plan engine runs once per scenario
-/// for the schedule and time to surface; per-member gas is re-derived from
-/// the schedule rows with each member's own SAC.
+/// The exit itself is evaluated by the scooter-free [ExitPathEvaluator];
+/// this service adds what scooters bring: the tow speed and the battery.
 class MissionScenarioService {
   final PlanEngine engine;
   final MissionSegmentBuilder builder;
   final BatteryBurnService battery;
-  final MemberGasService gas;
-  final LegSpeedResolver speeds;
+  final ExitPathEvaluator exits;
 
   const MissionScenarioService({
     this.engine = const PlanEngine(),
     this.builder = const MissionSegmentBuilder(),
     this.battery = const BatteryBurnService(),
-    this.gas = const MemberGasService(),
-    this.speeds = const LegSpeedResolver(),
+    this.exits = const ExitPathEvaluator(),
   });
 
-  /// Speed of a tow exit: the tower's tow speed, capped by every other
-  /// running scooter's rated speed so the team stays together.
+  /// Speed through the water of a tow exit: the tower's tow speed, capped by
+  /// every other running scooter's rated speed so the team stays together.
   double towSpeedMps({
     required DpvMission mission,
     required String failedMemberId,
@@ -55,6 +48,8 @@ class MissionScenarioService {
     return speed.isFinite ? speed : 0.0;
   }
 
+  /// The swim or tow exit after [failedMemberId]'s scooter dies at waypoint
+  /// [waypointIndex]. The surface exit is [evaluateSurface].
   ExitOutcome evaluate({
     required domain.DivePlan plan,
     required DpvMission mission,
@@ -63,23 +58,47 @@ class MissionScenarioService {
     required MissionExitMode mode,
     String? towerId,
   }) {
-    final exitSpeed = switch (mode) {
-      MissionExitMode.swim => slowestSwimSpeedMps(mission.team),
-      MissionExitMode.tow => towSpeedMps(
-        mission: mission,
-        failedMemberId: failedMemberId,
-        towerId: towerId!,
-      ),
-      MissionExitMode.surface => throw ArgumentError.value(
+    if (mode == MissionExitMode.surface) {
+      throw ArgumentError.value(
         mode,
         'mode',
         'the surface exit has its own evaluation',
-      ),
-    };
-    if (!_exitTraversable(mission, waypointIndex, exitSpeed)) {
+      );
+    }
+    final exitSpeed = mode == MissionExitMode.swim
+        ? slowestSwimSpeedMps(mission.team)
+        : towSpeedMps(
+            mission: mission,
+            failedMemberId: failedMemberId,
+            towerId: towerId!,
+          );
+    final outbound = builder.outbound(
+      plan: plan,
+      mission: mission,
+      throughLegIndex: waypointIndex,
+      speedMps: cruiseSpeedMps(mission.team),
+    );
+    final failureRuntime = outbound.waypointArrivalSeconds[waypointIndex];
+    final result = exits.evaluate(
+      plan: plan,
+      outboundSegments: outbound.segments,
+      failureRuntimeSeconds: failureRuntime,
+      exitLegs: exitLegsFor(mission, waypointIndex),
+      exitSpeedMps: exitSpeed,
+      divers: [
+        for (final member in mission.team)
+          ExitDiver(
+            id: member.id,
+            sacBottom: member.sacBottom,
+            stressed: member.id == failedMemberId,
+          ),
+      ],
+    );
+    final tower = mode == MissionExitMode.tow ? towerId : null;
+    if (result.blockedByCurrent) {
       return ExitOutcome(
         mode: mode,
-        towerId: mode == MissionExitMode.tow ? towerId : null,
+        towerId: tower,
         feasible: false,
         exitBottomSeconds: 0,
         ttsSeconds: 0,
@@ -87,138 +106,137 @@ class MissionScenarioService {
         blockedByCurrent: true,
       );
     }
-    final profile = builder.build(
-      plan: plan,
-      mission: mission,
-      throughLegIndex: waypointIndex,
-      outboundSpeedMps: cruiseSpeedMps(mission.team),
-      exitSpeedMps: exitSpeed,
-    );
-    final outcome = engine.compute(plan.copyWith(segments: profile.segments));
-    final failureRuntime = profile.waypointArrivalSeconds[waypointIndex];
-    final authoredRuntime = outcome.runtimeSeconds - outcome.ttsAtBottom;
-    final exitBottomSeconds = math.max(0, authoredRuntime - failureRuntime);
-    final environment = environmentFor(plan);
 
-    final outboundRows = outcome.schedule
-        .where((r) => r.runtimeSeconds <= failureRuntime)
-        .toList();
-    final exitRows = outcome.schedule
-        .where((r) => r.runtimeSeconds > failureRuntime)
-        .toList();
-
-    final exitLiters = <String, double>{};
-    final gasShortfall = <String>{};
     final batteryShortfall = <String>{};
-
     for (final member in mission.team) {
-      final failed = member.id == failedMemberId;
-      final outbound = gas.litersByTank(
-        rows: outboundRows,
-        environment: environment,
-        sacFor: (_) => member.sacBottom,
+      if (member.id == failedMemberId) continue;
+      final tows = mode == MissionExitMode.tow && member.id == towerId;
+      final powered =
+          failureRuntime +
+          (mode == MissionExitMode.tow && !tows ? result.exitBottomSeconds : 0);
+      final fraction = battery.burnFraction(
+        scooter: member.scooter,
+        poweredSeconds: powered,
+        towingSeconds: tows ? result.exitBottomSeconds : 0,
       );
-      final exit = gas.litersByTank(
-        rows: exitRows,
-        environment: environment,
-        sacFor: (row) => _exitSac(
-          plan: plan,
-          member: member,
-          failed: failed,
-          row: row,
-          authoredRuntime: authoredRuntime,
-        ),
-      );
-      exitLiters[member.id] = exit.values.fold(0.0, (a, b) => a + b);
-      if (_gasShort(plan, outbound, exit)) gasShortfall.add(member.id);
-      if (!failed) {
-        final tows = mode == MissionExitMode.tow && member.id == towerId;
-        final powered =
-            failureRuntime +
-            (mode == MissionExitMode.tow && !tows ? exitBottomSeconds : 0);
-        final fraction = battery.burnFraction(
-          scooter: member.scooter,
-          poweredSeconds: powered,
-          towingSeconds: tows ? exitBottomSeconds : 0,
-        );
-        if (!battery.withinReserve(
-          burnFraction: fraction,
-          reserveFraction: mission.batteryReserveFraction,
-        )) {
-          batteryShortfall.add(member.id);
-        }
+      if (!battery.withinReserve(
+        burnFraction: fraction,
+        reserveFraction: mission.batteryReserveFraction,
+      )) {
+        batteryShortfall.add(member.id);
       }
     }
 
     return ExitOutcome(
       mode: mode,
-      towerId: mode == MissionExitMode.tow ? towerId : null,
-      feasible: gasShortfall.isEmpty && batteryShortfall.isEmpty,
-      exitBottomSeconds: exitBottomSeconds,
-      ttsSeconds: outcome.ttsAtBottom,
-      exitLitersByMember: exitLiters,
-      gasShortfallMemberIds: gasShortfall,
+      towerId: tower,
+      feasible:
+          result.gasShortfallMemberIds.isEmpty && batteryShortfall.isEmpty,
+      exitBottomSeconds: result.exitBottomSeconds,
+      ttsSeconds: result.ttsSeconds,
+      exitLitersByMember: result.exitLitersByMember,
+      gasShortfallMemberIds: result.gasShortfallMemberIds,
       batteryShortfallMemberIds: batteryShortfall,
     );
   }
 
-  /// True when the team can make headway at [exitSpeed] on every leg from
-  /// waypoint [waypointIndex] back to the start.
-  bool _exitTraversable(
-    DpvMission mission,
-    int waypointIndex,
-    double exitSpeed,
-  ) {
-    for (var i = 0; i <= waypointIndex; i++) {
-      final leg = mission.legs[i];
-      final resolved = speeds.resolve(
-        leg: leg,
-        current: mission.currentFor(leg),
-        baseSpeedMps: exitSpeed,
-      );
-      if (!resolved.returnTraversable) return false;
-    }
-    return true;
-  }
-
-  double _exitSac({
+  /// Open water: ascend at waypoint [waypointIndex], then swim at the
+  /// surface straight to the entry or to the waypoint's shore exit and walk.
+  ///
+  /// The ascent does not depend on whose scooter failed, so the result is
+  /// shared by every member. Surface swimming is not charged gas and ignores
+  /// current. The fastest surface route is chosen, among those within the
+  /// mission's surface swim limit when one is set; when none is within it,
+  /// the fastest route is reported and the exit is infeasible.
+  ExitOutcome evaluateSurface({
     required domain.DivePlan plan,
-    required MissionMember member,
-    required bool failed,
-    required PlanScheduleRow row,
-    required int authoredRuntime,
+    required DpvMission mission,
+    required int waypointIndex,
   }) {
-    if (row.runtimeSeconds > authoredRuntime) return plan.sacDecoEffective;
-    return failed ? plan.sacStressedEffective : member.sacBottom;
-  }
-
-  /// True when any tank with a known size and fill would end below the plan
-  /// reserve after [outbound] plus [exit] litres.
-  bool _gasShort(
-    domain.DivePlan plan,
-    Map<String, double> outbound,
-    Map<String, double> exit,
-  ) {
-    for (final tank in plan.tanks) {
-      final used = (outbound[tank.id] ?? 0.0) + (exit[tank.id] ?? 0.0);
-      final remaining = gas.remainingBar(
-        tank: tank,
-        litersUsed: used,
-        model: engine.config.gasModel,
-      );
-      if (remaining == null) continue;
-      if (remaining < plan.reservePressure) return true;
-    }
-    return false;
-  }
-
-  /// The same environment the engine derives for [plan] (see
-  /// `PlanEngine._computeInternal`), so ambient pressure agrees with deco.
-  static DiveEnvironment environmentFor(domain.DivePlan plan) {
-    return DiveEnvironment.forConditions(
-      altitudeMeters: (plan.altitude ?? 0) > 0 ? plan.altitude : null,
-      waterType: plan.waterType ?? WaterType.salt,
-      salinityPpt: plan.salinityPpt,
+    final outbound = builder.outbound(
+      plan: plan,
+      mission: mission,
+      throughLegIndex: waypointIndex,
+      speedMps: cruiseSpeedMps(mission.team),
     );
+    final result = exits.evaluate(
+      plan: plan,
+      outboundSegments: outbound.segments,
+      failureRuntimeSeconds: outbound.waypointArrivalSeconds[waypointIndex],
+      exitLegs: const [],
+      exitSpeedMps: 0,
+      divers: [
+        for (final member in mission.team)
+          ExitDiver(id: member.id, sacBottom: member.sacBottom),
+      ],
+    );
+
+    final swimSpeed = slowestSwimSpeedMps(mission.team);
+    if (swimSpeed <= 0) {
+      throw ArgumentError.value(swimSpeed, 'swimSpeed', 'no surface swim');
+    }
+    final shore = mission.legs[waypointIndex].shoreExit;
+    final routes = <({double swimM, double walkM, bool viaShore})>[
+      (
+        swimM: waypointPositions(mission.legs)[waypointIndex].distanceHomeM,
+        walkM: 0.0,
+        viaShore: false,
+      ),
+      // A walk needs a walking speed; a shore right at the entry does not.
+      if (shore != null && (shore.walkM <= 0 || mission.walkSpeedMps > 0))
+        (swimM: shore.surfaceSwimM, walkM: shore.walkM, viaShore: true),
+    ];
+    int seconds(({double swimM, double walkM, bool viaShore}) route) {
+      final walk = route.walkM > 0 ? route.walkM / mission.walkSpeedMps : 0.0;
+      return math.max(0, (route.swimM / swimSpeed + walk - 1e-6).ceil());
+    }
+
+    final limit = mission.surfaceSwimLimitM;
+    final within = [
+      for (final route in routes)
+        if (limit == null || route.swimM <= limit) route,
+    ];
+    final pool = within.isEmpty ? routes : within;
+    final chosen = pool.reduce((a, b) => seconds(b) < seconds(a) ? b : a);
+    final exceeded = within.isEmpty;
+
+    return ExitOutcome(
+      mode: MissionExitMode.surface,
+      feasible: result.gasShortfallMemberIds.isEmpty && !exceeded,
+      exitBottomSeconds: 0,
+      ttsSeconds: result.ttsSeconds,
+      exitLitersByMember: result.exitLitersByMember,
+      gasShortfallMemberIds: result.gasShortfallMemberIds,
+      surfaceSeconds: seconds(chosen),
+      surfaceSwimM: chosen.swimM,
+      walkM: chosen.walkM,
+      viaShore: chosen.viaShore,
+      surfaceLimitExceeded: exceeded,
+    );
+  }
+
+  /// In an overhead, seconds from waypoint [waypointIndex] to a safe surface
+  /// with no failure: the way out at cruise plus the ascent.
+  int overheadSafeSurfaceSeconds({
+    required domain.DivePlan plan,
+    required DpvMission mission,
+    required int waypointIndex,
+  }) {
+    final cruise = cruiseSpeedMps(mission.team);
+    final outbound = builder.outbound(
+      plan: plan,
+      mission: mission,
+      throughLegIndex: waypointIndex,
+      speedMps: cruise,
+    );
+    final result = exits.evaluate(
+      plan: plan,
+      outboundSegments: outbound.segments,
+      failureRuntimeSeconds: outbound.waypointArrivalSeconds[waypointIndex],
+      exitLegs: retraceExitLegs(mission, waypointIndex),
+      exitSpeedMps: cruise,
+      divers: const [],
+    );
+    return result.exitBottomSeconds + result.ttsSeconds;
   }
 }
