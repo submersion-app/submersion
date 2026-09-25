@@ -3,8 +3,7 @@
 Date: 2026-09-25
 Status: approved design, implementation plans pending (one per PR)
 Branch: ericgriffin/trip-scale-gas-logistics-865434
-Issue: none filed yet. One umbrella issue is opened before PR 1; PRs 1 to 4
-say `Part of #N`, PR 5 says `Closes #N` (see Delivery).
+Issue: #2325. PRs 1 to 4 say `Part of #2325`, PR 5 says `Closes #2325` (see Delivery).
 
 ## Problem
 
@@ -378,8 +377,8 @@ own implementation plan written only then. `dart format .` and
    the trip and dive center edit fields.
 5. Phase 3: the record view and CSV export.
 
-Issue linking: one umbrella issue for the program. PR bodies 1 to 4 carry
-`Part of #N`; PR 5 carries `Closes #N`. The "PR Issue Link" check blocks
+Issue linking: #2325 is the umbrella issue for the program. PR bodies 1 to 4
+carry `Part of #2325`; PR 5 carries `Closes #2325`. The "PR Issue Link" check blocks
 merge otherwise.
 
 ## Out of scope
