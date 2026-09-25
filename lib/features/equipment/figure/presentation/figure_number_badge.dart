@@ -1,0 +1,62 @@
+import 'package:flutter/material.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
+
+/// The numbered disc, on the figure and at the head of a legend row.
+///
+/// Always drawn with a ring in the on-disc colour, so the disc keeps an edge
+/// on a body or a gear colour close to `primary`; selection thickens it.
+class FigureNumberBadge extends StatelessWidget {
+  const FigureNumberBadge({
+    super.key,
+    required this.number,
+    this.selected = false,
+    this.size = 24,
+    this.onTap,
+    this.semanticsLabel,
+  });
+
+  final int number;
+  final bool selected;
+  final double size;
+  final VoidCallback? onTap;
+  final String? semanticsLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = figurePaletteFor(Theme.of(context).colorScheme);
+    final disc = Color(palette.disc);
+    final onDisc = Color(palette.onDisc);
+    final circle = Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: disc,
+        border: Border.all(color: onDisc, width: selected ? 2.5 : 1),
+      ),
+      child: Text(
+        '$number',
+        style: TextStyle(
+          color: onDisc,
+          fontSize: size * 0.5,
+          fontWeight: FontWeight.w700,
+          height: 1,
+        ),
+      ),
+    );
+    return Semantics(
+      label: semanticsLabel,
+      button: onTap != null,
+      selected: selected,
+      excludeSemantics: semanticsLabel != null,
+      child: onTap == null
+          ? circle
+          : GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onTap,
+              child: circle,
+            ),
+    );
+  }
+}
