@@ -718,6 +718,12 @@ abstract final class EquipmentAttributeCatalog {
 
   /// Definition for a curated key, or null for unknown/custom keys.
   static EquipmentAttributeDef? defFor(String key) => _byKey[key];
+
+  /// Whether [key] is a curated attribute the app owns ([AttributeGroup.system],
+  /// such as a cylinder's passport id). Such values are identities, never
+  /// data to copy: exports leave them out and imports ignore them.
+  static bool isSystemKey(String key) =>
+      _byKey[key]?.group == AttributeGroup.system;
 }
 
 /// Turns a stored `url`-kind value into a launchable link, or null when it

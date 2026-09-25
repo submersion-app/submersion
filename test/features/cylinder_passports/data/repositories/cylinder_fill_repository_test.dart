@@ -149,4 +149,28 @@ void main() {
     // history (a rental, a deleted row); it stays where it was.
     expect((await repo.getById('b'))!.passportId, 'pp-1');
   });
+
+  test('relinking never takes a fill from another live cylinder', () async {
+    await seedEquipment('eq-2');
+    await repo.create(fill('mine', t0, equipmentId: null));
+    await repo.create(fill('theirs', t0, equipmentId: 'eq-2'));
+    final moved = await repo.relinkToEquipment(
+      passportId: 'pp-1',
+      equipmentId: 'eq-1',
+    );
+    expect(moved, 1);
+    expect((await repo.getById('mine'))!.equipmentId, 'eq-1');
+    expect((await repo.getById('theirs'))!.equipmentId, 'eq-2');
+  });
+
+  test('getForCylinder skips a fill another cylinder owns', () async {
+    await seedEquipment('eq-2');
+    await repo.create(fill('mine', t0));
+    await repo.create(fill('theirs', t0, equipmentId: 'eq-2'));
+    final fills = await repo.getForCylinder(
+      passportId: 'pp-1',
+      equipmentId: 'eq-1',
+    );
+    expect(fills.map((f) => f.id), ['mine']);
+  });
 }

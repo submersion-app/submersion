@@ -84,9 +84,11 @@ class CylinderFillRepository {
     return row == null ? null : _fromRow(row);
   }
 
-  /// Every fill of one cylinder, newest first: those under its passport id
-  /// and those linked to its gear row, each once. Reading both keeps a fill
-  /// on the page when the id changes under it (a linked tag, a peer's mint).
+  /// Every fill of one cylinder, newest first: those linked to its gear row,
+  /// and those under its passport id that no other live cylinder owns
+  /// (unlinked, or linked to a row since deleted). Reading both keeps a fill
+  /// on the page when the id changes under it; the ownership test keeps
+  /// another cylinder's history off it when two rows share an id.
   Future<List<CylinderFill>> getForCylinder({
     required String? passportId,
     required String equipmentId,
@@ -104,7 +106,31 @@ class CylinderFillRepository {
                 (t) => OrderingTerm.asc(t.id),
               ]))
             .get();
-    return rows.map(_fromRow).toList();
+    final owned = await _ownedElsewhere(rows, equipmentId);
+    return rows.where((r) => !owned.contains(r.id)).map(_fromRow).toList();
+  }
+
+  /// Ids of [rows] linked to a live cylinder other than [equipmentId].
+  Future<Set<String>> _ownedElsewhere(
+    List<CylinderFillRow> rows,
+    String equipmentId,
+  ) async {
+    final others = {
+      for (final r in rows)
+        if (r.equipmentId case final id? when id != equipmentId) id,
+    };
+    if (others.isEmpty) return const {};
+    final live =
+        await (_db.selectOnly(_db.equipment)
+              ..addColumns([_db.equipment.id])
+              ..where(_db.equipment.id.isIn(others)))
+            .map((r) => r.read(_db.equipment.id)!)
+            .get();
+    final liveSet = live.toSet();
+    return {
+      for (final r in rows)
+        if (r.equipmentId case final id? when liveSet.contains(id)) r.id,
+    };
   }
 
   /// Moves the fills of [equipmentId] logged under passport id [from] to
@@ -150,8 +176,8 @@ class CylinderFillRepository {
     return rows.map(_fromRow).toList();
   }
 
-  /// Points every fill of [passportId] at [equipmentId] and stages each for
-  /// sync. Returns how many rows changed.
+  /// Points the fills of [passportId] that no other live cylinder owns at
+  /// [equipmentId] and stages each for sync. Returns how many rows changed.
   Future<int> relinkToEquipment({
     required String passportId,
     required String equipmentId,
@@ -160,7 +186,13 @@ class CylinderFillRepository {
     final rows = await (_db.select(
       _db.cylinderFills,
     )..where((t) => t.passportId.equals(passportId))).get();
-    final stale = rows.where((r) => r.equipmentId != equipmentId).toList();
+    // Adopt only fills no other live cylinder owns: unlinked ones, and ones
+    // whose row was deleted. A second cylinder that shares the id keeps its
+    // own history.
+    final owned = await _ownedElsewhere(rows, equipmentId);
+    final stale = rows
+        .where((r) => r.equipmentId != equipmentId && !owned.contains(r.id))
+        .toList();
     if (stale.isEmpty) return 0;
     await _db.transaction(() async {
       await (_db.update(
