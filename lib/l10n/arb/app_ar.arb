@@ -2631,7 +2631,6 @@
   "diveLog_listPage_searchLimitNotice": "عرض أول {limit} نتيجة مطابقة. حسّن البحث لتضييق النتائج.",
   "diveLog_listPage_searchNoResults": "لم يتم العثور على غوصات لـ \"{query}\"",
   "diveLog_listPage_searchSuggestion": "البحث حسب الموقع أو زميل الغوص أو الملاحظات",
-  "diveLog_listPage_title": "سجل الغوص",
   "diveLog_listPage_tooltip_back": "رجوع",
   "diveLog_listPage_tooltip_backToDiveList": "العودة إلى قائمة الغوصات",
   "diveLog_listPage_tooltip_clearSearch": "مسح البحث",

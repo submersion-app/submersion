@@ -7534,9 +7534,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'البحث حسب الموقع أو زميل الغوص أو الملاحظات';
 
   @override
-  String get diveLog_listPage_title => 'سجل الغوص';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'رجوع';
 
   @override

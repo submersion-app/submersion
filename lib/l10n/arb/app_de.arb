@@ -2643,7 +2643,6 @@
   "diveLog_listPage_searchLimitNotice": "Die ersten {limit} Treffer werden angezeigt. Verfeinern Sie die Suche, um die Ergebnisse einzugrenzen.",
   "diveLog_listPage_searchNoResults": "Keine Tauchgänge gefunden für \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Nach Tauchplatz, Tauchpartner oder Notizen suchen",
-  "diveLog_listPage_title": "Tauchlogbuch",
   "diveLog_listPage_tooltip_back": "Zurück",
   "diveLog_listPage_tooltip_backToDiveList": "Zurück zur Tauchgangliste",
   "diveLog_listPage_tooltip_clearSearch": "Suche löschen",

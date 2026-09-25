@@ -2529,7 +2529,6 @@
   "diveLog_listPage_searchLimitNotice": "מוצגות {limit} ההתאמות הראשונות. חדדו את החיפוש כדי לצמצם את התוצאות.",
   "diveLog_listPage_searchNoResults": "לא נמצאו צלילות עבור \"{query}\"",
   "diveLog_listPage_searchSuggestion": "חיפוש לפי אתר, שותף או הערות",
-  "diveLog_listPage_title": "יומן צלילה",
   "diveLog_listPage_tooltip_back": "חזרה",
   "diveLog_listPage_tooltip_backToDiveList": "חזרה לרשימת צלילות",
   "diveLog_listPage_tooltip_clearSearch": "ניקוי חיפוש",

@@ -4264,7 +4264,6 @@
   "diveLog_listPage_searchLimitNotice": "Showing the first {limit} matches. Refine your search to narrow results.",
   "diveLog_listPage_searchNoResults": "No dives found for \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Search by site, buddy, or notes",
-  "diveLog_listPage_title": "Dive Log",
   "diveLog_listPage_tooltip_back": "Back",
   "diveLog_listPage_tooltip_backToDiveList": "Back to dive list",
   "diveLog_listPage_tooltip_clearSearch": "Clear search",

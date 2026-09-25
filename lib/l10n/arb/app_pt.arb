@@ -2631,7 +2631,6 @@
   "diveLog_listPage_searchLimitNotice": "Mostrando as primeiras {limit} correspondências. Refine a busca para restringir os resultados.",
   "diveLog_listPage_searchNoResults": "Nenhum mergulho encontrado para \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Buscar por ponto, dupla ou anotações",
-  "diveLog_listPage_title": "Log de Mergulhos",
   "diveLog_listPage_tooltip_back": "Voltar",
   "diveLog_listPage_tooltip_backToDiveList": "Voltar para a lista de mergulhos",
   "diveLog_listPage_tooltip_clearSearch": "Limpar busca",

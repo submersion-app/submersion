@@ -7292,9 +7292,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_listPage_searchSuggestion => '按潜水点、潜伴或备注搜索';
 
   @override
-  String get diveLog_listPage_title => '潜水日志';
-
-  @override
   String get diveLog_listPage_tooltip_back => '返回';
 
   @override

@@ -7494,9 +7494,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'חיפוש לפי אתר, שותף או הערות';
 
   @override
-  String get diveLog_listPage_title => 'יומן צלילה';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'חזרה';
 
   @override

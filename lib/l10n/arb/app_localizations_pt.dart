@@ -7684,9 +7684,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Buscar por ponto, dupla ou anotações';
 
   @override
-  String get diveLog_listPage_title => 'Log de Mergulhos';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Voltar';
 
   @override

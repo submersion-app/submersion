@@ -7682,9 +7682,6 @@ class AppLocalizationsDe extends AppLocalizations {
       'Nach Tauchplatz, Tauchpartner oder Notizen suchen';
 
   @override
-  String get diveLog_listPage_title => 'Tauchlogbuch';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Zurück';
 
   @override

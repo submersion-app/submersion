@@ -2529,7 +2529,6 @@
   "diveLog_listPage_searchLimitNotice": "Az első {limit} találat látható. Pontosítsa a keresést az eredmények szűkítéséhez.",
   "diveLog_listPage_searchNoResults": "Nem található merülés: \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Keresés merülőhely, buddy vagy jegyzetek alapján",
-  "diveLog_listPage_title": "Merülési napló",
   "diveLog_listPage_tooltip_back": "Vissza",
   "diveLog_listPage_tooltip_backToDiveList": "Vissza a merülések listájához",
   "diveLog_listPage_tooltip_clearSearch": "Keresés törlése",

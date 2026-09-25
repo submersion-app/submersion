@@ -7550,9 +7550,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'Search by site, buddy, or notes';
 
   @override
-  String get diveLog_listPage_title => 'Dive Log';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Back';
 
   @override

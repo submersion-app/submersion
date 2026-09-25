@@ -2631,7 +2631,6 @@
   "diveLog_listPage_searchLimitNotice": "Mostrando las primeras {limit} coincidencias. Refina la búsqueda para acotar los resultados.",
   "diveLog_listPage_searchNoResults": "No se encontraron inmersiones para \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Buscar por punto, compañero o notas",
-  "diveLog_listPage_title": "Registro de buceo",
   "diveLog_listPage_tooltip_back": "Atrás",
   "diveLog_listPage_tooltip_backToDiveList": "Volver a la lista de inmersiones",
   "diveLog_listPage_tooltip_clearSearch": "Borrar búsqueda",

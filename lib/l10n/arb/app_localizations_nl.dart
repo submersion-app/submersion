@@ -7625,9 +7625,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Zoek op stek, buddy of notities';
 
   @override
-  String get diveLog_listPage_title => 'Duiklogboek';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Terug';
 
   @override

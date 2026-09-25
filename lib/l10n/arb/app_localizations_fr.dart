@@ -7718,9 +7718,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Rechercher par site, binôme ou notes';
 
   @override
-  String get diveLog_listPage_title => 'Carnet de plongée';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Retour';
 
   @override

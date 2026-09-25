@@ -12471,12 +12471,6 @@ abstract class AppLocalizations {
   /// **'Search by site, buddy, or notes'**
   String get diveLog_listPage_searchSuggestion;
 
-  /// No description provided for @diveLog_listPage_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Log'**
-  String get diveLog_listPage_title;
-
   /// No description provided for @diveLog_listPage_tooltip_back.
   ///
   /// In en, this message translates to:

@@ -7685,9 +7685,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Cerca per sito, compagno o note';
 
   @override
-  String get diveLog_listPage_title => 'Diario immersioni';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Indietro';
 
   @override

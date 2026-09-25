@@ -2765,7 +2765,6 @@
   "diveLog_listPage_searchLimitNotice": "仅显示前 {limit} 条匹配结果。请细化搜索以缩小范围。",
   "diveLog_listPage_searchNoResults": "未找到与「{query}」匹配的潜水",
   "diveLog_listPage_searchSuggestion": "按潜水点、潜伴或备注搜索",
-  "diveLog_listPage_title": "潜水日志",
   "diveLog_listPage_tooltip_back": "返回",
   "diveLog_listPage_tooltip_backToDiveList": "返回潜水列表",
   "diveLog_listPage_tooltip_clearSearch": "清除搜索",

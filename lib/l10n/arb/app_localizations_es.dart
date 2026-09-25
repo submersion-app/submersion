@@ -7683,9 +7683,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Buscar por punto, compañero o notas';
 
   @override
-  String get diveLog_listPage_title => 'Registro de buceo';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Atrás';
 
   @override

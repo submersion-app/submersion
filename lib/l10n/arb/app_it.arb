@@ -2529,7 +2529,6 @@
   "diveLog_listPage_searchLimitNotice": "Vengono mostrate le prime {limit} corrispondenze. Affina la ricerca per restringere i risultati.",
   "diveLog_listPage_searchNoResults": "Nessuna immersione trovata per \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Cerca per sito, compagno o note",
-  "diveLog_listPage_title": "Diario immersioni",
   "diveLog_listPage_tooltip_back": "Indietro",
   "diveLog_listPage_tooltip_backToDiveList": "Torna all'elenco immersioni",
   "diveLog_listPage_tooltip_clearSearch": "Cancella ricerca",

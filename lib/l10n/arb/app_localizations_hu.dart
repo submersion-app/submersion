@@ -7664,9 +7664,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Keresés merülőhely, buddy vagy jegyzetek alapján';
 
   @override
-  String get diveLog_listPage_title => 'Merülési napló';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Vissza';
 
   @override
