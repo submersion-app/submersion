@@ -3273,6 +3273,177 @@ class AppLocalizationsHu extends AppLocalizations {
       'Valami hiba történt. Kérjük, próbáld újra.';
 
   @override
+  String get connections_title => 'Kapcsolatok';
+
+  @override
+  String get connections_lens_circle => 'Búvárkör';
+
+  @override
+  String get connections_lens_where => 'Ki hol merül';
+
+  @override
+  String get connections_tooltip_filter => 'Kapcsolatok szűrése';
+
+  @override
+  String get connections_tooltip_relayout => 'Újrarendezés';
+
+  @override
+  String connections_filterBar_nodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count csomópont',
+      one: '1 csomópont',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count kapcsolat',
+      one: '1 kapcsolat',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_filterBar_clear => 'Szűrő törlése';
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count további nincs megjelenítve',
+      one: '1 további nincs megjelenítve',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => 'Összes megjelenítése';
+
+  @override
+  String get connections_showAll_confirmTitle =>
+      'Minden csomópont megjelenítése?';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return '$count csomópont elrendezése eltarthat egy pillanatig ezen az eszközön.';
+  }
+
+  @override
+  String get connections_action_open => 'Megnyitás';
+
+  @override
+  String get connections_action_focus => 'Középre';
+
+  @override
+  String get connections_action_showDives => 'Merülések megjelenítése';
+
+  @override
+  String get connections_action_openInConnections =>
+      'Megnyitás a Kapcsolatokban';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count közös merülés',
+      one: '1 közös merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés',
+      one: '1 merülés',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => 'Legerősebb kapcsolatok';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return 'Első $first, utolsó $last';
+  }
+
+  @override
+  String get connections_selection_hint =>
+      'Koppints egy csomópontra vagy vonalra a részletekhez.';
+
+  @override
+  String get connections_empty_noDives =>
+      'Még nincsenek merülések. A kapcsolatok akkor jelennek meg, ha a napló merüléseket tartalmaz.';
+
+  @override
+  String get connections_empty_buddies =>
+      'Még nincs merüléshez kapcsolt búvártárs. Adj búvártársakat a merüléseidhez, vagy alakítsd át a régi neveket a Beállítások, Adateszközök menüben.';
+
+  @override
+  String get connections_empty_sites =>
+      'Még egyik merülésnek sincs merülőhelye.';
+
+  @override
+  String get connections_focusMissing => 'Ez az elem már nincs a naplóban.';
+
+  @override
+  String get connections_error_load => 'A kapcsolatok betöltése nem sikerült.';
+
+  @override
+  String get connections_legend_title => 'Jelmagyarázat';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return '$first és $last közötti évek';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes csomópont és $edges kapcsolat';
+  }
+
+  @override
+  String get connections_kind_buddy => 'Búvártársak';
+
+  @override
+  String get connections_kind_site => 'Merülőhelyek';
+
+  @override
+  String get connections_kind_trip => 'Utak';
+
+  @override
+  String get connections_kind_diveCenter => 'Búvárközpontok';
+
+  @override
+  String get connections_kind_equipment => 'Felszerelés';
+
+  @override
+  String get connections_kind_species => 'Fajok';
+
+  @override
+  String get connections_kind_tag => 'Címkék';
+
+  @override
+  String get connections_kind_diveType => 'Merüléstípusok';
+
+  @override
+  String get connections_kind_diveComputer => 'Búvárcomputerek';
+
+  @override
+  String get connections_kind_course => 'Tanfolyamok';
+
+  @override
   String get courses_action_add => 'Tanfolyam hozzáadása';
 
   @override
@@ -15746,6 +15917,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get nav_certifications => 'Képesítések';
+
+  @override
+  String get nav_connections => 'Kapcsolatok';
 
   @override
   String get nav_courses => 'Tanfolyamok';

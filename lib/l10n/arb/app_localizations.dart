@@ -5307,6 +5307,240 @@ abstract class AppLocalizations {
   /// **'Something went wrong. Please try again.'**
   String get common_error_tryAgain;
 
+  /// No description provided for @connections_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get connections_title;
+
+  /// No description provided for @connections_lens_circle.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive circle'**
+  String get connections_lens_circle;
+
+  /// No description provided for @connections_lens_where.
+  ///
+  /// In en, this message translates to:
+  /// **'Who dives where'**
+  String get connections_lens_where;
+
+  /// No description provided for @connections_tooltip_filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter connections'**
+  String get connections_tooltip_filter;
+
+  /// No description provided for @connections_tooltip_relayout.
+  ///
+  /// In en, this message translates to:
+  /// **'Lay out again'**
+  String get connections_tooltip_relayout;
+
+  /// No description provided for @connections_filterBar_nodes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 node} other{{count} nodes}}'**
+  String connections_filterBar_nodes(int count);
+
+  /// No description provided for @connections_filterBar_edges.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 connection} other{{count} connections}}'**
+  String connections_filterBar_edges(int count);
+
+  /// No description provided for @connections_filterBar_clear.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filter'**
+  String get connections_filterBar_clear;
+
+  /// No description provided for @connections_hiddenNodes.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 more not shown} other{{count} more not shown}}'**
+  String connections_hiddenNodes(int count);
+
+  /// No description provided for @connections_showAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Show all'**
+  String get connections_showAll;
+
+  /// No description provided for @connections_showAll_confirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show every node?'**
+  String get connections_showAll_confirmTitle;
+
+  /// No description provided for @connections_showAll_confirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} nodes may take a moment to lay out on this device.'**
+  String connections_showAll_confirmBody(int count);
+
+  /// No description provided for @connections_action_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get connections_action_open;
+
+  /// No description provided for @connections_action_focus.
+  ///
+  /// In en, this message translates to:
+  /// **'Focus'**
+  String get connections_action_focus;
+
+  /// No description provided for @connections_action_showDives.
+  ///
+  /// In en, this message translates to:
+  /// **'Show dives'**
+  String get connections_action_showDives;
+
+  /// No description provided for @connections_action_openInConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Connections'**
+  String get connections_action_openInConnections;
+
+  /// No description provided for @connections_selection_divesTogether.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive together} other{{count} dives together}}'**
+  String connections_selection_divesTogether(int count);
+
+  /// No description provided for @connections_selection_dives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String connections_selection_dives(int count);
+
+  /// No description provided for @connections_selection_topConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'Top connections'**
+  String get connections_selection_topConnections;
+
+  /// No description provided for @connections_selection_firstLast.
+  ///
+  /// In en, this message translates to:
+  /// **'First {first}, last {last}'**
+  String connections_selection_firstLast(String first, String last);
+
+  /// No description provided for @connections_selection_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a node or a line to see details.'**
+  String get connections_selection_hint;
+
+  /// No description provided for @connections_empty_noDives.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives yet. Connections appear once your log has dives in it.'**
+  String get connections_empty_noDives;
+
+  /// No description provided for @connections_empty_buddies.
+  ///
+  /// In en, this message translates to:
+  /// **'No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names in Settings, Data Tools.'**
+  String get connections_empty_buddies;
+
+  /// No description provided for @connections_empty_sites.
+  ///
+  /// In en, this message translates to:
+  /// **'No dives have a site yet.'**
+  String get connections_empty_sites;
+
+  /// No description provided for @connections_focusMissing.
+  ///
+  /// In en, this message translates to:
+  /// **'That item is no longer in the log.'**
+  String get connections_focusMissing;
+
+  /// No description provided for @connections_error_load.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load connections.'**
+  String get connections_error_load;
+
+  /// No description provided for @connections_legend_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Legend'**
+  String get connections_legend_title;
+
+  /// No description provided for @connections_yearRange_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Years {first} to {last}'**
+  String connections_yearRange_label(int first, int last);
+
+  /// No description provided for @connections_semantics_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{nodes} nodes and {edges} connections'**
+  String connections_semantics_summary(int nodes, int edges);
+
+  /// No description provided for @connections_kind_buddy.
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies'**
+  String get connections_kind_buddy;
+
+  /// No description provided for @connections_kind_site.
+  ///
+  /// In en, this message translates to:
+  /// **'Sites'**
+  String get connections_kind_site;
+
+  /// No description provided for @connections_kind_trip.
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get connections_kind_trip;
+
+  /// No description provided for @connections_kind_diveCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive centers'**
+  String get connections_kind_diveCenter;
+
+  /// No description provided for @connections_kind_equipment.
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get connections_kind_equipment;
+
+  /// No description provided for @connections_kind_species.
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get connections_kind_species;
+
+  /// No description provided for @connections_kind_tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get connections_kind_tag;
+
+  /// No description provided for @connections_kind_diveType.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive types'**
+  String get connections_kind_diveType;
+
+  /// No description provided for @connections_kind_diveComputer.
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computers'**
+  String get connections_kind_diveComputer;
+
+  /// No description provided for @connections_kind_course.
+  ///
+  /// In en, this message translates to:
+  /// **'Courses'**
+  String get connections_kind_course;
+
   /// No description provided for @courses_action_add.
   ///
   /// In en, this message translates to:
@@ -25665,6 +25899,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Certifications'**
   String get nav_certifications;
+
+  /// No description provided for @nav_connections.
+  ///
+  /// In en, this message translates to:
+  /// **'Connections'**
+  String get nav_connections;
 
   /// Navigation label for courses section
   ///

@@ -3287,6 +3287,177 @@ class AppLocalizationsDe extends AppLocalizations {
       'Etwas ist schiefgelaufen. Bitte erneut versuchen.';
 
   @override
+  String get connections_title => 'Verbindungen';
+
+  @override
+  String get connections_lens_circle => 'Tauchkreis';
+
+  @override
+  String get connections_lens_where => 'Wer taucht wo';
+
+  @override
+  String get connections_tooltip_filter => 'Verbindungen filtern';
+
+  @override
+  String get connections_tooltip_relayout => 'Neu anordnen';
+
+  @override
+  String connections_filterBar_nodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Knoten',
+      one: '1 Knoten',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Verbindungen',
+      one: '1 Verbindung',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_filterBar_clear => 'Filter löschen';
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count weitere nicht angezeigt',
+      one: '1 weiterer nicht angezeigt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => 'Alle anzeigen';
+
+  @override
+  String get connections_showAll_confirmTitle => 'Alle Knoten anzeigen?';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return '$count Knoten brauchen auf diesem Gerät eventuell einen Moment zum Anordnen.';
+  }
+
+  @override
+  String get connections_action_open => 'Öffnen';
+
+  @override
+  String get connections_action_focus => 'Fokussieren';
+
+  @override
+  String get connections_action_showDives => 'Tauchgänge anzeigen';
+
+  @override
+  String get connections_action_openInConnections => 'In Verbindungen öffnen';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gemeinsame Tauchgänge',
+      one: '1 gemeinsamer Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => 'Stärkste Verbindungen';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return 'Erster $first, letzter $last';
+  }
+
+  @override
+  String get connections_selection_hint =>
+      'Tippe auf einen Knoten oder eine Linie, um Details zu sehen.';
+
+  @override
+  String get connections_empty_noDives =>
+      'Noch keine Tauchgänge. Verbindungen erscheinen, sobald dein Logbuch Tauchgänge enthält.';
+
+  @override
+  String get connections_empty_buddies =>
+      'Noch keine Buddys mit Tauchgängen verknüpft. Füge Buddys zu deinen Tauchgängen hinzu oder wandle alte Buddy-Namen unter Einstellungen, Datenwerkzeuge um.';
+
+  @override
+  String get connections_empty_sites =>
+      'Noch kein Tauchgang hat einen Tauchplatz.';
+
+  @override
+  String get connections_focusMissing =>
+      'Dieser Eintrag ist nicht mehr im Logbuch.';
+
+  @override
+  String get connections_error_load =>
+      'Verbindungen konnten nicht geladen werden.';
+
+  @override
+  String get connections_legend_title => 'Legende';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return 'Jahre $first bis $last';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes Knoten und $edges Verbindungen';
+  }
+
+  @override
+  String get connections_kind_buddy => 'Buddys';
+
+  @override
+  String get connections_kind_site => 'Tauchplätze';
+
+  @override
+  String get connections_kind_trip => 'Reisen';
+
+  @override
+  String get connections_kind_diveCenter => 'Tauchbasen';
+
+  @override
+  String get connections_kind_equipment => 'Ausrüstung';
+
+  @override
+  String get connections_kind_species => 'Arten';
+
+  @override
+  String get connections_kind_tag => 'Tags';
+
+  @override
+  String get connections_kind_diveType => 'Tauchgangsarten';
+
+  @override
+  String get connections_kind_diveComputer => 'Tauchcomputer';
+
+  @override
+  String get connections_kind_course => 'Kurse';
+
+  @override
   String get courses_action_add => 'Kurs hinzufügen';
 
   @override
@@ -15780,6 +15951,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get nav_certifications => 'Brevets';
+
+  @override
+  String get nav_connections => 'Verbindungen';
 
   @override
   String get nav_courses => 'Kurse';

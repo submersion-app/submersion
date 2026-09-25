@@ -3097,6 +3097,172 @@ class AppLocalizationsZh extends AppLocalizations {
   String get common_error_tryAgain => '发生错误，请重试。';
 
   @override
+  String get connections_title => '关联';
+
+  @override
+  String get connections_lens_circle => '潜伴圈';
+
+  @override
+  String get connections_lens_where => '谁在哪里潜水';
+
+  @override
+  String get connections_tooltip_filter => '筛选关联';
+
+  @override
+  String get connections_tooltip_relayout => '重新排列';
+
+  @override
+  String connections_filterBar_nodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 个节点',
+      one: '1 个节点',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 条关联',
+      one: '1 条关联',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_filterBar_clear => '清除筛选';
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '另有 $count 个未显示',
+      one: '另有 1 个未显示',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => '全部显示';
+
+  @override
+  String get connections_showAll_confirmTitle => '显示所有节点？';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return '$count 个节点在此设备上可能需要片刻才能排列完成。';
+  }
+
+  @override
+  String get connections_action_open => '打开';
+
+  @override
+  String get connections_action_focus => '聚焦';
+
+  @override
+  String get connections_action_showDives => '显示潜水';
+
+  @override
+  String get connections_action_openInConnections => '在关联中打开';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '共同潜水 $count 次',
+      one: '共同潜水 1 次',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+      one: '1 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => '主要关联';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return '首次 $first，最近 $last';
+  }
+
+  @override
+  String get connections_selection_hint => '点击节点或连线查看详情。';
+
+  @override
+  String get connections_empty_noDives => '还没有潜水记录。日志中有潜水后会显示关联。';
+
+  @override
+  String get connections_empty_buddies =>
+      '还没有潜伴与潜水关联。请为潜水添加潜伴，或在“设置”的“数据工具”中转换旧的潜伴名称。';
+
+  @override
+  String get connections_empty_sites => '还没有潜水记录了潜点。';
+
+  @override
+  String get connections_focusMissing => '该项目已不在日志中。';
+
+  @override
+  String get connections_error_load => '无法加载关联。';
+
+  @override
+  String get connections_legend_title => '图例';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return '$first 至 $last 年';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes 个节点和 $edges 条关联';
+  }
+
+  @override
+  String get connections_kind_buddy => '潜伴';
+
+  @override
+  String get connections_kind_site => '潜点';
+
+  @override
+  String get connections_kind_trip => '行程';
+
+  @override
+  String get connections_kind_diveCenter => '潜店';
+
+  @override
+  String get connections_kind_equipment => '装备';
+
+  @override
+  String get connections_kind_species => '物种';
+
+  @override
+  String get connections_kind_tag => '标签';
+
+  @override
+  String get connections_kind_diveType => '潜水类型';
+
+  @override
+  String get connections_kind_diveComputer => '潜水电脑';
+
+  @override
+  String get connections_kind_course => '课程';
+
+  @override
   String get courses_action_add => '添加课程';
 
   @override
@@ -15029,6 +15195,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get nav_certifications => '证书';
+
+  @override
+  String get nav_connections => '关联';
 
   @override
   String get nav_courses => '课程';

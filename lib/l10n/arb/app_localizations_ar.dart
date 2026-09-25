@@ -3220,6 +3220,173 @@ class AppLocalizationsAr extends AppLocalizations {
   String get common_error_tryAgain => 'حدث خطأ ما. يُرجى المحاولة مرة أخرى.';
 
   @override
+  String get connections_title => 'الروابط';
+
+  @override
+  String get connections_lens_circle => 'دائرة الغوص';
+
+  @override
+  String get connections_lens_where => 'من يغوص أين';
+
+  @override
+  String get connections_tooltip_filter => 'تصفية الروابط';
+
+  @override
+  String get connections_tooltip_relayout => 'إعادة الترتيب';
+
+  @override
+  String connections_filterBar_nodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عقدة',
+      one: 'عقدة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count رابطًا',
+      one: 'رابط واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_filterBar_clear => 'مسح التصفية';
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عقدة أخرى غير معروضة',
+      one: 'عقدة أخرى غير معروضة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => 'عرض الكل';
+
+  @override
+  String get connections_showAll_confirmTitle => 'عرض كل العقد؟';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return 'قد يستغرق ترتيب $count عقدة لحظة على هذا الجهاز.';
+  }
+
+  @override
+  String get connections_action_open => 'فتح';
+
+  @override
+  String get connections_action_focus => 'تركيز';
+
+  @override
+  String get connections_action_showDives => 'عرض الغوصات';
+
+  @override
+  String get connections_action_openInConnections => 'فتح في الروابط';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصة معًا',
+      one: 'غوصة واحدة معًا',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غوصة',
+      one: 'غوصة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => 'أقوى الروابط';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return 'الأولى $first، الأخيرة $last';
+  }
+
+  @override
+  String get connections_selection_hint => 'انقر على عقدة أو خط لعرض التفاصيل.';
+
+  @override
+  String get connections_empty_noDives =>
+      'لا توجد غوصات بعد. تظهر الروابط عندما يحتوي السجل على غوصات.';
+
+  @override
+  String get connections_empty_buddies =>
+      'لا يوجد رفقاء مرتبطون بالغوصات بعد. أضف رفقاء إلى غوصاتك أو حوّل أسماء الرفقاء القديمة من الإعدادات، أدوات البيانات.';
+
+  @override
+  String get connections_empty_sites => 'لا توجد غوصة لها موقع بعد.';
+
+  @override
+  String get connections_focusMissing => 'هذا العنصر لم يعد موجودًا في السجل.';
+
+  @override
+  String get connections_error_load => 'تعذر تحميل الروابط.';
+
+  @override
+  String get connections_legend_title => 'مفتاح الرسم';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return 'الأعوام من $first إلى $last';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes عقدة و$edges رابطًا';
+  }
+
+  @override
+  String get connections_kind_buddy => 'الرفقاء';
+
+  @override
+  String get connections_kind_site => 'المواقع';
+
+  @override
+  String get connections_kind_trip => 'الرحلات';
+
+  @override
+  String get connections_kind_diveCenter => 'مراكز الغوص';
+
+  @override
+  String get connections_kind_equipment => 'المعدات';
+
+  @override
+  String get connections_kind_species => 'الأنواع';
+
+  @override
+  String get connections_kind_tag => 'الوسوم';
+
+  @override
+  String get connections_kind_diveType => 'أنواع الغوص';
+
+  @override
+  String get connections_kind_diveComputer => 'كمبيوترات الغوص';
+
+  @override
+  String get connections_kind_course => 'الدورات';
+
+  @override
   String get courses_action_add => 'إضافة دورة';
 
   @override
@@ -15525,6 +15692,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get nav_certifications => 'الشهادات';
+
+  @override
+  String get nav_connections => 'الروابط';
 
   @override
   String get nav_courses => 'الدورات';

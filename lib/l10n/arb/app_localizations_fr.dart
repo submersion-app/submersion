@@ -3288,6 +3288,175 @@ class AppLocalizationsFr extends AppLocalizations {
       'Une erreur s\'est produite. Veuillez réessayer.';
 
   @override
+  String get connections_title => 'Connexions';
+
+  @override
+  String get connections_lens_circle => 'Cercle de plongée';
+
+  @override
+  String get connections_lens_where => 'Qui plonge où';
+
+  @override
+  String get connections_tooltip_filter => 'Filtrer les connexions';
+
+  @override
+  String get connections_tooltip_relayout => 'Réorganiser';
+
+  @override
+  String connections_filterBar_nodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nœuds',
+      one: '$count nœud',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count connexions',
+      one: '$count connexion',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_filterBar_clear => 'Effacer le filtre';
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count de plus non affichés',
+      one: '$count de plus non affiché',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => 'Tout afficher';
+
+  @override
+  String get connections_showAll_confirmTitle => 'Afficher tous les nœuds ?';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return '$count nœuds peuvent prendre un moment à s\'organiser sur cet appareil.';
+  }
+
+  @override
+  String get connections_action_open => 'Ouvrir';
+
+  @override
+  String get connections_action_focus => 'Centrer';
+
+  @override
+  String get connections_action_showDives => 'Voir les plongées';
+
+  @override
+  String get connections_action_openInConnections => 'Ouvrir dans Connexions';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées ensemble',
+      one: '$count plongée ensemble',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count plongées',
+      one: '$count plongée',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => 'Connexions principales';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return 'Première $first, dernière $last';
+  }
+
+  @override
+  String get connections_selection_hint =>
+      'Touchez un nœud ou une ligne pour voir les détails.';
+
+  @override
+  String get connections_empty_noDives =>
+      'Aucune plongée pour l\'instant. Les connexions apparaissent dès que le carnet contient des plongées.';
+
+  @override
+  String get connections_empty_buddies =>
+      'Aucun binôme n\'est encore lié à une plongée. Ajoutez des binômes à vos plongées ou convertissez les anciens noms dans Réglages, Outils de données.';
+
+  @override
+  String get connections_empty_sites => 'Aucune plongée n\'a encore de site.';
+
+  @override
+  String get connections_focusMissing =>
+      'Cet élément n\'est plus dans le carnet.';
+
+  @override
+  String get connections_error_load => 'Impossible de charger les connexions.';
+
+  @override
+  String get connections_legend_title => 'Légende';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return 'Années $first à $last';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes nœuds et $edges connexions';
+  }
+
+  @override
+  String get connections_kind_buddy => 'Binômes';
+
+  @override
+  String get connections_kind_site => 'Sites';
+
+  @override
+  String get connections_kind_trip => 'Voyages';
+
+  @override
+  String get connections_kind_diveCenter => 'Centres de plongée';
+
+  @override
+  String get connections_kind_equipment => 'Équipement';
+
+  @override
+  String get connections_kind_species => 'Espèces';
+
+  @override
+  String get connections_kind_tag => 'Étiquettes';
+
+  @override
+  String get connections_kind_diveType => 'Types de plongée';
+
+  @override
+  String get connections_kind_diveComputer => 'Ordinateurs de plongée';
+
+  @override
+  String get connections_kind_course => 'Cours';
+
+  @override
   String get courses_action_add => 'Ajouter un cours';
 
   @override
@@ -15855,6 +16024,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get nav_certifications => 'Certifications';
+
+  @override
+  String get nav_connections => 'Connexions';
 
   @override
   String get nav_courses => 'Cours';

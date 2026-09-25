@@ -3259,6 +3259,176 @@ class AppLocalizationsNl extends AppLocalizations {
       'Er is iets misgegaan. Probeer het opnieuw.';
 
   @override
+  String get connections_title => 'Verbindingen';
+
+  @override
+  String get connections_lens_circle => 'Duikkring';
+
+  @override
+  String get connections_lens_where => 'Wie duikt waar';
+
+  @override
+  String get connections_tooltip_filter => 'Verbindingen filteren';
+
+  @override
+  String get connections_tooltip_relayout => 'Opnieuw schikken';
+
+  @override
+  String connections_filterBar_nodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count knooppunten',
+      one: '1 knooppunt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count verbindingen',
+      one: '1 verbinding',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_filterBar_clear => 'Filter wissen';
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count meer niet getoond',
+      one: '1 meer niet getoond',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => 'Alles tonen';
+
+  @override
+  String get connections_showAll_confirmTitle => 'Alle knooppunten tonen?';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return '$count knooppunten kunnen op dit apparaat even duren om te schikken.';
+  }
+
+  @override
+  String get connections_action_open => 'Openen';
+
+  @override
+  String get connections_action_focus => 'Centreren';
+
+  @override
+  String get connections_action_showDives => 'Duiken tonen';
+
+  @override
+  String get connections_action_openInConnections => 'Openen in Verbindingen';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken samen',
+      one: '1 duik samen',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count duiken',
+      one: '1 duik',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => 'Sterkste verbindingen';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return 'Eerste $first, laatste $last';
+  }
+
+  @override
+  String get connections_selection_hint =>
+      'Tik op een knooppunt of lijn voor details.';
+
+  @override
+  String get connections_empty_noDives =>
+      'Nog geen duiken. Verbindingen verschijnen zodra je logboek duiken bevat.';
+
+  @override
+  String get connections_empty_buddies =>
+      'Nog geen buddy\'s gekoppeld aan duiken. Voeg buddy\'s toe aan je duiken of zet oude buddynamen om via Instellingen, Gegevenshulpmiddelen.';
+
+  @override
+  String get connections_empty_sites => 'Nog geen duik heeft een duikplek.';
+
+  @override
+  String get connections_focusMissing =>
+      'Dat item staat niet meer in het logboek.';
+
+  @override
+  String get connections_error_load =>
+      'Verbindingen konden niet worden geladen.';
+
+  @override
+  String get connections_legend_title => 'Legenda';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return 'Jaren $first tot $last';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes knooppunten en $edges verbindingen';
+  }
+
+  @override
+  String get connections_kind_buddy => 'Buddy\'s';
+
+  @override
+  String get connections_kind_site => 'Duikplekken';
+
+  @override
+  String get connections_kind_trip => 'Reizen';
+
+  @override
+  String get connections_kind_diveCenter => 'Duikcentra';
+
+  @override
+  String get connections_kind_equipment => 'Uitrusting';
+
+  @override
+  String get connections_kind_species => 'Soorten';
+
+  @override
+  String get connections_kind_tag => 'Labels';
+
+  @override
+  String get connections_kind_diveType => 'Duiktypen';
+
+  @override
+  String get connections_kind_diveComputer => 'Duikcomputers';
+
+  @override
+  String get connections_kind_course => 'Cursussen';
+
+  @override
   String get courses_action_add => 'Cursus toevoegen';
 
   @override
@@ -15678,6 +15848,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get nav_certifications => 'Brevetten';
+
+  @override
+  String get nav_connections => 'Verbindingen';
 
   @override
   String get nav_courses => 'Cursussen';

@@ -3281,6 +3281,176 @@ class AppLocalizationsEs extends AppLocalizations {
   String get common_error_tryAgain => 'Algo salió mal. Inténtalo de nuevo.';
 
   @override
+  String get connections_title => 'Conexiones';
+
+  @override
+  String get connections_lens_circle => 'Círculo de buceo';
+
+  @override
+  String get connections_lens_where => 'Quién bucea dónde';
+
+  @override
+  String get connections_tooltip_filter => 'Filtrar conexiones';
+
+  @override
+  String get connections_tooltip_relayout => 'Reorganizar';
+
+  @override
+  String connections_filterBar_nodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nodos',
+      one: '1 nodo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count conexiones',
+      one: '1 conexión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_filterBar_clear => 'Quitar filtro';
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count más sin mostrar',
+      one: '1 más sin mostrar',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => 'Mostrar todo';
+
+  @override
+  String get connections_showAll_confirmTitle => '¿Mostrar todos los nodos?';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return '$count nodos pueden tardar un momento en organizarse en este dispositivo.';
+  }
+
+  @override
+  String get connections_action_open => 'Abrir';
+
+  @override
+  String get connections_action_focus => 'Enfocar';
+
+  @override
+  String get connections_action_showDives => 'Ver inmersiones';
+
+  @override
+  String get connections_action_openInConnections => 'Abrir en Conexiones';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones juntos',
+      one: '1 inmersión juntos',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count inmersiones',
+      one: '1 inmersión',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => 'Conexiones principales';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return 'Primera $first, última $last';
+  }
+
+  @override
+  String get connections_selection_hint =>
+      'Toca un nodo o una línea para ver los detalles.';
+
+  @override
+  String get connections_empty_noDives =>
+      'Aún no hay inmersiones. Las conexiones aparecen cuando el diario tiene inmersiones.';
+
+  @override
+  String get connections_empty_buddies =>
+      'Aún no hay compañeros vinculados a inmersiones. Añade compañeros a tus inmersiones o convierte los nombres antiguos en Ajustes, Herramientas de datos.';
+
+  @override
+  String get connections_empty_sites =>
+      'Ninguna inmersión tiene punto de buceo todavía.';
+
+  @override
+  String get connections_focusMissing =>
+      'Ese elemento ya no está en el diario.';
+
+  @override
+  String get connections_error_load => 'No se pudieron cargar las conexiones.';
+
+  @override
+  String get connections_legend_title => 'Leyenda';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return 'Años $first a $last';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes nodos y $edges conexiones';
+  }
+
+  @override
+  String get connections_kind_buddy => 'Compañeros';
+
+  @override
+  String get connections_kind_site => 'Puntos de buceo';
+
+  @override
+  String get connections_kind_trip => 'Viajes';
+
+  @override
+  String get connections_kind_diveCenter => 'Centros de buceo';
+
+  @override
+  String get connections_kind_equipment => 'Equipo';
+
+  @override
+  String get connections_kind_species => 'Especies';
+
+  @override
+  String get connections_kind_tag => 'Etiquetas';
+
+  @override
+  String get connections_kind_diveType => 'Tipos de inmersión';
+
+  @override
+  String get connections_kind_diveComputer => 'Ordenadores de buceo';
+
+  @override
+  String get connections_kind_course => 'Cursos';
+
+  @override
   String get courses_action_add => 'Agregar Curso';
 
   @override
@@ -15787,6 +15957,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get nav_certifications => 'Certificaciones';
+
+  @override
+  String get nav_connections => 'Conexiones';
 
   @override
   String get nav_courses => 'Cursos';

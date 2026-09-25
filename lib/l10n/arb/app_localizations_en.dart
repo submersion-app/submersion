@@ -3223,6 +3223,174 @@ class AppLocalizationsEn extends AppLocalizations {
   String get common_error_tryAgain => 'Something went wrong. Please try again.';
 
   @override
+  String get connections_title => 'Connections';
+
+  @override
+  String get connections_lens_circle => 'Dive circle';
+
+  @override
+  String get connections_lens_where => 'Who dives where';
+
+  @override
+  String get connections_tooltip_filter => 'Filter connections';
+
+  @override
+  String get connections_tooltip_relayout => 'Lay out again';
+
+  @override
+  String connections_filterBar_nodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count nodes',
+      one: '1 node',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_filterBar_edges(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count connections',
+      one: '1 connection',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_filterBar_clear => 'Clear filter';
+
+  @override
+  String connections_hiddenNodes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count more not shown',
+      one: '1 more not shown',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_showAll => 'Show all';
+
+  @override
+  String get connections_showAll_confirmTitle => 'Show every node?';
+
+  @override
+  String connections_showAll_confirmBody(int count) {
+    return '$count nodes may take a moment to lay out on this device.';
+  }
+
+  @override
+  String get connections_action_open => 'Open';
+
+  @override
+  String get connections_action_focus => 'Focus';
+
+  @override
+  String get connections_action_showDives => 'Show dives';
+
+  @override
+  String get connections_action_openInConnections => 'Open in Connections';
+
+  @override
+  String connections_selection_divesTogether(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives together',
+      one: '1 dive together',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String connections_selection_dives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '1 dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get connections_selection_topConnections => 'Top connections';
+
+  @override
+  String connections_selection_firstLast(String first, String last) {
+    return 'First $first, last $last';
+  }
+
+  @override
+  String get connections_selection_hint =>
+      'Tap a node or a line to see details.';
+
+  @override
+  String get connections_empty_noDives =>
+      'No dives yet. Connections appear once your log has dives in it.';
+
+  @override
+  String get connections_empty_buddies =>
+      'No buddies are linked to dives yet. Add buddies to your dives, or convert legacy buddy names in Settings, Data Tools.';
+
+  @override
+  String get connections_empty_sites => 'No dives have a site yet.';
+
+  @override
+  String get connections_focusMissing => 'That item is no longer in the log.';
+
+  @override
+  String get connections_error_load => 'Could not load connections.';
+
+  @override
+  String get connections_legend_title => 'Legend';
+
+  @override
+  String connections_yearRange_label(int first, int last) {
+    return 'Years $first to $last';
+  }
+
+  @override
+  String connections_semantics_summary(int nodes, int edges) {
+    return '$nodes nodes and $edges connections';
+  }
+
+  @override
+  String get connections_kind_buddy => 'Buddies';
+
+  @override
+  String get connections_kind_site => 'Sites';
+
+  @override
+  String get connections_kind_trip => 'Trips';
+
+  @override
+  String get connections_kind_diveCenter => 'Dive centers';
+
+  @override
+  String get connections_kind_equipment => 'Equipment';
+
+  @override
+  String get connections_kind_species => 'Species';
+
+  @override
+  String get connections_kind_tag => 'Tags';
+
+  @override
+  String get connections_kind_diveType => 'Dive types';
+
+  @override
+  String get connections_kind_diveComputer => 'Dive computers';
+
+  @override
+  String get connections_kind_course => 'Courses';
+
+  @override
   String get courses_action_add => 'Add Course';
 
   @override
@@ -15541,6 +15709,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get nav_certifications => 'Certifications';
+
+  @override
+  String get nav_connections => 'Connections';
 
   @override
   String get nav_courses => 'Courses';
