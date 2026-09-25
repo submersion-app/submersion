@@ -2,8 +2,8 @@ import 'package:submersion/features/connections/domain/entities/connection_kind.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 
-import 'connections_membership_sql.dart';
-import 'connections_scope_sql.dart';
+import 'package:submersion/features/connections/data/connections_membership_sql.dart';
+import 'package:submersion/features/connections/data/connections_scope_sql.dart';
 
 /// The co-occurrence query: one row per pair of entities that share at least
 /// one dive in scope, with the distinct dive count and the first and last

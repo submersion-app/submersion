@@ -1,9 +1,9 @@
-import '../entities/connection_edge.dart';
-import '../entities/node_ref.dart';
-import 'force_layout.dart';
-import 'graph_point.dart';
-import 'island_packer.dart';
-import 'layout_frame.dart';
+import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/domain/layout/force_layout.dart';
+import 'package:submersion/features/connections/domain/layout/graph_point.dart';
+import 'package:submersion/features/connections/domain/layout/island_packer.dart';
+import 'package:submersion/features/connections/domain/layout/layout_frame.dart';
 
 /// One [ForceLayout] per connected component, packed side by side.
 ///

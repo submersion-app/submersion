@@ -7,10 +7,10 @@ import 'package:submersion/features/connections/domain/entities/graph_selection.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/layout/layout_frame.dart';
 
-import 'connection_kind_colors.dart';
-import 'graph_viewport.dart';
-import 'label_collision.dart';
-import 'node_metrics.dart';
+import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
+import 'package:submersion/features/connections/presentation/canvas/graph_viewport.dart';
+import 'package:submersion/features/connections/presentation/canvas/label_collision.dart';
+import 'package:submersion/features/connections/presentation/canvas/node_metrics.dart';
 
 /// Draws edges, nodes and labels for one frame. Pure function of its inputs;
 /// the canvas widget owns gesture state and decoded photos.
@@ -167,11 +167,7 @@ class ConnectionsPainter extends CustomPainter {
     final allowed = viewport.scale < labelZoomThreshold
         ? labelCandidates.take(maxLabelsAtLowZoom).toList()
         : labelCandidates;
-    final forced = {
-      if (selectedNode != null) selectedNode,
-      ...lit,
-      if (hovered != null) hovered!,
-    };
+    final forced = {?selectedNode, ...lit, ?hovered};
     final ranked = [
       ...allowed.where((c) => forced.contains(c.ref)),
       ...allowed.where((c) => !forced.contains(c.ref)),

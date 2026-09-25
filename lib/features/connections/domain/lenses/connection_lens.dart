@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import '../entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 
 /// A named pair of kinds. Phase 1 ships two; phase 2 adds four more and the
 /// free pair picker, which produces a [LensSelection.custom] instead.

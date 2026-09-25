@@ -1,8 +1,8 @@
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 
-import 'connections_membership_sql.dart';
-import 'connections_scope_sql.dart';
+import 'package:submersion/features/connections/data/connections_membership_sql.dart';
+import 'package:submersion/features/connections/data/connections_scope_sql.dart';
 
 /// Where a kind's label and subtitle columns live.
 class KindTable {

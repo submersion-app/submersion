@@ -3,7 +3,7 @@ import 'package:submersion/features/connections/domain/entities/connection_graph
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-import 'selection_details.dart';
+import 'package:submersion/features/connections/presentation/widgets/selection_details.dart';
 
 /// Wide-width side panel: lens, filter, year range and legend above, the
 /// selection (or a hint) below.

@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import 'connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
 
 /// Identity of a node: the kind plus the entity's own table id.
 ///

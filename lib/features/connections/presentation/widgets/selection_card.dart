@@ -3,7 +3,7 @@ import 'package:submersion/features/connections/domain/entities/connection_graph
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-import 'selection_details.dart';
+import 'package:submersion/features/connections/presentation/widgets/selection_details.dart';
 
 /// Compact-width selection surface: a bottom-anchored card capped at 40% of
 /// the height, scrolling inside. Not a DraggableScrollableSheet, which a

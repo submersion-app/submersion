@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
 
-import 'connection_edge.dart';
-import 'connection_node.dart';
-import 'node_ref.dart';
+import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
+import 'package:submersion/features/connections/domain/entities/connection_node.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 
 class ConnectionGraph extends Equatable {
   const ConnectionGraph({

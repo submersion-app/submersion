@@ -228,10 +228,10 @@ void main() {
     );
 
     test('the view filter narrows edges and counts', () async {
-      final q = ConnectionQuery(
+      const q = ConnectionQuery(
         kindA: ConnectionKind.buddy,
         kindB: ConnectionKind.buddy,
-        filter: const DiveFilterState(siteId: 's2'),
+        filter: DiveFilterState(siteId: 's2'),
       );
       final g = await repo.loadGraph(q, diverId: 'me');
       expect(g.edges.length, 1);

@@ -1,4 +1,3 @@
-import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
@@ -15,7 +14,7 @@ void main() {
     _b('a'): const GraphPoint(0, 0),
     _b('b'): const GraphPoint(200, 0),
   }, settled: true);
-  final viewport = GraphViewport(scale: 1, offset: const Offset(100, 100));
+  const viewport = GraphViewport(scale: 1, offset: Offset(100, 100));
   double radius(NodeRef _) => 10;
 
   test('picks the nearest node within radius plus slop', () {

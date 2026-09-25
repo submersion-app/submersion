@@ -5,9 +5,9 @@ import 'package:submersion/features/connections/domain/entities/connection_query
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 
-import 'connections_filter_provider.dart';
-import 'connections_lens_provider.dart';
-import 'connections_selection_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_lens_provider.dart';
+import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
 
 final connectionsRepositoryProvider = Provider<ConnectionsRepository>(
   (ref) => ConnectionsRepository(),

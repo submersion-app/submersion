@@ -5,7 +5,7 @@ import 'package:submersion/features/connections/domain/entities/connection_edge.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/domain/layout/layout_frame.dart';
 
-import 'graph_viewport.dart';
+import 'package:submersion/features/connections/presentation/canvas/graph_viewport.dart';
 
 class ConnectionsHitTester {
   const ConnectionsHitTester._();

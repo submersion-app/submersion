@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
-import '../entities/node_ref.dart';
-import 'graph_point.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/domain/layout/graph_point.dart';
 
 /// Deterministic starting positions: the same node set lays out the same way
 /// on every device and in every test run.

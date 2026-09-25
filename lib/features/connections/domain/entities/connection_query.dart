@@ -1,7 +1,7 @@
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 
-import 'connection_kind.dart';
-import 'node_ref.dart';
+import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 
 /// What to load: a pair of kinds, the diver's filter, an optional focus for
 /// ego mode, and the node budget.

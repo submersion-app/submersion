@@ -2,7 +2,7 @@ import 'dart:typed_data';
 
 import 'package:equatable/equatable.dart';
 
-import 'node_ref.dart';
+import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 
 /// A node's second line. Formatting that needs localisation or the diver's
 /// unit settings (a date range, a role name) is deferred to presentation, so

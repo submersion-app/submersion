@@ -7,11 +7,11 @@ import 'package:submersion/features/connections/domain/entities/graph_selection.
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_layout_controller.dart';
 
-import 'connection_kind_colors.dart';
-import 'connections_hit_tester.dart';
-import 'connections_painter.dart';
-import 'graph_viewport.dart';
-import 'node_metrics.dart';
+import 'package:submersion/features/connections/presentation/canvas/connection_kind_colors.dart';
+import 'package:submersion/features/connections/presentation/canvas/connections_hit_tester.dart';
+import 'package:submersion/features/connections/presentation/canvas/connections_painter.dart';
+import 'package:submersion/features/connections/presentation/canvas/graph_viewport.dart';
+import 'package:submersion/features/connections/presentation/canvas/node_metrics.dart';
 
 /// The interactive graph surface. Owns the viewport, decoded photos, hover
 /// and drag state; the layout lives in [controller] and the selection in the
