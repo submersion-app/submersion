@@ -137,9 +137,8 @@ void main() {
   );
 
   test('free text inside a scope without search columns is an error', () {
-    expect(
-      messages(const ScopedNode(FieldPath(['gear']), TextNode(['x']))),
-      [contains('free text')],
-    );
+    expect(messages(const ScopedNode(FieldPath(['gear']), TextNode(['x']))), [
+      contains('free text'),
+    ]);
   });
 }
