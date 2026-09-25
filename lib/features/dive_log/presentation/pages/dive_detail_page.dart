@@ -1172,6 +1172,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final favoriteLabel = dive.isFavorite
         ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
         : context.l10n.diveLog_detail_tooltip_addToFavorites;
+    final canLogForBuddy = _hasMirrorCandidates(ref, dive);
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.diveLog_detail_appBar),
@@ -1280,7 +1281,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-              if (_hasMirrorCandidates(ref, dive))
+              if (canLogForBuddy)
                 PopupMenuItem(
                   value: 'logForBuddy',
                   child: ListTile(
@@ -1352,6 +1353,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final linkedPreDive = ref
         .watch(preDiveSessionForDiveProvider(dive.id))
         .value;
+    final canLogForBuddy = _hasMirrorCandidates(ref, dive);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -1540,7 +1542,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
-                  if (_hasMirrorCandidates(ref, dive))
+                  if (canLogForBuddy)
                     PopupMenuItem(
                       value: 'logForBuddy',
                       child: ListTile(
@@ -1610,7 +1612,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   /// Whether any linked buddy on this dive still lacks a sibling (issue
-  /// #2002). Watched in the menu builders, so the item follows the ticks.
+  /// #2002). Call it while the page builds and hand the result to the menu,
+  /// never from a menu's itemBuilder: that runs outside build, so its first
+  /// read is still loading and the next rebuild drops the subscription,
+  /// which disposes the provider before the menu opens again (issue #2367).
   bool _hasMirrorCandidates(WidgetRef ref, Dive dive) {
     if (dive.isPlanned) return false;
     final candidates = ref.watch(mirrorCandidatesProvider(dive.id)).value;
