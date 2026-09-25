@@ -36,8 +36,9 @@ void main() {
         filter: noWeights,
       )).toSet();
       final ids = await repo.getDiveIdsMatching(noWeights, diverId: 'me');
-      expect(list, {'d2', 'd3', 'd4'});
-      expect(count, 3);
+      // d2 carries only the legacy weight scalar, which counts as an entry.
+      expect(list, {'d3', 'd4'});
+      expect(count, 2);
       expect(ordered, list);
       expect(ids, list);
     },

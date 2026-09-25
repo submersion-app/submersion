@@ -69,14 +69,14 @@ void main() {
     container.read(diveFilterProvider.notifier).state = DiveFilterState(
       query: ConditionNode(const FieldPath(['weights']), QueryOp.isEmpty, null),
     );
-    expect(await filteredIds({'d2', 'd3', 'd4'}), {'d2', 'd3', 'd4'});
+    expect(await filteredIds({'d3', 'd4'}), {'d3', 'd4'});
   });
 
   test('a write to a touched table refreshes the id set', () async {
     container.read(diveFilterProvider.notifier).state = DiveFilterState(
       query: ConditionNode(const FieldPath(['weights']), QueryOp.isEmpty, null),
     );
-    expect(await filteredIds({'d2', 'd3', 'd4'}), {'d2', 'd3', 'd4'});
+    expect(await filteredIds({'d3', 'd4'}), {'d3', 'd4'});
     await db
         .into(db.diveWeights)
         .insert(
@@ -89,6 +89,6 @@ void main() {
           ),
         );
     await Future<void>.delayed(DiveRepository.changeTickDebounce * 3);
-    expect(await filteredIds({'d2', 'd4'}), {'d2', 'd4'});
+    expect(await filteredIds({'d4'}), {'d4'});
   });
 }
