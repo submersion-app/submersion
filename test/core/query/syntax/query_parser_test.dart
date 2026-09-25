@@ -377,4 +377,47 @@ void main() {
     );
     expect(bad(metric(), 'weights > 3').error.message, contains('relation'));
   });
+
+  test('relations take !=, in and the colon shorthand', () {
+    expect(
+      ok(metric(), 'site != "Salt Pier"'),
+      ConditionNode(const FieldPath(['site']), QueryOp.neq, kFixtureSite),
+    );
+    expect(
+      ok(metric(), 'site in ["Salt Pier", "Hilma Hooker"]'),
+      ConditionNode(
+        const FieldPath(['site']),
+        QueryOp.inList,
+        const ListValue([kFixtureSite, RefValue('site-3', 'Hilma Hooker')]),
+      ),
+    );
+    expect(
+      ok(metric(), 'site:"Salt Pier"'),
+      ConditionNode(const FieldPath(['site']), QueryOp.eq, kFixtureSite),
+    );
+    expect(bad(metric(), 'site in []').error.message, contains('empty'));
+    expect(bad(metric(), 'site ~ x').error.message, contains('relation'));
+  });
+
+  test('every unfinished construct names what it expected', () {
+    expect(bad(metric(), 'waterType in [salt').error.message, contains(']'));
+    expect(bad(metric(), 'waterType in salt').error.message, contains('['));
+    expect(bad(metric(), 'depth between 1 or').error.message, contains('and'));
+    expect(bad(metric(), 'weights[amount > 1').error.message, contains(']'));
+    expect(
+      bad(metric(), 'depth[amount > 1]').error.message,
+      contains('relation'),
+    );
+    expect(bad(metric(), 'favorite = yes').error.message, contains('true'));
+    expect(bad(metric(), 'notes = =').error.message, contains('value'));
+    expect(bad(metric(), 'depth > x').error.message, contains('number'));
+    expect(bad(metric(), 'site = ').error.message, contains('name'));
+    expect(bad(metric(), 'date > ').error.message, contains('date'));
+    expect(bad(metric(), 'date > sometime').error.message, contains('date'));
+    expect(bad(metric(), 'depth > 30 )').error.message, contains('unexpected'));
+    expect(
+      bad(metric(), 'site = "unterminated').error.message,
+      contains('quote'),
+    );
+  });
 }

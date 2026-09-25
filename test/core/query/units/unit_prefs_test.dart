@@ -56,4 +56,44 @@ void main() {
     expect(v2, closeTo(98.425, 0.001));
     expect(u2, isNull);
   });
+
+  test('every dimension grounds and displays in both unit systems', () {
+    const cases = <(FieldDimension, QueryUnit, QueryUnit, double, double)>[
+      // dimension, metric unit, imperial unit, one imperial, in storage
+      (FieldDimension.depth, QueryUnit.m, QueryUnit.ft, 100, 30.48),
+      (FieldDimension.temperature, QueryUnit.c, QueryUnit.f, 50, 10),
+      (FieldDimension.pressure, QueryUnit.bar, QueryUnit.psi, 145.038, 10),
+      (FieldDimension.weight, QueryUnit.kg, QueryUnit.lb, 22.0462, 10),
+      (FieldDimension.volume, QueryUnit.l, QueryUnit.cuft, 0.353147, 10),
+    ];
+    for (final (dim, metric, imp, typedImperial, storage) in cases) {
+      expect(dimensionOfUnit(metric), dim);
+      expect(dimensionOfUnit(imp), dim);
+      // Explicit imperial suffix grounds to storage whatever the prefs say.
+      expect(
+        groundToStorage(typedImperial, imp, dim, kMetricPrefs),
+        closeTo(storage, 0.01),
+        reason: '$dim ground',
+      );
+      // A metric suffix is the identity.
+      expect(groundToStorage(storage, metric, dim, imperial), storage);
+      // Bare numbers take the preference; display echoes the typed unit.
+      expect(
+        groundToStorage(typedImperial, null, dim, imperial),
+        closeTo(storage, 0.01),
+        reason: '$dim bare imperial',
+      );
+      final (shown, unit) = storageToDisplay(storage, imp, dim, kMetricPrefs);
+      expect(shown, closeTo(typedImperial, 0.01), reason: '$dim display');
+      expect(unit, imp);
+      final (bare, noUnit) = storageToDisplay(storage, null, dim, imperial);
+      expect(bare, closeTo(typedImperial, 0.01), reason: '$dim bare display');
+      expect(noUnit, isNull);
+    }
+    expect(dimensionOfUnit(QueryUnit.min), FieldDimension.minutes);
+    expect(
+      storageToDisplay(12, QueryUnit.min, FieldDimension.minutes, imperial),
+      (12.0, null),
+    );
+  });
 }
