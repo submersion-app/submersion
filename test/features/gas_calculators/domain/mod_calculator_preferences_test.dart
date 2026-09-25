@@ -15,7 +15,7 @@ void main() {
       expect(p.rec.hePercent, 0);
       expect(p.ocTec.o2Percent, 21);
       expect(p.ocTec.hePercent, 35);
-      expect(p.ccrTec.setpointBar, 1.1);
+      expect(p.setpointBar, isNull);
       expect(p.minPpO2, 0.18);
       expect(p.waterType, isNull);
       expect(p.workingPpO2, isNull);
@@ -55,13 +55,13 @@ void main() {
             workingPpO2: 1.3,
             decoPpO2: 1.5,
             flushPpO2: 1.45,
+            setpointBar: 1.2,
           )
           .withInputs(
             ModCalculatorMode.ccrTec,
             const ModModeInputs(
               o2Percent: 18,
               hePercent: 45,
-              setpointBar: 1.3,
               targetDepthMeters: 60,
               checkTargetDepth: true,
             ),

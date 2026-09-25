@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/core/utils/currency.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
@@ -18,6 +19,7 @@ import 'package:submersion/features/settings/presentation/pages/column_config_pa
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/settings/presentation/widgets/ccr_ppo2_limit_dialog.dart';
 import 'package:submersion/features/settings/presentation/widgets/coordinate_format_picker.dart';
 import 'package:submersion/features/dive_sites/domain/services/site_location_backfill_service.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_location_backfill_dialog.dart';
@@ -1282,6 +1284,36 @@ class _DecompressionSectionContent extends ConsumerWidget {
                   ),
                   trailing: const Icon(Icons.edit),
                   onTap: () => _showPpO2LimitPicker(context, ref, settings),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.loop),
+                  title: Text(
+                    context.l10n.settings_decompression_ccrPpO2LimitsTitle,
+                  ),
+                  subtitle: Text(
+                    context.l10n.settings_decompression_ccrPpO2LimitsSubtitle(
+                      formatFixedForDisplay(settings.ccrSetpointLow, 2),
+                      formatFixedForDisplay(settings.ccrSetpointHigh, 2),
+                      formatFixedForDisplay(settings.ccrDiluentModPpO2, 2),
+                    ),
+                  ),
+                  trailing: const Icon(Icons.edit),
+                  onTap: () => showDialog<void>(
+                    context: context,
+                    builder: (_) => CcrPpO2LimitDialog(
+                      initialSetpointLow: settings.ccrSetpointLow,
+                      initialSetpointHigh: settings.ccrSetpointHigh,
+                      initialDiluentModPpO2: settings.ccrDiluentModPpO2,
+                      onSave: (low, high, diluentMod) => ref
+                          .read(settingsProvider.notifier)
+                          .setCcrPpO2Limits(
+                            setpointLow: low,
+                            setpointHigh: high,
+                            diluentModPpO2: diluentMod,
+                          ),
+                    ),
+                  ),
                 ),
               ],
             ),

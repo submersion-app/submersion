@@ -18811,7 +18811,7 @@ class AppLocalizationsPt extends AppLocalizations {
       'Toxicidade do oxigênio';
 
   @override
-  String get settings_decompression_ppO2LimitsTitle => 'Limites de ppO2';
+  String get settings_decompression_ppO2LimitsTitle => 'Limites de ppO2 OC';
 
   @override
   String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
@@ -18819,7 +18819,44 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_ppO2Dialog_title => 'Limites de ppO2';
+  String get settings_decompression_ppO2Dialog_title => 'Limites de ppO2 OC';
+
+  @override
+  String get settings_decompression_ccrPpO2LimitsTitle => 'Limites de ppO2 CCR';
+
+  @override
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  ) {
+    return 'Setpoint baixo $low · alto $high · MOD Dil $dil bar';
+  }
+
+  @override
+  String get settings_decompression_ccrDialog_info =>
+      'Valores predefinidos para mergulhos com rebreather. O modo CCR da calculadora de MOD parte destes valores.';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLow => 'Setpoint baixo';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLowHint =>
+      'Perto da superfície, na descida e na subida';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHigh => 'Setpoint alto';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHighHint =>
+      'Em profundidade';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentMod => 'MOD Dil';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentModHint =>
+      'ppO2 que o diluente pode atingir numa purga; define a sua MOD';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

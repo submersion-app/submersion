@@ -10,17 +10,12 @@ const List<double> modMinPpO2Options = [0.16, 0.18];
 class ModModeInputs extends Equatable {
   final double o2Percent;
   final double hePercent;
-
-  /// CCR setpoint in bar; only read in CCR Tec.
-  final double setpointBar;
-
   final double targetDepthMeters;
   final bool checkTargetDepth;
 
   const ModModeInputs({
     required this.o2Percent,
     required this.hePercent,
-    required this.setpointBar,
     required this.targetDepthMeters,
     required this.checkTargetDepth,
   });
@@ -28,13 +23,11 @@ class ModModeInputs extends Equatable {
   ModModeInputs copyWith({
     double? o2Percent,
     double? hePercent,
-    double? setpointBar,
     double? targetDepthMeters,
     bool? checkTargetDepth,
   }) => ModModeInputs(
     o2Percent: o2Percent ?? this.o2Percent,
     hePercent: hePercent ?? this.hePercent,
-    setpointBar: setpointBar ?? this.setpointBar,
     targetDepthMeters: targetDepthMeters ?? this.targetDepthMeters,
     checkTargetDepth: checkTargetDepth ?? this.checkTargetDepth,
   );
@@ -42,7 +35,6 @@ class ModModeInputs extends Equatable {
   Map<String, dynamic> toJson() => {
     'o2Percent': o2Percent,
     'hePercent': hePercent,
-    'setpointBar': setpointBar,
     'targetDepthMeters': targetDepthMeters,
     'checkTargetDepth': checkTargetDepth,
   };
@@ -57,9 +49,6 @@ class ModModeInputs extends Equatable {
     return ModModeInputs(
       o2Percent: o2,
       hePercent: he,
-      setpointBar:
-          _number(json['setpointBar'], modSetpointMinBar, modSetpointMaxBar) ??
-          fallback.setpointBar,
       targetDepthMeters:
           _number(json['targetDepthMeters'], 0, tecTargetMaxMeters) ??
           fallback.targetDepthMeters,
@@ -71,7 +60,6 @@ class ModModeInputs extends Equatable {
   List<Object?> get props => [
     o2Percent,
     hePercent,
-    setpointBar,
     targetDepthMeters,
     checkTargetDepth,
   ];
@@ -79,9 +67,10 @@ class ModModeInputs extends Equatable {
 
 /// Everything the MOD calculator remembers between sessions (issue #2342).
 ///
-/// The ppO2 limits are overrides: null means "use the active diver's
-/// profile value", so a diver who never touches them follows their profile,
-/// and one who does sees the override marked against it.
+/// The ppO2 limits and the CCR setpoint are overrides: null means "use the
+/// active diver's profile value" (the OC or the CCR ppO2 limits in the
+/// settings), so a diver who never touches them follows their profile, and
+/// one who does sees the override marked against it.
 class ModCalculatorPreferences extends Equatable {
   final ModCalculatorMode mode;
   final ModModeInputs rec;
@@ -96,6 +85,9 @@ class ModCalculatorPreferences extends Equatable {
   final double? decoPpO2;
   final double? flushPpO2;
 
+  /// CCR setpoint; null follows the profile's high setpoint.
+  final double? setpointBar;
+
   const ModCalculatorPreferences({
     required this.mode,
     required this.rec,
@@ -106,6 +98,7 @@ class ModCalculatorPreferences extends Equatable {
     required this.workingPpO2,
     required this.decoPpO2,
     required this.flushPpO2,
+    required this.setpointBar,
   });
 
   static const defaults = ModCalculatorPreferences(
@@ -113,21 +106,18 @@ class ModCalculatorPreferences extends Equatable {
     rec: ModModeInputs(
       o2Percent: 32,
       hePercent: 0,
-      setpointBar: 1.1,
       targetDepthMeters: 30,
       checkTargetDepth: false,
     ),
     ocTec: ModModeInputs(
       o2Percent: 21,
       hePercent: 35,
-      setpointBar: 1.1,
       targetDepthMeters: 50,
       checkTargetDepth: false,
     ),
     ccrTec: ModModeInputs(
       o2Percent: 21,
       hePercent: 35,
-      setpointBar: 1.1,
       targetDepthMeters: 50,
       checkTargetDepth: false,
     ),
@@ -136,6 +126,7 @@ class ModCalculatorPreferences extends Equatable {
     workingPpO2: null,
     decoPpO2: null,
     flushPpO2: null,
+    setpointBar: null,
   );
 
   ModModeInputs inputsFor(ModCalculatorMode mode) => switch (mode) {
@@ -157,6 +148,7 @@ class ModCalculatorPreferences extends Equatable {
     workingPpO2: workingPpO2,
     decoPpO2: decoPpO2,
     flushPpO2: flushPpO2,
+    setpointBar: setpointBar,
   );
 
   /// The `clear*` flags reset an override to "follow the profile", which a
@@ -168,9 +160,11 @@ class ModCalculatorPreferences extends Equatable {
     double? workingPpO2,
     double? decoPpO2,
     double? flushPpO2,
+    double? setpointBar,
     bool clearWorkingPpO2 = false,
     bool clearDecoPpO2 = false,
     bool clearFlushPpO2 = false,
+    bool clearSetpoint = false,
   }) => ModCalculatorPreferences(
     mode: mode ?? this.mode,
     rec: rec,
@@ -181,6 +175,7 @@ class ModCalculatorPreferences extends Equatable {
     workingPpO2: clearWorkingPpO2 ? null : workingPpO2 ?? this.workingPpO2,
     decoPpO2: clearDecoPpO2 ? null : decoPpO2 ?? this.decoPpO2,
     flushPpO2: clearFlushPpO2 ? null : flushPpO2 ?? this.flushPpO2,
+    setpointBar: clearSetpoint ? null : setpointBar ?? this.setpointBar,
   );
 
   Map<String, dynamic> toJson() => {
@@ -193,6 +188,7 @@ class ModCalculatorPreferences extends Equatable {
     'workingPpO2': workingPpO2,
     'decoPpO2': decoPpO2,
     'flushPpO2': flushPpO2,
+    'setpointBar': setpointBar,
   };
 
   static ModCalculatorPreferences fromJson(Map<String, dynamic> json) {
@@ -210,6 +206,11 @@ class ModCalculatorPreferences extends Equatable {
       workingPpO2: _limit(json['workingPpO2']),
       decoPpO2: _limit(json['decoPpO2']),
       flushPpO2: _limit(json['flushPpO2']),
+      setpointBar: _number(
+        json['setpointBar'],
+        modSetpointMinBar,
+        modSetpointMaxBar,
+      ),
     );
   }
 
@@ -224,6 +225,7 @@ class ModCalculatorPreferences extends Equatable {
     workingPpO2,
     decoPpO2,
     flushPpO2,
+    setpointBar,
   ];
 }
 

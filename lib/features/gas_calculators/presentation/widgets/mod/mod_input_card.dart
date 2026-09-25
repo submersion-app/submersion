@@ -31,7 +31,6 @@ class ModInputCard extends ConsumerWidget {
     final mode = prefs.mode;
     final inputs = prefs.inputsFor(mode);
     final isRec = mode == ModCalculatorMode.rec;
-    final isCcr = mode == ModCalculatorMode.ccrTec;
 
     final o2Min = isRec ? recMinO2Percent : tecMinO2Percent;
     final o2Max = isRec ? recMaxO2Percent : 100.0;
@@ -107,21 +106,6 @@ class ModInputCard extends ConsumerWidget {
                 max: heMax,
                 divisions: heMax.round().clamp(1, 95),
                 onChanged: notifier.setHePercent,
-              ),
-            ],
-            if (isCcr) ...[
-              const SizedBox(height: 24),
-              DensitySlider(
-                label: l10n.gasCalculators_mod_setpoint,
-                icon: Icons.tune,
-                value: inputs.setpointBar,
-                unit: '',
-                fractionDigits: 1,
-                min: modSetpointMinBar,
-                max: modSetpointMaxBar,
-                divisions: ((modSetpointMaxBar - modSetpointMinBar) * 10)
-                    .round(),
-                onChanged: notifier.setSetpoint,
               ),
             ],
             const SizedBox(height: 16),

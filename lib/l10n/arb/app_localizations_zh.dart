@@ -17869,7 +17869,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_decompression_header_oxygenToxicity => '氧中毒';
 
   @override
-  String get settings_decompression_ppO2LimitsTitle => '氧分压上限';
+  String get settings_decompression_ppO2LimitsTitle => '氧分压上限 OC';
 
   @override
   String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
@@ -17877,7 +17877,43 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_ppO2Dialog_title => '氧分压上限';
+  String get settings_decompression_ppO2Dialog_title => '氧分压上限 OC';
+
+  @override
+  String get settings_decompression_ccrPpO2LimitsTitle => '氧分压上限 CCR';
+
+  @override
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  ) {
+    return '低设定点 $low · 高设定点 $high · 稀释气 MOD $dil bar';
+  }
+
+  @override
+  String get settings_decompression_ccrDialog_info =>
+      '循环呼吸器潜水的默认值。MOD 计算器的 CCR 模式以这些值为起点。';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLow => '低设定点';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLowHint =>
+      '靠近水面时，下潜和上升期间';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHigh => '高设定点';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHighHint => '在深度时';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentMod => '稀释气 MOD';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentModHint =>
+      '冲洗时稀释气可达到的 ppO2；决定其 MOD';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

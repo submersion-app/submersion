@@ -18781,7 +18781,7 @@ class AppLocalizationsDe extends AppLocalizations {
       'Sauerstofftoxizität';
 
   @override
-  String get settings_decompression_ppO2LimitsTitle => 'ppO2-Grenzwerte';
+  String get settings_decompression_ppO2LimitsTitle => 'ppO2-Grenzwerte OC';
 
   @override
   String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
@@ -18789,7 +18789,44 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_ppO2Dialog_title => 'ppO2-Grenzwerte';
+  String get settings_decompression_ppO2Dialog_title => 'ppO2-Grenzwerte OC';
+
+  @override
+  String get settings_decompression_ccrPpO2LimitsTitle => 'ppO2-Grenzwerte CCR';
+
+  @override
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  ) {
+    return 'Setpoint Low $low · High $high · Dil-MOD $dil bar';
+  }
+
+  @override
+  String get settings_decompression_ccrDialog_info =>
+      'Standardwerte für Tauchgänge mit Kreislaufgerät. Der CCR-Modus des MOD-Rechners startet mit diesen Werten.';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLow => 'Setpoint Low';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLowHint =>
+      'Nahe der Oberfläche, beim Ab- und Aufstieg';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHigh => 'Setpoint High';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHighHint =>
+      'In der Tiefe';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentMod => 'Dil-MOD';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentModHint =>
+      'ppO2, den das Diluentgas beim Spülen erreichen darf; bestimmt seine MOD';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

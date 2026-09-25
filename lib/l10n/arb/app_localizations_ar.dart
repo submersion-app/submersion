@@ -18490,7 +18490,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_decompression_ppO2LimitsTitle =>
-      'حدود الضغط الجزئي للأكسجين';
+      'حدود الضغط الجزئي للأكسجين OC';
 
   @override
   String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
@@ -18499,7 +18499,46 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_decompression_ppO2Dialog_title =>
-      'حدود الضغط الجزئي للأكسجين';
+      'حدود الضغط الجزئي للأكسجين OC';
+
+  @override
+  String get settings_decompression_ccrPpO2LimitsTitle =>
+      'حدود الضغط الجزئي للأكسجين CCR';
+
+  @override
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  ) {
+    return 'نقطة الضبط المنخفضة $low · المرتفعة $high · MOD التخفيف $dil بار';
+  }
+
+  @override
+  String get settings_decompression_ccrDialog_info =>
+      'القيم الافتراضية لغطسات الدائرة المغلقة. يبدأ وضع CCR في حاسبة MOD من هذه القيم.';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLow =>
+      'نقطة الضبط المنخفضة';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLowHint =>
+      'قرب السطح، أثناء النزول والصعود';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHigh =>
+      'نقطة الضبط المرتفعة';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHighHint => 'على العمق';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentMod => 'MOD غاز التخفيف';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentModHint =>
+      'ppO2 الذي قد يبلغه غاز التخفيف عند الشطف؛ يحدد الـ MOD الخاص به';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

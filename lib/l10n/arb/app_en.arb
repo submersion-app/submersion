@@ -11362,9 +11362,31 @@
   "settings_decompression_gfValue": "GF {gfLow}/{gfHigh}",
   "settings_decompression_header_gradientFactors": "Gradient Factors",
   "settings_decompression_header_oxygenToxicity": "Oxygen Toxicity",
-  "settings_decompression_ppO2LimitsTitle": "ppO2 limits",
+  "settings_decompression_ppO2LimitsTitle": "ppO2 limits OC",
   "settings_decompression_ppO2LimitsSubtitle": "Working {working} bar · Max {max} bar",
-  "settings_decompression_ppO2Dialog_title": "ppO2 limits",
+  "settings_decompression_ppO2Dialog_title": "ppO2 limits OC",
+  "settings_decompression_ccrPpO2LimitsTitle": "ppO2 limits CCR",
+  "settings_decompression_ccrPpO2LimitsSubtitle": "Setpoint low {low} · high {high} · Dil MOD {dil} bar",
+  "@settings_decompression_ccrPpO2LimitsSubtitle": {
+    "placeholders": {
+      "low": {
+        "type": "String"
+      },
+      "high": {
+        "type": "String"
+      },
+      "dil": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_decompression_ccrDialog_info": "Defaults for rebreather dives. The CCR mode of the MOD calculator starts from these values.",
+  "settings_decompression_ccrDialog_setpointLow": "Setpoint low",
+  "settings_decompression_ccrDialog_setpointLowHint": "Held near the surface, on descent and ascent",
+  "settings_decompression_ccrDialog_setpointHigh": "Setpoint high",
+  "settings_decompression_ccrDialog_setpointHighHint": "Held at depth",
+  "settings_decompression_ccrDialog_diluentMod": "Dil MOD",
+  "settings_decompression_ccrDialog_diluentModHint": "ppO2 the diluent may reach on a flush; sets its MOD",
   "settings_decompression_ppO2Dialog_info": "The ppO2 ceilings used for MOD, gas planning and oxygen toxicity warnings. Set these to match the limits configured on your dive computer.",
   "settings_decompression_ppO2Dialog_working": "Working ppO2",
   "settings_decompression_ppO2Dialog_workingHint": "Bottom gas, active part of the dive",

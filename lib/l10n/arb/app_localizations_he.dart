@@ -18349,7 +18349,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_decompression_header_oxygenToxicity => 'רעילות חמצן';
 
   @override
-  String get settings_decompression_ppO2LimitsTitle => 'מגבלות ppO2';
+  String get settings_decompression_ppO2LimitsTitle => 'מגבלות ppO2 OC';
 
   @override
   String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
@@ -18357,7 +18357,43 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_ppO2Dialog_title => 'מגבלות ppO2';
+  String get settings_decompression_ppO2Dialog_title => 'מגבלות ppO2 OC';
+
+  @override
+  String get settings_decompression_ccrPpO2LimitsTitle => 'מגבלות ppO2 CCR';
+
+  @override
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  ) {
+    return 'Setpoint נמוך $low · גבוה $high · MOD מדלל $dil בר';
+  }
+
+  @override
+  String get settings_decompression_ccrDialog_info =>
+      'ערכי ברירת מחדל לצלילות במעגל סגור. מצב CCR במחשבון ה-MOD מתחיל מערכים אלה.';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLow => 'Setpoint נמוך';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLowHint =>
+      'קרוב לפני המים, בירידה ובעלייה';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHigh => 'Setpoint גבוה';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHighHint => 'בעומק';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentMod => 'MOD מדלל';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentModHint =>
+      'ה-ppO2 שהמדלל רשאי להגיע אליו בשטיפה; קובע את ה-MOD שלו';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

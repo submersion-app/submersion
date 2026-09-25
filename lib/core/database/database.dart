@@ -2114,6 +2114,11 @@ class DiverSettings extends Table {
   IntColumn get gfHigh => integer().withDefault(const Constant(70))();
   RealColumn get ppO2MaxWorking => real().withDefault(const Constant(1.4))();
   RealColumn get ppO2MaxDeco => real().withDefault(const Constant(1.6))();
+  // CCR ppO2 limits (v228, issue #2342): the diver's default setpoints and
+  // the ppO2 a diluent may reach on a flush, which sets its MOD.
+  RealColumn get ccrSetpointLow => real().withDefault(const Constant(0.7))();
+  RealColumn get ccrSetpointHigh => real().withDefault(const Constant(1.3))();
+  RealColumn get ccrDiluentModPpO2 => real().withDefault(const Constant(1.6))();
   IntColumn get cnsWarningThreshold =>
       integer().withDefault(const Constant(80))();
   RealColumn get ascentRateWarning => real().withDefault(const Constant(9.0))();
@@ -4299,7 +4304,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 227;
+  static const int currentSchemaVersion = 228;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4960,6 +4965,11 @@ class AppDatabase extends _$AppDatabase {
     // shows every built-in preset. Renumbered from 225, which is held by PR
     // #1978, after v226 landed while this was in review.
     227,
+    // v228: diver_settings CCR ppO2 limits (issue #2342): setpoint low,
+    // setpoint high and the diluent's flush ppO2. Additive defaulted
+    // columns, no backfill, so the floor stays at 224. Renumbered from 227,
+    // which main shipped for the hidden tank presets while this was open.
+    228,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -8359,6 +8369,29 @@ class AppDatabase extends _$AppDatabase {
       'ALTER TABLE diver_settings ADD COLUMN group_trips_in_dive_list '
       'INTEGER NOT NULL DEFAULT 0',
     );
+  }
+
+  /// Idempotent DDL for the diver_settings CCR ppO2 limits (v228, issue
+  /// #2342). Existing rows get the defaults the planner already assumed for
+  /// a new CCR plan (0.7 / 1.3) and the 1.6 bar flush ceiling.
+  Future<void> _assertCcrPpO2LimitColumns() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    const columns = {
+      'ccr_setpoint_low': '0.7',
+      'ccr_setpoint_high': '1.3',
+      'ccr_diluent_mod_pp_o2': '1.6',
+    };
+    for (final entry in columns.entries) {
+      if (names.contains(entry.key)) continue;
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN '
+        '${entry.key} REAL NOT NULL DEFAULT ${entry.value}',
+      );
+    }
   }
 
   /// Idempotent DDL for diver_settings.auto_tag_imports (v211, issue #998).
@@ -12579,6 +12612,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertHiddenTankPresetIdsColumn();
         }
         if (from < 227) await reportProgress();
+        // v228: diver_settings CCR ppO2 limits (issue #2342). Column-only
+        // rung, no backfill.
+        if (from < 228) {
+          await _assertCcrPpO2LimitColumns();
+        }
+        if (from < 228) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
@@ -13079,6 +13118,11 @@ class AppDatabase extends _$AppDatabase {
         // version-collision self-heal). Column only, so it cannot touch
         // diver data.
         await _assertMediaCloudAssetIdColumn();
+
+        // v228 backstop: re-assert the diver_settings CCR ppO2 limits
+        // (parallel-branch version-collision self-heal). Defaulted columns
+        // only, so it cannot touch diver data.
+        await _assertCcrPpO2LimitColumns();
 
         // v194 backstop: re-assert dive_tanks.transmitter_serial. Every tank
         // read selects the whole row, so a database that arrives by restore

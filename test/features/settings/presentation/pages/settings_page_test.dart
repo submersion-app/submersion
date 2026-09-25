@@ -278,6 +278,16 @@ class _MockSettingsNotifier extends StateNotifier<AppSettings>
   Future<void> setPpO2Limits(double working, double max) async =>
       state = state.copyWith(ppO2MaxWorking: working, ppO2MaxDeco: max);
   @override
+  Future<void> setCcrPpO2Limits({
+    required double setpointLow,
+    required double setpointHigh,
+    required double diluentModPpO2,
+  }) async => state = state.copyWith(
+    ccrSetpointLow: setpointLow,
+    ccrSetpointHigh: setpointHigh,
+    ccrDiluentModPpO2: diluentModPpO2,
+  );
+  @override
   Future<void> setCnsWarningThreshold(int value) async =>
       state = state.copyWith(cnsWarningThreshold: value);
   @override
@@ -2169,8 +2179,43 @@ void main() {
       await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      expect(find.text('ppO2 limits'), findsOneWidget);
+      expect(find.text('ppO2 limits OC'), findsOneWidget);
       expect(find.text('Working 1.4 bar · Max 1.6 bar'), findsOneWidget);
+    });
+
+    testWidgets('the CCR tile shows the setpoints and the diluent MOD '
+        '(issue #2342)', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(500, 6000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
+      await tester.pumpAndSettle();
+
+      expect(find.text('ppO2 limits CCR'), findsOneWidget);
+      expect(
+        find.text('Setpoint low 0.70 · high 1.30 · Dil MOD 1.60 bar'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('ppO2 limits CCR'));
+      await tester.pumpAndSettle();
+      expect(find.text('Setpoint low'), findsOneWidget);
+      expect(find.text('Setpoint high'), findsOneWidget);
+      expect(find.text('Dil MOD'), findsOneWidget);
+
+      // Drag the high setpoint to the far left: the pair is never inverted,
+      // so the low setpoint is pulled down with it to 0.19.
+      final sliders = find.byType(Slider);
+      expect(sliders, findsNWidgets(3));
+      await tester.drag(sliders.at(1), const Offset(-1000, 0));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Setpoint low 0.19 · high 0.19 · Dil MOD 1.60 bar'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('saving a new maximum updates the tile', (tester) async {
@@ -2180,7 +2225,7 @@ void main() {
       await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('ppO2 limits'));
+      await tester.tap(find.text('ppO2 limits OC'));
       await tester.pumpAndSettle();
 
       // The "Maximum ppO2" dropdown currently reads 1.6 bar (working is 1.4).
@@ -2203,7 +2248,7 @@ void main() {
       await tester.pumpWidget(buildDecompressionWidget(getOverrides()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('ppO2 limits'));
+      await tester.tap(find.text('ppO2 limits OC'));
       await tester.pumpAndSettle();
 
       // Working starts at 1.4; raise it to 1.6, above the 1.4/1.5/1.6 max.
@@ -2236,7 +2281,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('ppO2 limits'));
+      await tester.tap(find.text('ppO2 limits OC'));
       await tester.pumpAndSettle();
 
       // Snapped to the grid: 1.4 working, 1.5 max.

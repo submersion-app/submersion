@@ -169,7 +169,8 @@ void main() {
       var inputs = container.read(modCalculatorInputsProvider);
       expect(inputs.workingPpO2, 1.3);
       expect(inputs.decoPpO2, 1.5);
-      expect(inputs.flushPpO2, 1.5);
+      // The diluent MOD comes from the CCR limits (default 1.6), not deco.
+      expect(inputs.flushPpO2, 1.6);
       expect(inputs.endLimitMeters, 35);
       expect(inputs.o2Narcotic, isFalse);
 
@@ -178,6 +179,39 @@ void main() {
           .setWorkingPpO2(1.2, profileValue: 1.3);
       inputs = container.read(modCalculatorInputsProvider);
       expect(inputs.workingPpO2, 1.2);
+    });
+
+    test('CCR Tec starts from the profile CCR ppO2 limits (#2342)', () {
+      const settings = AppSettings(
+        ppO2MaxDeco: 1.5,
+        ccrSetpointHigh: 1.2,
+        ccrDiluentModPpO2: 1.45,
+      );
+      final container = _container(_FakeRepository(), settings: settings);
+      var inputs = container.read(modCalculatorInputsProvider);
+      expect(inputs.setpointBar, 1.2);
+      // The diluent MOD follows the CCR profile, no longer the OC deco value.
+      expect(inputs.flushPpO2, 1.45);
+
+      final notifier = container.read(modCalculatorNotifierProvider.notifier)
+        ..setSetpoint(1.0, profileValue: 1.2);
+      inputs = container.read(modCalculatorInputsProvider);
+      expect(inputs.setpointBar, 1.0);
+      expect(container.read(modCalculatorNotifierProvider).setpointBar, 1.0);
+
+      notifier.setSetpoint(1.2, profileValue: 1.2);
+      expect(container.read(modCalculatorNotifierProvider).setpointBar, isNull);
+    });
+
+    test('a profile value outside the calculator range is held to it', () {
+      const settings = AppSettings(
+        ccrSetpointHigh: 0.19,
+        ccrDiluentModPpO2: 0.5,
+      );
+      final container = _container(_FakeRepository(), settings: settings);
+      final inputs = container.read(modCalculatorInputsProvider);
+      expect(inputs.setpointBar, modSetpointMinBar);
+      expect(inputs.flushPpO2, modLimitPpO2Min);
     });
 
     test('the water type defaults to the planner setting', () {

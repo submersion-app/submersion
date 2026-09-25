@@ -30512,7 +30512,7 @@ abstract class AppLocalizations {
   /// No description provided for @settings_decompression_ppO2LimitsTitle.
   ///
   /// In en, this message translates to:
-  /// **'ppO2 limits'**
+  /// **'ppO2 limits OC'**
   String get settings_decompression_ppO2LimitsTitle;
 
   /// No description provided for @settings_decompression_ppO2LimitsSubtitle.
@@ -30524,8 +30524,66 @@ abstract class AppLocalizations {
   /// No description provided for @settings_decompression_ppO2Dialog_title.
   ///
   /// In en, this message translates to:
-  /// **'ppO2 limits'**
+  /// **'ppO2 limits OC'**
   String get settings_decompression_ppO2Dialog_title;
+
+  /// No description provided for @settings_decompression_ccrPpO2LimitsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2 limits CCR'**
+  String get settings_decompression_ccrPpO2LimitsTitle;
+
+  /// No description provided for @settings_decompression_ccrPpO2LimitsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint low {low} · high {high} · Dil MOD {dil} bar'**
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  );
+
+  /// No description provided for @settings_decompression_ccrDialog_info.
+  ///
+  /// In en, this message translates to:
+  /// **'Defaults for rebreather dives. The CCR mode of the MOD calculator starts from these values.'**
+  String get settings_decompression_ccrDialog_info;
+
+  /// No description provided for @settings_decompression_ccrDialog_setpointLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint low'**
+  String get settings_decompression_ccrDialog_setpointLow;
+
+  /// No description provided for @settings_decompression_ccrDialog_setpointLowHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Held near the surface, on descent and ascent'**
+  String get settings_decompression_ccrDialog_setpointLowHint;
+
+  /// No description provided for @settings_decompression_ccrDialog_setpointHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint high'**
+  String get settings_decompression_ccrDialog_setpointHigh;
+
+  /// No description provided for @settings_decompression_ccrDialog_setpointHighHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Held at depth'**
+  String get settings_decompression_ccrDialog_setpointHighHint;
+
+  /// No description provided for @settings_decompression_ccrDialog_diluentMod.
+  ///
+  /// In en, this message translates to:
+  /// **'Dil MOD'**
+  String get settings_decompression_ccrDialog_diluentMod;
+
+  /// No description provided for @settings_decompression_ccrDialog_diluentModHint.
+  ///
+  /// In en, this message translates to:
+  /// **'ppO2 the diluent may reach on a flush; sets its MOD'**
+  String get settings_decompression_ccrDialog_diluentModHint;
 
   /// No description provided for @settings_decompression_ppO2Dialog_info.
   ///

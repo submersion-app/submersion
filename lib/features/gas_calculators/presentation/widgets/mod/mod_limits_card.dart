@@ -74,18 +74,38 @@ class ModLimitsCard extends ConsumerWidget {
                 onReset: notifier.resetDecoPpO2,
               ),
             ],
-            if (mode == ModCalculatorMode.ccrTec)
+            // CCR Tec follows the profile's CCR ppO2 limits: the high
+            // setpoint and the diluent MOD ppO2.
+            if (mode == ModCalculatorMode.ccrTec) ...[
+              ModPpO2LimitSlider(
+                label: l10n.gasCalculators_mod_setpoint,
+                icon: Icons.tune,
+                min: modSetpointMinBar,
+                max: modSetpointMaxBar,
+                step: 0.1,
+                fractionDigits: 1,
+                value: prefs.setpointBar ?? modProfileSetpoint(settings),
+                profileValue: settings.ccrSetpointHigh,
+                isOverridden: prefs.setpointBar != null,
+                onChanged: (v) => notifier.setSetpoint(
+                  v,
+                  profileValue: modProfileSetpoint(settings),
+                ),
+                onReset: notifier.resetSetpoint,
+              ),
+              const SizedBox(height: 24),
               ModPpO2LimitSlider(
                 label: l10n.gasCalculators_mod_flushPpO2,
-                value: prefs.flushPpO2 ?? settings.ppO2MaxDeco,
-                profileValue: settings.ppO2MaxDeco,
+                value: prefs.flushPpO2 ?? modProfileFlushPpO2(settings),
+                profileValue: settings.ccrDiluentModPpO2,
                 isOverridden: prefs.flushPpO2 != null,
                 onChanged: (v) => notifier.setFlushPpO2(
                   v,
-                  profileValue: settings.ppO2MaxDeco,
+                  profileValue: modProfileFlushPpO2(settings),
                 ),
                 onReset: notifier.resetFlushPpO2,
               ),
+            ],
           ],
         ),
       ),

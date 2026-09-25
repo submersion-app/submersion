@@ -99,8 +99,15 @@ class ModCalculatorNotifier extends StateNotifier<ModCalculatorPreferences> {
     ),
   );
 
-  void setSetpoint(double bar) =>
-      _updateCurrent(_current.copyWith(setpointBar: bar));
+  /// Like the ppO2 limits: a value equal to the profile's high setpoint
+  /// clears the override.
+  void setSetpoint(double bar, {required double profileValue}) => _update(
+    _sameAs(bar, profileValue)
+        ? state.copyWith(clearSetpoint: true)
+        : state.copyWith(setpointBar: bar),
+  );
+
+  void resetSetpoint() => _update(state.copyWith(clearSetpoint: true));
 
   void setTargetDepth(double meters) =>
       _updateCurrent(_current.copyWith(targetDepthMeters: meters));
@@ -168,8 +175,24 @@ WaterType modCalculatorWaterType(
       PlannerWaterType.salt || PlannerWaterType.custom => WaterType.salt,
     };
 
+/// The profile's CCR high setpoint, held to the calculator's setpoint range.
+///
+/// The profile allows 0.19-1.6 bar; the calculator's slider 0.4-1.6. A
+/// profile value outside it is computed at the nearest edge, so what the
+/// slider shows is what the numbers are computed for.
+double modProfileSetpoint(AppSettings settings) => settings.ccrSetpointHigh
+    .clamp(modSetpointMinBar, modSetpointMaxBar)
+    .toDouble();
+
+/// The profile's CCR diluent MOD ppO2, held to the calculator's ppO2 range
+/// for the same reason.
+double modProfileFlushPpO2(AppSettings settings) => settings.ccrDiluentModPpO2
+    .clamp(modLimitPpO2Min, modLimitPpO2Max)
+    .toDouble();
+
 /// The calculator inputs with every override resolved against the active
-/// diver's profile.
+/// diver's profile: the OC ppO2 limits for Rec and OC Tec, the CCR ppO2
+/// limits for CCR Tec.
 final modCalculatorInputsProvider = Provider<GasLimitsInputs>((ref) {
   final prefs = ref.watch(modCalculatorNotifierProvider);
   final settings = ref.watch(settingsProvider);
@@ -180,8 +203,8 @@ final modCalculatorInputsProvider = Provider<GasLimitsInputs>((ref) {
     hePercent: mode.hePercent,
     workingPpO2: prefs.workingPpO2 ?? settings.ppO2MaxWorking,
     decoPpO2: prefs.decoPpO2 ?? settings.ppO2MaxDeco,
-    flushPpO2: prefs.flushPpO2 ?? settings.ppO2MaxDeco,
-    setpointBar: mode.setpointBar,
+    flushPpO2: prefs.flushPpO2 ?? modProfileFlushPpO2(settings),
+    setpointBar: prefs.setpointBar ?? modProfileSetpoint(settings),
     minPpO2: prefs.minPpO2,
     endLimitMeters: settings.endLimit,
     o2Narcotic: settings.o2Narcotic,

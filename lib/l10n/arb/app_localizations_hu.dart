@@ -18756,7 +18756,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_decompression_header_oxygenToxicity => 'Oxigéntoxicitás';
 
   @override
-  String get settings_decompression_ppO2LimitsTitle => 'ppO2-határok';
+  String get settings_decompression_ppO2LimitsTitle => 'ppO2-határok OC';
 
   @override
   String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
@@ -18764,7 +18764,44 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_ppO2Dialog_title => 'ppO2-határok';
+  String get settings_decompression_ppO2Dialog_title => 'ppO2-határok OC';
+
+  @override
+  String get settings_decompression_ccrPpO2LimitsTitle => 'ppO2-határok CCR';
+
+  @override
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  ) {
+    return 'Setpoint alacsony $low · magas $high · Dil-MOD $dil bar';
+  }
+
+  @override
+  String get settings_decompression_ccrDialog_info =>
+      'Alapértékek zárt rendszerű merülésekhez. A MOD-kalkulátor CCR módja ezekkel az értékekkel indul.';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLow =>
+      'Alacsony setpoint';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLowHint =>
+      'A felszín közelében, le- és feljutáskor';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHigh => 'Magas setpoint';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHighHint => 'Mélységben';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentMod => 'Dil-MOD';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentModHint =>
+      'A hígítógáz öblítéskor elérhető ppO2-je; ez határozza meg a MOD-ját';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

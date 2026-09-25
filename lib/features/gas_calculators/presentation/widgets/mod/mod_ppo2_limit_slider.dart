@@ -5,9 +5,6 @@ import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/density/density_slider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Steps of 0.05 bar across the range.
-const int _divisions = 12;
-
 /// A ppO2 limit that defaults to the diver's profile value (issue #2342).
 ///
 /// While it follows the profile the caption says so. Once moved away it is
@@ -21,6 +18,11 @@ class ModPpO2LimitSlider extends StatelessWidget {
     required this.isOverridden,
     required this.onChanged,
     required this.onReset,
+    this.min = modLimitPpO2Min,
+    this.max = modLimitPpO2Max,
+    this.step = 0.05,
+    this.fractionDigits = 2,
+    this.icon = Icons.speed,
   });
 
   final String label;
@@ -31,6 +33,14 @@ class ModPpO2LimitSlider extends StatelessWidget {
   final bool isOverridden;
   final ValueChanged<double> onChanged;
   final VoidCallback onReset;
+
+  /// Range and step; the ppO2 limits by default. The CCR setpoint uses its
+  /// own range in 0.1 bar steps.
+  final double min;
+  final double max;
+  final double step;
+  final int fractionDigits;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -43,13 +53,13 @@ class ModPpO2LimitSlider extends StatelessWidget {
       children: [
         DensitySlider(
           label: label,
-          icon: Icons.speed,
+          icon: icon,
           value: value,
           unit: ' bar',
-          fractionDigits: 2,
-          min: modLimitPpO2Min,
-          max: modLimitPpO2Max,
-          divisions: _divisions,
+          fractionDigits: fractionDigits,
+          min: min,
+          max: max,
+          divisions: ((max - min) / step).round(),
           onChanged: onChanged,
         ),
         Padding(
@@ -68,7 +78,7 @@ class ModPpO2LimitSlider extends StatelessWidget {
                 child: Text(
                   isOverridden
                       ? l10n.gasCalculators_mod_differsFromProfile(
-                          formatFixedForDisplay(profileValue, 2),
+                          formatFixedForDisplay(profileValue, fractionDigits),
                         )
                       : l10n.gasCalculators_mod_fromProfile,
                   style: textTheme.bodySmall?.copyWith(
