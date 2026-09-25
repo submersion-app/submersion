@@ -7292,9 +7292,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_listPage_searchSuggestion => '按潜水点、潜伴或备注搜索';
 
   @override
-  String get diveLog_listPage_title => '潜水日志';
-
-  @override
   String get diveLog_listPage_tooltip_back => '返回';
 
   @override
@@ -13698,6 +13695,85 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => '混合气体的麻醉深度极限';
+
+  @override
+  String get gasCalculators_tab_density => '气体密度';
+
+  @override
+  String get gasCalculators_desc_density => '深度处呼吸气体的密度，开路或 CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters => '混合气与条件';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => '深度';
+
+  @override
+  String get gasCalculators_density_mode => '模式';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => '设定点 (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint => '在 CCR 模式下，上面的混合气即稀释气体。';
+
+  @override
+  String get gasCalculators_density_temperature => '气体温度';
+
+  @override
+  String get gasCalculators_density_resultTitle => '气体密度';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return '在建议的 $limit g/L 限值以内。';
+  }
+
+  @override
+  String get gasCalculators_density_eaddLabel => '等效空气密度深度 (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'EADD 是空气密度与该气体相同时所处的深度。与以 g/L 表示的密度不同，它不受温度影响。';
+
+  @override
+  String get gasCalculators_density_loopGasTitle => '深度处的回路气体';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped => '此处设定点高于环境压力，因此回路为纯氧。';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return '仅稀释气体在此处即产生 $ppO2 的 ppO2，高于设定点。密度按稀释气体的 ppO2 计算。';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => '关于气体密度';
+
+  @override
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return '高密度气体更难呼吸，并会增加 CO2 潴留的风险。请将密度保持在 $warn g/L 或以下；$critical g/L 为硬性上限。\n\n在 CCR 模式下，计算的是回路气体的密度：氧气按设定点，其余按稀释气体的比例分配给氮气和氦气。\n\n较冷的气体密度更高，因此较冷的温度选项更保守。计算假定为理想气体。';
+  }
 
   @override
   String get gasCalculators_desc_blender => '目标混合气的充填流程';
@@ -24808,6 +24884,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get tankPresets_builtInPresets => '内置预设';
 
   @override
+  String get tankPresets_builtInPresets_description =>
+      '关闭不使用的预设，即可在气瓶选择列表中隐藏它们。默认预设始终显示。';
+
+  @override
   String get tankPresets_currentDefault => '当前默认';
 
   @override
@@ -24953,6 +25033,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => '设为默认';
+
+  @override
+  String get tankPresets_showInPickers => '在气瓶选择列表中显示';
 
   @override
   String get tankPresets_title => '气瓶预设';

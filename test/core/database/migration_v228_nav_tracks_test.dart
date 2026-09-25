@@ -32,6 +32,7 @@ void main() {
     expect(AppDatabase.currentSchemaVersion, 228);
     expect(AppDatabase.migrationVersions, contains(228));
     expect(AppDatabase.migrationVersions, isNot(contains(209)));
+    expect(AppDatabase.migrationStepCount(227), 1);
   });
 
   test('a fresh database has the nav_tracks table and its columns', () async {
@@ -80,7 +81,7 @@ void main() {
   test('a database stranded before v228 gains the table', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
-        rawDb.execute('PRAGMA user_version = 226');
+        rawDb.execute('PRAGMA user_version = 227');
         rawDb.execute('''
           CREATE TABLE dives (
             id TEXT NOT NULL PRIMARY KEY,

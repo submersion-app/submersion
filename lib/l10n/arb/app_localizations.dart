@@ -12471,12 +12471,6 @@ abstract class AppLocalizations {
   /// **'Search by site, buddy, or notes'**
   String get diveLog_listPage_searchSuggestion;
 
-  /// No description provided for @diveLog_listPage_title.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive Log'**
-  String get diveLog_listPage_title;
-
   /// No description provided for @diveLog_listPage_tooltip_back.
   ///
   /// In en, this message translates to:
@@ -23715,6 +23709,142 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Narcosis depth limit for a mix'**
   String get gasCalculators_desc_mnd;
+
+  /// No description provided for @gasCalculators_tab_density.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Density'**
+  String get gasCalculators_tab_density;
+
+  /// No description provided for @gasCalculators_desc_density.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathing gas density at depth, OC or CCR'**
+  String get gasCalculators_desc_density;
+
+  /// No description provided for @gasCalculators_density_inputParameters.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Mix & Conditions'**
+  String get gasCalculators_density_inputParameters;
+
+  /// No description provided for @gasCalculators_density_o2Percent.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 %'**
+  String get gasCalculators_density_o2Percent;
+
+  /// No description provided for @gasCalculators_density_hePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'He %'**
+  String get gasCalculators_density_hePercent;
+
+  /// No description provided for @gasCalculators_density_depth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get gasCalculators_density_depth;
+
+  /// No description provided for @gasCalculators_density_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get gasCalculators_density_mode;
+
+  /// No description provided for @gasCalculators_density_modeOc.
+  ///
+  /// In en, this message translates to:
+  /// **'OC'**
+  String get gasCalculators_density_modeOc;
+
+  /// No description provided for @gasCalculators_density_modeCcr.
+  ///
+  /// In en, this message translates to:
+  /// **'CCR'**
+  String get gasCalculators_density_modeCcr;
+
+  /// No description provided for @gasCalculators_density_setpoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint (bar)'**
+  String get gasCalculators_density_setpoint;
+
+  /// No description provided for @gasCalculators_density_diluentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'On CCR, the mix above is the diluent.'**
+  String get gasCalculators_density_diluentHint;
+
+  /// No description provided for @gasCalculators_density_temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas temperature'**
+  String get gasCalculators_density_temperature;
+
+  /// No description provided for @gasCalculators_density_resultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Density'**
+  String get gasCalculators_density_resultTitle;
+
+  /// No description provided for @gasCalculators_density_withinLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Within the recommended {limit} g/L limit.'**
+  String gasCalculators_density_withinLimit(Object limit);
+
+  /// No description provided for @gasCalculators_density_eaddLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Equivalent air density depth (EADD)'**
+  String get gasCalculators_density_eaddLabel;
+
+  /// No description provided for @gasCalculators_density_eaddInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'EADD is the depth at which air would be as dense as this gas. Unlike the density in g/L, it does not depend on the temperature.'**
+  String get gasCalculators_density_eaddInfo;
+
+  /// No description provided for @gasCalculators_density_loopGasTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop gas at depth'**
+  String get gasCalculators_density_loopGasTitle;
+
+  /// No description provided for @gasCalculators_density_loopComposition.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 {o2} % · He {he} % · N2 {n2} %'**
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  );
+
+  /// No description provided for @gasCalculators_density_setpointCapped.
+  ///
+  /// In en, this message translates to:
+  /// **'The setpoint is above ambient pressure here, so the loop is pure oxygen.'**
+  String get gasCalculators_density_setpointCapped;
+
+  /// No description provided for @gasCalculators_density_diluentAboveSetpoint.
+  ///
+  /// In en, this message translates to:
+  /// **'The diluent alone gives ppO2 {ppO2} here, above the setpoint. The density uses the diluent\'s ppO2.'**
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2);
+
+  /// No description provided for @gasCalculators_density_infoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About Gas Density'**
+  String get gasCalculators_density_infoTitle;
+
+  /// No description provided for @gasCalculators_density_infoContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Dense gas is harder to breathe and raises the risk of CO2 retention. Keep the density at or below {warn} g/L; {critical} g/L is the hard ceiling.\n\nOn CCR the density is that of the loop gas: oxygen at the setpoint, the rest split between nitrogen and helium in the diluent\'s ratio.\n\nColder gas is denser, so the colder temperature option is the conservative one. The calculation assumes an ideal gas.'**
+  String gasCalculators_density_infoContent(Object warn, Object critical);
 
   /// No description provided for @gasCalculators_desc_blender.
   ///
@@ -41814,6 +41944,12 @@ abstract class AppLocalizations {
   /// **'Built-in Presets'**
   String get tankPresets_builtInPresets;
 
+  /// No description provided for @tankPresets_builtInPresets_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Switch off the presets you don\'t use to hide them from the tank pickers. The default preset is always shown.'**
+  String get tankPresets_builtInPresets_description;
+
   /// No description provided for @tankPresets_currentDefault.
   ///
   /// In en, this message translates to:
@@ -42059,6 +42195,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Set as default'**
   String get tankPresets_setAsDefault;
+
+  /// No description provided for @tankPresets_showInPickers.
+  ///
+  /// In en, this message translates to:
+  /// **'Show in tank pickers'**
+  String get tankPresets_showInPickers;
 
   /// No description provided for @tankPresets_title.
   ///

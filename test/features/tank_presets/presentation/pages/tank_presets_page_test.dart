@@ -186,6 +186,144 @@ void main() {
       expect(find.text('Steel 12L'), findsOneWidget);
     });
   });
+
+  group('TankPresetsPage hiding built-in presets (issue #2305)', () {
+    late MockSettingsNotifier mockSettings;
+
+    Future<void> pumpPage(
+      WidgetTester tester, {
+      List<TankPresetEntity>? presets,
+    }) async {
+      // Tall enough that every built-in tile is built at once.
+      tester.view.physicalSize = const Size(1000, 3000);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      mockSettings = MockSettingsNotifier();
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (context, state) => const TankPresetsPage(),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => mockSettings),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            tankPresetListNotifierProvider.overrideWith(
+              (ref) => _MockTankPresetListNotifier(
+                presets ??
+                    TankPresets.all.map(TankPresetEntity.fromBuiltIn).toList(),
+              ),
+            ),
+          ].cast(),
+          child: MaterialApp.router(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    Finder switchFor(String name) =>
+        find.byKey(ValueKey('tank-preset-visible-$name'));
+
+    testWidgets('every built-in preset but the default has a switch', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+
+      // AL80 is the default out of the box.
+      expect(mockSettings.state.defaultTankPreset, 'al80');
+      expect(switchFor('al80').hitTestable(), findsNothing);
+      for (final preset in TankPresets.all.where((p) => p.name != 'al80')) {
+        expect(switchFor(preset.name).hitTestable(), findsOneWidget);
+        expect(tester.widget<Switch>(switchFor(preset.name)).value, isTrue);
+      }
+    });
+
+    testWidgets('a custom preset has no switch', (tester) async {
+      final now = DateTime(2026);
+      await pumpPage(
+        tester,
+        presets: [
+          TankPresetEntity(
+            id: 'custom-1',
+            name: 'mine',
+            displayName: 'My Tank',
+            volumeLiters: 12,
+            workingPressureBar: 232,
+            material: TankMaterial.steel,
+            createdAt: now,
+            updatedAt: now,
+          ),
+        ],
+      );
+
+      expect(find.text('My Tank'), findsOneWidget);
+      expect(find.byType(Switch), findsOneWidget); // applyToImports only
+    });
+
+    testWidgets('switching a preset off hides it and on shows it again', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+
+      await tester.tap(switchFor('hp80'));
+      await tester.pumpAndSettle();
+      expect(mockSettings.state.hiddenTankPresetIds, {'hp80'});
+      expect(tester.widget<Switch>(switchFor('hp80')).value, isFalse);
+      final tile = tester.widget<ListTile>(
+        find.ancestor(of: find.text('HP80'), matching: find.byType(ListTile)),
+      );
+      // Dimmed, but not disabled: its star and switch stay usable.
+      expect(tile.enabled, isTrue);
+      expect(tile.textColor, isNotNull);
+
+      await tester.tap(switchFor('hp80'));
+      await tester.pumpAndSettle();
+      expect(mockSettings.state.hiddenTankPresetIds, isEmpty);
+      expect(tester.widget<Switch>(switchFor('hp80')).value, isTrue);
+    });
+
+    testWidgets('starring a hidden preset makes it the visible default', (
+      tester,
+    ) async {
+      await pumpPage(tester);
+      await tester.tap(switchFor('lp85'));
+      await tester.pumpAndSettle();
+      expect(mockSettings.state.hiddenTankPresetIds, {'lp85'});
+
+      final lp85Tile = find.ancestor(
+        of: find.text('LP85'),
+        matching: find.byType(ListTile),
+      );
+      await tester.tap(
+        find.descendant(
+          of: lp85Tile,
+          matching: find.byIcon(Icons.star_outline),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(mockSettings.state.defaultTankPreset, 'lp85');
+      expect(mockSettings.state.hiddenTankPresetIds, isEmpty);
+      expect(switchFor('lp85').hitTestable(), findsNothing);
+      expect(switchFor('al80').hitTestable(), findsOneWidget);
+    });
+  });
 }
 
 /// Simple mock that directly holds preset data in state

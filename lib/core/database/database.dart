@@ -2281,6 +2281,10 @@ class DiverSettings extends Table {
   // manual region override (ISO country code).
   TextColumn get hiddenChamberIds => text().nullable()();
   TextColumn get emergencyRegion => text().nullable()();
+
+  /// v227: built-in tank presets the diver hid from the pickers (issue
+  /// #2305), JSON list of preset slugs. Null or absent = none hidden.
+  TextColumn get hiddenTankPresetIds => text().nullable()();
   // Appearance settings
   BoolColumn get showDepthColoredDiveCards =>
       boolean().withDefault(const Constant(false))();
@@ -5056,12 +5060,17 @@ class AppDatabase extends _$AppDatabase {
     // sync, not here. Additive and nullable, so the floor stays at 224.
     // 225 is held by PR #1978 (tissue loading import).
     226,
+    // v227: diver_settings.hidden_tank_preset_ids (issue #2305). Additive
+    // nullable column, no backfill. The floor stays: an older reader simply
+    // shows every built-in preset. Renumbered from 225, which is held by PR
+    // #1978, after v226 landed while this was in review.
+    227,
     // v228: nav_tracks -- measured underwater routes from Seacraft ENC
     // navigation consoles and similar IMU-equipped computers (issues #1195,
     // #1445). Table-only rung, additive, so the floor stays at 224.
     // Renumbered from 209: main shipped up to 226 while this branch was
     // open, and a rung at or below the shipped version never runs its
-    // onUpgrade step. 227 is claimed by the hide-tank-presets branch.
+    // onUpgrade step. 227 went to hidden tank presets (#2315).
     228,
   ];
 
@@ -6564,6 +6573,23 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'ALTER TABLE diver_settings '
         'ADD COLUMN seascape_vertical_exaggeration_overrides TEXT',
+      );
+    }
+  }
+
+  /// v227: diver_settings.hidden_tank_preset_ids (issue #2305). Additive
+  /// column, default null, so every built-in preset stays visible until the
+  /// diver hides one. Idempotent, so it is safe to call from both onUpgrade
+  /// and the beforeOpen backstop.
+  Future<void> _assertHiddenTankPresetIdsColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('hidden_tank_preset_ids')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN hidden_tank_preset_ids TEXT',
       );
     }
   }
@@ -12673,6 +12699,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertMediaCloudAssetIdColumn();
         }
         if (from < 226) await reportProgress();
+        // v227: diver_settings.hidden_tank_preset_ids (issue #2305).
+        // Column-only rung, no backfill: null reads back as "none hidden".
+        if (from < 227) {
+          await _assertHiddenTankPresetIdsColumn();
+        }
+        if (from < 227) await reportProgress();
         // v228: nav_tracks -- measured underwater routes from Seacraft ENC
         // navigation consoles and similar IMU-equipped computers (spec
         // 2026-09-10-underwater-nav-track-design.md, issues #1195, #1445).
@@ -12685,6 +12717,9 @@ class AppDatabase extends _$AppDatabase {
         if (from < 228) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v227 backstop: the hidden built-in tank presets.
+        await _assertHiddenTankPresetIdsColumn();
+
         // v222 backstop: the per-site vertical exaggeration overrides.
         await _assertSeascapeVerticalExaggerationOverridesColumn();
 
