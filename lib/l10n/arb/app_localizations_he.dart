@@ -1082,7 +1082,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get accessibility_shortcut_goToSites => 'מעבר לאתרים';
 
   @override
-  String get accessibility_shortcut_goToInsights => 'מעבר לסטטיסטיקות';
+  String get accessibility_shortcut_goToInsights => 'מעבר לתובנות';
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'קיצורי מקלדת';
@@ -4042,10 +4042,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get dashboard_quickActions_sectionTitle => 'פעולות מהירות';
 
   @override
-  String get dashboard_quickActions_insights => 'סטטיסטיקות';
+  String get dashboard_quickActions_insights => 'תובנות';
 
   @override
-  String get dashboard_quickActions_insightsTooltip => 'הצגת סטטיסטיקות צלילה';
+  String get dashboard_quickActions_insightsTooltip => 'הצגת תובנות צלילה';
 
   @override
   String get dashboard_quickStats_countries => 'מדינות';
@@ -6991,7 +6991,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get setup_finish_feature_sites => 'מיפוי אתרי הצלילה שלכם';
 
   @override
-  String get setup_finish_feature_insights => 'חקר סטטיסטיקות על הצלילות שלכם';
+  String get setup_finish_feature_insights => 'חקר תובנות על הצלילות שלכם';
 
   @override
   String get setup_finish_start => 'בואו נתחיל';
@@ -8041,7 +8041,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLog_summary_action_logDive => 'רשום צלילה';
 
   @override
-  String get diveLog_summary_action_viewInsights => 'הצג סטטיסטיקות';
+  String get diveLog_summary_action_viewInsights => 'הצג תובנות';
 
   @override
   String diveLog_summary_diveCount(int count) {
@@ -15767,7 +15767,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get nav_species => 'מינים';
 
   @override
-  String get nav_insights => 'סטטיסטיקות';
+  String get nav_insights => 'תובנות';
 
   @override
   String get nav_tooltip_closeMenu => 'סגירת תפריט';
@@ -19417,11 +19417,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get insights_appBar_title => 'סטטיסטיקות';
+  String get insights_appBar_title => 'תובנות';
 
   @override
   String insights_categoryCard_semanticLabel(Object title) {
-    return 'קטגוריית סטטיסטיקות $title';
+    return 'קטגוריית תובנות $title';
   }
 
   @override
@@ -19722,7 +19722,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_equipment_exposureUnit_cycles => 'מחזורי סוללה';
 
   @override
-  String get insights_error_loadingInsights => 'שגיאה בטעינת סטטיסטיקות';
+  String get insights_error_loadingInsights => 'שגיאה בטעינת תובנות';
 
   @override
   String get insights_filterBar_clear => 'ניקוי מסנן';
@@ -20275,10 +20275,10 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get insights_summary_header_subtitle =>
-      'בחר קטגוריה כדי לחקור סטטיסטיקות מפורטות';
+      'בחר קטגוריה כדי לחקור תובנות מפורטות';
 
   @override
-  String get insights_summary_header_title => 'סקירת סטטיסטיקות';
+  String get insights_summary_header_title => 'סקירת תובנות';
 
   @override
   String get insights_summary_maxDepth => 'עומק מקסימלי';
@@ -20479,13 +20479,13 @@ class AppLocalizationsHe extends AppLocalizations {
   String get insights_tooltip_diveRecords => 'שיאי צלילה';
 
   @override
-  String get insights_tooltip_filter => 'סינון סטטיסטיקות';
+  String get insights_tooltip_filter => 'סינון תובנות';
 
   @override
   String get insights_tooltip_refreshRecords => 'רענן שיאים';
 
   @override
-  String get insights_tooltip_refreshInsights => 'רענן סטטיסטיקות';
+  String get insights_tooltip_refreshInsights => 'רענן תובנות';
 
   @override
   String insights_valueCard_semanticLabel(Object label, Object value) {

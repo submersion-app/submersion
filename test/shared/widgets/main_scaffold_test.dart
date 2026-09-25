@@ -812,7 +812,7 @@ void main() {
         findsOneWidget,
       );
       expect(
-        find.widgetWithText(NavigationDestination, 'Statistics'),
+        find.widgetWithText(NavigationDestination, 'Insights'),
         findsOneWidget,
       );
       expect(
@@ -865,7 +865,7 @@ void main() {
         'Certifications',
         'Courses',
         'Species',
-        'Statistics',
+        'Insights',
         'Planning',
         'Transfer',
         'GPS Log',
@@ -929,7 +929,7 @@ void main() {
       expect(labels.take(4).toList(), [
         'Home',
         'Settings',
-        'Statistics',
+        'Insights',
         'Dives',
       ]);
       // Nothing is lost: every destination still has a rail row.
@@ -1101,7 +1101,7 @@ void main() {
       // Items now in primary should NOT appear in the overflow sheet.
       expect(find.widgetWithText(ListTile, 'Equipment'), findsNothing);
       expect(find.widgetWithText(ListTile, 'Buddies'), findsNothing);
-      expect(find.widgetWithText(ListTile, 'Statistics'), findsNothing);
+      expect(find.widgetWithText(ListTile, 'Insights'), findsNothing);
     });
 
     // Issue #1480: the overflow sheet is scroll-controlled, and a dozen

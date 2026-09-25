@@ -1765,10 +1765,10 @@ abstract class AppLocalizations {
   /// **'Go to Sites'**
   String get accessibility_shortcut_goToSites;
 
-  /// Keyboard shortcut label for navigating to statistics
+  /// Keyboard shortcut label for navigating to Insights
   ///
   /// In en, this message translates to:
-  /// **'Go to Statistics'**
+  /// **'Go to Insights'**
   String get accessibility_shortcut_goToInsights;
 
   /// Keyboard shortcut label for opening the shortcuts help
@@ -6750,13 +6750,13 @@ abstract class AppLocalizations {
   /// No description provided for @dashboard_quickActions_insights.
   ///
   /// In en, this message translates to:
-  /// **'Statistics'**
+  /// **'Insights'**
   String get dashboard_quickActions_insights;
 
   /// No description provided for @dashboard_quickActions_insightsTooltip.
   ///
   /// In en, this message translates to:
-  /// **'View dive statistics'**
+  /// **'View dive insights'**
   String get dashboard_quickActions_insightsTooltip;
 
   /// No description provided for @dashboard_quickStats_countries.
@@ -11634,7 +11634,7 @@ abstract class AppLocalizations {
   /// No description provided for @setup_finish_feature_insights.
   ///
   /// In en, this message translates to:
-  /// **'Explore statistics about your diving'**
+  /// **'Explore insights about your diving'**
   String get setup_finish_feature_insights;
 
   /// No description provided for @setup_finish_start.
@@ -13464,7 +13464,7 @@ abstract class AppLocalizations {
   /// No description provided for @diveLog_summary_action_viewInsights.
   ///
   /// In en, this message translates to:
-  /// **'View Statistics'**
+  /// **'View Insights'**
   String get diveLog_summary_action_viewInsights;
 
   /// No description provided for @diveLog_summary_diveCount.
@@ -26320,10 +26320,10 @@ abstract class AppLocalizations {
   /// **'Species'**
   String get nav_species;
 
-  /// Navigation label for statistics section
+  /// Navigation label for the Insights section
   ///
   /// In en, this message translates to:
-  /// **'Statistics'**
+  /// **'Insights'**
   String get nav_insights;
 
   /// Tooltip for the close button on the more menu
@@ -32436,13 +32436,13 @@ abstract class AppLocalizations {
   /// No description provided for @insights_appBar_title.
   ///
   /// In en, this message translates to:
-  /// **'Statistics'**
+  /// **'Insights'**
   String get insights_appBar_title;
 
   /// No description provided for @insights_categoryCard_semanticLabel.
   ///
   /// In en, this message translates to:
-  /// **'{title} statistics category'**
+  /// **'{title} insights category'**
   String insights_categoryCard_semanticLabel(Object title);
 
   /// No description provided for @insights_category_conditions_subtitle.
@@ -32991,7 +32991,7 @@ abstract class AppLocalizations {
   /// No description provided for @insights_error_loadingInsights.
   ///
   /// In en, this message translates to:
-  /// **'Error loading statistics'**
+  /// **'Error loading insights'**
   String get insights_error_loadingInsights;
 
   /// No description provided for @insights_filterBar_clear.
@@ -33926,13 +33926,13 @@ abstract class AppLocalizations {
   /// No description provided for @insights_summary_header_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Select a category to explore detailed statistics'**
+  /// **'Select a category to explore detailed insights'**
   String get insights_summary_header_subtitle;
 
   /// No description provided for @insights_summary_header_title.
   ///
   /// In en, this message translates to:
-  /// **'Statistics Overview'**
+  /// **'Insights Overview'**
   String get insights_summary_header_title;
 
   /// No description provided for @insights_summary_maxDepth.
@@ -34271,7 +34271,7 @@ abstract class AppLocalizations {
   /// No description provided for @insights_tooltip_filter.
   ///
   /// In en, this message translates to:
-  /// **'Filter statistics'**
+  /// **'Filter insights'**
   String get insights_tooltip_filter;
 
   /// No description provided for @insights_tooltip_refreshRecords.
@@ -34283,7 +34283,7 @@ abstract class AppLocalizations {
   /// No description provided for @insights_tooltip_refreshInsights.
   ///
   /// In en, this message translates to:
-  /// **'Refresh statistics'**
+  /// **'Refresh insights'**
   String get insights_tooltip_refreshInsights;
 
   /// No description provided for @insights_valueCard_semanticLabel.

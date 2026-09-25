@@ -1103,7 +1103,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get accessibility_shortcut_goToSites => 'Ir a Puntos de buceo';
 
   @override
-  String get accessibility_shortcut_goToInsights => 'Ir a Estadísticas';
+  String get accessibility_shortcut_goToInsights => 'Ir a Análisis';
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'Atajos de teclado';
@@ -4147,11 +4147,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dashboard_quickActions_sectionTitle => 'Acciones rápidas';
 
   @override
-  String get dashboard_quickActions_insights => 'Estadísticas';
+  String get dashboard_quickActions_insights => 'Análisis';
 
   @override
-  String get dashboard_quickActions_insightsTooltip =>
-      'Ver estadísticas de buceo';
+  String get dashboard_quickActions_insightsTooltip => 'Ver análisis de buceo';
 
   @override
   String get dashboard_quickStats_countries => 'Países';
@@ -7175,7 +7174,7 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get setup_finish_feature_insights =>
-      'Explora estadísticas sobre tus inmersiones';
+      'Explora análisis sobre tus inmersiones';
 
   @override
   String get setup_finish_start => 'Comenzar';
@@ -8247,7 +8246,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_summary_action_logDive => 'Registrar inmersión';
 
   @override
-  String get diveLog_summary_action_viewInsights => 'Ver estadísticas';
+  String get diveLog_summary_action_viewInsights => 'Ver análisis';
 
   @override
   String diveLog_summary_diveCount(int count) {
@@ -16147,7 +16146,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get nav_species => 'Especies';
 
   @override
-  String get nav_insights => 'Estadísticas';
+  String get nav_insights => 'Análisis';
 
   @override
   String get nav_tooltip_closeMenu => 'Cerrar menú';
@@ -19916,11 +19915,11 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
-  String get insights_appBar_title => 'Estadísticas';
+  String get insights_appBar_title => 'Análisis';
 
   @override
   String insights_categoryCard_semanticLabel(Object title) {
-    return 'Categoría de estadísticas: $title';
+    return 'Categoría de análisis: $title';
   }
 
   @override
@@ -20244,8 +20243,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_equipment_exposureUnit_cycles => 'Ciclos de batería';
 
   @override
-  String get insights_error_loadingInsights =>
-      'Error al cargar las estadísticas';
+  String get insights_error_loadingInsights => 'Error al cargar los análisis';
 
   @override
   String get insights_filterBar_clear => 'Borrar filtro';
@@ -20832,10 +20830,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get insights_summary_header_subtitle =>
-      'Selecciona una categoría para explorar estadísticas detalladas';
+      'Selecciona una categoría para explorar análisis detallados';
 
   @override
-  String get insights_summary_header_title => 'Resumen de estadísticas';
+  String get insights_summary_header_title => 'Resumen de análisis';
 
   @override
   String get insights_summary_maxDepth => 'Prof. máxima';
@@ -21041,13 +21039,13 @@ class AppLocalizationsEs extends AppLocalizations {
   String get insights_tooltip_diveRecords => 'Récords de buceo';
 
   @override
-  String get insights_tooltip_filter => 'Filtrar estadísticas';
+  String get insights_tooltip_filter => 'Filtrar análisis';
 
   @override
   String get insights_tooltip_refreshRecords => 'Actualizar récords';
 
   @override
-  String get insights_tooltip_refreshInsights => 'Actualizar estadísticas';
+  String get insights_tooltip_refreshInsights => 'Actualizar análisis';
 
   @override
   String insights_valueCard_semanticLabel(Object label, Object value) {

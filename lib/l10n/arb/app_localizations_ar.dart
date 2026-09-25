@@ -1092,7 +1092,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accessibility_shortcut_goToSites => 'الانتقال إلى المواقع';
 
   @override
-  String get accessibility_shortcut_goToInsights => 'الانتقال إلى الإحصائيات';
+  String get accessibility_shortcut_goToInsights => 'الانتقال إلى الرؤى';
 
   @override
   String get accessibility_shortcut_keyboardShortcuts =>
@@ -4071,10 +4071,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dashboard_quickActions_sectionTitle => 'إجراءات سريعة';
 
   @override
-  String get dashboard_quickActions_insights => 'الإحصائيات';
+  String get dashboard_quickActions_insights => 'الرؤى';
 
   @override
-  String get dashboard_quickActions_insightsTooltip => 'عرض إحصائيات الغوص';
+  String get dashboard_quickActions_insightsTooltip => 'عرض رؤى الغوص';
 
   @override
   String get dashboard_quickStats_countries => 'الدول';
@@ -7031,7 +7031,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setup_finish_feature_sites => 'اعرض مواقع الغوص على الخريطة';
 
   @override
-  String get setup_finish_feature_insights => 'استكشف إحصاءات الغوص';
+  String get setup_finish_feature_insights => 'استكشف رؤى حول غوصك';
 
   @override
   String get setup_finish_start => 'لنبدأ';
@@ -8087,7 +8087,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_summary_action_logDive => 'تسجيل غوصة';
 
   @override
-  String get diveLog_summary_action_viewInsights => 'عرض الإحصائيات';
+  String get diveLog_summary_action_viewInsights => 'عرض الرؤى';
 
   @override
   String diveLog_summary_diveCount(int count) {
@@ -15882,7 +15882,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get nav_species => 'الأنواع';
 
   @override
-  String get nav_insights => 'الإحصائيات';
+  String get nav_insights => 'الرؤى';
 
   @override
   String get nav_tooltip_closeMenu => 'إغلاق القائمة';
@@ -19571,11 +19571,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get insights_appBar_title => 'الإحصائيات';
+  String get insights_appBar_title => 'الرؤى';
 
   @override
   String insights_categoryCard_semanticLabel(Object title) {
-    return 'فئة إحصائيات $title';
+    return 'فئة رؤى $title';
   }
 
   @override
@@ -19887,7 +19887,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_equipment_exposureUnit_cycles => 'دورات بطارية';
 
   @override
-  String get insights_error_loadingInsights => 'خطأ في تحميل الإحصائيات';
+  String get insights_error_loadingInsights => 'خطأ في تحميل الرؤى';
 
   @override
   String get insights_filterBar_clear => 'مسح التصفية';
@@ -20442,11 +20442,10 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String get insights_summary_header_subtitle =>
-      'اختر فئة لاستكشاف إحصائيات مفصلة';
+  String get insights_summary_header_subtitle => 'اختر فئة لاستكشاف رؤى مفصلة';
 
   @override
-  String get insights_summary_header_title => 'نظرة عامة على الإحصائيات';
+  String get insights_summary_header_title => 'نظرة عامة على الرؤى';
 
   @override
   String get insights_summary_maxDepth => 'أقصى عمق';
@@ -20647,13 +20646,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get insights_tooltip_diveRecords => 'أرقام الغوص القياسية';
 
   @override
-  String get insights_tooltip_filter => 'تصفية الإحصائيات';
+  String get insights_tooltip_filter => 'تصفية الرؤى';
 
   @override
   String get insights_tooltip_refreshRecords => 'تحديث الأرقام القياسية';
 
   @override
-  String get insights_tooltip_refreshInsights => 'تحديث الإحصائيات';
+  String get insights_tooltip_refreshInsights => 'تحديث الرؤى';
 
   @override
   String insights_valueCard_semanticLabel(Object label, Object value) {

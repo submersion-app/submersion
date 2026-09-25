@@ -398,7 +398,7 @@ void main() {
     // gets its own pump rather than popping back.
     for (final (label, destination) in const [
       ('Plan Dive', '/planning/dive-planner'),
-      ('Statistics', '/insights'),
+      ('Insights', '/insights'),
       ('GPS Logger', '/gps-log'),
       ('Emergency card', '/settings/diver-profile/emergency-card'),
     ]) {

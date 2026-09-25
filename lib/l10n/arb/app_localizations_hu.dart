@@ -1098,7 +1098,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get accessibility_shortcut_goToSites => 'Ugrás a merülőhelyekhez';
 
   @override
-  String get accessibility_shortcut_goToInsights => 'Ugrás a statisztikákhoz';
+  String get accessibility_shortcut_goToInsights => 'Ugrás az elemzésekhez';
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'Billentyűparancsok';
@@ -4132,11 +4132,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get dashboard_quickActions_sectionTitle => 'Gyors műveletek';
 
   @override
-  String get dashboard_quickActions_insights => 'Statisztikák';
+  String get dashboard_quickActions_insights => 'Elemzések';
 
   @override
   String get dashboard_quickActions_insightsTooltip =>
-      'Merülési statisztikák megtekintése';
+      'Merülési elemzések megtekintése';
 
   @override
   String get dashboard_quickStats_countries => 'Országok';
@@ -7154,8 +7154,7 @@ class AppLocalizationsHu extends AppLocalizations {
       'Merülőhelyek megjelenítése térképen';
 
   @override
-  String get setup_finish_feature_insights =>
-      'Merülési statisztikák felfedezése';
+  String get setup_finish_feature_insights => 'Merülési elemzések felfedezése';
 
   @override
   String get setup_finish_start => 'Kezdés';
@@ -8228,7 +8227,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_summary_action_logDive => 'Merülés rögzítése';
 
   @override
-  String get diveLog_summary_action_viewInsights => 'Statisztikák megtekintése';
+  String get diveLog_summary_action_viewInsights => 'Elemzések megtekintése';
 
   @override
   String diveLog_summary_diveCount(int count) {
@@ -16105,7 +16104,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get nav_species => 'Fajok';
 
   @override
-  String get nav_insights => 'Statisztikák';
+  String get nav_insights => 'Elemzések';
 
   @override
   String get nav_tooltip_closeMenu => 'Menü bezárása';
@@ -19849,11 +19848,11 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get insights_appBar_title => 'Statisztikák';
+  String get insights_appBar_title => 'Elemzések';
 
   @override
   String insights_categoryCard_semanticLabel(Object title) {
-    return '$title statisztikai kategória';
+    return '$title elemzési kategória';
   }
 
   @override
@@ -20172,8 +20171,7 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_equipment_exposureUnit_cycles => 'Akkumulátorciklus';
 
   @override
-  String get insights_error_loadingInsights =>
-      'Hiba a statisztikák betöltésekor';
+  String get insights_error_loadingInsights => 'Hiba az elemzések betöltésekor';
 
   @override
   String get insights_filterBar_clear => 'Szűrő törlése';
@@ -20752,10 +20750,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get insights_summary_header_subtitle =>
-      'Válasszon kategóriát a részletes statisztikák megtekIntéséhez';
+      'Válasszon kategóriát a részletes elemzések megtekintéséhez';
 
   @override
-  String get insights_summary_header_title => 'Statisztikák áttekintése';
+  String get insights_summary_header_title => 'Elemzések áttekintése';
 
   @override
   String get insights_summary_maxDepth => 'Max mélység';
@@ -20962,13 +20960,13 @@ class AppLocalizationsHu extends AppLocalizations {
   String get insights_tooltip_diveRecords => 'Merülési rekordok';
 
   @override
-  String get insights_tooltip_filter => 'Statisztikák szűrése';
+  String get insights_tooltip_filter => 'Elemzések szűrése';
 
   @override
   String get insights_tooltip_refreshRecords => 'Rekordok frissítése';
 
   @override
-  String get insights_tooltip_refreshInsights => 'Statisztikák frissítése';
+  String get insights_tooltip_refreshInsights => 'Elemzések frissítése';
 
   @override
   String insights_valueCard_semanticLabel(Object label, Object value) {

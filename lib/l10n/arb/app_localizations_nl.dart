@@ -1097,7 +1097,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get accessibility_shortcut_goToSites => 'Ga naar Duikstekken';
 
   @override
-  String get accessibility_shortcut_goToInsights => 'Ga naar Statistieken';
+  String get accessibility_shortcut_goToInsights => 'Ga naar Inzichten';
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => 'Sneltoetsen';
@@ -4118,11 +4118,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get dashboard_quickActions_sectionTitle => 'Snelle acties';
 
   @override
-  String get dashboard_quickActions_insights => 'Statistieken';
+  String get dashboard_quickActions_insights => 'Inzichten';
 
   @override
-  String get dashboard_quickActions_insightsTooltip =>
-      'Duikstatistieken bekijken';
+  String get dashboard_quickActions_insightsTooltip => 'Duikinzichten bekijken';
 
   @override
   String get dashboard_quickStats_countries => 'Landen';
@@ -7117,7 +7116,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get setup_finish_feature_insights =>
-      'Statistieken over je duiken verkennen';
+      'Inzichten over je duiken verkennen';
 
   @override
   String get setup_finish_start => 'Aan de slag';
@@ -8183,7 +8182,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLog_summary_action_logDive => 'Duik loggen';
 
   @override
-  String get diveLog_summary_action_viewInsights => 'Statistieken bekijken';
+  String get diveLog_summary_action_viewInsights => 'Inzichten bekijken';
 
   @override
   String diveLog_summary_diveCount(int count) {
@@ -16037,7 +16036,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get nav_species => 'Soorten';
 
   @override
-  String get nav_insights => 'Statistieken';
+  String get nav_insights => 'Inzichten';
 
   @override
   String get nav_tooltip_closeMenu => 'Menu sluiten';
@@ -19753,11 +19752,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get insights_appBar_title => 'Statistieken';
+  String get insights_appBar_title => 'Inzichten';
 
   @override
   String insights_categoryCard_semanticLabel(Object title) {
-    return '$title statistiekencategorie';
+    return 'Inzichtencategorie $title';
   }
 
   @override
@@ -20073,8 +20072,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_equipment_exposureUnit_cycles => 'Batterijcycli';
 
   @override
-  String get insights_error_loadingInsights =>
-      'Fout bij laden van statistieken';
+  String get insights_error_loadingInsights => 'Fout bij laden van inzichten';
 
   @override
   String get insights_filterBar_clear => 'Filter wissen';
@@ -20647,10 +20645,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get insights_summary_header_subtitle =>
-      'Selecteer een categorie om gedetailleerde statistieken te bekijken';
+      'Selecteer een categorie om gedetailleerde inzichten te bekijken';
 
   @override
-  String get insights_summary_header_title => 'Statistiekenoverzicht';
+  String get insights_summary_header_title => 'Overzicht van inzichten';
 
   @override
   String get insights_summary_maxDepth => 'Max diepte';
@@ -20856,13 +20854,13 @@ class AppLocalizationsNl extends AppLocalizations {
   String get insights_tooltip_diveRecords => 'Duikrecords';
 
   @override
-  String get insights_tooltip_filter => 'Statistieken filteren';
+  String get insights_tooltip_filter => 'Inzichten filteren';
 
   @override
   String get insights_tooltip_refreshRecords => 'Records verversen';
 
   @override
-  String get insights_tooltip_refreshInsights => 'Statistieken verversen';
+  String get insights_tooltip_refreshInsights => 'Inzichten verversen';
 
   @override
   String insights_valueCard_semanticLabel(Object label, Object value) {

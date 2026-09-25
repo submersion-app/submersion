@@ -585,7 +585,7 @@
   "accessibility_shortcut_goToEquipment": "Go to Equipment",
   "accessibility_shortcut_goToSettings": "Go to Settings",
   "accessibility_shortcut_goToSites": "Go to Sites",
-  "accessibility_shortcut_goToInsights": "Go to Statistics",
+  "accessibility_shortcut_goToInsights": "Go to Insights",
   "accessibility_shortcut_keyboardShortcuts": "Keyboard shortcuts",
   "accessibility_shortcut_newDive": "New dive",
   "accessibility_shortcut_openSettings": "Open settings",
@@ -729,7 +729,7 @@
     "description": "Keyboard shortcut label for navigating to sites"
   },
   "@accessibility_shortcut_goToInsights": {
-    "description": "Keyboard shortcut label for navigating to statistics"
+    "description": "Keyboard shortcut label for navigating to Insights"
   },
   "@accessibility_shortcut_keyboardShortcuts": {
     "description": "Keyboard shortcut label for opening the shortcuts help"
@@ -2584,8 +2584,8 @@
   "dashboard_quickActions_planDive": "Plan Dive",
   "dashboard_quickActions_planDiveTooltip": "Plan a new dive",
   "dashboard_quickActions_sectionTitle": "Quick Actions",
-  "dashboard_quickActions_insights": "Statistics",
-  "dashboard_quickActions_insightsTooltip": "View dive statistics",
+  "dashboard_quickActions_insights": "Insights",
+  "dashboard_quickActions_insightsTooltip": "View dive insights",
   "dashboard_quickStats_countries": "Countries",
   "dashboard_quickStats_countriesSubtitle": "visited",
   "dashboard_quickStats_sectionTitle": "At a Glance",
@@ -3980,7 +3980,7 @@
   "setup_finish_feature_gear": "Track gear and service intervals",
   "setup_finish_feature_import": "Import logs from files and other apps",
   "setup_finish_feature_sites": "Map your dive sites",
-  "setup_finish_feature_insights": "Explore statistics about your diving",
+  "setup_finish_feature_insights": "Explore insights about your diving",
   "setup_finish_start": "Get started",
   "setup_finish_subtitle": "Submersion can also...",
   "setup_finish_title": "You're all set",
@@ -4429,7 +4429,7 @@
   "diveLog_speciesPicker_tooltip_clearSearch": "Clear search",
   "diveLog_summary_action_importComputer": "Import from Computer",
   "diveLog_summary_action_logDive": "Log Dive",
-  "diveLog_summary_action_viewInsights": "View Statistics",
+  "diveLog_summary_action_viewInsights": "View Insights",
   "diveLog_summary_diveCount": "{count} {count, plural, =1{dive} other{dives}}",
   "diveLog_summary_overview": "Overview",
   "diveLog_summary_record_coldest": "Coldest Dive",
@@ -9937,7 +9937,7 @@
   "nav_settings": "Settings",
   "nav_sites": "Sites",
   "nav_species": "Species",
-  "nav_insights": "Statistics",
+  "nav_insights": "Insights",
   "nav_tooltip_closeMenu": "Close menu",
   "nav_tooltip_collapseMenu": "Collapse menu",
   "nav_tooltip_expandMenu": "Expand menu",
@@ -9989,7 +9989,7 @@
     "description": "Navigation label for the species section"
   },
   "@nav_insights": {
-    "description": "Navigation label for statistics section"
+    "description": "Navigation label for the Insights section"
   },
   "@nav_tooltip_closeMenu": {
     "description": "Tooltip for the close button on the more menu"
@@ -12082,8 +12082,8 @@
       }
     }
   },
-  "insights_appBar_title": "Statistics",
-  "insights_categoryCard_semanticLabel": "{title} statistics category",
+  "insights_appBar_title": "Insights",
+  "insights_categoryCard_semanticLabel": "{title} insights category",
   "insights_category_conditions_subtitle": "Visibility & temperature",
   "insights_category_conditions_title": "Conditions",
   "insights_category_equipment_subtitle": "Gear usage & weight",
@@ -12187,7 +12187,7 @@
   "insights_equipment_exposureUnit_o2Hours": "High-O2 hours",
   "insights_equipment_exposureUnit_deepCycles": "Deep dives",
   "insights_equipment_exposureUnit_cycles": "Battery cycles",
-  "insights_error_loadingInsights": "Error loading statistics",
+  "insights_error_loadingInsights": "Error loading insights",
   "insights_filterBar_clear": "Clear filter",
   "insights_filterBar_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
   "insights_gas_appBar_title": "Air Consumption",
@@ -12338,8 +12338,8 @@
   "insights_summary_divesByMonth_semanticLabel": "Bar chart showing dives by month",
   "insights_summary_divesByMonth_title": "Dives by Month",
   "insights_summary_divesByMonth_tooltip": "{fullLabel} {count} dives",
-  "insights_summary_header_subtitle": "Select a category to explore detailed statistics",
-  "insights_summary_header_title": "Statistics Overview",
+  "insights_summary_header_subtitle": "Select a category to explore detailed insights",
+  "insights_summary_header_title": "Insights Overview",
   "insights_summary_maxDepth": "Max Depth",
   "insights_summary_sitesVisited": "Sites Visited",
   "insights_summary_tagUsage_diveCount": "{count, plural, =1{1 dive} other{{count} dives}}",
@@ -12395,9 +12395,9 @@
   "insights_timePatterns_timeOfDay_subtitle": "Morning, afternoon, evening, or night",
   "insights_timePatterns_timeOfDay_title": "Dives by Time of Day",
   "insights_tooltip_diveRecords": "Dive Records",
-  "insights_tooltip_filter": "Filter statistics",
+  "insights_tooltip_filter": "Filter insights",
   "insights_tooltip_refreshRecords": "Refresh records",
-  "insights_tooltip_refreshInsights": "Refresh statistics",
+  "insights_tooltip_refreshInsights": "Refresh insights",
   "insights_valueCard_semanticLabel": "{label}: {value}",
   "@insights_categoryCard_semanticLabel": {
     "placeholders": {

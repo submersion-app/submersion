@@ -442,7 +442,7 @@ class DiveSummaryWidget extends ConsumerWidget {
             ),
             OutlinedButton.icon(
               onPressed: () => context.go('/insights'),
-              icon: const Icon(Icons.bar_chart),
+              icon: const Icon(Icons.insights),
               label: Text(context.l10n.diveLog_summary_action_viewInsights),
             ),
           ],

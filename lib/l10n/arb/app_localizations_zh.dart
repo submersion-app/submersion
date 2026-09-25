@@ -1033,7 +1033,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get accessibility_shortcut_goToSites => '前往潜水点';
 
   @override
-  String get accessibility_shortcut_goToInsights => '前往统计';
+  String get accessibility_shortcut_goToInsights => '前往洞察';
 
   @override
   String get accessibility_shortcut_keyboardShortcuts => '键盘快捷键';
@@ -3931,10 +3931,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get dashboard_quickActions_sectionTitle => '快捷操作';
 
   @override
-  String get dashboard_quickActions_insights => '统计';
+  String get dashboard_quickActions_insights => '洞察';
 
   @override
-  String get dashboard_quickActions_insightsTooltip => '查看潜水统计';
+  String get dashboard_quickActions_insightsTooltip => '查看潜水洞察';
 
   @override
   String get dashboard_quickStats_countries => '国家';
@@ -6798,7 +6798,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get setup_finish_feature_sites => '在地图上标记潜点';
 
   @override
-  String get setup_finish_feature_insights => '探索你的潜水统计数据';
+  String get setup_finish_feature_insights => '探索你的潜水洞察';
 
   @override
   String get setup_finish_start => '开始使用';
@@ -7834,7 +7834,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_summary_action_logDive => '记录潜水';
 
   @override
-  String get diveLog_summary_action_viewInsights => '查看统计';
+  String get diveLog_summary_action_viewInsights => '查看洞察';
 
   @override
   String diveLog_summary_diveCount(int count) {
@@ -15385,7 +15385,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get nav_species => '物种';
 
   @override
-  String get nav_insights => '统计';
+  String get nav_insights => '洞察';
 
   @override
   String get nav_tooltip_closeMenu => '关闭菜单';
@@ -18892,11 +18892,11 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get insights_appBar_title => '统计';
+  String get insights_appBar_title => '洞察';
 
   @override
   String insights_categoryCard_semanticLabel(Object title) {
-    return '$title 统计类别';
+    return '$title 洞察类别';
   }
 
   @override
@@ -19189,7 +19189,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_equipment_exposureUnit_cycles => '电池循环';
 
   @override
-  String get insights_error_loadingInsights => '加载统计数据时出错';
+  String get insights_error_loadingInsights => '加载洞察时出错';
 
   @override
   String get insights_filterBar_clear => '清除筛选';
@@ -19718,10 +19718,10 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get insights_summary_header_subtitle => '选择一个类别以查看详细统计';
+  String get insights_summary_header_subtitle => '选择一个类别以查看详细洞察';
 
   @override
-  String get insights_summary_header_title => '统计概览';
+  String get insights_summary_header_title => '洞察概览';
 
   @override
   String get insights_summary_maxDepth => '最大深度';
@@ -19912,13 +19912,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get insights_tooltip_diveRecords => '潜水记录';
 
   @override
-  String get insights_tooltip_filter => '筛选统计';
+  String get insights_tooltip_filter => '筛选洞察';
 
   @override
   String get insights_tooltip_refreshRecords => '刷新纪录';
 
   @override
-  String get insights_tooltip_refreshInsights => '刷新统计';
+  String get insights_tooltip_refreshInsights => '刷新洞察';
 
   @override
   String insights_valueCard_semanticLabel(Object label, Object value) {

@@ -1102,7 +1102,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get accessibility_shortcut_goToSites => 'Vai a Siti';
 
   @override
-  String get accessibility_shortcut_goToInsights => 'Vai a Statistiche';
+  String get accessibility_shortcut_goToInsights => 'Vai ad Analisi';
 
   @override
   String get accessibility_shortcut_keyboardShortcuts =>
@@ -4144,11 +4144,11 @@ class AppLocalizationsIt extends AppLocalizations {
   String get dashboard_quickActions_sectionTitle => 'Azioni rapide';
 
   @override
-  String get dashboard_quickActions_insights => 'Statistiche';
+  String get dashboard_quickActions_insights => 'Analisi';
 
   @override
   String get dashboard_quickActions_insightsTooltip =>
-      'Visualizza statistiche immersioni';
+      'Visualizza analisi immersioni';
 
   @override
   String get dashboard_quickStats_countries => 'Paesi';
@@ -7174,7 +7174,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get setup_finish_feature_insights =>
-      'Esplora le statistiche delle tue immersioni';
+      'Esplora le analisi delle tue immersioni';
 
   @override
   String get setup_finish_start => 'Inizia';
@@ -8249,7 +8249,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLog_summary_action_logDive => 'Registra immersione';
 
   @override
-  String get diveLog_summary_action_viewInsights => 'Visualizza statistiche';
+  String get diveLog_summary_action_viewInsights => 'Visualizza analisi';
 
   @override
   String diveLog_summary_diveCount(int count) {
@@ -16158,7 +16158,7 @@ class AppLocalizationsIt extends AppLocalizations {
   String get nav_species => 'Specie';
 
   @override
-  String get nav_insights => 'Statistiche';
+  String get nav_insights => 'Analisi';
 
   @override
   String get nav_tooltip_closeMenu => 'Chiudi menu';
@@ -19905,11 +19905,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
-  String get insights_appBar_title => 'Statistiche';
+  String get insights_appBar_title => 'Analisi';
 
   @override
   String insights_categoryCard_semanticLabel(Object title) {
-    return 'Categoria statistiche $title';
+    return 'Categoria analisi $title';
   }
 
   @override
@@ -20232,7 +20232,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_error_loadingInsights =>
-      'Errore nel caricamento delle statistiche';
+      'Errore nel caricamento delle analisi';
 
   @override
   String get insights_filterBar_clear => 'Cancella filtro';
@@ -20817,10 +20817,10 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get insights_summary_header_subtitle =>
-      'Seleziona una categoria per esplorare le statistiche dettagliate';
+      'Seleziona una categoria per esplorare le analisi dettagliate';
 
   @override
-  String get insights_summary_header_title => 'Panoramica statistiche';
+  String get insights_summary_header_title => 'Panoramica analisi';
 
   @override
   String get insights_summary_maxDepth => 'Profondità max';
@@ -21026,13 +21026,13 @@ class AppLocalizationsIt extends AppLocalizations {
   String get insights_tooltip_diveRecords => 'Record immersioni';
 
   @override
-  String get insights_tooltip_filter => 'Filtra statistiche';
+  String get insights_tooltip_filter => 'Filtra analisi';
 
   @override
   String get insights_tooltip_refreshRecords => 'Aggiorna record';
 
   @override
-  String get insights_tooltip_refreshInsights => 'Aggiorna statistiche';
+  String get insights_tooltip_refreshInsights => 'Aggiorna analisi';
 
   @override
   String insights_valueCard_semanticLabel(Object label, Object value) {
