@@ -2943,8 +2943,14 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
 
   /// Stacks the zoom hint behind [plot] instead of laying it out below as a
   /// separate Column child (see the call site's comment for why).
+  ///
+  /// The Stack and both slots exist at every zoom level; only the hint's
+  /// content toggles. Returning the bare plot at 1x changed the plot's
+  /// ancestors the moment a gesture lifted the zoom off 1x, which remounted
+  /// the plot and disposed the trackpad recognizer mid-pinch, so zooming in
+  /// from the full view stalled after one tiny step. The inline chart hid
+  /// this because its exportKey (a GlobalKey) reparents the plot instead.
   Widget _plotWithZoomHint(BuildContext context, Widget plot) {
-    if (!_viewport.isZoomed) return plot;
     final colorScheme = Theme.of(context).colorScheme;
     return Stack(
       children: [
@@ -2952,19 +2958,21 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           left: 0,
           right: 0,
           bottom: 0,
-          child: IgnorePointer(
-            child: Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: Text(
-                context.l10n.diveLog_profile_zoomHint(
-                  _viewport.zoom.toStringAsFixed(1),
+          child: !_viewport.isZoomed
+              ? const SizedBox.shrink()
+              : IgnorePointer(
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Text(
+                      context.l10n.diveLog_profile_zoomHint(
+                        _viewport.zoom.toStringAsFixed(1),
+                      ),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
                 ),
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-          ),
         ),
         Positioned.fill(child: plot),
       ],
