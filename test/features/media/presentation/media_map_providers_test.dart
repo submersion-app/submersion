@@ -63,6 +63,35 @@ class _FakeMapRepo implements MediaLibraryRepository {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Each getMapPoints call parks on its own completer so a test decides the
+/// order in which overlapping loads finish.
+class _GatedMapRepo implements MediaLibraryRepository {
+  final changes = StreamController<void>.broadcast();
+  final pending = <Completer<List<MediaMapPoint>>>[];
+
+  @override
+  Future<List<MediaMapPoint>> getMapPoints({
+    required String? diverId,
+    MediaLibraryFilter filter = MediaLibraryFilter.none,
+  }) {
+    final gate = Completer<List<MediaMapPoint>>();
+    pending.add(gate);
+    return gate.future;
+  }
+
+  @override
+  Future<int> countInScope({
+    required String? diverId,
+    MediaLibraryFilter filter = MediaLibraryFilter.none,
+  }) async => 0;
+
+  @override
+  Stream<void> watchMapChanges() => changes.stream;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _FixedDiverIdNotifier extends StateNotifier<String?>
     implements CurrentDiverIdNotifier {
   _FixedDiverIdNotifier() : super('d1');
@@ -201,5 +230,66 @@ void main() {
     final after = container.read(mediaMapPointsProvider).points;
     expect(identical(after, before), isFalse);
     expect(after.single.item.isFavorite, isTrue);
+  });
+
+  test(
+    'an older load that finishes last does not overwrite a newer one',
+    () async {
+      final gated = _GatedMapRepo();
+      addTearDown(gated.changes.close);
+      final c = ProviderContainer(
+        overrides: [
+          mediaLibraryRepositoryProvider.overrideWithValue(gated),
+          currentDiverIdProvider.overrideWith((ref) => _FixedDiverIdNotifier()),
+        ],
+      );
+      addTearDown(c.dispose);
+      c.listen(mediaMapPointsProvider, (_, _) {});
+      await _settle();
+
+      // The initial load is pending; a tick starts a second, newer one.
+      gated.changes.add(null);
+      await _settle();
+      expect(gated.pending, hasLength(2));
+
+      gated.pending[1].complete([_point('new')]);
+      await _settle();
+      await _settle();
+      gated.pending[0].complete([_point('old')]);
+      await _settle();
+      await _settle();
+
+      expect(c.read(mediaMapPointsProvider).points.map((p) => p.item.id), [
+        'new',
+      ]);
+    },
+  );
+
+  test('an older load that fails last does not replace newer points with its '
+      'error', () async {
+    final gated = _GatedMapRepo();
+    addTearDown(gated.changes.close);
+    final c = ProviderContainer(
+      overrides: [
+        mediaLibraryRepositoryProvider.overrideWithValue(gated),
+        currentDiverIdProvider.overrideWith((ref) => _FixedDiverIdNotifier()),
+      ],
+    );
+    addTearDown(c.dispose);
+    c.listen(mediaMapPointsProvider, (_, _) {});
+    await _settle();
+    gated.changes.add(null);
+    await _settle();
+
+    gated.pending[1].complete([_point('new')]);
+    await _settle();
+    await _settle();
+    gated.pending[0].completeError(StateError('stale failure'));
+    await _settle();
+    await _settle();
+
+    final state = c.read(mediaMapPointsProvider);
+    expect(state.error, isNull);
+    expect(state.points.map((p) => p.item.id), ['new']);
   });
 }

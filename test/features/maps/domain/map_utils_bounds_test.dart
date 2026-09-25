@@ -45,4 +45,16 @@ void main() {
   test('no usable point yields null', () {
     expect(boundsForPoints(const []), isNull);
   });
+
+  test('a non-finite point is skipped, not folded into the bounds', () {
+    expect(boundsForPoints([const LatLng(double.nan, 0)]), isNull);
+    final bounds = boundsForPoints([
+      const LatLng(5, 5),
+      const LatLng(double.nan, double.infinity),
+    ])!;
+    expect(bounds.south, 5);
+    expect(bounds.north, 5);
+    expect(bounds.west, 5);
+    expect(bounds.east, 5);
+  });
 }

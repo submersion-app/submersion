@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_attribution.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_camera_animator.dart';
 import 'package:submersion/features/maps/presentation/widgets/map_compass_button.dart';
@@ -181,15 +182,20 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
   @override
   Widget build(BuildContext context) {
     ref.listen(mediaLibraryFilterProvider, (_, _) => _pendingFit = true);
+    ref.listen(currentDiverIdProvider, (_, _) => _pendingFit = true);
     ref.listen(mediaMapPointsProvider, (_, next) => _fitIfPending(next));
 
     final state = ref.watch(mediaMapPointsProvider);
     final l10n = context.l10n;
 
+    // Both early returns unmount the FlutterMap, so the controller is
+    // detached until the next onMapReady; a fit must wait for that.
     if (state.isLoading && state.points.isEmpty && state.error == null) {
+      _mapReady = false;
       return const Center(child: CircularProgressIndicator());
     }
     if (state.error != null && state.points.isEmpty) {
+      _mapReady = false;
       return _buildErrorState(context, state.error!);
     }
 

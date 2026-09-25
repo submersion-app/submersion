@@ -3,11 +3,13 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/services/media_serving_recorder.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/domain/entities/media_map_point.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_map_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_provenance_providers.dart';
 import 'package:submersion/features/media/presentation/providers/media_serving_providers.dart';
@@ -372,6 +374,64 @@ void main() {
     );
 
     expect(find.byType(CircularProgressIndicator), findsNothing);
+    await _flushMapTimers(tester);
+  });
+
+  testWidgets('a filter change that reloads through an empty loading state '
+      'refits to the new points without touching a detached map', (
+    tester,
+  ) async {
+    final notifier = await _pump(
+      tester,
+      state: MediaMapState(points: [_point('a')]),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(MediaMapContent)),
+    );
+
+    container.read(mediaLibraryFilterProvider.notifier).state =
+        const MediaLibraryFilter(mediaType: MediaType.photo);
+    await tester.pump();
+    notifier.seed(const MediaMapState(isLoading: true));
+    await tester.pump();
+    expect(find.byType(FlutterMap), findsNothing);
+
+    notifier.seed(
+      MediaMapState(points: [_point('b', at: const LatLng(-8, 115))]),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(tester.takeException(), isNull);
+    final controller = tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .mapController!;
+    expect(controller.camera.center.latitude, closeTo(-8, 1e-6));
+    expect(controller.camera.zoom, closeTo(12, 1e-6));
+    await _flushMapTimers(tester);
+  });
+
+  testWidgets('a diver change refits the camera', (tester) async {
+    final notifier = await _pump(
+      tester,
+      state: MediaMapState(points: [_point('a')]),
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(MediaMapContent)),
+    );
+    final controller = tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .mapController!;
+
+    await container.read(currentDiverIdProvider.notifier).setCurrentDiver('d2');
+    await tester.pump();
+    notifier.seed(
+      MediaMapState(points: [_point('c', at: const LatLng(-8, 115))]),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(controller.camera.center.latitude, closeTo(-8, 1e-6));
     await _flushMapTimers(tester);
   });
 }

@@ -68,7 +68,13 @@ class MediaMapNotifier extends StateNotifier<MediaMapState> {
   final MediaLibraryFilter _filter;
   StreamSubscription<void>? _changesSub;
 
+  /// Incremented by every [load]. A load applies its result only while it is
+  /// still the latest, so an older request that finishes last (a slow query
+  /// overtaken by a later tick) cannot overwrite newer points or errors.
+  int _generation = 0;
+
   Future<void> load() async {
+    final generation = ++_generation;
     // Keep the points on screen while reloading, as the grid does: emptying
     // them would unmount every marker and re-resolve every thumbnail.
     state = state.copyWith(isLoading: true, clearError: true);
@@ -81,7 +87,7 @@ class MediaMapNotifier extends StateNotifier<MediaMapState> {
         diverId: _diverId,
         filter: _filter,
       );
-      if (!mounted) return;
+      if (!mounted || generation != _generation) return;
       // Most ticks (a media-store upload stamping a row) change nothing the
       // map shows. Keeping the old list instance lets the map hand the
       // cluster layer the same markers, so nothing re-clusters or blinks.
@@ -91,7 +97,7 @@ class MediaMapNotifier extends StateNotifier<MediaMapState> {
         unlocatedCount: math.max(0, total - points.length),
       );
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || generation != _generation) return;
       state = MediaMapState(
         points: state.points,
         unlocatedCount: state.unlocatedCount,

@@ -135,4 +135,22 @@ void main() {
       expect(controller.camera.center.latitude, lessThan(10));
     },
   );
+
+  testWidgets('fitAll with a single unusable point leaves the camera alone', (
+    tester,
+  ) async {
+    final controller = await _pumpMap(tester);
+    final animator = MapCameraAnimator(
+      controller: controller,
+      vsync: const TestVSync(),
+    );
+    addTearDown(animator.dispose);
+
+    animator.fitAll([const LatLng(95, 200)]);
+    animator.fitAll([const LatLng(double.nan, 0)]);
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    expect(controller.camera.zoom, closeTo(2, 1e-6));
+  });
 }

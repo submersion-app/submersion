@@ -62,12 +62,13 @@ class MapCameraAnimator {
     double singlePointZoom = 12.0,
     EdgeInsets padding = const EdgeInsets.all(50),
   }) {
-    if (points.isEmpty) return;
-    if (points.length == 1) {
-      controller.move(points.first, singlePointZoom);
+    final usable = points.where(isUsableMapPoint).toList();
+    if (usable.isEmpty) return;
+    if (usable.length == 1) {
+      controller.move(usable.single, singlePointZoom);
       return;
     }
-    final bounds = boundsForPoints(points);
+    final bounds = boundsForPoints(usable);
     if (bounds == null) return;
     controller.fitCamera(CameraFit.bounds(bounds: bounds, padding: padding));
   }

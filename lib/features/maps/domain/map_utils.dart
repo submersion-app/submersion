@@ -21,8 +21,19 @@ double calculateZoomForBounds(List<LatLng> points, LatLngBounds bounds) {
   return 11.0;
 }
 
+/// Whether [p] can be placed on a map: both axes finite and inside the
+/// valid ranges. A NaN fails every range comparison, so the finite check
+/// has to come first or it slips through.
+bool isUsableMapPoint(LatLng p) =>
+    p.latitude.isFinite &&
+    p.longitude.isFinite &&
+    p.latitude >= -90 &&
+    p.latitude <= 90 &&
+    p.longitude >= -180 &&
+    p.longitude <= 180;
+
 /// Bounding box for [points], padded by ten percent of each span and
-/// clamped to the valid ranges. Points outside the valid ranges are
+/// clamped to the valid ranges. Points that fail [isUsableMapPoint] are
 /// skipped. Returns null when no point is usable.
 ///
 /// This is the `_calculateBounds` the dive, site and dive-center maps each
@@ -33,9 +44,9 @@ LatLngBounds? boundsForPoints(List<LatLng> points) {
   var any = false;
 
   for (final p in points) {
+    if (!isUsableMapPoint(p)) continue;
     final lat = p.latitude;
     final lng = p.longitude;
-    if (lat < -90 || lat > 90 || lng < -180 || lng > 180) continue;
     any = true;
     if (lat < minLat) minLat = lat;
     if (lat > maxLat) maxLat = lat;

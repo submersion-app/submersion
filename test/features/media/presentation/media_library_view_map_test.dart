@@ -67,7 +67,67 @@ MediaLibraryEntry _entry(String id) => MediaLibraryEntry(
   ),
 );
 
+Future<void> _pumpView(
+  WidgetTester tester,
+  MediaLibraryState libraryState,
+) async {
+  tester.view.physicalSize = const Size(1200, 900);
+  tester.view.devicePixelRatio = 1.0;
+  addTearDown(tester.view.resetPhysicalSize);
+  addTearDown(tester.view.resetDevicePixelRatio);
+
+  final base = await getBaseOverrides();
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        ...base,
+        mediaLibraryNotifierProvider.overrideWith(
+          (ref) => _SeededLibraryNotifier(libraryState),
+        ),
+        mediaMapPointsProvider.overrideWith((ref) => _SeededMapNotifier()),
+        appSettingsRepositoryProvider.overrideWithValue(_MapModeSettingsRepo()),
+        sitesProvider.overrideWith((ref) async => const []),
+        allTripsProvider.overrideWith((ref) async => const []),
+        mediaStoreAttachedProvider.overrideWith((ref) async => true),
+        mediaQueueFactsProvider.overrideWith((ref, id) => Stream.value(null)),
+        mediaStoreIdentityProvider.overrideWith((ref) async => null),
+        currentDeviceIdProvider.overrideWith((ref) async => 'dev-a'),
+        mediaServingRecorderProvider.overrideWithValue(MediaServingRecorder()),
+      ],
+      child: const MaterialApp(
+        locale: Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: MediaLibraryView()),
+      ),
+    ),
+  );
+  await tester.pump();
+  await tester.pump(const Duration(seconds: 1));
+}
+
 void main() {
+  // The map has its own loading, empty and error states; the grid's paged
+  // state must not stand in for them.
+  testWidgets('map mode renders the map even when the grid page is empty', (
+    tester,
+  ) async {
+    await _pumpView(tester, const MediaLibraryState());
+
+    expect(find.byType(MediaMapContent), findsOneWidget);
+    expect(find.text('No media yet'), findsNothing);
+    await tester.pump(const Duration(milliseconds: 400));
+  });
+
+  testWidgets('map mode renders the map while the grid page is loading', (
+    tester,
+  ) async {
+    await _pumpView(tester, const MediaLibraryState(isLoading: true));
+
+    expect(find.byType(MediaMapContent), findsOneWidget);
+    await tester.pump(const Duration(milliseconds: 400));
+  });
+
   testWidgets('the persisted map mode renders the map instead of the grid', (
     tester,
   ) async {

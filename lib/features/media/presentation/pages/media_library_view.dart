@@ -133,6 +133,9 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
     bool showingMissing,
     SelectionState selection,
   ) {
+    // The map runs its own unpaged query and owns its loading, empty and
+    // error states; the grid's page one must not stand in for them.
+    if (mode == MediaLibraryViewMode.map) return const MediaMapContent();
     if (state.isLoading && state.entries.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -183,6 +186,7 @@ class _MediaLibraryViewState extends ConsumerState<MediaLibraryView> {
         selectedIds: checkedIds,
         isSelectionMode: selection.isActive,
       ),
+      // Returned above, before the grid's paged-state guards.
       MediaLibraryViewMode.map => const MediaMapContent(),
     };
   }
