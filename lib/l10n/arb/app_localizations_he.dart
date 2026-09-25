@@ -14094,6 +14094,14 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_density_eaddLabel =>
+      'עומק שקול לצפיפות אוויר (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'EADD הוא העומק שבו אוויר היה צפוף כמו הגז הזה. בניגוד לצפיפות ב-g/L, הוא אינו תלוי בטמפרטורה.';
+
+  @override
   String get gasCalculators_density_loopGasTitle => 'גז הלולאה בעומק';
 
   @override

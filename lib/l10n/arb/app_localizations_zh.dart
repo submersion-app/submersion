@@ -13744,6 +13744,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_density_eaddLabel => '等效空气密度深度 (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'EADD 是空气密度与该气体相同时所处的深度。与以 g/L 表示的密度不同，它不受温度影响。';
+
+  @override
   String get gasCalculators_density_loopGasTitle => '深度处的回路气体';
 
   @override

@@ -4597,6 +4597,8 @@
   "gasCalculators_density_temperature": "气体温度",
   "gasCalculators_density_resultTitle": "气体密度",
   "gasCalculators_density_withinLimit": "在建议的 {limit} g/L 限值以内。",
+  "gasCalculators_density_eaddLabel": "等效空气密度深度 (EADD)",
+  "gasCalculators_density_eaddInfo": "EADD 是空气密度与该气体相同时所处的深度。与以 g/L 表示的密度不同，它不受温度影响。",
   "gasCalculators_density_loopGasTitle": "深度处的回路气体",
   "gasCalculators_density_loopComposition": "O2 {o2} % · He {he} % · N2 {n2} %",
   "gasCalculators_density_setpointCapped": "此处设定点高于环境压力，因此回路为纯氧。",

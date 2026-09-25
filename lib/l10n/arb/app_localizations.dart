@@ -23800,6 +23800,18 @@ abstract class AppLocalizations {
   /// **'Within the recommended {limit} g/L limit.'**
   String gasCalculators_density_withinLimit(Object limit);
 
+  /// No description provided for @gasCalculators_density_eaddLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Equivalent air density depth (EADD)'**
+  String get gasCalculators_density_eaddLabel;
+
+  /// No description provided for @gasCalculators_density_eaddInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'EADD is the depth at which air would be as dense as this gas. Unlike the density in g/L, it does not depend on the temperature.'**
+  String get gasCalculators_density_eaddInfo;
+
   /// No description provided for @gasCalculators_density_loopGasTitle.
   ///
   /// In en, this message translates to:

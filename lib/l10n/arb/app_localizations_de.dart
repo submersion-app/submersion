@@ -14420,6 +14420,14 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_density_eaddLabel =>
+      'Äquivalente Luftdichte-Tiefe (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'Die EADD ist die Tiefe, in der Luft so dicht wäre wie dieses Gas. Anders als die Dichte in g/L hängt sie nicht von der Temperatur ab.';
+
+  @override
   String get gasCalculators_density_loopGasTitle => 'Loop-Gas auf Tiefe';
 
   @override

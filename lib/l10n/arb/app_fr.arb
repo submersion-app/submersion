@@ -4349,6 +4349,8 @@
   "gasCalculators_density_temperature": "Température du gaz",
   "gasCalculators_density_resultTitle": "Densité du gaz",
   "gasCalculators_density_withinLimit": "Sous la limite recommandée de {limit} g/L.",
+  "gasCalculators_density_eaddLabel": "Profondeur équivalente en densité d'air (EADD)",
+  "gasCalculators_density_eaddInfo": "L'EADD est la profondeur à laquelle l'air serait aussi dense que ce gaz. Contrairement à la densité en g/L, elle ne dépend pas de la température.",
   "gasCalculators_density_loopGasTitle": "Gaz de la boucle en profondeur",
   "gasCalculators_density_loopComposition": "O2 {o2} % · He {he} % · N2 {n2} %",
   "gasCalculators_density_setpointCapped": "Le setpoint dépasse ici la pression ambiante : la boucle contient de l'oxygène pur.",

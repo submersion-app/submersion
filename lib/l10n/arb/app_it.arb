@@ -4349,6 +4349,8 @@
   "gasCalculators_density_temperature": "Temperatura del gas",
   "gasCalculators_density_resultTitle": "Densità del gas",
   "gasCalculators_density_withinLimit": "Entro il limite raccomandato di {limit} g/L.",
+  "gasCalculators_density_eaddLabel": "Profondità equivalente di densità dell'aria (EADD)",
+  "gasCalculators_density_eaddInfo": "L'EADD è la profondità alla quale l'aria sarebbe densa quanto questo gas. A differenza della densità in g/L, non dipende dalla temperatura.",
   "gasCalculators_density_loopGasTitle": "Gas del loop in profondità",
   "gasCalculators_density_loopComposition": "O2 {o2} % · He {he} % · N2 {n2} %",
   "gasCalculators_density_setpointCapped": "Qui il setpoint supera la pressione ambiente, quindi il loop è ossigeno puro.",

@@ -4349,6 +4349,8 @@
   "gasCalculators_density_temperature": "Gázhőmérséklet",
   "gasCalculators_density_resultTitle": "Gázsűrűség",
   "gasCalculators_density_withinLimit": "Az ajánlott {limit} g/L-es határon belül.",
+  "gasCalculators_density_eaddLabel": "Egyenértékű levegősűrűség-mélység (EADD)",
+  "gasCalculators_density_eaddInfo": "Az EADD az a mélység, ahol a levegő ugyanolyan sűrű lenne, mint ez a gáz. A g/L-ben megadott sűrűséggel ellentétben nem függ a hőmérséklettől.",
   "gasCalculators_density_loopGasTitle": "Hurokgáz mélységben",
   "gasCalculators_density_loopComposition": "O2 {o2} % · He {he} % · N2 {n2} %",
   "gasCalculators_density_setpointCapped": "A setpoint itt meghaladja a környezeti nyomást, így a hurokban tiszta oxigén van.",

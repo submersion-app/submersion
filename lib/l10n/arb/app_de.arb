@@ -4555,6 +4555,8 @@
   "gasCalculators_density_temperature": "Gastemperatur",
   "gasCalculators_density_resultTitle": "Gasdichte",
   "gasCalculators_density_withinLimit": "Innerhalb der empfohlenen Dichtegrenze von {limit} g/L.",
+  "gasCalculators_density_eaddLabel": "Äquivalente Luftdichte-Tiefe (EADD)",
+  "gasCalculators_density_eaddInfo": "Die EADD ist die Tiefe, in der Luft so dicht wäre wie dieses Gas. Anders als die Dichte in g/L hängt sie nicht von der Temperatur ab.",
   "gasCalculators_density_loopGasTitle": "Loop-Gas auf Tiefe",
   "gasCalculators_density_loopComposition": "O2 {o2} % · He {he} % · N2 {n2} %",
   "gasCalculators_density_setpointCapped": "Der Setpoint liegt hier über dem Umgebungsdruck, der Loop ist reiner Sauerstoff.",

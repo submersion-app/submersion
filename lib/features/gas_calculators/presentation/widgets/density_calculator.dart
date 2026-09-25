@@ -73,6 +73,13 @@ class _InfoCard extends StatelessWidget {
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
+            const SizedBox(height: 12),
+            Text(
+              context.l10n.gasCalculators_density_eaddInfo,
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       ),

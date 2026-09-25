@@ -14441,6 +14441,14 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_density_eaddLabel =>
+      'Profondità equivalente di densità dell\'aria (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'L\'EADD è la profondità alla quale l\'aria sarebbe densa quanto questo gas. A differenza della densità in g/L, non dipende dalla temperatura.';
+
+  @override
   String get gasCalculators_density_loopGasTitle =>
       'Gas del loop in profondità';
 

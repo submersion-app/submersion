@@ -16,6 +16,10 @@ enum GasDensityTemperature {
   const GasDensityTemperature(this.celsius);
 }
 
+/// Molar mass of air as the app defines it everywhere, 21/79.
+const double _airMolarMassGPerMol =
+    0.21 * o2MolarMassGPerMol + 0.79 * n2MolarMassGPerMol;
+
 /// Where a density sits against the published work-of-breathing limits.
 enum GasDensityLevel { ok, warn, critical }
 
@@ -78,6 +82,11 @@ class GasDensityResult {
   final double densityGPerL;
   final GasDensityLevel level;
 
+  /// Equivalent air density depth: the depth, in the same water, at which
+  /// air (21/79) would be as dense as this gas. Independent of temperature,
+  /// and never negative: a gas lighter than surface air gives 0.
+  final double eaddMeters;
+
   /// The setpoint is above ambient pressure, so the loop is pure oxygen.
   final bool setpointCapped;
 
@@ -92,6 +101,7 @@ class GasDensityResult {
     required this.pHeBar,
     required this.densityGPerL,
     required this.level,
+    required this.eaddMeters,
     required this.setpointCapped,
     required this.diluentAboveSetpoint,
   });
@@ -123,9 +133,10 @@ GasDensityResult computeGasDensity(GasDensityInputs inputs) {
   final fN2 = math.max(1.0 - fO2 - fHe, 0.0);
 
   final depth = math.max(inputs.depthMeters, 0.0);
-  final ambient = DiveEnvironment.forConditions(
+  final environment = DiveEnvironment.forConditions(
     waterType: inputs.waterType,
-  ).pressureAtDepth(depth);
+  );
+  final ambient = environment.pressureAtDepth(depth);
 
   double pO2;
   double pN2;
@@ -168,6 +179,18 @@ GasDensityResult computeGasDensity(GasDensityInputs inputs) {
     temperatureC: inputs.temperature.celsius,
   );
 
+  // Air at this pressure has the same density at any temperature, since
+  // R * T cancels between the two.
+  final equivalentAirPressure =
+      (pO2 * o2MolarMassGPerMol +
+          pN2 * n2MolarMassGPerMol +
+          pHe * heMolarMassGPerMol) /
+      _airMolarMassGPerMol;
+  final eadd = math.max(
+    environment.depthAtPressure(equivalentAirPressure),
+    0.0,
+  );
+
   return GasDensityResult(
     ambientPressureBar: ambient,
     pO2Bar: pO2,
@@ -175,6 +198,7 @@ GasDensityResult computeGasDensity(GasDensityInputs inputs) {
     pHeBar: pHe,
     densityGPerL: density,
     level: gasDensityLevelFor(density),
+    eaddMeters: eadd,
     setpointCapped: setpointCapped,
     diluentAboveSetpoint: diluentAboveSetpoint,
   );

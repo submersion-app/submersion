@@ -157,6 +157,36 @@ void main() {
     );
   });
 
+  testWidgets('shows the equivalent air density depth', (tester) async {
+    final ref = await _pump(tester);
+    ref.read(densityO2Provider.notifier).state = 18;
+    ref.read(densityHeProvider.notifier).state = 45;
+    ref.read(densityDepthProvider.notifier).state = 60;
+    await tester.pumpAndSettle();
+
+    // 33.5 m, see gas_density_calculator_test.dart.
+    expect(
+      find.text('Equivalent air density depth (EADD): 34m'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('shows the EADD in feet for imperial settings', (tester) async {
+    final ref = await _pump(
+      tester,
+      settings: const AppSettings(depthUnit: DepthUnit.feet),
+    );
+    ref.read(densityHeProvider.notifier).state = 0;
+    ref.read(densityDepthProvider.notifier).state = 40;
+    await tester.pumpAndSettle();
+
+    // Air is its own EADD: 40 m = 131 ft.
+    expect(
+      find.text('Equivalent air density depth (EADD): 131ft'),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('the info card states the limits from the constants', (
     tester,
   ) async {

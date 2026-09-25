@@ -151,6 +151,61 @@ void main() {
     });
   });
 
+  group('equivalent air density depth', () {
+    // Air (21/79) at the pressure sum(p_i * M_i) / M_air, as a depth in the
+    // same water. M_air = 0.21 * 31.998 + 0.79 * 28.014 = 28.85064.
+
+    test('air is its own EADD', () {
+      expect(computeGasDensity(_inputs()).eaddMeters, closeTo(40, 1e-9));
+    });
+
+    test('Tx 18/45 at 60 m in salt water', () {
+      expect(
+        computeGasDensity(_inputs(o2: 18, he: 45, depth: 60)).eaddMeters,
+        closeTo(33.513157986465494, 1e-9),
+      );
+    });
+
+    test('Tx 18/45 at 60 m in fresh water', () {
+      expect(
+        computeGasDensity(
+          _inputs(o2: 18, he: 45, depth: 60, waterType: WaterType.fresh),
+        ).eaddMeters,
+        closeTo(33.418980401783344, 1e-9),
+      );
+    });
+
+    test('CCR SP 1.3 on diluent 18/45 at 60 m uses the loop gas', () {
+      expect(
+        computeGasDensity(
+          _inputs(o2: 18, he: 45, depth: 60, setpoint: 1.3),
+        ).eaddMeters,
+        closeTo(33.71674462534928, 1e-9),
+      );
+    });
+
+    test('does not depend on the temperature', () {
+      final warm = computeGasDensity(_inputs(o2: 18, he: 45, depth: 60));
+      final cold = computeGasDensity(
+        _inputs(
+          o2: 18,
+          he: 45,
+          depth: 60,
+          temperature: GasDensityTemperature.zeroC,
+        ),
+      );
+      expect(cold.eaddMeters, closeTo(warm.eaddMeters, 1e-9));
+    });
+
+    test('a gas lighter than surface air gives 0, not a negative depth', () {
+      // Heliox 21/79 at 10 m is lighter than air at the surface.
+      expect(
+        computeGasDensity(_inputs(o2: 21, he: 79, depth: 10)).eaddMeters,
+        0,
+      );
+    });
+  });
+
   group('level', () {
     test('follows the published 5.2 / 6.2 g/L limits', () {
       expect(gasDensityLevelFor(5.2), GasDensityLevel.ok);

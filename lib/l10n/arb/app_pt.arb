@@ -4451,6 +4451,8 @@
   "gasCalculators_density_temperature": "Temperatura do gás",
   "gasCalculators_density_resultTitle": "Densidade do gás",
   "gasCalculators_density_withinLimit": "Dentro do limite recomendado de {limit} g/L.",
+  "gasCalculators_density_eaddLabel": "Profundidade equivalente de densidade do ar (EADD)",
+  "gasCalculators_density_eaddInfo": "A EADD é a profundidade em que o ar seria tão denso quanto este gás. Ao contrário da densidade em g/L, ela não depende da temperatura.",
   "gasCalculators_density_loopGasTitle": "Gás do circuito em profundidade",
   "gasCalculators_density_loopComposition": "O2 {o2} % · He {he} % · N2 {n2} %",
   "gasCalculators_density_setpointCapped": "Aqui o setpoint está acima da pressão ambiente, por isso o circuito é oxigênio puro.",

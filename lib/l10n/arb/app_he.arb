@@ -4349,6 +4349,8 @@
   "gasCalculators_density_temperature": "טמפרטורת הגז",
   "gasCalculators_density_resultTitle": "צפיפות גז",
   "gasCalculators_density_withinLimit": "בתוך הגבול המומלץ של {limit} g/L.",
+  "gasCalculators_density_eaddLabel": "עומק שקול לצפיפות אוויר (EADD)",
+  "gasCalculators_density_eaddInfo": "EADD הוא העומק שבו אוויר היה צפוף כמו הגז הזה. בניגוד לצפיפות ב-g/L, הוא אינו תלוי בטמפרטורה.",
   "gasCalculators_density_loopGasTitle": "גז הלולאה בעומק",
   "gasCalculators_density_loopComposition": "O2 {o2} % · He {he} % · N2 {n2} %",
   "gasCalculators_density_setpointCapped": "כאן ה-Setpoint גבוה מהלחץ הסביבתי, ולכן הלולאה מכילה חמצן טהור.",

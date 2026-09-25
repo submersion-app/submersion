@@ -14395,6 +14395,14 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_density_eaddLabel =>
+      'Egyenértékű levegősűrűség-mélység (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'Az EADD az a mélység, ahol a levegő ugyanolyan sűrű lenne, mint ez a gáz. A g/L-ben megadott sűrűséggel ellentétben nem függ a hőmérséklettől.';
+
+  @override
   String get gasCalculators_density_loopGasTitle => 'Hurokgáz mélységben';
 
   @override

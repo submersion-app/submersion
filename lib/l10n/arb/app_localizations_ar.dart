@@ -14196,6 +14196,14 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get gasCalculators_density_eaddLabel =>
+      'العمق المكافئ لكثافة الهواء (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'EADD هو العمق الذي يكون فيه الهواء بكثافة هذا الغاز. وعلى خلاف الكثافة بوحدة g/L، لا يعتمد على درجة الحرارة.';
+
+  @override
   String get gasCalculators_density_loopGasTitle => 'غاز الدائرة على العمق';
 
   @override

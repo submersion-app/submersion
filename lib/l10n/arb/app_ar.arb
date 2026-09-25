@@ -4451,6 +4451,8 @@
   "gasCalculators_density_temperature": "درجة حرارة الغاز",
   "gasCalculators_density_resultTitle": "كثافة الغاز",
   "gasCalculators_density_withinLimit": "ضمن الحد الموصى به البالغ {limit} g/L.",
+  "gasCalculators_density_eaddLabel": "العمق المكافئ لكثافة الهواء (EADD)",
+  "gasCalculators_density_eaddInfo": "EADD هو العمق الذي يكون فيه الهواء بكثافة هذا الغاز. وعلى خلاف الكثافة بوحدة g/L، لا يعتمد على درجة الحرارة.",
   "gasCalculators_density_loopGasTitle": "غاز الدائرة على العمق",
   "gasCalculators_density_loopComposition": "O2 {o2} % · He {he} % · N2 {n2} %",
   "gasCalculators_density_setpointCapped": "نقطة الضبط هنا أعلى من الضغط المحيط، لذا فإن الدائرة أكسجين نقي.",

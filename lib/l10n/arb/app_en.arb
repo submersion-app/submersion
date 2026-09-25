@@ -8478,6 +8478,8 @@
       }
     }
   },
+  "gasCalculators_density_eaddLabel": "Equivalent air density depth (EADD)",
+  "gasCalculators_density_eaddInfo": "EADD is the depth at which air would be as dense as this gas. Unlike the density in g/L, it does not depend on the temperature.",
   "gasCalculators_density_loopGasTitle": "Loop gas at depth",
   "gasCalculators_density_loopComposition": "O2 {o2} % · He {he} % · N2 {n2} %",
   "@gasCalculators_density_loopComposition": {

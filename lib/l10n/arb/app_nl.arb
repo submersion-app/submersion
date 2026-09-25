@@ -4451,6 +4451,8 @@
   "gasCalculators_density_temperature": "Gastemperatuur",
   "gasCalculators_density_resultTitle": "Gasdichtheid",
   "gasCalculators_density_withinLimit": "Binnen de aanbevolen grens van {limit} g/L.",
+  "gasCalculators_density_eaddLabel": "Equivalente luchtdichtheidsdiepte (EADD)",
+  "gasCalculators_density_eaddInfo": "De EADD is de diepte waarop lucht even dicht zou zijn als dit gas. Anders dan de dichtheid in g/L hangt ze niet af van de temperatuur.",
   "gasCalculators_density_loopGasTitle": "Loopgas op diepte",
   "gasCalculators_density_loopComposition": "O2 {o2} % · He {he} % · N2 {n2} %",
   "gasCalculators_density_setpointCapped": "Het setpoint ligt hier boven de omgevingsdruk, dus de loop is zuivere zuurstof.",
