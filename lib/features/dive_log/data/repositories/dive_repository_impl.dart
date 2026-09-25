@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -1591,6 +1592,7 @@ class DiveRepository {
                 computerId: Value(tank.computerId),
                 transmitterSerial: Value(tank.transmitterSerial),
                 regulatorEquipmentId: Value(tank.regulatorEquipmentId),
+                tripCylinderId: Value(tank.tripCylinderId),
                 sourceTankIndex: Value(tank.sourceTankIndex),
               ),
             );
@@ -1653,6 +1655,14 @@ class DiveRepository {
             localUpdatedAt: now,
           );
         }
+        // A link into another trip's slot means nothing on this dive.
+        await clearForeignTripCylinderLinks(
+          _db,
+          _syncRepository,
+          dive.id,
+          tripId: dive.tripId,
+          now: now,
+        );
         for (final weightId in weightIds) {
           await _syncRepository.markRecordPending(
             entityType: 'diveWeights',
@@ -1885,6 +1895,9 @@ class DiveRepository {
                 // The regulator link is user-authored, unlike the two above,
                 // so an edit does write it.
                 regulatorEquipmentId: Value(tank.regulatorEquipmentId),
+                // The slot link is user-authored like the regulator, so an
+                // edit writes it; every rebuild site must carry it.
+                tripCylinderId: Value(tank.tripCylinderId),
               ),
             );
             // Log as pending update (assuming sync handles updates)
@@ -1915,6 +1928,7 @@ class DiveRepository {
                     computerId: Value(tank.computerId),
                     transmitterSerial: Value(tank.transmitterSerial),
                     regulatorEquipmentId: Value(tank.regulatorEquipmentId),
+                    tripCylinderId: Value(tank.tripCylinderId),
                     sourceTankIndex: Value(tank.sourceTankIndex),
                   ),
                 );
@@ -1938,6 +1952,15 @@ class DiveRepository {
             recordId: tankId,
           );
         }
+
+        // A link into another trip's slot means nothing on this dive.
+        await clearForeignTripCylinderLinks(
+          _db,
+          _syncRepository,
+          dive.id,
+          tripId: dive.tripId,
+          now: now,
+        );
 
         // Weights: a diff keyed by row id, so an unchanged row is neither
         // tombstoned nor re-marked pending (issue #1727).
@@ -3968,6 +3991,7 @@ class DiveRepository {
               computerId: t.computerId,
               transmitterSerial: t.transmitterSerial,
               regulatorEquipmentId: t.regulatorEquipmentId,
+              tripCylinderId: t.tripCylinderId,
               equipmentId: t.equipmentId,
               sourceTankIndex: t.sourceTankIndex,
             ),
@@ -4391,6 +4415,7 @@ class DiveRepository {
           computerId: t.computerId,
           transmitterSerial: t.transmitterSerial,
           regulatorEquipmentId: t.regulatorEquipmentId,
+          tripCylinderId: t.tripCylinderId,
           equipmentId: t.equipmentId,
           sourceTankIndex: t.sourceTankIndex,
         );
@@ -6649,6 +6674,9 @@ class DiveRepository {
     transmitterSerial: Value(t.transmitterSerial),
     regulatorEquipmentId: Value(t.regulatorEquipmentId),
     sourceTankIndex: Value(t.sourceTankIndex),
+    // The trip cylinder slot, kept out of templates for the same reason as
+    // the registry link: only a restore writes it.
+    tripCylinderId: withLink ? Value(t.tripCylinderId) : const Value.absent(),
     // The registry's cylinder link, owned by the transmitter registry. A
     // template copied from a linked tank must not stamp that cylinder onto
     // every dive it lands on, so only a restore writes it.

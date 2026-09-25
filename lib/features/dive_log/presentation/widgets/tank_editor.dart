@@ -352,6 +352,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         computerId: widget.tank.computerId,
         transmitterSerial: widget.tank.transmitterSerial,
         regulatorEquipmentId: _regulatorEquipmentId,
+        // The slot link is carried, not edited, here; the picker that sets it
+        // arrives with the board (PR 3 of #2325). Dropping it would let
+        // updateDive wipe it on the next save.
+        tripCylinderId: widget.tank.tripCylinderId,
       ),
     );
   }

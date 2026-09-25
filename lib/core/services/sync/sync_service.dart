@@ -2500,6 +2500,9 @@ class SyncService {
       // v202: the regulator breathed from the cylinder; user-authored and
       // nullable, so a deleted regulator only clears the link.
       (field: 'regulatorEquipmentId', parent: 'equipment', nullable: true),
+      // v228: the trip cylinder slot; nullable, so a slot the peer never
+      // sent, or has deleted, only clears the link.
+      (field: 'tripCylinderId', parent: 'tripCylinders', nullable: true),
       (field: 'computerId', parent: 'diveComputers', nullable: true),
     ],
     'diveWeights': [(field: 'diveId', parent: 'dives', nullable: false)],
