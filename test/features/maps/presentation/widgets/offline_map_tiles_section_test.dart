@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/maps/data/repositories/offline_map_repository.dart';
 import 'package:submersion/features/maps/data/services/tile_cache_service.dart';
 import 'package:submersion/features/maps/domain/entities/cached_region.dart';
+import 'package:submersion/features/maps/presentation/pages/region_picker_page.dart';
 import 'package:submersion/features/maps/presentation/providers/offline_map_providers.dart';
 import 'package:submersion/features/maps/presentation/widgets/offline_map_tiles_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -98,6 +99,31 @@ class _FailingTileCache implements TileCacheService {
       throw UnimplementedError('${invocation.memberName} should not be called');
 }
 
+/// A tile cache whose orphan sweep reclaims stores, which is the one case in
+/// which the section has to re-read the statistics it already showed.
+class _SweepingTileCache extends _UnreadableTileCache {
+  @override
+  Future<int> pruneOrphanRegionStores({
+    required Future<Set<String>> Function() readKnownRegionIds,
+  }) async => 2;
+}
+
+/// A download notifier frozen mid-download, so the progress card can be
+/// inspected without a tile server, and whose cancel is only recorded.
+class _FakeDownloadNotifier extends DownloadProgressNotifier {
+  _FakeDownloadNotifier(Ref ref, DownloadState initial)
+    : super(_UnreadableTileCache(), _FakeRepository(const []), ref) {
+    state = initial;
+  }
+
+  int cancelCalls = 0;
+
+  @override
+  Future<void> cancelDownload() async => cancelCalls++;
+}
+
+const _stats = CacheStats(tileCount: 900, sizeKiB: 8000, hits: 10, misses: 2);
+
 /// The section lives inside the Offline Maps page's scroll view, so the test
 /// hosts it the same way rather than giving it a page of its own.
 const _host = Scaffold(
@@ -132,6 +158,26 @@ void main() {
           // fixed en_US, and this app supports 11 locales, so an unpinned
           // MaterialApp renders in the contributor's own language and every
           // English assertion below misses.
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: _host,
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+  }
+
+  Future<void> pumpWithOverrides(
+    WidgetTester tester,
+    List<Override> overrides,
+  ) async {
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [...base, ...overrides],
+        child: const MaterialApp(
           locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -402,5 +448,162 @@ void main() {
     expect(find.textContaining('Loading'), findsWidgets);
     expect(find.textContaining('Unknown'), findsNothing);
     expect(find.textContaining('17.6 MB'), findsNothing);
+  });
+
+  testWidgets('a running download shows its progress and can be cancelled', (
+    tester,
+  ) async {
+    late _FakeDownloadNotifier notifier;
+    await pumpWithOverrides(tester, [
+      cachedRegionsProvider.overrideWith((ref) async => const []),
+      regionStoreIdsProvider.overrideWith((ref) async => const <String>{}),
+      cacheStatsProvider.overrideWith((ref) async => _stats),
+      downloadProgressProvider.overrideWith(
+        (ref) => notifier = _FakeDownloadNotifier(
+          ref,
+          const DownloadState(
+            isDownloading: true,
+            progress: 45,
+            downloadedTiles: 450,
+            totalTiles: 1000,
+            failedTiles: 3,
+            tilesPerSecond: 2.5,
+            regionName: 'Cozumel',
+          ),
+        ),
+      ),
+    ]);
+
+    expect(find.text('Downloading: Cozumel'), findsOneWidget);
+    expect(find.text('45.0%'), findsOneWidget);
+    expect(find.text('450 / 1000 tiles'), findsOneWidget);
+    expect(find.text('2.5 tiles/sec'), findsOneWidget);
+    expect(find.text('3 failed'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Cancel Download'));
+    await tester.pump();
+
+    expect(notifier.cancelCalls, 1);
+  });
+
+  testWidgets('statistics that cannot be read say why', (tester) async {
+    await pumpWithOverrides(tester, [
+      cachedRegionsProvider.overrideWith((ref) async => const []),
+      regionStoreIdsProvider.overrideWith((ref) async => const <String>{}),
+      cacheStatsProvider.overrideWith(
+        (ref) async => throw StateError('stats unavailable'),
+      ),
+    ]);
+
+    expect(find.textContaining('Error loading stats'), findsOneWidget);
+    expect(find.textContaining('stats unavailable'), findsOneWidget);
+  });
+
+  testWidgets('a region list that cannot be read says why', (tester) async {
+    await pumpWithOverrides(tester, [
+      cachedRegionsProvider.overrideWith(
+        (ref) async => throw StateError('regions unavailable'),
+      ),
+      regionStoreIdsProvider.overrideWith((ref) async => const <String>{}),
+      cacheStatsProvider.overrideWith((ref) async => _stats),
+    ]);
+
+    expect(find.textContaining('regions unavailable'), findsOneWidget);
+  });
+
+  testWidgets('the refresh button re-reads the regions and statistics', (
+    tester,
+  ) async {
+    var regionReads = 0;
+    var statsReads = 0;
+    await pumpWithOverrides(tester, [
+      cachedRegionsProvider.overrideWith((ref) async {
+        regionReads++;
+        return const [];
+      }),
+      regionStoreIdsProvider.overrideWith((ref) async => const <String>{}),
+      cacheStatsProvider.overrideWith((ref) async {
+        statsReads++;
+        return _stats;
+      }),
+    ]);
+    expect(regionReads, 1);
+    expect(statsReads, 1);
+
+    await tester.tap(find.byTooltip('Refresh'));
+    await tester.pump();
+
+    expect(regionReads, 2);
+    expect(statsReads, 2);
+  });
+
+  testWidgets('a sweep that reclaimed stores re-reads the statistics', (
+    tester,
+  ) async {
+    // The figures on screen were measured before the sweep deleted anything.
+    var statsReads = 0;
+    await pumpWithOverrides(tester, [
+      offlineMapRepositoryProvider.overrideWithValue(_FakeRepository([])),
+      tileCacheServiceProvider.overrideWithValue(_SweepingTileCache()),
+      cacheStatsProvider.overrideWith((ref) async {
+        statsReads++;
+        return _stats;
+      }),
+    ]);
+
+    expect(statsReads, 2);
+  });
+
+  testWidgets('cancelling the clear prompt clears nothing', (tester) async {
+    final repository = _FakeRepository([_region(id: 'owns', name: 'Cozumel')]);
+    await pumpWithOverrides(tester, [
+      offlineMapRepositoryProvider.overrideWithValue(repository),
+      tileCacheServiceProvider.overrideWithValue(_FailingTileCache()),
+      cacheStatsProvider.overrideWith((ref) async => _stats),
+    ]);
+
+    await tester.ensureVisible(find.text('Clear all map tiles'));
+    await tester.pump();
+    await tester.tap(find.text('Clear all map tiles'));
+    await tester.pump();
+    await tester.pump();
+    await tester.tap(find.text('Cancel'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(find.byType(SnackBar), findsNothing);
+    expect(repository.regions, hasLength(1));
+  });
+
+  testWidgets('cancelling the delete prompt deletes nothing', (tester) async {
+    final repository = _FakeRepository([_region(id: 'owns', name: 'Cozumel')]);
+    await pumpWithOverrides(tester, [
+      offlineMapRepositoryProvider.overrideWithValue(repository),
+      tileCacheServiceProvider.overrideWithValue(_FailingTileCache()),
+      cacheStatsProvider.overrideWith((ref) async => _stats),
+    ]);
+
+    await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.pump();
+    await tester.pump();
+    await tester.tap(find.text('Cancel'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(repository.regions, hasLength(1));
+  });
+
+  testWidgets('download new region opens the region picker', (tester) async {
+    await pumpSection(tester, regions: const [], regionStoreIds: const {});
+
+    await tester.ensureVisible(find.text('Download new region'));
+    await tester.pump();
+    await tester.tap(find.text('Download new region'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byType(RegionPickerPage), findsOneWidget);
   });
 }

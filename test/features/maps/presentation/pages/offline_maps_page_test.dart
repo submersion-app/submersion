@@ -10,7 +10,11 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/mock_providers.dart';
 
 void main() {
-  Future<void> pumpPage(WidgetTester tester) async {
+  Future<void> pumpPage(
+    WidgetTester tester, {
+    void Function()? onRegionsRead,
+    void Function()? onStatsRead,
+  }) async {
     // Tall enough that the lazily built list lays out both sections, so the
     // order assertions below compare real positions.
     tester.view.physicalSize = const Size(800, 3000);
@@ -22,12 +26,20 @@ void main() {
       ProviderScope(
         overrides: [
           ...base,
-          cachedRegionsProvider.overrideWith((ref) async => const []),
+          cachedRegionsProvider.overrideWith((ref) async {
+            onRegionsRead?.call();
+            return const [];
+          }),
           regionStoreIdsProvider.overrideWith((ref) async => const <String>{}),
-          cacheStatsProvider.overrideWith(
-            (ref) async =>
-                const CacheStats(tileCount: 0, sizeKiB: 0, hits: 0, misses: 0),
-          ),
+          cacheStatsProvider.overrideWith((ref) async {
+            onStatsRead?.call();
+            return const CacheStats(
+              tileCount: 0,
+              sizeKiB: 0,
+              hits: 0,
+              misses: 0,
+            );
+          }),
           bathymetryRepositoryProvider.overrideWithValue(null),
           swissBathyTileCacheRepositoryProvider.overrideWithValue(null),
           knownDiveSiteLocationsProvider.overrideWith((ref) async => const []),
@@ -73,5 +85,27 @@ void main() {
     expect(top(tester, 'Download new region'), lessThan(terrainTop));
     expect(top(tester, 'Clear all map tiles'), lessThan(terrainTop));
     expect(top(tester, 'Reload map data'), greaterThan(terrainTop));
+  });
+
+  testWidgets('pulling down re-reads the tile regions and statistics', (
+    tester,
+  ) async {
+    var regionReads = 0;
+    var statsReads = 0;
+    await pumpPage(
+      tester,
+      onRegionsRead: () => regionReads++,
+      onStatsRead: () => statsReads++,
+    );
+    expect(regionReads, 1);
+    expect(statsReads, 1);
+
+    await tester.fling(find.text('Map tiles'), const Offset(0, 400), 1000);
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(regionReads, 2);
+    expect(statsReads, 2);
   });
 }
