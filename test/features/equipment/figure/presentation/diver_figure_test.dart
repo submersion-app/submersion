@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_composer.dart';
@@ -7,6 +8,7 @@ import 'package:submersion/features/equipment/figure/domain/figure_model.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_view.dart';
 import 'package:submersion/features/equipment/figure/presentation/diver_figure.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_name_label.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 
 void main() {
   FigureItemInput item(String id, EquipmentType type) =>
@@ -26,12 +28,19 @@ void main() {
     String? selectedItemId,
     ValueChanged<PlacedItem>? onItemTap,
     String Function(PlacedItem)? labelText,
+    double textScale = 1,
   }) async {
     tester.view.physicalSize = Size(width, 1600);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       MaterialApp(
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child!,
+        ),
         home: Scaffold(
           body: SingleChildScrollView(
             child: DiverFigure(
@@ -90,6 +99,38 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('a phone label may wrap its name to two lines', (tester) async {
+      await pump(tester, reef, width: 360);
+      final text = tester.widget<Text>(
+        find.descendant(of: label('mask'), matching: find.byType(Text)).last,
+      );
+      expect(text.maxLines, 2);
+    });
+
+    testWidgets('a very long name truncates inside its column', (tester) async {
+      await pump(
+        tester,
+        reef,
+        width: 360,
+        labelText: (p) =>
+            'An extraordinarily long item name that keeps going ${p.number}',
+      );
+      expect(tester.takeException(), isNull);
+      for (final id in ['mask', 'fins']) {
+        final rect = tester.getRect(label(id));
+        expect(rect.left, greaterThanOrEqualTo(0), reason: id);
+        expect(rect.right, lessThanOrEqualTo(360.001), reason: id);
+      }
+    });
+
+    testWidgets('large text on a phone grows the rows instead of overflowing', (
+      tester,
+    ) async {
+      await pump(tester, reef, width: 360, textScale: 1.6);
+      expect(tester.takeException(), isNull);
+      expect(tester.getSize(label('mask')).height, greaterThan(40));
+    });
+
     testWidgets('599 is the phone layout and 600 the wide one', (tester) async {
       await pump(tester, reef, width: 599);
       expect(find.byType(SegmentedButton<FigureView>), findsOneWidget);
@@ -122,6 +163,33 @@ void main() {
           .widgetList<FigureNameLabel>(find.byType(FigureNameLabel))
           .where((l) => l.selected);
       expect(selected.single.number, 1);
+    });
+
+    testWidgets('large text widens the pill instead of cutting the name', (
+      tester,
+    ) async {
+      await pump(tester, reef, width: 900, textScale: 1.5);
+      for (final name in ['Item mask', 'Item bcd', 'Item fins', 'Item tank']) {
+        final paragraph = tester.renderObject<RenderParagraph>(find.text(name));
+        expect(paragraph.didExceedMaxLines, isFalse, reason: name);
+      }
+    });
+
+    testWidgets('a pill is filled with the derived pill colour', (
+      tester,
+    ) async {
+      await pump(tester, reef, width: 900);
+      final context = tester.element(label('mask'));
+      final pill = figurePillFor(Theme.of(context).colorScheme);
+      final box = tester
+          .widgetList<Container>(
+            find.descendant(
+              of: label('mask'),
+              matching: find.byType(Container),
+            ),
+          )
+          .firstWhere((c) => c.decoration is BoxDecoration);
+      expect((box.decoration! as BoxDecoration).color, pill.fill);
     });
 
     testWidgets('a very long name truncates inside the box', (tester) async {

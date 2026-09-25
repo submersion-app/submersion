@@ -62,6 +62,23 @@ void main() {
       }
     });
 
+    test('a phone column leaves room for a name', () {
+      // 326 pt is the set page's figure box on a 390 pt phone.
+      final phone = FigureLayout.forSingle(const Size(326, 420));
+      final slots = labelColumns(
+        model: composeFigure([
+          item('mask', EquipmentType.mask),
+          item('reg', EquipmentType.regulator),
+        ]),
+        view: FigureView.front,
+        layout: phone,
+        width: 326,
+      );
+      for (final s in slots) {
+        expect(s.rect.width, greaterThanOrEqualTo(96));
+      }
+    });
+
     test('only the chosen view is labelled', () {
       final model = composeFigure([
         item('mask', EquipmentType.mask),
@@ -162,6 +179,36 @@ void main() {
         expect(s.rect.width, lessThanOrEqualTo(900 / 4 + 0.001));
         expect(s.rect.left, greaterThanOrEqualTo(0));
         expect(s.rect.right, lessThanOrEqualTo(900.001));
+      }
+    });
+
+    test('a pill never crosses into the other figure', () {
+      // Worst case: the default narrow gutter and names far too long.
+      final tight = FigureLayout.forSize(const Size(900, 360));
+      final model = composeFigure([
+        item('mask', EquipmentType.mask),
+        item('reg', EquipmentType.regulator),
+        item('compass', EquipmentType.compass),
+        item('fins', EquipmentType.fins),
+        item('tank', EquipmentType.tank),
+        item('trim', EquipmentType.weights),
+      ]);
+      final slots = labelPills(
+        model: model,
+        layout: tight,
+        width: 900,
+        maxWidth: 900 / 4,
+        widthOf: (_) => 5000,
+      );
+      for (final s in slots) {
+        final other = s.item.zone!.view == FigureView.front
+            ? tight.back
+            : tight.front;
+        expect(
+          s.rect.overlaps(other),
+          isFalse,
+          reason: '${s.item.item.id} crosses the other figure',
+        );
       }
     });
 

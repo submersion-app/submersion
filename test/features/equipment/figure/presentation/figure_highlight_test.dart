@@ -26,6 +26,18 @@ void main() {
         );
       });
 
+      test('$name: a name pill stands off the card and reads', () {
+        final pill = figurePillFor(scheme);
+        expect(
+          contrastRatio(pill.fill, scheme.surfaceContainerLow),
+          greaterThanOrEqualTo(1.15),
+        );
+        expect(
+          contrastRatio(pill.onFill, pill.fill),
+          greaterThanOrEqualTo(4.5),
+        );
+      });
+
       test('$name: the flash stands off the card it fills', () {
         for (final card in [scheme.surfaceContainerLow, scheme.surface]) {
           expect(

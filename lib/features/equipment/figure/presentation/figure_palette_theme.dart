@@ -81,3 +81,26 @@ FigureHighlight figureHighlightFor(ColorScheme scheme) {
     onFill: EquipmentSectionColors.readableOn(fill, [scheme.onSurface]),
   );
 }
+
+/// The fill and text of a name pill or tray tile, derived by contrast:
+/// four of the five presets leave `surfaceContainerHighest` unset, so it
+/// falls back to `surface` and a pill would vanish into the page. The fill
+/// is the faintest blend of `onSurface` over the card that stands off it.
+FigureHighlight figurePillFor(ColorScheme scheme) {
+  final card = scheme.surfaceContainerLow;
+  var fill = scheme.onSurface;
+  for (var percent = 4; percent <= 60; percent += 2) {
+    final blend = Color.alphaBlend(
+      scheme.onSurface.withValues(alpha: percent / 100),
+      card,
+    );
+    if (contrastRatio(blend, card) >= 1.15) {
+      fill = blend;
+      break;
+    }
+  }
+  return FigureHighlight(
+    fill: fill,
+    onFill: EquipmentSectionColors.readableOn(fill, [scheme.onSurface]),
+  );
+}

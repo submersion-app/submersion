@@ -44,13 +44,20 @@ void main() {
     }
   });
 
-  test('forSingle centres one figure at a fraction of the width', () {
+  test('forSingle centres one figure at 36 percent of the width', () {
     final layout = FigureLayout.forSingle(const Size(360, 420));
-    expect(layout.front.width, closeTo(162, 0.01));
-    expect(layout.front.left, closeTo(99, 0.01));
+    expect(layout.front.width, closeTo(129.6, 0.01));
+    expect(layout.front.left, closeTo(115.2, 0.01));
     expect(layout.front.top, 0);
     expect(layout.back, layout.front);
-    expect(layout.scale, closeTo(162 / 200, 0.0001));
+    expect(layout.scale, closeTo(129.6 / 200, 0.0001));
+  });
+
+  test('forSize takes a gutter, so wide pills have room between figures', () {
+    final layout = FigureLayout.forSize(const Size(900, 360), gutter: 180);
+    expect(layout.front.width, closeTo(180, 0.01));
+    expect(layout.back.left - layout.front.right, closeTo(180, 0.01));
+    expect(layout.front.left, closeTo(900 - layout.back.right, 0.01));
   });
 
   test('forSingle is capped by the box height and stays positive', () {

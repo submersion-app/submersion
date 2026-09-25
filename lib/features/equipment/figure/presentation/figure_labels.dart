@@ -48,6 +48,7 @@ List<FigureLabelSlot> labelColumns({
   required FigureView view,
   required FigureLayout layout,
   required double width,
+  double labelHeight = kFigureLabelHeight,
 }) {
   final figure = layout.rectFor(view);
   final items = [
@@ -74,6 +75,7 @@ List<FigureLabelSlot> labelColumns({
       x: 0,
       columnWidth: math.max(0, figure.left - kFigureLeaderGap),
       onLeft: true,
+      labelHeight: labelHeight,
     ),
     ..._stack(
       right,
@@ -82,6 +84,7 @@ List<FigureLabelSlot> labelColumns({
       x: rightX,
       columnWidth: math.max(0, width - rightX),
       onLeft: false,
+      labelHeight: labelHeight,
     ),
   ];
 }
@@ -93,6 +96,7 @@ List<FigureLabelSlot> _stack(
   required double x,
   required double columnWidth,
   required bool onLeft,
+  required double labelHeight,
 }) {
   final anchored =
       [
@@ -108,16 +112,16 @@ List<FigureLabelSlot> _stack(
   final slots = <FigureLabelSlot>[];
   var nextTop = 0.0;
   for (final entry in anchored) {
-    final top = math.max(nextTop, entry.anchor.dy - kFigureLabelHeight / 2);
+    final top = math.max(nextTop, entry.anchor.dy - labelHeight / 2);
     slots.add(
       FigureLabelSlot(
         item: entry.item,
-        rect: Rect.fromLTWH(x, top, columnWidth, kFigureLabelHeight),
+        rect: Rect.fromLTWH(x, top, columnWidth, labelHeight),
         anchor: entry.anchor,
         onLeft: onLeft,
       ),
     );
-    nextTop = top + kFigureLabelHeight + kFigureLabelGap;
+    nextTop = top + labelHeight + kFigureLabelGap;
   }
   return slots;
 }
@@ -126,13 +130,15 @@ List<FigureLabelSlot> _stack(
 /// side of its anchor, placed in number order and stepped down until it
 /// clears the pills already placed. [widthOf] is the pill's natural width;
 /// it is capped at [maxWidth] and at the room between the anchor and the
-/// edge of the box.
+/// edge of the box, or the edge of the other figure when that is nearer, so
+/// a pill never lies across the other view.
 List<FigureLabelSlot> labelPills({
   required FigureModel model,
   required FigureLayout layout,
   required double width,
   required double maxWidth,
   required double Function(PlacedItem item) widthOf,
+  double labelHeight = kFigureLabelHeight,
 }) {
   final items = [...model.placed]..sort(_byNumber);
   final taken = <Rect>[];
@@ -141,21 +147,32 @@ List<FigureLabelSlot> labelPills({
     final zone = p.zone!;
     final anchor = layout.toBox(zone.view, zone.anchorX, zone.anchorY);
     final onLeft = _leftOfCentre(p);
+    final own = layout.rectFor(zone.view);
+    final other = zone.view == FigureView.front ? layout.back : layout.front;
+    var leftLimit = 0.0;
+    var rightLimit = width;
+    if (other != own) {
+      if (other.left >= own.right) {
+        rightLimit = other.left - kFigureLeaderGap;
+      } else {
+        leftLimit = other.right + kFigureLeaderGap;
+      }
+    }
     final room = onLeft
-        ? anchor.dx - kFigureLeaderGap
-        : width - anchor.dx - kFigureLeaderGap;
+        ? anchor.dx - kFigureLeaderGap - leftLimit
+        : rightLimit - anchor.dx - kFigureLeaderGap;
     final w = math.max(0.0, math.min(math.min(widthOf(p), maxWidth), room));
     final x = onLeft
         ? anchor.dx - kFigureLeaderGap - w
         : anchor.dx + kFigureLeaderGap;
     var rect = Rect.fromLTWH(
       x,
-      math.max(0, anchor.dy - kFigureLabelHeight / 2),
+      math.max(0, anchor.dy - labelHeight / 2),
       w,
-      kFigureLabelHeight,
+      labelHeight,
     );
     while (taken.any((t) => t.overlaps(rect))) {
-      rect = rect.shift(const Offset(0, kFigureLabelHeight + kFigureLabelGap));
+      rect = rect.shift(Offset(0, labelHeight + kFigureLabelGap));
     }
     taken.add(rect);
     slots.add(

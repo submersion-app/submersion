@@ -23,7 +23,10 @@ class FigureLayout {
 
   /// The pair side by side, each at the figure's 1:2 aspect, as large as the
   /// box allows, centred. A degenerate box still yields a positive layout.
-  static FigureLayout forSize(Size size) {
+  static FigureLayout forSize(
+    Size size, {
+    double gutter = FigureLayout.gutter,
+  }) {
     final byWidth = (size.width - gutter) / 2;
     final byHeight = size.height / 2;
     final figureWidth = math.max(1.0, math.min(byWidth, byHeight));
@@ -47,7 +50,7 @@ class FigureLayout {
   /// matching 1:2 height, capped by the box height), top-aligned so label
   /// columns can run below it. Both [front] and [back] are that rectangle,
   /// since the phone layout shows one view at a time.
-  static FigureLayout forSingle(Size size, {double fraction = 0.45}) {
+  static FigureLayout forSingle(Size size, {double fraction = 0.36}) {
     final figureWidth = math.max(
       1.0,
       math.min(size.width * fraction, size.height / 2),

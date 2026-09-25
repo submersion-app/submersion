@@ -138,6 +138,7 @@ class _DiverFigureState extends State<DiverFigure> {
       view: _view,
       layout: layout,
       width: width,
+      labelHeight: FigureNameLabel.heightFor(context, pill: false),
     );
     return Column(
       children: [
@@ -160,18 +161,26 @@ class _DiverFigureState extends State<DiverFigure> {
   }
 
   Widget _wide(BuildContext context, double width) {
-    final layout = FigureLayout.forSize(
-      Size(width, FigureLayout.preferredHeight(width)),
-    );
+    // The pair's spare width is split evenly between the two margins and the
+    // gutter, so pills have room on every side of both figures.
+    final height = FigureLayout.preferredHeight(width);
+    final gutter = ((width - height) / 3).clamp(FigureLayout.gutter, 220.0);
+    final layout = FigureLayout.forSize(Size(width, height), gutter: gutter);
     final style = FigureNameLabel.styleOf(context);
     final direction = Directionality.of(context);
+    final scaler = MediaQuery.textScalerOf(context);
     final slots = labelPills(
       model: widget.model,
       layout: layout,
       width: width,
       maxWidth: width / 4,
-      widthOf: (p) =>
-          FigureNameLabel.preferredWidth(widget.labelText(p), style, direction),
+      labelHeight: FigureNameLabel.heightFor(context, pill: true),
+      widthOf: (p) => FigureNameLabel.preferredWidth(
+        widget.labelText(p),
+        style,
+        direction,
+        textScaler: scaler,
+      ),
     );
     return _canvas(context, width, layout, slots);
   }
@@ -268,7 +277,7 @@ class _TrayTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: highlight?.fill ?? scheme.surfaceContainerHighest,
+            color: (highlight ?? figurePillFor(scheme)).fill,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
