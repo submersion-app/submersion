@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/planner/domain/entities/mission/current_vector.dart';
+import 'package:submersion/features/planner/domain/entities/mission/shore_exit.dart';
 
 /// One outbound leg of a mission route. It ends at the waypoint it names.
 class MissionLeg extends Equatable {
@@ -22,6 +23,9 @@ class MissionLeg extends Equatable {
   /// Current on this leg; null inherits the mission default.
   final CurrentVector? current;
 
+  /// Open water only: the nearest way onto land from this leg's waypoint.
+  final ShoreExit? shoreExit;
+
   const MissionLeg({
     required this.id,
     required this.order,
@@ -30,6 +34,7 @@ class MissionLeg extends Equatable {
     required this.depthM,
     required this.headingDeg,
     this.current,
+    this.shoreExit,
   });
 
   /// Heading of the return trip along this leg.
@@ -44,6 +49,8 @@ class MissionLeg extends Equatable {
     double? headingDeg,
     CurrentVector? current,
     bool clearCurrent = false,
+    ShoreExit? shoreExit,
+    bool clearShoreExit = false,
   }) {
     return MissionLeg(
       id: id ?? this.id,
@@ -53,6 +60,7 @@ class MissionLeg extends Equatable {
       depthM: depthM ?? this.depthM,
       headingDeg: headingDeg ?? this.headingDeg,
       current: clearCurrent ? null : (current ?? this.current),
+      shoreExit: clearShoreExit ? null : (shoreExit ?? this.shoreExit),
     );
   }
 
@@ -65,5 +73,6 @@ class MissionLeg extends Equatable {
     depthM,
     headingDeg,
     current,
+    shoreExit,
   ];
 }
