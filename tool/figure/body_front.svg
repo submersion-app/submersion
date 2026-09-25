@@ -4,10 +4,10 @@
   <rect x="68" y="72" width="64" height="128" rx="16"/>
   <path d="M70 82 L46 190 L60 194 L84 96 Z"/>
   <path d="M130 82 L154 190 L140 194 L116 96 Z"/>
-  <circle cx="40" cy="214" r="11"/>
-  <circle cx="160" cy="214" r="11"/>
-  <path d="M78 196 L70 340 L94 340 L100 210 Z"/>
-  <path d="M122 196 L130 340 L106 340 L100 210 Z"/>
+  <circle cx="53" cy="202" r="10"/>
+  <circle cx="147" cy="202" r="10"/>
+  <path d="M76 190 L70 340 L94 340 L100 190 Z"/>
+  <path d="M124 190 L130 340 L106 340 L100 190 Z"/>
   <rect x="68" y="338" width="26" height="20" rx="5"/>
   <rect x="106" y="338" width="26" height="20" rx="5"/>
   <rect x="120" y="80" width="12" height="112" rx="6"/>

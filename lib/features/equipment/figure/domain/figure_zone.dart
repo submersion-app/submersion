@@ -30,12 +30,12 @@ enum FigureZone {
   stageLeft(FigureView.front, 62, 160),
   stageRight(FigureView.front, 138, 160, mirrored: true),
   // Front, arms and hands.
-  wristLeft(FigureView.front, 44, 196),
-  wristRight(FigureView.front, 156, 196, mirrored: true),
-  hands(FigureView.front, 40, 216),
-  handLeft(FigureView.front, 28, 236),
-  handRight(FigureView.front, 172, 236, mirrored: true),
-  cameraArm(FigureView.front, 172, 252, capacity: 2, mirrored: true),
+  wristLeft(FigureView.front, 53, 186),
+  wristRight(FigureView.front, 147, 186, mirrored: true),
+  hands(FigureView.front, 53, 204),
+  handLeft(FigureView.front, 41, 224),
+  handRight(FigureView.front, 159, 224, mirrored: true),
+  cameraArm(FigureView.front, 172, 242, capacity: 2, mirrored: true),
   console(FigureView.front, 62, 230),
   // Front, waist and legs.
   waist(FigureView.front, 100, 198),
