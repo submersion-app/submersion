@@ -606,6 +606,35 @@ The plan is authoritative where they differ.
   table exists. The entity views take an id set (`getDiveIdsMatching`) and
   narrow the already-hydrated list rather than rehydrating.
 
+## Deviations recorded during implementation (PR 1)
+
+- `queryFilteredDiveIdsProvider` is an `autoDispose` family keyed on the
+  `DiveFilterState` instance. A changed filter lands on a fresh instance
+  that starts loading, so the table, maps and profile panel never show the
+  previous filter's dives; a write to a table the query read invalidates
+  the same instance and keeps its value, so the list never blanks.
+- Each dive notifier keeps ONE debounced change tick, widened to the
+  filter's extra tables (`_FilterAwareTick` over `watchTables`), never a
+  second tick beside the first: a local buddy edit writes the junction and
+  then the dive row, and two ticks reloaded the list twice.
+- Junction hops compile as `{to}.id IN (SELECT j.x FROM junction j WHERE
+  j.dive_id = {from}.id)` rather than a nested `EXISTS`: `EXPLAIN QUERY
+  PLAN` showed SQLite scanning the target under the EXISTS form and probing
+  its key under the IN form.
+- `certifications.buddy_id` has no index, so `buddies.certifications.*`
+  scans that (per-buddy, small) table; the query-plan test accepts that one
+  scan and a follow-up rung adds the index.
+- The parser stores canonical keys (`temp` becomes `waterTemp`), so a tree,
+  its JSON and its printed text hold one spelling; an enum typo with no
+  fuzzy match lists the field's values as suggestions.
+- `media.type` is a text field (the row mapper accepts two spellings of the
+  signature type); `equipment.status` is an enum over `EquipmentStatus`.
+- `meta` became a direct dependency so `lib/core/query` can use
+  `@immutable` without importing Flutter.
+- `watchDiveListChangesWithBuddyLinks` and `watchDivesChangesWithBuddyLinks`
+  remain (the buddy providers use one); only the dive-list notifiers moved
+  off them.
+
 ## Open items for the implementation plans
 
 - PR 1 must re-grep `currentSchemaVersion` only if it adds a table; it does

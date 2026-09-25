@@ -97,7 +97,7 @@ Deleted: `test/features/dive_log/presentation/providers/equipment_attr_filter_pr
 **Interfaces:**
 - Produces: `QuerySubject`, `QueryUnit`, `QueryValue` (+ subclasses), `FieldPath`, `QueryOp`, `QueryNode` (+ `AndNode`, `OrNode`, `NotNode`, `ConditionNode`, `ScopedNode`, `TextNode`), `QueryError`, `ParseFailure`, `QueryCompileError`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```dart
 // test/core/query/domain/query_node_test.dart
@@ -163,12 +163,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `flutter test test/core/query/domain/query_node_test.dart`
 Expected: FAIL, the imports do not resolve.
 
-- [ ] **Step 3: Write the model**
+- [x] **Step 3: Write the model**
 
 ```dart
 // lib/core/query/domain/query_subject.dart
@@ -561,12 +561,12 @@ class QueryJsonException implements Exception {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `flutter test test/core/query/domain/query_node_test.dart`
 Expected: PASS (4 tests).
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 dart format lib/core/query test/core/query
@@ -586,7 +586,7 @@ git commit -m "feat(query): query model (AST, values, errors)"
 - Consumes: Task 1.
 - Produces: `Map<String, Object?> queryNodeToJson(QueryNode)`, `QueryNode queryNodeFromJson(Map<String, Object?>)`, `const int kQueryJsonVersion = 1`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```dart
 // test/core/query/domain/query_json_test.dart
@@ -643,12 +643,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `flutter test test/core/query/domain/query_json_test.dart`
 Expected: FAIL, `query_json.dart` missing.
 
-- [ ] **Step 3: Write the codec**
+- [x] **Step 3: Write the codec**
 
 ```dart
 // lib/core/query/domain/query_json.dart
@@ -802,12 +802,12 @@ Map<String, Object?> _readMap(Object? v) {
 List<String> _readStrings(Object? v) => _readList(v).map(_str).toList();
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `flutter test test/core/query/domain/query_json_test.dart`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 dart format lib/core/query test/core/query
@@ -834,7 +834,7 @@ git commit -m "feat(query): versioned JSON codec for the AST"
 - Consumes: Task 1; `DepthUnit`, `TemperatureUnit`, `PressureUnit`, `WeightUnit`, `VolumeUnit` from `lib/core/constants/units.dart`.
 - Produces: `UnitPrefs`, `kMetricPrefs`, `groundToStorage`, `storageToDisplay`, `parseDateText`, `DateRange`, `FieldType`, `FieldDimension`, `QueryField`, `RelationShape`, `QueryRelation`, `QueryEntity`, `QueryRegistry`, `PathResolution`, `resolvePath`, `kMaxPathHops`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```dart
 // test/core/query/units/unit_prefs_test.dart
@@ -1027,12 +1027,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `flutter test test/core/query/units test/core/query/syntax/date_grammar_test.dart test/core/query/registry`
 Expected: FAIL, files missing.
 
-- [ ] **Step 3: Write the units, grammar and registry**
+- [x] **Step 3: Write the units, grammar and registry**
 
 ```dart
 // lib/core/query/units/unit_prefs.dart
@@ -1553,12 +1553,12 @@ List<String> suggestNames(String typed, Iterable<String> candidates) {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `flutter test test/core/query/units test/core/query/syntax/date_grammar_test.dart test/core/query/registry`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 dart format lib/core/query test/core/query
@@ -1582,7 +1582,7 @@ git commit -m "feat(query): unit grounding, date grammar and the registry contra
 
 The tests use a small fixture registry shared with later syntax tests. Create it first.
 
-- [ ] **Step 1: Write the fixture registry**
+- [x] **Step 1: Write the fixture registry**
 
 ```dart
 // test/core/query/fixtures/fixture_registry.dart
@@ -1792,7 +1792,7 @@ final fixtureRegistry = QueryRegistry([
 const kFixtureSite = RefValue('site-1', 'Salt Pier');
 ```
 
-- [ ] **Step 2: Write the failing tests**
+- [x] **Step 2: Write the failing tests**
 
 ```dart
 // test/core/query/syntax/query_tokenizer_test.dart
@@ -1992,12 +1992,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 3: Run the tests to verify they fail**
+- [x] **Step 3: Run the tests to verify they fail**
 
 Run: `flutter test test/core/query/syntax/query_tokenizer_test.dart test/core/query/syntax/query_parser_test.dart`
 Expected: FAIL, files missing.
 
-- [ ] **Step 4: Write the tokenizer**
+- [x] **Step 4: Write the tokenizer**
 
 ```dart
 // lib/core/query/syntax/query_tokenizer.dart
@@ -2105,7 +2105,7 @@ List<Token> tokenize(String input) {
 }
 ```
 
-- [ ] **Step 5: Write the parser**
+- [x] **Step 5: Write the parser**
 
 ```dart
 // lib/core/query/syntax/query_parser.dart
@@ -2519,12 +2519,12 @@ class QueryParser {
 }
 ```
 
-- [ ] **Step 6: Run the tests to verify they pass**
+- [x] **Step 6: Run the tests to verify they pass**
 
 Run: `flutter test test/core/query/syntax`
 Expected: PASS. If the `18,5` case fails, the comma check runs before the number is returned; it must run after the number token is consumed and before returning, as written.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 dart format lib/core/query test/core/query
@@ -2545,7 +2545,7 @@ git commit -m "feat(query): tokenizer and parser for the typed syntax"
 - Consumes: Tasks 1, 3, 4.
 - Produces: `QueryPrinter(registry, entity, prefs).print(QueryNode?) -> String`, `formatQueryNumber(double) -> String`.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 ```dart
 // test/core/query/syntax/query_printer_test.dart
@@ -2751,12 +2751,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run the tests to verify they fail**
+- [x] **Step 2: Run the tests to verify they fail**
 
 Run: `flutter test test/core/query/syntax/query_printer_test.dart test/core/query/syntax/query_round_trip_test.dart`
 Expected: FAIL, `query_printer.dart` missing.
 
-- [ ] **Step 3: Write the printer**
+- [x] **Step 3: Write the printer**
 
 ```dart
 // lib/core/query/syntax/query_printer.dart
@@ -2898,12 +2898,12 @@ class QueryPrinter {
 }
 ```
 
-- [ ] **Step 4: Run the tests to verify they pass**
+- [x] **Step 4: Run the tests to verify they pass**
 
 Run: `flutter test test/core/query/syntax`
 Expected: PASS. If a round-trip case fails on a number, inspect whether `formatQueryNumber` lost precision: the generator only makes values with two decimals, so a failure there is a printer bug, not a generator one.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 dart format lib/core/query test/core/query
@@ -2925,7 +2925,7 @@ git commit -m "feat(query): canonical printer with a parse-print round-trip prop
 
 The parser already rejects most of these while reading text; the validator is for trees the builder (PR 2) or a lowering makes, and it is what the compiler trusts.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```dart
 // test/core/query/compiler/query_validator_test.dart
@@ -2996,12 +2996,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `flutter test test/core/query/compiler/query_validator_test.dart`
 Expected: FAIL, file missing.
 
-- [ ] **Step 3: Write the validator**
+- [x] **Step 3: Write the validator**
 
 ```dart
 // lib/core/query/compiler/query_validator.dart
@@ -3145,12 +3145,12 @@ void _checkValue(FieldPath path, QueryField field, QueryOp op, QueryValue value,
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `flutter test test/core/query/compiler/query_validator_test.dart`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 dart format lib/core/query test/core/query
@@ -3171,7 +3171,7 @@ git commit -m "feat(query): validator reporting every error at once"
 - Consumes: Tasks 1, 3, 6; `wallClockUtcDayStart` from `lib/core/util/wall_clock_utc.dart`.
 - Produces: `CompiledQuery { where, params, tablesTouched, isEmpty, idSubquery() }`, `compileQuery(node, root, registry, {rootAlias})`, `substituteRow`, `substituteJoin`, `countPlaceholders`, `escapeLike`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```dart
 // test/core/query/compiler/query_compiler_scalar_test.dart
@@ -3308,12 +3308,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `flutter test test/core/query/compiler/query_compiler_scalar_test.dart`
 Expected: FAIL, files missing.
 
-- [ ] **Step 3: Write the templates helper and the compiler**
+- [x] **Step 3: Write the templates helper and the compiler**
 
 ```dart
 // lib/core/query/compiler/sql_templates.dart
@@ -3614,12 +3614,12 @@ class _Ctx {
 
 `tablesTouched` is fed by `QueryField.tables`, `QueryRelation.tables` and `QueryEntity.textSearchTables` (Task 3), which name the tables a fragment reads beyond the entity's own: a junction inside `joinSql`, `dive_weights` inside weight's `emptySql`, the profile tables inside deco.
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `flutter test test/core/query/compiler/query_compiler_scalar_test.dart test/core/query`
 Expected: PASS, including the earlier suites after the registry additions.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 dart format lib/core/query test/core/query
@@ -3639,7 +3639,7 @@ git commit -m "feat(query): SQL compiler for scalar conditions, presence and tex
 - Consumes: Task 7.
 - Produces: nothing new; pins the relation semantics.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```dart
 // test/core/query/compiler/query_compiler_relations_test.dart
@@ -3738,12 +3738,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run the test**
+- [x] **Step 2: Run the test**
 
 Run: `flutter test test/core/query/compiler/query_compiler_relations_test.dart`
 Expected: PASS if Task 7's hop code is right; fix the compiler where a golden differs, never the golden, unless the golden itself misreads the spec (the aliases must be `r1`, `r2` by depth and a junction's own alias `j` lives inside its template).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 dart format lib/core/query test/core/query
@@ -3778,7 +3778,7 @@ git commit -m "test(query): pin relation hops, presence and scoped-group semanti
 
 Label keys follow one convention, `query_<subject>_<key>` for fields and relations and `query_entity_<subject>` for the entity, so Task 10's guard can derive the expected ARB key set from the registry alone.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```dart
 // test/features/query/app_query_registry_test.dart
@@ -3837,12 +3837,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `flutter test test/features/query/app_query_registry_test.dart`
 Expected: FAIL, files missing.
 
-- [ ] **Step 3: Write the dive registry**
+- [x] **Step 3: Write the dive registry**
 
 ```dart
 // lib/features/dive_log/query/dive_query_entity.dart
@@ -4011,7 +4011,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
 
 `decoSignalCondition` takes `diveIdRef`; passing `'{r}.id'` leaves the placeholder for the compiler to substitute, which is why the deco `boolSql` can live at any depth.
 
-- [ ] **Step 4: Write the child and target entities**
+- [x] **Step 4: Write the child and target entities**
 
 ```dart
 // lib/features/dive_log/query/dive_child_query_entities.dart
@@ -4142,7 +4142,7 @@ final siteQueryEntity = QueryEntity(
 
 A date field on these tables stores epoch milliseconds like `dive_date_time`; declare it with `FieldType.date` and `emptySql: '{r}.<col> IS NULL'`.
 
-- [ ] **Step 5: Assemble the registry**
+- [x] **Step 5: Assemble the registry**
 
 ```dart
 // lib/features/query/app_query_registry.dart
@@ -4185,12 +4185,12 @@ final QueryRegistry appQueryRegistry = QueryRegistry([
 ]);
 ```
 
-- [ ] **Step 6: Run the test to verify it passes**
+- [x] **Step 6: Run the test to verify it passes**
 
 Run: `flutter test test/features/query/app_query_registry_test.dart && flutter test test/architecture/`
 Expected: PASS. The architecture guards scan all of `lib/`; a new `lib/` file that trips one is fixed here, not suppressed.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 dart format lib/features test/features/query
@@ -4210,7 +4210,7 @@ git commit -m "feat(query): dive registry and the entities its relations reach"
 - Consumes: Task 9; `setUpTestDatabase()` from `test/helpers/test_database.dart`; Drift table metadata (`AppDatabase.allTables`, `TableInfo.$columns`, `GeneratedColumn.$customConstraints`).
 - Produces: nothing new; the guards.
 
-- [ ] **Step 1: Write the failing guard test**
+- [x] **Step 1: Write the failing guard test**
 
 ```dart
 // test/features/query/query_registry_guards_test.dart
@@ -4334,12 +4334,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run the guard to see what fails**
+- [x] **Step 2: Run the guard to see what fails**
 
 Run: `flutter test test/features/query/query_registry_guards_test.dart`
 Expected: the label test FAILS (no ARB keys yet); any other failure is a registry bug from Task 9 and is fixed there before moving on.
 
-- [ ] **Step 3: Add the labels**
+- [x] **Step 3: Add the labels**
 
 Add every key the guard lists to `app_en.arb`. Values are short noun labels for the builder's field picker. Use these English values; the dive block is complete, the others follow the same pattern (key name to title case):
 
@@ -4383,12 +4383,12 @@ query_dives_media: Media
 
 Each key gets a `@key` metadata entry with `"description": "Field label in the query builder"`. Append the block before the closing brace of `app_en.arb`, and add translated blocks to `app_ar`, `app_de`, `app_es`, `app_fr`, `app_he`, `app_hu`, `app_it`, `app_nl`, `app_pt`, `app_zh` (translations only, no `@` metadata in non-en files if the file's other keys carry none; match the file's convention). German uses "AMV" never "SAC"; there is no SAC label here. Regenerate: `flutter gen-l10n`, and confirm `git status` shows only the `.arb` files and the generated `app_localizations_*.dart` changed.
 
-- [ ] **Step 4: Run the guards and the l10n tests**
+- [x] **Step 4: Run the guards and the l10n tests**
 
 Run: `flutter test test/features/query/query_registry_guards_test.dart test/l10n/`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 dart format .
@@ -4408,7 +4408,7 @@ git commit -m "feat(query): registry guards and field labels in every locale"
 - Consumes: Tasks 7 to 10; `setUpTestDatabase()`.
 - Produces: `seedQueryFixture(AppDatabase) -> Future<QueryFixtureIds>`, reused by Tasks 12 and 13.
 
-- [ ] **Step 1: Write the fixture**
+- [x] **Step 1: Write the fixture**
 
 ```dart
 // test/features/dive_log/query/dive_query_fixture.dart
@@ -4489,7 +4489,7 @@ Future<void> seedQueryFixture(AppDatabase db) async {
 
 If a companion above lacks a column that the schema requires (check the `Divers` foreign key on `diver_id`: insert a `me` and an `other` diver first if the test database enforces it; other repository tests insert dives without one, so match them), adjust the fixture, never the assertions.
 
-- [ ] **Step 2: Write the failing semantics test**
+- [x] **Step 2: Write the failing semantics test**
 
 ```dart
 // test/features/dive_log/query/dive_query_semantics_test.dart
@@ -4602,12 +4602,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 3: Run the test**
+- [x] **Step 3: Run the test**
 
 Run: `flutter test test/features/dive_log/query/dive_query_semantics_test.dart`
 Expected: PASS. A failing `EXPLAIN QUERY PLAN` case names a hop whose correlation column has no index; add the index in this PR only if the table's FK column is unindexed in `database.dart` (a schema rung), otherwise fix the joinSql. A failing id-set case is a registry or compiler bug, never a fixture change.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 dart format test/features/dive_log/query
@@ -4630,7 +4630,7 @@ git commit -m "test(query): the request's queries against a seeded database"
 - Consumes: Tasks 7, 9, 11; `EquipmentAttrCondition` (`lib/features/equipment/domain/models/equipment_attr_condition.dart`).
 - Produces: `extension DiveFilterQuery on DiveFilterState { QueryNode? toQuery(); }`, `CompiledQuery compileDiveFilter(DiveFilterState, {String rootAlias = 'r0'})`, `Set<String> diveFilterTablesTouched(DiveFilterState)`.
 
-- [ ] **Step 1: Add the `query` field to `DiveFilterState`**
+- [x] **Step 1: Add the `query` field to `DiveFilterState`**
 
 In `dive_filter_state.dart`: add `final QueryNode? query;` with the doc comment below, a constructor parameter `this.query`, `copyWith` parameters `QueryNode? query` and `bool clearQuery = false`, and `query != null` in `hasActiveFilters`. Import `package:submersion/core/query/domain/query_node.dart`.
 
@@ -4641,7 +4641,7 @@ In `dive_filter_state.dart`: add `final QueryNode? query;` with the doc comment 
   final QueryNode? query;
 ```
 
-- [ ] **Step 2: Write the failing lowering tests**
+- [x] **Step 2: Write the failing lowering tests**
 
 ```dart
 // test/features/dive_log/query/dive_filter_query_test.dart
@@ -4849,12 +4849,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 3: Run the tests to verify they fail**
+- [x] **Step 3: Run the tests to verify they fail**
 
 Run: `flutter test test/features/dive_log/query/`
 Expected: the three new files FAIL (no `dive_filter_query.dart`).
 
-- [ ] **Step 4: Write the lowering**
+- [x] **Step 4: Write the lowering**
 
 ```dart
 // lib/features/dive_log/query/dive_filter_query.dart
@@ -4960,12 +4960,12 @@ Set<String> diveFilterTablesTouched(DiveFilterState filter) => compileDiveFilter
 
 `EnumValue` for `type` uses `EquipmentType.name` strings, which is what the `equipment.type` column stores and what the equipment registry's `enumValues` lists.
 
-- [ ] **Step 5: Run the tests to verify they pass**
+- [x] **Step 5: Run the tests to verify they pass**
 
 Run: `flutter test test/features/dive_log/query/ test/features/query/`
 Expected: PASS, including the equivalence cases. An equivalence failure means the lowering or a registry fragment disagrees with `apply()`; `apply()` is the reference for every axis except bottom time, where the truncated-minutes registry field IS `apply()`'s rule (`Duration.inMinutes`), so the two agree there too.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 dart format lib/features/dive_log test/features/dive_log/query
@@ -4985,7 +4985,7 @@ git commit -m "feat(dive-log): lower DiveFilterState to the query tree, with cen
 - Consumes: Task 12.
 - Produces: `Future<Set<String>> getDiveIdsMatching(DiveFilterState filter, {String? diverId})`, `Stream<void> watchTables(Set<String> tableNames)`, `Set<TableInfo> tablesNamed(Set<String>)`.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```dart
 // test/features/dive_log/data/repositories/dive_repository_query_filter_test.dart
@@ -5045,12 +5045,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `flutter test test/features/dive_log/data/repositories/dive_repository_query_filter_test.dart`
 Expected: FAIL, `getDiveIdsMatching` and `watchTables` undefined.
 
-- [ ] **Step 3: Replace `_buildFilterWhereClauses` and add the two methods**
+- [x] **Step 3: Replace `_buildFilterWhereClauses` and add the two methods**
 
 Replace the whole body of `_buildFilterWhereClauses` (keep its signature and the `// stats-scope-exempt:` line) with:
 
@@ -5131,12 +5131,12 @@ Add, next to `getDiveIdsWithDecoSignal` (which Task 15 deletes):
 
 In `getDiveSummaries`, `getOrderedDiveIds` and `getDiveCount`, replace each hard-coded `readsFrom: { ... }` set with the tables the query renders from plus the filter's: for the summary query keep `_db.dives, _db.diveSites, _db.trips, _db.diveSafetyFindings` and add `...tablesNamed(compileDiveFilter(filter, rootAlias: 'd').tablesTouched)`; for the count and ordered ids, `{_db.dives, _db.diveSites, ...tablesNamed(...)}`. Compile once per method into a local and pass it to both `_buildFilterWhereClauses` (change its parameter from `filter` to the `CompiledQuery`) and `readsFrom`, so the filter is not compiled twice per call. Import `package:submersion/features/dive_log/query/dive_filter_query.dart`.
 
-- [ ] **Step 4: Run the test and the existing repository suites**
+- [x] **Step 4: Run the test and the existing repository suites**
 
 Run: `flutter test test/features/dive_log/data/repositories/`
 Expected: PASS. `dive_repository_equipment_attr_filter_test.dart` and `dive_repository_deco_filter_test.dart` still pass here because their methods survive until Task 15.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 dart format lib/features/dive_log test/features/dive_log
@@ -5157,7 +5157,7 @@ git commit -m "feat(dive-log): the repository compiles the filter once, with der
 - Consumes: Task 12.
 - Produces: unchanged `({String subquery, List<Object?> params}) buildFilteredDiveIdSubquery(DiveFilterState)`.
 
-- [ ] **Step 1: Write the failing parity test**
+- [x] **Step 1: Write the failing parity test**
 
 ```dart
 // test/features/dive_log/query/dive_filter_three_paths_test.dart
@@ -5216,12 +5216,12 @@ void main() {
 }
 ```
 
-- [ ] **Step 2: Run it to verify it fails**
+- [x] **Step 2: Run it to verify it fails**
 
 Run: `flutter test test/features/dive_log/query/dive_filter_three_paths_test.dart`
 Expected: the typed cases FAIL on the Statistics path, which still reads the old axes only.
 
-- [ ] **Step 3: Rewrite `buildFilteredDiveIdSubquery`**
+- [x] **Step 3: Rewrite `buildFilteredDiveIdSubquery`**
 
 Replace everything in `dive_filter_sql.dart` from the top of the file down to (not including) the doc comment of `decoSignalCondition` with:
 
@@ -5251,12 +5251,12 @@ Delete `equipmentAttrConditionSql` and its doc comment. Keep `decoSignalConditio
 
 In `test/features/statistics/data/dive_filter_sql_test.dart`, delete every case that asserted a specific SQL string for an axis (they tested the deleted hand-written builder); keep or rewrite the cases that assert behaviour through a database, and add one case that `buildFilteredDiveIdSubquery(const DiveFilterState()).subquery` is empty and one that a filter with `siteId` yields a subquery starting with `SELECT fq.id FROM dives fq WHERE`.
 
-- [ ] **Step 4: Run the Statistics and dive-log suites**
+- [x] **Step 4: Run the Statistics and dive-log suites**
 
 Run: `flutter test test/features/statistics test/features/dive_log/query`
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 dart format lib/features/statistics test/features
@@ -5284,7 +5284,7 @@ git commit -m "feat(statistics): the filtered id subquery is the compiled query"
 
 `watchDivesChangesWithBuddyLinks` and `watchDiveListChangesWithBuddyLinks` STAY: `buddy_providers.dart:39` reads the first and the architecture guard lists both. Only the dive-list notifiers stop using them.
 
-- [ ] **Step 1: Write the failing provider test**
+- [x] **Step 1: Write the failing provider test**
 
 ```dart
 // test/features/dive_log/presentation/providers/query_filtered_dives_provider_test.dart
@@ -5353,12 +5353,12 @@ void main() {
 
 Check the exact provider that yields the current diver id (`currentDiverIdProvider`, imported in `dive_providers.dart`) and its override shape against `buddy_filter_reload_test.dart`, and match it.
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `flutter test test/features/dive_log/presentation/providers/query_filtered_dives_provider_test.dart`
 Expected: FAIL, `queryFilteredDiveIdsProvider` undefined.
 
-- [ ] **Step 3: Rewrite the providers**
+- [x] **Step 3: Rewrite the providers**
 
 Replace `decoFilteredDiveIdsProvider`, `equipmentAttrFilteredDiveIdsProvider` and `filteredDivesProvider` (dive_providers.dart:40-142) with:
 
@@ -5478,14 +5478,14 @@ In `statistics_providers.dart:51-53`, replace the `if (filter.equipmentAttrCondi
   if (extra.isNotEmpty) ref.invalidateSelfWhen(repository.watchTables(extra));
 ```
 
-- [ ] **Step 4: Delete the superseded code**
+- [x] **Step 4: Delete the superseded code**
 
 - `dive_filter_state.dart`: delete `apply()` and `readsBuddyLinks` with their doc comments; delete the now-unused `dive.dart` and `wall_clock_utc.dart` imports if nothing else uses them; update the class doc comment to say the state is lowered by `DiveFilterQuery.toQuery()` and evaluated only in SQL.
 - `dive_repository_impl.dart`: delete `getDiveIdsWithDecoSignal`, `getDiveIdsMatchingEquipmentAttrs`, `watchEquipmentAttrFilterChanges` and their doc comments; the `readsFrom` sets were already rebuilt in Task 13.
 - `equipment_attr_condition.dart`: delete `EquipmentAttrConditionsKey` (no family key needs it now).
 - `dive_filter_sql.dart`: nothing further (Task 14).
 
-- [ ] **Step 5: Migrate the tests**
+- [x] **Step 5: Migrate the tests**
 
 - `dive_filter_state_test.dart`: delete every `apply(` group and the `readsBuddyLinks (#1915)` group; keep `copyWith`, `hasActiveFilters` and the date-bound getters; add one case that `copyWith(query: ...)` sets and `clearQuery` clears the field and that `hasActiveFilters` is true with only `query` set.
 - `dive_filter_excluded_axis_test.dart`, `dive_filter_date_boundary_test.dart`: replace each `filter.apply(dives)` with the compiled SQL against a database: seed the same dives through `db.into(db.dives)` and read `DiveRepository().getDiveIdsMatching(filter, diverId: ...)`. The date-boundary cases keep their exact day-boundary assertions (issue #1368); they now prove them against SQL, which is where they always mattered.
@@ -5495,12 +5495,12 @@ In `statistics_providers.dart:51-53`, replace the `if (filter.equipmentAttrCondi
 - `dive_filter_apply_equivalence_test.dart`: delete the file. Its proof ran in Task 12 against the code that existed then; the three-paths test (Task 14) and the semantics test (Task 11) are the permanent guards. Say so in the commit message.
 - Delete `equipment_attr_filter_providers_test.dart`.
 
-- [ ] **Step 6: Run the affected suites**
+- [x] **Step 6: Run the affected suites**
 
 Run: `flutter test test/features/dive_log test/features/statistics test/features/buddies test/architecture test/features/query test/core/query`
 Expected: PASS. Then `flutter analyze` on the whole project: expected no issues (infos are fatal in CI).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 dart format .
@@ -5517,17 +5517,17 @@ git commit -m "refactor(dive-log): every dive view narrows by the compiled query
 - Modify: `docs/superpowers/specs/2026-09-25-entity-query-language-design.md` (a "Deviations recorded during implementation (PR 1)" section)
 - Modify: `docs/superpowers/plans/2026-09-25-query-language-pr1-core-engine-dives.md` (tick every box)
 
-- [ ] **Step 1: Format, analyze, l10n staleness**
+- [x] **Step 1: Format, analyze, l10n staleness**
 
 Run: `dart format . && flutter analyze && flutter gen-l10n && git status --short`
 Expected: analyze reports no issues; `git status` shows nothing new after gen-l10n (generated l10n is not stale).
 
-- [ ] **Step 2: Run the full suite once**
+- [x] **Step 2: Run the full suite once**
 
 Run: `TMPDIR=/tmp flutter test`
 Expected: exit code 0 and no failures printed. Do not pipe the output through `tail` or `grep` (that masks the exit code); redirect to a file in the scratchpad and read the file if it is long. Do not start a second run while one is in progress.
 
-- [ ] **Step 3: Record the deviations in the spec**
+- [x] **Step 3: Record the deviations in the spec**
 
 Append to the spec:
 
@@ -5557,7 +5557,7 @@ Append to the spec:
   buddy-name axis can lower to "linked buddy OR legacy text".
 ```
 
-- [ ] **Step 4: Commit and open the PR**
+- [x] **Step 4: Commit and open the PR**
 
 ```bash
 git add docs/superpowers
