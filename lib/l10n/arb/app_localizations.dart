@@ -21230,17 +21230,17 @@ abstract class AppLocalizations {
   /// **'Back · {count}'**
   String equipment_figure_backCount(int count);
 
-  /// No description provided for @equipment_figure_discLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'{number}, {type}, {name}'**
-  String equipment_figure_discLabel(int number, String type, String name);
-
   /// No description provided for @equipment_figure_frontCount.
   ///
   /// In en, this message translates to:
   /// **'Front · {count}'**
   String equipment_figure_frontCount(int count);
+
+  /// No description provided for @equipment_figure_itemLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{number}, {type}, {name}'**
+  String equipment_figure_itemLabel(int number, String type, String name);
 
   /// No description provided for @equipment_figure_summary.
   ///

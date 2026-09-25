@@ -20,7 +20,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import '../../../../helpers/mock_providers.dart';
 
 /// The set page shows the figure above its list and numbers the list as the
-/// legend, so a disc and its row always agree.
+/// legend, so a label and its row always agree.
 void main() {
   EquipmentItem gear(String id, String name, EquipmentType type) =>
       EquipmentItem(id: id, name: name, type: type);
@@ -76,7 +76,7 @@ void main() {
     gear('f', 'Jet Fins', EquipmentType.fins),
   ];
 
-  testWidgets('the figure appears with one disc and one row badge per item', (
+  testWidgets('the figure appears with one label and one row badge per item', (
     tester,
   ) async {
     await pump(tester, three);
@@ -105,7 +105,7 @@ void main() {
     expect(find.byType(DiverFigure), findsNothing);
   });
 
-  testWidgets('tapping a disc selects its row and the row badge', (
+  testWidgets('tapping a label selects its row and the row badge', (
     tester,
   ) async {
     await pump(tester, three);
@@ -115,7 +115,7 @@ void main() {
         .widgetList<FigureNumberBadge>(find.byType(FigureNumberBadge))
         .where((b) => b.selected)
         .toList();
-    // The disc and its legend row, carrying the same number.
+    // The label and its legend row, carrying the same number.
     expect(selected.length, 2);
     expect(selected.map((b) => b.number).toSet().length, 1);
     // The highlight clears on its own.

@@ -7468,18 +7468,18 @@
       "count": {"type": "int"}
     }
   },
-  "equipment_figure_discLabel": "{number}, {type}, {name}",
-  "@equipment_figure_discLabel": {
-    "placeholders": {
-      "number": {"type": "int"},
-      "type": {"type": "String"},
-      "name": {"type": "String"}
-    }
-  },
   "equipment_figure_frontCount": "Front · {count}",
   "@equipment_figure_frontCount": {
     "placeholders": {
       "count": {"type": "int"}
+    }
+  },
+  "equipment_figure_itemLabel": "{number}, {type}, {name}",
+  "@equipment_figure_itemLabel": {
+    "placeholders": {
+      "number": {"type": "int"},
+      "type": {"type": "String"},
+      "name": {"type": "String"}
     }
   },
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} item} other{{count} items}}",

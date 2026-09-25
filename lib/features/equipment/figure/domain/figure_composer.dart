@@ -125,7 +125,7 @@ List<FigureZone> _zonesForTankRole(FigureItemInput item) {
 }
 
 /// Two tanks in the back tank zone are one manifolded pair: the first draws
-/// the doubles piece and the second draws nothing (its disc still shows).
+/// the doubles piece and the second draws nothing (its label still shows).
 List<PlacedItem> _mergeDoubles(List<PlacedItem> placed) {
   final backTanks = [
     for (final p in placed)

@@ -4,7 +4,7 @@ import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_section_colors.dart';
 
-/// A tapped disc flashes its legend row. Four of the five presets are
+/// A tapped label flashes its legend row. Four of the five presets are
 /// hand-built and leave `primaryContainer` unset, so Flutter falls back to
 /// `primary`, and a row filled with it hid its own title (1.00:1 on console
 /// light). The flash is derived by contrast instead, and pinned here as an

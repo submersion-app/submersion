@@ -249,11 +249,11 @@ void main() {
         composeFigure([
           item('hood', EquipmentType.hood),
           item('gloves', EquipmentType.gloves),
-          FigureItemInput(
+          const FigureItemInput(
             id: 'ankle',
             type: EquipmentType.weights,
             name: 'ankle',
-            attributes: const {'weight_style': 'ankle'},
+            attributes: {'weight_style': 'ankle'},
           ),
         ]),
       );

@@ -4240,7 +4240,7 @@
   "equipment_sets_itemCountPlural": "{count} éléments",
   "equipment_sets_itemCountSemanticLabel": "{count} dans l'ensemble",
   "equipment_sets_itemCountSingular": "{count} élément",
-  "equipment_figure_discLabel": "{number}, {type}, {name}",
+  "equipment_figure_itemLabel": "{number}, {type}, {name}",
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} élément} other{{count} éléments}}",
   "equipment_figure_trayTitle": "Également emporté",
   "equipment_figure_frontCount": "Devant · {count}",

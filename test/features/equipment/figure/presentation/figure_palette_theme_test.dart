@@ -4,7 +4,7 @@ import 'package:submersion/core/theme/app_theme_registry.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_section_colors.dart';
 
-/// The mannequin and the discs have to read on every theme the app ships.
+/// The mannequin and the number badges have to read on every theme the app ships.
 /// Four of the five presets are hand-built and collapse their secondary
 /// roles, so these tests pin outcomes (contrast floors), never roles.
 void main() {

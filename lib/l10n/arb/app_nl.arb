@@ -4342,7 +4342,7 @@
   "equipment_sets_itemCountPlural": "{count} onderdelen",
   "equipment_sets_itemCountSemanticLabel": "{count} in set",
   "equipment_sets_itemCountSingular": "{count} onderdeel",
-  "equipment_figure_discLabel": "{number}, {type}, {name}",
+  "equipment_figure_itemLabel": "{number}, {type}, {name}",
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} item} other{{count} items}}",
   "equipment_figure_trayTitle": "Ook meegenomen",
   "equipment_figure_frontCount": "Voorkant · {count}",

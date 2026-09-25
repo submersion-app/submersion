@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 
-/// The numbered disc, on the figure and at the head of a legend row.
+/// The number badge, at the head of a figure label and of a legend row.
 ///
-/// Always drawn with a ring in the on-disc colour, so the disc keeps an edge
+/// Always drawn with a ring in the digit colour, so the badge keeps an edge
 /// on a body or a gear colour close to `primary`; selection thickens it.
 class FigureNumberBadge extends StatelessWidget {
   const FigureNumberBadge({

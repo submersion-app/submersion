@@ -4445,7 +4445,7 @@
   "equipment_sets_itemCountPlural": "{count} Gegenstände",
   "equipment_sets_itemCountSemanticLabel": "{count} im Set",
   "equipment_sets_itemCountSingular": "{count} Gegenstand",
-  "equipment_figure_discLabel": "{number}, {type}, {name}",
+  "equipment_figure_itemLabel": "{number}, {type}, {name}",
   "equipment_figure_summary": "{name}, {count, plural, =1{{count} Gegenstand} other{{count} Gegenstände}}",
   "equipment_figure_trayTitle": "Außerdem dabei",
   "equipment_figure_frontCount": "Vorne · {count}",

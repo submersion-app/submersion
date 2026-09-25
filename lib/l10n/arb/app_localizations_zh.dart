@@ -12275,13 +12275,13 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String equipment_figure_discLabel(int number, String type, String name) {
-    return '$number, $type, $name';
+  String equipment_figure_frontCount(int count) {
+    return '正面 · $count';
   }
 
   @override
-  String equipment_figure_frontCount(int count) {
-    return '正面 · $count';
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
   }
 
   @override

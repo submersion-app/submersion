@@ -3,7 +3,7 @@ import 'package:submersion/features/equipment/figure/domain/figure_space.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_view.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_zone.dart';
 
-/// Zones are the anchor points every disc and every piece is placed by, so
+/// Zones are the anchor points every label and every piece is placed by, so
 /// they have to lie inside the figure and the left/right pairs have to be
 /// true mirrors: a piece authored for the left twin is flipped onto the right.
 void main() {

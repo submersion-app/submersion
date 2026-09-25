@@ -39,7 +39,7 @@ class EquipmentSetDetailPage extends ConsumerStatefulWidget {
 
 class _EquipmentSetDetailPageState
     extends ConsumerState<EquipmentSetDetailPage> {
-  /// The item whose disc and legend row are highlighted, cleared after a
+  /// The item whose figure label and legend row are highlighted, cleared after a
   /// moment so the highlight reads as a flash rather than a selection mode.
   String? _selectedId;
   Timer? _flashTimer;
@@ -139,7 +139,7 @@ class _EquipmentSetDetailPageState
     );
     // Arranged the same way as the gear lists on a dive, so a set reads the
     // way the diver reads their rig (#1486, #1576). The figure numbers items
-    // in this same order, so its discs and the list's badges agree.
+    // in this same order, so its labels and the list's badges agree.
     final groups = arrangeEquipment(
       set.items ?? const <EquipmentItem>[],
       ref.watch(equipmentArrangementProvider),
@@ -316,7 +316,7 @@ class _EquipmentSetDetailPageState
                     selectionSerial: _selectionSerial,
                     onItemTap: (placed) => _select(placed.item.id),
                     itemSemantics: (placed) =>
-                        context.l10n.equipment_figure_discLabel(
+                        context.l10n.equipment_figure_itemLabel(
                           placed.number,
                           placed.item.type.localizedName(context.l10n),
                           placed.item.name,

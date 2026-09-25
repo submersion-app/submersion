@@ -4240,7 +4240,7 @@
   "equipment_sets_itemCountPlural": "{count} פריטים",
   "equipment_sets_itemCountSemanticLabel": "{count} בסט",
   "equipment_sets_itemCountSingular": "{count} פריט",
-  "equipment_figure_discLabel": "{number}, {type}, {name}",
+  "equipment_figure_itemLabel": "{number}, {type}, {name}",
   "equipment_figure_summary": "{name}, {count, plural, =1{פריט אחד} other{{count} פריטים}}",
   "equipment_figure_trayTitle": "נלקח גם",
   "equipment_figure_frontCount": "חזית · {count}",

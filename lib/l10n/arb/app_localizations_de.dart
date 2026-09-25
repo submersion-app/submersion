@@ -12851,13 +12851,13 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String equipment_figure_discLabel(int number, String type, String name) {
-    return '$number, $type, $name';
+  String equipment_figure_frontCount(int count) {
+    return 'Vorne · $count';
   }
 
   @override
-  String equipment_figure_frontCount(int count) {
-    return 'Vorne · $count';
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
   }
 
   @override
