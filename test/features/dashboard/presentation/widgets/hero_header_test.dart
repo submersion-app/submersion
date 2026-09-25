@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/hero_header.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -10,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -18,7 +20,7 @@ void main() {
   group('HeroHeader', () {
     testWidgets('shows diver full name and career stats', (tester) async {
       // Pin to phone width: the career-stats subtitle only renders below
-      // the desktop breakpoint (desktop shows the date + quiet stats).
+      // the desktop breakpoint (desktop shows quiet stats instead).
       tester.view.physicalSize = const Size(500, 900);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
@@ -154,6 +156,42 @@ void main() {
       expect(find.text('DIVES'), findsOneWidget);
       expect(find.text('COUNTRIES'), findsOneWidget);
       expect(find.text('14'), findsOneWidget);
+    });
+
+    testWidgets('desktop width shows no date under the greeting', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(1300, 800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(tester.view.reset);
+      final overrides = await getBaseOverrides();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ...overrides,
+            divesProvider.overrideWith((ref) async => <Dive>[]),
+            currentDiverProvider.overrideWith((ref) async => null),
+          ].cast(),
+          child: const MaterialApp(
+            locale: Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(body: SingleChildScrollView(child: HeroHeader())),
+          ),
+        ),
+      );
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(HeroHeader)),
+      );
+      final today = UnitFormatter(
+        container.read(settingsProvider),
+      ).formatDate(DateTime.now());
+      expect(find.text(today), findsNothing);
     });
 
     testWidgets('phone width hides quiet center stats', (tester) async {

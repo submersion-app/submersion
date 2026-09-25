@@ -16,6 +16,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/tank_presets/domain/services/tank_preset_visibility.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 import 'package:submersion/features/transmitters/domain/entities/transmitter.dart';
@@ -508,9 +509,15 @@ class _TransmitterEditPageState extends ConsumerState<TransmitterEditPage> {
                   ),
                   const SizedBox(height: 8),
                   presets.when(
+                    skipLoadingOnReload: true,
                     loading: () => const LinearProgressIndicator(),
                     error: (e, st) => Text('${l10n.common_label_error}: $e'),
-                    data: (list) {
+                    data: (visibleList) {
+                      // A preset the diver has since hidden stays selectable
+                      // while it is this transmitter's value (issue #2305).
+                      final list = withKeptTankPresets(visibleList, [
+                        _presetName,
+                      ]);
                       final matching = _presetName == null
                           ? null
                           : list

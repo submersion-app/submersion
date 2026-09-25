@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
+import 'package:googleapis_auth/googleapis_auth.dart' as gauth;
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
@@ -28,6 +30,10 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   bool silentAuthResult = true;
   bool signedOut = false;
 
+  /// When set, a successful silent re-auth publishes this client, the way a
+  /// real re-auth replaces the one that failed.
+  http.Client? silentAuthClient;
+
   @override
   http.Client? get authClient => _client;
 
@@ -40,6 +46,9 @@ class _FakeAuthenticator implements GoogleDriveAuthenticator {
   @override
   Future<bool> attemptSilentAuth() async {
     silentAuthCalls++;
+    if (silentAuthResult && silentAuthClient != null) {
+      _client = silentAuthClient;
+    }
     return silentAuthResult;
   }
 
@@ -331,6 +340,81 @@ void main() {
     );
   });
 
+  // The desktop loopback client refreshes its access token lazily, on the
+  // first request, and a revoked or expired grant fails that refresh with an
+  // OAuth invalid_grant rather than a Drive 401. It must still be treated as
+  // a dead sign-in: cleared, and reported as one, or every later sync fails
+  // the same way with a generic "List files failed" (issue #2332).
+  group('a rejected token refresh', () {
+    GoogleDriveStorageProvider refreshFailing(
+      _FakeAuthenticator authenticator,
+    ) => GoogleDriveStorageProvider(authenticator: authenticator);
+
+    gauth.ServerRequestFailedException refreshError(String error) =>
+        gauth.ServerRequestFailedException(
+          'Failed to obtain access credentials. Error: $error',
+          statusCode: 400,
+          responseContent: {
+            'error': error,
+            'error_description': 'Token has been expired or revoked.',
+          },
+        );
+
+    test('invalid_grant clears the grant and asks to sign in again', () async {
+      final failingAuth = _FakeAuthenticator(
+        MockClient((_) async => throw refreshError('invalid_grant')),
+      )..silentAuthResult = false;
+
+      await expectLater(
+        refreshFailing(failingAuth).listFiles(namePattern: 'ssv1.'),
+        throwsA(
+          isA<CloudStorageException>().having(
+            (e) => e.message,
+            'message',
+            contains('sign in'),
+          ),
+        ),
+      );
+      expect(failingAuth.authFailures, 1);
+    });
+
+    test('invalid_grant retries once when a silent re-auth recovers', () async {
+      // The silent re-auth installs a working client, as a mobile
+      // google_sign_in re-auth would.
+      final recovering = _FakeAuthenticator(
+        MockClient((_) async => throw refreshError('invalid_grant')),
+      )..silentAuthClient = drive_.client();
+
+      final files = await refreshFailing(
+        recovering,
+      ).listFiles(namePattern: 'ssv1.');
+
+      expect(files, isEmpty);
+      expect(recovering.authFailures, 1);
+    });
+
+    test('any other token-endpoint failure keeps the grant', () async {
+      // A 5xx or a malformed response from Google's token endpoint is a
+      // transient outage, not a revoked grant: signing the user out over it
+      // would turn a blip into a forced re-login.
+      final failingAuth = _FakeAuthenticator(
+        MockClient(
+          (_) async => throw gauth.ServerRequestFailedException(
+            'Failed to obtain access credentials.',
+            statusCode: 503,
+            responseContent: 'unavailable',
+          ),
+        ),
+      );
+
+      await expectLater(
+        refreshFailing(failingAuth).listFiles(namePattern: 'ssv1.'),
+        throwsA(isA<CloudStorageException>()),
+      );
+      expect(failingAuth.authFailures, 0);
+    });
+  });
+
   test('quota exhaustion maps to a storage-is-full error', () async {
     drive_.failuresRemaining = 1;
     drive_.failureStatus = 403;
@@ -422,6 +506,26 @@ void main() {
       await expectLater(
         failing().downloadFile('file-1'),
         throwsA(isA<CloudStorageException>()),
+      );
+    });
+
+    // Sync reads the cause to report a missed HTTP deadline as a timeout
+    // rather than as a generic listing failure (#2332).
+    test('a request timeout survives as the cause', () async {
+      final timingOut = GoogleDriveStorageProvider(
+        authenticator: _FakeAuthenticator(
+          MockClient((_) async => throw TimeoutException('response')),
+        ),
+      );
+      await expectLater(
+        timingOut.listFiles(folderId: 'folder-7'),
+        throwsA(
+          isA<CloudStorageException>().having(
+            (e) => e.cause,
+            'cause',
+            isA<TimeoutException>(),
+          ),
+        ),
       );
     });
 

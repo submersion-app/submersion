@@ -98,6 +98,15 @@ class TankPresetsPage extends ConsumerWidget {
                 context,
                 context.l10n.tankPresets_builtInPresets,
               ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: Text(
+                  context.l10n.tankPresets_builtInPresets_description,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
               ...builtInPresets.map(
                 (preset) => _buildPresetTile(
                   context,
@@ -106,6 +115,9 @@ class TankPresetsPage extends ConsumerWidget {
                   units,
                   canEdit: false,
                   isDefault: settings.defaultTankPreset == preset.name,
+                  isHidden:
+                      settings.defaultTankPreset != preset.name &&
+                      settings.hiddenTankPresetIds.contains(preset.name),
                 ),
               ),
             ],
@@ -134,6 +146,7 @@ class TankPresetsPage extends ConsumerWidget {
     UnitFormatter units, {
     required bool canEdit,
     required bool isDefault,
+    bool isHidden = false,
   }) {
     final volumeStr = units.formatTankVolume(
       preset.volumeLiters,
@@ -146,9 +159,15 @@ class TankPresetsPage extends ConsumerWidget {
     );
 
     return ListTile(
+      // A hidden built-in preset stays listed so it can be shown again, and
+      // only its text and icon are dimmed: the tile is not disabled, since
+      // its star and switch stay usable.
+      textColor: isHidden ? Theme.of(context).disabledColor : null,
       leading: Icon(
         MdiIcons.divingScubaTank,
-        color: canEdit
+        color: isHidden
+            ? Theme.of(context).disabledColor
+            : canEdit
             ? Theme.of(context).colorScheme.secondary
             : Theme.of(context).colorScheme.primary,
       ),
@@ -182,6 +201,26 @@ class TankPresetsPage extends ConsumerWidget {
                 ? context.l10n.tankPresets_currentDefault
                 : context.l10n.tankPresets_setAsDefault,
           ),
+          // Built-in presets can be hidden from the pickers (issue #2305),
+          // except the default one. Its switch keeps its space so the stars
+          // stay aligned down the list.
+          if (!canEdit)
+            Visibility(
+              visible: !isDefault,
+              maintainSize: true,
+              maintainAnimation: true,
+              maintainState: true,
+              child: Tooltip(
+                message: context.l10n.tankPresets_showInPickers,
+                child: Switch(
+                  key: ValueKey('tank-preset-visible-${preset.name}'),
+                  value: !isHidden,
+                  onChanged: (visible) => ref
+                      .read(settingsProvider.notifier)
+                      .setTankPresetHidden(preset.name, !visible),
+                ),
+              ),
+            ),
           if (canEdit) ...[
             IconButton(
               icon: const Icon(Icons.edit_outlined),
