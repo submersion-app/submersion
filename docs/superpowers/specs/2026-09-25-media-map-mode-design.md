@@ -3,8 +3,8 @@
 Date: 2026-09-25
 Status: approved design, implementation plan pending
 Branch: ericgriffin/media-map-mode-260133
-Issue: none yet. The repository requires one before the PR; the PR body must
-say `Closes #N` once it exists.
+Issue: #2329 (the PR body must say `Closes #2329`). Follow-up for migrating
+the existing maps onto the shared camera helpers: #2330.
 
 ## Problem
 
@@ -38,8 +38,8 @@ Taken during brainstorming and fixed for this spec.
 - Tapping a lone thumbnail opens the viewer directly.
 - Shared map plumbing: only the stateless camera helpers are extracted (a
   `MapCameraAnimator` and a `boundsForPoints` function). The dive, site and
-  dive-center maps keep their private copies; migrating them is a follow-up
-  issue, not part of this PR.
+  dive-center maps keep their private copies; migrating them is follow-up
+  issue #2330, not part of this PR.
 - Map mode has no multi-select. Switching to it clears any active selection.
 - The map shows how many in-scope items have no location.
 
@@ -247,8 +247,7 @@ The fit-all tooltip reuses `diveLog_map_tooltip_fitAllSites`.
 - Remembering the camera position between visits.
 - Panning the map to filter the grid.
 - Migrating `DiveMapContent`, `SiteMapContent` and `DiveCenterMapContent`
-  onto `MapCameraAnimator` and `boundsForPoints`. A follow-up issue is opened
-  when this PR is.
+  onto `MapCameraAnimator` and `boundsForPoints`. That is issue #2330.
 
 ## Testing
 
