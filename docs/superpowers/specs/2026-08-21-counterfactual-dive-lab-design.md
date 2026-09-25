@@ -1,7 +1,10 @@
 # Counterfactual Dive Lab: Design Spec
 
 Date: 2026-08-21
-Status: Approved design, pending implementation planning
+Status: Implemented on branch worktree-counterfactual-dive-lab; amended by
+`docs/superpowers/specs/2026-09-25-counterfactual-dive-lab-rethink-design.md`
+(front door, planner hand-off, single-PR delivery). Where the two differ,
+the rethink spec wins.
 Branch / worktree: `worktree-counterfactual-dive-lab` at
 `.claude/worktrees/counterfactual-dive-lab`
 
