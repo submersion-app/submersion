@@ -121,8 +121,10 @@ class RigComposer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final visiblePresets =
-        ref.watch(tankPresetsProvider).valueOrNull ?? const [];
+    // `value`, not `valueOrNull`: hiding a preset reloads tankPresetsProvider
+    // through its settings dependency, and only `value` keeps the previous
+    // list until the filtered one lands (see async_value_reload_test.dart).
+    final visiblePresets = ref.watch(tankPresetsProvider).value ?? const [];
 
     return Card(
       child: Padding(
