@@ -13662,8 +13662,9 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_mod_setpointNotBelowFlush =>
-      'ה-setpoint אינו נמוך מה-ppO₂ של MOD המדלל.';
+  String gasCalculators_mod_targetBeyondDiluentMod(String ppO2) {
+    return 'עומק היעד עמוק מה-MOD של המדלל: שטיפה שם נותנת ppO₂ $ppO2 בר.';
+  }
 
   @override
   String gasCalculators_mod_diluentAboveSetpoint(String where, String ppO2) {

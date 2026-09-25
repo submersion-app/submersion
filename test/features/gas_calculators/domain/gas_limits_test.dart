@@ -224,12 +224,15 @@ void main() {
       expect(r.secondaryModMeters, isNull);
     });
 
-    test('at the diluent MOD the loop is pure diluent', () {
-      final r = computeGasLimits(ccr());
-      // The diluent carries 1.6 bar there, more than the 1.1 setpoint.
-      expect(r.atMod.diluentAboveSetpoint, isTrue);
-      expect(r.atMod.pO2Bar, closeTo(1.6, 1e-9));
-      const p = 1.6 / 0.21;
+    test('the MOD column is the flushed diluent, not the loop', () {
+      // Flush 1.1 below setpoint 1.3: at the diluent MOD the diluent itself
+      // is at 1.1 bar. The setpoint only applies at a target depth.
+      final r = computeGasLimits(ccr(setpoint: 1.3, flush: 1.1));
+      expect(r.modMeters, closeTo(_saltDepthAt(1.1 / 0.21), 1e-9));
+      expect(r.atMod.pO2Bar, closeTo(1.1, 1e-9));
+      expect(r.atMod.diluentAboveSetpoint, isFalse);
+      expect(r.atMod.setpointCapped, isFalse);
+      const p = 1.1 / 0.21;
       expect(
         r.atMod.eadMeters,
         closeTo(_saltDepthAt(0.44 * p / airN2Fraction), 1e-9),
@@ -248,18 +251,24 @@ void main() {
       );
     });
 
-    test('a setpoint at or above the flush ppO2 is flagged', () {
-      expect(computeGasLimits(ccr()).setpointNotBelowFlushPpO2, isFalse);
-      expect(
-        computeGasLimits(ccr(setpoint: 1.6)).setpointNotBelowFlushPpO2,
-        isTrue,
-      );
+    test('a setpoint above the flush ppO2 is a valid combination', () {
+      // Setpoint 1.3 with a 1.1 flush: a target within the diluent MOD is
+      // fine, the loop runs at the setpoint there.
+      final r = computeGasLimits(ccr(setpoint: 1.3, flush: 1.1, target: 40));
+      expect(r.targetBeyondMod, isFalse);
+      expect(r.atTarget!.pO2Bar, closeTo(1.3, 1e-12));
     });
 
-    test('a target below the diluent MOD is flagged', () {
-      final r = computeGasLimits(ccr(target: 70));
+    test('a target below the diluent MOD is flagged with the flush ppO2', () {
+      final r = computeGasLimits(ccr(setpoint: 1.3, flush: 1.1, target: 70));
       expect(r.targetBeyondMod, isTrue);
-      expect(r.atTarget!.diluentAboveSetpoint, isTrue);
+      // A flush at 70 m gives the diluent's own ppO2 there.
+      expect(r.flushPpO2AtTarget, closeTo(0.21 * _saltPressureAt(70), 1e-9));
+      expect(r.flushPpO2AtTarget, greaterThan(1.1));
+    });
+
+    test('OC and Rec have no flush ppO2', () {
+      expect(computeGasLimits(_inputs(target: 30)).flushPpO2AtTarget, isNull);
     });
   });
 

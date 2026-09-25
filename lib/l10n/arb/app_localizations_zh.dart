@@ -13332,8 +13332,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_mod_setpointNotBelowFlush =>
-      '设定点不低于稀释气 MOD 的 ppO₂。';
+  String gasCalculators_mod_targetBeyondDiluentMod(String ppO2) {
+    return '目标深度比稀释气 MOD 更深：在那里冲洗会得到 ppO₂ $ppO2 bar。';
+  }
 
   @override
   String gasCalculators_mod_diluentAboveSetpoint(String where, String ppO2) {

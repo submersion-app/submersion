@@ -31,19 +31,16 @@ List<ModAssessment> modAssessments(
       items.add((severity: severity, text: text));
   String ppO2(double bar) => formatFixedForDisplay(bar, 2);
 
-  if (result.mode == ModCalculatorMode.ccrTec &&
-      result.setpointNotBelowFlushPpO2) {
-    add(
-      ModAssessmentSeverity.warning,
-      l10n.gasCalculators_mod_setpointNotBelowFlush,
-    );
-  }
-
   final target = result.atTarget;
   if (target != null && result.targetBeyondMod) {
+    // On CCR the target lies past the diluent MOD: the loop still holds the
+    // setpoint there, but a flush would give the diluent's own ppO2.
+    final flushPpO2 = result.flushPpO2AtTarget;
     add(
       ModAssessmentSeverity.danger,
-      l10n.gasCalculators_mod_targetBeyondMod(ppO2(target.pO2Bar)),
+      flushPpO2 != null
+          ? l10n.gasCalculators_mod_targetBeyondDiluentMod(ppO2(flushPpO2))
+          : l10n.gasCalculators_mod_targetBeyondMod(ppO2(target.pO2Bar)),
     );
   }
   if (result.targetShallowerThanMinDepth) {

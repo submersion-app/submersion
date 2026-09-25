@@ -68,6 +68,37 @@ void main() {
     );
   });
 
+  test('CCR: setpoint above the flush ppO2 raises no warning by itself', () {
+    // Setpoint 1.3 over a 1.1 flush is a valid setup: the setpoint is not
+    // checked against the flush, only a target past the diluent MOD is.
+    final items = assess(
+      _inputs(
+        mode: ModCalculatorMode.ccrTec,
+        o2: 21,
+        he: 35,
+        waterType: WaterType.salt,
+      ).copyWith(setpointBar: 1.3, flushPpO2: 1.1),
+    );
+    expect(items.where((a) => a.text.contains('setpoint')), isEmpty);
+  });
+
+  test('CCR: a target past the diluent MOD names the flush ppO2', () {
+    final items = assess(
+      _inputs(
+        mode: ModCalculatorMode.ccrTec,
+        o2: 21,
+        he: 35,
+        target: 80,
+        waterType: WaterType.salt,
+      ),
+    );
+    final danger = items.firstWhere(
+      (a) => a.text.contains('deeper than the diluent MOD'),
+    );
+    expect(danger.severity, ModAssessmentSeverity.danger);
+    expect(danger.text, contains('a flush there gives ppO₂'));
+  });
+
   test('Rec: air is flagged beyond the recreational limit', () {
     final items = assess(_inputs(mode: ModCalculatorMode.rec, o2: 21, he: 0));
     expect(items.single.severity, ModAssessmentSeverity.warning);

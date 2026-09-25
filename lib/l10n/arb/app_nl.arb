@@ -4434,7 +4434,7 @@
   "gasCalculators_mod_narcosisExceeded": "{where}: narcotische diepte {depth} overschrijdt je END-limiet van {limit}.",
   "gasCalculators_mod_densityWarn": "{where}: gasdichtheid {density} g/L ligt boven de aanbevolen {limit} g/L.",
   "gasCalculators_mod_densityCritical": "{where}: gasdichtheid {density} g/L ligt boven de harde limiet van {limit} g/L.",
-  "gasCalculators_mod_setpointNotBelowFlush": "Het setpoint ligt niet onder de ppO₂ voor de MOD van het diluent.",
+  "gasCalculators_mod_targetBeyondDiluentMod": "De doeldiepte ligt dieper dan de MOD van het diluent: een flush geeft daar ppO₂ {ppO2} bar.",
   "gasCalculators_mod_diluentAboveSetpoint": "{where}: het diluent alleen geeft ppO₂ {ppO2} bar, meer dan het setpoint; de loop draait op de ppO₂ van het diluent.",
   "gasCalculators_mod_setpointCapped": "{where}: het setpoint ligt boven de omgevingsdruk, de loop is zuivere zuurstof.",
   "gasCalculators_mod_allClear": "Binnen je ppO₂-, END- en dichtheidslimieten op de gecontroleerde dieptes.",

@@ -13975,8 +13975,9 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_mod_setpointNotBelowFlush =>
-      'Der Setpoint liegt nicht unter dem ppO₂ für die MOD des Diluentgases.';
+  String gasCalculators_mod_targetBeyondDiluentMod(String ppO2) {
+    return 'Die Zieltiefe liegt tiefer als die MOD des Diluentgases: Spülen ergibt dort ppO₂ $ppO2 bar.';
+  }
 
   @override
   String gasCalculators_mod_diluentAboveSetpoint(String where, String ppO2) {

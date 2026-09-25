@@ -10,6 +10,7 @@ import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/domain/mod_calculator_preferences.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mod_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/density/density_slider.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/mod/mod_ppo2_limit_slider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/unit_slider.dart';
@@ -127,6 +128,27 @@ class ModInputCard extends ConsumerWidget {
                 ),
                 onChanged: notifier.setTargetDepth,
               ),
+            // CCR: the loop holds the setpoint at the target depth, so it
+            // sits with the target rather than with the diluent MOD limit.
+            if (mode == ModCalculatorMode.ccrTec) ...[
+              const SizedBox(height: 24),
+              ModPpO2LimitSlider(
+                label: l10n.gasCalculators_mod_setpoint,
+                icon: Icons.tune,
+                min: modSetpointMinBar,
+                max: modSetpointMaxBar,
+                step: 0.1,
+                fractionDigits: 1,
+                value: prefs.setpointBar ?? modProfileSetpoint(settings),
+                profileValue: settings.ccrSetpointHigh,
+                isOverridden: prefs.setpointBar != null,
+                onChanged: (v) => notifier.setSetpoint(
+                  v,
+                  profileValue: modProfileSetpoint(settings),
+                ),
+                onReset: notifier.resetSetpoint,
+              ),
+            ],
             if (!isRec) ...[
               const SizedBox(height: 16),
               Wrap(

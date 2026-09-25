@@ -4537,7 +4537,7 @@
   "gasCalculators_mod_narcosisExceeded": "{where}: Narkosetiefe {depth} überschreitet deine END-Grenze von {limit}.",
   "gasCalculators_mod_densityWarn": "{where}: Gasdichte {density} g/L liegt über den empfohlenen {limit} g/L.",
   "gasCalculators_mod_densityCritical": "{where}: Gasdichte {density} g/L liegt über der harten Grenze von {limit} g/L.",
-  "gasCalculators_mod_setpointNotBelowFlush": "Der Setpoint liegt nicht unter dem ppO₂ für die MOD des Diluentgases.",
+  "gasCalculators_mod_targetBeyondDiluentMod": "Die Zieltiefe liegt tiefer als die MOD des Diluentgases: Spülen ergibt dort ppO₂ {ppO2} bar.",
   "gasCalculators_mod_diluentAboveSetpoint": "{where}: Das Diluentgas allein ergibt ppO₂ {ppO2} bar, mehr als der Setpoint; der Loop läuft mit dem ppO₂ des Diluentgases.",
   "gasCalculators_mod_setpointCapped": "{where}: Der Setpoint liegt über dem Umgebungsdruck, der Loop ist reiner Sauerstoff.",
   "gasCalculators_mod_allClear": "Auf den geprüften Tiefen innerhalb deiner ppO₂-, END- und Dichtegrenzen.",

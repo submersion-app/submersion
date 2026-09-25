@@ -212,8 +212,9 @@ class GasLimitsResult {
   final bool targetBeyondMod;
   final bool targetShallowerThanMinDepth;
 
-  /// CCR: the setpoint is not below the flush ppO2.
-  final bool setpointNotBelowFlushPpO2;
+  /// CCR: the ppO2 a diluent flush would give at the target depth. Past the
+  /// diluent MOD this is above the flush ppO2 limit.
+  final double? flushPpO2AtTarget;
 
   const GasLimitsResult({
     required this.mode,
@@ -230,7 +231,7 @@ class GasLimitsResult {
     required this.beyondRecreationalLimit,
     required this.targetBeyondMod,
     required this.targetShallowerThanMinDepth,
-    required this.setpointNotBelowFlushPpO2,
+    required this.flushPpO2AtTarget,
   });
 }
 
@@ -280,12 +281,16 @@ GasLimitsResult computeGasLimits(GasLimitsInputs inputs) {
           environment: environment,
         );
 
-  DepthAssessment assess(double depth) => _assess(
+  // On CCR the loop holds the setpoint at a target depth, while the diluent
+  // MOD is where the diluent itself, flushed, reaches the flush ppO2: that
+  // column is the pure diluent, not the loop.
+  DepthAssessment assess(double depth, {bool onLoop = true}) => _assess(
     inputs: inputs,
     o2: o2,
     he: he,
     depth: depth,
     environment: environment,
+    onLoop: isCcr && onLoop,
   );
 
   final rawTarget = inputs.targetDepthMeters;
@@ -304,7 +309,7 @@ GasLimitsResult computeGasLimits(GasLimitsInputs inputs) {
     secondaryPpO2: secondaryPpO2,
     minDepthMeters: minDepth,
     mndMeters: isRec ? null : _mnd(inputs.endLimitMeters, assess),
-    atMod: assess(math.max(mod, 0.0)),
+    atMod: assess(math.max(mod, 0.0), onLoop: false),
     atTarget: atTarget,
     beyondRecreationalLimit: isRec && mod > recreationalDepthLimitMeters,
     targetBeyondMod: target != null && target > mod,
@@ -315,7 +320,9 @@ GasLimitsResult computeGasLimits(GasLimitsInputs inputs) {
         target != null &&
         minDepth != null &&
         target < minDepth,
-    setpointNotBelowFlushPpO2: isCcr && inputs.setpointBar >= inputs.flushPpO2,
+    flushPpO2AtTarget: isCcr && target != null
+        ? fO2 * environment!.pressureAtDepth(target)
+        : null,
   );
 }
 
@@ -325,6 +332,7 @@ DepthAssessment _assess({
   required double he,
   required double depth,
   required DiveEnvironment? environment,
+  required bool onLoop,
 }) {
   final double pO2;
   final double pN2;
@@ -343,9 +351,7 @@ DepthAssessment _assess({
         o2Percent: o2,
         hePercent: he,
         depthMeters: depth,
-        setpointBar: inputs.mode == ModCalculatorMode.ccrTec
-            ? inputs.setpointBar
-            : null,
+        setpointBar: onLoop ? inputs.setpointBar : null,
         temperature: GasDensityTemperature.zeroC,
         waterType: inputs.waterType,
       ),

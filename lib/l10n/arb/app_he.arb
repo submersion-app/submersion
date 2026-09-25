@@ -4332,7 +4332,7 @@
   "gasCalculators_mod_narcosisExceeded": "{where}: עומק נרקוטי {depth} חורג ממגבלת ה-END שלך, {limit}.",
   "gasCalculators_mod_densityWarn": "{where}: צפיפות הגז {density} ג/ל מעל {limit} ג/ל המומלצים.",
   "gasCalculators_mod_densityCritical": "{where}: צפיפות הגז {density} ג/ל מעל הגבול המוחלט של {limit} ג/ל.",
-  "gasCalculators_mod_setpointNotBelowFlush": "ה-setpoint אינו נמוך מה-ppO₂ של MOD המדלל.",
+  "gasCalculators_mod_targetBeyondDiluentMod": "עומק היעד עמוק מה-MOD של המדלל: שטיפה שם נותנת ppO₂ {ppO2} בר.",
   "gasCalculators_mod_diluentAboveSetpoint": "{where}: המדלל לבדו נותן ppO₂ {ppO2} בר, יותר מה-setpoint; הלולאה פועלת ב-ppO₂ של המדלל.",
   "gasCalculators_mod_setpointCapped": "{where}: ה-setpoint מעל לחץ הסביבה, הלולאה היא חמצן טהור.",
   "gasCalculators_mod_allClear": "בתוך מגבלות ה-ppO₂, END והצפיפות שלך בעומקים שנבדקו.",

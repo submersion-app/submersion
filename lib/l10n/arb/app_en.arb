@@ -8267,7 +8267,14 @@
       }
     }
   },
-  "gasCalculators_mod_setpointNotBelowFlush": "The setpoint is not below the ppO₂ for the diluent MOD.",
+  "gasCalculators_mod_targetBeyondDiluentMod": "The target depth is deeper than the diluent MOD: a flush there gives ppO₂ {ppO2} bar.",
+  "@gasCalculators_mod_targetBeyondDiluentMod": {
+    "placeholders": {
+      "ppO2": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_mod_diluentAboveSetpoint": "{where}: the diluent alone gives ppO₂ {ppO2} bar, more than the setpoint; the loop runs at the diluent's ppO₂.",
   "@gasCalculators_mod_diluentAboveSetpoint": {
     "placeholders": {

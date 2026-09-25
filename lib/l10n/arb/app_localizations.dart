@@ -23041,11 +23041,11 @@ abstract class AppLocalizations {
     String limit,
   );
 
-  /// No description provided for @gasCalculators_mod_setpointNotBelowFlush.
+  /// No description provided for @gasCalculators_mod_targetBeyondDiluentMod.
   ///
   /// In en, this message translates to:
-  /// **'The setpoint is not below the ppO₂ for the diluent MOD.'**
-  String get gasCalculators_mod_setpointNotBelowFlush;
+  /// **'The target depth is deeper than the diluent MOD: a flush there gives ppO₂ {ppO2} bar.'**
+  String gasCalculators_mod_targetBeyondDiluentMod(String ppO2);
 
   /// No description provided for @gasCalculators_mod_diluentAboveSetpoint.
   ///

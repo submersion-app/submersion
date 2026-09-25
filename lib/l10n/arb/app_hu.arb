@@ -4332,7 +4332,7 @@
   "gasCalculators_mod_narcosisExceeded": "{where}: a narkotikus mélység ({depth}) meghaladja a {limit} END-határodat.",
   "gasCalculators_mod_densityWarn": "{where}: a gázsűrűség ({density} g/L) meghaladja az ajánlott {limit} g/L-t.",
   "gasCalculators_mod_densityCritical": "{where}: a gázsűrűség ({density} g/L) meghaladja a {limit} g/L kemény határt.",
-  "gasCalculators_mod_setpointNotBelowFlush": "A setpoint nem kisebb a hígítógáz MOD-jához tartozó ppO₂-nél.",
+  "gasCalculators_mod_targetBeyondDiluentMod": "A célmélység mélyebb a hígítógáz MOD-jánál: az öblítés ott {ppO2} bar ppO₂-t ad.",
   "gasCalculators_mod_diluentAboveSetpoint": "{where}: a hígítógáz önmagában {ppO2} bar ppO₂-t ad, többet a setpointnál; a loop a hígítógáz ppO₂-jével működik.",
   "gasCalculators_mod_setpointCapped": "{where}: a setpoint meghaladja a környezeti nyomást, a loop tiszta oxigén.",
   "gasCalculators_mod_allClear": "Az ellenőrzött mélységekben a ppO₂-, END- és sűrűséghatáraidon belül.",

@@ -4434,7 +4434,7 @@
   "gasCalculators_mod_narcosisExceeded": "{where}: a profundidade narcótica {depth} excede o teu limite END de {limit}.",
   "gasCalculators_mod_densityWarn": "{where}: a densidade do gás {density} g/L está acima dos {limit} g/L recomendados.",
   "gasCalculators_mod_densityCritical": "{where}: a densidade do gás {density} g/L está acima do limite máximo de {limit} g/L.",
-  "gasCalculators_mod_setpointNotBelowFlush": "O setpoint não está abaixo da ppO₂ para a MOD do diluente.",
+  "gasCalculators_mod_targetBeyondDiluentMod": "A profundidade alvo é mais funda do que a MOD do diluente: uma purga lá dá ppO₂ {ppO2} bar.",
   "gasCalculators_mod_diluentAboveSetpoint": "{where}: o diluente sozinho dá ppO₂ {ppO2} bar, mais do que o setpoint; o loop funciona com a ppO₂ do diluente.",
   "gasCalculators_mod_setpointCapped": "{where}: o setpoint está acima da pressão ambiente, o loop é oxigénio puro.",
   "gasCalculators_mod_allClear": "Dentro dos teus limites de ppO₂, END e densidade nas profundidades verificadas.",

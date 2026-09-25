@@ -4332,7 +4332,7 @@
   "gasCalculators_mod_narcosisExceeded": "{where} : la profondeur narcotique {depth} dépasse ta limite END de {limit}.",
   "gasCalculators_mod_densityWarn": "{where} : la densité du gaz {density} g/L dépasse les {limit} g/L recommandés.",
   "gasCalculators_mod_densityCritical": "{where} : la densité du gaz {density} g/L dépasse la limite absolue de {limit} g/L.",
-  "gasCalculators_mod_setpointNotBelowFlush": "Le setpoint n'est pas inférieur à la ppO₂ de la MOD du diluant.",
+  "gasCalculators_mod_targetBeyondDiluentMod": "La profondeur cible est plus profonde que la MOD du diluant : un rinçage y donne une ppO₂ de {ppO2} bar.",
   "gasCalculators_mod_diluentAboveSetpoint": "{where} : le diluant seul donne une ppO₂ de {ppO2} bar, plus que le setpoint ; la boucle fonctionne à la ppO₂ du diluant.",
   "gasCalculators_mod_setpointCapped": "{where} : le setpoint dépasse la pression ambiante, la boucle est de l'oxygène pur.",
   "gasCalculators_mod_allClear": "Dans tes limites de ppO₂, END et densité aux profondeurs vérifiées.",

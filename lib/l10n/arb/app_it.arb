@@ -4332,7 +4332,7 @@
   "gasCalculators_mod_narcosisExceeded": "{where}: la profondità narcotica {depth} supera il tuo limite END di {limit}.",
   "gasCalculators_mod_densityWarn": "{where}: la densità del gas {density} g/L supera i {limit} g/L raccomandati.",
   "gasCalculators_mod_densityCritical": "{where}: la densità del gas {density} g/L supera il limite massimo di {limit} g/L.",
-  "gasCalculators_mod_setpointNotBelowFlush": "Il setpoint non è inferiore alla ppO₂ per la MOD del diluente.",
+  "gasCalculators_mod_targetBeyondDiluentMod": "La profondità obiettivo è più profonda della MOD del diluente: un flush lì dà ppO₂ {ppO2} bar.",
   "gasCalculators_mod_diluentAboveSetpoint": "{where}: il solo diluente dà ppO₂ {ppO2} bar, più del setpoint; il loop funziona alla ppO₂ del diluente.",
   "gasCalculators_mod_setpointCapped": "{where}: il setpoint supera la pressione ambiente, il loop è ossigeno puro.",
   "gasCalculators_mod_allClear": "Entro i tuoi limiti di ppO₂, END e densità alle profondità controllate.",

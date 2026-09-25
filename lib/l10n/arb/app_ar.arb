@@ -4434,7 +4434,7 @@
   "gasCalculators_mod_narcosisExceeded": "{where}: العمق المخدر {depth} يتجاوز حد END لديك البالغ {limit}.",
   "gasCalculators_mod_densityWarn": "{where}: كثافة الغاز {density} غ/ل أعلى من {limit} غ/ل الموصى بها.",
   "gasCalculators_mod_densityCritical": "{where}: كثافة الغاز {density} غ/ل أعلى من الحد الأقصى البالغ {limit} غ/ل.",
-  "gasCalculators_mod_setpointNotBelowFlush": "نقطة الضبط ليست أقل من ppO₂ لـ MOD غاز التخفيف.",
+  "gasCalculators_mod_targetBeyondDiluentMod": "العمق المستهدف أعمق من MOD غاز التخفيف: الشطف هناك يعطي ppO₂ {ppO2} بار.",
   "gasCalculators_mod_diluentAboveSetpoint": "{where}: غاز التخفيف وحده يعطي ppO₂ {ppO2} بار، أكثر من نقطة الضبط؛ الحلقة تعمل بـ ppO₂ غاز التخفيف.",
   "gasCalculators_mod_setpointCapped": "{where}: نقطة الضبط أعلى من الضغط المحيط، الحلقة أكسجين نقي.",
   "gasCalculators_mod_allClear": "ضمن حدود ppO₂ و END والكثافة لديك في الأعماق المفحوصة.",

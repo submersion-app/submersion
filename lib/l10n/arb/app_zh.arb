@@ -4580,7 +4580,7 @@
   "gasCalculators_mod_narcosisExceeded": "{where}：麻醉深度 {depth} 超过你的 END 限值 {limit}。",
   "gasCalculators_mod_densityWarn": "{where}：气体密度 {density} g/L 高于建议的 {limit} g/L。",
   "gasCalculators_mod_densityCritical": "{where}：气体密度 {density} g/L 高于 {limit} g/L 的硬性限值。",
-  "gasCalculators_mod_setpointNotBelowFlush": "设定点不低于稀释气 MOD 的 ppO₂。",
+  "gasCalculators_mod_targetBeyondDiluentMod": "目标深度比稀释气 MOD 更深：在那里冲洗会得到 ppO₂ {ppO2} bar。",
   "gasCalculators_mod_diluentAboveSetpoint": "{where}：仅稀释气即达到 ppO₂ {ppO2} bar，高于设定点；回路按稀释气的 ppO₂ 运行。",
   "gasCalculators_mod_setpointCapped": "{where}：设定点高于环境压力，回路为纯氧。",
   "gasCalculators_mod_allClear": "在所检查的深度内，均在你的 ppO₂、END 和密度限值之内。",

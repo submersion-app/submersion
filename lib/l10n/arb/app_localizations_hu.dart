@@ -13950,8 +13950,9 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
-  String get gasCalculators_mod_setpointNotBelowFlush =>
-      'A setpoint nem kisebb a hígítógáz MOD-jához tartozó ppO₂-nél.';
+  String gasCalculators_mod_targetBeyondDiluentMod(String ppO2) {
+    return 'A célmélység mélyebb a hígítógáz MOD-jánál: az öblítés ott $ppO2 bar ppO₂-t ad.';
+  }
 
   @override
   String gasCalculators_mod_diluentAboveSetpoint(String where, String ppO2) {
