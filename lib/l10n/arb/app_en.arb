@@ -6817,6 +6817,13 @@
   "passport_title": "Cylinder passport",
   "passport_open": "Open passport",
   "passport_entry_noFill": "No fill logged",
+  "passport_entry_lastFillNoPressure": "{mix}, {date}",
+  "@passport_entry_lastFillNoPressure": {
+    "placeholders": {
+      "mix": {"type": "String"},
+      "date": {"type": "String"}
+    }
+  },
   "passport_entry_lastFill": "{mix} at {pressure}, {date}",
   "@passport_entry_lastFill": {
     "placeholders": {
@@ -6910,9 +6917,11 @@
   "passport_tag_stale": "The tag was written before the latest service or spec change. Reprint it.",
   "passport_tag_printLabel": "Print label",
   "passport_tag_printLabels": "Print labels",
+  "passport_tag_printFailed": "Could not create the labels. Try again.",
   "passport_tag_linkExisting": "Link an existing tag",
   "passport_tag_linkPrompt": "Paste the link from the tag",
   "passport_tag_linkInvalid": "That is not a cylinder tag",
+  "passport_tag_linkFailed": "Could not link the tag. Try again.",
   "passport_tag_linkInUse": "That tag already belongs to {name}",
   "@passport_tag_linkInUse": {
     "placeholders": {

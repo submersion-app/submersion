@@ -11856,6 +11856,11 @@ class AppLocalizationsHu extends AppLocalizations {
   String get passport_entry_noFill => 'Nincs rögzített töltés';
 
   @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix, $date';
+  }
+
+  @override
   String passport_entry_lastFill(String mix, String pressure, String date) {
     return '$mix, $pressure, $date';
   }
@@ -11979,6 +11984,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get passport_tag_printLabels => 'Címkék nyomtatása';
 
   @override
+  String get passport_tag_printFailed =>
+      'A címkék létrehozása nem sikerült. Próbálja újra.';
+
+  @override
   String get passport_tag_linkExisting => 'Meglévő címke összekapcsolása';
 
   @override
@@ -11986,6 +11995,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get passport_tag_linkInvalid => 'Ez nem palackcímke';
+
+  @override
+  String get passport_tag_linkFailed =>
+      'A címke összekapcsolása nem sikerült. Próbálja újra.';
 
   @override
   String passport_tag_linkInUse(String name) {

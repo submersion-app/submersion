@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_rules.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/service_record.dart';
@@ -38,7 +39,12 @@ class PassportO2WarningBanner extends ConsumerWidget {
     );
     if (warning == O2CleanWarning.none) return const SizedBox.shrink();
     final l10n = context.l10n;
-    final o2 = '${newest!.o2Percent.round()}%';
+    // The analysis as logged: a whole number stays whole, anything else
+    // keeps its decimal, so 40.4% is never shown as the threshold itself.
+    final value = newest!.o2Percent;
+    final o2 = value == value.roundToDouble()
+        ? '${value.round()}%'
+        : '${formatFixedForDisplay(value, 1)}%';
     final swatch = StatusColors.of(context).alert;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/link_existing_tag_dialog.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -48,11 +49,18 @@ void main() {
   });
   tearDown(tearDownTestDatabase);
 
-  Future<AppLocalizations> pumpAndOpen(WidgetTester tester) async {
+  Future<AppLocalizations> pumpAndOpen(
+    WidgetTester tester, {
+    CylinderPassportRepository? repository,
+  }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
-        overrides: overrides,
+        overrides: [
+          ...overrides,
+          if (repository != null)
+            cylinderPassportRepositoryProvider.overrideWithValue(repository),
+        ],
         child: Builder(
           builder: (context) => TextButton(
             onPressed: () => showLinkExistingTagDialog(
@@ -124,4 +132,29 @@ void main() {
     expect(id, pid);
     expect(l10n.passport_tag_linked, isNotEmpty);
   });
+
+  testWidgets('an unexpected failure says so and re-enables the dialog', (
+    tester,
+  ) async {
+    final l10n = await pumpAndOpen(
+      tester,
+      repository: _BrokenPassportRepository(),
+    );
+    await submit(tester, l10n, 'https://submersion.app/c#f=1&p=$pid');
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.passport_tag_linkFailed), findsOneWidget);
+    final link = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, l10n.passport_tag_linkExisting),
+    );
+    expect(link.onPressed, isNotNull);
+  });
+}
+
+class _BrokenPassportRepository extends CylinderPassportRepository {
+  @override
+  Future<void> assignPassportId({
+    required String equipmentId,
+    required String passportId,
+    String? diverId,
+  }) async => throw StateError('database is locked');
 }

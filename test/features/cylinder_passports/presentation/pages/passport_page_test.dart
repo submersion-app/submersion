@@ -274,4 +274,21 @@ void main() {
     );
     expect(find.text(l10n.passport_history_sinceHydro(1)), findsOneWidget);
   });
+
+  testWidgets('the O2 warning quotes the analysis, not a rounded figure', (
+    tester,
+  ) async {
+    final l10n = await pump(tester, fills: [fill(40.4)]);
+    expect(
+      find.text(l10n.passport_o2Warning_untracked('40.4%')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('ppO2 limits use the locale decimal separator', (tester) async {
+    Intl.defaultLocale = 'de_DE';
+    await pump(tester, fills: [fill(32)]);
+    expect(find.textContaining('ppO2 1,4'), findsOneWidget);
+    expect(find.textContaining('ppO2 1,6'), findsOneWidget);
+  });
 }

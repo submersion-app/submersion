@@ -9,6 +9,7 @@ import 'package:submersion/core/constants/list_view_mode.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_type_order.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
@@ -210,6 +211,7 @@ void main() {
     Future<Widget> host(
       List<EquipmentItem> items, {
       bool showAppBar = true,
+      List<dynamic> extraOverrides = const [],
     }) async {
       notifier = _CapturingEquipmentNotifier();
       SharedPreferences.setMockInitialValues({});
@@ -232,6 +234,7 @@ void main() {
             (ref) => _TestEquipTableConfigNotifier(_testConfig),
           ),
           highlightedEquipmentIdProvider.overrideWith((ref) => null),
+          ...extraOverrides,
         ],
         child: EquipmentListContent(showAppBar: showAppBar),
       );
@@ -401,6 +404,39 @@ void main() {
         EquipmentItem(id: 't2', name: 'AL80', type: EquipmentType.tank),
       ]);
       expect(entry.enabled, isTrue);
+    });
+
+    testWidgets('a label failure says so instead of failing silently', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        await host(
+          const [
+            EquipmentItem(id: 't1', name: 'Faber 12', type: EquipmentType.tank),
+          ],
+          extraOverrides: [
+            equipmentRepositoryProvider.overrideWithValue(
+              _BrokenEquipmentRepository(),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('enter_selection')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_select_all')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const ValueKey('selection_overflow')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey('selection_menu_printLabels')),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      final l10n = AppLocalizations.of(
+        tester.element(find.byType(EquipmentListContent)),
+      );
+      expect(find.text(l10n.passport_tag_printFailed), findsOneWidget);
     });
 
     testWidgets('print labels is refused when a non-cylinder is checked', (
@@ -2287,4 +2323,10 @@ class _FakeArrangementRepository extends AppSettingsRepository {
 
   @override
   Stream<void> watchSettingsChanges() => _ticks.stream;
+}
+
+class _BrokenEquipmentRepository extends EquipmentRepository {
+  @override
+  Future<List<EquipmentItem>> getEquipmentByIds(List<String> ids) async =>
+      throw StateError('database is locked');
 }

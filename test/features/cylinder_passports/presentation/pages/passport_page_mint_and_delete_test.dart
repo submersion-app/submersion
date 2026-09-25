@@ -42,7 +42,10 @@ void main() {
     await tearDownTestDatabase();
   });
 
-  Future<AppLocalizations> pump(WidgetTester tester) async {
+  Future<AppLocalizations> pump(
+    WidgetTester tester, {
+    String equipmentId = 'tank',
+  }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(600, 3000);
     addTearDown(() {
@@ -53,11 +56,11 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: overrides.cast(),
-        child: const MaterialApp(
-          locale: Locale('en'),
+        child: MaterialApp(
+          locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: PassportPage(equipmentId: 'tank'),
+          home: PassportPage(equipmentId: equipmentId),
         ),
       ),
     );
@@ -120,5 +123,39 @@ void main() {
     );
     expect(gone, isNull);
     expect(find.byTooltip(l10n.passport_history_delete), findsNothing);
+  });
+
+  testWidgets('a passport opened for other gear mints nothing', (tester) async {
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await tester.runAsync(
+      () => db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'reg',
+              name: 'Apeks',
+              type: 'regulator',
+              createdAt: t,
+              updatedAt: t,
+            ),
+          ),
+    );
+    await pump(tester, equipmentId: 'reg');
+    expect(tester.takeException(), isNull);
+    final id = await tester.runAsync(
+      () => CylinderPassportRepository().getPassportId('reg'),
+    );
+    expect(id, isNull);
+  });
+
+  testWidgets('a passport opened for a deleted item fails quietly', (
+    tester,
+  ) async {
+    await pump(tester, equipmentId: 'gone');
+    expect(tester.takeException(), isNull);
+    final rows = await tester.runAsync(
+      () => db.select(db.equipmentAttributes).get(),
+    );
+    expect(rows, isEmpty);
   });
 }

@@ -11883,6 +11883,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get passport_entry_noFill => 'Ninguna carga registrada';
 
   @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix, $date';
+  }
+
+  @override
   String passport_entry_lastFill(String mix, String pressure, String date) {
     return '$mix a $pressure, $date';
   }
@@ -12006,6 +12011,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get passport_tag_printLabels => 'Imprimir etiquetas';
 
   @override
+  String get passport_tag_printFailed =>
+      'No se pudieron crear las etiquetas. Inténtalo de nuevo.';
+
+  @override
   String get passport_tag_linkExisting => 'Vincular una etiqueta existente';
 
   @override
@@ -12013,6 +12022,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get passport_tag_linkInvalid => 'Eso no es una etiqueta de botella';
+
+  @override
+  String get passport_tag_linkFailed =>
+      'No se pudo vincular la etiqueta. Inténtalo de nuevo.';
 
   @override
   String passport_tag_linkInUse(String name) {

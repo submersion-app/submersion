@@ -65,17 +65,29 @@ void main() {
     await repo.create(fill('', t0.add(const Duration(days: 2))));
     await repo.create(fill('', t0.add(const Duration(days: 1))));
 
-    final fills = await repo.getForPassport('pp-1');
+    final fills = await repo.getForCylinder(
+      passportId: 'pp-1',
+      equipmentId: 'eq-1',
+    );
     expect(fills.map((f) => f.filledAt.day), [3, 2, 1]);
     expect(fills.every((f) => f.id.isNotEmpty), isTrue);
-    expect((await repo.newestForPassport('pp-1'))!.filledAt.day, 3);
-    expect(await repo.newestForPassport('pp-none'), isNull);
+    expect(fills.first.filledAt.day, 3);
+    expect(
+      await repo.getForCylinder(passportId: 'pp-none', equipmentId: 'eq-none'),
+      isEmpty,
+    );
   });
 
   test('getForEquipment reads through the gear link', () async {
     await repo.create(fill('a', t0));
     await repo.create(fill('b', t0, equipmentId: null));
-    expect((await repo.getForEquipment('eq-1')).map((f) => f.id), ['a']);
+    expect(
+      (await repo.getForCylinder(
+        passportId: null,
+        equipmentId: 'eq-1',
+      )).map((f) => f.id),
+      ['a'],
+    );
   });
 
   test('update and delete round trip', () async {
@@ -101,7 +113,10 @@ void main() {
     await repo.create(fill('b', t0.add(const Duration(days: 1))));
     await EquipmentRepository().deleteEquipment('eq-1');
 
-    var fills = await repo.getForPassport('pp-1');
+    var fills = await repo.getForCylinder(
+      passportId: 'pp-1',
+      equipmentId: 'eq-gone',
+    );
     expect(fills.length, 2);
     expect(fills.every((f) => f.equipmentId == null), isTrue);
 
@@ -111,10 +126,13 @@ void main() {
       equipmentId: 'eq-2',
     );
     expect(count, 2);
-    fills = await repo.getForPassport('pp-1');
+    fills = await repo.getForCylinder(passportId: 'pp-1', equipmentId: 'eq-2');
     expect(fills.length, 2);
     expect(fills.every((f) => f.equipmentId == 'eq-2'), isTrue);
-    expect((await repo.getForEquipment('eq-2')).length, 2);
+    expect(
+      (await repo.getForCylinder(passportId: null, equipmentId: 'eq-2')).length,
+      2,
+    );
   });
 
   test('getForCylinder reads by passport id or gear link, once each', () async {

@@ -11701,6 +11701,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passport_entry_noFill => 'No fill logged';
 
   @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix, $date';
+  }
+
+  @override
   String passport_entry_lastFill(String mix, String pressure, String date) {
     return '$mix at $pressure, $date';
   }
@@ -11823,6 +11828,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passport_tag_printLabels => 'Print labels';
 
   @override
+  String get passport_tag_printFailed =>
+      'Could not create the labels. Try again.';
+
+  @override
   String get passport_tag_linkExisting => 'Link an existing tag';
 
   @override
@@ -11830,6 +11839,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get passport_tag_linkInvalid => 'That is not a cylinder tag';
+
+  @override
+  String get passport_tag_linkFailed => 'Could not link the tag. Try again.';
 
   @override
   String passport_tag_linkInUse(String name) {

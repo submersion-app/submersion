@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/print_passport_labels.dart';
@@ -31,22 +33,39 @@ class PassportPage extends ConsumerStatefulWidget {
 }
 
 class _PassportPageState extends ConsumerState<PassportPage> {
+  static final _log = LoggerService.forClass(PassportPage);
+
   @override
   void initState() {
     super.initState();
-    // The passport id is minted the first time the passport is opened, so
-    // every card below can rely on one existing.
-    Future<void>.microtask(() async {
-      final existing = await ref.read(
-        passportIdProvider(widget.equipmentId).future,
-      );
+    // The passport id is minted the first time a cylinder's passport is
+    // opened, so every card below can rely on one existing. Every await is
+    // followed by a mounted check (ref is unusable once the page is gone),
+    // only a live tank is minted for, and a failure is logged rather than
+    // left to escape the microtask.
+    Future<void>.microtask(_mintIfNeeded);
+  }
+
+  Future<void> _mintIfNeeded() async {
+    final id = widget.equipmentId;
+    try {
+      final existing = await ref.read(passportIdProvider(id).future);
       if (existing != null || !mounted) return;
+      final item = await ref.read(equipmentItemProvider(id).future);
+      if (!mounted || item == null || item.type != EquipmentType.tank) return;
       final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+      if (!mounted) return;
       await ref
           .read(cylinderPassportRepositoryProvider)
-          .ensurePassportId(widget.equipmentId, diverId: diverId);
-      if (mounted) ref.invalidate(passportIdProvider(widget.equipmentId));
-    });
+          .ensurePassportId(id, diverId: diverId);
+      if (mounted) ref.invalidate(passportIdProvider(id));
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to mint a passport id for $id',
+        error: e,
+        stackTrace: stackTrace,
+      );
+    }
   }
 
   @override

@@ -66,6 +66,11 @@ class PassportEntryCard extends ConsumerWidget {
                     Text(
                       newest == null
                           ? l10n.passport_entry_noFill
+                          : newest.pressureBar == null
+                          ? l10n.passport_entry_lastFillNoPressure(
+                              newest.gasMix.name,
+                              units.formatDate(newest.filledAt),
+                            )
                           : l10n.passport_entry_lastFill(
                               newest.gasMix.name,
                               units.formatPressure(newest.pressureBar),

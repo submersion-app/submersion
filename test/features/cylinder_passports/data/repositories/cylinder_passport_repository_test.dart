@@ -137,7 +137,10 @@ void main() {
       diverId: 'd1',
     );
     expect((await fills.getById('a'))!.passportId, id);
-    expect(await fills.getForPassport(minted), isEmpty);
+    final underOld = (await db.select(db.cylinderFills).get()).where(
+      (r) => r.passportId == minted,
+    );
+    expect(underOld, isEmpty);
   });
 
   test('two devices minting for the same cylinder agree', () async {

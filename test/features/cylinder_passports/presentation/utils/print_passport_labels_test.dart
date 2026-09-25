@@ -116,4 +116,10 @@ void main() {
   testWidgets('a selection with no cylinder exports nothing', (tester) async {
     expect(await printVia(tester, ['reg']), isNull);
   });
+
+  testWidgets('labels follow the selection order', (tester) async {
+    await tester.runAsync(() => seed('spare', 'tank', serial: 'S9'));
+    final labels = await printVia(tester, ['spare', 'reg', 'tank']);
+    expect(labels!.map((l) => l.title), ['Apeks', 'Faber 12']);
+  });
 }

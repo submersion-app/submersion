@@ -11794,6 +11794,11 @@ class AppLocalizationsNl extends AppLocalizations {
   String get passport_entry_noFill => 'Geen vulling gelogd';
 
   @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix, $date';
+  }
+
+  @override
   String passport_entry_lastFill(String mix, String pressure, String date) {
     return '$mix op $pressure, $date';
   }
@@ -11916,6 +11921,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get passport_tag_printLabels => 'Labels afdrukken';
 
   @override
+  String get passport_tag_printFailed =>
+      'De labels konden niet worden gemaakt. Probeer het opnieuw.';
+
+  @override
   String get passport_tag_linkExisting => 'Bestaande tag koppelen';
 
   @override
@@ -11923,6 +11932,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get passport_tag_linkInvalid => 'Dat is geen flessentag';
+
+  @override
+  String get passport_tag_linkFailed =>
+      'De tag kon niet worden gekoppeld. Probeer het opnieuw.';
 
   @override
   String passport_tag_linkInUse(String name) {

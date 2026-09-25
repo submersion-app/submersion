@@ -132,4 +132,27 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('passport route'), findsOneWidget);
   });
+
+  testWidgets('a fill logged without a pressure leaves it out', (tester) async {
+    final t = DateTime(2026, 9, 20);
+    await pump(
+      tester,
+      const EquipmentItem(
+        id: 'tank',
+        name: 'Faber 12',
+        type: EquipmentType.tank,
+      ),
+      newest: CylinderFill(
+        id: 'f1',
+        passportId: 'pp',
+        equipmentId: 'tank',
+        filledAt: t,
+        o2Percent: 32,
+        createdAt: t,
+        updatedAt: t,
+      ),
+    );
+    expect(find.textContaining('EAN32'), findsOneWidget);
+    expect(find.textContaining('--'), findsNothing);
+  });
 }

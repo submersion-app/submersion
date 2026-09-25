@@ -11685,6 +11685,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_entry_noFill => 'لم تُسجَّل أي تعبئة';
 
   @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix، $date';
+  }
+
+  @override
   String passport_entry_lastFill(String mix, String pressure, String date) {
     return '$mix عند $pressure، $date';
   }
@@ -11807,6 +11812,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_tag_printLabels => 'طباعة الملصقات';
 
   @override
+  String get passport_tag_printFailed => 'تعذّر إنشاء الملصقات. حاول مرة أخرى.';
+
+  @override
   String get passport_tag_linkExisting => 'ربط بطاقة موجودة';
 
   @override
@@ -11814,6 +11822,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get passport_tag_linkInvalid => 'هذه ليست بطاقة أسطوانة';
+
+  @override
+  String get passport_tag_linkFailed => 'تعذّر ربط البطاقة. حاول مرة أخرى.';
 
   @override
   String passport_tag_linkInUse(String name) {

@@ -64,26 +64,6 @@ class CylinderFillRepository {
     return row == null ? null : _fromRow(row);
   }
 
-  /// Newest first.
-  Future<List<CylinderFill>> getForPassport(String passportId) async {
-    final rows =
-        await (_db.select(_db.cylinderFills)
-              ..where((t) => t.passportId.equals(passportId))
-              ..orderBy([(t) => OrderingTerm.desc(t.filledAt)]))
-            .get();
-    return rows.map(_fromRow).toList();
-  }
-
-  Future<CylinderFill?> newestForPassport(String passportId) async {
-    final row =
-        await (_db.select(_db.cylinderFills)
-              ..where((t) => t.passportId.equals(passportId))
-              ..orderBy([(t) => OrderingTerm.desc(t.filledAt)])
-              ..limit(1))
-            .getSingleOrNull();
-    return row == null ? null : _fromRow(row);
-  }
-
   /// Every fill of one cylinder, newest first: those linked to its gear row,
   /// and those under its passport id that no other live cylinder owns
   /// (unlinked, or linked to a row since deleted). Reading both keeps a fill
@@ -164,16 +144,6 @@ class CylinderFillRepository {
     }
     SyncEventBus.notifyLocalChange();
     return rows.length;
-  }
-
-  /// Newest first, through the gear link only.
-  Future<List<CylinderFill>> getForEquipment(String equipmentId) async {
-    final rows =
-        await (_db.select(_db.cylinderFills)
-              ..where((t) => t.equipmentId.equals(equipmentId))
-              ..orderBy([(t) => OrderingTerm.desc(t.filledAt)]))
-            .get();
-    return rows.map(_fromRow).toList();
   }
 
   /// Points the fills of [passportId] that no other live cylinder owns at

@@ -19792,6 +19792,12 @@ abstract class AppLocalizations {
   /// **'No fill logged'**
   String get passport_entry_noFill;
 
+  /// No description provided for @passport_entry_lastFillNoPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'{mix}, {date}'**
+  String passport_entry_lastFillNoPressure(String mix, String date);
+
   /// No description provided for @passport_entry_lastFill.
   ///
   /// In en, this message translates to:
@@ -19972,6 +19978,12 @@ abstract class AppLocalizations {
   /// **'Print labels'**
   String get passport_tag_printLabels;
 
+  /// No description provided for @passport_tag_printFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create the labels. Try again.'**
+  String get passport_tag_printFailed;
+
   /// No description provided for @passport_tag_linkExisting.
   ///
   /// In en, this message translates to:
@@ -19989,6 +20001,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'That is not a cylinder tag'**
   String get passport_tag_linkInvalid;
+
+  /// No description provided for @passport_tag_linkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not link the tag. Try again.'**
+  String get passport_tag_linkFailed;
 
   /// No description provided for @passport_tag_linkInUse.
   ///

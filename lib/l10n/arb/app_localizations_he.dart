@@ -11620,6 +11620,11 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_entry_noFill => 'לא נרשם מילוי';
 
   @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix, $date';
+  }
+
+  @override
   String passport_entry_lastFill(String mix, String pressure, String date) {
     return '$mix ב-$pressure, $date';
   }
@@ -11742,6 +11747,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_tag_printLabels => 'הדפסת תוויות';
 
   @override
+  String get passport_tag_printFailed =>
+      'לא ניתן היה ליצור את התוויות. נסו שוב.';
+
+  @override
   String get passport_tag_linkExisting => 'קישור תג קיים';
 
   @override
@@ -11749,6 +11758,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get passport_tag_linkInvalid => 'זה אינו תג מיכל';
+
+  @override
+  String get passport_tag_linkFailed => 'לא ניתן היה לקשר את התג. נסו שוב.';
 
   @override
   String passport_tag_linkInUse(String name) {

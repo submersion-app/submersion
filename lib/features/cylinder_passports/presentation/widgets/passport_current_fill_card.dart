@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_metrics.dart';
@@ -83,7 +84,7 @@ class _FillSummary extends StatelessWidget {
       ppO2Deco: settings.ppO2MaxDeco,
       o2Narcotic: settings.o2Narcotic,
     );
-    String ppo2(double v) => v.toStringAsFixed(1);
+    String ppo2(double v) => formatFixedForDisplay(v, 1);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

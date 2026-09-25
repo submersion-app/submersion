@@ -11348,6 +11348,11 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_entry_noFill => '尚无充气记录';
 
   @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix，$date';
+  }
+
+  @override
   String passport_entry_lastFill(String mix, String pressure, String date) {
     return '$mix，$pressure，$date';
   }
@@ -11469,6 +11474,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_tag_printLabels => '打印标签';
 
   @override
+  String get passport_tag_printFailed => '无法创建标签。请重试。';
+
+  @override
   String get passport_tag_linkExisting => '关联现有标签';
 
   @override
@@ -11476,6 +11484,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get passport_tag_linkInvalid => '这不是气瓶标签';
+
+  @override
+  String get passport_tag_linkFailed => '无法关联标签。请重试。';
 
   @override
   String passport_tag_linkInUse(String name) {

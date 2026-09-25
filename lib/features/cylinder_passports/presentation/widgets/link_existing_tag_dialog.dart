@@ -70,6 +70,15 @@ class _LinkExistingTagDialogState
         _error = l10n.passport_tag_linkInUse(holder?.name ?? e.equipmentId);
       });
       return;
+    } catch (_) {
+      // Anything else (a locked database, a row deleted underneath) must not
+      // leave the dialog disabled with no word of what happened.
+      if (!mounted) return;
+      setState(() {
+        _busy = false;
+        _error = l10n.passport_tag_linkFailed;
+      });
+      return;
     }
     ref.invalidate(passportIdProvider(widget.equipmentId));
     ref.invalidate(fillsForEquipmentProvider(widget.equipmentId));

@@ -37,27 +37,48 @@ Future<void> printPassportLabels(
 }) async {
   final l10n = context.l10n;
   final units = UnitFormatter(ref.read(settingsProvider));
-  final equipmentRepo = ref.read(equipmentRepositoryProvider);
   final passportRepo = ref.read(cylinderPassportRepositoryProvider);
   final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
   final now = DateTime.now();
+
+  // Batched: one read for the items and their attributes, one for every
+  // service record, the clocks concurrently; ids are minted only for the
+  // cylinders that have none yet.
+  final byId = {
+    for (final item
+        in await ref
+            .read(equipmentRepositoryProvider)
+            .getEquipmentByIds(equipmentIds))
+      item.id: item,
+  };
+  final tanks = [
+    for (final id in equipmentIds)
+      if (byId[id] case final item? when item.type == EquipmentType.tank) item,
+  ];
+  if (tanks.isEmpty) return;
+  final tankIds = [for (final t in tanks) t.id];
+  final recordsById = await ref
+      .read(serviceRecordRepositoryProvider)
+      .getRecordsForEquipmentIds(tankIds);
+  final clocksById = Map.fromIterables(
+    tankIds,
+    await Future.wait([
+      for (final id in tankIds)
+        ref.read(serviceClockStatusesProvider(id).future),
+    ]),
+  );
+
   final labels = <PassportLabelData>[];
-  for (final id in equipmentIds) {
-    final item = await equipmentRepo.getEquipmentById(id);
-    if (item == null || item.type != EquipmentType.tank) continue;
-    final passportId = await passportRepo.ensurePassportId(
-      id,
-      diverId: diverId,
-    );
-    final clocks = await ref.read(serviceClockStatusesProvider(id).future);
-    final records = await ref.read(
-      serviceRecordsForEquipmentProvider(id).future,
-    );
+  for (final item in tanks) {
+    final stored = item.attrText(EquipmentAttrKeys.passportId);
+    final passportId = stored != null && stored.trim().isNotEmpty
+        ? stored.trim()
+        : await passportRepo.ensurePassportId(item.id, diverId: diverId);
     final payload = currentPayloadFor(
       item,
       passportId: passportId,
-      clocks: clocks,
-      records: records,
+      clocks: clocksById[item.id] ?? const [],
+      records: recordsById[item.id] ?? const [],
       now: now,
     );
     if (payload == null) continue;

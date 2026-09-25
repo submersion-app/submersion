@@ -562,8 +562,16 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
             everyChecked(ids, (e) => e.type == EquipmentType.tank),
         onInvoke: () async {
           final ids = _selectedIds.toList();
+          final messenger = ScaffoldMessenger.of(context);
+          final failedText = context.l10n.passport_tag_printFailed;
+          try {
+            await printPassportLabels(context, ref, ids);
+          } catch (_) {
+            // Keep the selection so the diver can try again.
+            messenger.showSnackBar(SnackBar(content: Text(failedText)));
+            return BulkActionOutcome.failed;
+          }
           _selection.exit();
-          await printPassportLabels(context, ref, ids);
           return BulkActionOutcome.completed;
         },
       ),
