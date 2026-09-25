@@ -11884,6 +11884,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get passport_service_notTracked => 'Nem követett';
 
   @override
+  String get passport_service_neverRecorded => 'Soha nem rögzítették';
+
+  @override
   String get passport_service_trackO2Clean => 'O2-tisztítás követése';
 
   @override
@@ -12020,6 +12023,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get passport_logFill_invalidNumber => 'Adjon meg egy számot';
+
+  @override
+  String get passport_logFill_saveFailed =>
+      'A töltés mentése nem sikerült. Próbálja újra.';
 
   @override
   String equipment_bulkTags_confirmAdding(int count) {

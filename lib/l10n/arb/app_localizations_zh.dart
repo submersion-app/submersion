@@ -11376,6 +11376,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_service_notTracked => '未跟踪';
 
   @override
+  String get passport_service_neverRecorded => '从未记录';
+
+  @override
   String get passport_service_trackO2Clean => '跟踪氧清洁';
 
   @override
@@ -11509,6 +11512,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get passport_logFill_invalidNumber => '请输入数字';
+
+  @override
+  String get passport_logFill_saveFailed => '无法保存充气记录。请重试。';
 
   @override
   String equipment_bulkTags_confirmAdding(int count) {

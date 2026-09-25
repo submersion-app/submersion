@@ -11822,6 +11822,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get passport_service_notTracked => 'Niet bijgehouden';
 
   @override
+  String get passport_service_neverRecorded => 'Nooit vastgelegd';
+
+  @override
   String get passport_service_trackO2Clean => 'O2-reiniging bijhouden';
 
   @override
@@ -11957,6 +11960,10 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get passport_logFill_invalidNumber => 'Voer een getal in';
+
+  @override
+  String get passport_logFill_saveFailed =>
+      'De vulling kon niet worden opgeslagen. Probeer het opnieuw.';
 
   @override
   String equipment_bulkTags_confirmAdding(int count) {

@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// A number typed by a diver: a decimal comma is a decimal point, blanks and
-/// letters are not numbers.
-double? parseDecimal(String text) {
-  final normalized = text.trim().replaceAll(',', '.');
-  if (normalized.isEmpty) return null;
-  return double.tryParse(normalized);
-}
+/// A number typed by a diver, read in the active locale: grouping is honoured
+/// (3,000 psi is three thousand in English), a mistyped decimal separator is
+/// corrected where that is unambiguous, and blanks, letters and non-finite
+/// values are not numbers.
+double? parseDecimal(String text) => smartParseUserDecimal(text);
 
 /// Opens the manual fill sheet. Resolves with the saved fill, or null when
 /// the diver backed out.
@@ -77,7 +77,7 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
   }
 
   Future<void> _pickDate() async {
-    final picked = await showDatePicker(
+    final picked = await showAppDatePicker(
       context: context,
       initialDate: _filledAt,
       firstDate: DateTime(1990),
@@ -110,7 +110,7 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
     final mixInvalid =
         o2 == null ||
         he == null ||
-        o2 < 0 ||
+        o2 <= 0 ||
         o2 > 100 ||
         he < 0 ||
         he > 100 ||
@@ -152,7 +152,17 @@ class _LogFillSheetState extends ConsumerState<LogFillSheet> {
       createdAt: now,
       updatedAt: now,
     );
-    final saved = await ref.read(cylinderFillRepositoryProvider).create(fill);
+    final CylinderFill saved;
+    try {
+      saved = await ref.read(cylinderFillRepositoryProvider).create(fill);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _saving = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.passport_logFill_saveFailed)));
+      return;
+    }
     if (!mounted) return;
     Navigator.of(context).pop(saved);
   }

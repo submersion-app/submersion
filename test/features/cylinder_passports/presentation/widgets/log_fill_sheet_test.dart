@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/log_fill_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -20,17 +23,33 @@ void main() {
       expect(parseDecimal(' 32.5 '), 32.5);
     });
 
+    test('reads grouping, so 3,000 psi is three thousand', () {
+      expect(parseDecimal('3,000'), 3000);
+    });
+
+    test('rejects non-finite values', () {
+      expect(parseDecimal('NaN'), isNull);
+      expect(parseDecimal('Infinity'), isNull);
+    });
+
     test('rejects letters and blanks', () {
       expect(parseDecimal('abc'), isNull);
       expect(parseDecimal(''), isNull);
     });
   });
 
-  Future<void> pump(WidgetTester tester) async {
+  Future<void> pump(
+    WidgetTester tester, {
+    CylinderFillRepository? repository,
+  }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
       testApp(
-        overrides: overrides,
+        overrides: [
+          ...overrides,
+          if (repository != null)
+            cylinderFillRepositoryProvider.overrideWithValue(repository),
+        ],
         child: const LogFillSheet(passportId: 'pp-1', equipmentId: 'eq-1'),
       ),
     );
@@ -67,4 +86,33 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text(l10n.passport_logFill_invalidNumber), findsOneWidget);
   });
+
+  testWidgets('refuses an O2 of zero', (tester) async {
+    await pump(tester);
+    final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
+    await tester.enterText(find.byKey(const Key('logFill_o2')), '0');
+    await tester.tap(find.text(l10n.forms_save));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.passport_logFill_invalidMix), findsOneWidget);
+  });
+
+  testWidgets('a failed save says so and leaves the sheet usable', (
+    tester,
+  ) async {
+    await pump(tester, repository: _ThrowingFillRepository());
+    final l10n = AppLocalizations.of(tester.element(find.byType(LogFillSheet)));
+    await tester.tap(find.text(l10n.forms_save));
+    await tester.pumpAndSettle();
+    expect(find.text(l10n.passport_logFill_saveFailed), findsOneWidget);
+    final save = tester.widget<FilledButton>(
+      find.widgetWithText(FilledButton, l10n.forms_save),
+    );
+    expect(save.onPressed, isNotNull);
+  });
+}
+
+class _ThrowingFillRepository extends CylinderFillRepository {
+  @override
+  Future<CylinderFill> create(CylinderFill fill) async =>
+      throw StateError('disk full');
 }

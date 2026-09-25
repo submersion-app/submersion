@@ -11907,6 +11907,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get passport_service_notTracked => 'Nicht erfasst';
 
   @override
+  String get passport_service_neverRecorded => 'Nie erfasst';
+
+  @override
   String get passport_service_trackO2Clean => 'O2-Reinigung erfassen';
 
   @override
@@ -12042,6 +12045,10 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get passport_logFill_invalidNumber => 'Zahl eingeben';
+
+  @override
+  String get passport_logFill_saveFailed =>
+      'Die Füllung konnte nicht gespeichert werden. Bitte erneut versuchen.';
 
   @override
   String equipment_bulkTags_confirmAdding(int count) {

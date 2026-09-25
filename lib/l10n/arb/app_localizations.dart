@@ -19840,6 +19840,12 @@ abstract class AppLocalizations {
   /// **'Not tracked'**
   String get passport_service_notTracked;
 
+  /// No description provided for @passport_service_neverRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Never recorded'**
+  String get passport_service_neverRecorded;
+
   /// No description provided for @passport_service_trackO2Clean.
   ///
   /// In en, this message translates to:
@@ -20055,6 +20061,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter a number'**
   String get passport_logFill_invalidNumber;
+
+  /// No description provided for @passport_logFill_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the fill. Try again.'**
+  String get passport_logFill_saveFailed;
 
   /// No description provided for @equipment_bulkTags_confirmAdding.
   ///

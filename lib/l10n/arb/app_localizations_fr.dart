@@ -11956,6 +11956,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get passport_service_notTracked => 'Non suivi';
 
   @override
+  String get passport_service_neverRecorded => 'Jamais enregistré';
+
+  @override
   String get passport_service_trackO2Clean => 'Suivre le nettoyage O2';
 
   @override
@@ -12093,6 +12096,10 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get passport_logFill_invalidNumber => 'Saisissez un nombre';
+
+  @override
+  String get passport_logFill_saveFailed =>
+      'Impossible d\'enregistrer le gonflage. Réessayez.';
 
   @override
   String equipment_bulkTags_confirmAdding(int count) {

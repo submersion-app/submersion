@@ -6837,6 +6837,7 @@
   "passport_spec_buoyancyFull": "Buoyancy when full",
   "passport_service_title": "Service",
   "passport_service_notTracked": "Not tracked",
+  "passport_service_neverRecorded": "Never recorded",
   "passport_service_trackO2Clean": "Track O2 cleaning",
   "passport_service_lastDone": "Last {date}",
   "@passport_service_lastDone": {
@@ -6924,6 +6925,7 @@
   "passport_logFill_notes": "Notes",
   "passport_logFill_invalidMix": "O2 and He must each be 0 to 100 and total 100 or less",
   "passport_logFill_invalidNumber": "Enter a number",
+  "passport_logFill_saveFailed": "Could not save the fill. Try again.",
   "equipment_bulkTags_confirmAdding": "{count, plural, =1{Adding to 1 equipment item} other{Adding to all {count} equipment items}}",
   "@equipment_bulkTags_confirmAdding": {
     "placeholders": {

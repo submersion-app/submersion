@@ -11713,6 +11713,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_service_notTracked => 'غير متابَع';
 
   @override
+  String get passport_service_neverRecorded => 'لم يُسجَّل قط';
+
+  @override
   String get passport_service_trackO2Clean => 'متابعة تنظيف الأكسجين';
 
   @override
@@ -11848,6 +11851,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get passport_logFill_invalidNumber => 'أدخل رقمًا';
+
+  @override
+  String get passport_logFill_saveFailed => 'تعذّر حفظ التعبئة. حاول مرة أخرى.';
 
   @override
   String equipment_bulkTags_confirmAdding(int count) {
