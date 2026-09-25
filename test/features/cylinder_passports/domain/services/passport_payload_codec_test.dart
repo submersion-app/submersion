@@ -96,7 +96,7 @@ void main() {
 
     test('round trips a hostile name', () {
       const name = 'Bill & Ted #2 = Ärger';
-      final p = CylinderPassportPayload(passportId: id, name: name);
+      const p = CylinderPassportPayload(passportId: id, name: name);
       final back = PassportPayloadCodec.decode(
         PassportPayloadCodec.httpsUrl(p),
       );

@@ -133,7 +133,7 @@ abstract final class PassportPayloadCodec {
   /// The payload part of [text], or null when [text] is not a tag in either
   /// URL form and not a bare query string.
   static String? extractQuery(String text) {
-    var s = text.trim();
+    final s = text.trim();
     String? rest;
     if (s.startsWith(httpsPrefix)) {
       rest = s.substring(httpsPrefix.length);
