@@ -678,6 +678,7 @@ void main() {
             shareByDefaultProvider.overrideWith((_) async => false),
           ],
           child: MaterialApp(
+            locale: const Locale('en'),
             localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             home: Scaffold(
