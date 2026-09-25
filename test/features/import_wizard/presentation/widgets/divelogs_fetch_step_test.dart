@@ -249,4 +249,18 @@ void main() {
       expect(container.read(universalImportNotifierProvider).payload, isNull);
     });
   });
+
+  testWidgets('a failed re-fetch does not leave an earlier fetch usable', (
+    tester,
+  ) async {
+    container.read(divelogsFetchedProvider.notifier).state = true;
+    divesStatus = 503;
+    await withPlatform(TargetPlatform.macOS, () async {
+      await pumpStep(tester, client());
+      await fetch(tester);
+
+      expect(find.text('Could not fetch your logbook'), findsOneWidget);
+      expect(container.read(divelogsFetchedProvider), isFalse);
+    });
+  });
 }

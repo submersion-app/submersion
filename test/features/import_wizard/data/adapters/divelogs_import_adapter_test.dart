@@ -216,4 +216,30 @@ void main() {
     expect(outcome, (attached: 0, failed: 2));
     expect(tokenRequests, 1);
   });
+
+  testWidgets('a new or cleared client forgets the previous fetch', (
+    tester,
+  ) async {
+    final adapter = await pumpAdapter(tester);
+    adapter.setRemotePhotos({
+      'divelogs-1': [
+        RemotePhoto(url: Uri.parse('https://x.de/a.jpg'), fileName: 'a.jpg'),
+      ],
+    });
+    container.read(divelogsFetchedProvider.notifier).state = true;
+
+    adapter.setClient(_client((_) async => http.Response('', 200)));
+
+    expect(container.read(divelogsFetchedProvider), isFalse);
+    expect(
+      await adapter.debugAttachAdditionalPhotosFor(
+        photoDiveIds: const {0: 'dive-1'},
+        dives: const [
+          {'sourceUuid': 'divelogs-1'},
+        ],
+        destinationDir: '/nowhere',
+      ),
+      (attached: 0, failed: 0),
+    );
+  });
 }

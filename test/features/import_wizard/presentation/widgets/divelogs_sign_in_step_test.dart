@@ -174,4 +174,21 @@ void main() {
     expect(signedIn.last, isNull);
     expect(container.read(divelogsSignedInProvider), isFalse);
   });
+
+  testWidgets('sign out invalidates a fetch made under that account', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => store.save(
+        const DivelogsSession(username: 'rainer', token: 'cached'),
+      ),
+    );
+    await pumpStep(tester);
+    container.read(divelogsFetchedProvider.notifier).state = true;
+
+    await tester.tap(find.text('Sign out'));
+    await settle(tester);
+
+    expect(container.read(divelogsFetchedProvider), isFalse);
+  });
 }

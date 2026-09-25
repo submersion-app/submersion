@@ -55,7 +55,14 @@ class DivelogsImportAdapter extends UniversalAdapter {
   /// The signed-in client, set by the sign-in step.
   DivelogsApiClient? get client => _client;
 
-  void setClient(DivelogsApiClient? client) => _client = client;
+  /// Installs the client for a new sign-in, or clears it on sign-out.
+  /// Either way the account may have changed, so anything fetched under the
+  /// previous one is dropped and the Fetch step has to run again.
+  void setClient(DivelogsApiClient? client) {
+    _client = client;
+    _photos = const {};
+    widgetRef.read(divelogsFetchedProvider.notifier).state = false;
+  }
 
   /// Listed photos per payload dive `sourceUuid`, set by the fetch step.
   void setRemotePhotos(Map<String, List<RemotePhoto>> photos) =>

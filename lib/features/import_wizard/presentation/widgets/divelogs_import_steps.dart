@@ -144,6 +144,8 @@ class _DivelogsSignInStepState extends ConsumerState<DivelogsSignInStep> {
     _auth = null;
     widget.onSignedIn(null);
     ref.read(divelogsSignedInProvider.notifier).state = false;
+    // A fetch made under the account just signed out of must not import.
+    ref.read(divelogsFetchedProvider.notifier).state = false;
     if (!mounted) return;
     setState(() {
       _signedIn = false;
@@ -311,6 +313,8 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
     final includePhotos =
         PhotoFolderStep.canPickFolder &&
         ref.read(divelogsIncludePhotosProvider);
+    // Until this fetch succeeds, nothing fetched earlier may be imported.
+    ref.read(divelogsFetchedProvider.notifier).state = false;
     setState(() {
       _phase = _FetchPhase.fetching;
       _photoProgress = null;
