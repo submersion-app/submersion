@@ -35,13 +35,23 @@ domain.DivePlan _plan({
   createdAt: DateTime(2026),
   updatedAt: DateTime(2026),
   tanks: tanks,
+  // The remainder starts at depth: the zero-duration anchor puts the engine
+  // there, as compileScenarioPlan does, so the hold resolves flat.
   segments: [
-    PlanSegment.bottom(
+    PlanSegment.hold(
+      id: 's0-anchor',
+      depth: 45,
+      durationMinutes: 0,
+      tankId: 'back',
+      gasMix: const GasMix(o2: 21),
+    ),
+    PlanSegment.hold(
       id: 's0',
       depth: 45,
       durationMinutes: bottomMinutes,
       tankId: 'back',
       gasMix: const GasMix(o2: 21),
+      order: 1,
     ),
   ],
 );

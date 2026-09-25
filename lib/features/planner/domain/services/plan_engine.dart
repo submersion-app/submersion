@@ -219,7 +219,7 @@ class PlanEngine {
       waterType: plan.waterType ?? WaterType.salt,
       salinityPpt: plan.salinityPpt,
     );
-    final policy = _policyFor(plan);
+    final policy = policyFor(plan);
     final model = BuhlmannGf(
       gfLow: plan.gfLow / 100.0,
       gfHigh: plan.gfHigh / 100.0,
@@ -548,7 +548,7 @@ class PlanEngine {
       );
     }
 
-    final policy = _policyFor(plan);
+    final policy = policyFor(plan);
     var depth = lastDepth;
     var phase = AscentPhase.toFirstStop;
     for (final stop in stops) {
@@ -717,7 +717,7 @@ class PlanEngine {
     }
 
     // Computed ascent: travel legs and stops on the deco SAC.
-    final policy = _policyFor(plan);
+    final policy = policyFor(plan);
     var depth = lastDepth;
     var phase = AscentPhase.toFirstStop;
     for (final stop in stops) {
@@ -853,7 +853,7 @@ class PlanEngine {
     if (maxDepth <= 0) return null;
     final sac = plan.sacStressedEffective * config.buddyFactor;
     final ascentMinutes =
-        _policyFor(
+        policyFor(
           plan,
         ).ascentTravelSeconds(fromDepth: maxDepth, stopDepths: const []) /
         60.0;
@@ -1115,14 +1115,15 @@ class PlanEngine {
     );
   }
 
-  /// The schedule policy a plan describes.
+  /// The schedule policy a plan describes. Public so the Dive Lab times the
+  /// ascent legs it synthesises with the same rates the engine scheduled.
   ///
   /// Derived rather than passed around: the ascent legs of a computed
   /// schedule are measured in several places (profile sampling, gas charging,
   /// stop runtimes, rock-bottom), and every one of them has to agree with the
   /// legs the deco model actually loaded. One derivation from the plan keeps
   /// them from drifting apart.
-  SchedulePolicy _policyFor(domain.DivePlan plan) => SchedulePolicy(
+  SchedulePolicy policyFor(domain.DivePlan plan) => SchedulePolicy(
     lastStopDepth: plan.lastStopDepth,
     ascentRate: plan.ascentRate,
     intermediateAscentRate: plan.intermediateAscentRate,
@@ -1167,7 +1168,7 @@ class PlanEngine {
     int segmentsRuntime,
   ) {
     final stops = <PlanStop>[];
-    final policy = _policyFor(plan);
+    final policy = policyFor(plan);
     var arrival = segmentsRuntime;
     var depth = fromDepth;
     var phase = AscentPhase.toFirstStop;
@@ -1309,7 +1310,7 @@ class PlanEngine {
       phase = AscentPhase.betweenStops;
     }
     if (depth > 0) {
-      final travel = _policyFor(plan).ascentSeconds(
+      final travel = policyFor(plan).ascentSeconds(
         fromDepth: depth,
         toDepth: 0,
         phase: AscentPhase.surfacingAfter(phase),

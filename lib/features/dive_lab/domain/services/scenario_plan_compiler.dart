@@ -158,7 +158,7 @@ CompiledScenario compileScenarioPlan({
     sourceDiveId: request.diveId,
     setpointLow: request.setpointLow,
     setpointHigh: request.setpointHigh,
-    segments: remainingBottom,
+    segments: anchoredAtDepth(remainingBottom),
     tanks: tanks,
   );
   return CompiledScenario(
@@ -166,4 +166,22 @@ CompiledScenario compileScenarioPlan({
     forcedTankId: forcedTankId,
     extraLastStopSeconds: extraLastStopSeconds,
   );
+}
+
+/// [segments] with a zero-duration waypoint at the first segment's depth in
+/// front. A waypoint plan resolves from the surface (`SegmentChain.resolve`
+/// starts every chain at 0 m), so a remainder that begins with a hold at the
+/// branch depth would otherwise read as a descent from the surface lasting
+/// the whole hold. The anchor takes no time and no gas; the engine arrives
+/// at depth instantly, which is where the branch state already puts it.
+/// A remainder that already opens with a zero-duration hold (the ascend-now
+/// anchor) needs nothing.
+List<PlanSegment> anchoredAtDepth(List<PlanSegment> segments) {
+  if (segments.isEmpty || segments.first.durationSeconds == 0) return segments;
+  final first = segments.first;
+  return [
+    first.copyWith(id: '${first.id}-anchor', durationSeconds: 0, order: 0),
+    for (var k = 0; k < segments.length; k++)
+      segments[k].copyWith(order: k + 1),
+  ];
 }

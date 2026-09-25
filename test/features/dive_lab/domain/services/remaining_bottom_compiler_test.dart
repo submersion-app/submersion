@@ -2,7 +2,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/dive_lab/domain/services/remaining_bottom_compiler.dart';
 import 'package:submersion/features/dive_lab/domain/services/tank_schedule.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
-import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 
 import '../support/synthetic_dives.dart';
 
@@ -91,8 +90,7 @@ void main() {
         schedule: schedule,
       );
       expect(segs, hasLength(1));
-      expect(segs.single.type, SegmentType.bottom);
-      expect(segs.single.startDepth, closeTo(40, 1e-9));
+      expect(segs.single.targetDepth, closeTo(40, 1e-9));
       expect(segs.single.durationSeconds, d.timestamps[d.bottomEndIndex] - 900);
       expect(segs.single.tankId, 'back');
       expect(segs.single.gasMix.o2, 21);
@@ -113,15 +111,11 @@ void main() {
         bottomEndIndex: d.bottomEndIndex,
         schedule: schedule,
       );
-      expect(segs.map((s) => s.type), [
-        SegmentType.bottom,
-        SegmentType.ascent,
-        SegmentType.bottom,
-      ]);
-      expect(segs[0].startDepth, closeTo(40, 1e-9));
-      expect(segs[1].startDepth, closeTo(40, 0.5));
-      expect(segs[1].endDepth, closeTo(20, 0.5));
-      expect(segs[2].startDepth, closeTo(20, 1e-9));
+      // Level at 40, the transition waypoint at 20, then the level at 20.
+      expect(segs, hasLength(3));
+      expect(segs[0].targetDepth, closeTo(40, 1e-9));
+      expect(segs[1].targetDepth, closeTo(20, 0.5));
+      expect(segs[2].targetDepth, closeTo(20, 1e-9));
       final total = segs.fold(0, (s, x) => s + x.durationSeconds);
       expect(total, d.timestamps[d.bottomEndIndex] - 600);
       expect(segs.map((s) => s.order), [0, 1, 2]);
@@ -194,7 +188,7 @@ void main() {
       );
       expect(segs, hasLength(1));
       expect(segs.single.durationSeconds, 0);
-      expect(segs.single.startDepth, 40);
+      expect(segs.single.targetDepth, 40);
     });
 
     test('ascendNow and branch-after-bottom yield a zero-duration hold', () {
@@ -212,7 +206,7 @@ void main() {
         ascendNow: true,
       );
       expect(now.single.durationSeconds, 0);
-      expect(now.single.startDepth, 40);
+      expect(now.single.targetDepth, 40);
       final late = compileRemainingBottom(
         depths: d.depths,
         timestamps: d.timestamps,
@@ -221,7 +215,7 @@ void main() {
         schedule: schedule,
       );
       expect(late.single.durationSeconds, 0);
-      expect(late.single.startDepth, d.depths[d.bottomEndIndex + 30]);
+      expect(late.single.targetDepth, d.depths[d.bottomEndIndex + 30]);
     });
   });
 }

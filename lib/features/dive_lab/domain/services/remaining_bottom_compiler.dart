@@ -103,9 +103,7 @@ List<PlanSegment> compileRemainingBottom({
   final branchDepth = depths[branchIndex];
   PlanSegment hold() => PlanSegment(
     id: '$idPrefix-0',
-    type: SegmentType.bottom,
-    startDepth: branchDepth,
-    endDepth: branchDepth,
+    targetDepth: branchDepth,
     durationSeconds: 0,
     tankId: _tankIdAt(schedule, timestamps[branchIndex], forcedTankId),
     gasMix: _mixAt(schedule, timestamps[branchIndex], forcedTankId),
@@ -134,8 +132,10 @@ List<PlanSegment> compileRemainingBottom({
     }
   }
 
-  final segments = <PlanSegment>[];
-  var order = 0;
+  // A segment is a waypoint (target depth plus duration); whether it is a
+  // level or a transition is a property of its position, so the compiler
+  // keeps that knowledge beside each segment while it trims.
+  final segments = <_Waypoint>[];
   for (var k = 0; k < levels.length; k++) {
     final level = levels[k];
     final startTs = timestamps[level.startIndex];
@@ -143,56 +143,58 @@ List<PlanSegment> compileRemainingBottom({
       final prev = levels[k - 1];
       final transitionSeconds = startTs - timestamps[prev.endIndex];
       if (transitionSeconds > 0) {
-        final goingDown = level.mean > prev.mean;
         segments.add(
-          PlanSegment(
-            id: '$idPrefix-$order',
-            type: goingDown ? SegmentType.descent : SegmentType.ascent,
-            startDepth: prev.mean,
-            endDepth: level.mean,
-            durationSeconds: transitionSeconds,
-            tankId: _tankIdAt(schedule, startTs, forcedTankId),
-            gasMix: _mixAt(schedule, startTs, forcedTankId),
-            order: order,
+          _Waypoint(
+            PlanSegment(
+              id: '$idPrefix-${segments.length}',
+              targetDepth: level.mean,
+              durationSeconds: transitionSeconds,
+              tankId: _tankIdAt(schedule, startTs, forcedTankId),
+              gasMix: _mixAt(schedule, startTs, forcedTankId),
+              order: segments.length,
+            ),
+            isLevel: false,
           ),
         );
-        order++;
       }
     }
     final holdSeconds = timestamps[level.endIndex] - startTs;
     if (holdSeconds > 0) {
       segments.add(
-        PlanSegment(
-          id: '$idPrefix-$order',
-          type: SegmentType.bottom,
-          startDepth: level.mean,
-          endDepth: level.mean,
-          durationSeconds: holdSeconds,
-          tankId: _tankIdAt(schedule, startTs, forcedTankId),
-          gasMix: _mixAt(schedule, startTs, forcedTankId),
-          order: order,
+        _Waypoint(
+          PlanSegment(
+            id: '$idPrefix-${segments.length}',
+            targetDepth: level.mean,
+            durationSeconds: holdSeconds,
+            tankId: _tankIdAt(schedule, startTs, forcedTankId),
+            gasMix: _mixAt(schedule, startTs, forcedTankId),
+            order: segments.length,
+          ),
+          isLevel: true,
         ),
       );
-      order++;
     }
   }
 
   if (shiftSeconds != 0) {
     var remaining = shiftSeconds;
     for (var k = segments.length - 1; k >= 0 && remaining != 0; k--) {
-      final s = segments[k];
-      if (s.type != SegmentType.bottom) continue;
-      final newDuration = s.durationSeconds + remaining;
+      final w = segments[k];
+      if (!w.isLevel) continue;
+      final newDuration = w.segment.durationSeconds + remaining;
       if (newDuration > 0) {
-        segments[k] = s.copyWith(durationSeconds: newDuration);
+        segments[k] = _Waypoint(
+          w.segment.copyWith(durationSeconds: newDuration),
+          isLevel: true,
+        );
         remaining = 0;
       } else {
-        remaining = newDuration; // still negative: carry into earlier bottoms
+        remaining = newDuration; // still negative: carry into earlier levels
         segments.removeAt(k);
       }
     }
     // Drop transitions left dangling at the end after trimming.
-    while (segments.isNotEmpty && segments.last.type != SegmentType.bottom) {
+    while (segments.isNotEmpty && !segments.last.isLevel) {
       segments.removeLast();
     }
   }
@@ -200,8 +202,17 @@ List<PlanSegment> compileRemainingBottom({
   if (segments.isEmpty) return [hold()];
   return [
     for (var k = 0; k < segments.length; k++)
-      segments[k].copyWith(id: '$idPrefix-$k', order: k),
+      segments[k].segment.copyWith(id: '$idPrefix-$k', order: k),
   ];
+}
+
+class _Waypoint {
+  const _Waypoint(this.segment, {required this.isLevel});
+
+  final PlanSegment segment;
+
+  /// True for a hold at a level, false for the transition between levels.
+  final bool isLevel;
 }
 
 String _tankIdAt(TankSchedule schedule, int t, String? forced) =>

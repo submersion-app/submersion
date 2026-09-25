@@ -82,7 +82,7 @@ const branch = BranchState(
 );
 
 final bottom = [
-  PlanSegment.bottom(
+  PlanSegment.hold(
     id: 'lab-seg-0',
     depth: 40,
     durationMinutes: 5,
@@ -92,6 +92,47 @@ final bottom = [
 ];
 
 void main() {
+  test('the plan opens with a zero-duration waypoint at the first level', () {
+    // A waypoint plan resolves from the surface, so without this anchor the
+    // first hold would read as a descent from 0 m over its whole duration.
+    final c = compileScenarioPlan(
+      request: _request(),
+      branch: branch,
+      settings: const ScenarioSettings(),
+      interventions: const [],
+      remainingBottom: bottom,
+    );
+    final segments = c.plan.segments;
+    expect(segments, hasLength(2));
+    expect(segments[0].durationSeconds, 0);
+    expect(segments[0].targetDepth, 40);
+    expect(segments[0].tankId, 'back');
+    expect(segments[0].order, 0);
+    expect(segments[1].durationSeconds, 300);
+    expect(segments[1].targetDepth, 40);
+    expect(segments[1].order, 1);
+  });
+
+  test('a remainder that is already a zero-duration hold gets no anchor', () {
+    final c = compileScenarioPlan(
+      request: _request(),
+      branch: branch,
+      settings: const ScenarioSettings(),
+      interventions: const [],
+      remainingBottom: [
+        PlanSegment.hold(
+          id: 'lab-seg-0',
+          depth: 40,
+          durationMinutes: 0,
+          tankId: 'back',
+          gasMix: const GasMix(o2: 21),
+        ),
+      ],
+    );
+    expect(c.plan.segments, hasLength(1));
+    expect(c.plan.segments.single.durationSeconds, 0);
+  });
+
   test('baseline: tanks at branch pressure, settings, SAC, identity', () {
     final c = compileScenarioPlan(
       request: _request(),
@@ -111,7 +152,7 @@ void main() {
     expect(p.tanks.map((t) => t.id), ['back', 'deco50']);
     expect(p.tanks[0].startPressure, 130);
     expect(p.tanks[1].startPressure, 198);
-    expect(p.segments, bottom);
+    expect(p.segments, anchoredAtDepth(bottom));
     expect(p.reservePressure, 50);
     expect(c.forcedTankId, isNull);
   });

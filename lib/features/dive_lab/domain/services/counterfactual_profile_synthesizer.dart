@@ -8,6 +8,8 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/core/deco/schedule_policy.dart';
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
 /// Loop setpoints for a rebreather remainder: high below [switchDepth], low
 /// above, inert gas from [diluent].
@@ -143,6 +145,12 @@ String? tankIdForMix(List<DiveTank> tanks, double fO2, double fHe) {
   return match?.id;
 }
 
+/// Midpoint of the leg the builder is about to walk (or is walking) for [s]:
+/// its current depth to the segment's target. A segment carries no start
+/// depth of its own, so the builder's position stands in for it.
+double _legMidDepth(_Builder b, PlanSegment s) =>
+    (b.depths.last + s.targetDepth) / 2;
+
 /// Samples for the counterfactual remainder: the plan's segments, then the
 /// engine's ascent and stops, then the final leg to the surface.
 SynthesizedRemainder synthesizeRemainder({
@@ -167,7 +175,7 @@ SynthesizedRemainder synthesizeRemainder({
     tankId: s.tankId,
     setpoint: loop == null
         ? null
-        : (s.avgDepth > loop.switchDepth ? loop.high : loop.low),
+        : (_legMidDepth(b, s) > loop.switchDepth ? loop.high : loop.low),
   );
   for (final s in segments) {
     segmentGas(s);
@@ -175,16 +183,24 @@ SynthesizedRemainder synthesizeRemainder({
       // A zero-duration hold (ascend-now anchor) adds no time.
       continue;
     }
-    b.leg(s.endDepth, s.durationSeconds, (t, d) => segmentGas(s));
+    b.leg(s.targetDepth, s.durationSeconds, (t, d) => segmentGas(s));
   }
   final bottomEnd = b.now;
 
+  // Legs are timed through the plan's schedule policy, phase by phase, so
+  // the synthesised ascent takes exactly as long as the engine's: the rate
+  // to the first stop, the intermediate and shallow rates between stops,
+  // and the final rate from the last stop.
+  final policy = const PlanEngine().policyFor(plan);
   var depth = b.depths.last;
   final stops = outcome.stops;
   for (var k = 0; k < stops.length; k++) {
     final stop = stops[k];
-    final legSeconds = ((depth - stop.depthMeters) / plan.ascentRate * 60)
-        .round();
+    final legSeconds = policy.ascentSeconds(
+      fromDepth: depth,
+      toDepth: stop.depthMeters,
+      phase: k == 0 ? AscentPhase.toFirstStop : AscentPhase.betweenStops,
+    );
     b.leg(
       stop.depthMeters,
       legSeconds,
@@ -198,7 +214,11 @@ SynthesizedRemainder synthesizeRemainder({
     depth = stop.depthMeters;
   }
   if (depth > 0) {
-    final legSeconds = (depth / plan.ascentRate * 60).round();
+    final legSeconds = policy.ascentSeconds(
+      fromDepth: depth,
+      toDepth: 0,
+      phase: stops.isEmpty ? AscentPhase.toFirstStop : AscentPhase.fromLastStop,
+    );
     b.leg(0.0, legSeconds, (t, d) => b.ascentGasAt(t, d, ascentPlan));
   }
   if (b.depths.last != 0.0) {

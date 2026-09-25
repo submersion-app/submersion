@@ -68,7 +68,7 @@ LabSlateLabels labSlateLabels(AppLocalizations l10n) => LabSlateLabels(
   issues: l10n.diveLab_panel_issues,
   notes: l10n.diveLab_panel_notes,
   depth: l10n.plannerCanvas_table_depth,
-  stop: l10n.plannerCanvas_table_stop,
+  stop: l10n.plannerCanvas_table_duration,
   runtimeColumn: l10n.plannerCanvas_table_runtime,
   gasColumn: l10n.plannerCanvas_table_gas,
   generated: l10n.diveLab_pdf_generated,

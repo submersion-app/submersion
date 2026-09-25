@@ -44,7 +44,7 @@ class LabRuntimeTable extends StatelessWidget {
         Row(
           children: [
             cell(l10n.plannerCanvas_table_depth, style: header),
-            cell(l10n.plannerCanvas_table_stop, style: header),
+            cell(l10n.plannerCanvas_table_duration, style: header),
             cell(l10n.plannerCanvas_table_runtime, style: header),
             cell(l10n.plannerCanvas_table_gas, flex: 2, style: header),
           ],
