@@ -95,6 +95,15 @@ void main() {
     expect(model.byId('t2')!.zone, FigureZone.sidemountRight);
   });
 
+  test('a BCD and a separate wing compete for the one back zone', () {
+    final model = composeFigure([
+      item('bcd', EquipmentType.bcd),
+      item('wing', EquipmentType.wing),
+    ]);
+    expect(model.byId('bcd')!.zone, FigureZone.wing);
+    expect(model.byId('wing')!.zone, isNull);
+  });
+
   test('a second BCD goes to the tray but still makes the rig sidemount', () {
     final model = composeFigure([
       item('jacket', EquipmentType.bcd),
@@ -105,7 +114,7 @@ void main() {
       ),
       item('t1', EquipmentType.tank),
     ]);
-    expect(model.byId('jacket')!.zone, FigureZone.torsoFront);
+    expect(model.byId('jacket')!.zone, FigureZone.wing);
     expect(model.byId('harness')!.zone, isNull);
     expect(model.byId('harness')!.number, 2);
     expect(model.byId('t1')!.zone, FigureZone.sidemountLeft);

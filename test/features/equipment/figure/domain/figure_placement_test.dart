@@ -55,27 +55,30 @@ void main() {
     expect(aluminium, FigureColors.aluminium);
   });
 
-  test('a BCD style picks its pieces', () {
+  test('a BCD is worn on the back and its style picks its pieces', () {
+    expect(FigurePlacement.forType(EquipmentType.bcd).zones, [FigureZone.wing]);
     expect(
-      FigurePlacement.forType(
-        EquipmentType.bcd,
-      ).piecesFor(FigureZone.torsoFront),
-      ['bcd_jacket_front'],
+      FigurePlacement.forType(EquipmentType.bcd).piecesFor(FigureZone.wing),
+      ['bcd_jacket_front', 'bcd_jacket_back'],
     );
     expect(
       FigurePlacement.forType(
         EquipmentType.bcd,
         attributes: {EquipmentAttrKeys.bcdStyle: 'wing'},
-      ).piecesFor(FigureZone.torsoFront),
+      ).piecesFor(FigureZone.wing),
       ['bcd_harness_front', 'bcd_wing_back'],
     );
     expect(
       FigurePlacement.forType(
         EquipmentType.bcd,
         attributes: {EquipmentAttrKeys.bcdStyle: 'sidemount'},
-      ).piecesFor(FigureZone.torsoFront),
+      ).piecesFor(FigureZone.wing),
       ['bcd_sidemount_front', 'bcd_sidemount_back'],
     );
+    // A separate harness item is still worn and labelled on the front.
+    expect(FigurePlacement.forType(EquipmentType.harness).zones, [
+      FigureZone.torsoFront,
+    ]);
   });
 
   test('an unknown attribute value falls back to the default variant', () {
@@ -83,7 +86,10 @@ void main() {
       EquipmentType.bcd,
       attributes: {EquipmentAttrKeys.bcdStyle: 'unknown'},
     );
-    expect(spec.piecesFor(FigureZone.torsoFront), ['bcd_jacket_front']);
+    expect(spec.piecesFor(FigureZone.wing), [
+      'bcd_jacket_front',
+      'bcd_jacket_back',
+    ]);
     final computer = FigurePlacement.forType(
       EquipmentType.computer,
       attributes: {'mount': 'ankle'},

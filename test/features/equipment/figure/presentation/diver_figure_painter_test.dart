@@ -108,27 +108,37 @@ void main() {
     });
   });
 
-  testWidgets('layers paint low to high so a BCD covers the wetsuit', (
-    tester,
-  ) async {
-    await tester.runAsync(() async {
-      final pixel = await paint(
-        composeFigure([
-          item('bcd', EquipmentType.bcd),
-          item('suit', EquipmentType.wetsuit),
-        ]),
-      );
-      // Inside the jacket, between the straps: the jacket (black), not the
-      // suit (dark blue).
-      expect(
-        pixel(layout.toBox(FigureView.front, 100, 120)),
-        FigureColors.black,
-      );
-      // On the thigh, only the suit.
-      expect(
-        pixel(layout.toBox(FigureView.front, 84, 260)),
-        FigureColors.darkBlue,
-      );
-    });
-  });
+  testWidgets(
+    'a jacket BCD shows straps in front and its bladder behind the tank',
+    (tester) async {
+      await tester.runAsync(() async {
+        final pixel = await paint(
+          composeFigure([
+            item('bcd', EquipmentType.bcd),
+            item('suit', EquipmentType.wetsuit),
+            item('tank', EquipmentType.tank),
+          ]),
+        );
+        // Front: the left shoulder strap covers the suit...
+        expect(
+          pixel(layout.toBox(FigureView.front, 83, 120)),
+          FigureColors.black,
+        );
+        // ...but the chest between the straps shows the suit, not a jacket.
+        expect(
+          pixel(layout.toBox(FigureView.front, 92, 130)),
+          FigureColors.darkBlue,
+        );
+        // Back: the bladder shows beside the tank, and the tank is over it.
+        expect(
+          pixel(layout.toBox(FigureView.back, 122, 150)),
+          FigureColors.black,
+        );
+        expect(
+          pixel(layout.toBox(FigureView.back, 104, 150)),
+          FigureColors.aluminium,
+        );
+      });
+    },
+  );
 }

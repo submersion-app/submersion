@@ -12,6 +12,9 @@ import 'package:submersion/features/equipment/figure/domain/figure_view.dart';
 /// [mirrored] set has the painter flip that piece about x = 100. The camera
 /// arm has no twin: its strobe piece is authored on the viewer's left and
 /// flipped to sit beside the camera in the right hand.
+///
+/// Back-view anchors sit where their gear shows beside the tank, which
+/// covers the centre line from the shoulders to the waist.
 enum FigureZone {
   // Front, head.
   head(FigureView.front, 100, 22),
@@ -51,8 +54,8 @@ enum FigureZone {
   // Back.
   tankValve(FigureView.back, 100, 74, capacity: 2),
   backTank(FigureView.back, 100, 130, capacity: 2),
-  wing(FigureView.back, 100, 150),
-  backplate(FigureView.back, 100, 176),
+  wing(FigureView.back, 126, 150),
+  backplate(FigureView.back, 118, 176),
   trimRight(FigureView.back, 76, 176),
   trimLeft(FigureView.back, 124, 176, mirrored: true),
   buttDRing(FigureView.back, 100, 214),

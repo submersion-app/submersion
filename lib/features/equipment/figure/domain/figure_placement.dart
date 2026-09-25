@@ -139,15 +139,18 @@ abstract final class FigurePlacement {
           defaultColor: FigureColors.metal,
         );
       case EquipmentType.bcd:
+        // Worn on the back (the straps show in front), so every style is
+        // labelled on the back view and shares the wing's zone: a rig has a
+        // BCD or a wing, and a second one goes to the tray.
         final pieces = switch (attributes[EquipmentAttrKeys.bcdStyle]) {
           'back_inflate' ||
           'wing' => const ['bcd_harness_front', 'bcd_wing_back'],
           'sidemount' => const ['bcd_sidemount_front', 'bcd_sidemount_back'],
-          _ => const ['bcd_jacket_front'],
+          _ => const ['bcd_jacket_front', 'bcd_jacket_back'],
         };
         return FigurePlacementSpec(
-          zones: const [FigureZone.torsoFront],
-          piecesByZone: {FigureZone.torsoFront: pieces},
+          zones: const [FigureZone.wing],
+          piecesByZone: {FigureZone.wing: pieces},
           defaultColor: FigureColors.black,
         );
       case EquipmentType.harness:
