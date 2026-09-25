@@ -7683,9 +7683,6 @@ class AppLocalizationsEs extends AppLocalizations {
       'Buscar por punto, compañero o notas';
 
   @override
-  String get diveLog_listPage_title => 'Registro de buceo';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Atrás';
 
   @override
@@ -14408,6 +14405,91 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get gasCalculators_desc_mnd =>
       'Profundidad narcótica límite de una mezcla';
+
+  @override
+  String get gasCalculators_tab_density => 'Densidad del gas';
+
+  @override
+  String get gasCalculators_desc_density =>
+      'Densidad del gas respirado en profundidad, OC o CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters => 'Mezcla y condiciones';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'Profundidad';
+
+  @override
+  String get gasCalculators_density_mode => 'Modo';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'En CCR, la mezcla de arriba es el gas diluyente.';
+
+  @override
+  String get gasCalculators_density_temperature => 'Temperatura del gas';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'Densidad del gas';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'Dentro del límite recomendado de $limit g/L.';
+  }
+
+  @override
+  String get gasCalculators_density_eaddLabel =>
+      'Profundidad equivalente de densidad de aire (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'La EADD es la profundidad a la que el aire sería tan denso como este gas. A diferencia de la densidad en g/L, no depende de la temperatura.';
+
+  @override
+  String get gasCalculators_density_loopGasTitle =>
+      'Gas del circuito en profundidad';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'Aquí el setpoint supera la presión ambiente, así que el circuito es oxígeno puro.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'El diluyente por sí solo da aquí una ppO2 de $ppO2, por encima del setpoint. La densidad usa la ppO2 del diluyente.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle =>
+      'Acerca de la densidad del gas';
+
+  @override
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'Un gas denso cuesta más respirarlo y aumenta el riesgo de retención de CO2. Mantén la densidad en $warn g/L o menos; $critical g/L es el límite absoluto.\n\nEn CCR cuenta la densidad del gas del circuito: oxígeno al setpoint y el resto repartido entre nitrógeno y helio según la proporción del diluyente.\n\nUn gas más frío es más denso, así que la opción de temperatura más fría es la conservadora. El cálculo supone un gas ideal.';
+  }
 
   @override
   String get gasCalculators_desc_blender =>
@@ -26227,6 +26309,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get tankPresets_builtInPresets => 'Presets incluidos';
 
   @override
+  String get tankPresets_builtInPresets_description =>
+      'Desactiva los presets que no uses para ocultarlos en los selectores de tanque. El preset predeterminado siempre se muestra.';
+
+  @override
   String get tankPresets_currentDefault => 'Predeterminado actual';
 
   @override
@@ -26378,6 +26464,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'Establecer como predeterminado';
+
+  @override
+  String get tankPresets_showInPickers => 'Mostrar en los selectores de tanque';
 
   @override
   String get tankPresets_title => 'Presets de tanque';

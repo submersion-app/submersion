@@ -76,10 +76,13 @@ void main() {
   group('narrow window', () {
     const narrow = Size(800, 1200);
 
-    testWidgets('shows the six calculators and no tab strip', (tester) async {
+    testWidgets('shows every calculator and no tab strip', (tester) async {
       await pumpAt(tester, narrow);
 
-      expect(find.byType(PlanningTile), findsNWidgets(6));
+      expect(
+        find.byType(PlanningTile),
+        findsNWidgets(kGasCalculatorIds.length),
+      );
       expect(find.byType(TabBar), findsNothing);
       expect(find.byType(TabBarView), findsNothing);
     });
@@ -125,7 +128,10 @@ void main() {
 
       expect(find.byType(RockBottomCalculator), findsOneWidget);
       // The list is still there beside it.
-      expect(find.byType(PlanningTile), findsNWidgets(6));
+      expect(
+        find.byType(PlanningTile),
+        findsNWidgets(kGasCalculatorIds.length),
+      );
       expect(find.byType(TabBar), findsNothing);
     });
 

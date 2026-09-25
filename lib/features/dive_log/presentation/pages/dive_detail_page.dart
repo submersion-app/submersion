@@ -62,6 +62,7 @@ import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twi
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
@@ -253,7 +254,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// query param -- the DetailScrollRetainer then keeps the scroll offset, so
   /// the same section stays in view. Standalone replaces the route so stepping
   /// through dives does not pile up the back stack.
+  ///
+  /// The list lights the row it opened through [highlightedDiveIdProvider] as
+  /// well as the selected param, so the highlight moves with the pane. Left
+  /// behind, it keeps the first dive lit next to the one on show (#2345).
   void _navigateToDive(String neighborId) {
+    ref.read(highlightedDiveIdProvider.notifier).state = neighborId;
     if (widget.embedded) {
       context.go('/dives?selected=$neighborId');
     } else {
