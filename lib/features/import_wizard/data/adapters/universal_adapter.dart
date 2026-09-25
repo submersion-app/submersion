@@ -33,6 +33,7 @@ import 'package:submersion/features/equipment/presentation/providers/equipment_t
 import 'package:submersion/features/import_wizard/domain/adapters/import_source_adapter.dart';
 import 'package:submersion/features/import_wizard/domain/models/duplicate_action.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_notice.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_phase.dart';
 import 'package:submersion/features/import_wizard/domain/models/entity_match_result.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_file_outcome.dart';
@@ -57,6 +58,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/universal_import/data/services/diver_slice_duplicates.dart';
 import 'package:submersion/features/universal_import/data/services/payload_slicer.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_notice_grouper.dart';
+import 'package:submersion/features/import_wizard/data/adapters/remote_photo_attacher.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_photo_linker.dart';
 import 'package:submersion/features/import_wizard/data/adapters/resolved_photo_attachment.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
@@ -311,6 +313,14 @@ class UniversalAdapter implements ImportSourceAdapter {
         await _seedDiverMapping();
       },
     ),
+    ...payloadSteps,
+  ];
+
+  /// The steps that act on a payload once it exists, whatever produced it.
+  /// A subclass that fetches its payload rather than parsing a file keeps
+  /// these after its own acquisition steps.
+  @protected
+  List<WizardStepDef> get payloadSteps => [
     WizardStepDef(
       label: 'Divers',
       icon: Icons.people_outline,
@@ -343,6 +353,36 @@ class UniversalAdapter implements ImportSourceAdapter {
       hiddenWhen: universalAdapterNoPhotosProvider,
     ),
   ];
+
+  /// Attaches photos this source brings that neither the archive-bundled nor
+  /// the path-referenced flow covers. Runs after both, with the same dive
+  /// targets, and only when the user chose a destination folder.
+  ///
+  /// Returns what was attached and what failed; a failure is reported in the
+  /// summary and never fails the import. File imports have none.
+  @protected
+  Future<RemotePhotoOutcome> attachAdditionalPhotos({
+    required Map<int, String> photoDiveIds,
+    required Set<String> removedDiveIds,
+    required Map<String, DateTime> diveStartById,
+    required List<Map<String, dynamic>> dives,
+    required String destinationDir,
+    ImportCancellationToken? cancelToken,
+  }) async => (attached: 0, failed: 0);
+
+  @visibleForTesting
+  List<String> get debugPayloadStepLabels =>
+      payloadSteps.map((s) => s.label).toList();
+
+  @visibleForTesting
+  Future<RemotePhotoOutcome> debugAttachAdditionalPhotos() =>
+      attachAdditionalPhotos(
+        photoDiveIds: const {},
+        removedDiveIds: const {},
+        diveStartById: const {},
+        dives: const [],
+        destinationDir: '',
+      );
 
   /// Seeds the Divers step's defaults (issue #1893). Runs as Map Fields is
   /// left, which the wizard does even when it auto-skips that step, after
@@ -451,10 +491,7 @@ class UniversalAdapter implements ImportSourceAdapter {
 
     final targets = await _importTargets(payload);
     return ImportBundle(
-      source: ImportSourceInfo(
-        type: ImportSourceType.universal,
-        displayName: _displayName,
-      ),
+      source: ImportSourceInfo(type: sourceType, displayName: _displayName),
       // One profile needs no labels; the counts already say where it goes.
       groups: targets.length > 1
           ? _labelTargets(groups, payload, targets)
@@ -1135,6 +1172,20 @@ class UniversalAdapter implements ImportSourceAdapter {
       resolvedPhotos = attached - linker.alreadyLinked;
     }
 
+    // Photos a remote source listed, downloaded now into the same folder
+    // the bundled flow uses.
+    var additional = (attached: 0, failed: 0);
+    if (bundledFolder != null && notifierState.remotePhotoCount > 0) {
+      additional = await attachAdditionalPhotos(
+        photoDiveIds: photoDiveIds,
+        removedDiveIds: removedDiveIds,
+        diveStartById: diveStartById,
+        dives: payload.entitiesOf(ui.ImportEntityType.dives),
+        destinationDir: bundledFolder,
+        cancelToken: cancelToken,
+      );
+    }
+
     // `importer.import` counted folded/removed dives as imported; subtract only
     // the dives that were ACTUALLY removed (folded, or compensating-deleted).
     // A dive whose fold AND cleanup both failed is still standalone in the DB,
@@ -1208,6 +1259,11 @@ class UniversalAdapter implements ImportSourceAdapter {
     );
     final notices = [
       ...groupImportNotices(payload.warnings, netDives),
+      if (additional.failed > 0)
+        ImportNotice(
+          kind: ImportNoticeKind.photosNotDownloaded,
+          count: additional.failed,
+        ),
       ?numberConflict,
     ];
 
@@ -1229,7 +1285,7 @@ class UniversalAdapter implements ImportSourceAdapter {
                 if (outcome.isActive) ...outcome.diveIds,
             ],
       fileOutcomes: fileOutcomes,
-      attachedPhotoCount: attachedPhotos + resolvedPhotos,
+      attachedPhotoCount: attachedPhotos + resolvedPhotos + additional.attached,
       unmatchedPhotoCount:
           notifierState.unmatchedPhotoCount + (resolution?.notFoundCount ?? 0),
       diverOutcomes: diverOutcomes,
