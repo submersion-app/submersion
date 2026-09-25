@@ -305,10 +305,8 @@ void main() {
 
     test('a focus with no row throws FocusNotFoundException', () async {
       expect(
-        () => repo.loadGraph(
-          _circle.copyWith(focus: _b('ghost')),
-          diverId: 'me',
-        ),
+        () =>
+            repo.loadGraph(_circle.copyWith(focus: _b('ghost')), diverId: 'me'),
         throwsA(isA<FocusNotFoundException>()),
       );
     });
