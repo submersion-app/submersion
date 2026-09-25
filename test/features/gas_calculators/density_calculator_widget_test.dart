@@ -35,6 +35,9 @@ Future<WidgetRef> _pump(
         settingsProvider.overrideWith((ref) => _TestSettingsNotifier(settings)),
       ],
       child: MaterialApp(
+        // The assertions read English text; pin it rather than rely on the
+        // test binding's default locale.
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: Scaffold(

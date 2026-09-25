@@ -169,7 +169,9 @@ GasDensityResult computeGasDensity(GasDensityInputs inputs) {
     pHe = fHe * ambient;
   } else {
     final diluentPO2 = fO2 * ambient;
-    if (setpoint >= ambient) {
+    // Strictly above: at equality the setpoint itself fills the loop with
+    // oxygen, and the "above ambient" hint would be untrue.
+    if (setpoint > ambient) {
       setpointCapped = true;
       pO2 = ambient;
     } else if (diluentPO2 > setpoint) {

@@ -143,6 +143,24 @@ void main() {
       expect(result.setpointCapped, isTrue);
     });
 
+    test('a setpoint equal to ambient pressure is not flagged as above it', () {
+      // Fresh water at the surface is exactly 1.0 bar.
+      final result = computeGasDensity(
+        _inputs(
+          o2: 18,
+          he: 45,
+          depth: 0,
+          setpoint: 1.0,
+          waterType: WaterType.fresh,
+        ),
+      );
+      expect(result.ambientPressureBar, 1.0);
+      expect(result.setpointCapped, isFalse);
+      expect(result.pO2Bar, closeTo(1.0, 1e-12));
+      expect(result.pN2Bar, 0);
+      expect(result.pHeBar, 0);
+    });
+
     test('a diluent richer than the setpoint sets the loop ppO2', () {
       // Air at 60 m carries ppO2 1.4765; a diluent flush cannot hold 1.3.
       final result = computeGasDensity(_inputs(depth: 60, setpoint: 1.3));
