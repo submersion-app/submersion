@@ -187,4 +187,22 @@ void main() {
       ['boots_front', 'boots_back'],
     );
   });
+
+  test('a hood, gloves and ankle weights are drawn on both views', () {
+    expect(
+      FigurePlacement.forType(EquipmentType.hood).piecesFor(FigureZone.head),
+      ['hood_front', 'hood_back'],
+    );
+    expect(
+      FigurePlacement.forType(EquipmentType.gloves).piecesFor(FigureZone.hands),
+      ['gloves_front', 'gloves_back'],
+    );
+    expect(
+      FigurePlacement.forType(
+        EquipmentType.weights,
+        attributes: {EquipmentAttrKeys.weightStyle: 'ankle'},
+      ).piecesFor(FigureZone.ankles),
+      ['weights_ankle_front', 'weights_ankle_back'],
+    );
+  });
 }

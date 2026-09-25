@@ -273,7 +273,7 @@ abstract final class FigurePlacement {
         return const FigurePlacementSpec(
           zones: [FigureZone.head],
           piecesByZone: {
-            FigureZone.head: ['hood_front'],
+            FigureZone.head: ['hood_front', 'hood_back'],
           },
           defaultColor: FigureColors.black,
         );
@@ -281,7 +281,7 @@ abstract final class FigurePlacement {
         return const FigurePlacementSpec(
           zones: [FigureZone.hands],
           piecesByZone: {
-            FigureZone.hands: ['gloves_front'],
+            FigureZone.hands: ['gloves_front', 'gloves_back'],
           },
           defaultColor: FigureColors.black,
         );
@@ -452,7 +452,7 @@ abstract final class FigurePlacement {
           'ankle' => const FigurePlacementSpec(
             zones: [FigureZone.ankles],
             piecesByZone: {
-              FigureZone.ankles: ['weights_ankle_front'],
+              FigureZone.ankles: ['weights_ankle_front', 'weights_ankle_back'],
             },
             defaultColor: FigureColors.black,
           ),

@@ -240,4 +240,28 @@ void main() {
       expect(boots(layout.toBox(FigureView.back, 80, 346)), FigureColors.black);
     });
   });
+
+  testWidgets('a hood, gloves and ankle weights show on the back view', (
+    tester,
+  ) async {
+    await tester.runAsync(() async {
+      final pixel = await paint(
+        composeFigure([
+          item('hood', EquipmentType.hood),
+          item('gloves', EquipmentType.gloves),
+          FigureItemInput(
+            id: 'ankle',
+            type: EquipmentType.weights,
+            name: 'ankle',
+            attributes: const {'weight_style': 'ankle'},
+          ),
+        ]),
+      );
+      // Each spot is bare body on the back without the piece.
+      // Off the hood's centre seam, which is drawn in the shade colour.
+      expect(pixel(layout.toBox(FigureView.back, 88, 30)), FigureColors.black);
+      expect(pixel(layout.toBox(FigureView.back, 53, 204)), FigureColors.black);
+      expect(pixel(layout.toBox(FigureView.back, 80, 331)), FigureColors.black);
+    });
+  });
 }

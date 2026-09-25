@@ -123,6 +123,12 @@
     {"id": "fins_back", "view": "back", "layer": 110,
      "roles": ["itemColor", "itemColor", "itemShade", "itemShade", "gearDark", "gearDark"]},
     {"id": "boots_back", "view": "back", "layer": 110,
-     "roles": ["itemColor", "itemColor", "itemShade", "itemShade", "itemShade", "itemShade"]}
+     "roles": ["itemColor", "itemColor", "itemShade", "itemShade", "itemShade", "itemShade"]},
+    {"id": "hood_back", "view": "back", "layer": 100,
+     "roles": ["itemColor", "itemColor", "itemShade"]},
+    {"id": "gloves_back", "view": "back", "layer": 90,
+     "roles": ["itemColor", "itemColor", "itemShade", "itemShade"]},
+    {"id": "weights_ankle_back", "view": "back", "layer": 80,
+     "roles": ["itemColor", "itemColor"]}
   ]
 }
