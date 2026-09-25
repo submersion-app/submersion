@@ -13818,7 +13818,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_mod_modeCcrTecHint =>
-      'Kreislaufgerät: Das Gemisch ist das Diluentgas. Die MOD ist die des Diluentgases beim Spülen, der Loop hält den Setpoint.';
+      'Kreislaufgerät: Das Gemisch ist das Diluentgas. Die MOD ist die MOD des Diluentgases beim Spülen, der Loop hält auf der Zieltiefe den Setpoint.';
 
   @override
   String get gasCalculators_mod_heliumHe => 'Helium (He)';

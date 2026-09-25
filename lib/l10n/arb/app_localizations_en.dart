@@ -13614,7 +13614,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gasCalculators_mod_modeCcrTecHint =>
-      'Closed circuit: the mix is the diluent. The MOD is the diluent\'s on a flush; the loop holds the setpoint.';
+      'Closed circuit: the mix is the diluent. The MOD is the diluent MOD on a flush; the loop holds the setpoint at the target depth.';
 
   @override
   String get gasCalculators_mod_heliumHe => 'Helium (He)';

@@ -8126,7 +8126,7 @@
   "gasCalculators_mod_mode": "Mode",
   "gasCalculators_mod_modeRecHint": "Nitrox for recreational diving: MOD and EAD, at 1 bar per 10 m as in the dive log.",
   "gasCalculators_mod_modeOcTecHint": "Trimix on open circuit: MOD, minimum depth, narcosis and gas density.",
-  "gasCalculators_mod_modeCcrTecHint": "Closed circuit: the mix is the diluent. The MOD is the diluent's on a flush; the loop holds the setpoint.",
+  "gasCalculators_mod_modeCcrTecHint": "Closed circuit: the mix is the diluent. The MOD is the diluent MOD on a flush; the loop holds the setpoint at the target depth.",
   "gasCalculators_mod_heliumHe": "Helium (He)",
   "gasCalculators_mod_setpoint": "Setpoint (bar)",
   "gasCalculators_mod_limitsTitle": "ppO₂ limits",

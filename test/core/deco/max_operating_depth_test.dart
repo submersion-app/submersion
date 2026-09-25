@@ -40,6 +40,12 @@ void main() {
       expect(mod, lessThan(33.75));
     });
 
+    test('a limit exceeded at the surface gives 0, never a negative MOD', () {
+      final salt = DiveEnvironment.forConditions(waterType: WaterType.salt);
+      // Pure O2 at a 0.5 bar flush ppO2: 0.5 bar is below the surface.
+      expect(maxOperatingDepthMeters(1.0, maxPpO2: 0.5, environment: salt), 0);
+    });
+
     test('fresh water is deeper than the flat model', () {
       final fresh = DiveEnvironment.forConditions(waterType: WaterType.fresh);
       expect(

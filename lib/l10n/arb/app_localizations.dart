@@ -22798,7 +22798,7 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_mod_modeCcrTecHint.
   ///
   /// In en, this message translates to:
-  /// **'Closed circuit: the mix is the diluent. The MOD is the diluent\'s on a flush; the loop holds the setpoint.'**
+  /// **'Closed circuit: the mix is the diluent. The MOD is the diluent MOD on a flush; the loop holds the setpoint at the target depth.'**
   String get gasCalculators_mod_modeCcrTecHint;
 
   /// No description provided for @gasCalculators_mod_heliumHe.

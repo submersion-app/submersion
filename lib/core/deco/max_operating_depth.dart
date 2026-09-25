@@ -20,7 +20,9 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 /// switch depths do not move. With one, the pressure follows its water
 /// density and surface pressure.
 ///
-/// A gas without oxygen has no MOD and returns 0.
+/// A gas without oxygen has no MOD and returns 0. With an [environment] the
+/// MOD is never negative: a limit the mix already exceeds at the surface
+/// (pure O2 at a 0.5 bar flush ppO2) gives 0, not a depth above the water.
 double maxOperatingDepthMeters(
   double o2Fraction, {
   required double maxPpO2,
@@ -29,7 +31,7 @@ double maxOperatingDepthMeters(
   if (o2Fraction <= 0) return 0;
   final pressure = maxPpO2 / o2Fraction;
   if (environment == null) return (pressure - 1.0) * 10.0;
-  return environment.depthAtPressure(pressure);
+  return math.max(environment.depthAtPressure(pressure), 0.0);
 }
 
 /// Shallowest depth in meters at which [o2Fraction] reaches [minPpO2].

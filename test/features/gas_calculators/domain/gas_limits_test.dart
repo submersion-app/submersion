@@ -133,6 +133,16 @@ void main() {
       expect(r.atMod.exceedsEndLimit, isTrue);
     });
 
+    test('END of air equals its depth: air is the reference', () {
+      // With O2 narcotic, air is 100 % narcotic gas, so END is the depth at
+      // which air has the same (N2 + O2) pressure: for air, the depth
+      // itself. No 0.79 normalization, which belongs to the N2-only EAD.
+      final r = computeGasLimits(
+        _inputs(mode: ModCalculatorMode.ocTec, o2: 21, he: 0, target: 40),
+      );
+      expect(r.atTarget!.endMeters, closeTo(40, 1e-9));
+    });
+
     test('the narcotic depth follows the O2-narcotic setting', () {
       final r = computeGasLimits(tx2135(o2Narcotic: false));
       expect(r.atMod.narcoticDepthMeters, r.atMod.eadMeters);

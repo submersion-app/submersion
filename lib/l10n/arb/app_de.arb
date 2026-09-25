@@ -4498,7 +4498,7 @@
   "gasCalculators_mod_mode": "Modus",
   "gasCalculators_mod_modeRecHint": "Nitrox für das Sporttauchen: MOD und EAD, mit 1 bar pro 10 m wie im Logbuch.",
   "gasCalculators_mod_modeOcTecHint": "Trimix im offenen System: MOD, Mindesttiefe, Narkose und Gasdichte.",
-  "gasCalculators_mod_modeCcrTecHint": "Kreislaufgerät: Das Gemisch ist das Diluentgas. Die MOD ist die des Diluentgases beim Spülen, der Loop hält den Setpoint.",
+  "gasCalculators_mod_modeCcrTecHint": "Kreislaufgerät: Das Gemisch ist das Diluentgas. Die MOD ist die MOD des Diluentgases beim Spülen, der Loop hält auf der Zieltiefe den Setpoint.",
   "gasCalculators_mod_heliumHe": "Helium (He)",
   "gasCalculators_mod_setpoint": "Setpoint (bar)",
   "gasCalculators_mod_limitsTitle": "ppO₂-Grenzen",
