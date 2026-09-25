@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/media/data/repositories/media_library_repository.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -84,8 +85,8 @@ void main() {
       id: id,
       mediaType: mediaType,
       sourceType: MediaSourceType.localFile,
-      filePath: '/tmp/$id',
-      localPath: '/tmp/$id',
+      filePath: p.join('media', id),
+      localPath: p.join('media', id),
       originalFilename: '$id.jpg',
       diveId: diveId,
       siteId: siteId,

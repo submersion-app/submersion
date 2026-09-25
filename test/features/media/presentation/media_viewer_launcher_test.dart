@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/pages/media_viewer_launcher.dart';
@@ -9,7 +10,7 @@ MediaItem _item(String id) => MediaItem(
   id: id,
   mediaType: MediaType.photo,
   sourceType: MediaSourceType.localFile,
-  filePath: '/tmp/$id',
+  filePath: p.join('media', id),
   takenAt: DateTime(2026, 3, 12),
   createdAt: DateTime(2026, 3, 12),
   updatedAt: DateTime(2026, 3, 12),

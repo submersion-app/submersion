@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_library_repository.dart';
@@ -18,7 +19,7 @@ MediaMapPoint _point(String id) => MediaMapPoint(
       id: id,
       mediaType: MediaType.photo,
       sourceType: MediaSourceType.localFile,
-      filePath: '/tmp/$id',
+      filePath: p.join('media', id),
       takenAt: DateTime(2026, 6, 1),
       createdAt: DateTime(2026, 6, 1),
       updatedAt: DateTime(2026, 6, 1),

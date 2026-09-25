@@ -174,6 +174,13 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
     return _markers;
   }
 
+  /// The filter or the diver changed: the next points refit the camera, and
+  /// any open strip belongs to the old scope.
+  void _onScopeChanged() {
+    _pendingFit = true;
+    if (_strip != null && mounted) setState(() => _strip = null);
+  }
+
   void _closeStrip() {
     if (_strip == null) return;
     setState(() => _strip = null);
@@ -181,9 +188,18 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
 
   @override
   Widget build(BuildContext context) {
-    ref.listen(mediaLibraryFilterProvider, (_, _) => _pendingFit = true);
-    ref.listen(currentDiverIdProvider, (_, _) => _pendingFit = true);
-    ref.listen(mediaMapPointsProvider, (_, next) => _fitIfPending(next));
+    // The strip is a snapshot of one stack, so it closes whenever the point
+    // set it came from goes away: a filter or diver change, or a reload that
+    // hands over a different list. An equal reload keeps the list instance
+    // (see MediaMapNotifier.load), so the strip survives it.
+    ref.listen(mediaLibraryFilterProvider, (_, _) => _onScopeChanged());
+    ref.listen(currentDiverIdProvider, (_, _) => _onScopeChanged());
+    ref.listen(mediaMapPointsProvider, (previous, next) {
+      // The watched provider rebuilds this widget, so a field write is
+      // enough here.
+      if (!identical(previous?.points, next.points)) _strip = null;
+      _fitIfPending(next);
+    });
 
     final state = ref.watch(mediaMapPointsProvider);
     final l10n = context.l10n;

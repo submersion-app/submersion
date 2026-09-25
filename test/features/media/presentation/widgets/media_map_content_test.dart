@@ -524,4 +524,75 @@ void main() {
 
     expect(builds, 2);
   });
+
+  // The place strip holds a snapshot of a stack; it must not outlive the
+  // point list it was taken from.
+
+  Future<_SeededMapNotifier> openStrip(
+    WidgetTester tester, {
+    List<MediaMapPoint>? points,
+  }) async {
+    final notifier = await _pump(
+      tester,
+      state: MediaMapState(points: points ?? [_point('a'), _point('b')]),
+    );
+    await tester.tap(find.byType(MediaMapMarker));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(MediaPlaceStrip), findsOneWidget);
+    return notifier;
+  }
+
+  testWidgets('a filter change closes an open strip', (tester) async {
+    await openStrip(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(MediaMapContent)),
+    );
+
+    container.read(mediaLibraryFilterProvider.notifier).state =
+        const MediaLibraryFilter(mediaType: MediaType.photo);
+    await tester.pump();
+
+    expect(find.byType(MediaPlaceStrip), findsNothing);
+    await _flushMapTimers(tester);
+  });
+
+  testWidgets('a diver change closes an open strip', (tester) async {
+    await openStrip(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(MediaMapContent)),
+    );
+
+    await container.read(currentDiverIdProvider.notifier).setCurrentDiver('d2');
+    await tester.pump();
+
+    expect(find.byType(MediaPlaceStrip), findsNothing);
+    await _flushMapTimers(tester);
+  });
+
+  testWidgets('a reload with a different point list closes an open strip', (
+    tester,
+  ) async {
+    final notifier = await openStrip(tester);
+
+    // Item b was deleted in the background.
+    notifier.seed(MediaMapState(points: [_point('a')]));
+    await tester.pump();
+
+    expect(find.byType(MediaPlaceStrip), findsNothing);
+    await _flushMapTimers(tester);
+  });
+
+  testWidgets('a reload that keeps the same point list leaves the strip open', (
+    tester,
+  ) async {
+    final same = [_point('a'), _point('b')];
+    final notifier = await openStrip(tester, points: same);
+
+    notifier.seed(MediaMapState(points: same, unlocatedCount: 3));
+    await tester.pump();
+
+    expect(find.byType(MediaPlaceStrip), findsOneWidget);
+    await _flushMapTimers(tester);
+  });
 }
