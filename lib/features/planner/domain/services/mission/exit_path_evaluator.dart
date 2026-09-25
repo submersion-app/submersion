@@ -15,7 +15,7 @@ import 'package:submersion/features/planner/domain/services/mission/mission_segm
 import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
 /// One diver on an exit: their own bottom SAC, and whether they breathe the
-/// plan's stressed SAC on the exit's bottom part.
+/// plan's stressed SAC on the exit's bottom part (never less than their own).
 class ExitDiver extends Equatable {
   final String id;
   final double sacBottom;
@@ -147,7 +147,11 @@ class ExitPathEvaluator {
           if (row.runtimeSeconds > authoredRuntime) {
             return plan.sacDecoEffective;
           }
-          return diver.stressed ? plan.sacStressedEffective : diver.sacBottom;
+          // Stressed never means breathing less: a diver whose own SAC is
+          // above the plan's stressed figure keeps their own.
+          return diver.stressed
+              ? math.max(plan.sacStressedEffective, diver.sacBottom)
+              : diver.sacBottom;
         },
       );
       liters[diver.id] = exit.values.fold(0.0, (a, b) => a + b);

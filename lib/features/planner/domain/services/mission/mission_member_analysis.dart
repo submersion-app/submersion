@@ -118,28 +118,35 @@ class MissionMemberAnalysis {
     );
   }
 
-  /// Why none of [own]'s exits works. The swim and the surface exit burn no
-  /// battery, so their gas is the clean witness for a gas reason; then the
-  /// surface limit, a possible tow that failed, and a current that closes
-  /// every underwater exit.
+  /// Why none of [own]'s exits works.
+  ///
+  /// In open water a surface exit that fails only on the surface swim limit
+  /// names the limit first: it is the setting that binds, and once a surface
+  /// swim feels the current, a current that closes the underwater exits
+  /// closes the surface too. Then own gas and a teammate's gas, from every
+  /// exit that ran (the swim, a tow that made headway, the surface); then a
+  /// tow that made headway but failed; then a current that closes them all.
   MissionBindingFactor _whyUnsurvivable(
     String memberId,
     MemberWaypointOutcome own,
   ) {
-    final witnesses = [own.swim, if (own.surface != null) own.surface!];
+    final surface = own.surface;
+    if (surface != null &&
+        surface.surfaceLimitExceeded &&
+        !surface.blockedByCurrent &&
+        surface.gasShortfallMemberIds.isEmpty) {
+      return MissionBindingFactor.surfaceSwimLimit;
+    }
+    final tow = own.tow;
+    final towRan = tow != null && !tow.blockedByCurrent;
+    final witnesses = [own.swim, if (towRan) tow, ?surface];
     if (witnesses.any((e) => e.gasShortfallMemberIds.contains(memberId))) {
       return MissionBindingFactor.ownGas;
     }
     if (witnesses.any((e) => e.gasShortfallMemberIds.isNotEmpty)) {
       return MissionBindingFactor.teamGas;
     }
-    if (own.surface?.surfaceLimitExceeded ?? false) {
-      return MissionBindingFactor.surfaceSwimLimit;
-    }
-    final tow = own.tow;
-    if (tow != null && !tow.blockedByCurrent) {
-      return MissionBindingFactor.noFeasibleTow;
-    }
+    if (towRan) return MissionBindingFactor.noFeasibleTow;
     return MissionBindingFactor.blockedByCurrent;
   }
 

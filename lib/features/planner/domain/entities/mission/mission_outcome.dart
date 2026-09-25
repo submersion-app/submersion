@@ -9,6 +9,10 @@ enum MissionIssueType {
   scooterUnspecified,
   memberSacUnset,
   memberSwimSpeedUnset,
+
+  /// A shore exit distance, the surface swim limit or the walking speed is
+  /// negative. Carries the leg id for a shore exit, null otherwise.
+  openWaterInputInvalid,
   untraversableLeg,
   scenarioFailed,
 }

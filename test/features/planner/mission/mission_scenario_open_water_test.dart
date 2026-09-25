@@ -4,6 +4,7 @@ import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
+import 'package:submersion/features/planner/domain/entities/mission/current_vector.dart';
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
@@ -74,6 +75,7 @@ DpvMission _mission({
   ShoreExit? shore,
   double? limit,
   double walkSpeed = 0.8,
+  CurrentVector? current,
 }) => DpvMission(
   legs: [
     _l1,
@@ -83,6 +85,7 @@ DpvMission _mission({
   environment: environment,
   walkSpeedMps: walkSpeed,
   surfaceSwimLimitM: limit,
+  defaultCurrent: current,
 );
 
 void main() {
@@ -216,6 +219,41 @@ void main() {
       );
       expect(exit.viaShore, isTrue);
       expect(exit.surfaceSeconds, 500);
+    });
+
+    // The bearing home from waypoint 1 is 216.87 degrees (see the plan).
+    test('a current the swimmer cannot beat closes the surface swim home', () {
+      final exit = surface(
+        _mission(
+          current: const CurrentVector(speedMps: 0.3, setsTowardDeg: 36.8699),
+        ),
+      );
+      expect(exit.blockedByCurrent, isTrue);
+      expect(exit.feasible, isFalse);
+    });
+
+    test('a current behind the swimmer speeds the surface swim home', () {
+      // 0.2 m/s swim + 0.1 m/s current home: 500 m / 0.3 m/s = 1666.7 s.
+      final exit = surface(
+        _mission(
+          current: const CurrentVector(speedMps: 0.1, setsTowardDeg: 216.8699),
+        ),
+      );
+      expect(exit.viaShore, isFalse);
+      expect(exit.surfaceSeconds, 1667);
+    });
+
+    test('a shore route, whose bearing is unknown, takes the worst case', () {
+      // Worst case 0.2 - 0.1 = 0.1 m/s: 100 m in 1000 s, then 300 m of
+      // walk at 0.8 m/s in 375 s; 1375 s beats the 1667 s swim home.
+      final exit = surface(
+        _mission(
+          current: const CurrentVector(speedMps: 0.1, setsTowardDeg: 216.8699),
+          shore: const ShoreExit(surfaceSwimM: 100, walkM: 300),
+        ),
+      );
+      expect(exit.viaShore, isTrue);
+      expect(exit.surfaceSeconds, 1375);
     });
 
     test('a route that ends at the entry has nothing to swim', () {

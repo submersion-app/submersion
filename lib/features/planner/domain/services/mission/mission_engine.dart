@@ -252,6 +252,30 @@ class MissionEngine {
         );
       }
     }
+    if (mission.environment == MissionEnvironment.openWater) {
+      // A negative distance would always pass the swim limit and win as the
+      // fastest route, reporting an exit that does not exist.
+      if ((mission.surfaceSwimLimitM ?? 0) < 0 || mission.walkSpeedMps < 0) {
+        issues.add(
+          const MissionIssue(
+            type: MissionIssueType.openWaterInputInvalid,
+            severity: MissionIssueSeverity.blocking,
+          ),
+        );
+      }
+      for (final leg in mission.legs) {
+        final shore = leg.shoreExit;
+        if (shore != null && (shore.surfaceSwimM < 0 || shore.walkM < 0)) {
+          issues.add(
+            MissionIssue(
+              type: MissionIssueType.openWaterInputInvalid,
+              severity: MissionIssueSeverity.blocking,
+              legId: leg.id,
+            ),
+          );
+        }
+      }
+    }
     return issues;
   }
 
