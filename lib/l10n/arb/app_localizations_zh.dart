@@ -17494,14 +17494,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_data_offlineMaps => '离线地图';
 
   @override
-  String get settings_data_offlineMaps_subtitle => '下载地图以供离线使用';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+  String get settings_data_offlineMaps_subtitle => '地图瓦片和 3D 地形数据';
 
   @override
   String get settings_data_restore => '恢复';
@@ -24647,13 +24640,13 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maps_offline_clearAll => '清除全部';
 
   @override
-  String get maps_offline_clearAllCache => '清除所有缓存';
-
-  @override
   String get maps_offline_clearAllCacheMessage => '删除所有已下载的地图区域和缓存瓦片吗？';
 
   @override
   String get maps_offline_clearAllCacheTitle => '清除所有缓存？';
+
+  @override
+  String get maps_offline_clearAllTiles => '清除所有地图瓦片';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -24760,6 +24753,12 @@ class AppLocalizationsZh extends AppLocalizations {
   ) {
     return '$size，$count 个图块，缩放 $minZoom 至 $maxZoom';
   }
+
+  @override
+  String get maps_offline_section_terrain => '3D 地形';
+
+  @override
+  String get maps_offline_section_tiles => '地图瓦片';
 
   @override
   String get maps_offline_size => '尺寸';
@@ -25435,9 +25434,6 @@ class AppLocalizationsZh extends AppLocalizations {
       '尚未缓存湖泊深度数据';
 
   @override
-  String get maps3d_appBar_title => '3D 地图';
-
-  @override
   String get maps3d_section_all => '所有数据源';
 
   @override
@@ -25533,7 +25529,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get maps3d_reload_failed => '重新加载失败，部分潜水点可能未重新加载';
 
   @override
-  String get maps3d_busy_notice => '另一项 3D 地图操作正在运行，请等待其完成。';
+  String get maps3d_busy_notice => '另一项 3D 地形操作正在运行，请等待其完成。';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {

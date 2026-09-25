@@ -18106,14 +18106,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_data_offlineMaps_subtitle =>
-      'تنزيل الخرائط للاستخدام بدون اتصال';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+      'بلاطات الخريطة وبيانات التضاريس ثلاثية الأبعاد';
 
   @override
   String get settings_data_restore => 'استعادة';
@@ -25665,14 +25658,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps_offline_clearAll => 'مسح الكل';
 
   @override
-  String get maps_offline_clearAllCache => 'مسح كل التخزين المؤقت';
-
-  @override
   String get maps_offline_clearAllCacheMessage =>
       'حذف جميع مناطق الخرائط المنزّلة والبلاطات المخزنة مؤقتًا؟';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'مسح كل التخزين المؤقت؟';
+
+  @override
+  String get maps_offline_clearAllTiles => 'مسح كل بلاطات الخريطة';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -25780,6 +25773,12 @@ class AppLocalizationsAr extends AppLocalizations {
   ) {
     return '$size، $count بلاطة، تكبير $minZoom إلى $maxZoom';
   }
+
+  @override
+  String get maps_offline_section_terrain => 'التضاريس ثلاثية الأبعاد';
+
+  @override
+  String get maps_offline_section_tiles => 'بلاطات الخريطة';
 
   @override
   String get maps_offline_size => 'الحجم';
@@ -26477,9 +26476,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد بيانات أعماق بحيرات مخزّنة بعد';
 
   @override
-  String get maps3d_appBar_title => 'خرائط ثلاثية الأبعاد';
-
-  @override
   String get maps3d_section_all => 'كل المزوّدين';
 
   @override
@@ -26584,7 +26580,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get maps3d_busy_notice =>
-      'هناك إجراء آخر في الخرائط ثلاثية الأبعاد قيد التنفيذ. يُرجى الانتظار حتى ينتهي.';
+      'هناك إجراء آخر للتضاريس ثلاثية الأبعاد قيد التنفيذ. يُرجى الانتظار حتى ينتهي.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {

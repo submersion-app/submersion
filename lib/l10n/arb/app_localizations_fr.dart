@@ -18484,14 +18484,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get settings_data_offlineMaps_subtitle =>
-      'Télécharger des cartes pour une utilisation hors ligne';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+      'Tuiles de carte et données de relief 3D';
 
   @override
   String get settings_data_restore => 'Restaurer';
@@ -26107,14 +26100,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get maps_offline_clearAll => 'Tout effacer';
 
   @override
-  String get maps_offline_clearAllCache => 'Vider tout le cache';
-
-  @override
   String get maps_offline_clearAllCacheMessage =>
       'Supprimer toutes les régions de carte téléchargées et les tuiles en cache ?';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'Vider tout le cache ?';
+
+  @override
+  String get maps_offline_clearAllTiles => 'Effacer toutes les tuiles de carte';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -26223,6 +26216,12 @@ class AppLocalizationsFr extends AppLocalizations {
   ) {
     return '$size, $count tuiles, zoom $minZoom a $maxZoom';
   }
+
+  @override
+  String get maps_offline_section_terrain => 'Relief 3D';
+
+  @override
+  String get maps_offline_section_tiles => 'Tuiles de carte';
 
   @override
   String get maps_offline_size => 'Taille';
@@ -26933,9 +26932,6 @@ class AppLocalizationsFr extends AppLocalizations {
       'Aucune donnée de profondeur de lac enregistrée pour l\'instant';
 
   @override
-  String get maps3d_appBar_title => 'Cartes 3D';
-
-  @override
   String get maps3d_section_all => 'Tous les fournisseurs';
 
   @override
@@ -27042,7 +27038,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get maps3d_busy_notice =>
-      'Une autre action Cartes 3D est en cours. Veuillez patienter jusqu\'à la fin.';
+      'Une autre action de relief 3D est en cours. Veuillez patienter jusqu\'à la fin.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {

@@ -18123,14 +18123,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settings_data_offlineMaps_subtitle =>
-      'Download maps for offline use';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+      'Map tiles and 3D terrain data';
 
   @override
   String get settings_data_restore => 'Restore';
@@ -25587,14 +25580,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get maps_offline_clearAll => 'Clear All';
 
   @override
-  String get maps_offline_clearAllCache => 'Clear All Cache';
-
-  @override
   String get maps_offline_clearAllCacheMessage =>
       'Delete all downloaded map regions and cached tiles?';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'Clear All Cache?';
+
+  @override
+  String get maps_offline_clearAllTiles => 'Clear all map tiles';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -25702,6 +25695,12 @@ class AppLocalizationsEn extends AppLocalizations {
   ) {
     return '$size, $count tiles, zoom $minZoom to $maxZoom';
   }
+
+  @override
+  String get maps_offline_section_terrain => '3D terrain';
+
+  @override
+  String get maps_offline_section_tiles => 'Map tiles';
 
   @override
   String get maps_offline_size => 'Size';
@@ -26401,9 +26400,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'No lake depth data cached yet';
 
   @override
-  String get maps3d_appBar_title => '3D Maps';
-
-  @override
   String get maps3d_section_all => 'All Providers';
 
   @override
@@ -26506,7 +26502,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get maps3d_busy_notice =>
-      'Another 3D Maps action is running. Please wait until it finishes.';
+      'Another 3D terrain action is running. Please wait until it finishes.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {

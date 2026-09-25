@@ -18423,14 +18423,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get settings_data_offlineMaps_subtitle =>
-      'Baixar mapas para uso offline';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+      'Tiles de mapa e dados de terreno 3D';
 
   @override
   String get settings_data_restore => 'Restaurar';
@@ -26014,14 +26007,14 @@ class AppLocalizationsPt extends AppLocalizations {
   String get maps_offline_clearAll => 'Limpar Tudo';
 
   @override
-  String get maps_offline_clearAllCache => 'Limpar Todo o Cache';
-
-  @override
   String get maps_offline_clearAllCacheMessage =>
       'Excluir todas as regiões de mapa baixadas e tiles em cache?';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'Limpar Todo o Cache?';
+
+  @override
+  String get maps_offline_clearAllTiles => 'Limpar todos os tiles de mapa';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -26129,6 +26122,12 @@ class AppLocalizationsPt extends AppLocalizations {
   ) {
     return '$size, $count tiles, zoom $minZoom a $maxZoom';
   }
+
+  @override
+  String get maps_offline_section_terrain => 'Terreno 3D';
+
+  @override
+  String get maps_offline_section_tiles => 'Tiles de mapa';
 
   @override
   String get maps_offline_size => 'Tamanho';
@@ -26841,9 +26840,6 @@ class AppLocalizationsPt extends AppLocalizations {
       'Ainda não há dados de profundidade de lagos armazenados';
 
   @override
-  String get maps3d_appBar_title => 'Mapas 3D';
-
-  @override
   String get maps3d_section_all => 'Todos os provedores';
 
   @override
@@ -26949,7 +26945,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get maps3d_busy_notice =>
-      'Outra ação de Mapas 3D está em execução. Aguarde até que termine.';
+      'Outra ação de terreno 3D está em execução. Aguarde até que termine.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {

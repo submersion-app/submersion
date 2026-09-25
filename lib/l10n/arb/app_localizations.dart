@@ -29890,20 +29890,8 @@ abstract class AppLocalizations {
   /// No description provided for @settings_data_offlineMaps_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Download maps for offline use'**
+  /// **'Map tiles and 3D terrain data'**
   String get settings_data_offlineMaps_subtitle;
-
-  /// No description provided for @settings_data_threeDMaps.
-  ///
-  /// In en, this message translates to:
-  /// **'3D Maps'**
-  String get settings_data_threeDMaps;
-
-  /// No description provided for @settings_data_threeDMaps_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage cached swissBATHY3D and other bathymetry data'**
-  String get settings_data_threeDMaps_subtitle;
 
   /// No description provided for @settings_data_restore.
   ///
@@ -41567,12 +41555,6 @@ abstract class AppLocalizations {
   /// **'Clear All'**
   String get maps_offline_clearAll;
 
-  /// No description provided for @maps_offline_clearAllCache.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear All Cache'**
-  String get maps_offline_clearAllCache;
-
   /// No description provided for @maps_offline_clearAllCacheMessage.
   ///
   /// In en, this message translates to:
@@ -41584,6 +41566,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear All Cache?'**
   String get maps_offline_clearAllCacheTitle;
+
+  /// No description provided for @maps_offline_clearAllTiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all map tiles'**
+  String get maps_offline_clearAllTiles;
 
   /// No description provided for @maps_offline_clearCacheStats.
   ///
@@ -41729,6 +41717,18 @@ abstract class AppLocalizations {
     Object minZoom,
     Object maxZoom,
   );
+
+  /// No description provided for @maps_offline_section_terrain.
+  ///
+  /// In en, this message translates to:
+  /// **'3D terrain'**
+  String get maps_offline_section_terrain;
+
+  /// No description provided for @maps_offline_section_tiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Map tiles'**
+  String get maps_offline_section_tiles;
 
   /// No description provided for @maps_offline_size.
   ///
@@ -42954,12 +42954,6 @@ abstract class AppLocalizations {
   /// **'No lake depth data cached yet'**
   String get settings_appearance_bathymetryRefresh_resultNothingCached;
 
-  /// No description provided for @maps3d_appBar_title.
-  ///
-  /// In en, this message translates to:
-  /// **'3D Maps'**
-  String get maps3d_appBar_title;
-
   /// No description provided for @maps3d_section_all.
   ///
   /// In en, this message translates to:
@@ -43119,7 +43113,7 @@ abstract class AppLocalizations {
   /// No description provided for @maps3d_busy_notice.
   ///
   /// In en, this message translates to:
-  /// **'Another 3D Maps action is running. Please wait until it finishes.'**
+  /// **'Another 3D terrain action is running. Please wait until it finishes.'**
   String get maps3d_busy_notice;
 
   /// No description provided for @maps3d_reload_remainingSeconds.
