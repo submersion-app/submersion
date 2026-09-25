@@ -41587,4 +41587,418 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveCenters_rental_deleteConfirm => 'حذف ملاحظة التأجير هذه؟';
+
+  @override
+  String get query_buddies_certifications => 'الشهادات';
+
+  @override
+  String get query_buddies_email => 'البريد الإلكتروني';
+
+  @override
+  String get query_buddies_favorite => 'مفضّل';
+
+  @override
+  String get query_buddies_name => 'الاسم';
+
+  @override
+  String get query_buddies_notes => 'ملاحظات';
+
+  @override
+  String get query_buddies_phone => 'الهاتف';
+
+  @override
+  String get query_centers_city => 'المدينة';
+
+  @override
+  String get query_centers_country => 'البلد';
+
+  @override
+  String get query_centers_name => 'الاسم';
+
+  @override
+  String get query_certifications_agency => 'الهيئة';
+
+  @override
+  String get query_certifications_cardNumber => 'رقم البطاقة';
+
+  @override
+  String get query_certifications_expiryDate => 'تاريخ الانتهاء';
+
+  @override
+  String get query_certifications_instructorName => 'اسم المدرب';
+
+  @override
+  String get query_certifications_issueDate => 'تاريخ الإصدار';
+
+  @override
+  String get query_certifications_level => 'المستوى';
+
+  @override
+  String get query_certifications_name => 'الاسم';
+
+  @override
+  String get query_computers_manufacturer => 'الشركة المصنعة';
+
+  @override
+  String get query_computers_model => 'الطراز';
+
+  @override
+  String get query_computers_name => 'الاسم';
+
+  @override
+  String get query_computers_serialNumber => 'الرقم التسلسلي';
+
+  @override
+  String get query_courses_agency => 'الهيئة';
+
+  @override
+  String get query_courses_completionDate => 'تاريخ الإكمال';
+
+  @override
+  String get query_courses_name => 'الاسم';
+
+  @override
+  String get query_courses_startDate => 'تاريخ البدء';
+
+  @override
+  String get query_customFields_key => 'المفتاح';
+
+  @override
+  String get query_customFields_value => 'القيمة';
+
+  @override
+  String get query_diveTypes_builtIn => 'مدمج';
+
+  @override
+  String get query_diveTypes_name => 'الاسم';
+
+  @override
+  String get query_dives_airTemp => 'درجة حرارة الهواء';
+
+  @override
+  String get query_dives_avgDepth => 'متوسط العمق';
+
+  @override
+  String get query_dives_boatName => 'القارب';
+
+  @override
+  String get query_dives_bottomTime => 'زمن القاع';
+
+  @override
+  String get query_dives_buddies => 'رفاق الغوص';
+
+  @override
+  String get query_dives_center => 'مركز الغوص';
+
+  @override
+  String get query_dives_cnsEnd => 'CNS في النهاية';
+
+  @override
+  String get query_dives_computer => 'حاسوب الغوص';
+
+  @override
+  String get query_dives_course => 'الدورة';
+
+  @override
+  String get query_dives_currentStrength => 'التيار';
+
+  @override
+  String get query_dives_customFields => 'الحقول المخصصة';
+
+  @override
+  String get query_dives_date => 'التاريخ';
+
+  @override
+  String get query_dives_deco => 'غطسة مع تخفيف الضغط';
+
+  @override
+  String get query_dives_depth => 'أقصى عمق';
+
+  @override
+  String get query_dives_diveMaster => 'مرشد الغوص';
+
+  @override
+  String get query_dives_diveMode => 'وضع الغوص';
+
+  @override
+  String get query_dives_diveNumber => 'رقم الغطسة';
+
+  @override
+  String get query_dives_diveOperator => 'المشغّل';
+
+  @override
+  String get query_dives_entryMethod => 'طريقة الدخول';
+
+  @override
+  String get query_dives_excludedFromStats => 'مستبعد من الإحصائيات';
+
+  @override
+  String get query_dives_exitMethod => 'طريقة الخروج';
+
+  @override
+  String get query_dives_favorite => 'مفضّل';
+
+  @override
+  String get query_dives_gasCount => 'عدد الأسطوانات';
+
+  @override
+  String get query_dives_gear => 'المعدات';
+
+  @override
+  String get query_dives_hasProfile => 'له ملف تعريف';
+
+  @override
+  String get query_dives_id => 'معرّف الغطسة';
+
+  @override
+  String get query_dives_legacyBuddy => 'رفيق الغوص (نص قديم)';
+
+  @override
+  String get query_dives_media => 'الوسائط';
+
+  @override
+  String get query_dives_name => 'الاسم';
+
+  @override
+  String get query_dives_notes => 'ملاحظات';
+
+  @override
+  String get query_dives_otu => 'OTU';
+
+  @override
+  String get query_dives_planned => 'مخطط';
+
+  @override
+  String get query_dives_rating => 'التقييم';
+
+  @override
+  String get query_dives_runtime => 'المدة الكلية';
+
+  @override
+  String get query_dives_sightings => 'المشاهدات';
+
+  @override
+  String get query_dives_site => 'الموقع';
+
+  @override
+  String get query_dives_surfaceConditions => 'أحوال السطح';
+
+  @override
+  String get query_dives_surfaceInterval => 'فترة السطح';
+
+  @override
+  String get query_dives_tags => 'الوسوم';
+
+  @override
+  String get query_dives_tanks => 'الأسطوانات';
+
+  @override
+  String get query_dives_trip => 'الرحلة';
+
+  @override
+  String get query_dives_types => 'أنواع الغوص';
+
+  @override
+  String get query_dives_visibility => 'الرؤية';
+
+  @override
+  String get query_dives_waterTemp => 'درجة حرارة الماء';
+
+  @override
+  String get query_dives_waterType => 'نوع الماء';
+
+  @override
+  String get query_dives_weekday => 'يوم الأسبوع';
+
+  @override
+  String get query_dives_weight => 'الثقل';
+
+  @override
+  String get query_dives_weights => 'الأثقال';
+
+  @override
+  String get query_dives_year => 'السنة';
+
+  @override
+  String get query_entity_buddies => 'رفاق الغوص';
+
+  @override
+  String get query_entity_centers => 'مراكز الغوص';
+
+  @override
+  String get query_entity_certifications => 'الشهادات';
+
+  @override
+  String get query_entity_computers => 'حواسيب الغوص';
+
+  @override
+  String get query_entity_courses => 'الدورات';
+
+  @override
+  String get query_entity_customFields => 'الحقول المخصصة';
+
+  @override
+  String get query_entity_diveTypes => 'أنواع الغوص';
+
+  @override
+  String get query_entity_dives => 'الغطسات';
+
+  @override
+  String get query_entity_equipment => 'المعدات';
+
+  @override
+  String get query_entity_equipmentAttributes => 'خصائص المعدات';
+
+  @override
+  String get query_entity_media => 'الوسائط';
+
+  @override
+  String get query_entity_sightings => 'المشاهدات';
+
+  @override
+  String get query_entity_sites => 'مواقع الغوص';
+
+  @override
+  String get query_entity_species => 'الأنواع';
+
+  @override
+  String get query_entity_tags => 'الوسوم';
+
+  @override
+  String get query_entity_tanks => 'الأسطوانات';
+
+  @override
+  String get query_entity_trips => 'الرحلات';
+
+  @override
+  String get query_entity_weights => 'الأثقال';
+
+  @override
+  String get query_equipmentAttributes_custom => 'مخصص';
+
+  @override
+  String get query_equipmentAttributes_key => 'المفتاح';
+
+  @override
+  String get query_equipmentAttributes_valueNum => 'قيمة رقمية';
+
+  @override
+  String get query_equipmentAttributes_valueText => 'قيمة نصية';
+
+  @override
+  String get query_equipment_active => 'نشط';
+
+  @override
+  String get query_equipment_attributes => 'الخصائص';
+
+  @override
+  String get query_equipment_brand => 'العلامة التجارية';
+
+  @override
+  String get query_equipment_model => 'الطراز';
+
+  @override
+  String get query_equipment_name => 'الاسم';
+
+  @override
+  String get query_equipment_serialNumber => 'الرقم التسلسلي';
+
+  @override
+  String get query_equipment_status => 'الحالة';
+
+  @override
+  String get query_equipment_type => 'النوع';
+
+  @override
+  String get query_media_caption => 'التعليق';
+
+  @override
+  String get query_media_favorite => 'مفضّل';
+
+  @override
+  String get query_media_type => 'النوع';
+
+  @override
+  String get query_sightings_count => 'العدد';
+
+  @override
+  String get query_sightings_notes => 'ملاحظات';
+
+  @override
+  String get query_sightings_species => 'الأنواع';
+
+  @override
+  String get query_sites_city => 'المدينة';
+
+  @override
+  String get query_sites_country => 'البلد';
+
+  @override
+  String get query_sites_island => 'الجزيرة';
+
+  @override
+  String get query_sites_maxDepth => 'أقصى عمق';
+
+  @override
+  String get query_sites_name => 'الاسم';
+
+  @override
+  String get query_sites_rating => 'التقييم';
+
+  @override
+  String get query_sites_region => 'المنطقة';
+
+  @override
+  String get query_species_category => 'الفئة';
+
+  @override
+  String get query_species_name => 'الاسم';
+
+  @override
+  String get query_species_scientificName => 'الاسم العلمي';
+
+  @override
+  String get query_tags_name => 'الاسم';
+
+  @override
+  String get query_tanks_cylinder => 'الأسطوانة';
+
+  @override
+  String get query_tanks_endPressure => 'ضغط النهاية';
+
+  @override
+  String get query_tanks_he => 'الهيليوم';
+
+  @override
+  String get query_tanks_name => 'الاسم';
+
+  @override
+  String get query_tanks_o2 => 'الأكسجين';
+
+  @override
+  String get query_tanks_startPressure => 'ضغط البداية';
+
+  @override
+  String get query_tanks_volume => 'الحجم';
+
+  @override
+  String get query_trips_endDate => 'تاريخ الانتهاء';
+
+  @override
+  String get query_trips_location => 'الموقع';
+
+  @override
+  String get query_trips_name => 'الاسم';
+
+  @override
+  String get query_trips_startDate => 'تاريخ البدء';
+
+  @override
+  String get query_weights_amount => 'الكمية';
+
+  @override
+  String get query_weights_notes => 'ملاحظات';
+
+  @override
+  String get query_weights_type => 'النوع';
 }
