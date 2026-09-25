@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_current_fill_card.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_fill_history_card.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_o2_warning_banner.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_service_card.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_spec_card.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_tag_card.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -15,9 +17,13 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// One cylinder's passport (spec section 8): every card names its source of
 /// truth, and every value with a unit goes through the unit formatter.
 class PassportPage extends ConsumerStatefulWidget {
-  const PassportPage({super.key, required this.equipmentId});
+  const PassportPage({super.key, required this.equipmentId, this.scannedTag});
 
   final String equipmentId;
+
+  /// The tag that opened this passport, when a scan or a link did; drives
+  /// the stale-tag hint on the Tag card.
+  final CylinderPassportPayload? scannedTag;
 
   @override
   ConsumerState<PassportPage> createState() => _PassportPageState();
@@ -72,7 +78,12 @@ class _PassportPageState extends ConsumerState<PassportPage> {
                 ),
                 const SizedBox(height: 16),
                 PassportFillHistoryCard(equipmentId: equipment.id),
-                // Task 14 appends PassportTagCard here.
+                const SizedBox(height: 16),
+                PassportTagCard(
+                  equipment: equipment,
+                  scannedTag: widget.scannedTag,
+                  // Task 15 wires onPrintLabel.
+                ),
               ],
             ),
           );
