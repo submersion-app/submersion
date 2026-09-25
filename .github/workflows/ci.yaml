@@ -555,6 +555,12 @@ jobs:
           python3 -m coverage xml --include="$guards" \
             -o coverage/scripts.xml
 
+      - name: Run Statistics to Insights rename script tests
+        # A one-shot migration tool rather than a guard: its phases drive git
+        # and flutter, which the unit tests do not exercise, so it stays out
+        # of the guards coverage set above.
+        run: python3 scripts/rename_statistics_to_insights_test.py
+
       - name: Run chamber directory pipeline tests
         # The harvester generates a safety-critical dataset: its validation
         # gates are what stop a broken parser shipping blank phone numbers or
