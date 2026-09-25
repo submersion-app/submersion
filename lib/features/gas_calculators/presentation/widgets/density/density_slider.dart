@@ -5,9 +5,8 @@ import 'package:submersion/core/utils/number_display.dart';
 /// A labelled slider with its current value in a pill and the range beneath,
 /// in the style the other gas calculators use.
 ///
-/// [value], [min] and [max] are in storage units (meters, percent, bar);
-/// [convert] maps them to display units, so a depth slider can store meters
-/// and still read in feet.
+/// For unit-free quantities (percent, setpoint in bar); depth goes through
+/// the shared `UnitSlider`, which owns the unit conversion.
 class DensitySlider extends StatelessWidget {
   const DensitySlider({
     super.key,
@@ -20,7 +19,6 @@ class DensitySlider extends StatelessWidget {
     required this.onChanged,
     this.icon = Icons.air,
     this.fractionDigits = 0,
-    this.convert,
   });
 
   final String label;
@@ -32,11 +30,9 @@ class DensitySlider extends StatelessWidget {
   final ValueChanged<double> onChanged;
   final IconData icon;
   final int fractionDigits;
-  final double Function(double)? convert;
 
-  String _format(double stored) =>
-      '${formatFixedForDisplay(convert?.call(stored) ?? stored, fractionDigits)}'
-      '$unit';
+  String _format(double value) =>
+      '${formatFixedForDisplay(value, fractionDigits)}$unit';
 
   @override
   Widget build(BuildContext context) {
@@ -77,8 +73,10 @@ class DensitySlider extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 8),
+        // The label names the slider; the value comes from the formatter
+        // alone, so it is announced once and never goes stale.
         Semantics(
-          label: '$label: $shown',
+          label: label,
           child: Slider(
             value: clamped,
             min: min,

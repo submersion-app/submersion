@@ -68,6 +68,24 @@ class GasDensityInputs {
   });
 
   bool get isCcr => setpointBar != null;
+
+  /// [openCircuit] clears the setpoint, which a null [setpointBar] cannot.
+  GasDensityInputs copyWith({
+    double? o2Percent,
+    double? hePercent,
+    double? depthMeters,
+    double? setpointBar,
+    bool openCircuit = false,
+    GasDensityTemperature? temperature,
+    WaterType? waterType,
+  }) => GasDensityInputs(
+    o2Percent: o2Percent ?? this.o2Percent,
+    hePercent: hePercent ?? this.hePercent,
+    depthMeters: depthMeters ?? this.depthMeters,
+    setpointBar: openCircuit ? null : setpointBar ?? this.setpointBar,
+    temperature: temperature ?? this.temperature,
+    waterType: waterType ?? this.waterType,
+  );
 }
 
 class GasDensityResult {
@@ -79,8 +97,9 @@ class GasDensityResult {
   final double pN2Bar;
   final double pHeBar;
 
+  /// Unrounded. Classify it with [gasDensityLevelForDisplay] at the
+  /// precision it is shown at, so the status matches the number.
   final double densityGPerL;
-  final GasDensityLevel level;
 
   /// Equivalent air density depth: the depth, in the same water, at which
   /// air (21/79) would be as dense as this gas. Independent of temperature,
@@ -100,7 +119,6 @@ class GasDensityResult {
     required this.pN2Bar,
     required this.pHeBar,
     required this.densityGPerL,
-    required this.level,
     required this.eaddMeters,
     required this.setpointCapped,
     required this.diluentAboveSetpoint,
@@ -197,7 +215,6 @@ GasDensityResult computeGasDensity(GasDensityInputs inputs) {
     pN2Bar: pN2,
     pHeBar: pHe,
     densityGPerL: density,
-    level: gasDensityLevelFor(density),
     eaddMeters: eadd,
     setpointCapped: setpointCapped,
     diluentAboveSetpoint: diluentAboveSetpoint,

@@ -37,6 +37,11 @@ double gasDensityGPerL({
 const double gasConstantLBarPerMolK = 0.083144626;
 
 /// Molar masses (g/mol) used by [gasDensityFromPartialPressures].
+///
+/// Deliberately not the rounded weights above: those stay with
+/// [gasDensityGPerL] and its existing callers (Best Mix, planner, profile
+/// curve) until they move to this function, which changes their values and
+/// is left to its own change.
 const double o2MolarMassGPerMol = 31.998;
 const double n2MolarMassGPerMol = 28.014;
 const double heMolarMassGPerMol = 4.0026;

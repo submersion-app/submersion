@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/unit_axis.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
@@ -10,13 +10,13 @@ import 'package:submersion/features/gas_calculators/presentation/providers/densi
 import 'package:submersion/features/gas_calculators/presentation/widgets/density/density_slider.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/unit_slider.dart';
 
 /// Slider and toggle bounds. The O2 floor reaches hypoxic trimix; the
 /// setpoint range covers the low and high setpoints in common use.
 const double _o2Min = 5;
 const double _o2Max = 100;
 const double _depthMaxMeters = 150;
-const double _depthMaxFeet = 500;
 const double _setpointMin = 0.4;
 const double _setpointMax = 1.6;
 
@@ -28,11 +28,7 @@ class DensityInputCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
-    final depthMax = settings.depthUnit == DepthUnit.feet
-        ? _depthMaxFeet
-        : _depthMaxMeters;
+    final units = UnitFormatter(ref.watch(settingsProvider));
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -131,19 +127,19 @@ class DensityInputCard extends ConsumerWidget {
               ),
             ],
             const SizedBox(height: 24),
-            // Steps in whole display units, so a diver in feet can pick
-            // 100 ft rather than the nearest whole meter.
-            DensitySlider(
-              label: l10n.gasCalculators_density_depth,
+            // The shared depth axis steps in 1 m or 5 ft and derives the feet
+            // bounds from the canonical range, as the other calculators do.
+            UnitSlider(
               icon: Icons.arrow_downward,
-              value: units.convertDepth(depth),
-              unit: units.depthSymbol,
-              min: 0,
-              max: depthMax,
-              divisions: depthMax.toInt(),
-              onChanged: (value) =>
-                  ref.read(densityDepthProvider.notifier).state = units
-                      .depthToMeters(value),
+              label: l10n.gasCalculators_density_depth,
+              value: depth,
+              axis: UnitAxis.depthRange(
+                units,
+                minMeters: 0,
+                maxMeters: _depthMaxMeters,
+              ),
+              onChanged: (meters) =>
+                  ref.read(densityDepthProvider.notifier).state = meters,
             ),
             const SizedBox(height: 24),
             // Side by side where they fit, one below the other on a narrow

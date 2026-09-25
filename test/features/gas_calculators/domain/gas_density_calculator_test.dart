@@ -29,7 +29,10 @@ void main() {
       final result = computeGasDensity(_inputs());
       expect(result.ambientPressureBar, closeTo(5.0207265, 1e-6));
       expect(result.densityGPerL, closeTo(5.942893303833008, 1e-9));
-      expect(result.level, GasDensityLevel.warn);
+      expect(
+        gasDensityLevelForDisplay(result.densityGPerL, 2),
+        GasDensityLevel.warn,
+      );
     });
 
     test('air at 40 m in salt water, 0 C', () {
@@ -37,7 +40,10 @@ void main() {
         _inputs(temperature: GasDensityTemperature.zeroC),
       );
       expect(result.densityGPerL, closeTo(6.37803101599358, 1e-9));
-      expect(result.level, GasDensityLevel.critical);
+      expect(
+        gasDensityLevelForDisplay(result.densityGPerL, 2),
+        GasDensityLevel.critical,
+      );
     });
 
     test('air at 40 m in fresh water, 20 C', () {
@@ -57,9 +63,15 @@ void main() {
         ),
       );
       expect(warm.densityGPerL, closeTo(5.171085383811512, 1e-9));
-      expect(warm.level, GasDensityLevel.ok);
+      expect(
+        gasDensityLevelForDisplay(warm.densityGPerL, 2),
+        GasDensityLevel.ok,
+      );
       expect(cold.densityGPerL, closeTo(5.549711441568166, 1e-9));
-      expect(cold.level, GasDensityLevel.warn);
+      expect(
+        gasDensityLevelForDisplay(cold.densityGPerL, 2),
+        GasDensityLevel.warn,
+      );
     });
 
     test('partial pressures are the mix fractions of ambient pressure', () {
@@ -138,7 +150,10 @@ void main() {
       expect(result.pN2Bar, closeTo(5.5545609025, 1e-9));
       expect(result.densityGPerL, closeTo(8.322503963106513, 1e-9));
       expect(result.diluentAboveSetpoint, isTrue);
-      expect(result.level, GasDensityLevel.critical);
+      expect(
+        gasDensityLevelForDisplay(result.densityGPerL, 2),
+        GasDensityLevel.critical,
+      );
     });
 
     test('a pure oxygen diluent leaves no inert gas', () {
@@ -220,6 +235,25 @@ void main() {
       expect(gasDensityLevelForDisplay(5.206, 2), GasDensityLevel.warn);
       expect(gasDensityLevelForDisplay(6.2004, 2), GasDensityLevel.warn);
       expect(gasDensityLevelForDisplay(6.206, 2), GasDensityLevel.critical);
+    });
+  });
+
+  group('inputs copyWith', () {
+    test('replaces only the given fields', () {
+      final base = _inputs(o2: 18, he: 45, depth: 60, setpoint: 1.3);
+      final copy = base.copyWith(depthMeters: 30);
+      expect(copy.depthMeters, 30);
+      expect(copy.o2Percent, 18);
+      expect(copy.hePercent, 45);
+      expect(copy.setpointBar, 1.3);
+      expect(copy.temperature, base.temperature);
+      expect(copy.waterType, base.waterType);
+    });
+
+    test('openCircuit clears the setpoint', () {
+      final copy = _inputs(setpoint: 1.3).copyWith(openCircuit: true);
+      expect(copy.setpointBar, isNull);
+      expect(copy.isCcr, isFalse);
     });
   });
 

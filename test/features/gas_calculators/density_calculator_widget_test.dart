@@ -218,26 +218,51 @@ void main() {
     );
   });
 
-  testWidgets('the depth slider steps in whole feet', (tester) async {
+  testWidgets('the depth slider steps in 5 ft within the 150 m range', (
+    tester,
+  ) async {
     final ref = await _pump(
       tester,
       settings: const AppSettings(depthUnit: DepthUnit.feet),
     );
 
+    // 150 m = 492.1 ft, floored to the 5 ft grid.
     final depthSlider = tester.widget<Slider>(find.byType(Slider).at(2));
-    expect(depthSlider.max, 500);
-    expect(depthSlider.divisions, 500);
+    expect(depthSlider.max, 490);
+    expect(depthSlider.divisions, 98);
 
     depthSlider.onChanged!(100);
     await tester.pumpAndSettle();
     expect(ref.read(densityDepthProvider), closeTo(100 / 3.28084, 1e-3));
-    expect(find.text('100ft'), findsOneWidget);
+    expect(find.text('100 ft'), findsOneWidget);
+  });
+
+  testWidgets('the metric depth slider steps in 1 m up to 150 m', (
+    tester,
+  ) async {
+    await _pump(tester);
+    final depthSlider = tester.widget<Slider>(find.byType(Slider).at(2));
+    expect(depthSlider.max, 150);
+    expect(depthSlider.divisions, 150);
+    expect(find.text('50 m'), findsOneWidget);
   });
 
   testWidgets('sliders announce the displayed value', (tester) async {
     await _pump(tester);
-    final depthSlider = tester.widget<Slider>(find.byType(Slider).at(2));
-    expect(depthSlider.semanticFormatterCallback!(50), '50m');
+    final o2Slider = tester.widget<Slider>(find.byType(Slider).first);
+    expect(o2Slider.semanticFormatterCallback!(21), '21%');
+  });
+
+  testWidgets('screen readers reach the CCR hints', (tester) async {
+    final handle = tester.ensureSemantics();
+    final ref = await _pump(tester);
+    ref.read(densityCcrProvider.notifier).state = true;
+    ref.read(densityDepthProvider.notifier).state = 0;
+    await tester.pumpAndSettle();
+
+    expect(find.bySemanticsLabel(RegExp('loop is pure oxygen')), findsOne);
+    expect(find.bySemanticsLabel(RegExp('O2 100.0 % · He 0.0 %')), findsOne);
+    handle.dispose();
   });
 
   testWidgets('imperial settings show feet and Fahrenheit', (tester) async {
@@ -250,7 +275,7 @@ void main() {
     );
 
     // Default depth 50 m = 164 ft.
-    expect(find.text('164ft'), findsOneWidget);
+    expect(find.text('164 ft'), findsOneWidget);
     expect(find.text('32°F'), findsOneWidget);
     expect(find.text('68°F'), findsOneWidget);
   });

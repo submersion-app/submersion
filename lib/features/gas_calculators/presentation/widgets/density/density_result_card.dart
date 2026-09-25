@@ -54,55 +54,63 @@ class DensityResultCard extends ConsumerWidget {
       ),
     };
 
-    return Semantics(
-      label:
-          '${l10n.gasCalculators_density_resultTitle}: $density. '
-          '$statusText $eadd',
-      child: Card(
-        color: colorScheme.primaryContainer,
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: ExcludeSemantics(
-            child: Column(
-              children: [
-                Text(
-                  l10n.gasCalculators_density_resultTitle,
-                  style: textTheme.titleMedium?.copyWith(color: onContainer),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  density,
-                  style: textTheme.displayMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: onContainer,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+    return Card(
+      color: colorScheme.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          children: [
+            // One announcement for the headline figures. The CCR loop details
+            // below stay outside it, so a screen reader still reaches them.
+            Semantics(
+              label:
+                  '${l10n.gasCalculators_density_resultTitle}: $density. '
+                  '$statusText $eadd',
+              child: ExcludeSemantics(
+                child: Column(
                   children: [
-                    Icon(statusIcon, size: 24, color: statusColor),
-                    const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        statusText,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: onContainer,
-                        ),
+                    Text(
+                      l10n.gasCalculators_density_resultTitle,
+                      style: textTheme.titleMedium?.copyWith(
+                        color: onContainer,
                       ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      density,
+                      style: textTheme.displayMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: onContainer,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(statusIcon, size: 24, color: statusColor),
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            statusText,
+                            style: textTheme.bodyMedium?.copyWith(
+                              color: onContainer,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      eadd,
+                      textAlign: TextAlign.center,
+                      style: textTheme.titleSmall?.copyWith(color: onContainer),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                Text(
-                  eadd,
-                  textAlign: TextAlign.center,
-                  style: textTheme.titleSmall?.copyWith(color: onContainer),
-                ),
-                if (isCcr) ..._loopDetails(context, result, onContainer),
-              ],
+              ),
             ),
-          ),
+            if (isCcr) ..._loopDetails(context, result, onContainer),
+          ],
         ),
       ),
     );
