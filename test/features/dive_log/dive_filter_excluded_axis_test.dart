@@ -1,31 +1,63 @@
+import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
 
-/// The excluded-dives axis has three implementations that must agree: the
-/// statistics SQL subquery, the paginated dive list's WHERE builder, and the
-/// in-memory apply() used by export/table/map views. A divergence between them
-/// is invisible until a diver notices two screens disagreeing, so this pins
-/// the two that can be exercised without a database and asserts the SQL one
-/// encodes the same rule.
-void main() {
-  final included = Dive(id: 'included', dateTime: DateTime(2026, 1, 1));
-  final excluded = Dive(
-    id: 'excluded',
-    dateTime: DateTime(2026, 1, 2),
-    excludedFromStats: true,
-  );
-  final gasExcluded = Dive(
-    id: 'gas-excluded',
-    dateTime: DateTime(2026, 1, 3),
-    excludedFromGasStats: true,
-  );
+import '../../helpers/test_database.dart';
 
-  test('a null axis is inactive and filters nothing', () {
+/// The excluded-dives axis (#526) once had three implementations that had to
+/// agree. Since #2365 there is one: the filter lowers to a query tree and
+/// every path compiles it. This pins the rule that tree encodes, against the
+/// database, on the two id paths the entity views and Statistics use.
+void main() {
+  late AppDatabase db;
+  late DiveRepository repo;
+  setUp(() async {
+    db = await setUpTestDatabase();
+    repo = DiveRepository();
+    final now = DateTime(2026, 1, 1).millisecondsSinceEpoch;
+    Future<void> dive(
+      String id, {
+      bool excluded = false,
+      bool gasExcluded = false,
+      bool favorite = false,
+    }) => db
+        .into(db.dives)
+        .insert(
+          DivesCompanion.insert(
+            id: id,
+            diveDateTime: now,
+            excludedFromStats: Value(excluded),
+            excludedFromGasStats: Value(gasExcluded),
+            isFavorite: Value(favorite),
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+    await dive('included');
+    await dive('excluded', excluded: true);
+    await dive('gas-excluded', gasExcluded: true);
+    await dive('both', excluded: true, favorite: true);
+  });
+  tearDown(tearDownTestDatabase);
+
+  Future<Set<String>> statisticsIds(DiveFilterState filter) async {
+    final f = buildFilteredDiveIdSubquery(filter);
+    final rows = await db
+        .customSelect(
+          f.subquery.isEmpty ? 'SELECT id FROM dives' : f.subquery,
+          variables: f.params.map((p) => Variable(p)).toList(),
+        )
+        .get();
+    return rows.map((r) => r.read<String>('id')).toSet();
+  }
+
+  test('a null axis is inactive and filters nothing', () async {
     const filter = DiveFilterState();
     expect(filter.hasActiveFilters, isFalse);
-    expect(filter.apply([included, excluded, gasExcluded]), hasLength(3));
+    expect(await repo.getDiveIdsMatching(filter), hasLength(4));
     expect(
       buildFilteredDiveIdSubquery(filter).subquery,
       isEmpty,
@@ -35,28 +67,29 @@ void main() {
     );
   });
 
-  test('apply() keeps only excluded dives when the axis is true', () {
+  test('the axis keeps only excluded dives when true', () async {
     const filter = DiveFilterState(excludedFromStatsOnly: true);
     expect(filter.hasActiveFilters, isTrue);
     expect(
-      filter.apply([included, excluded, gasExcluded]).map((d) => d.id),
-      ['excluded'],
+      await repo.getDiveIdsMatching(filter),
+      {'excluded', 'both'},
       reason:
           'the axis tracks the master flag only; a gas-excluded dive is '
           'not "excluded from statistics"',
     );
+    expect(await statisticsIds(filter), {'excluded', 'both'});
   });
 
-  test('the SQL subquery encodes the same rule', () {
+  test('the SQL encodes the master flag and never the gas flag', () {
     const filter = DiveFilterState(excludedFromStatsOnly: true);
     final sql = buildFilteredDiveIdSubquery(filter);
-    expect(sql.subquery, contains('excluded_from_stats = 1'));
+    expect(sql.subquery, contains('excluded_from_stats = ?'));
+    expect(sql.params, [1]);
     expect(
       sql.subquery,
       isNot(contains('excluded_from_gas_stats')),
-      reason: 'apply() does not consider the gas flag, so neither may SQL',
+      reason: 'the axis does not consider the gas flag',
     );
-    expect(sql.params, isEmpty);
   });
 
   test('copyWith can set and clear the axis', () {
@@ -73,20 +106,15 @@ void main() {
     );
   });
 
-  test('the axis composes with other axes rather than replacing them', () {
-    final favouriteAndExcluded = Dive(
-      id: 'both',
-      dateTime: DateTime(2026, 1, 4),
-      excludedFromStats: true,
-      isFavorite: true,
-    );
-    const filter = DiveFilterState(
-      excludedFromStatsOnly: true,
-      favoritesOnly: true,
-    );
-    expect(
-      filter.apply([included, excluded, favouriteAndExcluded]).map((d) => d.id),
-      ['both'],
-    );
-  });
+  test(
+    'the axis composes with other axes rather than replacing them',
+    () async {
+      const filter = DiveFilterState(
+        excludedFromStatsOnly: true,
+        favoritesOnly: true,
+      );
+      expect(await repo.getDiveIdsMatching(filter), {'both'});
+      expect(await statisticsIds(filter), {'both'});
+    },
+  );
 }

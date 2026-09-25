@@ -128,7 +128,7 @@ void main() {
               .customSelect(
                 sql,
                 variables: [
-                  for (var i = 0; i < n; i++) Variable<String>('%x%'),
+                  for (var i = 0; i < n; i++) const Variable<String>('%x%'),
                 ],
               )
               .get(),

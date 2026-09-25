@@ -75,8 +75,14 @@ class _CountingRepository implements DiveRepository {
   Stream<void> watchDiveListChanges() => _inner.watchDiveListChanges();
 
   @override
-  Stream<void> watchEquipmentAttrFilterChanges() =>
-      _inner.watchEquipmentAttrFilterChanges();
+  Stream<void> watchTables(Set<String> tableNames) =>
+      _inner.watchTables(tableNames);
+
+  @override
+  Future<Set<String>> getDiveIdsMatching(
+    DiveFilterState filter, {
+    String? diverId,
+  }) => _inner.getDiveIdsMatching(filter, diverId: diverId);
 
   @override
   Stream<void> watchDiveListChangesWithBuddyLinks() =>
