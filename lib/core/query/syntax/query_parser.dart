@@ -93,6 +93,9 @@ class QueryParser {
   /// relation's target while parsing the bracketed inner query.
   late List<QueryEntity> _scope;
 
+  /// Relation hops the open scoped groups already crossed.
+  int _hopDepth = 0;
+
   ParseResult parse(String text) {
     try {
       _tokens = tokenize(text);
@@ -101,6 +104,7 @@ class QueryParser {
     }
     _pos = 0;
     _scope = [root];
+    _hopDepth = 0;
     try {
       if (_peek.kind == TokenKind.end) return const ParseOk(null);
       final node = _or();
@@ -229,6 +233,15 @@ class QueryParser {
     }
     // The tree holds canonical keys, whatever alias was typed.
     final path = res.canonicalPath;
+    if (_hopDepth + res.hops.length > kMaxPathHops) {
+      throw _Abort(
+        _err(
+          'a query may cross at most $kMaxPathHops relations, '
+          'counting nested groups',
+          pathTok,
+        ),
+      );
+    }
     final opTok = _next();
 
     if (_isSymbol(opTok, '[')) {
@@ -239,7 +252,9 @@ class QueryParser {
         );
       }
       _scope.add(registry.entityFor(rel.target));
+      _hopDepth += res.hops.length;
       final inner = _or();
+      _hopDepth -= res.hops.length;
       _scope.removeLast();
       if (!_isSymbol(_peek, ']')) throw _Abort(_err('expected "]"', _peek));
       _next();

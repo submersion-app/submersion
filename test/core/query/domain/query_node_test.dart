@@ -31,10 +31,8 @@ void main() {
     expect(v, isNot(equals(const NumberValue(30.48, null))));
   });
 
-  test('FieldPath exposes its head, tail and depth', () {
+  test('FieldPath knows its length and prints dotted', () {
     const path = FieldPath(['buddies', 'certifications', 'level']);
-    expect(path.head, 'buddies');
-    expect(path.tail, const FieldPath(['certifications', 'level']));
     expect(path.length, 3);
     expect(path.toString(), 'buddies.certifications.level');
   });

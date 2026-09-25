@@ -17,15 +17,18 @@ List<QueryError> validateQuery(
 ) {
   if (node == null) return const [];
   final out = <QueryError>[];
-  _walk(node, root, registry, out);
+  _walk(node, root, registry, out, 0);
   return out;
 }
 
+/// [depth] is the number of relation hops the enclosing scoped groups
+/// already crossed, so nesting counts against [kMaxPathHops] like a path.
 void _walk(
   QueryNode n,
   QueryEntity scope,
   QueryRegistry registry,
   List<QueryError> out,
+  int depth,
 ) {
   switch (n) {
     case AndNode(:final children):
@@ -34,10 +37,10 @@ void _walk(
         out.add(const QueryError('an empty group matches nothing'));
       }
       for (final c in children) {
-        _walk(c, scope, registry, out);
+        _walk(c, scope, registry, out, depth);
       }
     case NotNode(:final child):
-      _walk(child, scope, registry, out);
+      _walk(child, scope, registry, out, depth);
     case TextNode(:final words):
       if (words.isEmpty) out.add(const QueryError('empty text'));
       if (scope.textSearchSql.isEmpty) {
@@ -57,16 +60,38 @@ void _walk(
         );
         return;
       }
+      final total = depth + res.hops.length;
+      if (total > kMaxPathHops) {
+        out.add(
+          QueryError(
+            'a query may cross at most $kMaxPathHops relations, '
+            'counting nested groups',
+            path: path,
+          ),
+        );
+        return;
+      }
       _walk(
         inner,
         registry.entityFor(res.terminalRelation!.target),
         registry,
         out,
+        total,
       );
     case ConditionNode(:final path, :final op, :final value):
       final res = resolvePath(registry, scope, path);
       if (res.error != null) {
         out.add(res.error!);
+        return;
+      }
+      if (depth + res.hops.length > kMaxPathHops) {
+        out.add(
+          QueryError(
+            'a query may cross at most $kMaxPathHops relations, '
+            'counting nested groups',
+            path: path,
+          ),
+        );
         return;
       }
       final field = res.field;
@@ -195,7 +220,13 @@ void _checkValue(
         );
       }
     case FieldType.date:
-      if (value is! DateValue && value is! DateRangeValue) {
+      // A period is only meaningful under `in`; every other op takes one
+      // day (the parser lowers a period to its edge day for those).
+      if (value is DateRangeValue) {
+        out.add(
+          QueryError('${field.key} expects a single day here', path: path),
+        );
+      } else if (value is! DateValue) {
         out.add(QueryError('${field.key} expects a date', path: path));
       }
   }

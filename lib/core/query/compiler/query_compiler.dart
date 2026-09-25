@@ -70,6 +70,10 @@ class _Ctx {
   final tables = <String>{};
   int _aliasCounter = 0;
 
+  /// Relation hops the enclosing scoped groups already crossed; nesting
+  /// counts against [kMaxPathHops] like a path does.
+  int _depth = 0;
+
   _Ctx(this.registry);
 
   String nextAlias() => 'r${++_aliasCounter}';
@@ -162,7 +166,18 @@ class _Ctx {
       throw QueryCompileError('scoped path $path must end in a relation');
     }
     final leaf = registry.entityFor(rel.target);
-    return '(${_hops(res.hops, alias, (a) => emit(inner, leaf, a))})';
+    final outer = _depth;
+    _depth = outer + res.hops.length;
+    if (_depth > kMaxPathHops) {
+      throw QueryCompileError(
+        'nested groups cross more than $kMaxPathHops hops',
+      );
+    }
+    try {
+      return '(${_hops(res.hops, alias, (a) => emit(inner, leaf, a))})';
+    } finally {
+      _depth = outer;
+    }
   }
 
   String _condition(
@@ -173,6 +188,9 @@ class _Ctx {
     String alias,
   ) {
     final res = _resolve(path, entity);
+    if (_depth + res.hops.length > kMaxPathHops) {
+      throw QueryCompileError('$path crosses more than $kMaxPathHops hops');
+    }
     final field = res.field;
     if (field == null) {
       return _relationCondition(res, op, value, alias, path);
@@ -200,9 +218,16 @@ class _Ctx {
     switch (op) {
       case QueryOp.eq:
       case QueryOp.neq:
+        // Like scalar `!=`, `site != X` needs a related row: a dive with no
+        // site is not "a site other than X" (`site:none` asks for that).
         params.add((value as RefValue).id);
-        final hit = _hops(res.hops, alias, (a) => '$a.${target.idColumn} = ?');
-        return op == QueryOp.eq ? '($hit)' : '(NOT $hit)';
+        final sym = op == QueryOp.eq ? '=' : '!=';
+        final hit = _hops(
+          res.hops,
+          alias,
+          (a) => '$a.${target.idColumn} $sym ?',
+        );
+        return '($hit)';
       case QueryOp.inList:
         final items = (value as ListValue).items;
         for (final v in items) {

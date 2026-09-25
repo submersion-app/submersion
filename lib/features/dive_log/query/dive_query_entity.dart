@@ -19,8 +19,14 @@ const _weekday =
     "CAST(strftime('%w', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
 const _year =
     "CAST(strftime('%Y', {r}.dive_date_time / 1000, 'unixepoch') AS INTEGER)";
-const _weightsExist =
-    'EXISTS (SELECT 1 FROM dive_weights w WHERE w.dive_id = {r}.id)';
+
+/// No weight entry at all: neither a `dive_weights` row nor the legacy
+/// scalar the edit form migrates into the table on load (#1392). ONE rule,
+/// read by the `weight` field and the `weights` relation so `weight:none`
+/// and `weights:none` cannot disagree.
+const kDiveNoWeightSql =
+    '({r}.weight_amount IS NULL AND NOT EXISTS '
+    '(SELECT 1 FROM dive_weights w WHERE w.dive_id = {r}.id))';
 
 /// The gear union the equipment axes have always used: items linked
 /// through `dive_equipment` plus cylinders the transmitter registry matched
@@ -292,7 +298,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
           'WHERE w.dive_id = {r}.id), {r}.weight_amount)',
       aliases: ['lead'],
       dimension: FieldDimension.weight,
-      emptySql: '({r}.weight_amount IS NULL AND NOT $_weightsExist)',
+      emptySql: kDiveNoWeightSql,
       tables: ['dive_weights'],
     ),
     _num(
@@ -404,11 +410,7 @@ final QueryEntity diveQueryEntity = QueryEntity(
       joinSql: '{to}.dive_id = {from}.id',
       isMany: true,
       labelKey: _label('weights'),
-      // The legacy scalar the edit form migrates into the table on load is
-      // a weight entry too, so `weights:none` and `weight:none` agree.
-      emptySql:
-          '({from}.weight_amount IS NULL AND NOT EXISTS '
-          '(SELECT 1 FROM dive_weights j WHERE j.dive_id = {from}.id))',
+      emptySql: kDiveNoWeightSql.replaceAll('{r}', '{from}'),
     ),
     _child('customFields', QuerySubject.customFields),
     _child('sightings', QuerySubject.sightings),

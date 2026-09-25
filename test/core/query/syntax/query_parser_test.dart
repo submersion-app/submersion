@@ -278,6 +278,25 @@ void main() {
     expect(bad(metric(), 'date in []').error.message, contains('empty'));
   });
 
+  test('an unpadded date is refused, never read as a year plus junk', () {
+    expect(bad(metric(), 'date >= 2025-3-1').error.message, contains('date'));
+    expect(bad(metric(), 'date >= 2025-3-1').error.offset, 8);
+  });
+
+  test('scoped nesting counts against the hop cap', () {
+    expect(
+      bad(
+        metric(),
+        'buddies[buddies[buddies[buddies[buddies[name = x]]]]]',
+      ).error.message,
+      contains('4'),
+    );
+    expect(
+      ok(metric(), 'buddies[buddies[buddies[name = x]]]'),
+      isA<ScopedNode>(),
+    );
+  });
+
   test('a unit from another dimension is an error, not a fallback', () {
     expect(bad(metric(), 'depth > 100f').error.message, contains('depth'));
     expect(bad(metric(), 'temp > 20ft').error.message, contains('unit'));

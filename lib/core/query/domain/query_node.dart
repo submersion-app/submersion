@@ -10,10 +10,7 @@ class FieldPath {
   final List<String> segments;
   const FieldPath(this.segments);
 
-  String get head => segments.first;
-  FieldPath get tail => FieldPath(segments.sublist(1));
   int get length => segments.length;
-  bool get isSingle => segments.length == 1;
 
   @override
   bool operator ==(Object other) =>

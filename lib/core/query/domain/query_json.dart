@@ -1,5 +1,6 @@
 import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
+import 'package:submersion/core/query/syntax/date_grammar.dart';
 
 /// The stored shape of a query (saved queries, PR 2 of #2365). Bump when a
 /// node or value shape changes; [queryNodeFromJson] refuses newer versions
@@ -134,18 +135,11 @@ QueryValue _readValue(Map<String, Object?> m) {
 
 DateTime _readDay(Object? v) {
   final s = _str(v);
-  final parts = s.split('-');
-  if (parts.length != 3) throw QueryJsonException('bad day $s');
-  final numbers = parts.map(int.tryParse).toList();
-  if (numbers.any((n) => n == null)) throw QueryJsonException('bad day $s');
-  final day = DateTime(numbers[0]!, numbers[1]!, numbers[2]!);
-  // DateTime normalizes an impossible day (2025-02-30 becomes March 2). A
-  // corrupted or hand-edited saved query must fail, never change meaning.
-  if (day.year != numbers[0] ||
-      day.month != numbers[1] ||
-      day.day != numbers[2]) {
-    throw QueryJsonException('impossible day $s');
-  }
+  // The grammar's parser rejects an impossible day (2025-02-30) instead of
+  // letting DateTime normalize it to March 2: a corrupted or hand-edited
+  // saved query must fail, never change meaning.
+  final day = parseIsoDay(s);
+  if (day == null) throw QueryJsonException('bad day $s');
   return day;
 }
 

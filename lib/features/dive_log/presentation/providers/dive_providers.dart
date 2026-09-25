@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_log/domain/entities/source_profile.dart
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
+import 'package:submersion/features/dive_log/presentation/providers/narrow_dives.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -68,10 +69,11 @@ final queryFilteredDiveIdsProvider = FutureProvider.autoDispose
       if (!filter.hasActiveFilters) return null;
       final diverId = ref.watch(currentDiverIdProvider);
       final repository = ref.watch(diveRepositoryProvider);
-      ref.invalidateSelfWhen(
-        repository.watchTables(diveFilterTablesTouched(filter)),
-      );
-      return repository.getDiveIdsMatching(filter, diverId: diverId);
+      // Compiled once: the same object names the tables to follow and is
+      // the query the repository runs.
+      final compiled = compileDiveFilter(filter, rootAlias: 'd');
+      ref.invalidateSelfWhen(repository.watchTables(compiled.tablesTouched));
+      return repository.getDiveIdsForQuery(compiled, diverId: diverId);
     });
 
 /// Filtered dives provider: the hydrated list narrowed to the ids the
@@ -81,23 +83,9 @@ final queryFilteredDiveIdsProvider = FutureProvider.autoDispose
 final filteredDivesProvider = Provider<AsyncValue<List<domain.Dive>>>((ref) {
   final divesAsync = ref.watch(diveListNotifierProvider);
   final filter = ref.watch(diveFilterProvider);
-  final idsAsync = ref.watch(queryFilteredDiveIdsProvider(filter));
-  // Built-in AsyncValue.value retains the previous ids across a reload, so
-  // a write does not blank the list. hasValue false means first load or a
-  // failure, never a stale answer.
-  if (!idsAsync.hasValue) {
-    if (idsAsync.hasError) {
-      return AsyncValue.error(
-        idsAsync.error!,
-        idsAsync.stackTrace ?? StackTrace.empty,
-      );
-    }
-    return const AsyncValue.loading();
-  }
-  final ids = idsAsync.value;
-  return divesAsync.whenData(
-    (dives) =>
-        ids == null ? dives : dives.where((d) => ids.contains(d.id)).toList(),
+  return narrowDivesByIds(
+    divesAsync,
+    ref.watch(queryFilteredDiveIdsProvider(filter)),
   );
 });
 
@@ -129,12 +117,16 @@ final orderedDiveIdsProvider = FutureProvider.autoDispose<List<String>>((
   final filter = ref.watch(diveFilterProvider);
   final sort = ref.watch(diveSortProvider);
   final repository = ref.watch(diveRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchDivesChanges());
-  // Follow every other table the compiled filter reads (#2365): the buddy
-  // tables under a buddy filter (#1915), the gear tables under an attribute
-  // condition (#1805), and so on.
+  // ONE debounced tick over `dives` plus whatever else the compiled filter
+  // reads (#2365): the buddy tables under a buddy filter (#1915), the gear
+  // tables under an attribute condition (#1805). One stream, not two, so a
+  // junction write followed by the dive write recomputes the ids once.
   final extra = diveFilterTablesTouched(filter).difference({'dives'});
-  if (extra.isNotEmpty) ref.invalidateSelfWhen(repository.watchTables(extra));
+  ref.invalidateSelfWhen(
+    extra.isEmpty
+        ? repository.watchDivesChanges()
+        : repository.watchTables({'dives', ...extra}),
+  );
   return repository.getOrderedDiveIds(
     diverId: diverId,
     filter: filter,
@@ -541,12 +533,7 @@ class DiveListNotifier extends StateNotifier<AsyncValue<List<domain.Dive>>> {
     Set<String> extra(DiveFilterState f) =>
         diveFilterTablesTouched(f).difference({'dives'});
     _ref.listen<DiveFilterState>(diveFilterProvider, (previous, next) {
-      final before = previous == null ? const <String>{} : extra(previous);
-      final after = extra(next);
-      divesTick.follow(after);
-      // Tables not watched until now may have changed while unwatched, so
-      // the hydrated entities are re-read before the new filter sees them.
-      if (after.difference(before).isNotEmpty) _silentReload();
+      divesTick.follow(extra(next));
     });
     divesTick.follow(extra(_ref.read(diveFilterProvider)));
     _ref.onDispose(divesTick.cancel);

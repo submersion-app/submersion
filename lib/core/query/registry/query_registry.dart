@@ -52,9 +52,6 @@ class PathResolution {
     this.errorSegment,
   });
 
-  /// The entity the last segment belongs to.
-  QueryEntity get leafEntity => entities.last;
-
   /// The path with every alias replaced by its canonical key, so a tree
   /// holds one spelling whatever the diver typed.
   FieldPath get canonicalPath =>

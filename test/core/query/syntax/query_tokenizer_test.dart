@@ -32,6 +32,10 @@ void main() {
     expect(tokenize('2025-03-14').first.kind, TokenKind.word);
     expect(tokenize('2025-03').first.kind, TokenKind.word);
     expect(tokenize('2025').first.kind, TokenKind.number);
+    // Unpadded dates are one token too, so the grammar can refuse them
+    // instead of the parser reading a year followed by junk.
+    expect(tokenize('2025-3-1').first.kind, TokenKind.word);
+    expect(tokenize('2025-3-1').first.text, '2025-3-1');
   });
 
   test('two-character operators are one symbol', () {

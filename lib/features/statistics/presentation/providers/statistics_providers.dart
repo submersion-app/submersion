@@ -47,12 +47,15 @@ final filteredDiveStatisticsProvider = FutureProvider<DiveStatistics>((
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(statisticsFilterProvider);
-  ref.invalidateSelfWhen(repository.watchDivesChanges());
-  // Follow every table the filter joins beyond the statistics tick's own
-  // set (#2365), so an attribute-only or junction-only write refreshes the
-  // totals.
+  // ONE debounced tick over `dives` plus every table the filter joins
+  // (#2365), so an attribute-only or junction-only write refreshes the
+  // totals once, never twice.
   final extra = diveFilterTablesTouched(filter).difference({'dives'});
-  if (extra.isNotEmpty) ref.invalidateSelfWhen(repository.watchTables(extra));
+  ref.invalidateSelfWhen(
+    extra.isEmpty
+        ? repository.watchDivesChanges()
+        : repository.watchTables({'dives', ...extra}),
+  );
   return repository.getStatistics(diverId: currentDiverId, filter: filter);
 });
 
@@ -72,12 +75,15 @@ final filteredDiveRecordsProvider = FutureProvider<DiveRecords>((ref) async {
   final repository = ref.watch(diveRepositoryProvider);
   final currentDiverId = ref.watch(currentDiverIdProvider);
   final filter = ref.watch(statisticsFilterProvider);
-  ref.invalidateSelfWhen(repository.watchDivesChanges());
-  // Follow every table the filter joins beyond the statistics tick's own
-  // set (#2365), so an attribute-only or junction-only write refreshes the
-  // records.
+  // ONE debounced tick over `dives` plus every table the filter joins
+  // (#2365), so an attribute-only or junction-only write refreshes the
+  // records once, never twice.
   final extra = diveFilterTablesTouched(filter).difference({'dives'});
-  if (extra.isNotEmpty) ref.invalidateSelfWhen(repository.watchTables(extra));
+  ref.invalidateSelfWhen(
+    extra.isEmpty
+        ? repository.watchDivesChanges()
+        : repository.watchTables({'dives', ...extra}),
+  );
   return repository.getRecords(diverId: currentDiverId, filter: filter);
 });
 

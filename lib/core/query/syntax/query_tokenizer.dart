@@ -25,7 +25,10 @@ class TokenizeException implements Exception {
   String toString() => 'TokenizeException($message @$offset)';
 }
 
-final RegExp _isoDate = RegExp(r'^\d{4}-\d{2}(-\d{2})?(?![\w.])');
+/// ISO-looking dates, padded or not, are ONE word token, so the date
+/// grammar decides their validity; otherwise `2025-3-1` would read as the
+/// number 2025 followed by two negated terms.
+final RegExp _isoDate = RegExp(r'^\d{4}-\d{1,2}(-\d{1,2})?(?![\w.])');
 final RegExp _number = RegExp(r'^\d+(\.\d+)?[A-Za-z]*');
 const _twoCharSymbols = {'!=', '<=', '>='};
 const _oneCharSymbols = {

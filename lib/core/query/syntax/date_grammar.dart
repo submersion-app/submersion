@@ -68,13 +68,13 @@ DateRange? parseDateText(String text, {required DateTime now}) {
   if (m != null) return month(int.parse(m[1]!), int.parse(m[2]!));
   m = _isoRange.firstMatch(t);
   if (m != null) {
-    final a = _parseIso(m[1]!);
-    final b = _parseIso(m[2]!);
+    final a = parseIsoDay(m[1]!);
+    final b = parseIsoDay(m[2]!);
     if (a == null || b == null || b.isBefore(a)) return null;
     return (start: a, end: b);
   }
   if (_isoDate.hasMatch(t)) {
-    final d = _parseIso(t);
+    final d = parseIsoDay(t);
     return d == null ? null : (start: d, end: d);
   }
   // Open-ended forms first: "since 2022" also matches the month-year shape
@@ -112,8 +112,10 @@ DateRange? parseDateText(String text, {required DateTime now}) {
   if (m != null) {
     final n = int.parse(m[1]!);
     final start = switch (m[2]!) {
-      'day' => today.subtract(Duration(days: n)),
-      'week' => today.subtract(Duration(days: 7 * n)),
+      // Calendar arithmetic, never a Duration: a 24 h span from a local
+      // midnight lands a day early across a spring-forward change.
+      'day' => DateTime(today.year, today.month, today.day - n),
+      'week' => DateTime(today.year, today.month, today.day - 7 * n),
       'month' => DateTime(today.year, today.month - n, today.day),
       _ => DateTime(today.year - n, today.month, today.day),
     };
@@ -122,7 +124,9 @@ DateRange? parseDateText(String text, {required DateTime now}) {
   return null;
 }
 
-DateTime? _parseIso(String s) {
+/// A padded `yyyy-mm-dd` as a calendar day, or null when it is not one or
+/// names an impossible day (2025-02-30). Shared with the JSON codec.
+DateTime? parseIsoDay(String s) {
   final m = _isoDate.firstMatch(s);
   if (m == null) return null;
   final y = int.parse(m[1]!);

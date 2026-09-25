@@ -11,6 +11,7 @@ import 'package:submersion/core/database/database.dart'
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/compiler/query_compiler.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
@@ -76,6 +77,12 @@ class _CountingRepository implements DiveRepository {
     DiveFilterState filter, {
     String? diverId,
   }) => _inner.getDiveIdsMatching(filter, diverId: diverId);
+
+  @override
+  Future<Set<String>> getDiveIdsForQuery(
+    CompiledQuery compiled, {
+    String? diverId,
+  }) => _inner.getDiveIdsForQuery(compiled, diverId: diverId);
 
   @override
   Future<Map<String, List<DiveProfilePoint>>> getBatchProfileSummaries(

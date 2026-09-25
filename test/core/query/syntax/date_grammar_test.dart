@@ -35,6 +35,23 @@ void main() {
     ));
   });
 
+  test('last N days and weeks count calendar days, not 24-hour spans', () {
+    // 2026-03-08 is a spring-forward day in US zones: a Duration of 24 h
+    // from local midnight on the 9th lands at 23:00 on the 7th.
+    expect(parseDateText('last 1 days', now: DateTime(2026, 3, 9)), (
+      start: DateTime(2026, 3, 8),
+      end: DateTime(2026, 3, 9),
+    ));
+    expect(parseDateText('last 1 weeks', now: DateTime(2026, 3, 15)), (
+      start: DateTime(2026, 3, 8),
+      end: DateTime(2026, 3, 15),
+    ));
+  });
+
+  test('an unpadded ISO date is not a date', () {
+    expect(parseDateText('2025-3-1', now: now), isNull);
+  });
+
   test('garbage and impossible dates are null', () {
     expect(parseDateText('sometime', now: now), isNull);
     expect(parseDateText('2025-02-30', now: now), isNull);

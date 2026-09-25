@@ -171,10 +171,12 @@ void main() {
     final n = c(
       ConditionNode(const FieldPath(['site']), QueryOp.neq, kFixtureSite),
     );
+    // Like scalar `!=`, a relation `!=` needs a related row: a dive with no
+    // site is not "a site other than X".
     expect(
       n.where,
-      '(NOT EXISTS (SELECT 1 FROM dive_sites r1 WHERE r1.id = r0.site_id '
-      'AND r1.id = ?))',
+      '(EXISTS (SELECT 1 FROM dive_sites r1 WHERE r1.id = r0.site_id '
+      'AND r1.id != ?))',
     );
     final l = c(
       ConditionNode(
@@ -362,5 +364,16 @@ void main() {
   test('an empty group or empty text is a compile error, never bad SQL', () {
     expect(() => c(const AndNode([])), throwsA(isA<Error>()));
     expect(() => c(const TextNode([])), throwsA(isA<Error>()));
+  });
+
+  test('scoped nesting past the hop cap is a compile error', () {
+    QueryNode nest(int n) => n == 0
+        ? ConditionNode(
+            const FieldPath(['name']),
+            QueryOp.eq,
+            const StringValue('x'),
+          )
+        : ScopedNode(const FieldPath(['buddies']), nest(n - 1));
+    expect(() => c(nest(5)), throwsA(isA<Error>()));
   });
 }

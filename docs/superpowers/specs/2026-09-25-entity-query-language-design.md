@@ -661,6 +661,24 @@ Decided in the whole-branch review of PR 1:
   `date in [2025-01-05, 2025-03]` is an OR of day and period conditions.
 - **Empty groups and empty text are errors** in the parser, the validator
   and the compiler, never SQL.
+- **Relation `!=` needs a related row**, like scalar `!=`: `site != X`
+  compiles to `EXISTS (... AND r1.id != ?)`, so a dive with no site is not
+  "a site other than X"; `site:none` asks for that.
+- **Nesting counts against the hop cap.** A scoped group's hops add to
+  the depth of the paths inside it, in the parser, the validator and the
+  compiler, so `site[dives[site[dives[...]]]]` cannot escape
+  `kMaxPathHops`.
+- **Date periods are only valid under `in`.** The validator rejects a
+  `DateRangeValue` under any other operator (the parser already lowers a
+  period to its edge day there), so a builder-made tree cannot reach the
+  compiler's cast.
+- **An unpadded date is one token** (`2025-3-1`), which the date grammar
+  refuses, rather than a year followed by two negated terms.
+- **A failed id-set refresh is an error**, even while a previous set
+  exists (`narrowDivesByIds`); a refresh in flight keeps the previous set.
+- **`last N days` and `last N weeks` use calendar arithmetic**, never a
+  `Duration`, so a range typed after a spring-forward change starts on the
+  right day.
 
 ## Open items for the implementation plans
 

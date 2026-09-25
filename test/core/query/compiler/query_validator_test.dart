@@ -157,4 +157,47 @@ void main() {
     expect(messages(const OrNode([])), [contains('empty')]);
     expect(messages(const TextNode([])), [contains('empty')]);
   });
+
+  test('a date range is only valid under in', () {
+    final range = DateRangeValue(DateTime(2025, 1, 1), DateTime(2025, 1, 31));
+    expect(
+      messages(ConditionNode(const FieldPath(['date']), QueryOp.lt, range)),
+      [contains('day')],
+    );
+    expect(
+      messages(ConditionNode(const FieldPath(['date']), QueryOp.inList, range)),
+      isEmpty,
+    );
+  });
+
+  test('scoped nesting counts against the hop cap', () {
+    QueryNode nest(int n) => n == 0
+        ? ConditionNode(
+            const FieldPath(['name']),
+            QueryOp.eq,
+            const StringValue('x'),
+          )
+        : ScopedNode(const FieldPath(['buddies']), nest(n - 1));
+    expect(messages(nest(4)), isEmpty);
+    expect(messages(nest(5)), [contains('4')]);
+    expect(
+      messages(
+        ScopedNode(
+          const FieldPath(['buddies']),
+          ScopedNode(
+            const FieldPath(['buddies']),
+            ScopedNode(
+              const FieldPath(['buddies']),
+              ConditionNode(
+                const FieldPath(['buddies', 'certifications', 'level']),
+                QueryOp.eq,
+                const StringValue('x'),
+              ),
+            ),
+          ),
+        ),
+      ),
+      [contains('4')],
+    );
+  });
 }

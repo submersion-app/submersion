@@ -2396,10 +2396,21 @@ class DiveRepository {
   Future<Set<String>> getDiveIdsMatching(
     DiveFilterState filter, {
     String? diverId,
+  }) => getDiveIdsForQuery(
+    compileDiveFilter(filter, rootAlias: 'd'),
+    diverId: diverId,
+  );
+
+  /// [getDiveIdsMatching] for a filter the caller already compiled (with
+  /// the `d` alias), so a provider that also needs `tablesTouched` compiles
+  /// once.
+  // stats-scope-exempt: backs a view-filter axis; consumers apply the scope themselves
+  Future<Set<String>> getDiveIdsForQuery(
+    CompiledQuery compiled, {
+    String? diverId,
   }) async {
     try {
       return await PerfTimer.measure('getDiveIdsMatching', () async {
-        final compiled = compileDiveFilter(filter, rootAlias: 'd');
         final clauses = <String>[
           if (diverId != null) 'd.diver_id = ?',
           if (!compiled.isEmpty) compiled.where,

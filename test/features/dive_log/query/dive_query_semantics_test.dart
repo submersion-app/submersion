@@ -83,6 +83,10 @@ void main() {
     expect(await ids('site.country = Bonaire'), {'d1', 'd2', 'd3'});
     expect(await ids('site = "Salt Pier"'), {'d1', 'd2'});
     expect(await ids('site:none'), {'d4'});
+    expect(await ids('site != "Salt Pier"'), {
+      'd3',
+      'd5',
+    }, reason: 'a dive with no site is not "a site other than Salt Pier"');
     expect(await ids('buddies.certifications.level = rescue'), {'d1', 'd5'});
     expect(await ids('buddies = Ana AND buddies = Cid'), {'d5'});
     expect(await ids('gear[type = wetsuit] AND gear[type = drysuit]'), {'d5'});

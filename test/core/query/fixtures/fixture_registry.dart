@@ -240,6 +240,15 @@ const fixtureBuddies = QueryEntity(
       isMany: true,
       labelKey: 'x',
     ),
+    // A self relation, so tests can nest scopes deeper than the hop cap.
+    QueryRelation(
+      key: 'buddies',
+      target: QuerySubject.buddies,
+      shape: RelationShape.custom,
+      joinSql: '{to}.id = {from}.id',
+      isMany: true,
+      labelKey: 'x',
+    ),
   ],
 );
 
