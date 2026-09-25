@@ -172,6 +172,8 @@ void main() {
       'MediaLibraryRepository.watchMediaChanges':
           MediaLibraryRepository().watchMediaChanges,
       'MediaRepository.watchMediaChanges': MediaRepository().watchMediaChanges,
+      'MediaLibraryRepository.watchMapChanges':
+          MediaLibraryRepository().watchMapChanges,
       'StatisticsRepository.watchStatisticsChanges':
           StatisticsRepository().watchStatisticsChanges,
       'ServiceRecordRepository.watchServiceRecordsChanges':
@@ -781,6 +783,53 @@ void main() {
             'changes what the consumers of this tick would return',
       );
     });
+
+    // The media map places items through dives (entry fix) and dive_sites
+    // (coordinates), so a tick over media alone would leave a moved site's
+    // photos where they were until something else happened to write media.
+    test(
+      'MediaLibraryRepository.watchMapChanges fires on a dive_sites write',
+      () async {
+        expect(
+          await fires(
+            MediaLibraryRepository().watchMapChanges(),
+            () => db
+                .into(db.diveSites)
+                .insert(
+                  DiveSitesCompanion(
+                    id: const Value('site-tick'),
+                    name: const Value('Tick'),
+                    createdAt: Value(now),
+                    updatedAt: Value(now),
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      },
+    );
+
+    test(
+      'MediaLibraryRepository.watchMapChanges fires on a dives write',
+      () async {
+        expect(
+          await fires(
+            MediaLibraryRepository().watchMapChanges(),
+            () => db
+                .into(db.dives)
+                .insert(
+                  DivesCompanion(
+                    id: const Value('dive-tick'),
+                    diveDateTime: Value(now),
+                    createdAt: Value(now),
+                    updatedAt: Value(now),
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      },
+    );
 
     test('watchStoresChanges fires', () async {
       expect(
