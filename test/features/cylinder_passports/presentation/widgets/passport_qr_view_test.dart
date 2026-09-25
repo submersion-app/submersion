@@ -39,4 +39,35 @@ void main() {
     );
     expect(code.typeNumber, lessThanOrEqualTo(9));
   });
+
+  testWidgets('dark theme still paints black modules on white', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.dark(),
+        home: const Scaffold(
+          body: Center(child: PassportQrView(data: url, size: 200)),
+        ),
+      ),
+    );
+    final painter =
+        tester
+                .widget<CustomPaint>(
+                  find.descendant(
+                    of: find.byType(PassportQrView),
+                    matching: find.byType(CustomPaint),
+                  ),
+                )
+                .painter!
+            as QrModulesPainter;
+    expect(painter.color, const Color(0xFF000000));
+    expect(painter.background, const Color(0xFFFFFFFF));
+    // The QR standard asks for four modules of light margin on every side.
+    expect(painter.quietModules, 4);
+  });
+
+  test('cells snap to whole device pixels', () {
+    // 200 logical px at 2x over 53 modules plus two 4-module margins.
+    expect(QrModulesPainter.cellSize(200, 61, 2.0), 3.0);
+    expect(QrModulesPainter.cellSize(72, 61, 1.0), 1.0);
+  });
 }
