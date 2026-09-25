@@ -161,4 +161,45 @@ void main() {
 
     expect(container.read(mediaMapPointsProvider).unlocatedCount, 0);
   });
+
+  test(
+    'a reload that returns the same points keeps the list instance',
+    () async {
+      repo.points = [_point('a'), _point('b')];
+      await start();
+      final before = container.read(mediaMapPointsProvider).points;
+
+      repo.points = [_point('a'), _point('b')];
+      repo.changes.add(null);
+      await _settle();
+      await _settle();
+
+      expect(
+        identical(container.read(mediaMapPointsProvider).points, before),
+        isTrue,
+      );
+    },
+  );
+
+  test('a favorite toggle is a change, not an equal reload', () async {
+    repo.points = [_point('a')];
+    await start();
+    final before = container.read(mediaMapPointsProvider).points;
+
+    final fav = _point('a');
+    repo.points = [
+      MediaMapPoint(
+        entry: MediaLibraryEntry(item: fav.item.copyWith(isFavorite: true)),
+        point: fav.point,
+        placement: fav.placement,
+      ),
+    ];
+    repo.changes.add(null);
+    await _settle();
+    await _settle();
+
+    final after = container.read(mediaMapPointsProvider).points;
+    expect(identical(after, before), isFalse);
+    expect(after.single.item.isFavorite, isTrue);
+  });
 }

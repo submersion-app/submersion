@@ -30,6 +30,18 @@ class MediaMapPoint extends Equatable {
 
   MediaItem get item => entry.item;
 
+  /// The whole item, not just its id: the map notifier treats an equal
+  /// reload as "nothing changed" and keeps the list instance, so a favorite
+  /// toggle (which changes a cluster's representative) or any other item
+  /// edit must compare unequal.
   @override
-  List<Object?> get props => [entry.item.id, point, placement, placeLabel];
+  List<Object?> get props => [
+    entry.item,
+    entry.diveNumber,
+    entry.diveDateTime,
+    entry.siteName,
+    point,
+    placement,
+    placeLabel,
+  ];
 }

@@ -67,6 +67,15 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
 
   _StripSelection? _strip;
 
+  /// The marker list handed to the cluster layer, rebuilt only when the
+  /// point list instance or the localisations change. The plugin re-clusters
+  /// whenever it receives a different list instance and keys cluster tiles
+  /// by node, so a fresh list on every build (a strip toggle, a loading
+  /// flip) would recreate every cluster thumbnail and blink it.
+  List<Marker> _markers = const [];
+  List<MediaMapPoint>? _markersFor;
+  Object? _markersL10n;
+
   @override
   void dispose() {
     _animator.dispose();
@@ -117,14 +126,51 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
     if (cluster.isEmpty) return;
     final first = cluster.first.point;
     final coLocated = cluster.every((p) => p.point == first);
-    final atMaxZoom = _mapController.camera.zoom >= _maxZoom - 0.01;
-    if (coLocated || atMaxZoom) {
+    // A tap that cannot zoom further in cannot separate the cluster. The
+    // dive map caps cluster zoom at 14, but photos with their own GPS fix
+    // sit metres apart and stay clustered there, so the media map fits to
+    // the map's own maximum and treats "no zoom progress" as a stack.
+    final camera = _mapController.camera;
+    final target = CameraFit.bounds(
+      bounds: node.bounds,
+      padding: const EdgeInsets.all(120),
+      maxZoom: _maxZoom,
+    ).fit(camera);
+    final noProgress = target.zoom <= camera.zoom + 0.01;
+    if (coLocated || noProgress) {
       setState(() {
         _strip = _StripSelection(title: _titleFor(cluster), points: cluster);
       });
     } else {
-      _animator.animateToBounds(node.bounds);
+      _animator.animateToBounds(node.bounds, maxZoom: _maxZoom);
     }
+  }
+
+  List<Marker> _markersFrom(BuildContext context, List<MediaMapPoint> points) {
+    final l10n = context.l10n;
+    if (identical(points, _markersFor) && identical(l10n, _markersL10n)) {
+      return _markers;
+    }
+    _markersFor = points;
+    _markersL10n = l10n;
+    _markers = [
+      for (final p in points)
+        Marker(
+          key: ValueKey<String>(p.item.id),
+          point: p.point,
+          width: kMediaMapMarkerSize,
+          height: kMediaMapMarkerSize,
+          child: Semantics(
+            button: true,
+            label: l10n.media_map_markerSemantics,
+            child: GestureDetector(
+              onTap: () => widget.openViewer(context, [p.item], p.item.id),
+              child: MediaMapMarker(item: p.item),
+            ),
+          ),
+        ),
+    ];
+    return _markers;
   }
 
   void _closeStrip() {
@@ -181,24 +227,7 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
                 options: MarkerClusterLayerOptions(
                   maxClusterRadius: 80,
                   size: const Size(kMediaMapMarkerSize, kMediaMapMarkerSize),
-                  markers: [
-                    for (final p in state.points)
-                      Marker(
-                        key: ValueKey<String>(p.item.id),
-                        point: p.point,
-                        width: kMediaMapMarkerSize,
-                        height: kMediaMapMarkerSize,
-                        child: Semantics(
-                          button: true,
-                          label: l10n.media_map_markerSemantics,
-                          child: GestureDetector(
-                            onTap: () =>
-                                widget.openViewer(context, [p.item], p.item.id),
-                            child: MediaMapMarker(item: p.item),
-                          ),
-                        ),
-                      ),
-                  ],
+                  markers: _markersFrom(context, state.points),
                   builder: (context, markers) {
                     final cluster = _pointsFor(markers, byId);
                     if (cluster.isEmpty) return const SizedBox.shrink();
@@ -215,6 +244,10 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
                     );
                   },
                   zoomToBoundsOnClick: false,
+                  // The place strip replaces the plugin's spiderfy fan for a
+                  // stack; leaving it on would draw both, and each fanned
+                  // tile would open a one-item viewer instead of the stack.
+                  spiderfyCluster: false,
                   onClusterTap: (node) => _onClusterTap(node, byId),
                 ),
               ),
@@ -260,14 +293,6 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
           right: 8,
           child: MapCompassButton(controller: _mapController),
         ),
-
-        if (state.isLoading)
-          const Positioned(
-            top: 16,
-            left: 0,
-            right: 0,
-            child: Center(child: CircularProgressIndicator()),
-          ),
 
         if (state.points.isEmpty)
           Center(

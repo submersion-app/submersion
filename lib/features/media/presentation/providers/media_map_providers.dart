@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
+
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_library_repository.dart';
@@ -80,8 +82,12 @@ class MediaMapNotifier extends StateNotifier<MediaMapState> {
         filter: _filter,
       );
       if (!mounted) return;
+      // Most ticks (a media-store upload stamping a row) change nothing the
+      // map shows. Keeping the old list instance lets the map hand the
+      // cluster layer the same markers, so nothing re-clusters or blinks.
+      final unchanged = listEquals(points, state.points);
       state = MediaMapState(
-        points: points,
+        points: unchanged ? state.points : points,
         unlocatedCount: math.max(0, total - points.length),
       );
     } catch (e) {

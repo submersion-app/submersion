@@ -282,4 +282,96 @@ void main() {
     expect(identical(tester.state(find.byType(MediaItemView)), before), isTrue);
     await _flushMapTimers(tester);
   });
+
+  // Final review fixes.
+
+  testWidgets('a co-located cluster tap opens the strip without also '
+      'spiderfying the stack over the map', (tester) async {
+    await _pump(
+      tester,
+      state: MediaMapState(points: [_point('a'), _point('b'), _point('c')]),
+    );
+
+    await tester.tap(find.byType(MediaMapMarker));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byType(MediaPlaceStrip), findsOneWidget);
+    // Still one tile on the map: the strip replaces the fan, it does not
+    // sit under one.
+    expect(find.byType(MediaMapMarker), findsOneWidget);
+    await _flushMapTimers(tester);
+  });
+
+  testWidgets('a cluster tap past the dive map cap zooms in, never out', (
+    tester,
+  ) async {
+    // Two own-GPS photos about 30 m apart: one cluster until very close in.
+    const a = LatLng(12.5000, 43.2000);
+    const b = LatLng(12.5002, 43.2002);
+    await _pump(
+      tester,
+      state: MediaMapState(
+        points: [
+          _point('a', at: a),
+          _point('b', at: b),
+        ],
+      ),
+    );
+    final controller = tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .mapController!;
+    controller.move(const LatLng(12.5001, 43.2001), 16);
+    await tester.pump();
+    // The cluster plugin animates its own re-clustering after a zoom change
+    // and ignores cluster taps while it does, so let that finish first.
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(MediaMapMarker), findsOneWidget, reason: 'clustered');
+
+    await tester.tap(find.byType(MediaMapMarker));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(controller.camera.zoom, greaterThan(16.01));
+    await _flushMapTimers(tester);
+  });
+
+  testWidgets('opening and closing the strip keeps the cluster thumbnail '
+      'state', (tester) async {
+    await _pump(
+      tester,
+      state: MediaMapState(points: [_point('a'), _point('b')]),
+    );
+    State clusterThumb() => tester.state(
+      find.descendant(
+        of: find.byType(MediaMapMarker),
+        matching: find.byType(MediaItemView),
+      ),
+    );
+    final before = clusterThumb();
+
+    await tester.tap(find.byType(MediaMapMarker));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(MediaPlaceStrip), findsOneWidget);
+    expect(identical(clusterThumb(), before), isTrue);
+
+    await tester.tap(find.byTooltip('Close'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(identical(clusterThumb(), before), isTrue);
+    await _flushMapTimers(tester);
+  });
+
+  testWidgets('a background reload with points on screen shows no spinner', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      state: MediaMapState(points: [_point('a')], isLoading: true),
+    );
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    await _flushMapTimers(tester);
+  });
 }
