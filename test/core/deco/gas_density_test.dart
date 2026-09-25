@@ -40,4 +40,101 @@ void main() {
       expect(gasDensityCriticalGPerL, 6.2);
     });
   });
+
+  group('gasDensityFromPartialPressures', () {
+    // Reference: sum(p_i * M_i) / (R * T), R = 0.083144626 L bar/(mol K),
+    // M = O2 31.998, N2 28.014, He 4.0026 g/mol.
+
+    test('air at 1 bar and 20 C', () {
+      // (0.21*31.998 + 0.79*28.014) / (0.083144626 * 293.15)
+      // = 1.1836719852859956
+      expect(
+        gasDensityFromPartialPressures(
+          pO2Bar: 0.21,
+          pN2Bar: 0.79,
+          pHeBar: 0,
+          temperatureC: 20,
+        ),
+        closeTo(1.1836719852859956, 1e-9),
+      );
+    });
+
+    test('air at 1 bar and 0 C', () {
+      // same numerator / (0.083144626 * 273.15) = 1.270340261711842
+      expect(
+        gasDensityFromPartialPressures(
+          pO2Bar: 0.21,
+          pN2Bar: 0.79,
+          pHeBar: 0,
+          temperatureC: 0,
+        ),
+        closeTo(1.270340261711842, 1e-9),
+      );
+    });
+
+    test('colder gas is denser by the ratio of absolute temperatures', () {
+      final warm = gasDensityFromPartialPressures(
+        pO2Bar: 1.2,
+        pN2Bar: 2.5,
+        pHeBar: 3.1,
+        temperatureC: 20,
+      );
+      final cold = gasDensityFromPartialPressures(
+        pO2Bar: 1.2,
+        pN2Bar: 2.5,
+        pHeBar: 3.1,
+        temperatureC: 0,
+      );
+      expect(cold / warm, closeTo(293.15 / 273.15, 1e-12));
+    });
+
+    test('pure oxygen at 1 bar and 20 C', () {
+      // 31.998 / (0.083144626 * 293.15) = 1.312800554344073
+      expect(
+        gasDensityFromPartialPressures(
+          pO2Bar: 1.0,
+          pN2Bar: 0,
+          pHeBar: 0,
+          temperatureC: 20,
+        ),
+        closeTo(1.312800554344073, 1e-9),
+      );
+    });
+
+    test('no gas has no density', () {
+      expect(
+        gasDensityFromPartialPressures(
+          pO2Bar: 0,
+          pN2Bar: 0,
+          pHeBar: 0,
+          temperatureC: 20,
+        ),
+        0,
+      );
+    });
+
+    test('rejects a temperature at or below absolute zero', () {
+      expect(
+        () => gasDensityFromPartialPressures(
+          pO2Bar: 0.21,
+          pN2Bar: 0.79,
+          pHeBar: 0,
+          temperatureC: -273.15,
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('rejects a negative partial pressure', () {
+      expect(
+        () => gasDensityFromPartialPressures(
+          pO2Bar: -0.1,
+          pN2Bar: 0.79,
+          pHeBar: 0,
+          temperatureC: 20,
+        ),
+        throwsArgumentError,
+      );
+    });
+  });
 }
