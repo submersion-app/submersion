@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:excel_community/excel_community.dart' as xl;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
@@ -1088,6 +1089,57 @@ void main() {
       final fill = ref.read(blenderBilledFillsProvider).single;
       expect(fill.label, 'Helium · 12 L · 150 bar');
       expect(fill.total, 27);
+    });
+
+    testWidgets('a dot typed under a German locale is read as the decimal '
+        'separator in every field of the line form (#2302 review)', (
+      tester,
+    ) async {
+      // Under de, '.' is the grouping separator, but "12.5" cannot be a
+      // well-formed grouping, so it unambiguously means 12,5 -- the same
+      // correction the blender's other fields apply.
+      final previousLocale = Intl.defaultLocale;
+      Intl.defaultLocale = 'de';
+      addTearDown(() => Intl.defaultLocale = previousLocale);
+      final ref = await _pump(tester);
+      ref.read(blenderGasPricesProvider.notifier).state = const [1.0, 1.5, 0.1];
+
+      await _openAddLine(tester);
+      await tester.enterText(
+        find.byKey(const Key('blender-line-cylinder')),
+        '12.5',
+      );
+      await tester.enterText(
+        find.byKey(const Key('blender-line-start-pressure')),
+        '0.5',
+      );
+      await tester.enterText(
+        find.byKey(const Key('blender-line-end-pressure')),
+        '200.5',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      final line = ref.read(blenderBilledFillsProvider).single.manualGasLine!;
+      expect(line.cylinderLiters, 12.5);
+      expect(line.startBar, 0.5);
+      expect(line.addedBar, 200);
+
+      await _openAddLine(tester, freeAmount: true);
+      await tester.enterText(
+        find.byKey(const Key('blender-line-description')),
+        'Analyser cell',
+      );
+      await tester.enterText(
+        find.byKey(const Key('blender-line-amount')),
+        '12.5',
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      expect(ref.read(blenderBilledFillsProvider).last.total, 12.5);
     });
 
     testWidgets('a computed fill offers neither the kind switch nor the gas '

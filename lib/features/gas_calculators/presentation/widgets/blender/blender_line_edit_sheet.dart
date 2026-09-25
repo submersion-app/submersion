@@ -230,7 +230,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
     // its rounded text would lose in cubic feet.
     final saved = widget.fill?.manualGasLine?.cylinderLiters;
     if (saved != null && _cylinder.text == _seedCylinder) return saved;
-    final shown = parseUserDecimal(_cylinder.text);
+    final shown = smartParseUserDecimal(_cylinder.text);
     if (shown == null || shown <= 0) return null;
     return displayVolumeToLiters(shown, settings);
   }
@@ -242,8 +242,8 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
     List<double?> prices,
   ) {
     final liters = _cylinderLiters(settings);
-    final start = parseUserDecimal(_startPressure.text);
-    final end = parseUserDecimal(_endPressure.text);
+    final start = smartParseUserDecimal(_startPressure.text);
+    final end = smartParseUserDecimal(_endPressure.text);
     if (liters == null || start == null || end == null) return null;
     return manualGasFillCost(
       waterLiters: liters,
@@ -266,7 +266,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
       Navigator.of(context).pop(
         BlenderLineEdit(
           label: label,
-          amount: parseUserDecimal(_amount.text),
+          amount: smartParseUserDecimal(_amount.text),
           lines: _kindEditable ? const [] : null,
         ),
       );
@@ -297,8 +297,8 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
       );
       return;
     }
-    if (parseUserDecimal(_startPressure.text) == null ||
-        parseUserDecimal(_endPressure.text) == null) {
+    if (smartParseUserDecimal(_startPressure.text) == null ||
+        smartParseUserDecimal(_endPressure.text) == null) {
       setState(
         () => _error = context.l10n.gasCalculators_blender_lineNeedsPressure,
       );
@@ -313,7 +313,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
     }
     final gasName = _gasName(_role);
     final startBar = units.pressureToBar(
-      parseUserDecimal(_startPressure.text)!,
+      smartParseUserDecimal(_startPressure.text)!,
     );
     Navigator.of(context).pop(
       BlenderLineEdit(
