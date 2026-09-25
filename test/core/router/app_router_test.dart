@@ -191,6 +191,15 @@ void main() {
   });
 
   group('app_router route configuration', () {
+    test('the cylinder passport nests under equipment detail', () {
+      final names = _collectRouteNames(router.configuration.routes);
+      expect(names, contains('equipmentPassport'));
+      expect(
+        _locationOfRoute(router.configuration.routes, 'equipmentPassport'),
+        '/equipment/:equipmentId/passport',
+      );
+    });
+
     test('contains universalImport route', () {
       final names = _collectRouteNames(router.configuration.routes);
       expect(names, contains('universalImport'));

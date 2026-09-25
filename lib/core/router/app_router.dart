@@ -9,6 +9,8 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
+import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
@@ -625,6 +627,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: 'editEquipment',
                     builder: (context, state) => EquipmentEditPage(
                       equipmentId: state.pathParameters['equipmentId'],
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'passport',
+                    name: 'equipmentPassport',
+                    builder: (context, state) => PassportPage(
+                      equipmentId: state.pathParameters['equipmentId']!,
+                      scannedTag: state.extra as CylinderPassportPayload?,
                     ),
                   ),
                 ],
