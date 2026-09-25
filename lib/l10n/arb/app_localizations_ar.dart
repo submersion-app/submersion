@@ -40446,12 +40446,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLab_title => 'مختبر الغوص';
 
   @override
-  String get diveLab_action_whatIf => 'ماذا لو…';
-
-  @override
-  String get diveLab_tooltip_open => 'فتح مختبر الغوص';
-
-  @override
   String get diveLab_empty_ineligible =>
       'لا يوجد لهذه الغطسة ملف تعريف للتفرع منه.';
 

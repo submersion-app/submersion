@@ -12188,8 +12188,6 @@
   "settings_dataSources_appleHealth_permissionManagedInHealth": "A HealthKit hozzáférést a Health alkalmazásban kezelheted",
   "settings_dataSources_appleHealth_permissionUnsupported": "A HealthKit nem érhető el ezen az eszközön",
   "diveLab_title": "Merüléslabor",
-  "diveLab_action_whatIf": "Mi lett volna, ha…",
-  "diveLab_tooltip_open": "Merüléslabor megnyitása",
   "diveLab_empty_ineligible": "Ehhez a merüléshez nincs profil, amelyből el lehetne ágazni.",
   "diveLab_loading": "A merülés betöltése…",
   "diveLab_branch_label": "Elágazás",

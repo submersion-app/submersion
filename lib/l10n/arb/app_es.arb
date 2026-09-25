@@ -12188,8 +12188,6 @@
   "settings_dataSources_appleHealth_permissionManagedInHealth": "El acceso a HealthKit se gestiona en la app Salud",
   "settings_dataSources_appleHealth_permissionUnsupported": "HealthKit no está disponible en este dispositivo",
   "diveLab_title": "Laboratorio de buceo",
-  "diveLab_action_whatIf": "Y si…",
-  "diveLab_tooltip_open": "Abrir el laboratorio de buceo",
   "diveLab_empty_ineligible": "Esta inmersión no tiene perfil desde el que ramificar.",
   "diveLab_loading": "Cargando la inmersión…",
   "diveLab_branch_label": "Ramificación",

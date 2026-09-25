@@ -40673,12 +40673,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLab_title => 'Tauchlabor';
 
   @override
-  String get diveLab_action_whatIf => 'Was wäre wenn…';
-
-  @override
-  String get diveLab_tooltip_open => 'Tauchlabor öffnen';
-
-  @override
   String get diveLab_empty_ineligible =>
       'Dieser Tauchgang hat kein Profil, von dem abgezweigt werden kann.';
 

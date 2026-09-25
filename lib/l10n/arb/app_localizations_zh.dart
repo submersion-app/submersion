@@ -38378,12 +38378,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLab_title => '潜水实验室';
 
   @override
-  String get diveLab_action_whatIf => '如果当时…';
-
-  @override
-  String get diveLab_tooltip_open => '打开潜水实验室';
-
-  @override
   String get diveLab_empty_ineligible => '此次潜水没有可供分支的剖面。';
 
   @override

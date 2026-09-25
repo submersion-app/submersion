@@ -12188,8 +12188,6 @@
   "settings_dataSources_appleHealth_permissionManagedInHealth": "HealthKit-toegang beheer je in de app Gezondheid",
   "settings_dataSources_appleHealth_permissionUnsupported": "HealthKit is niet beschikbaar op dit apparaat",
   "diveLab_title": "Duiklab",
-  "diveLab_action_whatIf": "Wat als…",
-  "diveLab_tooltip_open": "Duiklab openen",
   "diveLab_empty_ineligible": "Deze duik heeft geen profiel om vanaf te vertakken.",
   "diveLab_loading": "Duik wordt geladen…",
   "diveLab_branch_label": "Vertakking",

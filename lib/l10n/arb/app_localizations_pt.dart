@@ -40777,12 +40777,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLab_title => 'Laboratório de mergulho';
 
   @override
-  String get diveLab_action_whatIf => 'E se…';
-
-  @override
-  String get diveLab_tooltip_open => 'Abrir o laboratório de mergulho';
-
-  @override
   String get diveLab_empty_ineligible =>
       'Este mergulho não tem perfil a partir do qual ramificar.';
 

@@ -12188,8 +12188,6 @@
   "settings_dataSources_appleHealth_permissionManagedInHealth": "L'accès à HealthKit se gère dans l'app Santé",
   "settings_dataSources_appleHealth_permissionUnsupported": "HealthKit n'est pas disponible sur cet appareil",
   "diveLab_title": "Labo de plongée",
-  "diveLab_action_whatIf": "Et si…",
-  "diveLab_tooltip_open": "Ouvrir le labo de plongée",
   "diveLab_empty_ineligible": "Cette plongée n'a pas de profil à partir duquel bifurquer.",
   "diveLab_loading": "Chargement de la plongée…",
   "diveLab_branch_label": "Bifurcation",

@@ -12188,8 +12188,6 @@
   "settings_dataSources_appleHealth_permissionManagedInHealth": "הגישה ל-HealthKit מנוהלת באפליקציית הבריאות",
   "settings_dataSources_appleHealth_permissionUnsupported": "HealthKit אינו זמין במכשיר הזה",
   "diveLab_title": "מעבדת צלילה",
-  "diveLab_action_whatIf": "מה אם…",
-  "diveLab_tooltip_open": "פתיחת מעבדת הצלילה",
   "diveLab_empty_ineligible": "לצלילה זו אין פרופיל שממנו אפשר להסתעף.",
   "diveLab_loading": "הצלילה נטענת…",
   "diveLab_branch_label": "נקודת הסתעפות",

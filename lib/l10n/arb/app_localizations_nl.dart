@@ -40488,12 +40488,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLab_title => 'Duiklab';
 
   @override
-  String get diveLab_action_whatIf => 'Wat als…';
-
-  @override
-  String get diveLab_tooltip_open => 'Duiklab openen';
-
-  @override
   String get diveLab_empty_ineligible =>
       'Deze duik heeft geen profiel om vanaf te vertakken.';
 

@@ -80,92 +80,93 @@ class LabRequestInputs {
 
 /// Null when the dive is ineligible: gauge mode, or fewer than two primary
 /// profile samples.
-final labRequestInputsProvider =
-    FutureProvider.family<LabRequestInputs?, String>((ref, diveId) async {
-      final dive = await ref.watch(diveProvider(diveId).future);
-      if (dive == null || dive.isGauge) return null;
-      final profile = await ref.watch(diveProfileProvider(diveId).future);
-      if (profile.length < 2) return null;
+final labRequestInputsProvider = FutureProvider.family<LabRequestInputs?, String>((
+  ref,
+  diveId,
+) async {
+  final dive = await ref.watch(diveProvider(diveId).future);
+  if (dive == null || dive.isGauge) return null;
+  // The primary profile below is the sample list that counts; the entity's
+  // own profile may be lean-hydrated, so isDiveLabEligible is not enough here.
+  final profile = await ref.watch(diveProfileProvider(diveId).future);
+  if (profile.length < 2) return null;
 
-      final switches = await ref.watch(gasSwitchesProvider(diveId).future);
-      final pressures = await ref.watch(tankPressuresProvider(diveId).future);
-      final startCompartments = await ref.watch(
-        residualTissueStateProvider(diveId).future,
-      );
-      final startCns = await ref.watch(residualCnsProvider(diveId).future);
-      final startOtu = await ref.watch(residualOtuProvider(diveId).future);
-      final fallbackSac = await ref.watch(loggedAverageSacProvider.future);
+  final switches = await ref.watch(gasSwitchesProvider(diveId).future);
+  final pressures = await ref.watch(tankPressuresProvider(diveId).future);
+  final startCompartments = await ref.watch(
+    residualTissueStateProvider(diveId).future,
+  );
+  final startCns = await ref.watch(residualCnsProvider(diveId).future);
+  final startOtu = await ref.watch(residualOtuProvider(diveId).future);
+  final fallbackSac = await ref.watch(loggedAverageSacProvider.future);
 
-      final gf = GradientFactorSource.resolve(
-        diveGfLow: dive.gradientFactorLow,
-        diveGfHigh: dive.gradientFactorHigh,
-        settingsGfLow: ref.watch(gfLowProvider),
-        settingsGfHigh: ref.watch(gfHighProvider),
-        recordedAlgorithm: dive.decoAlgorithm,
-      );
-      final engineConfig = ref.watch(planEngineConfigProvider);
-      final settings = ScenarioSettings(
-        gfLow: gf.lowFraction,
-        gfHigh: gf.highFraction,
-        ppO2Working: ref.watch(ppO2MaxWorkingProvider),
-        ppO2Deco: ref.watch(ppO2MaxDecoProvider),
-        cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
-        ascentRateWarning: ref.watch(ascentRateWarningProvider),
-        ascentRateCritical: ref.watch(ascentRateCriticalProvider),
-        lastStopDepth: ref.watch(lastStopDepthProvider),
-        stopIncrement: ref.watch(decoStopIncrementProvider),
-        altitudeMeters: dive.altitude,
-        waterType: dive.waterType,
-        surfacePressureBar: dive.surfacePressure,
-        cnsMethod: ref.watch(cnsCalculationMethodProvider),
-        gasModel: ref.watch(gasModelProvider),
-        o2Narcotic: ref.watch(settingsProvider.select((s) => s.o2Narcotic)),
-        buddyFactor: engineConfig.buddyFactor,
-      );
+  final gf = GradientFactorSource.resolve(
+    diveGfLow: dive.gradientFactorLow,
+    diveGfHigh: dive.gradientFactorHigh,
+    settingsGfLow: ref.watch(gfLowProvider),
+    settingsGfHigh: ref.watch(gfHighProvider),
+    recordedAlgorithm: dive.decoAlgorithm,
+  );
+  final engineConfig = ref.watch(planEngineConfigProvider);
+  final settings = ScenarioSettings(
+    gfLow: gf.lowFraction,
+    gfHigh: gf.highFraction,
+    ppO2Working: ref.watch(ppO2MaxWorkingProvider),
+    ppO2Deco: ref.watch(ppO2MaxDecoProvider),
+    cnsWarningThreshold: ref.watch(cnsWarningThresholdProvider),
+    ascentRateWarning: ref.watch(ascentRateWarningProvider),
+    ascentRateCritical: ref.watch(ascentRateCriticalProvider),
+    lastStopDepth: ref.watch(lastStopDepthProvider),
+    stopIncrement: ref.watch(decoStopIncrementProvider),
+    altitudeMeters: dive.altitude,
+    waterType: dive.waterType,
+    surfacePressureBar: dive.surfacePressure,
+    cnsMethod: ref.watch(cnsCalculationMethodProvider),
+    gasModel: ref.watch(gasModelProvider),
+    o2Narcotic: ref.watch(settingsProvider.select((s) => s.o2Narcotic)),
+    buddyFactor: engineConfig.buddyFactor,
+  );
 
-      final timestamps = [for (final p in profile) p.timestamp];
-      final depths = [for (final p in profile) p.depth];
-      final rebreather = dive.diveMode == DiveMode.oc
-          ? null
-          : resolveRebreatherPpO2(profile);
-      final loopGas = dive.diveMode == DiveMode.ccr
-          ? buildCcrProfileGasSegments(
-              timestamps: timestamps,
-              loopPpO2Curve: rebreather?.curve,
-              diluentMix: resolveCcrDiluentMix(dive),
-              fallbackSetpoint: dive.setpointHigh ?? dive.setpointLow,
-            )
-          : null;
+  final timestamps = [for (final p in profile) p.timestamp];
+  final depths = [for (final p in profile) p.depth];
+  final rebreather = dive.diveMode == DiveMode.oc
+      ? null
+      : resolveRebreatherPpO2(profile);
+  final loopGas = dive.diveMode == DiveMode.ccr
+      ? buildCcrProfileGasSegments(
+          timestamps: timestamps,
+          loopPpO2Curve: rebreather?.curve,
+          diluentMix: resolveCcrDiluentMix(dive),
+          fallbackSetpoint: dive.setpointHigh ?? dive.setpointLow,
+        )
+      : null;
 
-      return LabRequestInputs(
-        dive: dive,
-        profile: profile,
-        depths: depths,
-        timestamps: timestamps,
-        diveMode: dive.diveMode,
-        tanks: dive.tanks,
-        gasSwitches: [
-          for (final s in switches)
-            ScenarioGasSwitch(timestamp: s.timestamp, tankId: s.tankId),
+  return LabRequestInputs(
+    dive: dive,
+    profile: profile,
+    depths: depths,
+    timestamps: timestamps,
+    diveMode: dive.diveMode,
+    tanks: dive.tanks,
+    gasSwitches: [
+      for (final s in switches)
+        ScenarioGasSwitch(timestamp: s.timestamp, tankId: s.tankId),
+    ],
+    tankPressures: {
+      for (final entry in pressures.entries)
+        entry.key: [
+          for (final p in entry.value)
+            TankPressureSample(timestamp: p.timestamp, pressureBar: p.pressure),
         ],
-        tankPressures: {
-          for (final entry in pressures.entries)
-            entry.key: [
-              for (final p in entry.value)
-                TankPressureSample(
-                  timestamp: p.timestamp,
-                  pressureBar: p.pressure,
-                ),
-            ],
-        },
-        loopGasSegments: loopGas,
-        rebreatherPpO2Curve: rebreather?.curve,
-        setpointHigh: dive.setpointHigh,
-        setpointLow: dive.setpointLow,
-        startCompartments: startCompartments,
-        startCns: startCns,
-        startOtu: startOtu,
-        fallbackSacLpm: fallbackSac,
-        settings: settings,
-      );
-    });
+    },
+    loopGasSegments: loopGas,
+    rebreatherPpO2Curve: rebreather?.curve,
+    setpointHigh: dive.setpointHigh,
+    setpointLow: dive.setpointLow,
+    startCompartments: startCompartments,
+    startCns: startCns,
+    startOtu: startOtu,
+    fallbackSacLpm: fallbackSac,
+    settings: settings,
+  );
+});

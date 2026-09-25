@@ -40809,12 +40809,6 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLab_title => 'Laboratorio de buceo';
 
   @override
-  String get diveLab_action_whatIf => 'Y si…';
-
-  @override
-  String get diveLab_tooltip_open => 'Abrir el laboratorio de buceo';
-
-  @override
   String get diveLab_empty_ineligible =>
       'Esta inmersión no tiene perfil desde el que ramificar.';
 

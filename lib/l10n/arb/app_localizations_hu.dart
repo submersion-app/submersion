@@ -40599,12 +40599,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLab_title => 'Merüléslabor';
 
   @override
-  String get diveLab_action_whatIf => 'Mi lett volna, ha…';
-
-  @override
-  String get diveLab_tooltip_open => 'Merüléslabor megnyitása';
-
-  @override
   String get diveLab_empty_ineligible =>
       'Ehhez a merüléshez nincs profil, amelyből el lehetne ágazni.';
 

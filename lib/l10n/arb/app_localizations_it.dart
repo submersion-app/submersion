@@ -40760,12 +40760,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLab_title => 'Laboratorio immersione';
 
   @override
-  String get diveLab_action_whatIf => 'E se…';
-
-  @override
-  String get diveLab_tooltip_open => 'Apri il laboratorio immersione';
-
-  @override
   String get diveLab_empty_ineligible =>
       'Questa immersione non ha un profilo da cui diramare.';
 

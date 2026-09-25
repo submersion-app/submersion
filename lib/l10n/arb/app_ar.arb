@@ -12188,8 +12188,6 @@
   "settings_dataSources_appleHealth_permissionManagedInHealth": "تتم إدارة وصول HealthKit من تطبيق صحة",
   "settings_dataSources_appleHealth_permissionUnsupported": "HealthKit غير متوفر على هذا الجهاز",
   "diveLab_title": "مختبر الغوص",
-  "diveLab_action_whatIf": "ماذا لو…",
-  "diveLab_tooltip_open": "فتح مختبر الغوص",
   "diveLab_empty_ineligible": "لا يوجد لهذه الغطسة ملف تعريف للتفرع منه.",
   "diveLab_loading": "جارٍ تحميل الغطسة…",
   "diveLab_branch_label": "نقطة التفرع",

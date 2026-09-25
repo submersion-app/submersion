@@ -39955,12 +39955,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLab_title => 'מעבדת צלילה';
 
   @override
-  String get diveLab_action_whatIf => 'מה אם…';
-
-  @override
-  String get diveLab_tooltip_open => 'פתיחת מעבדת הצלילה';
-
-  @override
   String get diveLab_empty_ineligible =>
       'לצלילה זו אין פרופיל שממנו אפשר להסתעף.';
 

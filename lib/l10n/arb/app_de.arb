@@ -12301,8 +12301,6 @@
   "settings_dataSources_appleHealth_permissionManagedInHealth": "Der HealthKit-Zugriff wird in der Health-App verwaltet",
   "settings_dataSources_appleHealth_permissionUnsupported": "HealthKit ist auf diesem Gerät nicht verfügbar",
   "diveLab_title": "Tauchlabor",
-  "diveLab_action_whatIf": "Was wäre wenn…",
-  "diveLab_tooltip_open": "Tauchlabor öffnen",
   "diveLab_empty_ineligible": "Dieser Tauchgang hat kein Profil, von dem abgezweigt werden kann.",
   "diveLab_loading": "Tauchgang wird geladen…",
   "diveLab_branch_label": "Abzweigung",

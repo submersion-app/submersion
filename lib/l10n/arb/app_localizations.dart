@@ -65461,18 +65461,6 @@ abstract class AppLocalizations {
   /// **'Dive Lab'**
   String get diveLab_title;
 
-  /// No description provided for @diveLab_action_whatIf.
-  ///
-  /// In en, this message translates to:
-  /// **'What if…'**
-  String get diveLab_action_whatIf;
-
-  /// No description provided for @diveLab_tooltip_open.
-  ///
-  /// In en, this message translates to:
-  /// **'Open the Dive Lab'**
-  String get diveLab_tooltip_open;
-
   /// No description provided for @diveLab_empty_ineligible.
   ///
   /// In en, this message translates to:

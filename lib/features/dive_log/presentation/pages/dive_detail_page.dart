@@ -74,8 +74,9 @@ import 'package:submersion/features/dive_log/presentation/pages/fullscreen_profi
 import 'package:submersion/features/dive_log/presentation/utils/sac_normalization.dart';
 import 'package:submersion/features/media/presentation/pages/dive_species_photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/species_media_providers.dart';
+import 'package:submersion/features/dive_lab/domain/dive_lab_eligibility.dart';
+import 'package:submersion/features/dive_lab/presentation/what_if_entry.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/dive_lab_section.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/what_if_sheet.dart';
 import 'package:submersion/features/pre_dive/domain/entities/pre_dive_session.dart';
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/features/pre_dive/presentation/widgets/link_session_picker.dart';
@@ -531,7 +532,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
         return [_buildCustomFieldsSection(context, dive)];
       },
       DiveDetailSectionId.diveLab: (topGap) {
-        if (dive.isGauge || dive.profile.length < 2) return [];
+        if (!isDiveLabEligible(dive)) return [];
         return [SizedBox(height: topGap), DiveLabSection(diveId: dive.id)];
       },
       DiveDetailSectionId.dataSources: (_) {
@@ -1240,7 +1241,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   _unlinkPreDiveChecklist(context, linkedPreDive!);
                   break;
                 case 'whatIf':
-                  showWhatIfSheet(context, dive);
+                  openWhatIf(context, dive);
                   break;
                 case 'delete':
                   _showDeleteConfirmation(context, ref);
@@ -1493,7 +1494,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                       _unlinkPreDiveChecklist(context, linkedPreDive!);
                       break;
                     case 'whatIf':
-                      showWhatIfSheet(context, dive);
+                      openWhatIf(context, dive);
                       break;
                     case 'delete':
                       _showDeleteConfirmation(context, ref);

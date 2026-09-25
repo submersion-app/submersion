@@ -40158,12 +40158,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLab_title => 'Dive Lab';
 
   @override
-  String get diveLab_action_whatIf => 'What if…';
-
-  @override
-  String get diveLab_tooltip_open => 'Open the Dive Lab';
-
-  @override
   String get diveLab_empty_ineligible =>
       'This dive has no profile to branch from.';
 

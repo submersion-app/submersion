@@ -12188,8 +12188,6 @@
   "settings_dataSources_appleHealth_permissionManagedInHealth": "O acesso ao HealthKit é gerido na app Saúde",
   "settings_dataSources_appleHealth_permissionUnsupported": "O HealthKit não está disponível neste dispositivo",
   "diveLab_title": "Laboratório de mergulho",
-  "diveLab_action_whatIf": "E se…",
-  "diveLab_tooltip_open": "Abrir o laboratório de mergulho",
   "diveLab_empty_ineligible": "Este mergulho não tem perfil a partir do qual ramificar.",
   "diveLab_loading": "A carregar o mergulho…",
   "diveLab_branch_label": "Ramificação",

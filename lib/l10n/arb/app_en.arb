@@ -25032,8 +25032,6 @@
     "description": "Permission row shown when HealthKit is unavailable on this device."
   },
   "diveLab_title": "Dive Lab",
-  "diveLab_action_whatIf": "What if…",
-  "diveLab_tooltip_open": "Open the Dive Lab",
   "diveLab_empty_ineligible": "This dive has no profile to branch from.",
   "diveLab_loading": "Loading the dive…",
   "diveLab_branch_label": "Branch",

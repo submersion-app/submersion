@@ -12188,8 +12188,6 @@
   "settings_dataSources_appleHealth_permissionManagedInHealth": "L'accesso a HealthKit si gestisce nell'app Salute",
   "settings_dataSources_appleHealth_permissionUnsupported": "HealthKit non è disponibile su questo dispositivo",
   "diveLab_title": "Laboratorio immersione",
-  "diveLab_action_whatIf": "E se…",
-  "diveLab_tooltip_open": "Apri il laboratorio immersione",
   "diveLab_empty_ineligible": "Questa immersione non ha un profilo da cui diramare.",
   "diveLab_loading": "Caricamento dell'immersione…",
   "diveLab_branch_label": "Diramazione",
