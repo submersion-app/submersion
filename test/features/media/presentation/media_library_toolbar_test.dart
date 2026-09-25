@@ -165,4 +165,80 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(find.byKey(const ValueKey('enter_selection')), findsOneWidget);
   });
+
+  testWidgets('a wide row shows four view-mode segments including map', (
+    tester,
+  ) async {
+    await pump(tester);
+
+    expect(find.byType(SegmentedButton<MediaLibraryViewMode>), findsOneWidget);
+    expect(find.byIcon(Icons.map), findsOneWidget);
+    expect(find.byType(PopupMenuButton<MediaLibraryViewMode>), findsNothing);
+
+    await tester.tap(find.byIcon(Icons.map));
+    await tester.pumpAndSettle();
+    expect(
+      container.read(mediaLibraryViewModeProvider),
+      MediaLibraryViewMode.map,
+    );
+  });
+
+  testWidgets('a 320dp row collapses the view modes to a menu and does not '
+      'overflow', (tester) async {
+    tester.view.physicalSize = const Size(320, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(SegmentedButton<MediaLibraryViewMode>), findsNothing);
+    expect(find.byType(PopupMenuButton<MediaLibraryViewMode>), findsOneWidget);
+
+    // Review Focus 5: the narrow row, a selection in flight, then map.
+    selection.enterExplicit();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(PopupMenuButton<MediaLibraryViewMode>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Map'));
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(
+      container.read(mediaLibraryViewModeProvider),
+      MediaLibraryViewMode.map,
+    );
+    expect(selection.value.isActive, isFalse);
+    expect(find.byKey(const ValueKey('enter_selection')), findsNothing);
+  });
+
+  testWidgets('choosing map with a selection active exits selection', (
+    tester,
+  ) async {
+    await pump(tester);
+    selection.enterExplicit();
+    expect(selection.value.isActive, isTrue);
+
+    await tester.tap(find.byIcon(Icons.map));
+    await tester.pumpAndSettle();
+
+    expect(selection.value.isActive, isFalse);
+    expect(
+      container.read(mediaLibraryViewModeProvider),
+      MediaLibraryViewMode.map,
+    );
+  });
+
+  testWidgets('the select control is hidden in map mode', (tester) async {
+    await pump(tester);
+    expect(find.byKey(const ValueKey('enter_selection')), findsOneWidget);
+
+    await container
+        .read(mediaLibraryViewModeProvider.notifier)
+        .setMode(MediaLibraryViewMode.map);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('enter_selection')), findsNothing);
+  });
 }
