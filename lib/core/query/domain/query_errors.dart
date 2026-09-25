@@ -34,9 +34,24 @@ class QueryError {
   String toString() => 'QueryError($message @$offset+$length $suggestions)';
 }
 
-/// The parser's failure result. Never thrown.
+/// What `QueryParser.parse` returns: a tree ([ParseOk]) or a positioned
+/// [ParseFailure]. Sealed here, beside the error type, so both halves live
+/// in one library.
 @immutable
-class ParseFailure {
+sealed class ParseResult {
+  const ParseResult();
+}
+
+class ParseOk extends ParseResult {
+  /// Null for an empty query, which matches everything.
+  final QueryNode? node;
+  const ParseOk(this.node);
+  @override
+  String toString() => 'ParseOk($node)';
+}
+
+/// The parser's failure result. Never thrown.
+class ParseFailure extends ParseResult {
   final QueryError error;
   const ParseFailure(this.error);
   @override

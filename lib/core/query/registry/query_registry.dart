@@ -54,6 +54,11 @@ class PathResolution {
 
   /// The entity the last segment belongs to.
   QueryEntity get leafEntity => entities.last;
+
+  /// The path with every alias replaced by its canonical key, so a tree
+  /// holds one spelling whatever the diver typed.
+  FieldPath get canonicalPath =>
+      FieldPath([for (final h in hops) h.key, if (field != null) field!.key]);
 }
 
 PathResolution resolvePath(
