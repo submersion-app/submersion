@@ -45,7 +45,7 @@ class PlanningTool {
   /// Path this tool's [id] hangs off.
   ///
   /// Defaults to the hub. Gas Calculators owns a second level of tools, so
-  /// its six calculators pass `/planning/gas-calculators` and route under it.
+  /// its calculators pass `/planning/gas-calculators` and route under it.
   final String routePrefix;
 
   /// How this tool opens. See [PlanningToolPresentation].
@@ -76,7 +76,7 @@ class PlanningTool {
 /// full-page push at every width.
 ///
 /// Gas Calculators is the other tool in that position, for the same reason:
-/// it renders its six calculators as a split view of its own. It says so with
+/// it renders its calculators as a split view of its own. It says so with
 /// [PlanningToolPresentation.splitViewPage] rather than by being rendered
 /// separately, because unlike the planner it is an ordinary row in the tools
 /// list, and it needs the other entry verb besides.

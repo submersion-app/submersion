@@ -7664,9 +7664,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Keresés merülőhely, buddy vagy jegyzetek alapján';
 
   @override
-  String get diveLog_listPage_title => 'Merülési napló';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Vissza';
 
   @override
@@ -14525,6 +14522,90 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get gasCalculators_desc_mnd =>
       'Narkózis szerinti mélységhatár egy keverékhez';
+
+  @override
+  String get gasCalculators_tab_density => 'Gázsűrűség';
+
+  @override
+  String get gasCalculators_desc_density =>
+      'A légzőgáz sűrűsége mélységben, OC vagy CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters =>
+      'Gázkeverék és körülmények';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'Mélység';
+
+  @override
+  String get gasCalculators_density_mode => 'Mód';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'CCR esetén a fenti keverék a hígítógáz.';
+
+  @override
+  String get gasCalculators_density_temperature => 'Gázhőmérséklet';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'Gázsűrűség';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'Az ajánlott $limit g/L-es határon belül.';
+  }
+
+  @override
+  String get gasCalculators_density_eaddLabel =>
+      'Egyenértékű levegősűrűség-mélység (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'Az EADD az a mélység, ahol a levegő ugyanolyan sűrű lenne, mint ez a gáz. A g/L-ben megadott sűrűséggel ellentétben nem függ a hőmérséklettől.';
+
+  @override
+  String get gasCalculators_density_loopGasTitle => 'Hurokgáz mélységben';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'A setpoint itt meghaladja a környezeti nyomást, így a hurokban tiszta oxigén van.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'A hígítógáz önmagában itt $ppO2 ppO2-t ad, ami a setpoint felett van. A sűrűség a hígítógáz ppO2-jével számol.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => 'A gázsűrűségről';
+
+  @override
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'A sűrű gázt nehezebb belélegezni, és növeli a CO2-visszatartás kockázatát. Tartsd a sűrűséget legfeljebb $warn g/L-en; $critical g/L az abszolút felső határ.\n\nCCR esetén a hurokgáz sűrűsége számít: oxigén a setpoint szerint, a maradék nitrogén és hélium a hígítógáz arányában.\n\nA hidegebb gáz sűrűbb, ezért a hidegebb hőmérséklet a konzervatív választás. A számítás ideális gázt feltételez.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'Töltési eljárás a célkeverékhez';
@@ -26275,6 +26356,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get tankPresets_builtInPresets => 'Beépített sablonok';
 
   @override
+  String get tankPresets_builtInPresets_description =>
+      'Kapcsold ki a nem használt sablonokat, hogy ne jelenjenek meg a palackválasztókban. Az alapértelmezett sablon mindig látható.';
+
+  @override
   String get tankPresets_currentDefault => 'Jelenlegi alapértelmezett';
 
   @override
@@ -26424,6 +26509,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'Beállítás alapértelmezettként';
+
+  @override
+  String get tankPresets_showInPickers => 'Megjelenítés a palackválasztókban';
 
   @override
   String get tankPresets_title => 'Palacksablonok';

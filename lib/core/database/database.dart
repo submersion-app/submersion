@@ -2178,6 +2178,10 @@ class DiverSettings extends Table {
   // manual region override (ISO country code).
   TextColumn get hiddenChamberIds => text().nullable()();
   TextColumn get emergencyRegion => text().nullable()();
+
+  /// v227: built-in tank presets the diver hid from the pickers (issue
+  /// #2305), JSON list of preset slugs. Null or absent = none hidden.
+  TextColumn get hiddenTankPresetIds => text().nullable()();
   // Appearance settings
   BoolColumn get showDepthColoredDiveCards =>
       boolean().withDefault(const Constant(false))();
@@ -3221,7 +3225,7 @@ class Transmitters extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// Cylinder fill history (issue #2334, v227). One row per fill of one
+/// Cylinder fill history (issue #2334, v228). One row per fill of one
 /// physical cylinder, keyed by the cylinder's passport id (an equipment
 /// attribute, not a foreign key) so the history survives a deleted and
 /// re-created item and can belong to a cylinder the diver does not own.
@@ -4328,7 +4332,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     CylinderConfigItems,
     // Rental gear memory (v221, issue #2075)
     DiveCenterGearNotes,
-    // Cylinder fill history (v227, issue #2334)
+    // Cylinder fill history (v228, issue #2334)
     CylinderFills,
   ],
 )
@@ -4339,7 +4343,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 227;
+  static const int currentSchemaVersion = 228;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4995,9 +4999,16 @@ class AppDatabase extends _$AppDatabase {
     // sync, not here. Additive and nullable, so the floor stays at 224.
     // 225 is held by PR #1978 (tissue loading import).
     226,
-    // v227: cylinder_fills, the fill history keyed by passport id (issue
-    // #2334). Table-only rung, no backfill, floor stays at 224.
+    // v227: diver_settings.hidden_tank_preset_ids (issue #2305). Additive
+    // nullable column, no backfill. The floor stays: an older reader simply
+    // shows every built-in preset. Renumbered from 225, which is held by PR
+    // #1978, after v226 landed while this was in review.
     227,
+    // v228: cylinder_fills, the fill history keyed by passport id (issue
+    // #2334). Table-only rung, no backfill, floor stays at 224. Renumbered
+    // from 227, which hidden tank presets (#2305) took while this was in
+    // review.
+    228,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -6485,6 +6496,23 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'ALTER TABLE diver_settings '
         'ADD COLUMN seascape_vertical_exaggeration_overrides TEXT',
+      );
+    }
+  }
+
+  /// v227: diver_settings.hidden_tank_preset_ids (issue #2305). Additive
+  /// column, default null, so every built-in preset stays visible until the
+  /// diver hides one. Idempotent, so it is safe to call from both onUpgrade
+  /// and the beforeOpen backstop.
+  Future<void> _assertHiddenTankPresetIdsColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('diver_settings')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('hidden_tank_preset_ids')) {
+      await customStatement(
+        'ALTER TABLE diver_settings ADD COLUMN hidden_tank_preset_ids TEXT',
       );
     }
   }
@@ -8553,8 +8581,8 @@ class AppDatabase extends _$AppDatabase {
     await assertEquipmentTagUniqueness(this);
   }
 
-  /// Idempotent creation of the v227 `cylinder_fills` table and its two
-  /// lookup indexes (issue #2334). Called from the v227 rung and the
+  /// Idempotent creation of the v228 `cylinder_fills` table and its two
+  /// lookup indexes (issue #2334). Called from the v228 rung and the
   /// beforeOpen backstop. Skipped on a partial migration-test fixture that
   /// lacks either parent table.
   Future<void> _assertCylinderFillsSchema() async {
@@ -12617,14 +12645,23 @@ class AppDatabase extends _$AppDatabase {
           await _assertMediaCloudAssetIdColumn();
         }
         if (from < 226) await reportProgress();
-        // v227: cylinder fill history (issue #2334). Table-only rung, no
-        // backfill.
+        // v227: diver_settings.hidden_tank_preset_ids (issue #2305).
+        // Column-only rung, no backfill: null reads back as "none hidden".
         if (from < 227) {
-          await _assertCylinderFillsSchema();
+          await _assertHiddenTankPresetIdsColumn();
         }
         if (from < 227) await reportProgress();
+        // v228: cylinder fill history (issue #2334). Table-only rung, no
+        // backfill.
+        if (from < 228) {
+          await _assertCylinderFillsSchema();
+        }
+        if (from < 228) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v227 backstop: the hidden built-in tank presets.
+        await _assertHiddenTankPresetIdsColumn();
+
         // v222 backstop: the per-site vertical exaggeration overrides.
         await _assertSeascapeVerticalExaggerationOverridesColumn();
 
@@ -13120,7 +13157,7 @@ class AppDatabase extends _$AppDatabase {
         // version-collision self-heal). Column only, so it cannot touch
         // diver data.
         await _assertMediaCloudAssetIdColumn();
-        // v227 backstop: the cylinder_fills table (parallel-branch
+        // v228 backstop: the cylinder_fills table (parallel-branch
         // version-collision self-heal; createTable is idempotent).
         await _assertCylinderFillsSchema();
 

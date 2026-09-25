@@ -3,12 +3,12 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 
-/// Schema v227: cylinder fill history, the cylinder_fills table
+/// Schema v228: cylinder fill history, the cylinder_fills table
 /// (issue #2334).
 void main() {
-  /// A v226 database with the two parents the new table references and no
+  /// A v227 database with the two parents the new table references and no
   /// cylinder_fills.
-  NativeDatabase setupDb({int userVersion = 226, bool withEquipment = true}) {
+  NativeDatabase setupDb({int userVersion = 227, bool withEquipment = true}) {
     return NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('PRAGMA user_version = $userVersion');
@@ -81,12 +81,12 @@ void main() {
     return rows.map((r) => r.read<String>('name')).toSet();
   }
 
-  test('v227 is the current schema version and is in the ladder', () {
+  test('v228 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
     // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 227);
-    expect(AppDatabase.migrationVersions, contains(227));
-    expect(AppDatabase.migrationStepCount(226), 1);
+    expect(AppDatabase.currentSchemaVersion, 228);
+    expect(AppDatabase.migrationVersions, contains(228));
+    expect(AppDatabase.migrationStepCount(227), 1);
     // Additive rung: the sync compatibility floor must not move.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
@@ -159,9 +159,9 @@ void main() {
   });
 
   test(
-    'a database stamped v227 without the table heals in beforeOpen',
+    'a database stamped v228 without the table heals in beforeOpen',
     () async {
-      final db = AppDatabase(setupDb(userVersion: 227));
+      final db = AppDatabase(setupDb(userVersion: 228));
       addTearDown(db.close);
 
       expect(await columnsOf(db, 'cylinder_fills'), contains('passport_id'));

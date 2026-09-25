@@ -7534,9 +7534,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'البحث حسب الموقع أو زميل الغوص أو الملاحظات';
 
   @override
-  String get diveLog_listPage_title => 'سجل الغوص';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'رجوع';
 
   @override
@@ -14325,6 +14322,89 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => 'حد عمق التخدير للخليط';
+
+  @override
+  String get gasCalculators_tab_density => 'كثافة الغاز';
+
+  @override
+  String get gasCalculators_desc_density =>
+      'كثافة غاز التنفس على العمق، OC أو CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters => 'خليط الغاز والظروف';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'العمق';
+
+  @override
+  String get gasCalculators_density_mode => 'الوضع';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'نقطة الضبط (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'في وضع CCR، الخليط أعلاه هو غاز المخفف.';
+
+  @override
+  String get gasCalculators_density_temperature => 'درجة حرارة الغاز';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'كثافة الغاز';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'ضمن الحد الموصى به البالغ $limit g/L.';
+  }
+
+  @override
+  String get gasCalculators_density_eaddLabel =>
+      'العمق المكافئ لكثافة الهواء (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'EADD هو العمق الذي يكون فيه الهواء بكثافة هذا الغاز. وعلى خلاف الكثافة بوحدة g/L، لا يعتمد على درجة الحرارة.';
+
+  @override
+  String get gasCalculators_density_loopGasTitle => 'غاز الدائرة على العمق';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'نقطة الضبط هنا أعلى من الضغط المحيط، لذا فإن الدائرة أكسجين نقي.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'غاز المخفف وحده يعطي هنا ppO2 قدره $ppO2، وهو أعلى من نقطة الضبط. تُحسب الكثافة بـ ppO2 غاز المخفف.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => 'حول كثافة الغاز';
+
+  @override
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'الغاز الكثيف أصعب في التنفس ويزيد خطر احتباس CO2. حافظ على الكثافة عند $warn g/L أو أقل؛ و$critical g/L هو الحد الأقصى المطلق.\n\nفي وضع CCR تُحتسب كثافة غاز الدائرة: الأكسجين عند نقطة الضبط، والباقي موزع بين النيتروجين والهيليوم بنسبة غاز المخفف.\n\nالغاز الأبرد أكثف، لذا فإن خيار درجة الحرارة الأبرد هو الخيار المتحفظ. يفترض الحساب غازًا مثاليًا.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'إجراء التعبئة لخليط مستهدف';
@@ -26003,6 +26083,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tankPresets_builtInPresets => 'الإعدادات المدمجة';
 
   @override
+  String get tankPresets_builtInPresets_description =>
+      'أوقف الإعدادات التي لا تستخدمها لإخفائها من قوائم اختيار الأسطوانة. يظهر الإعداد الافتراضي دائمًا.';
+
+  @override
   String get tankPresets_currentDefault => 'الافتراضي الحالي';
 
   @override
@@ -26151,6 +26235,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'تعيين كافتراضي';
+
+  @override
+  String get tankPresets_showInPickers => 'إظهار في قوائم اختيار الأسطوانة';
 
   @override
   String get tankPresets_title => 'إعدادات الأسطوانات';

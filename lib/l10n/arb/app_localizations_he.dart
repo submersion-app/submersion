@@ -7494,9 +7494,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'חיפוש לפי אתר, שותף או הערות';
 
   @override
-  String get diveLog_listPage_title => 'יומן צלילה';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'חזרה';
 
   @override
@@ -14225,6 +14222,88 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => 'גבול עומק הנרקוזה לתערובת';
+
+  @override
+  String get gasCalculators_tab_density => 'צפיפות גז';
+
+  @override
+  String get gasCalculators_desc_density => 'צפיפות גז הנשימה בעומק, OC או CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters => 'תערובת גז ותנאים';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'עומק';
+
+  @override
+  String get gasCalculators_density_mode => 'מצב';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'ב-CCR, התערובת שלמעלה היא הגז המדלל.';
+
+  @override
+  String get gasCalculators_density_temperature => 'טמפרטורת הגז';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'צפיפות גז';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'בתוך הגבול המומלץ של $limit g/L.';
+  }
+
+  @override
+  String get gasCalculators_density_eaddLabel =>
+      'עומק שקול לצפיפות אוויר (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'EADD הוא העומק שבו אוויר היה צפוף כמו הגז הזה. בניגוד לצפיפות ב-g/L, הוא אינו תלוי בטמפרטורה.';
+
+  @override
+  String get gasCalculators_density_loopGasTitle => 'גז הלולאה בעומק';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'כאן ה-Setpoint גבוה מהלחץ הסביבתי, ולכן הלולאה מכילה חמצן טהור.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'הגז המדלל לבדו נותן כאן ppO2 של $ppO2, מעל ה-Setpoint. הצפיפות מחושבת לפי ה-ppO2 של הגז המדלל.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => 'על צפיפות גז';
+
+  @override
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'גז צפוף קשה יותר לנשימה ומעלה את הסיכון לאגירת CO2. שמרו על צפיפות של $warn g/L לכל היותר; $critical g/L הוא הגבול העליון המוחלט.\n\nב-CCR קובעת צפיפות גז הלולאה: חמצן לפי ה-Setpoint, והשאר מחולק בין חנקן להליום ביחס של הגז המדלל.\n\nגז קר יותר צפוף יותר, ולכן אפשרות הטמפרטורה הקרה יותר היא השמרנית. החישוב מניח גז אידיאלי.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'נוהל מילוי לתערובת היעד';
@@ -25716,6 +25795,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get tankPresets_builtInPresets => 'תבניות מובנות';
 
   @override
+  String get tankPresets_builtInPresets_description =>
+      'כבה תבניות שאינך משתמש בהן כדי להסתיר אותן מבוררי הבלונים. תבנית ברירת המחדל מוצגת תמיד.';
+
+  @override
   String get tankPresets_currentDefault => 'ברירת מחדל נוכחית';
 
   @override
@@ -25864,6 +25947,9 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'הגדר כברירת מחדל';
+
+  @override
+  String get tankPresets_showInPickers => 'הצג בבוררי הבלונים';
 
   @override
   String get tankPresets_title => 'תבניות מיכל';

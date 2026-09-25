@@ -404,7 +404,7 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_dive_plan_equipment_plan_id '
         'ON dive_plan_equipment(plan_id)',
   ),
-  // Cylinder fill history (v227, issue #2334): newest fill per passport, and
+  // Cylinder fill history (v228, issue #2334): newest fill per passport, and
   // the fills of one gear row.
   (
     name: 'idx_cylinder_fills_passport',

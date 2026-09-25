@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/presentation/widgets/ocean_background.dart';
-import 'package:submersion/core/utils/unit_formatter.dart';
 
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/hero_diver_avatar.dart';
 import 'package:submersion/features/statistics/domain/career_totals.dart';
-import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/statistics/presentation/providers/career_totals_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
@@ -30,7 +28,6 @@ class HeroHeader extends ConsumerWidget {
     final careerAsync = ref.watch(careerTotalsProvider);
     final theme = Theme.of(context);
     final isDesktop = ResponsiveBreakpoints.isDesktop(context);
-    final units = UnitFormatter(ref.watch(settingsProvider));
 
     return Semantics(
       label: context.l10n.dashboard_semantics_greetingBanner,
@@ -87,15 +84,10 @@ class HeroHeader extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    if (isDesktop)
-                      Text(
-                        units.formatDate(DateTime.now()),
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.75),
-                        ),
-                      )
-                    else
+                    // Desktop shows the greeting alone; the quiet center
+                    // stats carry the numbers.
+                    if (!isDesktop) ...[
+                      const SizedBox(height: 4),
                       // Headline stats (phone)
                       careerAsync.when(
                         data: (career) {
@@ -125,6 +117,7 @@ class HeroHeader extends ConsumerWidget {
                           ),
                         ),
                       ),
+                    ],
                   ],
                 ),
               ),
