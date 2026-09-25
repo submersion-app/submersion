@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/profile_metrics.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/dive_log/data/services/profile_markers_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
@@ -55,6 +56,7 @@ Widget _chart({
   int? highlightedTimestamp,
   bool tooltipBelow = true,
   List<DiveProfilePoint>? profile,
+  List<ProfileMarker>? markers,
 }) {
   final points = profile ?? _standardProfile;
   return ProviderScope(
@@ -77,6 +79,8 @@ Widget _chart({
                 : TooltipPresentation.inChart,
             onTooltipData: onTooltipData,
             highlightedTimestamp: highlightedTimestamp,
+            markers: markers,
+            showMaxDepthMarker: markers != null,
           ),
         ),
       ),
@@ -461,5 +465,40 @@ void main() {
       reason: 'the row must actually have been rebuilt as interpolated',
     );
     expect(tempRow.metric, ProfileRightAxisMetric.temperature);
+  });
+
+  // A marker row is drawn with a diamond bullet; rebuilding it as
+  // interpolated on the lead-in must not turn it back into a plain circle.
+  testWidgets('an interpolated lead-in marker row keeps its diamond bullet', (
+    tester,
+  ) async {
+    List<TooltipRow>? rows;
+    final profile = _leadInProfile();
+    const markers = [
+      ProfileMarker(timestamp: 0, depth: 0, type: ProfileMarkerType.maxDepth),
+    ];
+    await tester.pumpWidget(
+      _chart(
+        onTooltipData: (r) => rows = r,
+        profile: profile,
+        markers: markers,
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.pumpWidget(
+      _chart(
+        onTooltipData: (r) => rows = r,
+        profile: profile,
+        markers: markers,
+        highlightedTimestamp: 5,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(_rowValue(rows, 'Time'), '0:00');
+    final markerRow = rows?.where((r) => r.label == 'Marker').firstOrNull;
+    expect(markerRow, isNotNull);
+    expect(markerRow!.value, endsWith('(interpolated)'));
+    expect(markerRow.diamondBullet, isTrue);
   });
 }

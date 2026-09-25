@@ -161,6 +161,20 @@ class TooltipRow {
     this.diamondBullet = false,
     this.metric,
   });
+
+  TooltipRow copyWith({
+    String? label,
+    String? value,
+    Color? bulletColor,
+    bool? diamondBullet,
+    Object? metric,
+  }) => TooltipRow(
+    label: label ?? this.label,
+    value: value ?? this.value,
+    bulletColor: bulletColor ?? this.bulletColor,
+    diamondBullet: diamondBullet ?? this.diamondBullet,
+    metric: metric ?? this.metric,
+  );
 }
 
 /// Interactive dive profile chart showing depth over time with zoom/pan support
@@ -5780,11 +5794,8 @@ class _DiveProfileChartState extends ConsumerState<DiveProfileChart> {
           row.label.startsWith(context.l10n.diveLog_tooltip_depth))
         row
       else
-        TooltipRow(
-          label: row.label,
+        row.copyWith(
           value: context.l10n.diveLog_tooltip_interpolated(row.value),
-          bulletColor: row.bulletColor,
-          metric: row.metric,
         ),
   ];
 
