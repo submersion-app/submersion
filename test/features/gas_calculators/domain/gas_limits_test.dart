@@ -53,7 +53,7 @@ void main() {
     test('EAD at the MOD, from the N2 partial pressure', () {
       final r = computeGasLimits(_inputs());
       // P = 4.375 bar, pN2 = 0.68 * 4.375
-      final expected = (0.68 * 4.375 / airN2Fraction - 1) * 10;
+      const expected = (0.68 * 4.375 / airN2Fraction - 1) * 10;
       expect(r.atMod.depthMeters, 33.75);
       expect(r.atMod.pO2Bar, closeTo(1.4, 1e-12));
       expect(r.atMod.eadMeters, closeTo(expected, 1e-9));

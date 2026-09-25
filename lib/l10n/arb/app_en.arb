@@ -8123,7 +8123,175 @@
   "gasCalculators_consumption_totalGas": "Total gas for {time} minutes",
   "gasCalculators_consumption_volume": "Volume",
   "gasCalculators_mod_aboutMod": "About MOD",
-  "gasCalculators_mod_aboutModBody": "Lower O₂ = deeper MOD = shorter NDL",
+  "gasCalculators_mod_mode": "Mode",
+  "gasCalculators_mod_modeRecHint": "Nitrox for recreational diving: MOD and EAD, at 1 bar per 10 m as in the dive log.",
+  "gasCalculators_mod_modeOcTecHint": "Trimix on open circuit: MOD, minimum depth, narcosis and gas density.",
+  "gasCalculators_mod_modeCcrTecHint": "Closed circuit: the mix is the diluent. The MOD is the diluent's on a flush; the loop holds the setpoint.",
+  "gasCalculators_mod_heliumHe": "Helium (He)",
+  "gasCalculators_mod_setpoint": "Setpoint (bar)",
+  "gasCalculators_mod_limitsTitle": "ppO₂ limits",
+  "gasCalculators_mod_workingPpO2": "Working ppO₂",
+  "gasCalculators_mod_decoPpO2": "Deco ppO₂",
+  "gasCalculators_mod_flushPpO2": "ppO₂ for the diluent MOD (flush)",
+  "gasCalculators_mod_minPpO2": "Minimum ppO₂ (hypoxic mixes)",
+  "gasCalculators_mod_fromProfile": "From your diver profile",
+  "gasCalculators_mod_differsFromProfile": "Differs from your profile ({value} bar)",
+  "@gasCalculators_mod_differsFromProfile": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_useProfileValue": "Use profile value",
+  "gasCalculators_mod_checkTargetDepth": "Also check a target depth",
+  "gasCalculators_mod_targetDepth": "Target depth",
+  "gasCalculators_mod_diluentMod": "Diluent MOD (flush)",
+  "gasCalculators_mod_contingencyMod": "Contingency MOD at {ppO2} bar",
+  "@gasCalculators_mod_contingencyMod": {
+    "placeholders": {
+      "ppO2": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_decoMod": "MOD at deco ppO₂ {ppO2} bar",
+  "@gasCalculators_mod_decoMod": {
+    "placeholders": {
+      "ppO2": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_minDepth": "Minimum depth at ppO₂ {ppO2} bar",
+  "@gasCalculators_mod_minDepth": {
+    "placeholders": {
+      "ppO2": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_fromSurface": "from the surface",
+  "gasCalculators_mod_mnd": "MND (END limit {limit})",
+  "@gasCalculators_mod_mnd": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_noNarcoticLimit": "no limit",
+  "gasCalculators_mod_atDepthTitle": "At depth",
+  "gasCalculators_mod_atMod": "At MOD",
+  "gasCalculators_mod_atTarget": "At target depth",
+  "gasCalculators_mod_rowDepth": "Depth",
+  "gasCalculators_mod_rowPpO2": "ppO₂",
+  "gasCalculators_mod_rowEad": "EAD (N₂ narcotic)",
+  "gasCalculators_mod_rowEnd": "END (N₂ + O₂ narcotic)",
+  "gasCalculators_mod_rowEadd": "EADD (air density)",
+  "gasCalculators_mod_rowDensity": "Gas density at 0 °C",
+  "gasCalculators_mod_openDensity": "Open in the gas density calculator",
+  "gasCalculators_mod_assessmentTitle": "Assessment",
+  "gasCalculators_mod_recBeyondLimit": "The MOD lies deeper than the recreational limit of {limit}. Down there narcosis and gas density, not oxygen, set the limit.",
+  "@gasCalculators_mod_recBeyondLimit": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_recWithinLimit": "The MOD lies within the recreational limit of {limit}.",
+  "@gasCalculators_mod_recWithinLimit": {
+    "placeholders": {
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_targetBeyondMod": "The target depth is deeper than the MOD: ppO₂ {ppO2} bar there.",
+  "@gasCalculators_mod_targetBeyondMod": {
+    "placeholders": {
+      "ppO2": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_targetAboveMinDepth": "The target depth is shallower than the minimum depth: the mix is hypoxic there.",
+  "gasCalculators_mod_hypoxic": "Hypoxic mix: do not breathe it shallower than {depth}.",
+  "@gasCalculators_mod_hypoxic": {
+    "placeholders": {
+      "depth": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_narcosisExceeded": "{where}: narcotic depth {depth} exceeds your END limit of {limit}.",
+  "@gasCalculators_mod_narcosisExceeded": {
+    "placeholders": {
+      "where": {
+        "type": "String"
+      },
+      "depth": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_densityWarn": "{where}: gas density {density} g/L is above the recommended {limit} g/L.",
+  "@gasCalculators_mod_densityWarn": {
+    "placeholders": {
+      "where": {
+        "type": "String"
+      },
+      "density": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_densityCritical": "{where}: gas density {density} g/L is above the hard limit of {limit} g/L.",
+  "@gasCalculators_mod_densityCritical": {
+    "placeholders": {
+      "where": {
+        "type": "String"
+      },
+      "density": {
+        "type": "String"
+      },
+      "limit": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_setpointNotBelowFlush": "The setpoint is not below the ppO₂ for the diluent MOD.",
+  "gasCalculators_mod_diluentAboveSetpoint": "{where}: the diluent alone gives ppO₂ {ppO2} bar, more than the setpoint; the loop runs at the diluent's ppO₂.",
+  "@gasCalculators_mod_diluentAboveSetpoint": {
+    "placeholders": {
+      "where": {
+        "type": "String"
+      },
+      "ppO2": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_setpointCapped": "{where}: the setpoint is above ambient pressure, the loop is pure oxygen.",
+  "@gasCalculators_mod_setpointCapped": {
+    "placeholders": {
+      "where": {
+        "type": "String"
+      }
+    }
+  },
+  "gasCalculators_mod_allClear": "Within your ppO₂, END and density limits at the depths checked.",
+  "gasCalculators_mod_aboutModesBody": "The MOD is the depth at which the mix reaches the ppO₂ limit. It is always rounded down, never up.\n\nRec uses 1 bar per 10 m, like the dive log. OC Tec and CCR Tec take the ambient pressure from the water type, like the gas density calculator, so the same mix can show a slightly shallower MOD there.\n\nEAD counts nitrogen as narcotic, END nitrogen and oxygen. Your END limit, whether oxygen counts as narcotic and the default ppO₂ limits come from your diver profile.",
+  "gasCalculators_mod_modeRec": "Rec",
+  "gasCalculators_mod_modeOcTec": "OC Tec",
+  "gasCalculators_mod_modeCcrTec": "CCR Tec",
   "gasCalculators_mod_inputParameters": "Input Parameters",
   "gasCalculators_mod_maximumOperatingDepth": "Maximum Operating Depth",
   "gasCalculators_mod_semanticsLabel": "Maximum Operating Depth: {depth} {unit} at {ppo2} bar ppO2 with {o2}% oxygen",

@@ -13496,8 +13496,201 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_mod_aboutMod => 'אודות MOD';
 
   @override
-  String get gasCalculators_mod_aboutModBody =>
-      'O₂ נמוך יותר = MOD עמוק יותר = NDL קצר יותר';
+  String get gasCalculators_mod_mode => 'מצב';
+
+  @override
+  String get gasCalculators_mod_modeRecHint =>
+      'ניטרוקס לצלילת פנאי: MOD ו-EAD, לפי 1 בר לכל 10 מ׳ כמו ביומן.';
+
+  @override
+  String get gasCalculators_mod_modeOcTecHint =>
+      'טרימיקס במעגל פתוח: MOD, עומק מינימלי, נרקוזיס וצפיפות גז.';
+
+  @override
+  String get gasCalculators_mod_modeCcrTecHint =>
+      'מעגל סגור: התערובת היא גז המדלל. ה-MOD הוא של המדלל בשטיפה; הלולאה שומרת על ה-setpoint.';
+
+  @override
+  String get gasCalculators_mod_heliumHe => 'הליום (He)';
+
+  @override
+  String get gasCalculators_mod_setpoint => 'Setpoint (בר)';
+
+  @override
+  String get gasCalculators_mod_limitsTitle => 'מגבלות ppO₂';
+
+  @override
+  String get gasCalculators_mod_workingPpO2 => 'ppO₂ עבודה';
+
+  @override
+  String get gasCalculators_mod_decoPpO2 => 'ppO₂ דקו';
+
+  @override
+  String get gasCalculators_mod_flushPpO2 => 'ppO₂ ל-MOD של המדלל (שטיפה)';
+
+  @override
+  String get gasCalculators_mod_minPpO2 => 'ppO₂ מינימלי (תערובות היפוקסיות)';
+
+  @override
+  String get gasCalculators_mod_fromProfile => 'מפרופיל הצולל שלך';
+
+  @override
+  String gasCalculators_mod_differsFromProfile(String value) {
+    return 'שונה מהפרופיל ($value בר)';
+  }
+
+  @override
+  String get gasCalculators_mod_useProfileValue => 'השתמש בערך הפרופיל';
+
+  @override
+  String get gasCalculators_mod_checkTargetDepth => 'בדוק גם עומק יעד';
+
+  @override
+  String get gasCalculators_mod_targetDepth => 'עומק יעד';
+
+  @override
+  String get gasCalculators_mod_diluentMod => 'MOD של המדלל (שטיפה)';
+
+  @override
+  String gasCalculators_mod_contingencyMod(String ppO2) {
+    return 'MOD חירום ב-$ppO2 בר';
+  }
+
+  @override
+  String gasCalculators_mod_decoMod(String ppO2) {
+    return 'MOD ב-ppO₂ דקו $ppO2 בר';
+  }
+
+  @override
+  String gasCalculators_mod_minDepth(String ppO2) {
+    return 'עומק מינימלי ב-ppO₂ $ppO2 בר';
+  }
+
+  @override
+  String get gasCalculators_mod_fromSurface => 'מפני המים';
+
+  @override
+  String gasCalculators_mod_mnd(String limit) {
+    return 'MND (מגבלת END $limit)';
+  }
+
+  @override
+  String get gasCalculators_mod_noNarcoticLimit => 'ללא מגבלה';
+
+  @override
+  String get gasCalculators_mod_atDepthTitle => 'בעומק';
+
+  @override
+  String get gasCalculators_mod_atMod => 'ב-MOD';
+
+  @override
+  String get gasCalculators_mod_atTarget => 'בעומק היעד';
+
+  @override
+  String get gasCalculators_mod_rowDepth => 'עומק';
+
+  @override
+  String get gasCalculators_mod_rowPpO2 => 'ppO₂';
+
+  @override
+  String get gasCalculators_mod_rowEad => 'EAD (N₂ נרקוטי)';
+
+  @override
+  String get gasCalculators_mod_rowEnd => 'END (N₂ + O₂ נרקוטיים)';
+
+  @override
+  String get gasCalculators_mod_rowEadd => 'EADD (צפיפות אוויר)';
+
+  @override
+  String get gasCalculators_mod_rowDensity => 'צפיפות גז ב-0 °C';
+
+  @override
+  String get gasCalculators_mod_openDensity => 'פתח במחשבון צפיפות הגז';
+
+  @override
+  String get gasCalculators_mod_assessmentTitle => 'הערכה';
+
+  @override
+  String gasCalculators_mod_recBeyondLimit(String limit) {
+    return 'ה-MOD עמוק ממגבלת צלילת הפנאי של $limit. שם הנרקוזיס וצפיפות הגז, לא החמצן, קובעים את הגבול.';
+  }
+
+  @override
+  String gasCalculators_mod_recWithinLimit(String limit) {
+    return 'ה-MOD נמצא בתוך מגבלת צלילת הפנאי של $limit.';
+  }
+
+  @override
+  String gasCalculators_mod_targetBeyondMod(String ppO2) {
+    return 'עומק היעד עמוק מה-MOD: ppO₂ $ppO2 בר שם.';
+  }
+
+  @override
+  String get gasCalculators_mod_targetAboveMinDepth =>
+      'עומק היעד רדוד מהעומק המינימלי: התערובת היפוקסית שם.';
+
+  @override
+  String gasCalculators_mod_hypoxic(String depth) {
+    return 'תערובת היפוקסית: אין לנשום אותה רדוד מ-$depth.';
+  }
+
+  @override
+  String gasCalculators_mod_narcosisExceeded(
+    String where,
+    String depth,
+    String limit,
+  ) {
+    return '$where: עומק נרקוטי $depth חורג ממגבלת ה-END שלך, $limit.';
+  }
+
+  @override
+  String gasCalculators_mod_densityWarn(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where: צפיפות הגז $density ג/ל מעל $limit ג/ל המומלצים.';
+  }
+
+  @override
+  String gasCalculators_mod_densityCritical(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where: צפיפות הגז $density ג/ל מעל הגבול המוחלט של $limit ג/ל.';
+  }
+
+  @override
+  String get gasCalculators_mod_setpointNotBelowFlush =>
+      'ה-setpoint אינו נמוך מה-ppO₂ של MOD המדלל.';
+
+  @override
+  String gasCalculators_mod_diluentAboveSetpoint(String where, String ppO2) {
+    return '$where: המדלל לבדו נותן ppO₂ $ppO2 בר, יותר מה-setpoint; הלולאה פועלת ב-ppO₂ של המדלל.';
+  }
+
+  @override
+  String gasCalculators_mod_setpointCapped(String where) {
+    return '$where: ה-setpoint מעל לחץ הסביבה, הלולאה היא חמצן טהור.';
+  }
+
+  @override
+  String get gasCalculators_mod_allClear =>
+      'בתוך מגבלות ה-ppO₂, END והצפיפות שלך בעומקים שנבדקו.';
+
+  @override
+  String get gasCalculators_mod_aboutModesBody =>
+      'ה-MOD הוא העומק שבו התערובת מגיעה למגבלת ה-ppO₂. הוא תמיד מעוגל כלפי מטה, לעולם לא כלפי מעלה.\n\nRec משתמש ב-1 בר לכל 10 מ׳, כמו היומן. OC Tec ו-CCR Tec לוקחים את לחץ הסביבה מסוג המים, כמו מחשבון צפיפות הגז, ולכן אותה תערובת עשויה להציג שם MOD רדוד מעט יותר.\n\nEAD מחשיב חנקן כנרקוטי, END חנקן וחמצן. מגבלת ה-END שלך, האם חמצן נחשב נרקוטי ומגבלות ה-ppO₂ ברירת המחדל מגיעים מפרופיל הצולל שלך.';
+
+  @override
+  String get gasCalculators_mod_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_mod_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_mod_modeCcrTec => 'CCR Tec';
 
   @override
   String get gasCalculators_mod_inputParameters => 'פרמטרי קלט';

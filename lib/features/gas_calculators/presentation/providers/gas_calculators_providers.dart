@@ -4,6 +4,7 @@ import 'package:submersion/features/gas_calculators/domain/gas_consumption.dart'
 import 'package:submersion/features/gas_calculators/domain/rock_bottom.dart';
 import 'package:submersion/features/gas_calculators/domain/tank_spec.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/density_calculator_providers.dart';
+import 'package:submersion/features/gas_calculators/presentation/providers/mod_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mnd_calculator_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -11,23 +12,6 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 /// existing consumer and [resetGasCalculators] keep resolving.
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
 export 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
-
-// ═══════════════════════════════════════════════════════════════════════════
-// MOD Calculator State
-// ═══════════════════════════════════════════════════════════════════════════
-/// Oxygen percentage for MOD calculation (21-100%)
-final modO2Provider = StateProvider<double>((ref) => 32.0);
-
-/// Maximum ppO2 limit (typically 1.2, 1.4, or 1.6 bar)
-final modPpO2Provider = StateProvider<double>((ref) => 1.4);
-
-/// Computed Maximum Operating Depth in meters
-final modResultProvider = Provider<double>((ref) {
-  final o2 = ref.watch(modO2Provider);
-  final ppO2 = ref.watch(modPpO2Provider);
-  // MOD formula: ((ppO2 / fO2) - 1) × 10
-  return ((ppO2 / (o2 / 100)) - 1) * 10;
-});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Best Mix Calculator State
@@ -142,8 +126,7 @@ final rockBottomResultProvider = Provider<RockBottomResult>((ref) {
 /// Reset all gas calculator providers to defaults
 void resetGasCalculators(WidgetRef ref) {
   // MOD
-  ref.read(modO2Provider.notifier).state = 32.0;
-  ref.read(modPpO2Provider.notifier).state = 1.4;
+  ref.read(modCalculatorNotifierProvider.notifier).reset();
   // Best Mix
   ref.read(bestMixDepthProvider.notifier).state = 30.0;
   ref.read(bestMixPpO2Provider.notifier).state = 1.4;

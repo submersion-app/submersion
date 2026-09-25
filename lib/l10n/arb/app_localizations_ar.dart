@@ -13591,7 +13591,202 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_mod_aboutMod => 'حول MOD';
 
   @override
-  String get gasCalculators_mod_aboutModBody => 'أقل O₂ = أعمق MOD = أقصر NDL';
+  String get gasCalculators_mod_mode => 'الوضع';
+
+  @override
+  String get gasCalculators_mod_modeRecHint =>
+      'نيتروكس للغوص الترفيهي: MOD و EAD، بمعدل 1 بار لكل 10 م كما في السجل.';
+
+  @override
+  String get gasCalculators_mod_modeOcTecHint =>
+      'ترايمكس في الدائرة المفتوحة: MOD والعمق الأدنى والتخدير وكثافة الغاز.';
+
+  @override
+  String get gasCalculators_mod_modeCcrTecHint =>
+      'الدائرة المغلقة: الخليط هو غاز التخفيف. الـ MOD هو لغاز التخفيف عند الشطف؛ والحلقة تحافظ على نقطة الضبط.';
+
+  @override
+  String get gasCalculators_mod_heliumHe => 'الهيليوم (He)';
+
+  @override
+  String get gasCalculators_mod_setpoint => 'نقطة الضبط (بار)';
+
+  @override
+  String get gasCalculators_mod_limitsTitle => 'حدود ppO₂';
+
+  @override
+  String get gasCalculators_mod_workingPpO2 => 'ppO₂ العمل';
+
+  @override
+  String get gasCalculators_mod_decoPpO2 => 'ppO₂ تخفيف الضغط';
+
+  @override
+  String get gasCalculators_mod_flushPpO2 => 'ppO₂ لـ MOD غاز التخفيف (الشطف)';
+
+  @override
+  String get gasCalculators_mod_minPpO2 =>
+      'الحد الأدنى لـ ppO₂ (الخلائط ناقصة الأكسجين)';
+
+  @override
+  String get gasCalculators_mod_fromProfile => 'من ملف الغواص الخاص بك';
+
+  @override
+  String gasCalculators_mod_differsFromProfile(String value) {
+    return 'يختلف عن ملفك ($value بار)';
+  }
+
+  @override
+  String get gasCalculators_mod_useProfileValue => 'استخدام قيمة الملف';
+
+  @override
+  String get gasCalculators_mod_checkTargetDepth => 'فحص عمق مستهدف أيضًا';
+
+  @override
+  String get gasCalculators_mod_targetDepth => 'العمق المستهدف';
+
+  @override
+  String get gasCalculators_mod_diluentMod => 'MOD غاز التخفيف (الشطف)';
+
+  @override
+  String gasCalculators_mod_contingencyMod(String ppO2) {
+    return 'MOD الطوارئ عند $ppO2 بار';
+  }
+
+  @override
+  String gasCalculators_mod_decoMod(String ppO2) {
+    return 'MOD عند ppO₂ تخفيف الضغط $ppO2 بار';
+  }
+
+  @override
+  String gasCalculators_mod_minDepth(String ppO2) {
+    return 'العمق الأدنى عند ppO₂ $ppO2 بار';
+  }
+
+  @override
+  String get gasCalculators_mod_fromSurface => 'من السطح';
+
+  @override
+  String gasCalculators_mod_mnd(String limit) {
+    return 'MND (حد END $limit)';
+  }
+
+  @override
+  String get gasCalculators_mod_noNarcoticLimit => 'بلا حد';
+
+  @override
+  String get gasCalculators_mod_atDepthTitle => 'على العمق';
+
+  @override
+  String get gasCalculators_mod_atMod => 'عند MOD';
+
+  @override
+  String get gasCalculators_mod_atTarget => 'عند العمق المستهدف';
+
+  @override
+  String get gasCalculators_mod_rowDepth => 'العمق';
+
+  @override
+  String get gasCalculators_mod_rowPpO2 => 'ppO₂';
+
+  @override
+  String get gasCalculators_mod_rowEad => 'EAD (N₂ مخدر)';
+
+  @override
+  String get gasCalculators_mod_rowEnd => 'END (N₂ + O₂ مخدران)';
+
+  @override
+  String get gasCalculators_mod_rowEadd => 'EADD (كثافة الهواء)';
+
+  @override
+  String get gasCalculators_mod_rowDensity => 'كثافة الغاز عند 0 °C';
+
+  @override
+  String get gasCalculators_mod_openDensity => 'فتح في حاسبة كثافة الغاز';
+
+  @override
+  String get gasCalculators_mod_assessmentTitle => 'التقييم';
+
+  @override
+  String gasCalculators_mod_recBeyondLimit(String limit) {
+    return 'الـ MOD أعمق من الحد الترفيهي البالغ $limit. هناك يحدد التخدير وكثافة الغاز الحد، لا الأكسجين.';
+  }
+
+  @override
+  String gasCalculators_mod_recWithinLimit(String limit) {
+    return 'الـ MOD ضمن الحد الترفيهي البالغ $limit.';
+  }
+
+  @override
+  String gasCalculators_mod_targetBeyondMod(String ppO2) {
+    return 'العمق المستهدف أعمق من الـ MOD: ppO₂ $ppO2 بار هناك.';
+  }
+
+  @override
+  String get gasCalculators_mod_targetAboveMinDepth =>
+      'العمق المستهدف أقل من العمق الأدنى: الخليط ناقص الأكسجين هناك.';
+
+  @override
+  String gasCalculators_mod_hypoxic(String depth) {
+    return 'خليط ناقص الأكسجين: لا تتنفسه أقل عمقًا من $depth.';
+  }
+
+  @override
+  String gasCalculators_mod_narcosisExceeded(
+    String where,
+    String depth,
+    String limit,
+  ) {
+    return '$where: العمق المخدر $depth يتجاوز حد END لديك البالغ $limit.';
+  }
+
+  @override
+  String gasCalculators_mod_densityWarn(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where: كثافة الغاز $density غ/ل أعلى من $limit غ/ل الموصى بها.';
+  }
+
+  @override
+  String gasCalculators_mod_densityCritical(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where: كثافة الغاز $density غ/ل أعلى من الحد الأقصى البالغ $limit غ/ل.';
+  }
+
+  @override
+  String get gasCalculators_mod_setpointNotBelowFlush =>
+      'نقطة الضبط ليست أقل من ppO₂ لـ MOD غاز التخفيف.';
+
+  @override
+  String gasCalculators_mod_diluentAboveSetpoint(String where, String ppO2) {
+    return '$where: غاز التخفيف وحده يعطي ppO₂ $ppO2 بار، أكثر من نقطة الضبط؛ الحلقة تعمل بـ ppO₂ غاز التخفيف.';
+  }
+
+  @override
+  String gasCalculators_mod_setpointCapped(String where) {
+    return '$where: نقطة الضبط أعلى من الضغط المحيط، الحلقة أكسجين نقي.';
+  }
+
+  @override
+  String get gasCalculators_mod_allClear =>
+      'ضمن حدود ppO₂ و END والكثافة لديك في الأعماق المفحوصة.';
+
+  @override
+  String get gasCalculators_mod_aboutModesBody =>
+      'الـ MOD هو العمق الذي يبلغ فيه الخليط حد ppO₂. يُقرَّب دائمًا للأسفل، ولا يُقرَّب للأعلى أبدًا.\n\nيستخدم Rec بارًا واحدًا لكل 10 م، مثل السجل. يأخذ OC Tec و CCR Tec الضغط المحيط من نوع الماء، مثل حاسبة كثافة الغاز، لذلك قد يظهر الخليط نفسه هناك بـ MOD أقل عمقًا بقليل.\n\nتعد EAD النيتروجين مخدرًا، و END النيتروجين والأكسجين. حد END لديك، واعتبار الأكسجين مخدرًا، وحدود ppO₂ الافتراضية تأتي من ملف الغواص الخاص بك.';
+
+  @override
+  String get gasCalculators_mod_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_mod_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_mod_modeCcrTec => 'CCR Tec';
 
   @override
   String get gasCalculators_mod_inputParameters => 'معاملات الإدخال';
