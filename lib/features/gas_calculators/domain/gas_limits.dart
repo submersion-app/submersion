@@ -308,7 +308,11 @@ GasLimitsResult computeGasLimits(GasLimitsInputs inputs) {
     secondaryModMeters: secondaryMod,
     secondaryPpO2: secondaryPpO2,
     minDepthMeters: minDepth,
-    mndMeters: isRec ? null : _mnd(inputs.endLimitMeters, assess),
+    // On CCR the MND is the flushed diluent's, like the MOD column: the
+    // setpoint only applies at a target depth.
+    mndMeters: isRec
+        ? null
+        : _mnd(inputs.endLimitMeters, (d) => assess(d, onLoop: false)),
     atMod: assess(math.max(mod, 0.0), onLoop: false),
     atTarget: atTarget,
     beyondRecreationalLimit: isRec && mod > recreationalDepthLimitMeters,

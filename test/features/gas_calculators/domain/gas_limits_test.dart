@@ -267,6 +267,16 @@ void main() {
       expect(r.flushPpO2AtTarget, greaterThan(1.1));
     });
 
+    test('the MND is the flushed diluent\'s, independent of the setpoint', () {
+      final low = computeGasLimits(ccr(setpoint: 0.7));
+      final high = computeGasLimits(ccr(setpoint: 1.3));
+      final oc = computeGasLimits(
+        _inputs(mode: ModCalculatorMode.ocTec, o2: 21, he: 35),
+      );
+      expect(low.mndMeters, closeTo(high.mndMeters!, 1e-6));
+      expect(low.mndMeters, closeTo(oc.mndMeters!, 1e-6));
+    });
+
     test('OC and Rec have no flush ppO2', () {
       expect(computeGasLimits(_inputs(target: 30)).flushPpO2AtTarget, isNull);
     });

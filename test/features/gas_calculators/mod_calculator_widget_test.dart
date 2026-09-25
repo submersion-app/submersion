@@ -112,16 +112,22 @@ void main() {
     expect(find.text('Open in the gas density calculator'), findsOneWidget);
   });
 
-  testWidgets('CCR Tec names the diluent MOD and asks for a setpoint', (
-    tester,
-  ) async {
-    await _pump(tester);
+  testWidgets('CCR Tec names the diluent MOD; the setpoint comes with the '
+      'target depth', (tester) async {
+    final container = await _pump(tester);
     await tester.tap(find.text('CCR Tec'));
     await _settle(tester);
 
     expect(find.text('Diluent MOD (flush)'), findsOneWidget);
-    expect(find.text('Setpoint (bar)'), findsOneWidget);
     expect(find.text('ppO₂ for the diluent MOD (flush)'), findsOneWidget);
+    // The setpoint only applies at a target depth: hidden without one.
+    expect(find.text('Setpoint (bar)'), findsNothing);
+
+    container
+        .read(modCalculatorNotifierProvider.notifier)
+        .setCheckTargetDepth(true);
+    await _settle(tester);
+    expect(find.text('Setpoint (bar)'), findsOneWidget);
 
     // The flush ppO2 steps by 0.1 bar across 1.0-1.6: six divisions.
     // In CCR Tec it is the only slider over that range.

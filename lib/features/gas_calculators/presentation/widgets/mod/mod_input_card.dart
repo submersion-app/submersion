@@ -128,9 +128,10 @@ class ModInputCard extends ConsumerWidget {
                 ),
                 onChanged: notifier.setTargetDepth,
               ),
-            // CCR: the loop holds the setpoint at the target depth, so it
-            // sits with the target rather than with the diluent MOD limit.
-            if (mode == ModCalculatorMode.ccrTec) ...[
+            // CCR: the setpoint only applies to the loop at the target depth,
+            // so it is shown with the target and hidden without it.
+            if (mode == ModCalculatorMode.ccrTec &&
+                inputs.checkTargetDepth) ...[
               const SizedBox(height: 24),
               ModPpO2LimitSlider(
                 label: l10n.gasCalculators_mod_setpoint,
