@@ -4170,6 +4170,38 @@ const String kLegacyDataSourceIdPrefix = 'legacy-src-';
 /// [kLegacyDataSourceIdPrefix].
 String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
 
+/// Saved "what if" scenarios on a logged dive (Dive Lab, v228). Inputs only:
+/// the branch point, the mode and the interventions; outcomes are always
+/// recomputed. Synced like dive plans (hlc column, deletion_log tombstones).
+class DiveScenarios extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get name => text()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+
+  /// Runtime seconds on the dive's primary profile where the timelines part.
+  IntColumn get branchSeconds => integer()();
+
+  /// ScenarioMode name: `replay` or `replan`.
+  TextColumn get mode => text().withDefault(const Constant('replay'))();
+
+  /// Versioned JSON envelope (scenario_intervention_codec: formatVersion +
+  /// interventions). A kind the reader does not know fails loudly on decode.
+  TextColumn get interventionsJson => text()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
 @DriftDatabase(
   tables: [
     Divers,
@@ -4290,6 +4322,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     CylinderConfigItems,
     // Rental gear memory (v221, issue #2075)
     DiveCenterGearNotes,
+    DiveScenarios,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -4299,7 +4332,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 227;
+  static const int currentSchemaVersion = 228;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4960,6 +4993,9 @@ class AppDatabase extends _$AppDatabase {
     // shows every built-in preset. Renumbered from 225, which is held by PR
     // #1978, after v226 landed while this was in review.
     227,
+    // v228 (Dive Lab): dive_scenarios, saved what-if scenarios on a logged
+    // dive (branch point, mode, interventions), synced with an hlc column.
+    228,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -7893,6 +7929,17 @@ class AppDatabase extends _$AppDatabase {
         'ALTER TABLE media ADD COLUMN verify_facts_hlc TEXT',
       );
     }
+  }
+
+  /// v228: the Dive Lab scenarios table. Migrator.createTable is IF NOT
+  /// EXISTS and the index is guarded, so this is safe from both onUpgrade and
+  /// the beforeOpen backstop.
+  Future<void> _assertDiveScenariosSchema() async {
+    await createMigrator().createTable(diveScenarios);
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS idx_dive_scenarios_dive_id
+      ON dive_scenarios(dive_id)
+    ''');
   }
 
   Future<void> _assertMediaCloudAssetIdColumn() async {
@@ -12579,6 +12626,13 @@ class AppDatabase extends _$AppDatabase {
           await _assertHiddenTankPresetIdsColumn();
         }
         if (from < 227) await reportProgress();
+        // v228: dive_scenarios (Dive Lab saved scenarios). createTable is IF
+        // NOT EXISTS and the index is guarded, so the block is idempotent;
+        // the beforeOpen backstop re-asserts the same objects.
+        if (from < 228) {
+          await _assertDiveScenariosSchema();
+        }
+        if (from < 228) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
@@ -13079,6 +13133,10 @@ class AppDatabase extends _$AppDatabase {
         // version-collision self-heal). Column only, so it cannot touch
         // diver data.
         await _assertMediaCloudAssetIdColumn();
+        // v228 backstop: re-assert the dive_scenarios table and its index for
+        // databases that reached 228 through a parallel branch, a restore or
+        // sync-adopt without running the onUpgrade block.
+        await _assertDiveScenariosSchema();
 
         // v194 backstop: re-assert dive_tanks.transmitter_serial. Every tank
         // read selects the whole row, so a database that arrives by restore

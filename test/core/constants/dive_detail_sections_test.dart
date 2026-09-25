@@ -11,7 +11,7 @@ void main() {
     // compiler only partly checks, so this failing is the prompt to also
     // update defaultSections and the ARB keys for the localized switches.
     test('section count changes are intentional', () {
-      expect(DiveDetailSectionId.values.length, 23);
+      expect(DiveDetailSectionId.values.length, 24);
     });
 
     test('values match expected IDs', () {
