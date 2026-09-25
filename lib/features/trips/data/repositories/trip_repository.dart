@@ -11,9 +11,11 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/checklists/data/repositories/trip_checklist_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_day_weather_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/domain/entities/dive_candidate.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart' as domain;
 
@@ -273,6 +275,8 @@ class TripRepository {
         await ItineraryDayRepository().deleteByTripId(id);
         await TripChecklistRepository().deleteByTripId(id);
         await TripDayWeatherRepository().deleteByTripId(id);
+        // Slots, their ledger and the links on the tanks that used them.
+        await TripCylinderRepository().deleteByTripId(id);
 
         // Remove trip association from dives (nullable FK)
         await _db.customUpdate(
@@ -347,6 +351,14 @@ class TripRepository {
   Future<void> assignDiveToTrip(String diveId, String tripId) async {
     try {
       _log.info('Assigning dive $diveId to trip $tripId');
+      // A link into another trip's slot means nothing on this dive.
+      await clearForeignTripCylinderLinks(
+        _db,
+        _syncRepository,
+        diveId,
+        tripId: tripId,
+        now: DateTime.now().millisecondsSinceEpoch,
+      );
       await _db.customUpdate(
         'UPDATE dives SET trip_id = ? WHERE id = ?',
         variables: [Variable.withString(tripId), Variable.withString(diveId)],
@@ -367,6 +379,14 @@ class TripRepository {
   Future<void> removeDiveFromTrip(String diveId) async {
     try {
       _log.info('Removing dive $diveId from trip');
+      // Off the trip, the dive can hold no slot link at all.
+      await clearForeignTripCylinderLinks(
+        _db,
+        _syncRepository,
+        diveId,
+        tripId: null,
+        now: DateTime.now().millisecondsSinceEpoch,
+      );
       await _db.customUpdate(
         'UPDATE dives SET trip_id = NULL WHERE id = ?',
         variables: [Variable.withString(diveId)],
@@ -474,6 +494,13 @@ class TripRepository {
 
       await _db.transaction(() async {
         for (final diveId in diveIds) {
+          await clearForeignTripCylinderLinks(
+            _db,
+            _syncRepository,
+            diveId,
+            tripId: tripId,
+            now: now,
+          );
           await _db.customUpdate(
             'UPDATE dives SET trip_id = ?, updated_at = ? WHERE id = ?',
             variables: [
