@@ -581,6 +581,31 @@ All pure-Dart layers use plain `test`, no widgets.
   equipment query); `dives:any` / `dives:none` cover the presence case.
 - Cross-entity result handoffs (a dive query producing a site list).
 
+## Amendments recorded while planning PR 1
+
+Writing the PR 1 plan against the real code changed four points above.
+The plan is authoritative where they differ.
+
+- **Scoped groups.** The AST gains `ScopedNode(path, inner)`, written
+  `path[inner]`, evaluating `inner` on ONE row of the relation. Without it
+  `customFields.key = k AND customFields.value ~ v` tests two rows, and the
+  lowering table in Unit 5 could not be expressed. The grammar gains
+  `primary := path '[' or ']'`.
+- **A relation is how a row is named.** There is no `ref` field type.
+  `site = "Salt Pier"` is the relation `site` with `=` and a `RefValue`,
+  compiled as the hop with `{to}.id = ?` inside; `site.country = x` is the
+  same relation followed. Relations accept `=`, `!=`, `in`, `:none`, `:any`
+  and `[...]`. `QueryRelation` gains an optional `emptySql` so `buddies:none`
+  can count the legacy `dives.buddy` text.
+- **Every hop is a correlated `EXISTS`**, including fk hops; no `JOIN`
+  form. One shape keeps the compiler small and SQLite plans the primary-key
+  lookup identically (an `EXPLAIN QUERY PLAN` test pins it).
+- **Change ticks are declared, then derived.** `tablesTouched` is built
+  from `tables` lists on fields, relations and the text search (SQL
+  fragments are opaque strings), and a registry guard checks every declared
+  table exists. The entity views take an id set (`getDiveIdsMatching`) and
+  narrow the already-hydrated list rather than rehydrating.
+
 ## Open items for the implementation plans
 
 - PR 1 must re-grep `currentSchemaVersion` only if it adds a table; it does
