@@ -14010,8 +14010,51 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_blender_lineAmount => 'المبلغ';
 
   @override
-  String get gasCalculators_blender_lineNeedsDescription =>
-      'أدخل وصفًا، أو أسطوانة ومزيجًا.';
+  String get gasCalculators_blender_lineNeedsDescription => 'أدخل وصفًا.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'تعبئة غاز';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'مبلغ حر';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'التعبئة';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'الضغط الابتدائي';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'الضغط النهائي';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'ضغط التعبئة: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'المبلغ: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'لم يُحدَّد سعر لهذا الغاز، لذا يُحتسب بصفر.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'يجب أن يكون الضغط النهائي أعلى من الضغط الابتدائي.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'أدخل ضغطًا ابتدائيًا وضغطًا نهائيًا.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder => 'أدخل سعة الأسطوانة.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'اختياري. إذا تُرك فارغًا، يُنشأ من التعبئة.';
 
   @override
   String get gasCalculators_blender_export => 'تصدير';

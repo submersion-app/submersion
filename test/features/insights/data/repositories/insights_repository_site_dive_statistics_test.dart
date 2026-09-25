@@ -22,8 +22,14 @@ void main() {
   // Helpers
   // ---------------------------------------------------------------------------
 
+  // A counter, not the clock: Windows' clock granularity is coarser than a
+  // microsecond, so two inserts in the same tick produced the same id and the
+  // second failed the primary key (issue #2279).
+  var nextId = 0;
+  String uniqueId(String prefix) => '$prefix-${nextId++}';
+
   Future<String> insertSite({String? id, String? name}) async {
-    final siteId = id ?? 'site-${DateTime.now().microsecondsSinceEpoch}';
+    final siteId = id ?? uniqueId('site');
     await db
         .into(db.diveSites)
         .insert(
@@ -38,7 +44,7 @@ void main() {
   }
 
   Future<String> insertDiver({String? id, String name = 'Test Diver'}) async {
-    final diverId = id ?? 'diver-${DateTime.now().microsecondsSinceEpoch}';
+    final diverId = id ?? uniqueId('diver');
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.divers)
@@ -67,7 +73,7 @@ void main() {
     bool excludedFromStats = false,
     bool isPlanned = false,
   }) async {
-    final diveId = id ?? 'dive-${DateTime.now().microsecondsSinceEpoch}';
+    final diveId = id ?? uniqueId('dive');
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.dives)

@@ -8317,7 +8317,33 @@
   "gasCalculators_blender_addManualLine": "Add a line",
   "gasCalculators_blender_lineDescription": "Description",
   "gasCalculators_blender_lineAmount": "Amount",
-  "gasCalculators_blender_lineNeedsDescription": "Enter a description, or a cylinder and mix.",
+  "gasCalculators_blender_lineNeedsDescription": "Enter a description.",
+  "gasCalculators_blender_lineKindGas": "Gas fill",
+  "gasCalculators_blender_lineKindAmount": "Free amount",
+  "gasCalculators_blender_lineGas": "Fill",
+  "gasCalculators_blender_lineStartPressure": "Start pressure",
+  "gasCalculators_blender_lineEndPressure": "End pressure",
+  "gasCalculators_blender_lineFillPressure": "Fill pressure: {pressure}",
+  "gasCalculators_blender_lineComputedAmount": "Amount: {amount}",
+  "gasCalculators_blender_lineNoPrice": "No price is set for this gas, so it is charged at 0.",
+  "gasCalculators_blender_lineInvalidPressure": "The end pressure must be above the start pressure.",
+  "gasCalculators_blender_lineNeedsPressure": "Enter a start and an end pressure.",
+  "gasCalculators_blender_lineNeedsCylinder": "Enter a cylinder volume.",
+  "gasCalculators_blender_lineDescriptionOptional": "Optional. Left empty, it is generated from the fill.",
+  "@gasCalculators_blender_lineFillPressure": {
+    "placeholders": {
+      "pressure": {
+        "type": "String"
+      }
+    }
+  },
+  "@gasCalculators_blender_lineComputedAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "gasCalculators_blender_export": "Export",
   "gasCalculators_blender_exportPdf": "Export as PDF",
   "gasCalculators_blender_exportImage": "Export as Image",

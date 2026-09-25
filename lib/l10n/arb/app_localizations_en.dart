@@ -14021,7 +14021,52 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_lineNeedsDescription =>
-      'Enter a description, or a cylinder and mix.';
+      'Enter a description.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'Gas fill';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'Free amount';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'Fill';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'Start pressure';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'End pressure';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'Fill pressure: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'Amount: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'No price is set for this gas, so it is charged at 0.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'The end pressure must be above the start pressure.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'Enter a start and an end pressure.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder =>
+      'Enter a cylinder volume.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'Optional. Left empty, it is generated from the fill.';
 
   @override
   String get gasCalculators_blender_export => 'Export';

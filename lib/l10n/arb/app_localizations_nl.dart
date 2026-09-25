@@ -14139,7 +14139,52 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_lineNeedsDescription =>
-      'Voer een omschrijving in, of een fles en mengsel.';
+      'Voer een omschrijving in.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'Gasvulling';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'Vrij bedrag';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'Vulling';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'Begindruk';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'Einddruk';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'Vuldruk: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'Bedrag: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'Voor dit gas is geen prijs ingesteld, dus het wordt tegen 0 berekend.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'De einddruk moet boven de begindruk liggen.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'Voer een begin- en een einddruk in.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder =>
+      'Voer een flesinhoud in.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'Optioneel. Leeg gelaten wordt het uit de vulling gemaakt.';
 
   @override
   String get gasCalculators_blender_export => 'Exporteren';

@@ -23485,8 +23485,80 @@ abstract class AppLocalizations {
   /// No description provided for @gasCalculators_blender_lineNeedsDescription.
   ///
   /// In en, this message translates to:
-  /// **'Enter a description, or a cylinder and mix.'**
+  /// **'Enter a description.'**
   String get gasCalculators_blender_lineNeedsDescription;
+
+  /// No description provided for @gasCalculators_blender_lineKindGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas fill'**
+  String get gasCalculators_blender_lineKindGas;
+
+  /// No description provided for @gasCalculators_blender_lineKindAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Free amount'**
+  String get gasCalculators_blender_lineKindAmount;
+
+  /// No description provided for @gasCalculators_blender_lineGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill'**
+  String get gasCalculators_blender_lineGas;
+
+  /// No description provided for @gasCalculators_blender_lineStartPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Start pressure'**
+  String get gasCalculators_blender_lineStartPressure;
+
+  /// No description provided for @gasCalculators_blender_lineEndPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'End pressure'**
+  String get gasCalculators_blender_lineEndPressure;
+
+  /// No description provided for @gasCalculators_blender_lineFillPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill pressure: {pressure}'**
+  String gasCalculators_blender_lineFillPressure(String pressure);
+
+  /// No description provided for @gasCalculators_blender_lineComputedAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount: {amount}'**
+  String gasCalculators_blender_lineComputedAmount(String amount);
+
+  /// No description provided for @gasCalculators_blender_lineNoPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'No price is set for this gas, so it is charged at 0.'**
+  String get gasCalculators_blender_lineNoPrice;
+
+  /// No description provided for @gasCalculators_blender_lineInvalidPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'The end pressure must be above the start pressure.'**
+  String get gasCalculators_blender_lineInvalidPressure;
+
+  /// No description provided for @gasCalculators_blender_lineNeedsPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a start and an end pressure.'**
+  String get gasCalculators_blender_lineNeedsPressure;
+
+  /// No description provided for @gasCalculators_blender_lineNeedsCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a cylinder volume.'**
+  String get gasCalculators_blender_lineNeedsCylinder;
+
+  /// No description provided for @gasCalculators_blender_lineDescriptionOptional.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional. Left empty, it is generated from the fill.'**
+  String get gasCalculators_blender_lineDescriptionOptional;
 
   /// No description provided for @gasCalculators_blender_export.
   ///

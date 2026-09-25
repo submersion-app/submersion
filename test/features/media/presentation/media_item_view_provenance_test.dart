@@ -25,6 +25,7 @@ import 'package:submersion/features/media_store/data/media_cache_store.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
 
 import '../../../helpers/in_memory_media_object_store.dart';
+import '../../../helpers/temp_dir.dart';
 
 /// Valid 1x1 transparent PNG.
 const _onePixelPngBase64 =
@@ -87,7 +88,7 @@ void main() {
 
   tearDown(() async {
     await db.close();
-    if (await root.exists()) await root.delete(recursive: true);
+    await deleteTempDir(root);
   });
 
   Widget app(

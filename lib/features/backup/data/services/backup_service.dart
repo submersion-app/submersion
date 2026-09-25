@@ -121,7 +121,7 @@ class BackupService {
   final _log = LoggerService.forClass(BackupService);
   final _uuid = const Uuid();
 
-  static const String _localBackupFolder = 'Submersion/Backups';
+  static const List<String> _localBackupFolder = ['Submersion', 'Backups'];
   static const String _cloudBackupFolder = 'Submersion Backups';
 
   BackupService({
@@ -1177,7 +1177,7 @@ class BackupService {
   /// looking somewhere the writer does not use.
   static Future<String> defaultBackupsDirectoryPath() async {
     final appDir = await getApplicationDocumentsDirectory();
-    return p.join(appDir.path, _localBackupFolder);
+    return p.joinAll([appDir.path, ..._localBackupFolder]);
   }
 
   /// The bookmark port production uses. Exposed so a read-only resolver can

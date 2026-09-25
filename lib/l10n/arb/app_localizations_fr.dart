@@ -14295,7 +14295,52 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_lineNeedsDescription =>
-      'Saisissez une description, ou une bouteille et un mélange.';
+      'Saisissez une description.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'Gonflage de gaz';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'Montant libre';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'Gonflage';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'Pression initiale';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'Pression finale';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'Pression de gonflage : $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'Montant : $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'Aucun prix n\'est défini pour ce gaz, il est facturé à 0.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'La pression finale doit être supérieure à la pression initiale.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'Saisissez une pression initiale et une pression finale.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder =>
+      'Saisissez un volume de bloc.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'Facultatif. Laissé vide, il est généré à partir du gonflage.';
 
   @override
   String get gasCalculators_blender_export => 'Exporter';

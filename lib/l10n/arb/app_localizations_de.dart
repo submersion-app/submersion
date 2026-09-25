@@ -14229,7 +14229,52 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_lineNeedsDescription =>
-      'Gib eine Beschreibung oder Flasche und Mischung ein.';
+      'Gib eine Bezeichnung ein.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'Gasfüllung';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'Freier Betrag';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'Füllung';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'Anfangsdruck';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'Enddruck';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'Fülldruck: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'Betrag: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'Für dieses Gas ist kein Preis hinterlegt, es wird mit 0 berechnet.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'Der Enddruck muss über dem Anfangsdruck liegen.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'Gib einen Anfangs- und einen Enddruck ein.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder =>
+      'Gib ein Flaschenvolumen ein.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'Optional. Bleibt das Feld leer, wird die Bezeichnung aus der Füllung erzeugt.';
 
   @override
   String get gasCalculators_blender_export => 'Exportieren';

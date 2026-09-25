@@ -17,6 +17,7 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/temp_dir.dart';
 
 const _dpr = 2.0;
 const _captureKey = ValueKey('capture');
@@ -164,7 +165,7 @@ void main() {
       // Frame capture runs real async work, which lets flutter_map's built-in
       // tile cache ask path_provider for a directory.
       final cacheDir = Directory.systemTemp.createTempSync('header_edge_');
-      addTearDown(() => cacheDir.deleteSync(recursive: true));
+      addTearDown(() => deleteTempDir(cacheDir));
       final messenger =
           TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger;
       const channel = MethodChannel('plugins.flutter.io/path_provider');

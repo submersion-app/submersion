@@ -14250,7 +14250,52 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_lineNeedsDescription =>
-      'Inserisci una descrizione, oppure una bombola e una miscela.';
+      'Inserisci una descrizione.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'Ricarica di gas';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'Importo libero';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'Ricarica';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'Pressione iniziale';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'Pressione finale';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'Pressione di ricarica: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'Importo: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'Nessun prezzo impostato per questo gas, quindi viene addebitato a 0.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'La pressione finale deve essere superiore a quella iniziale.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'Inserisci una pressione iniziale e una finale.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder =>
+      'Inserisci un volume della bombola.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'Facoltativo. Se lasciato vuoto, viene generato dalla ricarica.';
 
   @override
   String get gasCalculators_blender_export => 'Esporta';

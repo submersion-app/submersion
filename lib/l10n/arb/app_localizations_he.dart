@@ -13909,8 +13909,51 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_blender_lineAmount => 'סכום';
 
   @override
-  String get gasCalculators_blender_lineNeedsDescription =>
-      'יש להזין תיאור, או מכל ותערובת.';
+  String get gasCalculators_blender_lineNeedsDescription => 'יש להזין תיאור.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'מילוי גז';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'סכום חופשי';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'מילוי';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'לחץ התחלתי';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'לחץ סופי';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'לחץ מילוי: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'סכום: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'לא הוגדר מחיר לגז זה, ולכן הוא מחויב ב-0.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'הלחץ הסופי חייב להיות גבוה מהלחץ ההתחלתי.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'יש להזין לחץ התחלתי ולחץ סופי.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder => 'יש להזין נפח מכל.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'אופציונלי. אם יישאר ריק, הוא ייווצר מתוך המילוי.';
 
   @override
   String get gasCalculators_blender_export => 'ייצוא';

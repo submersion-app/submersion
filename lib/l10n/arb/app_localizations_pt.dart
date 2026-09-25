@@ -14247,7 +14247,52 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get gasCalculators_blender_lineNeedsDescription =>
-      'Introduza uma descrição, ou um cilindro e uma mistura.';
+      'Introduza uma descrição.';
+
+  @override
+  String get gasCalculators_blender_lineKindGas => 'Enchimento de gás';
+
+  @override
+  String get gasCalculators_blender_lineKindAmount => 'Valor livre';
+
+  @override
+  String get gasCalculators_blender_lineGas => 'Enchimento';
+
+  @override
+  String get gasCalculators_blender_lineStartPressure => 'Pressão inicial';
+
+  @override
+  String get gasCalculators_blender_lineEndPressure => 'Pressão final';
+
+  @override
+  String gasCalculators_blender_lineFillPressure(String pressure) {
+    return 'Pressão de enchimento: $pressure';
+  }
+
+  @override
+  String gasCalculators_blender_lineComputedAmount(String amount) {
+    return 'Valor: $amount';
+  }
+
+  @override
+  String get gasCalculators_blender_lineNoPrice =>
+      'Não há preço definido para este gás, por isso é cobrado a 0.';
+
+  @override
+  String get gasCalculators_blender_lineInvalidPressure =>
+      'A pressão final tem de ser superior à pressão inicial.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsPressure =>
+      'Introduza uma pressão inicial e uma final.';
+
+  @override
+  String get gasCalculators_blender_lineNeedsCylinder =>
+      'Introduza um volume de cilindro.';
+
+  @override
+  String get gasCalculators_blender_lineDescriptionOptional =>
+      'Opcional. Se ficar vazio, é gerado a partir do enchimento.';
 
   @override
   String get gasCalculators_blender_export => 'Exportar';

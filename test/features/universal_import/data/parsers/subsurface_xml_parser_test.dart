@@ -1757,6 +1757,14 @@ $dives
   });
 
   group('integration - real Subsurface export', () {
+    const shoreLogFixturePath =
+        'test/features/universal_import/data/parsers/fixtures/shore-log.ssrf';
+
+    Future<ImportPayload> parseShoreLog() async {
+      final bytes = await File(shoreLogFixturePath).readAsBytes();
+      return parser.parse(Uint8List.fromList(bytes));
+    }
+
     test('parses dual-cylinder fixture as two tanks', () async {
       final file = File(dualTankFixturePath);
       final diveXml = await file.readAsString();
@@ -1834,45 +1842,32 @@ $diveXml
       ]);
     });
 
-    test('parses subsurface_export.ssrf with correct counts', () async {
-      final file = File('subsurface_export.ssrf');
-      if (!file.existsSync()) {
-        markTestSkipped('subsurface_export.ssrf not found in project root');
-        return;
-      }
+    test('parses the shore-log fixture with correct counts', () async {
+      final result = await parseShoreLog();
 
-      final bytes = Uint8List.fromList(await file.readAsBytes());
-      final result = await parser.parse(bytes);
-
-      // Verify counts from the actual export
       final dives = result.entitiesOf(ImportEntityType.dives);
-      expect(dives.length, 16);
+      expect(dives.length, 4);
 
-      // The export holds six site entries, two of which are 'Maclearie Park'
+      // The export holds three site entries, two of which are 'North Jetty'
       // 1.8 m apart -- Subsurface split them on GPS drift between two entries.
       // They fold back into one site, and every dive that referenced either
       // uuid follows the survivor.
       final sites = result.entitiesOf(ImportEntityType.sites);
-      expect(sites.length, 4);
+      expect(sites.length, 2);
       expect(
-        sites.map((s) => s['name']),
-        containsAll(<String>['Maclearie Park']),
-      );
-      expect(
-        sites.where((s) => s['name'] == 'Maclearie Park').length,
+        sites.where((s) => s['name'] == 'North Jetty').length,
         1,
         reason: 'GPS-drift duplicates of one site must not import twice',
       );
 
-      final maclearieId = sites.firstWhere(
-        (s) => s['name'] == 'Maclearie Park',
+      final jettyId = sites.firstWhere(
+        (s) => s['name'] == 'North Jetty',
       )['uddfId'];
-      final maclearieDives = dives.where(
-        (d) => (d['site'] as Map<String, dynamic>?)?['uddfId'] == maclearieId,
+      final jettyDives = dives.where(
+        (d) => (d['site'] as Map<String, dynamic>?)?['uddfId'] == jettyId,
       );
-      expect(maclearieDives.length, greaterThan(1));
+      expect(jettyDives.map((d) => d['diveNumber']), [1, 2]);
 
-      // Verify a specific dive has expected data
       final dive1 = dives.firstWhere((d) => d['diveNumber'] == 1);
       expect(dive1['dateTime'], DateTime.utc(2025, 9, 20, 7, 44, 37));
       final buddyRefs = dive1['buddyRefs'] as List<String>;
@@ -1887,28 +1882,23 @@ $diveXml
       expect(dive1['currentStrength'], CurrentStrength.strong);
       expect(dive1['waterType'], WaterType.salt);
 
-      // Verify profile data exists
       final profile = dive1['profile'] as List<Map<String, dynamic>>?;
       expect(profile, isNotNull);
       expect(profile!.length, greaterThan(10));
 
-      // Verify tanks
       final tanks = dive1['tanks'] as List<Map<String, dynamic>>?;
       expect(tanks, isNotNull);
       expect(tanks!.length, 1);
       expect(tanks[0]['name'], 'AL80');
 
-      // Verify weights
       final weights = dive1['weights'] as List<Map<String, dynamic>>?;
       expect(weights, isNotNull);
       expect(weights!.length, 1);
       expect(weights[0]['type'], WeightType.belt);
 
-      // Verify tags extracted
       final tags = result.entitiesOf(ImportEntityType.tags);
       expect(tags.length, greaterThanOrEqualTo(2));
 
-      // Verify no error warnings
       final errors = result.warnings.where(
         (w) => w.severity == ImportWarningSeverity.error,
       );
@@ -1916,34 +1906,21 @@ $diveXml
     });
 
     test('does not invent extra tanks from placeholder cylinders', () async {
-      final file = File('subsurface_export.ssrf');
-      if (!file.existsSync()) {
-        markTestSkipped('subsurface_export.ssrf not found in project root');
-        return;
-      }
+      final dives = (await parseShoreLog()).entitiesOf(ImportEntityType.dives);
 
-      final bytes = Uint8List.fromList(await file.readAsBytes());
-      final result = await parser.parse(bytes);
-      final dives = result.entitiesOf(ImportEntityType.dives);
-
-      final tankCounts = dives.map((dive) {
-        final tanks = dive['tanks'] as List<Map<String, dynamic>>?;
-        return tanks?.length ?? 0;
-      }).toList();
-
-      expect(tankCounts, isNotEmpty);
-      expect(tankCounts.reduce((a, b) => a > b ? a : b), 1);
-
+      // Empty `<cylinder />` slots sit beside a real cylinder.
       final dive1 = dives.firstWhere((d) => d['diveNumber'] == 1);
       final dive1Tanks = dive1['tanks'] as List<Map<String, dynamic>>?;
       expect(dive1Tanks, isNotNull);
       expect(dive1Tanks!.length, 1);
 
-      final dive10 = dives.firstWhere((d) => d['diveNumber'] == 10);
-      expect(dive10.containsKey('tanks'), isFalse);
+      // Pressure readings alone (`end`, or `start` with `end`) are dive
+      // computer artifacts, not a cylinder the diver described.
+      final dive3 = dives.firstWhere((d) => d['diveNumber'] == 3);
+      expect(dive3.containsKey('tanks'), isFalse);
 
-      final dive11 = dives.firstWhere((d) => d['diveNumber'] == 11);
-      expect(dive11.containsKey('tanks'), isFalse);
+      final dive4 = dives.firstWhere((d) => d['diveNumber'] == 4);
+      expect(dive4.containsKey('tanks'), isFalse);
     });
   });
 
