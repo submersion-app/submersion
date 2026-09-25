@@ -56,7 +56,7 @@ Modify:
 
 ---
 
-### Task 1: Data follow-ups from the PR 1 review
+### Task 1: Data follow-ups from the PR 1 review (the fold tie-break; the trip filter already shipped in PR 1)
 
 **Files:**
 - Modify: `lib/features/trips/domain/entities/trip_cylinder_state.dart`
@@ -191,24 +191,6 @@ In `test/features/trips/data/repositories/trip_cylinder_repository_test.dart`, w
 
 ```dart
   group('board follow-ups', () {
-    test('a linked tank on a dive of another trip is not counted', () async {
-      // A cross-device race: one device links the tank, the other moves the
-      // dive to another trip. The board must count only this trip's dives.
-      final a = await repository.createCylinder(slot(label: 'A'));
-      await insertDiveWithTank(
-        diveId: 'd1',
-        tankId: 't1',
-        entryMillis: at.millisecondsSinceEpoch,
-        cylinderId: a.id,
-      );
-      await db.customUpdate(
-        'UPDATE dives SET trip_id = ? WHERE id = ?',
-        variables: [Variable<String>(otherTripId), Variable<String>('d1')],
-      );
-
-      expect(await repository.getTankUsesForTrip(tripId), isEmpty);
-    });
-
     test('a tank use carries its dive site name', () async {
       final a = await repository.createCylinder(slot(label: 'A'));
       await db
@@ -259,9 +241,9 @@ In `test/features/trips/data/repositories/trip_cylinder_repository_test.dart`, w
 - [ ] **Step 7: Run them to verify they fail**
 
 Run: `flutter test test/features/trips/data/repositories/trip_cylinder_repository_test.dart`
-Expected: FAIL to compile: `siteName` and `reorderCylinders` are not defined.
+Expected: FAIL to compile: `siteName` and `reorderCylinders` are not defined. (The trip filter on tank uses already landed in PR 1, with its test.)
 
-- [ ] **Step 8: Filter on the dive's trip, read the site, add reorder**
+- [ ] **Step 8: Read the site name and add reorder**
 
 In `lib/features/trips/data/repositories/trip_cylinder_repository.dart`, in `getTankUsesForTrip`, replace the SQL body
 
@@ -271,12 +253,13 @@ In `lib/features/trips/data/repositories/trip_cylinder_repository.dart`, in `get
                  t.trip_cylinder_id
           FROM dive_tanks t
           JOIN dives d ON d.id = t.dive_id
-          WHERE t.trip_cylinder_id IN
-                (SELECT id FROM trip_cylinders WHERE trip_id = ?)
+          WHERE d.trip_id = ?1
+            AND t.trip_cylinder_id IN
+                (SELECT id FROM trip_cylinders WHERE trip_id = ?1)
           ORDER BY d.dive_date_time ASC, t.tank_order ASC
 ```
 
-with
+(the trip filter landed in PR 1 after its review) with
 
 ```sql
           SELECT t.id AS tank_id, t.dive_id, d.dive_date_time,
@@ -4971,4 +4954,4 @@ Expected: no output. Then scan the same diff for the two tool-attribution terms 
 
 - [ ] **Step 5: Push and open the pull request, only when the user asks**
 
-Pushing and opening a PR are outward actions; wait for the user's go-ahead. Then push with `-u`, and create the PR in one Bash call with `unset GITHUB_TOKEN; gh pr create --repo submersion-app/submersion --base main ...` and a body whose first line is `Part of #2325`, summarizing: the story card, the board page and route, the four sheets, the ledger, the strings in all 11 locales, and the two PR 1 review follow-ups (the board counts only the trip's own dives; the fold breaks every tie deterministically). Bind the PR in the desktop app and read CI through it; never poll.
+Pushing and opening a PR are outward actions; wait for the user's go-ahead. Then push with `-u`, and create the PR in one Bash call with `unset GITHUB_TOKEN; gh pr create --repo submersion-app/submersion --base main ...` and a body whose first line is `Part of #2325`, summarizing: the story card, the board page and route, the four sheets, the ledger, the strings in all 11 locales, and the PR 1 review follow-up (the fold breaks every tie deterministically). Bind the PR in the desktop app and read CI through it; never poll.
