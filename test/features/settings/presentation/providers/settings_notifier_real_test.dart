@@ -139,6 +139,48 @@ void main() {
       expect(container.read(settingsProvider).hiddenChamberIds, isEmpty);
     });
 
+    test('setTankPresetHidden toggles hidden tank presets', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).hiddenTankPresetIds, isEmpty);
+      await container
+          .read(settingsProvider.notifier)
+          .setTankPresetHidden('hp80', true);
+      expect(container.read(settingsProvider).hiddenTankPresetIds, {'hp80'});
+      await container
+          .read(settingsProvider.notifier)
+          .setTankPresetHidden('hp80', false);
+      expect(container.read(settingsProvider).hiddenTankPresetIds, isEmpty);
+    });
+
+    test('setTankPresetHidden never hides the default preset', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      final notifier = container.read(settingsProvider.notifier);
+      await notifier.setDefaultTankPreset('steel12');
+      await notifier.setTankPresetHidden('steel12', true);
+      expect(container.read(settingsProvider).hiddenTankPresetIds, isEmpty);
+    });
+
+    test('setDefaultTankPreset shows a hidden preset again', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      final notifier = container.read(settingsProvider.notifier);
+      await notifier.setTankPresetHidden('hp80', true);
+      await notifier.setTankPresetHidden('lp85', true);
+      await notifier.setDefaultTankPreset('hp80');
+      final settings = container.read(settingsProvider);
+      expect(settings.defaultTankPreset, 'hp80');
+      expect(settings.hiddenTankPresetIds, {'lp85'});
+
+      // Clearing the default leaves the hidden set alone.
+      await notifier.setDefaultTankPreset(null);
+      expect(container.read(settingsProvider).hiddenTankPresetIds, {'lp85'});
+    });
+
     test('setHomeChipEnabled toggles hidden home chips', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();

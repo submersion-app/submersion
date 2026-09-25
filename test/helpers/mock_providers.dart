@@ -159,7 +159,23 @@ class MockSettingsNotifier extends StateNotifier<AppSettings>
       state = state.copyWith(
         defaultTankPreset: presetName,
         clearDefaultTankPreset: presetName == null,
+        hiddenTankPresetIds: {
+          for (final name in state.hiddenTankPresetIds)
+            if (name != presetName && name != state.defaultTankPreset) name,
+        },
       );
+  @override
+  Future<void> setTankPresetHidden(String presetName, bool hidden) async {
+    if (hidden && presetName == state.defaultTankPreset) return;
+    final ids = {...state.hiddenTankPresetIds};
+    if (hidden) {
+      ids.add(presetName);
+    } else {
+      ids.remove(presetName);
+    }
+    state = state.copyWith(hiddenTankPresetIds: ids);
+  }
+
   @override
   Future<void> setApplyDefaultTankToImports(bool value) async =>
       state = state.copyWith(applyDefaultTankToImports: value);

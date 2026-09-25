@@ -1153,7 +1153,7 @@ class _DiveListContentState extends ConsumerState<DiveListContent> {
     return AppBar(
       title: FeatureAppBarTitle(
         featureId: 'dives',
-        title: title ?? context.l10n.diveLog_listPage_title,
+        title: title ?? context.l10n.diveLog_listPage_compactTitle,
       ),
       actions: [
         ...extraActions,

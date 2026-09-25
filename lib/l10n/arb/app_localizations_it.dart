@@ -7685,9 +7685,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Cerca per sito, compagno o note';
 
   @override
-  String get diveLog_listPage_title => 'Diario immersioni';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Indietro';
 
   @override
@@ -14393,6 +14390,91 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get gasCalculators_desc_mnd =>
       'Profondità narcotica limite di una miscela';
+
+  @override
+  String get gasCalculators_tab_density => 'Densità del gas';
+
+  @override
+  String get gasCalculators_desc_density =>
+      'Densità del gas respirato in profondità, OC o CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters => 'Miscela e condizioni';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'Profondità';
+
+  @override
+  String get gasCalculators_density_mode => 'Modalità';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'In CCR la miscela sopra è il gas diluente.';
+
+  @override
+  String get gasCalculators_density_temperature => 'Temperatura del gas';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'Densità del gas';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'Entro il limite raccomandato di $limit g/L.';
+  }
+
+  @override
+  String get gasCalculators_density_eaddLabel =>
+      'Profondità equivalente di densità dell\'aria (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'L\'EADD è la profondità alla quale l\'aria sarebbe densa quanto questo gas. A differenza della densità in g/L, non dipende dalla temperatura.';
+
+  @override
+  String get gasCalculators_density_loopGasTitle =>
+      'Gas del loop in profondità';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'Qui il setpoint supera la pressione ambiente, quindi il loop è ossigeno puro.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'Il solo diluente dà qui una ppO2 di $ppO2, superiore al setpoint. La densità usa la ppO2 del diluente.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle =>
+      'Informazioni sulla densità del gas';
+
+  @override
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'Un gas denso è più faticoso da respirare e aumenta il rischio di ritenzione di CO2. Mantieni la densità a $warn g/L o meno; $critical g/L è il limite massimo.\n\nIn CCR conta la densità del gas nel loop: ossigeno al setpoint, il resto diviso tra azoto ed elio nel rapporto del diluente.\n\nUn gas più freddo è più denso, quindi l\'opzione di temperatura più fredda è quella conservativa. Il calcolo assume un gas ideale.';
+  }
 
   @override
   String get gasCalculators_desc_blender =>
@@ -26180,6 +26262,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get tankPresets_builtInPresets => 'Preset predefiniti';
 
   @override
+  String get tankPresets_builtInPresets_description =>
+      'Disattiva i preset che non usi per nasconderli nei selettori di bombola. Il preset predefinito viene sempre mostrato.';
+
+  @override
   String get tankPresets_currentDefault => 'Predefinito attuale';
 
   @override
@@ -26330,6 +26416,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'Imposta come predefinito';
+
+  @override
+  String get tankPresets_showInPickers => 'Mostra nei selettori di bombola';
 
   @override
   String get tankPresets_title => 'Preset bombole';
