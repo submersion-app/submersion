@@ -1,0 +1,112 @@
+import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
+
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+
+/// Another cylinder the diver can see already carries this passport id.
+class PassportIdInUse implements Exception {
+  final String equipmentId;
+  const PassportIdInUse(this.equipmentId);
+
+  @override
+  String toString() => 'PassportIdInUse($equipmentId)';
+}
+
+/// The passport id of a cylinder: the `passport_id` equipment attribute
+/// (spec section 6.5). Reads and writes go through the equipment
+/// repository's attribute path so the row ids, tombstones and pending marks
+/// match every other curated attribute.
+class CylinderPassportRepository {
+  AppDatabase get _db => DatabaseService.instance.database;
+  final EquipmentRepository _equipment = EquipmentRepository();
+  final CylinderFillRepository _fills = CylinderFillRepository();
+  final _uuid = const Uuid();
+
+  Future<String?> getPassportId(String equipmentId) async {
+    final row =
+        await (_db.select(_db.equipmentAttributes)..where(
+              (t) =>
+                  t.equipmentId.equals(equipmentId) &
+                  t.attrKey.equals(EquipmentAttrKeys.passportId) &
+                  t.isCustom.equals(false),
+            ))
+            .getSingleOrNull();
+    final value = row?.valueText?.trim();
+    return value == null || value.isEmpty ? null : value;
+  }
+
+  /// The one cylinder holding [passportId], limited to [diverId]'s own gear
+  /// when given. The sharing program's visibility clause replaces the
+  /// diver_id test when it lands.
+  Future<String?> findEquipmentIdByPassportId(
+    String passportId, {
+    String? diverId,
+  }) async {
+    final attrs = _db.equipmentAttributes;
+    final eq = _db.equipment;
+    final query =
+        _db.select(attrs).join([
+          innerJoin(eq, eq.id.equalsExp(attrs.equipmentId)),
+        ])..where(
+          attrs.attrKey.equals(EquipmentAttrKeys.passportId) &
+              attrs.isCustom.equals(false) &
+              attrs.valueText.equals(passportId),
+        );
+    if (diverId != null) query.where(eq.diverId.equals(diverId));
+    final rows = await query.get();
+    if (rows.isEmpty) return null;
+    return rows.first.readTable(eq).id;
+  }
+
+  /// Writes [passportId] onto [equipmentId] and relinks the fills stored
+  /// under it. Throws [PassportIdInUse] when a different visible cylinder
+  /// already holds the id.
+  Future<void> assignPassportId({
+    required String equipmentId,
+    required String passportId,
+    String? diverId,
+  }) async {
+    final holder = await findEquipmentIdByPassportId(
+      passportId,
+      diverId: diverId,
+    );
+    if (holder != null && holder != equipmentId) {
+      throw PassportIdInUse(holder);
+    }
+    if (holder != equipmentId) {
+      final existing = await _equipment.getAttributesForEquipment(equipmentId);
+      final desired = [
+        for (final a in existing)
+          if (a.isCustom || a.key != EquipmentAttrKeys.passportId) a,
+        EquipmentAttribute.curated(
+          equipmentId: equipmentId,
+          key: EquipmentAttrKeys.passportId,
+          valueText: passportId,
+        ),
+      ];
+      await _equipment.saveAttributes(equipmentId, desired);
+    }
+    await _fills.relinkToEquipment(
+      passportId: passportId,
+      equipmentId: equipmentId,
+    );
+  }
+
+  /// The cylinder's passport id, minted on first use.
+  Future<String> ensurePassportId(String equipmentId, {String? diverId}) async {
+    final existing = await getPassportId(equipmentId);
+    if (existing != null) return existing;
+    final minted = _uuid.v4();
+    await assignPassportId(
+      equipmentId: equipmentId,
+      passportId: minted,
+      diverId: diverId,
+    );
+    return minted;
+  }
+}

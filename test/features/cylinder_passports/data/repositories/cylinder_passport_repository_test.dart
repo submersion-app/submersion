@@ -1,0 +1,118 @@
+import 'package:drift/drift.dart' show Value;
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+
+import '../../../../helpers/test_database.dart';
+
+void main() {
+  late AppDatabase db;
+  late CylinderPassportRepository repo;
+  const id = '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
+
+  Future<void> seedEquipment(String eq, {String diver = 'd1'}) async {
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: eq,
+            name: eq,
+            type: 'tank',
+            createdAt: t,
+            updatedAt: t,
+            diverId: Value(diver),
+          ),
+        );
+  }
+
+  setUp(() async {
+    db = await setUpTestDatabase();
+    repo = CylinderPassportRepository();
+    final t = DateTime.now().millisecondsSinceEpoch;
+    for (final d in ['d1', 'd2']) {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(id: d, name: d, createdAt: t, updatedAt: t),
+          );
+    }
+    await seedEquipment('eq-1');
+    await seedEquipment('eq-2');
+    await seedEquipment('eq-other', diver: 'd2');
+  });
+
+  tearDown(tearDownTestDatabase);
+
+  test('assign, read and look up by passport id', () async {
+    expect(await repo.getPassportId('eq-1'), isNull);
+    await repo.assignPassportId(
+      equipmentId: 'eq-1',
+      passportId: id,
+      diverId: 'd1',
+    );
+    expect(await repo.getPassportId('eq-1'), id);
+    expect(await repo.findEquipmentIdByPassportId(id, diverId: 'd1'), 'eq-1');
+    expect(await repo.findEquipmentIdByPassportId(id, diverId: 'd2'), isNull);
+    expect(await repo.findEquipmentIdByPassportId(id), 'eq-1');
+  });
+
+  test('ensurePassportId mints once and is stable', () async {
+    final first = await repo.ensurePassportId('eq-1', diverId: 'd1');
+    final second = await repo.ensurePassportId('eq-1', diverId: 'd1');
+    expect(first, second);
+    expect(
+      RegExp(
+        r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+      ).hasMatch(first),
+      isTrue,
+    );
+  });
+
+  test('refuses an id another visible cylinder holds', () async {
+    await repo.assignPassportId(
+      equipmentId: 'eq-1',
+      passportId: id,
+      diverId: 'd1',
+    );
+    expect(
+      () => repo.assignPassportId(
+        equipmentId: 'eq-2',
+        passportId: id,
+        diverId: 'd1',
+      ),
+      throwsA(
+        isA<PassportIdInUse>().having((e) => e.equipmentId, 'holder', 'eq-1'),
+      ),
+    );
+    // Re-assigning the same id to the same item is a no-op, not a conflict.
+    await repo.assignPassportId(
+      equipmentId: 'eq-1',
+      passportId: id,
+      diverId: 'd1',
+    );
+  });
+
+  test('assigning relinks orphaned fills under that id', () async {
+    final fills = CylinderFillRepository();
+    final t = DateTime(2026, 9, 1);
+    await fills.create(
+      CylinderFill(
+        id: 'a',
+        passportId: id,
+        filledAt: t,
+        o2Percent: 21,
+        createdAt: t,
+        updatedAt: t,
+      ),
+    );
+    await repo.assignPassportId(
+      equipmentId: 'eq-2',
+      passportId: id,
+      diverId: 'd1',
+    );
+    expect((await fills.getById('a'))!.equipmentId, 'eq-2');
+  });
+}
