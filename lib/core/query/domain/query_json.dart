@@ -138,7 +138,15 @@ DateTime _readDay(Object? v) {
   if (parts.length != 3) throw QueryJsonException('bad day $s');
   final numbers = parts.map(int.tryParse).toList();
   if (numbers.any((n) => n == null)) throw QueryJsonException('bad day $s');
-  return DateTime(numbers[0]!, numbers[1]!, numbers[2]!);
+  final day = DateTime(numbers[0]!, numbers[1]!, numbers[2]!);
+  // DateTime normalizes an impossible day (2025-02-30 becomes March 2). A
+  // corrupted or hand-edited saved query must fail, never change meaning.
+  if (day.year != numbers[0] ||
+      day.month != numbers[1] ||
+      day.day != numbers[2]) {
+    throw QueryJsonException('impossible day $s');
+  }
+  return day;
 }
 
 String _str(Object? v) {

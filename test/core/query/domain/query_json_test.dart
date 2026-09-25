@@ -81,4 +81,38 @@ void main() {
       throwsA(isA<QueryJsonException>()),
     );
   });
+
+  test('rejects an impossible calendar day instead of normalizing it', () {
+    // DateTime(2025, 2, 30) would silently become March 2; a hand-edited or
+    // corrupted saved query must fail, never change meaning.
+    for (final kind in ['date', 'range']) {
+      expect(
+        () => queryNodeFromJson({
+          'version': 1,
+          'node': {
+            't': 'cond',
+            'path': ['date'],
+            'op': kind == 'date' ? 'eq' : 'inList',
+            'value': kind == 'date'
+                ? {'k': 'date', 'v': '2025-02-30'}
+                : {'k': 'range', 's': '2025-02-30', 'e': '2025-03-01'},
+          },
+        }),
+        throwsA(isA<QueryJsonException>()),
+        reason: kind,
+      );
+    }
+    expect(
+      () => queryNodeFromJson({
+        'version': 1,
+        'node': {
+          't': 'cond',
+          'path': ['date'],
+          'op': 'eq',
+          'value': {'k': 'date', 'v': '2025-13-01'},
+        },
+      }),
+      throwsA(isA<QueryJsonException>()),
+    );
+  });
 }
