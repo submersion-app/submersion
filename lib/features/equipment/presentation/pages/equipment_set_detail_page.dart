@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:go_router/go_router.dart';
@@ -15,14 +17,60 @@ import 'package:submersion/features/equipment/domain/services/equipment_arranger
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/widgets/equipment_group_header.dart';
 import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
+import 'package:submersion/features/equipment/figure/domain/figure_composer.dart';
+import 'package:submersion/features/equipment/figure/domain/figure_inputs.dart';
+import 'package:submersion/features/equipment/figure/presentation/diver_figure.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 
-class EquipmentSetDetailPage extends ConsumerWidget {
+class EquipmentSetDetailPage extends ConsumerStatefulWidget {
   final String setId;
 
   const EquipmentSetDetailPage({super.key, required this.setId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<EquipmentSetDetailPage> createState() =>
+      _EquipmentSetDetailPageState();
+}
+
+class _EquipmentSetDetailPageState
+    extends ConsumerState<EquipmentSetDetailPage> {
+  /// The item whose disc and legend row are highlighted, cleared after a
+  /// moment so the highlight reads as a flash rather than a selection mode.
+  String? _selectedId;
+  Timer? _flashTimer;
+  final Map<String, GlobalKey> _rowKeys = {};
+
+  String get setId => widget.setId;
+
+  @override
+  void dispose() {
+    _flashTimer?.cancel();
+    super.dispose();
+  }
+
+  /// Highlights [id] on the figure and in the list, and brings its row into
+  /// view. Tapping either a disc or a row badge lands here.
+  void _select(String id) {
+    _flashTimer?.cancel();
+    setState(() => _selectedId = id);
+    _flashTimer = Timer(const Duration(milliseconds: 1200), () {
+      if (mounted) setState(() => _selectedId = null);
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final rowContext = _rowKeys[id]?.currentContext;
+      if (rowContext != null && rowContext.mounted) {
+        Scrollable.ensureVisible(
+          rowContext,
+          alignment: 0.3,
+          duration: const Duration(milliseconds: 300),
+        );
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final setAsync = ref.watch(equipmentSetProvider(setId));
 
     return setAsync.when(
@@ -64,6 +112,22 @@ class EquipmentSetDetailPage extends ConsumerWidget {
       ref,
       set.items ?? const <EquipmentItem>[],
     );
+    // Arranged the same way as the gear lists on a dive, so a set reads the
+    // way the diver reads their rig (#1486, #1576). The figure numbers items
+    // in this same order, so its discs and the list's badges agree.
+    final groups = arrangeEquipment(
+      set.items ?? const <EquipmentItem>[],
+      ref.watch(equipmentArrangementProvider),
+      typeLabel: (type) => type.localizedName(context.l10n),
+    );
+    final ordered = [for (final group in groups) ...group.items];
+    final components =
+        ref.watch(equipmentComponentsIndexProvider).value ??
+        ComponentsIndex.empty;
+    final model = composeFigure(
+      figureInputsFromItems(ordered, components: components),
+    );
+    final numberById = {for (final p in model.numbered) p.item.id: p.number};
     return Scaffold(
       appBar: AppBar(
         title: Text(set.name),
@@ -180,6 +244,30 @@ class EquipmentSetDetailPage extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 24),
+            if (ordered.isNotEmpty) ...[
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: DiverFigure(
+                    model: model,
+                    semanticsLabel: context.l10n.equipment_figure_summary(
+                      set.name,
+                      model.itemCount,
+                    ),
+                    selectedItemId: _selectedId,
+                    onItemTap: (placed) => _select(placed.item.id),
+                    discLabel: (placed) =>
+                        context.l10n.equipment_figure_discLabel(
+                          placed.number,
+                          placed.item.type.localizedName(context.l10n),
+                          placed.item.name,
+                        ),
+                    trayTitle: context.l10n.equipment_figure_trayTitle,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
 
             // Equipment items
             Text(
@@ -226,16 +314,15 @@ class EquipmentSetDetailPage extends ConsumerWidget {
                 ),
               )
             else
-              // Arranged the same way as the gear lists on a dive, so a set
-              // reads the way the diver reads their rig (#1486, #1576).
-              for (final group in arrangeEquipment(
-                set.items!,
-                ref.watch(equipmentArrangementProvider),
-                typeLabel: (type) => type.localizedName(context.l10n),
-              )) ...[
+              for (final group in groups) ...[
                 if (group.type != null) EquipmentGroupHeader(type: group.type!),
                 ...group.items.map(
-                  (item) => _buildEquipmentTile(context, item, labels),
+                  (item) => _buildEquipmentTile(
+                    context,
+                    item,
+                    labels,
+                    numberById[item.id],
+                  ),
                 ),
               ],
             const SizedBox(height: 24),
@@ -277,21 +364,41 @@ class EquipmentSetDetailPage extends ConsumerWidget {
     );
   }
 
+  /// One member of the set. [number] is its figure number, shown as the
+  /// legend badge; child items and assembly parts have none.
   Widget _buildEquipmentTile(
     BuildContext context,
     EquipmentItem item,
     Map<String, EquipmentRowLabel> labels,
+    int? number,
   ) {
+    final selected = item.id == _selectedId;
+    final scheme = Theme.of(context).colorScheme;
     return Card(
+      key: _rowKeys.putIfAbsent(item.id, GlobalKey.new),
       margin: const EdgeInsets.only(bottom: 8),
+      color: selected ? scheme.primaryContainer : null,
       child: ListTile(
         onTap: () => context.push('/equipment/${item.id}'),
-        leading: CircleAvatar(
-          backgroundColor: Theme.of(context).colorScheme.tertiaryContainer,
-          child: Icon(
-            equipmentTypeIcon(item.type),
-            color: Theme.of(context).colorScheme.onTertiaryContainer,
-          ),
+        leading: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (number != null) ...[
+              FigureNumberBadge(
+                number: number,
+                selected: selected,
+                onTap: () => _select(item.id),
+              ),
+              const SizedBox(width: 8),
+            ],
+            CircleAvatar(
+              backgroundColor: scheme.tertiaryContainer,
+              child: Icon(
+                equipmentTypeIcon(item.type),
+                color: scheme.onTertiaryContainer,
+              ),
+            ),
+          ],
         ),
         title: Text(item.name),
         subtitle: Column(

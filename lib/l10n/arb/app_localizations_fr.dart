@@ -12889,6 +12889,25 @@ class AppLocalizationsFr extends AppLocalizations {
   String get equipment_fab_addSet => 'Ajouter un ensemble';
 
   @override
+  String equipment_figure_discLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count éléments',
+      one: '$count élément',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'Également emporté';
+
+  @override
   String get equipment_list_emptyState_addFirstButton =>
       'Ajouter ton premier équipement';
 

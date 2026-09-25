@@ -12261,6 +12261,25 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipment_fab_addSet => '添加套装';
 
   @override
+  String equipment_figure_discLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件',
+      one: '$count 件',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => '另外携带';
+
+  @override
   String get equipment_list_emptyState_addFirstButton => '添加您的第一件装备';
 
   @override

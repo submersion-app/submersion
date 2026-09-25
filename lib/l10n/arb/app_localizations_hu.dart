@@ -12808,6 +12808,25 @@ class AppLocalizationsHu extends AppLocalizations {
   String get equipment_fab_addSet => 'Készlet hozzáadása';
 
   @override
+  String equipment_figure_discLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count tétel',
+      one: '$count tétel',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'Egyéb felszerelés';
+
+  @override
   String get equipment_list_emptyState_addFirstButton =>
       'Első felszerelés hozzáadása';
 

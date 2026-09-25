@@ -21206,6 +21206,24 @@ abstract class AppLocalizations {
   /// **'Add Set'**
   String get equipment_fab_addSet;
 
+  /// No description provided for @equipment_figure_discLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{number}, {type}, {name}'**
+  String equipment_figure_discLabel(int number, String type, String name);
+
+  /// No description provided for @equipment_figure_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, {count, plural, =1{{count} item} other{{count} items}}'**
+  String equipment_figure_summary(String name, int count);
+
+  /// No description provided for @equipment_figure_trayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Also carried'**
+  String get equipment_figure_trayTitle;
+
   /// No description provided for @equipment_list_emptyState_addFirstButton.
   ///
   /// In en, this message translates to:
