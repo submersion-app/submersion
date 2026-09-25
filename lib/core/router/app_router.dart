@@ -1149,12 +1149,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'safety',
                 name: 'safetySettings',
                 builder: (context, state) => const SafetySettingsPage(),
-              ),
-              GoRoute(
-                path: 'equipment-condition',
-                name: 'equipmentConditionSettings',
-                builder: (context, state) =>
-                    const EquipmentConditionSettingsPage(),
+                routes: [
+                  GoRoute(
+                    path: 'equipment-condition',
+                    name: 'equipmentConditionSettings',
+                    builder: (context, state) =>
+                        const EquipmentConditionSettingsPage(),
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'default-metrics',

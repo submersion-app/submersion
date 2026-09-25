@@ -944,6 +944,15 @@ void main() {
     // master-detail pane navigates with go() (a stable pageKey), so swapping
     // the page type under the same key would fail Page.canUpdate's
     // runtimeType check and slide the whole split view on every click.
+    test('equipment condition settings live under the safety route', () {
+      // Equipment condition is reached from Settings > Safety, not from the
+      // settings root, so its route nests under /settings/safety.
+      expect(
+        router.namedLocation('equipmentConditionSettings'),
+        '/settings/safety/equipment-condition',
+      );
+    });
+
     test('a section child route exists under /settings', () {
       final route = _findRouteByName(
         router.configuration.routes,

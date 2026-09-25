@@ -15,7 +15,6 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
 import 'package:submersion/features/settings/presentation/widgets/notification_permission_card.dart';
 import 'package:submersion/features/settings/presentation/pages/column_config_page.dart';
-import 'package:submersion/features/settings/presentation/pages/equipment_condition_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/safety_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/security_settings_page.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -163,8 +162,6 @@ class SettingsPage extends ConsumerWidget {
         return const DiverProfileHubPage();
       case 'safety':
         return const SafetySettingsPage();
-      case 'equipmentCondition':
-        return const EquipmentConditionSettingsPage();
       case 'security':
         return const SecuritySettingsPage();
       case 'units':
@@ -256,7 +253,6 @@ const settingsSectionDedicatedRoutes = <String, String>{
   'profile': '/settings/diver-profile',
   'appearance': '/settings/appearance',
   'safety': '/settings/safety',
-  'equipmentCondition': '/settings/equipment-condition',
   'debug': '/settings/debug-logs',
 };
 
@@ -320,8 +316,6 @@ class SettingsSectionDetailPage extends ConsumerWidget {
         return const DiverProfileHubPage();
       case 'safety':
         return const SafetySettingsPage();
-      case 'equipmentCondition':
-        return const EquipmentConditionSettingsPage();
       case 'security':
         return const SecuritySettingsPage();
       case 'units':
@@ -401,8 +395,6 @@ class _MobileSettingsTile extends StatelessWidget {
       'dataSources' => context.l10n.settings_section_dataSources_title,
       'sharedData' => context.l10n.settings_sharedData_sectionTitle,
       'safety' => context.l10n.settings_section_safety_title,
-      'equipmentCondition' =>
-        context.l10n.settings_section_equipmentCondition_title,
       'security' => context.l10n.settings_section_security_title,
       'debug' => context.l10n.settings_section_debug_title,
       _ => section.title,
@@ -421,8 +413,6 @@ class _MobileSettingsTile extends StatelessWidget {
       'about' => context.l10n.settings_section_about_subtitle,
       'dataSources' => context.l10n.settings_section_dataSources_subtitle,
       'safety' => context.l10n.settings_section_safety_subtitle,
-      'equipmentCondition' =>
-        context.l10n.settings_section_equipmentCondition_subtitle,
       'security' => context.l10n.settings_section_security_subtitle,
       'debug' => context.l10n.settings_section_debug_subtitle,
       _ => section.subtitle,
