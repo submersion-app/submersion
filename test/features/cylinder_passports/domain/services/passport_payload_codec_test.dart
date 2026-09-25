@@ -115,6 +115,21 @@ void main() {
       expect((result as PassportDecoded).payload.formatVersion, 1);
     });
 
+    test('malformed percent-encoding is refused, never thrown', () {
+      for (final text in [
+        'https://submersion.app/c#f=1&p=$id&n=%zz',
+        'https://submersion.app/c#f=1&p=$id&n=Tank%2',
+        'https://submersion.app/c#f=1&p=$id&n=Bill+Ärger%',
+      ]) {
+        final result = PassportPayloadCodec.decode(text);
+        expect(
+          (result as PassportRejected).reason,
+          PassportRejectReason.notATag,
+          reason: text,
+        );
+      }
+    });
+
     test('rejects text that is not a tag', () {
       final result = PassportPayloadCodec.decode('https://example.com/x');
       expect((result as PassportRejected).reason, PassportRejectReason.notATag);

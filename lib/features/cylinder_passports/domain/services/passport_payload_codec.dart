@@ -164,6 +164,11 @@ abstract final class PassportPayloadCodec {
       pairs = Uri.splitQueryString(query);
     } on FormatException {
       return const PassportRejected(PassportRejectReason.notATag);
+    } on ArgumentError {
+      // Uri.splitQueryString throws ArgumentError, not FormatException, for
+      // bad percent-encoding (%zz, a truncated %2, a raw non-ASCII character
+      // beside an escape). A tag the codec cannot read is not a tag.
+      return const PassportRejected(PassportRejectReason.notATag);
     }
     final rawId = pairs['p'];
     if (rawId == null || rawId.isEmpty) {
