@@ -8,6 +8,12 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 
+/// Namespace for minting passport ids from equipment ids (UUID v5). Fixed
+/// forever: two devices that mint for the same cylinder before they sync
+/// arrive at the same id, so neither printed label is orphaned.
+const String kCylinderPassportNamespace =
+    '3bd0f137-e4d0-4e1b-a179-02f37d160966';
+
 /// Another cylinder the diver can see already carries this passport id.
 class PassportIdInUse implements Exception {
   final String equipmentId;
@@ -78,6 +84,7 @@ class CylinderPassportRepository {
     if (holder != null && holder != equipmentId) {
       throw PassportIdInUse(holder);
     }
+    final previous = await getPassportId(equipmentId);
     if (holder != equipmentId) {
       final existing = await _equipment.getAttributesForEquipment(equipmentId);
       final desired = [
@@ -91,17 +98,25 @@ class CylinderPassportRepository {
       ];
       await _equipment.saveAttributes(equipmentId, desired);
     }
+    if (previous != null && previous != passportId) {
+      await _fills.rekeyPassport(
+        from: previous,
+        to: passportId,
+        equipmentId: equipmentId,
+      );
+    }
     await _fills.relinkToEquipment(
       passportId: passportId,
       equipmentId: equipmentId,
     );
   }
 
-  /// The cylinder's passport id, minted on first use.
+  /// The cylinder's passport id, minted on first use. Minting is a pure
+  /// function of the equipment id, so every device mints the same one.
   Future<String> ensurePassportId(String equipmentId, {String? diverId}) async {
     final existing = await getPassportId(equipmentId);
     if (existing != null) return existing;
-    final minted = _uuid.v4();
+    final minted = _uuid.v5(kCylinderPassportNamespace, equipmentId);
     await assignPassportId(
       equipmentId: equipmentId,
       passportId: minted,

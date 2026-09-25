@@ -116,4 +116,37 @@ void main() {
     expect(fills.every((f) => f.equipmentId == 'eq-2'), isTrue);
     expect((await repo.getForEquipment('eq-2')).length, 2);
   });
+
+  test('getForCylinder reads by passport id or gear link, once each', () async {
+    await repo.create(fill('a', t0));
+    await repo.create(
+      fill('b', t0.add(const Duration(days: 1))).copyWith(passportId: 'pp-old'),
+    );
+    await repo.create(
+      fill('c', t0.add(const Duration(days: 2)), equipmentId: null),
+    );
+    await repo.create(
+      fill('d', t0, equipmentId: null).copyWith(passportId: 'pp-else'),
+    );
+    final fills = await repo.getForCylinder(
+      passportId: 'pp-1',
+      equipmentId: 'eq-1',
+    );
+    expect(fills.map((f) => f.id), ['c', 'b', 'a']);
+  });
+
+  test('rekeyPassport moves the fills of one cylinder to a new id', () async {
+    await repo.create(fill('a', t0));
+    await repo.create(fill('b', t0, equipmentId: null));
+    final moved = await repo.rekeyPassport(
+      from: 'pp-1',
+      to: 'pp-2',
+      equipmentId: 'eq-1',
+    );
+    expect(moved, 1);
+    expect((await repo.getById('a'))!.passportId, 'pp-2');
+    // A fill with no gear link under the old id is some other cylinder's
+    // history (a rental, a deleted row); it stays where it was.
+    expect((await repo.getById('b'))!.passportId, 'pp-1');
+  });
 }

@@ -84,6 +84,62 @@ class CylinderFillRepository {
     return row == null ? null : _fromRow(row);
   }
 
+  /// Every fill of one cylinder, newest first: those under its passport id
+  /// and those linked to its gear row, each once. Reading both keeps a fill
+  /// on the page when the id changes under it (a linked tag, a peer's mint).
+  Future<List<CylinderFill>> getForCylinder({
+    required String? passportId,
+    required String equipmentId,
+  }) async {
+    final rows =
+        await (_db.select(_db.cylinderFills)
+              ..where(
+                (t) => passportId == null
+                    ? t.equipmentId.equals(equipmentId)
+                    : t.passportId.equals(passportId) |
+                          t.equipmentId.equals(equipmentId),
+              )
+              ..orderBy([
+                (t) => OrderingTerm.desc(t.filledAt),
+                (t) => OrderingTerm.asc(t.id),
+              ]))
+            .get();
+    return rows.map(_fromRow).toList();
+  }
+
+  /// Moves the fills of [equipmentId] logged under passport id [from] to
+  /// [to], staging each for sync. Fills under [from] with no gear link, or
+  /// another cylinder's link, are left alone. Returns how many moved.
+  Future<int> rekeyPassport({
+    required String from,
+    required String to,
+    required String equipmentId,
+  }) async {
+    if (from == to) return 0;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final rows =
+        await (_db.select(_db.cylinderFills)..where(
+              (t) =>
+                  t.passportId.equals(from) & t.equipmentId.equals(equipmentId),
+            ))
+            .get();
+    if (rows.isEmpty) return 0;
+    await (_db.update(
+      _db.cylinderFills,
+    )..where((t) => t.id.isIn(rows.map((r) => r.id).toList()))).write(
+      CylinderFillsCompanion(passportId: Value(to), updatedAt: Value(now)),
+    );
+    for (final row in rows) {
+      await _syncRepository.markRecordPending(
+        entityType: entity,
+        recordId: row.id,
+        localUpdatedAt: now,
+      );
+    }
+    SyncEventBus.notifyLocalChange();
+    return rows.length;
+  }
+
   /// Newest first, through the gear link only.
   Future<List<CylinderFill>> getForEquipment(String equipmentId) async {
     final rows =

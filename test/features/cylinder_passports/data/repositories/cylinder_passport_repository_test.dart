@@ -115,4 +115,39 @@ void main() {
     );
     expect((await fills.getById('a'))!.equipmentId, 'eq-2');
   });
+
+  test('fills logged before linking an old tag follow the cylinder', () async {
+    final fills = CylinderFillRepository();
+    final minted = await repo.ensurePassportId('eq-1', diverId: 'd1');
+    final t = DateTime(2026, 9, 1);
+    await fills.create(
+      CylinderFill(
+        id: 'a',
+        passportId: minted,
+        equipmentId: 'eq-1',
+        filledAt: t,
+        o2Percent: 32,
+        createdAt: t,
+        updatedAt: t,
+      ),
+    );
+    await repo.assignPassportId(
+      equipmentId: 'eq-1',
+      passportId: id,
+      diverId: 'd1',
+    );
+    expect((await fills.getById('a'))!.passportId, id);
+    expect(await fills.getForPassport(minted), isEmpty);
+  });
+
+  test('two devices minting for the same cylinder agree', () async {
+    final first = await repo.ensurePassportId('eq-1', diverId: 'd1');
+    // The other device never saw this row: drop it and mint again.
+    await (db.delete(
+      db.equipmentAttributes,
+    )..where((t) => t.equipmentId.equals('eq-1'))).go();
+    final second = await repo.ensurePassportId('eq-1', diverId: 'd1');
+    expect(second, first);
+    expect(await repo.ensurePassportId('eq-2', diverId: 'd1'), isNot(first));
+  });
 }

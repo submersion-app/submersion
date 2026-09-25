@@ -27,9 +27,9 @@ final passportIdProvider = FutureProvider.family<String?, String>((
   return repository.getPassportId(equipmentId);
 });
 
-/// Every fill of the cylinder, newest first: by passport id when it has one
-/// (so fills logged before a re-created row still show), by gear link
-/// otherwise.
+/// Every fill of the cylinder, newest first: under its passport id (so fills
+/// logged before a re-created row still show) or linked to its gear row (so
+/// a fill stays put when the id changes).
 final fillsForEquipmentProvider =
     FutureProvider.family<List<CylinderFill>, String>((ref, equipmentId) async {
       final repository = ref.watch(cylinderFillRepositoryProvider);
@@ -37,8 +37,10 @@ final fillsForEquipmentProvider =
       final passportId = await ref.watch(
         passportIdProvider(equipmentId).future,
       );
-      if (passportId == null) return repository.getForEquipment(equipmentId);
-      return repository.getForPassport(passportId);
+      return repository.getForCylinder(
+        passportId: passportId,
+        equipmentId: equipmentId,
+      );
     });
 
 final newestFillProvider = FutureProvider.family<CylinderFill?, String>((
