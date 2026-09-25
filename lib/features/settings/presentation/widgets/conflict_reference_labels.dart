@@ -61,6 +61,8 @@ String conflictReferenceLabel(
       return l10n.settings_conflict_ref_divePlan;
     case 'trips':
       return l10n.settings_conflict_ref_trip;
+    case 'tripCylinders':
+      return l10n.settings_conflict_ref_tripCylinder;
     case 'diveCenters':
       return l10n.settings_conflict_ref_diveCenter;
     case 'courses':

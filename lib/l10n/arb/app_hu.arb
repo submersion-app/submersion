@@ -5322,6 +5322,7 @@
   "settings_conflict_ref_tag": "Címke",
   "settings_conflict_ref_tank": "Palack",
   "settings_conflict_ref_trip": "Utazás",
+  "settings_conflict_ref_tripCylinder": "Utazási palack",
   "settings_conflict_remoteVersion": "Távoli változat",
   "settings_conflict_resolved": "{count, plural, =1{1 ütközés} other{{count} ütközés}} feloldva",
   "settings_conflict_title": "Ütközések feloldása",

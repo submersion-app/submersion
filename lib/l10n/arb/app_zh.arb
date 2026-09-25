@@ -5593,6 +5593,7 @@
   "settings_conflict_ref_tag": "标签",
   "settings_conflict_ref_tank": "气瓶",
   "settings_conflict_ref_trip": "行程",
+  "settings_conflict_ref_tripCylinder": "行程气瓶",
   "settings_conflict_remoteVersion": "远程版本",
   "settings_conflict_resolved": "已解决 {count, plural, =1{1 个冲突} other{{count} 个冲突}}",
   "settings_conflict_title": "解决冲突",

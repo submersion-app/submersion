@@ -5424,6 +5424,7 @@
   "settings_conflict_ref_tag": "الوسم",
   "settings_conflict_ref_tank": "الأسطوانة",
   "settings_conflict_ref_trip": "الرحلة",
+  "settings_conflict_ref_tripCylinder": "أسطوانة الرحلة",
   "settings_conflict_remoteVersion": "النسخة البعيدة",
   "settings_conflict_resolved": "تم حل {count, plural, =1{تعارض واحد} other{{count} تعارضات}}",
   "settings_conflict_title": "حل التعارضات",

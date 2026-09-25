@@ -5424,6 +5424,7 @@
   "settings_conflict_ref_tag": "Etiqueta",
   "settings_conflict_ref_tank": "Cilindro",
   "settings_conflict_ref_trip": "Viagem",
+  "settings_conflict_ref_tripCylinder": "Cilindro da viagem",
   "settings_conflict_remoteVersion": "Versão Remota",
   "settings_conflict_resolved": "{count, plural, =1{{count} conflito resolvido} other{{count} conflitos resolvidos}}",
   "settings_conflict_title": "Resolver Conflitos",

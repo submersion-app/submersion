@@ -5424,6 +5424,7 @@
   "settings_conflict_ref_tag": "Tag",
   "settings_conflict_ref_tank": "Fles",
   "settings_conflict_ref_trip": "Reis",
+  "settings_conflict_ref_tripCylinder": "Reisfles",
   "settings_conflict_remoteVersion": "Externe versie",
   "settings_conflict_resolved": "{count, plural, =1{1 conflict} other{{count} conflicten}} opgelost",
   "settings_conflict_title": "Conflicten oplossen",

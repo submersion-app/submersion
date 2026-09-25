@@ -18358,6 +18358,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Viaggio';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'Bombola del viaggio';
+
+  @override
   String get settings_conflict_remoteVersion => 'Versione remota';
 
   @override

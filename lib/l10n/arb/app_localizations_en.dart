@@ -18059,6 +18059,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Trip';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'Trip cylinder';
+
+  @override
   String get settings_conflict_remoteVersion => 'Remote Version';
 
   @override

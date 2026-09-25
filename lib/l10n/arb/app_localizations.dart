@@ -29785,6 +29785,12 @@ abstract class AppLocalizations {
   /// **'Trip'**
   String get settings_conflict_ref_trip;
 
+  /// No description provided for @settings_conflict_ref_tripCylinder.
+  ///
+  /// In en, this message translates to:
+  /// **'Trip cylinder'**
+  String get settings_conflict_ref_tripCylinder;
+
   /// No description provided for @settings_conflict_remoteVersion.
   ///
   /// In en, this message translates to:

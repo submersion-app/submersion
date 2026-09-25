@@ -18300,6 +18300,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Utazás';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'Utazási palack';
+
+  @override
   String get settings_conflict_remoteVersion => 'Távoli változat';
 
   @override
