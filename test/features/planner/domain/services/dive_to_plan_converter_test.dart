@@ -442,4 +442,85 @@ void main() {
       expect(result.sourceDiveId, 'dive-1');
     });
   });
+
+  group('throughTimestamp', () {
+    test(
+      'authors through a sample in the ascent and keeps the ascent so far',
+      () {
+        final profile = _squareProfile();
+        final points = const DiveToPlanConverter().breakpoints(
+          profile: profile,
+          gasSwitches: const [],
+          levels: 3,
+          throughTimestamp: 1500,
+        );
+        // 1500 s is 180 s into a 300 s ascent from 30 m: 30 * (1 - 0.6) = 12 m.
+        expect(points.last.timeSeconds, 1500);
+        expect(points.last.depth, 12);
+        // The bottom hold is still present before it.
+        expect(points.any((p) => p.depth == 30), isTrue);
+      },
+    );
+
+    test(
+      'without throughTimestamp the trim rule still ends on the bottom hold',
+      () {
+        final points = const DiveToPlanConverter().breakpoints(
+          profile: _squareProfile(),
+          gasSwitches: const [],
+          levels: 3,
+        );
+        // The trim rule folds a tail that barely left the level back onto it,
+        // keeping the tail's time, so the plan ends on the level well before
+        // the sample a through-timestamp caller would reach.
+        expect(points.last.depth, 30);
+        expect(points.last.timeSeconds, lessThan(1500));
+      },
+    );
+
+    test('a timestamp in the descent authors the descent only', () {
+      final points = const DiveToPlanConverter().breakpoints(
+        profile: _squareProfile(),
+        gasSwitches: const [],
+        levels: 3,
+        throughTimestamp: 60,
+      );
+      expect(points.last.timeSeconds, 60);
+      expect(points.last.depth, 15);
+      expect(points.length, 2);
+    });
+
+    test('the first sample yields no segments', () {
+      final dive = _dive(profile: _squareProfile());
+      final state = const DiveToPlanConverter().convert(
+        dive: dive,
+        profile: dive.profile,
+        gasSwitches: const [],
+        levels: 3,
+        planName: 'p',
+        defaults: _defaults(),
+        throughTimestamp: 0,
+      );
+      expect(state.segments, isEmpty);
+    });
+
+    test('segment durations sum to the branch time', () {
+      final dive = _dive(profile: _squareProfile());
+      final state = const DiveToPlanConverter().convert(
+        dive: dive,
+        profile: dive.profile,
+        gasSwitches: const [],
+        levels: 3,
+        planName: 'p',
+        defaults: _defaults(),
+        throughTimestamp: 1500,
+      );
+      final total = state.segments.fold<int>(
+        0,
+        (a, s) => a + s.durationSeconds,
+      );
+      expect(total, 1500);
+      expect(state.segments.last.targetDepth, 12);
+    });
+  });
 }
