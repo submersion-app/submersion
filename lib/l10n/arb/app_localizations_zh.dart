@@ -13700,6 +13700,77 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_desc_mnd => '混合气体的麻醉深度极限';
 
   @override
+  String get gasCalculators_tab_density => '气体密度';
+
+  @override
+  String get gasCalculators_desc_density => '深度处呼吸气体的密度，开路或 CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters => '混合气与条件';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => '深度';
+
+  @override
+  String get gasCalculators_density_mode => '呼吸模式';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => '设定点 (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint => '在 CCR 模式下，上面的混合气即稀释气体。';
+
+  @override
+  String get gasCalculators_density_temperature => '气体温度';
+
+  @override
+  String get gasCalculators_density_resultTitle => '气体密度';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return '在建议的 $limit g/L 限值以内。';
+  }
+
+  @override
+  String get gasCalculators_density_loopGasTitle => '深度处的回路气体';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped => '此处设定点高于环境压力，因此回路为纯氧。';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return '仅稀释气体在此处即产生 $ppO2 的 ppO2，高于设定点。密度按稀释气体的 ppO2 计算。';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => '关于气体密度';
+
+  @override
+  String get gasCalculators_density_infoContent =>
+      '高密度气体更难呼吸，并会增加 CO2 潴留的风险。请将密度保持在 5.2 g/L 或以下；6.2 g/L 为硬性上限。\n\n在 CCR 模式下，计算的是回路气体的密度：氧气按设定点，其余按稀释气体的比例分配给氮气和氦气。\n\n较冷的气体密度更高，因此较冷的温度选项更保守。计算假定为理想气体。';
+
+  @override
   String get gasCalculators_desc_blender => '目标混合气的充填流程';
 
   @override

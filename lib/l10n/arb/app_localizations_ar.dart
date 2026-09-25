@@ -14150,6 +14150,80 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_desc_mnd => 'حد عمق التخدير للخليط';
 
   @override
+  String get gasCalculators_tab_density => 'كثافة الغاز';
+
+  @override
+  String get gasCalculators_desc_density =>
+      'كثافة غاز التنفس على العمق، OC أو CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters => 'خليط الغاز والظروف';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'العمق';
+
+  @override
+  String get gasCalculators_density_mode => 'وضع التنفس';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'نقطة الضبط (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'في وضع CCR، الخليط أعلاه هو غاز المخفف.';
+
+  @override
+  String get gasCalculators_density_temperature => 'درجة حرارة الغاز';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'كثافة الغاز';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'ضمن الحد الموصى به البالغ $limit g/L.';
+  }
+
+  @override
+  String get gasCalculators_density_loopGasTitle => 'غاز الدائرة على العمق';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'نقطة الضبط هنا أعلى من الضغط المحيط، لذا فإن الدائرة أكسجين نقي.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'غاز المخفف وحده يعطي هنا ppO2 قدره $ppO2، وهو أعلى من نقطة الضبط. تُحسب الكثافة بـ ppO2 غاز المخفف.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => 'حول كثافة الغاز';
+
+  @override
+  String get gasCalculators_density_infoContent =>
+      'الغاز الكثيف أصعب في التنفس ويزيد خطر احتباس CO2. حافظ على الكثافة عند 5.2 g/L أو أقل؛ و6.2 g/L هو الحد الأقصى المطلق.\n\nفي وضع CCR تُحتسب كثافة غاز الدائرة: الأكسجين عند نقطة الضبط، والباقي موزع بين النيتروجين والهيليوم بنسبة غاز المخفف.\n\nالغاز الأبرد أكثف، لذا فإن خيار درجة الحرارة الأبرد هو الخيار المتحفظ. يفترض الحساب غازًا مثاليًا.';
+
+  @override
   String get gasCalculators_desc_blender => 'إجراء التعبئة لخليط مستهدف';
 
   @override

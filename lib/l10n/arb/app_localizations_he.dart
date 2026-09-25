@@ -14049,6 +14049,79 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_desc_mnd => 'גבול עומק הנרקוזה לתערובת';
 
   @override
+  String get gasCalculators_tab_density => 'צפיפות גז';
+
+  @override
+  String get gasCalculators_desc_density => 'צפיפות גז הנשימה בעומק, OC או CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters => 'תערובת גז ותנאים';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'עומק';
+
+  @override
+  String get gasCalculators_density_mode => 'מצב נשימה';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'ב-CCR, התערובת שלמעלה היא הגז המדלל.';
+
+  @override
+  String get gasCalculators_density_temperature => 'טמפרטורת הגז';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'צפיפות גז';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'בתוך הגבול המומלץ של $limit g/L.';
+  }
+
+  @override
+  String get gasCalculators_density_loopGasTitle => 'גז הלולאה בעומק';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'כאן ה-Setpoint גבוה מהלחץ הסביבתי, ולכן הלולאה מכילה חמצן טהור.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'הגז המדלל לבדו נותן כאן ppO2 של $ppO2, מעל ה-Setpoint. הצפיפות מחושבת לפי ה-ppO2 של הגז המדלל.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => 'על צפיפות גז';
+
+  @override
+  String get gasCalculators_density_infoContent =>
+      'גז צפוף קשה יותר לנשימה ומעלה את הסיכון לאגירת CO2. שמרו על צפיפות של 5.2 g/L לכל היותר; 6.2 g/L הוא הגבול העליון המוחלט.\n\nב-CCR קובעת צפיפות גז הלולאה: חמצן לפי ה-Setpoint, והשאר מחולק בין חנקן להליום ביחס של הגז המדלל.\n\nגז קר יותר צפוף יותר, ולכן אפשרות הטמפרטורה הקרה יותר היא השמרנית. החישוב מניח גז אידיאלי.';
+
+  @override
   String get gasCalculators_desc_blender => 'נוהל מילוי לתערובת היעד';
 
   @override

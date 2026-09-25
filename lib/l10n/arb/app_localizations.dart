@@ -23716,6 +23716,130 @@ abstract class AppLocalizations {
   /// **'Narcosis depth limit for a mix'**
   String get gasCalculators_desc_mnd;
 
+  /// No description provided for @gasCalculators_tab_density.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Density'**
+  String get gasCalculators_tab_density;
+
+  /// No description provided for @gasCalculators_desc_density.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathing gas density at depth, OC or CCR'**
+  String get gasCalculators_desc_density;
+
+  /// No description provided for @gasCalculators_density_inputParameters.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Mix & Conditions'**
+  String get gasCalculators_density_inputParameters;
+
+  /// No description provided for @gasCalculators_density_o2Percent.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 %'**
+  String get gasCalculators_density_o2Percent;
+
+  /// No description provided for @gasCalculators_density_hePercent.
+  ///
+  /// In en, this message translates to:
+  /// **'He %'**
+  String get gasCalculators_density_hePercent;
+
+  /// No description provided for @gasCalculators_density_depth.
+  ///
+  /// In en, this message translates to:
+  /// **'Depth'**
+  String get gasCalculators_density_depth;
+
+  /// No description provided for @gasCalculators_density_mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathing mode'**
+  String get gasCalculators_density_mode;
+
+  /// No description provided for @gasCalculators_density_modeOc.
+  ///
+  /// In en, this message translates to:
+  /// **'OC'**
+  String get gasCalculators_density_modeOc;
+
+  /// No description provided for @gasCalculators_density_modeCcr.
+  ///
+  /// In en, this message translates to:
+  /// **'CCR'**
+  String get gasCalculators_density_modeCcr;
+
+  /// No description provided for @gasCalculators_density_setpoint.
+  ///
+  /// In en, this message translates to:
+  /// **'Setpoint (bar)'**
+  String get gasCalculators_density_setpoint;
+
+  /// No description provided for @gasCalculators_density_diluentHint.
+  ///
+  /// In en, this message translates to:
+  /// **'On CCR, the mix above is the diluent.'**
+  String get gasCalculators_density_diluentHint;
+
+  /// No description provided for @gasCalculators_density_temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas temperature'**
+  String get gasCalculators_density_temperature;
+
+  /// No description provided for @gasCalculators_density_resultTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas Density'**
+  String get gasCalculators_density_resultTitle;
+
+  /// No description provided for @gasCalculators_density_withinLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Within the recommended {limit} g/L limit.'**
+  String gasCalculators_density_withinLimit(Object limit);
+
+  /// No description provided for @gasCalculators_density_loopGasTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Loop gas at depth'**
+  String get gasCalculators_density_loopGasTitle;
+
+  /// No description provided for @gasCalculators_density_loopComposition.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 {o2} % · He {he} % · N2 {n2} %'**
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  );
+
+  /// No description provided for @gasCalculators_density_setpointCapped.
+  ///
+  /// In en, this message translates to:
+  /// **'The setpoint is above ambient pressure here, so the loop is pure oxygen.'**
+  String get gasCalculators_density_setpointCapped;
+
+  /// No description provided for @gasCalculators_density_diluentAboveSetpoint.
+  ///
+  /// In en, this message translates to:
+  /// **'The diluent alone gives ppO2 {ppO2} here, above the setpoint. The density uses the diluent\'s ppO2.'**
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2);
+
+  /// No description provided for @gasCalculators_density_infoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About Gas Density'**
+  String get gasCalculators_density_infoTitle;
+
+  /// No description provided for @gasCalculators_density_infoContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Dense gas is harder to breathe and raises the risk of CO2 retention. Keep the density at or below 5.2 g/L; 6.2 g/L is the hard ceiling.\n\nOn CCR the density is that of the loop gas: oxygen at the setpoint, the rest split between nitrogen and helium in the diluent\'s ratio.\n\nColder gas is denser, so the colder temperature option is the conservative one. The calculation assumes an ideal gas.'**
+  String get gasCalculators_density_infoContent;
+
   /// No description provided for @gasCalculators_desc_blender.
   ///
   /// In en, this message translates to:

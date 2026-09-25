@@ -14348,6 +14348,81 @@ class AppLocalizationsHu extends AppLocalizations {
       'Narkózis szerinti mélységhatár egy keverékhez';
 
   @override
+  String get gasCalculators_tab_density => 'Gázsűrűség';
+
+  @override
+  String get gasCalculators_desc_density =>
+      'A légzőgáz sűrűsége mélységben, OC vagy CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters =>
+      'Gázkeverék és körülmények';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'Mélység';
+
+  @override
+  String get gasCalculators_density_mode => 'Légzési mód';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'CCR esetén a fenti keverék a hígítógáz.';
+
+  @override
+  String get gasCalculators_density_temperature => 'Gázhőmérséklet';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'Gázsűrűség';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'Az ajánlott $limit g/L-es határon belül.';
+  }
+
+  @override
+  String get gasCalculators_density_loopGasTitle => 'Hurokgáz mélységben';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'A setpoint itt meghaladja a környezeti nyomást, így a hurokban tiszta oxigén van.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'A hígítógáz önmagában itt $ppO2 ppO2-t ad, ami a setpoint felett van. A sűrűség a hígítógáz ppO2-jével számol.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => 'A gázsűrűségről';
+
+  @override
+  String get gasCalculators_density_infoContent =>
+      'A sűrű gázt nehezebb belélegezni, és növeli a CO2-visszatartás kockázatát. Tartsd a sűrűséget legfeljebb 5,2 g/L-en; 6,2 g/L az abszolút felső határ.\n\nCCR esetén a hurokgáz sűrűsége számít: oxigén a setpoint szerint, a maradék nitrogén és hélium a hígítógáz arányában.\n\nA hidegebb gáz sűrűbb, ezért a hidegebb hőmérséklet a konzervatív választás. A számítás ideális gázt feltételez.';
+
+  @override
   String get gasCalculators_desc_blender => 'Töltési eljárás a célkeverékhez';
 
   @override

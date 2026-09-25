@@ -14373,6 +14373,81 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_desc_mnd => 'Narkosetiefe-Grenze für ein Gemisch';
 
   @override
+  String get gasCalculators_tab_density => 'Gasdichte';
+
+  @override
+  String get gasCalculators_desc_density =>
+      'Dichte des Atemgases auf Tiefe, OC oder CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters =>
+      'Gasgemisch & Bedingungen';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'Tiefe';
+
+  @override
+  String get gasCalculators_density_mode => 'Atemsystem';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'Bei CCR ist das Gemisch oben das Diluentgas.';
+
+  @override
+  String get gasCalculators_density_temperature => 'Gastemperatur';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'Gasdichte';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'Innerhalb der empfohlenen Dichtegrenze von $limit g/L.';
+  }
+
+  @override
+  String get gasCalculators_density_loopGasTitle => 'Loop-Gas auf Tiefe';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'Der Setpoint liegt hier über dem Umgebungsdruck, der Loop ist reiner Sauerstoff.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'Das Diluentgas allein ergibt hier ppO2 $ppO2, mehr als der Setpoint. Die Dichte rechnet mit dem ppO2 des Diluentgases.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => 'Über die Gasdichte';
+
+  @override
+  String get gasCalculators_density_infoContent =>
+      'Dichtes Gas ist schwerer zu atmen und erhöht das Risiko einer CO2-Retention. Halte die Dichte bei höchstens 5,2 g/L; 6,2 g/L ist die harte Obergrenze.\n\nBei CCR zählt die Dichte des Loop-Gases: Sauerstoff mit dem Setpoint, der Rest aufgeteilt auf Stickstoff und Helium im Verhältnis des Diluentgases.\n\nKälteres Gas ist dichter, deshalb ist die kältere Temperatur die konservative Wahl. Die Berechnung nimmt ein ideales Gas an.';
+
+  @override
   String get gasCalculators_desc_blender => 'Füllvorgang für ein Zielgemisch';
 
   @override

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
 import 'package:submersion/features/gas_calculators/presentation/pages/gas_calculator_detail_page.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/best_mix_calculator.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/density_calculator.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_blender_calculator.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_calculators_summary_widget.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/gas_consumption_calculator.dart';
@@ -43,6 +44,7 @@ void main() {
     'consumption': GasConsumptionCalculator,
     'rock-bottom': RockBottomCalculator,
     'mnd': MndCalculator,
+    'density': DensityCalculator,
     'blender': GasBlenderCalculator,
   };
 

@@ -14381,6 +14381,82 @@ class AppLocalizationsEs extends AppLocalizations {
       'Profundidad narcótica límite de una mezcla';
 
   @override
+  String get gasCalculators_tab_density => 'Densidad del gas';
+
+  @override
+  String get gasCalculators_desc_density =>
+      'Densidad del gas respirado en profundidad, OC o CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters => 'Mezcla y condiciones';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'Profundidad';
+
+  @override
+  String get gasCalculators_density_mode => 'Modo de respiración';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'En CCR, la mezcla de arriba es el gas diluyente.';
+
+  @override
+  String get gasCalculators_density_temperature => 'Temperatura del gas';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'Densidad del gas';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'Dentro del límite recomendado de $limit g/L.';
+  }
+
+  @override
+  String get gasCalculators_density_loopGasTitle =>
+      'Gas del circuito en profundidad';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'Aquí el setpoint supera la presión ambiente, así que el circuito es oxígeno puro.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'El diluyente por sí solo da aquí una ppO2 de $ppO2, por encima del setpoint. La densidad usa la ppO2 del diluyente.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle =>
+      'Acerca de la densidad del gas';
+
+  @override
+  String get gasCalculators_density_infoContent =>
+      'Un gas denso cuesta más respirarlo y aumenta el riesgo de retención de CO2. Mantén la densidad en 5,2 g/L o menos; 6,2 g/L es el límite absoluto.\n\nEn CCR cuenta la densidad del gas del circuito: oxígeno al setpoint y el resto repartido entre nitrógeno y helio según la proporción del diluyente.\n\nUn gas más frío es más denso, así que la opción de temperatura más fría es la conservadora. El cálculo supone un gas ideal.';
+
+  @override
   String get gasCalculators_desc_blender =>
       'Procedimiento de llenado para una mezcla objetivo';
 
