@@ -37,13 +37,13 @@ void main() {
 
     test('loads and normalizes stored ids on construction', () async {
       final repo = FakeAppSettingsRepository()
-        ..navPrimaryIds = ['equipment', 'buddies', 'statistics'];
+        ..navPrimaryIds = ['equipment', 'buddies', 'insights'];
       final container = _container(repo);
       addTearDown(container.dispose);
 
       final order = await _loaded(container, navPhoneOrderNotifierProvider);
 
-      expect(order.take(3).toList(), ['equipment', 'buddies', 'statistics']);
+      expect(order.take(3).toList(), ['equipment', 'buddies', 'insights']);
       expect(order.toSet(), movableNavIds.toSet());
     });
 
@@ -77,8 +77,8 @@ void main() {
       addTearDown(container.dispose);
 
       final reordered = [
-        'statistics',
-        ...movableNavIds.where((id) => id != 'statistics'),
+        'insights',
+        ...movableNavIds.where((id) => id != 'insights'),
       ];
       await container
           .read(navPhoneOrderNotifierProvider.notifier)
@@ -105,7 +105,7 @@ void main() {
 
     test('resetToDefaults writes the canonical order', () async {
       final repo = FakeAppSettingsRepository()
-        ..navPrimaryIds = ['equipment', 'buddies', 'statistics'];
+        ..navPrimaryIds = ['equipment', 'buddies', 'insights'];
       final container = _container(repo);
       addTearDown(container.dispose);
 
@@ -122,7 +122,7 @@ void main() {
   group('phone and rail orders are independent', () {
     test('each notifier loads from its own storage key', () async {
       final repo = FakeAppSettingsRepository()
-        ..navPrimaryIds = ['equipment', 'buddies', 'statistics']
+        ..navPrimaryIds = ['equipment', 'buddies', 'insights']
         ..navRailIds = ['gps-log', 'planning'];
       final container = _container(repo);
       addTearDown(container.dispose);
@@ -130,7 +130,7 @@ void main() {
       final phone = await _loaded(container, navPhoneOrderNotifierProvider);
       final rail = await _loaded(container, navRailOrderNotifierProvider);
 
-      expect(phone.take(3).toList(), ['equipment', 'buddies', 'statistics']);
+      expect(phone.take(3).toList(), ['equipment', 'buddies', 'insights']);
       expect(rail.take(2).toList(), ['gps-log', 'planning']);
     });
 
@@ -156,7 +156,7 @@ void main() {
       'navPrimaryDestinationsProvider returns [home, ...3 middle, more]',
       () async {
         final repo = FakeAppSettingsRepository()
-          ..navPrimaryIds = ['equipment', 'buddies', 'statistics'];
+          ..navPrimaryIds = ['equipment', 'buddies', 'insights'];
         final container = _container(repo);
         addTearDown(container.dispose);
 
@@ -167,7 +167,7 @@ void main() {
               .read(navPrimaryDestinationsProvider(3))
               .map((d) => d.id)
               .toList(),
-          ['dashboard', 'equipment', 'buddies', 'statistics', 'more'],
+          ['dashboard', 'equipment', 'buddies', 'insights', 'more'],
         );
       },
     );
@@ -176,7 +176,7 @@ void main() {
       'navPrimaryDestinationsProvider grows with a larger slot count',
       () async {
         final repo = FakeAppSettingsRepository()
-          ..navPrimaryIds = ['equipment', 'buddies', 'statistics', 'dives'];
+          ..navPrimaryIds = ['equipment', 'buddies', 'insights', 'dives'];
         final container = _container(repo);
         addTearDown(container.dispose);
 
@@ -187,7 +187,7 @@ void main() {
               .read(navPrimaryDestinationsProvider(4))
               .map((d) => d.id)
               .toList(),
-          ['dashboard', 'equipment', 'buddies', 'statistics', 'dives', 'more'],
+          ['dashboard', 'equipment', 'buddies', 'insights', 'dives', 'more'],
         );
       },
     );
@@ -199,7 +199,7 @@ void main() {
         // order would have placed last.
         final tail = ['settings', 'dives', 'sites'];
         final repo = FakeAppSettingsRepository()
-          ..navPrimaryIds = ['equipment', 'buddies', 'statistics', ...tail];
+          ..navPrimaryIds = ['equipment', 'buddies', 'insights', ...tail];
         final container = _container(repo);
         addTearDown(container.dispose);
 
@@ -222,7 +222,7 @@ void main() {
       'navRailDestinationsProvider is pinned Home then the rail order',
       () async {
         final repo = FakeAppSettingsRepository()
-          ..navRailIds = ['statistics', 'gps-log'];
+          ..navRailIds = ['insights', 'gps-log'];
         final container = _container(repo);
         addTearDown(container.dispose);
 
@@ -233,7 +233,7 @@ void main() {
             .map((d) => d.id)
             .toList();
 
-        expect(rail.take(3).toList(), ['dashboard', 'statistics', 'gps-log']);
+        expect(rail.take(3).toList(), ['dashboard', 'insights', 'gps-log']);
         expect(rail.length, movableNavIds.length + 1);
         expect(rail, isNot(contains('more')));
       },

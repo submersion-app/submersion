@@ -159,7 +159,7 @@ class AppShortcuts {
         context.go('/equipment');
       },
       platformShortcut(LogicalKeyboardKey.digit4): () {
-        context.go('/statistics');
+        context.go('/insights');
       },
       platformShortcut(LogicalKeyboardKey.digit5): () {
         context.go('/settings');

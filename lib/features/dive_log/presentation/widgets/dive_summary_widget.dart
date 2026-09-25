@@ -6,8 +6,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/statistics/domain/career_totals.dart';
-import 'package:submersion/features/statistics/presentation/providers/career_totals_provider.dart';
+import 'package:submersion/features/insights/domain/career_totals.dart';
+import 'package:submersion/features/insights/presentation/providers/career_totals_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Summary widget shown in the detail pane when no dive is selected.
@@ -441,7 +441,7 @@ class DiveSummaryWidget extends ConsumerWidget {
               label: Text(context.l10n.diveLog_summary_action_importComputer),
             ),
             OutlinedButton.icon(
-              onPressed: () => context.go('/statistics'),
+              onPressed: () => context.go('/insights'),
               icon: const Icon(Icons.bar_chart),
               label: Text(context.l10n.diveLog_summary_action_viewStats),
             ),

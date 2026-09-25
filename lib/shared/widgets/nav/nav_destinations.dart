@@ -117,7 +117,7 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
   ),
   // Species closes the logging-and-training run that precedes the analysis
   // surfaces: it is a record of what dives turned up, so it reads last before
-  // Statistics. Material has no fish glyph, so this borrows MDI's and reuses
+  // Insights. Material has no fish glyph, so this borrows MDI's and reuses
   // it for the selected state the way `gps-log` reuses its icon.
   NavDestination(
     id: 'species',
@@ -127,8 +127,8 @@ final List<NavDestination> kNavDestinations = List.unmodifiable([
     label: (l10n) => l10n.nav_species,
   ),
   NavDestination(
-    id: 'statistics',
-    route: '/statistics',
+    id: 'insights',
+    route: '/insights',
     icon: Icons.bar_chart_outlined,
     selectedIcon: Icons.bar_chart,
     label: (l10n) => l10n.nav_statistics,

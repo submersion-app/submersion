@@ -1395,7 +1395,7 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
 
       final repo = FakeAppSettingsRepository()
-        ..navRailIds = ['statistics', 'gps-log', 'planning'];
+        ..navRailIds = ['insights', 'gps-log', 'planning'];
       await tester.pumpWidget(
         buildAppearanceWidget([
           ...getOverrides(),

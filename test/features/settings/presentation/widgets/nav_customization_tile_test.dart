@@ -58,7 +58,7 @@ void main() {
       tester,
     ) async {
       final repo = FakeAppSettingsRepository()
-        ..navPrimaryIds = ['equipment', 'buddies', 'statistics']
+        ..navPrimaryIds = ['equipment', 'buddies', 'insights']
         ..navRailIds = ['gps-log', 'planning', 'transfer'];
 
       await _pumpTile(tester, width: 500, repo: repo);
@@ -70,7 +70,7 @@ void main() {
       tester,
     ) async {
       final repo = FakeAppSettingsRepository()
-        ..navPrimaryIds = ['equipment', 'buddies', 'statistics']
+        ..navPrimaryIds = ['equipment', 'buddies', 'insights']
         ..navRailIds = ['gps-log', 'planning', 'transfer'];
 
       await _pumpTile(tester, width: 900, repo: repo);

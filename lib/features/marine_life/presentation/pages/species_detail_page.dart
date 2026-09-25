@@ -17,8 +17,8 @@ import 'package:submersion/features/media/presentation/pages/species_tag_picker_
 import 'package:submersion/features/media/presentation/helpers/species_photo_import_helper.dart';
 import 'package:submersion/features/media/presentation/widgets/species_photos_section.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/statistics/domain/entities/species_statistics.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/insights/domain/entities/species_insights.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 class SpeciesDetailPage extends ConsumerWidget {
@@ -213,7 +213,7 @@ class SpeciesDetailPage extends ConsumerWidget {
   }
 
   Widget _buildStatisticsSection(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(speciesStatisticsProvider(speciesId));
+    final statsAsync = ref.watch(speciesInsightsProvider(speciesId));
 
     return statsAsync.when(
       loading: () => const Card(
@@ -264,7 +264,7 @@ class SpeciesDetailPage extends ConsumerWidget {
   Widget _buildStatsCards(
     BuildContext context,
     WidgetRef ref,
-    SpeciesStatistics stats,
+    SpeciesInsights stats,
   ) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);

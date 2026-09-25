@@ -63,7 +63,7 @@ import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_pro
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -770,7 +770,7 @@ void main() {
     ),
   ]);
 
-  _tickGroup('statistics', [
+  _tickGroup('insights', [
     (
       name: 'filteredDiveStatisticsProvider',
       read: (c) => c.read(filteredDiveStatisticsProvider.future),

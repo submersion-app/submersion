@@ -236,7 +236,7 @@ void main() {
 
     testWidgets('switching scope swaps which order is shown', (tester) async {
       final repo = FakeAppSettingsRepository()
-        ..navPrimaryIds = ['equipment', 'buddies', 'statistics']
+        ..navPrimaryIds = ['equipment', 'buddies', 'insights']
         ..navRailIds = ['gps-log', 'planning'];
       await pumpPage(tester, repo: repo);
 
@@ -269,7 +269,7 @@ void main() {
 
     testWidgets('Reset button is enabled after customization', (tester) async {
       final repo = FakeAppSettingsRepository()
-        ..navPrimaryIds = ['equipment', 'buddies', 'statistics'];
+        ..navPrimaryIds = ['equipment', 'buddies', 'insights'];
       await pumpPage(tester, repo: repo);
 
       final button = tester.widget<TextButton>(
@@ -282,7 +282,7 @@ void main() {
       tester,
     ) async {
       final repo = FakeAppSettingsRepository()
-        ..navPrimaryIds = ['equipment', 'buddies', 'statistics'];
+        ..navPrimaryIds = ['equipment', 'buddies', 'insights'];
       await pumpPage(tester, repo: repo);
 
       await tester.tap(find.widgetWithText(TextButton, 'Reset to defaults'));

@@ -40,7 +40,7 @@ import 'package:submersion/features/dive_log/domain/services/profile_series_merg
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
-import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'

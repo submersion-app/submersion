@@ -6,9 +6,9 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/hero_diver_avatar.dart';
-import 'package:submersion/features/statistics/domain/career_totals.dart';
+import 'package:submersion/features/insights/domain/career_totals.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/statistics/presentation/providers/career_totals_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/career_totals_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 

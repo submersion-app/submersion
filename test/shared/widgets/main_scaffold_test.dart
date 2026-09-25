@@ -414,7 +414,7 @@ void main() {
                 builder: (context, state) => const SizedBox(),
               ),
               GoRoute(
-                path: '/statistics',
+                path: '/insights',
                 builder: (context, state) => const SizedBox(),
               ),
               GoRoute(
@@ -795,7 +795,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'statistics'];
+      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'insights'];
       await tester.pumpWidget(await buildHarness(repo: repo));
       await tester.pumpAndSettle();
 
@@ -834,7 +834,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'statistics'];
+      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'insights'];
       await tester.pumpWidget(await buildHarness(repo: repo));
       await tester.pumpAndSettle();
 
@@ -911,8 +911,7 @@ void main() {
 
       // A partial stored value: normalization keeps these three at the top and
       // appends the rest in canonical order.
-      final repo = _FakeRepo()
-        ..storedRail = ['settings', 'statistics', 'dives'];
+      final repo = _FakeRepo()..storedRail = ['settings', 'insights', 'dives'];
       await tester.pumpWidget(await buildHarness(repo: repo));
       await tester.pumpAndSettle();
 
@@ -945,8 +944,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      final repo = _FakeRepo()
-        ..storedRail = ['settings', 'statistics', 'dives'];
+      final repo = _FakeRepo()..storedRail = ['settings', 'insights', 'dives'];
       await tester.pumpWidget(await buildHarness(repo: repo));
       await tester.pumpAndSettle();
 
@@ -1045,7 +1043,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'statistics'];
+      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'insights'];
       final harness = await buildHarnessWithRouter(repo: repo);
       await tester.pumpWidget(harness.app);
       await tester.pumpAndSettle();
@@ -1069,7 +1067,7 @@ void main() {
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
 
-      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'statistics'];
+      final repo = _FakeRepo()..stored = ['equipment', 'buddies', 'insights'];
       await tester.pumpWidget(await buildHarness(repo: repo));
       await tester.pumpAndSettle();
 

@@ -15,7 +15,7 @@ import 'package:submersion/features/safety/presentation/pages/incident_edit_page
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
@@ -1151,8 +1151,8 @@ void main() {
       context = tester.element(find.byType(SizedBox));
 
       expect(
-        buildWith(statisticsFilterProvider).filterProvider,
-        same(statisticsFilterProvider),
+        buildWith(insightsFilterProvider).filterProvider,
+        same(insightsFilterProvider),
       );
     });
 

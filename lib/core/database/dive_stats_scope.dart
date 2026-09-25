@@ -21,7 +21,7 @@
 ///   500 psi for an end-of-dive weight check.
 /// - `dive_mode <> 'gauge'` keeps dives that are not gauge-mode, which carry
 ///   no usable gas data. This rule predates the exclusion flags and was
-///   hand-copied into seven queries in StatisticsRepository; it now lives
+///   hand-copied into seven queries in InsightsRepository; it now lives
 ///   here, which is the point.
 ///
 /// **This is deliberately NOT folded into `buildFilteredDiveIdSubquery`.**

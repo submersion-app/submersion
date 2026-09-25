@@ -4,8 +4,8 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 
 /// Recent dives shown on the home tab (newest 3).
 ///
@@ -127,8 +127,8 @@ class YearInReview {
 
 /// This year vs last year. Null when both years are empty.
 final yearInReviewProvider = FutureProvider<YearInReview?>((ref) async {
-  final repository = ref.watch(statisticsRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchStatisticsChanges());
+  final repository = ref.watch(insightsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchInsightsChanges());
   final diverId = ref.watch(currentDiverIdProvider);
   final year = DateTime.now().year;
   final current = await repository.getYearStats(year, diverId: diverId);
@@ -186,8 +186,8 @@ class DashboardQuickStats {
 final dashboardQuickStatsProvider = FutureProvider<DashboardQuickStats>((
   ref,
 ) async {
-  final repository = ref.watch(statisticsRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchStatisticsChanges());
+  final repository = ref.watch(insightsRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchInsightsChanges());
   final diverId = ref.watch(currentDiverIdProvider);
 
   // Get top buddy

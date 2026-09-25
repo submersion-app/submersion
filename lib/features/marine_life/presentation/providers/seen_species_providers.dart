@@ -13,8 +13,8 @@ final seenSpeciesRepositoryProvider = Provider<SeenSpeciesRepository>((ref) {
 
 /// Every species the current diver has logged, with sighting aggregates.
 ///
-/// Deliberately UNFILTERED by `statisticsFilterProvider`, for the reason
-/// written on `speciesStatisticsProvider`: the Species page is a logbook
+/// Deliberately UNFILTERED by `insightsFilterProvider`, for the reason
+/// written on `speciesInsightsProvider`: the Species page is a logbook
 /// surface with its own search and sort, not a Statistics panel, and it must
 /// not silently shrink to whatever filter the Statistics tab last used.
 ///

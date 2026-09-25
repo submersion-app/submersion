@@ -7,7 +7,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
@@ -118,15 +118,15 @@ void main() {
       currentDiverIdProvider.overrideWith(
         (ref) => MockCurrentDiverIdNotifier(),
       ),
-      // statisticsRepositoryProvider watches the gas model (issue #828), which
+      // insightsRepositoryProvider watches the gas model (issue #828), which
       // otherwise pulls in settingsProvider and its SharedPreferences
       // dependency. Pin it instead of standing up the whole settings stack.
       gasModelProvider.overrideWith((ref) => GasModel.real),
-      statisticsFilterProvider.overrideWith((ref) => filter),
+      insightsFilterProvider.overrideWith((ref) => filter),
     ],
   );
 
-  test('dashboardQuickStatsProvider ignores an active statisticsFilterProvider '
+  test('dashboardQuickStatsProvider ignores an active insightsFilterProvider '
       'filter (issue #453 finding #2)', () async {
     // A minDepth:30 Statistics filter would keep only 'deep'. If any of
     // the three values bled the filter, activating it would drop
@@ -162,7 +162,7 @@ void main() {
     );
 
     const reason =
-        'dashboardQuickStatsProvider must ignore statisticsFilterProvider; '
+        'dashboardQuickStatsProvider must ignore insightsFilterProvider; '
         'the home dashboard has no filter UI and must not be silently '
         'rescoped by the Statistics tab.';
     expect(
