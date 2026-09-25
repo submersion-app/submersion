@@ -2,16 +2,18 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_reset_providers.dart';
+import 'package:submersion/features/maps/presentation/widgets/offline_maps_section_header.dart';
 import 'package:submersion/features/settings/presentation/widgets/bathymetry_refresh_tile.dart';
 import 'package:submersion/features/settings/presentation/widgets/three_d_maps_reload_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Settings page for the app's cached 3D terrain/depth data (bathymetry):
-/// swissBATHY3D-specific actions, a combined reset for the other four
-/// providers (EMODnet, NOAA DEM, GMRT, ETOPO), and a "reload for every dive
-/// site" action that spans all five.
+/// The Offline Maps page's section for the app's cached 3D terrain/depth
+/// data (bathymetry): swissBATHY3D-specific actions, a combined reset for the
+/// other four providers (EMODnet, NOAA DEM, GMRT, ETOPO), and a "reload for
+/// every dive site" action that spans all five.
 ///
-/// Only one of the four actions runs at a time: [_otherActionBusy] covers
+/// Only one of the four actions runs at a time (a map tile download in the
+/// section above is not one of them and runs independently): [_otherActionBusy] covers
 /// the delete/reset actions (via [_runExclusive]), [_refreshBusy] covers
 /// the refresh tile (it reports its own run through
 /// [BathymetryRefreshTile.onBusyChanged]), and [mapReloadProvider]'s own
@@ -27,14 +29,14 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// it used to also double as "am I excluded from my own dimming check",
 /// which silently re-enabled every other tile the moment the refresh tile
 /// started, and vice versa -- found by code review).
-class ThreeDMapsPage extends ConsumerStatefulWidget {
-  const ThreeDMapsPage({super.key});
+class TerrainDataSection extends ConsumerStatefulWidget {
+  const TerrainDataSection({super.key});
 
   @override
-  ConsumerState<ThreeDMapsPage> createState() => _ThreeDMapsPageState();
+  ConsumerState<TerrainDataSection> createState() => _TerrainDataSectionState();
 }
 
-class _ThreeDMapsPageState extends ConsumerState<ThreeDMapsPage> {
+class _TerrainDataSectionState extends ConsumerState<TerrainDataSection> {
   bool _otherActionBusy = false;
   bool _refreshBusy = false;
 
@@ -58,7 +60,7 @@ class _ThreeDMapsPageState extends ConsumerState<ThreeDMapsPage> {
       // Without this, a throwing delete/reset (locked DB, I/O error) left
       // the diver with no signal at all -- the busy flag still cleared via
       // `finally` below, so the tile just went idle again, indistinguishable
-      // from a silent success. Every other action on this page (the refresh
+      // from a silent success. Every other action in this section (the refresh
       // tile, the reload flow) already surfaces its own failure (found by
       // code review).
       if (!mounted) return;
@@ -122,110 +124,108 @@ class _ThreeDMapsPageState extends ConsumerState<ThreeDMapsPage> {
     final reloadState = ref.watch(mapReloadProvider);
     final busy = _busy(ref);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(context.l10n.maps3d_appBar_title)),
-      body: ListView(
-        children: [
-          if (busy)
-            Container(
-              width: double.infinity,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        OfflineMapsSectionHeader(context.l10n.maps_offline_section_terrain),
+        if (busy)
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primaryContainer,
-              padding: const EdgeInsets.all(12),
-              child: Text(
-                context.l10n.maps3d_busy_notice,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onPrimaryContainer,
-                ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              context.l10n.maps3d_busy_notice,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onPrimaryContainer,
               ),
             ),
-          _SectionHeader(context.l10n.maps3d_section_all),
-          Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                ListTile(
-                  enabled: !busy,
-                  leading: const Icon(Icons.cloud_download_outlined),
-                  title: Text(context.l10n.maps3d_reload),
-                  subtitle: Text(context.l10n.maps3d_reload_subtitle),
-                  onTap: _startReload,
-                ),
-                if (reloadState.isRunning) ...[
-                  const Divider(height: 1),
-                  _ReloadProgress(state: reloadState),
-                ],
-              ],
-            ),
           ),
-          const SizedBox(height: 16),
-          _SectionHeader(context.l10n.maps3d_section_swissBathy),
-          Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                IgnorePointer(
-                  ignoring: _otherActionBusy || reloadState.isRunning,
-                  child: Opacity(
-                    // Matches the dimming a plain ListTile(enabled: false)
-                    // already gives the other three actions below -- this
-                    // tile has no such built-in disabled look of its own
-                    // (BathymetryRefreshTile never sets ListTile.enabled),
-                    // so without this it stayed visually identical whether
-                    // it was actually tappable or not. Asks "is something
-                    // ELSE running", not the page-wide `busy`: while this
-                    // tile is the one running, it must stay bright and show
-                    // its own spinner, not look disabled too.
-                    opacity: (_otherActionBusy || reloadState.isRunning)
-                        ? 0.5
-                        : 1.0,
-                    child: BathymetryRefreshTile(
-                      leading: const Icon(Icons.refresh),
-                      onBusyChanged: (value) =>
-                          setState(() => _refreshBusy = value),
-                    ),
-                  ),
-                ),
+        _SectionHeader(context.l10n.maps3d_section_all),
+        Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [
+              ListTile(
+                enabled: !busy,
+                leading: const Icon(Icons.cloud_download_outlined),
+                title: Text(context.l10n.maps3d_reload),
+                subtitle: Text(context.l10n.maps3d_reload_subtitle),
+                onTap: _startReload,
+              ),
+              if (reloadState.isRunning) ...[
                 const Divider(height: 1),
-                ListTile(
-                  enabled: !busy,
-                  leading: const Icon(Icons.delete_outline),
-                  title: Text(context.l10n.maps3d_swissBathy_delete),
-                  subtitle: Text(
-                    context.l10n.maps3d_swissBathy_delete_subtitle,
-                  ),
-                  onTap: () => _confirmAndRun(
-                    title: context.l10n.maps3d_swissBathy_delete_confirmTitle,
-                    message:
-                        context.l10n.maps3d_swissBathy_delete_confirmMessage,
-                    confirmLabel: context.l10n.maps3d_swissBathy_delete,
-                    action: ref.read(swissBathyClearProvider),
-                    doneMessage: context.l10n.maps3d_swissBathy_delete_done,
+                _ReloadProgress(state: reloadState),
+              ],
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        _SectionHeader(context.l10n.maps3d_section_swissBathy),
+        Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: [
+              IgnorePointer(
+                ignoring: _otherActionBusy || reloadState.isRunning,
+                child: Opacity(
+                  // Matches the dimming a plain ListTile(enabled: false)
+                  // already gives the other three actions below -- this
+                  // tile has no such built-in disabled look of its own
+                  // (BathymetryRefreshTile never sets ListTile.enabled),
+                  // so without this it stayed visually identical whether
+                  // it was actually tappable or not. Asks "is something
+                  // ELSE running", not the page-wide `busy`: while this
+                  // tile is the one running, it must stay bright and show
+                  // its own spinner, not look disabled too.
+                  opacity: (_otherActionBusy || reloadState.isRunning)
+                      ? 0.5
+                      : 1.0,
+                  child: BathymetryRefreshTile(
+                    leading: const Icon(Icons.refresh),
+                    onBusyChanged: (value) =>
+                        setState(() => _refreshBusy = value),
                   ),
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          _SectionHeader(context.l10n.maps3d_section_other),
-          Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            child: ListTile(
-              enabled: !busy,
-              leading: const Icon(Icons.delete_sweep_outlined),
-              title: Text(context.l10n.maps3d_other_reset),
-              subtitle: Text(context.l10n.maps3d_other_reset_subtitle),
-              onTap: () => _confirmAndRun(
-                title: context.l10n.maps3d_other_reset_confirmTitle,
-                message: context.l10n.maps3d_other_reset_confirmMessage,
-                confirmLabel: context.l10n.maps3d_other_reset,
-                action: ref.read(bathymetryOtherSourcesClearProvider),
-                doneMessage: context.l10n.maps3d_other_reset_done,
               ),
+              const Divider(height: 1),
+              ListTile(
+                enabled: !busy,
+                leading: const Icon(Icons.delete_outline),
+                title: Text(context.l10n.maps3d_swissBathy_delete),
+                subtitle: Text(context.l10n.maps3d_swissBathy_delete_subtitle),
+                onTap: () => _confirmAndRun(
+                  title: context.l10n.maps3d_swissBathy_delete_confirmTitle,
+                  message: context.l10n.maps3d_swissBathy_delete_confirmMessage,
+                  confirmLabel: context.l10n.maps3d_swissBathy_delete,
+                  action: ref.read(swissBathyClearProvider),
+                  doneMessage: context.l10n.maps3d_swissBathy_delete_done,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        _SectionHeader(context.l10n.maps3d_section_other),
+        Card(
+          margin: const EdgeInsets.symmetric(horizontal: 16),
+          child: ListTile(
+            enabled: !busy,
+            leading: const Icon(Icons.delete_sweep_outlined),
+            title: Text(context.l10n.maps3d_other_reset),
+            subtitle: Text(context.l10n.maps3d_other_reset_subtitle),
+            onTap: () => _confirmAndRun(
+              title: context.l10n.maps3d_other_reset_confirmTitle,
+              message: context.l10n.maps3d_other_reset_confirmMessage,
+              confirmLabel: context.l10n.maps3d_other_reset,
+              action: ref.read(bathymetryOtherSourcesClearProvider),
+              doneMessage: context.l10n.maps3d_other_reset_done,
             ),
           ),
-          const SizedBox(height: 32),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

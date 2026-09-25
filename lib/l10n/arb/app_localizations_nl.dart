@@ -18362,14 +18362,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_data_offlineMaps_subtitle =>
-      'Download kaarten voor offline gebruik';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+      'Kaarttegels en 3D-terreingegevens';
 
   @override
   String get settings_data_restore => 'Herstellen';
@@ -25882,14 +25875,14 @@ class AppLocalizationsNl extends AppLocalizations {
   String get maps_offline_clearAll => 'Alles wissen';
 
   @override
-  String get maps_offline_clearAllCache => 'Alle cache wissen';
-
-  @override
   String get maps_offline_clearAllCacheMessage =>
       'Alle gedownloade kaartregio\'s en gecachte tegels verwijderen?';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'Alle cache wissen?';
+
+  @override
+  String get maps_offline_clearAllTiles => 'Alle kaarttegels wissen';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -25997,6 +25990,12 @@ class AppLocalizationsNl extends AppLocalizations {
   ) {
     return '$size, $count tegels, zoom $minZoom tot $maxZoom';
   }
+
+  @override
+  String get maps_offline_section_terrain => '3D-terrein';
+
+  @override
+  String get maps_offline_section_tiles => 'Kaarttegels';
 
   @override
   String get maps_offline_size => 'Grootte';
@@ -26711,9 +26710,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Nog geen meerdieptegegevens opgeslagen';
 
   @override
-  String get maps3d_appBar_title => '3D-kaarten';
-
-  @override
   String get maps3d_section_all => 'Alle aanbieders';
 
   @override
@@ -26818,7 +26814,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get maps3d_busy_notice =>
-      'Er wordt al een andere 3D-kaartenactie uitgevoerd. Wacht tot deze klaar is.';
+      'Er wordt al een andere 3D-terreinactie uitgevoerd. Wacht tot deze klaar is.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {
@@ -30932,6 +30928,11 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return 'vanaf $min $unit';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'Coördinaatformaat';
 
   @override
@@ -30967,7 +30968,11 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'Welke afstanden gelden als goed zicht waar jij duikt';
+      'Hoe duikdetails en statistieken het zicht beschrijven dat je hebt gemeten';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'Kies welke gemeten afstanden gelden als Uitstekend, Goed, Matig of Slecht in duikdetails en statistieken. Een wijziging geeft je duiken alleen een ander label; de gelogde afstanden blijven altijd ongewijzigd.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'Tropisch';
@@ -30994,6 +30999,19 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get settings_visibilityScale_invalidOrder =>
       'Elke waarde moet kleiner zijn dan die erboven en groter dan nul';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset =>
+      'Stel je eigen afstanden in';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'Voer per niveau de kortste afstand in die nog meetelt.';
 
   @override
   String insights_conditions_visibility_legacySuffix(String band) {

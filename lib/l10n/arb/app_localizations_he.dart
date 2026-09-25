@@ -18045,14 +18045,8 @@ class AppLocalizationsHe extends AppLocalizations {
   String get settings_data_offlineMaps => 'מפות לא מקוונות';
 
   @override
-  String get settings_data_offlineMaps_subtitle => 'הורד מפות לשימוש לא מקוון';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+  String get settings_data_offlineMaps_subtitle =>
+      'אריחי מפה ונתוני פני שטח בתלת-ממד';
 
   @override
   String get settings_data_restore => 'שחזור';
@@ -25438,14 +25432,14 @@ class AppLocalizationsHe extends AppLocalizations {
   String get maps_offline_clearAll => 'נקה הכל';
 
   @override
-  String get maps_offline_clearAllCache => 'נקה את כל המטמון';
-
-  @override
   String get maps_offline_clearAllCacheMessage =>
       'למחוק את כל אזורי המפה שהורדו ואריחים שמורים?';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'לנקות את כל המטמון?';
+
+  @override
+  String get maps_offline_clearAllTiles => 'נקה את כל אריחי המפה';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -25553,6 +25547,12 @@ class AppLocalizationsHe extends AppLocalizations {
   ) {
     return '$size, $count אריחים, זום $minZoom עד $maxZoom';
   }
+
+  @override
+  String get maps_offline_section_terrain => 'פני שטח בתלת-ממד';
+
+  @override
+  String get maps_offline_section_tiles => 'אריחי מפה';
 
   @override
   String get maps_offline_size => 'גודל';
@@ -26255,9 +26255,6 @@ class AppLocalizationsHe extends AppLocalizations {
       'עדיין לא נשמרו נתוני עומק אגמים';
 
   @override
-  String get maps3d_appBar_title => 'מפות תלת-ממד';
-
-  @override
   String get maps3d_section_all => 'כל הספקים';
 
   @override
@@ -26360,7 +26357,7 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get maps3d_busy_notice =>
-      'פעולה אחרת של מפות תלת-ממד פועלת כעת. יש להמתין עד לסיומה.';
+      'פעולה אחרת של פני שטח בתלת-ממד פועלת כעת. יש להמתין עד לסיומה.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {
@@ -30392,6 +30389,11 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return '$min $unit ומעלה';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'פורמט קואורדינטות';
 
   @override
@@ -30427,7 +30429,11 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'אילו מרחקים נחשבים ראות טובה במקום שבו אתה צולל';
+      'כיצד פרטי הצלילה והסטטיסטיקה מתארים את הראות שמדדת';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'בחר אילו מרחקים שנמדדו ייחשבו מצוינת, טובה, בינונית או ירודה בפרטי הצלילה ובסטטיסטיקה. שינוי ההגדרה משנה רק את התוויות של הצלילות; הוא לעולם לא משנה את המרחקים שתיעדת.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'טרופי';
@@ -30453,6 +30459,18 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get settings_visibilityScale_invalidOrder =>
       'כל ערך חייב להיות קטן מזה שמעליו וגדול מאפס';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset => 'הגדר מרחקים משלך';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'הזן לכל דרגה את המרחק הקצר ביותר שעדיין נחשב לה.';
 
   @override
   String insights_conditions_visibility_legacySuffix(String band) {

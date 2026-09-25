@@ -46,7 +46,7 @@ class _BathymetryRefreshTileState extends ConsumerState<BathymetryRefreshTile> {
       summary = null;
     } finally {
       // Both guarded by the same `mounted` check: widget.onBusyChanged is
-      // wired by the parent to its own setState (three_d_maps_page.dart), so
+      // wired by the parent to its own setState (terrain_data_section.dart), so
       // calling it after this tile (and so its ancestor) is disposed --
       // e.g. the diver navigated away while the refresh was still in
       // flight -- would throw "setState() called after dispose()" on the
