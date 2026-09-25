@@ -11614,6 +11614,177 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get passport_title => 'דרכון המיכל';
+
+  @override
+  String get passport_open => 'פתיחת הדרכון';
+
+  @override
+  String get passport_entry_noFill => 'לא נרשם מילוי';
+
+  @override
+  String passport_entry_lastFill(String mix, String pressure, String date) {
+    return '$mix ב-$pressure, $date';
+  }
+
+  @override
+  String get passport_spec_title => 'מיכל';
+
+  @override
+  String passport_spec_freeGas(String pressure) {
+    return 'גז חופשי ב-$pressure';
+  }
+
+  @override
+  String get passport_spec_buoyancyEmpty => 'ציפה כשריק';
+
+  @override
+  String get passport_spec_buoyancyFull => 'ציפה כשמלא';
+
+  @override
+  String get passport_service_title => 'טיפולים';
+
+  @override
+  String get passport_service_notTracked => 'לא במעקב';
+
+  @override
+  String get passport_service_trackO2Clean => 'מעקב אחר ניקוי O2';
+
+  @override
+  String passport_service_lastDone(String date) {
+    return 'לאחרונה $date';
+  }
+
+  @override
+  String passport_o2Warning_untracked(String o2) {
+    return 'המילוי האחרון הוא $o2 O2 והמיכל הזה אינו במעקב כנקי ל-O2.';
+  }
+
+  @override
+  String passport_o2Warning_overdue(String o2) {
+    return 'המילוי האחרון הוא $o2 O2 וניקוי ה-O2 של המיכל הזה באיחור.';
+  }
+
+  @override
+  String get passport_fill_title => 'מילוי נוכחי';
+
+  @override
+  String get passport_fill_none => 'עדיין לא נרשם מילוי';
+
+  @override
+  String get passport_fill_log => 'רישום מילוי';
+
+  @override
+  String passport_fill_mod(String depth, String ppo2) {
+    return 'MOD $depth ב-ppO2 $ppo2';
+  }
+
+  @override
+  String passport_fill_end(String depth) {
+    return 'END $depth ב-MOD העבודה';
+  }
+
+  @override
+  String passport_fill_station(String station) {
+    return 'מולא על ידי $station';
+  }
+
+  @override
+  String passport_fill_analyzer(String analyzer) {
+    return 'נותח באמצעות $analyzer';
+  }
+
+  @override
+  String get passport_fill_unsigned => 'לא חתום';
+
+  @override
+  String get passport_history_title => 'היסטוריית מילויים';
+
+  @override
+  String passport_history_sinceHydro(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מילויים מאז מבחן הלחץ האחרון',
+      one: '$count מילוי מאז מבחן הלחץ האחרון',
+      zero: 'אין מילויים מאז מבחן הלחץ האחרון',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_history_delete => 'מחיקת מילוי';
+
+  @override
+  String get passport_history_deleteConfirm => 'למחוק את רשומת המילוי הזו?';
+
+  @override
+  String get passport_tag_title => 'תג';
+
+  @override
+  String passport_tag_written(String date) {
+    return 'נכתב $date';
+  }
+
+  @override
+  String get passport_tag_stale =>
+      'התג נכתב לפני הטיפול או שינוי המפרט האחרון. יש להדפיסו מחדש.';
+
+  @override
+  String get passport_tag_printLabel => 'הדפסת תווית';
+
+  @override
+  String get passport_tag_printLabels => 'הדפסת תוויות';
+
+  @override
+  String get passport_tag_linkExisting => 'קישור תג קיים';
+
+  @override
+  String get passport_tag_linkPrompt => 'הדביקו את הקישור מהתג';
+
+  @override
+  String get passport_tag_linkInvalid => 'זה אינו תג מיכל';
+
+  @override
+  String passport_tag_linkInUse(String name) {
+    return 'התג הזה כבר שייך ל-$name';
+  }
+
+  @override
+  String get passport_tag_linked => 'התג קושר';
+
+  @override
+  String get passport_logFill_date => 'מולא בתאריך';
+
+  @override
+  String get passport_logFill_o2 => 'O2 (%)';
+
+  @override
+  String get passport_logFill_he => 'He (%)';
+
+  @override
+  String get passport_logFill_pressure => 'לחץ מילוי';
+
+  @override
+  String get passport_logFill_temperature => 'טמפרטורת הגז';
+
+  @override
+  String get passport_logFill_station => 'תחנת מילוי';
+
+  @override
+  String get passport_logFill_analyzer => 'מנתח';
+
+  @override
+  String get passport_logFill_notes => 'הערות';
+
+  @override
+  String get passport_logFill_invalidMix =>
+      'O2 ו-He חייבים להיות בין 0 ל-100 וסכומם עד 100';
+
+  @override
+  String get passport_logFill_invalidNumber => 'יש להזין מספר';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

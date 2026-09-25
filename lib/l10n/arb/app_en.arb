@@ -6815,6 +6815,115 @@
       }
     }
   },
+  "passport_title": "Cylinder passport",
+  "passport_open": "Open passport",
+  "passport_entry_noFill": "No fill logged",
+  "passport_entry_lastFill": "{mix} at {pressure}, {date}",
+  "@passport_entry_lastFill": {
+    "placeholders": {
+      "mix": {"type": "String"},
+      "pressure": {"type": "String"},
+      "date": {"type": "String"}
+    }
+  },
+  "passport_spec_title": "Cylinder",
+  "passport_spec_freeGas": "Free gas at {pressure}",
+  "@passport_spec_freeGas": {
+    "placeholders": {
+      "pressure": {"type": "String"}
+    }
+  },
+  "passport_spec_buoyancyEmpty": "Buoyancy when empty",
+  "passport_spec_buoyancyFull": "Buoyancy when full",
+  "passport_service_title": "Service",
+  "passport_service_notTracked": "Not tracked",
+  "passport_service_trackO2Clean": "Track O2 cleaning",
+  "passport_service_lastDone": "Last {date}",
+  "@passport_service_lastDone": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "passport_o2Warning_untracked": "The last fill is {o2} O2 and this cylinder is not tracked as O2 clean.",
+  "@passport_o2Warning_untracked": {
+    "placeholders": {
+      "o2": {"type": "String"}
+    }
+  },
+  "passport_o2Warning_overdue": "The last fill is {o2} O2 and this cylinder's O2 cleaning is overdue.",
+  "@passport_o2Warning_overdue": {
+    "placeholders": {
+      "o2": {"type": "String"}
+    }
+  },
+  "passport_fill_title": "Current fill",
+  "passport_fill_none": "No fill logged yet",
+  "passport_fill_log": "Log a fill",
+  "passport_fill_mod": "MOD {depth} at ppO2 {ppo2}",
+  "@passport_fill_mod": {
+    "placeholders": {
+      "depth": {"type": "String"},
+      "ppo2": {"type": "String"}
+    }
+  },
+  "passport_fill_end": "END {depth} at the working MOD",
+  "@passport_fill_end": {
+    "placeholders": {
+      "depth": {"type": "String"}
+    }
+  },
+  "passport_fill_station": "Filled by {station}",
+  "@passport_fill_station": {
+    "placeholders": {
+      "station": {"type": "String"}
+    }
+  },
+  "passport_fill_analyzer": "Analyzed with {analyzer}",
+  "@passport_fill_analyzer": {
+    "placeholders": {
+      "analyzer": {"type": "String"}
+    }
+  },
+  "passport_fill_unsigned": "Unsigned",
+  "passport_history_title": "Fill history",
+  "passport_history_sinceHydro": "{count, plural, =0{No fills since the last hydro} =1{{count} fill since the last hydro} other{{count} fills since the last hydro}}",
+  "@passport_history_sinceHydro": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "passport_history_delete": "Delete fill",
+  "passport_history_deleteConfirm": "Delete this fill record?",
+  "passport_tag_title": "Tag",
+  "passport_tag_written": "Written {date}",
+  "@passport_tag_written": {
+    "placeholders": {
+      "date": {"type": "String"}
+    }
+  },
+  "passport_tag_stale": "The tag was written before the latest service or spec change. Reprint it.",
+  "passport_tag_printLabel": "Print label",
+  "passport_tag_printLabels": "Print labels",
+  "passport_tag_linkExisting": "Link an existing tag",
+  "passport_tag_linkPrompt": "Paste the link from the tag",
+  "passport_tag_linkInvalid": "That is not a cylinder tag",
+  "passport_tag_linkInUse": "That tag already belongs to {name}",
+  "@passport_tag_linkInUse": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "passport_tag_linked": "Tag linked",
+  "passport_logFill_date": "Filled on",
+  "passport_logFill_o2": "O2 (%)",
+  "passport_logFill_he": "He (%)",
+  "passport_logFill_pressure": "Fill pressure",
+  "passport_logFill_temperature": "Gas temperature",
+  "passport_logFill_station": "Fill station",
+  "passport_logFill_analyzer": "Analyzer",
+  "passport_logFill_notes": "Notes",
+  "passport_logFill_invalidMix": "O2 and He must each be 0 to 100 and total 100 or less",
+  "passport_logFill_invalidNumber": "Enter a number",
   "equipment_bulkTags_confirmAdding": "{count, plural, =1{Adding to 1 equipment item} other{Adding to all {count} equipment items}}",
   "@equipment_bulkTags_confirmAdding": {
     "placeholders": {

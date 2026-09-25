@@ -11922,6 +11922,179 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get passport_title => 'Passeport de la bouteille';
+
+  @override
+  String get passport_open => 'Ouvrir le passeport';
+
+  @override
+  String get passport_entry_noFill => 'Aucun gonflage enregistré';
+
+  @override
+  String passport_entry_lastFill(String mix, String pressure, String date) {
+    return '$mix à $pressure, $date';
+  }
+
+  @override
+  String get passport_spec_title => 'Bouteille';
+
+  @override
+  String passport_spec_freeGas(String pressure) {
+    return 'Gaz libre à $pressure';
+  }
+
+  @override
+  String get passport_spec_buoyancyEmpty => 'Flottabilité à vide';
+
+  @override
+  String get passport_spec_buoyancyFull => 'Flottabilité pleine';
+
+  @override
+  String get passport_service_title => 'Entretien';
+
+  @override
+  String get passport_service_notTracked => 'Non suivi';
+
+  @override
+  String get passport_service_trackO2Clean => 'Suivre le nettoyage O2';
+
+  @override
+  String passport_service_lastDone(String date) {
+    return 'Dernier $date';
+  }
+
+  @override
+  String passport_o2Warning_untracked(String o2) {
+    return 'Le dernier gonflage est à $o2 d\'O2 et cette bouteille n\'est pas suivie comme compatible O2.';
+  }
+
+  @override
+  String passport_o2Warning_overdue(String o2) {
+    return 'Le dernier gonflage est à $o2 d\'O2 et le nettoyage O2 de cette bouteille est en retard.';
+  }
+
+  @override
+  String get passport_fill_title => 'Gonflage actuel';
+
+  @override
+  String get passport_fill_none => 'Aucun gonflage enregistré pour l\'instant';
+
+  @override
+  String get passport_fill_log => 'Enregistrer un gonflage';
+
+  @override
+  String passport_fill_mod(String depth, String ppo2) {
+    return 'PMU $depth à ppO2 $ppo2';
+  }
+
+  @override
+  String passport_fill_end(String depth) {
+    return 'PEN $depth à la PMU de travail';
+  }
+
+  @override
+  String passport_fill_station(String station) {
+    return 'Gonflée par $station';
+  }
+
+  @override
+  String passport_fill_analyzer(String analyzer) {
+    return 'Analysée avec $analyzer';
+  }
+
+  @override
+  String get passport_fill_unsigned => 'Non signé';
+
+  @override
+  String get passport_history_title => 'Historique des gonflages';
+
+  @override
+  String passport_history_sinceHydro(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count gonflages depuis la dernière requalification',
+      one: '$count gonflage depuis la dernière requalification',
+      zero: 'Aucun gonflage depuis la dernière requalification',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_history_delete => 'Supprimer le gonflage';
+
+  @override
+  String get passport_history_deleteConfirm =>
+      'Supprimer cet enregistrement de gonflage ?';
+
+  @override
+  String get passport_tag_title => 'Étiquette';
+
+  @override
+  String passport_tag_written(String date) {
+    return 'Écrite le $date';
+  }
+
+  @override
+  String get passport_tag_stale =>
+      'L\'étiquette a été écrite avant le dernier entretien ou changement de caractéristiques. Réimprimez-la.';
+
+  @override
+  String get passport_tag_printLabel => 'Imprimer l\'étiquette';
+
+  @override
+  String get passport_tag_printLabels => 'Imprimer les étiquettes';
+
+  @override
+  String get passport_tag_linkExisting => 'Lier une étiquette existante';
+
+  @override
+  String get passport_tag_linkPrompt => 'Collez le lien de l\'étiquette';
+
+  @override
+  String get passport_tag_linkInvalid =>
+      'Ce n\'est pas une étiquette de bouteille';
+
+  @override
+  String passport_tag_linkInUse(String name) {
+    return 'Cette étiquette appartient déjà à $name';
+  }
+
+  @override
+  String get passport_tag_linked => 'Étiquette liée';
+
+  @override
+  String get passport_logFill_date => 'Gonflée le';
+
+  @override
+  String get passport_logFill_o2 => 'O2 (%)';
+
+  @override
+  String get passport_logFill_he => 'He (%)';
+
+  @override
+  String get passport_logFill_pressure => 'Pression de gonflage';
+
+  @override
+  String get passport_logFill_temperature => 'Température du gaz';
+
+  @override
+  String get passport_logFill_station => 'Station de gonflage';
+
+  @override
+  String get passport_logFill_analyzer => 'Analyseur';
+
+  @override
+  String get passport_logFill_notes => 'Notes';
+
+  @override
+  String get passport_logFill_invalidMix =>
+      'O2 et He doivent être compris entre 0 et 100 et totaliser 100 au plus';
+
+  @override
+  String get passport_logFill_invalidNumber => 'Saisissez un nombre';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

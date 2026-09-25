@@ -19780,6 +19780,282 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{Updated tags on 1 item} other{Updated tags on {count} items}}'**
   String equipment_bulkTags_applied(int count);
 
+  /// No description provided for @passport_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder passport'**
+  String get passport_title;
+
+  /// No description provided for @passport_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open passport'**
+  String get passport_open;
+
+  /// No description provided for @passport_entry_noFill.
+  ///
+  /// In en, this message translates to:
+  /// **'No fill logged'**
+  String get passport_entry_noFill;
+
+  /// No description provided for @passport_entry_lastFill.
+  ///
+  /// In en, this message translates to:
+  /// **'{mix} at {pressure}, {date}'**
+  String passport_entry_lastFill(String mix, String pressure, String date);
+
+  /// No description provided for @passport_spec_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder'**
+  String get passport_spec_title;
+
+  /// No description provided for @passport_spec_freeGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Free gas at {pressure}'**
+  String passport_spec_freeGas(String pressure);
+
+  /// No description provided for @passport_spec_buoyancyEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy when empty'**
+  String get passport_spec_buoyancyEmpty;
+
+  /// No description provided for @passport_spec_buoyancyFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy when full'**
+  String get passport_spec_buoyancyFull;
+
+  /// No description provided for @passport_service_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Service'**
+  String get passport_service_title;
+
+  /// No description provided for @passport_service_notTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not tracked'**
+  String get passport_service_notTracked;
+
+  /// No description provided for @passport_service_trackO2Clean.
+  ///
+  /// In en, this message translates to:
+  /// **'Track O2 cleaning'**
+  String get passport_service_trackO2Clean;
+
+  /// No description provided for @passport_service_lastDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {date}'**
+  String passport_service_lastDone(String date);
+
+  /// No description provided for @passport_o2Warning_untracked.
+  ///
+  /// In en, this message translates to:
+  /// **'The last fill is {o2} O2 and this cylinder is not tracked as O2 clean.'**
+  String passport_o2Warning_untracked(String o2);
+
+  /// No description provided for @passport_o2Warning_overdue.
+  ///
+  /// In en, this message translates to:
+  /// **'The last fill is {o2} O2 and this cylinder\'s O2 cleaning is overdue.'**
+  String passport_o2Warning_overdue(String o2);
+
+  /// No description provided for @passport_fill_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Current fill'**
+  String get passport_fill_title;
+
+  /// No description provided for @passport_fill_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No fill logged yet'**
+  String get passport_fill_none;
+
+  /// No description provided for @passport_fill_log.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a fill'**
+  String get passport_fill_log;
+
+  /// No description provided for @passport_fill_mod.
+  ///
+  /// In en, this message translates to:
+  /// **'MOD {depth} at ppO2 {ppo2}'**
+  String passport_fill_mod(String depth, String ppo2);
+
+  /// No description provided for @passport_fill_end.
+  ///
+  /// In en, this message translates to:
+  /// **'END {depth} at the working MOD'**
+  String passport_fill_end(String depth);
+
+  /// No description provided for @passport_fill_station.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled by {station}'**
+  String passport_fill_station(String station);
+
+  /// No description provided for @passport_fill_analyzer.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzed with {analyzer}'**
+  String passport_fill_analyzer(String analyzer);
+
+  /// No description provided for @passport_fill_unsigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsigned'**
+  String get passport_fill_unsigned;
+
+  /// No description provided for @passport_history_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill history'**
+  String get passport_history_title;
+
+  /// No description provided for @passport_history_sinceHydro.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No fills since the last hydro} =1{{count} fill since the last hydro} other{{count} fills since the last hydro}}'**
+  String passport_history_sinceHydro(int count);
+
+  /// No description provided for @passport_history_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete fill'**
+  String get passport_history_delete;
+
+  /// No description provided for @passport_history_deleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this fill record?'**
+  String get passport_history_deleteConfirm;
+
+  /// No description provided for @passport_tag_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag'**
+  String get passport_tag_title;
+
+  /// No description provided for @passport_tag_written.
+  ///
+  /// In en, this message translates to:
+  /// **'Written {date}'**
+  String passport_tag_written(String date);
+
+  /// No description provided for @passport_tag_stale.
+  ///
+  /// In en, this message translates to:
+  /// **'The tag was written before the latest service or spec change. Reprint it.'**
+  String get passport_tag_stale;
+
+  /// No description provided for @passport_tag_printLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Print label'**
+  String get passport_tag_printLabel;
+
+  /// No description provided for @passport_tag_printLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'Print labels'**
+  String get passport_tag_printLabels;
+
+  /// No description provided for @passport_tag_linkExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Link an existing tag'**
+  String get passport_tag_linkExisting;
+
+  /// No description provided for @passport_tag_linkPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the link from the tag'**
+  String get passport_tag_linkPrompt;
+
+  /// No description provided for @passport_tag_linkInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That is not a cylinder tag'**
+  String get passport_tag_linkInvalid;
+
+  /// No description provided for @passport_tag_linkInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'That tag already belongs to {name}'**
+  String passport_tag_linkInUse(String name);
+
+  /// No description provided for @passport_tag_linked.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag linked'**
+  String get passport_tag_linked;
+
+  /// No description provided for @passport_logFill_date.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled on'**
+  String get passport_logFill_date;
+
+  /// No description provided for @passport_logFill_o2.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 (%)'**
+  String get passport_logFill_o2;
+
+  /// No description provided for @passport_logFill_he.
+  ///
+  /// In en, this message translates to:
+  /// **'He (%)'**
+  String get passport_logFill_he;
+
+  /// No description provided for @passport_logFill_pressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill pressure'**
+  String get passport_logFill_pressure;
+
+  /// No description provided for @passport_logFill_temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas temperature'**
+  String get passport_logFill_temperature;
+
+  /// No description provided for @passport_logFill_station.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill station'**
+  String get passport_logFill_station;
+
+  /// No description provided for @passport_logFill_analyzer.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzer'**
+  String get passport_logFill_analyzer;
+
+  /// No description provided for @passport_logFill_notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get passport_logFill_notes;
+
+  /// No description provided for @passport_logFill_invalidMix.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 and He must each be 0 to 100 and total 100 or less'**
+  String get passport_logFill_invalidMix;
+
+  /// No description provided for @passport_logFill_invalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number'**
+  String get passport_logFill_invalidNumber;
+
   /// No description provided for @equipment_bulkTags_confirmAdding.
   ///
   /// In en, this message translates to:

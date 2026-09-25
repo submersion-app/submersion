@@ -11788,6 +11788,177 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get passport_title => 'Flessenpaspoort';
+
+  @override
+  String get passport_open => 'Paspoort openen';
+
+  @override
+  String get passport_entry_noFill => 'Geen vulling gelogd';
+
+  @override
+  String passport_entry_lastFill(String mix, String pressure, String date) {
+    return '$mix op $pressure, $date';
+  }
+
+  @override
+  String get passport_spec_title => 'Fles';
+
+  @override
+  String passport_spec_freeGas(String pressure) {
+    return 'Vrij gas bij $pressure';
+  }
+
+  @override
+  String get passport_spec_buoyancyEmpty => 'Drijfvermogen leeg';
+
+  @override
+  String get passport_spec_buoyancyFull => 'Drijfvermogen vol';
+
+  @override
+  String get passport_service_title => 'Onderhoud';
+
+  @override
+  String get passport_service_notTracked => 'Niet bijgehouden';
+
+  @override
+  String get passport_service_trackO2Clean => 'O2-reiniging bijhouden';
+
+  @override
+  String passport_service_lastDone(String date) {
+    return 'Laatste $date';
+  }
+
+  @override
+  String passport_o2Warning_untracked(String o2) {
+    return 'De laatste vulling is $o2 O2 en deze fles wordt niet als O2-schoon bijgehouden.';
+  }
+
+  @override
+  String passport_o2Warning_overdue(String o2) {
+    return 'De laatste vulling is $o2 O2 en de O2-reiniging van deze fles is over tijd.';
+  }
+
+  @override
+  String get passport_fill_title => 'Huidige vulling';
+
+  @override
+  String get passport_fill_none => 'Nog geen vulling gelogd';
+
+  @override
+  String get passport_fill_log => 'Vulling loggen';
+
+  @override
+  String passport_fill_mod(String depth, String ppo2) {
+    return 'MOD $depth bij ppO2 $ppo2';
+  }
+
+  @override
+  String passport_fill_end(String depth) {
+    return 'END $depth op de werk-MOD';
+  }
+
+  @override
+  String passport_fill_station(String station) {
+    return 'Gevuld door $station';
+  }
+
+  @override
+  String passport_fill_analyzer(String analyzer) {
+    return 'Geanalyseerd met $analyzer';
+  }
+
+  @override
+  String get passport_fill_unsigned => 'Niet ondertekend';
+
+  @override
+  String get passport_history_title => 'Vulgeschiedenis';
+
+  @override
+  String passport_history_sinceHydro(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vullingen sinds de laatste hydrotest',
+      one: '$count vulling sinds de laatste hydrotest',
+      zero: 'Geen vullingen sinds de laatste hydrotest',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_history_delete => 'Vulling verwijderen';
+
+  @override
+  String get passport_history_deleteConfirm => 'Deze vulling verwijderen?';
+
+  @override
+  String get passport_tag_title => 'Tag';
+
+  @override
+  String passport_tag_written(String date) {
+    return 'Geschreven $date';
+  }
+
+  @override
+  String get passport_tag_stale =>
+      'De tag is geschreven vóór het laatste onderhoud of de laatste specificatiewijziging. Druk hem opnieuw af.';
+
+  @override
+  String get passport_tag_printLabel => 'Label afdrukken';
+
+  @override
+  String get passport_tag_printLabels => 'Labels afdrukken';
+
+  @override
+  String get passport_tag_linkExisting => 'Bestaande tag koppelen';
+
+  @override
+  String get passport_tag_linkPrompt => 'Plak de link van de tag';
+
+  @override
+  String get passport_tag_linkInvalid => 'Dat is geen flessentag';
+
+  @override
+  String passport_tag_linkInUse(String name) {
+    return 'Die tag hoort al bij $name';
+  }
+
+  @override
+  String get passport_tag_linked => 'Tag gekoppeld';
+
+  @override
+  String get passport_logFill_date => 'Gevuld op';
+
+  @override
+  String get passport_logFill_o2 => 'O2 (%)';
+
+  @override
+  String get passport_logFill_he => 'He (%)';
+
+  @override
+  String get passport_logFill_pressure => 'Vuldruk';
+
+  @override
+  String get passport_logFill_temperature => 'Gastemperatuur';
+
+  @override
+  String get passport_logFill_station => 'Vulstation';
+
+  @override
+  String get passport_logFill_analyzer => 'Analyser';
+
+  @override
+  String get passport_logFill_notes => 'Notities';
+
+  @override
+  String get passport_logFill_invalidMix =>
+      'O2 en He moeten elk tussen 0 en 100 liggen en samen hoogstens 100 zijn';
+
+  @override
+  String get passport_logFill_invalidNumber => 'Voer een getal in';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,

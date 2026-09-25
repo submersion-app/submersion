@@ -11877,6 +11877,178 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get passport_title => 'Pasaporte de la botella';
+
+  @override
+  String get passport_open => 'Abrir pasaporte';
+
+  @override
+  String get passport_entry_noFill => 'Ninguna carga registrada';
+
+  @override
+  String passport_entry_lastFill(String mix, String pressure, String date) {
+    return '$mix a $pressure, $date';
+  }
+
+  @override
+  String get passport_spec_title => 'Botella';
+
+  @override
+  String passport_spec_freeGas(String pressure) {
+    return 'Gas libre a $pressure';
+  }
+
+  @override
+  String get passport_spec_buoyancyEmpty => 'Flotabilidad vacía';
+
+  @override
+  String get passport_spec_buoyancyFull => 'Flotabilidad llena';
+
+  @override
+  String get passport_service_title => 'Mantenimiento';
+
+  @override
+  String get passport_service_notTracked => 'Sin seguimiento';
+
+  @override
+  String get passport_service_trackO2Clean => 'Seguir la limpieza de O2';
+
+  @override
+  String passport_service_lastDone(String date) {
+    return 'Última $date';
+  }
+
+  @override
+  String passport_o2Warning_untracked(String o2) {
+    return 'La última carga es $o2 de O2 y esta botella no tiene seguimiento de limpieza de O2.';
+  }
+
+  @override
+  String passport_o2Warning_overdue(String o2) {
+    return 'La última carga es $o2 de O2 y la limpieza de O2 de esta botella está vencida.';
+  }
+
+  @override
+  String get passport_fill_title => 'Carga actual';
+
+  @override
+  String get passport_fill_none => 'Aún no hay cargas registradas';
+
+  @override
+  String get passport_fill_log => 'Registrar una carga';
+
+  @override
+  String passport_fill_mod(String depth, String ppo2) {
+    return 'MOD $depth a ppO2 $ppo2';
+  }
+
+  @override
+  String passport_fill_end(String depth) {
+    return 'END $depth en la MOD de trabajo';
+  }
+
+  @override
+  String passport_fill_station(String station) {
+    return 'Cargada por $station';
+  }
+
+  @override
+  String passport_fill_analyzer(String analyzer) {
+    return 'Analizada con $analyzer';
+  }
+
+  @override
+  String get passport_fill_unsigned => 'Sin firmar';
+
+  @override
+  String get passport_history_title => 'Historial de cargas';
+
+  @override
+  String passport_history_sinceHydro(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cargas desde la última prueba hidrostática',
+      one: '$count carga desde la última prueba hidrostática',
+      zero: 'Ninguna carga desde la última prueba hidrostática',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_history_delete => 'Eliminar carga';
+
+  @override
+  String get passport_history_deleteConfirm =>
+      '¿Eliminar este registro de carga?';
+
+  @override
+  String get passport_tag_title => 'Etiqueta';
+
+  @override
+  String passport_tag_written(String date) {
+    return 'Escrita el $date';
+  }
+
+  @override
+  String get passport_tag_stale =>
+      'La etiqueta se escribió antes del último mantenimiento o cambio de especificación. Vuelve a imprimirla.';
+
+  @override
+  String get passport_tag_printLabel => 'Imprimir etiqueta';
+
+  @override
+  String get passport_tag_printLabels => 'Imprimir etiquetas';
+
+  @override
+  String get passport_tag_linkExisting => 'Vincular una etiqueta existente';
+
+  @override
+  String get passport_tag_linkPrompt => 'Pega el enlace de la etiqueta';
+
+  @override
+  String get passport_tag_linkInvalid => 'Eso no es una etiqueta de botella';
+
+  @override
+  String passport_tag_linkInUse(String name) {
+    return 'Esa etiqueta ya pertenece a $name';
+  }
+
+  @override
+  String get passport_tag_linked => 'Etiqueta vinculada';
+
+  @override
+  String get passport_logFill_date => 'Cargada el';
+
+  @override
+  String get passport_logFill_o2 => 'O2 (%)';
+
+  @override
+  String get passport_logFill_he => 'He (%)';
+
+  @override
+  String get passport_logFill_pressure => 'Presión de carga';
+
+  @override
+  String get passport_logFill_temperature => 'Temperatura del gas';
+
+  @override
+  String get passport_logFill_station => 'Estación de carga';
+
+  @override
+  String get passport_logFill_analyzer => 'Analizador';
+
+  @override
+  String get passport_logFill_notes => 'Notas';
+
+  @override
+  String get passport_logFill_invalidMix =>
+      'O2 y He deben estar entre 0 y 100 y sumar 100 o menos';
+
+  @override
+  String get passport_logFill_invalidNumber => 'Introduce un número';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
