@@ -978,6 +978,11 @@ class SyncNotifier extends StateNotifier<SyncState> {
       if (provider == null) return null;
       final store = _ref.read(libraryEpochStoreProvider);
       if (store.pendingReplace != null) return null; // we ARE the replacer
+      // Deliberately shorter than the marker read's own 30 s listing cap.
+      // Sync Now awaits this advisory check before the sync starts, so a slow
+      // connection would otherwise stall the button; when it gives up,
+      // performSync's epoch gate reads the marker with the full allowance and
+      // still surfaces the replace (awaitingAdoption sets the banner).
       final marker = await _syncService
           .readLibraryEpochMarker(provider)
           .timeout(const Duration(seconds: 8));
