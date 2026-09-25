@@ -11,14 +11,20 @@ import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/widgets/sort_bottom_sheet.dart';
 
+/// Horizontal density that narrows each view-mode segment from 64dp to
+/// 48dp, still a full 48 x 48 touch target. SegmentedButton ignores a
+/// segment's padding and minimum size here; only density moves the width.
+const VisualDensity _kSegmentDensity = VisualDensity(horizontal: -4);
+
 /// Narrowest row width at which the four view-mode segments fit beside the
 /// three compact icon buttons with 8dp to spare. Measured at 1x on the
-/// default Material 3 theme with a throwaway test that laid out one compact
-/// icon button (40dp) and the four-segment button (256dp): 3 x 40 + 256 + 8.
-/// Below it the segments collapse to [_ViewModeMenuButton]. 320dp, the
-/// narrowest phone the app ships to, is below it. Re-measure if the theme's
-/// button metrics change.
-const double kMediaToolbarFourSegmentMinWidth = 384;
+/// default Material 3 theme with a throwaway test: 40dp per compact icon
+/// button and 192dp for four segments at [_kSegmentDensity], so
+/// 3 x 40 + 192 + 8. MediaLibraryView pads the row by 8dp each side, so
+/// phones 336dp and wider keep the segments and only the 320dp class
+/// collapses to [_ViewModeMenuButton]. Re-measure if the theme's button
+/// metrics change.
+const double kMediaToolbarFourSegmentMinWidth = 320;
 
 /// The library's control row: filter, sort, select, and view mode.
 ///
@@ -133,6 +139,9 @@ class MediaLibraryToolbar extends ConsumerWidget {
             else
               SegmentedButton<MediaLibraryViewMode>(
                 showSelectedIcon: false,
+                style: SegmentedButton.styleFrom(
+                  visualDensity: _kSegmentDensity,
+                ),
                 segments: [
                   for (final m in MediaLibraryViewMode.values)
                     ButtonSegment(

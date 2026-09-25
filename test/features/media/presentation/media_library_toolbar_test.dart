@@ -183,9 +183,28 @@ void main() {
     );
   });
 
-  testWidgets('a 320dp row collapses the view modes to a menu and does not '
+  testWidgets('a 360dp phone keeps the four segments and does not overflow', (
+    tester,
+  ) async {
+    // MediaLibraryView pads the toolbar by 8dp each side, so a 360dp phone
+    // hands the row 344dp.
+    tester.view.physicalSize = const Size(344, 640);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(SegmentedButton<MediaLibraryViewMode>), findsOneWidget);
+    expect(find.byIcon(Icons.map), findsOneWidget);
+    expect(find.byType(PopupMenuButton<MediaLibraryViewMode>), findsNothing);
+  });
+
+  testWidgets('a 320dp phone collapses the view modes to a menu and does not '
       'overflow', (tester) async {
-    tester.view.physicalSize = const Size(320, 640);
+    // A 320dp phone hands the row 304dp after MediaLibraryView's padding.
+    tester.view.physicalSize = const Size(304, 640);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
