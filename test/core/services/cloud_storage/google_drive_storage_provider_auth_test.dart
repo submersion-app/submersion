@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
@@ -505,6 +506,26 @@ void main() {
       await expectLater(
         failing().downloadFile('file-1'),
         throwsA(isA<CloudStorageException>()),
+      );
+    });
+
+    // Sync reads the cause to report a missed HTTP deadline as a timeout
+    // rather than as a generic listing failure (#2332).
+    test('a request timeout survives as the cause', () async {
+      final timingOut = GoogleDriveStorageProvider(
+        authenticator: _FakeAuthenticator(
+          MockClient((_) async => throw TimeoutException('response')),
+        ),
+      );
+      await expectLater(
+        timingOut.listFiles(folderId: 'folder-7'),
+        throwsA(
+          isA<CloudStorageException>().having(
+            (e) => e.cause,
+            'cause',
+            isA<TimeoutException>(),
+          ),
+        ),
       );
     });
 

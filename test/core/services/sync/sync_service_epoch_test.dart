@@ -360,6 +360,27 @@ void main() {
       );
     });
 
+    // Providers put their own HTTP deadlines on every request and report a
+    // miss the way they report any failure, as a CloudStorageException
+    // around the TimeoutException. It is still a timeout and must read as
+    // one, not as "List files failed: TimeoutException after ..." (#2332).
+    test('a provider error caused by a timeout halts as a timeout', () async {
+      cloud = _EpochListFailCloud(
+        CloudStorageException(
+          'List files failed: TimeoutException after 0:00:30.000000',
+          TimeoutException('response'),
+        ),
+      );
+
+      final result = await buildService().performSync();
+
+      expect(result.status, SyncResultStatus.networkError);
+      expect(
+        result.message,
+        l10nForLocaleTag('en').settings_cloudSync_result_timedOut,
+      );
+    });
+
     test('a timed-out marker read halts as a timeout, '
         'not an unreadable marker', () async {
       cloud = _EpochListFailCloud(TimeoutException('epoch list'));

@@ -896,7 +896,9 @@ class SyncService {
       _log.warning('Sync failed: $e');
       return SyncResult(
         status: SyncResultStatus.networkError,
-        message: e.message,
+        message: _causedByTimeout(e)
+            ? _l10n.settings_cloudSync_result_timedOut
+            : e.message,
       );
     } catch (e, stackTrace) {
       _log.error('Changeset sync failed', error: e, stackTrace: stackTrace);
@@ -1190,6 +1192,18 @@ class SyncService {
     } catch (_) {
       return null;
     }
+  }
+
+  /// True when [e] is a provider's report of a missed deadline. Providers put
+  /// HTTP timeouts on every request and wrap a miss like any other failure,
+  /// sometimes more than once as calls nest, so the chain of causes is walked
+  /// rather than only the first link.
+  static bool _causedByTimeout(CloudStorageException e) {
+    Object? cause = e.cause;
+    while (cause is CloudStorageException) {
+      cause = cause.cause;
+    }
+    return cause is TimeoutException;
   }
 
   String _formatSyncError(Object error, StackTrace stackTrace) {
