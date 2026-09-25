@@ -43,4 +43,18 @@ void main() {
       expect(p.dx.isFinite && p.dy.isFinite, isTrue);
     }
   });
+
+  test('forSingle centres one figure at a fraction of the width', () {
+    final layout = FigureLayout.forSingle(const Size(360, 420));
+    expect(layout.front.width, closeTo(162, 0.01));
+    expect(layout.front.left, closeTo(99, 0.01));
+    expect(layout.front.top, 0);
+    expect(layout.back, layout.front);
+    expect(layout.scale, closeTo(162 / 200, 0.0001));
+  });
+
+  test('forSingle is capped by the box height and stays positive', () {
+    expect(FigureLayout.forSingle(const Size(1000, 300)).front.height, 300);
+    expect(FigureLayout.forSingle(Size.zero).front.width, greaterThan(0));
+  });
 }

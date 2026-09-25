@@ -43,6 +43,28 @@ class FigureLayout {
     );
   }
 
+  /// One figure centred in [size] at [fraction] of its width (and the
+  /// matching 1:2 height, capped by the box height), top-aligned so label
+  /// columns can run below it. Both [front] and [back] are that rectangle,
+  /// since the phone layout shows one view at a time.
+  static FigureLayout forSingle(Size size, {double fraction = 0.45}) {
+    final figureWidth = math.max(
+      1.0,
+      math.min(size.width * fraction, size.height / 2),
+    );
+    final rect = Rect.fromLTWH(
+      (size.width - figureWidth) / 2,
+      0,
+      figureWidth,
+      figureWidth * 2,
+    );
+    return FigureLayout(
+      front: rect,
+      back: rect,
+      scale: figureWidth / kFigureWidth,
+    );
+  }
+
   /// The height a full-width pair wants for [width], capped at [maxHeight].
   static double preferredHeight(double width) =>
       math.min(maxHeight, math.max(2.0, width - gutter));
