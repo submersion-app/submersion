@@ -37,17 +37,45 @@ class DivelogsFetchResult {
       photosBySourceUuid.values.fold(0, (sum, list) => sum + list.length);
 }
 
+/// Extensions a listed picture may keep: images and the videos divelogs.de
+/// can hold. Anything else (a `.php` endpoint, no extension at all) would
+/// leave a file in the user's folder that nothing opens.
+const _mediaExtensions = {
+  '.jpg',
+  '.jpeg',
+  '.png',
+  '.gif',
+  '.webp',
+  '.heic',
+  '.heif',
+  '.tif',
+  '.tiff',
+  '.bmp',
+  '.mp4',
+  '.mov',
+  '.m4v',
+};
+
+/// Characters no file name may carry on Windows, plus control characters.
+final _unsafeFileNameChars = RegExp(r'[<>:"/\\|?*\x00-\x1F]');
+
 /// The name a listed picture is saved under: the URL's own file name when
-/// it has an extension, else a stable name built from the dive and the
-/// picture's position.
+/// it is an image or video, made safe for every platform's file system,
+/// else a stable name built from the dive and the picture's position.
 String remotePhotoFileName(
   DivelogsPicture picture, {
   required String remoteDiveId,
   required int index,
 }) {
   final segments = picture.url?.pathSegments ?? const <String>[];
-  final name = segments.isEmpty ? '' : p.basename(segments.last);
-  if (name.isNotEmpty && p.extension(name).isNotEmpty) return name;
+  final name = segments.isEmpty
+      ? ''
+      : p.basename(segments.last).replaceAll(_unsafeFileNameChars, '_');
+  final ext = p.extension(name).toLowerCase();
+  if (_mediaExtensions.contains(ext) &&
+      p.basenameWithoutExtension(name).isNotEmpty) {
+    return name;
+  }
   return 'divelogs-$remoteDiveId-${index + 1}.jpg';
 }
 

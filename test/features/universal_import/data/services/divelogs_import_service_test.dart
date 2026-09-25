@@ -286,6 +286,18 @@ void main() {
     );
   });
 
+  test('remotePhotoFileName only keeps image or video names', () {
+    String nameFor(String url, {int index = 0}) => remotePhotoFileName(
+      DivelogsPicture(id: '9', url: Uri.parse(url)),
+      remoteDiveId: '1',
+      index: index,
+    );
+    expect(nameFor('https://x.de/pic.php?id=9'), 'divelogs-1-1.jpg');
+    expect(nameFor('https://x.de/clip.MOV'), 'clip.MOV');
+    expect(nameFor('https://x.de/a%3Ab%3F.jpg'), 'a_b_.jpg');
+    expect(nameFor('https://x.de/.jpg'), 'divelogs-1-1.jpg');
+  });
+
   test('remotePhotoFileName falls back when the url has no file name', () {
     expect(
       remotePhotoFileName(
