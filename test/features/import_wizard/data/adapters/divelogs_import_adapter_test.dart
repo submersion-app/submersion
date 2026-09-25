@@ -12,11 +12,15 @@ import 'package:submersion/core/services/divelogs/divelogs_api_client.dart';
 import 'package:submersion/core/services/divelogs/divelogs_auth.dart';
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/remote_photo_attacher.dart';
-import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
+import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart'
+    show ImportSourceType;
 import 'package:submersion/features/media/data/services/local_file_link_service.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_payload.dart';
+import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 
 /// Records every link instead of writing media rows.
 class _RecordingLinkService extends Fake implements LocalFileLinkService {
@@ -241,5 +245,68 @@ void main() {
       ),
       (attached: 0, failed: 0),
     );
+  });
+
+  testWidgets('a 401 from another host does not stop the other downloads', (
+    tester,
+  ) async {
+    final adapter = await pumpAdapter(tester);
+    final dest = (await tester.runAsync(
+      () => Directory.systemTemp.createTemp('divelogs_foreign_'),
+    ))!;
+    addTearDown(() => dest.deleteSync(recursive: true));
+    adapter.setClient(
+      _client((req) async {
+        if (req.url.host == 'cdn.example.com') return http.Response('', 401);
+        return http.Response.bytes([5], 200);
+      }),
+    );
+    adapter.setRemotePhotos({
+      'divelogs-1': [
+        RemotePhoto(
+          url: Uri.parse('https://cdn.example.com/x.jpg'),
+          fileName: 'x.jpg',
+        ),
+        RemotePhoto(
+          url: Uri.parse('https://divelogs.de/p/y.jpg'),
+          fileName: 'y.jpg',
+        ),
+      ],
+    });
+
+    final outcome = await tester.runAsync(
+      () => adapter.debugAttachAdditionalPhotosFor(
+        photoDiveIds: const {0: 'dive-1'},
+        dives: const [
+          {'sourceUuid': 'divelogs-1'},
+        ],
+        destinationDir: dest.path,
+      ),
+    );
+
+    expect(outcome, (attached: 1, failed: 1));
+  });
+
+  testWidgets('a new client discards the payload fetched under the old one', (
+    tester,
+  ) async {
+    final adapter = await pumpAdapter(tester);
+    final notifier = container.read(universalImportNotifierProvider.notifier);
+    notifier.state = notifier.state.copyWith(
+      payload: const ImportPayload(
+        entities: {
+          ImportEntityType.dives: [
+            {'sourceUuid': 'divelogs-1'},
+          ],
+        },
+      ),
+      remotePhotoCount: 3,
+    );
+
+    adapter.setClient(null);
+
+    final state = container.read(universalImportNotifierProvider);
+    expect(state.payload, isNull);
+    expect(state.remotePhotoCount, 0);
   });
 }

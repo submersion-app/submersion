@@ -16,6 +16,7 @@ import 'package:submersion/features/import_wizard/data/adapters/remote_photo_att
 import 'package:submersion/features/import_wizard/presentation/widgets/divelogs_import_steps.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
+import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -261,6 +262,28 @@ void main() {
 
       expect(find.text('Could not fetch your logbook'), findsOneWidget);
       expect(container.read(divelogsFetchedProvider), isFalse);
+    });
+  });
+
+  testWidgets('a new fetch discards the payload of the previous one', (
+    tester,
+  ) async {
+    final notifier = container.read(universalImportNotifierProvider.notifier);
+    await withPlatform(TargetPlatform.macOS, () async {
+      notifier.state = notifier.state.copyWith(
+        payload: const ImportPayload(
+          entities: {
+            ImportEntityType.dives: [
+              {'sourceUuid': 'divelogs-99'},
+            ],
+          },
+        ),
+      );
+      dives = [];
+      await pumpStep(tester, client());
+      await fetch(tester);
+
+      expect(container.read(universalImportNotifierProvider).payload, isNull);
     });
   });
 }

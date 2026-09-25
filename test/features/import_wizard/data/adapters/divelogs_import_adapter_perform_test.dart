@@ -109,18 +109,10 @@ void main() {
     );
 
     late DivelogsImportAdapter adapter;
+    late WidgetRef widgetRef;
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          universalImportNotifierProvider.overrideWith((ref) {
-            final notifier = UniversalImportNotifier(ref);
-            notifier.state = notifier.state.copyWith(
-              payload: payload,
-              remotePhotoCount: 2,
-              bundledPhotoFolderPath: dest.path,
-            );
-            return notifier;
-          }),
           settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
           currentDiverProvider.overrideWith(
             (ref) async => Diver(
@@ -136,6 +128,7 @@ void main() {
         child: MaterialApp(
           home: Consumer(
             builder: (context, ref, _) {
+              widgetRef = ref;
               adapter = DivelogsImportAdapter(ref: ref);
               return const SizedBox.shrink();
             },
@@ -154,6 +147,14 @@ void main() {
           return http.Response.bytes([7, 7, 7], 200);
         }),
       ),
+    );
+    // Sign-in happens before the fetch, and a new client clears whatever
+    // was installed before it; the fetch then installs this payload.
+    final notifier = widgetRef.read(universalImportNotifierProvider.notifier);
+    notifier.state = notifier.state.copyWith(
+      payload: payload,
+      remotePhotoCount: 2,
+      bundledPhotoFolderPath: dest.path,
     );
     adapter.setRemotePhotos({
       'divelogs-7': [

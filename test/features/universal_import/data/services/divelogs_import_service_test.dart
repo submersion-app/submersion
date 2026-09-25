@@ -298,6 +298,17 @@ void main() {
     expect(nameFor('https://x.de/.jpg'), 'divelogs-1-1.jpg');
   });
 
+  test('remotePhotoFileName keeps a hostile dive id inside the folder', () {
+    final name = remotePhotoFileName(
+      DivelogsPicture(id: '9', url: Uri.parse('https://x.de/get?id=9')),
+      remoteDiveId: '../a/b\\c',
+      index: 0,
+    );
+    expect(name, isNot(contains('/')));
+    expect(name, isNot(contains('\\')));
+    expect(name, 'divelogs-.._a_b_c-1.jpg');
+  });
+
   test('remotePhotoFileName falls back when the url has no file name', () {
     expect(
       remotePhotoFileName(

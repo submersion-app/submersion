@@ -313,8 +313,10 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
     final includePhotos =
         PhotoFolderStep.canPickFolder &&
         ref.read(divelogsIncludePhotosProvider);
-    // Until this fetch succeeds, nothing fetched earlier may be imported.
+    // Until this fetch succeeds, nothing fetched earlier may be imported:
+    // not the flag, not the payload, selections or photo decisions.
     ref.read(divelogsFetchedProvider.notifier).state = false;
+    ref.read(universalImportNotifierProvider.notifier).reset();
     setState(() {
       _phase = _FetchPhase.fetching;
       _photoProgress = null;

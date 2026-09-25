@@ -13,6 +13,14 @@ class DivelogsApiException implements Exception {
   String toString() => 'DivelogsApiException($statusCode): $message';
 }
 
+/// divelogs.de still refused a request that carried the session token after
+/// renewing it once: the session cannot be used, as opposed to a picture
+/// host that simply wants credentials it was never sent.
+class DivelogsUnauthorizedException extends DivelogsApiException {
+  const DivelogsUnauthorizedException()
+    : super(401, 'divelogs.de sign-in expired.');
+}
+
 /// Thin typed read-only wrapper over the divelogs.de REST API.
 ///
 /// Auth is delegated to callbacks (mirrors DropboxApiClient): on 401 the
@@ -149,15 +157,21 @@ class DivelogsApiClient {
   /// it) over https, with the same 401-invalidate-retry-once contract; a
   /// picture served from anywhere else is fetched without it, so the token
   /// never reaches a third party or crosses the network in the clear.
+  ///
+  /// An http link on the API's own host is fetched over https instead, so it
+  /// still gets the token without the token ever travelling in the clear.
   Future<Uint8List> downloadPictureBytes(Uri url) async {
-    final response = _sendsTokenTo(url)
-        ? await _authorizedGet(url, timeout: _pictureTimeout)
-        : await _plainGet(url);
+    final onApiHost = _isApiHost(url);
+    final target = onApiHost && url.isScheme('http')
+        ? url.replace(scheme: 'https')
+        : url;
+    final response = onApiHost && target.isScheme('https')
+        ? await _authorizedGet(target, timeout: _pictureTimeout)
+        : await _plainGet(target);
     return response.bodyBytes;
   }
 
-  bool _sendsTokenTo(Uri url) {
-    if (!url.isScheme('https')) return false;
+  bool _isApiHost(Uri url) {
     final host = url.host.toLowerCase();
     final apiHost = _baseUri.host.toLowerCase();
     return host == apiHost || host.endsWith('.$apiHost');
@@ -225,7 +239,7 @@ class DivelogsApiClient {
           authRetried = true;
           continue;
         }
-        throw const DivelogsApiException(401, 'divelogs.de sign-in expired.');
+        throw const DivelogsUnauthorizedException();
       }
       if (response.statusCode < 200 || response.statusCode >= 300) {
         throw DivelogsApiException(

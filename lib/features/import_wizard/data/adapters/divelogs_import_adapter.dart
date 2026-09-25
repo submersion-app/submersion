@@ -12,6 +12,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_bundle.da
 import 'package:submersion/features/import_wizard/domain/models/import_cancellation_token.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/divelogs_import_steps.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
+import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/shared/widgets/wizard/wizard_step_def.dart';
 
 /// Signals that the sign-in step can advance.
@@ -62,6 +63,7 @@ class DivelogsImportAdapter extends UniversalAdapter {
     _client = client;
     _photos = const {};
     widgetRef.read(divelogsFetchedProvider.notifier).state = false;
+    widgetRef.read(universalImportNotifierProvider.notifier).reset();
   }
 
   /// Listed photos per payload dive `sourceUuid`, set by the fetch step.
@@ -143,7 +145,7 @@ class DivelogsImportAdapter extends UniversalAdapter {
   static bool _sessionLost(Object error) =>
       error is DivelogsSessionExpiredException ||
       error is DivelogsAuthException ||
-      (error is DivelogsApiException && error.statusCode == 401);
+      error is DivelogsUnauthorizedException;
 
   @visibleForTesting
   Future<RemotePhotoOutcome> debugAttachAdditionalPhotosFor({

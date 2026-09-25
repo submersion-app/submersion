@@ -76,7 +76,8 @@ String remotePhotoFileName(
       p.basenameWithoutExtension(name).isNotEmpty) {
     return name;
   }
-  return 'divelogs-$remoteDiveId-${index + 1}.jpg';
+  final safeId = remoteDiveId.replaceAll(_unsafeFileNameChars, '_');
+  return 'divelogs-$safeId-${index + 1}.jpg';
 }
 
 /// Fetches a full divelogs.de logbook and assembles an [ImportPayload] for

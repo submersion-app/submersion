@@ -262,8 +262,27 @@ void main() {
 
     test('never send the token to another host or over http', () async {
       expect(await authHeaderFor('https://cdn.example.com/a.jpg'), isNull);
-      expect(await authHeaderFor('http://divelogs.de/pics/a.jpg'), isNull);
       expect(await authHeaderFor('https://evildivelogs.de/a.jpg'), isNull);
+    });
+
+    test('an http link on the API host is fetched over https', () async {
+      Uri? requested;
+      String? auth;
+      final api = client((req) async {
+        requested = req.url;
+        auth = req.headers['Authorization'];
+        return http.Response.bytes([1], 200);
+      });
+      await api.downloadPictureBytes(
+        Uri.parse('http://divelogs.de/pics/a.jpg'),
+      );
+      expect(requested!.scheme, 'https');
+      expect(auth, 'Bearer t1');
+      expect(
+        await authHeaderFor('http://cdn.example.com/a.jpg'),
+        isNull,
+        reason: 'another host over http never gets the token',
+      );
     });
 
     test('a download that never answers times out as an API error', () async {
