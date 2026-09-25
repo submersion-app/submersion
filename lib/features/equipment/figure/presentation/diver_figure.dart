@@ -166,7 +166,7 @@ class _DiverFigureState extends State<DiverFigure> {
     final height = FigureLayout.preferredHeight(width);
     final gutter = ((width - height) / 3).clamp(FigureLayout.gutter, 220.0);
     final layout = FigureLayout.forSize(Size(width, height), gutter: gutter);
-    final style = FigureNameLabel.styleOf(context);
+    final style = FigureNameLabel.styleFor(context, pill: true);
     final direction = Directionality.of(context);
     final scaler = MediaQuery.textScalerOf(context);
     final slots = labelPills(
@@ -295,8 +295,9 @@ class _TrayTile extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 name,
-                style: FigureNameLabel.styleOf(
+                style: FigureNameLabel.styleFor(
                   context,
+                  pill: true,
                 ).copyWith(color: highlight?.onFill),
               ),
             ],

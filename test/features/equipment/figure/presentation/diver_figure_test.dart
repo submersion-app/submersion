@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -105,6 +107,47 @@ void main() {
         find.descendant(of: label('mask'), matching: find.byType(Text)).last,
       );
       expect(text.maxLines, 2);
+    });
+
+    testWidgets('a left-column badge sits right beside its name', (
+      tester,
+    ) async {
+      // Mask is the first centre anchor, so it labels in the left column,
+      // where the text is right-aligned against the figure.
+      await pump(
+        tester,
+        reef,
+        width: 360,
+        labelText: (p) => p.number == 1 ? 'Item mask wide' : p.item.name,
+      );
+      final paragraph = tester.renderObject<RenderParagraph>(
+        find.text('Item mask wide'),
+      );
+      final boxes = paragraph.getBoxesForSelection(
+        const TextSelection(baseOffset: 0, extentOffset: 14),
+      );
+      final firstInk = boxes.map((b) => b.left).reduce(math.min);
+      // The text box hugs its longest line, so no gap opens between the
+      // badge and the first letter.
+      expect(firstInk, lessThan(1));
+    });
+
+    testWidgets('a word too long for the line truncates instead of splitting', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        reef,
+        width: 360,
+        labelText: (p) =>
+            p.number == 1 ? 'Supercalifragilistic Perdix' : 'Ab Cd',
+      );
+      Text textOf(String id) => tester.widget<Text>(
+        find.descendant(of: label(id), matching: find.byType(Text)).last,
+      );
+      expect(textOf('mask').maxLines, 1);
+      expect(textOf('mask').overflow, TextOverflow.ellipsis);
+      expect(textOf('fins').maxLines, 2);
     });
 
     testWidgets('a very long name truncates inside its column', (tester) async {
