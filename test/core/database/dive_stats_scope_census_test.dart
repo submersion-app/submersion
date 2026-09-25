@@ -35,6 +35,7 @@ const _censusFiles = <String>[
   'lib/features/connections/data/connections_membership_sql.dart',
   'lib/features/connections/data/connections_edge_sql.dart',
   'lib/features/connections/data/connections_node_sql.dart',
+  'lib/features/connections/data/repositories/connections_repository.dart',
 ];
 
 final _readsDives = RegExp(
