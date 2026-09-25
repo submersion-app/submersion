@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
@@ -27,9 +29,11 @@ void main() {
     WidgetTester tester,
     List<EquipmentItem> items, {
     double width = 900,
+    double height = 2400,
     bool showFigure = true,
+    Future<ComponentsIndex>? components,
   }) async {
-    tester.view.physicalSize = Size(width, 2400);
+    tester.view.physicalSize = Size(width, height);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
     final set = EquipmentSet(
@@ -50,7 +54,8 @@ void main() {
             EquipmentArrangement.defaults.copyWith(groupByType: false),
           ),
           equipmentComponentsIndexProvider.overrideWith(
-            (ref) => Future.value(ComponentsIndex.fromRows(const [])),
+            (ref) =>
+                components ?? Future.value(ComponentsIndex.fromRows(const [])),
           ),
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         ],
@@ -177,5 +182,75 @@ void main() {
       find.bySemanticsLabel(RegExp(r'^[1-4], Tool, Wrench$')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('the figure waits for the parts index before numbering', (
+    tester,
+  ) async {
+    // Until the index loads, assembly parts would count as items of their
+    // own and be numbered, then vanish and renumber everything.
+    final index = Completer<ComponentsIndex>();
+    await pump(tester, three, components: index.future);
+    expect(find.byType(DiverFigure), findsNothing);
+    expect(find.byType(FigureNumberBadge), findsNothing);
+
+    index.complete(ComponentsIndex.fromRows(const []));
+    await tester.pumpAndSettle();
+    expect(find.byType(DiverFigure), findsOneWidget);
+  });
+
+  testWidgets('a rebuild reuses the composed figure', (tester) async {
+    await pump(tester, three);
+    final before = tester.widget<DiverFigure>(find.byType(DiverFigure)).model;
+    await tester.tap(find.byKey(const ValueKey('figure-label-b')));
+    await tester.pump();
+    final after = tester.widget<DiverFigure>(find.byType(DiverFigure)).model;
+    expect(identical(before, after), isTrue);
+    await tester.pump(const Duration(seconds: 2));
+  });
+
+  testWidgets('tapping a row badge far down the list brings the figure back', (
+    tester,
+  ) async {
+    const types = [
+      EquipmentType.mask,
+      EquipmentType.regulator,
+      EquipmentType.bcd,
+      EquipmentType.fins,
+      EquipmentType.computer,
+      EquipmentType.light,
+      EquipmentType.weights,
+      EquipmentType.tank,
+      EquipmentType.smb,
+      EquipmentType.reel,
+      EquipmentType.knife,
+      EquipmentType.hood,
+    ];
+    final many = [
+      for (var i = 0; i < types.length; i++) gear('i$i', 'Item $i', types[i]),
+    ];
+    await pump(tester, many, width: 390, height: 700);
+    final lastRow = find.ancestor(
+      of: find.text('Item 11'),
+      matching: find.byType(ListTile),
+    );
+    await tester.scrollUntilVisible(
+      lastRow,
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(
+      tester.getRect(find.byType(DiverFigure)).bottom,
+      lessThan(0),
+      reason: 'the figure has scrolled off the top',
+    );
+
+    await tester.tap(
+      find.descendant(of: lastRow, matching: find.byType(FigureNumberBadge)),
+    );
+    await tester.pumpAndSettle();
+
+    final figure = tester.getRect(find.byType(DiverFigure));
+    expect(figure.overlaps(const Rect.fromLTWH(0, 0, 390, 700)), isTrue);
   });
 }

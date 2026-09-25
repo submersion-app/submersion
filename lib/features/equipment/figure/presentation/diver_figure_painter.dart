@@ -13,7 +13,7 @@ import 'package:submersion/features/equipment/figure/presentation/figure_paths.d
 /// Each view paints the mannequin, then every placed piece of that view in
 /// layer order (ties broken by item number), each path filled with its
 /// role's colour. A piece on a mirrored zone is flipped about the figure's
-/// centre line. Discs are not painted here; the widget positions them.
+/// centre line. Labels are not painted here; the widget positions them.
 class DiverFigurePainter extends CustomPainter {
   DiverFigurePainter({
     required this.model,
@@ -96,7 +96,7 @@ class DiverFigurePainter extends CustomPainter {
   @override
   bool shouldRepaint(DiverFigurePainter oldDelegate) =>
       !identical(oldDelegate.model, model) ||
-      !identical(oldDelegate.palette, palette) ||
+      oldDelegate.palette != palette ||
       oldDelegate.only != only ||
       oldDelegate.layout?.front != layout?.front;
 }

@@ -19,6 +19,8 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_gro
 import 'package:submersion/features/equipment/presentation/widgets/assembly_chips.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_composer.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_inputs.dart';
+import 'package:submersion/features/equipment/figure/domain/figure_model.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_view.dart';
 import 'package:submersion/features/equipment/figure/presentation/diver_figure.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
@@ -42,6 +44,20 @@ class _EquipmentSetDetailPageState
   String? _selectedId;
   Timer? _flashTimer;
   final Map<String, GlobalKey> _rowKeys = {};
+  final GlobalKey _figureKey = GlobalKey();
+
+  /// Bumped on every selection, so selecting the same item again still
+  /// brings its side of the figure forward on a phone.
+  int _selectionSerial = 0;
+
+  /// The composed figure and what it was composed from. Rebuilds that change
+  /// none of these (the highlight flash, for one) reuse it, so the painter
+  /// is not handed a new model and does not repaint.
+  FigureModel? _model;
+  List<EquipmentItem>? _modelItems;
+  ComponentsIndex? _modelComponents;
+  EquipmentArrangement? _modelArrangement;
+  Locale? _modelLocale;
 
   String get setId => widget.setId;
 
@@ -51,19 +67,26 @@ class _EquipmentSetDetailPageState
     super.dispose();
   }
 
-  /// Highlights [id] on the figure and in the list, and brings its row into
-  /// view. Tapping either a disc or a row badge lands here.
-  void _select(String id) {
+  /// Highlights [id] on the figure and in the list. Tapping a label on the
+  /// figure brings the item's row into view; tapping a row's badge
+  /// ([revealFigure]) brings the figure into view instead, which matters on
+  /// a long set whose figure has scrolled off the top.
+  void _select(String id, {bool revealFigure = false}) {
     _flashTimer?.cancel();
-    setState(() => _selectedId = id);
+    setState(() {
+      _selectedId = id;
+      _selectionSerial++;
+    });
     _flashTimer = Timer(const Duration(milliseconds: 1200), () {
       if (mounted) setState(() => _selectedId = null);
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final rowContext = _rowKeys[id]?.currentContext;
-      if (rowContext != null && rowContext.mounted) {
+      final target = revealFigure
+          ? _figureKey.currentContext
+          : _rowKeys[id]?.currentContext;
+      if (target != null && target.mounted) {
         Scrollable.ensureVisible(
-          rowContext,
+          target,
           alignment: 0.3,
           duration: const Duration(milliseconds: 300),
         );
@@ -123,17 +146,25 @@ class _EquipmentSetDetailPageState
       typeLabel: (type) => type.localizedName(context.l10n),
     );
     final ordered = [for (final group in groups) ...group.items];
-    final components =
-        ref.watch(equipmentComponentsIndexProvider).value ??
-        ComponentsIndex.empty;
-    final model = composeFigure(
-      figureInputsFromItems(ordered, components: components),
-    );
+    // Parts are told apart from items by the components index. Until it
+    // loads, every part would count as an item of its own and be numbered,
+    // then vanish and renumber the rest, so the figure waits for it.
+    final components = ref.watch(equipmentComponentsIndexProvider).value;
+    final figureShown = set.showFigure && components != null;
+    final model = figureShown
+        ? _composedFigure(
+            ordered,
+            items: set.items,
+            components: components,
+            arrangement: ref.watch(equipmentArrangementProvider),
+            locale: Localizations.localeOf(context),
+          )
+        : null;
     // The figure is opt-in per set; without it the list's numbers would
     // point at nothing, so they go too.
-    final numberById = set.showFigure
-        ? {for (final p in model.numbered) p.item.id: p.number}
-        : const <String, int>{};
+    final numberById = model == null
+        ? const <String, int>{}
+        : {for (final p in model.numbered) p.item.id: p.number};
     return Scaffold(
       appBar: AppBar(
         title: Text(set.name),
@@ -266,8 +297,9 @@ class _EquipmentSetDetailPageState
               ),
             ),
             const SizedBox(height: 24),
-            if (set.showFigure && ordered.isNotEmpty) ...[
+            if (model != null && ordered.isNotEmpty) ...[
               Card(
+                key: _figureKey,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: DiverFigure(
@@ -281,6 +313,7 @@ class _EquipmentSetDetailPageState
                         ? context.l10n.equipment_figure_frontCount(count)
                         : context.l10n.equipment_figure_backCount(count),
                     selectedItemId: _selectedId,
+                    selectionSerial: _selectionSerial,
                     onItemTap: (placed) => _select(placed.item.id),
                     itemSemantics: (placed) =>
                         context.l10n.equipment_figure_discLabel(
@@ -390,6 +423,31 @@ class _EquipmentSetDetailPageState
     );
   }
 
+  /// The composed figure, reused while its inputs are unchanged.
+  FigureModel _composedFigure(
+    List<EquipmentItem> ordered, {
+    required List<EquipmentItem>? items,
+    required ComponentsIndex components,
+    required EquipmentArrangement arrangement,
+    required Locale locale,
+  }) {
+    final cached = _model;
+    if (cached != null &&
+        identical(items, _modelItems) &&
+        identical(components, _modelComponents) &&
+        arrangement == _modelArrangement &&
+        locale == _modelLocale) {
+      return cached;
+    }
+    _modelItems = items;
+    _modelComponents = components;
+    _modelArrangement = arrangement;
+    _modelLocale = locale;
+    return _model = composeFigure(
+      figureInputsFromItems(ordered, components: components),
+    );
+  }
+
   /// One member of the set. [number] is its figure number, shown as the
   /// legend badge; child items and assembly parts have none.
   Widget _buildEquipmentTile(
@@ -416,7 +474,7 @@ class _EquipmentSetDetailPageState
               FigureNumberBadge(
                 number: number,
                 selected: selected,
-                onTap: () => _select(item.id),
+                onTap: () => _select(item.id, revealFigure: true),
               ),
               const SizedBox(width: 8),
             ],

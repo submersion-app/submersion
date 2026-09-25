@@ -31,6 +31,7 @@ void main() {
     ValueChanged<PlacedItem>? onItemTap,
     String Function(PlacedItem)? labelText,
     double textScale = 1,
+    int selectionSerial = 0,
   }) async {
     tester.view.physicalSize = Size(width, 1600);
     tester.view.devicePixelRatio = 1.0;
@@ -54,6 +55,7 @@ void main() {
               itemSemantics: (p) =>
                   '${p.number}, ${p.item.type.name}, ${p.item.name}',
               selectedItemId: selectedItemId,
+              selectionSerial: selectionSerial,
               onItemTap: onItemTap,
               trayTitle: 'Also carried',
             ),
@@ -89,6 +91,39 @@ void main() {
       expect(label('bcd'), findsNothing);
       await pump(tester, reef, width: 360, selectedItemId: 'bcd');
       expect(label('bcd'), findsOneWidget);
+    });
+
+    testWidgets('selecting the same item again brings its side back', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        reef,
+        width: 360,
+        selectedItemId: 'bcd',
+        selectionSerial: 1,
+      );
+      expect(label('bcd'), findsOneWidget);
+      await tester.tap(find.text('Front · 2'));
+      await tester.pumpAndSettle();
+      expect(label('bcd'), findsNothing);
+      // The same item, selected again while still selected.
+      await pump(
+        tester,
+        reef,
+        width: 360,
+        selectedItemId: 'bcd',
+        selectionSerial: 2,
+      );
+      expect(label('bcd'), findsOneWidget);
+    });
+
+    testWidgets('a box too narrow for names still lays out', (tester) async {
+      // At 100 pt each column is about 24 pt: narrower than a badge, its
+      // gap and padding, so a full label row would overflow.
+      await pump(tester, reef, width: 100);
+      expect(tester.takeException(), isNull);
+      expect(find.byType(FigureNameLabel), findsWidgets);
     });
 
     testWidgets('an empty side reads zero and still draws', (tester) async {

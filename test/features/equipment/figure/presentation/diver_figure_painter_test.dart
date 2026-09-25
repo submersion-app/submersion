@@ -186,6 +186,26 @@ void main() {
       ),
       isFalse,
     );
+    // A palette rebuilt from the same theme is equal, not identical.
+    // Not const: a const copy would be the very same object, which
+    // proves nothing about equality.
+    // ignore: prefer_const_constructors
+    final samePalette = FigurePalette(
+      body: 0xFFCBD3DB,
+      bodyShade: 0xFFB2BCC6,
+      gearDark: 0xFF2A2A2E,
+      gearLight: 0xFF8FD3FF,
+      metal: 0xFF9AA3AD,
+      outline: 0xFF1B1B1F,
+      badge: 0xFF0B57D0,
+      onBadge: 0xFFFFFFFF,
+    );
+    expect(
+      painter.shouldRepaint(
+        DiverFigurePainter(model: model, palette: samePalette),
+      ),
+      isFalse,
+    );
     expect(
       painter.shouldRepaint(
         DiverFigurePainter(

@@ -31,6 +31,7 @@ class DiverFigure extends StatefulWidget {
     required this.sideLabel,
     this.mode = FigureMode.pair,
     this.selectedItemId,
+    this.selectionSerial = 0,
     this.onItemTap,
     this.itemSemantics,
     this.trayTitle,
@@ -53,6 +54,10 @@ class DiverFigure extends StatefulWidget {
   final String Function(FigureView view, int count) sideLabel;
   final FigureMode mode;
   final String? selectedItemId;
+
+  /// Bumped by the caller on every selection, so selecting the item that is
+  /// already selected still brings its side forward on a phone.
+  final int selectionSerial;
   final ValueChanged<PlacedItem>? onItemTap;
 
   /// The screen-reader label of an item, for example "3, BCD, Hollis SMS75".
@@ -69,12 +74,25 @@ class _DiverFigureState extends State<DiverFigure> {
   FigureView _view = FigureView.front;
 
   @override
+  void initState() {
+    super.initState();
+    // Created with an item already selected: open on that item's side.
+    final id = widget.selectedItemId;
+    final zone = id == null ? null : widget.model.byId(id)?.zone;
+    if (zone != null) _view = zone.view;
+  }
+
+  @override
   void didUpdateWidget(DiverFigure oldWidget) {
     super.didUpdateWidget(oldWidget);
     // A newly selected item on the hidden side brings that side forward, so
     // tapping a back item's row on a phone shows its label.
     final id = widget.selectedItemId;
-    if (id == null || id == oldWidget.selectedItemId) return;
+    if (id == null) return;
+    if (id == oldWidget.selectedItemId &&
+        widget.selectionSerial == oldWidget.selectionSerial) {
+      return;
+    }
     final zone = widget.model.byId(id)?.zone;
     if (zone != null) _view = zone.view;
   }

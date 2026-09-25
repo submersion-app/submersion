@@ -121,6 +121,22 @@ class FigureNameLabel extends StatelessWidget {
         onTap: onTap,
         child: LayoutBuilder(
           builder: (context, constraints) {
+            final badge = FigureNumberBadge(
+              number: number,
+              size: badgeSize,
+              selected: selected,
+            );
+            // Too narrow for any of the name (a phone column in a very
+            // narrow pane): show the number alone, scaled down if even the
+            // badge does not fit, rather than overflow the row.
+            if (constraints.maxWidth < badgeSize + _gap + padding * 2 + 12) {
+              return Align(
+                alignment: alignEnd
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
+                child: FittedBox(fit: BoxFit.scaleDown, child: badge),
+              );
+            }
             final lineWidth = math.max(
               0.0,
               constraints.maxWidth - badgeSize - _gap - padding * 2,
@@ -145,11 +161,7 @@ class FigureNameLabel extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    FigureNumberBadge(
-                      number: number,
-                      size: badgeSize,
-                      selected: selected,
-                    ),
+                    badge,
                     const SizedBox(width: _gap),
                     Flexible(
                       child: Text(

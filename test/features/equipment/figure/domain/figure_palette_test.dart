@@ -26,7 +26,10 @@ void main() {
   });
 
   test('palettes with the same colours are equal', () {
-    const copy = FigurePalette(
+    // Not const: a const copy would be the very same object, which
+    // proves nothing about equality.
+    // ignore: prefer_const_constructors
+    final copy = FigurePalette(
       body: 0xFFCBD3DB,
       bodyShade: 0xFFB2BCC6,
       gearDark: 0xFF2A2A2E,
@@ -36,6 +39,7 @@ void main() {
       badge: 0xFF0B57D0,
       onBadge: 0xFFFFFFFF,
     );
+    expect(identical(copy, FigurePalette.light), isFalse);
     expect(copy, FigurePalette.light);
     expect(copy.hashCode, FigurePalette.light.hashCode);
   });
