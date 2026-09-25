@@ -33,9 +33,9 @@ enum FigureZone {
   wristLeft(FigureView.front, 53, 186),
   wristRight(FigureView.front, 147, 186, mirrored: true),
   hands(FigureView.front, 53, 204),
-  handLeft(FigureView.front, 41, 224),
-  handRight(FigureView.front, 159, 224, mirrored: true),
-  cameraArm(FigureView.front, 172, 242, capacity: 2, mirrored: true),
+  handLeft(FigureView.front, 53, 222),
+  handRight(FigureView.front, 147, 222, mirrored: true),
+  cameraArm(FigureView.front, 178, 258, capacity: 2, mirrored: true),
   console(FigureView.front, 62, 230),
   // Front, waist and legs.
   waist(FigureView.front, 100, 198),
