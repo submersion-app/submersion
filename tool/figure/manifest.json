@@ -1,0 +1,8 @@
+{
+  "pieces": [
+    {"id": "body_front", "view": "front", "layer": 0,
+     "roles": ["body", "body", "body", "body", "body", "body", "body", "body", "body", "body", "body", "bodyShade", "bodyShade"]},
+    {"id": "body_back", "view": "back", "layer": 0,
+     "roles": ["body", "body", "body", "body", "body", "body", "body", "body", "body", "body", "body", "bodyShade"]}
+  ]
+}
