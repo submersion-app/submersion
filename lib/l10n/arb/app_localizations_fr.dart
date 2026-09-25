@@ -28495,6 +28495,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get attrLabel_last_hydro_test => 'Dernier test hydrostatique';
 
   @override
+  String get attrLabel_passport_id => 'Identifiant de passeport';
+
+  @override
   String get attrLabel_connection => 'Raccord';
 
   @override

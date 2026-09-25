@@ -8199,6 +8199,7 @@
   "attrLabel_tank_identifier": "المعرف",
   "attrLabel_last_visual_inspection": "آخر فحص بصري",
   "attrLabel_last_hydro_test": "آخر اختبار هيدروستاتيكي",
+  "attrLabel_passport_id": "معرّف جواز الأسطوانة",
   "attrLabel_connection": "التوصيل",
   "attrLabel_cold_water_rated": "مخصص للمياه الباردة",
   "attrLabel_bcd_style": "النمط",

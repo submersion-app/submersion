@@ -26890,6 +26890,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get attrLabel_last_hydro_test => '上次水压测试';
 
   @override
+  String get attrLabel_passport_id => '护照标识';
+
+  @override
   String get attrLabel_connection => '接口';
 
   @override

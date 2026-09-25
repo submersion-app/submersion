@@ -18467,6 +18467,7 @@
   "attrLabel_tank_identifier": "Identifier",
   "attrLabel_last_visual_inspection": "Last visual inspection",
   "attrLabel_last_hydro_test": "Last hydrostatic test",
+  "attrLabel_passport_id": "Passport id",
   "attrLabel_connection": "Connection",
   "attrLabel_cold_water_rated": "Cold-water rated",
   "attrLabel_bcd_style": "Style",

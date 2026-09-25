@@ -8199,6 +8199,7 @@
   "attrLabel_tank_identifier": "Azonosító",
   "attrLabel_last_visual_inspection": "Utolsó szemrevételezés",
   "attrLabel_last_hydro_test": "Utolsó hidrosztatikai vizsgálat",
+  "attrLabel_passport_id": "Útlevél-azonosító",
   "attrLabel_connection": "Csatlakozás",
   "attrLabel_cold_water_rated": "Hidegvízre minősített",
   "attrLabel_bcd_style": "Fazon",

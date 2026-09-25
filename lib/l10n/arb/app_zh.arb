@@ -8199,6 +8199,7 @@
   "attrLabel_tank_identifier": "标识",
   "attrLabel_last_visual_inspection": "上次目视检查",
   "attrLabel_last_hydro_test": "上次水压测试",
+  "attrLabel_passport_id": "护照标识",
   "attrLabel_connection": "接口",
   "attrLabel_cold_water_rated": "适用于冷水",
   "attrLabel_bcd_style": "款式",

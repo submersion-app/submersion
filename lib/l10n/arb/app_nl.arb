@@ -8199,6 +8199,7 @@
   "attrLabel_tank_identifier": "Identificatie",
   "attrLabel_last_visual_inspection": "Laatste visuele inspectie",
   "attrLabel_last_hydro_test": "Laatste hydrostatische test",
+  "attrLabel_passport_id": "Paspoort-id",
   "attrLabel_connection": "Aansluiting",
   "attrLabel_cold_water_rated": "Geschikt voor koud water",
   "attrLabel_bcd_style": "Stijl",

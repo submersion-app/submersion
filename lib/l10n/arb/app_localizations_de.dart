@@ -28340,6 +28340,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get attrLabel_last_hydro_test => 'Letzte Druckprüfung';
 
   @override
+  String get attrLabel_passport_id => 'Pass-ID';
+
+  @override
   String get attrLabel_connection => 'Anschluss';
 
   @override

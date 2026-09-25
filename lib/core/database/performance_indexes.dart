@@ -187,6 +187,14 @@ const List<PerformanceIndex> kPerformanceIndexes = [
         'CREATE INDEX IF NOT EXISTS idx_equipment_attributes_key_num '
         'ON equipment_attributes(attr_key, value_num)',
   ),
+  // Passport id lookup (issue #2334): a scanned tag resolves to the one
+  // cylinder holding that value under attr_key = 'passport_id'.
+  (
+    name: 'idx_equipment_attributes_key_text',
+    ddl:
+        'CREATE INDEX IF NOT EXISTS idx_equipment_attributes_key_text '
+        'ON equipment_attributes(attr_key, value_text)',
+  ),
   (
     name: 'idx_equipment_components_parent',
     ddl:

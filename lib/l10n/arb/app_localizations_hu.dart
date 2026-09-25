@@ -28284,6 +28284,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get attrLabel_last_hydro_test => 'Utolsó hidrosztatikai vizsgálat';
 
   @override
+  String get attrLabel_passport_id => 'Útlevél-azonosító';
+
+  @override
   String get attrLabel_connection => 'Csatlakozás';
 
   @override

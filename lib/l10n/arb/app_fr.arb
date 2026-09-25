@@ -8199,6 +8199,7 @@
   "attrLabel_tank_identifier": "Identifiant",
   "attrLabel_last_visual_inspection": "Dernière inspection visuelle",
   "attrLabel_last_hydro_test": "Dernier test hydrostatique",
+  "attrLabel_passport_id": "Identifiant de passeport",
   "attrLabel_connection": "Raccord",
   "attrLabel_cold_water_rated": "Adapté à l'eau froide",
   "attrLabel_bcd_style": "Style",

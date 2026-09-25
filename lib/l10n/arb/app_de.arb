@@ -8312,6 +8312,7 @@
   "attrLabel_tank_identifier": "Kennung",
   "attrLabel_last_visual_inspection": "Letzte Sichtprüfung",
   "attrLabel_last_hydro_test": "Letzte Druckprüfung",
+  "attrLabel_passport_id": "Pass-ID",
   "attrLabel_connection": "Anschluss",
   "attrLabel_cold_water_rated": "Kaltwassergeeignet",
   "attrLabel_bcd_style": "Bauart",

@@ -28397,6 +28397,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_last_hydro_test => 'Ultimo test idrostatico';
 
   @override
+  String get attrLabel_passport_id => 'ID passaporto';
+
+  @override
   String get attrLabel_connection => 'Attacco';
 
   @override

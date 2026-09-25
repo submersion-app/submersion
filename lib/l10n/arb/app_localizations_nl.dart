@@ -28186,6 +28186,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get attrLabel_last_hydro_test => 'Laatste hydrostatische test';
 
   @override
+  String get attrLabel_passport_id => 'Paspoort-id';
+
+  @override
   String get attrLabel_connection => 'Aansluiting';
 
   @override

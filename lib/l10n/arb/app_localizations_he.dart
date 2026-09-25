@@ -27703,6 +27703,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_last_hydro_test => 'מבחן הידרוסטטי אחרון';
 
   @override
+  String get attrLabel_passport_id => 'מזהה דרכון';
+
+  @override
   String get attrLabel_connection => 'חיבור';
 
   @override

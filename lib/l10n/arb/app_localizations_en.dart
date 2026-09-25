@@ -27933,6 +27933,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get attrLabel_last_hydro_test => 'Last hydrostatic test';
 
   @override
+  String get attrLabel_passport_id => 'Passport id';
+
+  @override
   String get attrLabel_connection => 'Connection';
 
   @override

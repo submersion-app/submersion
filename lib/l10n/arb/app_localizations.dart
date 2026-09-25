@@ -45438,6 +45438,12 @@ abstract class AppLocalizations {
   /// **'Last hydrostatic test'**
   String get attrLabel_last_hydro_test;
 
+  /// No description provided for @attrLabel_passport_id.
+  ///
+  /// In en, this message translates to:
+  /// **'Passport id'**
+  String get attrLabel_passport_id;
+
   /// No description provided for @attrLabel_connection.
   ///
   /// In en, this message translates to:

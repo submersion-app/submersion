@@ -8199,6 +8199,7 @@
   "attrLabel_tank_identifier": "מזהה",
   "attrLabel_last_visual_inspection": "בדיקה חזותית אחרונה",
   "attrLabel_last_hydro_test": "מבחן הידרוסטטי אחרון",
+  "attrLabel_passport_id": "מזהה דרכון",
   "attrLabel_connection": "חיבור",
   "attrLabel_cold_water_rated": "מתאים למים קרים",
   "attrLabel_bcd_style": "סגנון",

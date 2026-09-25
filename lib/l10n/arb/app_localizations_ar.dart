@@ -28005,6 +28005,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get attrLabel_last_hydro_test => 'آخر اختبار هيدروستاتيكي';
 
   @override
+  String get attrLabel_passport_id => 'معرّف جواز الأسطوانة';
+
+  @override
   String get attrLabel_connection => 'التوصيل';
 
   @override
