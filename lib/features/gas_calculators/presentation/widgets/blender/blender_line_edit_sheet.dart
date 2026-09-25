@@ -226,6 +226,10 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
 
   double? _cylinderLiters(AppSettings settings) {
     if (_presetLiters != null) return _presetLiters;
+    // An untouched field still holds the saved fill's exact volume, which
+    // its rounded text would lose in cubic feet.
+    final saved = widget.fill?.manualGasLine?.cylinderLiters;
+    if (saved != null && _cylinder.text == _seedCylinder) return saved;
     final shown = parseUserDecimal(_cylinder.text);
     if (shown == null || shown <= 0) return null;
     return displayVolumeToLiters(shown, settings);
@@ -276,14 +280,10 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
       final fill = widget.fill!;
       Navigator.of(context).pop(
         BlenderLineEdit(
-          label: label.isNotEmpty
-              ? label
-              : _generatedLabel(
-                  unchanged.gas,
-                  unchanged.cylinderLiters,
-                  unchanged.addedBar,
-                  units,
-                ),
+          // A blank description here means the saved one was generated, so
+          // it is kept as saved: the fill did not change, and regenerating
+          // it would only restate it in whatever unit is active now.
+          label: label.isNotEmpty ? label : fill.label,
           amount: fill.total,
           lines: [unchanged],
         ),
