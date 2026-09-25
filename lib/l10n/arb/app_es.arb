@@ -4456,7 +4456,7 @@
   "gasCalculators_density_setpointCapped": "Aquí el setpoint supera la presión ambiente, así que el circuito es oxígeno puro.",
   "gasCalculators_density_diluentAboveSetpoint": "El diluyente por sí solo da aquí una ppO2 de {ppO2}, por encima del setpoint. La densidad usa la ppO2 del diluyente.",
   "gasCalculators_density_infoTitle": "Acerca de la densidad del gas",
-  "gasCalculators_density_infoContent": "Un gas denso cuesta más respirarlo y aumenta el riesgo de retención de CO2. Mantén la densidad en 5,2 g/L o menos; 6,2 g/L es el límite absoluto.\n\nEn CCR cuenta la densidad del gas del circuito: oxígeno al setpoint y el resto repartido entre nitrógeno y helio según la proporción del diluyente.\n\nUn gas más frío es más denso, así que la opción de temperatura más fría es la conservadora. El cálculo supone un gas ideal.",
+  "gasCalculators_density_infoContent": "Un gas denso cuesta más respirarlo y aumenta el riesgo de retención de CO2. Mantén la densidad en {warn} g/L o menos; {critical} g/L es el límite absoluto.\n\nEn CCR cuenta la densidad del gas del circuito: oxígeno al setpoint y el resto repartido entre nitrógeno y helio según la proporción del diluyente.\n\nUn gas más frío es más denso, así que la opción de temperatura más fría es la conservadora. El cálculo supone un gas ideal.",
   "gasCalculators_desc_blender": "Procedimiento de llenado para una mezcla objetivo",
   "gasCalculators_summary_prompt": "Seleccione una calculadora para empezar",
   "gpsLogger_androidNotificationText": "Grabando tu track de superficie",

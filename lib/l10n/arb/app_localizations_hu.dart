@@ -14419,8 +14419,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get gasCalculators_density_infoTitle => 'A gázsűrűségről';
 
   @override
-  String get gasCalculators_density_infoContent =>
-      'A sűrű gázt nehezebb belélegezni, és növeli a CO2-visszatartás kockázatát. Tartsd a sűrűséget legfeljebb 5,2 g/L-en; 6,2 g/L az abszolút felső határ.\n\nCCR esetén a hurokgáz sűrűsége számít: oxigén a setpoint szerint, a maradék nitrogén és hélium a hígítógáz arányában.\n\nA hidegebb gáz sűrűbb, ezért a hidegebb hőmérséklet a konzervatív választás. A számítás ideális gázt feltételez.';
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'A sűrű gázt nehezebb belélegezni, és növeli a CO2-visszatartás kockázatát. Tartsd a sűrűséget legfeljebb $warn g/L-en; $critical g/L az abszolút felső határ.\n\nCCR esetén a hurokgáz sűrűsége számít: oxigén a setpoint szerint, a maradék nitrogén és hélium a hígítógáz arányában.\n\nA hidegebb gáz sűrűbb, ezért a hidegebb hőmérséklet a konzervatív választás. A számítás ideális gázt feltételez.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'Töltési eljárás a célkeverékhez';

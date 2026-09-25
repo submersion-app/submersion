@@ -14462,8 +14462,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get gasCalculators_density_infoTitle => 'Sobre a densidade do gás';
 
   @override
-  String get gasCalculators_density_infoContent =>
-      'Gás denso é mais difícil de respirar e aumenta o risco de retenção de CO2. Mantenha a densidade em 5,2 g/L ou menos; 6,2 g/L é o limite máximo.\n\nEm CCR conta a densidade do gás do circuito: oxigênio no setpoint e o restante dividido entre nitrogênio e hélio na proporção do diluente.\n\nGás mais frio é mais denso, por isso a opção de temperatura mais fria é a conservadora. O cálculo assume um gás ideal.';
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'Gás denso é mais difícil de respirar e aumenta o risco de retenção de CO2. Mantenha a densidade em $warn g/L ou menos; $critical g/L é o limite máximo.\n\nEm CCR conta a densidade do gás do circuito: oxigênio no setpoint e o restante dividido entre nitrogênio e hélio na proporção do diluente.\n\nGás mais frio é mais denso, por isso a opção de temperatura mais fria é a conservadora. O cálculo assume um gás ideal.';
+  }
 
   @override
   String get gasCalculators_desc_blender =>

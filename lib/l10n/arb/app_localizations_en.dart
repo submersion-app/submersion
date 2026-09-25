@@ -14229,8 +14229,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get gasCalculators_density_infoTitle => 'About Gas Density';
 
   @override
-  String get gasCalculators_density_infoContent =>
-      'Dense gas is harder to breathe and raises the risk of CO2 retention. Keep the density at or below 5.2 g/L; 6.2 g/L is the hard ceiling.\n\nOn CCR the density is that of the loop gas: oxygen at the setpoint, the rest split between nitrogen and helium in the diluent\'s ratio.\n\nColder gas is denser, so the colder temperature option is the conservative one. The calculation assumes an ideal gas.';
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'Dense gas is harder to breathe and raises the risk of CO2 retention. Keep the density at or below $warn g/L; $critical g/L is the hard ceiling.\n\nOn CCR the density is that of the loop gas: oxygen at the setpoint, the rest split between nitrogen and helium in the diluent\'s ratio.\n\nColder gas is denser, so the colder temperature option is the conservative one. The calculation assumes an ideal gas.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'Fill procedure for a target mix';

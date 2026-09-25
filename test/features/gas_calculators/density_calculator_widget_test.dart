@@ -157,6 +157,38 @@ void main() {
     );
   });
 
+  testWidgets('the info card states the limits from the constants', (
+    tester,
+  ) async {
+    await _pump(tester);
+    expect(
+      find.textContaining('at or below 5.2 g/L; 6.2 g/L is the hard ceiling'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('the depth slider steps in whole feet', (tester) async {
+    final ref = await _pump(
+      tester,
+      settings: const AppSettings(depthUnit: DepthUnit.feet),
+    );
+
+    final depthSlider = tester.widget<Slider>(find.byType(Slider).at(2));
+    expect(depthSlider.max, 500);
+    expect(depthSlider.divisions, 500);
+
+    depthSlider.onChanged!(100);
+    await tester.pumpAndSettle();
+    expect(ref.read(densityDepthProvider), closeTo(100 / 3.28084, 1e-3));
+    expect(find.text('100ft'), findsOneWidget);
+  });
+
+  testWidgets('sliders announce the displayed value', (tester) async {
+    await _pump(tester);
+    final depthSlider = tester.widget<Slider>(find.byType(Slider).at(2));
+    expect(depthSlider.semanticFormatterCallback!(50), '50m');
+  });
+
   testWidgets('imperial settings show feet and Fahrenheit', (tester) async {
     await _pump(
       tester,

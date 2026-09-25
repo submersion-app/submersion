@@ -14444,8 +14444,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get gasCalculators_density_infoTitle => 'Über die Gasdichte';
 
   @override
-  String get gasCalculators_density_infoContent =>
-      'Dichtes Gas ist schwerer zu atmen und erhöht das Risiko einer CO2-Retention. Halte die Dichte bei höchstens 5,2 g/L; 6,2 g/L ist die harte Obergrenze.\n\nBei CCR zählt die Dichte des Loop-Gases: Sauerstoff mit dem Setpoint, der Rest aufgeteilt auf Stickstoff und Helium im Verhältnis des Diluentgases.\n\nKälteres Gas ist dichter, deshalb ist die kältere Temperatur die konservative Wahl. Die Berechnung nimmt ein ideales Gas an.';
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'Dichtes Gas ist schwerer zu atmen und erhöht das Risiko einer CO2-Retention. Halte die Dichte bei höchstens $warn g/L; $critical g/L ist die harte Obergrenze.\n\nBei CCR zählt die Dichte des Loop-Gases: Sauerstoff mit dem Setpoint, der Rest aufgeteilt auf Stickstoff und Helium im Verhältnis des Diluentgases.\n\nKälteres Gas ist dichter, deshalb ist die kältere Temperatur die konservative Wahl. Die Berechnung nimmt ein ideales Gas an.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'Füllvorgang für ein Zielgemisch';

@@ -4456,7 +4456,7 @@
   "gasCalculators_density_setpointCapped": "Het setpoint ligt hier boven de omgevingsdruk, dus de loop is zuivere zuurstof.",
   "gasCalculators_density_diluentAboveSetpoint": "Het diluent alleen geeft hier een ppO2 van {ppO2}, boven het setpoint. De dichtheid rekent met de ppO2 van het diluent.",
   "gasCalculators_density_infoTitle": "Over gasdichtheid",
-  "gasCalculators_density_infoContent": "Dicht gas ademt zwaarder en verhoogt het risico op CO2-retentie. Houd de dichtheid op maximaal 5,2 g/L; 6,2 g/L is de harde bovengrens.\n\nBij CCR telt de dichtheid van het loopgas: zuurstof op het setpoint, de rest verdeeld over stikstof en helium in de verhouding van het diluent.\n\nKouder gas is dichter, dus de koudere temperatuuroptie is de conservatieve keuze. De berekening gaat uit van een ideaal gas.",
+  "gasCalculators_density_infoContent": "Dicht gas ademt zwaarder en verhoogt het risico op CO2-retentie. Houd de dichtheid op maximaal {warn} g/L; {critical} g/L is de harde bovengrens.\n\nBij CCR telt de dichtheid van het loopgas: zuurstof op het setpoint, de rest verdeeld over stikstof en helium in de verhouding van het diluent.\n\nKouder gas is dichter, dus de koudere temperatuuroptie is de conservatieve keuze. De berekening gaat uit van een ideaal gas.",
   "gasCalculators_desc_blender": "Vulprocedure voor een doelmengsel",
   "gasCalculators_summary_prompt": "Selecteer een calculator om te beginnen",
   "gpsLogger_androidNotificationText": "Je oppervlaktetrack wordt opgenomen",

@@ -158,6 +158,14 @@ void main() {
       expect(gasDensityLevelFor(6.2), GasDensityLevel.warn);
       expect(gasDensityLevelFor(6.21), GasDensityLevel.critical);
     });
+
+    test('on the displayed value agrees with the number shown', () {
+      // 5.2004 renders as "5.20", which is on the limit, not above it.
+      expect(gasDensityLevelForDisplay(5.2004, 2), GasDensityLevel.ok);
+      expect(gasDensityLevelForDisplay(5.206, 2), GasDensityLevel.warn);
+      expect(gasDensityLevelForDisplay(6.2004, 2), GasDensityLevel.warn);
+      expect(gasDensityLevelForDisplay(6.206, 2), GasDensityLevel.critical);
+    });
   });
 
   group('temperature options', () {

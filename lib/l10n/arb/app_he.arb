@@ -4354,7 +4354,7 @@
   "gasCalculators_density_setpointCapped": "כאן ה-Setpoint גבוה מהלחץ הסביבתי, ולכן הלולאה מכילה חמצן טהור.",
   "gasCalculators_density_diluentAboveSetpoint": "הגז המדלל לבדו נותן כאן ppO2 של {ppO2}, מעל ה-Setpoint. הצפיפות מחושבת לפי ה-ppO2 של הגז המדלל.",
   "gasCalculators_density_infoTitle": "על צפיפות גז",
-  "gasCalculators_density_infoContent": "גז צפוף קשה יותר לנשימה ומעלה את הסיכון לאגירת CO2. שמרו על צפיפות של 5.2 g/L לכל היותר; 6.2 g/L הוא הגבול העליון המוחלט.\n\nב-CCR קובעת צפיפות גז הלולאה: חמצן לפי ה-Setpoint, והשאר מחולק בין חנקן להליום ביחס של הגז המדלל.\n\nגז קר יותר צפוף יותר, ולכן אפשרות הטמפרטורה הקרה יותר היא השמרנית. החישוב מניח גז אידיאלי.",
+  "gasCalculators_density_infoContent": "גז צפוף קשה יותר לנשימה ומעלה את הסיכון לאגירת CO2. שמרו על צפיפות של {warn} g/L לכל היותר; {critical} g/L הוא הגבול העליון המוחלט.\n\nב-CCR קובעת צפיפות גז הלולאה: חמצן לפי ה-Setpoint, והשאר מחולק בין חנקן להליום ביחס של הגז המדלל.\n\nגז קר יותר צפוף יותר, ולכן אפשרות הטמפרטורה הקרה יותר היא השמרנית. החישוב מניח גז אידיאלי.",
   "gasCalculators_desc_blender": "נוהל מילוי לתערובת היעד",
   "gasCalculators_summary_prompt": "בחר מחשבון כדי להתחיל",
   "gpsLogger_androidNotificationText": "מקליט את מסלול פני המים",

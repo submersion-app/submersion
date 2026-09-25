@@ -14354,8 +14354,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get gasCalculators_density_infoTitle => 'Over gasdichtheid';
 
   @override
-  String get gasCalculators_density_infoContent =>
-      'Dicht gas ademt zwaarder en verhoogt het risico op CO2-retentie. Houd de dichtheid op maximaal 5,2 g/L; 6,2 g/L is de harde bovengrens.\n\nBij CCR telt de dichtheid van het loopgas: zuurstof op het setpoint, de rest verdeeld over stikstof en helium in de verhouding van het diluent.\n\nKouder gas is dichter, dus de koudere temperatuuroptie is de conservatieve keuze. De berekening gaat uit van een ideaal gas.';
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'Dicht gas ademt zwaarder en verhoogt het risico op CO2-retentie. Houd de dichtheid op maximaal $warn g/L; $critical g/L is de harde bovengrens.\n\nBij CCR telt de dichtheid van het loopgas: zuurstof op het setpoint, de rest verdeeld over stikstof en helium in de verhouding van het diluent.\n\nKouder gas is dichter, dus de koudere temperatuuroptie is de conservatieve keuze. De berekening gaat uit van een ideaal gas.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'Vulprocedure voor een doelmengsel';

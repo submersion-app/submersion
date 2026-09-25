@@ -14118,8 +14118,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get gasCalculators_density_infoTitle => 'על צפיפות גז';
 
   @override
-  String get gasCalculators_density_infoContent =>
-      'גז צפוף קשה יותר לנשימה ומעלה את הסיכון לאגירת CO2. שמרו על צפיפות של 5.2 g/L לכל היותר; 6.2 g/L הוא הגבול העליון המוחלט.\n\nב-CCR קובעת צפיפות גז הלולאה: חמצן לפי ה-Setpoint, והשאר מחולק בין חנקן להליום ביחס של הגז המדלל.\n\nגז קר יותר צפוף יותר, ולכן אפשרות הטמפרטורה הקרה יותר היא השמרנית. החישוב מניח גז אידיאלי.';
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'גז צפוף קשה יותר לנשימה ומעלה את הסיכון לאגירת CO2. שמרו על צפיפות של $warn g/L לכל היותר; $critical g/L הוא הגבול העליון המוחלט.\n\nב-CCR קובעת צפיפות גז הלולאה: חמצן לפי ה-Setpoint, והשאר מחולק בין חנקן להליום ביחס של הגז המדלל.\n\nגז קר יותר צפוף יותר, ולכן אפשרות הטמפרטורה הקרה יותר היא השמרנית. החישוב מניח גז אידיאלי.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'נוהל מילוי לתערובת היעד';

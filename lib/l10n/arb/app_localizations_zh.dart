@@ -13767,8 +13767,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_density_infoTitle => '关于气体密度';
 
   @override
-  String get gasCalculators_density_infoContent =>
-      '高密度气体更难呼吸，并会增加 CO2 潴留的风险。请将密度保持在 5.2 g/L 或以下；6.2 g/L 为硬性上限。\n\n在 CCR 模式下，计算的是回路气体的密度：氧气按设定点，其余按稀释气体的比例分配给氮气和氦气。\n\n较冷的气体密度更高，因此较冷的温度选项更保守。计算假定为理想气体。';
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return '高密度气体更难呼吸，并会增加 CO2 潴留的风险。请将密度保持在 $warn g/L 或以下；$critical g/L 为硬性上限。\n\n在 CCR 模式下，计算的是回路气体的密度：氧气按设定点，其余按稀释气体的比例分配给氮气和氦气。\n\n较冷的气体密度更高，因此较冷的温度选项更保守。计算假定为理想气体。';
+  }
 
   @override
   String get gasCalculators_desc_blender => '目标混合气的充填流程';

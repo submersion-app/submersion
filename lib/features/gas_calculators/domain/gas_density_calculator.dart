@@ -27,6 +27,16 @@ GasDensityLevel gasDensityLevelFor(double densityGPerL) {
   return GasDensityLevel.ok;
 }
 
+/// [gasDensityLevelFor] on the value as displayed with [fractionDigits]
+/// decimals, so the status never contradicts the number beside it: 5.2004
+/// shows as 5.20 and is therefore within the 5.2 limit.
+GasDensityLevel gasDensityLevelForDisplay(
+  double densityGPerL,
+  int fractionDigits,
+) => gasDensityLevelFor(
+  double.parse(densityGPerL.toStringAsFixed(fractionDigits)),
+);
+
 class GasDensityInputs {
   /// O2 of the breathing gas (OC) or of the diluent (CCR), in percent.
   final double o2Percent;
@@ -96,8 +106,10 @@ class GasDensityResult {
 
 /// Density of the breathed gas at depth, on open circuit or on a CCR loop.
 ///
-/// Ambient pressure follows [DiveEnvironment] for the chosen water type at a
-/// 1.0 bar surface, the app's convention everywhere else.
+/// Ambient pressure follows [DiveEnvironment] for the chosen water type
+/// (salt 1025 kg/m3, fresh 1000 kg/m3) at a 1.0 bar surface, as the deco
+/// calculator and planner do. The other gas calculators use a flat 1 bar per
+/// 10 m, so at the same depth this one sees a slightly different pressure.
 ///
 /// On a rebreather the loop holds the setpoint where it can: shallower than
 /// the setpoint the loop is pure oxygen, and where the diluent alone already

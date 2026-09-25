@@ -4560,7 +4560,7 @@
   "gasCalculators_density_setpointCapped": "Der Setpoint liegt hier über dem Umgebungsdruck, der Loop ist reiner Sauerstoff.",
   "gasCalculators_density_diluentAboveSetpoint": "Das Diluentgas allein ergibt hier ppO2 {ppO2}, mehr als der Setpoint. Die Dichte rechnet mit dem ppO2 des Diluentgases.",
   "gasCalculators_density_infoTitle": "Über die Gasdichte",
-  "gasCalculators_density_infoContent": "Dichtes Gas ist schwerer zu atmen und erhöht das Risiko einer CO2-Retention. Halte die Dichte bei höchstens 5,2 g/L; 6,2 g/L ist die harte Obergrenze.\n\nBei CCR zählt die Dichte des Loop-Gases: Sauerstoff mit dem Setpoint, der Rest aufgeteilt auf Stickstoff und Helium im Verhältnis des Diluentgases.\n\nKälteres Gas ist dichter, deshalb ist die kältere Temperatur die konservative Wahl. Die Berechnung nimmt ein ideales Gas an.",
+  "gasCalculators_density_infoContent": "Dichtes Gas ist schwerer zu atmen und erhöht das Risiko einer CO2-Retention. Halte die Dichte bei höchstens {warn} g/L; {critical} g/L ist die harte Obergrenze.\n\nBei CCR zählt die Dichte des Loop-Gases: Sauerstoff mit dem Setpoint, der Rest aufgeteilt auf Stickstoff und Helium im Verhältnis des Diluentgases.\n\nKälteres Gas ist dichter, deshalb ist die kältere Temperatur die konservative Wahl. Die Berechnung nimmt ein ideales Gas an.",
   "gasCalculators_desc_blender": "Füllvorgang für ein Zielgemisch",
   "gasCalculators_summary_prompt": "Wählen Sie einen Rechner aus, um zu beginnen",
   "gpsLogger_androidNotificationText": "Oberflächen-Track wird aufgezeichnet",

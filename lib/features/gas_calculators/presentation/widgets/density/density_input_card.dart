@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
@@ -15,6 +16,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 const double _o2Min = 5;
 const double _o2Max = 100;
 const double _depthMaxMeters = 150;
+const double _depthMaxFeet = 500;
 const double _setpointMin = 0.4;
 const double _setpointMax = 1.6;
 
@@ -26,7 +28,11 @@ class DensityInputCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
-    final units = UnitFormatter(ref.watch(settingsProvider));
+    final settings = ref.watch(settingsProvider);
+    final units = UnitFormatter(settings);
+    final depthMax = settings.depthUnit == DepthUnit.feet
+        ? _depthMaxFeet
+        : _depthMaxMeters;
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
 
@@ -125,17 +131,19 @@ class DensityInputCard extends ConsumerWidget {
               ),
             ],
             const SizedBox(height: 24),
+            // Steps in whole display units, so a diver in feet can pick
+            // 100 ft rather than the nearest whole meter.
             DensitySlider(
               label: l10n.gasCalculators_density_depth,
               icon: Icons.arrow_downward,
-              value: depth,
+              value: units.convertDepth(depth),
               unit: units.depthSymbol,
-              convert: units.convertDepth,
               min: 0,
-              max: _depthMaxMeters,
-              divisions: _depthMaxMeters.toInt(),
+              max: depthMax,
+              divisions: depthMax.toInt(),
               onChanged: (value) =>
-                  ref.read(densityDepthProvider.notifier).state = value,
+                  ref.read(densityDepthProvider.notifier).state = units
+                      .depthToMeters(value),
             ),
             const SizedBox(height: 24),
             _Labelled(

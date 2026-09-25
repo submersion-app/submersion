@@ -14220,8 +14220,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get gasCalculators_density_infoTitle => 'حول كثافة الغاز';
 
   @override
-  String get gasCalculators_density_infoContent =>
-      'الغاز الكثيف أصعب في التنفس ويزيد خطر احتباس CO2. حافظ على الكثافة عند 5.2 g/L أو أقل؛ و6.2 g/L هو الحد الأقصى المطلق.\n\nفي وضع CCR تُحتسب كثافة غاز الدائرة: الأكسجين عند نقطة الضبط، والباقي موزع بين النيتروجين والهيليوم بنسبة غاز المخفف.\n\nالغاز الأبرد أكثف، لذا فإن خيار درجة الحرارة الأبرد هو الخيار المتحفظ. يفترض الحساب غازًا مثاليًا.';
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'الغاز الكثيف أصعب في التنفس ويزيد خطر احتباس CO2. حافظ على الكثافة عند $warn g/L أو أقل؛ و$critical g/L هو الحد الأقصى المطلق.\n\nفي وضع CCR تُحتسب كثافة غاز الدائرة: الأكسجين عند نقطة الضبط، والباقي موزع بين النيتروجين والهيليوم بنسبة غاز المخفف.\n\nالغاز الأبرد أكثف، لذا فإن خيار درجة الحرارة الأبرد هو الخيار المتحفظ. يفترض الحساب غازًا مثاليًا.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'إجراء التعبئة لخليط مستهدف';

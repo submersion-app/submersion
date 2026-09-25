@@ -4354,7 +4354,7 @@
   "gasCalculators_density_setpointCapped": "A setpoint itt meghaladja a környezeti nyomást, így a hurokban tiszta oxigén van.",
   "gasCalculators_density_diluentAboveSetpoint": "A hígítógáz önmagában itt {ppO2} ppO2-t ad, ami a setpoint felett van. A sűrűség a hígítógáz ppO2-jével számol.",
   "gasCalculators_density_infoTitle": "A gázsűrűségről",
-  "gasCalculators_density_infoContent": "A sűrű gázt nehezebb belélegezni, és növeli a CO2-visszatartás kockázatát. Tartsd a sűrűséget legfeljebb 5,2 g/L-en; 6,2 g/L az abszolút felső határ.\n\nCCR esetén a hurokgáz sűrűsége számít: oxigén a setpoint szerint, a maradék nitrogén és hélium a hígítógáz arányában.\n\nA hidegebb gáz sűrűbb, ezért a hidegebb hőmérséklet a konzervatív választás. A számítás ideális gázt feltételez.",
+  "gasCalculators_density_infoContent": "A sűrű gázt nehezebb belélegezni, és növeli a CO2-visszatartás kockázatát. Tartsd a sűrűséget legfeljebb {warn} g/L-en; {critical} g/L az abszolút felső határ.\n\nCCR esetén a hurokgáz sűrűsége számít: oxigén a setpoint szerint, a maradék nitrogén és hélium a hígítógáz arányában.\n\nA hidegebb gáz sűrűbb, ezért a hidegebb hőmérséklet a konzervatív választás. A számítás ideális gázt feltételez.",
   "gasCalculators_desc_blender": "Töltési eljárás a célkeverékhez",
   "gasCalculators_summary_prompt": "Válasszon egy számológépet a kezdéshez",
   "gpsLogger_androidNotificationText": "Felszíni útvonal rögzítése folyamatban",

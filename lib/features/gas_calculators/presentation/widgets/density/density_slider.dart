@@ -85,6 +85,8 @@ class DensitySlider extends StatelessWidget {
             max: max,
             divisions: divisions,
             onChanged: onChanged,
+            // Read the displayed value, not the default percent of range.
+            semanticFormatterCallback: _format,
           ),
         ),
         Padding(

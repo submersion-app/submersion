@@ -14513,8 +14513,9 @@ class AppLocalizationsFr extends AppLocalizations {
       'À propos de la densité du gaz';
 
   @override
-  String get gasCalculators_density_infoContent =>
-      'Un gaz dense est plus difficile à respirer et augmente le risque de rétention de CO2. Gardez la densité à 5,2 g/L au maximum ; 6,2 g/L est la limite absolue.\n\nEn CCR, c\'est la densité du gaz de la boucle qui compte : l\'oxygène au setpoint, le reste réparti entre azote et hélium selon le rapport du diluant.\n\nUn gaz plus froid est plus dense : l\'option de température la plus froide est donc la plus prudente. Le calcul suppose un gaz parfait.';
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'Un gaz dense est plus difficile à respirer et augmente le risque de rétention de CO2. Gardez la densité à $warn g/L au maximum ; $critical g/L est la limite absolue.\n\nEn CCR, c\'est la densité du gaz de la boucle qui compte : l\'oxygène au setpoint, le reste réparti entre azote et hélium selon le rapport du diluant.\n\nUn gaz plus froid est plus dense : l\'option de température la plus froide est donc la plus prudente. Le calcul suppose un gaz parfait.';
+  }
 
   @override
   String get gasCalculators_desc_blender =>

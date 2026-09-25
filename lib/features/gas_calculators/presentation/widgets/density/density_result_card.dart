@@ -21,8 +21,10 @@ class DensityResultCard extends ConsumerWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final onContainer = colorScheme.onPrimaryContainer;
 
-    final density = '${formatFixedForDisplay(result.densityGPerL, 2)} g/L';
-    final (statusIcon, statusColor, statusText) = switch (result.level) {
+    const digits = 2;
+    final density = '${formatFixedForDisplay(result.densityGPerL, digits)} g/L';
+    final level = gasDensityLevelForDisplay(result.densityGPerL, digits);
+    final (statusIcon, statusColor, statusText) = switch (level) {
       GasDensityLevel.ok => (
         Icons.check_circle,
         Colors.green,

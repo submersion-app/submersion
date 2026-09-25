@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/deco/gas_density.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/density/density_input_card.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/density/density_result_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -63,7 +65,10 @@ class _InfoCard extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             Text(
-              context.l10n.gasCalculators_density_infoContent,
+              context.l10n.gasCalculators_density_infoContent(
+                formatFixedForDisplay(gasDensityWarnGPerL, 1),
+                formatFixedForDisplay(gasDensityCriticalGPerL, 1),
+              ),
               style: textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurfaceVariant,
               ),
