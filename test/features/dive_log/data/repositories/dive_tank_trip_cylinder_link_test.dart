@@ -131,6 +131,30 @@ void main() {
     },
   );
 
+  test(
+    'a dive saved with its trip entity and no tripId keeps its links',
+    () async {
+      // The dive editor builds Dive(trip: selected) and never sets tripId; the
+      // repository resolves the row's trip from either. The link guard must
+      // resolve it the same way, or every editor save wipes the links.
+      final tripEntity = (await TripRepository().getTripById(tripA))!;
+      final dive = createTestDiveWithBottomTime(id: 'd1').copyWith(
+        trip: tripEntity,
+        tanks: const [DiveTank(id: 't1', tripCylinderId: 'slot-a')],
+      );
+      expect(dive.tripId, isNull);
+
+      await repo.createDive(dive);
+      expect(await linkOf('t1'), 'slot-a');
+
+      final loaded = (await repo.getDiveById('d1'))!;
+      await repo.updateDive(
+        loaded.copyWith(tripId: null, trip: tripEntity, notes: 'edited'),
+      );
+      expect(await linkOf('t1'), 'slot-a');
+    },
+  );
+
   test('a dive created on no trip cannot hold a link', () async {
     await repo.createDive(
       createTestDiveWithBottomTime(id: 'd1').copyWith(

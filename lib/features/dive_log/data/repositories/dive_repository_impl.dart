@@ -1655,12 +1655,15 @@ class DiveRepository {
             localUpdatedAt: now,
           );
         }
-        // A link into another trip's slot means nothing on this dive.
+        // A link into another trip's slot means nothing on this dive. The
+        // trip is resolved as the row write above resolves it: the editor
+        // saves Dive(trip: selected) with tripId null, and null here would
+        // read as "no trip" and wipe every link on each save.
         await clearForeignTripCylinderLinks(
           _db,
           _syncRepository,
           dive.id,
-          tripId: dive.tripId,
+          tripId: dive.tripId ?? dive.trip?.id,
           now: now,
         );
         for (final weightId in weightIds) {
@@ -1953,12 +1956,15 @@ class DiveRepository {
           );
         }
 
-        // A link into another trip's slot means nothing on this dive.
+        // A link into another trip's slot means nothing on this dive. The
+        // trip is resolved as the row write above resolves it: the editor
+        // saves Dive(trip: selected) with tripId null, and null here would
+        // read as "no trip" and wipe every link on each save.
         await clearForeignTripCylinderLinks(
           _db,
           _syncRepository,
           dive.id,
-          tripId: dive.tripId,
+          tripId: dive.tripId ?? dive.trip?.id,
           now: now,
         );
 
