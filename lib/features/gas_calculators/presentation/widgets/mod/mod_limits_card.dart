@@ -94,8 +94,11 @@ class ModLimitsCard extends ConsumerWidget {
                 onReset: notifier.resetSetpoint,
               ),
               const SizedBox(height: 24),
+              // 0.1 bar steps, the grid of the profile's Dil MOD.
               ModPpO2LimitSlider(
                 label: l10n.gasCalculators_mod_flushPpO2,
+                step: 0.1,
+                fractionDigits: 1,
                 value: prefs.flushPpO2 ?? modProfileFlushPpO2(settings),
                 profileValue: settings.ccrDiluentModPpO2,
                 isOverridden: prefs.flushPpO2 != null,

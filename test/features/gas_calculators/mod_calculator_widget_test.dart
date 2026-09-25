@@ -122,6 +122,15 @@ void main() {
     expect(find.text('Diluent MOD (flush)'), findsOneWidget);
     expect(find.text('Setpoint (bar)'), findsOneWidget);
     expect(find.text('ppO₂ for the diluent MOD (flush)'), findsOneWidget);
+
+    // The flush ppO2 steps by 0.1 bar across 1.0-1.6: six divisions.
+    // In CCR Tec it is the only slider over that range.
+    final flushSlider = tester.widget<Slider>(
+      find.byWidgetPredicate(
+        (w) => w is Slider && w.min == 1.0 && w.max == 1.6,
+      ),
+    );
+    expect(flushSlider.divisions, 6);
   });
 
   testWidgets('a limit moved off the profile value is marked and resettable', (
