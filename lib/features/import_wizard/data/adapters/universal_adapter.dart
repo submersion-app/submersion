@@ -215,6 +215,10 @@ class UniversalAdapter implements ImportSourceAdapter {
   final WidgetRef _ref;
   final String _displayName;
 
+  /// The ref this adapter reads providers through, for subclasses.
+  @protected
+  WidgetRef get widgetRef => _ref;
+
   bool get hasPreloadedState {
     final state = _ref.read(universalImportNotifierProvider);
     return state.wasLoadedExternally;
