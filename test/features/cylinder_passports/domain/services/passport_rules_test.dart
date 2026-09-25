@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_attribut
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 
 void main() {
@@ -30,6 +31,66 @@ void main() {
     severity: severity,
     now: now,
   );
+
+  ServiceRecord record(String kindId, DateTime date) => ServiceRecord(
+    id: 'r-$kindId-${date.millisecondsSinceEpoch}',
+    equipmentId: 'eq',
+    serviceCategory: ServiceCategory.inspection,
+    serviceKindId: kindId,
+    serviceDate: date,
+    createdAt: date,
+    updatedAt: date,
+  );
+
+  group('recordedServiceDate', () {
+    test('a clock with no record and no baseline has no service date', () {
+      // The clock itself anchors on the creation date; that is a reminder
+      // baseline, never a fact to print.
+      expect(
+        recordedServiceDate(
+          clock: clock(ServiceClockSeverity.ok),
+          records: const [],
+        ),
+        isNull,
+      );
+    });
+
+    test('the newest record of the kind is the service date', () {
+      expect(
+        recordedServiceDate(
+          clock: clock(ServiceClockSeverity.ok),
+          records: [
+            record('o2-clean', DateTime(2025, 5, 1)),
+            record('o2-clean', DateTime(2026, 2, 1)),
+            record('hydro', DateTime(2026, 8, 1)),
+          ],
+        ),
+        DateTime(2026, 2, 1),
+      );
+    });
+
+    test('a baseline the diver set is a service date', () {
+      final c = clock(ServiceClockSeverity.ok);
+      final withBaseline = ServiceClockStatus(
+        schedule: c.schedule.copyWith(
+          anchorDate: DateTime(2024, 3, 1),
+          anchorSetAt: now,
+        ),
+        kind: c.kind,
+        anchor: DateTime(2024, 3, 1),
+        severity: c.severity,
+        now: now,
+      );
+      expect(
+        recordedServiceDate(clock: withBaseline, records: const []),
+        DateTime(2024, 3, 1),
+      );
+    });
+
+    test('no clock, no date', () {
+      expect(recordedServiceDate(clock: null, records: const []), isNull);
+    });
+  });
 
   group('o2CleanWarning', () {
     test('boundary of the high-O2 threshold', () {

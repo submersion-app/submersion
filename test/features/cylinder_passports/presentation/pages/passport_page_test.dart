@@ -11,6 +11,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_attribut
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -83,6 +84,16 @@ void main() {
         now: now,
       );
 
+  ServiceRecord record(String kindId, DateTime date) => ServiceRecord(
+    id: 'r-$kindId-${date.millisecondsSinceEpoch}',
+    equipmentId: id,
+    serviceCategory: ServiceCategory.inspection,
+    serviceKindId: kindId,
+    serviceDate: date,
+    createdAt: date,
+    updatedAt: date,
+  );
+
   CylinderFill fill(double o2) => CylinderFill(
     id: 'f-$o2',
     passportId: pid,
@@ -99,6 +110,7 @@ void main() {
     WidgetTester tester, {
     List<CylinderFill> fills = const [],
     List<ServiceClockStatus> clocks = const [],
+    List<ServiceRecord> records = const [],
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(600, 2800);
@@ -118,6 +130,9 @@ void main() {
             id,
           ).overrideWith((ref) async => fills.isEmpty ? null : fills.first),
           serviceClockStatusesProvider(id).overrideWith((ref) async => clocks),
+          serviceRecordsForEquipmentProvider(
+            id,
+          ).overrideWith((ref) async => records),
           equipmentRollupClockProvider.overrideWith((ref) async => {}),
           serviceKindsProvider.overrideWith(
             (ref) async => [
@@ -162,7 +177,8 @@ void main() {
     final l10n = await pump(tester);
     expect(find.text(l10n.passport_fill_none), findsOneWidget);
     expect(find.text(l10n.passport_fill_log), findsOneWidget);
-    expect(find.text(l10n.passport_history_sinceHydro(0)), findsOneWidget);
+    // No hydro was ever recorded, so there is nothing to count from.
+    expect(find.text(l10n.passport_history_sinceHydro(0)), findsNothing);
   });
 
   testWidgets('shows the current fill with MOD at both limits', (tester) async {
@@ -202,6 +218,7 @@ void main() {
       tester,
       fills: [fill(50)],
       clocks: [clock('o2-clean', ServiceClockSeverity.ok)],
+      records: [record('o2-clean', DateTime(2026, 3, 1))],
     );
     expect(find.text(l10n.passport_o2Warning_untracked('50%')), findsNothing);
     expect(find.text(l10n.passport_service_trackO2Clean), findsNothing);
@@ -211,11 +228,47 @@ void main() {
     final l10n = await pump(
       tester,
       clocks: [clock('hydro', ServiceClockSeverity.overdue)],
+      records: [record('hydro', DateTime(2021, 1, 1))],
     );
     expect(find.text('hydro'), findsWidgets);
     expect(
       find.textContaining(l10n.passport_service_lastDone('')),
       findsWidgets,
     );
+  });
+
+  testWidgets('a clock with nothing recorded says so instead of a date', (
+    tester,
+  ) async {
+    final l10n = await pump(
+      tester,
+      clocks: [clock('hydro', ServiceClockSeverity.ok)],
+    );
+    expect(find.text(l10n.passport_service_neverRecorded), findsOneWidget);
+    expect(
+      find.textContaining(l10n.passport_service_lastDone('')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('an O2 clean clock with no cleaning on record still warns', (
+    tester,
+  ) async {
+    final l10n = await pump(
+      tester,
+      fills: [fill(50)],
+      clocks: [clock('o2-clean', ServiceClockSeverity.ok)],
+    );
+    expect(find.text(l10n.passport_o2Warning_untracked('50%')), findsOneWidget);
+  });
+
+  testWidgets('fills are counted from the recorded hydro', (tester) async {
+    final l10n = await pump(
+      tester,
+      fills: [fill(32)],
+      clocks: [clock('hydro', ServiceClockSeverity.ok)],
+      records: [record('hydro', DateTime(2026, 1, 1))],
+    );
+    expect(find.text(l10n.passport_history_sinceHydro(1)), findsOneWidget);
   });
 }

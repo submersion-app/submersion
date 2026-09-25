@@ -2,6 +2,26 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
+import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
+
+/// The date a clock's service was really last done: the newest record of its
+/// kind, or a baseline the diver set that outranks the records. Null when
+/// there is neither. The clock's own fallback to the purchase or creation
+/// date is a reminder baseline, not a service, so the passport never shows
+/// it as one and a tag never prints it (spec section 6.2).
+DateTime? recordedServiceDate({
+  required ServiceClockStatus? clock,
+  required Iterable<ServiceRecord> records,
+}) {
+  if (clock == null) return null;
+  return clockAnchorFromServices(
+    serviceKindId: clock.kind.id,
+    baseline: clock.schedule.anchorDate,
+    baselineSetAt: clock.schedule.anchorSetAt,
+    records: records,
+  );
+}
 
 /// Why the passport warns about oxygen cleanliness (spec section 8).
 enum O2CleanWarning { none, untracked, overdue }

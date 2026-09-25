@@ -12,17 +12,20 @@ import 'package:submersion/features/cylinder_passports/presentation/widgets/pass
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The payload a label written right now should carry: the row's spec, the
-/// hydro and VIP clock anchors as the "last" dates, and O2 clean when that
-/// clock exists and is not overdue. Null until the passport id exists.
+/// recorded hydro and VIP dates (never a clock's fallback anchor), and O2
+/// clean only when a cleaning is on record and its clock is not overdue.
+/// Null until the passport id exists.
 CylinderPassportPayload? currentPayloadFor(
   EquipmentItem item, {
   required String? passportId,
   required List<ServiceClockStatus> clocks,
+  required Iterable<ServiceRecord> records,
   required DateTime now,
 }) {
   if (passportId == null) return null;
@@ -33,9 +36,12 @@ CylinderPassportPayload? currentPayloadFor(
     item: item,
     passportId: passportId,
     writtenOn: DateTime(now.year, now.month, now.day),
-    hydroAnchor: clock('hydro')?.anchor,
-    vipAnchor: clock('vip')?.anchor,
-    o2Clean: o2 != null && o2.severity != ServiceClockSeverity.overdue,
+    hydroAnchor: recordedServiceDate(clock: clock('hydro'), records: records),
+    vipAnchor: recordedServiceDate(clock: clock('vip'), records: records),
+    o2Clean:
+        o2 != null &&
+        o2.severity != ServiceClockSeverity.overdue &&
+        recordedServiceDate(clock: o2, records: records) != null,
   );
 }
 
@@ -66,10 +72,14 @@ class PassportTagCard extends ConsumerWidget {
     final clocks =
         ref.watch(serviceClockStatusesProvider(equipment.id)).value ??
         const <ServiceClockStatus>[];
+    final records =
+        ref.watch(serviceRecordsForEquipmentProvider(equipment.id)).value ??
+        const <ServiceRecord>[];
     final payload = currentPayloadFor(
       equipment,
       passportId: passportId,
       clocks: clocks,
+      records: records,
       now: DateTime.now(),
     );
     ServiceClockStatus? clock(String kindId) =>
@@ -79,8 +89,11 @@ class PassportTagCard extends ConsumerWidget {
         scanned != null &&
         tagIsStale(
           tag: scanned,
-          hydroAnchor: clock('hydro')?.anchor,
-          vipAnchor: clock('vip')?.anchor,
+          hydroAnchor: recordedServiceDate(
+            clock: clock('hydro'),
+            records: records,
+          ),
+          vipAnchor: recordedServiceDate(clock: clock('vip'), records: records),
           volumeL: equipment.volumeL,
           workingPressureBar: equipment.workingPressureBar?.round(),
           material: equipment.tankMaterial,

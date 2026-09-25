@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/passport_rules.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_schedule_dialogs.dart';
@@ -47,6 +49,9 @@ class PassportServiceCard extends ConsumerWidget {
         ref.watch(serviceClockStatusesProvider(equipment.id)).value ??
         const <ServiceClockStatus>[];
     final byKind = {for (final c in clocks) c.kind.id: c};
+    final records =
+        ref.watch(serviceRecordsForEquipmentProvider(equipment.id)).value ??
+        const <ServiceRecord>[];
     // The untracked row names the built-in kind the way the rest of the app
     // does, falling back to its id before the kind list has loaded.
     final kindNames = {
@@ -73,11 +78,15 @@ class PassportServiceCard extends ConsumerWidget {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        l10n.passport_service_lastDone(
-                          units.formatDate(status.anchor),
+                      Text(switch (recordedServiceDate(
+                        clock: status,
+                        records: records,
+                      )) {
+                        final done? => l10n.passport_service_lastDone(
+                          units.formatDate(done),
                         ),
-                      ),
+                        null => l10n.passport_service_neverRecorded,
+                      }),
                       Text(
                         formatServiceTriggerText(
                           context,

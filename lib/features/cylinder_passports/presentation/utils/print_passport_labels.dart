@@ -37,10 +37,14 @@ Future<void> printPassportLabels(
       diverId: diverId,
     );
     final clocks = await ref.read(serviceClockStatusesProvider(id).future);
+    final records = await ref.read(
+      serviceRecordsForEquipmentProvider(id).future,
+    );
     final payload = currentPayloadFor(
       item,
       passportId: passportId,
       clocks: clocks,
+      records: records,
       now: now,
     );
     if (payload == null) continue;

@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/passport_rules.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_current_fill_card.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -52,13 +54,18 @@ class PassportFillHistoryCard extends ConsumerWidget {
         ref.watch(fillsForEquipmentProvider(equipmentId)).value ??
         const <CylinderFill>[];
     final clocks = ref.watch(serviceClockStatusesProvider(equipmentId)).value;
-    final hydroAnchor = clocks
-        ?.where((c) => c.kind.id == 'hydro')
-        .firstOrNull
-        ?.anchor;
-    final sinceHydro = hydroAnchor == null
-        ? fills.length
-        : fills.where((f) => !f.filledAt.isBefore(hydroAnchor)).length;
+    final records =
+        ref.watch(serviceRecordsForEquipmentProvider(equipmentId)).value ??
+        const <ServiceRecord>[];
+    // Counted only from a hydro that really happened; with none on record
+    // the count would be meaningless and is not shown.
+    final hydroDone = recordedServiceDate(
+      clock: clocks?.where((c) => c.kind.id == 'hydro').firstOrNull,
+      records: records,
+    );
+    final sinceHydro = hydroDone == null
+        ? null
+        : fills.where((f) => !f.filledAt.isBefore(hydroDone)).length;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -69,7 +76,8 @@ class PassportFillHistoryCard extends ConsumerWidget {
               l10n.passport_history_title,
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            Text(l10n.passport_history_sinceHydro(sinceHydro)),
+            if (sinceHydro != null)
+              Text(l10n.passport_history_sinceHydro(sinceHydro)),
             const SizedBox(height: 8),
             for (final fill in fills)
               ListTile(

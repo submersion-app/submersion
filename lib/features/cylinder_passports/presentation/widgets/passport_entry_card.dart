@@ -9,6 +9,7 @@ import 'package:submersion/features/cylinder_passports/presentation/widgets/pass
 import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_tag_card.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -29,10 +30,14 @@ class PassportEntryCard extends ConsumerWidget {
     final clocks =
         ref.watch(serviceClockStatusesProvider(equipment.id)).value ??
         const <ServiceClockStatus>[];
+    final records =
+        ref.watch(serviceRecordsForEquipmentProvider(equipment.id)).value ??
+        const <ServiceRecord>[];
     final payload = currentPayloadFor(
       equipment,
       passportId: passportId,
       clocks: clocks,
+      records: records,
       now: DateTime.now(),
     );
     return Card(

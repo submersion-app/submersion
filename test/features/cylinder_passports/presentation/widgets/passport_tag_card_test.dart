@@ -10,6 +10,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_attribut
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
 import 'package:submersion/features/equipment/domain/entities/service_kind.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -68,6 +69,7 @@ void main() {
     WidgetTester tester, {
     CylinderPassportPayload? scanned,
     List<ServiceClockStatus> clocks = const [],
+    List<ServiceRecord> records = const [],
   }) async {
     final overrides = await getBaseOverrides();
     await tester.pumpWidget(
@@ -76,6 +78,9 @@ void main() {
           ...overrides,
           passportIdProvider(id).overrideWith((ref) async => pid),
           serviceClockStatusesProvider(id).overrideWith((ref) async => clocks),
+          serviceRecordsForEquipmentProvider(
+            id,
+          ).overrideWith((ref) async => records),
         ],
         child: SingleChildScrollView(
           child: PassportTagCard(equipment: tank, scannedTag: scanned),
@@ -86,18 +91,42 @@ void main() {
     return AppLocalizations.of(tester.element(find.byType(PassportTagCard)));
   }
 
-  test('currentPayloadFor takes dates from the clock anchors', () {
+  ServiceRecord record(String kindId, DateTime date) => ServiceRecord(
+    id: 'r-$kindId-${date.millisecondsSinceEpoch}',
+    equipmentId: 'eq',
+    serviceCategory: ServiceCategory.inspection,
+    serviceKindId: kindId,
+    serviceDate: date,
+    createdAt: date,
+    updatedAt: date,
+  );
+
+  test('currentPayloadFor never prints a clock fallback as a service', () {
+    // Hydro and VIP auto-attach and anchor on the creation date when nothing
+    // was ever recorded; the tag must say nothing rather than claim a test.
     final payload = currentPayloadFor(
       tank,
       passportId: pid,
-      clocks: [hydro(DateTime(2024, 6, 14))],
+      clocks: [hydro(DateTime(2026, 9, 1))],
+      records: const [],
       now: now,
     );
-    expect(payload!.lastHydro, DateTime(2024, 6, 14));
+    expect(payload!.lastHydro, isNull);
     expect(payload.lastVip, isNull);
     expect(payload.o2Clean, isFalse);
     expect(payload.writtenOn, now);
     expect(payload.volumeL, 12);
+  });
+
+  test('currentPayloadFor takes dates from service records', () {
+    final payload = currentPayloadFor(
+      tank,
+      passportId: pid,
+      clocks: [hydro(DateTime(2024, 6, 14))],
+      records: [record('hydro', DateTime(2024, 6, 14))],
+      now: now,
+    );
+    expect(payload!.lastHydro, DateTime(2024, 6, 14));
   });
 
   testWidgets('shows the QR of the current payload and the actions', (
@@ -107,6 +136,18 @@ void main() {
     expect(find.byType(PassportQrView), findsOneWidget);
     expect(find.text(l10n.passport_tag_printLabel), findsOneWidget);
     expect(find.text(l10n.passport_tag_linkExisting), findsOneWidget);
+    expect(find.text(l10n.passport_tag_stale), findsNothing);
+  });
+
+  testWidgets('a clock fallback never makes a tag stale', (tester) async {
+    final l10n = await pump(
+      tester,
+      scanned: CylinderPassportPayload(
+        passportId: pid,
+        writtenOn: DateTime(2024, 1, 1),
+      ),
+      clocks: [hydro(DateTime(2026, 9, 1))],
+    );
     expect(find.text(l10n.passport_tag_stale), findsNothing);
   });
 
@@ -120,6 +161,7 @@ void main() {
         writtenOn: DateTime(2024, 1, 1),
       ),
       clocks: [hydro(DateTime(2024, 6, 14))],
+      records: [record('hydro', DateTime(2024, 6, 14))],
     );
     expect(find.text(l10n.passport_tag_stale), findsOneWidget);
     expect(find.text(l10n.passport_tag_written('Jan 1, 2024')), findsOneWidget);

@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_rules.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/service_record.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -20,10 +21,19 @@ class PassportO2WarningBanner extends ConsumerWidget {
     final newest = ref.watch(newestFillProvider(equipmentId)).value;
     final clocks = ref.watch(serviceClockStatusesProvider(equipmentId)).value;
     final thresholds = ref.watch(exposureThresholdsProvider);
+    final records =
+        ref.watch(serviceRecordsForEquipmentProvider(equipmentId)).value ??
+        const <ServiceRecord>[];
     final o2Clock = clocks?.where((c) => c.kind.id == 'o2-clean').firstOrNull;
+    // A clock with no cleaning on record is not evidence of cleanliness: it
+    // warns exactly as an untracked cylinder does.
+    final recordedO2Clock =
+        recordedServiceDate(clock: o2Clock, records: records) == null
+        ? null
+        : o2Clock;
     final warning = o2CleanWarning(
       newestO2Percent: newest?.o2Percent,
-      o2CleanClock: o2Clock,
+      o2CleanClock: recordedO2Clock,
       highO2Fraction: thresholds.highO2Fraction,
     );
     if (warning == O2CleanWarning.none) return const SizedBox.shrink();
