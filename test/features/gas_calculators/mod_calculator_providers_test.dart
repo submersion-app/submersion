@@ -205,7 +205,7 @@ void main() {
 
     test('a profile value outside the calculator range is held to it', () {
       const settings = AppSettings(
-        ccrSetpointHigh: 0.19,
+        ccrSetpointHigh: 0.3,
         ccrDiluentModPpO2: 0.5,
       );
       final container = _container(_FakeRepository(), settings: settings);

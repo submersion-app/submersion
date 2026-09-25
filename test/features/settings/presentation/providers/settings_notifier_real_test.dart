@@ -444,7 +444,7 @@ void main() {
     );
 
     test(
-      'setCcrPpO2Limits clamps to 0.19-1.6 and holds high >= low (#2342)',
+      'setCcrPpO2Limits keeps 0.5-1.6 on a 0.1 grid, high >= low (#2342)',
       () async {
         container.read(settingsProvider.notifier);
         await waitForInit();
@@ -461,9 +461,20 @@ void main() {
           diluentModPpO2: 0.05,
         );
         var s = container.read(settingsProvider);
-        expect(s.ccrSetpointLow, 0.19);
+        expect(s.ccrSetpointLow, 0.5);
         expect(s.ccrSetpointHigh, 1.6);
-        expect(s.ccrDiluentModPpO2, 0.19);
+        expect(s.ccrDiluentModPpO2, 0.5);
+
+        // Off-grid values snap to the nearest tenth.
+        await notifier.setCcrPpO2Limits(
+          setpointLow: 0.74,
+          setpointHigh: 1.26,
+          diluentModPpO2: 1.55,
+        );
+        s = container.read(settingsProvider);
+        expect(s.ccrSetpointLow, 0.7);
+        expect(s.ccrSetpointHigh, 1.3);
+        expect(s.ccrDiluentModPpO2, 1.6);
 
         // A high setpoint below the low one is raised to it.
         await notifier.setCcrPpO2Limits(

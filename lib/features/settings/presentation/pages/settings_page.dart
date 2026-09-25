@@ -1293,9 +1293,9 @@ class _DecompressionSectionContent extends ConsumerWidget {
                   ),
                   subtitle: Text(
                     context.l10n.settings_decompression_ccrPpO2LimitsSubtitle(
-                      formatFixedForDisplay(settings.ccrSetpointLow, 2),
-                      formatFixedForDisplay(settings.ccrSetpointHigh, 2),
-                      formatFixedForDisplay(settings.ccrDiluentModPpO2, 2),
+                      formatFixedForDisplay(settings.ccrSetpointLow, 1),
+                      formatFixedForDisplay(settings.ccrSetpointHigh, 1),
+                      formatFixedForDisplay(settings.ccrDiluentModPpO2, 1),
                     ),
                   ),
                   trailing: const Icon(Icons.edit),

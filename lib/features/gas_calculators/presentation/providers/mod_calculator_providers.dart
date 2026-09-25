@@ -177,7 +177,7 @@ WaterType modCalculatorWaterType(
 
 /// The profile's CCR high setpoint, held to the calculator's setpoint range.
 ///
-/// The profile allows 0.19-1.6 bar; the calculator's slider 0.4-1.6. A
+/// The profile allows 0.5-1.6 bar; the calculator's slider 0.4-1.6. A
 /// profile value outside it is computed at the nearest edge, so what the
 /// slider shows is what the numbers are computed for.
 double modProfileSetpoint(AppSettings settings) => settings.ccrSetpointHigh

@@ -2193,7 +2193,7 @@ void main() {
 
       expect(find.text('ppO2 limits CCR'), findsOneWidget);
       expect(
-        find.text('Setpoint low 0.70 · high 1.30 · Dil MOD 1.60 bar'),
+        find.text('Setpoint low 0.7 · high 1.3 · Dil MOD 1.6 bar'),
         findsOneWidget,
       );
 
@@ -2204,7 +2204,7 @@ void main() {
       expect(find.text('Dil MOD'), findsOneWidget);
 
       // Drag the high setpoint to the far left: the pair is never inverted,
-      // so the low setpoint is pulled down with it to 0.19.
+      // so the low setpoint is pulled down with it to 0.5.
       final sliders = find.byType(Slider);
       expect(sliders, findsNWidgets(3));
       await tester.drag(sliders.at(1), const Offset(-1000, 0));
@@ -2213,7 +2213,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('Setpoint low 0.19 · high 0.19 · Dil MOD 1.60 bar'),
+        find.text('Setpoint low 0.5 · high 0.5 · Dil MOD 1.6 bar'),
         findsOneWidget,
       );
     });

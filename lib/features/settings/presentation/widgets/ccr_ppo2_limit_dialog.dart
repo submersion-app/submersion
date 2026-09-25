@@ -7,8 +7,8 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// Edits the diver's CCR ppO2 limits (issue #2342): setpoint low, setpoint
 /// high and the ppO2 a diluent may reach on a flush.
 ///
-/// Sliders in 0.01 bar steps rather than the OC dialog's dropdowns: the range
-/// 0.19-1.6 bar would be a list of 142 entries.
+/// Sliders in 0.1 bar steps across 0.5-1.6 bar, the grid the notifier
+/// stores.
 class CcrPpO2LimitDialog extends StatefulWidget {
   const CcrPpO2LimitDialog({
     super.key,
@@ -30,15 +30,14 @@ class CcrPpO2LimitDialog extends StatefulWidget {
 class _CcrPpO2LimitDialogState extends State<CcrPpO2LimitDialog> {
   static const double _min = SettingsNotifier.ccrPpO2Min;
   static const double _max = SettingsNotifier.ccrPpO2Max;
-  static final int _divisions = ((_max - _min) * 100).round();
+  static final int _divisions = ((_max - _min) * 10).round();
 
   late double _low;
   late double _high;
   late double _diluentMod;
 
-  /// A stored value snapped onto the slider's 0.01 grid and range.
-  static double _snap(double value) =>
-      ((value.clamp(_min, _max) * 100).round() / 100).toDouble();
+  /// A stored value snapped onto the slider's 0.1 grid and range.
+  static double _snap(double value) => SettingsNotifier.ccrPpO2OnGrid(value);
 
   @override
   void initState() {
@@ -153,7 +152,7 @@ class _CcrSliderRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final shown = '${formatFixedForDisplay(value, 2)} bar';
+    final shown = '${formatFixedForDisplay(value, 1)} bar';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -198,7 +197,7 @@ class _CcrSliderRow extends StatelessWidget {
             divisions: divisions,
             onChanged: onChanged,
             semanticFormatterCallback: (v) =>
-                '${formatFixedForDisplay(v, 2)} bar',
+                '${formatFixedForDisplay(v, 1)} bar',
           ),
         ),
       ],

@@ -1672,26 +1672,30 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
-  /// Selectable range of the CCR ppO2 limits (issue #2342).
-  static const double ccrPpO2Min = 0.19;
+  /// Selectable range of the CCR ppO2 limits (issue #2342), on a 0.1 bar
+  /// grid like the OC limits.
+  static const double ccrPpO2Min = 0.5;
   static const double ccrPpO2Max = 1.6;
 
-  /// Set the CCR ppO2 limits in one persisted write. Each is clamped to
-  /// [ccrPpO2Min]..[ccrPpO2Max], and the high setpoint is held at or above
-  /// the low one, the same "never inverted" rule [setPpO2Limits] keeps.
+  /// [value] clamped to the CCR range and snapped to its 0.1 bar grid.
+  static double ccrPpO2OnGrid(double value) =>
+      (value.clamp(ccrPpO2Min, ccrPpO2Max) * 10).round() / 10;
+
+  /// Set the CCR ppO2 limits in one persisted write. Each is put on the
+  /// [ccrPpO2Min]..[ccrPpO2Max] 0.1 bar grid, and the high setpoint is held
+  /// at or above the low one, the same "never inverted" rule
+  /// [setPpO2Limits] keeps.
   Future<void> setCcrPpO2Limits({
     required double setpointLow,
     required double setpointHigh,
     required double diluentModPpO2,
   }) async {
-    final low = setpointLow.clamp(ccrPpO2Min, ccrPpO2Max).toDouble();
-    final high = setpointHigh.clamp(low, ccrPpO2Max).toDouble();
+    final low = ccrPpO2OnGrid(setpointLow);
+    final high = ccrPpO2OnGrid(setpointHigh);
     state = state.copyWith(
       ccrSetpointLow: low,
-      ccrSetpointHigh: high,
-      ccrDiluentModPpO2: diluentModPpO2
-          .clamp(ccrPpO2Min, ccrPpO2Max)
-          .toDouble(),
+      ccrSetpointHigh: high < low ? low : high,
+      ccrDiluentModPpO2: ccrPpO2OnGrid(diluentModPpO2),
     );
     await _saveSettings();
   }
