@@ -295,4 +295,10 @@ void main() {
     }
     expect(fired, isTrue);
   });
+
+  test('getMapPoints rethrows a query failure', () async {
+    await db.close();
+
+    expect(repo.getMapPoints(diverId: 'd1'), throwsA(anything));
+  });
 }

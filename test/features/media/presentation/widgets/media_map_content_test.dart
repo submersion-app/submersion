@@ -3,6 +3,8 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_format.dart';
+import 'package:submersion/core/utils/coordinates/coordinate_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/services/media_serving_recorder.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
@@ -67,13 +69,14 @@ Future<_SeededMapNotifier> _pump(
   WidgetTester tester, {
   required MediaMapState state,
   _Opened? opened,
+  MockSettingsNotifier? settings,
 }) async {
   tester.view.physicalSize = const Size(800, 800);
   tester.view.devicePixelRatio = 1.0;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
 
-  final base = await getBaseOverrides();
+  final base = await getBaseOverrides(settingsNotifier: settings);
   final notifier = _SeededMapNotifier(state);
   await tester.pumpWidget(
     ProviderScope(
@@ -433,5 +436,92 @@ void main() {
 
     expect(controller.camera.center.latitude, closeTo(-8, 1e-6));
     await _flushMapTimers(tester);
+  });
+
+  // Coverage of the remaining map paths.
+
+  testWidgets('a stack with no site name is titled by its coordinates in the '
+      "diver's coordinate format", (tester) async {
+    final settings = MockSettingsNotifier();
+    await settings.setCoordinateFormat(CoordinateFormat.degreesMinutesSeconds);
+    await _pump(
+      tester,
+      settings: settings,
+      state: MediaMapState(
+        points: [_point('a', label: null), _point('b', label: null)],
+      ),
+    );
+
+    await tester.tap(find.byType(MediaMapMarker));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(
+      find.text(
+        formatCoordinates(12.5, 43.2, CoordinateFormat.degreesMinutesSeconds),
+      ),
+      findsOneWidget,
+    );
+    await _flushMapTimers(tester);
+  });
+
+  testWidgets('the fit-all button refits the camera to every point', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      state: MediaMapState(
+        points: [
+          _point('a'),
+          _point('b', at: const LatLng(-8, 115)),
+        ],
+      ),
+    );
+    final controller = tester
+        .widget<FlutterMap>(find.byType(FlutterMap))
+        .mapController!;
+    controller.move(const LatLng(60, -100), 10);
+    await tester.pump();
+
+    await tester.tap(find.byIcon(Icons.my_location));
+    await tester.pump();
+
+    // Centred between the two points, not where the diver had panned to.
+    expect(controller.camera.center.latitude, closeTo(2.25, 1.0));
+    expect(controller.camera.zoom, lessThan(10));
+    await _flushMapTimers(tester);
+  });
+
+  testWidgets('retry on the error card reloads the map points', (tester) async {
+    var builds = 0;
+    tester.view.physicalSize = const Size(800, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final base = await getBaseOverrides();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...base,
+          mediaMapPointsProvider.overrideWith((ref) {
+            builds++;
+            return _SeededMapNotifier(MediaMapState(error: StateError('x')));
+          }),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: MediaMapContent()),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(builds, 1);
+
+    await tester.tap(find.text('Retry'));
+    await tester.pump();
+
+    expect(builds, 2);
   });
 }

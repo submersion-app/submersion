@@ -292,4 +292,24 @@ void main() {
     expect(state.error, isNull);
     expect(state.points.map((p) => p.item.id), ['new']);
   });
+
+  test('MediaMapState.copyWith replaces only what it is given, and keeps or '
+      'clears the error on request', () {
+    final base = MediaMapState(
+      points: [_point('a')],
+      unlocatedCount: 2,
+      error: StateError('x'),
+    );
+
+    final loading = base.copyWith(isLoading: true);
+    expect(loading.isLoading, isTrue);
+    expect(loading.points, same(base.points));
+    expect(loading.unlocatedCount, 2);
+    expect(loading.error, same(base.error));
+
+    final cleared = base.copyWith(clearError: true, unlocatedCount: 5);
+    expect(cleared.error, isNull);
+    expect(cleared.unlocatedCount, 5);
+    expect(cleared.isLoading, isFalse);
+  });
 }
