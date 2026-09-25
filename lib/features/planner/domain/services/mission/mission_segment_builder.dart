@@ -8,7 +8,9 @@ import 'package:submersion/features/dive_planner/domain/entities/plan_segment.da
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
+import 'package:submersion/features/planner/domain/entities/mission/exit_leg.dart';
 import 'package:submersion/features/planner/domain/services/mission/leg_speed_resolver.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_geometry.dart';
 
 /// The segments a route produces, with the run time at which each outbound
 /// waypoint is reached.
@@ -29,21 +31,20 @@ class MissionProfile extends Equatable {
 
 /// Turns a mission route into the bottom segments of a plan.
 ///
-/// Each outbound leg becomes a hold at its depth for `distance / speed`, and a
-/// depth change between legs becomes an explicit travel segment first. The
-/// segment chain resolves a hold whose depth differs from the previous one as
-/// a travel leg spanning its WHOLE duration, so the travel must be authored
-/// separately or the leg would be integrated as a slow descent. The return
-/// legs are appended in reverse at [build]'s exit speed, and the engine's own
-/// ascent takes over after the last one.
+/// Each leg becomes a hold at its depth for `distance / speed over ground`,
+/// and a depth change between legs becomes an explicit travel segment
+/// first. The segment chain resolves a hold whose depth differs from the
+/// previous one as a travel leg spanning its WHOLE duration, so the travel
+/// must be authored separately or the leg would be integrated as a slow
+/// descent. The engine's own ascent takes over after the last segment.
 class MissionSegmentBuilder {
   final LegSpeedResolver speeds;
 
   const MissionSegmentBuilder({this.speeds = const LegSpeedResolver()});
 
-  /// Outbound legs 0 through [throughLegIndex] at [outboundSpeedMps], then
-  /// the same legs back at [exitSpeedMps]. Currents apply per leg. An empty
-  /// profile when the plan has no tank to breathe.
+  /// The planned round trip: outbound legs 0 through [throughLegIndex] at
+  /// [outboundSpeedMps], then the same legs retraced at [exitSpeedMps]. An
+  /// empty profile when the plan has no tank to breathe.
   MissionProfile build({
     required domain.DivePlan plan,
     required DpvMission mission,
@@ -51,91 +52,168 @@ class MissionSegmentBuilder {
     required double outboundSpeedMps,
     required double exitSpeedMps,
   }) {
+    final out = outbound(
+      plan: plan,
+      mission: mission,
+      throughLegIndex: throughLegIndex,
+      speedMps: outboundSpeedMps,
+    );
+    if (out.segments.isEmpty) return out;
+    final last = math.min(throughLegIndex, mission.legs.length - 1);
+    return MissionProfile(
+      segments: appendExitLegs(
+        plan: plan,
+        segments: out.segments,
+        exitLegs: retraceExitLegs(mission, last),
+        exitSpeedMps: exitSpeedMps,
+      ),
+      waypointArrivalSeconds: out.waypointArrivalSeconds,
+    );
+  }
+
+  /// Outbound legs 0 through [throughLegIndex] at [speedMps] through the
+  /// water, each in its own current.
+  MissionProfile outbound({
+    required domain.DivePlan plan,
+    required DpvMission mission,
+    required int throughLegIndex,
+    required double speedMps,
+  }) {
     final tank = _bottomTank(plan);
     if (tank == null || mission.legs.isEmpty) {
       return const MissionProfile(segments: [], waypointArrivalSeconds: []);
     }
     final last = math.min(throughLegIndex, mission.legs.length - 1);
-    final legs = mission.legs.sublist(0, last + 1);
     final segments = <PlanSegment>[];
     final arrivals = <int>[];
     var runtime = 0;
     var depth = 0.0;
-
-    void add(PlanSegment segment) {
-      segments.add(segment);
-      runtime += segment.durationSeconds;
-    }
-
-    PlanSegment travel(String id, double target) => PlanSegment.travel(
-      id: id,
-      fromDepth: depth,
-      targetDepth: target,
-      tankId: tank.id,
-      gasMix: tank.gasMix,
-      ratePerMinute: target > depth ? plan.descentRate : plan.ascentRate,
-      order: segments.length,
-    );
-
-    PlanSegment hold(String id, double target, double metres, double mps) {
-      // Never clamp: a hold of one second against a current the diver cannot
-      // beat would report an impossible exit as feasible. Callers check
-      // traversability first; reaching here with no headway is a bug.
-      if (mps <= 0) {
-        throw ArgumentError.value(mps, 'mps', 'no headway on $id');
-      }
-      return PlanSegment(
-        id: id,
-        targetDepth: target,
-        durationSeconds: math.max(1, _holdSeconds(metres, mps)),
-        tankId: tank.id,
-        gasMix: tank.gasMix,
-        order: segments.length,
-      );
-    }
-
-    for (final leg in legs) {
-      final legSpeeds = speeds.resolve(
-        leg: leg,
-        current: mission.currentFor(leg),
-        baseSpeedMps: outboundSpeedMps,
-      );
+    for (final leg in mission.legs.sublist(0, last + 1)) {
       if (leg.depthM != depth) {
-        add(travel('mission-out-travel-${leg.id}', leg.depthM));
+        final travel = _travel(
+          plan,
+          tank,
+          'mission-out-travel-${leg.id}',
+          depth,
+          leg.depthM,
+          segments.length,
+        );
+        segments.add(travel);
+        runtime += travel.durationSeconds;
         depth = leg.depthM;
       }
-      add(
-        hold(
-          'mission-out-${leg.id}',
-          depth,
-          leg.distanceM,
-          legSpeeds.outboundMps,
-        ),
+      final speed = speeds
+          .resolve(
+            leg: leg,
+            current: mission.currentFor(leg),
+            baseSpeedMps: speedMps,
+          )
+          .outboundMps;
+      final hold = _hold(
+        tank,
+        'mission-out-${leg.id}',
+        depth,
+        leg.distanceM,
+        speed,
+        segments.length,
       );
+      segments.add(hold);
+      runtime += hold.durationSeconds;
       arrivals.add(runtime);
     }
+    return MissionProfile(segments: segments, waypointArrivalSeconds: arrivals);
+  }
 
-    for (final leg in legs.reversed) {
-      final legSpeeds = speeds.resolve(
-        leg: leg,
-        current: mission.currentFor(leg),
-        baseSpeedMps: exitSpeedMps,
-      );
+  /// [segments] followed by [exitLegs] travelled at [exitSpeedMps] through
+  /// the water, each on its own heading in its own current. Legs shorter
+  /// than [kMinExitLegM] are skipped. Returns a new list.
+  List<PlanSegment> appendExitLegs({
+    required domain.DivePlan plan,
+    required List<PlanSegment> segments,
+    required List<ExitLeg> exitLegs,
+    required double exitSpeedMps,
+  }) {
+    final tank = _bottomTank(plan);
+    if (tank == null) return segments;
+    final result = [...segments];
+    var depth = segments.isEmpty ? 0.0 : segments.last.targetDepth;
+    for (final leg in exitLegs) {
+      if (leg.distanceM < kMinExitLegM) continue;
       if (leg.depthM != depth) {
-        add(travel('mission-ret-travel-${leg.id}', leg.depthM));
+        result.add(
+          _travel(
+            plan,
+            tank,
+            'mission-ret-travel-${leg.id}',
+            depth,
+            leg.depthM,
+            result.length,
+          ),
+        );
         depth = leg.depthM;
       }
-      add(
-        hold(
+      final speed = speeds
+          .resolveHeading(
+            headingDeg: leg.headingDeg,
+            current: leg.current,
+            baseSpeedMps: exitSpeedMps,
+          )
+          .outboundMps;
+      result.add(
+        _hold(
+          tank,
           'mission-ret-${leg.id}',
           depth,
           leg.distanceM,
-          legSpeeds.returnMps,
+          speed,
+          result.length,
         ),
       );
     }
+    return result;
+  }
 
-    return MissionProfile(segments: segments, waypointArrivalSeconds: arrivals);
+  PlanSegment _travel(
+    domain.DivePlan plan,
+    DiveTank tank,
+    String id,
+    double fromDepth,
+    double toDepth,
+    int order,
+  ) {
+    return PlanSegment.travel(
+      id: id,
+      fromDepth: fromDepth,
+      targetDepth: toDepth,
+      tankId: tank.id,
+      gasMix: tank.gasMix,
+      ratePerMinute: toDepth > fromDepth ? plan.descentRate : plan.ascentRate,
+      order: order,
+    );
+  }
+
+  PlanSegment _hold(
+    DiveTank tank,
+    String id,
+    double depth,
+    double metres,
+    double mps,
+    int order,
+  ) {
+    // Never clamp: a hold of one second against a current the diver cannot
+    // beat would report an impossible exit as feasible. Callers check
+    // traversability first; reaching here with no headway is a bug.
+    if (mps <= 0) {
+      throw ArgumentError.value(mps, 'mps', 'no headway on $id');
+    }
+    return PlanSegment(
+      id: id,
+      targetDepth: depth,
+      durationSeconds: math.max(1, _holdSeconds(metres, mps)),
+      tankId: tank.id,
+      gasMix: tank.gasMix,
+      order: order,
+    );
   }
 
   /// Whole seconds to cover [metres] at [mps], rounded up so the hold never
