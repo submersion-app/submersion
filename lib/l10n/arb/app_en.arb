@@ -4264,7 +4264,6 @@
   "diveLog_listPage_searchLimitNotice": "Showing the first {limit} matches. Refine your search to narrow results.",
   "diveLog_listPage_searchNoResults": "No dives found for \"{query}\"",
   "diveLog_listPage_searchSuggestion": "Search by site, buddy, or notes",
-  "diveLog_listPage_title": "Dive Log",
   "diveLog_listPage_tooltip_back": "Back",
   "diveLog_listPage_tooltip_backToDiveList": "Back to dive list",
   "diveLog_listPage_tooltip_clearSearch": "Clear search",
@@ -8457,6 +8456,65 @@
   "gasCalculators_desc_consumption": "Gas a planned dive will use",
   "gasCalculators_desc_rockBottom": "Reserve to bring two divers up",
   "gasCalculators_desc_mnd": "Narcosis depth limit for a mix",
+  "gasCalculators_tab_density": "Gas Density",
+  "gasCalculators_desc_density": "Breathing gas density at depth, OC or CCR",
+  "gasCalculators_density_inputParameters": "Gas Mix & Conditions",
+  "gasCalculators_density_o2Percent": "O2 %",
+  "gasCalculators_density_hePercent": "He %",
+  "gasCalculators_density_depth": "Depth",
+  "gasCalculators_density_mode": "Mode",
+  "gasCalculators_density_modeOc": "OC",
+  "gasCalculators_density_modeCcr": "CCR",
+  "gasCalculators_density_setpoint": "Setpoint (bar)",
+  "gasCalculators_density_diluentHint": "On CCR, the mix above is the diluent.",
+  "gasCalculators_density_temperature": "Gas temperature",
+  "gasCalculators_density_resultTitle": "Gas Density",
+  "gasCalculators_density_withinLimit": "Within the recommended {limit} g/L limit.",
+  "@gasCalculators_density_withinLimit": {
+    "placeholders": {
+      "limit": {
+        "type": "Object"
+      }
+    }
+  },
+  "gasCalculators_density_eaddLabel": "Equivalent air density depth (EADD)",
+  "gasCalculators_density_eaddInfo": "EADD is the depth at which air would be as dense as this gas. Unlike the density in g/L, it does not depend on the temperature.",
+  "gasCalculators_density_loopGasTitle": "Loop gas at depth",
+  "gasCalculators_density_loopComposition": "O2 {o2} % · He {he} % · N2 {n2} %",
+  "@gasCalculators_density_loopComposition": {
+    "placeholders": {
+      "o2": {
+        "type": "Object"
+      },
+      "he": {
+        "type": "Object"
+      },
+      "n2": {
+        "type": "Object"
+      }
+    }
+  },
+  "gasCalculators_density_setpointCapped": "The setpoint is above ambient pressure here, so the loop is pure oxygen.",
+  "gasCalculators_density_diluentAboveSetpoint": "The diluent alone gives ppO2 {ppO2} here, above the setpoint. The density uses the diluent's ppO2.",
+  "@gasCalculators_density_diluentAboveSetpoint": {
+    "placeholders": {
+      "ppO2": {
+        "type": "Object"
+      }
+    }
+  },
+  "gasCalculators_density_infoTitle": "About Gas Density",
+  "gasCalculators_density_infoContent": "Dense gas is harder to breathe and raises the risk of CO2 retention. Keep the density at or below {warn} g/L; {critical} g/L is the hard ceiling.\n\nOn CCR the density is that of the loop gas: oxygen at the setpoint, the rest split between nitrogen and helium in the diluent's ratio.\n\nColder gas is denser, so the colder temperature option is the conservative one. The calculation assumes an ideal gas.",
+  "@gasCalculators_density_infoContent": {
+    "placeholders": {
+      "warn": {
+        "type": "Object"
+      },
+      "critical": {
+        "type": "Object"
+      }
+    }
+  },
   "gasCalculators_desc_blender": "Fill procedure for a target mix",
   "gasCalculators_summary_prompt": "Select a calculator to get started",
   "marineLife_siteSection_editExpectedTooltip": "Edit expected species",
@@ -16921,6 +16979,7 @@
   "maps_regionSelector_selectRegionButton": "Select Region",
   "tankPresets_addPreset": "Add tank preset",
   "tankPresets_builtInPresets": "Built-in Presets",
+  "tankPresets_builtInPresets_description": "Switch off the presets you don't use to hide them from the tank pickers. The default preset is always shown.",
   "tankPresets_currentDefault": "Current default",
   "tankPresets_customPresets": "Custom Presets",
   "tankPresets_defaultSettings": "Default Tank",
@@ -17046,6 +17105,7 @@
   "tankPresets_new_title": "New Tank Preset",
   "tankPresets_noPresets": "No tank presets available",
   "tankPresets_setAsDefault": "Set as default",
+  "tankPresets_showInPickers": "Show in tank pickers",
   "tankPresets_title": "Tank Presets",
   "tools_gpsLogger_description": "Record your position during a dive day and match imported dives to GPS locations automatically.",
   "tools_gpsLogger_subtitle": "Record a surface track",

@@ -7625,9 +7625,6 @@ class AppLocalizationsNl extends AppLocalizations {
       'Zoek op stek, buddy of notities';
 
   @override
-  String get diveLog_listPage_title => 'Duiklogboek';
-
-  @override
   String get diveLog_listPage_tooltip_back => 'Terug';
 
   @override
@@ -14281,6 +14278,90 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get gasCalculators_desc_mnd => 'Narcosediepte-limiet voor een mengsel';
+
+  @override
+  String get gasCalculators_tab_density => 'Gasdichtheid';
+
+  @override
+  String get gasCalculators_desc_density =>
+      'Dichtheid van het ademgas op diepte, OC of CCR';
+
+  @override
+  String get gasCalculators_density_inputParameters =>
+      'Gasmengsel en omstandigheden';
+
+  @override
+  String get gasCalculators_density_o2Percent => 'O2 %';
+
+  @override
+  String get gasCalculators_density_hePercent => 'He %';
+
+  @override
+  String get gasCalculators_density_depth => 'Diepte';
+
+  @override
+  String get gasCalculators_density_mode => 'Modus';
+
+  @override
+  String get gasCalculators_density_modeOc => 'OC';
+
+  @override
+  String get gasCalculators_density_modeCcr => 'CCR';
+
+  @override
+  String get gasCalculators_density_setpoint => 'Setpoint (bar)';
+
+  @override
+  String get gasCalculators_density_diluentHint =>
+      'Bij CCR is het mengsel hierboven het diluent gas.';
+
+  @override
+  String get gasCalculators_density_temperature => 'Gastemperatuur';
+
+  @override
+  String get gasCalculators_density_resultTitle => 'Gasdichtheid';
+
+  @override
+  String gasCalculators_density_withinLimit(Object limit) {
+    return 'Binnen de aanbevolen grens van $limit g/L.';
+  }
+
+  @override
+  String get gasCalculators_density_eaddLabel =>
+      'Equivalente luchtdichtheidsdiepte (EADD)';
+
+  @override
+  String get gasCalculators_density_eaddInfo =>
+      'De EADD is de diepte waarop lucht even dicht zou zijn als dit gas. Anders dan de dichtheid in g/L hangt ze niet af van de temperatuur.';
+
+  @override
+  String get gasCalculators_density_loopGasTitle => 'Loopgas op diepte';
+
+  @override
+  String gasCalculators_density_loopComposition(
+    Object o2,
+    Object he,
+    Object n2,
+  ) {
+    return 'O2 $o2 % · He $he % · N2 $n2 %';
+  }
+
+  @override
+  String get gasCalculators_density_setpointCapped =>
+      'Het setpoint ligt hier boven de omgevingsdruk, dus de loop is zuivere zuurstof.';
+
+  @override
+  String gasCalculators_density_diluentAboveSetpoint(Object ppO2) {
+    return 'Het diluent alleen geeft hier een ppO2 van $ppO2, boven het setpoint. De dichtheid rekent met de ppO2 van het diluent.';
+  }
+
+  @override
+  String get gasCalculators_density_infoTitle => 'Over gasdichtheid';
+
+  @override
+  String gasCalculators_density_infoContent(Object warn, Object critical) {
+    return 'Dicht gas ademt zwaarder en verhoogt het risico op CO2-retentie. Houd de dichtheid op maximaal $warn g/L; $critical g/L is de harde bovengrens.\n\nBij CCR telt de dichtheid van het loopgas: zuurstof op het setpoint, de rest verdeeld over stikstof en helium in de verhouding van het diluent.\n\nKouder gas is dichter, dus de koudere temperatuuroptie is de conservatieve keuze. De berekening gaat uit van een ideaal gas.';
+  }
 
   @override
   String get gasCalculators_desc_blender => 'Vulprocedure voor een doelmengsel';
@@ -25973,6 +26054,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get tankPresets_builtInPresets => 'Standaard instellingen';
 
   @override
+  String get tankPresets_builtInPresets_description =>
+      'Schakel voorinstellingen uit die je niet gebruikt om ze te verbergen in de flessenkiezers. De standaardvoorinstelling wordt altijd getoond.';
+
+  @override
   String get tankPresets_currentDefault => 'Huidige standaard';
 
   @override
@@ -26123,6 +26208,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get tankPresets_setAsDefault => 'Als standaard instellen';
+
+  @override
+  String get tankPresets_showInPickers => 'Tonen in flessenkiezers';
 
   @override
   String get tankPresets_title => 'Flesinstellingen';

@@ -719,6 +719,13 @@ class SyncNotifier extends StateNotifier<SyncState> {
   int _pendingCountGeneration = 0;
   bool _syncInFlight = false;
 
+  /// The cloud error that failed the last [libraryReplaceInfo] pre-check,
+  /// held for the next [performSync] only. A revoked sign-in fails the
+  /// pre-check first, and the provider clears the dead grant as it throws, so
+  /// the sync that follows fails with just a generic "not authenticated". This
+  /// keeps the provider's actionable message for that sync (issue #2332).
+  String? _preCheckCloudError;
+
   SyncNotifier(this._syncRepository, this._ref) : super(const SyncState()) {
     _initialize();
     _listenForChanges();
@@ -978,6 +985,11 @@ class SyncNotifier extends StateNotifier<SyncState> {
       if (provider == null) return null;
       final store = _ref.read(libraryEpochStoreProvider);
       if (store.pendingReplace != null) return null; // we ARE the replacer
+      // Deliberately shorter than the marker read's own 30 s listing cap.
+      // Sync Now awaits this advisory check before the sync starts, so a slow
+      // connection would otherwise stall the button; when it gives up,
+      // performSync's epoch gate reads the marker with the full allowance and
+      // still surfaces the replace (awaitingAdoption sets the banner).
       final marker = await _syncService
           .readLibraryEpochMarker(provider)
           .timeout(const Duration(seconds: 8));
@@ -993,6 +1005,10 @@ class SyncNotifier extends StateNotifier<SyncState> {
       // so this pre-check simply has nothing to report -- logging it as a
       // warning on every launch would be noise.
       _log.debug('Library replace pre-check skipped: library is locked');
+      return null;
+    } on CloudStorageException catch (e) {
+      _log.warning('Library replace pre-check failed: $e');
+      _preCheckCloudError = e.message;
       return null;
     } catch (e) {
       // Never block the button on this pre-check; performSync gates anyway.
@@ -1298,8 +1314,19 @@ class SyncNotifier extends StateNotifier<SyncState> {
       _setupProgressCallback();
 
       _log.debug('Calling _syncService.performSync()...');
+      // Consumed here whatever the outcome, so a later, unrelated sign-in
+      // failure never replays it.
+      final preCheckCloudError = _preCheckCloudError;
+      _preCheckCloudError = null;
       try {
         var result = await _syncService.performSync();
+        if (result.status == SyncResultStatus.authError &&
+            preCheckCloudError != null) {
+          result = SyncResult(
+            status: result.status,
+            message: preCheckCloudError,
+          );
+        }
         _log.debug('Result: ${result.status}, message: ${result.message}');
         // This notifier can be disposed while a launch-triggered sync is in
         // flight; never touch state after an await without re-checking.

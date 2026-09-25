@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:submersion/features/planning/presentation/planning_tools.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Path the six calculators hang off, and the page that lists them.
+/// Path the calculators hang off, and the page that lists them.
 const String kGasCalculatorsRoutePrefix = '/planning/$kGasCalculatorsToolId';
 
 /// The blender's archive of paid invoices. A static sibling of the
@@ -20,7 +20,7 @@ const String kBlenderInvoiceArchiveRoute =
 /// second way of reaching the page.
 const String kTrimixMixerSettingsRoute = '/settings/trimix-mixer';
 
-/// Ids of the six calculators, in display order.
+/// Ids of the calculators, in display order.
 ///
 /// Shared by the router, the detail page, and the tests so a new calculator
 /// cannot be added to the list and forgotten in the switch.
@@ -30,10 +30,11 @@ const List<String> kGasCalculatorIds = [
   'consumption',
   'rock-bottom',
   'mnd',
+  'density',
   'blender',
 ];
 
-/// The six gas calculators, in display order.
+/// The gas calculators, in display order.
 ///
 /// These are [PlanningTool]s rather than a type of their own: they are listed
 /// and rendered by the same tile as the Planning hub's tools, which is the
@@ -95,6 +96,13 @@ List<PlanningTool> gasCalculatorToolsOf(BuildContext context) {
       color: Colors.teal,
       title: context.l10n.gasCalculators_tab_mnd,
       subtitle: context.l10n.gasCalculators_desc_mnd,
+    ),
+    tool(
+      id: 'density',
+      icon: Icons.compress,
+      color: Colors.indigo,
+      title: context.l10n.gasCalculators_tab_density,
+      subtitle: context.l10n.gasCalculators_desc_density,
     ),
     tool(
       id: 'blender',

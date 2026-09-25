@@ -297,7 +297,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'gas-calculators',
                 name: 'gasCalculators',
                 builder: (context, state) => const GasCalculatorsPage(),
-                // The six calculators are children, not tabs. On a narrow
+                // The calculators are children, not tabs. On a narrow
                 // window each is pushed as its own page; in split view they
                 // ride in ?calc= instead and these routes go unused.
                 routes: [
@@ -1149,12 +1149,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: 'safety',
                 name: 'safetySettings',
                 builder: (context, state) => const SafetySettingsPage(),
-              ),
-              GoRoute(
-                path: 'equipment-condition',
-                name: 'equipmentConditionSettings',
-                builder: (context, state) =>
-                    const EquipmentConditionSettingsPage(),
+                routes: [
+                  GoRoute(
+                    path: 'equipment-condition',
+                    name: 'equipmentConditionSettings',
+                    builder: (context, state) =>
+                        const EquipmentConditionSettingsPage(),
+                  ),
+                ],
               ),
               GoRoute(
                 path: 'default-metrics',
