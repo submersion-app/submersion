@@ -12477,7 +12477,7 @@
   "navTrack_align_rotationLabel": "Forgatás:",
   "navTrack_align_rotationDegrees": "{degrees}°",
   "navTrack_terrain_summary": "{onLand} pont a szárazföldön, {below}/{total} a tengerfenék alatt{maxPart}, {unknown} ismeretlen{coarsePart}",
-  "navTrack_terrain_maxPart": " (max. {meters} m)",
+  "navTrack_terrain_maxPart": " (max. {depth})",
   "navTrack_terrain_coarsePart": " (durva batimetria: csak a szárazföldi ütközések ellenőrizve)",
   "navTrack_detail_renameTitle": "Útvonal átnevezése",
   "navTrack_detail_deleteTitle": "Útvonal törlése?",

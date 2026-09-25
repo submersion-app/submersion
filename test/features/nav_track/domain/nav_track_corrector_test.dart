@@ -462,6 +462,57 @@ void main() {
       // Index 5 is the last surfaceReckoned sample before the second jump.
       expect(NavTrackCorrector.activeRangeEndIndex(points), 5);
     });
+
+    test('activeRange returns both ends in one call', () {
+      expect(NavTrackCorrector.activeRange(fixBeforeAndAfter()), (
+        start: 3,
+        end: 5,
+      ));
+    });
+  });
+
+  group('NavTrackCorrector.preDiveFixEvent', () {
+    test('is the fix before the first underwater sample', () {
+      final points = [
+        _p(timestamp: 0, north: 0, depth: 0),
+        _p(timestamp: 2, north: 300, depth: 0), // pre-dive fix
+        _p(timestamp: 4, north: 302, depth: 0),
+        _p(timestamp: 6, north: 302, depth: 5),
+      ];
+
+      final event = NavTrackCorrector.preDiveFixEvent(
+        NavTrackSegmenter.classify(points),
+      );
+
+      expect(event?.index, 1);
+    });
+
+    test('is null on a surface-only route: its fix ends the route rather '
+        'than preceding a dive', () {
+      final points = [
+        _p(timestamp: 0, north: 0, depth: 0),
+        _p(timestamp: 2, north: 3, depth: 0),
+        _p(timestamp: 4, north: 200, depth: 0), // GPS re-acquired at the end
+        _p(timestamp: 6, north: 201, depth: 0),
+      ];
+      final segmentation = NavTrackSegmenter.classify(points);
+
+      expect(segmentation.fixEvents, isNotEmpty);
+      expect(NavTrackCorrector.preDiveFixEvent(segmentation), isNull);
+    });
+
+    test('is null when the fix only follows the dive', () {
+      final points = [
+        _p(timestamp: 0, north: 0, depth: 5),
+        _p(timestamp: 20, north: 0, depth: 0),
+        _p(timestamp: 22, north: 300, depth: 0), // post-dive fix
+      ];
+
+      expect(
+        NavTrackCorrector.preDiveFixEvent(NavTrackSegmenter.classify(points)),
+        isNull,
+      );
+    });
   });
 
   group('NavTrackCorrector.apply with a pre-dive fix (regression: the whole '

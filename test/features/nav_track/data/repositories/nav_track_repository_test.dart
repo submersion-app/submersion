@@ -10,17 +10,18 @@ import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 
 import '../../../../helpers/test_database.dart';
 
-List<NavTrackPoint> _samplePoints({int count = 5}) => [
-  for (var i = 0; i < count; i++)
-    NavTrackPoint(
-      timestamp: 1700000000 + i * 10,
-      north: i * 10.0,
-      east: 0,
-      depth: 5,
-      distance: i * 10.0,
-      speed: 0.3,
-    ),
-];
+List<NavTrackPoint> _samplePoints({int count = 5, int startAt = 1700000000}) =>
+    [
+      for (var i = 0; i < count; i++)
+        NavTrackPoint(
+          timestamp: startAt + i * 10,
+          north: i * 10.0,
+          east: 0,
+          depth: 5,
+          distance: i * 10.0,
+          speed: 0.3,
+        ),
+    ];
 
 Future<void> _insertMinimalDive(AppDatabase db, String id) {
   return db.customStatement(
@@ -692,6 +693,91 @@ void main() {
       expect(route!.siteId, 's2');
       expect(route.anchor, const GeoPoint(50.0, 10.0));
     });
+  });
+
+  group('primary invariant after sync (two primaries on one dive)', () {
+    // Each device decides isPrimary locally, so two devices that each link a
+    // route to the same dive before syncing both mark theirs primary. The
+    // merged database then holds two primaries for one dive.
+    Future<List<String>> threeRoutesTwoPrimaries() async {
+      await _insertMinimalDive(db, 'd1');
+      final first = await repo.insertImportedRoute(
+        points: _samplePoints(startAt: 1700000200),
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'a.csv',
+        diveId: 'd1',
+      );
+      final second = await repo.insertImportedRoute(
+        points: _samplePoints(startAt: 1700000100),
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'b.csv',
+        diveId: 'd1',
+      );
+      final third = await repo.insertImportedRoute(
+        points: _samplePoints(startAt: 1700000000),
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'c.csv',
+        diveId: 'd1',
+      );
+      await db.customStatement(
+        "UPDATE nav_tracks SET is_primary = 1 WHERE id = '$second'",
+      );
+      return [first, second, third];
+    }
+
+    test('deleting a non-primary sibling does not throw', () async {
+      final ids = await threeRoutesTwoPrimaries();
+
+      await repo.delete(ids[2]);
+
+      expect(await repo.getById(ids[2]), isNull);
+    });
+
+    test('unlinking a non-primary sibling does not throw', () async {
+      final ids = await threeRoutesTwoPrimaries();
+
+      await repo.unlink(ids[2]);
+
+      expect((await repo.getById(ids[2]))!.diveId, isNull);
+    });
+
+    test('getForDive breaks a primary tie by the earliest recording', () async {
+      // Inserted latest-recorded first, so insertion order alone would put
+      // the later recording ahead of the earlier one.
+      final ids = await threeRoutesTwoPrimaries();
+
+      final routes = await repo.getForDive('d1');
+
+      expect(routes.map((r) => r.id), [ids[1], ids[0], ids[2]]);
+    });
+  });
+
+  group('link guards against a stale unlinked snapshot', () {
+    test(
+      'does not overwrite a route linked since the caller read it',
+      () async {
+        await _insertMinimalDive(db, 'd1');
+        await _insertMinimalDive(db, 'd2');
+        final id = await repo.insertImportedRoute(
+          points: _samplePoints(),
+          source: NavTrackSource.seacraftEnc,
+          sourceRef: 'a.csv',
+        );
+        // The diver links it by hand while a sweep still holds it as unlinked.
+        await repo.link(id, 'd1', linkMode: NavTrackLinkMode.manual);
+
+        final didLink = await repo.link(
+          id,
+          'd2',
+          linkMode: NavTrackLinkMode.auto,
+        );
+
+        expect(didLink, isFalse);
+        final route = await repo.getById(id);
+        expect(route!.diveId, 'd1');
+        expect(route.linkMode, NavTrackLinkMode.manual);
+      },
+    );
   });
 
   group('delete', () {

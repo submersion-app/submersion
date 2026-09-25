@@ -67204,8 +67204,8 @@ abstract class AppLocalizations {
   /// No description provided for @navTrack_terrain_maxPart.
   ///
   /// In en, this message translates to:
-  /// **' (max {meters} m)'**
-  String navTrack_terrain_maxPart(String meters);
+  /// **' (max {depth})'**
+  String navTrack_terrain_maxPart(String depth);
 
   /// No description provided for @navTrack_terrain_coarsePart.
   ///

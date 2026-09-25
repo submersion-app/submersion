@@ -12477,7 +12477,7 @@
   "navTrack_align_rotationLabel": "الدوران:",
   "navTrack_align_rotationDegrees": "{degrees}°",
   "navTrack_terrain_summary": "{onLand} نقاط على اليابسة، {below} من {total} تحت قاع البحر{maxPart}، {unknown} غير معروفة{coarsePart}",
-  "navTrack_terrain_maxPart": " (بحد أقصى {meters} م)",
+  "navTrack_terrain_maxPart": " (بحد أقصى {depth})",
   "navTrack_terrain_coarsePart": " (قياس أعماق منخفض الدقة: تم فحص تعارضات اليابسة فقط)",
   "navTrack_detail_renameTitle": "إعادة تسمية المسار",
   "navTrack_detail_deleteTitle": "حذف المسار؟",

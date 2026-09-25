@@ -113,7 +113,25 @@ class NavTrackSegmenter {
   /// end of a run is never mistaken for the position having settled.
   static const int _stabilizationMinSamples = 3;
 
-  static NavTrackSegmentation classify(List<NavTrackPoint> points) {
+  /// Results already computed, keyed weakly by the point list itself.
+  static final Expando<NavTrackSegmentation> _cache = Expando(
+    'NavTrackSegmenter.classify',
+  );
+
+  /// Classifies [points], computing each list's segmentation only once.
+  ///
+  /// The corrector, the stats, the 3D adapter and every map layer each need
+  /// the segmentation, and the alignment page asks for it several times per
+  /// drag frame over a recording that does not change while it is open.
+  /// Caching per list here serves all of them at once instead of threading
+  /// a precomputed value through every caller. Point lists are never
+  /// modified after a parser or the codec builds them, which is what makes a
+  /// per-list result safe to reuse; the result itself is unmodifiable so no
+  /// caller can change it under another.
+  static NavTrackSegmentation classify(List<NavTrackPoint> points) =>
+      _cache[points] ??= _classify(points);
+
+  static NavTrackSegmentation _classify(List<NavTrackPoint> points) {
     final n = points.length;
     final kinds = List<NavTrackSampleKind>.filled(
       n,
@@ -121,7 +139,7 @@ class NavTrackSegmenter {
     );
     final fixEvents = <NavTrackFixEvent>[];
     if (n == 0) {
-      return NavTrackSegmentation(kinds: kinds, fixEvents: fixEvents);
+      return const NavTrackSegmentation(kinds: [], fixEvents: []);
     }
 
     kinds[0] = _depthKind(points[0].depth);
@@ -172,7 +190,10 @@ class NavTrackSegmenter {
       _markOutOfWater(points, kinds, run.$1, run.$2);
     }
 
-    return NavTrackSegmentation(kinds: kinds, fixEvents: fixEvents);
+    return NavTrackSegmentation(
+      kinds: List.unmodifiable(kinds),
+      fixEvents: List.unmodifiable(fixEvents),
+    );
   }
 
   /// The stabilized position within [event]'s `gpsFixed` run: a better

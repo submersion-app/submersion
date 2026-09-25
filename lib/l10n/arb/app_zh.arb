@@ -12477,7 +12477,7 @@
   "navTrack_align_rotationLabel": "旋转：",
   "navTrack_align_rotationDegrees": "{degrees}°",
   "navTrack_terrain_summary": "{onLand} 个点在陆地上，{below}/{total} 个点在海底以下{maxPart}，{unknown} 个未知{coarsePart}",
-  "navTrack_terrain_maxPart": "（最大 {meters} 米）",
+  "navTrack_terrain_maxPart": "（最大 {depth}）",
   "navTrack_terrain_coarsePart": "（低分辨率测深数据：仅检查了陆地冲突）",
   "navTrack_detail_renameTitle": "重命名路线",
   "navTrack_detail_deleteTitle": "删除路线？",

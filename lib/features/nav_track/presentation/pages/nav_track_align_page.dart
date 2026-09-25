@@ -48,12 +48,11 @@ List<CorrectedNavTrackPoint> _activeCorrectedPoints(
   List<NavTrackPoint> points,
   NavTrackCorrection correction,
 ) {
-  final activeStart = NavTrackCorrector.activeRangeStartIndex(points);
-  final activeEnd = NavTrackCorrector.activeRangeEndIndex(points);
+  final range = NavTrackCorrector.activeRange(points);
   final corrected = NavTrackCorrector.apply(points, correction);
   return corrected.sublist(
-    activeStart.clamp(0, corrected.length),
-    (activeEnd + 1).clamp(0, corrected.length),
+    range.start.clamp(0, corrected.length),
+    (range.end + 1).clamp(0, corrected.length),
   );
 }
 
@@ -307,8 +306,9 @@ class _AlignPageBody extends ConsumerWidget {
     final transientRoute = state._transientRoute(route);
     final fixEvents = NavTrackSegmenter.classify(route.points).fixEvents;
     final hasFix = fixEvents.isNotEmpty;
-    final activeStart = NavTrackCorrector.activeRangeStartIndex(route.points);
-    final activeEnd = NavTrackCorrector.activeRangeEndIndex(route.points);
+    final range = NavTrackCorrector.activeRange(route.points);
+    final activeStart = range.start;
+    final activeEnd = range.end;
     final cumulative = cumulativeDistances(
       route.points.sublist(activeStart, activeEnd + 1),
     );
@@ -441,6 +441,7 @@ class _AlignPageBody extends ConsumerWidget {
             correction: correction,
             hasFix: hasFix,
             activeStart: activeStart,
+            cumulative: cumulative,
             totalDistance: totalDistance,
             trustedDistance: trustedDistance,
           ),
@@ -457,6 +458,7 @@ class _ControlsPanel extends ConsumerWidget {
     required this.correction,
     required this.hasFix,
     required this.activeStart,
+    required this.cumulative,
     required this.totalDistance,
     required this.trustedDistance,
   });
@@ -466,6 +468,10 @@ class _ControlsPanel extends ConsumerWidget {
   final NavTrackCorrection correction;
   final bool hasFix;
   final int activeStart;
+
+  /// The trust slider's distance axis over the active range, as the page
+  /// body already computed it for the map's trust marker.
+  final List<double> cumulative;
   final double totalDistance;
   final double trustedDistance;
 
@@ -510,17 +516,11 @@ class _ControlsPanel extends ConsumerWidget {
   GeoPoint? _preDiveFixStartSuggestion(WidgetRef ref) {
     final points = route.points;
     if (points.length < 2) return null;
-    final segmentation = NavTrackSegmenter.classify(points);
-    final firstUnderwaterIndex = segmentation.kinds.indexOf(
-      NavTrackSampleKind.underwater,
+    // The corrector's own rule, so this never offers a start derived from
+    // a fix the correction treats as the end of the route.
+    final preDiveFix = NavTrackCorrector.preDiveFixEvent(
+      NavTrackSegmenter.classify(points),
     );
-    NavTrackFixEvent? preDiveFix;
-    for (final event in segmentation.fixEvents) {
-      if (firstUnderwaterIndex == -1 || event.index < firstUnderwaterIndex) {
-        preDiveFix = event;
-        break;
-      }
-    }
     if (preDiveFix == null) return null;
 
     final reference = _diveEntryLocation(ref) ?? _siteLocation(ref);
@@ -539,10 +539,6 @@ class _ControlsPanel extends ConsumerWidget {
 
   int _trustedDurationSeconds() {
     if (route.points.isEmpty || totalDistance <= 0) return 0;
-    final activeEnd = NavTrackCorrector.activeRangeEndIndex(route.points);
-    final cumulative = cumulativeDistances(
-      route.points.sublist(activeStart, activeEnd + 1),
-    );
     final relativeIndex = trustCutoffIndex(cumulative, trustedDistance);
     final index = activeStart + relativeIndex;
     return route.points[index].timestamp - route.points[activeStart].timestamp;
@@ -677,7 +673,12 @@ class _ControlsPanel extends ConsumerWidget {
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
                   key: const ValueKey('nav-track-align-terrain-summary'),
-                  state._terrainResult!.summaryLine(l10n),
+                  state._terrainResult!.summaryLine(
+                    l10n,
+                    formatDepth: UnitFormatter(
+                      ref.watch(settingsProvider),
+                    ).formatDepth,
+                  ),
                   style: Theme.of(context).textTheme.bodySmall,
                 ),
               ),

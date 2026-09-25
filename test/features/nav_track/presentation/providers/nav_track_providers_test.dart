@@ -171,4 +171,101 @@ void main() {
       expect(after, hasLength(1));
     },
   );
+  // Every hydrated read decodes the whole points blob (gzip plus JSON, up to
+  // kMaxNavTrackPointCount samples), so a write to one route must not make
+  // every other open route decode its blob again.
+  Future<void> settle() async {
+    for (var i = 0; i < 5; i++) {
+      await Future<void>.delayed(const Duration(milliseconds: 20));
+    }
+  }
+
+  test('navTrackByIdProvider reloads for its own route only, not for a write '
+      'to another route', () async {
+    final watchedId = await repo.insertImportedRoute(
+      points: _samplePoints(),
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: 'watched.csv',
+    );
+    final otherId = await repo.insertImportedRoute(
+      points: _samplePoints(),
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: 'other.csv',
+    );
+    await container.read(navTrackByIdProvider(watchedId).future);
+    var notifications = 0;
+    final sub = container.listen(
+      navTrackByIdProvider(watchedId),
+      (_, _) => notifications++,
+    );
+    addTearDown(sub.close);
+
+    await repo.rename(otherId, 'Renamed elsewhere');
+    await settle();
+    expect(notifications, 0);
+
+    await repo.rename(watchedId, 'Renamed here');
+    await settle();
+    final route = await container.read(navTrackByIdProvider(watchedId).future);
+    expect(route!.name, 'Renamed here');
+  });
+
+  test('primaryNavTrackForDiveProvider does not reload when a non-primary '
+      'sibling changes', () async {
+    await _insertMinimalDive(db, 'dive-1');
+    await repo.insertImportedRoute(
+      points: _samplePoints(),
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: 'primary.csv',
+      diveId: 'dive-1',
+    );
+    final siblingId = await repo.insertImportedRoute(
+      points: _samplePoints(),
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: 'sibling.csv',
+      diveId: 'dive-1',
+    );
+    await container.read(primaryNavTrackForDiveProvider('dive-1').future);
+    var notifications = 0;
+    final sub = container.listen(
+      primaryNavTrackForDiveProvider('dive-1'),
+      (_, _) => notifications++,
+    );
+    addTearDown(sub.close);
+
+    await repo.rename(siblingId, 'Renamed sibling');
+    await settle();
+
+    expect(notifications, 0);
+  });
+
+  test('primaryNavTrackForDiveProvider follows a primary switch', () async {
+    await _insertMinimalDive(db, 'dive-1');
+    await repo.insertImportedRoute(
+      points: _samplePoints(),
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: 'primary.csv',
+      diveId: 'dive-1',
+    );
+    final siblingId = await repo.insertImportedRoute(
+      points: _samplePoints(),
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: 'sibling.csv',
+      diveId: 'dive-1',
+    );
+    await container.read(primaryNavTrackForDiveProvider('dive-1').future);
+    final sub = container.listen(
+      primaryNavTrackForDiveProvider('dive-1'),
+      (_, _) {},
+    );
+    addTearDown(sub.close);
+
+    await repo.setPrimary(siblingId);
+    await settle();
+
+    final primary = await container.read(
+      primaryNavTrackForDiveProvider('dive-1').future,
+    );
+    expect(primary!.id, siblingId);
+  });
 }

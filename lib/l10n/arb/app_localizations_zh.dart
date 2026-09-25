@@ -39485,8 +39485,8 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String navTrack_terrain_maxPart(String meters) {
-    return '（最大 $meters 米）';
+  String navTrack_terrain_maxPart(String depth) {
+    return '（最大 $depth）';
   }
 
   @override

@@ -12477,7 +12477,7 @@
   "navTrack_align_rotationLabel": "סיבוב:",
   "navTrack_align_rotationDegrees": "{degrees}°",
   "navTrack_terrain_summary": "{onLand} נקודות ביבשה, {below} מתוך {total} מתחת לקרקעית הים{maxPart}, {unknown} לא ידועות{coarsePart}",
-  "navTrack_terrain_maxPart": " (מקסימום {meters} מ׳)",
+  "navTrack_terrain_maxPart": " (מקסימום {depth})",
   "navTrack_terrain_coarsePart": " (בתימטריה גסה: נבדקו רק התנגשויות ביבשה)",
   "navTrack_detail_renameTitle": "שינוי שם המסלול",
   "navTrack_detail_deleteTitle": "למחוק את המסלול?",

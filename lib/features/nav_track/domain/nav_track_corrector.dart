@@ -120,11 +120,8 @@ class NavTrackCorrector {
   /// reaches" (the alignment page's trust slider, the terrain check) must
   /// share this boundary instead of assuming the active range always
   /// starts at 0.
-  static int activeRangeStartIndex(List<NavTrackPoint> points) {
-    if (points.isEmpty) return 0;
-    final segmentation = NavTrackSegmenter.classify(points);
-    return _activeRange(segmentation, points.length).start;
-  }
+  static int activeRangeStartIndex(List<NavTrackPoint> points) =>
+      activeRange(points).start;
 
   /// The last index of [points] that [apply] treats as part of the active
   /// correction range for every mode but [NavTrackEndMode.none] -- the
@@ -140,10 +137,38 @@ class NavTrackCorrector {
   /// so a slider computed over the whole thing disagrees with where
   /// [apply] actually freezes the route, making an "already frozen"
   /// prefix look like it is still moving as the diver drags the slider.
-  static int activeRangeEndIndex(List<NavTrackPoint> points) {
-    if (points.isEmpty) return 0;
-    final segmentation = NavTrackSegmenter.classify(points);
-    return _activeRange(segmentation, points.length).end;
+  static int activeRangeEndIndex(List<NavTrackPoint> points) =>
+      activeRange(points).end;
+
+  /// Both ends of the active range ([activeRangeStartIndex] and
+  /// [activeRangeEndIndex]) in one call.
+  static ({int start, int end}) activeRange(List<NavTrackPoint> points) {
+    if (points.isEmpty) return (start: 0, end: 0);
+    return _activeRange(NavTrackSegmenter.classify(points), points.length);
+  }
+
+  /// The GPS-fix event that calibrates the console before the dive, or null
+  /// when the recording has none.
+  ///
+  /// A fix counts as pre-dive only when it happens before the first
+  /// [NavTrackSampleKind.underwater] sample. A recording with no underwater
+  /// sample at all (a surface swim) has no dive for a fix to precede, so its
+  /// fix is the end of the route, which is how [NavTrackEndMode.gpsFix]
+  /// treats it. When several fixes precede the dive, the last one is the
+  /// calibration the dive actually started from.
+  ///
+  /// The single rule for "pre-dive": [apply]'s active range and the
+  /// alignment page's start suggestion must never disagree about it.
+  static NavTrackFixEvent? preDiveFixEvent(NavTrackSegmentation segmentation) {
+    final firstUnderwaterIndex = segmentation.kinds.indexOf(
+      NavTrackSampleKind.underwater,
+    );
+    if (firstUnderwaterIndex <= 0) return null;
+    NavTrackFixEvent? preDiveFix;
+    for (final event in segmentation.fixEvents) {
+      if (event.index <= firstUnderwaterIndex) preDiveFix = event;
+    }
+    return preDiveFix;
   }
 
   static List<CorrectedNavTrackPoint> apply(
@@ -291,10 +316,10 @@ class NavTrackCorrector {
   /// swamp the trust-fraction distance budget the same way an unexcluded
   /// post-dive jump used to.
   ///
-  /// A pre-dive fix is identified by occurring at or before the first
-  /// [NavTrackSampleKind.underwater] sample in the whole recording (the
-  /// same test the alignment page's own pre-dive-fix start suggestion
-  /// uses): real diving has not started yet, so any fix event up to that
+  /// A pre-dive fix is the one [preDiveFixEvent] picks (the same rule the
+  /// alignment page's pre-dive-fix start suggestion uses): it occurs before
+  /// the first [NavTrackSampleKind.underwater] sample, so real diving has
+  /// not started yet, and any fix event up to that
   /// point -- and everything before it, including the leading
   /// [NavTrackSampleKind.surfaceReckoned] sample(s) that sit before the
   /// jump itself -- is calibration, not the swim path. [start] then lands
@@ -319,19 +344,12 @@ class NavTrackCorrector {
         kind == NavTrackSampleKind.underwater ||
         kind == NavTrackSampleKind.surfaceReckoned;
 
-    final firstUnderwaterIndex = kinds.indexOf(NavTrackSampleKind.underwater);
-
     var start = 0;
-    if (firstUnderwaterIndex > 0) {
-      NavTrackFixEvent? preDiveFix;
-      for (final event in segmentation.fixEvents) {
-        if (event.index <= firstUnderwaterIndex) preDiveFix = event;
-      }
-      if (preDiveFix != null) {
-        start = preDiveFix.index;
-        while (start < kinds.length && !isActive(kinds[start])) {
-          start++;
-        }
+    final preDiveFix = preDiveFixEvent(segmentation);
+    if (preDiveFix != null) {
+      start = preDiveFix.index;
+      while (start < kinds.length && !isActive(kinds[start])) {
+        start++;
       }
     }
 

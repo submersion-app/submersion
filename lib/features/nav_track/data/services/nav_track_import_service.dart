@@ -113,6 +113,10 @@ class NavTrackImportService {
   /// dive was chosen, the match sweep runs immediately afterward, limited to
   /// the new route, so an unambiguous time-window match still links it
   /// automatically rather than waiting for the next general sweep.
+  ///
+  /// [replacingRouteId] is the duplicate the review page's "replace" option
+  /// supersedes. It is removed only after the new route is stored, so a
+  /// failure anywhere above leaves the original recording in place.
   Future<String> commit({
     required ParsedNavTrack parsed,
     required String sourceRef,
@@ -121,6 +125,7 @@ class NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
+    String? replacingRouteId,
   }) async {
     final id = await _routeRepository.insertImportedRoute(
       points: parsed.points,
@@ -134,6 +139,9 @@ class NavTrackImportService {
     );
     if (dive == null) {
       await _matchService.sweep(limitToRouteIds: [id]);
+    }
+    if (replacingRouteId != null) {
+      await _routeRepository.replace(replacingRouteId, withRouteId: id);
     }
     return id;
   }

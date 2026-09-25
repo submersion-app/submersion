@@ -333,6 +333,48 @@ void main() {
     },
   );
 
+  testWidgets('the "From GPS" chip does not appear when the only fix follows a '
+      'surface-only route (the corrector treats that fix as the end, not a '
+      'pre-dive calibration)', (tester) async {
+    const site = DiveSite(
+      id: 'site-1',
+      name: 'Test Site',
+      location: GeoPoint(47.1, 8.3),
+    );
+    // Never deeper than the surface threshold, so there is no underwater
+    // sample at all, then a GPS re-acquisition jump at the end.
+    final surfaceOnlyPoints = [
+      for (var i = 0; i < 6; i++)
+        NavTrackPoint(
+          timestamp: 1755856800 + i * 2,
+          north: i * 3.0,
+          east: 0,
+          depth: 0,
+        ),
+      const NavTrackPoint(timestamp: 1755856814, north: 200, east: 0, depth: 0),
+      const NavTrackPoint(timestamp: 1755856816, north: 201, east: 0, depth: 0),
+    ];
+    final route = NavTrack(
+      id: 'r1',
+      siteId: 'site-1',
+      source: NavTrackSource.seacraftEnc,
+      sourceRef: 'r1.csv',
+      startTime: 1755856800000,
+      endTime: 1755856816000,
+      pointCount: surfaceOnlyPoints.length,
+      points: surfaceOnlyPoints,
+      createdAt: DateTime(2026, 8, 22),
+      updatedAt: DateTime(2026, 8, 22),
+    );
+
+    await _pump(tester, route: route, site: site);
+
+    expect(
+      find.byKey(const ValueKey('nav-track-align-from-gps')),
+      findsNothing,
+    );
+  });
+
   testWidgets('the end mode dropdown switches to "same as start"', (
     tester,
   ) async {

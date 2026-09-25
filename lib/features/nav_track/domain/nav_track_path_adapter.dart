@@ -42,8 +42,9 @@ class NavTrackPathAdapter {
     // `NavTrackCorrector.activeRangeStartIndex`/`activeRangeEndIndex` is the
     // same "active range" boundary the corrector itself already stops
     // proportional correction at, reused here for consistency.
-    final activeStart = NavTrackCorrector.activeRangeStartIndex(points);
-    final activeEnd = NavTrackCorrector.activeRangeEndIndex(points);
+    final range = NavTrackCorrector.activeRange(points);
+    final activeStart = range.start;
+    final activeEnd = range.end;
 
     final kept = <ReckonedPoint>[];
     int? startTimestamp;

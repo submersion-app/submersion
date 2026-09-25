@@ -12477,7 +12477,7 @@
   "navTrack_align_rotationLabel": "Rotation :",
   "navTrack_align_rotationDegrees": "{degrees}°",
   "navTrack_terrain_summary": "{onLand} points à terre, {below} sur {total} sous le fond marin{maxPart}, {unknown} inconnus{coarsePart}",
-  "navTrack_terrain_maxPart": " (max {meters} m)",
+  "navTrack_terrain_maxPart": " (max {depth})",
   "navTrack_terrain_coarsePart": " (bathymétrie grossière : seuls les conflits à terre sont vérifiés)",
   "navTrack_detail_renameTitle": "Renommer le trajet",
   "navTrack_detail_deleteTitle": "Supprimer le trajet ?",

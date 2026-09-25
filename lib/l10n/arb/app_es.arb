@@ -12477,7 +12477,7 @@
   "navTrack_align_rotationLabel": "Rotación:",
   "navTrack_align_rotationDegrees": "{degrees}°",
   "navTrack_terrain_summary": "{onLand} puntos en tierra, {below} de {total} bajo el fondo marino{maxPart}, {unknown} desconocidos{coarsePart}",
-  "navTrack_terrain_maxPart": " (máx. {meters} m)",
+  "navTrack_terrain_maxPart": " (máx. {depth})",
   "navTrack_terrain_coarsePart": " (batimetría de baja resolución: solo se comprobaron conflictos en tierra)",
   "navTrack_detail_renameTitle": "Cambiar nombre de la ruta",
   "navTrack_detail_deleteTitle": "¿Eliminar ruta?",

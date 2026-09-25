@@ -65,6 +65,36 @@ class NavTrackPoint extends Equatable {
     this.batteryVolts,
   });
 
+  /// A copy with the given fields replaced. Like the other entities'
+  /// `copyWith`, a null argument keeps the current value.
+  NavTrackPoint copyWith({
+    int? timestamp,
+    double? north,
+    double? east,
+    double? depth,
+    double? course,
+    double? pitch,
+    double? roll,
+    double? distance,
+    double? speed,
+    double? temperature,
+    double? batteryVolts,
+  }) {
+    return NavTrackPoint(
+      timestamp: timestamp ?? this.timestamp,
+      north: north ?? this.north,
+      east: east ?? this.east,
+      depth: depth ?? this.depth,
+      course: course ?? this.course,
+      pitch: pitch ?? this.pitch,
+      roll: roll ?? this.roll,
+      distance: distance ?? this.distance,
+      speed: speed ?? this.speed,
+      temperature: temperature ?? this.temperature,
+      batteryVolts: batteryVolts ?? this.batteryVolts,
+    );
+  }
+
   @override
   List<Object?> get props => [
     timestamp,

@@ -25792,10 +25792,10 @@
       }
     }
   },
-  "navTrack_terrain_maxPart": " (max {meters} m)",
+  "navTrack_terrain_maxPart": " (max {depth})",
   "@navTrack_terrain_maxPart": {
     "placeholders": {
-      "meters": {
+      "depth": {
         "type": "String"
       }
     }

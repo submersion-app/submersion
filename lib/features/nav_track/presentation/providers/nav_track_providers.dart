@@ -36,24 +36,32 @@ final navTracksForDiveProvider = FutureProvider.family<List<NavTrack>, String>((
 /// The route a dive's 3D seascape draws, or null when no route is linked.
 /// This is what `spatialReckonedPathProvider` consumes ahead of dead
 /// reckoning.
+///
+/// Rebuilds only when the dive's primary route changes identity or its own
+/// row changes: `getForDive` lists the primary first (ties broken the same
+/// way on every device), and selecting just its id keeps a write to a
+/// sibling route from reloading the scene.
 final primaryNavTrackForDiveProvider = FutureProvider.family<NavTrack?, String>(
   (ref, diveId) async {
-    final routes = await ref.watch(navTracksForDiveProvider(diveId).future);
-    if (routes.isEmpty) return null;
-    final primary =
-        routes.where((r) => r.isPrimary).firstOrNull ?? routes.first;
-    final repository = ref.watch(navTrackRepositoryProvider);
-    ref.invalidateSelfWhen(repository.watchChanges());
-    return repository.getById(primary.id, includePoints: true);
+    final primaryId = await ref.watch(
+      navTracksForDiveProvider(
+        diveId,
+      ).selectAsync((routes) => routes.firstOrNull?.id),
+    );
+    if (primaryId == null) return null;
+    return ref.watch(navTrackByIdProvider(primaryId).future);
   },
 );
 
 /// One route, hydrated with its points, for the detail and alignment pages.
+///
+/// Refreshes on changes to this route only (see
+/// [NavTrackRepository.watchRouteChanges]).
 final navTrackByIdProvider = FutureProvider.family<NavTrack?, String>((
   ref,
   id,
 ) async {
   final repository = ref.watch(navTrackRepositoryProvider);
-  ref.invalidateSelfWhen(repository.watchChanges());
+  ref.invalidateSelfWhen(repository.watchRouteChanges(id));
   return repository.getById(id, includePoints: true);
 });

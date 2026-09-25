@@ -12477,7 +12477,7 @@
   "navTrack_align_rotationLabel": "Rotazione:",
   "navTrack_align_rotationDegrees": "{degrees}°",
   "navTrack_terrain_summary": "{onLand} punti a terra, {below} di {total} sotto il fondale{maxPart}, {unknown} sconosciuti{coarsePart}",
-  "navTrack_terrain_maxPart": " (max {meters} m)",
+  "navTrack_terrain_maxPart": " (max {depth})",
   "navTrack_terrain_coarsePart": " (batimetria a bassa risoluzione: verificati solo i conflitti a terra)",
   "navTrack_detail_renameTitle": "Rinomina percorso",
   "navTrack_detail_deleteTitle": "Eliminare il percorso?",

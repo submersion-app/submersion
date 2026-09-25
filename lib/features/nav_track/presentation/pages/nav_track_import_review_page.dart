@@ -15,7 +15,6 @@ import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_t
 import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/presentation/nav_track_parse_error_text.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
-import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/features/nav_track/presentation/widgets/nav_track_equipment_picker_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -253,12 +252,9 @@ class _NavTrackImportReviewPageState
     });
     try {
       final name = _nameController.text.trim();
-      // Commit the replacement before touching the duplicate it replaces:
-      // a database/codec/sync failure in commit() must leave the prior
-      // recording in place, since the review action was "replace", not
-      // "delete then maybe get a new one". Deleting first and only then
-      // committing would permanently lose the original route on any
-      // failure in between.
+      // The service stores the new route before it removes the duplicate
+      // it replaces, so a failure leaves the original recording in place,
+      // and it keeps the dive's primary route on the re-imported one.
       final id = await ref
           .read(navTrackImportServiceProvider)
           .commit(
@@ -269,12 +265,10 @@ class _NavTrackImportReviewPageState
             name: name.isEmpty ? null : name,
             deviceName: _equipmentName,
             equipmentId: _equipmentId,
+            replacingRouteId: _replaceDuplicate
+                ? preview.duplicateOfRouteId
+                : null,
           );
-      if (_replaceDuplicate && preview.duplicateOfRouteId != null) {
-        await ref
-            .read(navTrackRepositoryProvider)
-            .delete(preview.duplicateOfRouteId!);
-      }
       if (!mounted) return;
       // Literal path: the routes-area detail page lives in another agent's
       // work on this branch and is not yet guaranteed to exist under this

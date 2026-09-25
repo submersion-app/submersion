@@ -10,6 +10,8 @@ import 'package:submersion/features/nav_track/data/repositories/nav_track_reposi
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_match_service.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track.dart';
+import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -241,6 +243,64 @@ void main() {
 
       final route = await routeRepo.getById(id);
       expect(route!.equipmentId, isNull);
+    });
+  });
+
+  group('commit replacing a duplicate', () {
+    test('deletes the replaced route after the new one is stored', () async {
+      final preview = await service.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+      final oldId = await service.commit(
+        parsed: preview.parsed,
+        sourceRef: preview.sourceRef,
+      );
+
+      final newId = await service.commit(
+        parsed: preview.parsed,
+        sourceRef: preview.sourceRef,
+        replacingRouteId: oldId,
+      );
+
+      expect(await routeRepo.getById(oldId), isNull);
+      expect(await routeRepo.getById(newId), isNotNull);
+    });
+
+    test('hands the replaced route\'s primary role to its replacement, not '
+        'to an earlier-recorded sibling', () async {
+      await seedDive('d1', 1000000, exitTimeMs: 1100000);
+      final dive = await diveRepo.getDiveById('d1');
+      final preview = await service.prepare(
+        _fixture('seacraft_enc3_short.csv'),
+        fileName: '005.DAT.csv',
+      );
+      final oldId = await service.commit(
+        parsed: preview.parsed,
+        sourceRef: preview.sourceRef,
+        dive: dive,
+      );
+      // A second route on the same dive, recorded before the fixture, so
+      // "promote the earliest-recorded sibling" would pick it.
+      final earlierId = await routeRepo.insertImportedRoute(
+        points: const [
+          NavTrackPoint(timestamp: 1000, north: 0, east: 0, depth: 5),
+          NavTrackPoint(timestamp: 1010, north: 5, east: 0, depth: 5),
+        ],
+        source: NavTrackSource.seacraftEnc,
+        sourceRef: 'earlier.csv',
+        diveId: 'd1',
+      );
+
+      final newId = await service.commit(
+        parsed: preview.parsed,
+        sourceRef: preview.sourceRef,
+        dive: dive,
+        replacingRouteId: oldId,
+      );
+
+      expect((await routeRepo.getById(newId))!.isPrimary, isTrue);
+      expect((await routeRepo.getById(earlierId))!.isPrimary, isFalse);
     });
   });
 }

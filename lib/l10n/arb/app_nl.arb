@@ -12477,7 +12477,7 @@
   "navTrack_align_rotationLabel": "Rotatie:",
   "navTrack_align_rotationDegrees": "{degrees}°",
   "navTrack_terrain_summary": "{onLand} punten aan land, {below} van {total} onder de zeebodem{maxPart}, {unknown} onbekend{coarsePart}",
-  "navTrack_terrain_maxPart": " (max {meters} m)",
+  "navTrack_terrain_maxPart": " (max {depth})",
   "navTrack_terrain_coarsePart": " (grove bathymetrie: alleen landconflicten gecontroleerd)",
   "navTrack_detail_renameTitle": "Route hernoemen",
   "navTrack_detail_deleteTitle": "Route verwijderen?",

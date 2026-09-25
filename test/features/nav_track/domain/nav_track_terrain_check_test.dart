@@ -1,9 +1,11 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/features/bathymetry/domain/bathymetry_grid.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_terrain_check.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 
 const _anchor = GeoPoint(47.0, 8.0);
 
@@ -43,6 +45,43 @@ CorrectedNavTrackPoint _point({
 }
 
 void main() {
+  group('summaryLine', () {
+    final l10n = lookupAppLocalizations(const Locale('en'));
+    const result = NavTrackTerrainCheckResult(
+      classifications: [
+        NavTrackTerrainClass.ok,
+        NavTrackTerrainClass.belowSeafloor,
+      ],
+      penetrationMeters: [0, 13],
+      resolutionSupportsBelowSeafloorCheck: true,
+    );
+
+    test('shows the deepest penetration in the diver\'s depth unit', () {
+      final line = result.summaryLine(
+        l10n,
+        formatDepth: (meters) => '${(meters * 3.28084).toStringAsFixed(1)}ft',
+      );
+
+      expect(line, contains('(max 42.7ft)'));
+      expect(line, isNot(contains(' m)')));
+    });
+
+    test('omits the penetration when nothing is below the seafloor', () {
+      const clear = NavTrackTerrainCheckResult(
+        classifications: [NavTrackTerrainClass.ok],
+        penetrationMeters: [0],
+        resolutionSupportsBelowSeafloorCheck: true,
+      );
+
+      final line = clear.summaryLine(
+        l10n,
+        formatDepth: (_) => fail('no depth to format'),
+      );
+
+      expect(line, isNot(contains('max')));
+    });
+  });
+
   group('NavTrackTerrainCheck.run', () {
     test('a point over land (seafloor at or above the waterline)', () {
       final grid = _flatGrid(depth: -1);

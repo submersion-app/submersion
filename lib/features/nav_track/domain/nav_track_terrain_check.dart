@@ -90,9 +90,15 @@ class NavTrackTerrainCheckResult {
   /// A one-line human summary, e.g. "0 points on land, 2 of 3 below the
   /// seafloor (max 13.0 m), 0 unknown", with a caveat appended when the
   /// grid is too coarse for the below-seafloor count to be meaningful.
-  String summaryLine(AppLocalizations l10n) {
+  ///
+  /// [formatDepth] renders a depth given in metres in the active diver's
+  /// unit (the caller's `UnitFormatter.formatDepth`), unit symbol included.
+  String summaryLine(
+    AppLocalizations l10n, {
+    required String Function(double meters) formatDepth,
+  }) {
     final maxPart = belowSeafloorCount > 0
-        ? l10n.navTrack_terrain_maxPart(maxPenetrationMeters.toStringAsFixed(1))
+        ? l10n.navTrack_terrain_maxPart(formatDepth(maxPenetrationMeters))
         : '';
     final coarsePart = resolutionSupportsBelowSeafloorCheck
         ? ''

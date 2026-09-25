@@ -42,6 +42,49 @@ class NavTrackRepository {
   Stream<void> watchChanges() =>
       _db.tableUpdates(TableUpdateQuery.onTable(_db.navTracks));
 
+  /// Emits when the row for [routeId] changes (or disappears), and stays
+  /// quiet for writes to any other route.
+  ///
+  /// For readers that hydrate a route's points: decoding the blob is the
+  /// expensive part of a read, so a rename or relink of one route must not
+  /// make every other open route decode its own again. Every write to a
+  /// route stamps its `updatedAt` or `hlc` (a local edit bumps both, a
+  /// synced row arrives with the peer's), so comparing that pair on each
+  /// table change is enough to tell.
+  ///
+  /// The baseline stamp is read when this is called, ahead of the caller's
+  /// own read of the route, and each table change compares against the
+  /// stamp before it (asyncMap handles one change at a time), so a write
+  /// landing between the caller's read and the first table event still
+  /// emits.
+  Stream<void> watchRouteChanges(String routeId) {
+    // Table stream first: it reaches the database synchronously, so an
+    // unavailable one fails the caller's provider exactly as [watchChanges]
+    // does, before the baseline read below is ever issued.
+    final tableChanges = watchChanges();
+    var previous = _changeStamp(routeId);
+    return tableChanges
+        .asyncMap((_) async {
+          final before = await previous;
+          final current = _changeStamp(routeId);
+          previous = current;
+          return before != await current;
+        })
+        .where((changed) => changed)
+        .map((_) {});
+  }
+
+  Future<(int, String?)?> _changeStamp(String routeId) async {
+    final table = _db.navTracks;
+    final row =
+        await (_db.selectOnly(table)
+              ..addColumns([table.updatedAt, table.hlc])
+              ..where(table.id.equals(routeId)))
+            .getSingleOrNull();
+    if (row == null) return null;
+    return (row.read(table.updatedAt)!, row.read(table.hlc));
+  }
+
   /// Inserts a fully-parsed route in one write, optionally pre-linked to a
   /// dive (the review page's link proposal) and anchored to a site (the
   /// review page's site picker, or inherited from that dive).
@@ -159,6 +202,11 @@ class NavTrackRepository {
   }
 
   /// Routes linked to [diveId], primary first.
+  ///
+  /// Ties are broken by the earliest recording, then by id. isPrimary is
+  /// decided per device, so two devices that each linked a route to the same
+  /// dive before syncing leave that dive with two primaries; the tie-break
+  /// makes every device agree which of them the seascape draws.
   Future<List<domain.NavTrack>> getForDive(
     String diveId, {
     bool includePoints = false,
@@ -166,7 +214,11 @@ class NavTrackRepository {
     final rows =
         await (_db.select(_db.navTracks)
               ..where((t) => t.diveId.equals(diveId))
-              ..orderBy([(t) => OrderingTerm.desc(t.isPrimary)]))
+              ..orderBy([
+                (t) => OrderingTerm.desc(t.isPrimary),
+                (t) => OrderingTerm.asc(t.startTime),
+                (t) => OrderingTerm.asc(t.id),
+              ]))
             .get();
     return [for (final r in rows) _toDomain(r, includePoints: includePoints)];
   }
@@ -221,11 +273,12 @@ class NavTrackRepository {
   /// site nor an anchor of its own yet, so a route the diver already
   /// positioned is never overwritten.
   /// Returns true when [routeId] was actually linked. False (not an
-  /// exception) means the row was gone or already changed under this call
-  /// -- e.g. deleted or linked elsewhere between a caller reading it as
-  /// unlinked and this write landing -- so a sweep can tell a real link
-  /// from a no-op instead of reporting success for a write that touched
-  /// nothing.
+  /// exception) means the row was gone or already linked when this write
+  /// landed, for example deleted or linked by hand after a caller read it
+  /// as unlinked. A sweep can then tell a real link from a no-op instead of
+  /// reporting success for a write that touched nothing.
+  /// The write itself only matches an unlinked row, so an existing link is
+  /// never overwritten; relinking goes through [unlink] first.
   Future<bool> link(
     String routeId,
     String diveId, {
@@ -244,7 +297,7 @@ class NavTrackRepository {
       final rowsAffected =
           await (_db.update(
             _db.navTracks,
-          )..where((t) => t.id.equals(routeId))).write(
+          )..where((t) => t.id.equals(routeId) & t.diveId.isNull())).write(
             NavTracksCompanion(
               diveId: Value(diveId),
               linkMode: Value(linkMode.wireValue),
@@ -560,6 +613,24 @@ class NavTrackRepository {
     }
   }
 
+  /// Deletes [routeId] in favour of [withRouteId], a re-import of the same
+  /// recording. When the old route was the primary route of the dive the
+  /// new one is linked to, the new route takes that role over before the
+  /// delete; otherwise [delete]'s own fallback would promote whichever
+  /// sibling was recorded earliest, silently changing the route the
+  /// seascape draws.
+  Future<void> replace(String routeId, {required String withRouteId}) async {
+    final old = await getById(routeId, includePoints: false);
+    final replacement = await getById(withRouteId, includePoints: false);
+    final takesOverPrimary =
+        old != null &&
+        old.isPrimary &&
+        old.diveId != null &&
+        replacement?.diveId == old.diveId;
+    if (takesOverPrimary) await setPrimary(withRouteId);
+    await delete(routeId);
+  }
+
   /// True when no route other than [excludingRouteId] is already the
   /// primary route for [diveId] -- "the first link sets it".
   Future<bool> _shouldBePrimary(
@@ -583,12 +654,14 @@ class NavTrackRepository {
   /// still has a linked route can end up with no `isPrimary: true` row at
   /// all until a user happens to call [setPrimary] by hand.
   Future<void> _promoteSiblingIfNoPrimary(String diveId, int now) async {
+    // Not getSingleOrNull: sync can leave a dive with two primaries (see
+    // [getForDive]), and "any primary left" is all this needs to know.
     final stillPrimary =
-        await (_db.select(
-              _db.navTracks,
-            )..where((t) => t.diveId.equals(diveId) & t.isPrimary.equals(true)))
-            .getSingleOrNull();
-    if (stillPrimary != null) return;
+        await (_db.select(_db.navTracks)
+              ..where((t) => t.diveId.equals(diveId) & t.isPrimary.equals(true))
+              ..limit(1))
+            .get();
+    if (stillPrimary.isNotEmpty) return;
     final sibling =
         await (_db.select(_db.navTracks)
               ..where((t) => t.diveId.equals(diveId))

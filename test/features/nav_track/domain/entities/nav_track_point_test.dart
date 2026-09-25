@@ -58,4 +58,81 @@ void main() {
       expect(point.batteryVolts, isNull);
     });
   });
+
+  group('copyWith', () {
+    const point = NavTrackPoint(
+      timestamp: 100,
+      north: 1,
+      east: 2,
+      depth: 3,
+      course: 90,
+      pitch: 4,
+      roll: 5,
+      distance: 6,
+      speed: 0.5,
+      temperature: 12,
+      batteryVolts: 16.2,
+    );
+
+    test('with no arguments returns an equal point', () {
+      expect(point.copyWith(), point);
+    });
+
+    test('replaces only the fields it is given', () {
+      final moved = point.copyWith(north: 10, depth: 8, speed: 1.5);
+
+      expect(moved.north, 10);
+      expect(moved.depth, 8);
+      expect(moved.speed, 1.5);
+      expect(
+        moved,
+        const NavTrackPoint(
+          timestamp: 100,
+          north: 10,
+          east: 2,
+          depth: 8,
+          course: 90,
+          pitch: 4,
+          roll: 5,
+          distance: 6,
+          speed: 1.5,
+          temperature: 12,
+          batteryVolts: 16.2,
+        ),
+      );
+    });
+
+    test('covers every field', () {
+      final replaced = point.copyWith(
+        timestamp: 200,
+        north: 11,
+        east: 12,
+        depth: 13,
+        course: 14,
+        pitch: 15,
+        roll: 16,
+        distance: 17,
+        speed: 18,
+        temperature: 19,
+        batteryVolts: 20,
+      );
+
+      expect(
+        replaced,
+        const NavTrackPoint(
+          timestamp: 200,
+          north: 11,
+          east: 12,
+          depth: 13,
+          course: 14,
+          pitch: 15,
+          roll: 16,
+          distance: 17,
+          speed: 18,
+          temperature: 19,
+          batteryVolts: 20,
+        ),
+      );
+    });
+  });
 }

@@ -41604,8 +41604,8 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
-  String navTrack_terrain_maxPart(String meters) {
-    return ' (بحد أقصى $meters م)';
+  String navTrack_terrain_maxPart(String depth) {
+    return ' (بحد أقصى $depth)';
   }
 
   @override

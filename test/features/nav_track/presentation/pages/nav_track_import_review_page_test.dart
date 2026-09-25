@@ -11,7 +11,6 @@ import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/nav_track/data/repositories/nav_track_repository.dart';
 import 'package:submersion/features/nav_track/data/services/nav_track_import_service.dart';
 import 'package:submersion/features/nav_track/data/services/parsers/parsed_nav_track.dart';
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
@@ -19,7 +18,6 @@ import 'package:submersion/features/nav_track/domain/nav_track_segmenter.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_stats.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/nav_track/presentation/providers/nav_track_import_flow_providers.dart';
-import 'package:submersion/features/nav_track/presentation/providers/nav_track_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -123,7 +121,6 @@ Future<void> _pumpWithRouter(
   required NavTrackImportPreview preview,
   NavTrackImportService? service,
   List<EquipmentItem>? equipment,
-  NavTrackRepository? repository,
 }) async {
   final base = await getBaseOverrides();
   final router = GoRouter(
@@ -152,8 +149,6 @@ Future<void> _pumpWithRouter(
           navTrackImportServiceProvider.overrideWithValue(service),
         if (equipment != null)
           activeEquipmentProvider.overrideWith((ref) async => equipment),
-        if (repository != null)
-          navTrackRepositoryProvider.overrideWithValue(repository),
       ],
       child: MaterialApp.router(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -169,6 +164,8 @@ Future<void> _pumpWithRouter(
 /// them without touching a real database.
 class _RecordingImportService implements NavTrackImportService {
   String? lastEquipmentId;
+  String? lastReplacingRouteId;
+  int commitCount = 0;
 
   @override
   Future<NavTrackImportPreview> prepare(
@@ -185,23 +182,12 @@ class _RecordingImportService implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
+    String? replacingRouteId,
   }) async {
     lastEquipmentId = equipmentId;
+    lastReplacingRouteId = replacingRouteId;
+    commitCount++;
     return 'new-route-id';
-  }
-}
-
-/// Records whether/how often `delete` was called, without touching a real
-/// database -- the base class's other methods are never exercised by the
-/// tests that use this fake.
-class _RecordingRepository extends NavTrackRepository {
-  int deleteCallCount = 0;
-  final List<String> deletedIds = [];
-
-  @override
-  Future<void> delete(String routeId) async {
-    deleteCallCount++;
-    deletedIds.add(routeId);
   }
 }
 
@@ -223,6 +209,7 @@ class _ThrowingImportService implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
+    String? replacingRouteId,
   }) async {
     throw StateError('commit failed');
   }
@@ -444,16 +431,13 @@ void main() {
   });
 
   testWidgets(
-    'does not delete the duplicate route when replacing it and commit fails '
-    '(a failed commit must leave the original route in place)',
+    'stays on the page when replacing a duplicate and commit fails (the '
+    'service only removes the original after the new route is stored)',
     (tester) async {
-      final repository = _RecordingRepository();
-      final service = _ThrowingImportService();
       await _pumpWithRouter(
         tester,
         preview: _preview(duplicateOfRouteId: 'existing-route'),
-        service: service,
-        repository: repository,
+        service: _ThrowingImportService(),
       );
 
       await tester.tap(find.byType(Checkbox));
@@ -463,23 +447,20 @@ void main() {
       await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
       await tester.pumpAndSettle();
 
-      expect(repository.deleteCallCount, 0);
-      // The page stays put (no navigation to a route that was never
-      // created) and surfaces the failure instead.
+      // No navigation to a route that was never created; the failure is
+      // surfaced instead.
       expect(find.text('ROUTE_DETAIL_PAGE'), findsNothing);
     },
   );
 
-  testWidgets('deletes the duplicate route only after a successful commit', (
+  testWidgets('hands the ticked duplicate to commit as the route to replace', (
     tester,
   ) async {
-    final repository = _RecordingRepository();
     final service = _RecordingImportService();
     await _pumpWithRouter(
       tester,
       preview: _preview(duplicateOfRouteId: 'existing-route'),
       service: service,
-      repository: repository,
     );
 
     await tester.tap(find.byType(Checkbox));
@@ -489,8 +470,27 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
     await tester.pumpAndSettle();
 
-    expect(repository.deleteCallCount, 1);
-    expect(repository.deletedIds, ['existing-route']);
+    expect(service.commitCount, 1);
+    expect(service.lastReplacingRouteId, 'existing-route');
+  });
+
+  testWidgets('keeps the duplicate when replace is left unticked', (
+    tester,
+  ) async {
+    final service = _RecordingImportService();
+    await _pumpWithRouter(
+      tester,
+      preview: _preview(duplicateOfRouteId: 'existing-route'),
+      service: service,
+    );
+
+    await tester.drag(find.byType(ListView), const Offset(0, -400));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('nav-track-import-save')));
+    await tester.pumpAndSettle();
+
+    expect(service.commitCount, 1);
+    expect(service.lastReplacingRouteId, isNull);
   });
 
   testWidgets('shows a parse-error message when the preview future rejects', (
@@ -614,6 +614,7 @@ class _FailingImportService implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
+    String? replacingRouteId,
   }) async => throw UnimplementedError();
 }
 
@@ -638,5 +639,6 @@ class _GenericFailingImportService implements NavTrackImportService {
     String? name,
     String? deviceName,
     String? equipmentId,
+    String? replacingRouteId,
   }) async => throw UnimplementedError();
 }

@@ -12590,7 +12590,7 @@
   "navTrack_align_rotationLabel": "Drehung:",
   "navTrack_align_rotationDegrees": "{degrees}°",
   "navTrack_terrain_summary": "{onLand} Punkte an Land, {below} von {total} unter dem Meeresboden{maxPart}, {unknown} unbekannt{coarsePart}",
-  "navTrack_terrain_maxPart": " (max. {meters} m)",
+  "navTrack_terrain_maxPart": " (max. {depth})",
   "navTrack_terrain_coarsePart": " (grobe Bathymetrie: nur Landkonflikte geprüft)",
   "navTrack_detail_renameTitle": "Route umbenennen",
   "navTrack_detail_deleteTitle": "Route löschen?",

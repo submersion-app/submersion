@@ -32,6 +32,44 @@ NavTrackPoint _p({
 );
 
 void main() {
+  group('classify caching', () {
+    // The alignment page asks for the segmentation of the same unchanged
+    // recording several times per drag frame; one list is segmented once.
+    test('returns the same result for the same point list', () {
+      final points = [_p(t: 0, depth: 5), _p(t: 10, north: 3, depth: 6)];
+
+      expect(
+        identical(
+          NavTrackSegmenter.classify(points),
+          NavTrackSegmenter.classify(points),
+        ),
+        isTrue,
+      );
+    });
+
+    test('segments an equal but distinct list on its own', () {
+      final a = [_p(t: 0, depth: 5), _p(t: 10, north: 3, depth: 6)];
+      final b = [_p(t: 0, depth: 5), _p(t: 10, north: 3, depth: 6)];
+
+      expect(
+        identical(NavTrackSegmenter.classify(a), NavTrackSegmenter.classify(b)),
+        isFalse,
+      );
+    });
+
+    test('hands out a result callers cannot change under other callers', () {
+      final result = NavTrackSegmenter.classify([
+        _p(t: 0, depth: 5),
+        _p(t: 10, depth: 6),
+      ]);
+
+      expect(
+        () => result.kinds[0] = NavTrackSampleKind.gpsFixed,
+        throwsUnsupportedError,
+      );
+    });
+  });
+
   group('NavTrackSegmenter.classify on the real dive (no GPS fix)', () {
     late List<NavTrackSampleKind> kinds;
 

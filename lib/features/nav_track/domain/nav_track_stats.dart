@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:submersion/features/nav_track/domain/entities/nav_track_point.dart';
 import 'package:submersion/features/nav_track/domain/nav_track_corrector.dart';
 
@@ -55,9 +53,8 @@ class NavTrackStats {
       );
     }
 
-    final activeStart = NavTrackCorrector.activeRangeStartIndex(points);
-    final activeEnd = NavTrackCorrector.activeRangeEndIndex(points);
-    final active = points.sublist(activeStart, activeEnd + 1);
+    final range = NavTrackCorrector.activeRange(points);
+    final active = points.sublist(range.start, range.end + 1);
 
     var maxDepth = active.first.depth;
     double? maxSpeed;
@@ -77,38 +74,16 @@ class NavTrackStats {
     return NavTrackStats(
       pointCount: points.length,
       durationSeconds: active.last.timestamp - active.first.timestamp,
-      totalDistance: _totalDistance(active),
+      // The corrector's own distance axis over the same range, so the two
+      // can never disagree about which distance source a route uses.
+      totalDistance: NavTrackCorrector.cumulativeDistances(
+        points,
+        start: range.start,
+        end: range.end,
+      )[range.end],
       maxDepth: maxDepth,
       maxSpeed: maxSpeed,
       avgSpeed: speedCount == 0 ? null : speedSum / speedCount,
     );
-  }
-
-  static double _totalDistance(List<NavTrackPoint> points) {
-    var deviceDistanceUsable = points.first.distance != null;
-    if (deviceDistanceUsable) {
-      for (var i = 1; i < points.length; i++) {
-        final previous = points[i - 1].distance;
-        final current = points[i].distance;
-        if (previous == null || current == null || current < previous) {
-          deviceDistanceUsable = false;
-          break;
-        }
-      }
-    }
-    // The device's cumulative distance channel is not reset to zero at the
-    // start of this range (e.g. a pre-dive GPS-fix prefix the active range
-    // excludes), so the swum distance is the delta, not the raw reading.
-    if (deviceDistanceUsable) {
-      return points.last.distance! - points.first.distance!;
-    }
-
-    var total = 0.0;
-    for (var i = 1; i < points.length; i++) {
-      final dNorth = points[i].north - points[i - 1].north;
-      final dEast = points[i].east - points[i - 1].east;
-      total += math.sqrt(dNorth * dNorth + dEast * dEast);
-    }
-    return total;
   }
 }
