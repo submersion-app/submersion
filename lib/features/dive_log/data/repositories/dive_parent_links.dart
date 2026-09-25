@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 
 /// `dives.site_id` and `dives.dive_center_id` reference `dive_sites` and
 /// `dive_centers` with no ON DELETE action. Under `PRAGMA foreign_keys = ON`
@@ -20,15 +21,29 @@ Future<void> clearDiveSiteLinks(
 }) => _clearDiveLinks(db, syncRepository, 'site_id', siteIds, now: now);
 
 /// Clears the dive center of the dives logged with [centerIds], stamping and
-/// marking each dive so the change reaches peers. Run it inside the caller's
-/// transaction, before the centers are deleted.
+/// marking each dive so the change reaches peers, and the fill station of
+/// the trip cylinder fills made there, staging each. Run it inside the
+/// caller's transaction, before the centers are deleted.
 Future<void> clearDiveCenterLinks(
   AppDatabase db,
   SyncRepository syncRepository,
   List<String> centerIds, {
   required int now,
-}) =>
-    _clearDiveLinks(db, syncRepository, 'dive_center_id', centerIds, now: now);
+}) async {
+  await _clearDiveLinks(
+    db,
+    syncRepository,
+    'dive_center_id',
+    centerIds,
+    now: now,
+  );
+  await clearTripCylinderEventCenterLinks(
+    db,
+    syncRepository,
+    centerIds,
+    now: now,
+  );
+}
 
 /// Sets [column] to NULL on the dives whose [column] is in [ids]. [column]
 /// is one of the constants above, never caller input.

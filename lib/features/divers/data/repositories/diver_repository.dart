@@ -680,6 +680,15 @@ class DiverRepository {
           now: DateTime.now().millisecondsSinceEpoch,
         );
         await deleteDiverRows(_db, _syncRepository, id, diverGearSteps);
+        // Fills on other divers' trips made at this diver's centers: the
+        // centers go with the library below, so clear and stage those links
+        // now; the schema's SET NULL reaches no peer.
+        await clearTripCylinderEventCenterLinks(
+          _db,
+          _syncRepository,
+          await _idsOf('SELECT id FROM dive_centers WHERE diver_id = ?', [id]),
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
         // After the gear, so only surviving gear's schedules keep a kind.
         await retireDiverServiceKinds(
           _db,
