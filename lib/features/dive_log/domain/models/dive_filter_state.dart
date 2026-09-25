@@ -1,3 +1,4 @@
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/util/wall_clock_utc.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
@@ -93,6 +94,11 @@ class DiveFilterState {
   /// ([EquipmentAttrCondition.suitThickness]).
   final List<EquipmentAttrCondition> equipmentAttrConditions;
 
+  /// The advanced part of the filter: a query tree the typed field or the
+  /// rule builder edits (#2365). ANDed with every other axis by
+  /// `toQuery()`. Null means no advanced conditions.
+  final QueryNode? query;
+
   const DiveFilterState({
     this.startDate,
     this.endDate,
@@ -121,6 +127,7 @@ class DiveFilterState {
     this.customFieldKey,
     this.customFieldValue,
     this.equipmentAttrConditions = const [],
+    this.query,
   });
 
   /// Inclusive lower bound for `dives.dive_date_time`, in the wall-clock-as-UTC
@@ -184,7 +191,8 @@ class DiveFilterState {
       maxBottomTimeMinutes != null ||
       computerId != null ||
       (customFieldKey != null && customFieldKey!.isNotEmpty) ||
-      equipmentAttrConditions.isNotEmpty;
+      equipmentAttrConditions.isNotEmpty ||
+      query != null;
 
   DiveFilterState copyWith({
     DateTime? startDate,
@@ -214,6 +222,7 @@ class DiveFilterState {
     String? customFieldKey,
     String? customFieldValue,
     List<EquipmentAttrCondition>? equipmentAttrConditions,
+    QueryNode? query,
     bool clearStartDate = false,
     bool clearEndDate = false,
     bool clearDiveType = false,
@@ -241,6 +250,7 @@ class DiveFilterState {
     bool clearCustomFieldKey = false,
     bool clearCustomFieldValue = false,
     bool clearEquipmentAttrConditions = false,
+    bool clearQuery = false,
   }) {
     return DiveFilterState(
       startDate: clearStartDate ? null : (startDate ?? this.startDate),
@@ -294,6 +304,7 @@ class DiveFilterState {
       equipmentAttrConditions: clearEquipmentAttrConditions
           ? const []
           : (equipmentAttrConditions ?? this.equipmentAttrConditions),
+      query: clearQuery ? null : (query ?? this.query),
     );
   }
 
