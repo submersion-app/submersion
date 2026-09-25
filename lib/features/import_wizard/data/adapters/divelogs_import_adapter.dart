@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/divelogs/divelogs_api_client.dart';
+import 'package:submersion/core/services/divelogs/divelogs_auth.dart';
 import 'package:submersion/core/services/divelogs/divelogs_session_store.dart';
 import 'package:submersion/features/import_wizard/data/adapters/import_photo_linker.dart';
 import 'package:submersion/features/import_wizard/data/adapters/remote_photo_attacher.dart';
@@ -122,12 +123,20 @@ class DivelogsImportAdapter extends UniversalAdapter {
         destinationDir: destinationDir,
       ),
       cancelToken: cancelToken,
+      stopOn: _sessionLost,
     );
     return (
       attached: outcome.attached - linker.alreadyLinked,
       failed: outcome.failed,
     );
   }
+
+  /// Errors after which no further download can succeed: the session is
+  /// gone, or renewing it failed. Retrying would log in once per photo.
+  static bool _sessionLost(Object error) =>
+      error is DivelogsSessionExpiredException ||
+      error is DivelogsAuthException ||
+      (error is DivelogsApiException && error.statusCode == 401);
 
   @visibleForTesting
   Future<RemotePhotoOutcome> debugAttachAdditionalPhotosFor({

@@ -9,6 +9,7 @@ import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/services/divelogs/divelogs_api_client.dart';
+import 'package:submersion/core/services/divelogs/divelogs_auth.dart';
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/remote_photo_attacher.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart';
@@ -172,5 +173,47 @@ void main() {
     final saved = File(p.join(dest.path, 'reef.jpg'));
     expect(saved.readAsBytesSync(), [7, 7, 7]);
     expect(linkService.linked.single, (saved.path, 'dive-1'));
+  });
+
+  testWidgets('a lost session stops the downloads instead of retrying each', (
+    tester,
+  ) async {
+    final adapter = await pumpAdapter(tester);
+    var tokenRequests = 0;
+    adapter.setClient(
+      DivelogsApiClient(
+        getBearerToken: () async {
+          tokenRequests++;
+          throw const DivelogsSessionExpiredException();
+        },
+        onTokenRejected: () {},
+        httpClient: MockClient((_) async => fail('no request without a token')),
+      ),
+    );
+    adapter.setRemotePhotos({
+      'divelogs-1': [
+        RemotePhoto(
+          url: Uri.parse('https://divelogs.de/p/a.jpg'),
+          fileName: 'a.jpg',
+        ),
+        RemotePhoto(
+          url: Uri.parse('https://divelogs.de/p/b.jpg'),
+          fileName: 'b.jpg',
+        ),
+      ],
+    });
+
+    final outcome = await tester.runAsync(
+      () => adapter.debugAttachAdditionalPhotosFor(
+        photoDiveIds: const {0: 'dive-1'},
+        dives: const [
+          {'sourceUuid': 'divelogs-1'},
+        ],
+        destinationDir: Directory.systemTemp.path,
+      ),
+    );
+
+    expect(outcome, (attached: 0, failed: 2));
+    expect(tokenRequests, 1);
   });
 }

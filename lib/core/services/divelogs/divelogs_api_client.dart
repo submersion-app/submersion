@@ -26,15 +26,21 @@ class DivelogsApiClient {
     required void Function() onTokenRejected,
     http.Client? httpClient,
     Uri? baseUri,
+    Duration pictureTimeout = const Duration(seconds: 60),
   }) : _getBearerToken = getBearerToken,
        _onTokenRejected = onTokenRejected,
        _http = httpClient ?? http.Client(),
-       _baseUri = baseUri ?? Uri.parse('https://divelogs.de/api');
+       _baseUri = baseUri ?? Uri.parse('https://divelogs.de/api'),
+       _pictureTimeout = pictureTimeout;
 
   final Future<String> Function() _getBearerToken;
   final void Function() _onTokenRejected;
   final http.Client _http;
   final Uri _baseUri;
+
+  /// How long one picture download may take before it counts as failed, so
+  /// a stalled connection cannot hang the import after the dives are saved.
+  final Duration _pictureTimeout;
 
   Future<Map<String, dynamic>> getUser() async {
     final response = await _get('/user');
@@ -137,11 +143,40 @@ class DivelogsApiClient {
     ];
   }
 
-  /// Fetches picture bytes from an absolute URL (NOT a /api path), reusing
-  /// the same bearer and 401-invalidate-retry-once contract.
+  /// Fetches picture bytes from an absolute URL (NOT a /api path).
+  ///
+  /// The session token goes only to the API's own host (or a subdomain of
+  /// it) over https, with the same 401-invalidate-retry-once contract; a
+  /// picture served from anywhere else is fetched without it, so the token
+  /// never reaches a third party or crosses the network in the clear.
   Future<Uint8List> downloadPictureBytes(Uri url) async {
-    final response = await _authorizedGet(url);
+    final response = _sendsTokenTo(url)
+        ? await _authorizedGet(url, timeout: _pictureTimeout)
+        : await _plainGet(url);
     return response.bodyBytes;
+  }
+
+  bool _sendsTokenTo(Uri url) {
+    if (!url.isScheme('https')) return false;
+    final host = url.host.toLowerCase();
+    final apiHost = _baseUri.host.toLowerCase();
+    return host == apiHost || host.endsWith('.$apiHost');
+  }
+
+  Future<http.Response> _plainGet(Uri uri) async {
+    final http.Response response;
+    try {
+      response = await _http.get(uri).timeout(_pictureTimeout);
+    } on Exception {
+      throw const DivelogsApiException(0, 'Could not download the picture.');
+    }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw DivelogsApiException(
+        response.statusCode,
+        'Picture download failed (${response.statusCode})',
+      );
+    }
+    return response;
   }
 
   List<dynamic> _rows(Object? decoded, String endpoint, List<String> listKeys) {
@@ -170,16 +205,17 @@ class DivelogsApiClient {
   Future<http.Response> _get(String path) =>
       _authorizedGet(_baseUri.replace(path: '${_baseUri.path}$path'));
 
-  Future<http.Response> _authorizedGet(Uri uri) async {
+  Future<http.Response> _authorizedGet(Uri uri, {Duration? timeout}) async {
     var authRetried = false;
     while (true) {
       final token = await _getBearerToken();
       final http.Response response;
       try {
-        response = await _http.get(
+        final request = _http.get(
           uri,
           headers: {'Authorization': 'Bearer $token'},
         );
+        response = await (timeout == null ? request : request.timeout(timeout));
       } on Exception {
         throw const DivelogsApiException(0, 'Could not reach divelogs.de.');
       }

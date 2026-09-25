@@ -165,4 +165,29 @@ void main() {
     );
     expect(Directory(seen.single).existsSync(), isFalse);
   });
+
+  test('an error that stops the run fails every remaining photo', () async {
+    var downloads = 0;
+    final outcome = await attachRemotePhotos(
+      photosBySourceUuid: {
+        'divelogs-1': [_photo('a.jpg'), _photo('b.jpg')],
+        'divelogs-2': [_photo('c.jpg')],
+      },
+      diveIdByIndex: const {0: 'dive-1', 1: 'dive-2'},
+      removedDiveIds: const {},
+      dives: [
+        {'sourceUuid': 'divelogs-1'},
+        {'sourceUuid': 'divelogs-2'},
+      ],
+      diveStartById: const {},
+      download: (url) async {
+        downloads++;
+        throw StateError('session expired');
+      },
+      attach: (file, diveId, diveStart) async {},
+      stopOn: (error) => error is StateError,
+    );
+    expect(downloads, 1);
+    expect(outcome, (attached: 0, failed: 3));
+  });
 }

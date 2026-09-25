@@ -33,7 +33,9 @@ typedef RemotePhotoOutcome = ({int attached, int failed});
 /// its own folder, so two photos with the same name never collide, and the
 /// whole temp tree is deleted before returning. A failure costs only that
 /// photo: it is counted and the loop moves on, so photos can never fail an
-/// import.
+/// import. An error [stopOn] accepts (a session that can no longer be
+/// renewed) ends the run instead, counting every photo left as failed, so a
+/// dead session is not retried once per photo.
 Future<RemotePhotoOutcome> attachRemotePhotos({
   required Map<String, List<RemotePhoto>> photosBySourceUuid,
   required Map<int, String> diveIdByIndex,
@@ -44,39 +46,50 @@ Future<RemotePhotoOutcome> attachRemotePhotos({
   required Future<void> Function(File file, String diveId, DateTime? diveStart)
   attach,
   ImportCancellationToken? cancelToken,
+  bool Function(Object error)? stopOn,
 }) async {
   if (photosBySourceUuid.isEmpty || diveIdByIndex.isEmpty) {
     return (attached: 0, failed: 0);
   }
+  final jobs = <({RemotePhoto photo, String diveId, DateTime? diveStart})>[
+    for (final entry in diveIdByIndex.entries)
+      if (!removedDiveIds.contains(entry.value) &&
+          entry.key >= 0 &&
+          entry.key < dives.length)
+        for (final photo
+            in photosBySourceUuid[dives[entry.key]['sourceUuid']] ??
+                const <RemotePhoto>[])
+          (
+            photo: photo,
+            diveId: entry.value,
+            diveStart:
+                diveStartById[entry.value] ??
+                dives[entry.key]['dateTime'] as DateTime?,
+          ),
+  ];
+  if (jobs.isEmpty) return (attached: 0, failed: 0);
+
   final tempRoot = await Directory.systemTemp.createTemp('remote_photos_');
   var attached = 0;
   var failed = 0;
-  var slot = 0;
   try {
-    for (final entry in diveIdByIndex.entries) {
-      final diveId = entry.value;
-      if (removedDiveIds.contains(diveId)) continue;
-      if (entry.key < 0 || entry.key >= dives.length) continue;
-      final dive = dives[entry.key];
-      final photos = photosBySourceUuid[dive['sourceUuid']];
-      if (photos == null) continue;
-      final diveStart = diveStartById[diveId] ?? dive['dateTime'] as DateTime?;
-      for (final photo in photos) {
-        if (cancelToken?.isCancelled ?? false) {
-          return (attached: attached, failed: failed);
+    for (final (slot, job) in jobs.indexed) {
+      if (cancelToken?.isCancelled ?? false) break;
+      try {
+        final bytes = await download(job.photo.url);
+        final dir = Directory(p.join(tempRoot.path, '$slot'));
+        await dir.create();
+        final file = File(p.join(dir.path, job.photo.fileName));
+        await file.writeAsBytes(bytes, flush: true);
+        await attach(file, job.diveId, job.diveStart);
+        attached++;
+      } catch (e) {
+        _log.warning('Could not attach remote photo ${job.photo.fileName}: $e');
+        if (stopOn?.call(e) ?? false) {
+          failed += jobs.length - slot;
+          break;
         }
-        try {
-          final bytes = await download(photo.url);
-          final dir = Directory(p.join(tempRoot.path, '${slot++}'));
-          await dir.create();
-          final file = File(p.join(dir.path, photo.fileName));
-          await file.writeAsBytes(bytes, flush: true);
-          await attach(file, diveId, diveStart);
-          attached++;
-        } catch (e) {
-          failed++;
-          _log.warning('Could not attach remote photo ${photo.fileName}: $e');
-        }
+        failed++;
       }
     }
     return (attached: attached, failed: failed);

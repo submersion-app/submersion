@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -238,5 +239,52 @@ void main() {
       client.getAllDives(),
       throwsA(isA<DivelogsSessionExpiredException>()),
     );
+  });
+
+  group('picture downloads', () {
+    Future<String?> authHeaderFor(String url) async {
+      String? seen = 'unset';
+      final api = client((req) async {
+        seen = req.headers['Authorization'];
+        return http.Response.bytes([1], 200);
+      });
+      await api.downloadPictureBytes(Uri.parse(url));
+      return seen;
+    }
+
+    test('send the token to the API host over https', () async {
+      expect(
+        await authHeaderFor('https://divelogs.de/pics/a.jpg'),
+        'Bearer t1',
+      );
+      expect(await authHeaderFor('https://img.divelogs.de/a.jpg'), 'Bearer t1');
+    });
+
+    test('never send the token to another host or over http', () async {
+      expect(await authHeaderFor('https://cdn.example.com/a.jpg'), isNull);
+      expect(await authHeaderFor('http://divelogs.de/pics/a.jpg'), isNull);
+      expect(await authHeaderFor('https://evildivelogs.de/a.jpg'), isNull);
+    });
+
+    test('a download that never answers times out as an API error', () async {
+      final api = DivelogsApiClient(
+        getBearerToken: () async => 't',
+        onTokenRejected: () {},
+        httpClient: MockClient((_) => Completer<http.Response>().future),
+        pictureTimeout: const Duration(milliseconds: 20),
+      );
+      await expectLater(
+        api.downloadPictureBytes(Uri.parse('https://divelogs.de/p/a.jpg')),
+        throwsA(isA<DivelogsApiException>()),
+      );
+    });
+
+    test('a failing download from another host is an API error', () async {
+      final api = client((_) async => http.Response('', 404));
+      await expectLater(
+        api.downloadPictureBytes(Uri.parse('https://cdn.example.com/a.jpg')),
+        throwsA(isA<DivelogsApiException>()),
+      );
+    });
   });
 }
