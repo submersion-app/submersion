@@ -1435,6 +1435,11 @@ class SyncService {
             records: data.transmitters,
             hasUpdatedAt: true,
           ),
+          (
+            type: 'cylinderFills',
+            records: data.cylinderFills,
+            hasUpdatedAt: true,
+          ),
           (type: 'species', records: data.species, hasUpdatedAt: false),
           (type: 'tags', records: data.tags, hasUpdatedAt: true),
           // Courses must apply before dives/certifications that reference them.
@@ -2357,6 +2362,7 @@ class SyncService {
     'weightPresetEntries': false,
     'diveComputers': true,
     'transmitters': true,
+    'cylinderFills': true,
     'species': false,
     'tags': true,
     'courses': true,
@@ -2488,6 +2494,11 @@ class SyncService {
       // v206: the transmitter gear item the entry is (condition phase 3b).
       (field: 'transmitterEquipmentId', parent: 'equipment', nullable: true),
       (field: 'diveComputerId', parent: 'diveComputers', nullable: true),
+    ],
+    // The gear link is nullable: a fill outlives a deleted cylinder (set
+    // null) and a fill of a rental cylinder never had one.
+    'cylinderFills': [
+      (field: 'equipmentId', parent: 'equipment', nullable: true),
     ],
     // v202: a child item (O2 cell, battery) points at the item it is installed
     // in. Nullable: deleting the parent orphans the child, never drops it.
