@@ -571,6 +571,7 @@ class _UnitsSectionContent extends ConsumerWidget {
                 _buildUnitTile(
                   context,
                   title: context.l10n.settings_visibilityScale_title,
+                  subtitle: context.l10n.settings_visibilityScale_subtitle,
                   value: visibilityPresetLabel(
                     context.l10n,
                     settings.visibilityScalePreset,
@@ -700,11 +701,13 @@ class _UnitsSectionContent extends ConsumerWidget {
   Widget _buildUnitTile(
     BuildContext context, {
     required String title,
+    String? subtitle,
     required String value,
     required VoidCallback onTap,
   }) {
     return ListTile(
       title: Text(title),
+      subtitle: subtitle == null ? null : Text(subtitle),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -2899,16 +2902,6 @@ class _DataSectionContent extends ConsumerWidget {
                   ),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push('/settings/offline-maps'),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.terrain),
-                  title: Text(context.l10n.settings_data_threeDMaps),
-                  subtitle: Text(
-                    context.l10n.settings_data_threeDMaps_subtitle,
-                  ),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () => context.push('/settings/3d-maps'),
                 ),
               ],
             ),

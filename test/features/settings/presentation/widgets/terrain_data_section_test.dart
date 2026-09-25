@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_providers.dart';
 import 'package:submersion/features/bathymetry/application/bathymetry_reset_providers.dart';
-import 'package:submersion/features/settings/presentation/pages/three_d_maps_page.dart';
+import 'package:submersion/features/settings/presentation/widgets/terrain_data_section.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -32,7 +32,7 @@ class _FakeMapReloadNotifier extends MapReloadNotifier {
 }
 
 void main() {
-  Future<void> pumpPage(
+  Future<void> pumpSection(
     WidgetTester tester, {
     required List<Override> extraOverrides,
   }) async {
@@ -44,7 +44,9 @@ void main() {
           locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: ThreeDMapsPage(),
+          home: Scaffold(
+            body: SingleChildScrollView(child: TerrainDataSection()),
+          ),
         ),
       ),
     );
@@ -52,8 +54,8 @@ void main() {
     await tester.pump();
   }
 
-  testWidgets('renders all four actions', (tester) async {
-    await pumpPage(
+  testWidgets('renders its header and all four actions', (tester) async {
+    await pumpSection(
       tester,
       extraOverrides: [
         bathymetryRepositoryProvider.overrideWithValue(null),
@@ -62,6 +64,7 @@ void main() {
       ],
     );
 
+    expect(find.text('3D terrain'), findsOneWidget);
     expect(find.text('Update Existing Map Data'), findsOneWidget);
     expect(find.text('Delete data'), findsOneWidget);
     expect(find.text('Reset remaining bathymetry data'), findsOneWidget);
@@ -73,7 +76,7 @@ void main() {
     'and shows a confirmation snackbar',
     (tester) async {
       var cleared = false;
-      await pumpPage(
+      await pumpSection(
         tester,
         extraOverrides: [
           bathymetryRepositoryProvider.overrideWithValue(null),
@@ -104,7 +107,7 @@ void main() {
     tester,
   ) async {
     var cleared = false;
-    await pumpPage(
+    await pumpSection(
       tester,
       extraOverrides: [
         bathymetryRepositoryProvider.overrideWithValue(null),
@@ -132,7 +135,7 @@ void main() {
       final clearStarted = Completer<void>();
       final clearGate = Completer<void>();
       var refreshCalls = 0;
-      await pumpPage(
+      await pumpSection(
         tester,
         extraOverrides: [
           bathymetryRepositoryProvider.overrideWithValue(null),
@@ -180,7 +183,7 @@ void main() {
     (tester) async {
       final startGate = Completer<void>();
       late _FakeMapReloadNotifier fake;
-      await pumpPage(
+      await pumpSection(
         tester,
         extraOverrides: [
           bathymetryRepositoryProvider.overrideWithValue(null),
@@ -219,7 +222,7 @@ void main() {
       expect(find.text('1 of 2 dive sites'), findsOneWidget);
       expect(
         find.text(
-          'Another 3D Maps action is running. Please wait until it finishes.',
+          'Another 3D terrain action is running. Please wait until it finishes.',
         ),
         findsOneWidget,
       );
@@ -245,7 +248,7 @@ void main() {
     'the formatter clamped a genuine zero to one)',
     (tester) async {
       final startGate = Completer<void>();
-      await pumpPage(
+      await pumpSection(
         tester,
         extraOverrides: [
           bathymetryRepositoryProvider.overrideWithValue(null),
@@ -296,7 +299,7 @@ void main() {
     'failure message when the reload throws',
     (tester) async {
       final startGate = Completer<void>();
-      await pumpPage(
+      await pumpSection(
         tester,
         extraOverrides: [
           bathymetryRepositoryProvider.overrideWithValue(null),
@@ -350,7 +353,7 @@ void main() {
     'clear provider and shows a confirmation snackbar',
     (tester) async {
       var cleared = false;
-      await pumpPage(
+      await pumpSection(
         tester,
         extraOverrides: [
           bathymetryRepositoryProvider.overrideWithValue(null),
@@ -376,7 +379,7 @@ void main() {
       '(regression: a throwing action used to leave no signal at all)', (
     tester,
   ) async {
-    await pumpPage(
+    await pumpSection(
       tester,
       extraOverrides: [
         bathymetryRepositoryProvider.overrideWithValue(null),

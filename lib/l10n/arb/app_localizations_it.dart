@@ -18505,14 +18505,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_data_offlineMaps_subtitle =>
-      'Scarica mappe per l\'uso offline';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+      'Tile della mappa e dati del terreno 3D';
 
   @override
   String get settings_data_restore => 'Ripristina';
@@ -26096,14 +26089,14 @@ class AppLocalizationsIt extends AppLocalizations {
   String get maps_offline_clearAll => 'Cancella tutto';
 
   @override
-  String get maps_offline_clearAllCache => 'Cancella tutta la cache';
-
-  @override
   String get maps_offline_clearAllCacheMessage =>
       'Eliminare tutte le regioni scaricate e i tile nella cache?';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'Cancellare tutta la cache?';
+
+  @override
+  String get maps_offline_clearAllTiles => 'Cancella tutti i tile della mappa';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -26211,6 +26204,12 @@ class AppLocalizationsIt extends AppLocalizations {
   ) {
     return '$size, $count tile, zoom da $minZoom a $maxZoom';
   }
+
+  @override
+  String get maps_offline_section_terrain => 'Terreno 3D';
+
+  @override
+  String get maps_offline_section_tiles => 'Tile della mappa';
 
   @override
   String get maps_offline_size => 'Dimensione';
@@ -26928,9 +26927,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Nessun dato di profondità dei laghi ancora memorizzato';
 
   @override
-  String get maps3d_appBar_title => 'Mappe 3D';
-
-  @override
   String get maps3d_section_all => 'Tutti i fornitori';
 
   @override
@@ -27036,7 +27032,7 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get maps3d_busy_notice =>
-      'È in corso un\'altra azione Mappe 3D. Attendi il completamento.';
+      'È in corso un\'altra azione sul terreno 3D. Attendi il completamento.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {
@@ -31168,6 +31164,11 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return '$min $unit o più';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'Formato delle coordinate';
 
   @override
@@ -31203,7 +31204,11 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'Quali distanze contano come buona visibilità dove ti immergi';
+      'Come i dettagli dell\'immersione e le statistiche descrivono la visibilità che hai misurato';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'Scegli quali distanze misurate contano come Eccellente, Buona, Moderata o Scarsa nei dettagli dell\'immersione e nelle statistiche. Cambiarlo rietichetta solo le tue immersioni; non modifica mai le distanze registrate.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'Tropicale';
@@ -31230,6 +31235,18 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get settings_visibilityScale_invalidOrder =>
       'Ogni valore deve essere inferiore a quello sopra e maggiore di zero';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset => 'Imposta le tue distanze';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'Inserisci la distanza più breve che conta ancora per ogni livello.';
 
   @override
   String statistics_conditions_visibility_legacySuffix(String band) {

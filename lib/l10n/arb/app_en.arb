@@ -11163,9 +11163,7 @@
   "settings_data_import_completed": "Operation completed",
   "settings_data_import_failed": "Operation failed: {error}",
   "settings_data_offlineMaps": "Offline Maps",
-  "settings_data_offlineMaps_subtitle": "Download maps for offline use",
-  "settings_data_threeDMaps": "3D Maps",
-  "settings_data_threeDMaps_subtitle": "Manage cached swissBATHY3D and other bathymetry data",
+  "settings_data_offlineMaps_subtitle": "Map tiles and 3D terrain data",
   "settings_data_restore": "Restore",
   "settings_data_restoreDialog_cancel": "Cancel",
   "settings_data_restoreDialog_content": "Warning: Restoring from a backup will replace ALL current data with the backup data. This action cannot be undone.  Are you sure you want to continue?",
@@ -16801,9 +16799,9 @@
   "maps_offline_cacheStatistics": "Cache Statistics",
   "maps_offline_cancelDownload": "Cancel Download",
   "maps_offline_clearAll": "Clear All",
-  "maps_offline_clearAllCache": "Clear All Cache",
   "maps_offline_clearAllCacheMessage": "Delete all downloaded map regions and cached tiles?",
   "maps_offline_clearAllCacheTitle": "Clear All Cache?",
+  "maps_offline_clearAllTiles": "Clear all map tiles",
   "maps_offline_clearCacheStats": "This will delete {count} tiles ({size}).",
   "@maps_offline_clearCacheStats": {
     "placeholders": {
@@ -16946,6 +16944,8 @@
       }
     }
   },
+  "maps_offline_section_terrain": "3D terrain",
+  "maps_offline_section_tiles": "Map tiles",
   "maps_offline_size": "Size",
   "maps_offline_sizeUnknown": "Unknown",
   "@maps_offline_sizeUnknown": {
@@ -17294,7 +17294,6 @@
   "settings_appearance_bathymetryRefresh_resultUpToDate": "All data is up to date",
   "settings_appearance_bathymetryRefresh_resultFailed": "Couldn't check all data; existing values were kept",
   "settings_appearance_bathymetryRefresh_resultNothingCached": "No lake depth data cached yet",
-  "maps3d_appBar_title": "3D Maps",
   "maps3d_section_all": "All Providers",
   "maps3d_section_swissBathy": "swissBATHY3D",
   "maps3d_swissBathy_delete": "Delete data",
@@ -17345,7 +17344,7 @@
   "maps3d_reload_done": "Map data reloaded for every dive site",
   "maps3d_reload_cancelled": "Reload cancelled",
   "maps3d_reload_failed": "Reload failed; some dive sites may not have been reloaded",
-  "maps3d_busy_notice": "Another 3D Maps action is running. Please wait until it finishes.",
+  "maps3d_busy_notice": "Another 3D terrain action is running. Please wait until it finishes.",
   "maps3d_reload_remainingSeconds": "about {count, plural, =1{1 second} other{{count} seconds}} remaining",
   "@maps3d_reload_remainingSeconds": {
     "placeholders": {
@@ -20203,6 +20202,17 @@
       }
     }
   },
+  "visibility_range_atLeast": "{min} {unit}+",
+  "@visibility_range_atLeast": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
   "settings_coordinateFormat_title": "Coordinate format",
   "settings_coordinateFormat_subtitle": "How GPS positions are shown and entered",
   "settings_placeNameLanguage_title": "Place name language",
@@ -20213,7 +20223,8 @@
   "settings_coordinateFormat_utm": "UTM",
   "settings_coordinateFormat_mgrs": "MGRS",
   "settings_visibilityScale_title": "Visibility scale",
-  "settings_visibilityScale_subtitle": "Which distances count as good visibility where you dive",
+  "settings_visibilityScale_subtitle": "How dive details and statistics describe the visibility you measured",
+  "settings_visibilityScale_intro": "Choose which measured distances count as Excellent, Good, Moderate or Poor in dive details and statistics. Changing this relabels your dives; it never changes the distances you logged.",
   "settings_visibilityScale_preset_tropical": "Tropical",
   "settings_visibilityScale_preset_temperate": "Temperate",
   "settings_visibilityScale_preset_coldWater": "Cold water / Inland",
@@ -20222,6 +20233,19 @@
   "settings_visibilityScale_customGood": "Good at or above",
   "settings_visibilityScale_customModerate": "Moderate at or above",
   "settings_visibilityScale_invalidOrder": "Each value must be smaller than the one above it, and greater than zero",
+  "settings_visibilityScale_bandRange": "{band} {range}",
+  "@settings_visibilityScale_bandRange": {
+    "placeholders": {
+      "band": {
+        "type": "String"
+      },
+      "range": {
+        "type": "String"
+      }
+    }
+  },
+  "settings_visibilityScale_customUnset": "Set your own distances",
+  "settings_visibilityScale_customHelp": "Enter the shortest distance that still counts for each label.",
   "statistics_conditions_visibility_legacySuffix": "{band} (logged before measurement)",
   "@statistics_conditions_visibility_legacySuffix": {
     "placeholders": {

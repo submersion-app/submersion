@@ -18186,14 +18186,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_data_offlineMaps_subtitle =>
-      'تنزيل الخرائط للاستخدام بدون اتصال';
-
-  @override
-  String get settings_data_threeDMaps => '3D Maps';
-
-  @override
-  String get settings_data_threeDMaps_subtitle =>
-      'Manage cached swissBATHY3D and other bathymetry data';
+      'بلاطات الخريطة وبيانات التضاريس ثلاثية الأبعاد';
 
   @override
   String get settings_data_restore => 'استعادة';
@@ -25745,14 +25738,14 @@ class AppLocalizationsAr extends AppLocalizations {
   String get maps_offline_clearAll => 'مسح الكل';
 
   @override
-  String get maps_offline_clearAllCache => 'مسح كل التخزين المؤقت';
-
-  @override
   String get maps_offline_clearAllCacheMessage =>
       'حذف جميع مناطق الخرائط المنزّلة والبلاطات المخزنة مؤقتًا؟';
 
   @override
   String get maps_offline_clearAllCacheTitle => 'مسح كل التخزين المؤقت؟';
+
+  @override
+  String get maps_offline_clearAllTiles => 'مسح كل بلاطات الخريطة';
 
   @override
   String maps_offline_clearCacheStats(Object count, Object size) {
@@ -25860,6 +25853,12 @@ class AppLocalizationsAr extends AppLocalizations {
   ) {
     return '$size، $count بلاطة، تكبير $minZoom إلى $maxZoom';
   }
+
+  @override
+  String get maps_offline_section_terrain => 'التضاريس ثلاثية الأبعاد';
+
+  @override
+  String get maps_offline_section_tiles => 'بلاطات الخريطة';
 
   @override
   String get maps_offline_size => 'الحجم';
@@ -26564,9 +26563,6 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد بيانات أعماق بحيرات مخزّنة بعد';
 
   @override
-  String get maps3d_appBar_title => 'خرائط ثلاثية الأبعاد';
-
-  @override
   String get maps3d_section_all => 'كل المزوّدين';
 
   @override
@@ -26671,7 +26667,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get maps3d_busy_notice =>
-      'هناك إجراء آخر في الخرائط ثلاثية الأبعاد قيد التنفيذ. يُرجى الانتظار حتى ينتهي.';
+      'هناك إجراء آخر للتضاريس ثلاثية الأبعاد قيد التنفيذ. يُرجى الانتظار حتى ينتهي.';
 
   @override
   String maps3d_reload_remainingSeconds(int count) {
@@ -30733,6 +30729,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String visibility_range_atLeast(String min, String unit) {
+    return '$min $unit فأكثر';
+  }
+
+  @override
   String get settings_coordinateFormat_title => 'تنسيق الإحداثيات';
 
   @override
@@ -30768,7 +30769,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_visibilityScale_subtitle =>
-      'المسافات التي تُعد رؤية جيدة في مواقع غوصك';
+      'كيف تصف تفاصيل الغوص والإحصاءات مدى الرؤية الذي قسته';
+
+  @override
+  String get settings_visibilityScale_intro =>
+      'اختر المسافات المقيسة التي تُعد ممتازة أو جيدة أو متوسطة أو ضعيفة في تفاصيل الغوص والإحصاءات. تغيير هذا الإعداد يعيد تسمية غطساتك فقط؛ ولا يغيّر أبدًا المسافات التي سجلتها.';
 
   @override
   String get settings_visibilityScale_preset_tropical => 'استوائية';
@@ -30794,6 +30799,18 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settings_visibilityScale_invalidOrder =>
       'يجب أن تكون كل قيمة أصغر من التي فوقها وأكبر من صفر';
+
+  @override
+  String settings_visibilityScale_bandRange(String band, String range) {
+    return '$band $range';
+  }
+
+  @override
+  String get settings_visibilityScale_customUnset => 'حدّد مسافاتك الخاصة';
+
+  @override
+  String get settings_visibilityScale_customHelp =>
+      'أدخل لكل تصنيف أقصر مسافة لا تزال تُحتسب ضمنه.';
 
   @override
   String statistics_conditions_visibility_legacySuffix(String band) {

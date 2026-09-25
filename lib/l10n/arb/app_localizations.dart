@@ -30020,20 +30020,8 @@ abstract class AppLocalizations {
   /// No description provided for @settings_data_offlineMaps_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Download maps for offline use'**
+  /// **'Map tiles and 3D terrain data'**
   String get settings_data_offlineMaps_subtitle;
-
-  /// No description provided for @settings_data_threeDMaps.
-  ///
-  /// In en, this message translates to:
-  /// **'3D Maps'**
-  String get settings_data_threeDMaps;
-
-  /// No description provided for @settings_data_threeDMaps_subtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage cached swissBATHY3D and other bathymetry data'**
-  String get settings_data_threeDMaps_subtitle;
 
   /// No description provided for @settings_data_restore.
   ///
@@ -41697,12 +41685,6 @@ abstract class AppLocalizations {
   /// **'Clear All'**
   String get maps_offline_clearAll;
 
-  /// No description provided for @maps_offline_clearAllCache.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear All Cache'**
-  String get maps_offline_clearAllCache;
-
   /// No description provided for @maps_offline_clearAllCacheMessage.
   ///
   /// In en, this message translates to:
@@ -41714,6 +41696,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear All Cache?'**
   String get maps_offline_clearAllCacheTitle;
+
+  /// No description provided for @maps_offline_clearAllTiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear all map tiles'**
+  String get maps_offline_clearAllTiles;
 
   /// No description provided for @maps_offline_clearCacheStats.
   ///
@@ -41859,6 +41847,18 @@ abstract class AppLocalizations {
     Object minZoom,
     Object maxZoom,
   );
+
+  /// No description provided for @maps_offline_section_terrain.
+  ///
+  /// In en, this message translates to:
+  /// **'3D terrain'**
+  String get maps_offline_section_terrain;
+
+  /// No description provided for @maps_offline_section_tiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Map tiles'**
+  String get maps_offline_section_tiles;
 
   /// No description provided for @maps_offline_size.
   ///
@@ -43096,12 +43096,6 @@ abstract class AppLocalizations {
   /// **'No lake depth data cached yet'**
   String get settings_appearance_bathymetryRefresh_resultNothingCached;
 
-  /// No description provided for @maps3d_appBar_title.
-  ///
-  /// In en, this message translates to:
-  /// **'3D Maps'**
-  String get maps3d_appBar_title;
-
   /// No description provided for @maps3d_section_all.
   ///
   /// In en, this message translates to:
@@ -43261,7 +43255,7 @@ abstract class AppLocalizations {
   /// No description provided for @maps3d_busy_notice.
   ///
   /// In en, this message translates to:
-  /// **'Another 3D Maps action is running. Please wait until it finishes.'**
+  /// **'Another 3D terrain action is running. Please wait until it finishes.'**
   String get maps3d_busy_notice;
 
   /// No description provided for @maps3d_reload_remainingSeconds.
@@ -49820,6 +49814,12 @@ abstract class AppLocalizations {
   /// **'under {max} {unit}'**
   String visibility_range_under(String max, String unit);
 
+  /// No description provided for @visibility_range_atLeast.
+  ///
+  /// In en, this message translates to:
+  /// **'{min} {unit}+'**
+  String visibility_range_atLeast(String min, String unit);
+
   /// No description provided for @settings_coordinateFormat_title.
   ///
   /// In en, this message translates to:
@@ -49883,8 +49883,14 @@ abstract class AppLocalizations {
   /// No description provided for @settings_visibilityScale_subtitle.
   ///
   /// In en, this message translates to:
-  /// **'Which distances count as good visibility where you dive'**
+  /// **'How dive details and statistics describe the visibility you measured'**
   String get settings_visibilityScale_subtitle;
+
+  /// No description provided for @settings_visibilityScale_intro.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose which measured distances count as Excellent, Good, Moderate or Poor in dive details and statistics. Changing this relabels your dives; it never changes the distances you logged.'**
+  String get settings_visibilityScale_intro;
 
   /// No description provided for @settings_visibilityScale_preset_tropical.
   ///
@@ -49933,6 +49939,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Each value must be smaller than the one above it, and greater than zero'**
   String get settings_visibilityScale_invalidOrder;
+
+  /// No description provided for @settings_visibilityScale_bandRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{band} {range}'**
+  String settings_visibilityScale_bandRange(String band, String range);
+
+  /// No description provided for @settings_visibilityScale_customUnset.
+  ///
+  /// In en, this message translates to:
+  /// **'Set your own distances'**
+  String get settings_visibilityScale_customUnset;
+
+  /// No description provided for @settings_visibilityScale_customHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the shortest distance that still counts for each label.'**
+  String get settings_visibilityScale_customHelp;
 
   /// No description provided for @statistics_conditions_visibility_legacySuffix.
   ///
