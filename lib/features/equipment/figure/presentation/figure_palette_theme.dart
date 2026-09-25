@@ -44,3 +44,40 @@ Color _bodyTone(ColorScheme scheme) {
   }
   return scheme.onSurface;
 }
+
+/// The fill and text colours of a flashed legend row or tray tile.
+class FigureHighlight {
+  const FigureHighlight({required this.fill, required this.onFill});
+
+  final Color fill;
+  final Color onFill;
+}
+
+/// The flash for [scheme], derived by contrast rather than taken from
+/// `primaryContainer`: four of the five presets leave that role unset, so
+/// Flutter falls back to `primary` and a row filled with it hid its own
+/// title. The fill is the faintest blend of `primary` over the card surface
+/// that still stands off both the card and the page; the text is whichever
+/// of `onSurface`, black or white reads on it.
+FigureHighlight figureHighlightFor(ColorScheme scheme) {
+  final card = scheme.surfaceContainerLow;
+  var fill = scheme.primary;
+  for (var percent = 16; percent <= 100; percent += 2) {
+    final blend = Color.alphaBlend(
+      scheme.primary.withValues(alpha: percent / 100),
+      card,
+    );
+    final standsOff = [
+      card,
+      scheme.surface,
+    ].every((s) => contrastRatio(blend, s) >= 1.25);
+    if (standsOff) {
+      fill = blend;
+      break;
+    }
+  }
+  return FigureHighlight(
+    fill: fill,
+    onFill: EquipmentSectionColors.readableOn(fill, [scheme.onSurface]),
+  );
+}

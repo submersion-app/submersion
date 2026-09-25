@@ -162,6 +162,7 @@ class _TrayTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final highlight = selected ? figureHighlightFor(scheme) : null;
     return Semantics(
       label: semanticsLabel,
       button: onTap != null,
@@ -175,9 +176,7 @@ class _TrayTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: selected
-                ? scheme.primaryContainer
-                : scheme.surfaceContainerHighest,
+            color: highlight?.fill ?? scheme.surfaceContainerHighest,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -187,7 +186,11 @@ class _TrayTile extends StatelessWidget {
                 size: DiverFigure.discSize,
               ),
               const SizedBox(width: 6),
-              Icon(equipmentTypeIcon(item.item.type), size: 18),
+              Icon(
+                equipmentTypeIcon(item.item.type),
+                size: 18,
+                color: highlight?.onFill,
+              ),
             ],
           ),
         ),

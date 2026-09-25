@@ -7,6 +7,7 @@ import 'package:submersion/features/equipment/domain/entities/equipment_set.dart
 import 'package:submersion/features/equipment/domain/models/equipment_arrangement.dart';
 import 'package:submersion/features/equipment/figure/presentation/diver_figure.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/features/equipment/presentation/pages/equipment_set_detail_page.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_arrangement_provider.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
@@ -105,6 +106,28 @@ void main() {
           .any((b) => b.selected),
       isFalse,
     );
+  });
+
+  testWidgets('the flashed row takes the contrast-derived highlight', (
+    tester,
+  ) async {
+    await pump(tester, three);
+    await tester.tap(find.byKey(const ValueKey('figure-disc-b')));
+    await tester.pump();
+    final context = tester.element(find.byType(DiverFigure));
+    final highlight = figureHighlightFor(Theme.of(context).colorScheme);
+    final tile = tester.widget<ListTile>(
+      find.ancestor(
+        of: find.text('Hollis SMS75'),
+        matching: find.byType(ListTile),
+      ),
+    );
+    expect(tile.textColor, highlight.onFill);
+    final card = tester.widget<Card>(
+      find.ancestor(of: find.byWidget(tile), matching: find.byType(Card)),
+    );
+    expect(card.color, highlight.fill);
+    await tester.pump(const Duration(seconds: 2));
   });
 
   testWidgets('a tray item shows the carried heading', (tester) async {

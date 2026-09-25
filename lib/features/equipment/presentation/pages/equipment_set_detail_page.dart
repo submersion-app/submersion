@@ -21,6 +21,7 @@ import 'package:submersion/features/equipment/figure/domain/figure_composer.dart
 import 'package:submersion/features/equipment/figure/domain/figure_inputs.dart';
 import 'package:submersion/features/equipment/figure/presentation/diver_figure.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 
 class EquipmentSetDetailPage extends ConsumerStatefulWidget {
@@ -374,11 +375,14 @@ class _EquipmentSetDetailPageState
   ) {
     final selected = item.id == _selectedId;
     final scheme = Theme.of(context).colorScheme;
+    final highlight = selected ? figureHighlightFor(scheme) : null;
     return Card(
       key: _rowKeys.putIfAbsent(item.id, GlobalKey.new),
       margin: const EdgeInsets.only(bottom: 8),
-      color: selected ? scheme.primaryContainer : null,
+      color: highlight?.fill,
       child: ListTile(
+        textColor: highlight?.onFill,
+        iconColor: highlight?.onFill,
         onTap: () => context.push('/equipment/${item.id}'),
         leading: Row(
           mainAxisSize: MainAxisSize.min,
