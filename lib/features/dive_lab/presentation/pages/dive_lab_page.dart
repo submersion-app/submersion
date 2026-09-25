@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_lab/data/services/dive_lab_slate_pdf_service.dart';
 import 'package:submersion/features/dive_lab/data/services/scenario_file_codec.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_mode.dart';
+import 'package:submersion/features/dive_lab/domain/services/scenario_plan_handoff.dart';
 import 'package:submersion/features/dive_lab/presentation/lab_format.dart';
 import 'package:submersion/features/dive_lab/presentation/lab_share.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/dive_scenario_providers.dart';
@@ -17,8 +21,12 @@ import 'package:submersion/features/dive_lab/presentation/widgets/lab_delta_pane
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_intervention_chips.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_mode_toggle.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_saved_scenarios_sheet.dart';
+import 'package:submersion/features/dive_log/presentation/providers/gas_switch_providers.dart';
+import 'package:submersion/features/dive_log/presentation/widgets/what_if_sheet.dart';
+import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Width at or above which the delta panel sits beside the chart.
@@ -116,6 +124,81 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
     }
   }
 
+  String _noteText(AppLocalizations l10n, ScenarioHandoffNote note) =>
+      switch (note) {
+        ScenarioHandoffNote.replayReplanned => l10n.diveLab_handoff_note_replay,
+        ScenarioHandoffNote.extraLastStopNotCarried =>
+          l10n.diveLab_handoff_note_extraLastStop,
+        ScenarioHandoffNote.lostTankKept =>
+          l10n.diveLab_handoff_note_lostTankKept,
+      };
+
+  /// Hands the current draft to the planner as an unsaved plan and opens the
+  /// planner on top of the lab, so back returns here. The engine runs once
+  /// more in re-plan mode (the hand-off needs the compiled remainder even for
+  /// a replay draft); the result is loaded only after it is fully built.
+  Future<void> _openInPlanner(LabRequestInputs inputs) async {
+    final l10n = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    final units = UnitFormatter(ref.read(settingsProvider));
+    final draft = ref.read(labDraftProvider(diveId));
+    if (!draft.isSeeded) return;
+    try {
+      final base = draft.toScenario(diveId);
+      final scenario = base.copyWith(
+        name:
+            draft.name ??
+            labScenarioSummary(
+              l10n,
+              units,
+              base,
+              (id) => labTankName(inputs.tanks, id),
+            ),
+      );
+      final request = inputs.toRequest(
+        scenario.copyWith(mode: ScenarioMode.replan),
+      );
+      final outcome = await ref.read(scenarioEngineRunnerProvider)(request);
+      final switches = await ref.read(gasSwitchesProvider(diveId).future);
+      if (!mounted) return;
+      final dive = inputs.dive;
+      final title = (dive.name?.isNotEmpty ?? false)
+          ? dive.name!
+          : units.formatDate(dive.entryTime ?? dive.dateTime);
+      // newPlan() seeds exactly the defaults a fresh plan gets (reserve, GF,
+      // water, SAC from the diver's settings); the rebuild sheet does the same.
+      final notifier = ref.read(divePlanNotifierProvider.notifier);
+      notifier.newPlan();
+      final defaults = ref.read(divePlanNotifierProvider);
+      final result = buildScenarioPlanHandoff(
+        request: request,
+        outcome: outcome,
+        scenario: scenario,
+        dive: dive,
+        profile: inputs.profile,
+        gasSwitches: [for (final s in switches) s.gasSwitch],
+        defaults: defaults,
+        planName: l10n.diveLab_handoff_planName(title, scenario.name),
+      );
+      notifier.loadPlan(result.plan);
+      if (result.notes.isNotEmpty) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              result.notes.map((n) => _noteText(l10n, n)).join(' '),
+            ),
+          ),
+        );
+      }
+      router.push('/planning/dive-planner');
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.diveLab_handoff_failed(e.toString()))),
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -196,23 +279,63 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
                 : () => showLabSavedScenariosSheet(context, diveId: diveId),
           ),
           PopupMenuButton<String>(
-            icon: const Icon(Icons.share_outlined),
-            tooltip: l10n.diveLab_share_menu,
-            enabled: inputs != null && draft.isSeeded,
+            icon: const Icon(Icons.more_vert),
+            tooltip: l10n.diveLab_menu_title,
+            enabled: inputs != null,
             onSelected: (value) {
-              if (inputs != null) _share(value, inputs);
+              if (inputs == null) return;
+              switch (value) {
+                case 'pdf' || 'file' || 'image':
+                  _share(value, inputs);
+                case 'planner':
+                  _openInPlanner(inputs);
+                case 'rebuild':
+                  showWhatIfSheet(context, inputs.dive);
+              }
             },
-            itemBuilder: (context) => [
-              PopupMenuItem(value: 'pdf', child: Text(l10n.diveLab_share_pdf)),
-              PopupMenuItem(
-                value: 'file',
-                child: Text(l10n.diveLab_share_file),
-              ),
-              PopupMenuItem(
-                value: 'image',
-                child: Text(l10n.diveLab_share_image),
-              ),
-            ],
+            itemBuilder: (context) {
+              final canShare = draft.isSeeded;
+              final isOc = inputs?.diveMode == DiveMode.oc;
+              return [
+                PopupMenuItem(
+                  value: 'pdf',
+                  enabled: canShare,
+                  child: Text(l10n.diveLab_share_pdf),
+                ),
+                PopupMenuItem(
+                  value: 'file',
+                  enabled: canShare,
+                  child: Text(l10n.diveLab_share_file),
+                ),
+                PopupMenuItem(
+                  value: 'image',
+                  enabled: canShare,
+                  child: Text(l10n.diveLab_share_image),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem(
+                  value: 'planner',
+                  enabled: canShare && isOc,
+                  child: isOc
+                      ? Text(l10n.diveLab_menu_openInPlanner)
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(l10n.diveLab_menu_openInPlanner),
+                            Text(
+                              l10n.diveLab_menu_openInPlanner_loopDisabled,
+                              style: theme.textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                ),
+                PopupMenuItem(
+                  value: 'rebuild',
+                  child: Text(l10n.diveLab_menu_rebuildInPlanner),
+                ),
+              ];
+            },
           ),
         ],
       ),
