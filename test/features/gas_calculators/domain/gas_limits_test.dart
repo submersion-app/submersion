@@ -1,0 +1,275 @@
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/features/gas_calculators/domain/gas_density_calculator.dart';
+import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
+
+// Salt water as DiveEnvironment models it: 1025 kg/m3 at a 1.0 bar surface.
+const double _saltBarPerMeter = 1025 * 9.80665 / 100000;
+double _saltDepthAt(double bar) => (bar - 1.0) / _saltBarPerMeter;
+double _saltPressureAt(double meters) => 1.0 + meters * _saltBarPerMeter;
+
+GasLimitsInputs _inputs({
+  ModCalculatorMode mode = ModCalculatorMode.rec,
+  double o2 = 32,
+  double he = 0,
+  double working = 1.4,
+  double deco = 1.6,
+  double flush = 1.6,
+  double setpoint = 1.1,
+  double minPpO2 = 0.18,
+  double endLimit = 30,
+  bool o2Narcotic = true,
+  double? target,
+  WaterType waterType = WaterType.salt,
+}) => GasLimitsInputs(
+  mode: mode,
+  o2Percent: o2,
+  hePercent: he,
+  workingPpO2: working,
+  decoPpO2: deco,
+  flushPpO2: flush,
+  setpointBar: setpoint,
+  minPpO2: minPpO2,
+  endLimitMeters: endLimit,
+  o2Narcotic: o2Narcotic,
+  targetDepthMeters: target,
+  waterType: waterType,
+);
+
+void main() {
+  group('Rec', () {
+    test('EAN32: MOD on the flat model, contingency at 1.6', () {
+      final r = computeGasLimits(_inputs());
+      expect(r.modMeters, 33.75);
+      expect(r.secondaryModMeters, closeTo(40.0, 1e-9));
+      expect(r.secondaryPpO2, 1.6);
+      expect(r.minDepthMeters, isNull);
+      expect(r.mndMeters, isNull);
+      expect(r.beyondRecreationalLimit, isFalse);
+    });
+
+    test('EAD at the MOD, from the N2 partial pressure', () {
+      final r = computeGasLimits(_inputs());
+      // P = 4.375 bar, pN2 = 0.68 * 4.375
+      final expected = (0.68 * 4.375 / airN2Fraction - 1) * 10;
+      expect(r.atMod.depthMeters, 33.75);
+      expect(r.atMod.pO2Bar, closeTo(1.4, 1e-12));
+      expect(r.atMod.eadMeters, closeTo(expected, 1e-9));
+      expect(r.atMod.densityGPerL, isNull);
+      expect(r.atMod.eaddMeters, isNull);
+    });
+
+    test('air at 1.4 lies beyond the recreational limit', () {
+      final r = computeGasLimits(_inputs(o2: 21));
+      expect(r.modMeters, closeTo(56.667, 1e-3));
+      expect(r.beyondRecreationalLimit, isTrue);
+    });
+
+    test('helium and a water type are ignored', () {
+      final plain = computeGasLimits(_inputs());
+      final noisy = computeGasLimits(
+        _inputs(he: 30, waterType: WaterType.fresh),
+      );
+      expect(noisy.modMeters, plain.modMeters);
+      expect(noisy.atMod.pHeBar, 0);
+    });
+
+    test('O2 is clamped to the nitrox range 21-40 %', () {
+      expect(computeGasLimits(_inputs(o2: 50)).o2Percent, 40);
+      expect(computeGasLimits(_inputs(o2: 10)).o2Percent, 21);
+    });
+
+    test('a target depth deeper than the MOD is flagged', () {
+      final r = computeGasLimits(_inputs(target: 36));
+      expect(r.atTarget, isNotNull);
+      expect(r.atTarget!.pO2Bar, closeTo(0.32 * 4.6, 1e-12));
+      expect(r.targetBeyondMod, isTrue);
+      expect(computeGasLimits(_inputs(target: 30)).targetBeyondMod, isFalse);
+    });
+  });
+
+  group('OC Tec', () {
+    GasLimitsInputs tx2135({double? target, bool o2Narcotic = true}) => _inputs(
+      mode: ModCalculatorMode.ocTec,
+      o2: 21,
+      he: 35,
+      target: target,
+      o2Narcotic: o2Narcotic,
+    );
+
+    test('MOD and deco MOD follow the salt-water environment', () {
+      final r = computeGasLimits(tx2135());
+      expect(r.modMeters, closeTo(_saltDepthAt(1.4 / 0.21), 1e-9));
+      expect(r.secondaryModMeters, closeTo(_saltDepthAt(1.6 / 0.21), 1e-9));
+      expect(r.secondaryPpO2, 1.6);
+    });
+
+    test('a normoxic mix has no minimum depth', () {
+      expect(computeGasLimits(tx2135()).minDepthMeters, 0);
+    });
+
+    test('Tx 10/70 needs the minimum ppO2 before it is breathable', () {
+      final r = computeGasLimits(
+        _inputs(mode: ModCalculatorMode.ocTec, o2: 10, he: 70),
+      );
+      expect(r.minDepthMeters, closeTo(_saltDepthAt(1.8), 1e-9));
+      final r16 = computeGasLimits(
+        _inputs(mode: ModCalculatorMode.ocTec, o2: 10, he: 70, minPpO2: 0.16),
+      );
+      expect(r16.minDepthMeters, closeTo(_saltDepthAt(1.6), 1e-9));
+    });
+
+    test('END with O2 narcotic and EAD at the MOD', () {
+      final r = computeGasLimits(tx2135());
+      const p = 1.4 / 0.21;
+      expect(r.atMod.endMeters, closeTo(_saltDepthAt(0.65 * p), 1e-9));
+      expect(
+        r.atMod.eadMeters,
+        closeTo(_saltDepthAt(0.44 * p / airN2Fraction), 1e-9),
+      );
+      expect(r.atMod.narcoticDepthMeters, r.atMod.endMeters);
+      expect(r.atMod.exceedsEndLimit, isTrue);
+    });
+
+    test('the narcotic depth follows the O2-narcotic setting', () {
+      final r = computeGasLimits(tx2135(o2Narcotic: false));
+      expect(r.atMod.narcoticDepthMeters, r.atMod.eadMeters);
+    });
+
+    test('MND is where the narcotic depth reaches the END limit', () {
+      final r = computeGasLimits(tx2135());
+      // (N2 + O2) pressure = END limit as a pressure in the same water.
+      final expected = _saltDepthAt(_saltPressureAt(30) / 0.65);
+      expect(r.mndMeters, closeTo(expected, 1e-3));
+    });
+
+    test('MND without O2 narcotic uses the N2 fraction', () {
+      final r = computeGasLimits(tx2135(o2Narcotic: false));
+      final expected = _saltDepthAt(_saltPressureAt(30) * airN2Fraction / 0.44);
+      expect(r.mndMeters, closeTo(expected, 1e-3));
+    });
+
+    test('heliox has no narcotic limit when O2 is not narcotic', () {
+      final r = computeGasLimits(
+        _inputs(
+          mode: ModCalculatorMode.ocTec,
+          o2: 21,
+          he: 79,
+          o2Narcotic: false,
+        ),
+      );
+      expect(r.mndMeters, isNull);
+    });
+
+    test('density and EADD at the MOD come from the density calculator', () {
+      final r = computeGasLimits(tx2135());
+      final density = computeGasDensity(
+        GasDensityInputs(
+          o2Percent: 21,
+          hePercent: 35,
+          depthMeters: r.modMeters,
+          setpointBar: null,
+          temperature: GasDensityTemperature.zeroC,
+          waterType: WaterType.salt,
+        ),
+      );
+      expect(r.atMod.densityGPerL, closeTo(density.densityGPerL, 1e-12));
+      expect(r.atMod.eaddMeters, closeTo(density.eaddMeters, 1e-12));
+      expect(
+        r.atMod.densityLevel,
+        gasDensityLevelForDisplay(density.densityGPerL, 2),
+      );
+    });
+
+    test('a target shallower than the minimum depth is flagged', () {
+      final r = computeGasLimits(
+        _inputs(mode: ModCalculatorMode.ocTec, o2: 10, he: 70, target: 5),
+      );
+      expect(r.targetShallowerThanMinDepth, isTrue);
+    });
+
+    test('fresh water gives a deeper MOD than salt water', () {
+      final salt = computeGasLimits(tx2135());
+      final fresh = computeGasLimits(
+        _inputs(
+          mode: ModCalculatorMode.ocTec,
+          o2: 21,
+          he: 35,
+          waterType: WaterType.fresh,
+        ),
+      );
+      expect(fresh.modMeters, greaterThan(salt.modMeters));
+    });
+  });
+
+  group('CCR Tec', () {
+    GasLimitsInputs ccr({
+      double setpoint = 1.1,
+      double flush = 1.6,
+      double? target,
+    }) => _inputs(
+      mode: ModCalculatorMode.ccrTec,
+      o2: 21,
+      he: 35,
+      setpoint: setpoint,
+      flush: flush,
+      target: target,
+    );
+
+    test('the MOD is the diluent MOD at the flush ppO2', () {
+      final r = computeGasLimits(ccr());
+      expect(r.modMeters, closeTo(_saltDepthAt(1.6 / 0.21), 1e-9));
+      expect(r.secondaryModMeters, isNull);
+    });
+
+    test('at the diluent MOD the loop is pure diluent', () {
+      final r = computeGasLimits(ccr());
+      // The diluent carries 1.6 bar there, more than the 1.1 setpoint.
+      expect(r.atMod.diluentAboveSetpoint, isTrue);
+      expect(r.atMod.pO2Bar, closeTo(1.6, 1e-9));
+      const p = 1.6 / 0.21;
+      expect(
+        r.atMod.eadMeters,
+        closeTo(_saltDepthAt(0.44 * p / airN2Fraction), 1e-9),
+      );
+    });
+
+    test('at a shallower target the loop holds the setpoint', () {
+      final r = computeGasLimits(ccr(target: 40));
+      final p = _saltPressureAt(40);
+      final pN2 = (p - 1.1) * 0.44 / 0.79;
+      expect(r.atTarget!.pO2Bar, closeTo(1.1, 1e-12));
+      expect(r.atTarget!.pN2Bar, closeTo(pN2, 1e-9));
+      expect(
+        r.atTarget!.eadMeters,
+        closeTo(_saltDepthAt(pN2 / airN2Fraction), 1e-9),
+      );
+    });
+
+    test('a setpoint at or above the flush ppO2 is flagged', () {
+      expect(computeGasLimits(ccr()).setpointNotBelowFlushPpO2, isFalse);
+      expect(
+        computeGasLimits(ccr(setpoint: 1.6)).setpointNotBelowFlushPpO2,
+        isTrue,
+      );
+    });
+
+    test('a target below the diluent MOD is flagged', () {
+      final r = computeGasLimits(ccr(target: 70));
+      expect(r.targetBeyondMod, isTrue);
+      expect(r.atTarget!.diluentAboveSetpoint, isTrue);
+    });
+  });
+
+  group('depths are never negative', () {
+    test('EAD and END of a rich mix near the surface clamp at 0', () {
+      final r = computeGasLimits(
+        _inputs(mode: ModCalculatorMode.ocTec, o2: 50, he: 30, target: 0),
+      );
+      expect(r.atTarget!.eadMeters, 0);
+      expect(r.atTarget!.endMeters, 0);
+    });
+  });
+}
