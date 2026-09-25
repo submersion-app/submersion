@@ -33,6 +33,7 @@ import 'package:submersion/features/buddies/presentation/providers/buddy_provide
 import 'package:submersion/features/certifications/presentation/providers/certification_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/cylinder_configs/presentation/providers/cylinder_config_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
@@ -520,6 +521,14 @@ void main() {
   ]);
 
   _tickGroup('equipment', [
+    (
+      name: 'passportIdProvider',
+      read: (c) => c.read(passportIdProvider('missing').future),
+    ),
+    (
+      name: 'fillsForEquipmentProvider',
+      read: (c) => c.read(fillsForEquipmentProvider('missing').future),
+    ),
     (
       name: 'activeEquipmentClocksProvider',
       read: (c) => c.read(activeEquipmentClocksProvider.future),
