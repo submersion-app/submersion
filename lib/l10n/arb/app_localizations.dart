@@ -116,6 +116,60 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @diveLab_handoff_failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t open in planner: {error}'**
+  String diveLab_handoff_failed(String error);
+
+  /// No description provided for @diveLab_handoff_note_extraLastStop.
+  ///
+  /// In en, this message translates to:
+  /// **'Extra last-stop time was not carried over; set a stop minimum in the planner.'**
+  String get diveLab_handoff_note_extraLastStop;
+
+  /// No description provided for @diveLab_handoff_note_lostTankKept.
+  ///
+  /// In en, this message translates to:
+  /// **'The lost cylinder stays listed because it was breathed before the branch; remove it in the planner if needed.'**
+  String get diveLab_handoff_note_lostTankKept;
+
+  /// No description provided for @diveLab_handoff_note_replay.
+  ///
+  /// In en, this message translates to:
+  /// **'The planner re-plans the ascent; the replay path was not carried over.'**
+  String get diveLab_handoff_note_replay;
+
+  /// No description provided for @diveLab_handoff_planName.
+  ///
+  /// In en, this message translates to:
+  /// **'What if: {dive} ({scenario})'**
+  String diveLab_handoff_planName(String dive, String scenario);
+
+  /// No description provided for @diveLab_menu_openInPlanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in planner'**
+  String get diveLab_menu_openInPlanner;
+
+  /// No description provided for @diveLab_menu_openInPlanner_loopDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in planner is available for open-circuit dives only'**
+  String get diveLab_menu_openInPlanner_loopDisabled;
+
+  /// No description provided for @diveLab_menu_rebuildInPlanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Rebuild in planner...'**
+  String get diveLab_menu_rebuildInPlanner;
+
+  /// No description provided for @diveLab_menu_title.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get diveLab_menu_title;
+
   /// No description provided for @settings_oauth_connect_browserFailed.
   ///
   /// In en, this message translates to:

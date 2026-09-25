@@ -9,6 +9,41 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String diveLab_handoff_failed(String error) {
+    return 'تعذر الفتح في المخطط: $error';
+  }
+
+  @override
+  String get diveLab_handoff_note_extraLastStop =>
+      'لم يُنقل الوقت الإضافي في المحطة الأخيرة؛ حدد حدًا أدنى للمحطة في المخطط.';
+
+  @override
+  String get diveLab_handoff_note_lostTankKept =>
+      'تبقى الأسطوانة المفقودة مدرجة لأنك تنفست منها قبل نقطة التفرع؛ أزلها في المخطط عند الحاجة.';
+
+  @override
+  String get diveLab_handoff_note_replay =>
+      'يعيد المخطط تخطيط الصعود؛ لم يُنقل مسار إعادة التشغيل.';
+
+  @override
+  String diveLab_handoff_planName(String dive, String scenario) {
+    return 'ماذا لو: $dive ($scenario)';
+  }
+
+  @override
+  String get diveLab_menu_openInPlanner => 'فتح في المخطط';
+
+  @override
+  String get diveLab_menu_openInPlanner_loopDisabled =>
+      'فتح في المخطط متاح لغوصات الدائرة المفتوحة فقط';
+
+  @override
+  String get diveLab_menu_rebuildInPlanner => 'إعادة البناء في المخطط...';
+
+  @override
+  String get diveLab_menu_title => 'المزيد';
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'تعذر فتح المتصفح. استخدم نسخ الرابط والصق العنوان في متصفحك.';
 

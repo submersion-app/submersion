@@ -9,6 +9,41 @@ class AppLocalizationsHu extends AppLocalizations {
   AppLocalizationsHu([String locale = 'hu']) : super(locale);
 
   @override
+  String diveLab_handoff_failed(String error) {
+    return 'Nem sikerült megnyitni a tervezőben: $error';
+  }
+
+  @override
+  String get diveLab_handoff_note_extraLastStop =>
+      'Az utolsó megállón töltött plusz idő nem került át; állíts be megállási minimumot a tervezőben.';
+
+  @override
+  String get diveLab_handoff_note_lostTankKept =>
+      'Az elveszett palack listázva marad, mert az elágazás előtt lélegeztél belőle; szükség esetén távolítsd el a tervezőben.';
+
+  @override
+  String get diveLab_handoff_note_replay =>
+      'A tervező újratervezi a felmerülést; a visszajátszott útvonal nem került át.';
+
+  @override
+  String diveLab_handoff_planName(String dive, String scenario) {
+    return 'Mi lenne, ha: $dive ($scenario)';
+  }
+
+  @override
+  String get diveLab_menu_openInPlanner => 'Megnyitás a tervezőben';
+
+  @override
+  String get diveLab_menu_openInPlanner_loopDisabled =>
+      'A tervezőben megnyitás csak nyitott rendszerű merülésekhez érhető el';
+
+  @override
+  String get diveLab_menu_rebuildInPlanner => 'Újraépítés a tervezőben...';
+
+  @override
+  String get diveLab_menu_title => 'Több';
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'Nem sikerült megnyitni a böngészőt. Használd a Link másolása gombot, és illeszd be a címet a böngésződbe.';
 

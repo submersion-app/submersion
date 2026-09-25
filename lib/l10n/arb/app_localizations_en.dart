@@ -9,6 +9,41 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String diveLab_handoff_failed(String error) {
+    return 'Couldn\'t open in planner: $error';
+  }
+
+  @override
+  String get diveLab_handoff_note_extraLastStop =>
+      'Extra last-stop time was not carried over; set a stop minimum in the planner.';
+
+  @override
+  String get diveLab_handoff_note_lostTankKept =>
+      'The lost cylinder stays listed because it was breathed before the branch; remove it in the planner if needed.';
+
+  @override
+  String get diveLab_handoff_note_replay =>
+      'The planner re-plans the ascent; the replay path was not carried over.';
+
+  @override
+  String diveLab_handoff_planName(String dive, String scenario) {
+    return 'What if: $dive ($scenario)';
+  }
+
+  @override
+  String get diveLab_menu_openInPlanner => 'Open in planner';
+
+  @override
+  String get diveLab_menu_openInPlanner_loopDisabled =>
+      'Open in planner is available for open-circuit dives only';
+
+  @override
+  String get diveLab_menu_rebuildInPlanner => 'Rebuild in planner...';
+
+  @override
+  String get diveLab_menu_title => 'More';
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'Could not open your browser. Use Copy link and paste the address into your browser.';
 

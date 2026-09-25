@@ -9,6 +9,41 @@ class AppLocalizationsHe extends AppLocalizations {
   AppLocalizationsHe([String locale = 'he']) : super(locale);
 
   @override
+  String diveLab_handoff_failed(String error) {
+    return 'לא ניתן לפתוח במתכנן: $error';
+  }
+
+  @override
+  String get diveLab_handoff_note_extraLastStop =>
+      'זמן נוסף בתחנה האחרונה לא הועבר; הגדר מינימום תחנה במתכנן.';
+
+  @override
+  String get diveLab_handoff_note_lostTankKept =>
+      'הבלון שאבד נשאר ברשימה כי נשמת ממנו לפני נקודת ההסתעפות; הסר אותו במתכנן במידת הצורך.';
+
+  @override
+  String get diveLab_handoff_note_replay =>
+      'המתכנן מתכנן מחדש את העלייה; מסלול השחזור לא הועבר.';
+
+  @override
+  String diveLab_handoff_planName(String dive, String scenario) {
+    return 'מה אם: $dive ($scenario)';
+  }
+
+  @override
+  String get diveLab_menu_openInPlanner => 'פתיחה במתכנן';
+
+  @override
+  String get diveLab_menu_openInPlanner_loopDisabled =>
+      'פתיחה במתכנן זמינה רק לצלילות במעגל פתוח';
+
+  @override
+  String get diveLab_menu_rebuildInPlanner => 'בנייה מחדש במתכנן...';
+
+  @override
+  String get diveLab_menu_title => 'עוד';
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'לא ניתן לפתוח את הדפדפן. השתמש בהעתקת קישור והדבק את הכתובת בדפדפן שלך.';
 

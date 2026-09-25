@@ -9,6 +9,39 @@ class AppLocalizationsZh extends AppLocalizations {
   AppLocalizationsZh([String locale = 'zh']) : super(locale);
 
   @override
+  String diveLab_handoff_failed(String error) {
+    return '无法在计划器中打开：$error';
+  }
+
+  @override
+  String get diveLab_handoff_note_extraLastStop =>
+      '最后一站的额外时间未被带入；请在计划器中设置停留最短时间。';
+
+  @override
+  String get diveLab_handoff_note_lostTankKept =>
+      '丢失的气瓶仍在列表中，因为在分支点之前曾使用过；如有需要请在计划器中移除。';
+
+  @override
+  String get diveLab_handoff_note_replay => '计划器会重新规划上升；回放路径未被带入。';
+
+  @override
+  String diveLab_handoff_planName(String dive, String scenario) {
+    return '假如：$dive（$scenario）';
+  }
+
+  @override
+  String get diveLab_menu_openInPlanner => '在计划器中打开';
+
+  @override
+  String get diveLab_menu_openInPlanner_loopDisabled => '仅开放式回路潜水可在计划器中打开';
+
+  @override
+  String get diveLab_menu_rebuildInPlanner => '在计划器中重建...';
+
+  @override
+  String get diveLab_menu_title => '更多';
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       '无法打开浏览器。请使用“复制链接”，并将地址粘贴到浏览器中。';
 

@@ -9,6 +9,41 @@ class AppLocalizationsPt extends AppLocalizations {
   AppLocalizationsPt([String locale = 'pt']) : super(locale);
 
   @override
+  String diveLab_handoff_failed(String error) {
+    return 'Não foi possível abrir no planeador: $error';
+  }
+
+  @override
+  String get diveLab_handoff_note_extraLastStop =>
+      'O tempo extra na última paragem não foi transposto; define um mínimo de paragem no planeador.';
+
+  @override
+  String get diveLab_handoff_note_lostTankKept =>
+      'A garrafa perdida continua listada porque foi respirada antes da ramificação; remove-a no planeador se necessário.';
+
+  @override
+  String get diveLab_handoff_note_replay =>
+      'O planeador recalcula a subida; o trajeto do replay não foi transposto.';
+
+  @override
+  String diveLab_handoff_planName(String dive, String scenario) {
+    return 'E se: $dive ($scenario)';
+  }
+
+  @override
+  String get diveLab_menu_openInPlanner => 'Abrir no planeador';
+
+  @override
+  String get diveLab_menu_openInPlanner_loopDisabled =>
+      'Abrir no planeador só está disponível para mergulhos em circuito aberto';
+
+  @override
+  String get diveLab_menu_rebuildInPlanner => 'Reconstruir no planeador...';
+
+  @override
+  String get diveLab_menu_title => 'Mais';
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'Não foi possível abrir o navegador. Use Copiar link e cole o endereço no navegador.';
 
