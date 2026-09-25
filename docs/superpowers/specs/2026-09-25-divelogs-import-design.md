@@ -51,8 +51,9 @@ Garmin. It opens `/transfer/import-cloud/divelogs`, which hosts
 
 Wizard steps:
 
-1. **Sign In** (new). Username and password. If a session is cached, shows
-   "Signed in as <user>" with Continue and Sign out.
+1. **Sign In** (new). Username and password. If a cached session still
+   works, the step signs straight in and advances, like Suunto; going back
+   to it shows "Signed in as <user>" with a Sign out button.
 2. **Fetch** (new). Fetches the whole logbook in one go. Has an "Include
    photos" switch, on by default, shown on desktop only. Shows counts when done.
 3. **Divers** (existing UniversalAdapter step, hidden for a single diver).
@@ -171,10 +172,13 @@ Fetch:
 
 - `GET /dives` failing is fatal to the step: an error with Retry, surfaced
   through `ImportStepFailure` so the wizard does not advance.
-- `/gear`, `/geartypes`, `/certifications` failing each become an
-  `ImportWarning` shown on Review; the import proceeds without that data.
+- `/gear`, `/certifications` failing each become a coded `ImportWarning`
+  (new codes `gearUnavailable`, `certificationsUnavailable`), shown on the
+  Fetch step right away and as a notice in the import Summary; the import
+  proceeds without that data. `/geartypes` failing is silent.
   Unknown gear types degrade to `EquipmentType.other` silently.
-- Per-dive `/pictures` failures collapse into one warning with a count.
+- Per-dive `/pictures` failures collapse into one warning with a count
+  (code `photoListingsUnavailable`).
 - A dive missing required fields (date, time) is dropped and counted in a
   warning. Unknown fields are ignored.
 
