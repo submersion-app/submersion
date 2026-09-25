@@ -189,6 +189,30 @@ void main() {
       expect(diluent.hePercent, 55.0);
     });
 
+    test('a diluent cylinder falls back to the first diluent when no diluent '
+        'was breathed', () {
+      final parsed = pigeon.ParsedDive(
+        fingerprint: 'test',
+        dateTimeYear: 2026,
+        dateTimeMonth: 9,
+        dateTimeDay: 12,
+        dateTimeHour: 8,
+        dateTimeMinute: 56,
+        dateTimeSecond: 33,
+        maxDepthMeters: 61.9,
+        avgDepthMeters: 30.0,
+        durationSeconds: 3900,
+        diveMode: 'ccr',
+        samples: const [],
+        tanks: tanks,
+        gasMixes: gasMixes,
+        events: const [],
+      );
+      final diluent = tankAt(resolveParsedTanks(parsed), 0);
+      expect(diluent.o2Percent, 15.0);
+      expect(diluent.hePercent, 55.0);
+    });
+
     test('no gas switch is derived for a dive that stays on the loop', () {
       expect(resolveGasSwitches(oxygenAlwaysLast()), isEmpty);
     });
@@ -301,6 +325,48 @@ void main() {
       );
       final resolved = resolveParsedTanks(parsed);
       expect(resolved.firstWhere((t) => t.o2Percent == 50.0).role, 'deco');
+    });
+  });
+
+  group('legacy single-reading samples', () {
+    test('a reading without a tank index is trimmed as tank 0, like the '
+        'stored pressure series', () {
+      pigeon.ProfileSample legacy(int t, double depth, double bar) =>
+          pigeon.ProfileSample(
+            timeSeconds: t,
+            depthMeters: depth,
+            pressureBar: bar,
+            gasMixIndex: 0,
+          );
+      final parsed = pigeon.ParsedDive(
+        fingerprint: 'test',
+        dateTimeYear: 2026,
+        dateTimeMonth: 9,
+        dateTimeDay: 12,
+        dateTimeHour: 8,
+        dateTimeMinute: 56,
+        dateTimeSecond: 33,
+        maxDepthMeters: 30.0,
+        avgDepthMeters: 20.0,
+        durationSeconds: 3000,
+        samples: [
+          legacy(0, 0.0, 200.0),
+          legacy(1200, 30.0, 120.0),
+          legacy(2400, 1.2, 60.0), // last sample below the surface
+          legacy(2500, 0.0, 20.0), // post-surfacing tail
+        ],
+        tanks: [
+          pigeon.TankInfo(
+            index: 0,
+            gasMixIndex: 0,
+            startPressureBar: 200.0,
+            endPressureBar: 20.0,
+          ),
+        ],
+        gasMixes: [pigeon.GasMix(index: 0, o2Percent: 100.0, hePercent: 0.0)],
+        events: const [],
+      );
+      expect(resolveParsedTanks(parsed).single.endPressure, 60.0);
     });
   });
 

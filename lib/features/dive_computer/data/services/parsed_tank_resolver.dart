@@ -508,11 +508,9 @@ Map<int, double> _sampleTankReadings(pigeon.ProfileSample sample) {
         index: ?perTank[index],
     };
   }
+  // A reading without a tank index belongs to tank 0, as in the stored series.
   final pressure = sample.pressureBar;
-  final tankIndex = sample.tankIndex;
-  return pressure != null && tankIndex != null
-      ? {tankIndex: pressure}
-      : const {};
+  return pressure != null ? {sample.tankIndex ?? 0: pressure} : const {};
 }
 
 /// Reduce libdivecomputer samples to the depth-plus-pressure points the
