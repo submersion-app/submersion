@@ -3,14 +3,6 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 
-/// Bounds a stored value has to fall in to be restored; anything else falls
-/// back to the default, field by field.
-const double _setpointMin = 0.4;
-const double _setpointMax = 1.6;
-const double _targetDepthMaxMeters = 150;
-const double _limitPpO2Min = 1.0;
-const double _limitPpO2Max = 1.6;
-
 /// The two minimum ppO2 values the calculator offers for a hypoxic mix.
 const List<double> modMinPpO2Options = [0.16, 0.18];
 
@@ -66,10 +58,10 @@ class ModModeInputs extends Equatable {
       o2Percent: o2,
       hePercent: he,
       setpointBar:
-          _number(json['setpointBar'], _setpointMin, _setpointMax) ??
+          _number(json['setpointBar'], modSetpointMinBar, modSetpointMaxBar) ??
           fallback.setpointBar,
       targetDepthMeters:
-          _number(json['targetDepthMeters'], 0, _targetDepthMaxMeters) ??
+          _number(json['targetDepthMeters'], 0, tecTargetMaxMeters) ??
           fallback.targetDepthMeters,
       checkTargetDepth: check is bool ? check : fallback.checkTargetDepth,
     );
@@ -235,7 +227,8 @@ class ModCalculatorPreferences extends Equatable {
   ];
 }
 
-double? _limit(Object? value) => _number(value, _limitPpO2Min, _limitPpO2Max);
+double? _limit(Object? value) =>
+    _number(value, modLimitPpO2Min, modLimitPpO2Max);
 
 /// [value] as a double when it is a finite number within [min]..[max].
 double? _number(Object? value, double min, double max) {

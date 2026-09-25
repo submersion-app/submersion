@@ -27,14 +27,18 @@ class ModResultCard extends ConsumerWidget {
 
     // The headline and its other-unit echo are both floored, so neither can
     // read deeper than the gas may be taken.
-    final isMetric = settings.depthUnit == DepthUnit.meters;
     final headline = formatFixedForDisplay(
       floorToFractionDigits(units.convertDepth(result.modMeters), 1),
       1,
     );
-    final otherUnit = isMetric
-        ? '${floorToFractionDigits(result.modMeters * 3.28084, 0).toStringAsFixed(0)} ft'
-        : '${floorToFractionDigits(result.modMeters, 0).toStringAsFixed(0)} m';
+    final other = settings.depthUnit == DepthUnit.meters
+        ? DepthUnit.feet
+        : DepthUnit.meters;
+    final otherValue = floorToFractionDigits(
+      DepthUnit.meters.convert(result.modMeters, other),
+      0,
+    );
+    final otherUnit = '${formatFixedForDisplay(otherValue, 0)} ${other.symbol}';
 
     final title = result.mode == ModCalculatorMode.ccrTec
         ? l10n.gasCalculators_mod_diluentMod
@@ -62,10 +66,7 @@ class ModResultCard extends ConsumerWidget {
           ),
           result.minDepthMeters! > 0
               // A minimum depth errs deep: rounded up, never shallower.
-              ? units.formatDepth(
-                  _ceilToTenth(result.minDepthMeters!, units),
-                  decimals: 1,
-                )
+              ? units.formatDepthCeil(result.minDepthMeters)
               : l10n.gasCalculators_mod_fromSurface,
         ),
       if (result.mode != ModCalculatorMode.rec)
@@ -148,12 +149,5 @@ class ModResultCard extends ConsumerWidget {
         ),
       ),
     );
-  }
-
-  /// [meters] rounded UP to a tenth of the display unit, returned in meters.
-  static double _ceilToTenth(double meters, UnitFormatter units) {
-    final display = units.convertDepth(meters);
-    final ceiled = -floorToFractionDigits(-display, 1);
-    return units.depthToMeters(ceiled);
   }
 }

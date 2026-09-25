@@ -32,6 +32,28 @@ void main() {
     });
   });
 
+  group('formatDepthCeil', () {
+    test('rounds a minimum depth up, never down', () {
+      // Tx 10/70 at ppO2 0.18 in fresh water: 7.64 m.
+      expect(metric.formatDepthCeil(7.64), '7.7m');
+      expect(metric.formatDepthCeil(7.64, decimals: 0), '8m');
+      expect(imperial.formatDepthCeil(7.64), '25.1ft');
+    });
+
+    test('a value on the grid stays put despite float noise', () {
+      expect(metric.formatDepthCeil(8.0000000000001), '8.0m');
+      expect(metric.formatDepthCeil(8.0), '8.0m');
+    });
+
+    test('zero is not shown as minus zero', () {
+      expect(metric.formatDepthCeil(0), '0.0m');
+    });
+
+    test('null renders a placeholder', () {
+      expect(metric.formatDepthCeil(null), '--');
+    });
+  });
+
   group('floorToFractionDigits', () {
     test('floors to the given number of decimals', () {
       expect(floorToFractionDigits(33.75, 1), 33.7);

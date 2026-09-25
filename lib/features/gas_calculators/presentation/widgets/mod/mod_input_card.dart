@@ -14,14 +14,6 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/unit_slider.dart';
 
-/// Slider bounds. The Tec O2 floor reaches hypoxic trimix, as in the gas
-/// density calculator; the setpoint covers the setpoints in common use.
-const double _tecO2Min = 5;
-const double _setpointMin = 0.4;
-const double _setpointMax = 1.6;
-const double _recTargetMaxMeters = 60;
-const double _tecTargetMaxMeters = 150;
-
 /// Mode, mix, CCR setpoint, target depth and, in the Tec modes, the water
 /// type and the minimum ppO2.
 class ModInputCard extends ConsumerWidget {
@@ -41,7 +33,7 @@ class ModInputCard extends ConsumerWidget {
     final isRec = mode == ModCalculatorMode.rec;
     final isCcr = mode == ModCalculatorMode.ccrTec;
 
-    final o2Min = isRec ? recMinO2Percent : _tecO2Min;
+    final o2Min = isRec ? recMinO2Percent : tecMinO2Percent;
     final o2Max = isRec ? recMaxO2Percent : 100.0;
     final o2 = inputs.o2Percent.clamp(o2Min, o2Max).toDouble();
     final heMax = 100.0 - o2;
@@ -125,9 +117,10 @@ class ModInputCard extends ConsumerWidget {
                 value: inputs.setpointBar,
                 unit: '',
                 fractionDigits: 1,
-                min: _setpointMin,
-                max: _setpointMax,
-                divisions: ((_setpointMax - _setpointMin) * 10).round(),
+                min: modSetpointMinBar,
+                max: modSetpointMaxBar,
+                divisions: ((modSetpointMaxBar - modSetpointMinBar) * 10)
+                    .round(),
                 onChanged: notifier.setSetpoint,
               ),
             ],
@@ -146,7 +139,7 @@ class ModInputCard extends ConsumerWidget {
                 axis: UnitAxis.depthRange(
                   units,
                   minMeters: 0,
-                  maxMeters: isRec ? _recTargetMaxMeters : _tecTargetMaxMeters,
+                  maxMeters: isRec ? recTargetMaxMeters : tecTargetMaxMeters,
                 ),
                 onChanged: notifier.setTargetDepth,
               ),

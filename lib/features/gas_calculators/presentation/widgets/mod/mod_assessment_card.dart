@@ -70,7 +70,7 @@ List<ModAssessment> modAssessments(
   if (minDepth > 0) {
     add(
       ModAssessmentSeverity.info,
-      l10n.gasCalculators_mod_hypoxic(units.formatDepth(minDepth, decimals: 1)),
+      l10n.gasCalculators_mod_hypoxic(units.formatDepthCeil(minDepth)),
     );
   }
 

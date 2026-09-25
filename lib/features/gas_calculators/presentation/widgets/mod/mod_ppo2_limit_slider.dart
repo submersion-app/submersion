@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/utils/number_display.dart';
+import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/density/density_slider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// Range of an individual ppO2 limit, in steps of 0.05 bar.
-const double _min = 1.0;
-const double _max = 1.6;
+/// Steps of 0.05 bar across the range.
 const int _divisions = 12;
 
 /// A ppO2 limit that defaults to the diver's profile value (issue #2342).
@@ -48,8 +47,8 @@ class ModPpO2LimitSlider extends StatelessWidget {
           value: value,
           unit: ' bar',
           fractionDigits: 2,
-          min: _min,
-          max: _max,
+          min: modLimitPpO2Min,
+          max: modLimitPpO2Max,
           divisions: _divisions,
           onChanged: onChanged,
         ),

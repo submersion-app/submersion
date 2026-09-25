@@ -24,9 +24,22 @@ const double recreationalDepthLimitMeters = 40;
 /// ppO2 of the contingency MOD shown beside the working MOD in Rec.
 const double recContingencyPpO2 = 1.6;
 
-/// The nitrox range Rec offers.
+/// The ranges the calculator offers. The sliders, the stored preferences and
+/// the computation all read these, so a restored value can never be computed
+/// as something other than what the slider shows.
 const double recMinO2Percent = 21;
 const double recMaxO2Percent = 40;
+
+/// Tec O2 floor; reaches hypoxic trimix, as in the gas density calculator.
+const double tecMinO2Percent = 5;
+const double recTargetMaxMeters = 60;
+const double tecTargetMaxMeters = 150;
+const double modSetpointMinBar = 0.4;
+const double modSetpointMaxBar = 1.6;
+
+/// Range of an individual ppO2 limit.
+const double modLimitPpO2Min = 1.0;
+const double modLimitPpO2Max = 1.6;
 
 /// Deepest depth the MND search looks at. A mix still within the END limit
 /// there has no practical narcotic limit.
@@ -82,6 +95,38 @@ class GasLimitsInputs {
     required this.targetDepthMeters,
     required this.waterType,
   });
+
+  /// [clearTargetDepth] drops the target, which a null argument cannot.
+  GasLimitsInputs copyWith({
+    ModCalculatorMode? mode,
+    double? o2Percent,
+    double? hePercent,
+    double? workingPpO2,
+    double? decoPpO2,
+    double? flushPpO2,
+    double? setpointBar,
+    double? minPpO2,
+    double? endLimitMeters,
+    bool? o2Narcotic,
+    double? targetDepthMeters,
+    bool clearTargetDepth = false,
+    WaterType? waterType,
+  }) => GasLimitsInputs(
+    mode: mode ?? this.mode,
+    o2Percent: o2Percent ?? this.o2Percent,
+    hePercent: hePercent ?? this.hePercent,
+    workingPpO2: workingPpO2 ?? this.workingPpO2,
+    decoPpO2: decoPpO2 ?? this.decoPpO2,
+    flushPpO2: flushPpO2 ?? this.flushPpO2,
+    setpointBar: setpointBar ?? this.setpointBar,
+    minPpO2: minPpO2 ?? this.minPpO2,
+    endLimitMeters: endLimitMeters ?? this.endLimitMeters,
+    o2Narcotic: o2Narcotic ?? this.o2Narcotic,
+    targetDepthMeters: clearTargetDepth
+        ? null
+        : targetDepthMeters ?? this.targetDepthMeters,
+    waterType: waterType ?? this.waterType,
+  );
 }
 
 /// The breathed gas assessed at one depth.
@@ -200,7 +245,7 @@ GasLimitsResult computeGasLimits(GasLimitsInputs inputs) {
   final isCcr = inputs.mode == ModCalculatorMode.ccrTec;
   final o2 = isRec
       ? inputs.o2Percent.clamp(recMinO2Percent, recMaxO2Percent).toDouble()
-      : inputs.o2Percent.clamp(1.0, 100.0).toDouble();
+      : inputs.o2Percent.clamp(tecMinO2Percent, 100.0).toDouble();
   final he = isRec ? 0.0 : inputs.hePercent.clamp(0.0, 100.0 - o2).toDouble();
   final fO2 = o2 / 100;
   final environment = isRec
@@ -243,8 +288,11 @@ GasLimitsResult computeGasLimits(GasLimitsInputs inputs) {
     environment: environment,
   );
 
-  final target = inputs.targetDepthMeters;
-  final atTarget = target == null ? null : assess(math.max(target, 0.0));
+  final rawTarget = inputs.targetDepthMeters;
+  final target = rawTarget
+      ?.clamp(0.0, isRec ? recTargetMaxMeters : tecTargetMaxMeters)
+      .toDouble();
+  final atTarget = target == null ? null : assess(target);
 
   return GasLimitsResult(
     mode: inputs.mode,
@@ -260,8 +308,13 @@ GasLimitsResult computeGasLimits(GasLimitsInputs inputs) {
     atTarget: atTarget,
     beyondRecreationalLimit: isRec && mod > recreationalDepthLimitMeters,
     targetBeyondMod: target != null && target > mod,
+    // Open circuit only: on a CCR loop the breathed gas holds the setpoint,
+    // so a hypoxic diluent limits a flush, not the loop at the target.
     targetShallowerThanMinDepth:
-        target != null && minDepth != null && target < minDepth,
+        inputs.mode == ModCalculatorMode.ocTec &&
+        target != null &&
+        minDepth != null &&
+        target < minDepth,
     setpointNotBelowFlushPpO2: isCcr && inputs.setpointBar >= inputs.flushPpO2,
   );
 }
@@ -344,7 +397,8 @@ double? _mnd(double endLimit, DepthAssessment Function(double) assess) {
   var low = 0.0;
   var high = _mndSearchCeilingMeters;
   if (assess(low).narcoticDepthMeters > endLimit) return 0;
-  for (var i = 0; i < 60; i++) {
+  // 30 halvings of 300 m resolve to well under a micrometer.
+  for (var i = 0; i < 30; i++) {
     final mid = (low + high) / 2;
     if (assess(mid).narcoticDepthMeters > endLimit) {
       high = mid;

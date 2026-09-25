@@ -38,6 +38,17 @@ class UnitFormatter {
     return '${formatFixedForDisplay(floored, decimals)}${settings.depthUnit.symbol}';
   }
 
+  /// Format a MINIMUM depth (a hypoxic mix's shallowest depth) rounded UP in
+  /// the display unit, the safe side for a floor rather than a ceiling.
+  String formatDepthCeil(double? value, {int decimals = 1}) {
+    if (value == null) return '--';
+    final converted = DepthUnit.meters.convert(value, settings.depthUnit);
+    final ceiled = -floorToFractionDigits(-converted, decimals);
+    // -0.0 would render as "-0.0".
+    final shown = ceiled == 0 ? 0.0 : ceiled;
+    return '${formatFixedForDisplay(shown, decimals)}${settings.depthUnit.symbol}';
+  }
+
   /// Get depth unit symbol
   String get depthSymbol => settings.depthUnit.symbol;
 

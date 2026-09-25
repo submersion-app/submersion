@@ -263,6 +263,48 @@ void main() {
     });
   });
 
+  group('CCR Tec, hypoxic diluent', () {
+    test('a shallow target is not hypoxic: the loop holds the setpoint', () {
+      final r = computeGasLimits(
+        _inputs(mode: ModCalculatorMode.ccrTec, o2: 10, he: 70, target: 5),
+      );
+      // The diluent itself may not be flushed above its minimum depth ...
+      expect(r.minDepthMeters, greaterThan(5));
+      // ... but the breathed loop at 5 m is at the setpoint, not hypoxic.
+      expect(r.targetShallowerThanMinDepth, isFalse);
+      expect(r.atTarget!.pO2Bar, greaterThanOrEqualTo(1.1));
+    });
+  });
+
+  group('inputs are held to the ranges the calculator offers', () {
+    test('Tec O2 cannot drop below the slider floor', () {
+      final r = computeGasLimits(
+        _inputs(mode: ModCalculatorMode.ocTec, o2: 1, he: 0),
+      );
+      expect(r.o2Percent, tecMinO2Percent);
+    });
+
+    test('a target depth is capped at the mode maximum', () {
+      final rec = computeGasLimits(_inputs(target: 100));
+      expect(rec.atTarget!.depthMeters, recTargetMaxMeters);
+      final tec = computeGasLimits(
+        _inputs(mode: ModCalculatorMode.ocTec, o2: 21, he: 35, target: 200),
+      );
+      expect(tec.atTarget!.depthMeters, tecTargetMaxMeters);
+    });
+  });
+
+  group('GasLimitsInputs.copyWith', () {
+    test('replaces only the given fields and can clear the target', () {
+      final base = _inputs(target: 30);
+      final copy = base.copyWith(o2Percent: 36);
+      expect(copy.o2Percent, 36);
+      expect(copy.targetDepthMeters, 30);
+      expect(copy.mode, base.mode);
+      expect(base.copyWith(clearTargetDepth: true).targetDepthMeters, isNull);
+    });
+  });
+
   group('depths are never negative', () {
     test('EAD and END of a rich mix near the surface clamp at 0', () {
       final r = computeGasLimits(
