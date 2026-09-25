@@ -173,4 +173,37 @@ void main() {
       });
     },
   );
+
+  test('repaints only when what it draws changes', () {
+    final model = composeFigure(const []);
+    final painter = DiverFigurePainter(
+      model: model,
+      palette: FigurePalette.light,
+    );
+    expect(
+      painter.shouldRepaint(
+        DiverFigurePainter(model: model, palette: FigurePalette.light),
+      ),
+      isFalse,
+    );
+    expect(
+      painter.shouldRepaint(
+        DiverFigurePainter(
+          model: composeFigure(const []),
+          palette: FigurePalette.light,
+        ),
+      ),
+      isTrue,
+    );
+    expect(
+      painter.shouldRepaint(
+        DiverFigurePainter(
+          model: model,
+          palette: FigurePalette.light,
+          only: FigureView.back,
+        ),
+      ),
+      isTrue,
+    );
+  });
 }

@@ -281,4 +281,51 @@ void main() {
     expect(find.text('Also carried'), findsOneWidget);
     expect(find.text('Item tool'), findsOneWidget);
   });
+
+  testWidgets('an unbounded width falls back to the phone layout', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DiverFigure(
+              model: reef,
+              semanticsLabel: 'Reef set',
+              labelText: (p) => p.item.name,
+              sideLabel: (view, count) => '${view.name} $count',
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(find.byType(SegmentedButton<FigureView>), findsOneWidget);
+  });
+
+  testWidgets('a tray with no title shows only its tiles', (tester) async {
+    final withTray = composeFigure([
+      item('mask', EquipmentType.mask),
+      item('tool', EquipmentType.tool),
+    ]);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: DiverFigure(
+              model: withTray,
+              semanticsLabel: 'Reef set',
+              labelText: (p) => p.item.name,
+              sideLabel: (view, count) => '${view.name} $count',
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(find.text('Also carried'), findsNothing);
+    expect(find.text('Item tool'), findsOneWidget);
+  });
 }

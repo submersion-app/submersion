@@ -19,4 +19,9 @@ void main() {
     expect(FigurePalette.darken(0xFFFFFFFF, 0.25), 0xFFBFBFBF);
     expect(FigurePalette.darken(0x80FFFFFF, 0.25) >> 24, 0x80);
   });
+
+  test('the outline role takes the palette outline', () {
+    const palette = FigurePalette.light;
+    expect(palette.colorFor(FigureRole.outline, 0xFF4080C0), palette.outline);
+  });
 }
