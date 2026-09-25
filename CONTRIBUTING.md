@@ -100,9 +100,18 @@ files you touched) before committing.
      issue without resolving it, so the issue stays open.
 
    If no issue exists yet, open one first.
-4. Keep PRs focused and reasonably small: one logical change per PR is easier
+4. **Add screenshots for any UI change.** A PR that changes anything a user can
+   see (files under `lib/**/presentation/`, `lib/shared/widgets/`,
+   `lib/core/theme/`, `lib/core/ui/` or `lib/core/icons/`, or platform UI
+   resources such as launch screens, app icons and window chrome) must include
+   before and after screenshots in the description (only the after for a
+   brand-new screen, which has no before). If the PR touches those
+   paths without changing what anyone sees, tick "No visible UI change" in the
+   template and say why. See
+   [Screenshots for UI Changes](docs/contributing/pull-requests.md#screenshots-for-ui-changes).
+5. Keep PRs focused and reasonably small: one logical change per PR is easier
    to review and merge.
-5. Ensure CI passes. Maintainers may request changes; discussion is part of the
+6. Ensure CI passes. Maintainers may request changes; discussion is part of the
    process.
 
 For detailed conventions, see:
