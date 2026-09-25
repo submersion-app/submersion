@@ -213,6 +213,8 @@ void main() {
       legId: 'L1',
       cumulativeDistanceM: 300,
       arrivalRuntimeSeconds: 667,
+      directDistanceHomeM: 300,
+      safeSurfaceSeconds: 900,
       members: [
         MemberWaypointOutcome(
           memberId: 'm1',

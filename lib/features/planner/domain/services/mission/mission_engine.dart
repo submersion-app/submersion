@@ -7,6 +7,7 @@ import 'package:submersion/features/planner/domain/entities/mission/mission_outc
 import 'package:submersion/features/planner/domain/services/mission/exit_path_evaluator.dart';
 import 'package:submersion/features/planner/domain/services/mission/leg_speed_resolver.dart';
 import 'package:submersion/features/planner/domain/services/mission/member_gas_service.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_geometry.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_member_analysis.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_scenario_service.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_segment_builder.dart';
@@ -68,6 +69,8 @@ class MissionEngine {
     if (legSpeeds.isEmpty) return MissionOutcome.empty(issues: issues);
     final legs = mission.legs.sublist(0, legSpeeds.length);
     final route = mission.copyWith(legs: legs);
+    final positions = waypointPositions(legs);
+    final openWater = route.environment == MissionEnvironment.openWater;
 
     final profile = builder.build(
       plan: plan,
@@ -100,6 +103,12 @@ class MissionEngine {
       final outboundRows = roundTripOutcome.schedule
           .where((r) => r.runtimeSeconds <= arrival)
           .toList();
+      final surface = openWater
+          ? _evaluateSurface(plan: plan, mission: route, k: k, issues: issues)
+          : null;
+      final safeSurfaceSeconds = openWater
+          ? surface?.ttsSeconds
+          : _overheadSafeSurface(plan: plan, mission: route, k: k);
       final members = <MemberWaypointOutcome>[];
       for (final member in team) {
         final swim = _evaluate(
@@ -139,7 +148,11 @@ class MissionEngine {
             ),
             swim: swim,
             tow: best,
-            survivable: swim.feasible || (best?.feasible ?? false),
+            surface: surface,
+            survivable:
+                swim.feasible ||
+                (best?.feasible ?? false) ||
+                (surface?.feasible ?? false),
           ),
         );
       }
@@ -149,6 +162,8 @@ class MissionEngine {
           legId: legs[k].id,
           cumulativeDistanceM: cumulative,
           arrivalRuntimeSeconds: arrival,
+          directDistanceHomeM: positions[k].distanceHomeM,
+          safeSurfaceSeconds: safeSurfaceSeconds,
           members: members,
           survivable: members.every((m) => m.survivable),
         ),
@@ -227,6 +242,15 @@ class MissionEngine {
           ),
         );
       }
+      if (member.swimSpeedMps <= 0) {
+        issues.add(
+          MissionIssue(
+            type: MissionIssueType.memberSwimSpeedUnset,
+            severity: MissionIssueSeverity.blocking,
+            memberId: member.id,
+          ),
+        );
+      }
     }
     return issues;
   }
@@ -287,6 +311,50 @@ class MissionEngine {
         ttsSeconds: 0,
         exitLitersByMember: const {},
       );
+    }
+  }
+
+  /// The shared open-water surface exit at waypoint [k], or null (with a
+  /// warning) when its scenario cannot be run.
+  ExitOutcome? _evaluateSurface({
+    required domain.DivePlan plan,
+    required DpvMission mission,
+    required int k,
+    required List<MissionIssue> issues,
+  }) {
+    try {
+      return scenarios.evaluateSurface(
+        plan: plan,
+        mission: mission,
+        waypointIndex: k,
+      );
+    } on Object {
+      issues.add(
+        MissionIssue(
+          type: MissionIssueType.scenarioFailed,
+          severity: MissionIssueSeverity.warning,
+          legId: mission.legs[k].id,
+        ),
+      );
+      return null;
+    }
+  }
+
+  /// The overhead time to a safe surface from waypoint [k], or null when it
+  /// cannot be computed.
+  int? _overheadSafeSurface({
+    required domain.DivePlan plan,
+    required DpvMission mission,
+    required int k,
+  }) {
+    try {
+      return scenarios.overheadSafeSurfaceSeconds(
+        plan: plan,
+        mission: mission,
+        waypointIndex: k,
+      );
+    } on Object {
+      return null;
     }
   }
 

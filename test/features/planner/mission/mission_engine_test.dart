@@ -242,7 +242,7 @@ void main() {
       expect(outcome.members.every((m) => m.turnPressureBar == null), isTrue);
     });
 
-    test('a current only the scooters beat makes a tow the only way out', () {
+    test('a current that closes every exit binds as blocked by current', () {
       // 0.3 m/s setting toward 0 on a heading of 0: the team makes 0.2 m/s
       // home on scooters, a tow at 0.3 - 0.3 = 0 makes none, and a swim at
       // 0.2 makes none. Every failure is unsurvivable and blocked by current.
@@ -266,7 +266,7 @@ void main() {
       expect(b.swim.blockedByCurrent, isTrue);
       expect(b.tow!.blockedByCurrent, isTrue);
       expect(b.survivable, isFalse);
-      expect(outcome.constraint!.factor, MissionBindingFactor.noFeasibleTow);
+      expect(outcome.constraint!.factor, MissionBindingFactor.blockedByCurrent);
     });
 
     test('a scenario that throws is reported and counted as no way out', () {

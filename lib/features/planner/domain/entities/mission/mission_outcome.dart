@@ -212,6 +212,14 @@ class WaypointOutcome extends Equatable {
   final String legId;
   final double cumulativeDistanceM;
   final int arrivalRuntimeSeconds;
+
+  /// Straight-line distance from the waypoint back to the entry, in metres.
+  final double directDistanceHomeM;
+
+  /// Seconds to the next safe surface with no failure: in an overhead the
+  /// way out at cruise plus the ascent, in open water the ascent alone. Null
+  /// when it could not be computed.
+  final int? safeSurfaceSeconds;
   final List<MemberWaypointOutcome> members;
 
   /// True when every member's failure here has a feasible exit.
@@ -222,6 +230,8 @@ class WaypointOutcome extends Equatable {
     required this.legId,
     required this.cumulativeDistanceM,
     required this.arrivalRuntimeSeconds,
+    required this.directDistanceHomeM,
+    required this.safeSurfaceSeconds,
     required this.members,
     required this.survivable,
   });
@@ -232,6 +242,8 @@ class WaypointOutcome extends Equatable {
     legId,
     cumulativeDistanceM,
     arrivalRuntimeSeconds,
+    directDistanceHomeM,
+    safeSurfaceSeconds,
     members,
     survivable,
   ];

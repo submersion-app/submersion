@@ -70,16 +70,7 @@ class MissionMemberAnalysis {
       )) {
         factor = MissionBindingFactor.battery;
       } else if (!own.survivable) {
-        // A swim burns no battery, so it fails only on gas or on a current
-        // it cannot beat; that makes it the clean witness for why.
-        final swimShort = own.swim.gasShortfallMemberIds;
-        if (swimShort.contains(member.id)) {
-          factor = MissionBindingFactor.ownGas;
-        } else if (swimShort.isNotEmpty) {
-          factor = MissionBindingFactor.teamGas;
-        } else {
-          factor = MissionBindingFactor.noFeasibleTow;
-        }
+        factor = _whyUnsurvivable(member.id, own);
       }
       if (factor != null) {
         bindingIndex = k;
@@ -95,7 +86,7 @@ class MissionMemberAnalysis {
       // one is carried, so this errs on the safe side.
       var worstLiters = 0.0;
       for (final other in waypoints[abandonment].members) {
-        for (final exit in [other.swim, other.tow]) {
+        for (final exit in [other.swim, other.tow, other.surface]) {
           if (exit == null || !exit.feasible) continue;
           worstLiters = math.max(
             worstLiters,
@@ -125,6 +116,31 @@ class MissionMemberAnalysis {
       bindingWaypointIndex: bindingIndex,
       turnPressureBar: turnPressure,
     );
+  }
+
+  /// Why none of [own]'s exits works. The swim and the surface exit burn no
+  /// battery, so their gas is the clean witness for a gas reason; then the
+  /// surface limit, a possible tow that failed, and a current that closes
+  /// every underwater exit.
+  MissionBindingFactor _whyUnsurvivable(
+    String memberId,
+    MemberWaypointOutcome own,
+  ) {
+    final witnesses = [own.swim, if (own.surface != null) own.surface!];
+    if (witnesses.any((e) => e.gasShortfallMemberIds.contains(memberId))) {
+      return MissionBindingFactor.ownGas;
+    }
+    if (witnesses.any((e) => e.gasShortfallMemberIds.isNotEmpty)) {
+      return MissionBindingFactor.teamGas;
+    }
+    if (own.surface?.surfaceLimitExceeded ?? false) {
+      return MissionBindingFactor.surfaceSwimLimit;
+    }
+    final tow = own.tow;
+    if (tow != null && !tow.blockedByCurrent) {
+      return MissionBindingFactor.noFeasibleTow;
+    }
+    return MissionBindingFactor.blockedByCurrent;
   }
 
   MissionConstraint? constraint(List<MemberOutcome> members) {
