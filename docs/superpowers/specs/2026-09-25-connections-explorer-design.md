@@ -1,7 +1,11 @@
 # Connections explorer
 
-Issue: #2321 (umbrella). Phases: #2322 (the graph), #2323 (breadth), #2324
-(the story).
+Issue: #2321 (umbrella). Phases: #2322 (phase 1, revised: the whole
+explorer), #2324 (phase 2, the story). #2323 was absorbed into #2322 by
+Revision 2.
+
+Revision 2 (below the original decisions) supersedes the pair-based lenses,
+the page layout and the phase list.
 
 ## Problem
 
@@ -41,7 +45,269 @@ There is also no picture of a diving life that a diver would want to share.
 | Year slider | Yes, plus year play in phase 3 |
 | Highlight modes | By kind, groups, recency |
 | Share image | Offscreen paint, share or save, nothing uploaded |
-| Delivery | Three PRs, one per phase issue |
+| Delivery | Two PRs (revised by Revision 2) |
+
+## Revision 2 (2026-09-25)
+
+Phase 1 shipped on its branch as designed above, and a desktop review showed
+three gaps. The side panel clipped its own controls and left most of its
+height empty. Only two lenses existed. Every view joined exactly two kinds,
+so "everything connected to this buddy" was impossible even in ego mode,
+which the original design promised across several kinds and the phase 1 plan
+had narrowed to one. This revision replaces the pair model with sets of
+kinds, adds a second mode, rebuilds the panel, and folds the old phase 2 into
+phase 1. Where it conflicts with the sections above, this revision wins; the
+engine's SQL fragments, the stats scope, the filter, the force layout, the
+hit testing and the error handling carry over unchanged unless named here.
+
+### Decisions (revision 2)
+
+| Question | Decision |
+| --- | --- |
+| Kinds on one canvas | Any set, not a pair |
+| Modes | *Around one entity* and *Whole map* |
+| Around one entity | All kinds, 1 to 3 hops (default 1), kinds toggleable |
+| Choosing the centre | Search across every kind, plus double-tap or *Centre here*, plus deep links |
+| Whole map | Pick kinds and links; minimum-shared-dives slider (1 to 10) |
+| Link default | Ticking a kind links it to the kinds already on; same-kind links stay off |
+| Presets | Nine built-in presets; editing one makes a custom map |
+| Saved maps | Named, synced per diver (`connection_maps`, schema rung 227) |
+| Desktop panel | Layout A: one right panel with View, Filter and Details tabs |
+| Phone | The same three tabs in a draggable bottom sheet |
+| Canvas | Label-aware fit that follows the settling layout, label halos, islands gathered below, kinds seeded in sectors, kind icons, rings by hop |
+| Refocus | 450 ms camera glide plus node morph; gestures cancel; reduce-motion snaps |
+| Deep links | Every entity detail page that has one opens Around mode on it |
+| Also in | Summary block, `sightings(dive_id)` index, the deferred review minors |
+| Phasing | Phase 1 is this whole revision (#2322); the old phase 2 (#2323) is absorbed; the story phase (#2324) is phase 2 |
+
+### Views
+
+```dart
+sealed class ConnectionView {}
+
+/// Whole map: every entity of the chosen kinds, joined by the chosen links.
+class MapView extends ConnectionView {
+  final MapSpec spec;
+}
+
+/// Around one entity: everything within [hops] shared-dive steps of [focus],
+/// limited to [kinds].
+class AroundView extends ConnectionView {
+  final NodeRef focus;
+  final Set<ConnectionKind> kinds;
+  final int hops; // 1..3
+}
+
+class KindLink { // unordered: KindLink(a, b) == KindLink(b, a)
+  final ConnectionKind a;
+  final ConnectionKind b;
+  bool get isSameKind => a == b;
+}
+
+class MapSpec {
+  final Set<ConnectionKind> kinds;
+  final Set<KindLink> links; // every link's kinds are in [kinds]
+  final int minSharedDives; // 1..10
+}
+```
+
+`ConnectionQuery`, `ConnectionLens` and `LensSelection` are replaced by these
+types. The active view is persisted device-local as JSON (the successor of
+`connections_last_lens`), together with the Around kinds and hops so a
+switch between modes restores each side. A persisted value that fails to
+parse falls back to the *Dive circle* preset.
+
+**Default Around kinds.** Buddies, sites, trips, species, equipment and dive
+centers are on; tags, dive types, dive computers and courses are off. The
+chips in the View tab change this.
+
+### Data engine changes
+
+- **Map load.** One node query per kind in `spec.kinds` (unchanged builder),
+  and one edge query per link. A same-kind link keeps the
+  `a.entity_id < b.entity_id` guard. The minimum becomes
+  `HAVING COUNT(DISTINCT d.id) >= ?` on the edge query when it is above 1.
+  Nodes with no surviving link are kept; they become islands.
+- **Around load.** Breadth-first over hops:
+  1. Hop 1: for each kind in `kinds`, the edge query from the focus's kind to
+     that kind with side A pinned to the focus id.
+  2. Hop n (2, 3): for each frontier kind F and each kind K in `kinds`, the
+     edge query from F to K with side A restricted to the frontier ids of
+     kind F and side B excluding ids already placed.
+  3. Chords: for each pair of enabled kinds (same-kind included), the edge
+     query with both sides restricted to the placed ids of their kind.
+  4. Nodes: one node query per kind, restricted to the placed ids.
+- **Builder change.** `buildEdgeSql` replaces the single `restrictTo` list
+  with `restrictA`, `restrictB` and `excludeB`, each an optional id list,
+  and gains `minShared`. Empty restriction lists still match nothing.
+- **Hop distance.** `ConnectionNode` gains `hop` (0 for the focus, 1 to 3
+  for others, null in map mode). The budget ranks by hop first, then dive
+  count, then weighted degree, then id, so a hop-3 entity never displaces a
+  direct neighbour. The focus is always kept.
+- **One transaction.** A map or around load runs inside one Drift read
+  transaction, so a sync commit cannot land between its queries.
+- **Scope.** Every query keeps the diver clause, `DiveStatsScope` and the
+  page's filter through `diveScopeSql`. The minimum-shared-dives slider
+  applies to map mode only.
+- **Index.** Rung 227 adds `idx_sightings_dive_id` on `sightings(dive_id)`,
+  the one junction the species queries join that has no `dive_id` index.
+
+### Presets
+
+| Preset | Kinds | Links |
+| --- | --- | --- |
+| Dive circle | buddy | buddy with buddy |
+| Who dives where | buddy, site | buddy with site |
+| Trips and people | buddy, trip | buddy with trip |
+| Sites by marine life | site, species | site with species |
+| Gear together | equipment | equipment with equipment |
+| Centers and people | dive center, buddy | dive center with buddy |
+| Travel story | buddy, trip, site | buddy with trip, trip with site, buddy with site |
+| Reef life | site, species, dive type | site with species, species with dive type, site with dive type |
+| Gear on the road | equipment, trip, dive center | equipment with trip, trip with dive center, equipment with dive center |
+
+Every preset starts with a minimum of 1. Editing the kinds, links or minimum
+of an applied preset makes the view a custom map: no preset card is
+selected, and the card it came from shows an "edited" mark until another
+card is chosen.
+
+### Saved maps
+
+- **Table.** `ConnectionMaps` in `database.dart`: `id` (uuid primary key),
+  `diverId` (not null, references `Divers`, cascade on delete), `name`,
+  `spec` (the `MapSpec` as JSON text), `sortOrder`, `createdAt`,
+  `updatedAt`, `hlc`. Rung 227 creates it; a guarded `beforeOpen` backstop
+  creates it and the sightings index when missing, for rung collisions
+  between parallel branches.
+- **Sync.** Registered as a diver-owned entity everywhere sync enumerates
+  tables: the payload, the serializers, `mergeOrder`, the updated-at flag,
+  parent references, the `hlc` targets and the deletion log. A round-trip
+  sync test covers create, rename and delete.
+- **Repository.** `ConnectionMapRepository` with `getAll(diverId)`,
+  `create`, `rename`, `updateSpec`, `delete` and `watchConnectionMapsChanges`;
+  its provider subscribes to that tick.
+- **Parsing.** A stored spec that does not parse (a kind this build does not
+  know) is skipped in the list and never deleted.
+- **UI.** *Save as map* in the editor asks for a name. Saved maps appear as
+  cards after the presets with a bookmark mark. Each card's overflow menu
+  offers Rename, Update from current, and Delete with an undo snackbar.
+- **Export.** UDDF and CSV do not carry saved maps; the `.db` backup does.
+
+### Panel (layout A)
+
+The desktop page is the canvas on the left and one 340 px panel on the
+right with three tabs. On compact width the same tabs live in a draggable
+bottom sheet over a full-height canvas. Every row in the panel wraps; nothing
+scrolls sideways.
+
+- **View tab.**
+  - The mode switch: *Around one entity* and *Whole map*.
+  - Whole map: the nine presets and the saved maps as a two-column card
+    grid, each card with a coloured dot per kind; then a collapsible
+    *Custom map* editor (kind chips, one checkbox per possible link among the
+    ticked kinds, the minimum slider, *Save as map*).
+  - Around one entity: a search field that matches every kind by name and
+    lists results with their kind dot and dive count; the centred entity; a
+    1, 2, 3 hop stepper; kind chips carrying their counts in the current
+    result.
+  - Summary at the foot: counts per kind, connections, most connected
+    (highest weighted degree) and strongest pair (heaviest edge), or, in
+    Around mode, the entity count and the closest neighbour.
+- **Filter tab.** The year slider, removable chips for the active filter
+  axes, *All filters...* (the existing `DiveFilterSheet` bound to
+  `connectionsFilterProvider`) and *Clear*. The tab label carries the count
+  of active axes.
+- **Details tab.** The selection: name, subtitle, dive count, top
+  connections with kind dots, then *Open*, *Centre here* (formerly *Focus*)
+  and *Show dives*. Selecting a node or edge switches to this tab; tapping
+  empty canvas returns to the tab that was open before.
+
+The old chip row, filter bar and overlay legend on wide layouts are removed.
+The compact overlay legend stays on phones.
+
+### Canvas changes
+
+- **Fit.** The fit target solves for the scale at which every node's
+  position, plus its screen-space radius and label box, fits the canvas with
+  a 24 px margin. While the force layout settles, the camera eases toward the
+  current target each frame instead of snapping; once settled, auto-fit
+  stops. Any pan, pinch, wheel, trackpad or drag gesture ends auto-fit until
+  the next view or graph change.
+- **Labels.** Each visible label is painted over a rounded halo in the
+  canvas background colour at 85 % opacity. The collision pass treats node
+  discs as occupied space, so a label never covers another node. A hidden
+  label shows on hover, and returns when zooming makes room.
+- **Islands.** Nodes with no edge are gathered into a grid below the linked
+  components, ordered by dive count then label.
+- **Kind sectors.** Initial force-layout positions place each kind in its own
+  angular sector of the seed ring, deterministically, so kinds start grouped.
+- **Kind icons.** At a drawn radius of 18 px or more, a node without a photo
+  shows its kind icon (the icon of the kind's home destination) instead of
+  initials when the kind is not buddy.
+- **Rings by hop.** The radial layout places hop 1 on the inner rings and hop
+  2 and 3 outside them; within a ring, kinds keep contiguous arcs.
+- **Refocus animation.** The page reads the graph with
+  `skipLoadingOnReload: true`, so the canvas stays mounted while a new view
+  loads, with a thin progress bar over it. When the new graph arrives:
+  - the camera glides from its current viewport to the new fit over 450 ms,
+    `easeInOutCubic`, blending scale in log space and moving the graph point
+    at the screen centre;
+  - nodes present before and after slide from their old positions to their
+    new ones over the same curve; new nodes start at the focus node's
+    previous position (or its new one when it is itself new) and grow from
+    zero radius; nodes that leave simply disappear;
+  - `LayoutFrame` gains an `appear` factor per node (0 to 1, default 1) that
+    the painter multiplies into radius and label opacity;
+  - any gesture cancels the camera glide; the node morph finishes.
+  With `MediaQuery.disableAnimationsOf(context)` true, both snap. The first
+  load of the page snaps.
+
+### Routes and deep links
+
+`/connections` accepts `mode` (`around` or `map`), `preset` (a preset id),
+`focus` (a `NodeRef` wire string) and `hops`. The phase 1 `lens`, `a` and
+`b` parameters remain accepted: `lens` maps to its preset, `a` and `b` to a
+two-kind custom map. *Open in Connections* appears on the buddy, site, trip,
+dive center, equipment, species and course detail pages and pushes
+`/connections?mode=around&focus=<kind>:<id>`.
+
+### Carried-in fixes from the phase 1 review
+
+- A vanished focus always resets; only the snackbar is guarded.
+- *Show all* asks only when the total exceeds 400 and is hidden once the
+  budget is at the ceiling.
+- The exit-focus action gets its own tooltip key.
+- The canvas semantics summary names the selected node.
+- Buddy photos decode at a 96 px target width.
+- `ConnectionNode` equality compares photos by identity.
+- The last-view preference write is awaited and its failure logged.
+- The hover tooltip clamp tolerates a canvas narrower than 160 px.
+- Tests render the selection card at 732 px and reload a graph while the
+  layout animates.
+
+### Testing (revision 2)
+
+Tests are written first.
+
+- Repository, on a real in-memory database: map loads with three kinds and
+  chosen links, same-kind links, the minimum, islands; around loads at hops
+  1 to 3, frontier restriction, exclusion of placed ids, chords, hop-ranked
+  trimming that keeps the focus; one transaction per load.
+- Pure Dart: `KindLink` equality, `MapSpec` link defaults when a kind is
+  ticked, spec JSON round trip and tolerant parsing, preset table, kind-sector
+  seeding determinism, island grid, rings by hop, the morph and camera
+  interpolation endpoints and midpoints, the label-aware fit.
+- Saved maps: repository CRUD, the change tick, migration rung 227 (table
+  and index), the backstop, the sync round trip.
+- Widgets, at 732 and 1280 px: each tab, the editor's link defaults, search
+  results across kinds, the hop stepper, selection switching to Details and
+  back, the phone sheet, the refocus animation's mid-transition scale, a
+  gesture cancelling it, reduce-motion snapping, every deep link.
+- A loose benchmark for an Around load at 3 hops with every kind on over a
+  seeded database.
+- Guards: provider change tick, build smoke, stats-scope census, repository
+  tick streams, destinations, ARB parity and the plural rules, and the sync
+  table-coverage tests.
 
 ## Questions the graph answers
 
@@ -373,6 +639,10 @@ screen reader user is never stuck inside the painter.
 
 ### Page, navigation, lenses and filters
 
+*Superseded in part by Revision 2: the lens chips, the pair picker, the
+wide-layout panel and the route parameters. The destination, accent colour
+and filter provider stand.*
+
 **Route and destination.** `/connections` becomes a section root with
 `name: 'connections'` and a `NoTransitionPage`, accepting query parameters
 `lens`, `a`, `b` and `focus` (`focus` is a `NodeRef` string such as
@@ -548,18 +818,14 @@ Portuguese plural rule (`=1{{count} ...}` interpolation). Run the whole
 
 ## Phases
 
-Each phase is one PR that closes its sub-issue and references #2321.
+Each phase is one PR that closes its issue and references #2321.
 
-1. **The graph (#2322).** Engine with every kind's membership fragment, domain
-   model and budget, force and radial layouts, canvas with pan, zoom, tap,
-   long-press drag and edge selection, selection card and panel, page and
-   destination, lenses *Dive circle* and *Who dives where*, filter action,
-   chips bar and year slider, buddy detail deep link, empty states, eleven
-   locales.
-2. **Breadth (#2323).** The other four lenses, the free pair picker, the
-   trimmed-entities sheet, deep links from site, trip, center, equipment and
-   species pages, hover tooltips, re-layout action, the `sightings` index.
-3. **The story (#2324).** Insight strip, highlight modes, year play with warm
+1. **The explorer (#2322).** Phase 1 as built plus all of Revision 2: map and
+   around views, nine presets and the editor, saved maps (rung 227 with the
+   sightings index), layout A and the phone sheet, the canvas changes and
+   the refocus animation, deep links from every detail page, the summary,
+   and the carried-in review fixes. The old phase 2 (#2323) is absorbed.
+2. **The story (#2324).** Insight strip, highlight modes, year play with warm
    start, share image.
 
 ## Localization
@@ -574,7 +840,9 @@ Portuguese. Nothing displays a unit; dates and date ranges go through
 
 - The diver as a node.
 - Conditions as nodes (they are filters).
-- Named, saved custom lenses.
+- Carrying saved maps in UDDF or CSV exports.
+- More than 3 hops; the minimum-shared-dives slider in Around mode.
+- Colouring edges by kind pair.
 - Community detection beyond label propagation; centrality metrics.
 - Syncing the lens or filter state between devices.
 - Any upload or online rendering of the graph.
