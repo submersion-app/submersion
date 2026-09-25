@@ -696,6 +696,53 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    testWidgets('confirming a standalone delete returns to the site list', (
+      tester,
+    ) async {
+      await SiteRepository().createSite(
+        const DiveSite(id: 'e-del', name: 'Doomed Site'),
+      );
+      final router = GoRouter(
+        initialLocation: '/sites/e-del/edit',
+        routes: [
+          GoRoute(
+            path: '/sites',
+            builder: (context, state) =>
+                const Scaffold(body: Text('SITES_LIST')),
+          ),
+          GoRoute(
+            path: '/sites/:id/edit',
+            builder: (context, state) =>
+                SiteEditPage(siteId: state.pathParameters['id']),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            allDiversProvider.overrideWith((_) async => const <Diver>[]),
+            shareByDefaultProvider.overrideWith((_) async => false),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.delete));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('SITES_LIST'), findsOneWidget);
+      expect(await SiteRepository().getSiteById('e-del'), isNull);
+    });
+
     testWidgets('embedded edit offers delete when the host handles it', (
       tester,
     ) async {
