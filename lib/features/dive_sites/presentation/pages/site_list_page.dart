@@ -104,6 +104,10 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
           embedded: true,
           onSaved: onSaved,
           onCancel: onCancel,
+          onDeleted: () {
+            final state = GoRouterState.of(context);
+            context.go(state.uri.path);
+          },
         ),
         createBuilder: (context, onSaved, onCancel) =>
             SiteEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
@@ -279,6 +283,10 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
             embedded: true,
             onSaved: onSaved,
             onCancel: onCancel,
+            onDeleted: () {
+              final state = GoRouterState.of(context);
+              context.go(state.uri.path);
+            },
           ),
           createBuilder: (context, onSaved, onCancel) => SiteEditPage(
             embedded: true,
