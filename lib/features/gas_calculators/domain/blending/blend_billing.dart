@@ -156,9 +156,13 @@ ManualGasFillCost? manualGasFillCost({
   final addedBar = endBar - startBar;
   final liters = waterLiters * addedBar;
   final price = pricePer100 ?? 0;
+  final cost = liters / 100 * price;
+  // Finite inputs can still multiply out to infinity, which a saved bill
+  // could not encode as JSON.
+  if (!liters.isFinite || !cost.isFinite) return null;
   return ManualGasFillCost(
     addedBar: addedBar,
     freeGasLiters: liters,
-    cost: liters / 100 * price,
+    cost: cost,
   );
 }

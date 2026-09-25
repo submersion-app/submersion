@@ -277,6 +277,29 @@ void main() {
       );
     });
 
+    test('finite input that overflows to infinity is rejected', () {
+      // The volume itself overflows.
+      expect(
+        manualGasFillCost(
+          waterLiters: 1e300,
+          startBar: 0,
+          endBar: 1e10,
+          pricePer100: 1,
+        ),
+        isNull,
+      );
+      // The volume is finite, only the cost overflows.
+      expect(
+        manualGasFillCost(
+          waterLiters: 1e300,
+          startBar: 0,
+          endBar: 1,
+          pricePer100: 1e20,
+        ),
+        isNull,
+      );
+    });
+
     test('non-finite input is rejected rather than priced', () {
       expect(
         manualGasFillCost(
