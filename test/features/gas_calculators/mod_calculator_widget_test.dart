@@ -129,14 +129,14 @@ void main() {
     await _settle(tester);
     expect(find.text('Setpoint (bar)'), findsOneWidget);
 
-    // The flush ppO2 steps by 0.1 bar across 1.0-1.6: six divisions.
-    // In CCR Tec it is the only slider over that range.
+    // The flush ppO2 steps by 0.1 bar across the profile's Dil MOD range,
+    // 0.5-1.6: eleven divisions. The only slider starting at 0.5 here.
     final flushSlider = tester.widget<Slider>(
       find.byWidgetPredicate(
-        (w) => w is Slider && w.min == 1.0 && w.max == 1.6,
+        (w) => w is Slider && w.min == 0.5 && w.max == 1.6,
       ),
     );
-    expect(flushSlider.divisions, 6);
+    expect(flushSlider.divisions, 11);
   });
 
   testWidgets('a limit moved off the profile value is marked and resettable', (

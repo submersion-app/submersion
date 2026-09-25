@@ -203,13 +203,17 @@ class ModCalculatorPreferences extends Equatable {
       minPpO2: minPpO2 is num && modMinPpO2Options.contains(minPpO2.toDouble())
           ? minPpO2.toDouble()
           : d.minPpO2,
-      workingPpO2: _limit(json['workingPpO2']),
-      decoPpO2: _limit(json['decoPpO2']),
-      flushPpO2: _limit(json['flushPpO2']),
-      setpointBar: _number(
-        json['setpointBar'],
-        modSetpointMinBar,
-        modSetpointMaxBar,
+      // Each override is put back on its slider's grid, so a value saved on
+      // an older grid (a 1.45 flush ppO2) cannot sit between two stops.
+      workingPpO2: _onGrid(_limit(json['workingPpO2']), 0.05),
+      decoPpO2: _onGrid(_limit(json['decoPpO2']), 0.05),
+      flushPpO2: _onGrid(
+        _number(json['flushPpO2'], modFlushPpO2Min, modFlushPpO2Max),
+        0.1,
+      ),
+      setpointBar: _onGrid(
+        _number(json['setpointBar'], modSetpointMinBar, modSetpointMaxBar),
+        0.1,
       ),
     );
   }
@@ -231,6 +235,17 @@ class ModCalculatorPreferences extends Equatable {
 
 double? _limit(Object? value) =>
     _number(value, modLimitPpO2Min, modLimitPpO2Max);
+
+/// [value] rounded to the nearest multiple of [step]; null stays null.
+///
+/// Multiplies by the whole number of steps per bar rather than dividing by
+/// [step]: 1.45 / 0.1 is 14.4999... in floating point and would round down,
+/// 1.45 * 10 is exactly 14.5.
+double? _onGrid(double? value, double step) {
+  if (value == null) return null;
+  final perBar = (1 / step).round();
+  return (value * perBar).round() / perBar;
+}
 
 /// [value] as a double when it is a finite number within [min]..[max].
 double? _number(Object? value, double min, double max) {

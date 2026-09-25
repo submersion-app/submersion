@@ -77,9 +77,11 @@ class ModLimitsCard extends ConsumerWidget {
             // CCR Tec: only the diluent MOD ppO2, from the profile's CCR
             // limits. The setpoint sits with the target depth it applies to.
             if (mode == ModCalculatorMode.ccrTec) ...[
-              // 0.1 bar steps, the grid of the profile's Dil MOD.
+              // The profile's Dil MOD range and 0.1 bar grid.
               ModPpO2LimitSlider(
                 label: l10n.gasCalculators_mod_flushPpO2,
+                min: modFlushPpO2Min,
+                max: modFlushPpO2Max,
                 step: 0.1,
                 fractionDigits: 1,
                 value: prefs.flushPpO2 ?? modProfileFlushPpO2(settings),

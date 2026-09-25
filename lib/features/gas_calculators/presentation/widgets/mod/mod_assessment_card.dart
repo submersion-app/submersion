@@ -72,10 +72,10 @@ List<ModAssessment> modAssessments(
   }
 
   final checked = [
-    (l10n.gasCalculators_mod_atMod, result.atMod, false),
-    if (target != null) (l10n.gasCalculators_mod_atTarget, target, true),
+    (l10n.gasCalculators_mod_atMod, result.atMod),
+    if (target != null) (l10n.gasCalculators_mod_atTarget, target),
   ];
-  for (final (where, a, isTarget) in checked) {
+  for (final (where, a) in checked) {
     if (a.exceedsEndLimit) {
       add(
         ModAssessmentSeverity.warning,
@@ -109,15 +109,15 @@ List<ModAssessment> modAssessments(
       case GasDensityLevel.ok || null:
         break;
     }
-    // At the diluent MOD the loop is always pure diluent, by definition, so
-    // these loop notes are only news at a target depth.
-    if (isTarget && a.setpointCapped) {
+    // Loop notes. Only the target depth runs on the loop; the MOD column is
+    // the flushed diluent and never sets these flags.
+    if (a.setpointCapped) {
       add(
         ModAssessmentSeverity.info,
         l10n.gasCalculators_mod_setpointCapped(where),
       );
     }
-    if (isTarget && a.diluentAboveSetpoint) {
+    if (a.diluentAboveSetpoint) {
       add(
         ModAssessmentSeverity.info,
         l10n.gasCalculators_mod_diluentAboveSetpoint(where, ppO2(a.pO2Bar)),

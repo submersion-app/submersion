@@ -267,7 +267,20 @@ void main() {
       expect(r.flushPpO2AtTarget, greaterThan(1.1));
     });
 
-    test('the MND is the flushed diluent\'s, independent of the setpoint', () {
+    test('with a target depth the MND is the loop\'s', () {
+      // O2 narcotic: a loop at 1.3 carries more O2 than the diluent at
+      // moderate depths, so it reaches the END limit shallower.
+      final diluent = computeGasLimits(ccr(setpoint: 1.3));
+      final loop = computeGasLimits(ccr(setpoint: 1.3, target: 30));
+      expect(loop.mndMeters, lessThan(diluent.mndMeters!));
+      // And it agrees with the narcosis check at the target.
+      final atMnd = computeGasLimits(
+        ccr(setpoint: 1.3, target: loop.mndMeters! + 0.5),
+      );
+      expect(atMnd.atTarget!.exceedsEndLimit, isTrue);
+    });
+
+    test('without a target the MND is the flushed diluent\'s', () {
       final low = computeGasLimits(ccr(setpoint: 0.7));
       final high = computeGasLimits(ccr(setpoint: 1.3));
       final oc = computeGasLimits(

@@ -41,6 +41,11 @@ const double modSetpointMaxBar = 1.6;
 const double modLimitPpO2Min = 1.0;
 const double modLimitPpO2Max = 1.6;
 
+/// Range of the CCR diluent MOD (flush) ppO2, the profile's own Dil MOD
+/// range, so a profile value is never raised to a deeper MOD.
+const double modFlushPpO2Min = 0.5;
+const double modFlushPpO2Max = 1.6;
+
 /// Deepest depth the MND search looks at. A mix still within the END limit
 /// there has no practical narcotic limit.
 const double _mndSearchCeilingMeters = 300;
@@ -308,11 +313,13 @@ GasLimitsResult computeGasLimits(GasLimitsInputs inputs) {
     secondaryModMeters: secondaryMod,
     secondaryPpO2: secondaryPpO2,
     minDepthMeters: minDepth,
-    // On CCR the MND is the flushed diluent's, like the MOD column: the
-    // setpoint only applies at a target depth.
+    // On CCR the setpoint only applies with a target depth. With one, the
+    // MND is the loop's, so it agrees with the narcosis check at the target
+    // (a loop above the diluent's ppO2 is more narcotic when O2 counts);
+    // without one, it is the flushed diluent's, like the MOD column.
     mndMeters: isRec
         ? null
-        : _mnd(inputs.endLimitMeters, (d) => assess(d, onLoop: false)),
+        : _mnd(inputs.endLimitMeters, (d) => assess(d, onLoop: target != null)),
     atMod: assess(math.max(mod, 0.0), onLoop: false),
     atTarget: atTarget,
     beyondRecreationalLimit: isRec && mod > recreationalDepthLimitMeters,
@@ -324,8 +331,10 @@ GasLimitsResult computeGasLimits(GasLimitsInputs inputs) {
         target != null &&
         minDepth != null &&
         target < minDepth,
+    // The flushed diluent at the target, through the same path as the MOD
+    // column.
     flushPpO2AtTarget: isCcr && target != null
-        ? fO2 * environment!.pressureAtDepth(target)
+        ? assess(target, onLoop: false).pO2Bar
         : null,
   );
 }

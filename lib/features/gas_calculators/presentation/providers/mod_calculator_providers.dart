@@ -184,10 +184,11 @@ double modProfileSetpoint(AppSettings settings) => settings.ccrSetpointHigh
     .clamp(modSetpointMinBar, modSetpointMaxBar)
     .toDouble();
 
-/// The profile's CCR diluent MOD ppO2, held to the calculator's ppO2 range
-/// for the same reason.
+/// The profile's CCR diluent MOD ppO2. The calculator offers the profile's
+/// own 0.5-1.6 bar range, so a stored value is never raised to a deeper
+/// MOD; the clamp only guards a value from outside that range.
 double modProfileFlushPpO2(AppSettings settings) => settings.ccrDiluentModPpO2
-    .clamp(modLimitPpO2Min, modLimitPpO2Max)
+    .clamp(modFlushPpO2Min, modFlushPpO2Max)
     .toDouble();
 
 /// The calculator inputs with every override resolved against the active

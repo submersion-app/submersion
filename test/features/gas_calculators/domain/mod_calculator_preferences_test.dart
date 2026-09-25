@@ -54,7 +54,7 @@ void main() {
             minPpO2: 0.16,
             workingPpO2: 1.3,
             decoPpO2: 1.5,
-            flushPpO2: 1.45,
+            flushPpO2: 1.4,
             setpointBar: 1.2,
           )
           .withInputs(
@@ -90,6 +90,28 @@ void main() {
       expect(decoded.minPpO2, 0.18);
       expect(decoded.workingPpO2, isNull);
       expect(decoded.decoPpO2, 1.5);
+    });
+
+    test('stored overrides are put back on their slider grids', () {
+      final decoded = ModCalculatorPreferences.fromJson({
+        'workingPpO2': 1.33,
+        'flushPpO2': 1.45,
+        'setpointBar': 1.26,
+      });
+      expect(decoded.workingPpO2, 1.35);
+      expect(decoded.flushPpO2, 1.5);
+      expect(decoded.setpointBar, 1.3);
+    });
+
+    test('a flush ppO2 below 1.0 is kept, down to 0.5', () {
+      expect(
+        ModCalculatorPreferences.fromJson({'flushPpO2': 0.8}).flushPpO2,
+        0.8,
+      );
+      expect(
+        ModCalculatorPreferences.fromJson({'flushPpO2': 0.4}).flushPpO2,
+        isNull,
+      );
     });
 
     test('helium is clamped to the room the oxygen leaves', () {

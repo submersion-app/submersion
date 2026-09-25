@@ -206,12 +206,20 @@ void main() {
     test('a profile value outside the calculator range is held to it', () {
       const settings = AppSettings(
         ccrSetpointHigh: 0.3,
-        ccrDiluentModPpO2: 0.5,
+        ccrDiluentModPpO2: 0.3,
       );
       final container = _container(_FakeRepository(), settings: settings);
       final inputs = container.read(modCalculatorInputsProvider);
       expect(inputs.setpointBar, modSetpointMinBar);
-      expect(inputs.flushPpO2, modLimitPpO2Min);
+      expect(inputs.flushPpO2, modFlushPpO2Min);
+    });
+
+    test('a low Dil MOD from the profile is never raised (safe side)', () {
+      // 0.9 is a valid profile value; raising it to 1.0 would show a deeper
+      // diluent MOD than the diver allows.
+      const settings = AppSettings(ccrDiluentModPpO2: 0.9);
+      final container = _container(_FakeRepository(), settings: settings);
+      expect(container.read(modCalculatorInputsProvider).flushPpO2, 0.9);
     });
 
     test('the water type defaults to the planner setting', () {

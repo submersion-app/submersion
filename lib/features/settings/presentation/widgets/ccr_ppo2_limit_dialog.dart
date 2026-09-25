@@ -1,8 +1,49 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+
+/// The "ppO2 limits CCR" entry of the decompression settings: the current
+/// setpoints and Dil MOD, opening [CcrPpO2LimitDialog] to edit them.
+class CcrPpO2LimitTile extends ConsumerWidget {
+  const CcrPpO2LimitTile({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = context.l10n;
+    final settings = ref.watch(settingsProvider);
+
+    return ListTile(
+      leading: const Icon(Icons.loop),
+      title: Text(l10n.settings_decompression_ccrPpO2LimitsTitle),
+      subtitle: Text(
+        l10n.settings_decompression_ccrPpO2LimitsSubtitle(
+          formatFixedForDisplay(settings.ccrSetpointLow, 1),
+          formatFixedForDisplay(settings.ccrSetpointHigh, 1),
+          formatFixedForDisplay(settings.ccrDiluentModPpO2, 1),
+        ),
+      ),
+      trailing: const Icon(Icons.edit),
+      onTap: () => showDialog<void>(
+        context: context,
+        builder: (_) => CcrPpO2LimitDialog(
+          initialSetpointLow: settings.ccrSetpointLow,
+          initialSetpointHigh: settings.ccrSetpointHigh,
+          initialDiluentModPpO2: settings.ccrDiluentModPpO2,
+          onSave: (low, high, diluentMod) => ref
+              .read(settingsProvider.notifier)
+              .setCcrPpO2Limits(
+                setpointLow: low,
+                setpointHigh: high,
+                diluentModPpO2: diluentMod,
+              ),
+        ),
+      ),
+    );
+  }
+}
 
 /// Edits the diver's CCR ppO2 limits (issue #2342): setpoint low, setpoint
 /// high and the ppO2 a diluent may reach on a flush.

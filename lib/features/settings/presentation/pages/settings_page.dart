@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/app_version.dart';
 import 'package:submersion/core/utils/currency.dart';
-import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/deco/entities/cns_calculation_method.dart';
@@ -1286,35 +1285,7 @@ class _DecompressionSectionContent extends ConsumerWidget {
                   onTap: () => _showPpO2LimitPicker(context, ref, settings),
                 ),
                 const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.loop),
-                  title: Text(
-                    context.l10n.settings_decompression_ccrPpO2LimitsTitle,
-                  ),
-                  subtitle: Text(
-                    context.l10n.settings_decompression_ccrPpO2LimitsSubtitle(
-                      formatFixedForDisplay(settings.ccrSetpointLow, 1),
-                      formatFixedForDisplay(settings.ccrSetpointHigh, 1),
-                      formatFixedForDisplay(settings.ccrDiluentModPpO2, 1),
-                    ),
-                  ),
-                  trailing: const Icon(Icons.edit),
-                  onTap: () => showDialog<void>(
-                    context: context,
-                    builder: (_) => CcrPpO2LimitDialog(
-                      initialSetpointLow: settings.ccrSetpointLow,
-                      initialSetpointHigh: settings.ccrSetpointHigh,
-                      initialDiluentModPpO2: settings.ccrDiluentModPpO2,
-                      onSave: (low, high, diluentMod) => ref
-                          .read(settingsProvider.notifier)
-                          .setCcrPpO2Limits(
-                            setpointLow: low,
-                            setpointHigh: high,
-                            diluentModPpO2: diluentMod,
-                          ),
-                    ),
-                  ),
-                ),
+                const CcrPpO2LimitTile(),
               ],
             ),
           ),
