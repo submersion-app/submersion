@@ -1,0 +1,164 @@
+import 'dart:async';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/media/data/repositories/media_library_repository.dart';
+import 'package:submersion/features/media/domain/entities/media_item.dart';
+import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
+import 'package:submersion/features/media/domain/entities/media_map_point.dart';
+import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/presentation/providers/media_library_providers.dart';
+import 'package:submersion/features/media/presentation/providers/media_map_providers.dart';
+
+MediaMapPoint _point(String id) => MediaMapPoint(
+  entry: MediaLibraryEntry(
+    item: MediaItem(
+      id: id,
+      mediaType: MediaType.photo,
+      sourceType: MediaSourceType.localFile,
+      filePath: '/tmp/$id',
+      takenAt: DateTime(2026, 6, 1),
+      createdAt: DateTime(2026, 6, 1),
+      updatedAt: DateTime(2026, 6, 1),
+    ),
+  ),
+  point: const LatLng(1, 2),
+  placement: MediaPlacement.ownGps,
+);
+
+class _FakeMapRepo implements MediaLibraryRepository {
+  final changes = StreamController<void>.broadcast();
+  List<MediaMapPoint> points = [];
+  int total = 0;
+  int loads = 0;
+  Object? failWith;
+  MediaLibraryFilter? lastFilter;
+  String? lastDiverId;
+
+  @override
+  Future<List<MediaMapPoint>> getMapPoints({
+    required String? diverId,
+    MediaLibraryFilter filter = MediaLibraryFilter.none,
+  }) async {
+    loads++;
+    lastFilter = filter;
+    lastDiverId = diverId;
+    final error = failWith;
+    if (error != null) throw error;
+    return points;
+  }
+
+  @override
+  Future<int> countInScope({
+    required String? diverId,
+    MediaLibraryFilter filter = MediaLibraryFilter.none,
+  }) async => total;
+
+  @override
+  Stream<void> watchMapChanges() => changes.stream;
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FixedDiverIdNotifier extends StateNotifier<String?>
+    implements CurrentDiverIdNotifier {
+  _FixedDiverIdNotifier() : super('d1');
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+Future<void> _settle() => Future<void>.delayed(Duration.zero);
+
+void main() {
+  late _FakeMapRepo repo;
+  late ProviderContainer container;
+
+  setUp(() {
+    repo = _FakeMapRepo();
+    container = ProviderContainer(
+      overrides: [
+        mediaLibraryRepositoryProvider.overrideWithValue(repo),
+        currentDiverIdProvider.overrideWith((ref) => _FixedDiverIdNotifier()),
+      ],
+    );
+    addTearDown(container.dispose);
+    addTearDown(repo.changes.close);
+  });
+
+  /// Builds the notifier (which starts its first load) and keeps it alive:
+  /// autoDispose would otherwise drop it between reads. Called after each
+  /// test seeds the fake, so the first load sees the seeded rows.
+  Future<void> start() async {
+    container.listen(mediaMapPointsProvider, (_, _) {});
+    await _settle();
+    await _settle();
+  }
+
+  test('loads points and derives the unlocated count', () async {
+    repo.points = [_point('a'), _point('b')];
+    repo.total = 5;
+
+    await start();
+
+    final state = container.read(mediaMapPointsProvider);
+    expect(state.isLoading, isFalse);
+    expect(state.points.map((p) => p.item.id), ['a', 'b']);
+    expect(state.unlocatedCount, 3);
+    expect(repo.lastDiverId, 'd1');
+    expect(repo.lastFilter, MediaLibraryFilter.none);
+  });
+
+  test('reloads on the map change tick', () async {
+    await start();
+    expect(repo.loads, 1);
+
+    repo.points = [_point('c')];
+    repo.changes.add(null);
+    await _settle();
+    await _settle();
+
+    expect(repo.loads, 2);
+    expect(
+      container.read(mediaMapPointsProvider).points.map((p) => p.item.id),
+      ['c'],
+    );
+  });
+
+  test('a failed load surfaces the error and keeps the last points', () async {
+    repo.points = [_point('a')];
+    await start();
+
+    repo.failWith = StateError('boom');
+    repo.changes.add(null);
+    await _settle();
+    await _settle();
+
+    final state = container.read(mediaMapPointsProvider);
+    expect(state.error, isA<StateError>());
+    expect(state.points.map((p) => p.item.id), ['a']);
+    expect(state.isLoading, isFalse);
+  });
+
+  test('a filter change rebuilds the notifier with the new filter', () async {
+    await start();
+
+    container.read(mediaLibraryFilterProvider.notifier).state =
+        const MediaLibraryFilter(mediaType: MediaType.video);
+    await _settle();
+    await _settle();
+
+    expect(repo.lastFilter?.mediaType, MediaType.video);
+  });
+
+  test('the unlocated count never goes negative', () async {
+    repo.points = [_point('a')];
+    repo.total = 0;
+    await start();
+
+    expect(container.read(mediaMapPointsProvider).unlocatedCount, 0);
+  });
+}
