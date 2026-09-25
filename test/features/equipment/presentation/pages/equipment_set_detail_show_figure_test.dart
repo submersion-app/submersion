@@ -67,6 +67,9 @@ void main() {
       overrides: overrides,
       child: MaterialApp.router(
         routerConfig: router,
+        // The finders match English menu labels, so pin the locale rather
+        // than inherit the host's.
+        locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
       ),
