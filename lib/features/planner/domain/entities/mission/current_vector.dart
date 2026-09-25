@@ -21,6 +21,14 @@ class CurrentVector extends Equatable {
     return speedMps * math.cos(radians);
   }
 
+  /// The component of this current across a leg travelled on [headingDeg],
+  /// in m/s; positive sets the diver to the right of the track. A diver
+  /// holding the track angles into it, which costs speed over the ground.
+  double crossTrackComponent(double headingDeg) {
+    final radians = (setsTowardDeg - headingDeg) * math.pi / 180.0;
+    return speedMps * math.sin(radians);
+  }
+
   CurrentVector copyWith({double? speedMps, double? setsTowardDeg}) {
     return CurrentVector(
       speedMps: speedMps ?? this.speedMps,
