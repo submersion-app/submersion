@@ -66,12 +66,61 @@ void main() {
     test('converts to the diver depth unit', () {
       // 12 m, 6 m and 2 m are about 39, 20 and 7 ft.
       expect(
-        visibilityScaleBandLabels(VisibilityScale.coldWater, l10n, imperial),
+        visibilityScaleBandLabels(
+          VisibilityScale.coldWater,
+          l10n,
+          imperial,
+          wholeUnits: true,
+        ),
         [
           'Excellent 39 ft+',
           'Good 20-39 ft',
           'Moderate 7-20 ft',
           'Poor under 7 ft',
+        ],
+      );
+    });
+
+    test('keeps a fractional threshold instead of rounding it away', () {
+      // Rounded to whole metres, 2.5 would read "Poor under 3 m" although
+      // 2.7 m is Moderate.
+      expect(
+        visibilityScaleBandLabels(
+          const VisibilityScale(
+            excellentAtOrAboveM: 18,
+            goodAtOrAboveM: 9,
+            moderateAtOrAboveM: 2.5,
+          ),
+          l10n,
+          metric,
+        ),
+        [
+          'Excellent 18 m+',
+          'Good 9-18 m',
+          'Moderate 2.5-9 m',
+          'Poor under 2.5 m',
+        ],
+      );
+    });
+
+    test('drops the decimal from a whole value entered in feet', () {
+      // Entered as 40/20/6 ft and stored in metres, the values convert back
+      // with a floating-point tail that must not show.
+      expect(
+        visibilityScaleBandLabels(
+          VisibilityScale(
+            excellentAtOrAboveM: imperial.depthToMeters(40),
+            goodAtOrAboveM: imperial.depthToMeters(20),
+            moderateAtOrAboveM: imperial.depthToMeters(6),
+          ),
+          l10n,
+          imperial,
+        ),
+        [
+          'Excellent 40 ft+',
+          'Good 20-40 ft',
+          'Moderate 6-20 ft',
+          'Poor under 6 ft',
         ],
       );
     });
@@ -360,6 +409,25 @@ void main() {
       expect(find.text('Poor under 2 m'), findsNothing);
     });
 
+    testWidgets('keeps a fractional Moderate value in the Poor line', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        host(
+          CustomVisibilityScaleForm(
+            initial: VisibilityScale.coldWater,
+            units: metric,
+            onSubmit: (_) {},
+            onCancel: () {},
+          ),
+        ),
+      );
+
+      await tester.enterText(find.byType(TextField).at(2), '2.5');
+      await tester.pump();
+      expect(find.text('Poor under 2.5 m'), findsOneWidget);
+    });
+
     testWidgets('hides the Poor line while Moderate is unusable', (
       tester,
     ) async {
@@ -572,6 +640,34 @@ void main() {
       await tester.pumpAndSettle();
       return saved;
     }
+
+    testWidgets('scrolls instead of overflowing on a short screen', (
+      tester,
+    ) async {
+      // A phone in landscape: the explained preset list is taller than this.
+      await tester.binding.setSurfaceSize(const Size(800, 360));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await pumpPicker(
+        tester,
+        const AppSettings(
+          visibilityScaleExcellentM: 18,
+          visibilityScaleGoodM: 9,
+          visibilityScaleModerateM: 3,
+        ),
+      );
+      expect(tester.takeException(), isNull);
+
+      await tester.scrollUntilVisible(
+        find.text('Custom'),
+        100,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(find.text('Custom'));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.byType(TextField), findsNWidgets(3));
+    });
 
     testWidgets('opens with the presets listed', (tester) async {
       await pumpPicker(tester, const AppSettings());

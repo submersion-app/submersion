@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/presentation/formatters/visibility_display.dart';
@@ -28,6 +29,8 @@ void showVisibilityScalePicker(
   showDialog<void>(
     context: context,
     builder: (dialogContext) => AlertDialog(
+      // The explained list is taller than a landscape phone.
+      scrollable: true,
       title: Text(AppLocalizations.of(context).settings_visibilityScale_title),
       content: VisibilityScalePresetList(
         selected: settings.visibilityScalePreset,
@@ -71,6 +74,9 @@ void showCustomVisibilityScaleDialog(
   showDialog<void>(
     context: context,
     builder: (dialogContext) => AlertDialog(
+      // Three fields and their help text outgrow a landscape phone once the
+      // keyboard is up.
+      scrollable: true,
       title: Text(
         AppLocalizations.of(context).settings_visibilityScale_preset_custom,
       ),
@@ -113,13 +119,20 @@ String visibilityPresetLabel(
 ///
 /// Poor is spelled out even though it has no threshold of its own, so the
 /// diver never has to infer it from the Moderate bound.
+///
+/// Set [wholeUnits] for a named preset: its bounds are round metric numbers,
+/// so an imperial conversion's decimal (98.4 ft) is noise. A diver's own
+/// thresholds keep one decimal, because rounding 2.5 m to "3" would misstate
+/// where a band begins.
 List<String> visibilityScaleBandLabels(
   VisibilityScale scale,
   AppLocalizations l10n,
-  UnitFormatter units,
-) {
+  UnitFormatter units, {
+  bool wholeUnits = false,
+}) {
   final unit = units.depthSymbol;
-  String v(double meters) => units.convertDepth(meters).toStringAsFixed(0);
+  String v(double meters) =>
+      _thresholdText(meters, units, wholeUnits: wholeUnits);
   String band(VisibilityBand b, String range) => l10n
       .settings_visibilityScale_bandRange(visibilityBandName(b, l10n), range);
 
@@ -143,22 +156,47 @@ List<String> visibilityScaleBandLabels(
       unit,
     ),
   );
-  final poor = visibilityPoorLabel(scale.moderateAtOrAboveM, l10n, units);
+  final poor = visibilityPoorLabel(
+    scale.moderateAtOrAboveM,
+    l10n,
+    units,
+    wholeUnits: wholeUnits,
+  );
   return [excellent, good, moderate, poor];
 }
 
 /// The Poor band as text, e.g. `Poor under 5 m`, given where Moderate begins.
+/// [wholeUnits] as for [visibilityScaleBandLabels].
 String visibilityPoorLabel(
   double moderateAtOrAboveM,
   AppLocalizations l10n,
-  UnitFormatter units,
-) => l10n.settings_visibilityScale_bandRange(
+  UnitFormatter units, {
+  bool wholeUnits = false,
+}) => l10n.settings_visibilityScale_bandRange(
   visibilityBandName(VisibilityBand.poor, l10n),
   l10n.visibility_range_under(
-    units.convertDepth(moderateAtOrAboveM).toStringAsFixed(0),
+    _thresholdText(moderateAtOrAboveM, units, wholeUnits: wholeUnits),
     units.depthSymbol,
   ),
 );
+
+/// A threshold in the diver's depth unit, in the active locale: whole units,
+/// or at most one decimal with a whole value shown without one ("2.5", "40").
+String _thresholdText(
+  double meters,
+  UnitFormatter units, {
+  required bool wholeUnits,
+}) {
+  final value = units.convertDepth(meters);
+  if (wholeUnits) return formatFixedForDisplay(value, 0);
+  // Rounded first so a stored 12.192 m entered as 40 ft reads "40", not
+  // "40.0".
+  final tenths = double.parse(value.toStringAsFixed(1));
+  return formatFixedForDisplay(
+    tenths,
+    tenths == tenths.roundToDouble() ? 0 : 1,
+  );
+}
 
 /// The diver's saved custom thresholds, or null when none are saved or the
 /// saved set is invalid.
@@ -226,7 +264,12 @@ class VisibilityScalePresetList extends StatelessWidget {
             subtitle: scale == null
                 ? Text(l10n.settings_visibilityScale_customUnset)
                 : _BandRanges(
-                    labels: visibilityScaleBandLabels(scale, l10n, units),
+                    labels: visibilityScaleBandLabels(
+                      scale,
+                      l10n,
+                      units,
+                      wholeUnits: preset != VisibilityScalePreset.custom,
+                    ),
                   ),
             trailing: preset == selected
                 ? Icon(
