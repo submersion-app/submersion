@@ -1,0 +1,145 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/compiler/query_validator.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
+
+import '../fixtures/fixture_registry.dart';
+
+void main() {
+  List<String> messages(QueryNode? n) => validateQuery(
+    n,
+    fixtureDives,
+    fixtureRegistry,
+  ).map((e) => e.message).toList();
+
+  test('a clean tree and an empty query have no errors', () {
+    expect(messages(null), isEmpty);
+    expect(
+      messages(
+        AndNode([
+          ConditionNode(
+            const FieldPath(['depth']),
+            QueryOp.gt,
+            const NumberValue(30, null),
+          ),
+          ScopedNode(
+            const FieldPath(['gear']),
+            ConditionNode(
+              const FieldPath(['type']),
+              QueryOp.eq,
+              const EnumValue('wetsuit'),
+            ),
+          ),
+          ConditionNode(
+            const FieldPath(['buddies', 'certifications', 'level']),
+            QueryOp.eq,
+            const StringValue('x'),
+          ),
+          ConditionNode(const FieldPath(['weights']), QueryOp.isEmpty, null),
+          ConditionNode(const FieldPath(['site']), QueryOp.eq, kFixtureSite),
+          const TextNode(['manta']),
+        ]),
+      ),
+      isEmpty,
+    );
+  });
+
+  test('every error kind, all reported at once', () {
+    final errors = validateQuery(
+      AndNode([
+        ConditionNode(
+          const FieldPath(['depht']),
+          QueryOp.gt,
+          const NumberValue(30, null),
+        ),
+        ConditionNode(
+          const FieldPath(['favorite']),
+          QueryOp.contains,
+          const StringValue('x'),
+        ),
+        ConditionNode(
+          const FieldPath(['rating']),
+          QueryOp.gt,
+          const NumberValue(3, QueryUnit.m),
+        ),
+        ConditionNode(
+          const FieldPath(['depth']),
+          QueryOp.gt,
+          const NumberValue(900, null),
+        ),
+        ConditionNode(
+          const FieldPath(['waterType']),
+          QueryOp.inList,
+          const ListValue([]),
+        ),
+        ConditionNode(
+          const FieldPath(['waterType']),
+          QueryOp.eq,
+          const EnumValue('lake'),
+        ),
+        ConditionNode(
+          const FieldPath(['depth']),
+          QueryOp.eq,
+          const StringValue('deep'),
+        ),
+        ConditionNode(
+          const FieldPath(['weights']),
+          QueryOp.gt,
+          const NumberValue(1, null),
+        ),
+        const ScopedNode(FieldPath(['depth']), TextNode(['x'])),
+        ConditionNode(
+          const FieldPath(['depth']),
+          QueryOp.between,
+          const ListValue([NumberValue(1, null)]),
+        ),
+        ConditionNode(
+          const FieldPath(['site']),
+          QueryOp.eq,
+          const StringValue('Salt Pier'),
+        ),
+      ]),
+      fixtureDives,
+      fixtureRegistry,
+    );
+    final m = errors.map((e) => e.message).join('\n');
+    expect(errors.length, 11, reason: m);
+    expect(m, contains('unknown field "depht"'));
+    expect(m, contains('contains cannot be used with favorite'));
+    expect(m, contains('rating takes no unit'));
+    expect(m, contains('out of range'));
+    expect(m, contains('list is empty'));
+    expect(m, contains('"lake" is not a waterType value'));
+    expect(m, contains('depth expects a number'));
+    expect(m, contains('"weights" is a relation'));
+    expect(m, contains('[...] needs a relation'));
+    expect(m, contains('between needs two values'));
+    expect(m, contains('site expects a reference'));
+    expect(errors.first.path, const FieldPath(['depht']));
+  });
+
+  test(
+    'an unknown segment deep in a scoped group is resolved in that scope',
+    () {
+      expect(
+        messages(
+          ScopedNode(
+            const FieldPath(['gear']),
+            ConditionNode(
+              const FieldPath(['depth']),
+              QueryOp.gt,
+              const NumberValue(1, null),
+            ),
+          ),
+        ),
+        [contains('unknown field "depth"')],
+      );
+    },
+  );
+
+  test('free text inside a scope without search columns is an error', () {
+    expect(
+      messages(const ScopedNode(FieldPath(['gear']), TextNode(['x']))),
+      [contains('free text')],
+    );
+  });
+}
