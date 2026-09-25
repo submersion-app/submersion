@@ -203,7 +203,12 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
   ) => [
     gasName,
     if (cylinderLiters != null) units.formatTankVolume(cylinderLiters, null),
-    units.formatPressure(addedBar),
+    // The blender's own pressure precision, so a label reads the fill that
+    // was billed rather than a rounded one.
+    units.formatPressure(
+      addedBar,
+      decimals: pressureDecimalsFor(units.settings.pressureUnit),
+    ),
   ].join(' · ');
 
   /// The name the chosen gas is stored and printed under, the same one a
@@ -513,7 +518,12 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
       const SizedBox(height: 12),
       Text(
         context.l10n.gasCalculators_blender_lineFillPressure(
-          addedBar == null ? '--' : units.formatPressure(addedBar),
+          addedBar == null
+              ? '--'
+              : units.formatPressure(
+                  addedBar,
+                  decimals: pressureDecimalsFor(settings.pressureUnit),
+                ),
         ),
         key: const Key('blender-line-fill-pressure'),
         style: resultStyle,

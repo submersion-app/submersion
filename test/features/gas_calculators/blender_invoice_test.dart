@@ -578,7 +578,7 @@ void main() {
       expect(line.cylinderLiters, 12);
       // No description typed: the label is generated from the fill.
       expect(fills.single.label, startsWith('Helium · 12'));
-      expect(fills.single.label, endsWith('150 bar'));
+      expect(fills.single.label, endsWith('150.0 bar'));
     });
 
     testWidgets('a gas without a price is charged at 0, and the form says '
@@ -924,7 +924,7 @@ void main() {
       ref.read(blenderBilledFillsProvider.notifier).state = const [
         BilledFill(
           id: 'a',
-          label: 'Helium · 12 L · 150 bar',
+          label: 'Helium · 12 L · 150.0 bar',
           lines: [
             BilledGasLine(
               gas: 'Helium',
@@ -940,9 +940,9 @@ void main() {
       ];
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Actions for Helium · 12 L · 150 bar'));
+      await tester.tap(find.byTooltip('Actions for Helium · 12 L · 150.0 bar'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Edit Helium · 12 L · 150 bar'));
+      await tester.tap(find.text('Edit Helium · 12 L · 150.0 bar'));
       await tester.pumpAndSettle();
 
       expect(
@@ -974,7 +974,7 @@ void main() {
       ref.read(blenderBilledFillsProvider.notifier).state = const [
         BilledFill(
           id: 'a',
-          label: 'Helium · 12 L · 150 bar',
+          label: 'Helium · 12 L · 150.0 bar',
           lines: [
             BilledGasLine(
               gas: 'Helium',
@@ -990,9 +990,9 @@ void main() {
       ];
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Actions for Helium · 12 L · 150 bar'));
+      await tester.tap(find.byTooltip('Actions for Helium · 12 L · 150.0 bar'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Edit Helium · 12 L · 150 bar'));
+      await tester.tap(find.text('Edit Helium · 12 L · 150.0 bar'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Free amount'));
       await tester.pumpAndSettle();
@@ -1000,7 +1000,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final fill = ref.read(blenderBilledFillsProvider).single;
-      expect(fill.label, 'Helium · 12 L · 150 bar');
+      expect(fill.label, 'Helium · 12 L · 150.0 bar');
       expect(fill.isManual, isTrue);
       expect(fill.total, 27);
     });
@@ -1063,7 +1063,7 @@ void main() {
       ref.read(blenderBilledFillsProvider.notifier).state = const [
         BilledFill(
           id: 'a',
-          label: 'Helium · 12 L · 150 bar',
+          label: 'Helium · 12 L · 150.0 bar',
           lines: [
             BilledGasLine(
               gas: 'Helium',
@@ -1079,15 +1079,15 @@ void main() {
       ];
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Actions for Helium · 12 L · 150 bar'));
+      await tester.tap(find.byTooltip('Actions for Helium · 12 L · 150.0 bar'));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Edit Helium · 12 L · 150 bar'));
+      await tester.tap(find.text('Edit Helium · 12 L · 150.0 bar'));
       await tester.pumpAndSettle();
       await tester.tap(find.widgetWithText(FilledButton, 'Save'));
       await tester.pumpAndSettle();
 
       final fill = ref.read(blenderBilledFillsProvider).single;
-      expect(fill.label, 'Helium · 12 L · 150 bar');
+      expect(fill.label, 'Helium · 12 L · 150.0 bar');
       expect(fill.total, 27);
     });
 
@@ -1140,6 +1140,39 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(ref.read(blenderBilledFillsProvider).last.total, 12.5);
+    });
+
+    testWidgets('a fractional fill pressure is shown and labelled to the '
+        'blender\'s tenth of a bar (#2302 review)', (tester) async {
+      final ref = await _pump(tester);
+      await _openAddLine(tester);
+      await tester.enterText(
+        find.byKey(const Key('blender-line-cylinder')),
+        '12',
+      );
+      await tester.enterText(
+        find.byKey(const Key('blender-line-start-pressure')),
+        '50.25',
+      );
+      await tester.enterText(
+        find.byKey(const Key('blender-line-end-pressure')),
+        '200.75',
+      );
+      await tester.pumpAndSettle();
+
+      // Rounded to whole bar this would read 151, a fill that was not made.
+      expect(
+        tester
+            .widget<Text>(find.byKey(const Key('blender-line-fill-pressure')))
+            .data,
+        contains('150.5 bar'),
+      );
+      await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+      await tester.pumpAndSettle();
+
+      final fill = ref.read(blenderBilledFillsProvider).single;
+      expect(fill.manualGasLine!.addedBar, closeTo(150.5, 1e-9));
+      expect(fill.label, endsWith('150.5 bar'));
     });
 
     testWidgets('a computed fill offers neither the kind switch nor the gas '
