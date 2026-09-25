@@ -75,6 +75,12 @@ void showCustomVisibilityScaleDialog(
       content: CustomVisibilityScaleForm(
         initial: seed,
         units: UnitFormatter(settings),
+        // Only a seed made entirely of preset bounds is nominal; any retained
+        // value is the diver's own and keeps its decimal.
+        wholeUnits:
+            settings.visibilityScaleExcellentM == null &&
+            settings.visibilityScaleGoodM == null &&
+            settings.visibilityScaleModerateM == null,
         onCancel: () => Navigator.of(dialogContext).pop(),
         onSubmit: (scale) {
           ref
@@ -179,6 +185,12 @@ class CustomVisibilityScaleForm extends StatefulWidget {
   final VisibilityScale initial;
   final UnitFormatter units;
 
+  /// Seed whole units rather than one decimal. Set when [initial] is a named
+  /// preset's bounds: they are round metric numbers, so an imperial
+  /// conversion's decimal (12 m is 39.4 ft) is noise, and the fields should
+  /// match what the preset list shows.
+  final bool wholeUnits;
+
   /// Called with metric thresholds once they validate.
   final ValueChanged<VisibilityScale> onSubmit;
   final VoidCallback onCancel;
@@ -187,6 +199,7 @@ class CustomVisibilityScaleForm extends StatefulWidget {
     super.key,
     required this.initial,
     required this.units,
+    this.wholeUnits = false,
     required this.onSubmit,
     required this.onCancel,
   });
@@ -205,10 +218,13 @@ class _CustomVisibilityScaleFormState extends State<CustomVisibilityScaleForm> {
   @override
   void initState() {
     super.initState();
-    // Whole units only, but rendered through the locale formatter so the text
-    // shares one convention with [_metersFrom].
-    String initial(double meters) => formatDecimalForInput(
-      widget.units.convertDepth(meters).roundToDouble(),
+    // One decimal, because Save stores exactly what the field holds: seeding a
+    // custom 2.5 m as "3" would move the threshold without the diver touching
+    // it. Rendered through the locale formatter so the text shares one
+    // convention with [_metersFrom].
+    String initial(double meters) => formatRoundedForInput(
+      widget.units.convertDepth(meters),
+      widget.wholeUnits ? 0 : 1,
     );
     _excellent = TextEditingController(
       text: initial(widget.initial.excellentAtOrAboveM),
