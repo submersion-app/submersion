@@ -454,6 +454,9 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
     // collected by path and the candidate's parent is checked after the walk.
     gchar* read_poll_path = NULL;
     gchar* read_poll_service_path = NULL;
+    // Parent service of the best notify candidate, so the read tier can tell
+    // a notify characteristic under the Seac service from one elsewhere.
+    gchar* best_notify_service_path = NULL;
     GHashTable* service_uuids =
         g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
 
@@ -573,6 +576,13 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
                 g_free(best_notify_path);
                 best_notify_path = g_strdup(obj_path);
                 best_notify_score = ns;
+                g_free(best_notify_service_path);
+                GVariant* notify_parent = g_variant_lookup_value(
+                    char_props, "Service", G_VARIANT_TYPE_OBJECT_PATH);
+                best_notify_service_path =
+                    notify_parent ? g_variant_dup_string(notify_parent, NULL)
+                                  : NULL;
+                if (notify_parent) g_variant_unref(notify_parent);
             }
         }
 
@@ -596,6 +606,20 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
                       "write-without-response"));
         if (!usable) g_clear_pointer(&read_poll_path, g_free);
     }
+    // BlueZ lists characteristics flat, so the notify pass above spans every
+    // service: a stray notify characteristic anywhere on the device (Battery
+    // Level, a DFU service) would otherwise shadow the allowlisted service,
+    // where Android, darwin and Windows would still pick it. Only a notify
+    // characteristic under the Seac service itself keeps the notify path.
+    gboolean seac_notifies = FALSE;
+    if (best_notify_service_path) {
+        const gchar* notify_parent_uuid =
+            g_hash_table_lookup(service_uuids, best_notify_service_path);
+        seac_notifies =
+            notify_parent_uuid &&
+            g_ascii_strcasecmp(notify_parent_uuid, SEAC_SERVICE_UUID) == 0;
+    }
+    g_free(best_notify_service_path);
     g_free(read_poll_service_path);
     g_hash_table_unref(service_uuids);
 
@@ -620,12 +644,13 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
     g_free(ublox_data_path);
     g_free(ublox_credits_path);
 
-    if (!best_notify_path && read_poll_path) {
+    if (read_poll_path && !seac_notifies) {
         // Read-poll tier (issue #1454): the computer cannot push its replies,
         // so there is no StartNotify, no PropertiesChanged subscription and no
         // credit handshake; the poller reads the characteristic whenever
         // libdivecomputer wants bytes. Commands go to the same characteristic.
         g_free(best_write_path);
+        g_free(best_notify_path);
         stream->write_path = g_steal_pointer(&read_poll_path);
         stream->read_poller =
             ble_read_poller_new(stream->connection, stream->write_path);
