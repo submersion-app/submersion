@@ -262,6 +262,24 @@ void main() {
         });
       });
 
+      test(
+        'reports an entry that is not a shared file and imports nothing',
+        () async {
+          Object? error;
+          var received = false;
+          final handler = FileShareHandler(
+            onFileReceived: (bytes, name) async => received = true,
+            onFilesReceived: (paths) async => received = true,
+            onError: (e) => error = e,
+          );
+
+          await handler.handleMediaFiles(['not a SharedMediaFile']);
+
+          expect(error, isA<TypeError>());
+          expect(received, isFalse);
+        },
+      );
+
       test('calls onError when callback throws', () async {
         Object? receivedError;
         final handler = FileShareHandler(

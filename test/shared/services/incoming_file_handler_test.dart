@@ -217,6 +217,36 @@ void main() {
       expect(state.files.map((f) => f.name), ['dive_0.uddf', 'dive_1.uddf']);
     });
 
+    // A testWidgets case is safe here: the wizard check returns before any
+    // file is read, so no dart:io future is left waiting on fake async.
+    testWidgets('tells the diver to finish the open import first', (
+      tester,
+    ) async {
+      late ScaffoldMessengerState messenger;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (context) {
+              messenger = ScaffoldMessenger.of(context);
+              return const Scaffold(body: SizedBox.shrink());
+            },
+          ),
+        ),
+      );
+
+      final result = await handleIncomingFiles(
+        paths: const ['a.fit', 'b.fit'],
+        currentPath: '/transfer/import-wizard/review',
+        notifier: notifier,
+        messenger: messenger,
+        wizardActiveMessage: 'Finish the open import first',
+      );
+      await tester.pump();
+
+      expect(result, isFalse);
+      expect(find.text('Finish the open import first'), findsOneWidget);
+    });
+
     test('refuses while an import is already in progress', () async {
       final paths = await writeUddfFiles(2);
 
