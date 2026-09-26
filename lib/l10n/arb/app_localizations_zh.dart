@@ -11339,6 +11339,211 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get passport_title => '气瓶护照';
+
+  @override
+  String get passport_open => '打开护照';
+
+  @override
+  String get passport_entry_noFill => '尚无充气记录';
+
+  @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix，$date';
+  }
+
+  @override
+  String passport_entry_lastFill(String mix, String pressure, String date) {
+    return '$mix，$pressure，$date';
+  }
+
+  @override
+  String get passport_spec_title => '气瓶';
+
+  @override
+  String passport_spec_freeGas(String pressure) {
+    return '$pressure 下的自由气体量';
+  }
+
+  @override
+  String get passport_spec_buoyancyEmpty => '空瓶浮力';
+
+  @override
+  String get passport_spec_buoyancyFull => '满瓶浮力';
+
+  @override
+  String get passport_service_title => '保养';
+
+  @override
+  String get passport_service_notTracked => '未跟踪';
+
+  @override
+  String get passport_service_neverRecorded => '从未记录';
+
+  @override
+  String get passport_service_trackO2Clean => '跟踪氧清洁';
+
+  @override
+  String get passport_service_trackFailed => '无法开始跟踪氧清洁。请重试。';
+
+  @override
+  String passport_service_lastDone(String date) {
+    return '上次 $date';
+  }
+
+  @override
+  String passport_o2Warning_untracked(String o2) {
+    return '最近一次充气为 $o2 氧气，而该气瓶未作为氧清洁气瓶跟踪。';
+  }
+
+  @override
+  String passport_o2Warning_overdue(String o2) {
+    return '最近一次充气为 $o2 氧气，而该气瓶的氧清洁已过期。';
+  }
+
+  @override
+  String get passport_fill_title => '当前充气';
+
+  @override
+  String get passport_fill_none => '尚未记录充气';
+
+  @override
+  String get passport_fill_log => '记录充气';
+
+  @override
+  String passport_fill_mod(String depth, String ppo2) {
+    return 'ppO2 $ppo2 时 MOD $depth';
+  }
+
+  @override
+  String passport_fill_end(String depth) {
+    return '工作 MOD 处 END $depth';
+  }
+
+  @override
+  String passport_fill_station(String station) {
+    return '由 $station 充气';
+  }
+
+  @override
+  String passport_fill_analyzer(String analyzer) {
+    return '使用 $analyzer 分析';
+  }
+
+  @override
+  String passport_fill_analysis(String o2, String he) {
+    return 'O2 $o2，He $he';
+  }
+
+  @override
+  String passport_fill_temperature(String temperature) {
+    return '气体温度 $temperature';
+  }
+
+  @override
+  String get passport_fill_unsigned => '未签名';
+
+  @override
+  String get passport_history_title => '充气历史';
+
+  @override
+  String passport_history_sinceHydro(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '上次水压测试以来 $count 次充气',
+      one: '上次水压测试以来 $count 次充气',
+      zero: '上次水压测试以来无充气',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_history_delete => '删除充气记录';
+
+  @override
+  String get passport_history_deleteConfirm => '删除此充气记录？';
+
+  @override
+  String get passport_tag_title => '标签';
+
+  @override
+  String passport_tag_written(String date) {
+    return '写入于 $date';
+  }
+
+  @override
+  String get passport_tag_stale => '该标签写入于最近一次保养或规格变更之前。请重新打印。';
+
+  @override
+  String get passport_tag_printLabel => '打印标签';
+
+  @override
+  String get passport_tag_printLabels => '打印标签';
+
+  @override
+  String get passport_tag_qrSemantics => '护照二维码';
+
+  @override
+  String get passport_tag_printFailed => '无法创建标签。请重试。';
+
+  @override
+  String get passport_tag_linkExisting => '关联现有标签';
+
+  @override
+  String get passport_tag_linkPrompt => '粘贴标签上的链接';
+
+  @override
+  String get passport_tag_linkInvalid => '这不是气瓶标签';
+
+  @override
+  String get passport_tag_linkFailed => '无法关联标签。请重试。';
+
+  @override
+  String passport_tag_linkInUse(String name) {
+    return '该标签已属于 $name';
+  }
+
+  @override
+  String get passport_tag_linked => '标签已关联';
+
+  @override
+  String get passport_logFill_date => '充气日期';
+
+  @override
+  String get passport_logFill_time => '时间';
+
+  @override
+  String get passport_logFill_o2 => 'O2 (%)';
+
+  @override
+  String get passport_logFill_he => 'He (%)';
+
+  @override
+  String get passport_logFill_pressure => '充气压力';
+
+  @override
+  String get passport_logFill_temperature => '气体温度';
+
+  @override
+  String get passport_logFill_station => '充气站';
+
+  @override
+  String get passport_logFill_analyzer => '分析仪';
+
+  @override
+  String get passport_logFill_notes => '备注';
+
+  @override
+  String get passport_logFill_invalidMix => 'O2 和 He 须各在 0 到 100 之间，且总和不超过 100';
+
+  @override
+  String get passport_logFill_invalidNumber => '请输入数字';
+
+  @override
+  String get passport_logFill_saveFailed => '无法保存充气记录。请重试。';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -27233,6 +27438,9 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get attrLabel_last_hydro_test => '上次水压测试';
+
+  @override
+  String get attrLabel_passport_id => '护照标识';
 
   @override
   String get attrLabel_connection => '接口';

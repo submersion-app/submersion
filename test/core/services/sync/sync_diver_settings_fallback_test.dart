@@ -495,7 +495,7 @@ void main() {
   );
 
   test(
-    'applies a pre-v228 diver_settings payload missing the CCR ppO2 limits',
+    'applies a pre-v230 diver_settings payload missing the CCR ppO2 limits',
     () async {
       // No hand-written seed covers these (issue #2342): the Drift column
       // defaults fill them through _withSchemaDefaults.

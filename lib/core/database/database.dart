@@ -2114,7 +2114,7 @@ class DiverSettings extends Table {
   IntColumn get gfHigh => integer().withDefault(const Constant(70))();
   RealColumn get ppO2MaxWorking => real().withDefault(const Constant(1.4))();
   RealColumn get ppO2MaxDeco => real().withDefault(const Constant(1.6))();
-  // CCR ppO2 limits (v228, issue #2342): the diver's default setpoints and
+  // CCR ppO2 limits (v230, issue #2342): the diver's default setpoints and
   // the ppO2 a diluent may reach on a flush, which sets its MOD.
   RealColumn get ccrSetpointLow => real().withDefault(const Constant(0.7))();
   RealColumn get ccrSetpointHigh => real().withDefault(const Constant(1.3))();
@@ -3230,6 +3230,48 @@ class Transmitters extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Cylinder fill history (issue #2334, v228). One row per fill of one
+/// physical cylinder, keyed by the cylinder's passport id (an equipment
+/// attribute, not a foreign key) so the history survives a deleted and
+/// re-created item and can belong to a cylinder the diver does not own.
+/// [equipmentId] is a convenience link resolved from the passport id at write
+/// time and re-resolved by "Link an existing tag". Synced entity with its own
+/// hlc, registered like [Transmitters].
+@DataClassName('CylinderFillRow')
+class CylinderFills extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get passportId => text()();
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  IntColumn get filledAt => integer()();
+  RealColumn get o2Percent => real()();
+  RealColumn get hePercent => real().withDefault(const Constant(0.0))();
+  RealColumn get pressureBar => real().nullable()();
+  RealColumn get temperatureC => real().nullable()();
+  TextColumn get analyzer => text().nullable()();
+  TextColumn get stationName => text().nullable()();
+  // base64url Ed25519 public key from a signed record (PR 3); null for a
+  // manual fill.
+  TextColumn get stationKey => text().nullable()();
+  // The JWS token verbatim (PR 3); the truth for every analysis column.
+  TextColumn get signedRecord => text().nullable()();
+  // FillSource.name: manual, qr, nfc, file, link, issued.
+  TextColumn get source => text().withDefault(const Constant('manual'))();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Dive computers (devices that record dive data)
 class DiveComputers extends Table {
   TextColumn get id => text()();
@@ -4295,6 +4337,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     CylinderConfigItems,
     // Rental gear memory (v221, issue #2075)
     DiveCenterGearNotes,
+    // Cylinder fill history (v228, issue #2334)
+    CylinderFills,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -4304,7 +4348,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 228;
+  static const int currentSchemaVersion = 230;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -4965,11 +5009,17 @@ class AppDatabase extends _$AppDatabase {
     // shows every built-in preset. Renumbered from 225, which is held by PR
     // #1978, after v226 landed while this was in review.
     227,
-    // v228: diver_settings CCR ppO2 limits (issue #2342): setpoint low,
-    // setpoint high and the diluent's flush ppO2. Additive defaulted
-    // columns, no backfill, so the floor stays at 224. Renumbered from 227,
-    // which main shipped for the hidden tank presets while this was open.
+    // v228: cylinder_fills, the fill history keyed by passport id (issue
+    // #2334). Table-only rung, no backfill, floor stays at 224. Renumbered
+    // from 227, which hidden tank presets (#2305) took while this was in
+    // review.
     228,
+    // v230: diver_settings CCR ppO2 limits (issue #2342): setpoint low,
+    // setpoint high and the diluent's flush ppO2. Additive defaulted
+    // columns, no backfill, so the floor stays at 224. Renumbered from 228,
+    // which main shipped for the cylinder fill history while this was open;
+    // 229 is held by PR #2372 (diver figure).
+    230,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -8371,7 +8421,7 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  /// Idempotent DDL for the diver_settings CCR ppO2 limits (v228, issue
+  /// Idempotent DDL for the diver_settings CCR ppO2 limits (v230, issue
   /// #2342). Existing rows get the defaults the planner already assumed for
   /// a new CCR plan (0.7 / 1.3) and the 1.6 bar flush ceiling.
   Future<void> _assertCcrPpO2LimitColumns() async {
@@ -8563,6 +8613,29 @@ class AppDatabase extends _$AppDatabase {
     }
     await createMigrator().createTable(equipmentTags);
     await assertEquipmentTagUniqueness(this);
+  }
+
+  /// Idempotent creation of the v228 `cylinder_fills` table and its two
+  /// lookup indexes (issue #2334). Called from the v228 rung and the
+  /// beforeOpen backstop. Skipped on a partial migration-test fixture that
+  /// lacks either parent table.
+  Future<void> _assertCylinderFillsSchema() async {
+    for (final parent in const ['divers', 'equipment']) {
+      final rows = await customSelect(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        variables: [Variable<String>(parent)],
+      ).get();
+      if (rows.isEmpty) return;
+    }
+    await createMigrator().createTable(cylinderFills);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_passport '
+      'ON cylinder_fills(passport_id, filled_at)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_equipment '
+      'ON cylinder_fills(equipment_id)',
+    );
   }
 
   /// Idempotent creation of the v221 `dive_center_gear_notes` table (issue
@@ -12612,12 +12685,18 @@ class AppDatabase extends _$AppDatabase {
           await _assertHiddenTankPresetIdsColumn();
         }
         if (from < 227) await reportProgress();
-        // v228: diver_settings CCR ppO2 limits (issue #2342). Column-only
-        // rung, no backfill.
+        // v228: cylinder fill history (issue #2334). Table-only rung, no
+        // backfill.
         if (from < 228) {
-          await _assertCcrPpO2LimitColumns();
+          await _assertCylinderFillsSchema();
         }
         if (from < 228) await reportProgress();
+        // v230: diver_settings CCR ppO2 limits (issue #2342). Column-only
+        // rung, no backfill.
+        if (from < 230) {
+          await _assertCcrPpO2LimitColumns();
+        }
+        if (from < 230) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
@@ -13118,8 +13197,11 @@ class AppDatabase extends _$AppDatabase {
         // version-collision self-heal). Column only, so it cannot touch
         // diver data.
         await _assertMediaCloudAssetIdColumn();
+        // v228 backstop: the cylinder_fills table (parallel-branch
+        // version-collision self-heal; createTable is idempotent).
+        await _assertCylinderFillsSchema();
 
-        // v228 backstop: re-assert the diver_settings CCR ppO2 limits
+        // v230 backstop: re-assert the diver_settings CCR ppO2 limits
         // (parallel-branch version-collision self-heal). Defaulted columns
         // only, so it cannot touch diver data.
         await _assertCcrPpO2LimitColumns();

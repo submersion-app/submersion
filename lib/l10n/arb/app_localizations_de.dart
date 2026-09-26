@@ -11870,6 +11870,217 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get passport_title => 'Flaschenpass';
+
+  @override
+  String get passport_open => 'Pass öffnen';
+
+  @override
+  String get passport_entry_noFill => 'Keine Füllung erfasst';
+
+  @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix, $date';
+  }
+
+  @override
+  String passport_entry_lastFill(String mix, String pressure, String date) {
+    return '$mix mit $pressure, $date';
+  }
+
+  @override
+  String get passport_spec_title => 'Flasche';
+
+  @override
+  String passport_spec_freeGas(String pressure) {
+    return 'Freies Gas bei $pressure';
+  }
+
+  @override
+  String get passport_spec_buoyancyEmpty => 'Auftrieb leer';
+
+  @override
+  String get passport_spec_buoyancyFull => 'Auftrieb voll';
+
+  @override
+  String get passport_service_title => 'Wartung';
+
+  @override
+  String get passport_service_notTracked => 'Nicht erfasst';
+
+  @override
+  String get passport_service_neverRecorded => 'Nie erfasst';
+
+  @override
+  String get passport_service_trackO2Clean => 'O2-Reinigung erfassen';
+
+  @override
+  String get passport_service_trackFailed =>
+      'Die O2-Reinigung konnte nicht erfasst werden. Bitte erneut versuchen.';
+
+  @override
+  String passport_service_lastDone(String date) {
+    return 'Zuletzt $date';
+  }
+
+  @override
+  String passport_o2Warning_untracked(String o2) {
+    return 'Die letzte Füllung hat $o2 O2, und diese Flasche wird nicht als O2-rein geführt.';
+  }
+
+  @override
+  String passport_o2Warning_overdue(String o2) {
+    return 'Die letzte Füllung hat $o2 O2, und die O2-Reinigung dieser Flasche ist überfällig.';
+  }
+
+  @override
+  String get passport_fill_title => 'Aktuelle Füllung';
+
+  @override
+  String get passport_fill_none => 'Noch keine Füllung erfasst';
+
+  @override
+  String get passport_fill_log => 'Füllung erfassen';
+
+  @override
+  String passport_fill_mod(String depth, String ppo2) {
+    return 'MOD $depth bei ppO2 $ppo2';
+  }
+
+  @override
+  String passport_fill_end(String depth) {
+    return 'END $depth an der Arbeits-MOD';
+  }
+
+  @override
+  String passport_fill_station(String station) {
+    return 'Gefüllt von $station';
+  }
+
+  @override
+  String passport_fill_analyzer(String analyzer) {
+    return 'Analysiert mit $analyzer';
+  }
+
+  @override
+  String passport_fill_analysis(String o2, String he) {
+    return 'O2 $o2, He $he';
+  }
+
+  @override
+  String passport_fill_temperature(String temperature) {
+    return 'Gastemperatur $temperature';
+  }
+
+  @override
+  String get passport_fill_unsigned => 'Unsigniert';
+
+  @override
+  String get passport_history_title => 'Füllhistorie';
+
+  @override
+  String passport_history_sinceHydro(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Füllungen seit der letzten Druckprüfung',
+      one: '$count Füllung seit der letzten Druckprüfung',
+      zero: 'Keine Füllungen seit der letzten Druckprüfung',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_history_delete => 'Füllung löschen';
+
+  @override
+  String get passport_history_deleteConfirm => 'Diesen Fülleintrag löschen?';
+
+  @override
+  String get passport_tag_title => 'Tag';
+
+  @override
+  String passport_tag_written(String date) {
+    return 'Geschrieben $date';
+  }
+
+  @override
+  String get passport_tag_stale =>
+      'Der Tag wurde vor der letzten Wartung oder Spezifikationsänderung geschrieben. Neu drucken.';
+
+  @override
+  String get passport_tag_printLabel => 'Etikett drucken';
+
+  @override
+  String get passport_tag_printLabels => 'Etiketten drucken';
+
+  @override
+  String get passport_tag_qrSemantics => 'QR-Code des Flaschenpasses';
+
+  @override
+  String get passport_tag_printFailed =>
+      'Die Etiketten konnten nicht erstellt werden. Bitte erneut versuchen.';
+
+  @override
+  String get passport_tag_linkExisting => 'Vorhandenen Tag verknüpfen';
+
+  @override
+  String get passport_tag_linkPrompt => 'Link vom Tag einfügen';
+
+  @override
+  String get passport_tag_linkInvalid => 'Das ist kein Flaschen-Tag';
+
+  @override
+  String get passport_tag_linkFailed =>
+      'Der Tag konnte nicht verknüpft werden. Bitte erneut versuchen.';
+
+  @override
+  String passport_tag_linkInUse(String name) {
+    return 'Dieser Tag gehört bereits zu $name';
+  }
+
+  @override
+  String get passport_tag_linked => 'Tag verknüpft';
+
+  @override
+  String get passport_logFill_date => 'Gefüllt am';
+
+  @override
+  String get passport_logFill_time => 'Uhrzeit';
+
+  @override
+  String get passport_logFill_o2 => 'O2 (%)';
+
+  @override
+  String get passport_logFill_he => 'He (%)';
+
+  @override
+  String get passport_logFill_pressure => 'Fülldruck';
+
+  @override
+  String get passport_logFill_temperature => 'Gastemperatur';
+
+  @override
+  String get passport_logFill_station => 'Füllstation';
+
+  @override
+  String get passport_logFill_analyzer => 'Analysegerät';
+
+  @override
+  String get passport_logFill_notes => 'Notizen';
+
+  @override
+  String get passport_logFill_invalidMix =>
+      'O2 und He müssen jeweils 0 bis 100 sein und zusammen höchstens 100 ergeben';
+
+  @override
+  String get passport_logFill_invalidNumber => 'Zahl eingeben';
+
+  @override
+  String get passport_logFill_saveFailed =>
+      'Die Füllung konnte nicht gespeichert werden. Bitte erneut versuchen.';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -28692,6 +28903,9 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get attrLabel_last_hydro_test => 'Letzte Druckprüfung';
+
+  @override
+  String get attrLabel_passport_id => 'Pass-ID';
 
   @override
   String get attrLabel_connection => 'Anschluss';

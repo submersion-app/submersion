@@ -10,12 +10,12 @@ const _columns = {
 };
 
 void main() {
-  test('v228 is the current schema version and is in the ladder', () {
+  test('v230 is the current schema version and is in the ladder', () {
     // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 228);
-    expect(AppDatabase.migrationVersions, contains(228));
-    expect(AppDatabase.migrationStepCount(227), 1);
+    // greaterThanOrEqualTo when the next one lands. 229 is held by PR #2372.
+    expect(AppDatabase.currentSchemaVersion, 230);
+    expect(AppDatabase.migrationVersions, contains(230));
+    expect(AppDatabase.migrationStepCount(228), 1);
   });
 
   test('the columns are additive and did not move the sync floor', () {
@@ -42,7 +42,7 @@ void main() {
     }
   });
 
-  test('a database stranded before v228 gains the columns', () async {
+  test('a database stranded before v230 gains the columns', () async {
     final nativeDb = NativeDatabase.memory(
       setup: (rawDb) {
         rawDb.execute('''

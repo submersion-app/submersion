@@ -27,6 +27,12 @@ enum AttributeGroup {
   /// lost luggage, theft or fire (issue #1517). Rendered with purchase date
   /// and price.
   purchase,
+
+  /// Written by the app, never by a form: identifiers a feature owns, such
+  /// as a cylinder's passport id (issue #2334). No form section renders this
+  /// group, and the detail page's spec rows skip it, but the edit page save
+  /// keeps it because it is in the type's catalog.
+  system,
 }
 
 /// Unit dimension for number attributes; drives UnitFormatter conversion.
@@ -80,6 +86,11 @@ abstract final class EquipmentAttrKeys {
   // Cylinders had it first, and the stored key keeps that name: renaming it
   // would rewrite attribute rows on every sync peer.
   static const identifier = 'tank_identifier';
+
+  // The physical tag identity of a cylinder (issue #2334): a UUID minted
+  // once, printed as a QR label and written to an NFC tag. System group,
+  // so no form ever shows it as a text field.
+  static const passportId = 'passport_id';
 
   // Purchase record (issue #1517).
   static const sku = 'sku';
@@ -292,6 +303,11 @@ abstract final class EquipmentAttributeCatalog {
         kind: AttributeKind.date,
       ),
       EquipmentAttributeDef(key: 'last_hydro_test', kind: AttributeKind.date),
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.passportId,
+        kind: AttributeKind.text,
+        group: AttributeGroup.system,
+      ),
     ],
     EquipmentType.rebreather: [
       EquipmentAttributeDef(
@@ -702,6 +718,12 @@ abstract final class EquipmentAttributeCatalog {
 
   /// Definition for a curated key, or null for unknown/custom keys.
   static EquipmentAttributeDef? defFor(String key) => _byKey[key];
+
+  /// Whether [key] is a curated attribute the app owns ([AttributeGroup.system],
+  /// such as a cylinder's passport id). Such values are identities, never
+  /// data to copy: exports leave them out and imports ignore them.
+  static bool isSystemKey(String key) =>
+      _byKey[key]?.group == AttributeGroup.system;
 }
 
 /// Turns a stored `url`-kind value into a launchable link, or null when it

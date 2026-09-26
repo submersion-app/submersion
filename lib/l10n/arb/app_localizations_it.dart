@@ -11872,6 +11872,217 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get passport_title => 'Passaporto della bombola';
+
+  @override
+  String get passport_open => 'Apri passaporto';
+
+  @override
+  String get passport_entry_noFill => 'Nessuna ricarica registrata';
+
+  @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix, $date';
+  }
+
+  @override
+  String passport_entry_lastFill(String mix, String pressure, String date) {
+    return '$mix a $pressure, $date';
+  }
+
+  @override
+  String get passport_spec_title => 'Bombola';
+
+  @override
+  String passport_spec_freeGas(String pressure) {
+    return 'Gas libero a $pressure';
+  }
+
+  @override
+  String get passport_spec_buoyancyEmpty => 'Assetto a vuoto';
+
+  @override
+  String get passport_spec_buoyancyFull => 'Assetto a pieno';
+
+  @override
+  String get passport_service_title => 'Manutenzione';
+
+  @override
+  String get passport_service_notTracked => 'Non tracciato';
+
+  @override
+  String get passport_service_neverRecorded => 'Mai registrato';
+
+  @override
+  String get passport_service_trackO2Clean => 'Traccia la pulizia O2';
+
+  @override
+  String get passport_service_trackFailed =>
+      'Impossibile avviare il tracciamento della pulizia O2. Riprova.';
+
+  @override
+  String passport_service_lastDone(String date) {
+    return 'Ultima $date';
+  }
+
+  @override
+  String passport_o2Warning_untracked(String o2) {
+    return 'L\'ultima ricarica è al $o2 di O2 e questa bombola non è tracciata come pulita per O2.';
+  }
+
+  @override
+  String passport_o2Warning_overdue(String o2) {
+    return 'L\'ultima ricarica è al $o2 di O2 e la pulizia O2 di questa bombola è scaduta.';
+  }
+
+  @override
+  String get passport_fill_title => 'Ricarica attuale';
+
+  @override
+  String get passport_fill_none => 'Nessuna ricarica registrata finora';
+
+  @override
+  String get passport_fill_log => 'Registra una ricarica';
+
+  @override
+  String passport_fill_mod(String depth, String ppo2) {
+    return 'MOD $depth a ppO2 $ppo2';
+  }
+
+  @override
+  String passport_fill_end(String depth) {
+    return 'END $depth alla MOD di lavoro';
+  }
+
+  @override
+  String passport_fill_station(String station) {
+    return 'Ricaricata da $station';
+  }
+
+  @override
+  String passport_fill_analyzer(String analyzer) {
+    return 'Analizzata con $analyzer';
+  }
+
+  @override
+  String passport_fill_analysis(String o2, String he) {
+    return 'O2 $o2, He $he';
+  }
+
+  @override
+  String passport_fill_temperature(String temperature) {
+    return 'Temperatura del gas $temperature';
+  }
+
+  @override
+  String get passport_fill_unsigned => 'Non firmata';
+
+  @override
+  String get passport_history_title => 'Storico ricariche';
+
+  @override
+  String passport_history_sinceHydro(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ricariche dall\'ultimo collaudo',
+      one: '$count ricarica dall\'ultimo collaudo',
+      zero: 'Nessuna ricarica dall\'ultimo collaudo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_history_delete => 'Elimina ricarica';
+
+  @override
+  String get passport_history_deleteConfirm => 'Eliminare questa ricarica?';
+
+  @override
+  String get passport_tag_title => 'Tag';
+
+  @override
+  String passport_tag_written(String date) {
+    return 'Scritto il $date';
+  }
+
+  @override
+  String get passport_tag_stale =>
+      'Il tag è stato scritto prima dell\'ultima manutenzione o modifica delle specifiche. Ristampalo.';
+
+  @override
+  String get passport_tag_printLabel => 'Stampa etichetta';
+
+  @override
+  String get passport_tag_printLabels => 'Stampa etichette';
+
+  @override
+  String get passport_tag_qrSemantics => 'Codice QR del passaporto';
+
+  @override
+  String get passport_tag_printFailed =>
+      'Impossibile creare le etichette. Riprova.';
+
+  @override
+  String get passport_tag_linkExisting => 'Collega un tag esistente';
+
+  @override
+  String get passport_tag_linkPrompt => 'Incolla il link del tag';
+
+  @override
+  String get passport_tag_linkInvalid => 'Non è un tag di bombola';
+
+  @override
+  String get passport_tag_linkFailed =>
+      'Impossibile collegare il tag. Riprova.';
+
+  @override
+  String passport_tag_linkInUse(String name) {
+    return 'Questo tag appartiene già a $name';
+  }
+
+  @override
+  String get passport_tag_linked => 'Tag collegato';
+
+  @override
+  String get passport_logFill_date => 'Ricaricata il';
+
+  @override
+  String get passport_logFill_time => 'Ora';
+
+  @override
+  String get passport_logFill_o2 => 'O2 (%)';
+
+  @override
+  String get passport_logFill_he => 'He (%)';
+
+  @override
+  String get passport_logFill_pressure => 'Pressione di ricarica';
+
+  @override
+  String get passport_logFill_temperature => 'Temperatura del gas';
+
+  @override
+  String get passport_logFill_station => 'Stazione di ricarica';
+
+  @override
+  String get passport_logFill_analyzer => 'Analizzatore';
+
+  @override
+  String get passport_logFill_notes => 'Note';
+
+  @override
+  String get passport_logFill_invalidMix =>
+      'O2 ed He devono essere tra 0 e 100 e sommare al massimo 100';
+
+  @override
+  String get passport_logFill_invalidNumber => 'Inserisci un numero';
+
+  @override
+  String get passport_logFill_saveFailed =>
+      'Impossibile salvare la ricarica. Riprova.';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -28742,6 +28953,9 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrLabel_last_hydro_test => 'Ultimo test idrostatico';
+
+  @override
+  String get attrLabel_passport_id => 'ID passaporto';
 
   @override
   String get attrLabel_connection => 'Attacco';

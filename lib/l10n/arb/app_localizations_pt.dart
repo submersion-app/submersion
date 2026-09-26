@@ -11873,6 +11873,218 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get passport_title => 'Passaporte do cilindro';
+
+  @override
+  String get passport_open => 'Abrir passaporte';
+
+  @override
+  String get passport_entry_noFill => 'Nenhuma carga registrada';
+
+  @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix, $date';
+  }
+
+  @override
+  String passport_entry_lastFill(String mix, String pressure, String date) {
+    return '$mix a $pressure, $date';
+  }
+
+  @override
+  String get passport_spec_title => 'Cilindro';
+
+  @override
+  String passport_spec_freeGas(String pressure) {
+    return 'Gás livre a $pressure';
+  }
+
+  @override
+  String get passport_spec_buoyancyEmpty => 'Flutuabilidade vazio';
+
+  @override
+  String get passport_spec_buoyancyFull => 'Flutuabilidade cheio';
+
+  @override
+  String get passport_service_title => 'Manutenção';
+
+  @override
+  String get passport_service_notTracked => 'Sem acompanhamento';
+
+  @override
+  String get passport_service_neverRecorded => 'Nunca registrado';
+
+  @override
+  String get passport_service_trackO2Clean => 'Acompanhar limpeza de O2';
+
+  @override
+  String get passport_service_trackFailed =>
+      'Não foi possível começar a acompanhar a limpeza de O2. Tente novamente.';
+
+  @override
+  String passport_service_lastDone(String date) {
+    return 'Última $date';
+  }
+
+  @override
+  String passport_o2Warning_untracked(String o2) {
+    return 'A última carga tem $o2 de O2 e este cilindro não é acompanhado como limpo para O2.';
+  }
+
+  @override
+  String passport_o2Warning_overdue(String o2) {
+    return 'A última carga tem $o2 de O2 e a limpeza de O2 deste cilindro está atrasada.';
+  }
+
+  @override
+  String get passport_fill_title => 'Carga atual';
+
+  @override
+  String get passport_fill_none => 'Nenhuma carga registrada ainda';
+
+  @override
+  String get passport_fill_log => 'Registrar uma carga';
+
+  @override
+  String passport_fill_mod(String depth, String ppo2) {
+    return 'MOD $depth a ppO2 $ppo2';
+  }
+
+  @override
+  String passport_fill_end(String depth) {
+    return 'END $depth na MOD de trabalho';
+  }
+
+  @override
+  String passport_fill_station(String station) {
+    return 'Carregado por $station';
+  }
+
+  @override
+  String passport_fill_analyzer(String analyzer) {
+    return 'Analisado com $analyzer';
+  }
+
+  @override
+  String passport_fill_analysis(String o2, String he) {
+    return 'O2 $o2, He $he';
+  }
+
+  @override
+  String passport_fill_temperature(String temperature) {
+    return 'Temperatura do gás $temperature';
+  }
+
+  @override
+  String get passport_fill_unsigned => 'Sem assinatura';
+
+  @override
+  String get passport_history_title => 'Histórico de cargas';
+
+  @override
+  String passport_history_sinceHydro(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count cargas desde o último teste hidrostático',
+      one: '$count carga desde o último teste hidrostático',
+      zero: 'Nenhuma carga desde o último teste hidrostático',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_history_delete => 'Excluir carga';
+
+  @override
+  String get passport_history_deleteConfirm =>
+      'Excluir este registro de carga?';
+
+  @override
+  String get passport_tag_title => 'Etiqueta';
+
+  @override
+  String passport_tag_written(String date) {
+    return 'Escrita em $date';
+  }
+
+  @override
+  String get passport_tag_stale =>
+      'A etiqueta foi escrita antes da última manutenção ou alteração de especificação. Reimprima-a.';
+
+  @override
+  String get passport_tag_printLabel => 'Imprimir etiqueta';
+
+  @override
+  String get passport_tag_printLabels => 'Imprimir etiquetas';
+
+  @override
+  String get passport_tag_qrSemantics => 'Código QR do passaporte';
+
+  @override
+  String get passport_tag_printFailed =>
+      'Não foi possível criar as etiquetas. Tente novamente.';
+
+  @override
+  String get passport_tag_linkExisting => 'Vincular uma etiqueta existente';
+
+  @override
+  String get passport_tag_linkPrompt => 'Cole o link da etiqueta';
+
+  @override
+  String get passport_tag_linkInvalid => 'Isso não é uma etiqueta de cilindro';
+
+  @override
+  String get passport_tag_linkFailed =>
+      'Não foi possível vincular a etiqueta. Tente novamente.';
+
+  @override
+  String passport_tag_linkInUse(String name) {
+    return 'Essa etiqueta já pertence a $name';
+  }
+
+  @override
+  String get passport_tag_linked => 'Etiqueta vinculada';
+
+  @override
+  String get passport_logFill_date => 'Carregado em';
+
+  @override
+  String get passport_logFill_time => 'Hora';
+
+  @override
+  String get passport_logFill_o2 => 'O2 (%)';
+
+  @override
+  String get passport_logFill_he => 'He (%)';
+
+  @override
+  String get passport_logFill_pressure => 'Pressão de carga';
+
+  @override
+  String get passport_logFill_temperature => 'Temperatura do gás';
+
+  @override
+  String get passport_logFill_station => 'Estação de carga';
+
+  @override
+  String get passport_logFill_analyzer => 'Analisador';
+
+  @override
+  String get passport_logFill_notes => 'Notas';
+
+  @override
+  String get passport_logFill_invalidMix =>
+      'O2 e He devem estar entre 0 e 100 e somar no máximo 100';
+
+  @override
+  String get passport_logFill_invalidNumber => 'Digite um número';
+
+  @override
+  String get passport_logFill_saveFailed =>
+      'Não foi possível salvar a carga. Tente novamente.';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -28743,6 +28955,9 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get attrLabel_last_hydro_test => 'Último teste hidrostático';
+
+  @override
+  String get attrLabel_passport_id => 'ID do passaporte';
 
   @override
   String get attrLabel_connection => 'Conexão';

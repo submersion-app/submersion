@@ -11846,6 +11846,218 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get passport_title => 'Palackútlevél';
+
+  @override
+  String get passport_open => 'Útlevél megnyitása';
+
+  @override
+  String get passport_entry_noFill => 'Nincs rögzített töltés';
+
+  @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix, $date';
+  }
+
+  @override
+  String passport_entry_lastFill(String mix, String pressure, String date) {
+    return '$mix, $pressure, $date';
+  }
+
+  @override
+  String get passport_spec_title => 'Palack';
+
+  @override
+  String passport_spec_freeGas(String pressure) {
+    return 'Szabad gáz $pressure nyomáson';
+  }
+
+  @override
+  String get passport_spec_buoyancyEmpty => 'Felhajtóerő üresen';
+
+  @override
+  String get passport_spec_buoyancyFull => 'Felhajtóerő telve';
+
+  @override
+  String get passport_service_title => 'Szervizelés';
+
+  @override
+  String get passport_service_notTracked => 'Nem követett';
+
+  @override
+  String get passport_service_neverRecorded => 'Soha nem rögzítették';
+
+  @override
+  String get passport_service_trackO2Clean => 'O2-tisztítás követése';
+
+  @override
+  String get passport_service_trackFailed =>
+      'Az O2-tisztítás követése nem indult el. Próbálja újra.';
+
+  @override
+  String passport_service_lastDone(String date) {
+    return 'Utoljára: $date';
+  }
+
+  @override
+  String passport_o2Warning_untracked(String o2) {
+    return 'Az utolsó töltés $o2 O2, és ez a palack nincs O2-tisztaként nyilvántartva.';
+  }
+
+  @override
+  String passport_o2Warning_overdue(String o2) {
+    return 'Az utolsó töltés $o2 O2, és a palack O2-tisztítása lejárt.';
+  }
+
+  @override
+  String get passport_fill_title => 'Jelenlegi töltés';
+
+  @override
+  String get passport_fill_none => 'Még nincs rögzített töltés';
+
+  @override
+  String get passport_fill_log => 'Töltés rögzítése';
+
+  @override
+  String passport_fill_mod(String depth, String ppo2) {
+    return 'MOD $depth $ppo2 ppO2-nél';
+  }
+
+  @override
+  String passport_fill_end(String depth) {
+    return 'END $depth a munka-MOD-on';
+  }
+
+  @override
+  String passport_fill_station(String station) {
+    return 'Töltötte: $station';
+  }
+
+  @override
+  String passport_fill_analyzer(String analyzer) {
+    return 'Elemezve: $analyzer';
+  }
+
+  @override
+  String passport_fill_analysis(String o2, String he) {
+    return 'O2 $o2, He $he';
+  }
+
+  @override
+  String passport_fill_temperature(String temperature) {
+    return 'Gázhőmérséklet: $temperature';
+  }
+
+  @override
+  String get passport_fill_unsigned => 'Aláíratlan';
+
+  @override
+  String get passport_history_title => 'Töltési előzmények';
+
+  @override
+  String passport_history_sinceHydro(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count töltés a legutóbbi nyomáspróba óta',
+      one: '$count töltés a legutóbbi nyomáspróba óta',
+      zero: 'Nincs töltés a legutóbbi nyomáspróba óta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_history_delete => 'Töltés törlése';
+
+  @override
+  String get passport_history_deleteConfirm =>
+      'Törli ezt a töltési bejegyzést?';
+
+  @override
+  String get passport_tag_title => 'Címke';
+
+  @override
+  String passport_tag_written(String date) {
+    return 'Írva: $date';
+  }
+
+  @override
+  String get passport_tag_stale =>
+      'A címke a legutóbbi szervizelés vagy adatváltozás előtt készült. Nyomtassa ki újra.';
+
+  @override
+  String get passport_tag_printLabel => 'Címke nyomtatása';
+
+  @override
+  String get passport_tag_printLabels => 'Címkék nyomtatása';
+
+  @override
+  String get passport_tag_qrSemantics => 'Útlevél QR-kódja';
+
+  @override
+  String get passport_tag_printFailed =>
+      'A címkék létrehozása nem sikerült. Próbálja újra.';
+
+  @override
+  String get passport_tag_linkExisting => 'Meglévő címke összekapcsolása';
+
+  @override
+  String get passport_tag_linkPrompt => 'Illessze be a címke hivatkozását';
+
+  @override
+  String get passport_tag_linkInvalid => 'Ez nem palackcímke';
+
+  @override
+  String get passport_tag_linkFailed =>
+      'A címke összekapcsolása nem sikerült. Próbálja újra.';
+
+  @override
+  String passport_tag_linkInUse(String name) {
+    return 'Ez a címke már ehhez tartozik: $name';
+  }
+
+  @override
+  String get passport_tag_linked => 'Címke összekapcsolva';
+
+  @override
+  String get passport_logFill_date => 'Töltés dátuma';
+
+  @override
+  String get passport_logFill_time => 'Időpont';
+
+  @override
+  String get passport_logFill_o2 => 'O2 (%)';
+
+  @override
+  String get passport_logFill_he => 'He (%)';
+
+  @override
+  String get passport_logFill_pressure => 'Töltési nyomás';
+
+  @override
+  String get passport_logFill_temperature => 'Gázhőmérséklet';
+
+  @override
+  String get passport_logFill_station => 'Töltőállomás';
+
+  @override
+  String get passport_logFill_analyzer => 'Elemző';
+
+  @override
+  String get passport_logFill_notes => 'Jegyzetek';
+
+  @override
+  String get passport_logFill_invalidMix =>
+      'Az O2 és a He értéke 0 és 100 közé essen, összegük legfeljebb 100 lehet';
+
+  @override
+  String get passport_logFill_invalidNumber => 'Adjon meg egy számot';
+
+  @override
+  String get passport_logFill_saveFailed =>
+      'A töltés mentése nem sikerült. Próbálja újra.';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -28627,6 +28839,9 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrLabel_last_hydro_test => 'Utolsó hidrosztatikai vizsgálat';
+
+  @override
+  String get attrLabel_passport_id => 'Útlevél-azonosító';
 
   @override
   String get attrLabel_connection => 'Csatlakozás';

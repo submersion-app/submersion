@@ -11676,6 +11676,214 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get passport_title => 'جواز الأسطوانة';
+
+  @override
+  String get passport_open => 'افتح الجواز';
+
+  @override
+  String get passport_entry_noFill => 'لم تُسجَّل أي تعبئة';
+
+  @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix، $date';
+  }
+
+  @override
+  String passport_entry_lastFill(String mix, String pressure, String date) {
+    return '$mix عند $pressure، $date';
+  }
+
+  @override
+  String get passport_spec_title => 'الأسطوانة';
+
+  @override
+  String passport_spec_freeGas(String pressure) {
+    return 'الغاز الحر عند $pressure';
+  }
+
+  @override
+  String get passport_spec_buoyancyEmpty => 'الطفو وهي فارغة';
+
+  @override
+  String get passport_spec_buoyancyFull => 'الطفو وهي ممتلئة';
+
+  @override
+  String get passport_service_title => 'الصيانة';
+
+  @override
+  String get passport_service_notTracked => 'غير متابَع';
+
+  @override
+  String get passport_service_neverRecorded => 'لم يُسجَّل قط';
+
+  @override
+  String get passport_service_trackO2Clean => 'متابعة تنظيف الأكسجين';
+
+  @override
+  String get passport_service_trackFailed =>
+      'تعذّر بدء متابعة تنظيف الأكسجين. حاول مرة أخرى.';
+
+  @override
+  String passport_service_lastDone(String date) {
+    return 'آخر مرة $date';
+  }
+
+  @override
+  String passport_o2Warning_untracked(String o2) {
+    return 'آخر تعبئة تحوي $o2 أكسجين، وهذه الأسطوانة غير متابَعة كنظيفة للأكسجين.';
+  }
+
+  @override
+  String passport_o2Warning_overdue(String o2) {
+    return 'آخر تعبئة تحوي $o2 أكسجين، وتنظيف الأكسجين لهذه الأسطوانة متأخر.';
+  }
+
+  @override
+  String get passport_fill_title => 'التعبئة الحالية';
+
+  @override
+  String get passport_fill_none => 'لم تُسجَّل أي تعبئة بعد';
+
+  @override
+  String get passport_fill_log => 'تسجيل تعبئة';
+
+  @override
+  String passport_fill_mod(String depth, String ppo2) {
+    return 'MOD $depth عند ppO2 $ppo2';
+  }
+
+  @override
+  String passport_fill_end(String depth) {
+    return 'END $depth عند MOD العمل';
+  }
+
+  @override
+  String passport_fill_station(String station) {
+    return 'عبّأها $station';
+  }
+
+  @override
+  String passport_fill_analyzer(String analyzer) {
+    return 'حُلِّلت بجهاز $analyzer';
+  }
+
+  @override
+  String passport_fill_analysis(String o2, String he) {
+    return 'O2 $o2، He $he';
+  }
+
+  @override
+  String passport_fill_temperature(String temperature) {
+    return 'درجة حرارة الغاز $temperature';
+  }
+
+  @override
+  String get passport_fill_unsigned => 'غير موقَّعة';
+
+  @override
+  String get passport_history_title => 'سجل التعبئة';
+
+  @override
+  String passport_history_sinceHydro(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count تعبئات منذ آخر اختبار هيدروستاتيكي',
+      one: '$count تعبئة منذ آخر اختبار هيدروستاتيكي',
+      zero: 'لا تعبئات منذ آخر اختبار هيدروستاتيكي',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_history_delete => 'حذف التعبئة';
+
+  @override
+  String get passport_history_deleteConfirm => 'هل تريد حذف سجل التعبئة هذا؟';
+
+  @override
+  String get passport_tag_title => 'البطاقة';
+
+  @override
+  String passport_tag_written(String date) {
+    return 'كُتبت في $date';
+  }
+
+  @override
+  String get passport_tag_stale =>
+      'كُتبت البطاقة قبل آخر صيانة أو تغيير في المواصفات. أعد طباعتها.';
+
+  @override
+  String get passport_tag_printLabel => 'طباعة الملصق';
+
+  @override
+  String get passport_tag_printLabels => 'طباعة الملصقات';
+
+  @override
+  String get passport_tag_qrSemantics => 'رمز QR للجواز';
+
+  @override
+  String get passport_tag_printFailed => 'تعذّر إنشاء الملصقات. حاول مرة أخرى.';
+
+  @override
+  String get passport_tag_linkExisting => 'ربط بطاقة موجودة';
+
+  @override
+  String get passport_tag_linkPrompt => 'الصق الرابط من البطاقة';
+
+  @override
+  String get passport_tag_linkInvalid => 'هذه ليست بطاقة أسطوانة';
+
+  @override
+  String get passport_tag_linkFailed => 'تعذّر ربط البطاقة. حاول مرة أخرى.';
+
+  @override
+  String passport_tag_linkInUse(String name) {
+    return 'هذه البطاقة تعود بالفعل إلى $name';
+  }
+
+  @override
+  String get passport_tag_linked => 'تم ربط البطاقة';
+
+  @override
+  String get passport_logFill_date => 'تاريخ التعبئة';
+
+  @override
+  String get passport_logFill_time => 'الوقت';
+
+  @override
+  String get passport_logFill_o2 => 'O2 (%)';
+
+  @override
+  String get passport_logFill_he => 'He (%)';
+
+  @override
+  String get passport_logFill_pressure => 'ضغط التعبئة';
+
+  @override
+  String get passport_logFill_temperature => 'درجة حرارة الغاز';
+
+  @override
+  String get passport_logFill_station => 'محطة التعبئة';
+
+  @override
+  String get passport_logFill_analyzer => 'جهاز التحليل';
+
+  @override
+  String get passport_logFill_notes => 'ملاحظات';
+
+  @override
+  String get passport_logFill_invalidMix =>
+      'يجب أن يكون كل من O2 وHe بين 0 و100 وألا يتجاوز مجموعهما 100';
+
+  @override
+  String get passport_logFill_invalidNumber => 'أدخل رقمًا';
+
+  @override
+  String get passport_logFill_saveFailed => 'تعذّر حفظ التعبئة. حاول مرة أخرى.';
+
+  @override
   String equipment_bulkTags_confirmAdding(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -28345,6 +28553,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrLabel_last_hydro_test => 'آخر اختبار هيدروستاتيكي';
+
+  @override
+  String get attrLabel_passport_id => 'معرّف جواز الأسطوانة';
 
   @override
   String get attrLabel_connection => 'التوصيل';
