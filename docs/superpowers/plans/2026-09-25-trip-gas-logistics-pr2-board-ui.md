@@ -208,7 +208,8 @@ Expected: FAIL to compile: `siteName` and `reorderCylinders` are not defined. (T
 In `lib/features/trips/data/repositories/trip_cylinder_repository.dart`, in `getTankUsesForTrip`, replace the SQL body
 
 ```sql
-          SELECT t.id AS tank_id, t.dive_id, d.dive_date_time,
+          SELECT t.id AS tank_id, t.dive_id,
+                 COALESCE(d.entry_time, d.dive_date_time) AS entry_ms,
                  t.start_pressure, t.end_pressure, t.o2_percent, t.he_percent,
                  t.trip_cylinder_id
           FROM dive_tanks t
@@ -216,13 +217,14 @@ In `lib/features/trips/data/repositories/trip_cylinder_repository.dart`, in `get
           WHERE d.trip_id = ?1
             AND t.trip_cylinder_id IN
                 (SELECT id FROM trip_cylinders WHERE trip_id = ?1)
-          ORDER BY d.dive_date_time ASC, t.tank_order ASC
+          ORDER BY entry_ms ASC, t.tank_order ASC
 ```
 
 (the trip filter landed in PR 1 after its review) with
 
 ```sql
-          SELECT t.id AS tank_id, t.dive_id, d.dive_date_time,
+          SELECT t.id AS tank_id, t.dive_id,
+                 COALESCE(d.entry_time, d.dive_date_time) AS entry_ms,
                  t.start_pressure, t.end_pressure, t.o2_percent, t.he_percent,
                  t.trip_cylinder_id, s.name AS site_name
           FROM dive_tanks t
@@ -231,7 +233,7 @@ In `lib/features/trips/data/repositories/trip_cylinder_repository.dart`, in `get
           WHERE d.trip_id = ?1
             AND t.trip_cylinder_id IN
                 (SELECT id FROM trip_cylinders WHERE trip_id = ?1)
-          ORDER BY d.dive_date_time ASC, t.tank_order ASC
+          ORDER BY entry_ms ASC, t.tank_order ASC
 ```
 
 change its `readsFrom` to `{_db.diveTanks, _db.dives, _db.tripCylinders, _db.diveSites}`, and in the `TripCylinderTankUse(...)` it builds add `siteName: r.readNullable<String>('site_name'),` after `gasMix: ...`.

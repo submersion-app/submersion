@@ -355,4 +355,28 @@ void main() {
 
     expect(await repository.getTankUsesForTrip(tripId), isEmpty);
   });
+
+  test('a tank use is timed by the dive entry time when it has one', () async {
+    // dive_date_time is the legacy stamp; entry_time is when the diver
+    // actually went in. A fill between the two must fold before the dive.
+    final a = await repository.createCylinder(slot(label: 'A'));
+    final t0 = at.millisecondsSinceEpoch;
+    await insertDiveWithTank(
+      diveId: 'd1',
+      tankId: 't1',
+      entryMillis: t0,
+      cylinderId: a.id,
+      end: 60,
+    );
+    await db.customUpdate(
+      'UPDATE dives SET entry_time = ? WHERE id = ?',
+      variables: [Variable<int>(t0 + 7200000), const Variable<String>('d1')],
+    );
+
+    final use = (await repository.getTankUsesForTrip(tripId))[a.id]!.single;
+    expect(
+      use.entryTime,
+      DateTime.fromMillisecondsSinceEpoch(t0 + 7200000, isUtc: true),
+    );
+  });
 }

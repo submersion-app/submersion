@@ -358,7 +358,8 @@ class TripCylinderRepository {
           '''
           -- stats-scope-exempt: the board counts every dive on the trip, the
           -- ones excluded from statistics included, as the trip's dive list does
-          SELECT t.id AS tank_id, t.dive_id, d.dive_date_time,
+          SELECT t.id AS tank_id, t.dive_id,
+                 COALESCE(d.entry_time, d.dive_date_time) AS entry_ms,
                  t.start_pressure, t.end_pressure, t.o2_percent, t.he_percent,
                  t.trip_cylinder_id
           FROM dive_tanks t
@@ -366,7 +367,7 @@ class TripCylinderRepository {
           WHERE d.trip_id = ?1
             AND t.trip_cylinder_id IN
                 (SELECT id FROM trip_cylinders WHERE trip_id = ?1)
-          ORDER BY d.dive_date_time ASC, t.tank_order ASC
+          ORDER BY entry_ms ASC, t.tank_order ASC
           ''',
           variables: [Variable.withString(tripId)],
           readsFrom: {_db.diveTanks, _db.dives, _db.tripCylinders},
@@ -378,7 +379,7 @@ class TripCylinderRepository {
         tankId: r.read<String>('tank_id'),
         diveId: r.read<String>('dive_id'),
         entryTime: DateTime.fromMillisecondsSinceEpoch(
-          r.read<int>('dive_date_time'),
+          r.read<int>('entry_ms'),
           isUtc: true,
         ),
         startPressure: r.readNullable<double>('start_pressure'),

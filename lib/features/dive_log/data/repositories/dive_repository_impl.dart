@@ -6997,25 +6997,29 @@ class DiveRepository {
 
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.dives)..where((t) => t.id.isIn(diveIds))).write(
-        DivesCompanion(tripId: Value(tripId), updatedAt: Value(now)),
-      );
-      for (final diveId in diveIds) {
-        await _syncRepository.markRecordPending(
-          entityType: 'dives',
-          recordId: diveId,
-          localUpdatedAt: now,
+      // One transaction: the dives move and their stale slot links go
+      // together, or nothing changes.
+      await _db.transaction(() async {
+        await (_db.update(_db.dives)..where((t) => t.id.isIn(diveIds))).write(
+          DivesCompanion(tripId: Value(tripId), updatedAt: Value(now)),
         );
-        // A tank link into another trip's slot means nothing once the dive
-        // has moved; the single-dive paths drop it the same way.
-        await clearForeignTripCylinderLinks(
-          _db,
-          _syncRepository,
-          diveId,
-          tripId: tripId,
-          now: now,
-        );
-      }
+        for (final diveId in diveIds) {
+          await _syncRepository.markRecordPending(
+            entityType: 'dives',
+            recordId: diveId,
+            localUpdatedAt: now,
+          );
+          // A tank link into another trip's slot means nothing once the dive
+          // has moved; the single-dive paths drop it the same way.
+          await clearForeignTripCylinderLinks(
+            _db,
+            _syncRepository,
+            diveId,
+            tripId: tripId,
+            now: now,
+          );
+        }
+      });
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk updated trip for ${diveIds.length} dives');
     } catch (e, stackTrace) {

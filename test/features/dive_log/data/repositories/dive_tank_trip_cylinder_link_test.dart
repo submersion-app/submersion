@@ -281,4 +281,26 @@ void main() {
       expect(await linkOf('t1'), isNull);
     });
   });
+
+  test('a bulk trip change that fails part way moves nothing', () async {
+    await repo.createDive(
+      createTestDiveWithBottomTime(id: 'd1').copyWith(
+        tripId: tripA,
+        tanks: const [DiveTank(id: 't1', tripCylinderId: 'slot-a')],
+      ),
+    );
+    // Make the link cleanup fail, as a write error mid-move would.
+    await db.customStatement(
+      'CREATE TRIGGER fail_link_clear BEFORE UPDATE OF trip_cylinder_id '
+      "ON dive_tanks BEGIN SELECT RAISE(ABORT, 'boom'); END",
+    );
+
+    await expectLater(repo.bulkUpdateTrip(['d1'], tripB), throwsA(anything));
+
+    final tripOf = await db
+        .customSelect("SELECT trip_id FROM dives WHERE id = 'd1'")
+        .getSingle();
+    expect(tripOf.readNullable<String>('trip_id'), tripA);
+    expect(await linkOf('t1'), 'slot-a');
+  });
 }
