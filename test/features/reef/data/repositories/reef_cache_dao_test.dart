@@ -215,6 +215,27 @@ void main() {
       expect(await rowCount(), 0);
     });
 
+    test('treats a status this build does not know as a failure', () async {
+      // Habitat never expires when ok, so only the unavailable fallback's
+      // one-hour failure lifetime can make this row expire.
+      await db
+          .into(db.reefDataCache)
+          .insert(
+            ReefDataCacheCompanion.insert(
+              provider: ReefProviderId.habitat.name,
+              coordKey: 'k',
+              payloadJson: '{}',
+              status: 'retiredStatus',
+              fetchedAt: clock.millisecondsSinceEpoch,
+            ),
+          );
+
+      expect(await dao.deleteExpired(), 0);
+      clock = clock.add(ReefCacheDao.failureTtl);
+      expect(await dao.deleteExpired(), 1);
+      expect(await rowCount(), 0);
+    });
+
     test('an empty cache deletes nothing', () async {
       expect(await dao.deleteExpired(), 0);
     });
