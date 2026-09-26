@@ -4,6 +4,8 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -213,5 +215,37 @@ void main() {
       ),
       throwsA(isA<PassportIdInUse>()),
     );
+  });
+
+  test('an equipment save that never saw the passport id keeps it', () async {
+    await repo.assignPassportId(
+      equipmentId: 'eq-1',
+      passportId: id,
+      diverId: 'd1',
+    );
+    // The edit form's save: only the fields it shows, retyped or opened
+    // before a synced id arrived.
+    await EquipmentRepository().saveAttributes('eq-1', [
+      EquipmentAttribute.curated(
+        equipmentId: 'eq-1',
+        key: 'valve_type',
+        valueText: 'din',
+      ),
+    ]);
+    expect(await repo.getPassportId('eq-1'), id);
+  });
+
+  test('releasing a tag still removes the id', () async {
+    await repo.assignPassportId(
+      equipmentId: 'eq-1',
+      passportId: id,
+      diverId: 'd1',
+    );
+    await EquipmentRepository().saveAttributes(
+      'eq-1',
+      const [],
+      preserveSystem: false,
+    );
+    expect(await repo.getPassportId('eq-1'), isNull);
   });
 }

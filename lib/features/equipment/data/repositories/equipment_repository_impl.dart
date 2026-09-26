@@ -1665,10 +1665,18 @@ class EquipmentRepository {
   /// updates changed rows, deletes (with a tombstone) rows no longer present.
   /// Curated ids are normalized to the deterministic form here so callers
   /// building attributes before the equipment id exists still converge.
+  /// Writes [desired] as the item's attribute set.
+  ///
+  /// With [preserveSystem] (the default), a system attribute the caller did
+  /// not pass (a cylinder's passport id) is kept rather than deleted: the
+  /// edit form shows only its type's fields and may have been opened before
+  /// a synced id arrived, and neither is a reason to drop the tag's
+  /// identity. The passport repository passes false to release a tag.
   Future<void> saveAttributes(
     String equipmentId,
-    List<EquipmentAttribute> desired,
-  ) async {
+    List<EquipmentAttribute> desired, {
+    bool preserveSystem = true,
+  }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     final normalized = desired.where((a) => a.hasValue).map((a) {
@@ -1694,6 +1702,11 @@ class EquipmentRepository {
     await _db.transaction(() async {
       for (final row in existingRows) {
         if (desiredIds.contains(row.id)) continue;
+        if (preserveSystem &&
+            !row.isCustom &&
+            EquipmentAttributeCatalog.isSystemKey(row.attrKey)) {
+          continue;
+        }
         await (_db.delete(
           _db.equipmentAttributes,
         )..where((t) => t.id.equals(row.id))).go();

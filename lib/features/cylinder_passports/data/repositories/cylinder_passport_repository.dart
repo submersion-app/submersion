@@ -94,7 +94,7 @@ class CylinderPassportRepository {
     await _equipment.saveAttributes(equipmentId, [
       for (final a in existing)
         if (a.isCustom || a.key != EquipmentAttrKeys.passportId) a,
-    ]);
+    ], preserveSystem: false);
   }
 
   /// Writes [passportId] onto [equipmentId] and relinks the fills stored

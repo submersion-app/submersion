@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
@@ -17,6 +18,7 @@ import 'package:submersion/features/equipment/domain/entities/service_record.dar
 import 'package:submersion/features/equipment/domain/entities/service_schedule.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -115,6 +117,7 @@ void main() {
     List<ServiceClockStatus> clocks = const [],
     List<ServiceRecord> records = const [],
     List<dynamic> extraOverrides = const [],
+    AppSettings? settings,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(600, 2800);
@@ -122,7 +125,11 @@ void main() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
     });
-    final overrides = await getBaseOverrides();
+    final overrides = await getBaseOverrides(
+      settingsNotifier: settings == null
+          ? null
+          : MockSettingsNotifier(settings),
+    );
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -328,6 +335,47 @@ void main() {
   testWidgets('the header names the cylinder material', (tester) async {
     await pump(tester);
     expect(find.widgetWithText(Chip, 'Steel'), findsOneWidget);
+  });
+
+  testWidgets('every value follows imperial units', (tester) async {
+    await pump(
+      tester,
+      fills: [
+        CylinderFill(
+          id: 'f1',
+          passportId: pid,
+          equipmentId: id,
+          filledAt: DateTime(2026, 9, 20),
+          o2Percent: 32,
+          pressureBar: 220,
+          temperatureC: 20,
+          createdAt: now,
+          updatedAt: now,
+        ),
+      ],
+      settings: const AppSettings(
+        depthUnit: DepthUnit.feet,
+        pressureUnit: PressureUnit.psi,
+        volumeUnit: VolumeUnit.cubicFeet,
+        weightUnit: WeightUnit.pounds,
+        temperatureUnit: TemperatureUnit.fahrenheit,
+      ),
+    );
+    final texts = tester
+        .widgetList<Text>(find.byType(Text))
+        .map((t) => t.data ?? '')
+        .join('\n');
+    // Working and fill pressure, buoyancy, MOD, gas temperature, free gas.
+    expect(texts, contains('psi'));
+    expect(texts, contains('lbs'));
+    expect(texts, contains('ft'));
+    expect(texts, contains('°F'));
+    expect(texts, contains('cuft'));
+    // Nothing leaks through in metric.
+    expect(texts, isNot(contains(' bar')));
+    expect(texts, isNot(contains(' kg')));
+    expect(texts, isNot(contains('°C')));
+    expect(RegExp(r'\d m\b|\dm\b').hasMatch(texts), isFalse);
   });
 }
 
