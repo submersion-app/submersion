@@ -17,6 +17,8 @@ import 'package:submersion/features/trips/presentation/providers/trip_providers.
 import 'package:submersion/features/trips/presentation/widgets/dive_assignment_dialog.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 class TripEditPage extends ConsumerStatefulWidget {
   final String? tripId;
@@ -495,6 +497,11 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                     // Capacity
                     TextFormField(
                       controller: _capacityController,
+                      // Signed so "-3" stays the negative that saves as none, not 3.
+                      inputFormatters: numberInputFormatters(
+                        allowNegative: true,
+                      ),
+                      validator: numberValidator(context, integer: true),
                       decoration: InputDecoration(
                         labelText: context.l10n.trips_edit_label_capacity,
                         prefixIcon: const Icon(Icons.people),
@@ -568,6 +575,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   const SizedBox(height: 12),
                   TextFormField(
                     controller: _expectedDivesController,
+                    // Signed so "-3" stays the negative that saves as none, not 3.
+                    inputFormatters: numberInputFormatters(allowNegative: true),
+                    validator: numberValidator(context, integer: true),
                     decoration: InputDecoration(
                       labelText: context.l10n.trips_edit_label_expectedDives,
                       prefixIcon: const Icon(Icons.scuba_diving),
@@ -578,6 +588,9 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _expectedRuntimeController,
+                    // Signed so "-3" stays the negative that saves as none, not 3.
+                    inputFormatters: numberInputFormatters(allowNegative: true),
+                    validator: numberValidator(context, integer: true),
                     decoration: InputDecoration(
                       labelText: context.l10n.trips_edit_label_expectedRuntime,
                       prefixIcon: const Icon(Icons.timer_outlined),
@@ -892,10 +905,14 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
     );
   }
 
-  static int? _positiveOrNull(String text) {
-    final parsed = int.tryParse(text.trim());
-    return parsed != null && parsed > 0 ? parsed : null;
-  }
+  /// A whole number above zero, or null for blank and for zero or below,
+  /// as before. The field validators have already stopped unreadable text,
+  /// which used to save as null and erase the stored value (#1900).
+  static int? _positiveOrNull(String text) =>
+      switch (readNumber(text, integer: true)) {
+        NumberValue(:final value) when value > 0 => value.toInt(),
+        NumberValue() || NumberBlank() || NumberInvalid() => null,
+      };
 
   Future<void> _saveTrip() async {
     if (!_formKey.currentState!.validate()) return;
@@ -965,7 +982,7 @@ class _TripEditPageState extends ConsumerState<TripEditPage> {
           cabinType: _cabinTypeController.text.trim().isEmpty
               ? null
               : _cabinTypeController.text.trim(),
-          capacity: capacityText.isEmpty ? null : int.tryParse(capacityText),
+          capacity: _positiveOrNull(capacityText),
           embarkPort: _embarkPortController.text.trim().isEmpty
               ? null
               : _embarkPortController.text.trim(),

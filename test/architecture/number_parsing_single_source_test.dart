@@ -62,4 +62,58 @@ void main() {
       );
     }
   });
+
+  group('raw tryParse in presentation code', () {
+    // The same silent discard, one step removed: `int.tryParse(text)` on a
+    // field returns null for "5.5" and the caller carries on, which is how
+    // the planner stop minimum and trip counts dropped typos (#1900 review).
+    const coordinateFiles = <String, String>{
+      'lib/features/dive_sites/presentation/pages/site_edit_page.dart':
+          'latitude/longitude, validated by the coordinate fields',
+      'lib/features/dive_centers/presentation/pages/dive_center_edit_page.dart':
+          'latitude/longitude, validated by the coordinate fields',
+      'lib/shared/widgets/forms/coordinate_field_group.dart':
+          'the coordinate field group itself',
+    };
+    final tryParse = RegExp(r'\b(int|double|num)\.tryParse\s*\(');
+
+    bool isFormCode(String path) =>
+        path.contains('/presentation/') ||
+        path.startsWith('lib/shared/widgets/');
+
+    test('form code reads numbers through readNumber, not tryParse', () {
+      final offenders = <String>[];
+      for (final entity in Directory('lib').listSync(recursive: true)) {
+        if (entity is! File || !entity.path.endsWith('.dart')) continue;
+        final path = entity.path.replaceAll(r'\', '/');
+        if (!isFormCode(path) || coordinateFiles.containsKey(path)) continue;
+        final lines = entity.readAsLinesSync();
+        for (var i = 0; i < lines.length; i++) {
+          if (lines[i].trimLeft().startsWith('//')) continue;
+          if (tryParse.hasMatch(lines[i])) offenders.add('$path:${i + 1}');
+        }
+      }
+      expect(
+        offenders,
+        isEmpty,
+        reason:
+            'a field read with tryParse drops unreadable text without a '
+            'word; use readNumber / numberValidator / NumberField instead',
+      );
+    });
+
+    test('every coordinate exemption still uses tryParse', () {
+      for (final entry in coordinateFiles.entries) {
+        final file = File(entry.key);
+        expect(file.existsSync(), isTrue, reason: '${entry.key} is missing');
+        expect(
+          tryParse.hasMatch(file.readAsStringSync()),
+          isTrue,
+          reason:
+              '${entry.key} is exempt as "${entry.value}" but no longer '
+              'uses tryParse; remove it from the list',
+        );
+      }
+    });
+  });
 }
