@@ -23,6 +23,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_summary.dart';
 import 'package:submersion/features/dive_log/domain/codecs/tank_pressure_series_codec.dart';
+import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
 import 'package:submersion/features/tags/data/mappers/tag_row_mapper.dart';
 import 'package:submersion/features/tags/domain/entities/tag.dart'
     as tag_domain;
@@ -671,13 +672,22 @@ List<({String id, int bytes})> idsWithinBlobBudget(
 }
 
 class SyncDataSerializer {
-  SyncDataSerializer({ImportedFileReclaimer? importedFileReclaimer})
-    : _importedFileReclaimer = importedFileReclaimer ?? ImportedFileReclaimer();
+  SyncDataSerializer({
+    ImportedFileReclaimer? importedFileReclaimer,
+    Future<void> Function(String trackId)? evictTrackGeometry,
+  }) : _importedFileReclaimer =
+           importedFileReclaimer ?? ImportedFileReclaimer(),
+       _evictTrackGeometry =
+           evictTrackGeometry ?? TrackGeometryCacheRepository().invalidate;
 
   AppDatabase get _db => DatabaseService.instance.database;
   final _log = LoggerService.forClass(SyncDataSerializer);
   final SyncRepository _syncRepository = SyncRepository();
   final ImportedFileReclaimer _importedFileReclaimer;
+
+  /// Drops a track's cached geometry from the local cache database, which
+  /// lives outside the library and so outside any delete cascade.
+  final Future<void> Function(String trackId) _evictTrackGeometry;
 
   Future<List<Map<String, dynamic>>> _safeExport(
     String label,
@@ -6268,6 +6278,20 @@ class SyncDataSerializer {
         await (_db.delete(
           _db.gpsTracks,
         )..where((t) => t.id.equals(recordId))).go();
+        // A delete made on this device evicts the cached LODs itself
+        // (deleteTrackProvider); one arriving from a peer has to do it here,
+        // or up to three blobs outlive the track until the next local cache
+        // sweep (issue #1929). The cache is derived data, so failing to evict
+        // must never fail the merge: the sweep catches what this misses.
+        try {
+          await _evictTrackGeometry(recordId);
+        } catch (e, stackTrace) {
+          _log.warning(
+            'Could not evict cached geometry for track $recordId',
+            error: e,
+            stackTrace: stackTrace,
+          );
+        }
         return;
       case 'navTracks':
         await (_db.delete(

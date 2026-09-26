@@ -44,17 +44,13 @@ class ReefCacheDao {
             .getSingleOrNull();
     if (row == null) return null;
 
-    final status = ReefDataStatus.values.firstWhere(
-      (s) => s.name == row.status,
-      orElse: () => ReefDataStatus.unavailable,
-    );
+    final status = _statusOf(row.status);
     final fetchedAt = DateTime.fromMillisecondsSinceEpoch(
       row.fetchedAt,
       isUtc: true,
     );
 
-    final ttl = _ttlFor(provider, variant, status);
-    if (ttl != null && _now().toUtc().difference(fetchedAt) >= ttl) {
+    if (_isExpired(provider, variant, status, fetchedAt, _now().toUtc())) {
       return null;
     }
 
@@ -84,6 +80,78 @@ class ReefCacheDao {
             fetchedAt: _now().toUtc().millisecondsSinceEpoch,
           ),
         );
+  }
+
+  /// Deletes every row [read] would already refuse to return, and returns how
+  /// many went. [read] only ignores an expired row, and a refetch overwrites
+  /// it only if that coordinate is looked up again, so without this a site
+  /// viewed once keeps its expired rows forever (issue #1929).
+  ///
+  /// A row naming a provider this build no longer has is deleted too: nothing
+  /// can read it. Dated health readings never expire, so they stay; each one
+  /// is the answer for a dive on that day and is read again with that dive.
+  Future<int> deleteExpired() async {
+    final t = _db.reefDataCache;
+    final rows =
+        await (_db.selectOnly(t)..addColumns([
+              t.provider,
+              t.coordKey,
+              t.variant,
+              t.status,
+              t.fetchedAt,
+            ]))
+            .get();
+    final now = _now().toUtc();
+    final providers = ReefProviderId.values.asNameMap();
+
+    var deleted = 0;
+    await _db.transaction(() async {
+      for (final row in rows) {
+        final providerName = row.read(t.provider)!;
+        final coordKey = row.read(t.coordKey)!;
+        final variant = row.read(t.variant)!;
+        final provider = providers[providerName];
+        if (provider != null &&
+            !_isExpired(
+              provider,
+              variant,
+              _statusOf(row.read(t.status)!),
+              DateTime.fromMillisecondsSinceEpoch(
+                row.read(t.fetchedAt)!,
+                isUtc: true,
+              ),
+              now,
+            )) {
+          continue;
+        }
+        deleted +=
+            await (_db.delete(t)..where(
+                  (r) =>
+                      r.provider.equals(providerName) &
+                      r.coordKey.equals(coordKey) &
+                      r.variant.equals(variant),
+                ))
+                .go();
+      }
+    });
+    return deleted;
+  }
+
+  static ReefDataStatus _statusOf(String name) =>
+      ReefDataStatus.values.firstWhere(
+        (s) => s.name == name,
+        orElse: () => ReefDataStatus.unavailable,
+      );
+
+  bool _isExpired(
+    ReefProviderId provider,
+    String variant,
+    ReefDataStatus status,
+    DateTime fetchedAt,
+    DateTime now,
+  ) {
+    final ttl = _ttlFor(provider, variant, status);
+    return ttl != null && now.difference(fetchedAt) >= ttl;
   }
 
   /// Null means "never expires".

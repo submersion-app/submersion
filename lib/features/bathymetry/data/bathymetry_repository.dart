@@ -149,6 +149,36 @@ class BathymetryRepository {
         '@$span$selectionGeneration';
   }
 
+  /// Whether [key] is one [keyFor] could still build, so a lookup can still
+  /// reach its row. Anything else is one of the inert leftovers [keyFor]
+  /// describes, and the local cache sweep deletes it (issue #1929).
+  ///
+  /// Any span is current, because LOD patches each cache under their own.
+  /// Only the generation has to match, and it has to match exactly: a
+  /// generation 1 key ends in a bare `@8000`, so a prefix or substring test
+  /// would keep every generation. A Swiss lake key also carries the lake's
+  /// documented level, and that has to equal the level the lake documents
+  /// today, or a corrected level would strand the old rows forever.
+  static bool isCurrentKey(String key) {
+    final parts = key.split('@');
+    if (parts.length < 2 || parts.length > 3) return false;
+    if (!_currentSpanGeneration.hasMatch(parts[1])) return false;
+
+    final coordinate = parts[0].split(',');
+    if (coordinate.length != 2) return false;
+    final lat = double.tryParse(coordinate[0]);
+    final lon = double.tryParse(coordinate[1]);
+    if (lat == null || lon == null) return false;
+
+    if (parts.length == 2) return true;
+    final lake = findSwissLake(GeoPoint(lat, lon));
+    return lake != null && '${lake.meanLevelMeters}' == parts[2];
+  }
+
+  static final RegExp _currentSpanGeneration = RegExp(
+    '^[0-9]+${RegExp.escape(selectionGeneration)}\$',
+  );
+
   /// Whether the cache holds a DEFINITIVE answer (grid or empty) for this
   /// coordinate's cell (or, with [spanMeters], for its LOD patch cell --
   /// see [getGridForSpan]). False means a null from [getGrid]/
