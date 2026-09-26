@@ -185,6 +185,29 @@ void main() {
       expect(res.definitive, isFalse);
     });
 
+    test('a probe that throws makes the fallback grid non-definitive: it '
+        'could not say whether it covers, so it might have won', () async {
+      final res = await BathymetryResolver(
+        sources: [
+          _ThrowingProbeSource(),
+          FakeSource('b', result: gridWith(wet, 'b')),
+        ],
+      ).resolve(p);
+      expect(res.grid!.sourceId, 'b');
+      expect(res.definitive, isFalse);
+    });
+
+    test('a probe that throws + a dry global answer is transient', () async {
+      final res = await BathymetryResolver(
+        sources: [
+          _ThrowingProbeSource(),
+          FakeSource('dry', result: gridWith(dry, 'd')),
+        ],
+      ).resolve(p);
+      expect(res.grid, isNull);
+      expect(res.definitive, isFalse);
+    });
+
     test('a dry global answer + a later tier failing is transient', () async {
       // Any tier that did not answer might have had water.
       final globalDry = FakeSource('dry', result: gridWith(dry, 'd'));

@@ -64,7 +64,13 @@ class BathymetryRepository {
   /// them) changes what some ALREADY-v4-cached Rotsee/Vierwaldstättersee-
   /// area coordinates should have resolved to, so those rows need one
   /// more forced re-resolution too.
-  static const String selectionGeneration = 'v5';
+  ///
+  /// v6 (#1770): before that fix, a grid won only because a better source
+  /// failed transiently was cached as a final answer. Those rows look
+  /// exactly like legitimate ones and `_load` serves them before the
+  /// resolver runs, so without this bump a site already downgraded by one
+  /// network hiccup would stay downgraded forever.
+  static const String selectionGeneration = 'v6';
   static const double quantumDeg = 0.02;
 
   final LocalCacheDatabase _db;

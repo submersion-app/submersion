@@ -67,13 +67,14 @@ class BathymetryResolver {
     double? spanMeters,
   }) async {
     final span = spanMeters ?? defaultSpanMeters;
-    final ordered = await _order(center);
+    final (:ordered, :anyProbeFailed) = await _order(center);
     var globalSourceSaidDry = false;
-    // Whether any source threw instead of answering (issue #1770). Such a
-    // source might have had better terrain, or water where a global model
-    // says dry, so whatever the walk settles on is not final: a single
-    // network hiccup must not permanently downgrade the cell.
-    var anySourceFailed = false;
+    // Whether any source threw instead of answering, in its probe or its
+    // fetch (issue #1770). Such a source might have had better terrain, or
+    // water where a global model says dry, so whatever the walk settles on
+    // is not final: a single network hiccup must not permanently downgrade
+    // the cell.
+    var anySourceFailed = anyProbeFailed;
     for (final source in ordered) {
       try {
         final grid = await source.fetch(center, spanMeters: span);
@@ -129,13 +130,23 @@ class BathymetryResolver {
 
   /// Covering sources in fetch order. Probes run concurrently because a
   /// probe may be a network call and they are independent; a probe that
-  /// fails for any reason drops that source rather than failing the scene.
-  Future<List<BathymetrySource>> _order(GeoPoint center) async {
+  /// fails for any reason drops that source rather than failing the scene,
+  /// and is reported in `anyProbeFailed` so the resolve that follows is
+  /// not taken as definitive (see [BathymetrySource.probe]).
+  Future<({List<BathymetrySource> ordered, bool anyProbeFailed})> _order(
+    GeoPoint center,
+  ) async {
+    var anyProbeFailed = false;
     final caps = await Future.wait(
       sources.map((s) async {
         try {
           return await s.probe(center);
-        } catch (_) {
+        } catch (e) {
+          anyProbeFailed = true;
+          _log.warning(
+            '${s.id} probe failed at ${center.latitude},${center.longitude}',
+            error: e,
+          );
           return null;
         }
       }),
@@ -159,6 +170,9 @@ class BathymetryResolver {
       if (b.cell * preemptionFactor < a.cell) return 1;
       return a.rank.compareTo(b.rank);
     });
-    return [for (final c in covering) c.source];
+    return (
+      ordered: [for (final c in covering) c.source],
+      anyProbeFailed: anyProbeFailed,
+    );
   }
 }
