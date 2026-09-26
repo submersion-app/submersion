@@ -55,8 +55,9 @@ class ConnectionsRepository {
         hops: hops.clamp(1, 3),
         diverId: diverId,
         filter: filter,
+        nodeBudget: nodeBudget,
       );
-      return graph.trimmed(nodeBudget, keep: focus);
+      return graph;
     });
   }
 

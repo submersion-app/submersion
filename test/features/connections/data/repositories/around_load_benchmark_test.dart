@@ -10,14 +10,15 @@ import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 
 import '../../../../helpers/test_database.dart';
 
-/// A log of 400 dives, 60 buddies and 40 sites: Around at three hops with
-/// both kinds on reaches most of it. Loose bound on purpose: CI varies.
+/// A log of 400 dives with 60 buddies, 40 sites, 80 species and 30 pieces of
+/// gear: Around at three hops with
+/// every kind on reaches most of it. Loose bound on purpose: CI varies.
 void main() {
   setUp(setUpTestDatabase);
   tearDown(tearDownTestDatabase);
 
   test(
-    'three hops over a 400-dive log loads well inside a second or two',
+    'three hops with every kind on over a 400-dive log loads quickly',
     () async {
       final d = DatabaseService.instance.database;
       const ms = 1700000000000;
@@ -38,6 +39,28 @@ void main() {
             db.BuddiesCompanion(
               id: Value('b$i'),
               name: Value('Buddy $i'),
+              createdAt: const Value(ms),
+              updatedAt: const Value(ms),
+            ),
+          );
+        }
+        for (var i = 0; i < 80; i++) {
+          b.insert(
+            d.species,
+            db.SpeciesCompanion(
+              id: Value('sp$i'),
+              commonName: Value('Species $i'),
+              category: const Value('fish'),
+            ),
+          );
+        }
+        for (var i = 0; i < 30; i++) {
+          b.insert(
+            d.equipment,
+            db.EquipmentCompanion(
+              id: Value('e$i'),
+              name: Value('Gear $i'),
+              type: const Value('regulator'),
               createdAt: const Value(ms),
               updatedAt: const Value(ms),
             ),
@@ -69,6 +92,31 @@ void main() {
               updatedAt: const Value(ms),
             ),
           );
+          final species = {
+            for (var k = 0; k < rng.nextInt(5); k++) rng.nextInt(80),
+          };
+          for (final si in species) {
+            b.insert(
+              d.sightings,
+              db.SightingsCompanion(
+                id: Value('d$i-sp$si'),
+                diveId: Value('d$i'),
+                speciesId: Value('sp$si'),
+              ),
+            );
+          }
+          final gear = {
+            for (var k = 0; k < 2 + rng.nextInt(3); k++) rng.nextInt(30),
+          };
+          for (final ei in gear) {
+            b.insert(
+              d.diveEquipment,
+              db.DiveEquipmentCompanion(
+                diveId: Value('d$i'),
+                equipmentId: Value('e$ei'),
+              ),
+            );
+          }
           final buddies = {
             for (var k = 0; k < 1 + rng.nextInt(3); k++) rng.nextInt(60),
           };
@@ -90,7 +138,7 @@ void main() {
       final sw = Stopwatch()..start();
       final g = await ConnectionsRepository().loadAround(
         focus: const NodeRef(ConnectionKind.buddy, 'b0'),
-        kinds: {ConnectionKind.buddy, ConnectionKind.site},
+        kinds: ConnectionKind.values.toSet(),
         hops: 3,
         diverId: 'me',
         nodeBudget: 160,
@@ -98,6 +146,11 @@ void main() {
       sw.stop();
       expect(g.nodes, isNotEmpty);
       expect(g.nodes.length, lessThanOrEqualTo(160));
+      expect(
+        g.hiddenNodeCount,
+        greaterThan(0),
+        reason: 'the scenario must reach past the budget to exercise the trim',
+      );
       expect(
         sw.elapsedMilliseconds,
         lessThan(3000),

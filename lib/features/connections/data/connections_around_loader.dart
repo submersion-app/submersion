@@ -24,6 +24,7 @@ class AroundLoader {
     required int hops,
     required String? diverId,
     required DiveFilterState filter,
+    required int nodeBudget,
   }) async {
     final enabled = kinds.toList()..sort((a, b) => a.index.compareTo(b.index));
     final placed = <ConnectionKind, Set<String>>{
@@ -73,21 +74,58 @@ class AroundLoader {
       nodes.insert(0, (await _reader.labelOnly(focus)).copyWith(hop: 0));
     }
 
+    // Cut to the budget before the chord pass, so chord work is bounded by
+    // the budget rather than by the size of the log. The cut keeps whatever
+    // the final trim could still choose: it ranks by hop and dive count like
+    // `ConnectionGraph.trimmed`, and keeps every node tied with the last
+    // one, since only there does the final trim's degree tie-break decide.
+    final kept = _preTrim(nodes, nodeBudget);
+    final keptIds = <ConnectionKind, Set<String>>{};
+    for (final n in kept) {
+      keptIds.putIfAbsent(n.ref.kind, () => {}).add(n.ref.id);
+    }
+    final keptKinds = keptIds.keys.toList()
+      ..sort((a, b) => a.index.compareTo(b.index));
+
     final edges = <ConnectionEdge>[];
-    for (var i = 0; i < placedKinds.length; i++) {
-      for (var j = i; j < placedKinds.length; j++) {
+    for (var i = 0; i < keptKinds.length; i++) {
+      for (var j = i; j < keptKinds.length; j++) {
         edges.addAll(
           await _reader.edges(
-            placedKinds[i],
-            placedKinds[j],
+            keptKinds[i],
+            keptKinds[j],
             diverId: diverId,
             filter: filter,
-            restrictA: placed[placedKinds[i]],
-            restrictB: placed[placedKinds[j]],
+            restrictA: keptIds[keptKinds[i]],
+            restrictB: keptIds[keptKinds[j]],
           ),
         );
       }
     }
-    return ConnectionGraph(nodes: nodes, edges: edges);
+    final graph = ConnectionGraph(
+      nodes: kept,
+      edges: edges,
+    ).trimmed(nodeBudget, keep: focus);
+    return graph.copyWith(
+      hiddenNodeCount: graph.hiddenNodeCount + nodes.length - kept.length,
+    );
+  }
+
+  /// The first [budget] nodes by hop, then dive count, plus every node tied
+  /// with the last of them. The focus (hop 0) always comes first.
+  static List<ConnectionNode> _preTrim(List<ConnectionNode> nodes, int budget) {
+    if (nodes.length <= budget) return nodes;
+    int compare(ConnectionNode a, ConnectionNode b) {
+      final byHop = (a.hop ?? 0).compareTo(b.hop ?? 0);
+      return byHop != 0 ? byHop : b.diveCount.compareTo(a.diveCount);
+    }
+
+    final ranked = [...nodes]..sort(compare);
+    var end = budget;
+    while (end < ranked.length &&
+        compare(ranked[end], ranked[budget - 1]) == 0) {
+      end++;
+    }
+    return ranked.sublist(0, end);
   }
 }
