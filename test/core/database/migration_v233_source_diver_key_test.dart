@@ -33,8 +33,7 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 233);
     expect(AppDatabase.migrationVersions, contains(233));
-    // 232 is claimed by several open branches, so this rung skips it.
-    expect(AppDatabase.migrationStepCount(231), 1);
+    expect(AppDatabase.migrationStepCount(232), 1);
   });
 
   test('this rung is additive and did not move the sync floor', () {
@@ -55,8 +54,8 @@ void main() {
     expect(byName['source_diver_key']!.read<int>('notnull'), 0);
   });
 
-  test('a v231 database upgrades and gains the column', () async {
-    final db = AppDatabase(strandedAt(231));
+  test('a v232 database upgrades and gains the column', () async {
+    final db = AppDatabase(strandedAt(232));
     addTearDown(db.close);
 
     expect(await sourceColumns(db), contains('source_diver_key'));

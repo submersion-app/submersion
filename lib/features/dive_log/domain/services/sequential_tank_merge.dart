@@ -178,6 +178,7 @@ DiveTank _fold(DiveTank earlier, DiveTank later) => earlier.copyWith(
   sourceTankIndex: earlier.sourceTankIndex ?? later.sourceTankIndex,
   regulatorEquipmentId:
       earlier.regulatorEquipmentId ?? later.regulatorEquipmentId,
+  tripCylinderId: earlier.tripCylinderId ?? later.tripCylinderId,
   equipmentId: earlier.equipmentId ?? later.equipmentId,
   decoSwitchDepth: earlier.decoSwitchDepth ?? later.decoSwitchDepth,
 );

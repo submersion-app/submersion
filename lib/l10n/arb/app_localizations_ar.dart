@@ -18769,6 +18769,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get settings_conflict_ref_trip => 'الرحلة';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'أسطوانة الرحلة';
+
+  @override
   String get settings_conflict_remoteVersion => 'النسخة البعيدة';
 
   @override
