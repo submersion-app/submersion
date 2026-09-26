@@ -175,6 +175,9 @@ class DivelogsImportService {
             photosBySourceUuid[DivelogsDiveMapper.sourceUuidFor(remoteId)] =
                 photos;
           }
+          // A row with no downloadable link is a photo the import cannot
+          // bring over; count the dive rather than drop it without a word.
+          if (photos.length < pictures.length) photoListingFailures++;
         } on DivelogsUnauthorizedException {
           rethrow;
         } on DivelogsApiException {

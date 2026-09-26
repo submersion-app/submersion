@@ -10,6 +10,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:submersion/core/services/divelogs/divelogs_api_client.dart';
 import 'package:submersion/core/services/divelogs/divelogs_auth.dart';
+import 'package:submersion/core/services/divelogs/divelogs_session_store.dart';
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/remote_photo_attacher.dart';
 import 'package:submersion/features/import_wizard/domain/models/import_bundle.dart'
@@ -21,6 +22,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/universal_import/data/models/import_enums.dart';
 import 'package:submersion/features/universal_import/data/models/import_payload.dart';
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
+
+import '../../../../support/fake_keychain_storage.dart';
 
 /// Records every link instead of writing media rows.
 class _RecordingLinkService extends Fake implements LocalFileLinkService {
@@ -308,5 +311,35 @@ void main() {
     final state = container.read(universalImportNotifierProvider);
     expect(state.payload, isNull);
     expect(state.remotePhotoCount, 0);
+  });
+
+  testWidgets('an expired session is cleared, remembered and navigated back', (
+    tester,
+  ) async {
+    final adapter = await pumpAdapter(tester);
+    var wentBack = 0;
+    adapter.goBack = () => wentBack++;
+    final store = DivelogsSessionStore(storage: InMemoryKeychain());
+    await tester.runAsync(
+      () => store.save(const DivelogsSession(username: 'rainer', token: 't')),
+    );
+    final auth = DivelogsAuth(
+      httpClient: MockClient((_) async => fail('')),
+      store: store,
+    );
+    await tester.runAsync(auth.restore);
+    adapter.setSession((
+      auth: auth,
+      client: _client((_) async => http.Response('', 200)),
+    ));
+    container.read(divelogsFetchedProvider.notifier).state = true;
+
+    adapter.debugExpireSession();
+
+    expect(adapter.client, isNull);
+    expect(adapter.session, isNull);
+    expect(adapter.lastUsername, 'rainer');
+    expect(wentBack, 1);
+    expect(container.read(divelogsFetchedProvider), isFalse);
   });
 }

@@ -182,4 +182,16 @@ void main() {
     });
     expect(dive.gearItemIds, ['45', '62']);
   });
+
+  test('a dive without a time is unreadable, not moved to midnight', () {
+    expect(
+      () => DivelogsDive.fromJson({
+        'id': 1,
+        'date': '2022-09-03',
+        'duration': 2808,
+        'maxdepth': 12,
+      }),
+      throwsFormatException,
+    );
+  });
 }

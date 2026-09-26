@@ -239,16 +239,18 @@ void main() {
       expect(progress.last, (2, 2));
     });
 
-    test('a picture row without a downloadable url is not listed', () async {
+    test('a picture row without a usable url is counted, not hidden', () async {
       final result = await service(
         [diveJson(1)],
         picturesByDive: {
           '1': [
             {'id': 10, 'url': 'reef.jpg'},
+            {'id': 11, 'url': 'https://divelogs.de/pics/ok.jpg'},
           ],
         },
       ).fetchLogbook(includePhotos: true);
-      expect(result.photoCount, 0);
+      expect(result.photoCount, 1);
+      expect(result.photoListingFailures, 1);
     });
 
     test('listing failures are counted into one coded warning', () async {

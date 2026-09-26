@@ -124,10 +124,12 @@ class DivelogsDive {
 
   factory DivelogsDive.fromJson(Map<String, dynamic> json) {
     final date = _asNonEmptyString(json['date']);
-    final time = _asNonEmptyString(json['time']) ?? '00:00:00';
+    final time = _asNonEmptyString(json['time']);
     final duration = _asInt(json['duration']);
     final maxDepth = _asDouble(json['maxdepth']);
-    if (date == null || duration == null || maxDepth == null) {
+    // A missing time is not guessed as midnight: a made-up start would
+    // file the dive at the wrong moment and defeat duplicate matching.
+    if (date == null || time == null || duration == null || maxDepth == null) {
       throw FormatException('divelogs dive missing mandatory fields', json);
     }
     // Dive timestamps are wall-clock; the import pipeline convention is to

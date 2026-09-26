@@ -55,17 +55,35 @@ class DivelogsImportAdapter extends UniversalAdapter {
   DivelogsImportAdapter({required super.ref})
     : super(displayName: 'divelogs.de');
 
-  DivelogsApiClient? _client;
+  DivelogsSignedIn? _session;
+  String? _lastUsername;
   Map<String, List<RemotePhoto>> _photos = const {};
 
-  /// The signed-in client, set by the sign-in step.
-  DivelogsApiClient? get client => _client;
+  /// Set by the wizard: moves it back one step, from Fetch to Sign In when
+  /// the session expires.
+  VoidCallback? goBack;
+
+  /// The signed-in session, set by the sign-in step.
+  DivelogsSignedIn? get session => _session;
+
+  /// The signed-in client.
+  DivelogsApiClient? get client => _session?.client;
+
+  /// The username last signed in with, kept after the session expires so
+  /// the sign-in form can offer it again.
+  String? get lastUsername => _lastUsername;
 
   /// Installs the client for a new sign-in, or clears it on sign-out.
   /// Either way the account may have changed, so anything fetched under the
   /// previous one is dropped and the Fetch step has to run again.
-  void setClient(DivelogsApiClient? client) {
-    _client = client;
+  void setClient(DivelogsApiClient? client) =>
+      setSession(client == null ? null : (auth: null, client: client));
+
+  /// Installs a new session, or clears it on sign-out, with the same resets
+  /// as [setClient].
+  void setSession(DivelogsSignedIn? session) {
+    _session = session;
+    _lastUsername = session?.auth?.username ?? _lastUsername;
     _photos = const {};
     widgetRef.read(divelogsFetchedProvider.notifier).state = false;
     widgetRef.read(divelogsSessionGenerationProvider.notifier).state++;
@@ -82,7 +100,8 @@ class DivelogsImportAdapter extends UniversalAdapter {
   @override
   void resetState() {
     super.resetState();
-    _client = null;
+    _session = null;
+    _lastUsername = null;
     _photos = const {};
     widgetRef.invalidate(divelogsSignedInProvider);
     widgetRef.invalidate(divelogsFetchedProvider);
@@ -93,15 +112,22 @@ class DivelogsImportAdapter extends UniversalAdapter {
     WizardStepDef(
       label: 'Sign In',
       icon: Icons.login,
-      builder: (context) => DivelogsSignInStep(onSignedIn: setClient),
+      builder: (context) => DivelogsSignInStep(
+        onSignedIn: setSession,
+        current: _session,
+        prefillUsername: _lastUsername,
+      ),
       canAdvance: divelogsSignedInProvider,
       autoAdvance: true,
     ),
     WizardStepDef(
       label: 'Fetch',
       icon: Icons.cloud_download,
-      builder: (context) =>
-          DivelogsFetchStep(client: _client, onPhotosListed: setRemotePhotos),
+      builder: (context) => DivelogsFetchStep(
+        client: client,
+        onPhotosListed: setRemotePhotos,
+        onSessionExpired: _expireSession,
+      ),
       canAdvance: divelogsFetchedProvider,
       // Not auto-advance: the step shows what was found, and any gear,
       // certification or photo listing that failed, before moving on.
@@ -119,7 +145,7 @@ class DivelogsImportAdapter extends UniversalAdapter {
     required String destinationDir,
     ImportCancellationToken? cancelToken,
   }) async {
-    final client = _client;
+    final client = this.client;
     if (client == null || _photos.isEmpty) return (attached: 0, failed: 0);
     final linker = ImportPhotoLinker(
       widgetRef.read(localFileLinkServiceProvider),
@@ -152,6 +178,16 @@ class DivelogsImportAdapter extends UniversalAdapter {
       error is DivelogsSessionExpiredException ||
       error is DivelogsAuthException ||
       error is DivelogsUnauthorizedException;
+
+  /// divelogs.de refused the session during the fetch: forget it, keep the
+  /// username for the form, and go back to Sign In.
+  void _expireSession() {
+    setSession(null);
+    goBack?.call();
+  }
+
+  @visibleForTesting
+  void debugExpireSession() => _expireSession();
 
   @visibleForTesting
   Future<RemotePhotoOutcome> debugAttachAdditionalPhotosFor({

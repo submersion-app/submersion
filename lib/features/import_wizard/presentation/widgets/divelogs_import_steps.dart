@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/core/services/divelogs/divelogs_api_client.dart';
 import 'package:submersion/core/services/divelogs/divelogs_auth.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/remote_photo_attacher.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/photo_folder_step.dart';
@@ -10,16 +11,36 @@ import 'package:submersion/features/universal_import/data/services/divelogs_impo
 import 'package:submersion/features/universal_import/presentation/providers/universal_import_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+const _log = LoggerService('DivelogsImportSteps');
+
+/// A signed-in divelogs.de session: the auth that owns the token (and, for
+/// a sign-in made in this wizard run, the password in memory) and the client
+/// built on it. A client made without an auth (tests) has none.
+typedef DivelogsSignedIn = ({DivelogsAuth? auth, DivelogsApiClient client});
+
 /// Sign-in step for the divelogs.de import wizard.
 ///
 /// Tries the cached session first; a token the server still accepts signs
 /// straight in. Otherwise shows a username and password form. The password
 /// lives only in the form and in the [DivelogsAuth] for this wizard run.
 class DivelogsSignInStep extends ConsumerStatefulWidget {
-  const DivelogsSignInStep({super.key, required this.onSignedIn});
+  const DivelogsSignInStep({
+    super.key,
+    required this.onSignedIn,
+    this.current,
+    this.prefillUsername,
+  });
 
-  /// Receives the signed-in client, or null after signing out.
-  final ValueChanged<DivelogsApiClient?> onSignedIn;
+  /// Receives the new session, or null after signing out.
+  final ValueChanged<DivelogsSignedIn?> onSignedIn;
+
+  /// The session the wizard already holds. Coming back to this step keeps
+  /// it, with its in-memory password, instead of rebuilding one from the
+  /// keychain that could no longer renew an expired token.
+  final DivelogsSignedIn? current;
+
+  /// The username of a session that expired, filled into the form.
+  final String? prefillUsername;
 
   @override
   ConsumerState<DivelogsSignInStep> createState() => _DivelogsSignInStepState();
@@ -41,6 +62,16 @@ class _DivelogsSignInStepState extends ConsumerState<DivelogsSignInStep> {
   @override
   void initState() {
     super.initState();
+    final current = widget.current;
+    final username = current?.auth?.username;
+    if (current != null && username != null) {
+      _auth = current.auth;
+      _checkingCachedSession = false;
+      _signedIn = true;
+      _signedInUsername = username;
+      return;
+    }
+    _usernameController.text = widget.prefillUsername ?? '';
     WidgetsBinding.instance.addPostFrameCallback((_) => _tryCachedSession());
   }
 
@@ -75,7 +106,7 @@ class _DivelogsSignInStepState extends ConsumerState<DivelogsSignInStep> {
       await client.getUser();
       if (!mounted) return;
       _auth = auth;
-      _markSignedIn(client, auth.username!);
+      _markSignedIn(auth, client, auth.username!);
     } on DivelogsSessionExpiredException {
       // The cached token was rejected and auth cleared it: sign in afresh.
       if (!mounted) return;
@@ -93,8 +124,12 @@ class _DivelogsSignInStepState extends ConsumerState<DivelogsSignInStep> {
     }
   }
 
-  void _markSignedIn(DivelogsApiClient client, String username) {
-    widget.onSignedIn(client);
+  void _markSignedIn(
+    DivelogsAuth auth,
+    DivelogsApiClient client,
+    String username,
+  ) {
+    widget.onSignedIn((auth: auth, client: client));
     setState(() {
       _checkingCachedSession = false;
       _signingIn = false;
@@ -120,7 +155,7 @@ class _DivelogsSignInStepState extends ConsumerState<DivelogsSignInStep> {
       if (!mounted) return;
       _auth = auth;
       _passwordController.clear();
-      _markSignedIn(_clientFor(auth), username);
+      _markSignedIn(auth, _clientFor(auth), username);
     } on DivelogsAuthException catch (e) {
       if (!mounted) return;
       final l10n = context.l10n;
@@ -135,12 +170,27 @@ class _DivelogsSignInStepState extends ConsumerState<DivelogsSignInStep> {
             l10n.divelogsImport_signIn_unexpected,
         };
       });
+    } catch (e) {
+      // The keychain refused the session, or something else outside
+      // divelogs.de failed; never leave the form stuck on its spinner.
+      _log.warning('divelogs.de sign-in failed: ${e.runtimeType}');
+      if (!mounted) return;
+      setState(() {
+        _signingIn = false;
+        _errorText = context.l10n.common_error_tryAgain;
+      });
     }
   }
 
   Future<void> _signOut() async {
     final auth = _auth ?? _newAuth();
-    await auth.signOut();
+    try {
+      await auth.signOut();
+    } catch (e) {
+      // The in-memory session is gone either way; a keychain that refuses
+      // the delete only leaves a token the next sign-in overwrites.
+      _log.warning('Could not clear the divelogs.de session: ${e.runtimeType}');
+    }
     _auth = null;
     widget.onSignedIn(null);
     ref.read(divelogsSignedInProvider.notifier).state = false;
@@ -291,10 +341,15 @@ class DivelogsFetchStep extends ConsumerStatefulWidget {
     super.key,
     required this.client,
     required this.onPhotosListed,
+    this.onSessionExpired,
   });
 
   final DivelogsApiClient? client;
   final ValueChanged<Map<String, List<RemotePhoto>>> onPhotosListed;
+
+  /// Called when divelogs.de no longer accepts the session, so the wizard
+  /// can send the diver back to sign in.
+  final VoidCallback? onSessionExpired;
 
   @override
   ConsumerState<DivelogsFetchStep> createState() => _DivelogsFetchStepState();
@@ -371,6 +426,12 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
       // A token renewal mid-fetch could not reach divelogs.de.
       if (!mounted) return;
       setState(() => _phase = _FetchPhase.failed);
+    } catch (e) {
+      // Anything else (a keychain error while renewing, say) is offered a
+      // retry rather than leaving the step on its spinner.
+      _log.warning('divelogs.de fetch failed: ${e.runtimeType}');
+      if (!mounted) return;
+      setState(() => _phase = _FetchPhase.failed);
     }
   }
 
@@ -383,6 +444,7 @@ class _DivelogsFetchStepState extends ConsumerState<DivelogsFetchStep> {
     if (!mounted) return;
     ref.read(divelogsSignedInProvider.notifier).state = false;
     setState(() => _phase = _FetchPhase.expired);
+    widget.onSessionExpired?.call();
   }
 
   @override

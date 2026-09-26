@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart'
     show debugDefaultTargetPlatformOverride;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
@@ -36,6 +37,7 @@ void main() {
   late ProviderContainer container;
   late List<Map<String, List<RemotePhoto>>> listed;
   late List<String> requested;
+  late int expiredCalls;
 
   // Mutable server behaviour, read by every request.
   late Object dives;
@@ -56,6 +58,7 @@ void main() {
     );
     listed = [];
     requested = [];
+    expiredCalls = 0;
     dives = [_dive(1), _dive(2, time: '16:00:00')];
     divesStatus = 200;
     gearStatus = 200;
@@ -119,7 +122,11 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
-            body: DivelogsFetchStep(client: api, onPhotosListed: listed.add),
+            body: DivelogsFetchStep(
+              client: api,
+              onPhotosListed: listed.add,
+              onSessionExpired: () => expiredCalls++,
+            ),
           ),
         ),
       ),
@@ -335,6 +342,40 @@ void main() {
       expect(container.read(universalImportNotifierProvider).payload, isNull);
       expect(container.read(divelogsFetchedProvider), isFalse);
       expect(listed, isEmpty);
+    });
+  });
+
+  testWidgets('an expired session hands control back to sign in', (
+    tester,
+  ) async {
+    await withPlatform(TargetPlatform.macOS, () async {
+      await pumpStep(
+        tester,
+        client(
+          token: () async => throw const DivelogsSessionExpiredException(),
+        ),
+      );
+      await fetch(tester);
+
+      expect(expiredCalls, 1);
+    });
+  });
+
+  testWidgets('a keychain failure during the fetch offers a retry', (
+    tester,
+  ) async {
+    await withPlatform(TargetPlatform.macOS, () async {
+      await pumpStep(
+        tester,
+        client(
+          token: () async =>
+              throw PlatformException(code: 'keychain', message: 'denied'),
+        ),
+      );
+      await fetch(tester);
+
+      expect(find.text('Could not fetch your logbook'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
     });
   });
 }

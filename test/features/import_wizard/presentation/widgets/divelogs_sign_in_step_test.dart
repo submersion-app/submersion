@@ -1,12 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
 import 'package:submersion/core/services/divelogs/divelogs_api_client.dart';
+import 'package:submersion/core/services/divelogs/divelogs_auth.dart';
 import 'package:submersion/core/services/divelogs/divelogs_session_store.dart';
 import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_adapter.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/divelogs_import_steps.dart';
@@ -20,7 +22,7 @@ void main() {
   late List<http.Request> requests;
   late int loginStatus;
   late int userStatus;
-  late List<DivelogsApiClient?> signedIn;
+  late List<DivelogsSignedIn?> signedIn;
 
   setUp(() {
     store = DivelogsSessionStore(storage: InMemoryKeychain());
@@ -64,7 +66,11 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  Future<void> pumpStep(WidgetTester tester) async {
+  Future<void> pumpStep(
+    WidgetTester tester, {
+    DivelogsSignedIn? current,
+    String? prefillUsername,
+  }) async {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
@@ -72,7 +78,13 @@ void main() {
           locale: const Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: DivelogsSignInStep(onSignedIn: signedIn.add)),
+          home: Scaffold(
+            body: DivelogsSignInStep(
+              onSignedIn: signedIn.add,
+              current: current,
+              prefillUsername: prefillUsername,
+            ),
+          ),
         ),
       ),
     );
@@ -191,4 +203,75 @@ void main() {
 
     expect(container.read(divelogsFetchedProvider), isFalse);
   });
+
+  testWidgets('coming back to an existing session keeps it as it is', (
+    tester,
+  ) async {
+    await tester.runAsync(
+      () => store.save(
+        const DivelogsSession(username: 'rainer', token: 'cached'),
+      ),
+    );
+    final auth = DivelogsAuth(
+      httpClient: MockClient((_) async => fail('no network expected')),
+      store: store,
+    );
+    await tester.runAsync(auth.restore);
+    final api = DivelogsApiClient(
+      getBearerToken: auth.getToken,
+      onTokenRejected: auth.invalidateToken,
+      httpClient: MockClient((_) async => fail('no network expected')),
+    );
+
+    await pumpStep(tester, current: (auth: auth, client: api));
+
+    expect(find.text('Signed in as rainer'), findsOneWidget);
+    expect(requests, isEmpty);
+    expect(signedIn, isEmpty, reason: 'the adapter keeps its session');
+  });
+
+  testWidgets('the name of an expired session is filled in', (tester) async {
+    await pumpStep(tester, prefillUsername: 'rainer');
+
+    final username = tester.widget<TextFormField>(
+      find.byType(TextFormField).at(0),
+    );
+    expect(username.controller!.text, 'rainer');
+  });
+
+  testWidgets('a keychain failure while signing in is reported', (
+    tester,
+  ) async {
+    container.dispose();
+    container = ProviderContainer(
+      overrides: [
+        divelogsSessionStoreProvider.overrideWithValue(_BrokenStore()),
+        divelogsHttpClientProvider.overrideWithValue(
+          MockClient(
+            (_) async => http.Response(jsonEncode({'bearer_token': 't'}), 200),
+          ),
+        ),
+      ],
+    );
+    await pumpStep(tester);
+
+    await signInWith(tester, 'rainer', 'secret');
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(container.read(divelogsSignedInProvider), isFalse);
+  });
+}
+
+/// A keychain that refuses every write, as a macOS build without the
+/// keychain entitlement does.
+class _BrokenStore extends DivelogsSessionStore {
+  _BrokenStore() : super(storage: InMemoryKeychain());
+
+  @override
+  Future<void> save(DivelogsSession session) async =>
+      throw PlatformException(code: 'keychain', message: 'denied');
 }
