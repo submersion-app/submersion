@@ -1205,6 +1205,32 @@ class EquipmentRepository {
     );
   }
 
+  /// The dives [item] was used on, each with its diver, for the item's
+  /// History card (issue #2046). The same dive set the service clocks count
+  /// ([getItemExposure]), so the card and the clocks never disagree.
+  // stats-scope-exempt: gear wear is physical, not descriptive
+  Future<List<({String diveId, String? diverId, DateTime date})>>
+  getUsageByDiver(EquipmentItem item) async {
+    final exposure = await getItemExposure(item);
+    final ids = [for (final s in exposure.samples) s.diveId];
+    final diverByDive = <String, String?>{};
+    for (var i = 0; i < ids.length; i += 900) {
+      final chunk = ids.sublist(i, (i + 900).clamp(0, ids.length));
+      final rows =
+          await (_db.selectOnly(_db.dives)
+                ..addColumns([_db.dives.id, _db.dives.diverId])
+                ..where(_db.dives.id.isIn(chunk)))
+              .get();
+      for (final r in rows) {
+        diverByDive[r.read(_db.dives.id)!] = r.read(_db.dives.diverId);
+      }
+    }
+    return [
+      for (final s in exposure.samples)
+        (diveId: s.diveId, diverId: diverByDive[s.diveId], date: s.date),
+    ];
+  }
+
   /// [getItemExposure] for many items at once, keyed by item id, in a
   /// fixed number of statements however many items there are: one for any
   /// parents outside [items], one for the children of every item and

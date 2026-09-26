@@ -47,6 +47,7 @@ import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_filter_state.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_history_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_set_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
@@ -521,6 +522,10 @@ void main() {
   ]);
 
   _tickGroup('equipment', [
+    (
+      name: 'equipmentHistoryProvider',
+      read: (c) => c.read(equipmentHistoryProvider(_id).future),
+    ),
     (
       name: 'allServiceKindsByIdProvider',
       read: (c) => c.read(allServiceKindsByIdProvider.future),
