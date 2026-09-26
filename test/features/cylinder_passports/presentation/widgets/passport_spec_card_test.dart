@@ -46,11 +46,27 @@ void main() {
     ],
   );
 
-  /// Pumps the card for [al80] and returns the text in its volume row. The
-  /// free-gas row also reads in the volume unit, so the value is looked up
-  /// beside the volume label rather than anywhere on the card.
+  /// The same cylinder with no working pressure recorded.
+  const noPressure = EquipmentItem(
+    id: id,
+    name: 'AL80',
+    type: EquipmentType.tank,
+    attributes: [
+      EquipmentAttribute(
+        id: 'a1',
+        equipmentId: id,
+        key: EquipmentAttrKeys.volumeL,
+        valueNum: 11.1,
+      ),
+    ],
+  );
+
+  /// Pumps the card for [equipment] and returns the text in its volume row.
+  /// The free-gas row also reads in the volume unit, so the value is looked
+  /// up beside the volume label rather than anywhere on the card.
   Future<String> volumeRow(
     WidgetTester tester, {
+    EquipmentItem equipment = al80,
     MockSettingsNotifier? settings,
   }) async {
     final overrides = await getBaseOverrides(settingsNotifier: settings);
@@ -60,7 +76,7 @@ void main() {
           ...overrides,
           newestFillProvider.overrideWith((ref, equipmentId) async => null),
         ],
-        child: const PassportSpecCard(equipment: al80),
+        child: PassportSpecCard(equipment: equipment),
       ),
     );
     await tester.pumpAndSettle();
@@ -92,4 +108,23 @@ void main() {
       '${rated.round()} cuft',
     );
   });
+
+  testWidgets('with no working pressure, liters still read as liters', (
+    tester,
+  ) async {
+    expect(await volumeRow(tester, equipment: noPressure), '11.1 L');
+  });
+
+  testWidgets(
+    'with no working pressure, cubic feet read as a marked 200 bar estimate',
+    (tester) async {
+      final settings = MockSettingsNotifier();
+      await settings.setVolumeUnit(VolumeUnit.cubicFeet);
+      final estimate = (11.1 * 200 / 28.3168).round();
+      expect(
+        await volumeRow(tester, equipment: noPressure, settings: settings),
+        '~$estimate cuft',
+      );
+    },
+  );
 }
