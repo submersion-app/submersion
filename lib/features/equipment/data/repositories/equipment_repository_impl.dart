@@ -996,23 +996,36 @@ class EquipmentRepository {
     }
   }
 
-  /// Get dive count for equipment item
+  /// Dives [equipmentId] is on, for the item page's Dives row: linked
+  /// directly or through a tank the registry matched to a cylinder, the link
+  /// set the dive list's equipment filter uses, so the row's count and the
+  /// list it opens agree. With [diverId], only that diver's dives, since the
+  /// dive list shows only the active profile (issue #2046); null counts every
+  /// diver's.
   /// Deliberately does NOT apply DiveStatsScope. A dive the diver excluded
-  /// from statistics still physically happened: it cycled this gear and put
-  /// hours on it. Suppressing it here would push a real service interval
-  /// later than it should be, a safety-relevant error rather than a cosmetic
-  /// one. Do not "fix" this.
+  /// from statistics still physically happened, and the dive list it opens
+  /// shows it too. Do not "fix" this.
   // stats-scope-exempt: gear wear is physical, not descriptive
-  Future<int> getDiveCountForEquipment(String equipmentId) async {
+  Future<int> getDiveCountForEquipment(
+    String equipmentId, {
+    String? diverId,
+  }) async {
     try {
       final result = await _db
           .customSelect(
             '''
-        SELECT COUNT(*) as count
-        FROM dive_equipment
-        WHERE equipment_id = ?
+        SELECT COUNT(*) AS count
+        FROM dives d
+        WHERE (EXISTS (SELECT 1 FROM dive_equipment de
+                       WHERE de.dive_id = d.id AND de.equipment_id = ?1)
+            OR EXISTS (SELECT 1 FROM dive_tanks dt
+                       WHERE dt.dive_id = d.id AND dt.equipment_id = ?1))
+          AND (?2 IS NULL OR d.diver_id = ?2)
       ''',
-            variables: [Variable.withString(equipmentId)],
+            variables: [
+              Variable.withString(equipmentId),
+              Variable<String>(diverId),
+            ],
           )
           .getSingle();
 

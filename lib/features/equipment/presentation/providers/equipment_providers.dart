@@ -312,7 +312,9 @@ final equipmentDiveCountProvider = FutureProvider.family<int, String>((
   final repository = ref.watch(equipmentRepositoryProvider);
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
   ref.invalidateSelfWhen(ref.read(diveRepositoryProvider).watchDivesChanges());
-  return repository.getDiveCountForEquipment(equipmentId);
+  // The active diver's dives, as the dive list the row opens (issue #2046).
+  final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
+  return repository.getDiveCountForEquipment(equipmentId, diverId: diverId);
 });
 
 /// Trip count for equipment provider.
