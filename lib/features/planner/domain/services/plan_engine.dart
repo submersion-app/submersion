@@ -18,6 +18,7 @@ import 'package:submersion/features/planner/domain/services/tank_role_resolver.d
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/core/deco/scr_calculator.dart';
 
 /// Thresholds and policy limits the engine evaluates plans against.
 class PlanEngineConfig {
@@ -39,6 +40,10 @@ class PlanEngineConfig {
 
   /// SCR supply injection rate (surface liters per minute) for the CMF loop.
   final double scrInjectionRateLpm;
+
+  /// SCR diver metabolic O2 consumption (surface liters per minute), which
+  /// sets the CMF loop's steady-state O2 fraction.
+  final double scrVo2Lpm;
 
   /// pSCR metabolic O2 consumption in surface mL/min (Subsurface
   /// `o2consumption`, default 720).
@@ -73,6 +78,7 @@ class PlanEngineConfig {
     this.loopVolumeLiters = 6.0,
     this.buddyFactor = 2.0,
     this.scrInjectionRateLpm = 12.0,
+    this.scrVo2Lpm = ScrCalculator.defaultVo2,
     this.pscrO2ConsumptionMlMin = 720.0,
     this.pscrSacMlMin = 20000.0,
     this.pscrRatio = 100.0,
@@ -99,6 +105,7 @@ class PlanEngineConfig {
       loopVolumeLiters: loopVolumeLiters,
       buddyFactor: plan.sacFactor,
       scrInjectionRateLpm: scrInjectionRateLpm,
+      scrVo2Lpm: scrVo2Lpm,
       pscrO2ConsumptionMlMin: pscrO2ConsumptionMlMin,
       pscrSacMlMin: pscrSacMlMin,
       pscrRatio: pscrRatio,
@@ -178,6 +185,7 @@ class PlanEngine {
         supplyFO2: gas.o2 / 100.0,
         supplyFHe: gas.he / 100.0,
         injectionRateLpm: config.scrInjectionRateLpm,
+        vo2: config.scrVo2Lpm,
       );
     }
     if (mode == domain.PlanMode.pscr) {
@@ -227,7 +235,7 @@ class PlanEngine {
     }
     final isCcr = plan.mode == domain.PlanMode.ccr;
     final environment = environmentFor(plan);
-    final policy = _policyFor(plan);
+    final policy = policyFor(plan);
     final model = BuhlmannGf(
       gfLow: plan.gfLow / 100.0,
       gfHigh: plan.gfHigh / 100.0,
@@ -260,7 +268,7 @@ class PlanEngine {
                 ? 0.0
                 : segments.last.gasMix.he / 100.0,
           )
-        : _ascentPlanFor(plan.tanks);
+        : ascentPlanFor(plan.tanks);
 
     var state = startState ?? model.initial();
     var runtime = 0;
@@ -556,7 +564,7 @@ class PlanEngine {
       );
     }
 
-    final policy = _policyFor(plan);
+    final policy = policyFor(plan);
     var depth = lastDepth;
     var phase = AscentPhase.toFirstStop;
     for (final stop in stops) {
@@ -725,7 +733,7 @@ class PlanEngine {
     }
 
     // Computed ascent: travel legs and stops on the deco SAC.
-    final policy = _policyFor(plan);
+    final policy = policyFor(plan);
     var depth = lastDepth;
     var phase = AscentPhase.toFirstStop;
     for (final stop in stops) {
@@ -861,7 +869,7 @@ class PlanEngine {
     if (maxDepth <= 0) return null;
     final sac = plan.sacStressedEffective * config.buddyFactor;
     final ascentMinutes =
-        _policyFor(
+        policyFor(
           plan,
         ).ascentTravelSeconds(fromDepth: maxDepth, stopDepths: const []) /
         60.0;
@@ -1123,14 +1131,15 @@ class PlanEngine {
     );
   }
 
-  /// The schedule policy a plan describes.
+  /// The schedule policy a plan describes. Public so the Dive Lab times the
+  /// ascent legs it synthesises with the same rates the engine scheduled.
   ///
   /// Derived rather than passed around: the ascent legs of a computed
   /// schedule are measured in several places (profile sampling, gas charging,
   /// stop runtimes, rock-bottom), and every one of them has to agree with the
   /// legs the deco model actually loaded. One derivation from the plan keeps
   /// them from drifting apart.
-  SchedulePolicy _policyFor(domain.DivePlan plan) => SchedulePolicy(
+  SchedulePolicy policyFor(domain.DivePlan plan) => SchedulePolicy(
     lastStopDepth: plan.lastStopDepth,
     ascentRate: plan.ascentRate,
     intermediateAscentRate: plan.intermediateAscentRate,
@@ -1144,7 +1153,10 @@ class PlanEngine {
     minStopSecondsByDepth: plan.stopMinimums,
   );
 
-  AscentGasPlan _ascentPlanFor(List<DiveTank> tanks) {
+  /// The open-circuit ascent gas plan for [tanks]: the richest eligible mix
+  /// at each depth under the deco ppO2. Public so the Dive Lab synthesises
+  /// the same gas switches the engine schedules.
+  AscentGasPlan ascentPlanFor(List<DiveTank> tanks) {
     if (tanks.isEmpty) {
       return FixedAscentGas(fN2: 0.7902);
     }
@@ -1172,7 +1184,7 @@ class PlanEngine {
     int segmentsRuntime,
   ) {
     final stops = <PlanStop>[];
-    final policy = _policyFor(plan);
+    final policy = policyFor(plan);
     var arrival = segmentsRuntime;
     var depth = fromDepth;
     var phase = AscentPhase.toFirstStop;
@@ -1314,7 +1326,7 @@ class PlanEngine {
       phase = AscentPhase.betweenStops;
     }
     if (depth > 0) {
-      final travel = _policyFor(plan).ascentSeconds(
+      final travel = policyFor(plan).ascentSeconds(
         fromDepth: depth,
         toDepth: 0,
         phase: AscentPhase.surfacingAfter(phase),

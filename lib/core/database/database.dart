@@ -4426,6 +4426,38 @@ const String kLegacyDataSourceIdPrefix = 'legacy-src-';
 /// [kLegacyDataSourceIdPrefix].
 String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
 
+/// Saved "what if" scenarios on a logged dive (Dive Lab, v236). Inputs only:
+/// the branch point, the mode and the interventions; outcomes are always
+/// recomputed. Synced like dive plans (hlc column, deletion_log tombstones).
+class DiveScenarios extends Table {
+  // coverage:ignore-start
+  TextColumn get id => text()();
+  TextColumn get diveId =>
+      text().references(Dives, #id, onDelete: KeyAction.cascade)();
+  TextColumn get name => text()();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+
+  /// Runtime seconds on the dive's primary profile where the timelines part.
+  IntColumn get branchSeconds => integer()();
+
+  /// ScenarioMode name: `replay` or `replan`.
+  TextColumn get mode => text().withDefault(const Constant('replay'))();
+
+  /// Versioned JSON envelope (scenario_intervention_codec: formatVersion +
+  /// interventions). A kind the reader does not know fails loudly on decode.
+  TextColumn get interventionsJson => text()();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution
+  /// (nullable: rows written before HLC rollout fall back to updatedAt).
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+  // coverage:ignore-end
+}
+
 @DriftDatabase(
   tables: [
     Divers,
@@ -4554,6 +4586,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     // Trip cylinder slots and their ledger (v232, issue #2325)
     TripCylinders,
     TripCylinderEvents,
+    DiveScenarios,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -4563,7 +4596,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 232;
+  static const int currentSchemaVersion = 236;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -5250,6 +5283,12 @@ class AppDatabase extends _$AppDatabase {
     // shipped cylinder fills (#2364) as 228, nav tracks (#1772) as 230 and
     // CCR ppO2 limits (#2387) as 231, and 229 is held by #2372.
     232,
+    // v236 (Dive Lab): dive_scenarios, saved what-if scenarios on a logged
+    // dive (branch point, mode, interventions), synced with an hlc column.
+    // Renumbered from 161, 228, 229, 231 and 232: main shipped 228, 230,
+    // 231 and 232 while this branch was open, 229 is claimed by #2372, and
+    // open PRs #2438, #2443 and #2445 hold 233 to 235.
+    236,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -8860,6 +8899,17 @@ class AppDatabase extends _$AppDatabase {
     }
     await createMigrator().createTable(equipmentTags);
     await assertEquipmentTagUniqueness(this);
+  }
+
+  /// v236: the Dive Lab scenarios table. Migrator.createTable is IF NOT
+  /// EXISTS and the index is guarded, so this is safe from both onUpgrade and
+  /// the beforeOpen backstop.
+  Future<void> _assertDiveScenariosSchema() async {
+    await createMigrator().createTable(diveScenarios);
+    await customStatement('''
+      CREATE INDEX IF NOT EXISTS idx_dive_scenarios_dive_id
+      ON dive_scenarios(dive_id)
+    ''');
   }
 
   /// Idempotent creation of the v228 `cylinder_fills` table and its two
@@ -12996,6 +13046,13 @@ class AppDatabase extends _$AppDatabase {
           await _assertTripCylindersSchema();
         }
         if (from < 232) await reportProgress();
+        // v236: dive_scenarios (Dive Lab saved scenarios). createTable is IF
+        // NOT EXISTS and the index is guarded, so the block is idempotent;
+        // the beforeOpen backstop re-asserts the same objects.
+        if (from < 236) {
+          await _assertDiveScenariosSchema();
+        }
+        if (from < 236) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
@@ -13507,6 +13564,10 @@ class AppDatabase extends _$AppDatabase {
         // v228 backstop: the cylinder_fills table (parallel-branch
         // version-collision self-heal; createTable is idempotent).
         await _assertCylinderFillsSchema();
+        // v236 backstop: re-assert the dive_scenarios table and its index for
+        // databases that reached 236 through a parallel branch, a restore or
+        // sync-adopt without running the onUpgrade block.
+        await _assertDiveScenariosSchema();
 
         // v231 backstop: re-assert the diver_settings CCR ppO2 limits
         // (parallel-branch version-collision self-heal). Defaulted columns

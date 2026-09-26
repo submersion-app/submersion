@@ -104,6 +104,19 @@ void main() {
     expect(pscr.issues.any((i) => i.type == PlanIssueType.hypoxicGas), isTrue);
     expect(oc.issues.any((i) => i.type == PlanIssueType.hypoxicGas), isFalse);
   });
+
+  test('the SCR loop uses the configured metabolic O2 consumption', () {
+    final plan = _plan(domain.PlanMode.scr);
+    final lean = const PlanEngine(
+      config: PlanEngineConfig(scrVo2Lpm: 0.8),
+    ).compute(plan);
+    final hungry = const PlanEngine(
+      config: PlanEngineConfig(scrVo2Lpm: 1.8),
+    ).compute(plan);
+    // Less O2 consumed leaves a richer loop: more oxygen exposure.
+    expect(lean.cnsEnd, greaterThan(hungry.cnsEnd));
+    expect(const PlanEngineConfig().scrVo2Lpm, 1.3);
+  });
 }
 
 const _ean32 = GasMix(o2: 32);
