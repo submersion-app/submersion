@@ -161,6 +161,44 @@ String queryLabelForKey(AppLocalizations l10n, String key) {
       return l10n.query_dives_weights;
     case 'query_dives_year':
       return l10n.query_dives_year;
+    case 'query_editor_addCondition':
+      return l10n.query_editor_addCondition;
+    case 'query_editor_addGroup':
+      return l10n.query_editor_addGroup;
+    case 'query_editor_allOf':
+      return l10n.query_editor_allOf;
+    case 'query_editor_anyOf':
+      return l10n.query_editor_anyOf;
+    case 'query_editor_betweenAnd':
+      return l10n.query_editor_betweenAnd;
+    case 'query_editor_done':
+      return l10n.query_editor_done;
+    case 'query_editor_hint':
+      return l10n.query_editor_hint;
+    case 'query_editor_negate':
+      return l10n.query_editor_negate;
+    case 'query_editor_pickField':
+      return l10n.query_editor_pickField;
+    case 'query_editor_pickFieldSearch':
+      return l10n.query_editor_pickFieldSearch;
+    case 'query_editor_pickRefSearch':
+      return l10n.query_editor_pickRefSearch;
+    case 'query_editor_remove':
+      return l10n.query_editor_remove;
+    case 'query_editor_save':
+      return l10n.query_editor_save;
+    case 'query_editor_tabBuilder':
+      return l10n.query_editor_tabBuilder;
+    case 'query_editor_tabText':
+      return l10n.query_editor_tabText;
+    case 'query_editor_textRow':
+      return l10n.query_editor_textRow;
+    case 'query_editor_unresolvedRef':
+      return l10n.query_editor_unresolvedRef;
+    case 'query_editor_valueFalse':
+      return l10n.query_editor_valueFalse;
+    case 'query_editor_valueTrue':
+      return l10n.query_editor_valueTrue;
     case 'query_entity_buddies':
       return l10n.query_entity_buddies;
     case 'query_entity_centers':

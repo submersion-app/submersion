@@ -43235,4 +43235,81 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_op_isSet => 'meg van adva';
+
+  @override
+  String get query_editor_tabText => 'Text';
+
+  @override
+  String get query_editor_tabBuilder => 'Builder';
+
+  @override
+  String get query_editor_hint => 'e.g. weights:none AND depth > 30';
+
+  @override
+  String get query_editor_save => 'Save query';
+
+  @override
+  String get query_editor_allOf => 'All of';
+
+  @override
+  String get query_editor_anyOf => 'Any of';
+
+  @override
+  String get query_editor_addCondition => 'Add condition';
+
+  @override
+  String get query_editor_addGroup => 'Add group';
+
+  @override
+  String get query_editor_negate => 'Not';
+
+  @override
+  String get query_editor_remove => 'Remove';
+
+  @override
+  String get query_editor_pickField => 'Choose a field';
+
+  @override
+  String get query_editor_pickFieldSearch => 'Search fields';
+
+  @override
+  String query_editor_useRelation(String name) {
+    return 'Use $name itself';
+  }
+
+  @override
+  String query_editor_fieldsOf(String name) {
+    return 'Fields of $name';
+  }
+
+  @override
+  String query_editor_pickRef(String name) {
+    return 'Choose $name';
+  }
+
+  @override
+  String get query_editor_pickRefSearch => 'Search';
+
+  @override
+  String get query_editor_done => 'Done';
+
+  @override
+  String get query_editor_unresolvedRef => 'No longer exists';
+
+  @override
+  String query_editor_scopedRow(String name) {
+    return 'Group over $name: edit in the Text tab';
+  }
+
+  @override
+  String get query_editor_textRow => 'Text search';
+
+  @override
+  String get query_editor_betweenAnd => 'and';
+
+  @override
+  String get query_editor_valueTrue => 'Yes';
+
+  @override
+  String get query_editor_valueFalse => 'No';
 }
