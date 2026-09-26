@@ -423,6 +423,29 @@ void main() {
       );
       expect(dive!.equipment.map((e) => e.id), contains(item.id));
     });
+
+    testWidgets('a tag volume never borrows the default tank pressure', (
+      tester,
+    ) async {
+      String? savedId;
+      await pumpEditPage(
+        tester,
+        prefill: const DivePrefill(tank: DiveTank(id: '', volume: 12)),
+        onSaved: (id) => savedId = id,
+      );
+      await tester.tap(find.text('Save'));
+      for (var i = 0; i < 100 && savedId == null; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      final dive = await tester.runAsync(
+        () => repository.getDiveById(savedId!),
+      );
+      final tank = dive!.tanks.first;
+      // The default is an aluminium AL80 at 207 bar; the tag said only 12 L.
+      expect(tank.volume, 12);
+      expect(tank.workingPressure, isNull);
+      expect(tank.material, isNull);
+    });
   });
 }
 

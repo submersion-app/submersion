@@ -626,20 +626,27 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     }
     if (p.tank case final t?) {
       final base = _tanks.isNotEmpty ? _tanks.first : null;
+      // A tag that gives a volume describes the cylinder itself: its spec is
+      // taken whole, never mixed with the default tank's. A tag with no
+      // volume keeps the default cylinder, preset and all.
+      final describesCylinder = t.volume != null;
       _tanks = [
         DiveTank(
           id: base?.id ?? _uuid.v4(),
           name: t.name,
-          volume: t.volume ?? base?.volume,
-          workingPressure: t.workingPressure ?? base?.workingPressure,
+          volume: describesCylinder ? t.volume : base?.volume,
+          workingPressure: describesCylinder
+              ? t.workingPressure
+              : t.workingPressure ?? base?.workingPressure,
           startPressure: t.startPressure ?? base?.startPressure,
           endPressure: t.endPressure ?? base?.endPressure,
           gasMix: t.gasMix,
           role: t.role,
-          material: t.material ?? base?.material,
+          material: describesCylinder
+              ? t.material
+              : t.material ?? base?.material,
           order: 0,
-          // A tag without a volume keeps the default cylinder, preset and all.
-          presetName: t.volume == null ? base?.presetName : t.presetName,
+          presetName: describesCylinder ? t.presetName : base?.presetName,
         ),
         ..._tanks.skip(1),
       ];
