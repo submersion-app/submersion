@@ -179,9 +179,7 @@ void main() {
     expect(find.text('History'), findsOneWidget);
   });
 
-  testWidgets('a refused delete says so and stays on the page', (
-    tester,
-  ) async {
+  testWidgets('a refused delete says so and stays on the page', (tester) async {
     await pump(tester, activeDiverId: 'owner', refuseDelete: true);
     await tester.tap(find.byKey(overflow));
     await tester.pumpAndSettle();
