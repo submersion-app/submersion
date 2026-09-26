@@ -256,4 +256,41 @@ void main() {
     expect(changed!.volume, closeTo(12, 0.1));
     expect(changed!.workingPressure, closeTo(232, 0.5));
   });
+
+  group('a tag with a volume but no working pressure, in cubic feet', () {
+    Future<DiveTank?> scanVolumeOnly(WidgetTester tester, DiveTank tank) async {
+      final settings = MockSettingsNotifier();
+      await settings.setVolumeUnit(VolumeUnit.cubicFeet);
+      await settings.setPressureUnit(PressureUnit.psi);
+      DiveTank? changed;
+      await pump(
+        tester,
+        scanned: 'https://submersion.app/c#f=1&p=$stranger&v=10',
+        onChanged: (t) => changed = t,
+        settings: settings,
+        tank: tank,
+      );
+      await scan(tester);
+      return changed;
+    }
+
+    testWidgets('keeps the volume on a tank with no pressure', (tester) async {
+      final changed = await scanVolumeOnly(
+        tester,
+        const DiveTank(id: 'tank-1'),
+      );
+      expect(changed!.volume, closeTo(10, 0.05));
+    });
+
+    testWidgets('keeps the volume, converted at the tank pressure', (
+      tester,
+    ) async {
+      final changed = await scanVolumeOnly(
+        tester,
+        const DiveTank(id: 'tank-1', volume: 12, workingPressure: 232),
+      );
+      expect(changed!.volume, closeTo(10, 0.05));
+      expect(changed.workingPressure, closeTo(232, 0.5));
+    });
+  });
 }

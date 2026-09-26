@@ -219,6 +219,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// Current volume (liters) and working pressure (bar) parsed from the
   /// controllers and converted from the user's units to metric. Shared by
   /// [_notifyChange] and [_saveAsPreset] so both agree on the conversion.
+  /// The working pressure cubic feet are converted at when a tank has none,
+  /// matching UnitFormatter.formatTankVolume's estimate.
+  static const double _assumedWorkingPressureBar = 200;
+
   ({double? volumeLiters, double? workingPressureBar}) _metricSpecs() {
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
@@ -239,8 +243,15 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           // can't be accurately reverse-converted via ideal gas law because
           // it includes compressibility and other manufacturer factors.
           volumeLiters = _selectedPreset!.volumeLiters;
-        } else if (workingPressureBar != null && workingPressureBar > 0) {
-          volumeLiters = (volumeDisplay * 28.3168) / workingPressureBar;
+        } else {
+          // Without a working pressure, estimate at the same pressure
+          // UnitFormatter.formatTankVolume assumes for display, rather than
+          // dropping the diver's volume.
+          final pressureBar =
+              workingPressureBar != null && workingPressureBar > 0
+              ? workingPressureBar
+              : _assumedWorkingPressureBar;
+          volumeLiters = (volumeDisplay * 28.3168) / pressureBar;
         }
       } else {
         // Metric: value is already in liters.
@@ -1109,14 +1120,15 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       }
       if (volumeL != null) {
         if (settings.volumeUnit == VolumeUnit.cubicFeet) {
-          final cuft =
-              match?.volumeCuft ??
-              (workingPressureBar == null
-                  ? null
-                  : volumeL * workingPressureBar / 28.3168);
-          if (cuft != null) {
-            _volumeController.text = formatRoundedForInput(cuft, 1);
-          }
+          // Gas capacity needs a pressure: the tag's, else the tank's
+          // current one, else the same estimate _metricSpecs converts back
+          // with, so the tag's liters survive the round trip.
+          final pressureBar =
+              workingPressureBar ??
+              _metricSpecs().workingPressureBar ??
+              _assumedWorkingPressureBar;
+          final cuft = match?.volumeCuft ?? volumeL * pressureBar / 28.3168;
+          _volumeController.text = formatRoundedForInput(cuft, 1);
         } else {
           _volumeController.text = formatRoundedForInput(volumeL, 1);
         }
