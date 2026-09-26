@@ -4,7 +4,6 @@ import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.
 import 'package:submersion/features/planner/domain/entities/mission/mission_leg.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
-import 'package:submersion/features/planner/domain/services/mission/exit_path_evaluator.dart';
 import 'package:submersion/features/planner/domain/services/mission/leg_speed_resolver.dart';
 import 'package:submersion/features/planner/domain/services/mission/member_gas_service.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_geometry.dart';
@@ -12,6 +11,8 @@ import 'package:submersion/features/planner/domain/services/mission/mission_memb
 import 'package:submersion/features/planner/domain/services/mission/mission_scenario_service.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_segment_builder.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_team.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_validator.dart';
+import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 
 /// Computes a DPV mission: the round-trip segments, per-leg speeds, every
 /// scooter failure at every waypoint, the abandonment point and the member
@@ -35,7 +36,7 @@ class MissionEngine {
     required domain.DivePlan plan,
     required DpvMission mission,
   }) {
-    final issues = _validate(mission);
+    final issues = validateMission(mission);
     if (issues.any((i) => i.severity == MissionIssueSeverity.blocking)) {
       return MissionOutcome.empty(issues: issues);
     }
@@ -90,7 +91,7 @@ class MissionEngine {
     final roundTripOutcome = scenarios.engine.compute(
       plan.copyWith(segments: profile.segments),
     );
-    final environment = ExitPathEvaluator.environmentFor(plan);
+    final environment = PlanEngine.environmentFor(plan);
     final bottomTank = plan.tanks.firstWhere(
       (t) => t.id == profile.segments.first.tankId,
     );
@@ -103,12 +104,31 @@ class MissionEngine {
       final outboundRows = roundTripOutcome.schedule
           .where((r) => r.runtimeSeconds <= arrival)
           .toList();
+      // One outbound profile per waypoint, shared by every scenario there.
+      final outbound = builder.outbound(
+        plan: plan,
+        mission: route,
+        throughLegIndex: k,
+        speedMps: cruise,
+      );
       final surface = openWater
-          ? _evaluateSurface(plan: plan, mission: route, k: k, issues: issues)
+          ? _evaluateSurface(
+              plan: plan,
+              mission: route,
+              k: k,
+              outbound: outbound,
+              issues: issues,
+            )
           : null;
       final safeSurfaceSeconds = openWater
           ? surface?.ttsSeconds
-          : _overheadSafeSurface(plan: plan, mission: route, k: k);
+          : _overheadSafeSurface(
+              plan: plan,
+              mission: route,
+              k: k,
+              outbound: outbound,
+              issues: issues,
+            );
       final members = <MemberWaypointOutcome>[];
       for (final member in team) {
         final swim = _evaluate(
@@ -117,6 +137,7 @@ class MissionEngine {
           k: k,
           member: member,
           mode: MissionExitMode.swim,
+          outbound: outbound,
           issues: issues,
         );
         ExitOutcome? best;
@@ -129,6 +150,7 @@ class MissionEngine {
             member: member,
             mode: MissionExitMode.tow,
             towerId: tower.id,
+            outbound: outbound,
             issues: issues,
           );
           best = _betterTow(best, tow);
@@ -204,81 +226,6 @@ class MissionEngine {
     );
   }
 
-  List<MissionIssue> _validate(DpvMission mission) {
-    final issues = <MissionIssue>[];
-    if (mission.team.isEmpty) {
-      issues.add(
-        const MissionIssue(
-          type: MissionIssueType.emptyTeam,
-          severity: MissionIssueSeverity.blocking,
-        ),
-      );
-    }
-    if (mission.legs.isEmpty) {
-      issues.add(
-        const MissionIssue(
-          type: MissionIssueType.emptyRoute,
-          severity: MissionIssueSeverity.blocking,
-        ),
-      );
-    }
-    for (final member in mission.team) {
-      if (member.scooter.ratedSpeedMps <= 0 ||
-          member.scooter.burnTimeSeconds <= 0) {
-        issues.add(
-          MissionIssue(
-            type: MissionIssueType.scooterUnspecified,
-            severity: MissionIssueSeverity.blocking,
-            memberId: member.id,
-          ),
-        );
-      }
-      if (member.sacBottom <= 0) {
-        issues.add(
-          MissionIssue(
-            type: MissionIssueType.memberSacUnset,
-            severity: MissionIssueSeverity.blocking,
-            memberId: member.id,
-          ),
-        );
-      }
-      if (member.swimSpeedMps <= 0) {
-        issues.add(
-          MissionIssue(
-            type: MissionIssueType.memberSwimSpeedUnset,
-            severity: MissionIssueSeverity.blocking,
-            memberId: member.id,
-          ),
-        );
-      }
-    }
-    if (mission.environment == MissionEnvironment.openWater) {
-      // A negative distance would always pass the swim limit and win as the
-      // fastest route, reporting an exit that does not exist.
-      if ((mission.surfaceSwimLimitM ?? 0) < 0 || mission.walkSpeedMps < 0) {
-        issues.add(
-          const MissionIssue(
-            type: MissionIssueType.openWaterInputInvalid,
-            severity: MissionIssueSeverity.blocking,
-          ),
-        );
-      }
-      for (final leg in mission.legs) {
-        final shore = leg.shoreExit;
-        if (shore != null && (shore.surfaceSwimM < 0 || shore.walkM < 0)) {
-          issues.add(
-            MissionIssue(
-              type: MissionIssueType.openWaterInputInvalid,
-              severity: MissionIssueSeverity.blocking,
-              legId: leg.id,
-            ),
-          );
-        }
-      }
-    }
-    return issues;
-  }
-
   List<LegOutcome> _legOutcomes(
     List<MissionLeg> legs,
     List<LegSpeeds> legSpeeds,
@@ -305,6 +252,7 @@ class MissionEngine {
     required MissionMember member,
     required MissionExitMode mode,
     String? towerId,
+    required MissionProfile outbound,
     required List<MissionIssue> issues,
   }) {
     try {
@@ -315,6 +263,7 @@ class MissionEngine {
         failedMemberId: member.id,
         mode: mode,
         towerId: towerId,
+        outbound: outbound,
       );
     } on Object {
       // One scenario the engine cannot schedule must not hide the others;
@@ -344,6 +293,7 @@ class MissionEngine {
     required domain.DivePlan plan,
     required DpvMission mission,
     required int k,
+    required MissionProfile outbound,
     required List<MissionIssue> issues,
   }) {
     try {
@@ -351,6 +301,7 @@ class MissionEngine {
         plan: plan,
         mission: mission,
         waypointIndex: k,
+        outbound: outbound,
       );
     } on Object {
       issues.add(
@@ -364,20 +315,30 @@ class MissionEngine {
     }
   }
 
-  /// The overhead time to a safe surface from waypoint [k], or null when it
-  /// cannot be computed.
+  /// The overhead time to a safe surface from waypoint [k], or null (with a
+  /// warning) when it cannot be computed.
   int? _overheadSafeSurface({
     required domain.DivePlan plan,
     required DpvMission mission,
     required int k,
+    required MissionProfile outbound,
+    required List<MissionIssue> issues,
   }) {
     try {
       return scenarios.overheadSafeSurfaceSeconds(
         plan: plan,
         mission: mission,
         waypointIndex: k,
+        outbound: outbound,
       );
     } on Object {
+      issues.add(
+        MissionIssue(
+          type: MissionIssueType.scenarioFailed,
+          severity: MissionIssueSeverity.warning,
+          legId: mission.legs[k].id,
+        ),
+      );
       return null;
     }
   }

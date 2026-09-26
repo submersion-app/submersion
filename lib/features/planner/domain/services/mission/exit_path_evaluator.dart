@@ -3,11 +3,11 @@ import 'dart:math' as math;
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/core/deco/entities/dive_environment.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/mission/exit_leg.dart';
+import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
 import 'package:submersion/features/planner/domain/services/mission/leg_speed_resolver.dart';
 import 'package:submersion/features/planner/domain/services/mission/member_gas_service.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_geometry.dart';
@@ -124,13 +124,25 @@ class ExitPathEvaluator {
       0,
       authoredRuntime - failureRuntimeSeconds,
     );
-    final environment = environmentFor(plan);
+    final environment = PlanEngine.environmentFor(plan);
     final outboundRows = outcome.schedule
         .where((r) => r.runtimeSeconds <= failureRuntimeSeconds)
         .toList();
     final exitRows = outcome.schedule
         .where((r) => r.runtimeSeconds > failureRuntimeSeconds)
         .toList();
+    // The exit rows begin at the failure depth, not the surface.
+    final failureDepth = outboundSegments.isEmpty
+        ? 0.0
+        : outboundSegments.last.targetDepth;
+    // Deco breathing starts at the first computed stop; the ascent up to it
+    // is still worked at the diver's own (or stressed) rate.
+    final firstStopStart = [
+      for (final row in exitRows)
+        if (row.runtimeSeconds > authoredRuntime &&
+            row.kind == PlanScheduleRowKind.stop)
+          row.startRuntimeSeconds,
+    ].firstOrNull;
 
     final liters = <String, double>{};
     final shortfall = <String>{};
@@ -143,14 +155,14 @@ class ExitPathEvaluator {
       final exit = gas.litersByTank(
         rows: exitRows,
         environment: environment,
+        startDepth: failureDepth,
         sacFor: (row) {
-          if (row.runtimeSeconds > authoredRuntime) {
+          if (firstStopStart != null &&
+              row.startRuntimeSeconds >= firstStopStart) {
             return plan.sacDecoEffective;
           }
-          // Stressed never means breathing less: a diver whose own SAC is
-          // above the plan's stressed figure keeps their own.
           return diver.stressed
-              ? math.max(plan.sacStressedEffective, diver.sacBottom)
+              ? stressedSacFor(plan, diver.sacBottom)
               : diver.sacBottom;
         },
       );
@@ -167,15 +179,31 @@ class ExitPathEvaluator {
     );
   }
 
-  /// True when any tank with a known size and fill would end below the plan
-  /// reserve after [outbound] plus [exit] litres.
+  /// The SAC a diver breathes when stressed: their own bottom SAC scaled by
+  /// the plan's stressed-to-bottom ratio, so a heavy breather is stressed in
+  /// proportion. Never below their own SAC; a plan with no bottom SAC gives
+  /// no ratio, so the diver keeps their own.
+  static double stressedSacFor(domain.DivePlan plan, double sacBottom) {
+    if (plan.sacBottom <= 0) {
+      return math.max(plan.sacStressedEffective, sacBottom);
+    }
+    final factor = plan.sacStressedEffective / plan.sacBottom;
+    return sacBottom * math.max(1.0, factor);
+  }
+
+  /// True when any tank the diver breathes, with a known size and fill,
+  /// would end below the plan reserve after [outbound] plus [exit] litres.
+  /// A cylinder never breathed, or a bailout cylinder, is not held to the
+  /// reserve, matching the plan engine's own reserve rule.
   bool _gasShort(
     domain.DivePlan plan,
     Map<String, double> outbound,
     Map<String, double> exit,
   ) {
     for (final tank in plan.tanks) {
+      if (tank.role == TankRole.bailout) continue;
       final used = (outbound[tank.id] ?? 0.0) + (exit[tank.id] ?? 0.0);
+      if (used <= 0) continue;
       final remaining = gas.remainingBar(
         tank: tank,
         litersUsed: used,
@@ -185,15 +213,5 @@ class ExitPathEvaluator {
       if (remaining < plan.reservePressure) return true;
     }
     return false;
-  }
-
-  /// The same environment the engine derives for [plan] (see
-  /// `PlanEngine._computeInternal`), so ambient pressure agrees with deco.
-  static DiveEnvironment environmentFor(domain.DivePlan plan) {
-    return DiveEnvironment.forConditions(
-      altitudeMeters: (plan.altitude ?? 0) > 0 ? plan.altitude : null,
-      waterType: plan.waterType ?? WaterType.salt,
-      salinityPpt: plan.salinityPpt,
-    );
   }
 }

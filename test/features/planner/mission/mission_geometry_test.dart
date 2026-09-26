@@ -137,6 +137,22 @@ void main() {
       },
     );
 
+    test(
+      'a waypoint leg with its own current wins over the mission default',
+      () {
+        const local = CurrentVector(speedMps: 0.4, setsTowardDeg: 90);
+        final mission = DpvMission(
+          legs: [
+            _l1,
+            _l2.copyWith(current: local),
+          ],
+          environment: MissionEnvironment.openWater,
+          defaultCurrent: current,
+        );
+        expect(exitLegsFor(mission, 1).single.current, local);
+      },
+    );
+
     test('a route that ends at the entry has no open-water exit leg', () {
       const mission = DpvMission(
         legs: [

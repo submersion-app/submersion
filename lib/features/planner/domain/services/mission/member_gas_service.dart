@@ -13,16 +13,19 @@ class MemberGasService {
   const MemberGasService();
 
   /// Surface litres breathed per tank id over [rows]. A travel row is charged
-  /// at the mean of its start depth (the previous row's end, or the surface)
-  /// and its end depth; a level or stop row at its own depth. [sacFor] gives
-  /// the litres per minute in force on a row.
+  /// at the mean of its start depth (the previous row's end, or [startDepth]
+  /// for the first row) and its end depth; a level or stop row at its own
+  /// depth. [sacFor] gives the litres per minute in force on a row. Pass
+  /// [startDepth] when [rows] are a slice of a dive that does not begin at
+  /// the surface.
   Map<String, double> litersByTank({
     required List<PlanScheduleRow> rows,
     required DiveEnvironment environment,
     required double Function(PlanScheduleRow row) sacFor,
+    double startDepth = 0.0,
   }) {
     final liters = <String, double>{};
-    var previousDepth = 0.0;
+    var previousDepth = startDepth;
     for (final row in rows) {
       final tankId = row.tankId;
       final isTravel =

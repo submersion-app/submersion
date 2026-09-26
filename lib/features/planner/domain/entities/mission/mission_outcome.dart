@@ -1,6 +1,10 @@
 import 'package:equatable/equatable.dart';
 
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
+import 'package:submersion/features/planner/domain/entities/mission/waypoint_outcome.dart';
+
+export 'package:submersion/features/planner/domain/entities/mission/exit_outcome.dart';
+export 'package:submersion/features/planner/domain/entities/mission/waypoint_outcome.dart';
 
 /// What went wrong, or what the diver should know, while computing a mission.
 enum MissionIssueType {
@@ -13,16 +17,14 @@ enum MissionIssueType {
   /// A shore exit distance, the surface swim limit or the walking speed is
   /// negative. Carries the leg id for a shore exit, null otherwise.
   openWaterInputInvalid,
+
+  /// A leg shorter than half a metre: too short to travel either way.
+  legTooShort,
   untraversableLeg,
   scenarioFailed,
 }
 
 enum MissionIssueSeverity { info, warning, blocking }
-
-/// A way out for a team whose member's scooter has died. In an overhead,
-/// [swim] and [tow] retrace the route; in open water they go straight home.
-/// [surface] is open water only: ascend in place, then swim at the surface.
-enum MissionExitMode { swim, tow, surface }
 
 /// The first thing that stops a member going further. The order is the
 /// tie-break priority when two members bind at the same waypoint.
@@ -61,6 +63,25 @@ class MissionIssue extends Equatable {
     this.outbound,
   });
 
+  MissionIssue copyWith({
+    MissionIssueType? type,
+    MissionIssueSeverity? severity,
+    String? legId,
+    bool clearLegId = false,
+    String? memberId,
+    bool clearMemberId = false,
+    bool? outbound,
+    bool clearOutbound = false,
+  }) {
+    return MissionIssue(
+      type: type ?? this.type,
+      severity: severity ?? this.severity,
+      legId: clearLegId ? null : (legId ?? this.legId),
+      memberId: clearMemberId ? null : (memberId ?? this.memberId),
+      outbound: clearOutbound ? null : (outbound ?? this.outbound),
+    );
+  }
+
   @override
   List<Object?> get props => [type, severity, legId, memberId, outbound];
 }
@@ -81,6 +102,22 @@ class LegOutcome extends Equatable {
     required this.returnSeconds,
   });
 
+  LegOutcome copyWith({
+    String? legId,
+    double? outboundSpeedMps,
+    double? returnSpeedMps,
+    int? outboundSeconds,
+    int? returnSeconds,
+  }) {
+    return LegOutcome(
+      legId: legId ?? this.legId,
+      outboundSpeedMps: outboundSpeedMps ?? this.outboundSpeedMps,
+      returnSpeedMps: returnSpeedMps ?? this.returnSpeedMps,
+      outboundSeconds: outboundSeconds ?? this.outboundSeconds,
+      returnSeconds: returnSeconds ?? this.returnSeconds,
+    );
+  }
+
   @override
   List<Object?> get props => [
     legId,
@@ -88,168 +125,6 @@ class LegOutcome extends Equatable {
     returnSpeedMps,
     outboundSeconds,
     returnSeconds,
-  ];
-}
-
-/// One way out after a scooter failure, evaluated through the plan engine.
-class ExitOutcome extends Equatable {
-  final MissionExitMode mode;
-
-  /// The teammate towing, for [MissionExitMode.tow]; null for a swim.
-  final String? towerId;
-  final bool feasible;
-
-  /// Seconds from the failure point back to the start of the route.
-  final int exitBottomSeconds;
-
-  /// Time to surface from the end of the exit, from the plan engine.
-  final int ttsSeconds;
-
-  /// Surface litres each member breathes from the failure point to the
-  /// surface, by member id.
-  final Map<String, double> exitLitersByMember;
-  final Set<String> gasShortfallMemberIds;
-  final Set<String> batteryShortfallMemberIds;
-
-  /// True when a current on some exit leg is at least as fast as the exit
-  /// speed, so the team cannot make headway at all. A current the scooters
-  /// beat at cruise can still stop a swim or a slow tow.
-  final bool blockedByCurrent;
-
-  /// Surface exit only: seconds at the surface after the ascent, swimming
-  /// and, via a shore, walking.
-  final int surfaceSeconds;
-
-  /// Surface exit only: metres swum at the surface.
-  final double? surfaceSwimM;
-
-  /// Surface exit only: metres walked from the shore to the entry.
-  final double? walkM;
-
-  /// Surface exit only: whether it lands on the waypoint's shore exit
-  /// rather than swimming straight to the entry.
-  final bool viaShore;
-
-  /// Surface exit only: no surface route is within the mission's limit.
-  final bool surfaceLimitExceeded;
-
-  const ExitOutcome({
-    required this.mode,
-    this.towerId,
-    required this.feasible,
-    required this.exitBottomSeconds,
-    required this.ttsSeconds,
-    required this.exitLitersByMember,
-    this.gasShortfallMemberIds = const {},
-    this.batteryShortfallMemberIds = const {},
-    this.blockedByCurrent = false,
-    this.surfaceSeconds = 0,
-    this.surfaceSwimM,
-    this.walkM,
-    this.viaShore = false,
-    this.surfaceLimitExceeded = false,
-  });
-
-  int get exitSeconds => exitBottomSeconds + ttsSeconds + surfaceSeconds;
-
-  @override
-  List<Object?> get props => [
-    mode,
-    towerId,
-    feasible,
-    exitBottomSeconds,
-    ttsSeconds,
-    exitLitersByMember,
-    gasShortfallMemberIds,
-    batteryShortfallMemberIds,
-    blockedByCurrent,
-    surfaceSeconds,
-    surfaceSwimM,
-    walkM,
-    viaShore,
-    surfaceLimitExceeded,
-  ];
-}
-
-/// One member's situation at one waypoint if their scooter dies there.
-class MemberWaypointOutcome extends Equatable {
-  final String memberId;
-
-  /// Pressure left on the bottom tank on arrival; null when the tank has no
-  /// start pressure.
-  final double? gasRemainingBar;
-  final ExitOutcome swim;
-
-  /// The best tow exit (feasible if any is), or null when the member has no
-  /// teammate: a solo diver has no buddy to tow them.
-  final ExitOutcome? tow;
-
-  /// Open water only: ascend in place and continue at the surface. Shared
-  /// by every member, because the ascent does not depend on whose scooter
-  /// failed. Null in an overhead, or when the scenario could not be run.
-  final ExitOutcome? surface;
-  final bool survivable;
-
-  const MemberWaypointOutcome({
-    required this.memberId,
-    required this.gasRemainingBar,
-    required this.swim,
-    this.tow,
-    this.surface,
-    required this.survivable,
-  });
-
-  @override
-  List<Object?> get props => [
-    memberId,
-    gasRemainingBar,
-    swim,
-    tow,
-    surface,
-    survivable,
-  ];
-}
-
-/// One waypoint of the route with every member's failure evaluated there.
-class WaypointOutcome extends Equatable {
-  final int index;
-  final String legId;
-  final double cumulativeDistanceM;
-  final int arrivalRuntimeSeconds;
-
-  /// Straight-line distance from the waypoint back to the entry, in metres.
-  final double directDistanceHomeM;
-
-  /// Seconds to the next safe surface with no failure: in an overhead the
-  /// way out at cruise plus the ascent, in open water the ascent alone. Null
-  /// when it could not be computed.
-  final int? safeSurfaceSeconds;
-  final List<MemberWaypointOutcome> members;
-
-  /// True when every member's failure here has a feasible exit.
-  final bool survivable;
-
-  const WaypointOutcome({
-    required this.index,
-    required this.legId,
-    required this.cumulativeDistanceM,
-    required this.arrivalRuntimeSeconds,
-    required this.directDistanceHomeM,
-    required this.safeSurfaceSeconds,
-    required this.members,
-    required this.survivable,
-  });
-
-  @override
-  List<Object?> get props => [
-    index,
-    legId,
-    cumulativeDistanceM,
-    arrivalRuntimeSeconds,
-    directDistanceHomeM,
-    safeSurfaceSeconds,
-    members,
-    survivable,
   ];
 }
 
@@ -277,6 +152,34 @@ class MemberOutcome extends Equatable {
     this.turnPressureBar,
   });
 
+  MemberOutcome copyWith({
+    String? memberId,
+    double? batteryRoundTripFraction,
+    bool? setsCruiseSpeed,
+    MissionBindingFactor? bindingFactor,
+    bool clearBindingFactor = false,
+    int? bindingWaypointIndex,
+    bool clearBindingWaypointIndex = false,
+    double? turnPressureBar,
+    bool clearTurnPressureBar = false,
+  }) {
+    return MemberOutcome(
+      memberId: memberId ?? this.memberId,
+      batteryRoundTripFraction:
+          batteryRoundTripFraction ?? this.batteryRoundTripFraction,
+      setsCruiseSpeed: setsCruiseSpeed ?? this.setsCruiseSpeed,
+      bindingFactor: clearBindingFactor
+          ? null
+          : (bindingFactor ?? this.bindingFactor),
+      bindingWaypointIndex: clearBindingWaypointIndex
+          ? null
+          : (bindingWaypointIndex ?? this.bindingWaypointIndex),
+      turnPressureBar: clearTurnPressureBar
+          ? null
+          : (turnPressureBar ?? this.turnPressureBar),
+    );
+  }
+
   @override
   List<Object?> get props => [
     memberId,
@@ -299,6 +202,18 @@ class MissionConstraint extends Equatable {
     required this.factor,
     required this.waypointIndex,
   });
+
+  MissionConstraint copyWith({
+    String? memberId,
+    MissionBindingFactor? factor,
+    int? waypointIndex,
+  }) {
+    return MissionConstraint(
+      memberId: memberId ?? this.memberId,
+      factor: factor ?? this.factor,
+      waypointIndex: waypointIndex ?? this.waypointIndex,
+    );
+  }
 
   @override
   List<Object?> get props => [memberId, factor, waypointIndex];
@@ -342,6 +257,32 @@ class MissionOutcome extends Equatable {
 
   bool get isBlocked =>
       issues.any((i) => i.severity == MissionIssueSeverity.blocking);
+
+  MissionOutcome copyWith({
+    List<PlanSegment>? segments,
+    double? cruiseSpeedMps,
+    List<LegOutcome>? legs,
+    List<WaypointOutcome>? waypoints,
+    List<MemberOutcome>? members,
+    int? abandonmentIndex,
+    bool clearAbandonmentIndex = false,
+    MissionConstraint? constraint,
+    bool clearConstraint = false,
+    List<MissionIssue>? issues,
+  }) {
+    return MissionOutcome(
+      segments: segments ?? this.segments,
+      cruiseSpeedMps: cruiseSpeedMps ?? this.cruiseSpeedMps,
+      legs: legs ?? this.legs,
+      waypoints: waypoints ?? this.waypoints,
+      members: members ?? this.members,
+      abandonmentIndex: clearAbandonmentIndex
+          ? null
+          : (abandonmentIndex ?? this.abandonmentIndex),
+      constraint: clearConstraint ? null : (constraint ?? this.constraint),
+      issues: issues ?? this.issues,
+    );
+  }
 
   @override
   List<Object?> get props => [

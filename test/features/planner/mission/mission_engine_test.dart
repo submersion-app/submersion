@@ -12,6 +12,7 @@ import 'package:submersion/features/planner/domain/entities/mission/mission_outc
 import 'package:submersion/features/planner/domain/entities/mission/scooter_spec.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_engine.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_scenario_service.dart';
+import 'package:submersion/features/planner/domain/services/mission/mission_segment_builder.dart';
 
 const _air = GasMix(o2: 21);
 
@@ -89,6 +90,7 @@ class _ThrowingScenarios extends MissionScenarioService {
     required String failedMemberId,
     required MissionExitMode mode,
     String? towerId,
+    MissionProfile? outbound,
   }) => throw StateError('unschedulable');
 }
 

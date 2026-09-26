@@ -72,6 +72,7 @@ class MissionScenarioService {
     required String failedMemberId,
     required MissionExitMode mode,
     String? towerId,
+    MissionProfile? outbound,
   }) {
     if (mode == MissionExitMode.surface) {
       throw ArgumentError.value(
@@ -87,16 +88,18 @@ class MissionScenarioService {
             failedMemberId: failedMemberId,
             towerId: towerId!,
           );
-    final outbound = builder.outbound(
-      plan: plan,
-      mission: mission,
-      throughLegIndex: waypointIndex,
-      speedMps: cruiseSpeedMps(mission.team),
-    );
-    final failureRuntime = outbound.waypointArrivalSeconds[waypointIndex];
+    final out =
+        outbound ??
+        builder.outbound(
+          plan: plan,
+          mission: mission,
+          throughLegIndex: waypointIndex,
+          speedMps: cruiseSpeedMps(mission.team),
+        );
+    final failureRuntime = out.waypointArrivalSeconds[waypointIndex];
     final result = exits.evaluate(
       plan: plan,
-      outboundSegments: outbound.segments,
+      outboundSegments: out.segments,
       failureRuntimeSeconds: failureRuntime,
       exitLegs: exitLegsFor(mission, waypointIndex),
       exitSpeedMps: exitSpeed,
@@ -172,17 +175,20 @@ class MissionScenarioService {
     required domain.DivePlan plan,
     required DpvMission mission,
     required int waypointIndex,
+    MissionProfile? outbound,
   }) {
-    final outbound = builder.outbound(
-      plan: plan,
-      mission: mission,
-      throughLegIndex: waypointIndex,
-      speedMps: cruiseSpeedMps(mission.team),
-    );
+    final out =
+        outbound ??
+        builder.outbound(
+          plan: plan,
+          mission: mission,
+          throughLegIndex: waypointIndex,
+          speedMps: cruiseSpeedMps(mission.team),
+        );
     final result = exits.evaluate(
       plan: plan,
-      outboundSegments: outbound.segments,
-      failureRuntimeSeconds: outbound.waypointArrivalSeconds[waypointIndex],
+      outboundSegments: out.segments,
+      failureRuntimeSeconds: out.waypointArrivalSeconds[waypointIndex],
       exitLegs: const [],
       exitSpeedMps: 0,
       divers: [
@@ -197,7 +203,7 @@ class MissionScenarioService {
     }
     final leg = mission.legs[waypointIndex];
     final home = waypointPositions(mission.legs)[waypointIndex];
-    final current = mission.defaultCurrent ?? leg.current;
+    final current = mission.currentFor(leg);
     final homeMps = home.distanceHomeM < kMinExitLegM
         ? swimSpeed
         : builder.speeds
@@ -272,18 +278,21 @@ class MissionScenarioService {
     required domain.DivePlan plan,
     required DpvMission mission,
     required int waypointIndex,
+    MissionProfile? outbound,
   }) {
     final cruise = cruiseSpeedMps(mission.team);
-    final outbound = builder.outbound(
-      plan: plan,
-      mission: mission,
-      throughLegIndex: waypointIndex,
-      speedMps: cruise,
-    );
+    final out =
+        outbound ??
+        builder.outbound(
+          plan: plan,
+          mission: mission,
+          throughLegIndex: waypointIndex,
+          speedMps: cruise,
+        );
     final result = exits.evaluate(
       plan: plan,
-      outboundSegments: outbound.segments,
-      failureRuntimeSeconds: outbound.waypointArrivalSeconds[waypointIndex],
+      outboundSegments: out.segments,
+      failureRuntimeSeconds: out.waypointArrivalSeconds[waypointIndex],
       exitLegs: retraceExitLegs(mission, waypointIndex),
       exitSpeedMps: cruise,
       divers: const [],

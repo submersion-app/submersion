@@ -256,6 +256,26 @@ void main() {
       expect(exit.surfaceSeconds, 1375);
     });
 
+    test('the surface swim feels the waypoint leg own current first', () {
+      // A strong local current against the swim home beats a light default
+      // setting toward home: the swim is closed.
+      final mission = DpvMission(
+        legs: [
+          _l1,
+          _l2.copyWith(
+            current: const CurrentVector(speedMps: 0.3, setsTowardDeg: 36.8699),
+          ),
+        ],
+        team: [_member('a', 0), _member('b', 1)],
+        environment: MissionEnvironment.openWater,
+        defaultCurrent: const CurrentVector(
+          speedMps: 0.05,
+          setsTowardDeg: 216.8699,
+        ),
+      );
+      expect(surface(mission).blockedByCurrent, isTrue);
+    });
+
     test('a route that ends at the entry has nothing to swim', () {
       final mission = DpvMission(
         legs: const [

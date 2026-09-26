@@ -238,7 +238,8 @@ depend on the environment:
   solo diver has no tow exit; the report says "no buddy".
 - Straight home (open water): one leg from waypoint k to the entry along the
   dead-reckoned bearing, held at the depth of waypoint k. Its current is the
-  mission default, else the current of the leg that ends at k.
+  one in force on the leg that ends at k: that leg's own, else the mission
+  default. The surface swim home takes the same current.
 - Surface exit (open water): the plan engine computes the ascent from k,
   including any deco, from the outbound profile alone. At the surface the
   team swims at the slowest swim speed, either straight to the entry or to
@@ -260,17 +261,25 @@ Each exit is a scenario `DivePlan`: the plan copied with segments = outbound
 legs through k plus the exit legs. `PlanEngine.compute` runs once per
 scenario and yields the schedule rows (depth, duration, phase) and time to
 surface. Per-member gas over any span of rows is
-`sum(duration * ambientPressure(depth) * sac(phase))` where the bottom SAC is
-the member's own, the deco SAC is the plan's, and the failed member breathes
-the plan's stressed SAC on the bottom portion of the exit. `ambientPressure`
-is the existing helper in the gas calculators domain, honouring the plan's
-water type and altitude through the engine config.
+`sum(duration * ambientPressure(depth) * sac(phase))`. A travel row is
+charged at the mean of its start and end depth, and the exit's first row
+starts at the failure depth. The working SAC is the member's own; the failed
+member is stressed, breathing their own SAC scaled by the plan's
+stressed-to-bottom ratio (never less than their own), so a heavy breather is
+stressed in proportion. The working (or stressed) SAC holds through the exit
+legs and the ascent up to the first decompression stop; from the first stop
+on, everyone breathes the plan's deco SAC. `ambientPressure` comes from
+`PlanEngine.environmentFor`, the one derivation the deco schedule uses.
 
 Gas remaining for member m at waypoint k is the plan's usable gas minus m's
 outbound consumption through k. An exit is feasible for the team when, for
-every member, remaining minus exit need stays at or above the plan's reserve
+every member, every cylinder they breathe ends at or above the plan's reserve
 pressure, and for every scooter still running, burn stays within the reserve
-fraction.
+fraction. As in the plan engine's own reserve rule, a cylinder never breathed
+and a bailout cylinder are not held to the reserve.
+
+A leg shorter than half a metre is a blocking validation issue: it is too
+short to travel, and its outbound and return could not be matched.
 
 Scenario count per failure is one swim plus up to `members - 1` tows, so an
 overhead mission runs at most `waypoints * members * members` engine runs (54

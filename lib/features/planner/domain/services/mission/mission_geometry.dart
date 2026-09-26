@@ -66,8 +66,8 @@ List<ExitLeg> retraceExitLegs(DpvMission mission, int waypointIndex) {
 /// The underwater way out from waypoint [waypointIndex] for the mission's
 /// environment: the route retraced in an overhead, or one straight leg home
 /// at the waypoint's depth in open water (none when the waypoint is the
-/// entry). The straight leg takes the mission's default current, else the
-/// current of the leg that ends at the waypoint.
+/// entry). The straight leg takes the current in force on the leg that ends
+/// at the waypoint: its own, else the mission default.
 List<ExitLeg> exitLegsFor(DpvMission mission, int waypointIndex) {
   switch (mission.environment) {
     case MissionEnvironment.overhead:
@@ -82,7 +82,7 @@ List<ExitLeg> exitLegsFor(DpvMission mission, int waypointIndex) {
           distanceM: point.distanceHomeM,
           depthM: leg.depthM,
           headingDeg: point.bearingHomeDeg,
-          current: mission.defaultCurrent ?? leg.current,
+          current: mission.currentFor(leg),
         ),
       ];
   }

@@ -22,6 +22,23 @@ class ExitLeg extends Equatable {
     this.current,
   });
 
+  ExitLeg copyWith({
+    String? id,
+    double? distanceM,
+    double? depthM,
+    double? headingDeg,
+    CurrentVector? current,
+    bool clearCurrent = false,
+  }) {
+    return ExitLeg(
+      id: id ?? this.id,
+      distanceM: distanceM ?? this.distanceM,
+      depthM: depthM ?? this.depthM,
+      headingDeg: headingDeg ?? this.headingDeg,
+      current: clearCurrent ? null : (current ?? this.current),
+    );
+  }
+
   @override
   List<Object?> get props => [id, distanceM, depthM, headingDeg, current];
 }
