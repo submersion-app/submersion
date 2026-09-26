@@ -157,13 +157,14 @@ void main() {
     _DrivableBackupOp? backupOp,
     List<Override> extraOverrides = const [],
     IncomingLinkSource? links,
+    GoRouter? router,
   }) async {
     final base = await getBaseOverrides(incomingLinks: links);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           ...base,
-          appRouterProvider.overrideWithValue(_testRouter()),
+          appRouterProvider.overrideWithValue(router ?? _testRouter()),
           syncStateProvider.overrideWith((ref) => sync),
           if (backupOp != null)
             backupOperationProvider.overrideWith((ref) => backupOp),
@@ -340,6 +341,92 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
 
+    expect(find.text('That is not a cylinder tag'), findsOneWidget);
+  });
+
+  testWidgets('a tag link during setup waits until setup is left', (
+    tester,
+  ) async {
+    final links = _PushableLinks();
+    addTearDown(links.controller.close);
+    final router = GoRouter(
+      navigatorKey: rootNavigatorKey,
+      initialLocation: '/welcome',
+      routes: [
+        GoRoute(
+          path: '/welcome',
+          builder: (context, state) => const Scaffold(body: Text('wizard')),
+        ),
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(body: SizedBox.shrink()),
+        ),
+      ],
+    );
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      links: links,
+      router: router,
+      extraOverrides: [
+        // The wizard has already written the diver row: divers exist, but
+        // setup is still on screen.
+        hasAnyDiversProvider.overrideWith((ref) async => true),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
+
+    links.controller.add(Uri.parse('submersion://c?f=1'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('That is not a cylinder tag'), findsNothing);
+
+    router.go('/');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('That is not a cylinder tag'), findsOneWidget);
+  });
+
+  testWidgets('a tag link before the navigator is built is kept, not lost', (
+    tester,
+  ) async {
+    final links = _PushableLinks();
+    addTearDown(links.controller.close);
+    final gate = Completer<void>();
+    // An async top-level redirect, like the app's own: go_router builds no
+    // Navigator until it resolves.
+    final router = GoRouter(
+      navigatorKey: rootNavigatorKey,
+      redirect: (context, state) async {
+        await gate.future;
+        return null;
+      },
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(body: SizedBox.shrink()),
+        ),
+      ],
+    );
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      links: links,
+      router: router,
+      extraOverrides: [
+        hasAnyDiversProvider.overrideWith((ref) async => true),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
+    expect(rootNavigatorKey.currentContext, isNull);
+
+    links.controller.add(Uri.parse('submersion://c?f=1'));
+    await tester.pump();
+
+    gate.complete();
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
     expect(find.text('That is not a cylinder tag'), findsOneWidget);
   });
 }

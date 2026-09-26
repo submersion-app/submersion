@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -90,6 +91,8 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   bool _adoptDialogShownThisSession = false;
   late final FileShareHandler _fileShareHandler;
   late final PassportLinkDispatcher _passportLinks;
+  late final GoRouter _linkRouter;
+  bool _hasDivers = false;
   late final AppLifecycleListener _lifecycleListener;
 
   @override
@@ -119,13 +122,14 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       source: ref.read(incomingLinkSourceProvider),
       open: _openPassportLink,
     );
-    // Before a diver exists the setup wizard owns the screen; a tag tapped
-    // on a fresh install waits for it.
-    ref.listenManual<AsyncValue<bool>>(
-      hasAnyDiversProvider,
-      (_, next) => _passportLinks.setReady(next.value ?? false),
-      fireImmediately: true,
-    );
+    // A tag tapped on a fresh install waits until setup is over, and one
+    // tapped with the app closed waits for the navigator to exist.
+    _linkRouter = ref.read(appRouterProvider);
+    _linkRouter.routeInformationProvider.addListener(_updatePassportLinkReady);
+    ref.listenManual<AsyncValue<bool>>(hasAnyDiversProvider, (_, next) {
+      _hasDivers = next.value ?? false;
+      _updatePassportLinkReady();
+    }, fireImmediately: true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeSyncOnLaunch();
       _resumeMediaTransfers();
@@ -140,6 +144,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   @override
   void dispose() {
+    _linkRouter.routeInformationProvider.removeListener(
+      _updatePassportLinkReady,
+    );
     _passportLinks.dispose();
     _fileShareHandler.dispose();
     _lifecycleListener.dispose();
@@ -363,6 +370,24 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         }
       case IncomingFileOutcome.none:
         break;
+    }
+  }
+
+  /// Whether a passport link can open now: a diver exists, setup is no
+  /// longer on screen (the wizard writes the diver before it finishes, and
+  /// finishing replaces the whole stack), and the root navigator is built
+  /// (go_router builds none until its async redirect resolves).
+  void _updatePassportLinkReady() {
+    if (!mounted) return;
+    final settled =
+        _hasDivers &&
+        _linkRouter.routeInformationProvider.value.uri.path != '/welcome';
+    final navigatorBuilt = rootNavigatorKey.currentContext != null;
+    _passportLinks.setReady(settled && navigatorBuilt);
+    if (settled && !navigatorBuilt) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _updatePassportLinkReady(),
+      );
     }
   }
 
