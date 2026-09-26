@@ -66,15 +66,28 @@ class _ForeignPassportPageState extends ConsumerState<ForeignPassportPage> {
       if (!mounted) return;
       router.pushReplacement('/equipment/${item.id}/passport');
     } on PassportIdInUse catch (e) {
-      final holder = await ref
-          .read(equipmentRepositoryProvider)
-          .getEquipmentById(e.equipmentId);
+      // The holder's name is a courtesy: if it cannot be read, name the id
+      // rather than leave the button disabled with no message.
+      String? holderName;
+      try {
+        holderName =
+            (await ref
+                    .read(equipmentRepositoryProvider)
+                    .getEquipmentById(e.equipmentId))
+                ?.name;
+      } catch (lookupError, stackTrace) {
+        _log.error(
+          'Failed to read the cylinder holding a tag',
+          error: lookupError,
+          stackTrace: stackTrace,
+        );
+      }
       if (!mounted) return;
       setState(() => _busy = false);
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            l10n.passport_tag_linkInUse(holder?.name ?? e.equipmentId),
+            l10n.passport_tag_linkInUse(holderName ?? e.equipmentId),
           ),
         ),
       );

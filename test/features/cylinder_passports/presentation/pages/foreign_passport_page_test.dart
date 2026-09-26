@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:drift/drift.dart' show Value;
+import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/cylinder_passports/data/services/passport_adoption_service.dart';
@@ -222,8 +224,9 @@ void main() {
   /// with [error], taps Add to my gear, and returns the strings.
   Future<AppLocalizations> addFailingWith(
     WidgetTester tester,
-    Object error,
-  ) async {
+    Object error, {
+    List<dynamic> extra = const [],
+  }) async {
     final overrides = await getBaseOverrides();
     final router = GoRouter(
       initialLocation: foreignPassportLocation(full),
@@ -243,6 +246,7 @@ void main() {
           passportAdoptionServiceProvider.overrideWithValue(
             _FailingAdoption(error),
           ),
+          ...extra,
         ].cast(),
         child: MaterialApp.router(
           routerConfig: router,
@@ -292,6 +296,25 @@ void main() {
     expect(button.onPressed, isNotNull);
   });
 
+  testWidgets('a held tag whose holder cannot be read still recovers', (
+    tester,
+  ) async {
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    final l10n = await addFailingWith(
+      tester,
+      const PassportIdInUse('eq-held'),
+      extra: [
+        equipmentRepositoryProvider.overrideWithValue(_BrokenEquipment()),
+      ],
+    );
+    expect(find.text(l10n.passport_tag_linkInUse('eq-held')), findsOneWidget);
+    final button = tester.widget<OutlinedButton>(
+      find.byKey(const Key('foreign_addToGear')),
+    );
+    expect(button.onPressed, isNotNull);
+  });
+
   testWidgets('a failed add says so and stays on the page', (tester) async {
     await setUpTestDatabase();
     addTearDown(tearDownTestDatabase);
@@ -299,6 +322,12 @@ void main() {
     expect(find.text(l10n.passport_foreign_addFailed), findsOneWidget);
     expect(find.byType(ForeignPassportPage), findsOneWidget);
   });
+}
+
+class _BrokenEquipment extends EquipmentRepository {
+  @override
+  Future<EquipmentItem?> getEquipmentById(String id) async =>
+      throw StateError('database is locked');
 }
 
 class _FailingAdoption extends PassportAdoptionService {
