@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
 import 'package:submersion/shared/widgets/forms/form_section.dart';
-
-/// Numeric entry filter for the temperature rows. Both separators are allowed
-/// because the diver's locale decides which one their keyboard offers, and the
-/// page reads the field back with `parseUserDecimal`. Allowing only '.' would
-/// strip the comma out of a comma-locale seed mid-edit (#1091).
-final _decimalFilter = FilteringTextInputFormatter.allow(RegExp(r'[0-9.,\-]'));
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Group 3 of the dive form. An auto-fill action row leads, then water/air
 /// temperature as ordinary rows (the hero strip is retired); the top,
@@ -64,14 +59,20 @@ class ConditionsSection extends StatelessWidget {
           controller: waterTempController,
           suffixText: temperatureSymbol,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [_decimalFilter],
+          // Signed, since water and air can be below zero. The validator
+          // reports text left unreadable instead of it saving as 0 (#1900).
+          inputFormatters: numberInputFormatters(allowNegative: true),
+          inputValidator: numberValidator(context),
         ),
         FormRow.text(
           label: l10n.diveLog_edit_label_airTemp,
           controller: airTempController,
           suffixText: temperatureSymbol,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
-          inputFormatters: [_decimalFilter],
+          // Signed, since water and air can be below zero. The validator
+          // reports text left unreadable instead of it saving as 0 (#1900).
+          inputFormatters: numberInputFormatters(allowNegative: true),
+          inputValidator: numberValidator(context),
         ),
         ...environmentRows,
         ...weatherRows,

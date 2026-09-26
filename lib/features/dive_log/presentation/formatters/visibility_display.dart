@@ -1,8 +1,8 @@
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
-import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// On-screen rendering of a dive's visibility.
 ///
@@ -26,8 +26,14 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 ///
 /// A decimal comma is read, not rejected: it is what the diver's own locale
 /// displays, and treating "12,5" as unknown discarded the entry (#1091).
+///
+/// The edit form's validator stops a save while the text is unreadable, so
+/// the null for unreadable text only reaches the live caption, never storage.
 double? parseVisibilityInput(String text, UnitFormatter units) {
-  final parsed = parseUserDecimal(text);
+  final parsed = switch (readNumber(text)) {
+    NumberValue(:final value) => value,
+    NumberBlank() || NumberInvalid() => null,
+  };
   if (parsed == null || parsed < 0) return null;
   return units.depthToMeters(parsed);
 }
