@@ -170,4 +170,35 @@ void main() {
       TripCylinderStatus.partial,
     );
   });
+
+  test('the ledger lists every event on the trip, newest first', () async {
+    final a = await slot('A');
+    final b = await slot('B', sortOrder: 1);
+    await repository.createEvent(
+      TripCylinderEvent(
+        id: 'e-old',
+        tripCylinderId: a.id,
+        kind: TripCylinderEventKind.fill,
+        occurredAt: at,
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+    await repository.createEvent(
+      TripCylinderEvent(
+        id: 'e-new',
+        tripCylinderId: b.id,
+        kind: TripCylinderEventKind.adjustment,
+        occurredAt: at.add(const Duration(hours: 3)),
+        pressure: 0,
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+
+    final ledger = await container.read(
+      tripCylinderLedgerProvider(tripId).future,
+    );
+    expect(ledger.map((e) => e.id), ['e-new', 'e-old']);
+  });
 }

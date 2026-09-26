@@ -7,6 +7,7 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.da
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/add_trip_cylinders_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet.dart';
+import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_ledger_view.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_slot_card.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -20,16 +21,26 @@ List<String> reorderedIds(List<String> ids, int oldIndex, int newIndex) {
   return next;
 }
 
-/// The trip's cylinder board: every slot with its state, reorderable, with
-/// actions to add slots and to fill several at once.
-class TripCylinderBoardPage extends ConsumerWidget {
+/// The trip's cylinder board: every slot with its state (reorderable) or
+/// the ledger of every fill and adjustment, with actions to add slots and
+/// to fill several at once.
+class TripCylinderBoardPage extends ConsumerStatefulWidget {
   final String tripId;
 
   const TripCylinderBoardPage({super.key, required this.tripId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TripCylinderBoardPage> createState() =>
+      _TripCylinderBoardPageState();
+}
+
+class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage> {
+  bool _showLedger = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final tripId = widget.tripId;
     final statesAsync = ref.watch(tripCylinderStatesProvider(tripId));
     final states = statesAsync.value ?? const <TripCylinderState>[];
     final centers =
@@ -61,7 +72,40 @@ class TripCylinderBoardPage extends ConsumerWidget {
         ),
       );
     } else {
-      body = TripCylinderBoardList(states: states, centerNames: centerNames);
+      body = Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+            child: SegmentedButton<bool>(
+              key: const Key('board-segment'),
+              segments: [
+                ButtonSegment(
+                  value: false,
+                  label: Text(l10n.trips_cylinders_segment_board),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: Text(l10n.trips_cylinders_segment_ledger),
+                ),
+              ],
+              selected: {_showLedger},
+              onSelectionChanged: (s) => setState(() => _showLedger = s.first),
+            ),
+          ),
+          Expanded(
+            child: _showLedger
+                ? TripCylinderLedgerView(
+                    tripId: tripId,
+                    states: states,
+                    centerNames: centerNames,
+                  )
+                : TripCylinderBoardList(
+                    states: states,
+                    centerNames: centerNames,
+                  ),
+          ),
+        ],
+      );
     }
 
     return Scaffold(

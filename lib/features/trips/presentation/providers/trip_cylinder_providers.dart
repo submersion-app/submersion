@@ -2,6 +2,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/services/trip_fill_passport_copy.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
 
@@ -45,3 +46,18 @@ final tripCylinderStatesProvider =
 final tripFillPassportCopierProvider = Provider<TripFillPassportCopier>(
   (ref) => TripFillPassportCopier(),
 );
+
+/// Every fill and adjustment on a trip, newest first (ties by id, newest
+/// id first, so the order never depends on the query), for the ledger.
+final tripCylinderLedgerProvider =
+    FutureProvider.family<List<TripCylinderEvent>, String>((ref, tripId) async {
+      final repository = ref.watch(tripCylinderRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchTripCylinderChanges());
+      final bySlot = await repository.getEventsForTrip(tripId);
+      final events = [for (final list in bySlot.values) ...list]
+        ..sort((a, b) {
+          final byTime = b.occurredAt.compareTo(a.occurredAt);
+          return byTime != 0 ? byTime : b.id.compareTo(a.id);
+        });
+      return events;
+    });
