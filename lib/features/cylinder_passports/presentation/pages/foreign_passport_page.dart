@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_attribute_keys.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/passport_dive_tank.dart';
 import 'package:submersion/features/cylinder_passports/domain/services/passport_payload_codec.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attribute_l10n.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -38,7 +41,17 @@ class ForeignPassportPage extends ConsumerStatefulWidget {
 
 class _ForeignPassportPageState extends ConsumerState<ForeignPassportPage> {
   /// The page's actions (Use on a dive, Add to my gear).
-  List<Widget> _actions(CylinderPassportPayload tag) => const [];
+  List<Widget> _actions(CylinderPassportPayload tag) => [
+    FilledButton.icon(
+      key: const Key('foreign_useOnDive'),
+      icon: const Icon(Icons.scuba_diving),
+      label: Text(context.l10n.passport_foreign_useOnDive),
+      onPressed: () => context.push(
+        '/dives/new',
+        extra: DivePrefill(tank: tankFromPassport(tag)),
+      ),
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {

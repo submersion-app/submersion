@@ -624,7 +624,35 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     if (p.waterTempCelsius != null || p.airTempCelsius != null) {
       _expanded['conditions'] = true;
     }
-    if (p.startPressureBar != null ||
+    if (p.tank case final t?) {
+      final base = _tanks.isNotEmpty ? _tanks.first : null;
+      _tanks = [
+        DiveTank(
+          id: base?.id ?? _uuid.v4(),
+          name: t.name,
+          volume: t.volume ?? base?.volume,
+          workingPressure: t.workingPressure ?? base?.workingPressure,
+          startPressure: t.startPressure ?? base?.startPressure,
+          endPressure: t.endPressure ?? base?.endPressure,
+          gasMix: t.gasMix,
+          role: t.role,
+          material: t.material ?? base?.material,
+          order: 0,
+          // A tag without a volume keeps the default cylinder, preset and all.
+          presetName: t.volume == null ? base?.presetName : t.presetName,
+        ),
+        ..._tanks.skip(1),
+      ];
+      // A custom default preset loads asynchronously and replaces an
+      // untouched first tank. A cylinder described by its tag must survive
+      // that; a tag that describes nothing leaves the default free to load.
+      if (t.name != null ||
+          t.volume != null ||
+          t.workingPressure != null ||
+          t.material != null) {
+        _tanksDirty = true;
+      }
+    } else if (p.startPressureBar != null ||
         p.endPressureBar != null ||
         p.o2Percent != null ||
         p.cylinderVolumeLiters != null) {

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/foreign_passport_page.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -99,5 +102,47 @@ void main() {
     expect(foreignTagFromQuery(t), full);
     expect(foreignTagFromQuery(null), isNull);
     expect(foreignTagFromQuery('nonsense'), isNull);
+  });
+
+  testWidgets('Use on a dive opens a new dive with the cylinder', (
+    tester,
+  ) async {
+    Object? extra;
+    final overrides = await getBaseOverrides();
+    final router = GoRouter(
+      initialLocation: foreignPassportLocation(full),
+      routes: [
+        GoRoute(
+          path: '/equipment/tag',
+          builder: (context, state) => ForeignPassportPage(
+            tag: foreignTagFromQuery(state.uri.queryParameters['t']),
+          ),
+        ),
+        GoRoute(
+          path: '/dives/new',
+          builder: (context, state) {
+            extra = state.extra;
+            return const Text('new dive');
+          },
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides.cast(),
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('foreign_useOnDive')));
+    await tester.pumpAndSettle();
+    expect(find.text('new dive'), findsOneWidget);
+    final tank = (extra! as DivePrefill).tank!;
+    expect(tank.volume, 10);
+    expect(tank.workingPressure, 300);
   });
 }
