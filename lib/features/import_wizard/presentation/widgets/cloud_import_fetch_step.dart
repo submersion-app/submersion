@@ -205,7 +205,7 @@ class _CloudImportFetchStepState<TSummary, TParsed>
       _hasMorePages = page.hasMore;
 
       if (page.items.isNotEmpty) {
-        await _downloadPage(page.items);
+        _failedSummaries.addAll(await _downloadPage(page.items));
         if (!mounted) return;
       }
 
@@ -255,7 +255,7 @@ class _CloudImportFetchStepState<TSummary, TParsed>
       _hasMorePages = page.hasMore;
 
       if (page.items.isNotEmpty) {
-        await _downloadPage(page.items);
+        _failedSummaries.addAll(await _downloadPage(page.items));
         if (!mounted) return;
       }
 
@@ -296,7 +296,11 @@ class _CloudImportFetchStepState<TSummary, TParsed>
     if (mounted) setState(() => _isFetchingAll = false);
   }
 
-  Future<void> _downloadPage(List<TSummary> page) async {
+  /// Downloads [page], adding every dive that converted to the list, and
+  /// returns the summaries that failed. Callers decide where those go: a
+  /// retry swaps them in only once it is over, so the notice it belongs to
+  /// stays on screen while it runs.
+  Future<List<TSummary>> _downloadPage(List<TSummary> page) async {
     final alreadyProcessed = _parsedDives.length + _failedCount;
     final results = await widget.downloadPage(page, (completed, total) {
       if (!mounted) return;
@@ -307,17 +311,19 @@ class _CloudImportFetchStepState<TSummary, TParsed>
         );
       });
     });
-    if (!mounted) return;
+    if (!mounted) return const [];
 
+    final failed = <TSummary>[];
     for (var i = 0; i < results.length; i++) {
       final parsed = results[i];
       if (parsed == null) {
-        _failedSummaries.add(page[i]);
+        failed.add(page[i]);
       } else {
         _selectedIndices.add(_parsedDives.length);
         _parsedDives.add(parsed);
       }
     }
+    return failed;
   }
 
   /// Downloads the dives that failed earlier again. Any that fail a second
@@ -330,23 +336,28 @@ class _CloudImportFetchStepState<TSummary, TParsed>
       return;
     }
 
+    // The failed list stays as it is until the retry is over, so the notice
+    // (and its spinner) remain visible for the whole request.
     final retry = List<TSummary>.of(_failedSummaries);
-    setState(() {
-      _isRetryingFailed = true;
-      _failedSummaries.clear();
-    });
+    setState(() => _isRetryingFailed = true);
 
+    List<TSummary> stillFailed;
     try {
-      await _downloadPage(retry);
+      stillFailed = await _downloadPage(retry);
     } catch (_) {
       // downloadPage reports per-dive failures as null slots, so reaching
       // this means the whole batch failed: every dive is still missing.
-      _failedSummaries.addAll(retry);
+      stillFailed = retry;
     }
     if (!mounted) return;
 
     _publishSelection();
-    setState(() => _isRetryingFailed = false);
+    setState(() {
+      _failedSummaries
+        ..clear()
+        ..addAll(stillFailed);
+      _isRetryingFailed = false;
+    });
   }
 
   void _toggleSelected(int index) {
@@ -610,12 +621,14 @@ class _CloudImportFetchStepState<TSummary, TParsed>
             runSpacing: 8,
             children: [
               OutlinedButton.icon(
-                onPressed: _loadMore,
+                // Disabled rather than inert while a retry of skipped dives
+                // runs, since _loadMore and _fetchAll both wait for it.
+                onPressed: _isRetryingFailed ? null : _loadMore,
                 icon: const Icon(Icons.expand_more),
                 label: Text(strings.loadMore),
               ),
               OutlinedButton.icon(
-                onPressed: _fetchAll,
+                onPressed: _isRetryingFailed ? null : _fetchAll,
                 icon: const Icon(Icons.cloud_download),
                 label: Text(strings.fetchAll),
               ),

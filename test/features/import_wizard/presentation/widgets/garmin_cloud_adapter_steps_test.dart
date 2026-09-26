@@ -282,6 +282,33 @@ class _ControllableClient extends _FakeGarminClient {
   ];
 }
 
+/// Fails [flakyId]'s first download, then holds its retry open until
+/// [releaseRetry], so a test can look at the step mid-retry.
+class _HeldRetryClient extends _FakeGarminClient {
+  _HeldRetryClient({
+    required super.dives,
+    required this.fitBytes,
+    required this.flakyId,
+  });
+
+  final Uint8List fitBytes;
+  final int flakyId;
+  final _retryGate = Completer<void>();
+  int _flakyAttempts = 0;
+
+  void releaseRetry() => _retryGate.complete();
+
+  @override
+  Future<Uint8List> downloadActivityFit(int activityId) async {
+    fetchedActivityIds.add(activityId);
+    if (activityId == flakyId && _flakyAttempts++ == 0) {
+      throw const GarminApiException('rate limited');
+    }
+    if (activityId == flakyId) await _retryGate.future;
+    return fitBytes;
+  }
+}
+
 /// Fails the first listing, succeeds on every later one -- the shape a
 /// transient network error has when the diver taps Try Again.
 class _RecoveringClient extends _FakeGarminClient {
@@ -1212,6 +1239,54 @@ void main() {
         findsNothing,
       );
       expect(find.widgetWithText(TextButton, 'Try Again'), findsNothing);
+    });
+
+    testWidgets('keeps the skipped notice on screen while its retry runs', (
+      tester,
+    ) async {
+      final client = _HeldRetryClient(
+        dives: [_activity(1), _activity(2)],
+        fitBytes: fitBytes,
+        flakyId: 2,
+      );
+
+      await tester.pumpWidget(
+        _host(
+          store: _FakeSessionStore(),
+          clientFactory: _FakeGarminClient.new,
+          child: GarminCloudFetchStep(client: client, onDivesFetched: (_) {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Try Again'));
+      await tester.pump();
+
+      // The retry is in flight: the notice stays up with its spinner, and
+      // paging is visibly unavailable rather than silently inert.
+      expect(
+        find.text('1 dive could not be converted and was skipped.'),
+        findsOneWidget,
+      );
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      for (final label in ['Load More', 'Fetch All']) {
+        final button = tester.widget<ButtonStyleButton>(
+          find.ancestor(
+            of: find.text(label),
+            matching: find.byWidgetPredicate((w) => w is ButtonStyleButton),
+          ),
+        );
+        expect(button.onPressed, isNull, reason: label);
+      }
+
+      client.releaseRetry();
+      await tester.pumpAndSettle();
+
+      expect(find.text('Found 2 dives'), findsOneWidget);
+      expect(
+        find.text('1 dive could not be converted and was skipped.'),
+        findsNothing,
+      );
     });
 
     testWidgets('a dive that fails again stays skipped and retryable', (
