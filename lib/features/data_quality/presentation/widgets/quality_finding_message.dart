@@ -153,6 +153,10 @@ QualityFindingMessage buildFindingMessage(
           fmt.pressure(d('recordBar')),
           fmt.pressure(d('seriesBar')),
         );
+      } else if (p.containsKey('dropoutCount')) {
+        detail = l10n.dataQuality_msg_pressureDropout(
+          (p['dropoutCount'] as num?)?.toInt() ?? 1,
+        );
       } else if (p.containsKey('riseBar')) {
         detail = l10n.dataQuality_msg_pressureRise(fmt.pressure(d('riseBar')));
       } else {

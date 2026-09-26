@@ -31317,6 +31317,17 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'A nyomásjel $count alkalommal kiesett',
+      one: 'A nyomásjel egyszer kiesett',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_msg_sac(String sac) {
     return 'A becsült felszíni fogyasztás ($sac) nem hihető';
   }

@@ -31218,6 +31218,17 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Het druksignaal viel $count keer weg',
+      one: 'Het druksignaal viel één keer weg',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_msg_sac(String sac) {
     return 'Het afgeleide oppervlakteverbruik van $sac is onaannemelijk';
   }

@@ -1,5 +1,6 @@
 import 'package:submersion/core/profile/surfacing_pressure.dart'
     show lastTimeBelowSurfaceThreshold;
+import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
@@ -28,13 +29,43 @@ class PressureAnomalyDetector extends QualityDetector {
       ctx.primarySamples.map((s) => (t: s.t, depth: s.depth)),
     );
     for (final tank in ctx.tanks) {
-      final series = ctx.pressuresByTankId[tank.id] ?? const [];
+      final raw = ctx.pressuresByTankId[tank.id] ?? const [];
       final sp = tank.startPressure;
       final ep = tank.endPressure;
 
+      // Dropouts and transient misreads are reported once per tank, and
+      // every other check reads the series without them: each recovery from
+      // a dropout would otherwise read as a mid-dive rise, and a dropout at
+      // either end as an endpoint mismatch (#2441).
+      final glitches = scanPressureGlitches([
+        for (final p in raw) (t: p.t, bar: p.bar),
+      ]);
+      final series = glitches.glitchIndices.isEmpty
+          ? raw
+          : [
+              for (var i = 0; i < raw.length; i++)
+                if (!glitches.glitchIndices.contains(i)) raw[i],
+            ];
+      if (glitches.episodeCount > 0) {
+        out.add(
+          make(
+            ctx,
+            discriminator: 'dropout:${tank.id}',
+            computerId: tank.computerId,
+            severity: QualitySeverity.warning,
+            params: {
+              'dropoutCount': glitches.episodeCount,
+              'tankId': tank.id,
+              'tankOrder': tank.order,
+            },
+          ),
+        );
+      }
+
       if (sp != null &&
           ep != null &&
-          ep - sp > QualityThresholds.pressureSwapMinDiffBar) {
+          ep - sp > QualityThresholds.pressureSwapMinDiffBar &&
+          _seriesAllowsSwap(series, sp, ep)) {
         out.add(
           make(
             ctx,
@@ -53,8 +84,10 @@ class PressureAnomalyDetector extends QualityDetector {
 
       if (series.length < 2) continue;
 
+      // The lookback asks when the series began logging, so it reads the
+      // raw first sample: a lead-in dropped above says nothing about that.
       if (sp != null &&
-          series.first.t <= QualityThresholds.pressureStartLookbackSeconds &&
+          raw.first.t <= QualityThresholds.pressureStartLookbackSeconds &&
           (sp - series.first.bar).abs() >
               QualityThresholds.pressureEndpointMismatchBar) {
         out.add(
@@ -208,6 +241,25 @@ class PressureAnomalyDetector extends QualityDetector {
       return null;
     }
     return atSurfacing.bar;
+  }
+
+  /// Whether the tank's pressure series, if it has one, agrees that the
+  /// recorded start and end pressures were entered the wrong way round.
+  ///
+  /// A record whose start pressure came from a dropout (1 to 12 bar) also
+  /// shows an end above its start, and swapping the two would make it
+  /// worse. The series settles which it is: a real swap drains from the
+  /// recorded end down to the recorded start. Without a series the record
+  /// is all there is to go by, so the swap stands.
+  bool _seriesAllowsSwap(
+    List<QualityPressureSample> series,
+    double startBar,
+    double endBar,
+  ) {
+    if (series.length < 2) return true;
+    const tolerance = QualityThresholds.pressureEndpointMismatchBar;
+    return (series.first.bar - endBar).abs() <= tolerance &&
+        (series.last.bar - startBar).abs() <= tolerance;
   }
 
   /// Whether a rising run of [riseBar] over [durationSeconds] is an anomaly

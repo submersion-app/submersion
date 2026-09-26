@@ -29810,6 +29810,17 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '压力信号中断了 $count 次',
+      one: '压力信号中断了 1 次',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_msg_sac(String sac) {
     return '推算的水面消耗量 $sac 不合理';
   }

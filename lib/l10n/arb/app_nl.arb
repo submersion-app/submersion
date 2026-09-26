@@ -9598,6 +9598,7 @@
   "dataQuality_msg_pressureSwap": "Einddruk {end} is hoger dan begindruk {start}",
   "dataQuality_msg_pressureEndpoint": "Het flesrecord vermeldt {record}, maar de sensorreeks toont {series}",
   "dataQuality_msg_pressureRise": "Druk steeg {rise} midden in de duik zonder gaswisseling",
+  "dataQuality_msg_pressureDropout": "{count, plural, =1{Het druksignaal viel één keer weg} other{Het druksignaal viel {count} keer weg}}",
   "dataQuality_msg_sac": "Het afgeleide oppervlakteverbruik van {sac} is onaannemelijk",
   "dataQuality_msg_ppo2": "ppO2 bereikte {ppo2} op {gas} bij {depth}",
   "dataQuality_msg_hypoxic": "Hypoxisch mengsel ({gas}) weergegeven als in gebruik aan de oppervlakte",

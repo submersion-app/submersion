@@ -30690,6 +30690,17 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'אות הלחץ נותק $count פעמים',
+      one: 'אות הלחץ נותק פעם אחת',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_msg_sac(String sac) {
     return 'צריכת פני השטח המשתמעת של $sac אינה סבירה';
   }

@@ -9598,6 +9598,7 @@
   "dataQuality_msg_pressureSwap": "La pression de fin {end} est supérieure à la pression de début {start}",
   "dataQuality_msg_pressureEndpoint": "L'enregistrement du bloc indique {record}, mais la série du capteur montre {series}",
   "dataQuality_msg_pressureRise": "La pression a augmenté de {rise} en cours de plongée sans changement de gaz",
+  "dataQuality_msg_pressureDropout": "{count, plural, =1{Le signal de pression a été perdu une fois} other{Le signal de pression a été perdu {count} fois}}",
   "dataQuality_msg_sac": "La consommation en surface implicite de {sac} est invraisemblable",
   "dataQuality_msg_ppo2": "La ppO2 a atteint {ppo2} avec {gas} à {depth}",
   "dataQuality_msg_hypoxic": "Mélange hypoxique ({gas}) indiqué comme utilisé en surface",

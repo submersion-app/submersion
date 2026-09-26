@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_dive_mode.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -975,16 +976,18 @@ class ReparseService {
       final needEnd = parsedTank?.endPressureBar == null;
       if (!needStart && !needEnd) continue;
 
-      final sorted = [...entry.value]
-        ..sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      // Signal dropouts at either end of the series must not become the
+      // recorded pressure (#2441).
+      final endpoints = cleanSeriesEndpoints([
+        for (final p in entry.value) (t: p.timestamp, bar: p.pressure),
+      ]);
+      if (endpoints == null) continue;
       await (db.update(db.diveTanks)..where((t) => t.id.equals(tankId))).write(
         DiveTanksCompanion(
           startPressure: needStart
-              ? Value(sorted.first.pressure)
+              ? Value(endpoints.start)
               : const Value.absent(),
-          endPressure: needEnd
-              ? Value(sorted.last.pressure)
-              : const Value.absent(),
+          endPressure: needEnd ? Value(endpoints.end) : const Value.absent(),
         ),
       );
     }

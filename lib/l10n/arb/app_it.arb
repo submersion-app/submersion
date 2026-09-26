@@ -9598,6 +9598,7 @@
   "dataQuality_msg_pressureSwap": "La pressione finale {end} è superiore alla pressione iniziale {start}",
   "dataQuality_msg_pressureEndpoint": "Il record della bombola indica {record}, ma la serie del sensore mostra {series}",
   "dataQuality_msg_pressureRise": "La pressione è aumentata di {rise} durante l'immersione senza cambio gas",
+  "dataQuality_msg_pressureDropout": "{count, plural, =1{Il segnale di pressione si è interrotto una volta} other{Il segnale di pressione si è interrotto {count} volte}}",
   "dataQuality_msg_sac": "Il consumo in superficie implicito di {sac} non è plausibile",
   "dataQuality_msg_ppo2": "La ppO2 ha raggiunto {ppo2} con {gas} a {depth}",
   "dataQuality_msg_hypoxic": "Miscela ipossica ({gas}) indicata in uso in superficie",

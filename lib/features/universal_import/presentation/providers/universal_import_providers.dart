@@ -46,6 +46,7 @@ import 'package:submersion/features/universal_import/data/services/payload_diver
 import 'package:submersion/features/universal_import/data/services/payload_merger.dart';
 import 'package:submersion/features/universal_import/data/services/shearwater_db_reader.dart';
 import 'package:submersion/features/universal_import/data/services/surfacing_pressure_normalizer.dart';
+import 'package:submersion/features/universal_import/data/services/tank_pressure_glitch_normalizer.dart';
 import 'package:submersion/features/universal_import/data/services/import_duplicate_checker.dart';
 import 'package:submersion/features/universal_import/data/services/zip_expansion_service.dart';
 import 'package:submersion/features/universal_import/domain/services/bundled_photo_exporter.dart';
@@ -1088,9 +1089,14 @@ class UniversalImportNotifier extends StateNotifier<UniversalImportState> {
   /// to the finished payload so every format is covered at one seam, and after
   /// the parsers have run so a parser that derives other figures from the
   /// source's own start/end pair (FIT cylinder volume) still sees them.
+  ///
+  /// A start or end pressure taken from a transmitter dropout is replaced
+  /// first, whatever the preference (issue #2441): it is wrong for every
+  /// diver, and the surfacing rule should see the corrected value.
   ImportPayload _applySurfacingPressureRule(ImportPayload payload) {
+    final deglitched = replaceGlitchedTankPressures(payload);
     final trim = _ref.read(settingsProvider).trimTankPressureAtSurfacing;
-    return trim ? trimTankPressuresAtSurfacing(payload) : payload;
+    return trim ? trimTankPressuresAtSurfacing(deglitched) : deglitched;
   }
 
   Future<ImportDuplicateResult> _checkDuplicates(ImportPayload payload) async {

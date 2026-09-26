@@ -1,0 +1,228 @@
+/// One tank pressure reading: seconds from dive start and bar.
+typedef PressureReading = ({int t, double bar});
+
+/// How far below the level around it a reading must sit to count as a dip,
+/// in bar. Readings between two samples of a draining cylinder move by a bar
+/// or two at most, so this cannot catch ordinary consumption.
+const double kPressureGlitchMinDipBar = 5.0;
+
+/// The longest a dip that does not reach zero may last and still count as a
+/// misread, in seconds, measured from the good reading before it to the good
+/// reading after it. A lower reading that persists longer is treated as
+/// real, since nothing short of a lost signal explains it.
+const int kPressureGlitchMaxSeconds = 120;
+
+/// Readings below this, in bar, are what a transmitter that lost its signal
+/// logs. Nobody breathes from a cylinder at this pressure, so a run of them
+/// between normal readings is a dropout however long it lasts.
+const double kPressureGlitchNearZeroBar = 5.0;
+
+/// How far the reading after a dip may sit below the level before it, in bar,
+/// covering the gas breathed while the reading was off.
+const double kPressureGlitchReturnBelowBar = 10.0;
+
+/// How far the reading after a dip may sit above the level before it, in bar.
+/// A dip that returns much higher is no misread of one cylinder.
+const double kPressureGlitchReturnAboveBar = 3.0;
+
+/// How far below the first stable reading a lead-in reading must sit, in bar,
+/// to count as taken before the valve was open or the transmitter paired.
+const double kPressureGlitchLeadInGapBar = 10.0;
+
+/// Where a tank pressure series holds readings that do not describe the
+/// cylinder: signal dropouts, transient misreads and a lead-in logged before
+/// the valve was open (issue #2441).
+class PressureGlitchScan {
+  const PressureGlitchScan({
+    required this.glitchIndices,
+    required this.episodeCount,
+  });
+
+  static const PressureGlitchScan none = PressureGlitchScan(
+    glitchIndices: {},
+    episodeCount: 0,
+  );
+
+  /// Indices into the scanned series of every reading to disregard.
+  final Set<int> glitchIndices;
+
+  /// How many separate glitches the series holds: a run of consecutive
+  /// glitch readings counts once.
+  final int episodeCount;
+}
+
+/// Finds the readings of a time-ordered tank pressure series that do not
+/// describe the cylinder.
+///
+/// Three shapes are recognised:
+///
+/// * a lead-in: readings in the first [kPressureGlitchMaxSeconds] (or of any
+///   length, while they stay near zero) that sit more than
+///   [kPressureGlitchLeadInGapBar] below the first reading after them;
+/// * a near-zero dropout: readings below [kPressureGlitchNearZeroBar] between
+///   two normal ones, whatever their length;
+/// * a transient dip: readings more than [kPressureGlitchMinDipBar] below
+///   both the reading before and the reading after them, lasting at most
+///   [kPressureGlitchMaxSeconds], after which the pressure returns to the
+///   prior level.
+///
+/// A drop with no recovery after it is left alone: nothing in the series
+/// shows it to be a misread. The series is not changed.
+PressureGlitchScan scanPressureGlitches(List<PressureReading> readings) {
+  final n = readings.length;
+  if (n < 2) return PressureGlitchScan.none;
+
+  final glitches = <int>{};
+  var episodes = 0;
+
+  final leadIn = _leadInLength(readings);
+  if (leadIn > 0) {
+    glitches.addAll([for (var i = 0; i < leadIn; i++) i]);
+    episodes++;
+  }
+
+  // The last reading taken as describing the cylinder.
+  var previous = leadIn;
+  var i = leadIn + 1;
+  while (i < n) {
+    final level = readings[previous].bar;
+    if (readings[i].bar >= level - kPressureGlitchMinDipBar) {
+      previous = i;
+      i++;
+      continue;
+    }
+    // A dropout lasts as long as the reading stays near zero. Measuring it
+    // against the prior level instead would swallow the first good reading
+    // after a long dropout, which by then sits several bar lower from the
+    // gas breathed meanwhile.
+    final ceiling = readings[i].bar < kPressureGlitchNearZeroBar
+        ? kPressureGlitchNearZeroBar
+        : level - kPressureGlitchMinDipBar;
+    var k = i;
+    while (k < n && readings[k].bar < ceiling) {
+      k++;
+    }
+    // No reading after the dip means nothing shows it was not real; it is
+    // taken as the new level like any other drop, and the scan goes on.
+    if (k < n && _isGlitch(readings, previous, i, k)) {
+      glitches.addAll([for (var j = i; j < k; j++) j]);
+      episodes++;
+      previous = k;
+      i = k + 1;
+    } else {
+      previous = i;
+      i++;
+    }
+  }
+
+  return PressureGlitchScan(glitchIndices: glitches, episodeCount: episodes);
+}
+
+/// [readings] without the readings [scanPressureGlitches] finds, or the same
+/// list when it finds none.
+List<PressureReading> withoutPressureGlitches(List<PressureReading> readings) {
+  final scan = scanPressureGlitches(readings);
+  if (scan.glitchIndices.isEmpty) return readings;
+  return [
+    for (var i = 0; i < readings.length; i++)
+      if (!scan.glitchIndices.contains(i)) readings[i],
+  ];
+}
+
+/// The start ([atStart]) or end pressure to record for a cylinder, given what
+/// the source reported and the cylinder's pressure series.
+///
+/// A source that derives its endpoints from the samples (libdivecomputer's
+/// Shearwater parser takes the first and last non-zero reading) inherits any
+/// glitch sitting at either end. When [reportedBar] matches a glitch reading
+/// of [readings], the first or last clean reading replaces it; any other
+/// value, and a null, comes back unchanged.
+double? replaceGlitchedEndpoint({
+  required double? reportedBar,
+  required List<PressureReading> readings,
+  required bool atStart,
+}) {
+  if (reportedBar == null) return null;
+  final scan = scanPressureGlitches(readings);
+  if (scan.glitchIndices.isEmpty) return reportedBar;
+  final matchesGlitch = scan.glitchIndices.any(
+    (i) => (readings[i].bar - reportedBar).abs() <= _endpointMatchToleranceBar,
+  );
+  if (!matchesGlitch) return reportedBar;
+  final clean = [
+    for (var i = 0; i < readings.length; i++)
+      if (!scan.glitchIndices.contains(i)) readings[i],
+  ];
+  if (clean.isEmpty) return reportedBar;
+  return atStart ? clean.first.bar : clean.last.bar;
+}
+
+/// The first and last clean reading of a tank pressure series, in any order,
+/// or null when it holds none.
+///
+/// Used where a cylinder's start and end pressure are derived from its
+/// series because the source reported none: a dropout at either end of the
+/// series must not become the recorded pressure (issue #2441).
+({double start, double end})? cleanSeriesEndpoints(
+  List<PressureReading> readings,
+) {
+  final indexed = [for (var i = 0; i < readings.length; i++) (i, readings[i])]
+    ..sort((a, b) {
+      final byTime = a.$2.t.compareTo(b.$2.t);
+      return byTime != 0 ? byTime : a.$1.compareTo(b.$1);
+    });
+  final clean = withoutPressureGlitches([for (final e in indexed) e.$2]);
+  if (clean.isEmpty) return null;
+  return (start: clean.first.bar, end: clean.last.bar);
+}
+
+// Sources quantize pressure before converting it (Shearwater logs 2 psi
+// units), so a reported value and the sample it came from can differ by a
+// fraction of a bar.
+const double _endpointMatchToleranceBar = 0.5;
+
+/// How many readings at the head of [readings] were logged before the
+/// cylinder was connected, or 0.
+int _leadInLength(List<PressureReading> readings) {
+  var best = 0;
+  var allNearZero = true;
+  for (var q = 1; q < readings.length; q++) {
+    allNearZero =
+        allNearZero && readings[q - 1].bar < kPressureGlitchNearZeroBar;
+    final span = readings[q - 1].t - readings.first.t;
+    if (span > kPressureGlitchMaxSeconds && !allNearZero) break;
+    final ceiling = readings[q].bar - kPressureGlitchLeadInGapBar;
+    var below = true;
+    for (var j = 0; j < q; j++) {
+      if (readings[j].bar >= ceiling) {
+        below = false;
+        break;
+      }
+    }
+    if (below) best = q;
+  }
+  return best;
+}
+
+/// Whether the dip at `readings[start, end)`, entered from the good reading
+/// at [before] and left at `readings[end]`, is a misread rather than a real
+/// change.
+bool _isGlitch(List<PressureReading> readings, int before, int start, int end) {
+  final level = readings[before].bar;
+  final after = readings[end].bar;
+  if (after > level + kPressureGlitchReturnAboveBar) return false;
+  final floor = (after < level ? after : level) - kPressureGlitchMinDipBar;
+  var nearZero = true;
+  for (var j = start; j < end; j++) {
+    final bar = readings[j].bar;
+    if (bar >= floor) return false;
+    if (bar >= kPressureGlitchNearZeroBar) nearZero = false;
+  }
+  if (nearZero) return true;
+  // Measured between the good readings either side, not across the dip
+  // alone: in a sparsely sampled series the drop may have happened at any
+  // point of a long gap, where it is as likely real consumption.
+  final span = readings[end].t - readings[before].t;
+  return after >= level - kPressureGlitchReturnBelowBar &&
+      span <= kPressureGlitchMaxSeconds;
+}

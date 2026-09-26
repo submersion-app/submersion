@@ -20363,6 +20363,14 @@
       }
     }
   },
+  "dataQuality_msg_pressureDropout": "{count, plural, =1{The pressure signal dropped out once} other{The pressure signal dropped out {count} times}}",
+  "@dataQuality_msg_pressureDropout": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "dataQuality_msg_sac": "Implied surface consumption of {sac} is implausible",
   "@dataQuality_msg_sac": {
     "placeholders": {

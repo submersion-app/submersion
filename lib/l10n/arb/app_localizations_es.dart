@@ -31463,6 +31463,17 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'La señal de presión se perdió $count veces',
+      one: 'La señal de presión se perdió una vez',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_msg_sac(String sac) {
     return 'El consumo en superficie implícito de $sac es inverosímil';
   }

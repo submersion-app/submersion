@@ -214,6 +214,13 @@ void main() {
       );
     });
 
+    test('dropout branch counts the dropouts', () {
+      expect(
+        detailFor('pressure_anomaly', {'dropoutCount': 3, 'tankId': 't1'}),
+        contains('3 times'),
+      );
+    });
+
     test(
       'SAC branch routes L/min through the sac formatter, not hardcoded',
       () {

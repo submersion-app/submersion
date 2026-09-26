@@ -9598,6 +9598,7 @@
   "dataQuality_msg_pressureSwap": "לחץ הסיום {end} גבוה מלחץ ההתחלה {start}",
   "dataQuality_msg_pressureEndpoint": "רשומת הבלון מציינת {record}, אך סדרת החיישן מציגה {series}",
   "dataQuality_msg_pressureRise": "הלחץ עלה ב-{rise} באמצע הצלילה ללא החלפת גז",
+  "dataQuality_msg_pressureDropout": "{count, plural, =1{אות הלחץ נותק פעם אחת} other{אות הלחץ נותק {count} פעמים}}",
   "dataQuality_msg_sac": "צריכת פני השטח המשתמעת של {sac} אינה סבירה",
   "dataQuality_msg_ppo2": "ה-ppO2 הגיע ל-{ppo2} עם {gas} בעומק {depth}",
   "dataQuality_msg_hypoxic": "תערובת היפוקסית ({gas}) מוצגת כבשימוש בפני השטח",

@@ -31033,6 +31033,17 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'انقطعت إشارة الضغط $count مرات',
+      one: 'انقطعت إشارة الضغط مرة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_msg_sac(String sac) {
     return 'معدل الاستهلاك السطحي الضمني $sac غير معقول';
   }

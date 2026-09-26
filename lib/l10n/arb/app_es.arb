@@ -9598,6 +9598,7 @@
   "dataQuality_msg_pressureSwap": "La presión final {end} es mayor que la presión inicial {start}",
   "dataQuality_msg_pressureEndpoint": "El registro del tanque indica {record}, pero la serie del sensor muestra {series}",
   "dataQuality_msg_pressureRise": "La presión subió {rise} a mitad de la inmersión sin cambio de gas",
+  "dataQuality_msg_pressureDropout": "{count, plural, =1{La señal de presión se perdió una vez} other{La señal de presión se perdió {count} veces}}",
   "dataQuality_msg_sac": "El consumo en superficie implícito de {sac} es inverosímil",
   "dataQuality_msg_ppo2": "La ppO2 alcanzó {ppo2} con {gas} a {depth}",
   "dataQuality_msg_hypoxic": "Mezcla hipóxica ({gas}) mostrada en uso en la superficie",

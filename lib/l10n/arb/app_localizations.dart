@@ -50232,6 +50232,12 @@ abstract class AppLocalizations {
   /// **'Pressure rose {rise} mid-dive with no gas switch'**
   String dataQuality_msg_pressureRise(String rise);
 
+  /// No description provided for @dataQuality_msg_pressureDropout.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{The pressure signal dropped out once} other{The pressure signal dropped out {count} times}}'**
+  String dataQuality_msg_pressureDropout(int count);
+
   /// No description provided for @dataQuality_msg_sac.
   ///
   /// In en, this message translates to:

@@ -31389,6 +31389,17 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String dataQuality_msg_pressureDropout(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Das Drucksignal ist $count-mal ausgefallen',
+      one: 'Das Drucksignal ist einmal ausgefallen',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String dataQuality_msg_sac(String sac) {
     return 'Der abgeleitete Oberflächenverbrauch von $sac ist unplausibel';
   }

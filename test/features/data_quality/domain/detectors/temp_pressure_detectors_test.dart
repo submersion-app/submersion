@@ -465,6 +465,94 @@ void main() {
       expect(det.detect(ctx), isEmpty);
     });
 
+    // A transmitter that loses its signal logs ~0 bar between normal
+    // readings (#2441). Each recovery used to be reported as a mid-dive
+    // rise of well over 100 bar.
+    group('signal dropouts', () {
+      List<QualityPressureSample> draining({
+        Map<int, double> glitches = const {},
+      }) => [
+        for (var i = 0; i <= 240; i++)
+          QualityPressureSample(t: i * 10, bar: glitches[i] ?? 200 - i * 0.5),
+      ];
+
+      test('dropouts are one finding per tank, not a rise each', () {
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 200, end: 80)]),
+          pressures: {
+            't1': draining(glitches: {50: 0.8, 51: 0.8, 120: 0.5, 200: 0.6}),
+          },
+        );
+        final out = det.detect(ctx);
+        expect(out.where((f) => f.params.containsKey('riseBar')), isEmpty);
+        final dropout = out.singleWhere(
+          (f) => f.params.containsKey('dropoutCount'),
+        );
+        expect(dropout.params['dropoutCount'], 3);
+        expect(dropout.params['tankId'], 't1');
+      });
+
+      test('a clean series raises no dropout finding', () {
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 200, end: 80)]),
+          pressures: {'t1': draining()},
+        );
+        expect(
+          det.detect(ctx).where((f) => f.params.containsKey('dropoutCount')),
+          isEmpty,
+        );
+      });
+
+      test('the endpoint check reads past a dropout at the end', () {
+        // Recorded end 80 is right; the last in-dive reading is a dropout,
+        // which must not stand in for the end of the series.
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 200, end: 80.5)]),
+          pressures: {
+            't1': draining(glitches: {239: 0.4}),
+          },
+        );
+        expect(
+          det.detect(ctx).where((f) => f.params['endpoint'] == 'end'),
+          isEmpty,
+        );
+      });
+
+      test(
+        'a start recorded from a dropout is a start mismatch, not a swap',
+        () {
+          // The import took the lead-in reading (3.9 bar) as the start
+          // pressure. Swapping start and end would make things worse; the
+          // series says what the start really was.
+          final ctx = makeContext(
+            dive: makeTestDive(tanks: [tank(start: 3.9, end: 80)]),
+            pressures: {
+              't1': draining(glitches: {0: 3.9}),
+            },
+          );
+          final out = det.detect(ctx);
+          expect(out.where((f) => f.params.containsKey('startBar')), isEmpty);
+          final start = out.singleWhere((f) => f.params['endpoint'] == 'start');
+          expect(start.params['recordBar'], 3.9);
+          expect(start.params['seriesBar'], closeTo(199.5, 1e-9));
+        },
+      );
+
+      test('a swap the series confirms is still flagged', () {
+        // Start and end really were entered the wrong way round: the
+        // series drains from the recorded end to the recorded start.
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 80, end: 200)]),
+          pressures: {'t1': draining()},
+        );
+        final swap = det
+            .detect(ctx)
+            .singleWhere((f) => f.params.containsKey('startBar'));
+        expect(swap.params['startBar'], 80);
+        expect(swap.params['endBar'], 200);
+      });
+    });
+
     test('implausible consumption flags SAC using mean sample depth', () {
       // avgDepth is null so the detector falls back to the mean of the samples.
       final fast = [

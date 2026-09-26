@@ -1,3 +1,5 @@
+import 'package:submersion/core/profile/tank_pressure_glitches.dart';
+
 /// Depth below which a diver counts as being on the surface, in meters.
 ///
 /// Matches Subsurface's long-standing `SURFACE_THRESHOLD` of 750 mm, so a
@@ -95,15 +97,18 @@ Map<int, SurfacingTankReading> surfacingTankReadings(
     return const {};
   }
 
+  final glitches = _glitchReadings(points);
   final atSurfacing = <int, double>{};
   final atSurfacingTime = <int, int>{};
   final afterSurfacing = <int, double>{};
   final afterSurfacingTime = <int, int>{};
-  for (final p in points) {
+  for (var pointIndex = 0; pointIndex < points.length; pointIndex++) {
+    final p = points[pointIndex];
     final surfaced = p.timeSeconds > surfacingTime;
     final values = surfaced ? afterSurfacing : atSurfacing;
     final times = surfaced ? afterSurfacingTime : atSurfacingTime;
     for (final entry in p.tankPressuresBar.entries) {
+      if (glitches.contains((pointIndex, entry.key))) continue;
       final seen = times[entry.key];
       if (seen == null || p.timeSeconds >= seen) {
         values[entry.key] = entry.value;
@@ -119,6 +124,37 @@ Map<int, SurfacingTankReading> surfacingTankReadings(
         lastAfterSurfacing: afterSurfacing[entry.key],
       ),
   };
+}
+
+/// Every `(point index, cylinder index)` reading of [points] that
+/// [scanPressureGlitches] finds to be a dropout or misread (issue #2441).
+///
+/// A dropout that happens to sit at the surfacing sample would otherwise
+/// become the cylinder's pressure at surfacing.
+Set<(int, int)> _glitchReadings(List<SurfacingProfilePoint> points) {
+  final byTank = <int, List<(int, int, double)>>{};
+  for (var i = 0; i < points.length; i++) {
+    final p = points[i];
+    for (final entry in p.tankPressuresBar.entries) {
+      (byTank[entry.key] ??= []).add((i, p.timeSeconds, entry.value));
+    }
+  }
+  final glitches = <(int, int)>{};
+  for (final entry in byTank.entries) {
+    // Sort by time, tie-broken by point order: List.sort is not stable.
+    final readings = [...entry.value]
+      ..sort((a, b) {
+        final byTime = a.$2.compareTo(b.$2);
+        return byTime != 0 ? byTime : a.$1.compareTo(b.$1);
+      });
+    final scan = scanPressureGlitches([
+      for (final r in readings) (t: r.$2, bar: r.$3),
+    ]);
+    for (final i in scan.glitchIndices) {
+      glitches.add((readings[i].$1, entry.key));
+    }
+  }
+  return glitches;
 }
 
 /// The end pressure to record for a cylinder, given what the source reported

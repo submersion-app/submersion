@@ -9598,6 +9598,7 @@
   "dataQuality_msg_pressureSwap": "A pressão final {end} é superior à pressão inicial {start}",
   "dataQuality_msg_pressureEndpoint": "O registo do cilindro indica {record}, mas a série do sensor mostra {series}",
   "dataQuality_msg_pressureRise": "A pressão subiu {rise} a meio do mergulho sem troca de gás",
+  "dataQuality_msg_pressureDropout": "{count, plural, =1{O sinal de pressão caiu uma vez} other{O sinal de pressão caiu {count} vezes}}",
   "dataQuality_msg_sac": "O consumo à superfície implícito de {sac} é implausível",
   "dataQuality_msg_ppo2": "A ppO2 atingiu {ppo2} com {gas} a {depth}",
   "dataQuality_msg_hypoxic": "Mistura hipóxica ({gas}) indicada em uso à superfície",

@@ -1,6 +1,7 @@
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/profile/surfacing_pressure.dart';
+import 'package:submersion/core/profile/tank_pressure_glitches.dart';
 import 'package:submersion/features/dive_computer/domain/entities/downloaded_dive.dart';
 
 /// Resolve a parsed dive's gas mixes to concrete cylinders, shared by the
@@ -148,9 +149,11 @@ _ResolvedCylinders _resolveCylinders(
   // Gas indices are positions into gasMixes (every bridge sets GasMix.index == i).
   // Scanned only once there are tank records to correct: a tankless dive
   // synthesizes pressureless cylinders that have no end pressure to trim.
+  final points = _surfacingPoints(parsed.samples);
   final surfacingReadings = trimAtSurfacing
-      ? surfacingTankReadings(_surfacingPoints(parsed.samples))
+      ? surfacingTankReadings(points)
       : const <int, SurfacingTankReading>{};
+  final readingsByTank = _readingsByTank(points);
   final result = <DownloadedTank>[];
   final consumed = <int>{};
 
@@ -178,14 +181,26 @@ _ResolvedCylinders _resolveCylinders(
     final o2 =
         gas?.o2Percent ?? (role == TankRole.oxygenSupply.name ? 100.0 : 21.0);
     final he = gas?.hePercent ?? 0.0;
+    // Shearwater's begin/end pressures are the first and last non-zero
+    // samples, so a dropout or a pre-valve lead-in at either end becomes
+    // the cylinder's pressure (#2441).
+    final readings = readingsByTank[tank.index] ?? const <PressureReading>[];
     result.add(
       DownloadedTank(
         index: tank.index,
         o2Percent: o2,
         hePercent: he,
-        startPressure: tank.startPressureBar,
+        startPressure: replaceGlitchedEndpoint(
+          reportedBar: tank.startPressureBar,
+          readings: readings,
+          atStart: true,
+        ),
         endPressure: trimEndPressureBar(
-          reportedBar: tank.endPressureBar,
+          reportedBar: replaceGlitchedEndpoint(
+            reportedBar: tank.endPressureBar,
+            readings: readings,
+            atStart: false,
+          ),
           reading: surfacingReadings[tank.index],
         ),
         volumeLiters: tank.volumeLiters,
@@ -511,6 +526,24 @@ Map<int, double> _sampleTankReadings(pigeon.ProfileSample sample) {
   // A reading without a tank index belongs to tank 0, as in the stored series.
   final pressure = sample.pressureBar;
   return pressure != null ? {sample.tankIndex ?? 0: pressure} : const {};
+}
+
+/// Each cylinder's readings in time order, keyed by cylinder index.
+Map<int, List<PressureReading>> _readingsByTank(
+  List<SurfacingProfilePoint> points,
+) {
+  final indexed = [for (var i = 0; i < points.length; i++) (i, points[i])]
+    ..sort((a, b) {
+      final byTime = a.$2.timeSeconds.compareTo(b.$2.timeSeconds);
+      return byTime != 0 ? byTime : a.$1.compareTo(b.$1);
+    });
+  final byTank = <int, List<PressureReading>>{};
+  for (final (_, p) in indexed) {
+    for (final entry in p.tankPressuresBar.entries) {
+      (byTank[entry.key] ??= []).add((t: p.timeSeconds, bar: entry.value));
+    }
+  }
+  return byTank;
 }
 
 /// Reduce libdivecomputer samples to the depth-plus-pressure points the
