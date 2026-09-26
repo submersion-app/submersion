@@ -275,11 +275,34 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
     final assumedVo2 = _assumedVo2Lpm;
     setState(() {
       _units = units;
-      _injectionRateSeed = _seedInjectionRate(injectionRate);
-      _assumedVo2Seed = _seedAssumedVo2(assumedVo2);
-      _injectionRateController.text = _injectionRateSeed.text;
-      _assumedVo2Controller.text = _assumedVo2Seed.text;
+      _injectionRateSeed = _reseedFlowField(
+        _injectionRateController,
+        injectionRate,
+        _seedInjectionRate,
+      );
+      _assumedVo2Seed = _reseedFlowField(
+        _assumedVo2Controller,
+        assumedVo2,
+        _seedAssumedVo2,
+      );
     });
+  }
+
+  /// Re-seeds [controller] from [litersPerMin] in the current unit. Text that
+  /// cannot be read (a half-typed "1..") has no value to convert, so it is
+  /// left as typed for the diver to correct rather than silently cleared; it
+  /// still reads back as null, as it did before the change.
+  _FlowSeed _reseedFlowField(
+    TextEditingController controller,
+    double? litersPerMin,
+    _FlowSeed Function(double?) seed,
+  ) {
+    if (litersPerMin == null && controller.text.trim().isNotEmpty) {
+      return (text: controller.text, litersPerMin: null);
+    }
+    final next = seed(litersPerMin);
+    controller.text = next.text;
+    return next;
   }
 
   void _notifyChange() {

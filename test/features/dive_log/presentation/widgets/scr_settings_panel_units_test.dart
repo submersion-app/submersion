@@ -184,6 +184,26 @@ void main() {
       expect(host.injectionRate, 8.0);
     });
 
+    testWidgets('a unit change keeps unreadable text being typed', (
+      tester,
+    ) async {
+      final host = await _pumpHost(tester, VolumeUnit.liters, 8.0);
+      await tester.enterText(_fieldWithLabel('Injection Rate'), '1..');
+      await tester.pump();
+      expect(host.injectionRate, isNull);
+
+      await host.settings.setVolumeUnit(VolumeUnit.cubicFeet);
+      await tester.pump();
+
+      // Left for the diver to correct rather than silently cleared.
+      expect(_textOf(tester, 'Injection Rate'), '1..');
+      expect(host.injectionRate, isNull);
+
+      await tester.enterText(_fieldWithLabel('Injection Rate'), '0.3');
+      await tester.pump();
+      expect(host.injectionRate, closeTo(0.3 / 0.0353147, 0.0001));
+    });
+
     testWidgets('a unit change while open re-renders the rates', (
       tester,
     ) async {
