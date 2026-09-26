@@ -479,6 +479,28 @@ void main() {
       expect(kinds!.where((k) => !k.isBuiltIn), isEmpty);
     });
 
+    testWidgets('a fractional day interval fails validation instead of '
+        'saving no interval (#1900)', (tester) async {
+      await tester.pumpWidget(buildDbPage());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(FloatingActionButton));
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Name'),
+        'Cell check',
+      );
+      await tester.enterText(
+        find.widgetWithText(TextFormField, 'Interval (days)'),
+        '1.5',
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Enter a whole number'), findsOneWidget);
+      expect(find.text('Add service type'), findsOneWidget); // still open
+    });
+
     testWidgets('empty name fails validation and keeps the dialog open', (
       tester,
     ) async {

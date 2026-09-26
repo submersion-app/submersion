@@ -39,6 +39,7 @@ import 'package:submersion/features/weather/presentation/providers/weather_provi
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/edit_form_scaffold.dart';
 import 'package:submersion/shared/widgets/forms/responsive_form_columns.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Seeds a depth field at the single decimal place it has always shown, and an
 /// altitude field at the whole units it has always shown, both in the active
@@ -769,15 +770,11 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     return null;
   }
 
-  String? _altitudeValidatorFn(String? value) {
-    if (value != null && value.isNotEmpty) {
-      final altitude = parseUserDecimal(value);
-      if (altitude == null || altitude < 0) {
-        return context.l10n.diveSites_edit_altitude_validation;
-      }
-    }
-    return null;
-  }
+  String? _altitudeValidatorFn(String? value) => numberValidator(
+    context,
+    check: (altitude) =>
+        altitude < 0 ? context.l10n.diveSites_edit_altitude_validation : null,
+  )(value);
 
   MergeFieldExtras? _mergeExtras(String key) {
     final candidates = _mergeTextCandidates[key];
@@ -1691,6 +1688,13 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
     }
   }
 
+  static double? _validatedNumber(TextEditingController controller) =>
+      switch (readNumber(controller.text)) {
+        NumberValue(:final value) => value,
+        NumberBlank() => null,
+        NumberInvalid() => null, // unreachable: validate() ran first
+      };
+
   Future<void> _saveSite() async {
     // Collapsed sections un-mount their fields, hiding them from
     // Form.validate(); expand everything first so no error can hide.
@@ -1729,9 +1733,10 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
         }
       }
 
-      final minDepthInput = parseUserDecimal(_minDepthController.text);
-      final maxDepthInput = parseUserDecimal(_maxDepthController.text);
-      final altitudeInput = parseUserDecimal(_altitudeController.text);
+      // Blank is "not recorded"; validate() above stopped unreadable text.
+      final minDepthInput = _validatedNumber(_minDepthController);
+      final maxDepthInput = _validatedNumber(_maxDepthController);
+      final altitudeInput = _validatedNumber(_altitudeController);
       final minDepthMeters = minDepthInput != null
           ? units.depthToMeters(minDepthInput)
           : null;

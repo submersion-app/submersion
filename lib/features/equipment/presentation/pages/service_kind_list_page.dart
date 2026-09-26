@@ -19,6 +19,7 @@ import 'package:submersion/shared/selection/selection_controller.dart';
 import 'package:submersion/shared/selection/selection_leading.dart';
 import 'package:submersion/shared/selection/selection_state.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_enum_display.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Catalog management for service kinds: built-ins are read-only reference
 /// data; custom kinds support full CRUD.
@@ -401,6 +402,7 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _days,
+                  validator: numberValidator(context, integer: true),
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: l10n.equipment_scheduleDialog_intervalDays,
@@ -409,6 +411,7 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _dives,
+                  validator: numberValidator(context, integer: true),
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: l10n.equipment_scheduleDialog_intervalDives,
@@ -417,6 +420,7 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
                 const SizedBox(height: 12),
                 TextFormField(
                   controller: _hours,
+                  validator: numberValidator(context),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
@@ -429,6 +433,10 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
                   TextFormField(
                     key: Key('service-kind-exposure-${unit.name}'),
                     controller: _exposure[unit],
+                    validator: numberValidator(
+                      context,
+                      integer: !unit.isFractional,
+                    ),
                     keyboardType: unit.isFractional
                         ? const TextInputType.numberWithOptions(decimal: true)
                         : TextInputType.number,
@@ -450,14 +458,12 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
                     labelText: l10n.equipment_serviceKinds_defaultCostLabel,
                     hintText: l10n.equipment_serviceKinds_defaultCostHint,
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) return null;
-                    final parsed = parseUserDecimal(value);
-                    if (parsed == null || parsed < 0) {
-                      return l10n.equipment_serviceDialog_costValidation;
-                    }
-                    return null;
-                  },
+                  validator: numberValidator(
+                    context,
+                    check: (cost) => cost < 0
+                        ? l10n.equipment_serviceDialog_costValidation
+                        : null,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 // Full width rather than sharing a row with the price: the
@@ -582,13 +588,19 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
           diverId: diverId,
           name: _name.text.trim(),
           applicableTypes: _types.toList(),
-          defaultIntervalDays: parseUserInt(_days.text),
-          defaultIntervalDives: parseUserInt(_dives.text),
-          defaultIntervalHours: parseUserDecimal(_hours.text),
+          defaultIntervalDays: serviceFieldNumber(
+            _days.text,
+            integer: true,
+          )?.toInt(),
+          defaultIntervalDives: serviceFieldNumber(
+            _dives.text,
+            integer: true,
+          )?.toInt(),
+          defaultIntervalHours: serviceFieldNumber(_hours.text),
           exposureIntervals: parseExposureIntervals({
             for (final e in _exposure.entries) e.key: e.value.text,
           }),
-          defaultCost: parseUserDecimal(_defaultCost.text),
+          defaultCost: serviceFieldNumber(_defaultCost.text),
           defaultCurrency: _defaultCurrency,
           defaultCategory: _defaultCategory,
           autoAttach: _autoAttach,
@@ -604,13 +616,19 @@ class _ServiceKindEditDialogState extends State<_ServiceKindEditDialog> {
           diverId: existing.diverId,
           name: _name.text.trim(),
           applicableTypes: _types.toList(),
-          defaultIntervalDays: parseUserInt(_days.text),
-          defaultIntervalDives: parseUserInt(_dives.text),
-          defaultIntervalHours: parseUserDecimal(_hours.text),
+          defaultIntervalDays: serviceFieldNumber(
+            _days.text,
+            integer: true,
+          )?.toInt(),
+          defaultIntervalDives: serviceFieldNumber(
+            _dives.text,
+            integer: true,
+          )?.toInt(),
+          defaultIntervalHours: serviceFieldNumber(_hours.text),
           exposureIntervals: parseExposureIntervals({
             for (final e in _exposure.entries) e.key: e.value.text,
           }),
-          defaultCost: parseUserDecimal(_defaultCost.text),
+          defaultCost: serviceFieldNumber(_defaultCost.text),
           defaultCurrency: _defaultCurrency,
           defaultCategory: _defaultCategory,
           autoAttach: _autoAttach,

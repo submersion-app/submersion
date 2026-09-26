@@ -17,6 +17,7 @@ import 'package:submersion/features/equipment/presentation/utils/exposure_unit_d
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Invalidate every provider that reflects clock state for [equipmentId].
 void invalidateServiceClockProviders(WidgetRef ref, String equipmentId) {
@@ -254,8 +255,9 @@ class _ScheduleOverrideDialogState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              TextField(
+              TextFormField(
                 controller: _days,
+                validator: numberValidator(context, integer: true),
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: l10n.equipment_scheduleDialog_intervalDays,
@@ -267,8 +269,9 @@ class _ScheduleOverrideDialogState
                 ),
               ),
               const SizedBox(height: 12),
-              TextField(
+              TextFormField(
                 controller: _dives,
+                validator: numberValidator(context, integer: true),
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: l10n.equipment_scheduleDialog_intervalDives,
@@ -280,8 +283,9 @@ class _ScheduleOverrideDialogState
                 ),
               ),
               const SizedBox(height: 12),
-              TextField(
+              TextFormField(
                 controller: _hours,
+                validator: numberValidator(context),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
@@ -296,9 +300,13 @@ class _ScheduleOverrideDialogState
               ),
               for (final unit in ExposureUnit.mapUnits) ...[
                 const SizedBox(height: 12),
-                TextField(
+                TextFormField(
                   key: Key('service-schedule-exposure-${unit.name}'),
                   controller: _exposure[unit],
+                  validator: numberValidator(
+                    context,
+                    integer: !unit.isFractional,
+                  ),
                   keyboardType: unit.isFractional
                       ? const TextInputType.numberWithOptions(decimal: true)
                       : TextInputType.number,
@@ -334,14 +342,12 @@ class _ScheduleOverrideDialogState
                           formatDecimalForInput(kind.defaultCost!),
                         ),
                 ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) return null;
-                  final parsed = parseUserDecimal(value);
-                  if (parsed == null || parsed < 0) {
-                    return l10n.equipment_serviceDialog_costValidation;
-                  }
-                  return null;
-                },
+                validator: numberValidator(
+                  context,
+                  check: (cost) => cost < 0
+                      ? l10n.equipment_serviceDialog_costValidation
+                      : null,
+                ),
               ),
               const SizedBox(height: 12),
               // The currency this item's price is in. Null inherits the kind's,
@@ -447,13 +453,19 @@ class _ScheduleOverrideDialogState
               id: schedule.id,
               equipmentId: schedule.equipmentId,
               serviceKindId: schedule.serviceKindId,
-              intervalDays: parseUserInt(_days.text),
-              intervalDives: parseUserInt(_dives.text),
-              intervalHours: parseUserDecimal(_hours.text),
+              intervalDays: serviceFieldNumber(
+                _days.text,
+                integer: true,
+              )?.toInt(),
+              intervalDives: serviceFieldNumber(
+                _dives.text,
+                integer: true,
+              )?.toInt(),
+              intervalHours: serviceFieldNumber(_hours.text),
               exposureIntervals: parseExposureIntervals({
                 for (final e in _exposure.entries) e.key: e.value.text,
               }),
-              defaultCost: parseUserDecimal(_defaultCost.text),
+              defaultCost: serviceFieldNumber(_defaultCost.text),
               defaultCurrency: _defaultCurrency,
               anchorDate: baseline.anchorDate,
               anchorSetAt: baseline.anchorSetAt,
