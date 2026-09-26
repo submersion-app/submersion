@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
@@ -361,6 +363,66 @@ void main() {
         expect(dive!.equipment.map((e) => e.id), contains(item.id));
       },
     );
+
+    testWidgets('Save right after a tank scan waits for the gear to be added', (
+      tester,
+    ) async {
+      const passportId = '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
+      final item = (await tester.runAsync(
+        () => EquipmentRepository().createEquipment(
+          const EquipmentItem(
+            id: '',
+            name: 'Faber 12',
+            type: EquipmentType.tank,
+          ),
+        ),
+      ))!;
+      await tester.runAsync(
+        () => CylinderPassportRepository().assignPassportId(
+          equipmentId: item.id,
+          passportId: passportId,
+        ),
+      );
+      // Holds gear expansion open, as a slow database would.
+      final gate = Completer<void>();
+      String? savedId;
+      await pumpEditPage(
+        tester,
+        onSaved: (id) => savedId = id,
+        extraOverrides: [
+          passportScanLauncherProvider.overrideWithValue(
+            (context) async => 'https://submersion.app/c#f=1&p=$passportId',
+          ),
+          equipmentComponentsIndexProvider.overrideWith((ref) async {
+            await gate.future;
+            return ComponentsIndex.empty;
+          }),
+        ],
+      );
+      await tester.tap(find.textContaining('Tank 1').first);
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.ensureVisible(find.byKey(const Key('tank-scan-tag')));
+      await tester.tap(find.byKey(const Key('tank-scan-tag')));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // The scan has filled the tank; its gear add is still pending.
+      await tester.tap(find.text('Save'));
+      await tester.pump(const Duration(milliseconds: 100));
+      gate.complete();
+      for (var i = 0; i < 100 && savedId == null; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 10)),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      final dive = await tester.runAsync(
+        () => repository.getDiveById(savedId!),
+      );
+      expect(dive!.equipment.map((e) => e.id), contains(item.id));
+    });
   });
 }
 

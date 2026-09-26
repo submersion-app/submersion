@@ -3586,10 +3586,31 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
   /// Every way gear reaches this page funnels here so an assembly expands
   /// identically whether it came from the picker, a set, a geofence
   /// suggestion or the on-empty default (issue #1487).
+  /// The latest gear add, if one may still be running. Adds run one at a
+  /// time (each merges into the list the one before it produced), and Save
+  /// waits for them, so gear added a moment before Save (a scanned cylinder,
+  /// a set) is not left out of the saved dive.
+  Future<void>? _pendingGearAdd;
+
   Future<void> _addGear(
     List<EquipmentItem> items, {
     String? viaSetId,
     bool markDirty = true,
+  }) {
+    final previous = _pendingGearAdd;
+    final run = () async {
+      // The previous add's failure is its own caller's to report.
+      if (previous != null) await previous.then((_) {}, onError: (_) {});
+      await _addGearNow(items, viaSetId: viaSetId, markDirty: markDirty);
+    }();
+    _pendingGearAdd = run;
+    return run;
+  }
+
+  Future<void> _addGearNow(
+    List<EquipmentItem> items, {
+    String? viaSetId,
+    required bool markDirty,
   }) async {
     if (items.isEmpty) return;
     final merged = [
@@ -5166,6 +5187,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     final pendingSnap = _pendingDiveTypeSnap;
     if (pendingSnap != null) {
       await pendingSnap;
+      if (!mounted) return;
+    }
+    // Wait for gear still being added; an add started meanwhile is waited
+    // for too. A failed add was reported by its caller and adds nothing.
+    for (
+      var pending = _pendingGearAdd;
+      pending != null;
+      pending = identical(pending, _pendingGearAdd) ? null : _pendingGearAdd
+    ) {
+      await pending.then((_) {}, onError: (_) {});
       if (!mounted) return;
     }
     // Collapsed sections un-mount their fields, hiding them from
