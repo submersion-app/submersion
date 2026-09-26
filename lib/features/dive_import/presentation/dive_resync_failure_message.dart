@@ -20,6 +20,8 @@ String diveResyncFailureMessage(
     l10n.diveLog_detail_resyncFailed_storedFileMissing,
   DiveResyncFailure.noMatchingDive =>
     l10n.diveLog_detail_resyncFailed_noMatchingDive,
+  DiveResyncFailure.ambiguousDiver =>
+    l10n.diveLog_detail_resyncFailed_ambiguousDiver,
   DiveResyncFailure.unexpectedError =>
     l10n.diveLog_detail_resyncFailed_unexpectedError,
 };

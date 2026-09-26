@@ -153,8 +153,8 @@ void main() {
   ];
 
   test('v232 is at or below the current schema version and in the ladder', () {
-    // Relaxed once v234 (saved queries) landed on top; the newest rung owns
-    // the exact assertion.
+    // Relaxed once v233 (dive source diver key, #1921) landed on top; the
+    // newest rung owns the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(232));
     expect(AppDatabase.migrationVersions, contains(232));
     expect(AppDatabase.migrationStepCount(231), greaterThanOrEqualTo(1));

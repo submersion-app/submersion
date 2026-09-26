@@ -27907,6 +27907,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'Não foi possível ressincronizar: o arquivo original não contém mais um mergulho correspondente';
 
   @override
+  String get diveLog_detail_resyncFailed_ambiguousDiver =>
+      'Não foi possível ressincronizar: o arquivo original tem um mergulho correspondente para mais de um mergulhador, e este mergulho não registra de qual deles veio';
+
+  @override
   String get diveLog_detail_resyncFailed_unexpectedError =>
       'Não foi possível ressincronizar: ocorreu um erro inesperado ao ler o arquivo original';
 
