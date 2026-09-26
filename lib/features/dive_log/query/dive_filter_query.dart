@@ -148,6 +148,48 @@ extension DiveFilterQuery on DiveFilterState {
         ),
       );
     }
+    // Explore's axes (#2195). A dive with no reading never satisfies a
+    // bound: the compiler's comparison on a NULL column is NULL, which
+    // SQL treats as not matching, exactly as the retired hand SQL did with
+    // its explicit IS NOT NULL.
+    if (minWaterTemp != null) {
+      parts.add(c('waterTemp', QueryOp.gte, NumberValue(minWaterTemp!, null)));
+    }
+    if (maxWaterTemp != null) {
+      parts.add(c('waterTemp', QueryOp.lte, NumberValue(maxWaterTemp!, null)));
+    }
+    if (minVisibility != null) {
+      parts.add(
+        c('visibility', QueryOp.gte, NumberValue(minVisibility!, null)),
+      );
+    }
+    if (maxVisibility != null) {
+      parts.add(
+        c('visibility', QueryOp.lte, NumberValue(maxVisibility!, null)),
+      );
+    }
+    if (waterTypes.isNotEmpty) {
+      parts.add(
+        c(
+          'waterType',
+          QueryOp.inList,
+          ListValue([for (final w in waterTypes) EnumValue(w.name)]),
+        ),
+      );
+    }
+    // Any sighting of any listed species: one existential hop through the
+    // sightings child to its species.
+    if (speciesIds.isNotEmpty) {
+      parts.add(
+        ConditionNode(
+          FieldPath(['sightings', 'species']),
+          QueryOp.inList,
+          refs(speciesIds),
+        ),
+      );
+    }
+    // The set form of siteId; both apply when both are set.
+    if (siteIds.isNotEmpty) parts.add(c('site', QueryOp.inList, refs(siteIds)));
     for (final cond in equipmentAttrConditions) {
       parts.add(_attrCondition(cond));
     }

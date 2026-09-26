@@ -34,6 +34,8 @@ final Map<String, String Function(AppLocalizations)> _shortcutEntryLabels = {
   'Go to Settings': (l10n) => l10n.accessibility_shortcut_goToSettings,
   'Go back': (l10n) => l10n.accessibility_shortcut_goBack,
   'Search dives': (l10n) => l10n.accessibility_shortcut_searchDives,
+  'Explore with a sentence': (l10n) =>
+      l10n.accessibility_shortcut_exploreWithSentence,
   'Close / Cancel': (l10n) => l10n.accessibility_shortcut_closeCancel,
   'Open settings': (l10n) => l10n.accessibility_shortcut_openSettings,
   'Switch diver': (l10n) => l10n.accessibility_shortcut_switchDiver,

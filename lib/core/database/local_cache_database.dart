@@ -271,6 +271,24 @@ class DecoClassificationCache extends Table {
   Set<Column> get primaryKey => {diveId};
 }
 
+/// The diver's last Explore sentences with the model's parse, so the field
+/// can offer them and a re-run skips the model. Local-only by construction:
+/// no HLC, never synced, never backed up; rows with an older schema version
+/// are dropped on read.
+class RecentQueries extends Table {
+  /// Normalized sentence plus locale, so a retyped sentence bumps its row.
+  TextColumn get key => text()();
+  TextColumn get sentence => text()();
+  TextColumn get locale => text()();
+  TextColumn get parsedJson => text()();
+  IntColumn get schemaVersion => integer()();
+  TextColumn get subject => text()();
+  IntColumn get lastUsedAt => integer()();
+
+  @override
+  Set<Column> get primaryKey => {key};
+}
+
 @DriftDatabase(
   tables: [
     LocalAssetCache,
@@ -284,13 +302,14 @@ class DecoClassificationCache extends Table {
     WatchedRoots,
     WatchedFolderIndex,
     DecoClassificationCache,
+    RecentQueries,
   ],
 )
 class LocalCacheDatabase extends _$LocalCacheDatabase {
   LocalCacheDatabase(super.e);
 
   @override
-  int get schemaVersion => 17;
+  int get schemaVersion => 18;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -454,6 +473,10 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
           );
         }
       }
+      // v18: Explore recent queries. Table-only rung, no backfill.
+      if (from < 18) {
+        await m.createTable(recentQueries);
+      }
     },
     beforeOpen: (details) async {
       // Ladder-collision self-heal: a parallel branch that also claimed v7
@@ -533,6 +556,19 @@ class LocalCacheDatabase extends _$LocalCacheDatabase {
           inputs_hash TEXT NOT NULL,
           computed_at INTEGER NOT NULL,
           PRIMARY KEY (dive_id)
+        )
+      ''');
+      // v18 mirror, same collision self-heal as above.
+      await customStatement('''
+        CREATE TABLE IF NOT EXISTS recent_queries (
+          key TEXT NOT NULL,
+          sentence TEXT NOT NULL,
+          locale TEXT NOT NULL,
+          parsed_json TEXT NOT NULL,
+          schema_version INTEGER NOT NULL,
+          subject TEXT NOT NULL,
+          last_used_at INTEGER NOT NULL,
+          PRIMARY KEY (key)
         )
       ''');
       await customStatement('''

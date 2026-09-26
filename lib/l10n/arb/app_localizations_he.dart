@@ -1067,6 +1067,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get accessibility_shortcut_closeCancel => 'סגירה / ביטול';
 
   @override
+  String get accessibility_shortcut_exploreWithSentence => 'חקירה באמצעות משפט';
+
+  @override
   String get accessibility_shortcut_goBack => 'חזרה אחורה';
 
   @override
@@ -37585,6 +37588,343 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveLog_filter_sectionDiveComputer => 'מחשב צלילה';
+
+  @override
+  String diveLog_filterChip_speciesCount(Object count) {
+    return '$count מינים';
+  }
+
+  @override
+  String diveLog_filterChip_siteCount(Object count) {
+    return '$count אתרים';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return 'ראות $min עד $max $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMin(String value, String unit) {
+    return 'ראות מעל $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_visibilityMax(String value, String unit) {
+    return 'ראות מתחת $value $unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempRange(
+    String min,
+    String max,
+    String unit,
+  ) {
+    return 'מים $min עד $max$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMin(String value, String unit) {
+    return 'מים מעל $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTempMax(String value, String unit) {
+    return 'מים מתחת $value$unit';
+  }
+
+  @override
+  String diveLog_filterChip_waterTypeCount(Object count) {
+    return '$count סוגי מים';
+  }
+
+  @override
+  String get diveLog_filter_sectionSpecies => 'חיים ימיים';
+
+  @override
+  String diveLog_filter_sectionVisibilityUnit(Object unit) {
+    return 'ראות ($unit)';
+  }
+
+  @override
+  String diveLog_filter_sectionWaterTempUnit(Object unit) {
+    return 'טמפרטורת המים ($unit)';
+  }
+
+  @override
+  String get diveLog_filter_sectionWaterType => 'סוג מים';
+
+  @override
+  String get diveLog_filter_speciesSearchHint => 'חיפוש מינים';
+
+  @override
+  String get diveLog_listPage_tooltip_explore => 'חקירה באמצעות משפט';
+
+  @override
+  String get explore_chip_favorite => 'מועדף';
+
+  @override
+  String get explore_chip_deco => 'צלילת דקומפרסיה';
+
+  @override
+  String get explore_chip_noDeco => 'ללא דקומפרסיה';
+
+  @override
+  String get explore_chip_noBuddy => 'ללא שותף';
+
+  @override
+  String explore_chip_rating(String op, String value) {
+    return 'דירוג $op $value';
+  }
+
+  @override
+  String explore_chip_numeric(String field, String op, String value) {
+    return '$field $op $value';
+  }
+
+  @override
+  String explore_chip_between(String field, String low, String high) {
+    return '$field $low עד $high';
+  }
+
+  @override
+  String explore_chip_enum(String field, String values) {
+    return '$field: $values';
+  }
+
+  @override
+  String explore_chip_enumNot(String field, String values) {
+    return '$field לא $values';
+  }
+
+  @override
+  String explore_chip_timeRange(String start, String end) {
+    return '$start עד $end';
+  }
+
+  @override
+  String explore_chip_timeSince(Object start) {
+    return 'מאז $start';
+  }
+
+  @override
+  String explore_chip_timeBefore(Object end) {
+    return 'לפני $end';
+  }
+
+  @override
+  String explore_count(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: 'צלילה אחת',
+      zero: 'אין צלילות',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get explore_download_button => 'הורדת המודל למכשיר';
+
+  @override
+  String get explore_download_running => 'המודל בהורדה';
+
+  @override
+  String get explore_error_contextExceeded =>
+      'המשפט ארוך מדי עבור המודל במכשיר. נסו משפט קצר יותר.';
+
+  @override
+  String get explore_error_decodingFailure =>
+      'המודל לא הפיק תשובה שמישה. נסו לנסח מחדש.';
+
+  @override
+  String get explore_error_guardrail => 'המודל דחה את המשפט הזה.';
+
+  @override
+  String get explore_error_modelNotReady => 'המודל במכשיר עדיין לא מוכן.';
+
+  @override
+  String get explore_error_quotaExceeded =>
+      'המודל במכשיר עסוק. נסו שוב בעוד רגע.';
+
+  @override
+  String get explore_error_refusal => 'המודל דחה את המשפט הזה.';
+
+  @override
+  String get explore_error_schemaMismatch =>
+      'לא ניתן להבין זאת. עדכנו את האפליקציה אם זה חוזר על עצמו.';
+
+  @override
+  String get explore_error_unknown => 'משהו השתבש בפנייה למודל במכשיר.';
+
+  @override
+  String get explore_error_unsupportedLocale =>
+      'המודל במכשיר אינו מבין שפה זו.';
+
+  @override
+  String get explore_field_airTemp => 'טמפרטורת האוויר';
+
+  @override
+  String get explore_field_avgDepth => 'עומק ממוצע';
+
+  @override
+  String get explore_field_bottomTime => 'זמן קרקעית';
+
+  @override
+  String get explore_field_currentStrength => 'זרם';
+
+  @override
+  String get explore_field_depth => 'עומק';
+
+  @override
+  String get explore_field_diveMode => 'מצב צלילה';
+
+  @override
+  String get explore_field_diveNumber => 'מספר צלילה';
+
+  @override
+  String get explore_field_diveType => 'סוג צלילה';
+
+  @override
+  String get explore_field_entryMethod => 'כניסה';
+
+  @override
+  String get explore_field_o2 => 'חמצן';
+
+  @override
+  String get explore_field_rating => 'דירוג';
+
+  @override
+  String get explore_field_visibility => 'ראות';
+
+  @override
+  String get explore_field_waterTemp => 'טמפרטורת המים';
+
+  @override
+  String get explore_field_waterType => 'סוג מים';
+
+  @override
+  String get explore_field_weekday => 'יום בשבוע';
+
+  @override
+  String get explore_handoff_diveList => 'פתיחה ברשימת הצלילות';
+
+  @override
+  String get explore_handoff_insights => 'פתיחה בתובנות';
+
+  @override
+  String get explore_hint =>
+      'שאלו על הצלילות שלכם, למשל צבים מתחת ל-20 מ\' בבונייר';
+
+  @override
+  String get explore_needsAttention_title => 'דורש תשומת לב';
+
+  @override
+  String get explore_op_gt => 'מעל';
+
+  @override
+  String get explore_op_gte => 'לפחות';
+
+  @override
+  String get explore_op_lt => 'מתחת';
+
+  @override
+  String get explore_op_lte => 'לכל היותר';
+
+  @override
+  String get explore_op_eq => 'של';
+
+  @override
+  String explore_pickCandidate_title(Object text) {
+    return 'למה התכוונתם ב\"$text\"?';
+  }
+
+  @override
+  String get explore_recent_title => 'אחרונים';
+
+  @override
+  String get explore_results_title => 'צלילות מתאימות';
+
+  @override
+  String explore_results_truncated(Object count) {
+    return 'מוצגים $count הראשונים. פתחו את רשימת הצלילות לכולן.';
+  }
+
+  @override
+  String get explore_subjectNotSupported => 'כרגע ניתן לחפש צלילות בלבד.';
+
+  @override
+  String get explore_title => 'חקירה';
+
+  @override
+  String get explore_understood_title => 'הובן';
+
+  @override
+  String get explore_unplaced_reason_invalid => 'לא ניתן לקרוא ערך זה';
+
+  @override
+  String get explore_unplaced_reason_noAxis => 'עדיין לא ניתן לחפש';
+
+  @override
+  String get explore_unplaced_reason_outOfRange => 'ערך מחוץ לטווח';
+
+  @override
+  String get explore_unplaced_reason_unknownField => 'שדה לא ידוע';
+
+  @override
+  String get explore_unplaced_reason_unknownTime => 'לא ניתן לקרוא זמן זה';
+
+  @override
+  String get explore_unresolved_noCandidates => 'אין התאמה ביומן שלכם';
+
+  @override
+  String get explore_chart_divesOverTime => 'צלילות לאורך זמן';
+
+  @override
+  String get explore_chart_depthTrend => 'עומק';
+
+  @override
+  String get explore_chart_waterTempTrend => 'טמפרטורת המים';
+
+  @override
+  String get explore_chart_bottomTimeTrend => 'זמן קרקעית';
+
+  @override
+  String explore_chart_entityCounts(Object kind) {
+    return 'צלילות לפי $kind';
+  }
+
+  @override
+  String get explore_kind_site => 'אתר';
+
+  @override
+  String get explore_kind_place => 'מקום';
+
+  @override
+  String get explore_kind_species => 'מין';
+
+  @override
+  String get explore_kind_gear => 'ציוד';
+
+  @override
+  String get explore_kind_buddy => 'שותף';
+
+  @override
+  String get explore_kind_tag => 'תגית';
+
+  @override
+  String get explore_kind_center => 'מרכז צלילה';
+
+  @override
+  String get explore_kind_trip => 'טיול';
+
+  @override
+  String get explore_kind_computer => 'מחשב';
 
   @override
   String diveLog_listPage_semanticsDiveAtSite(int diveNumber, String siteName) {

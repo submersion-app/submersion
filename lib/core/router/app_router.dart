@@ -51,6 +51,7 @@ import 'package:submersion/features/dive_3d/presentation/pages/compare_dives_3d_
 import 'package:submersion/features/dive_log/presentation/pages/bulk_dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
+import 'package:submersion/features/explore/presentation/pages/explore_page.dart';
 import 'package:submersion/features/dive_log/presentation/pages/profile_editor_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/profile_editor_provider.dart';
 import 'package:submersion/features/maps/presentation/pages/dive_activity_map_page.dart';
@@ -447,6 +448,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => DataQualityInboxPage(
                   filterDiveId: state.uri.queryParameters['dive'],
                 ),
+              ),
+              GoRoute(
+                path: 'explore',
+                name: 'explore',
+                builder: (context, state) => const ExplorePage(),
               ),
               GoRoute(
                 path: ':diveId',

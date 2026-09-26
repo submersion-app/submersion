@@ -1172,6 +1172,14 @@ void main() {
     });
   });
 
+  group('explore route', () {
+    test('is registered under the dive list', () {
+      final route = _findRouteByName(router.configuration.routes, 'explore');
+      expect(route, isNotNull);
+      expect(route!.path, 'explore');
+    });
+  });
+
   group('diveSearch route carries the calling section filter (#1079)', () {
     // Insights keeps its own filter, so the advanced search form has to be
     // told which filter it is editing. The section pushes its provider as the

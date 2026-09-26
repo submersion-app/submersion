@@ -81,6 +81,8 @@ dependencies:
     path: packages/submersion_saf
   submersion_ocr:
     path: packages/submersion_ocr
+  submersion_nl:
+    path: packages/submersion_nl
   submersion_transcoder:
     path: packages/submersion_transcoder
   permission_handler: ^13.0.1

@@ -2463,6 +2463,23 @@ class DiveRepository {
     }
   }
 
+  /// Distinct legacy free-text buddy names (`dives.buddy`), for name
+  /// matching. Names only, never a count.
+  // stats-scope-exempt: a name list, not an aggregate; an excluded dive's
+  // buddy is still a name the diver may type.
+  Future<List<String>> getDistinctLegacyBuddyNames({String? diverId}) async {
+    final diverFilter = diverId != null ? 'AND diver_id = ?' : '';
+    final rows = await _db
+        .customSelect(
+          'SELECT DISTINCT buddy FROM dives '
+          "WHERE buddy IS NOT NULL AND buddy <> '' $diverFilter "
+          'ORDER BY buddy',
+          variables: [if (diverId != null) Variable(diverId)],
+        )
+        .get();
+    return rows.map((r) => r.read<String>('buddy')).toList();
+  }
+
   /// Drift tables by their SQL names, for `readsFrom` and [watchTables].
   Set<TableInfo> tablesNamed(Set<String> names) => {
     for (final n in names)
