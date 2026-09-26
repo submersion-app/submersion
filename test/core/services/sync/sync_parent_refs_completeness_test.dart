@@ -48,6 +48,7 @@ void main() {
     'weight_preset_entries': 'weightPresetEntries',
     'transmitters': 'transmitters',
     'cylinder_fills': 'cylinderFills',
+    'saved_queries': 'savedQueries',
     'dive_computers': 'diveComputers',
     'species': 'species',
     'tags': 'tags',

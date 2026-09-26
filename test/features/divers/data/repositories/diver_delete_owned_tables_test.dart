@@ -209,6 +209,22 @@ void main() {
           );
       return [('transmitters', 'transmitters', 'tx-a')];
     },
+    'a saved query': () async {
+      await db
+          .into(db.savedQueries)
+          .insert(
+            SavedQueriesCompanion.insert(
+              id: 'sq-a',
+              subject: 'dives',
+              name: 'Deep',
+              queryJson: '{"version":1,"node":{"t":"text","words":["x"]}}',
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [('saved_queries', 'savedQueries', 'sq-a')];
+    },
     'a cylinder fill': () async {
       await db
           .into(db.cylinderFills)
@@ -726,6 +742,7 @@ const _clearedByDelete = {
   'tank_presets',
   'transmitters',
   'cylinder_fills',
+  'saved_queries',
   'trips',
   'weight_presets',
 };
