@@ -265,7 +265,8 @@ object GattDiagnostics {
                 "no services at all"
         }
         return "No discovered service carries both a write and a notify " +
-            "characteristic; ${serviceUuids.size} service(s) seen: " +
+            "characteristic, nor matches a known read-poll service; " +
+            "${serviceUuids.size} service(s) seen: " +
             serviceUuids.joinToString(", ")
     }
 }
