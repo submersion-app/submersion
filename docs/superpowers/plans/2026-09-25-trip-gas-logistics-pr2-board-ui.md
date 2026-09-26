@@ -14,6 +14,7 @@
 
 - Starts only after PR 1 (#2331) is merged. Create a fresh worktree from `origin/main` containing that merge, then run `git submodule update --init --recursive`, `flutter pub get`, and codegen (`grep build_runner scripts/setup.sh | sh`; a bare `build` token is refused in a Bash command). Copy this plan into the new worktree's `docs/superpowers/plans/` if it is not already on main.
 - No schema change in this PR. If a task seems to need one, stop: it belongs to PR 4.
+- A fill on a slot holding one of the diver's own cylinders is also written to that cylinder's passport (`cylinder_fills`, PR #2364), under an id derived from the trip event id. Fill edits update the copy and fill deletes remove it; slot and trip deletes keep it; adjustments are never copied (decision 2026-09-26, Task 6).
 - Out of scope, PR 3: the tank editor's trip cylinder picker, the per-slot "Log dive" action and the new-dive shortcut, and the slot line on dive detail. The spec lists "Log dive" among the board's slot actions; it arrives with PR 3, which owns the dive side.
 - Every displayed pressure goes through `UnitFormatter.formatPressure` (metric bar in); every cylinder size through `formatTankVolume(liters, workingPressureBar)`; every typed pressure converts with `pressureToBar`; money through `formatMoney` from `lib/core/utils/currency.dart`; a stored `currency` of null means `defaultCurrencyProvider`.
 - Event times are the wall clock stamped UTC (`tripCylinderWallClock`); display them with `units.formatDateTime(dt, l10n: l10n)` (never without `l10n:`, which ships an English "at").
@@ -26,17 +27,18 @@
 
 ## Review Focus
 
-1. An imperial diver types a fill pressure in psi: the stored event holds bar, and the board shows psi again. Pinned in Task 6.
-2. A multi-slot fill where the diver types a bottle number for a slot and then unchecks it: that slot gets no event. Pinned in Task 6.
-3. Analyzed O2 plus He over 100 (or O2 below 1) is refused with the mix error and nothing is saved, for any selected slot. Pinned in Task 6.
-4. Deleting a slot that dives used names the dive count, and the dive keeps its tank data after the delete. Pinned in Task 8.
-5. A past trip with slots still shows its card (a record), and a past trip without slots shows nothing, while an upcoming or current trip without slots offers "Set up cylinders". Pinned in Task 9.
+1. An imperial diver types a fill pressure in psi: the stored event holds bar, and the board shows psi again. Pinned in Task 7.
+2. A multi-slot fill where the diver types a bottle number for a slot and then unchecks it: that slot gets no event. Pinned in Task 7.
+3. Analyzed O2 plus He over 100 (or O2 below 1) is refused with the mix error and nothing is saved, for any selected slot. Pinned in Task 7.
+4. Deleting a slot that dives used names the dive count, and the dive keeps its tank data after the delete. Pinned in Task 9.
+5. A past trip with slots still shows its card (a record), and a past trip without slots shows nothing, while an upcoming or current trip without slots offers "Set up cylinders". Pinned in Task 10.
 
 ## File Structure
 
 Create:
 - `lib/features/trips/presentation/helpers/trip_cylinder_display.dart`: mix label, status label and colour, counts, last-item sentence. Pure.
 - `lib/features/trips/presentation/helpers/trip_cylinder_specs_input.dart`: cylinder size and working pressure to and from the diver's units. Pure.
+- `lib/features/trips/data/services/trip_fill_passport_copy.dart`: the passport copy of a trip fill on an owned cylinder.
 - `lib/features/trips/presentation/widgets/cylinders/trip_cylinder_edit_sheet.dart`: edit one slot.
 - `lib/features/trips/presentation/widgets/cylinders/add_trip_cylinders_sheet.dart`: add rental slots or owned cylinders.
 - `lib/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet.dart`: record or edit a fill, one or several slots.
@@ -49,7 +51,7 @@ Create:
 
 Modify:
 - `lib/features/trips/domain/entities/trip_cylinder_state.dart`, `lib/features/trips/domain/services/trip_cylinder_state_fold.dart`, `lib/features/trips/data/repositories/trip_cylinder_repository.dart`: the two deferred review minors, the last item, the site name, reorder.
-- `lib/features/trips/presentation/providers/trip_cylinder_providers.dart`: the ledger provider (Task 10).
+- `lib/features/trips/presentation/providers/trip_cylinder_providers.dart`: the ledger provider (Task 11).
 - `lib/core/router/app_router.dart`: the `cylinders` route.
 - `lib/features/trips/presentation/pages/trip_detail_page.dart`: the card in both layouts.
 - `lib/l10n/arb/app_*.arb` and the generated localizations.
@@ -1961,14 +1963,389 @@ git commit -m "feat(trips): add rental or owned cylinders to a trip (#2325)"
 
 ---
 
-### Task 6: The fill sheet
+### Task 6: Passport copies of trip fills
+
+**Files:**
+- Create: `lib/features/trips/data/services/trip_fill_passport_copy.dart`
+- Modify: `lib/features/trips/presentation/providers/trip_cylinder_providers.dart`
+- Test: `test/features/trips/data/services/trip_fill_passport_copy_test.dart`
+
+**Interfaces:**
+- Consumes: `CylinderFillRepository` (`create`, `update`, `delete`, `getById`) and `CylinderPassportRepository.ensurePassportId(String equipmentId, {String? diverId})` from `lib/features/cylinder_passports/` (PR #2364); `CylinderFill`, `FillSource`; `TripCylinder`, `TripCylinderEvent`.
+- Produces: `const String kTripFillPassportNamespace`; `String tripFillPassportCopyId(String tripEventId)`; `CylinderFill passportCopyOf(TripCylinderEvent fill, {required String passportId, required String equipmentId, String? diverId, String? stationName})`; `class TripFillPassportCopier` with `Future<void> afterSave(TripCylinderEvent event, TripCylinder slot, {String? diverId, String? stationName})` and `Future<void> afterDelete(String tripEventId)`; `tripFillPassportCopierProvider` (`Provider<TripFillPassportCopier>`). Tasks 7 and 11 call these.
+
+The decision (2026-09-26): a fill on a slot holding one of the diver's own cylinders is written to both the trip ledger and that cylinder's passport. The copy's id is a UUID v5 of the trip event id, so every device derives the same one and an edit finds it. Fill edits update the copy and fill deletes remove it. Slot and trip deletes keep it, because the cylinder really was filled. Adjustments are never copied, and rental slots (no equipment) have no passport.
+
+- [ ] **Step 1: Write the failing tests**
+
+Create `test/features/trips/data/services/trip_fill_passport_copy_test.dart`:
+
+```dart
+import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
+import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/trips/data/services/trip_fill_passport_copy.dart';
+import 'package:submersion/features/trips/domain/entities/trip.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
+
+import '../../../../helpers/test_database.dart';
+
+void main() {
+  final at = DateTime.utc(2026, 3, 9, 8, 15);
+
+  TripCylinderEvent fill({
+    String id = 'e1',
+    double? o2 = 32,
+    double? he,
+    double? analyzedO2,
+    double? analyzedHe,
+    TripCylinderEventKind kind = TripCylinderEventKind.fill,
+  }) => TripCylinderEvent(
+    id: id,
+    tripCylinderId: 'c1',
+    kind: kind,
+    occurredAt: at,
+    pressure: 200,
+    o2Percent: o2,
+    hePercent: he,
+    analyzedO2: analyzedO2,
+    analyzedHe: analyzedHe,
+    note: 'drive-through',
+    createdAt: at,
+    updatedAt: at,
+  );
+
+  group('passportCopyOf', () {
+    test('the id is derived from the trip event and stable', () {
+      expect(tripFillPassportCopyId('e1'), tripFillPassportCopyId('e1'));
+      expect(tripFillPassportCopyId('e1'), isNot(tripFillPassportCopyId('e2')));
+      expect(
+        passportCopyOf(fill(), passportId: 'p', equipmentId: 'q').id,
+        tripFillPassportCopyId('e1'),
+      );
+    });
+
+    test('the analysed mix wins over the ordered one', () {
+      final copy = passportCopyOf(
+        fill(o2: 32, analyzedO2: 31.6, analyzedHe: 0),
+        passportId: 'p',
+        equipmentId: 'q',
+      );
+      expect(copy.o2Percent, 31.6);
+      expect(copy.hePercent, 0);
+    });
+
+    test('the ordered mix stands in, and air when there is none', () {
+      final ordered = passportCopyOf(
+        fill(o2: 21, he: 35),
+        passportId: 'p',
+        equipmentId: 'q',
+      );
+      expect(ordered.o2Percent, 21);
+      expect(ordered.hePercent, 35);
+      final none = passportCopyOf(
+        fill(o2: null),
+        passportId: 'p',
+        equipmentId: 'q',
+      );
+      expect(none.o2Percent, 21);
+      expect(none.hePercent, 0);
+    });
+
+    test('the fill time is the diver\'s wall clock, local', () {
+      final copy = passportCopyOf(
+        fill(),
+        passportId: 'p',
+        equipmentId: 'q',
+        stationName: 'Dive Friends',
+      );
+      expect(copy.filledAt, DateTime(2026, 3, 9, 8, 15));
+      expect(copy.filledAt.isUtc, isFalse);
+      expect(copy.pressureBar, 200);
+      expect(copy.stationName, 'Dive Friends');
+      expect(copy.notes, 'drive-through');
+    });
+  });
+
+  group('TripFillPassportCopier', () {
+    late TripCylinderRepository slots;
+    late CylinderFillRepository fills;
+    late TripCylinder owned;
+    late TripCylinder rental;
+    late String equipmentId;
+    final copier = TripFillPassportCopier();
+
+    setUp(() async {
+      await setUpTestDatabase();
+      slots = TripCylinderRepository();
+      fills = CylinderFillRepository();
+      final now = DateTime.now();
+      final trip = await TripRepository().createTrip(
+        Trip(
+          id: '',
+          name: 'Bonaire',
+          startDate: DateTime(2026, 3, 8),
+          endDate: DateTime(2026, 3, 14),
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      equipmentId = (await EquipmentRepository().createEquipment(
+        const EquipmentItem(id: '', name: 'My HP100', type: EquipmentType.tank),
+      )).id;
+      owned = await slots.createCylinder(
+        TripCylinder(
+          id: '',
+          tripId: trip.id,
+          equipmentId: equipmentId,
+          label: 'My HP100',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+      rental = await slots.createCylinder(
+        TripCylinder(
+          id: '',
+          tripId: trip.id,
+          label: 'Truck 1',
+          createdAt: now,
+          updatedAt: now,
+        ),
+      );
+    });
+    tearDown(tearDownTestDatabase);
+
+    Future<TripCylinderEvent> save(
+      TripCylinder slot, {
+      double? analyzedO2,
+      TripCylinderEventKind kind = TripCylinderEventKind.fill,
+    }) => slots.createEvent(
+      fill(id: '', analyzedO2: analyzedO2, kind: kind).copyWith(
+        tripCylinderId: slot.id,
+      ),
+    );
+
+    test('a fill on an owned cylinder lands on its passport', () async {
+      final event = await save(owned, analyzedO2: 31.6);
+      await copier.afterSave(event, owned, stationName: 'Dive Friends');
+
+      final copy = await fills.getById(tripFillPassportCopyId(event.id));
+      expect(copy, isNotNull);
+      expect(copy!.equipmentId, equipmentId);
+      expect(
+        copy.passportId,
+        await CylinderPassportRepository().getPassportId(equipmentId),
+      );
+      expect(copy.o2Percent, 31.6);
+      expect(copy.stationName, 'Dive Friends');
+    });
+
+    test('an edit updates the copy in place', () async {
+      final event = await save(owned, analyzedO2: 31.6);
+      await copier.afterSave(event, owned);
+      final edited = event.copyWith(analyzedO2: 32.2);
+      await copier.afterSave(edited, owned);
+
+      final copy = await fills.getById(tripFillPassportCopyId(event.id));
+      expect(copy!.o2Percent, 32.2);
+    });
+
+    test('deleting the fill removes the copy', () async {
+      final event = await save(owned);
+      await copier.afterSave(event, owned);
+      await copier.afterDelete(event.id);
+
+      expect(await fills.getById(tripFillPassportCopyId(event.id)), isNull);
+    });
+
+    test('a rental slot and an adjustment write no copy', () async {
+      final onRental = await save(rental);
+      await copier.afterSave(onRental, rental);
+      final adjustment = await save(
+        owned,
+        kind: TripCylinderEventKind.adjustment,
+      );
+      await copier.afterSave(adjustment, owned);
+
+      expect(await fills.getById(tripFillPassportCopyId(onRental.id)), isNull);
+      expect(
+        await fills.getById(tripFillPassportCopyId(adjustment.id)),
+        isNull,
+      );
+    });
+
+    test('deleting the slot keeps the copy', () async {
+      final event = await save(owned);
+      await copier.afterSave(event, owned);
+      await slots.deleteCylinder(owned.id);
+
+      expect(await fills.getById(tripFillPassportCopyId(event.id)), isNotNull);
+    });
+  });
+}
+```
+
+- [ ] **Step 2: Run them to verify they fail**
+
+Run: `flutter test test/features/trips/data/services/trip_fill_passport_copy_test.dart`
+Expected: FAIL to compile: `trip_fill_passport_copy.dart` does not exist. If `CylinderFillRepository.getById` or `CylinderPassportRepository.getPassportId` has a different name on main, use the real one (`cylinder_fill_repository.dart:60`, `cylinder_passport_repository.dart:40`) and ledger it.
+
+- [ ] **Step 3: Write the service**
+
+Create `lib/features/trips/data/services/trip_fill_passport_copy.dart`:
+
+```dart
+import 'package:uuid/uuid.dart';
+
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
+import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
+
+/// Fixed namespace for the ids of passport copies of trip fills (UUID v5 of
+/// the trip event id). Never change: stored copies are found by it.
+const String kTripFillPassportNamespace = '6b2f0c4e-8d1a-4f7e-9c35-2a7e5d913b08';
+
+/// The id of the passport copy of trip event [tripEventId]. Derived, so
+/// every device agrees on it and an edit or delete finds the copy.
+String tripFillPassportCopyId(String tripEventId) =>
+    const Uuid().v5(kTripFillPassportNamespace, tripEventId);
+
+/// Pure. The passport record for a trip fill: the analysed mix when there
+/// is one, else the ordered mix, else air; the fill time as the diver's
+/// local wall clock, which is how passport fills store it (trip events keep
+/// the wall clock stamped UTC).
+CylinderFill passportCopyOf(
+  TripCylinderEvent fill, {
+  required String passportId,
+  required String equipmentId,
+  String? diverId,
+  String? stationName,
+}) {
+  final analysed = fill.analyzedO2 != null;
+  final at = fill.occurredAt;
+  return CylinderFill(
+    id: tripFillPassportCopyId(fill.id),
+    diverId: diverId,
+    passportId: passportId,
+    equipmentId: equipmentId,
+    filledAt: DateTime(
+      at.year,
+      at.month,
+      at.day,
+      at.hour,
+      at.minute,
+      at.second,
+    ),
+    o2Percent: fill.analyzedO2 ?? fill.o2Percent ?? 21.0,
+    hePercent: analysed ? (fill.analyzedHe ?? 0.0) : (fill.hePercent ?? 0.0),
+    pressureBar: fill.pressure,
+    stationName: stationName,
+    source: FillSource.manual,
+    notes: fill.note,
+    createdAt: fill.createdAt,
+    updatedAt: fill.updatedAt,
+  );
+}
+
+/// Keeps a passport copy of each trip fill on one of the diver's own
+/// cylinders. Fill edits and fill deletes follow; slot and trip deletes keep
+/// the copy, because the cylinder really was filled (decision 2026-09-26).
+class TripFillPassportCopier {
+  TripFillPassportCopier({
+    CylinderFillRepository? fills,
+    CylinderPassportRepository? passports,
+  }) : _fills = fills ?? CylinderFillRepository(),
+       _passports = passports ?? CylinderPassportRepository();
+
+  final CylinderFillRepository _fills;
+  final CylinderPassportRepository _passports;
+
+  /// After a trip event on [slot] is saved: writes or updates the copy of a
+  /// fill on an owned cylinder. An adjustment never has one; an event that
+  /// was a fill and no longer is loses its copy.
+  Future<void> afterSave(
+    TripCylinderEvent event,
+    TripCylinder slot, {
+    String? diverId,
+    String? stationName,
+  }) async {
+    final copyId = tripFillPassportCopyId(event.id);
+    final existing = await _fills.getById(copyId);
+    if (event.kind != TripCylinderEventKind.fill) {
+      if (existing != null) await _fills.delete(copyId);
+      return;
+    }
+    final equipmentId = slot.equipmentId;
+    if (equipmentId == null) return;
+    final passportId = await _passports.ensurePassportId(
+      equipmentId,
+      diverId: diverId,
+    );
+    final copy = passportCopyOf(
+      event,
+      passportId: passportId,
+      equipmentId: equipmentId,
+      diverId: diverId,
+      stationName: stationName,
+    );
+    if (existing == null) {
+      await _fills.create(copy);
+    } else {
+      await _fills.update(copy.copyWith(createdAt: existing.createdAt));
+    }
+  }
+
+  /// After a trip fill is deleted on its own (not with its slot or trip):
+  /// the copy goes too.
+  Future<void> afterDelete(String tripEventId) async {
+    final copyId = tripFillPassportCopyId(tripEventId);
+    if (await _fills.getById(copyId) != null) await _fills.delete(copyId);
+  }
+}
+```
+
+In `lib/features/trips/presentation/providers/trip_cylinder_providers.dart` add the import `import 'package:submersion/features/trips/data/services/trip_fill_passport_copy.dart';` and:
+
+```dart
+
+/// Writes the passport copy of a trip fill on an owned cylinder.
+final tripFillPassportCopierProvider = Provider<TripFillPassportCopier>(
+  (ref) => TripFillPassportCopier(),
+);
+```
+
+- [ ] **Step 4: Run the tests to verify they pass**
+
+Run: `flutter test test/features/trips/data/services/trip_fill_passport_copy_test.dart`
+Expected: PASS, 9 tests. If `CylinderFill.copyWith` has no `createdAt` parameter, drop the `copyWith` and pass the copy as is (the repository's `update` leaves `created_at` alone); ledger it.
+
+- [ ] **Step 5: Format, analyze and commit**
+
+```bash
+dart format .
+dart analyze --fatal-infos lib/features/trips test/features/trips
+git add lib/features/trips/data/services/trip_fill_passport_copy.dart lib/features/trips/presentation/providers/trip_cylinder_providers.dart test/features/trips/data/services/trip_fill_passport_copy_test.dart
+git commit -m "feat(trips): copy trip fills on owned cylinders to their passports (#2325)"
+```
+
+---
+
+### Task 7: The fill sheet
 
 **Files:**
 - Create: `lib/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet.dart`
 - Test: `test/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet_test.dart`
 
 **Interfaces:**
-- Consumes: `tripCylinderRepositoryProvider`; `TripCylinderState` list (the board's states); `tripCylinderWallClock`; `allDiveCentersProvider`; `DiveCenterPickerSheet`; `defaultCurrencyProvider`; `currencyCodesWith`; Task 2 display helper `tripCylinderMixLabel` and strings `trips_cylinders_fill_*`, `trips_cylinders_action_fill`, `trips_cylinders_action_fillSeveral`, `trips_cylinders_mixAir`, `trips_cylinders_note`.
+- Consumes: `tripCylinderRepositoryProvider`; Task 6's `tripFillPassportCopierProvider`; `currentDiverIdProvider`; `TripCylinderState` list (the board's states); `tripCylinderWallClock`; `allDiveCentersProvider`; `DiveCenterPickerSheet`; `defaultCurrencyProvider`; `currencyCodesWith`; Task 2 display helper `tripCylinderMixLabel` and strings `trips_cylinders_fill_*`, `trips_cylinders_action_fill`, `trips_cylinders_action_fillSeveral`, `trips_cylinders_mixAir`, `trips_cylinders_note`.
 - Produces: `Future<void> showTripCylinderFillSheet(BuildContext context, {required List<TripCylinderState> slots, Set<String> preselected = const {}, bool several = false, TripCylinderEvent? editing})`; `Future<DateTime?> pickTripCylinderWhen(BuildContext context, DateTime current)`; `bool tripCylinderMixIsValid(double o2, double he)`; `String? lastTripFillCenter(List<TripCylinderState> slots)`. Field keys used by later tests: `fill-pressure`, `fill-o2`, `fill-he`, `fill-cost`, `fill-slot-<id>`, `fill-bottle-<id>`, `fill-aO2-<id>`, `fill-aHe-<id>`.
 
 Behaviour fixed here from the spec: the shared fields (when, station, pressure, ordered mix, cost, currency, package, note) appear once; each selected slot gets its own row for bottle number and analyzed O2 and He; each selected slot gets its own event. "Fill several" lists every slot with a checkbox; a plain fill shows only its slot. A blank pressure is stored as null (the fold reads it as the working pressure); a blank ordered O2 is air. The station defaults to the most recent station used on the trip. Currency is stored only with a cost.
@@ -1983,10 +2360,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/trips/data/services/trip_fill_passport_copy.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
@@ -2057,6 +2440,9 @@ void main() {
                 MockSettingsNotifier(const AppSettings(defaultCurrency: 'EUR')),
           ),
           allDiveCentersProvider.overrideWith((ref) async => const []),
+          currentDiverIdProvider.overrideWith(
+            (ref) => MockCurrentDiverIdNotifier(),
+          ),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -2217,6 +2603,42 @@ void main() {
     expect(events.single.occurredAt, DateTime.utc(2026, 3, 9, 8));
   });
 
+  testWidgets('a fill on an owned cylinder also lands on its passport', (
+    tester,
+  ) async {
+    final now = DateTime.now();
+    final equipmentId = (await EquipmentRepository().createEquipment(
+      const EquipmentItem(id: '', name: 'My HP100', type: EquipmentType.tank),
+    )).id;
+    final owned = await repo.createCylinder(
+      TripCylinder(
+        id: '',
+        tripId: cylinders.first.tripId,
+        equipmentId: equipmentId,
+        label: 'My HP100',
+        workingPressure: 230,
+        createdAt: now,
+        updatedAt: now,
+      ),
+    );
+    states = [
+      foldCylinderState(cylinder: owned, events: const [], uses: const []),
+    ];
+    await pumpAndOpen(tester, preselected: {owned.id});
+    await type(tester, 'fill-o2', '32');
+    await type(tester, 'fill-aO2-${owned.id}', '31.6');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    final event = (await repo.getEventsForCylinder(owned.id)).single;
+    final copy = await CylinderFillRepository().getById(
+      tripFillPassportCopyId(event.id),
+    );
+    expect(copy, isNotNull);
+    expect(copy!.o2Percent, 31.6);
+    expect(copy.equipmentId, equipmentId);
+  });
+
   group('pure rules', () {
     test('mix validity', () {
       expect(tripCylinderMixIsValid(21, 0), isTrue);
@@ -2277,6 +2699,7 @@ import 'package:submersion/features/dive_centers/presentation/providers/dive_cen
 import 'package:submersion/features/dive_centers/presentation/widgets/dive_center_picker.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     show GasMix;
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
@@ -2543,30 +2966,31 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
       final repo = ref.read(tripCylinderRepositoryProvider);
       final bar = pressure == null ? null : units.pressureToBar(pressure);
       final currency = cost == null ? null : _currency;
+      final saved = <TripCylinderEvent>[];
       final e = widget.editing;
       if (e != null) {
         final a = analysis[e.tripCylinderId]!;
-        await repo.updateEvent(
-          e.copyWith(
-            occurredAt: _when,
-            bottleLabel: _text(_bottle[e.tripCylinderId]!),
-            pressure: bar,
-            o2Percent: orderedO2,
-            hePercent: orderedHe,
-            analyzedO2: a.o2,
-            analyzedHe: a.he,
-            diveCenterId: _centerId,
-            cost: cost,
-            currency: currency,
-            isPackage: _package,
-            note: _note.text,
-          ),
+        final updated = e.copyWith(
+          occurredAt: _when,
+          bottleLabel: _text(_bottle[e.tripCylinderId]!),
+          pressure: bar,
+          o2Percent: orderedO2,
+          hePercent: orderedHe,
+          analyzedO2: a.o2,
+          analyzedHe: a.he,
+          diveCenterId: _centerId,
+          cost: cost,
+          currency: currency,
+          isPackage: _package,
+          note: _note.text,
         );
+        await repo.updateEvent(updated);
+        saved.add(updated);
       } else {
         final now = DateTime.now().toUtc();
         for (final id in ids) {
           final a = analysis[id]!;
-          await repo.createEvent(
+          saved.add(await repo.createEvent(
             TripCylinderEvent(
               id: '',
               tripCylinderId: id,
@@ -2586,6 +3010,29 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
               createdAt: now,
               updatedAt: now,
             ),
+          ));
+        }
+      }
+      // A fill on one of the diver's own cylinders is also written to its
+      // passport, and an edit updates that copy (Task 6).
+      final copier = ref.read(tripFillPassportCopierProvider);
+      final diverId = ref.read(currentDiverIdProvider);
+      final stationName = (ref.read(allDiveCentersProvider).value ??
+              const <DiveCenter>[])
+          .where((c) => c.id == _centerId)
+          .firstOrNull
+          ?.name;
+      final slotsById = {
+        for (final s in widget.slots) s.cylinder.id: s.cylinder,
+      };
+      for (final event in saved) {
+        final slot = slotsById[event.tripCylinderId];
+        if (slot != null) {
+          await copier.afterSave(
+            event,
+            slot,
+            diverId: diverId,
+            stationName: stationName,
           );
         }
       }
@@ -2854,7 +3301,7 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `flutter test test/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet_test.dart`
-Expected: PASS, 9 tests. If a tap misses because the field is below the fold, raise the test view height; do not shrink the sheet.
+Expected: PASS, 10 tests. If a tap misses because the field is below the fold, raise the test view height; do not shrink the sheet.
 
 - [ ] **Step 5: Format, analyze and commit**
 
@@ -2867,14 +3314,14 @@ git commit -m "feat(trips): record a cylinder fill, one slot or several (#2325)"
 
 ---
 
-### Task 7: The adjust sheet
+### Task 8: The adjust sheet
 
 **Files:**
 - Create: `lib/features/trips/presentation/widgets/cylinders/trip_cylinder_adjust_sheet.dart`
 - Test: `test/features/trips/presentation/widgets/cylinders/trip_cylinder_adjust_sheet_test.dart`
 
 **Interfaces:**
-- Consumes: Task 6's `pickTripCylinderWhen` and `tripCylinderMixIsValid`; `tripCylinderRepositoryProvider`; Task 2 strings `trips_cylinders_action_adjust`, `trips_cylinders_adjust_*`, `trips_cylinders_fill_when`, `trips_cylinders_fill_analyzedO2`, `trips_cylinders_fill_analyzedHe`, `trips_cylinders_fill_errorMix`, `trips_cylinders_note`.
+- Consumes: Task 7's `pickTripCylinderWhen` and `tripCylinderMixIsValid`; `tripCylinderRepositoryProvider`; Task 2 strings `trips_cylinders_action_adjust`, `trips_cylinders_adjust_*`, `trips_cylinders_fill_when`, `trips_cylinders_fill_analyzedO2`, `trips_cylinders_fill_analyzedHe`, `trips_cylinders_fill_errorMix`, `trips_cylinders_note`.
 - Produces: `Future<void> showTripCylinderAdjustSheet(BuildContext context, {required TripCylinder cylinder, TripCylinderEvent? editing})`. Keys: `adjust-pressure`, `adjust-mark-empty`, `adjust-o2`, `adjust-he`.
 
 An adjustment is a correction: a gauge reading, "mark empty", or a re-analyzed mix. Its mix fields are optional and use the analyzed labels; a blank pressure leaves the pressure as it was (the fold rule).
@@ -3351,7 +3798,7 @@ git commit -m "feat(trips): record a cylinder adjustment (#2325)"
 
 ---
 
-### Task 8: The board page, slot cards and route
+### Task 9: The board page, slot cards and route
 
 **Files:**
 - Create: `lib/features/trips/presentation/widgets/cylinders/trip_cylinder_slot_card.dart`
@@ -3360,7 +3807,7 @@ git commit -m "feat(trips): record a cylinder adjustment (#2325)"
 - Test: `test/features/trips/presentation/pages/trip_cylinder_board_page_test.dart`
 
 **Interfaces:**
-- Consumes: Tasks 2, 4, 5, 6, 7; `tripCylinderStatesProvider`, `tripCylinderRepositoryProvider` (`countLinkedDives`, `deleteCylinder`, `reorderCylinders`); `allDiveCentersProvider`.
+- Consumes: Tasks 2, 4, 5, 7, 8; `tripCylinderStatesProvider`, `tripCylinderRepositoryProvider` (`countLinkedDives`, `deleteCylinder`, `reorderCylinders`); `allDiveCentersProvider`.
 - Produces: `class TripCylinderBoardPage extends ConsumerWidget` with `const TripCylinderBoardPage({super.key, required String tripId})`; `class TripCylinderBoardList extends ConsumerWidget` with `const TripCylinderBoardList({super.key, required List<TripCylinderState> states, required Map<String, String> centerNames})`; `class TripCylinderSlotCard extends ConsumerWidget` with `({super.key, required TripCylinderState state, required List<TripCylinderState> allStates, required Map<String, String> centerNames})`; `Future<bool> confirmDeleteTripCylinder(BuildContext context, WidgetRef ref, TripCylinder cylinder)`; `List<String> reorderedIds(List<String> ids, int oldIndex, int newIndex)`; route name `tripCylinders` at `/trips/:tripId/cylinders`. Keys: `board-add`, `board-fill-several`, `slot-menu-<id>`.
 
 "Fill several" preselects every slot that is not full, which is the drive-through case: swap the empties, keep the fulls. Reorder is always available through the list's drag handles; there is no separate reorder mode.
@@ -3937,7 +4384,7 @@ git commit -m "feat(trips): the trip cylinder board page (#2325)"
 
 ---
 
-### Task 9: The story card in both trip layouts
+### Task 10: The story card in both trip layouts
 
 **Files:**
 - Create: `lib/features/trips/presentation/widgets/trip_cylinders_card.dart`
@@ -3945,7 +4392,7 @@ git commit -m "feat(trips): the trip cylinder board page (#2325)"
 - Test: `test/features/trips/presentation/widgets/trip_cylinders_card_test.dart`
 
 **Interfaces:**
-- Consumes: `tripCylinderStatesProvider`; Task 2 helpers; `Trip.isUpcoming` (true for a trip that has not ended, the one in progress included); `MdiIcons.divingScubaTank` from `lib/core/icons/mdi_icons.dart`; the Task 8 route `/trips/:tripId/cylinders`.
+- Consumes: `tripCylinderStatesProvider`; Task 2 helpers; `Trip.isUpcoming` (true for a trip that has not ended, the one in progress included); `MdiIcons.divingScubaTank` from `lib/core/icons/mdi_icons.dart`; the Task 9 route `/trips/:tripId/cylinders`.
 - Produces: `class TripCylindersCard extends ConsumerWidget` with `const TripCylindersCard({super.key, required Trip trip})`. Keys: `trip-cylinders-card`, `cylinders-set-up`, `cylinder-chip-<id>`.
 
 Visibility, from the spec: slots present, always shown (a past trip keeps its record); no slots and the trip upcoming or underway, shown as "Set up cylinders"; no slots on a past trip, nothing.
@@ -4294,7 +4741,7 @@ git commit -m "feat(trips): the cylinders card in the trip story (#2325)"
 
 ---
 
-### Task 10: The ledger segment
+### Task 11: The ledger segment
 
 **Files:**
 - Modify: `lib/features/trips/presentation/providers/trip_cylinder_providers.dart`
@@ -4304,7 +4751,7 @@ git commit -m "feat(trips): the cylinders card in the trip story (#2325)"
 - Test: `test/features/trips/presentation/providers/trip_cylinder_providers_test.dart`
 
 **Interfaces:**
-- Consumes: `TripCylinderRepository.getEventsForTrip` and `deleteEvent`; Tasks 2, 6, 7, 8.
+- Consumes: `TripCylinderRepository.getEventsForTrip` and `deleteEvent`; Tasks 2, 7, 8, 9.
 - Produces: `tripCylinderLedgerProvider` (`FutureProvider.family<List<TripCylinderEvent>, String>`, newest first, ties broken by id descending); `class TripCylinderLedgerView extends ConsumerWidget` with `({super.key, required String tripId, required List<TripCylinderState> states, required Map<String, String> centerNames})`. Keys: `ledger-<eventId>`, `ledger-delete-<eventId>`, `board-segment`.
 
 - [ ] **Step 1: Write the failing provider test**
@@ -4386,10 +4833,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_cylinder_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
+import 'package:submersion/features/trips/data/services/trip_fill_passport_copy.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
@@ -4527,6 +4977,29 @@ void main() {
     expect(await repo.getEventsForCylinder(slot.id), isEmpty);
   });
 
+  testWidgets('deleting a fill removes its passport copy', (tester) async {
+    await event('e1', TripCylinderEventKind.fill, hour: 8, pressure: 200);
+    final copyId = tripFillPassportCopyId('e1');
+    await CylinderFillRepository().create(
+      CylinderFill(
+        id: copyId,
+        passportId: 'passport-1',
+        filledAt: DateTime(2026, 3, 9, 8),
+        o2Percent: 32,
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+    await pumpLedger(tester);
+
+    await tester.tap(find.byKey(const Key('ledger-delete-e1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    expect(await CylinderFillRepository().getById(copyId), isNull);
+  });
+
   testWidgets('tapping a fill opens it for editing', (tester) async {
     await event('e1', TripCylinderEventKind.fill, hour: 8, pressure: 200);
     await pumpLedger(tester);
@@ -4600,6 +5073,10 @@ class TripCylinderLedgerView extends ConsumerWidget {
     );
     if (confirmed != true || !context.mounted) return;
     await ref.read(tripCylinderRepositoryProvider).deleteEvent(event.id);
+    // A deleted fill takes its passport copy with it (Task 6).
+    if (event.kind == TripCylinderEventKind.fill) {
+      await ref.read(tripFillPassportCopierProvider).afterDelete(event.id);
+    }
   }
 
   @override
@@ -4878,7 +5355,7 @@ git commit -m "feat(trips): the trip cylinder ledger (#2325)"
 
 ---
 
-### Task 11: Whole-branch verification and the pull request
+### Task 12: Whole-branch verification and the pull request
 
 **Files:** none new.
 
@@ -4897,6 +5374,7 @@ Expected: `No issues found!`, and the last command prints nothing (the committed
 
 ```bash
 flutter test test/features/trips
+flutter test test/features/cylinder_passports
 flutter test test/l10n
 flutter test test/architecture
 flutter test test/core/services/sync
@@ -4916,4 +5394,4 @@ Expected: no output. Then scan the same diff for the two tool-attribution terms 
 
 - [ ] **Step 5: Push and open the pull request, only when the user asks**
 
-Pushing and opening a PR are outward actions; wait for the user's go-ahead. Then push with `-u`, and create the PR in one Bash call with `unset GITHUB_TOKEN; gh pr create --repo submersion-app/submersion --base main ...` and a body whose first line is `Part of #2325`, summarizing: the story card, the board page and route, the four sheets, the ledger, the strings in all 11 locales, and the PR 1 review follow-up (the fold breaks every tie deterministically). Bind the PR in the desktop app and read CI through it; never poll.
+Pushing and opening a PR are outward actions; wait for the user's go-ahead. Then push with `-u`, and create the PR in one Bash call with `unset GITHUB_TOKEN; gh pr create --repo submersion-app/submersion --base main ...` and a body whose first line is `Part of #2325`, summarizing: the story card, the board page and route, the four sheets, the ledger, the passport copies of fills on owned cylinders, the strings in all 11 locales, and the PR 1 review follow-up (the fold breaks every tie deterministically). Bind the PR in the desktop app and read CI through it; never poll.
