@@ -153,4 +153,65 @@ void main() {
     expect(second, first);
     expect(await repo.ensurePassportId('eq-2', diverId: 'd1'), isNot(first));
   });
+
+  Future<void> putId(String eq, String value) async {
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.equipmentAttributes)
+        .insert(
+          EquipmentAttributesCompanion.insert(
+            id: 'attr_${eq}_passport_id',
+            equipmentId: eq,
+            attrKey: 'passport_id',
+            valueText: Value(value),
+            createdAt: t,
+            updatedAt: t,
+          ),
+        );
+  }
+
+  Future<void> retire(String eq) =>
+      (db.update(db.equipment)..where((t) => t.id.equals(eq))).write(
+        const EquipmentCompanion(status: Value('retired')),
+      );
+
+  test('two rows sharing an id resolve to the fitted, older one', () async {
+    // Written behind the repository's back, as an old import could have.
+    await putId('eq-2', id);
+    await putId('eq-1', id);
+    await retire('eq-2');
+    expect(await repo.findEquipmentIdByPassportId(id, diverId: 'd1'), 'eq-1');
+  });
+
+  test('a retired cylinder gives its tag up to a new one', () async {
+    await repo.assignPassportId(
+      equipmentId: 'eq-1',
+      passportId: id,
+      diverId: 'd1',
+    );
+    await retire('eq-1');
+    await repo.assignPassportId(
+      equipmentId: 'eq-2',
+      passportId: id,
+      diverId: 'd1',
+    );
+    expect(await repo.getPassportId('eq-2'), id);
+    expect(await repo.getPassportId('eq-1'), isNull);
+  });
+
+  test('a fitted cylinder still keeps its tag', () async {
+    await repo.assignPassportId(
+      equipmentId: 'eq-1',
+      passportId: id,
+      diverId: 'd1',
+    );
+    expect(
+      () => repo.assignPassportId(
+        equipmentId: 'eq-2',
+        passportId: id,
+        diverId: 'd1',
+      ),
+      throwsA(isA<PassportIdInUse>()),
+    );
+  });
 }

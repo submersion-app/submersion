@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
@@ -64,14 +65,41 @@ class CylinderPassportRepository {
               attrs.valueText.equals(passportId),
         );
     if (diverId != null) query.where(eq.diverId.equals(diverId));
-    final rows = await query.get();
-    if (rows.isEmpty) return null;
-    return rows.first.readTable(eq).id;
+    final holders = [for (final r in await query.get()) r.readTable(eq)];
+    if (holders.isEmpty) return null;
+    // One id should have one holder, but an old import could have written
+    // two. Resolve the same way every time: a cylinder still in service,
+    // then the oldest row, then the id.
+    final sorted = [...holders]
+      ..sort((a, b) {
+        final byFitted = (_isFitted(a) ? 0 : 1) - (_isFitted(b) ? 0 : 1);
+        if (byFitted != 0) return byFitted;
+        final byAge = a.createdAt.compareTo(b.createdAt);
+        return byAge != 0 ? byAge : a.id.compareTo(b.id);
+      });
+    return sorted.first.id;
+  }
+
+  /// In service: active and neither retired nor sold, as EquipmentItem
+  /// defines it.
+  static bool _isFitted(EquipmentData row) =>
+      row.isActive &&
+      row.status != EquipmentStatus.retired.name &&
+      row.status != EquipmentStatus.sold.name;
+
+  /// Removes [equipmentId]'s passport id, so a tag can move off a cylinder
+  /// that is no longer in service.
+  Future<void> _releasePassportId(String equipmentId) async {
+    final existing = await _equipment.getAttributesForEquipment(equipmentId);
+    await _equipment.saveAttributes(equipmentId, [
+      for (final a in existing)
+        if (a.isCustom || a.key != EquipmentAttrKeys.passportId) a,
+    ]);
   }
 
   /// Writes [passportId] onto [equipmentId] and relinks the fills stored
   /// under it. Throws [PassportIdInUse] when a different visible cylinder
-  /// already holds the id.
+  /// that is still in service holds the id; one that is not gives it up.
   Future<void> assignPassportId({
     required String equipmentId,
     required String passportId,
@@ -82,7 +110,13 @@ class CylinderPassportRepository {
       diverId: diverId,
     );
     if (holder != null && holder != equipmentId) {
-      throw PassportIdInUse(holder);
+      final row = await (_db.select(
+        _db.equipment,
+      )..where((t) => t.id.equals(holder))).getSingle();
+      // A cylinder still in service keeps its tag; a retired, sold or
+      // inactive one gives it up to the cylinder being linked.
+      if (_isFitted(row)) throw PassportIdInUse(holder);
+      await _releasePassportId(holder);
     }
     final previous = await getPassportId(equipmentId);
     if (holder != equipmentId) {
