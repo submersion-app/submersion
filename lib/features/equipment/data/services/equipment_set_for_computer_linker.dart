@@ -4,6 +4,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/data/services/dive_computer_gear_linker.dart';
 
@@ -36,13 +37,16 @@ class EquipmentSetForComputerLinker {
     DiveComputerGearLinker? gearLinker,
     EquipmentSetRepository? equipmentSetRepository,
     DiveRepository? diveRepository,
+    EquipmentRepository? equipmentRepository,
   }) : _gearLinker = gearLinker ?? DiveComputerGearLinker(),
        _sets = equipmentSetRepository ?? EquipmentSetRepository(),
-       _dives = diveRepository ?? DiveRepository();
+       _dives = diveRepository ?? DiveRepository(),
+       _equipment = equipmentRepository ?? EquipmentRepository();
 
   final DiveComputerGearLinker _gearLinker;
   final EquipmentSetRepository _sets;
   final DiveRepository _dives;
+  final EquipmentRepository _equipment;
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -93,7 +97,12 @@ class EquipmentSetForComputerLinker {
       if (setIds.isEmpty) return false;
 
       for (final setId in setIds) {
-        final setEquipmentIds = await _sets.getEquipmentIdsInSet(setId);
+        // A member no longer shared with this diver stays in the set but is
+        // not applied (issue #2046).
+        final setEquipmentIds = await _equipment.usableSetMemberIds(
+          await _sets.getEquipmentIdsInSet(setId),
+          diverId,
+        );
         if (setEquipmentIds.isEmpty) continue;
         await _dives.bulkAddEquipment(
           [diveId],

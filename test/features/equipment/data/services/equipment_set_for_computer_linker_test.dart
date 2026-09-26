@@ -143,6 +143,34 @@ void main() {
     });
   });
 
+  test('skips a member no longer shared with the dive diver', () async {
+    // Issue #2046: another profile's gear it stopped sharing stays in the
+    // set but is not applied to a downloaded dive.
+    await insertGear('gear-computer');
+    final t = DateTime.now().millisecondsSinceEpoch;
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'their-fins',
+            name: 'their-fins',
+            type: 'fins',
+            createdAt: t,
+            updatedAt: t,
+            diverId: const Value('d2'),
+          ),
+        );
+    await insertComputer('c1', equipmentId: 'gear-computer');
+    await insertSet('set-ccr');
+    await addToSet('set-ccr', 'gear-computer');
+    await addToSet('set-ccr', 'their-fins');
+    await insertDive('dive1');
+    await linkSource('dive1', 'c1');
+
+    expect(await linker.linkComputerSetsForDive(diveId: 'dive1'), isTrue);
+    expect(await equipmentOn('dive1'), {'gear-computer'});
+  });
+
   test('applies every set that lists the computer, additively', () async {
     await insertGear('gear-computer');
     await insertGear('gear-drysuit', type: 'exposure');

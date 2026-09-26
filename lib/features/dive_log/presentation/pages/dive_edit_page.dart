@@ -3574,12 +3574,11 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           await ref.read(validatedCurrentDiverIdProvider.future);
       if (!mounted) return;
       if (diverId != null) {
-        final visible = await EquipmentRepository().visibleIdsAmong(
-          items.map((i) => i.id),
-          diverId,
-        );
+        final usable = await EquipmentRepository().usableSetMemberIds([
+          for (final i in items) i.id,
+        ], diverId);
         if (!mounted) return;
-        toAdd = usableSetItems(items, visible);
+        toAdd = usableSetItems(items, usable.toSet());
       }
     }
     if (toAdd.isEmpty) return;

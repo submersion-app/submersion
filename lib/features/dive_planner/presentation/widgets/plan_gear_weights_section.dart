@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/usable_set_items.dart';
 import 'package:submersion/core/buoyancy/placement_predictor.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -36,6 +38,16 @@ class PlanGearWeightsSection extends ConsumerWidget {
     final state = ref.read(divePlanNotifierProvider);
     final catalog = ref.read(allEquipmentProvider).valueOrNull ?? const [];
     final byId = {for (final e in catalog) e.id: e};
+    // A set member no longer shared with this diver stays in the set but is
+    // not applied (issue #2046).
+    if (viaSetId != null) {
+      items = setItemsUsableBy(
+        items,
+        diverId: ref.read(validatedCurrentDiverIdProvider).value,
+        visibleIds: byId.keys.toSet(),
+      );
+      if (items.isEmpty) return;
+    }
     final existingItems = [
       for (final id in state.equipmentIds) ?byId[id],
       for (final item in items)

@@ -4,6 +4,7 @@ import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/services/equipment_set_selector.dart';
 
@@ -14,11 +15,14 @@ class DiveEquipmentDefaulter {
   DiveEquipmentDefaulter({
     EquipmentSetRepository? equipmentSetRepository,
     DiveRepository? diveRepository,
+    EquipmentRepository? equipmentRepository,
   }) : _sets = equipmentSetRepository ?? EquipmentSetRepository(),
-       _dives = diveRepository ?? DiveRepository();
+       _dives = diveRepository ?? DiveRepository(),
+       _equipment = equipmentRepository ?? EquipmentRepository();
 
   final EquipmentSetRepository _sets;
   final DiveRepository _dives;
+  final EquipmentRepository _equipment;
 
   AppDatabase get _db => DatabaseService.instance.database;
 
@@ -52,14 +56,17 @@ class DiveEquipmentDefaulter {
         geofences: geofences,
       );
       if (best == null || best.equipmentIds.isEmpty) return false;
+      // A member no longer shared with this diver stays in the set but is
+      // not applied (issue #2046).
+      final memberIds = await _equipment.usableSetMemberIds(
+        best.equipmentIds,
+        diverId,
+      );
+      if (memberIds.isEmpty) return false;
 
       // Tag every row with the set that won so the dive remembers it and
       // the pages can group by it (issue #1487).
-      await _dives.bulkAddEquipment(
-        [diveId],
-        best.equipmentIds,
-        viaSetId: best.id,
-      );
+      await _dives.bulkAddEquipment([diveId], memberIds, viaSetId: best.id);
       SyncEventBus.notifyLocalChange();
       return true;
     } catch (_) {

@@ -271,6 +271,43 @@ class EquipmentRepository {
     }
   }
 
+  /// The members of a set, in [ids] order, that applying it gives
+  /// [diverId]'s dive: every member except one another profile owns and
+  /// does not share with [diverId] (issue #2046, "applying the set skips
+  /// them"). Ownerless or missing rows apply as they always have. Every
+  /// set-application path (dive edit, download and import defaulting, the
+  /// computer-set linker, the planner) goes through this.
+  Future<List<String>> usableSetMemberIds(
+    List<String> ids,
+    String diverId,
+  ) async {
+    final unique = ids.toSet().toList();
+    final hidden = <String>{};
+    for (var i = 0; i < unique.length; i += 450) {
+      final chunk = unique.sublist(i, (i + 450).clamp(0, unique.length));
+      final placeholders = List.filled(chunk.length, '?').join(', ');
+      final rows = await _db
+          .customSelect(
+            'SELECT id FROM equipment '
+            'WHERE id IN ($placeholders) '
+            'AND diver_id IS NOT NULL AND diver_id <> ? '
+            'AND id NOT IN (SELECT equipment_id FROM equipment_shares '
+            'WHERE diver_id = ?)',
+            variables: [
+              for (final id in chunk) Variable.withString(id),
+              Variable.withString(diverId),
+              Variable.withString(diverId),
+            ],
+          )
+          .get();
+      hidden.addAll(rows.map((r) => r.read<String>('id')));
+    }
+    return [
+      for (final id in ids)
+        if (!hidden.contains(id)) id,
+    ];
+  }
+
   /// Whether [diverId] owns [equipmentId] or holds a share of it.
   Future<bool> isVisibleTo(String equipmentId, String diverId) async =>
       (await visibleIdsAmong([equipmentId], diverId)).isNotEmpty;

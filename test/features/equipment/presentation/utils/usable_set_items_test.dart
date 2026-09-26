@@ -20,4 +20,24 @@ void main() {
   test('nothing visible applies nothing', () {
     expect(usableSetItems([item('a')], const {}), isEmpty);
   });
+
+  test('setItemsUsableBy keeps own, ownerless and shared; drops unshared', () {
+    EquipmentItem owned(String id, String? owner) => EquipmentItem(
+      id: id,
+      diverId: owner,
+      name: id,
+      type: EquipmentType.bcd,
+    );
+    final kept = setItemsUsableBy(
+      [
+        owned('theirs', 'wife'),
+        owned('mine', 'me'),
+        owned('legacy', null),
+        owned('shared', 'wife'),
+      ],
+      diverId: 'me',
+      visibleIds: {'mine', 'shared'},
+    );
+    expect(kept.map((i) => i.id), ['mine', 'legacy', 'shared']);
+  });
 }
