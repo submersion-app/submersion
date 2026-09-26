@@ -25619,13 +25619,6 @@
       }
     }
   },
-  "@diveLog_detail_sacVolumeHint": {
-    "placeholders": {
-      "unit": {
-        "type": "String"
-      }
-    }
-  },
   "insights_trend_aggregation_monthly": "Monthly average",
   "insights_trend_aggregation_perDive": "Every dive",
   "insights_trend_aggregation_tooltip": "How dives are grouped",
