@@ -168,6 +168,34 @@ void main() {
     expect(source.surfaceInterval, 5400);
   });
 
+  test('a download attached to an existing dive without a summary takes its '
+      'source CNS from the samples', () async {
+    final start = DateTime(2026, 1, 1, 10);
+    final diveId = await computers.importProfile(
+      computerId: 'comp-1',
+      profileStartTime: start,
+      points: slowAscent,
+      durationSeconds: 3600,
+      maxDepth: 20.0,
+    );
+    await computers.importProfile(
+      computerId: 'comp-2',
+      profileStartTime: start,
+      points: slowAscent,
+      durationSeconds: 3600,
+      maxDepth: 20.0,
+    );
+
+    final source =
+        await (db.select(db.diveDataSources)..where(
+              (t) => t.diveId.equals(diveId) & t.computerId.equals('comp-2'),
+            ))
+            .getSingle();
+    expect(source.cns, 11.0);
+    expect(source.otu, isNull);
+    expect(source.surfaceInterval, isNull);
+  });
+
   test('without a summary, CNS falls back to the samples and the rest stay '
       'unset', () async {
     final diveId = await computers.importProfile(
