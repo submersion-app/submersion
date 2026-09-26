@@ -705,6 +705,30 @@ void main() {
 
   group('importProfile', () {
     test(
+      'first profile series from computer import is marked computer_import',
+      () async {
+        final computerId = await insertComputer();
+        final entryTime = DateTime(2026, 5, 10, 8, 30);
+
+        final diveId = await repository.importProfile(
+          computerId: computerId,
+          profileStartTime: entryTime,
+          points: const [
+            ProfilePointData(timestamp: 0, depth: 0.0),
+            ProfilePointData(timestamp: 60, depth: 12.0),
+          ],
+          durationSeconds: 30 * 60,
+          maxDepth: 12.0,
+          forceNew: true,
+        );
+
+        final revisions = await profileSeries.getRevisionsForDive(diveId);
+        expect(revisions, hasLength(1));
+        expect(revisions.single.revisionKind, equals('computer_import'));
+      },
+    );
+
+    test(
       'forceNew=true skips dive matching and always creates new dive',
       () async {
         final computerId = await insertComputer();

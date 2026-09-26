@@ -5433,6 +5433,67 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLog_detail_section_diveProfile => 'Dive Profile';
 
   @override
+  String get diveLog_detail_profileRevision_kind_edit => 'Edit';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => 'Create';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport =>
+      'Computer Import';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => 'Legacy';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor =>
+      'Profile editor';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      'Data quality repair';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll =>
+      'Smooth entire profile';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      'Smooth selection';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      'Remove all outliers';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      'Remove selected outliers';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth =>
+      'Shift depth';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime => 'Shift time';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment =>
+      'Delete segment';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      'Delete segment (interpolated)';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      'Generate from waypoints';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros =>
+      'Trim end zeros';
+
+  @override
   String get diveLog_detail_section_equipment => 'Equipment';
 
   @override

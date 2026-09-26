@@ -158,6 +158,97 @@ void main() {
     },
   );
 
+  test('saveEditedProfile writes revision kind with edit source', () async {
+    await dives.createDive(
+      dive('dive-1', const [domain.DiveProfilePoint(timestamp: 0, depth: 1.0)]),
+    );
+
+    await dives.saveEditedProfile('dive-1', const [
+      domain.DiveProfilePoint(timestamp: 0, depth: 8.0),
+    ]);
+
+    final history = await dives.getProfileHistory('dive-1');
+    final active = history.firstWhere(
+      (r) => r.isActive,
+      orElse: () => history.first,
+    );
+    expect(active.revisionKind, 'Edit: profile_editor');
+  });
+
+  test(
+    'history backfill marks computer-origin legacy series as computer_import',
+    () async {
+      await computer('comp-1');
+      await dives.createDive(dive('dive-1', const []));
+      await source('src-1', 'dive-1', 'comp-1', primary: true);
+
+      final computerSeries = await series.insertSeries(
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        sourceId: 'src-1',
+        isPrimary: false,
+        revisionKind: 'legacy',
+        samples: const [ProfileSample(timestamp: 0, depth: 12.0)],
+        now: 1000,
+      );
+      final unknownSeries = await series.insertSeries(
+        diveId: 'dive-1',
+        isPrimary: false,
+        revisionKind: 'legacy',
+        samples: const [ProfileSample(timestamp: 5, depth: 4.0)],
+        now: 1000,
+      );
+
+      await db.customStatement(
+        'DELETE FROM dive_profile_series_history WHERE series_id IN (?, ?)',
+        [computerSeries, unknownSeries],
+      );
+
+      await db.customStatement(
+        '''
+        INSERT OR IGNORE INTO dive_profile_series_history (
+          series_id,
+          dive_id,
+          parent_series_id,
+          root_series_id,
+          content_hash,
+          revision_kind,
+          created_at
+        )
+        SELECT
+          s.id,
+          s.dive_id,
+          NULL,
+          s.id,
+          'legacy:' || s.id,
+          CASE
+            WHEN s.computer_id IS NOT NULL
+              OR EXISTS (
+                SELECT 1
+                FROM dive_data_sources ds
+                WHERE ds.id = s.source_id
+                  AND (
+                    ds.source_format = 'dive_computer'
+                    OR ds.computer_id IS NOT NULL
+                  )
+              )
+            THEN 'computer_import'
+            ELSE 'legacy'
+          END,
+          s.created_at
+        FROM dive_profile_series s
+        WHERE s.id IN (?, ?)
+      ''',
+        [computerSeries, unknownSeries],
+      );
+
+      final history = await dives.getProfileHistory('dive-1');
+      final byId = {for (final r in history) r.seriesId: r};
+      expect(byId[computerSeries]?.revisionKind, 'computer_import');
+      expect(byId[unknownSeries]?.revisionKind, 'legacy');
+    },
+  );
+
   test(
     'restoreOriginalProfile deletes the edit and re-promotes the primary computer only',
     () async {
@@ -255,6 +346,80 @@ void main() {
       expect(rows.map((s) => s.id), [owned]);
       expect(rows.single.isPrimary, isTrue);
       expect((await dives.getDiveProfile('dive-1')).map((p) => p.depth), [1.0]);
+    },
+  );
+
+  test(
+    'restoreOriginalProfile fallback deletes a parentless edited primary (regression)',
+    () async {
+      await computer('comp-1');
+      await dives.createDive(dive('dive-1', const []));
+      await source('src-1', 'dive-1', 'comp-1', primary: true);
+
+      final original = await series.insertSeries(
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        sourceId: 'src-1',
+        isPrimary: false,
+        samples: const [ProfileSample(timestamp: 0, depth: 4.0)],
+        now: 1000,
+      );
+      final edited = await series.insertSeries(
+        diveId: 'dive-1',
+        sourceId: 'src-1',
+        isPrimary: true,
+        samples: const [ProfileSample(timestamp: 0, depth: 9.0)],
+        now: 1000,
+      );
+
+      // Parentless edited rows hit the legacy fallback path. Restore must not
+      // re-promote this edited row, otherwise the action becomes a no-op.
+      await dives.restoreOriginalProfile('dive-1');
+
+      final rows = await series.getSeriesForDive('dive-1');
+      expect(rows.map((s) => s.id), [original]);
+      expect(rows.single.isPrimary, isTrue);
+      expect(rows.single.computerId, 'comp-1');
+      expect((await dives.getDiveProfile('dive-1')).map((p) => p.depth), [4.0]);
+
+      final tombstones = await db.select(db.deletionLog).get();
+      expect(tombstones.map((t) => t.recordId), contains(edited));
+    },
+  );
+
+  test(
+    'restoreOriginalProfile with parent history activates parent without deleting edit',
+    () async {
+      await computer('comp-1');
+      await dives.createDive(dive('dive-1', const []));
+      await source('src-1', 'dive-1', 'comp-1', primary: true);
+
+      final original = await series.insertSeries(
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        sourceId: 'src-1',
+        isPrimary: true,
+        samples: const [ProfileSample(timestamp: 0, depth: 4.0)],
+        now: 1000,
+      );
+
+      await dives.saveEditedProfile('dive-1', const [
+        domain.DiveProfilePoint(timestamp: 0, depth: 9.0),
+      ]);
+
+      final afterEdit = await series.getSeriesForDive('dive-1');
+      final edited = afterEdit.singleWhere((s) => s.isPrimary).id;
+
+      await dives.restoreOriginalProfile('dive-1');
+
+      final rows = await series.getSeriesForDive('dive-1');
+      expect(rows.map((s) => s.id).toSet(), {original, edited});
+      expect(rows.firstWhere((s) => s.id == original).isPrimary, isTrue);
+      expect(rows.firstWhere((s) => s.id == edited).isPrimary, isFalse);
+      expect((await dives.getDiveProfile('dive-1')).map((p) => p.depth), [4.0]);
+
+      final tombstones = await db.select(db.deletionLog).get();
+      expect(tombstones.map((t) => t.recordId), isNot(contains(edited)));
     },
   );
 

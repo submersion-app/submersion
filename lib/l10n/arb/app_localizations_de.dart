@@ -5531,6 +5531,68 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLog_detail_section_diveProfile => 'Tauchprofil';
 
   @override
+  String get diveLog_detail_profileRevision_kind_edit => 'Bearbeitung';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => 'Erstellt';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport =>
+      'Computer-Import';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => 'Bestand';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor =>
+      'Profil-Editor';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      'Datenqualitäts-Reparatur';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll =>
+      'Gesamtes Profil glätten';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      'Auswahl glätten';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      'Alle Ausreißer entfernen';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      'Ausgewählte Ausreißer entfernen';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth =>
+      'Tiefe verschieben';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime =>
+      'Zeit verschieben';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment =>
+      'Segment löschen';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      'Segment löschen (interpoliert)';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      'Aus Wegpunkten erzeugen';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros =>
+      'Endnullen trimmen';
+
+  @override
   String get diveLog_detail_section_equipment => 'Ausrüstung';
 
   @override

@@ -223,7 +223,11 @@ class ProfileRepairService {
   Future<void> applyEdited(
     String diveId,
     List<domain.DiveProfilePoint> edited,
-  ) => _diveRepo.saveEditedProfile(diveId, edited);
+  ) => _diveRepo.saveEditedProfileWithKind(
+    diveId: diveId,
+    editedPoints: edited,
+    editKind: 'data_quality_repair',
+  );
 
   Future<void> undo(String diveId) => _diveRepo.restoreOriginalProfile(diveId);
 

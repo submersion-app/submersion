@@ -5428,6 +5428,67 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLog_detail_section_diveProfile => 'ملف الغوصة';
 
   @override
+  String get diveLog_detail_profileRevision_kind_edit => 'تعديل';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => 'إنشاء';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport =>
+      'استيراد من كمبيوتر الغوص';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => 'سابق';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor =>
+      'محرر الملف';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      'إصلاح جودة البيانات';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll =>
+      'تنعيم الملف بالكامل';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      'تنعيم التحديد';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      'إزالة كل القيم الشاذة';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      'إزالة القيم الشاذة المحددة';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth =>
+      'إزاحة العمق';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime => 'إزاحة الوقت';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment =>
+      'حذف المقطع';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      'حذف المقطع (مع استيفاء)';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      'إنشاء من نقاط المسار';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros =>
+      'قص الأصفار النهائية';
+
+  @override
   String get diveLog_detail_section_equipment => 'المعدات';
 
   @override

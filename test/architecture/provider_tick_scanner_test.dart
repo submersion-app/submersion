@@ -5,6 +5,15 @@ import 'package:path/path.dart' as p;
 
 import 'provider_tick_scanner.dart';
 
+String _relativizeTempPath(Directory temp, String path) {
+  final normalized = p.normalize(path);
+  final prefix = p.normalize(temp.path);
+  if (p.isWithin(prefix, normalized)) {
+    return p.relative(normalized, from: prefix);
+  }
+  return p.basename(normalized);
+}
+
 /// Unit tests for the scanner that backs
 /// `test/architecture/provider_change_tick_test.dart`.
 ///
@@ -35,7 +44,7 @@ class BareRepository {
     return scanForTickViolations(
       repositoryFiles: [repository],
       providerFiles: [providers],
-      relativize: p.basename,
+      relativize: (path) => _relativizeTempPath(temp, path),
     );
   }
 

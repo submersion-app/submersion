@@ -1,8 +1,17 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 import 'provider_tick_scanner.dart';
+
+String _relativizeWorkspacePath(String path) {
+  final normalized = p.normalize(path);
+  final workspace = p.normalize(Directory.current.path);
+  return p.isWithin(workspace, normalized)
+      ? p.relative(normalized, from: workspace)
+      : normalized;
+}
 
 /// Guards the project rule that a provider reading a table must self-invalidate
 /// on that table's change tick (issue #974).
@@ -38,7 +47,7 @@ void main() {
     // as a violation even though it was correctly subscribed.
     repositoryFiles: dartFiles,
     providerFiles: dartFiles,
-    relativize: (path) => path.replaceFirst('${Directory.current.path}/', ''),
+    relativize: _relativizeWorkspacePath,
   );
 
   test('the scan found the repository, so it cannot pass vacuously', () {

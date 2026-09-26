@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -187,8 +188,9 @@ _ParsedFile _parse(File file) {
   // size takes minutes; unresolved parsing takes about half a millisecond per
   // file. The cost is that types cannot be resolved, so "is this a repository"
   // is decided by identifier name.
+  final path = p.normalize(file.absolute.path);
   final result = parseFile(
-    path: file.absolute.path,
+    path: path,
     featureSet: FeatureSet.latestLanguageVersion(),
   );
   return _ParsedFile(result.unit, result.lineInfo, result.content.split('\n'));

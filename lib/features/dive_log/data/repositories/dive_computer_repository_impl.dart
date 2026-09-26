@@ -1560,6 +1560,7 @@ class DiveComputerRepository {
       if (!hadSeries) {
         isPrimary = true;
       }
+      final revisionKind = hadSeries ? 'create' : 'computer_import';
 
       // A profile attached to an existing dive used to leave no
       // dive_data_sources row, so its fingerprint was invisible to the
@@ -1641,6 +1642,7 @@ class DiveComputerRepository {
           computerId: computerId,
           sourceId: ownerSourceId,
           isPrimary: isPrimary,
+          revisionKind: revisionKind,
           samples: [for (final point in points) _sampleFromPointData(point)],
         );
       }

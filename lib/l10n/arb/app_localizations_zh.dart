@@ -5252,6 +5252,61 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLog_detail_section_diveProfile => '潜水轮廓';
 
   @override
+  String get diveLog_detail_profileRevision_kind_edit => '编辑';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => '创建';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport => '电脑导入';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => '旧版';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor => '轮廓编辑器';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      '数据质量修复';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll => '平滑整个轮廓';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      '平滑所选区域';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      '移除所有异常值';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      '移除所选异常值';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth => '调整深度';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime => '调整时间';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment => '删除区段';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      '删除区段（插值）';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      '根据路径点生成';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros => '裁剪末尾零值';
+
+  @override
   String get diveLog_detail_section_equipment => '装备';
 
   @override

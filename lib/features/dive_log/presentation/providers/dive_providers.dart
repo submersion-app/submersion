@@ -22,6 +22,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/source_profile.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
@@ -359,6 +360,17 @@ final sourceProfilesProvider =
       // includes media) re-ran the per-source analysis after viewing a photo.
       ref.invalidateSelfWhen(repository.watchAnalysisInputChanges());
       return repository.getProfilesByDataSource(diveId);
+    });
+
+/// Metadata-only profile revision history for one dive, newest first.
+final profileSeriesHistoryProvider =
+    FutureProvider.family<List<ProfileSeriesRevision>, String>((
+      ref,
+      diveId,
+    ) async {
+      final repository = ref.watch(diveRepositoryProvider);
+      ref.invalidateSelfWhen(repository.watchAnalysisInputChanges());
+      return repository.getProfileHistory(diveId);
     });
 
 /// Batch profile cache for mini charts in the dive list.

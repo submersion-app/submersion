@@ -102,7 +102,11 @@ class _ProfileEditorPageState extends ConsumerState<ProfileEditorPage> {
 
     try {
       final repository = ref.read(diveRepositoryProvider);
-      await repository.saveEditedProfile(widget.diveId, state.editedProfile);
+      await repository.saveEditedProfileWithKind(
+        diveId: widget.diveId,
+        editedPoints: state.editedProfile,
+        editKind: state.revisionEditKindToken,
+      );
       ref.invalidate(diveProvider(widget.diveId));
       ref.invalidate(diveProfileProvider(widget.diveId));
     } catch (e) {

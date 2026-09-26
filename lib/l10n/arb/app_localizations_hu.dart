@@ -5511,6 +5511,68 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLog_detail_section_diveProfile => 'Merülési profil';
 
   @override
+  String get diveLog_detail_profileRevision_kind_edit => 'Szerkesztés';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => 'Létrehozva';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport =>
+      'Merülőkomputer import';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => 'Örökölt';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor =>
+      'Profilszerkesztő';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      'Adatminőség-javítás';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll =>
+      'Teljes profil simítása';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      'Kijelölés simítása';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      'Összes kiugró érték eltávolítása';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      'Kijelölt kiugró értékek eltávolítása';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth =>
+      'Mélység eltolása';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime =>
+      'Idő eltolása';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment =>
+      'Szegmens törlése';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      'Szegmens törlése (interpolálva)';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      'Generálás útvonalpontokból';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros =>
+      'Végső nullák levágása';
+
+  @override
   String get diveLog_detail_section_equipment => 'Felszerelés';
 
   @override

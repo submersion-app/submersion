@@ -5526,6 +5526,68 @@ class AppLocalizationsEs extends AppLocalizations {
   String get diveLog_detail_section_diveProfile => 'Perfil de inmersión';
 
   @override
+  String get diveLog_detail_profileRevision_kind_edit => 'Edición';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_create => 'Creado';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_computerImport =>
+      'Importación de ordenador de buceo';
+
+  @override
+  String get diveLog_detail_profileRevision_kind_legacy => 'Heredado';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_profileEditor =>
+      'Editor de perfil';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_dataQualityRepair =>
+      'Reparación de calidad de datos';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothAll =>
+      'Suavizar todo el perfil';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_smoothSelection =>
+      'Suavizar selección';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeAllOutliers =>
+      'Eliminar todos los valores atípicos';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_removeSelectedOutliers =>
+      'Eliminar valores atípicos seleccionados';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftDepth =>
+      'Desplazar profundidad';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_shiftTime =>
+      'Desplazar tiempo';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_deleteSegment =>
+      'Eliminar segmento';
+
+  @override
+  String
+  get diveLog_detail_profileRevision_editType_deleteSegmentInterpolated =>
+      'Eliminar segmento (interpolado)';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_generateFromWaypoints =>
+      'Generar desde puntos de referencia';
+
+  @override
+  String get diveLog_detail_profileRevision_editType_trimEndZeros =>
+      'Recortar ceros finales';
+
+  @override
   String get diveLog_detail_section_equipment => 'Equipo';
 
   @override

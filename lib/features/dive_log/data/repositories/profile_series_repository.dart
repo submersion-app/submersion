@@ -1,3 +1,4 @@
+import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -11,6 +12,7 @@ import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec.
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_codec_exception.dart';
 import 'package:submersion/features/dive_log/domain/codecs/profile_series_summary.dart';
 import 'package:submersion/features/dive_log/domain/entities/profile_series.dart';
+import 'package:submersion/features/dive_log/domain/entities/profile_series_revision.dart';
 import 'package:submersion/features/dive_log/domain/services/profile_sample_dedupe.dart';
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 
@@ -30,6 +32,7 @@ class ProfileSeriesRepository {
   static const String entityType = 'diveProfileSeries';
 
   static const ProfileSeriesCodec _codec = ProfileSeriesCodec();
+  static const String _historyTable = 'dive_profile_series_history';
 
   final AppDatabase? _database;
   AppDatabase get _db => _database ?? DatabaseService.instance.database;
@@ -48,6 +51,8 @@ class ProfileSeriesRepository {
     String? sourceId,
     bool isPrimary = true,
     required List<ProfileSample> samples,
+    String? parentSeriesId,
+    String revisionKind = 'create',
     String? id,
     int? now,
   }) async {
@@ -55,6 +60,7 @@ class ProfileSeriesRepository {
       dedupeExactSamples(_sortedByTimestamp(samples)),
     );
     final summary = encoded.summary;
+    final contentHash = _seriesContentHash(encoded.bytes);
     final rowId = id ?? _uuid.v4();
     final nowMs = now ?? DateTime.now().millisecondsSinceEpoch;
     // One transaction, like every other mutator here: a row that commits
@@ -85,10 +91,131 @@ class ProfileSeriesRepository {
               updatedAt: nowMs,
             ),
           );
+      await _upsertHistoryNode(
+        seriesId: rowId,
+        diveId: diveId,
+        parentSeriesId: parentSeriesId,
+        contentHash: contentHash,
+        revisionKind: revisionKind,
+        createdAt: nowMs,
+      );
       await _markPending(rowId, nowMs);
     });
     SyncEventBus.notifyLocalChange();
     return rowId;
+  }
+
+  /// The currently active primary series id for [diveId], or null when the
+  /// dive has no primary series.
+  Future<String?> primarySeriesIdForDive(String diveId) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT id FROM dive_profile_series '
+          'WHERE dive_id = ? AND is_primary = 1 '
+          'ORDER BY start_timestamp DESC, id DESC LIMIT 1',
+          variables: [Variable<String>(diveId)],
+        )
+        .get();
+    return rows.isEmpty ? null : rows.first.read<String>('id');
+  }
+
+  /// The parent revision id of [seriesId], or null when this series is a root
+  /// revision.
+  Future<String?> parentSeriesIdOf(String seriesId) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT parent_series_id FROM $_historyTable WHERE series_id = ? '
+          'LIMIT 1',
+          variables: [Variable<String>(seriesId)],
+        )
+        .get();
+    return rows.isEmpty ? null : rows.first.read<String?>('parent_series_id');
+  }
+
+  /// Every revision node of [diveId], newest first.
+  Future<List<ProfileSeriesRevision>> getRevisionsForDive(String diveId) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT '
+          'h.series_id, h.dive_id, h.parent_series_id, h.root_series_id, '
+          'h.content_hash, h.revision_kind, h.created_at, '
+          'COALESCE(s.is_primary, 0) AS is_active '
+          'FROM $_historyTable h '
+          'LEFT JOIN dive_profile_series s ON s.id = h.series_id '
+          'WHERE h.dive_id = ? '
+          'ORDER BY h.created_at DESC, h.series_id DESC',
+          variables: [Variable<String>(diveId)],
+        )
+        .get();
+    return [
+      for (final row in rows)
+        ProfileSeriesRevision(
+          seriesId: row.read<String>('series_id'),
+          diveId: row.read<String>('dive_id'),
+          parentSeriesId: row.read<String?>('parent_series_id'),
+          rootSeriesId: row.read<String>('root_series_id'),
+          contentHash: row.read<String>('content_hash'),
+          revisionKind: row.read<String>('revision_kind'),
+          createdAt: row.read<int>('created_at'),
+          isActive: row.read<int>('is_active') == 1,
+        ),
+    ];
+  }
+
+  /// Makes one existing series the active primary series of [diveId].
+  ///
+  /// No profile blob is copied: this only flips `is_primary` flags and stamps
+  /// changed rows pending for sync.
+  Future<void> activateSeriesForDive({
+    required String diveId,
+    required String seriesId,
+    int? now,
+  }) async {
+    final nowMs = now ?? DateTime.now().millisecondsSinceEpoch;
+    final target =
+        await (_db.select(_db.diveProfileSeries)
+              ..where((t) => t.id.equals(seriesId) & t.diveId.equals(diveId)))
+            .getSingleOrNull();
+    if (target == null) return;
+
+    await _db.transaction(() async {
+      final activeRows =
+          await (_db.select(_db.diveProfileSeries)..where(
+                (t) => t.diveId.equals(diveId) & t.isPrimary.equals(true),
+              ))
+              .get();
+      final toDemote = [
+        for (final r in activeRows)
+          if (r.id != seriesId) r.id,
+      ];
+
+      if (toDemote.isNotEmpty) {
+        await (_db.update(
+          _db.diveProfileSeries,
+        )..where((t) => t.id.isIn(toDemote))).write(
+          DiveProfileSeriesCompanion(
+            isPrimary: const Value(false),
+            updatedAt: Value(nowMs),
+          ),
+        );
+        for (final id in toDemote) {
+          await _markPending(id, nowMs);
+        }
+      }
+
+      if (!target.isPrimary) {
+        await (_db.update(
+          _db.diveProfileSeries,
+        )..where((t) => t.id.equals(seriesId))).write(
+          DiveProfileSeriesCompanion(
+            isPrimary: const Value(true),
+            updatedAt: Value(nowMs),
+          ),
+        );
+        await _markPending(seriesId, nowMs);
+      }
+    });
+    SyncEventBus.notifyLocalChange();
   }
 
   /// Timestamp order, ties in input order. Every writer hands over whatever
@@ -866,6 +993,49 @@ class ProfileSeriesRepository {
         recordId: id,
         localUpdatedAt: nowMs,
       );
+
+  String _seriesContentHash(List<int> bytes) =>
+      sha256.convert(bytes).toString();
+
+  Future<void> _upsertHistoryNode({
+    required String seriesId,
+    required String diveId,
+    required String? parentSeriesId,
+    required String contentHash,
+    required String revisionKind,
+    required int createdAt,
+  }) async {
+    final rootSeriesId = parentSeriesId == null
+        ? seriesId
+        : await _rootSeriesIdOf(parentSeriesId) ?? parentSeriesId;
+
+    await _db.customStatement(
+      'INSERT OR IGNORE INTO $_historyTable '
+      '(series_id, dive_id, parent_series_id, root_series_id, '
+      'content_hash, revision_kind, created_at) '
+      'VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [
+        seriesId,
+        diveId,
+        parentSeriesId,
+        rootSeriesId,
+        contentHash,
+        revisionKind,
+        createdAt,
+      ],
+    );
+  }
+
+  Future<String?> _rootSeriesIdOf(String seriesId) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT root_series_id FROM $_historyTable '
+          'WHERE series_id = ? LIMIT 1',
+          variables: [Variable<String>(seriesId)],
+        )
+        .get();
+    return rows.isEmpty ? null : rows.first.read<String>('root_series_id');
+  }
 
   /// Decodes one row, or returns null when its blob does not decode.
   ///
