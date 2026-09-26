@@ -176,6 +176,7 @@ class _QuarantinedDatabaseTile extends ConsumerWidget {
     // underneath it, and `ref` on an unmounted element throws.
     final notifier = ref.read(backupOperationProvider.notifier);
     final offerReplace = ref.read(cloudStorageProviderProvider) != null;
+    final container = ProviderScope.containerOf(context, listen: false);
 
     final mode = await RestoreConfirmationDialog.show(
       context,
@@ -196,6 +197,9 @@ class _QuarantinedDatabaseTile extends ConsumerWidget {
     // A successful restore restarts the app; a failed one reports through
     // the operation status on the Backups page.
     await notifier.restoreFromDatabaseCopy(copy.path, mode: mode);
+    // Re-read either way: folding the copy's journal in changes its size
+    // even when the restore then fails.
+    container.invalidate(quarantinedDatabasesProvider);
   }
 
   Future<void> _delete(BuildContext context, WidgetRef ref) async {

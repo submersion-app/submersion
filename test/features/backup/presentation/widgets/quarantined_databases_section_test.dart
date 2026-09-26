@@ -122,6 +122,7 @@ void main() {
             quarantinedDatabasesProvider.overrideWith((ref) => load()),
         ],
         child: const MaterialApp(
+          locale: Locale('en'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
@@ -220,6 +221,21 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(backupService.restored, [(copy.path, RestoreMode.merge)]);
+  });
+
+  testWidgets('re-reads the list after a restore attempt', (tester) async {
+    final service = _FakeQuarantineService([_copy()]);
+    await pump(tester, service);
+    // What the folder holds once the attempt has touched the copy.
+    service.copies[0] = _copy().copyWith(sizeBytes: 5 * 1024);
+
+    await openMenu(tester);
+    await tester.tap(find.text('Restore'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Restore').last);
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('5.0 KB'), findsOneWidget);
   });
 
   testWidgets('deletes a copy after confirmation and refreshes the list', (
