@@ -39,7 +39,8 @@ class FakeSource implements BathymetrySource {
   @override
   final double minKnownFraction;
   final bool coversIt;
-  final BathymetryGrid? result; // null => throw transient
+  final BathymetryGrid? result; // null => throw [error]
+  final BathymetryFetchException error;
   final double cellSizeMeters;
   int fetchCount = 0;
   double? lastSpanMeters;
@@ -50,6 +51,7 @@ class FakeSource implements BathymetrySource {
     this.minKnownFraction = 0.60,
     this.coversIt = true,
     this.result,
+    this.error = const BathymetryFetchException('down'),
     this.cellSizeMeters = 100,
   });
 
@@ -63,7 +65,7 @@ class FakeSource implements BathymetrySource {
     fetchCount++;
     lastSpanMeters = spanMeters;
     final r = result;
-    if (r == null) throw const BathymetryFetchException('down');
+    if (r == null) throw error;
     return r;
   }
 }
@@ -183,6 +185,37 @@ void main() {
       ).resolve(p);
       expect(res.grid, isNull);
       expect(res.definitive, isFalse);
+    });
+
+    test('a source answering "no data here" is not a failure: the fallback '
+        'grid stays definitive', () async {
+      // swissBATHY3D throws this when every tile in the span is a confirmed
+      // gap. That repeats identically on every visit, so treating it as a
+      // hiccup would re-download the fallback grid forever.
+      final noData = FakeSource(
+        'nodata',
+        global: false,
+        error: const BathymetryNoDataException('no tiles in span'),
+      );
+      final b = FakeSource('b', result: gridWith(wet, 'b'));
+      final res = await BathymetryResolver(sources: [noData, b]).resolve(p);
+      expect(res.grid!.sourceId, 'b');
+      expect(res.definitive, isTrue);
+    });
+
+    test('a source answering "no data here" + a dry global answer is a '
+        'definitive empty', () async {
+      final noData = FakeSource(
+        'nodata',
+        global: false,
+        error: const BathymetryNoDataException('no tiles in span'),
+      );
+      final globalDry = FakeSource('dry', result: gridWith(dry, 'd'));
+      final res = await BathymetryResolver(
+        sources: [noData, globalDry],
+      ).resolve(p);
+      expect(res.grid, isNull);
+      expect(res.definitive, isTrue);
     });
 
     test('a probe that throws makes the fallback grid non-definitive: it '

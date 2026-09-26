@@ -103,6 +103,14 @@ class BathymetryResolver {
         // A dry answer only proves "no water here" if the source actually
         // covers everywhere; a regional edge cell proves nothing.
         if (source.global) globalSourceSaidDry = true;
+      } on BathymetryNoDataException catch (e) {
+        // A stable "nothing here", not a hiccup: fall through without
+        // marking the walk as failed.
+        _log.debug(
+          '${source.id} has no data at '
+          '${center.latitude},${center.longitude}',
+          error: e,
+        );
       } on BathymetryFetchException catch (e) {
         // Transient: fall through to the next source.
         anySourceFailed = true;

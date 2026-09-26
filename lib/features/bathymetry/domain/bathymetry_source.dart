@@ -11,6 +11,18 @@ class BathymetryFetchException implements Exception {
   String toString() => 'BathymetryFetchException: $message';
 }
 
+/// The source answered, and the answer is "no data here" (every tile in
+/// the span is a confirmed gap). Unlike a plain [BathymetryFetchException]
+/// it repeats identically on every visit, so the resolver skips the source
+/// without treating the walk as failed: counting it as a hiccup would stop
+/// the fallback answer from ever being cached (issue #1770).
+class BathymetryNoDataException extends BathymetryFetchException {
+  const BathymetryNoDataException(super.message);
+
+  @override
+  String toString() => 'BathymetryNoDataException: $message';
+}
+
 /// What a source claims it can deliver at one coordinate. Declared, not
 /// measured: a source reports the finest grid it believes it holds there,
 /// which the resolver uses only to ORDER candidates. The wet-cell and
