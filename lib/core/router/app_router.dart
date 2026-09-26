@@ -9,6 +9,7 @@ import 'package:go_router/go_router.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/notification_service.dart';
 import 'package:submersion/features/buddies/presentation/pages/buddy_list_page.dart';
+import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_import/domain/services/dive_matcher.dart';
 import 'package:submersion/features/dive_import/presentation/providers/dive_import_providers.dart';
@@ -76,18 +77,18 @@ import 'package:submersion/features/trips/presentation/pages/trip_list_page.dart
 import 'package:submersion/features/trips/presentation/pages/trip_detail_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_edit_page.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_gallery_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_overview_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/records_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_gas_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_progression_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_conditions_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_social_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_geographic_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_marine_life_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_time_patterns_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_equipment_page.dart';
-import 'package:submersion/features/statistics/presentation/pages/statistics_profile_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_overview_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_page.dart';
+import 'package:submersion/features/insights/presentation/pages/records_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_gas_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_progression_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_conditions_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_social_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_geographic_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_marine_life_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_time_patterns_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_equipment_page.dart';
+import 'package:submersion/features/insights/presentation/pages/insights_profile_page.dart';
 import 'package:submersion/features/backup/presentation/pages/backup_settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/cloud_sync_page.dart';
 import 'package:submersion/features/media_store/presentation/pages/media_storage_page.dart';
@@ -151,6 +152,10 @@ import 'package:submersion/features/marine_life/presentation/pages/species_detai
 import 'package:submersion/features/planner/presentation/pages/plan_chart_fullscreen_page.dart';
 import 'package:submersion/features/planning/presentation/pages/planning_page.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_logger_page.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_align_page.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_detail_page.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_list_page.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_seascape_page.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_track_detail_page.dart';
 import 'package:submersion/features/gps_log/presentation/pages/gps_track_map_page.dart';
 import 'package:submersion/features/weight_planner/presentation/pages/weight_planner_page.dart';
@@ -167,6 +172,7 @@ import 'package:submersion/features/dive_computer/presentation/providers/downloa
     show diveImportServiceProvider;
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/import_wizard/data/adapters/dive_computer_adapter.dart';
+import 'package:submersion/features/import_wizard/data/adapters/divelogs_import_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/garmin_cloud_adapter.dart';
 import 'package:submersion/features/import_wizard/data/adapters/suunto_cloud_adapter.dart';
 import 'package:submersion/features/dashboard/presentation/pages/dashboard_page.dart';
@@ -383,7 +389,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'search',
                 name: 'diveSearch',
-                // Sections with their own filter (Statistics) push this page
+                // Sections with their own filter (Insights) push this page
                 // with their filter provider as `extra` so the form edits and
                 // applies to that filter (#1079). Every other entry point,
                 // such as a deep link or the keyboard shortcut, gets the dive
@@ -626,6 +632,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       equipmentId: state.pathParameters['equipmentId'],
                     ),
                   ),
+                  GoRoute(
+                    path: 'passport',
+                    name: 'equipmentPassport',
+                    builder: (context, state) => PassportPage(
+                      equipmentId: state.pathParameters['equipmentId']!,
+                      scannedTag: scannedTagFrom(state.extra),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -850,64 +864,64 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             ),
           ),
 
-          // Statistics
+          // Insights
           GoRoute(
-            path: '/statistics',
-            name: 'statistics',
+            path: '/insights',
+            name: 'insights',
             pageBuilder: (context, state) => NoTransitionPage(
               key: state.pageKey,
-              child: const StatisticsPage(),
+              child: const InsightsPage(),
             ),
             routes: [
               GoRoute(
                 path: 'overview',
-                name: 'statisticsOverview',
-                builder: (context, state) => const StatisticsOverviewPage(),
+                name: 'insightsOverview',
+                builder: (context, state) => const InsightsOverviewPage(),
               ),
               GoRoute(
                 path: 'gas',
-                name: 'statisticsGas',
-                builder: (context, state) => const StatisticsGasPage(),
+                name: 'insightsGas',
+                builder: (context, state) => const InsightsGasPage(),
               ),
               GoRoute(
                 path: 'progression',
-                name: 'statisticsProgression',
-                builder: (context, state) => const StatisticsProgressionPage(),
+                name: 'insightsProgression',
+                builder: (context, state) => const InsightsProgressionPage(),
               ),
               GoRoute(
                 path: 'conditions',
-                name: 'statisticsConditions',
-                builder: (context, state) => const StatisticsConditionsPage(),
+                name: 'insightsConditions',
+                builder: (context, state) => const InsightsConditionsPage(),
               ),
               GoRoute(
                 path: 'social',
-                name: 'statisticsSocial',
-                builder: (context, state) => const StatisticsSocialPage(),
+                name: 'insightsSocial',
+                builder: (context, state) => const InsightsSocialPage(),
               ),
               GoRoute(
                 path: 'geographic',
-                name: 'statisticsGeographic',
-                builder: (context, state) => const StatisticsGeographicPage(),
+                name: 'insightsGeographic',
+                builder: (context, state) => const InsightsGeographicPage(),
               ),
               GoRoute(
                 path: 'marine-life',
-                name: 'statisticsMarineLife',
-                builder: (context, state) => const StatisticsMarineLifePage(),
+                name: 'insightsMarineLife',
+                builder: (context, state) => const InsightsMarineLifePage(),
               ),
               GoRoute(
                 path: 'time-patterns',
-                name: 'statisticsTimePatterns',
-                builder: (context, state) => const StatisticsTimePatternsPage(),
+                name: 'insightsTimePatterns',
+                builder: (context, state) => const InsightsTimePatternsPage(),
               ),
               GoRoute(
                 path: 'equipment',
-                name: 'statisticsEquipment',
-                builder: (context, state) => const StatisticsEquipmentPage(),
+                name: 'insightsEquipment',
+                builder: (context, state) => const InsightsEquipmentPage(),
               ),
               GoRoute(
                 path: 'profile',
-                name: 'statisticsProfile',
-                builder: (context, state) => const StatisticsProfilePage(),
+                name: 'insightsProfile',
+                builder: (context, state) => const InsightsProfilePage(),
               ),
             ],
           ),
@@ -949,6 +963,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) =>
                     const _GarminCloudImportWizardRoute(),
               ),
+              GoRoute(
+                path: 'import-cloud/divelogs',
+                name: 'importFromCloudDivelogs',
+                builder: (context, state) => const _DivelogsImportWizardRoute(),
+              ),
             ],
           ),
 
@@ -982,6 +1001,38 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             name: 'gpsTrackDetail',
             builder: (context, state) =>
                 GpsTrackDetailPage(trackId: state.pathParameters['id']!),
+          ),
+
+          // Underwater navigation routes (spec
+          // 2026-09-10-underwater-nav-track-design.md, "The routes area"):
+          // siblings of /gps-log for the same reason -- pushing a route from
+          // the dive detail's "Underwater Route" section must not stack a
+          // list page underneath it.
+          GoRoute(
+            path: '/nav-routes',
+            name: 'navRoutes',
+            pageBuilder: (context, state) => NoTransitionPage(
+              key: state.pageKey,
+              child: const NavTrackListPage(),
+            ),
+          ),
+          GoRoute(
+            path: '/nav-routes/:id',
+            name: 'navRouteDetail',
+            builder: (context, state) =>
+                NavTrackDetailPage(trackId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/nav-routes/:id/align',
+            name: 'navRouteAlign',
+            builder: (context, state) =>
+                NavTrackAlignPage(routeId: state.pathParameters['id']!),
+          ),
+          GoRoute(
+            path: '/nav-routes/:id/3d',
+            name: 'navRouteSeascape',
+            builder: (context, state) =>
+                NavTrackSeascapePage(trackId: state.pathParameters['id']!),
           ),
 
           // Near-miss incident log (entry point: Settings > Manage)
@@ -1842,6 +1893,17 @@ class _GarminCloudImportWizardRoute extends ConsumerWidget {
         ref: ref,
       ),
     );
+  }
+}
+
+/// Wrapper that creates a [DivelogsImportAdapter], for importing a logbook
+/// from a divelogs.de account.
+class _DivelogsImportWizardRoute extends ConsumerWidget {
+  const _DivelogsImportWizardRoute();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return UnifiedImportWizard(adapter: DivelogsImportAdapter(ref: ref));
   }
 }
 

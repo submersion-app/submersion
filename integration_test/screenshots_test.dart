@@ -474,9 +474,9 @@ void main() {
         }
       }
 
-      // 7. Navigate to Statistics
+      // 7. Navigate to Insights
       if (_isDesktop) {
-        await _navigateTo(tester, Icons.bar_chart_outlined);
+        await _navigateTo(tester, Icons.insights_outlined);
         await screenshotHelper.waitForContent(
           tester,
           duration: const Duration(seconds: 2),
@@ -485,10 +485,10 @@ void main() {
       } else {
         await _tapBottomNavItem(tester, Icons.more_horiz_outlined);
         await _settle(tester);
-        final statisticsText = find.text('Statistics');
-        await _scrollMoreSheetTo(tester, statisticsText);
-        if (statisticsText.evaluate().isNotEmpty) {
-          await tester.tap(statisticsText.first);
+        final insightsText = find.text('Insights');
+        await _scrollMoreSheetTo(tester, insightsText);
+        if (insightsText.evaluate().isNotEmpty) {
+          await tester.tap(insightsText.first);
           await _settle(tester);
           await screenshotHelper.waitForContent(
             tester,
@@ -752,7 +752,7 @@ IconData? _getSelectedIcon(IconData outlinedIcon) {
   if (outlinedIcon == Icons.backpack_outlined) return Icons.backpack;
   if (outlinedIcon == Icons.people_outlined) return Icons.people;
   if (outlinedIcon == Icons.store_outlined) return Icons.store;
-  if (outlinedIcon == Icons.bar_chart_outlined) return Icons.bar_chart;
+  if (outlinedIcon == Icons.insights_outlined) return Icons.insights;
   if (outlinedIcon == Icons.settings_outlined) return Icons.settings;
   return null;
 }

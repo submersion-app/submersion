@@ -4,8 +4,9 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
-import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -164,7 +165,7 @@ void main() {
     expect(await listIds(filter), {'steel'});
   });
 
-  test('Statistics, the list and the id query select the same dives', () async {
+  test('Insights, the list and the id query select the same dives', () async {
     await seedSuits();
     await insertDive('steel');
     await insertItem(
@@ -198,7 +199,7 @@ void main() {
               .map((r) => r.read<String>('id'))
               .toSet();
       final listed = await listIds(filter);
-      final resolved = await repo.getDiveIdsMatchingEquipmentAttrs(conditions);
+      final resolved = await repo.getDiveIdsMatching(filter);
       expect(statsIds, isNotEmpty, reason: '$conditions');
       expect(listed, statsIds, reason: '$conditions');
       expect(resolved, statsIds, reason: '$conditions');
@@ -218,7 +219,17 @@ void main() {
           ),
         );
     final events = <void>[];
-    final sub = repo.watchEquipmentAttrFilterChanges().listen(events.add);
+    final sub = repo
+        .watchTables(
+          diveFilterTablesTouched(
+            DiveFilterState(
+              equipmentAttrConditions: [
+                EquipmentAttrCondition.suitThickness(min: 1),
+              ],
+            ),
+          ),
+        )
+        .listen(events.add);
     addTearDown(sub.cancel);
     await db
         .into(db.equipmentAttributes)

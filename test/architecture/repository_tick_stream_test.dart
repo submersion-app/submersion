@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/data/repositories/connected_accounts_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/cylinder_configs/data/repositories/cylinder_config_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_custom_field_repository.dart';
@@ -16,7 +17,7 @@ import 'package:submersion/features/media/data/repositories/media_library_reposi
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
-import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/universal_import/data/repositories/csv_preset_repository.dart';
@@ -172,8 +173,10 @@ void main() {
       'MediaLibraryRepository.watchMediaChanges':
           MediaLibraryRepository().watchMediaChanges,
       'MediaRepository.watchMediaChanges': MediaRepository().watchMediaChanges,
-      'StatisticsRepository.watchStatisticsChanges':
-          StatisticsRepository().watchStatisticsChanges,
+      'MediaLibraryRepository.watchMapChanges':
+          MediaLibraryRepository().watchMapChanges,
+      'InsightsRepository.watchInsightsChanges':
+          InsightsRepository().watchInsightsChanges,
       'ServiceRecordRepository.watchServiceRecordsChanges':
           ServiceRecordRepository().watchServiceRecordsChanges,
       'ServiceKindRepository.watchServiceKindsChanges':
@@ -182,6 +185,8 @@ void main() {
           ServiceScheduleRepository().watchSchedulesChanges,
       'CylinderConfigRepository.watchConfigsChanges':
           CylinderConfigRepository().watchConfigsChanges,
+      'CylinderFillRepository.watchFillsChanges':
+          CylinderFillRepository().watchFillsChanges,
       'DiveComputerRepository.watchComputersChanges':
           DiveComputerRepository().watchComputersChanges,
       'OfflineMapRepository.watchRegionsChanges':
@@ -196,8 +201,8 @@ void main() {
           CsvPresetRepository().watchPresetsChanges,
       'DiveRepository.watchAnalysisInputChanges':
           DiveRepository().watchAnalysisInputChanges,
-      'DiveRepository.watchEquipmentAttrFilterChanges':
-          DiveRepository().watchEquipmentAttrFilterChanges,
+      'DiveRepository.watchTables': () =>
+          DiveRepository().watchTables({'equipment_attributes'}),
       'DiveRepository.watchDiveListChangesWithBuddyLinks':
           DiveRepository().watchDiveListChangesWithBuddyLinks,
       'DiveRepository.watchDivesChangesWithBuddyLinks':
@@ -219,11 +224,11 @@ void main() {
     }
   });
 
-  group('statistics', () {
-    test('watchStatisticsChanges fires on a dives write', () async {
+  group('insights', () {
+    test('watchInsightsChanges fires on a dives write', () async {
       expect(
         await fires(
-          StatisticsRepository().watchStatisticsChanges(),
+          InsightsRepository().watchInsightsChanges(),
           () => db
               .into(db.dives)
               .insert(
@@ -239,7 +244,7 @@ void main() {
       );
     });
 
-    test('watchStatisticsChanges fires on a dive_tanks write', () async {
+    test('watchInsightsChanges fires on a dive_tanks write', () async {
       // The case watchDivesChanges would have missed. dive_tanks carries all
       // of the SAC math, and a tank-only sync changeset never touches the
       // dives row -- so subscribing to the dives tick alone would have left
@@ -256,7 +261,7 @@ void main() {
           );
       expect(
         await fires(
-          StatisticsRepository().watchStatisticsChanges(),
+          InsightsRepository().watchInsightsChanges(),
           () => db
               .into(db.diveTanks)
               .insert(DiveTanksCompanion.insert(id: 't1', diveId: 'd1')),
@@ -266,7 +271,7 @@ void main() {
     });
 
     test(
-      'watchStatisticsChanges fires on an equipment_attributes write',
+      'watchInsightsChanges fires on an equipment_attributes write',
       () async {
         // The equipment-attribute filter (#1805) and the suit-thickness chart
         // read attribute rows, and saveAttributes or a sync pull writes only
@@ -274,7 +279,7 @@ void main() {
         await seedParents();
         expect(
           await fires(
-            StatisticsRepository().watchStatisticsChanges(),
+            InsightsRepository().watchInsightsChanges(),
             () => db
                 .into(db.equipmentAttributes)
                 .insert(
@@ -292,10 +297,46 @@ void main() {
       },
     );
 
-    test('watchStatisticsChanges fires on a dive_sites write', () async {
+    test(
+      'DiveRepository.watchTables fires on a write to a named table',
+      () async {
+        expect(
+          await fires(
+            DiveRepository().watchTables({'equipment_attributes'}),
+            () async {
+              await db
+                  .into(db.equipment)
+                  .insert(
+                    EquipmentCompanion.insert(
+                      id: 'eq_query_tick',
+                      name: 'tick',
+                      type: 'hose',
+                      createdAt: now,
+                      updatedAt: now,
+                    ),
+                  );
+              await db
+                  .into(db.equipmentAttributes)
+                  .insert(
+                    EquipmentAttributesCompanion.insert(
+                      id: 'attr_eq_query_tick',
+                      equipmentId: 'eq_query_tick',
+                      attrKey: 'query_tick',
+                      createdAt: now,
+                      updatedAt: now,
+                    ),
+                  );
+            },
+          ),
+          isTrue,
+        );
+      },
+    );
+
+    test('watchInsightsChanges fires on a dive_sites write', () async {
       expect(
         await fires(
-          StatisticsRepository().watchStatisticsChanges(),
+          InsightsRepository().watchInsightsChanges(),
           () => db
               .into(db.diveSites)
               .insert(
@@ -313,7 +354,7 @@ void main() {
 
     // Site type links are clockless children: typing a site writes only the
     // junction, never dive_sites, so the chart must listen to it (#1765).
-    test('watchStatisticsChanges fires on a site_site_types write', () async {
+    test('watchInsightsChanges fires on a site_site_types write', () async {
       await db
           .into(db.diveSites)
           .insert(
@@ -326,7 +367,7 @@ void main() {
           );
       expect(
         await fires(
-          StatisticsRepository().watchStatisticsChanges(),
+          InsightsRepository().watchInsightsChanges(),
           () => db
               .into(db.siteSiteTypes)
               .insert(
@@ -454,6 +495,29 @@ void main() {
                   id: 'i1',
                   configId: 'c1',
                   tankRole: 'backGas',
+                  createdAt: now,
+                  updatedAt: now,
+                ),
+              ),
+        ),
+        isTrue,
+      );
+    });
+  });
+
+  group('cylinder fills', () {
+    test('watchFillsChanges fires on a fill write', () async {
+      expect(
+        await fires(
+          CylinderFillRepository().watchFillsChanges(),
+          () => db
+              .into(db.cylinderFills)
+              .insert(
+                CylinderFillsCompanion.insert(
+                  id: 'fill-tick',
+                  passportId: 'pp-tick',
+                  filledAt: now,
+                  o2Percent: 21,
                   createdAt: now,
                   updatedAt: now,
                 ),
@@ -781,6 +845,100 @@ void main() {
             'changes what the consumers of this tick would return',
       );
     });
+
+    // The media map places items through dives (entry fix) and dive_sites
+    // (coordinates), so a tick over media alone would leave a moved site's
+    // photos where they were until something else happened to write media.
+    test(
+      'MediaLibraryRepository.watchMapChanges fires on a dive_sites write',
+      () async {
+        expect(
+          await fires(
+            MediaLibraryRepository().watchMapChanges(),
+            () => db
+                .into(db.diveSites)
+                .insert(
+                  DiveSitesCompanion(
+                    id: const Value('site-tick'),
+                    name: const Value('Tick'),
+                    createdAt: Value(now),
+                    updatedAt: Value(now),
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      },
+    );
+
+    test(
+      'MediaLibraryRepository.watchMapChanges fires on a dives write',
+      () async {
+        expect(
+          await fires(
+            MediaLibraryRepository().watchMapChanges(),
+            () => db
+                .into(db.dives)
+                .insert(
+                  DivesCompanion(
+                    id: const Value('dive-tick'),
+                    diveDateTime: Value(now),
+                    createdAt: Value(now),
+                    updatedAt: Value(now),
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      },
+    );
+
+    // The species filter is an EXISTS over media_species, so tagging or
+    // untagging a photo changes which points the map shows.
+    test(
+      'MediaLibraryRepository.watchMapChanges fires on a media_species write',
+      () async {
+        await seedParents();
+        await db
+            .into(db.media)
+            .insert(
+              MediaCompanion.insert(
+                id: 'm-tag',
+                filePath: 'm-tag.jpg',
+                fileType: const Value('photo'),
+                sourceType: const Value('localFile'),
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+        await db
+            .into(db.species)
+            .insert(
+              SpeciesCompanion.insert(
+                id: 'sp-1',
+                commonName: 'Manta',
+                category: 'fish',
+              ),
+            );
+
+        expect(
+          await fires(
+            MediaLibraryRepository().watchMapChanges(),
+            () => db
+                .into(db.mediaSpecies)
+                .insert(
+                  MediaSpeciesCompanion.insert(
+                    id: 'ms-1',
+                    mediaId: 'm-tag',
+                    speciesId: 'sp-1',
+                    createdAt: now,
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      },
+    );
 
     test('watchStoresChanges fires', () async {
       expect(

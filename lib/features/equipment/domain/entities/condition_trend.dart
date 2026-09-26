@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-import 'package:submersion/features/statistics/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 
 /// Which per-dive quantity an item's condition chart plots.
 enum ConditionTrendKind {

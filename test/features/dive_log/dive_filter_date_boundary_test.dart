@@ -5,7 +5,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
-import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 
 import '../../helpers/test_database.dart';
 
@@ -17,9 +17,9 @@ import '../../helpers/test_database.dart';
 /// of the range.
 ///
 /// The date axis has three implementations that must agree: the statistics
-/// SQL subquery, the paginated dive list's WHERE builder, and the in-memory
-/// `apply()` used by export/table/map views. This pins all three against the
-/// same fixtures.
+/// SQL subquery, the paginated dive list's WHERE builder, and the id set the
+/// export/table/map views narrow by. Since #2365 all three compile the same
+/// tree; this pins them against the same fixtures.
 ///
 /// CI runs in UTC, where the offset is zero and the original bug cannot
 /// reproduce, so the boundary-getter group deliberately feeds filter dates
@@ -123,9 +123,10 @@ void main() {
     });
   });
 
-  group('apply()', () {
-    test('keeps the whole start day and excludes the day before', () {
-      final ids = rangeFilter().apply(allDives()).map((d) => d.id).toSet();
+  group('entity views (id set)', () {
+    test('keeps the whole start day and excludes the day before', () async {
+      await seedDives();
+      final ids = await repository.getDiveIdsMatching(rangeFilter());
       expect(
         ids,
         contains('just-inside-start'),
@@ -138,8 +139,9 @@ void main() {
       );
     });
 
-    test('keeps the whole end day and excludes the day after', () {
-      final ids = rangeFilter().apply(allDives()).map((d) => d.id).toSet();
+    test('keeps the whole end day and excludes the day after', () async {
+      await seedDives();
+      final ids = await repository.getDiveIdsMatching(rangeFilter());
       expect(
         ids,
         contains('just-inside-end'),
@@ -151,21 +153,10 @@ void main() {
         reason: 'midnight the following day is outside it',
       );
     });
-
-    test('a local-frame dive is matched on its calendar day too', () {
-      // apply() is public and takes whatever entities a caller holds, so it
-      // compares calendar days rather than instants: a dive whose DateTime
-      // was built local reads the same digits the diver sees.
-      final localDive = domain.Dive(
-        id: 'local',
-        dateTime: DateTime(2026, 1, 1, 2, 0),
-      );
-      expect(rangeFilter().apply([localDive]).map((d) => d.id), ['local']);
-    });
   });
 
   group('statistics SQL subquery', () {
-    test('matches apply() on both boundaries', () async {
+    test('selects the same dives on both boundaries', () async {
       await seedDives();
       expect(await subqueryIdsMatching(rangeFilter()), {
         'just-inside-start',
@@ -189,7 +180,7 @@ void main() {
   });
 
   group('paginated dive list SQL', () {
-    test('matches apply() on both boundaries', () async {
+    test('selects the same dives on both boundaries', () async {
       await seedDives();
       final results = await repository.getDiveSummaries(filter: rangeFilter());
       expect(results.map((d) => d.id).toSet(), {
@@ -203,7 +194,7 @@ void main() {
     await seedDives();
     final filter = DiveFilterState(startDate: rangeStart);
     final expected = {'just-inside-start', 'just-inside-end', 'just-after-end'};
-    expect(filter.apply(allDives()).map((d) => d.id).toSet(), expected);
+    expect(await repository.getDiveIdsMatching(filter), expected);
     expect(await subqueryIdsMatching(filter), expected);
     expect(
       (await repository.getDiveSummaries(

@@ -80,7 +80,9 @@ class CsvEquipmentWriter {
                 .where(
                   (a) =>
                       a.hasValue &&
-                      (a.isCustom || !_dedicatedAttrKeys.contains(a.key)),
+                      (a.isCustom ||
+                          (!_dedicatedAttrKeys.contains(a.key) &&
+                              !EquipmentAttributeCatalog.isSystemKey(a.key))),
                 )
                 .map((a) => formatAttributePair(a, units)),
           ),

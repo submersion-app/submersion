@@ -62,9 +62,9 @@ class QuickActionsCard extends StatelessWidget {
             SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => context.go('/statistics'),
-                icon: const Icon(Icons.bar_chart),
-                label: Text(context.l10n.dashboard_quickActions_statistics),
+                onPressed: () => context.go('/insights'),
+                icon: const Icon(Icons.insights),
+                label: Text(context.l10n.dashboard_quickActions_insights),
               ),
             ),
             const SizedBox(height: 8),
@@ -74,6 +74,15 @@ class QuickActionsCard extends StatelessWidget {
                 onPressed: () => context.go('/gps-log'),
                 icon: const Icon(Icons.gps_fixed),
                 label: Text(context.l10n.tools_gpsLogger_title),
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () => context.push('/nav-routes'),
+                icon: const Icon(Icons.route),
+                label: Text(context.l10n.dashboard_quickActions_navRoutes),
               ),
             ),
             const SizedBox(height: 8),

@@ -5592,7 +5592,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           // Editing an existing dive: return to whatever pushed this form
           // (normally that dive's own detail page). `go` would rebuild the
           // stack from `/dives` and discard the section the user came from --
-          // Media, Statistics, a trip -- stranding them on the dive list.
+          // Media, Insights, a trip -- stranding them on the dive list.
           context.pop();
         } else {
           // A new dive has no page to return to, so take the form's place

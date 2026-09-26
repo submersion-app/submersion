@@ -69,6 +69,7 @@ class SyncRepository {
     'preDiveSessions': (table: 'pre_dive_sessions', pk: 'id'),
     'preDiveSessionItems': (table: 'pre_dive_session_items', pk: 'id'),
     'gpsTracks': (table: 'gps_tracks', pk: 'id'),
+    'navTracks': (table: 'nav_tracks', pk: 'id'),
     'siteFeatures': (table: 'site_features', pk: 'id'),
     'divePlans': (table: 'dive_plans', pk: 'id'),
     'divePlanTanks': (table: 'dive_plan_tanks', pk: 'id'),
@@ -95,6 +96,7 @@ class SyncRepository {
     // junction above.
     'diveComputers': (table: 'dive_computers', pk: 'id'),
     'transmitters': (table: 'transmitters', pk: 'id'),
+    'cylinderFills': (table: 'cylinder_fills', pk: 'id'),
     'tags': (table: 'tags', pk: 'id'),
     'courses': (table: 'courses', pk: 'id'),
     // HLC merge-root only: the courseRequirementDives junction is clockless

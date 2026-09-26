@@ -3,6 +3,8 @@ import 'dart:typed_data';
 
 import 'package:csv/csv.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_equipment_writer.dart';
@@ -182,5 +184,49 @@ void main() {
       expect(payload.entitiesOf(ImportEntityType.equipment), hasLength(3));
       expect(payload.entitiesOf(ImportEntityType.tags), isEmpty);
     });
+  });
+
+  // Issue #2334: files written before the writer stopped exporting it still
+  // carry passport_id; importing it would give two cylinders one tag.
+  test('a passport id in an older file is ignored', () async {
+    final csv = CsvEquipmentWriter(CsvExportUnits.metric)
+        .write([
+          const EquipmentItem(
+            id: 'tank',
+            name: 'Faber 12',
+            type: EquipmentType.tank,
+            attributes: [
+              EquipmentAttribute(
+                id: 'a1',
+                equipmentId: 'tank',
+                key: EquipmentAttrKeys.passportId,
+                valueText: '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab',
+              ),
+              EquipmentAttribute(
+                id: 'a2',
+                equipmentId: 'tank',
+                key: 'valve_type',
+                valueText: 'din',
+              ),
+            ],
+          ),
+        ])
+        .replaceFirst(
+          'valve_type=din',
+          'passport_id=8f3a5c1e-1b2c-4d5e-8f90-1234567890ab; valve_type=din',
+        );
+    expect(csv, contains('passport_id='));
+    final payload = await const SubmersionEquipmentCsvParser().parse(
+      _bytes(csv),
+    );
+    final tank = _byName(
+      payload.entitiesOf(ImportEntityType.equipment),
+      'Faber 12',
+    );
+    final keys = (tank['attributes'] as List).cast<Map<String, dynamic>>().map(
+      (a) => a['key'],
+    );
+    expect(keys, contains('valve_type'));
+    expect(keys, isNot(contains('passport_id')));
   });
 }
