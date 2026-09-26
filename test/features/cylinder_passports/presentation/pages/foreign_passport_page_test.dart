@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/core/constants/tank_presets.dart';
+import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/foreign_passport_page.dart';
@@ -38,15 +40,16 @@ void main() {
 
   Future<AppLocalizations> pump(
     WidgetTester tester,
-    CylinderPassportPayload? tag,
-  ) async {
+    CylinderPassportPayload? tag, {
+    MockSettingsNotifier? settings,
+  }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = const Size(600, 2000);
     addTearDown(() {
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
     });
-    final overrides = await getBaseOverrides();
+    final overrides = await getBaseOverrides(settingsNotifier: settings);
     await tester.pumpWidget(
       testApp(
         overrides: overrides,
@@ -70,6 +73,27 @@ void main() {
     expect(find.text(l10n.passport_foreign_o2Clean), findsOneWidget);
     expect(find.textContaining('2024'), findsWidgets);
     expect(find.text(l10n.passport_foreign_noDetails), findsNothing);
+  });
+
+  const al80 = CylinderPassportPayload(
+    passportId: id,
+    volumeL: 11.1,
+    workingPressureBar: 207,
+  );
+
+  testWidgets('tank volume keeps its decimal in liters', (tester) async {
+    await pump(tester, al80);
+    expect(find.text('11.1 L'), findsOneWidget);
+  });
+
+  testWidgets('tank volume reads as rated gas capacity in cubic feet', (
+    tester,
+  ) async {
+    final settings = MockSettingsNotifier();
+    await settings.setVolumeUnit(VolumeUnit.cubicFeet);
+    await pump(tester, al80, settings: settings);
+    final rated = TankPresets.matchBySpecs(11.1, 207)!.ratedCapacityCuft!;
+    expect(find.text('${rated.round()} cuft'), findsOneWidget);
   });
 
   testWidgets('an identity-only tag says it carries no details', (

@@ -132,7 +132,11 @@ class _ForeignPassportPageState extends ConsumerState<ForeignPassportPage> {
       if (tag.volumeL != null)
         (
           attributeLabel(l10n, EquipmentAttrKeys.volumeL),
-          units.formatVolume(tag.volumeL),
+          // A tank's size: liters of water, or rated gas capacity in cuft.
+          units.formatTankVolume(
+            tag.volumeL,
+            tag.workingPressureBar?.toDouble(),
+          ),
         ),
       if (tag.workingPressureBar != null)
         (
