@@ -1,0 +1,51 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        generate_for:
+          - lib/**
+      riverpod_generator:
+        generate_for:
+          - lib/**
+      json_serializable:
+        generate_for:
+          - lib/**
+      mockito:mockBuilder:
+        generate_for:
+          - test/core/services/security/biometric_service_test.dart
+          - test/features/dive_computer/data/services/dive_import_service_test.dart
+          - test/features/dive_computer/presentation/providers/download_notifier_address_rebind_test.dart
+          - test/features/dive_computer/presentation/providers/download_notifier_clock_sync_test.dart
+          - test/features/dive_computer/presentation/providers/download_notifier_fingerprint_test.dart
+          - test/features/dive_computer/presentation/widgets/download_step_cutoff_prompt_test.dart
+          - test/features/dive_import/data/services/healthkit_service_test.dart
+          - test/features/dive_import/data/services/uddf_entity_importer_test.dart
+          - test/features/dive_import/presentation/providers/dive_import_notifier_test.dart
+          - test/features/dive_log/presentation/helpers/site_suggestion_actions_test.dart
+          - test/features/dive_sites/data/services/site_matching_service_test.dart
+          - test/features/dive_sites/presentation/providers/site_match_review_notifier_test.dart
+          - test/features/dive_sites/presentation/providers/site_suggestion_providers_test.dart
+          - test/features/import_wizard/data/adapters/dive_computer_adapter_reimport_test.dart
+          - test/features/import_wizard/data/adapters/dive_computer_adapter_test.dart
+          - test/features/import_wizard/data/adapters/garmin_cloud_adapter_test.dart
+          - test/features/import_wizard/data/adapters/healthkit_adapter_test.dart
+          - test/features/import_wizard/data/adapters/import_photo_linker_test.dart
+          - test/features/import_wizard/data/adapters/suunto_cloud_adapter_test.dart
+          - test/features/import_wizard/data/adapters/universal_adapter_test.dart
+          - test/features/import_wizard/presentation/providers/import_wizard_notifier_test.dart
+          - test/features/import_wizard/presentation/widgets/dc_adapter_download_step_cutoff_race_test.dart
+          - test/features/media/data/services/asset_resolution_service_test.dart
+          - test/features/media/data/services/local_bookmark_storage_test.dart
+          - test/features/media/data/services/local_file_handle_factory_test.dart
+          - test/features/media/data/services/local_file_link_service_test.dart
+          - test/features/media/data/services/local_files_diagnostics_service_test.dart
+          - test/features/media/data/services/media_import_service_test.dart
+          - test/features/media/data/services/network_credentials_service_test.dart
+          - test/features/media/data/services/network_scan_service_test.dart
+          - test/features/media/presentation/providers/files_tab_providers_test.dart
+          - test/features/media/presentation/providers/local_file_link_service_provider_test.dart
+          - test/features/media/presentation/providers/resolved_asset_providers_test.dart
+          - test/features/media/presentation/widgets/url_tab_test.dart
+          - test/features/tags/presentation/widgets/tag_merge_sheet_test.dart
+          - test/features/universal_import/presentation/providers/import_consolidation_service_test.dart
+          - test/features/weather/data/repositories/weather_repository_test.dart

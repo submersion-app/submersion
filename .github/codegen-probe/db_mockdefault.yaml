@@ -1,0 +1,12 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        generate_for:
+          - lib/core/database/**
+      riverpod_generator:
+        generate_for:
+          - lib/**
+      json_serializable:
+        generate_for:
+          - lib/**

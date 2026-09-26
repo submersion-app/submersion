@@ -1,0 +1,91 @@
+# Throwaway measurement workflow (scratch branch only, never merged).
+# Runs a COLD build_runner build per build.yaml variant on ubuntu-latest and
+# records peak memory, swap, duration and a digest of the generated files.
+name: Codegen memory probe
+
+on:
+  push:
+    branches: [ci-probe/codegen-memory]
+
+env:
+  FLUTTER_VERSION_FILE: .github/flutter-version.txt
+
+jobs:
+  probe:
+    name: ${{ matrix.variant }} (${{ matrix.rep }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [baseline, lib_mocklist, db_mockdefault, db_mocklist]
+        rep: [1, 2]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Read Flutter version
+        id: flutter-ver
+        run: echo "version=$(cat ${{ env.FLUTTER_VERSION_FILE }})" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.flutter-ver.outputs.version }}
+          channel: 'stable'
+
+      - name: Restore pub cache (read-only)
+        uses: actions/cache/restore@v6
+        with:
+          path: ~/.pub-cache
+          key: pub-${{ runner.os }}-${{ hashFiles('**/pubspec.lock') }}
+          restore-keys: |
+            pub-${{ runner.os }}-
+
+      - run: flutter config --no-enable-swift-package-manager
+      - run: flutter pub get
+
+      - name: Apply variant
+        run: |
+          rm -rf .dart_tool/build
+          if [ "${{ matrix.variant }}" != baseline ]; then
+            cp .github/codegen-probe/${{ matrix.variant }}.yaml build.yaml
+          fi
+          echo "--- build.yaml:"; cat build.yaml 2>/dev/null || echo "(none)"
+          echo "--- machine:"; nproc; free -m; swapon --show || true
+
+      - name: Cold build with memory sampling
+        continue-on-error: true
+        run: |
+          (
+            while true; do
+              free -m | awk -v t="$(date +%s)" '/^Mem:/{u=$3; a=$7} /^Swap:/{s=$3} END{printf "%s used=%s avail=%s swap=%s ", t, u, a, s}'
+              ps -C dartaotruntime -o rss= | awk '{r+=$1} END{printf "script_rss=%d\n", r/1024}'
+              sleep 2
+            done
+          ) > mem.log 2>&1 &
+          sampler=$!
+          start=$(date +%s)
+          set +e
+          /usr/bin/time -v dart run build_runner build --delete-conflicting-outputs > run.log 2> time.log
+          rc=$?
+          set -e
+          end=$(date +%s)
+          kill $sampler || true
+          tail -5 run.log
+          echo "PROBE_RESULT variant=${{ matrix.variant }} rep=${{ matrix.rep }} rc=$rc seconds=$((end - start))" \
+            "peak_used_mb=$(sed -E 's/.*used=([0-9]+).*/\1/' mem.log | sort -n | tail -1)" \
+            "min_avail_mb=$(sed -E 's/.*avail=([0-9]+).*/\1/' mem.log | sort -n | head -1)" \
+            "peak_swap_mb=$(sed -E 's/.*swap=([0-9]+).*/\1/' mem.log | sort -n | tail -1)" \
+            "peak_script_rss_mb=$(sed -E 's/.*script_rss=([0-9]+).*/\1/' mem.log | sort -n | tail -1)" \
+            "time_max_rss_mb=$(awk -F': ' '/Maximum resident set size/{print int($2/1024)}' time.log)" \
+            "$(grep -E 'on [0-9]+ inputs' run.log | tail -1 | grep -oE '[a-z_:]+ on [0-9]+ inputs' || true)" \
+            "$(grep -oE 'wrote [0-9]+ outputs' run.log | tail -1)"
+          find lib test integration_test -type f \( -name '*.g.dart' -o -name '*.freezed.dart' -o -name '*.mocks.dart' \) -print0 \
+            | sort -z | xargs -0 sha256sum > generated.sha256
+          echo "PROBE_DIGEST variant=${{ matrix.variant }} files=$(wc -l < generated.sha256) digest=$(sha256sum < generated.sha256 | cut -c1-16)"
+          echo "--- mem.log every 15th sample:"; awk 'NR % 15 == 1' mem.log
+
+      - name: Kernel OOM evidence
+        if: always()
+        run: sudo dmesg -T | grep -iE "oom|killed process|out of memory" | tail -20 || echo "no OOM lines"
