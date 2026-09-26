@@ -40863,4 +40863,37 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get query_weights_type => '类型';
+
+  @override
+  String get query_op_eq => '是';
+
+  @override
+  String get query_op_neq => '不是';
+
+  @override
+  String get query_op_lt => '小于';
+
+  @override
+  String get query_op_lte => '至多';
+
+  @override
+  String get query_op_gt => '大于';
+
+  @override
+  String get query_op_gte => '至少';
+
+  @override
+  String get query_op_contains => '包含';
+
+  @override
+  String get query_op_inList => '是其中之一';
+
+  @override
+  String get query_op_between => '介于';
+
+  @override
+  String get query_op_isEmpty => '未设置';
+
+  @override
+  String get query_op_isSet => '已设置';
 }

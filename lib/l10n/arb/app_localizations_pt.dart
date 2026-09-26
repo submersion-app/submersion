@@ -43385,4 +43385,37 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get query_weights_type => 'Tipo';
+
+  @override
+  String get query_op_eq => 'é';
+
+  @override
+  String get query_op_neq => 'não é';
+
+  @override
+  String get query_op_lt => 'menor que';
+
+  @override
+  String get query_op_lte => 'no máximo';
+
+  @override
+  String get query_op_gt => 'maior que';
+
+  @override
+  String get query_op_gte => 'pelo menos';
+
+  @override
+  String get query_op_contains => 'contém';
+
+  @override
+  String get query_op_inList => 'é um de';
+
+  @override
+  String get query_op_between => 'entre';
+
+  @override
+  String get query_op_isEmpty => 'não definido';
+
+  @override
+  String get query_op_isSet => 'definido';
 }

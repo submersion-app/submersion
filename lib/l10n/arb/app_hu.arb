@@ -12909,5 +12909,16 @@
   "query_trips_startDate": "Kezdő dátum",
   "query_weights_amount": "Mennyiség",
   "query_weights_notes": "Jegyzetek",
-  "query_weights_type": "Típus"
+  "query_weights_type": "Típus",
+  "query_op_eq": "egyenlő",
+  "query_op_neq": "nem egyenlő",
+  "query_op_lt": "kisebb mint",
+  "query_op_lte": "legfeljebb",
+  "query_op_gt": "nagyobb mint",
+  "query_op_gte": "legalább",
+  "query_op_contains": "tartalmazza",
+  "query_op_inList": "egyike",
+  "query_op_between": "között",
+  "query_op_isEmpty": "nincs megadva",
+  "query_op_isSet": "meg van adva"
 }

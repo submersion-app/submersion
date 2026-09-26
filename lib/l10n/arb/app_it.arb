@@ -12909,5 +12909,16 @@
   "query_trips_startDate": "Data di inizio",
   "query_weights_amount": "Quantità",
   "query_weights_notes": "Note",
-  "query_weights_type": "Tipo"
+  "query_weights_type": "Tipo",
+  "query_op_eq": "è",
+  "query_op_neq": "non è",
+  "query_op_lt": "minore di",
+  "query_op_lte": "al massimo",
+  "query_op_gt": "maggiore di",
+  "query_op_gte": "almeno",
+  "query_op_contains": "contiene",
+  "query_op_inList": "è uno di",
+  "query_op_between": "tra",
+  "query_op_isEmpty": "non impostato",
+  "query_op_isSet": "impostato"
 }

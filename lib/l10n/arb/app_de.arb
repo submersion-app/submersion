@@ -13009,5 +13009,16 @@
   "query_trips_startDate": "Startdatum",
   "query_weights_amount": "Menge",
   "query_weights_notes": "Notizen",
-  "query_weights_type": "Typ"
+  "query_weights_type": "Typ",
+  "query_op_eq": "ist",
+  "query_op_neq": "ist nicht",
+  "query_op_lt": "kleiner als",
+  "query_op_lte": "höchstens",
+  "query_op_gt": "größer als",
+  "query_op_gte": "mindestens",
+  "query_op_contains": "enthält",
+  "query_op_inList": "ist eines von",
+  "query_op_between": "zwischen",
+  "query_op_isEmpty": "nicht gesetzt",
+  "query_op_isSet": "gesetzt"
 }

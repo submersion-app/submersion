@@ -42509,4 +42509,37 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get query_weights_type => 'סוג';
+
+  @override
+  String get query_op_eq => 'שווה';
+
+  @override
+  String get query_op_neq => 'אינו שווה';
+
+  @override
+  String get query_op_lt => 'פחות מ';
+
+  @override
+  String get query_op_lte => 'לכל היותר';
+
+  @override
+  String get query_op_gt => 'יותר מ';
+
+  @override
+  String get query_op_gte => 'לפחות';
+
+  @override
+  String get query_op_contains => 'מכיל';
+
+  @override
+  String get query_op_inList => 'אחד מ';
+
+  @override
+  String get query_op_between => 'בין';
+
+  @override
+  String get query_op_isEmpty => 'לא מוגדר';
+
+  @override
+  String get query_op_isSet => 'מוגדר';
 }

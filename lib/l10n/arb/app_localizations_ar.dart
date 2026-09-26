@@ -43043,4 +43043,37 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get query_weights_type => 'النوع';
+
+  @override
+  String get query_op_eq => 'يساوي';
+
+  @override
+  String get query_op_neq => 'لا يساوي';
+
+  @override
+  String get query_op_lt => 'أقل من';
+
+  @override
+  String get query_op_lte => 'على الأكثر';
+
+  @override
+  String get query_op_gt => 'أكثر من';
+
+  @override
+  String get query_op_gte => 'على الأقل';
+
+  @override
+  String get query_op_contains => 'يحتوي على';
+
+  @override
+  String get query_op_inList => 'أحد';
+
+  @override
+  String get query_op_between => 'بين';
+
+  @override
+  String get query_op_isEmpty => 'غير محدد';
+
+  @override
+  String get query_op_isSet => 'محدد';
 }

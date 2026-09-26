@@ -43087,4 +43087,37 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get query_weights_type => 'Type';
+
+  @override
+  String get query_op_eq => 'is';
+
+  @override
+  String get query_op_neq => 'is niet';
+
+  @override
+  String get query_op_lt => 'kleiner dan';
+
+  @override
+  String get query_op_lte => 'hoogstens';
+
+  @override
+  String get query_op_gt => 'groter dan';
+
+  @override
+  String get query_op_gte => 'minstens';
+
+  @override
+  String get query_op_contains => 'bevat';
+
+  @override
+  String get query_op_inList => 'is een van';
+
+  @override
+  String get query_op_between => 'tussen';
+
+  @override
+  String get query_op_isEmpty => 'niet ingesteld';
+
+  @override
+  String get query_op_isSet => 'ingesteld';
 }

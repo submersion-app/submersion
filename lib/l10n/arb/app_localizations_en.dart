@@ -42733,4 +42733,37 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get query_weights_type => 'Type';
+
+  @override
+  String get query_op_eq => 'is';
+
+  @override
+  String get query_op_neq => 'is not';
+
+  @override
+  String get query_op_lt => 'less than';
+
+  @override
+  String get query_op_lte => 'at most';
+
+  @override
+  String get query_op_gt => 'more than';
+
+  @override
+  String get query_op_gte => 'at least';
+
+  @override
+  String get query_op_contains => 'contains';
+
+  @override
+  String get query_op_inList => 'is one of';
+
+  @override
+  String get query_op_between => 'between';
+
+  @override
+  String get query_op_isEmpty => 'is not set';
+
+  @override
+  String get query_op_isSet => 'is set';
 }

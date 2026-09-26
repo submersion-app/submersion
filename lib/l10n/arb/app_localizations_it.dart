@@ -43365,4 +43365,37 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get query_weights_type => 'Tipo';
+
+  @override
+  String get query_op_eq => 'è';
+
+  @override
+  String get query_op_neq => 'non è';
+
+  @override
+  String get query_op_lt => 'minore di';
+
+  @override
+  String get query_op_lte => 'al massimo';
+
+  @override
+  String get query_op_gt => 'maggiore di';
+
+  @override
+  String get query_op_gte => 'almeno';
+
+  @override
+  String get query_op_contains => 'contiene';
+
+  @override
+  String get query_op_inList => 'è uno di';
+
+  @override
+  String get query_op_between => 'tra';
+
+  @override
+  String get query_op_isEmpty => 'non impostato';
+
+  @override
+  String get query_op_isSet => 'impostato';
 }

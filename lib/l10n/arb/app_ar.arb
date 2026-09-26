@@ -12909,5 +12909,16 @@
   "query_trips_startDate": "تاريخ البدء",
   "query_weights_amount": "الكمية",
   "query_weights_notes": "ملاحظات",
-  "query_weights_type": "النوع"
+  "query_weights_type": "النوع",
+  "query_op_eq": "يساوي",
+  "query_op_neq": "لا يساوي",
+  "query_op_lt": "أقل من",
+  "query_op_lte": "على الأكثر",
+  "query_op_gt": "أكثر من",
+  "query_op_gte": "على الأقل",
+  "query_op_contains": "يحتوي على",
+  "query_op_inList": "أحد",
+  "query_op_between": "بين",
+  "query_op_isEmpty": "غير محدد",
+  "query_op_isSet": "محدد"
 }

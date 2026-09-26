@@ -69553,6 +69553,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Type'**
   String get query_weights_type;
+
+  /// Operator label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'is'**
+  String get query_op_eq;
+
+  /// Operator label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'is not'**
+  String get query_op_neq;
+
+  /// Operator label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'less than'**
+  String get query_op_lt;
+
+  /// Operator label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'at most'**
+  String get query_op_lte;
+
+  /// Operator label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'more than'**
+  String get query_op_gt;
+
+  /// Operator label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'at least'**
+  String get query_op_gte;
+
+  /// Operator label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'contains'**
+  String get query_op_contains;
+
+  /// Operator label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'is one of'**
+  String get query_op_inList;
+
+  /// Operator label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'between'**
+  String get query_op_between;
+
+  /// Operator label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'is not set'**
+  String get query_op_isEmpty;
+
+  /// Operator label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'is set'**
+  String get query_op_isSet;
 }
 
 class _AppLocalizationsDelegate

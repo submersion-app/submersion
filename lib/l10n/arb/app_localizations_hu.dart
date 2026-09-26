@@ -43202,4 +43202,37 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_weights_type => 'Típus';
+
+  @override
+  String get query_op_eq => 'egyenlő';
+
+  @override
+  String get query_op_neq => 'nem egyenlő';
+
+  @override
+  String get query_op_lt => 'kisebb mint';
+
+  @override
+  String get query_op_lte => 'legfeljebb';
+
+  @override
+  String get query_op_gt => 'nagyobb mint';
+
+  @override
+  String get query_op_gte => 'legalább';
+
+  @override
+  String get query_op_contains => 'tartalmazza';
+
+  @override
+  String get query_op_inList => 'egyike';
+
+  @override
+  String get query_op_between => 'között';
+
+  @override
+  String get query_op_isEmpty => 'nincs megadva';
+
+  @override
+  String get query_op_isSet => 'meg van adva';
 }

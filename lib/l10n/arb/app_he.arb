@@ -12909,5 +12909,16 @@
   "query_trips_startDate": "תאריך התחלה",
   "query_weights_amount": "כמות",
   "query_weights_notes": "הערות",
-  "query_weights_type": "סוג"
+  "query_weights_type": "סוג",
+  "query_op_eq": "שווה",
+  "query_op_neq": "אינו שווה",
+  "query_op_lt": "פחות מ",
+  "query_op_lte": "לכל היותר",
+  "query_op_gt": "יותר מ",
+  "query_op_gte": "לפחות",
+  "query_op_contains": "מכיל",
+  "query_op_inList": "אחד מ",
+  "query_op_between": "בין",
+  "query_op_isEmpty": "לא מוגדר",
+  "query_op_isSet": "מוגדר"
 }

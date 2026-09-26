@@ -12909,5 +12909,16 @@
   "query_trips_startDate": "Startdatum",
   "query_weights_amount": "Hoeveelheid",
   "query_weights_notes": "Notities",
-  "query_weights_type": "Type"
+  "query_weights_type": "Type",
+  "query_op_eq": "is",
+  "query_op_neq": "is niet",
+  "query_op_lt": "kleiner dan",
+  "query_op_lte": "hoogstens",
+  "query_op_gt": "groter dan",
+  "query_op_gte": "minstens",
+  "query_op_contains": "bevat",
+  "query_op_inList": "is een van",
+  "query_op_between": "tussen",
+  "query_op_isEmpty": "niet ingesteld",
+  "query_op_isSet": "ingesteld"
 }
