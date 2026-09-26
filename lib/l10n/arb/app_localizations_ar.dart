@@ -9,6 +9,155 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get equipment_sharedWithMe => 'مُشارَك معي';
+
+  @override
+  String get equipment_owner_unknown => 'ملف آخر';
+
+  @override
+  String equipment_ownerChip_semanticLabel(String name) {
+    return 'مملوك لـ $name';
+  }
+
+  @override
+  String equipment_picker_ownerHeader(String name) {
+    return 'من $name';
+  }
+
+  @override
+  String get equipment_sharing_sharedWithLabel => 'مُشارَك مع';
+
+  @override
+  String get equipment_sharing_notShared => 'غير مُشارَك';
+
+  @override
+  String get equipment_sharing_ownedByLabel => 'المالك';
+
+  @override
+  String get equipment_sharing_dialogTitle => 'مشاركة مع';
+
+  @override
+  String get equipment_sharing_dialogBody =>
+      'يمكن للملفات التي تختارها إضافة هذه المعدات إلى غطساتها وتسجيل صيانتها. يمكن للمالك وحده حذفها أو تغيير من تُشارَك معه.';
+
+  @override
+  String get equipment_bulkShare_action => 'مشاركة مع...';
+
+  @override
+  String equipment_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت مشاركة $count عناصر',
+      one: 'تمت مشاركة عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تمت مشاركة $count عناصر',
+      one: 'تمت مشاركة عنصر واحد',
+    );
+    return '$_temp0، وتم تخطي $skipped لا تملكها';
+  }
+
+  @override
+  String equipment_bulkDelete_partial(int deleted, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: 'تم حذف $deleted عناصر',
+      one: 'تم حذف عنصر واحد',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other:
+          'تم الإبقاء على $skipped عناصر مُشارَكة: يمكن لمالكيها وحدهم حذفها',
+      one: 'تم الإبقاء على عنصر مُشارَك واحد: يمكن لمالكه وحده حذفه',
+    );
+    return '$_temp0. $_temp1';
+  }
+
+  @override
+  String get equipment_filter_section_owner => 'المالك';
+
+  @override
+  String get equipment_filter_owner_mine => 'خاصتي';
+
+  @override
+  String get enum_equipmentField_owner => 'المالك';
+
+  @override
+  String get enum_equipmentField_owner_short => 'المالك';
+
+  @override
+  String get equipment_set_noLongerShared => 'لم يعد مُشارَكًا';
+
+  @override
+  String get equipment_history_title => 'السجل';
+
+  @override
+  String get equipment_history_empty => 'لم يُستخدم في أي غطسة بعد';
+
+  @override
+  String get equipment_history_deletedProfile => 'ملف محذوف';
+
+  @override
+  String equipment_history_runDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count غطسات',
+      one: 'غطسة واحدة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_history_dateRange(String from, String to) {
+    return '$from إلى $to';
+  }
+
+  @override
+  String equipment_history_added(String name) {
+    return 'أضافه $name';
+  }
+
+  @override
+  String equipment_history_shared(String name) {
+    return 'تمت المشاركة مع $name';
+  }
+
+  @override
+  String equipment_history_unshared(String name) {
+    return 'توقفت المشاركة مع $name';
+  }
+
+  @override
+  String equipment_history_transferred(String from, String to) {
+    return 'نُقل من $from إلى $to';
+  }
+
+  @override
+  String get settings_shareAllEquipment_title => 'مشاركة كل معداتي...';
+
+  @override
+  String settings_shareAllEquipment_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'شارك عناصرك الـ $count مع الملفات التي تختارها.',
+      one: 'شارك عنصرك الوحيد مع الملفات التي تختارها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'تعذر فتح المتصفح. استخدم نسخ الرابط والصق العنوان في متصفحك.';
 
@@ -26957,7 +27106,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get settings_sharedData_sectionSubtitle =>
-      'مشاركة المواقع والرحلات بين الملفات';
+      'مشاركة المواقع والرحلات والمعدات بين الملفات';
 
   @override
   String get common_action_unshare => 'إلغاء المشاركة';

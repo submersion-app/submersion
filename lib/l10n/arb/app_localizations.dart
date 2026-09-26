@@ -116,6 +116,180 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @equipment_sharedWithMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared with me'**
+  String get equipment_sharedWithMe;
+
+  /// No description provided for @equipment_owner_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Another profile'**
+  String get equipment_owner_unknown;
+
+  /// No description provided for @equipment_ownerChip_semanticLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Owned by {name}'**
+  String equipment_ownerChip_semanticLabel(String name);
+
+  /// No description provided for @equipment_picker_ownerHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'From {name}'**
+  String equipment_picker_ownerHeader(String name);
+
+  /// No description provided for @equipment_sharing_sharedWithLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared with'**
+  String get equipment_sharing_sharedWithLabel;
+
+  /// No description provided for @equipment_sharing_notShared.
+  ///
+  /// In en, this message translates to:
+  /// **'Not shared'**
+  String get equipment_sharing_notShared;
+
+  /// No description provided for @equipment_sharing_ownedByLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Owned by'**
+  String get equipment_sharing_ownedByLabel;
+
+  /// No description provided for @equipment_sharing_dialogTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with'**
+  String get equipment_sharing_dialogTitle;
+
+  /// No description provided for @equipment_sharing_dialogBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Profiles you choose can add this gear to their dives and log its servicing. Only the owner can delete it or change who it is shared with.'**
+  String get equipment_sharing_dialogBody;
+
+  /// No description provided for @equipment_bulkShare_action.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with...'**
+  String get equipment_bulkShare_action;
+
+  /// No description provided for @equipment_bulkShare_done.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Shared 1 item} other{Shared {count} items}}'**
+  String equipment_bulkShare_done(int count);
+
+  /// No description provided for @equipment_bulkShare_doneSkipped.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Shared 1 item} other{Shared {count} items}}, skipped {skipped} you do not own'**
+  String equipment_bulkShare_doneSkipped(int count, int skipped);
+
+  /// No description provided for @equipment_bulkDelete_partial.
+  ///
+  /// In en, this message translates to:
+  /// **'{deleted, plural, =1{Deleted 1 item} other{Deleted {deleted} items}}. {skipped, plural, =1{1 shared item was kept: only its owner can delete it} other{{skipped} shared items were kept: only their owners can delete them}}'**
+  String equipment_bulkDelete_partial(int deleted, int skipped);
+
+  /// No description provided for @equipment_filter_section_owner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get equipment_filter_section_owner;
+
+  /// No description provided for @equipment_filter_owner_mine.
+  ///
+  /// In en, this message translates to:
+  /// **'Mine'**
+  String get equipment_filter_owner_mine;
+
+  /// No description provided for @enum_equipmentField_owner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get enum_equipmentField_owner;
+
+  /// No description provided for @enum_equipmentField_owner_short.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get enum_equipmentField_owner_short;
+
+  /// No description provided for @equipment_set_noLongerShared.
+  ///
+  /// In en, this message translates to:
+  /// **'No longer shared'**
+  String get equipment_set_noLongerShared;
+
+  /// No description provided for @equipment_history_title.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get equipment_history_title;
+
+  /// No description provided for @equipment_history_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Not used on any dive yet'**
+  String get equipment_history_empty;
+
+  /// No description provided for @equipment_history_deletedProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'a deleted profile'**
+  String get equipment_history_deletedProfile;
+
+  /// No description provided for @equipment_history_runDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 dive} other{{count} dives}}'**
+  String equipment_history_runDives(int count);
+
+  /// No description provided for @equipment_history_dateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'{from} to {to}'**
+  String equipment_history_dateRange(String from, String to);
+
+  /// No description provided for @equipment_history_added.
+  ///
+  /// In en, this message translates to:
+  /// **'Added by {name}'**
+  String equipment_history_added(String name);
+
+  /// No description provided for @equipment_history_shared.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared with {name}'**
+  String equipment_history_shared(String name);
+
+  /// No description provided for @equipment_history_unshared.
+  ///
+  /// In en, this message translates to:
+  /// **'Stopped sharing with {name}'**
+  String equipment_history_unshared(String name);
+
+  /// No description provided for @equipment_history_transferred.
+  ///
+  /// In en, this message translates to:
+  /// **'Transferred from {from} to {to}'**
+  String equipment_history_transferred(String from, String to);
+
+  /// No description provided for @settings_shareAllEquipment_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Share all my equipment...'**
+  String get settings_shareAllEquipment_title;
+
+  /// No description provided for @settings_shareAllEquipment_body.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{Share your 1 item with the profiles you choose.} other{Share your {count} items with the profiles you choose.}}'**
+  String settings_shareAllEquipment_body(int count);
+
   /// No description provided for @settings_oauth_connect_browserFailed.
   ///
   /// In en, this message translates to:
@@ -43661,7 +43835,7 @@ abstract class AppLocalizations {
   /// Subtitle for the 'Shared data' section in Settings — short description of the section's purpose.
   ///
   /// In en, this message translates to:
-  /// **'Share sites and trips across profiles'**
+  /// **'Share sites, trips and equipment across profiles'**
   String get settings_sharedData_sectionSubtitle;
 
   /// Button label to remove sharing from a record that was previously shared with all dive profiles.

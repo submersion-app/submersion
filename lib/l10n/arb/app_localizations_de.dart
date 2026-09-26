@@ -9,6 +9,156 @@ class AppLocalizationsDe extends AppLocalizations {
   AppLocalizationsDe([String locale = 'de']) : super(locale);
 
   @override
+  String get equipment_sharedWithMe => 'Mit mir geteilt';
+
+  @override
+  String get equipment_owner_unknown => 'Anderes Profil';
+
+  @override
+  String equipment_ownerChip_semanticLabel(String name) {
+    return 'Gehört $name';
+  }
+
+  @override
+  String equipment_picker_ownerHeader(String name) {
+    return 'Von $name';
+  }
+
+  @override
+  String get equipment_sharing_sharedWithLabel => 'Geteilt mit';
+
+  @override
+  String get equipment_sharing_notShared => 'Nicht geteilt';
+
+  @override
+  String get equipment_sharing_ownedByLabel => 'Besitzer';
+
+  @override
+  String get equipment_sharing_dialogTitle => 'Teilen mit';
+
+  @override
+  String get equipment_sharing_dialogBody =>
+      'Die gewählten Profile können diese Ausrüstung zu ihren Tauchgängen hinzufügen und ihre Wartung erfassen. Nur der Besitzer kann sie löschen oder ändern, mit wem sie geteilt wird.';
+
+  @override
+  String get equipment_bulkShare_action => 'Teilen mit...';
+
+  @override
+  String equipment_bulkShare_done(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile geteilt',
+      one: '1 Teil geteilt',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_bulkShare_doneSkipped(int count, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Teile geteilt',
+      one: '1 Teil geteilt',
+    );
+    return '$_temp0, $skipped übersprungen, die dir nicht gehören';
+  }
+
+  @override
+  String equipment_bulkDelete_partial(int deleted, int skipped) {
+    String _temp0 = intl.Intl.pluralLogic(
+      deleted,
+      locale: localeName,
+      other: '$deleted Teile gelöscht',
+      one: '1 Teil gelöscht',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      skipped,
+      locale: localeName,
+      other:
+          '$skipped geteilte Teile wurden behalten: nur ihre Besitzer können sie löschen',
+      one: '1 geteiltes Teil wurde behalten: nur der Besitzer kann es löschen',
+    );
+    return '$_temp0. $_temp1';
+  }
+
+  @override
+  String get equipment_filter_section_owner => 'Besitzer';
+
+  @override
+  String get equipment_filter_owner_mine => 'Meine';
+
+  @override
+  String get enum_equipmentField_owner => 'Besitzer';
+
+  @override
+  String get enum_equipmentField_owner_short => 'Besitzer';
+
+  @override
+  String get equipment_set_noLongerShared => 'Nicht mehr geteilt';
+
+  @override
+  String get equipment_history_title => 'Verlauf';
+
+  @override
+  String get equipment_history_empty => 'Noch bei keinem Tauchgang verwendet';
+
+  @override
+  String get equipment_history_deletedProfile => 'ein gelöschtes Profil';
+
+  @override
+  String equipment_history_runDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '1 Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String equipment_history_dateRange(String from, String to) {
+    return '$from bis $to';
+  }
+
+  @override
+  String equipment_history_added(String name) {
+    return 'Hinzugefügt von $name';
+  }
+
+  @override
+  String equipment_history_shared(String name) {
+    return 'Geteilt mit $name';
+  }
+
+  @override
+  String equipment_history_unshared(String name) {
+    return 'Nicht mehr geteilt mit $name';
+  }
+
+  @override
+  String equipment_history_transferred(String from, String to) {
+    return 'Von $from an $to übertragen';
+  }
+
+  @override
+  String get settings_shareAllEquipment_title =>
+      'Meine gesamte Ausrüstung teilen...';
+
+  @override
+  String settings_shareAllEquipment_body(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Teile deine $count Teile mit den gewählten Profilen.',
+      one: 'Teile dein 1 Teil mit den gewählten Profilen.',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get settings_oauth_connect_browserFailed =>
       'Der Browser konnte nicht geöffnet werden. Verwenden Sie „Link kopieren“ und fügen Sie die Adresse in Ihren Browser ein.';
 
@@ -27274,7 +27424,7 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get settings_sharedData_sectionSubtitle =>
-      'Orte und Reisen über Profile hinweg teilen';
+      'Orte, Reisen und Ausrüstung über Profile hinweg teilen';
 
   @override
   String get common_action_unshare => 'Teilen aufheben';
