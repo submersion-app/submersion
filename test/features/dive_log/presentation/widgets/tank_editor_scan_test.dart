@@ -274,6 +274,33 @@ void main() {
       return changed;
     }
 
+    testWidgets('shows the tag volume in liters when no pressure is known', (
+      tester,
+    ) async {
+      await scanVolumeOnly(tester, const DiveTank(id: 'tank-1'));
+      // With no working pressure the field is in liters (suffix "L").
+      expect(find.widgetWithText(TextFormField, '10'), findsOneWidget);
+    });
+
+    testWidgets('an edit keeps the liters of a tank with no pressure', (
+      tester,
+    ) async {
+      // A 10 L tank with no working pressure, then a tag that only changes
+      // the material: the volume must not be reread as cubic feet.
+      final settings = MockSettingsNotifier();
+      await settings.setVolumeUnit(VolumeUnit.cubicFeet);
+      DiveTank? changed;
+      await pump(
+        tester,
+        scanned: 'https://submersion.app/c#f=1&p=$stranger&m=st',
+        onChanged: (t) => changed = t,
+        settings: settings,
+        tank: const DiveTank(id: 'tank-1', volume: 10),
+      );
+      await scan(tester);
+      expect(changed!.volume, closeTo(10, 0.05));
+    });
+
     testWidgets('keeps the volume on a tank with no pressure', (tester) async {
       final changed = await scanVolumeOnly(
         tester,
