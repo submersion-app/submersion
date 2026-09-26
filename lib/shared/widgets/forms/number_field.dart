@@ -1,0 +1,84 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+
+/// Input filter for numeric fields: digits and both separators, since the
+/// smart parser corrects a wrong one, plus '-' only where a value can be
+/// negative (temperatures, time offsets).
+List<TextInputFormatter> numberInputFormatters({bool allowNegative = false}) =>
+    [
+      FilteringTextInputFormatter.allow(
+        RegExp(allowNegative ? r'[0-9.,\-]' : r'[0-9.,]'),
+      ),
+    ];
+
+/// A numeric text field that shows why its text cannot be read, as the diver
+/// types, and makes an enclosing Form refuse to validate while it cannot.
+///
+/// It reports every change as a [NumberRead] and remembers no value itself.
+/// A live caller decides in its own switch what [NumberInvalid] does, which
+/// is keep the last readable value the diver typed: that rule stays visible
+/// where the value is stored instead of hiding inside the widget.
+class NumberField extends StatelessWidget {
+  const NumberField({
+    super.key,
+    required this.controller,
+    required this.onChanged,
+    this.decoration = const InputDecoration(),
+    this.integer = false,
+    this.allowNegative = false,
+    this.required = false,
+    this.check,
+    this.focusNode,
+    this.enabled = true,
+    this.textAlign = TextAlign.start,
+    this.textInputAction,
+    this.onEditingComplete,
+    this.onFieldSubmitted,
+    this.style,
+  });
+
+  final TextEditingController controller;
+  final ValueChanged<NumberRead> onChanged;
+  final InputDecoration decoration;
+  final bool integer;
+  final bool allowNegative;
+  final bool required;
+  final String? Function(double value)? check;
+  final FocusNode? focusNode;
+  final bool enabled;
+  final TextAlign textAlign;
+  final TextInputAction? textInputAction;
+  final VoidCallback? onEditingComplete;
+  final ValueChanged<String>? onFieldSubmitted;
+  final TextStyle? style;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      focusNode: focusNode,
+      enabled: enabled,
+      style: style,
+      textAlign: textAlign,
+      textInputAction: textInputAction,
+      decoration: decoration,
+      keyboardType: TextInputType.numberWithOptions(
+        decimal: !integer,
+        signed: allowNegative,
+      ),
+      inputFormatters: numberInputFormatters(allowNegative: allowNegative),
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      validator: numberValidator(
+        context,
+        integer: integer,
+        required: required,
+        check: check,
+      ),
+      onChanged: (text) => onChanged(readNumber(text, integer: integer)),
+      onEditingComplete: onEditingComplete,
+      onFieldSubmitted: onFieldSubmitted,
+    );
+  }
+}
