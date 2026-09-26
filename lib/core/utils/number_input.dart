@@ -92,6 +92,12 @@ bool _groupingIsWellFormed(String text) {
   if (groupSep.isEmpty) return true;
 
   final decimalIndex = text.indexOf(symbols.DECIMAL_SEP);
+  // Grouping never follows the decimal separator, yet intl skips one there
+  // too, reading de "12,5.6" as 12.56.
+  if (decimalIndex >= 0 &&
+      text.substring(decimalIndex + 1).contains(groupSep)) {
+    return false;
+  }
   var integerPart = decimalIndex >= 0 ? text.substring(0, decimalIndex) : text;
 
   // Where the locale groups with a space it is a narrow no-break one, but a
