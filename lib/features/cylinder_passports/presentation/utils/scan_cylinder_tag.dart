@@ -33,7 +33,10 @@ Future<void> openScannedTag(
   final messenger = ScaffoldMessenger.of(context);
   final l10n = context.l10n;
   try {
-    switch (await resolveScannedTag(ref, text)) {
+    final resolution = await resolveScannedTag(ref, text);
+    // The diver left the page while the tag was looked up: open nothing.
+    if (!context.mounted) return;
+    switch (resolution) {
       case OwnCylinder(:final equipmentId, :final tag):
         router.push('/equipment/$equipmentId/passport', extra: tag);
       case ForeignCylinder(:final tag):
@@ -49,6 +52,9 @@ Future<void> openScannedTag(
       error: e,
       stackTrace: stackTrace,
     );
+    // Leaving mid-lookup disposes the ref the lookup reads; that is not a
+    // failure worth telling the diver about.
+    if (!context.mounted) return;
     messenger.showSnackBar(
       SnackBar(content: Text(l10n.passport_scan_openFailed)),
     );

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -124,6 +126,68 @@ void main() {
     );
     expect(find.text(l10n.passport_scan_openFailed), findsOneWidget);
   });
+
+  testWidgets('leaving the page before the lookup ends opens nothing', (
+    tester,
+  ) async {
+    // The lookup waits on this gate, so the page can be left first.
+    final gate = Completer<void>();
+    final overrides = await getBaseOverrides();
+    final router = GoRouter(
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(body: Text('home')),
+        ),
+        GoRoute(
+          path: '/scan',
+          builder: (context, state) => Consumer(
+            builder: (context, ref, _) => Scaffold(
+              body: TextButton(
+                onPressed: () => openScannedTag(context, ref, tag),
+                child: const Text('go'),
+              ),
+            ),
+          ),
+        ),
+        GoRoute(
+          path: '/equipment/:id/passport',
+          builder: (context, state) =>
+              Text('passport ${state.pathParameters['id']}'),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          cylinderPassportRepositoryProvider.overrideWithValue(
+            _GatedRepo(gate.future),
+          ),
+        ].cast(),
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    router.push('/scan');
+    await tester.pumpAndSettle();
+    final l10n = AppLocalizations.of(tester.element(find.text('go')));
+
+    await tester.tap(find.text('go'));
+    await tester.pump();
+    // The diver backs out while the tag is still being looked up.
+    router.pop();
+    await tester.pumpAndSettle();
+    gate.complete();
+    await tester.pumpAndSettle();
+
+    expect(find.text('home'), findsOneWidget);
+    expect(find.textContaining('passport '), findsNothing);
+    expect(find.text(l10n.passport_scan_openFailed), findsNothing);
+  });
 }
 
 class _BrokenRepo extends CylinderPassportRepository {
@@ -132,4 +196,20 @@ class _BrokenRepo extends CylinderPassportRepository {
     String passportId, {
     String? diverId,
   }) async => throw StateError('database is locked');
+}
+
+/// Holds a cylinder the diver owns, found only once [gate] opens.
+class _GatedRepo extends CylinderPassportRepository {
+  _GatedRepo(this.gate);
+
+  final Future<void> gate;
+
+  @override
+  Future<String?> findEquipmentIdByPassportId(
+    String passportId, {
+    String? diverId,
+  }) async {
+    await gate;
+    return 'eq-1';
+  }
 }
