@@ -23486,6 +23486,240 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_title => 'מכלים';
+
+  @override
+  String trips_cylinders_summary(int full, int partial, int empty) {
+    return 'מלאים $full · חלקיים $partial · ריקים $empty';
+  }
+
+  @override
+  String trips_cylinders_summaryUnfilled(int count) {
+    return 'טרם מולאו $count';
+  }
+
+  @override
+  String get trips_cylinders_setUp => 'הגדרת מכלים';
+
+  @override
+  String get trips_cylinders_setUpHint =>
+      'עקבו אחר המכלים שיש לכם בטיול הזה: מילויים, תערובות וכמה נשאר בכל אחד.';
+
+  @override
+  String get trips_cylinders_status_full => 'מלא';
+
+  @override
+  String get trips_cylinders_status_partial => 'חלקי';
+
+  @override
+  String get trips_cylinders_status_empty => 'ריק';
+
+  @override
+  String get trips_cylinders_status_unknown => 'טרם מולא';
+
+  @override
+  String get trips_cylinders_mixAir => 'אוויר';
+
+  @override
+  String get trips_cylinders_segment_board => 'לוח';
+
+  @override
+  String get trips_cylinders_segment_ledger => 'יומן';
+
+  @override
+  String get trips_cylinders_action_add => 'הוספת מכלים';
+
+  @override
+  String get trips_cylinders_action_fill => 'מילוי';
+
+  @override
+  String get trips_cylinders_action_fillSeveral => 'מילוי כמה מכלים';
+
+  @override
+  String get trips_cylinders_action_adjust => 'תיקון';
+
+  @override
+  String trips_cylinders_bottle(String label) {
+    return 'מכל $label';
+  }
+
+  @override
+  String trips_cylinders_linkedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count צלילות',
+      one: '$count צלילה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_last_fillAt(String place, String when) {
+    return 'מולא אצל $place, $when';
+  }
+
+  @override
+  String trips_cylinders_last_fill(String when) {
+    return 'מולא $when';
+  }
+
+  @override
+  String trips_cylinders_last_adjustment(String when) {
+    return 'תוקן $when';
+  }
+
+  @override
+  String trips_cylinders_last_diveAt(String site, String when) {
+    return 'צלילה באתר $site, $when';
+  }
+
+  @override
+  String trips_cylinders_last_dive(String when) {
+    return 'צלילה $when';
+  }
+
+  @override
+  String get trips_cylinders_boardEmpty => 'עדיין אין מכלים בטיול הזה';
+
+  @override
+  String get trips_cylinders_ledgerEmpty => 'עדיין אין מילויים או תיקונים';
+
+  @override
+  String get trips_cylinders_kind_fill => 'מילוי';
+
+  @override
+  String get trips_cylinders_kind_adjustment => 'תיקון';
+
+  @override
+  String get trips_cylinders_deleteConfirmUnused =>
+      'למחוק את המכל הזה ואת המילויים שלו?';
+
+  @override
+  String trips_cylinders_deleteConfirmUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'למחוק את המכל הזה ואת המילויים שלו? $count צלילות השתמשו בו. הצלילות שומרות את המכלים שלהן; רק הקישור מוסר.',
+      one:
+          'למחוק את המכל הזה ואת המילויים שלו? $count צלילה השתמשה בו. הצלילה שומרת את המכל שלה; רק הקישור מוסר.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_deleteEventConfirm => 'למחוק את הרשומה הזו?';
+
+  @override
+  String get trips_cylinders_add_tabRental => 'שכור';
+
+  @override
+  String get trips_cylinders_add_tabOwned => 'מהציוד שלי';
+
+  @override
+  String get trips_cylinders_add_count => 'כמה';
+
+  @override
+  String get trips_cylinders_add_preset => 'סוג מכל';
+
+  @override
+  String get trips_cylinders_add_prefix => 'קידומת לשם';
+
+  @override
+  String get trips_cylinders_add_prefixDefault => 'טנדר';
+
+  @override
+  String get trips_cylinders_add_noOwned => 'לא נותרו מכלים בציוד שלך להוספה.';
+
+  @override
+  String get trips_cylinders_add_errorCount => 'הזינו מספר בין 1 ל-20.';
+
+  @override
+  String get trips_cylinders_fill_titleEdit => 'עריכת מילוי';
+
+  @override
+  String get trips_cylinders_fill_when => 'מתי';
+
+  @override
+  String get trips_cylinders_fill_where => 'תחנת מילוי';
+
+  @override
+  String get trips_cylinders_fill_whereNone => 'לא הוגדר';
+
+  @override
+  String trips_cylinders_fill_pressure(String unit) {
+    return 'לחץ מילוי ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_fill_o2 => 'O2 שהוזמן (%)';
+
+  @override
+  String get trips_cylinders_fill_he => 'He שהוזמן (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedO2 => 'O2 שנמדד (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedHe => 'He שנמדד (%)';
+
+  @override
+  String get trips_cylinders_fill_bottle => 'מספר מכל';
+
+  @override
+  String get trips_cylinders_fill_cost => 'עלות';
+
+  @override
+  String get trips_cylinders_fill_currency => 'מטבע';
+
+  @override
+  String get trips_cylinders_fill_package => 'כלול בחבילה';
+
+  @override
+  String get trips_cylinders_fill_slots => 'מכלים למילוי';
+
+  @override
+  String get trips_cylinders_fill_errorMix =>
+      'החמצן חייב להיות בין 1 ל-100 אחוז, ההליום בין 0 ל-99, ויחד לכל היותר 100.';
+
+  @override
+  String get trips_cylinders_fill_errorNoSlot => 'בחרו לפחות מכל אחד.';
+
+  @override
+  String get trips_cylinders_note => 'הערה';
+
+  @override
+  String get trips_cylinders_adjust_titleEdit => 'עריכת תיקון';
+
+  @override
+  String trips_cylinders_adjust_pressure(String unit) {
+    return 'לחץ ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_adjust_markEmpty => 'סימון כריק';
+
+  @override
+  String get trips_cylinders_edit_title => 'עריכת מכל';
+
+  @override
+  String get trips_cylinders_edit_label => 'שם';
+
+  @override
+  String trips_cylinders_edit_volume(String unit) {
+    return 'גודל ($unit)';
+  }
+
+  @override
+  String trips_cylinders_edit_workingPressure(String unit) {
+    return 'לחץ עבודה ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_edit_presetCustom => 'מותאם אישית';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

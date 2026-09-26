@@ -6894,6 +6894,179 @@
       }
     }
   },
+  "trips_cylinders_title": "Palackok",
+  "trips_cylinders_summary": "Tele {full} · Részben {partial} · Üres {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "Még nincs töltve {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "Palackok beállítása",
+  "trips_cylinders_setUpHint": "Kövesd az úton nálad lévő palackokat: töltések, keverékek és hogy mennyi maradt mindegyikben.",
+  "trips_cylinders_status_full": "Tele",
+  "trips_cylinders_status_partial": "Részben",
+  "trips_cylinders_status_empty": "Üres",
+  "trips_cylinders_status_unknown": "Még nincs töltve",
+  "trips_cylinders_mixAir": "Levegő",
+  "trips_cylinders_segment_board": "Áttekintés",
+  "trips_cylinders_segment_ledger": "Napló",
+  "trips_cylinders_action_add": "Palackok hozzáadása",
+  "trips_cylinders_action_fill": "Töltés",
+  "trips_cylinders_action_fillSeveral": "Több töltése",
+  "trips_cylinders_action_adjust": "Módosítás",
+  "trips_cylinders_bottle": "Palack {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} merülés} other{{count} merülés}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "Töltve: {place}, {when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "Töltve: {when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "Módosítva: {when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "Merülés: {site}, {when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "Merülés: {when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "Ezen az úton még nincsenek palackok",
+  "trips_cylinders_ledgerEmpty": "Még nincs töltés vagy módosítás",
+  "trips_cylinders_kind_fill": "Töltés",
+  "trips_cylinders_kind_adjustment": "Módosítás",
+  "trips_cylinders_deleteConfirmUnused": "Törlöd ezt a palackot és a töltéseit?",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{Törlöd ezt a palackot és a töltéseit? {count} merülés használta. A merülés megtartja a palackját, csak a kapcsolat törlődik.} other{Törlöd ezt a palackot és a töltéseit? {count} merülés használta. A merülések megtartják a palackjukat, csak a kapcsolat törlődik.}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "Törlöd ezt a bejegyzést?",
+  "trips_cylinders_add_tabRental": "Bérelt",
+  "trips_cylinders_add_tabOwned": "A felszerelésemből",
+  "trips_cylinders_add_count": "Darabszám",
+  "trips_cylinders_add_preset": "Palacktípus",
+  "trips_cylinders_add_prefix": "Név előtagja",
+  "trips_cylinders_add_prefixDefault": "Pickup",
+  "trips_cylinders_add_noOwned": "A felszerelésedben nincs több hozzáadható palack.",
+  "trips_cylinders_add_errorCount": "Adj meg egy számot 1 és 20 között.",
+  "trips_cylinders_fill_titleEdit": "Töltés szerkesztése",
+  "trips_cylinders_fill_when": "Mikor",
+  "trips_cylinders_fill_where": "Töltőállomás",
+  "trips_cylinders_fill_whereNone": "Nincs megadva",
+  "trips_cylinders_fill_pressure": "Töltési nyomás ({unit})",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "Kért O2 (%)",
+  "trips_cylinders_fill_he": "Kért He (%)",
+  "trips_cylinders_fill_analyzedO2": "Mért O2 (%)",
+  "trips_cylinders_fill_analyzedHe": "Mért He (%)",
+  "trips_cylinders_fill_bottle": "Palackszám",
+  "trips_cylinders_fill_cost": "Költség",
+  "trips_cylinders_fill_currency": "Pénznem",
+  "trips_cylinders_fill_package": "A csomag része",
+  "trips_cylinders_fill_slots": "Töltendő palackok",
+  "trips_cylinders_fill_errorMix": "Az oxigén 1 és 100 százalék között, a hélium 0 és 99 között lehet, együtt legfeljebb 100.",
+  "trips_cylinders_fill_errorNoSlot": "Válassz legalább egy palackot.",
+  "trips_cylinders_note": "Megjegyzés",
+  "trips_cylinders_adjust_titleEdit": "Módosítás szerkesztése",
+  "trips_cylinders_adjust_pressure": "Nyomás ({unit})",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "Megjelölés üresként",
+  "trips_cylinders_edit_title": "Palack szerkesztése",
+  "trips_cylinders_edit_label": "Név",
+  "trips_cylinders_edit_volume": "Méret ({unit})",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "Üzemi nyomás ({unit})",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "Egyéni",
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Befejezés dátuma",

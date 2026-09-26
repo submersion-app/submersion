@@ -24086,6 +24086,244 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_title => 'Cilindros';
+
+  @override
+  String trips_cylinders_summary(int full, int partial, int empty) {
+    return 'Cheios $full · Parciais $partial · Vazios $empty';
+  }
+
+  @override
+  String trips_cylinders_summaryUnfilled(int count) {
+    return 'Ainda não enchidos $count';
+  }
+
+  @override
+  String get trips_cylinders_setUp => 'Configurar cilindros';
+
+  @override
+  String get trips_cylinders_setUpHint =>
+      'Acompanhe os cilindros que tem nesta viagem: enchimentos, misturas e o que resta em cada um.';
+
+  @override
+  String get trips_cylinders_status_full => 'Cheio';
+
+  @override
+  String get trips_cylinders_status_partial => 'Parcial';
+
+  @override
+  String get trips_cylinders_status_empty => 'Vazio';
+
+  @override
+  String get trips_cylinders_status_unknown => 'Ainda não enchido';
+
+  @override
+  String get trips_cylinders_mixAir => 'Ar';
+
+  @override
+  String get trips_cylinders_segment_board => 'Quadro';
+
+  @override
+  String get trips_cylinders_segment_ledger => 'Registo';
+
+  @override
+  String get trips_cylinders_action_add => 'Adicionar cilindros';
+
+  @override
+  String get trips_cylinders_action_fill => 'Encher';
+
+  @override
+  String get trips_cylinders_action_fillSeveral => 'Encher vários';
+
+  @override
+  String get trips_cylinders_action_adjust => 'Ajustar';
+
+  @override
+  String trips_cylinders_bottle(String label) {
+    return 'Cilindro $label';
+  }
+
+  @override
+  String trips_cylinders_linkedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count mergulhos',
+      one: '$count mergulho',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_last_fillAt(String place, String when) {
+    return 'Enchido em $place, $when';
+  }
+
+  @override
+  String trips_cylinders_last_fill(String when) {
+    return 'Enchido $when';
+  }
+
+  @override
+  String trips_cylinders_last_adjustment(String when) {
+    return 'Ajustado $when';
+  }
+
+  @override
+  String trips_cylinders_last_diveAt(String site, String when) {
+    return 'Mergulho em $site, $when';
+  }
+
+  @override
+  String trips_cylinders_last_dive(String when) {
+    return 'Mergulho $when';
+  }
+
+  @override
+  String get trips_cylinders_boardEmpty =>
+      'Ainda não há cilindros nesta viagem';
+
+  @override
+  String get trips_cylinders_ledgerEmpty =>
+      'Ainda não há enchimentos nem ajustes';
+
+  @override
+  String get trips_cylinders_kind_fill => 'Enchimento';
+
+  @override
+  String get trips_cylinders_kind_adjustment => 'Ajuste';
+
+  @override
+  String get trips_cylinders_deleteConfirmUnused =>
+      'Eliminar este cilindro e os seus enchimentos?';
+
+  @override
+  String trips_cylinders_deleteConfirmUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Eliminar este cilindro e os seus enchimentos? $count mergulhos usaram-no. Esses mergulhos mantêm os seus cilindros; só a ligação é removida.',
+      one:
+          'Eliminar este cilindro e os seus enchimentos? $count mergulho usou-o. Esse mergulho mantém o seu cilindro; só a ligação é removida.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_deleteEventConfirm => 'Eliminar esta entrada?';
+
+  @override
+  String get trips_cylinders_add_tabRental => 'Aluguer';
+
+  @override
+  String get trips_cylinders_add_tabOwned => 'Do meu equipamento';
+
+  @override
+  String get trips_cylinders_add_count => 'Quantos';
+
+  @override
+  String get trips_cylinders_add_preset => 'Tipo de cilindro';
+
+  @override
+  String get trips_cylinders_add_prefix => 'Prefixo do nome';
+
+  @override
+  String get trips_cylinders_add_prefixDefault => 'Carrinha';
+
+  @override
+  String get trips_cylinders_add_noOwned =>
+      'Não restam cilindros do seu equipamento para adicionar.';
+
+  @override
+  String get trips_cylinders_add_errorCount => 'Introduza um número de 1 a 20.';
+
+  @override
+  String get trips_cylinders_fill_titleEdit => 'Editar enchimento';
+
+  @override
+  String get trips_cylinders_fill_when => 'Quando';
+
+  @override
+  String get trips_cylinders_fill_where => 'Posto de enchimento';
+
+  @override
+  String get trips_cylinders_fill_whereNone => 'Não definido';
+
+  @override
+  String trips_cylinders_fill_pressure(String unit) {
+    return 'Pressão de enchimento ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_fill_o2 => 'O2 pedido (%)';
+
+  @override
+  String get trips_cylinders_fill_he => 'He pedido (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedO2 => 'O2 analisado (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedHe => 'He analisado (%)';
+
+  @override
+  String get trips_cylinders_fill_bottle => 'Número do cilindro';
+
+  @override
+  String get trips_cylinders_fill_cost => 'Custo';
+
+  @override
+  String get trips_cylinders_fill_currency => 'Moeda';
+
+  @override
+  String get trips_cylinders_fill_package => 'Incluído num pacote';
+
+  @override
+  String get trips_cylinders_fill_slots => 'Cilindros a encher';
+
+  @override
+  String get trips_cylinders_fill_errorMix =>
+      'O oxigénio tem de estar entre 1 e 100 por cento, o hélio entre 0 e 99, e juntos no máximo 100.';
+
+  @override
+  String get trips_cylinders_fill_errorNoSlot =>
+      'Escolha pelo menos um cilindro.';
+
+  @override
+  String get trips_cylinders_note => 'Nota';
+
+  @override
+  String get trips_cylinders_adjust_titleEdit => 'Editar ajuste';
+
+  @override
+  String trips_cylinders_adjust_pressure(String unit) {
+    return 'Pressão ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_adjust_markEmpty => 'Marcar como vazio';
+
+  @override
+  String get trips_cylinders_edit_title => 'Editar cilindro';
+
+  @override
+  String get trips_cylinders_edit_label => 'Nome';
+
+  @override
+  String trips_cylinders_edit_volume(String unit) {
+    return 'Tamanho ($unit)';
+  }
+
+  @override
+  String trips_cylinders_edit_workingPressure(String unit) {
+    return 'Pressão de serviço ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_edit_presetCustom => 'Personalizado';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

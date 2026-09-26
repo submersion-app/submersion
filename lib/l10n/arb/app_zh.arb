@@ -7183,6 +7183,179 @@
       }
     }
   },
+  "trips_cylinders_title": "气瓶",
+  "trips_cylinders_summary": "满瓶 {full} · 部分 {partial} · 空瓶 {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "尚未充气 {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "设置气瓶",
+  "trips_cylinders_setUpHint": "记录本次行程中你持有的气瓶：充气、混合气以及每瓶剩余多少。",
+  "trips_cylinders_status_full": "满",
+  "trips_cylinders_status_partial": "部分",
+  "trips_cylinders_status_empty": "空",
+  "trips_cylinders_status_unknown": "尚未充气",
+  "trips_cylinders_mixAir": "空气",
+  "trips_cylinders_segment_board": "看板",
+  "trips_cylinders_segment_ledger": "记录",
+  "trips_cylinders_action_add": "添加气瓶",
+  "trips_cylinders_action_fill": "充气",
+  "trips_cylinders_action_fillSeveral": "批量充气",
+  "trips_cylinders_action_adjust": "调整",
+  "trips_cylinders_bottle": "瓶号 {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, other{{count} 次潜水}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "于 {place} 充气，{when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "已充气，{when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "已调整，{when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "在 {site} 潜水，{when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "已潜水，{when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "本次行程还没有气瓶",
+  "trips_cylinders_ledgerEmpty": "还没有充气或调整记录",
+  "trips_cylinders_kind_fill": "充气",
+  "trips_cylinders_kind_adjustment": "调整",
+  "trips_cylinders_deleteConfirmUnused": "删除这个气瓶及其充气记录？",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, other{删除这个气瓶及其充气记录？有 {count} 次潜水使用过它。这些潜水保留各自的气瓶，只移除关联。}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "删除这条记录？",
+  "trips_cylinders_add_tabRental": "租用",
+  "trips_cylinders_add_tabOwned": "我的装备",
+  "trips_cylinders_add_count": "数量",
+  "trips_cylinders_add_preset": "气瓶类型",
+  "trips_cylinders_add_prefix": "名称前缀",
+  "trips_cylinders_add_prefixDefault": "车",
+  "trips_cylinders_add_noOwned": "你的装备中没有可添加的气瓶了。",
+  "trips_cylinders_add_errorCount": "请输入 1 到 20 之间的数字。",
+  "trips_cylinders_fill_titleEdit": "编辑充气",
+  "trips_cylinders_fill_when": "时间",
+  "trips_cylinders_fill_where": "充气站",
+  "trips_cylinders_fill_whereNone": "未设置",
+  "trips_cylinders_fill_pressure": "充气压力（{unit}）",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "订购 O2（%）",
+  "trips_cylinders_fill_he": "订购 He（%）",
+  "trips_cylinders_fill_analyzedO2": "分析 O2（%）",
+  "trips_cylinders_fill_analyzedHe": "分析 He（%）",
+  "trips_cylinders_fill_bottle": "瓶号",
+  "trips_cylinders_fill_cost": "费用",
+  "trips_cylinders_fill_currency": "货币",
+  "trips_cylinders_fill_package": "包含在套餐中",
+  "trips_cylinders_fill_slots": "要充气的气瓶",
+  "trips_cylinders_fill_errorMix": "氧气须为 1 到 100%，氦气为 0 到 99%，两者合计不超过 100。",
+  "trips_cylinders_fill_errorNoSlot": "请至少选择一个气瓶。",
+  "trips_cylinders_note": "备注",
+  "trips_cylinders_adjust_titleEdit": "编辑调整",
+  "trips_cylinders_adjust_pressure": "压力（{unit}）",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "标记为空",
+  "trips_cylinders_edit_title": "编辑气瓶",
+  "trips_cylinders_edit_label": "名称",
+  "trips_cylinders_edit_volume": "尺寸（{unit}）",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "工作压力（{unit}）",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "自定义",
   "trips_edit_label_disembarkPort": "下船港口",
   "trips_edit_label_embarkPort": "登船港口",
   "trips_edit_label_endDate": "结束日期",

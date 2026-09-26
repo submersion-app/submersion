@@ -24034,6 +24034,245 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_title => 'Flaschen';
+
+  @override
+  String trips_cylinders_summary(int full, int partial, int empty) {
+    return 'Voll $full · Teilweise $partial · Leer $empty';
+  }
+
+  @override
+  String trips_cylinders_summaryUnfilled(int count) {
+    return 'Noch nicht gefüllt $count';
+  }
+
+  @override
+  String get trips_cylinders_setUp => 'Flaschen einrichten';
+
+  @override
+  String get trips_cylinders_setUpHint =>
+      'Verfolge die Flaschen, die du auf dieser Reise hast: Füllungen, Gemische und was in jeder übrig ist.';
+
+  @override
+  String get trips_cylinders_status_full => 'Voll';
+
+  @override
+  String get trips_cylinders_status_partial => 'Teilweise';
+
+  @override
+  String get trips_cylinders_status_empty => 'Leer';
+
+  @override
+  String get trips_cylinders_status_unknown => 'Noch nicht gefüllt';
+
+  @override
+  String get trips_cylinders_mixAir => 'Luft';
+
+  @override
+  String get trips_cylinders_segment_board => 'Übersicht';
+
+  @override
+  String get trips_cylinders_segment_ledger => 'Verlauf';
+
+  @override
+  String get trips_cylinders_action_add => 'Flaschen hinzufügen';
+
+  @override
+  String get trips_cylinders_action_fill => 'Füllen';
+
+  @override
+  String get trips_cylinders_action_fillSeveral => 'Mehrere füllen';
+
+  @override
+  String get trips_cylinders_action_adjust => 'Anpassen';
+
+  @override
+  String trips_cylinders_bottle(String label) {
+    return 'Flasche $label';
+  }
+
+  @override
+  String trips_cylinders_linkedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Tauchgänge',
+      one: '$count Tauchgang',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_last_fillAt(String place, String when) {
+    return 'Gefüllt bei $place, $when';
+  }
+
+  @override
+  String trips_cylinders_last_fill(String when) {
+    return 'Gefüllt $when';
+  }
+
+  @override
+  String trips_cylinders_last_adjustment(String when) {
+    return 'Angepasst $when';
+  }
+
+  @override
+  String trips_cylinders_last_diveAt(String site, String when) {
+    return 'Getaucht bei $site, $when';
+  }
+
+  @override
+  String trips_cylinders_last_dive(String when) {
+    return 'Getaucht $when';
+  }
+
+  @override
+  String get trips_cylinders_boardEmpty =>
+      'Noch keine Flaschen auf dieser Reise';
+
+  @override
+  String get trips_cylinders_ledgerEmpty =>
+      'Noch keine Füllungen oder Anpassungen';
+
+  @override
+  String get trips_cylinders_kind_fill => 'Füllung';
+
+  @override
+  String get trips_cylinders_kind_adjustment => 'Anpassung';
+
+  @override
+  String get trips_cylinders_deleteConfirmUnused =>
+      'Diese Flasche und ihre Füllungen löschen?';
+
+  @override
+  String trips_cylinders_deleteConfirmUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Diese Flasche und ihre Füllungen löschen? $count Tauchgänge haben sie benutzt. Sie behalten ihre Flaschen; nur die Verknüpfung wird entfernt.',
+      one:
+          'Diese Flasche und ihre Füllungen löschen? $count Tauchgang hat sie benutzt. Er behält seine Flasche; nur die Verknüpfung wird entfernt.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_deleteEventConfirm => 'Diesen Eintrag löschen?';
+
+  @override
+  String get trips_cylinders_add_tabRental => 'Leihflaschen';
+
+  @override
+  String get trips_cylinders_add_tabOwned => 'Aus meiner Ausrüstung';
+
+  @override
+  String get trips_cylinders_add_count => 'Anzahl';
+
+  @override
+  String get trips_cylinders_add_preset => 'Flaschentyp';
+
+  @override
+  String get trips_cylinders_add_prefix => 'Namenspräfix';
+
+  @override
+  String get trips_cylinders_add_prefixDefault => 'Pick-up';
+
+  @override
+  String get trips_cylinders_add_noOwned =>
+      'In deiner Ausrüstung sind keine Flaschen mehr zum Hinzufügen.';
+
+  @override
+  String get trips_cylinders_add_errorCount =>
+      'Gib eine Zahl von 1 bis 20 ein.';
+
+  @override
+  String get trips_cylinders_fill_titleEdit => 'Füllung bearbeiten';
+
+  @override
+  String get trips_cylinders_fill_when => 'Wann';
+
+  @override
+  String get trips_cylinders_fill_where => 'Füllstation';
+
+  @override
+  String get trips_cylinders_fill_whereNone => 'Nicht festgelegt';
+
+  @override
+  String trips_cylinders_fill_pressure(String unit) {
+    return 'Fülldruck ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_fill_o2 => 'O2 bestellt (%)';
+
+  @override
+  String get trips_cylinders_fill_he => 'He bestellt (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedO2 => 'O2 analysiert (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedHe => 'He analysiert (%)';
+
+  @override
+  String get trips_cylinders_fill_bottle => 'Flaschennummer';
+
+  @override
+  String get trips_cylinders_fill_cost => 'Kosten';
+
+  @override
+  String get trips_cylinders_fill_currency => 'Währung';
+
+  @override
+  String get trips_cylinders_fill_package => 'Im Paket enthalten';
+
+  @override
+  String get trips_cylinders_fill_slots => 'Zu füllende Flaschen';
+
+  @override
+  String get trips_cylinders_fill_errorMix =>
+      'Sauerstoff muss 1 bis 100 Prozent sein, Helium 0 bis 99, zusammen höchstens 100.';
+
+  @override
+  String get trips_cylinders_fill_errorNoSlot =>
+      'Wähle mindestens eine Flasche.';
+
+  @override
+  String get trips_cylinders_note => 'Notiz';
+
+  @override
+  String get trips_cylinders_adjust_titleEdit => 'Anpassung bearbeiten';
+
+  @override
+  String trips_cylinders_adjust_pressure(String unit) {
+    return 'Druck ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_adjust_markEmpty => 'Als leer markieren';
+
+  @override
+  String get trips_cylinders_edit_title => 'Flasche bearbeiten';
+
+  @override
+  String get trips_cylinders_edit_label => 'Bezeichnung';
+
+  @override
+  String trips_cylinders_edit_volume(String unit) {
+    return 'Größe ($unit)';
+  }
+
+  @override
+  String trips_cylinders_edit_workingPressure(String unit) {
+    return 'Betriebsdruck ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_edit_presetCustom => 'Benutzerdefiniert';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

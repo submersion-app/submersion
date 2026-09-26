@@ -22842,6 +22842,234 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_title => '气瓶';
+
+  @override
+  String trips_cylinders_summary(int full, int partial, int empty) {
+    return '满瓶 $full · 部分 $partial · 空瓶 $empty';
+  }
+
+  @override
+  String trips_cylinders_summaryUnfilled(int count) {
+    return '尚未充气 $count';
+  }
+
+  @override
+  String get trips_cylinders_setUp => '设置气瓶';
+
+  @override
+  String get trips_cylinders_setUpHint => '记录本次行程中你持有的气瓶：充气、混合气以及每瓶剩余多少。';
+
+  @override
+  String get trips_cylinders_status_full => '满';
+
+  @override
+  String get trips_cylinders_status_partial => '部分';
+
+  @override
+  String get trips_cylinders_status_empty => '空';
+
+  @override
+  String get trips_cylinders_status_unknown => '尚未充气';
+
+  @override
+  String get trips_cylinders_mixAir => '空气';
+
+  @override
+  String get trips_cylinders_segment_board => '看板';
+
+  @override
+  String get trips_cylinders_segment_ledger => '记录';
+
+  @override
+  String get trips_cylinders_action_add => '添加气瓶';
+
+  @override
+  String get trips_cylinders_action_fill => '充气';
+
+  @override
+  String get trips_cylinders_action_fillSeveral => '批量充气';
+
+  @override
+  String get trips_cylinders_action_adjust => '调整';
+
+  @override
+  String trips_cylinders_bottle(String label) {
+    return '瓶号 $label';
+  }
+
+  @override
+  String trips_cylinders_linkedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 次潜水',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_last_fillAt(String place, String when) {
+    return '于 $place 充气，$when';
+  }
+
+  @override
+  String trips_cylinders_last_fill(String when) {
+    return '已充气，$when';
+  }
+
+  @override
+  String trips_cylinders_last_adjustment(String when) {
+    return '已调整，$when';
+  }
+
+  @override
+  String trips_cylinders_last_diveAt(String site, String when) {
+    return '在 $site 潜水，$when';
+  }
+
+  @override
+  String trips_cylinders_last_dive(String when) {
+    return '已潜水，$when';
+  }
+
+  @override
+  String get trips_cylinders_boardEmpty => '本次行程还没有气瓶';
+
+  @override
+  String get trips_cylinders_ledgerEmpty => '还没有充气或调整记录';
+
+  @override
+  String get trips_cylinders_kind_fill => '充气';
+
+  @override
+  String get trips_cylinders_kind_adjustment => '调整';
+
+  @override
+  String get trips_cylinders_deleteConfirmUnused => '删除这个气瓶及其充气记录？';
+
+  @override
+  String trips_cylinders_deleteConfirmUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '删除这个气瓶及其充气记录？有 $count 次潜水使用过它。这些潜水保留各自的气瓶，只移除关联。',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_deleteEventConfirm => '删除这条记录？';
+
+  @override
+  String get trips_cylinders_add_tabRental => '租用';
+
+  @override
+  String get trips_cylinders_add_tabOwned => '我的装备';
+
+  @override
+  String get trips_cylinders_add_count => '数量';
+
+  @override
+  String get trips_cylinders_add_preset => '气瓶类型';
+
+  @override
+  String get trips_cylinders_add_prefix => '名称前缀';
+
+  @override
+  String get trips_cylinders_add_prefixDefault => '车';
+
+  @override
+  String get trips_cylinders_add_noOwned => '你的装备中没有可添加的气瓶了。';
+
+  @override
+  String get trips_cylinders_add_errorCount => '请输入 1 到 20 之间的数字。';
+
+  @override
+  String get trips_cylinders_fill_titleEdit => '编辑充气';
+
+  @override
+  String get trips_cylinders_fill_when => '时间';
+
+  @override
+  String get trips_cylinders_fill_where => '充气站';
+
+  @override
+  String get trips_cylinders_fill_whereNone => '未设置';
+
+  @override
+  String trips_cylinders_fill_pressure(String unit) {
+    return '充气压力（$unit）';
+  }
+
+  @override
+  String get trips_cylinders_fill_o2 => '订购 O2（%）';
+
+  @override
+  String get trips_cylinders_fill_he => '订购 He（%）';
+
+  @override
+  String get trips_cylinders_fill_analyzedO2 => '分析 O2（%）';
+
+  @override
+  String get trips_cylinders_fill_analyzedHe => '分析 He（%）';
+
+  @override
+  String get trips_cylinders_fill_bottle => '瓶号';
+
+  @override
+  String get trips_cylinders_fill_cost => '费用';
+
+  @override
+  String get trips_cylinders_fill_currency => '货币';
+
+  @override
+  String get trips_cylinders_fill_package => '包含在套餐中';
+
+  @override
+  String get trips_cylinders_fill_slots => '要充气的气瓶';
+
+  @override
+  String get trips_cylinders_fill_errorMix =>
+      '氧气须为 1 到 100%，氦气为 0 到 99%，两者合计不超过 100。';
+
+  @override
+  String get trips_cylinders_fill_errorNoSlot => '请至少选择一个气瓶。';
+
+  @override
+  String get trips_cylinders_note => '备注';
+
+  @override
+  String get trips_cylinders_adjust_titleEdit => '编辑调整';
+
+  @override
+  String trips_cylinders_adjust_pressure(String unit) {
+    return '压力（$unit）';
+  }
+
+  @override
+  String get trips_cylinders_adjust_markEmpty => '标记为空';
+
+  @override
+  String get trips_cylinders_edit_title => '编辑气瓶';
+
+  @override
+  String get trips_cylinders_edit_label => '名称';
+
+  @override
+  String trips_cylinders_edit_volume(String unit) {
+    return '尺寸（$unit）';
+  }
+
+  @override
+  String trips_cylinders_edit_workingPressure(String unit) {
+    return '工作压力（$unit）';
+  }
+
+  @override
+  String get trips_cylinders_edit_presetCustom => '自定义';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => '上船/下船';
 
   @override

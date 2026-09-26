@@ -6996,6 +6996,179 @@
       }
     }
   },
+  "trips_cylinders_title": "الأسطوانات",
+  "trips_cylinders_summary": "ممتلئة {full} · جزئية {partial} · فارغة {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "لم تُعبّأ بعد {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "إعداد الأسطوانات",
+  "trips_cylinders_setUpHint": "تتبّع الأسطوانات التي معك في هذه الرحلة: التعبئات والخلطات وما تبقّى في كل منها.",
+  "trips_cylinders_status_full": "ممتلئة",
+  "trips_cylinders_status_partial": "جزئية",
+  "trips_cylinders_status_empty": "فارغة",
+  "trips_cylinders_status_unknown": "لم تُعبّأ بعد",
+  "trips_cylinders_mixAir": "هواء",
+  "trips_cylinders_segment_board": "اللوحة",
+  "trips_cylinders_segment_ledger": "السجل",
+  "trips_cylinders_action_add": "إضافة أسطوانات",
+  "trips_cylinders_action_fill": "تعبئة",
+  "trips_cylinders_action_fillSeveral": "تعبئة عدة أسطوانات",
+  "trips_cylinders_action_adjust": "تعديل",
+  "trips_cylinders_bottle": "الأسطوانة {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} غطسة} other{{count} غطسات}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "عُبّئت في {place}، {when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "عُبّئت {when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "عُدّلت {when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "غطسة في {site}، {when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "غطسة {when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "لا توجد أسطوانات في هذه الرحلة بعد",
+  "trips_cylinders_ledgerEmpty": "لا توجد تعبئات أو تعديلات بعد",
+  "trips_cylinders_kind_fill": "تعبئة",
+  "trips_cylinders_kind_adjustment": "تعديل",
+  "trips_cylinders_deleteConfirmUnused": "حذف هذه الأسطوانة وتعبئاتها؟",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{حذف هذه الأسطوانة وتعبئاتها؟ استخدمتها {count} غطسة. تحتفظ الغطسة بأسطوانتها ويُزال الربط فقط.} other{حذف هذه الأسطوانة وتعبئاتها؟ استخدمتها {count} غطسات. تحتفظ الغطسات بأسطواناتها ويُزال الربط فقط.}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "حذف هذا الإدخال؟",
+  "trips_cylinders_add_tabRental": "مستأجرة",
+  "trips_cylinders_add_tabOwned": "من معداتي",
+  "trips_cylinders_add_count": "العدد",
+  "trips_cylinders_add_preset": "نوع الأسطوانة",
+  "trips_cylinders_add_prefix": "بادئة الاسم",
+  "trips_cylinders_add_prefixDefault": "الشاحنة",
+  "trips_cylinders_add_noOwned": "لم تعد هناك أسطوانات في معداتك لإضافتها.",
+  "trips_cylinders_add_errorCount": "أدخل رقمًا من 1 إلى 20.",
+  "trips_cylinders_fill_titleEdit": "تعديل التعبئة",
+  "trips_cylinders_fill_when": "متى",
+  "trips_cylinders_fill_where": "محطة التعبئة",
+  "trips_cylinders_fill_whereNone": "غير محددة",
+  "trips_cylinders_fill_pressure": "ضغط التعبئة ({unit})",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "O2 المطلوب (%)",
+  "trips_cylinders_fill_he": "He المطلوب (%)",
+  "trips_cylinders_fill_analyzedO2": "O2 المقاس (%)",
+  "trips_cylinders_fill_analyzedHe": "He المقاس (%)",
+  "trips_cylinders_fill_bottle": "رقم الأسطوانة",
+  "trips_cylinders_fill_cost": "التكلفة",
+  "trips_cylinders_fill_currency": "العملة",
+  "trips_cylinders_fill_package": "ضمن باقة",
+  "trips_cylinders_fill_slots": "الأسطوانات المراد تعبئتها",
+  "trips_cylinders_fill_errorMix": "يجب أن يكون الأكسجين بين 1 و100 بالمئة، والهيليوم بين 0 و99، ومجموعهما 100 على الأكثر.",
+  "trips_cylinders_fill_errorNoSlot": "اختر أسطوانة واحدة على الأقل.",
+  "trips_cylinders_note": "ملاحظة",
+  "trips_cylinders_adjust_titleEdit": "تعديل التصحيح",
+  "trips_cylinders_adjust_pressure": "الضغط ({unit})",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "تعليم كفارغة",
+  "trips_cylinders_edit_title": "تعديل الأسطوانة",
+  "trips_cylinders_edit_label": "الاسم",
+  "trips_cylinders_edit_volume": "الحجم ({unit})",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "ضغط العمل ({unit})",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "مخصص",
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "تاريخ الانتهاء",

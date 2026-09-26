@@ -24079,6 +24079,243 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_title => 'Bombole';
+
+  @override
+  String trips_cylinders_summary(int full, int partial, int empty) {
+    return 'Piene $full · Parziali $partial · Vuote $empty';
+  }
+
+  @override
+  String trips_cylinders_summaryUnfilled(int count) {
+    return 'Non ancora caricate $count';
+  }
+
+  @override
+  String get trips_cylinders_setUp => 'Configura le bombole';
+
+  @override
+  String get trips_cylinders_setUpHint =>
+      'Tieni traccia delle bombole che hai in questo viaggio: ricariche, miscele e quanto resta in ciascuna.';
+
+  @override
+  String get trips_cylinders_status_full => 'Piena';
+
+  @override
+  String get trips_cylinders_status_partial => 'Parziale';
+
+  @override
+  String get trips_cylinders_status_empty => 'Vuota';
+
+  @override
+  String get trips_cylinders_status_unknown => 'Non ancora caricata';
+
+  @override
+  String get trips_cylinders_mixAir => 'Aria';
+
+  @override
+  String get trips_cylinders_segment_board => 'Quadro';
+
+  @override
+  String get trips_cylinders_segment_ledger => 'Registro';
+
+  @override
+  String get trips_cylinders_action_add => 'Aggiungi bombole';
+
+  @override
+  String get trips_cylinders_action_fill => 'Ricarica';
+
+  @override
+  String get trips_cylinders_action_fillSeveral => 'Ricarica più bombole';
+
+  @override
+  String get trips_cylinders_action_adjust => 'Correggi';
+
+  @override
+  String trips_cylinders_bottle(String label) {
+    return 'Bombola $label';
+  }
+
+  @override
+  String trips_cylinders_linkedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni',
+      one: '$count immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_last_fillAt(String place, String when) {
+    return 'Ricaricata da $place, $when';
+  }
+
+  @override
+  String trips_cylinders_last_fill(String when) {
+    return 'Ricaricata $when';
+  }
+
+  @override
+  String trips_cylinders_last_adjustment(String when) {
+    return 'Corretta $when';
+  }
+
+  @override
+  String trips_cylinders_last_diveAt(String site, String when) {
+    return 'Immersione a $site, $when';
+  }
+
+  @override
+  String trips_cylinders_last_dive(String when) {
+    return 'Immersione $when';
+  }
+
+  @override
+  String get trips_cylinders_boardEmpty =>
+      'Ancora nessuna bombola in questo viaggio';
+
+  @override
+  String get trips_cylinders_ledgerEmpty =>
+      'Ancora nessuna ricarica o correzione';
+
+  @override
+  String get trips_cylinders_kind_fill => 'Ricarica';
+
+  @override
+  String get trips_cylinders_kind_adjustment => 'Correzione';
+
+  @override
+  String get trips_cylinders_deleteConfirmUnused =>
+      'Eliminare questa bombola e le sue ricariche?';
+
+  @override
+  String trips_cylinders_deleteConfirmUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Eliminare questa bombola e le sue ricariche? $count immersioni l\'hanno usata. Le immersioni conservano le loro bombole; viene rimosso solo il collegamento.',
+      one:
+          'Eliminare questa bombola e le sue ricariche? $count immersione l\'ha usata. L\'immersione conserva la sua bombola; viene rimosso solo il collegamento.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_deleteEventConfirm => 'Eliminare questa voce?';
+
+  @override
+  String get trips_cylinders_add_tabRental => 'Noleggio';
+
+  @override
+  String get trips_cylinders_add_tabOwned => 'Dalla mia attrezzatura';
+
+  @override
+  String get trips_cylinders_add_count => 'Quante';
+
+  @override
+  String get trips_cylinders_add_preset => 'Tipo di bombola';
+
+  @override
+  String get trips_cylinders_add_prefix => 'Prefisso del nome';
+
+  @override
+  String get trips_cylinders_add_prefixDefault => 'Pick-up';
+
+  @override
+  String get trips_cylinders_add_noOwned =>
+      'Non restano bombole della tua attrezzatura da aggiungere.';
+
+  @override
+  String get trips_cylinders_add_errorCount => 'Inserisci un numero da 1 a 20.';
+
+  @override
+  String get trips_cylinders_fill_titleEdit => 'Modifica ricarica';
+
+  @override
+  String get trips_cylinders_fill_when => 'Quando';
+
+  @override
+  String get trips_cylinders_fill_where => 'Stazione di ricarica';
+
+  @override
+  String get trips_cylinders_fill_whereNone => 'Non impostata';
+
+  @override
+  String trips_cylinders_fill_pressure(String unit) {
+    return 'Pressione di ricarica ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_fill_o2 => 'O2 richiesto (%)';
+
+  @override
+  String get trips_cylinders_fill_he => 'He richiesto (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedO2 => 'O2 analizzato (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedHe => 'He analizzato (%)';
+
+  @override
+  String get trips_cylinders_fill_bottle => 'Numero della bombola';
+
+  @override
+  String get trips_cylinders_fill_cost => 'Costo';
+
+  @override
+  String get trips_cylinders_fill_currency => 'Valuta';
+
+  @override
+  String get trips_cylinders_fill_package => 'Incluso in un pacchetto';
+
+  @override
+  String get trips_cylinders_fill_slots => 'Bombole da ricaricare';
+
+  @override
+  String get trips_cylinders_fill_errorMix =>
+      'L\'ossigeno deve essere tra 1 e 100 per cento, l\'elio tra 0 e 99, e insieme al massimo 100.';
+
+  @override
+  String get trips_cylinders_fill_errorNoSlot => 'Scegli almeno una bombola.';
+
+  @override
+  String get trips_cylinders_note => 'Nota';
+
+  @override
+  String get trips_cylinders_adjust_titleEdit => 'Modifica correzione';
+
+  @override
+  String trips_cylinders_adjust_pressure(String unit) {
+    return 'Pressione ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_adjust_markEmpty => 'Segna come vuota';
+
+  @override
+  String get trips_cylinders_edit_title => 'Modifica bombola';
+
+  @override
+  String get trips_cylinders_edit_label => 'Nome';
+
+  @override
+  String trips_cylinders_edit_volume(String unit) {
+    return 'Dimensione ($unit)';
+  }
+
+  @override
+  String trips_cylinders_edit_workingPressure(String unit) {
+    return 'Pressione di esercizio ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_edit_presetCustom => 'Personalizzata';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

@@ -38544,6 +38544,384 @@ abstract class AppLocalizations {
   /// **'{count} rebreathers, lowest {minutes} min scrubber margin'**
   String trips_scrubber_bannerCount(int count, String minutes);
 
+  /// No description provided for @trips_cylinders_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinders'**
+  String get trips_cylinders_title;
+
+  /// No description provided for @trips_cylinders_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'Full {full} · Partial {partial} · Empty {empty}'**
+  String trips_cylinders_summary(int full, int partial, int empty);
+
+  /// No description provided for @trips_cylinders_summaryUnfilled.
+  ///
+  /// In en, this message translates to:
+  /// **'Not filled yet {count}'**
+  String trips_cylinders_summaryUnfilled(int count);
+
+  /// No description provided for @trips_cylinders_setUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up cylinders'**
+  String get trips_cylinders_setUp;
+
+  /// No description provided for @trips_cylinders_setUpHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Track the cylinders you hold on this trip: fills, mixes and what is left in each.'**
+  String get trips_cylinders_setUpHint;
+
+  /// No description provided for @trips_cylinders_status_full.
+  ///
+  /// In en, this message translates to:
+  /// **'Full'**
+  String get trips_cylinders_status_full;
+
+  /// No description provided for @trips_cylinders_status_partial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial'**
+  String get trips_cylinders_status_partial;
+
+  /// No description provided for @trips_cylinders_status_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Empty'**
+  String get trips_cylinders_status_empty;
+
+  /// No description provided for @trips_cylinders_status_unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not filled yet'**
+  String get trips_cylinders_status_unknown;
+
+  /// No description provided for @trips_cylinders_mixAir.
+  ///
+  /// In en, this message translates to:
+  /// **'Air'**
+  String get trips_cylinders_mixAir;
+
+  /// No description provided for @trips_cylinders_segment_board.
+  ///
+  /// In en, this message translates to:
+  /// **'Board'**
+  String get trips_cylinders_segment_board;
+
+  /// No description provided for @trips_cylinders_segment_ledger.
+  ///
+  /// In en, this message translates to:
+  /// **'Ledger'**
+  String get trips_cylinders_segment_ledger;
+
+  /// No description provided for @trips_cylinders_action_add.
+  ///
+  /// In en, this message translates to:
+  /// **'Add cylinders'**
+  String get trips_cylinders_action_add;
+
+  /// No description provided for @trips_cylinders_action_fill.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill'**
+  String get trips_cylinders_action_fill;
+
+  /// No description provided for @trips_cylinders_action_fillSeveral.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill several'**
+  String get trips_cylinders_action_fillSeveral;
+
+  /// No description provided for @trips_cylinders_action_adjust.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjust'**
+  String get trips_cylinders_action_adjust;
+
+  /// No description provided for @trips_cylinders_bottle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottle {label}'**
+  String trips_cylinders_bottle(String label);
+
+  /// No description provided for @trips_cylinders_linkedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive} other{{count} dives}}'**
+  String trips_cylinders_linkedDives(int count);
+
+  /// No description provided for @trips_cylinders_last_fillAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled at {place}, {when}'**
+  String trips_cylinders_last_fillAt(String place, String when);
+
+  /// No description provided for @trips_cylinders_last_fill.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled {when}'**
+  String trips_cylinders_last_fill(String when);
+
+  /// No description provided for @trips_cylinders_last_adjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjusted {when}'**
+  String trips_cylinders_last_adjustment(String when);
+
+  /// No description provided for @trips_cylinders_last_diveAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Dived at {site}, {when}'**
+  String trips_cylinders_last_diveAt(String site, String when);
+
+  /// No description provided for @trips_cylinders_last_dive.
+  ///
+  /// In en, this message translates to:
+  /// **'Dived {when}'**
+  String trips_cylinders_last_dive(String when);
+
+  /// No description provided for @trips_cylinders_boardEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No cylinders on this trip yet'**
+  String get trips_cylinders_boardEmpty;
+
+  /// No description provided for @trips_cylinders_ledgerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No fills or adjustments yet'**
+  String get trips_cylinders_ledgerEmpty;
+
+  /// No description provided for @trips_cylinders_kind_fill.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill'**
+  String get trips_cylinders_kind_fill;
+
+  /// No description provided for @trips_cylinders_kind_adjustment.
+  ///
+  /// In en, this message translates to:
+  /// **'Adjustment'**
+  String get trips_cylinders_kind_adjustment;
+
+  /// No description provided for @trips_cylinders_deleteConfirmUnused.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this cylinder and its fills?'**
+  String get trips_cylinders_deleteConfirmUnused;
+
+  /// No description provided for @trips_cylinders_deleteConfirmUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Delete this cylinder and its fills? {count} dive used it. That dive keeps its tank; only the link is removed.} other{Delete this cylinder and its fills? {count} dives used it. Those dives keep their tanks; only the link is removed.}}'**
+  String trips_cylinders_deleteConfirmUsed(int count);
+
+  /// No description provided for @trips_cylinders_deleteEventConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this entry?'**
+  String get trips_cylinders_deleteEventConfirm;
+
+  /// No description provided for @trips_cylinders_add_tabRental.
+  ///
+  /// In en, this message translates to:
+  /// **'Rental'**
+  String get trips_cylinders_add_tabRental;
+
+  /// No description provided for @trips_cylinders_add_tabOwned.
+  ///
+  /// In en, this message translates to:
+  /// **'From my equipment'**
+  String get trips_cylinders_add_tabOwned;
+
+  /// No description provided for @trips_cylinders_add_count.
+  ///
+  /// In en, this message translates to:
+  /// **'How many'**
+  String get trips_cylinders_add_count;
+
+  /// No description provided for @trips_cylinders_add_preset.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder type'**
+  String get trips_cylinders_add_preset;
+
+  /// No description provided for @trips_cylinders_add_prefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Label prefix'**
+  String get trips_cylinders_add_prefix;
+
+  /// No description provided for @trips_cylinders_add_prefixDefault.
+  ///
+  /// In en, this message translates to:
+  /// **'Truck'**
+  String get trips_cylinders_add_prefixDefault;
+
+  /// No description provided for @trips_cylinders_add_noOwned.
+  ///
+  /// In en, this message translates to:
+  /// **'No cylinders in your equipment are left to add.'**
+  String get trips_cylinders_add_noOwned;
+
+  /// No description provided for @trips_cylinders_add_errorCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number from 1 to 20.'**
+  String get trips_cylinders_add_errorCount;
+
+  /// No description provided for @trips_cylinders_fill_titleEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit fill'**
+  String get trips_cylinders_fill_titleEdit;
+
+  /// No description provided for @trips_cylinders_fill_when.
+  ///
+  /// In en, this message translates to:
+  /// **'When'**
+  String get trips_cylinders_fill_when;
+
+  /// No description provided for @trips_cylinders_fill_where.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill station'**
+  String get trips_cylinders_fill_where;
+
+  /// No description provided for @trips_cylinders_fill_whereNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get trips_cylinders_fill_whereNone;
+
+  /// No description provided for @trips_cylinders_fill_pressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill pressure ({unit})'**
+  String trips_cylinders_fill_pressure(String unit);
+
+  /// No description provided for @trips_cylinders_fill_o2.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 ordered (%)'**
+  String get trips_cylinders_fill_o2;
+
+  /// No description provided for @trips_cylinders_fill_he.
+  ///
+  /// In en, this message translates to:
+  /// **'He ordered (%)'**
+  String get trips_cylinders_fill_he;
+
+  /// No description provided for @trips_cylinders_fill_analyzedO2.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 analyzed (%)'**
+  String get trips_cylinders_fill_analyzedO2;
+
+  /// No description provided for @trips_cylinders_fill_analyzedHe.
+  ///
+  /// In en, this message translates to:
+  /// **'He analyzed (%)'**
+  String get trips_cylinders_fill_analyzedHe;
+
+  /// No description provided for @trips_cylinders_fill_bottle.
+  ///
+  /// In en, this message translates to:
+  /// **'Bottle number'**
+  String get trips_cylinders_fill_bottle;
+
+  /// No description provided for @trips_cylinders_fill_cost.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost'**
+  String get trips_cylinders_fill_cost;
+
+  /// No description provided for @trips_cylinders_fill_currency.
+  ///
+  /// In en, this message translates to:
+  /// **'Currency'**
+  String get trips_cylinders_fill_currency;
+
+  /// No description provided for @trips_cylinders_fill_package.
+  ///
+  /// In en, this message translates to:
+  /// **'Covered by a package'**
+  String get trips_cylinders_fill_package;
+
+  /// No description provided for @trips_cylinders_fill_slots.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinders to fill'**
+  String get trips_cylinders_fill_slots;
+
+  /// No description provided for @trips_cylinders_fill_errorMix.
+  ///
+  /// In en, this message translates to:
+  /// **'Oxygen must be 1 to 100 percent, helium 0 to 99, and together at most 100.'**
+  String get trips_cylinders_fill_errorMix;
+
+  /// No description provided for @trips_cylinders_fill_errorNoSlot.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick at least one cylinder.'**
+  String get trips_cylinders_fill_errorNoSlot;
+
+  /// No description provided for @trips_cylinders_note.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get trips_cylinders_note;
+
+  /// No description provided for @trips_cylinders_adjust_titleEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit adjustment'**
+  String get trips_cylinders_adjust_titleEdit;
+
+  /// No description provided for @trips_cylinders_adjust_pressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Pressure ({unit})'**
+  String trips_cylinders_adjust_pressure(String unit);
+
+  /// No description provided for @trips_cylinders_adjust_markEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark empty'**
+  String get trips_cylinders_adjust_markEmpty;
+
+  /// No description provided for @trips_cylinders_edit_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit cylinder'**
+  String get trips_cylinders_edit_title;
+
+  /// No description provided for @trips_cylinders_edit_label.
+  ///
+  /// In en, this message translates to:
+  /// **'Label'**
+  String get trips_cylinders_edit_label;
+
+  /// No description provided for @trips_cylinders_edit_volume.
+  ///
+  /// In en, this message translates to:
+  /// **'Size ({unit})'**
+  String trips_cylinders_edit_volume(String unit);
+
+  /// No description provided for @trips_cylinders_edit_workingPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Working pressure ({unit})'**
+  String trips_cylinders_edit_workingPressure(String unit);
+
+  /// No description provided for @trips_cylinders_edit_presetCustom.
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get trips_cylinders_edit_presetCustom;
+
   /// No description provided for @trips_edit_sectionTitle_embarkDisembark.
   ///
   /// In en, this message translates to:

@@ -6890,6 +6890,179 @@
       }
     }
   },
+  "trips_cylinders_title": "Bombole",
+  "trips_cylinders_summary": "Piene {full} · Parziali {partial} · Vuote {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "Non ancora caricate {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "Configura le bombole",
+  "trips_cylinders_setUpHint": "Tieni traccia delle bombole che hai in questo viaggio: ricariche, miscele e quanto resta in ciascuna.",
+  "trips_cylinders_status_full": "Piena",
+  "trips_cylinders_status_partial": "Parziale",
+  "trips_cylinders_status_empty": "Vuota",
+  "trips_cylinders_status_unknown": "Non ancora caricata",
+  "trips_cylinders_mixAir": "Aria",
+  "trips_cylinders_segment_board": "Quadro",
+  "trips_cylinders_segment_ledger": "Registro",
+  "trips_cylinders_action_add": "Aggiungi bombole",
+  "trips_cylinders_action_fill": "Ricarica",
+  "trips_cylinders_action_fillSeveral": "Ricarica più bombole",
+  "trips_cylinders_action_adjust": "Correggi",
+  "trips_cylinders_bottle": "Bombola {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} immersione} other{{count} immersioni}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "Ricaricata da {place}, {when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "Ricaricata {when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "Corretta {when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "Immersione a {site}, {when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "Immersione {when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "Ancora nessuna bombola in questo viaggio",
+  "trips_cylinders_ledgerEmpty": "Ancora nessuna ricarica o correzione",
+  "trips_cylinders_kind_fill": "Ricarica",
+  "trips_cylinders_kind_adjustment": "Correzione",
+  "trips_cylinders_deleteConfirmUnused": "Eliminare questa bombola e le sue ricariche?",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{Eliminare questa bombola e le sue ricariche? {count} immersione l'ha usata. L'immersione conserva la sua bombola; viene rimosso solo il collegamento.} other{Eliminare questa bombola e le sue ricariche? {count} immersioni l'hanno usata. Le immersioni conservano le loro bombole; viene rimosso solo il collegamento.}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "Eliminare questa voce?",
+  "trips_cylinders_add_tabRental": "Noleggio",
+  "trips_cylinders_add_tabOwned": "Dalla mia attrezzatura",
+  "trips_cylinders_add_count": "Quante",
+  "trips_cylinders_add_preset": "Tipo di bombola",
+  "trips_cylinders_add_prefix": "Prefisso del nome",
+  "trips_cylinders_add_prefixDefault": "Pick-up",
+  "trips_cylinders_add_noOwned": "Non restano bombole della tua attrezzatura da aggiungere.",
+  "trips_cylinders_add_errorCount": "Inserisci un numero da 1 a 20.",
+  "trips_cylinders_fill_titleEdit": "Modifica ricarica",
+  "trips_cylinders_fill_when": "Quando",
+  "trips_cylinders_fill_where": "Stazione di ricarica",
+  "trips_cylinders_fill_whereNone": "Non impostata",
+  "trips_cylinders_fill_pressure": "Pressione di ricarica ({unit})",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "O2 richiesto (%)",
+  "trips_cylinders_fill_he": "He richiesto (%)",
+  "trips_cylinders_fill_analyzedO2": "O2 analizzato (%)",
+  "trips_cylinders_fill_analyzedHe": "He analizzato (%)",
+  "trips_cylinders_fill_bottle": "Numero della bombola",
+  "trips_cylinders_fill_cost": "Costo",
+  "trips_cylinders_fill_currency": "Valuta",
+  "trips_cylinders_fill_package": "Incluso in un pacchetto",
+  "trips_cylinders_fill_slots": "Bombole da ricaricare",
+  "trips_cylinders_fill_errorMix": "L'ossigeno deve essere tra 1 e 100 per cento, l'elio tra 0 e 99, e insieme al massimo 100.",
+  "trips_cylinders_fill_errorNoSlot": "Scegli almeno una bombola.",
+  "trips_cylinders_note": "Nota",
+  "trips_cylinders_adjust_titleEdit": "Modifica correzione",
+  "trips_cylinders_adjust_pressure": "Pressione ({unit})",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "Segna come vuota",
+  "trips_cylinders_edit_title": "Modifica bombola",
+  "trips_cylinders_edit_label": "Nome",
+  "trips_cylinders_edit_volume": "Dimensione ({unit})",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "Pressione di esercizio ({unit})",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "Personalizzata",
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Data di fine",

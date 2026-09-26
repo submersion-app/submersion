@@ -6996,6 +6996,179 @@
       }
     }
   },
+  "trips_cylinders_title": "Cilindros",
+  "trips_cylinders_summary": "Cheios {full} · Parciais {partial} · Vazios {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "Ainda não enchidos {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "Configurar cilindros",
+  "trips_cylinders_setUpHint": "Acompanhe os cilindros que tem nesta viagem: enchimentos, misturas e o que resta em cada um.",
+  "trips_cylinders_status_full": "Cheio",
+  "trips_cylinders_status_partial": "Parcial",
+  "trips_cylinders_status_empty": "Vazio",
+  "trips_cylinders_status_unknown": "Ainda não enchido",
+  "trips_cylinders_mixAir": "Ar",
+  "trips_cylinders_segment_board": "Quadro",
+  "trips_cylinders_segment_ledger": "Registo",
+  "trips_cylinders_action_add": "Adicionar cilindros",
+  "trips_cylinders_action_fill": "Encher",
+  "trips_cylinders_action_fillSeveral": "Encher vários",
+  "trips_cylinders_action_adjust": "Ajustar",
+  "trips_cylinders_bottle": "Cilindro {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} mergulho} other{{count} mergulhos}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "Enchido em {place}, {when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "Enchido {when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "Ajustado {when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "Mergulho em {site}, {when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "Mergulho {when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "Ainda não há cilindros nesta viagem",
+  "trips_cylinders_ledgerEmpty": "Ainda não há enchimentos nem ajustes",
+  "trips_cylinders_kind_fill": "Enchimento",
+  "trips_cylinders_kind_adjustment": "Ajuste",
+  "trips_cylinders_deleteConfirmUnused": "Eliminar este cilindro e os seus enchimentos?",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{Eliminar este cilindro e os seus enchimentos? {count} mergulho usou-o. Esse mergulho mantém o seu cilindro; só a ligação é removida.} other{Eliminar este cilindro e os seus enchimentos? {count} mergulhos usaram-no. Esses mergulhos mantêm os seus cilindros; só a ligação é removida.}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "Eliminar esta entrada?",
+  "trips_cylinders_add_tabRental": "Aluguer",
+  "trips_cylinders_add_tabOwned": "Do meu equipamento",
+  "trips_cylinders_add_count": "Quantos",
+  "trips_cylinders_add_preset": "Tipo de cilindro",
+  "trips_cylinders_add_prefix": "Prefixo do nome",
+  "trips_cylinders_add_prefixDefault": "Carrinha",
+  "trips_cylinders_add_noOwned": "Não restam cilindros do seu equipamento para adicionar.",
+  "trips_cylinders_add_errorCount": "Introduza um número de 1 a 20.",
+  "trips_cylinders_fill_titleEdit": "Editar enchimento",
+  "trips_cylinders_fill_when": "Quando",
+  "trips_cylinders_fill_where": "Posto de enchimento",
+  "trips_cylinders_fill_whereNone": "Não definido",
+  "trips_cylinders_fill_pressure": "Pressão de enchimento ({unit})",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "O2 pedido (%)",
+  "trips_cylinders_fill_he": "He pedido (%)",
+  "trips_cylinders_fill_analyzedO2": "O2 analisado (%)",
+  "trips_cylinders_fill_analyzedHe": "He analisado (%)",
+  "trips_cylinders_fill_bottle": "Número do cilindro",
+  "trips_cylinders_fill_cost": "Custo",
+  "trips_cylinders_fill_currency": "Moeda",
+  "trips_cylinders_fill_package": "Incluído num pacote",
+  "trips_cylinders_fill_slots": "Cilindros a encher",
+  "trips_cylinders_fill_errorMix": "O oxigénio tem de estar entre 1 e 100 por cento, o hélio entre 0 e 99, e juntos no máximo 100.",
+  "trips_cylinders_fill_errorNoSlot": "Escolha pelo menos um cilindro.",
+  "trips_cylinders_note": "Nota",
+  "trips_cylinders_adjust_titleEdit": "Editar ajuste",
+  "trips_cylinders_adjust_pressure": "Pressão ({unit})",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "Marcar como vazio",
+  "trips_cylinders_edit_title": "Editar cilindro",
+  "trips_cylinders_edit_label": "Nome",
+  "trips_cylinders_edit_volume": "Tamanho ({unit})",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "Pressão de serviço ({unit})",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "Personalizado",
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Data Final",

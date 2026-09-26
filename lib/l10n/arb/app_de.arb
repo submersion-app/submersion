@@ -7100,6 +7100,179 @@
       }
     }
   },
+  "trips_cylinders_title": "Flaschen",
+  "trips_cylinders_summary": "Voll {full} · Teilweise {partial} · Leer {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "Noch nicht gefüllt {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "Flaschen einrichten",
+  "trips_cylinders_setUpHint": "Verfolge die Flaschen, die du auf dieser Reise hast: Füllungen, Gemische und was in jeder übrig ist.",
+  "trips_cylinders_status_full": "Voll",
+  "trips_cylinders_status_partial": "Teilweise",
+  "trips_cylinders_status_empty": "Leer",
+  "trips_cylinders_status_unknown": "Noch nicht gefüllt",
+  "trips_cylinders_mixAir": "Luft",
+  "trips_cylinders_segment_board": "Übersicht",
+  "trips_cylinders_segment_ledger": "Verlauf",
+  "trips_cylinders_action_add": "Flaschen hinzufügen",
+  "trips_cylinders_action_fill": "Füllen",
+  "trips_cylinders_action_fillSeveral": "Mehrere füllen",
+  "trips_cylinders_action_adjust": "Anpassen",
+  "trips_cylinders_bottle": "Flasche {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} Tauchgang} other{{count} Tauchgänge}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "Gefüllt bei {place}, {when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "Gefüllt {when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "Angepasst {when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "Getaucht bei {site}, {when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "Getaucht {when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "Noch keine Flaschen auf dieser Reise",
+  "trips_cylinders_ledgerEmpty": "Noch keine Füllungen oder Anpassungen",
+  "trips_cylinders_kind_fill": "Füllung",
+  "trips_cylinders_kind_adjustment": "Anpassung",
+  "trips_cylinders_deleteConfirmUnused": "Diese Flasche und ihre Füllungen löschen?",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{Diese Flasche und ihre Füllungen löschen? {count} Tauchgang hat sie benutzt. Er behält seine Flasche; nur die Verknüpfung wird entfernt.} other{Diese Flasche und ihre Füllungen löschen? {count} Tauchgänge haben sie benutzt. Sie behalten ihre Flaschen; nur die Verknüpfung wird entfernt.}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "Diesen Eintrag löschen?",
+  "trips_cylinders_add_tabRental": "Leihflaschen",
+  "trips_cylinders_add_tabOwned": "Aus meiner Ausrüstung",
+  "trips_cylinders_add_count": "Anzahl",
+  "trips_cylinders_add_preset": "Flaschentyp",
+  "trips_cylinders_add_prefix": "Namenspräfix",
+  "trips_cylinders_add_prefixDefault": "Pick-up",
+  "trips_cylinders_add_noOwned": "In deiner Ausrüstung sind keine Flaschen mehr zum Hinzufügen.",
+  "trips_cylinders_add_errorCount": "Gib eine Zahl von 1 bis 20 ein.",
+  "trips_cylinders_fill_titleEdit": "Füllung bearbeiten",
+  "trips_cylinders_fill_when": "Wann",
+  "trips_cylinders_fill_where": "Füllstation",
+  "trips_cylinders_fill_whereNone": "Nicht festgelegt",
+  "trips_cylinders_fill_pressure": "Fülldruck ({unit})",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "O2 bestellt (%)",
+  "trips_cylinders_fill_he": "He bestellt (%)",
+  "trips_cylinders_fill_analyzedO2": "O2 analysiert (%)",
+  "trips_cylinders_fill_analyzedHe": "He analysiert (%)",
+  "trips_cylinders_fill_bottle": "Flaschennummer",
+  "trips_cylinders_fill_cost": "Kosten",
+  "trips_cylinders_fill_currency": "Währung",
+  "trips_cylinders_fill_package": "Im Paket enthalten",
+  "trips_cylinders_fill_slots": "Zu füllende Flaschen",
+  "trips_cylinders_fill_errorMix": "Sauerstoff muss 1 bis 100 Prozent sein, Helium 0 bis 99, zusammen höchstens 100.",
+  "trips_cylinders_fill_errorNoSlot": "Wähle mindestens eine Flasche.",
+  "trips_cylinders_note": "Notiz",
+  "trips_cylinders_adjust_titleEdit": "Anpassung bearbeiten",
+  "trips_cylinders_adjust_pressure": "Druck ({unit})",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "Als leer markieren",
+  "trips_cylinders_edit_title": "Flasche bearbeiten",
+  "trips_cylinders_edit_label": "Bezeichnung",
+  "trips_cylinders_edit_volume": "Größe ({unit})",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "Betriebsdruck ({unit})",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "Benutzerdefiniert",
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Enddatum",

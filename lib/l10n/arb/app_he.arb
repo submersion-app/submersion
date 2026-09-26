@@ -6996,6 +6996,179 @@
       }
     }
   },
+  "trips_cylinders_title": "מכלים",
+  "trips_cylinders_summary": "מלאים {full} · חלקיים {partial} · ריקים {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "טרם מולאו {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "הגדרת מכלים",
+  "trips_cylinders_setUpHint": "עקבו אחר המכלים שיש לכם בטיול הזה: מילויים, תערובות וכמה נשאר בכל אחד.",
+  "trips_cylinders_status_full": "מלא",
+  "trips_cylinders_status_partial": "חלקי",
+  "trips_cylinders_status_empty": "ריק",
+  "trips_cylinders_status_unknown": "טרם מולא",
+  "trips_cylinders_mixAir": "אוויר",
+  "trips_cylinders_segment_board": "לוח",
+  "trips_cylinders_segment_ledger": "יומן",
+  "trips_cylinders_action_add": "הוספת מכלים",
+  "trips_cylinders_action_fill": "מילוי",
+  "trips_cylinders_action_fillSeveral": "מילוי כמה מכלים",
+  "trips_cylinders_action_adjust": "תיקון",
+  "trips_cylinders_bottle": "מכל {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} צלילה} other{{count} צלילות}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "מולא אצל {place}, {when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "מולא {when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "תוקן {when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "צלילה באתר {site}, {when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "צלילה {when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "עדיין אין מכלים בטיול הזה",
+  "trips_cylinders_ledgerEmpty": "עדיין אין מילויים או תיקונים",
+  "trips_cylinders_kind_fill": "מילוי",
+  "trips_cylinders_kind_adjustment": "תיקון",
+  "trips_cylinders_deleteConfirmUnused": "למחוק את המכל הזה ואת המילויים שלו?",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{למחוק את המכל הזה ואת המילויים שלו? {count} צלילה השתמשה בו. הצלילה שומרת את המכל שלה; רק הקישור מוסר.} other{למחוק את המכל הזה ואת המילויים שלו? {count} צלילות השתמשו בו. הצלילות שומרות את המכלים שלהן; רק הקישור מוסר.}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "למחוק את הרשומה הזו?",
+  "trips_cylinders_add_tabRental": "שכור",
+  "trips_cylinders_add_tabOwned": "מהציוד שלי",
+  "trips_cylinders_add_count": "כמה",
+  "trips_cylinders_add_preset": "סוג מכל",
+  "trips_cylinders_add_prefix": "קידומת לשם",
+  "trips_cylinders_add_prefixDefault": "טנדר",
+  "trips_cylinders_add_noOwned": "לא נותרו מכלים בציוד שלך להוספה.",
+  "trips_cylinders_add_errorCount": "הזינו מספר בין 1 ל-20.",
+  "trips_cylinders_fill_titleEdit": "עריכת מילוי",
+  "trips_cylinders_fill_when": "מתי",
+  "trips_cylinders_fill_where": "תחנת מילוי",
+  "trips_cylinders_fill_whereNone": "לא הוגדר",
+  "trips_cylinders_fill_pressure": "לחץ מילוי ({unit})",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "O2 שהוזמן (%)",
+  "trips_cylinders_fill_he": "He שהוזמן (%)",
+  "trips_cylinders_fill_analyzedO2": "O2 שנמדד (%)",
+  "trips_cylinders_fill_analyzedHe": "He שנמדד (%)",
+  "trips_cylinders_fill_bottle": "מספר מכל",
+  "trips_cylinders_fill_cost": "עלות",
+  "trips_cylinders_fill_currency": "מטבע",
+  "trips_cylinders_fill_package": "כלול בחבילה",
+  "trips_cylinders_fill_slots": "מכלים למילוי",
+  "trips_cylinders_fill_errorMix": "החמצן חייב להיות בין 1 ל-100 אחוז, ההליום בין 0 ל-99, ויחד לכל היותר 100.",
+  "trips_cylinders_fill_errorNoSlot": "בחרו לפחות מכל אחד.",
+  "trips_cylinders_note": "הערה",
+  "trips_cylinders_adjust_titleEdit": "עריכת תיקון",
+  "trips_cylinders_adjust_pressure": "לחץ ({unit})",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "סימון כריק",
+  "trips_cylinders_edit_title": "עריכת מכל",
+  "trips_cylinders_edit_label": "שם",
+  "trips_cylinders_edit_volume": "גודל ({unit})",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "לחץ עבודה ({unit})",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "מותאם אישית",
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "תאריך סיום",

@@ -23692,6 +23692,241 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get trips_cylinders_title => 'Cylinders';
+
+  @override
+  String trips_cylinders_summary(int full, int partial, int empty) {
+    return 'Full $full · Partial $partial · Empty $empty';
+  }
+
+  @override
+  String trips_cylinders_summaryUnfilled(int count) {
+    return 'Not filled yet $count';
+  }
+
+  @override
+  String get trips_cylinders_setUp => 'Set up cylinders';
+
+  @override
+  String get trips_cylinders_setUpHint =>
+      'Track the cylinders you hold on this trip: fills, mixes and what is left in each.';
+
+  @override
+  String get trips_cylinders_status_full => 'Full';
+
+  @override
+  String get trips_cylinders_status_partial => 'Partial';
+
+  @override
+  String get trips_cylinders_status_empty => 'Empty';
+
+  @override
+  String get trips_cylinders_status_unknown => 'Not filled yet';
+
+  @override
+  String get trips_cylinders_mixAir => 'Air';
+
+  @override
+  String get trips_cylinders_segment_board => 'Board';
+
+  @override
+  String get trips_cylinders_segment_ledger => 'Ledger';
+
+  @override
+  String get trips_cylinders_action_add => 'Add cylinders';
+
+  @override
+  String get trips_cylinders_action_fill => 'Fill';
+
+  @override
+  String get trips_cylinders_action_fillSeveral => 'Fill several';
+
+  @override
+  String get trips_cylinders_action_adjust => 'Adjust';
+
+  @override
+  String trips_cylinders_bottle(String label) {
+    return 'Bottle $label';
+  }
+
+  @override
+  String trips_cylinders_linkedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count dives',
+      one: '$count dive',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String trips_cylinders_last_fillAt(String place, String when) {
+    return 'Filled at $place, $when';
+  }
+
+  @override
+  String trips_cylinders_last_fill(String when) {
+    return 'Filled $when';
+  }
+
+  @override
+  String trips_cylinders_last_adjustment(String when) {
+    return 'Adjusted $when';
+  }
+
+  @override
+  String trips_cylinders_last_diveAt(String site, String when) {
+    return 'Dived at $site, $when';
+  }
+
+  @override
+  String trips_cylinders_last_dive(String when) {
+    return 'Dived $when';
+  }
+
+  @override
+  String get trips_cylinders_boardEmpty => 'No cylinders on this trip yet';
+
+  @override
+  String get trips_cylinders_ledgerEmpty => 'No fills or adjustments yet';
+
+  @override
+  String get trips_cylinders_kind_fill => 'Fill';
+
+  @override
+  String get trips_cylinders_kind_adjustment => 'Adjustment';
+
+  @override
+  String get trips_cylinders_deleteConfirmUnused =>
+      'Delete this cylinder and its fills?';
+
+  @override
+  String trips_cylinders_deleteConfirmUsed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Delete this cylinder and its fills? $count dives used it. Those dives keep their tanks; only the link is removed.',
+      one:
+          'Delete this cylinder and its fills? $count dive used it. That dive keeps its tank; only the link is removed.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get trips_cylinders_deleteEventConfirm => 'Delete this entry?';
+
+  @override
+  String get trips_cylinders_add_tabRental => 'Rental';
+
+  @override
+  String get trips_cylinders_add_tabOwned => 'From my equipment';
+
+  @override
+  String get trips_cylinders_add_count => 'How many';
+
+  @override
+  String get trips_cylinders_add_preset => 'Cylinder type';
+
+  @override
+  String get trips_cylinders_add_prefix => 'Label prefix';
+
+  @override
+  String get trips_cylinders_add_prefixDefault => 'Truck';
+
+  @override
+  String get trips_cylinders_add_noOwned =>
+      'No cylinders in your equipment are left to add.';
+
+  @override
+  String get trips_cylinders_add_errorCount => 'Enter a number from 1 to 20.';
+
+  @override
+  String get trips_cylinders_fill_titleEdit => 'Edit fill';
+
+  @override
+  String get trips_cylinders_fill_when => 'When';
+
+  @override
+  String get trips_cylinders_fill_where => 'Fill station';
+
+  @override
+  String get trips_cylinders_fill_whereNone => 'Not set';
+
+  @override
+  String trips_cylinders_fill_pressure(String unit) {
+    return 'Fill pressure ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_fill_o2 => 'O2 ordered (%)';
+
+  @override
+  String get trips_cylinders_fill_he => 'He ordered (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedO2 => 'O2 analyzed (%)';
+
+  @override
+  String get trips_cylinders_fill_analyzedHe => 'He analyzed (%)';
+
+  @override
+  String get trips_cylinders_fill_bottle => 'Bottle number';
+
+  @override
+  String get trips_cylinders_fill_cost => 'Cost';
+
+  @override
+  String get trips_cylinders_fill_currency => 'Currency';
+
+  @override
+  String get trips_cylinders_fill_package => 'Covered by a package';
+
+  @override
+  String get trips_cylinders_fill_slots => 'Cylinders to fill';
+
+  @override
+  String get trips_cylinders_fill_errorMix =>
+      'Oxygen must be 1 to 100 percent, helium 0 to 99, and together at most 100.';
+
+  @override
+  String get trips_cylinders_fill_errorNoSlot => 'Pick at least one cylinder.';
+
+  @override
+  String get trips_cylinders_note => 'Note';
+
+  @override
+  String get trips_cylinders_adjust_titleEdit => 'Edit adjustment';
+
+  @override
+  String trips_cylinders_adjust_pressure(String unit) {
+    return 'Pressure ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_adjust_markEmpty => 'Mark empty';
+
+  @override
+  String get trips_cylinders_edit_title => 'Edit cylinder';
+
+  @override
+  String get trips_cylinders_edit_label => 'Label';
+
+  @override
+  String trips_cylinders_edit_volume(String unit) {
+    return 'Size ($unit)';
+  }
+
+  @override
+  String trips_cylinders_edit_workingPressure(String unit) {
+    return 'Working pressure ($unit)';
+  }
+
+  @override
+  String get trips_cylinders_edit_presetCustom => 'Custom';
+
+  @override
   String get trips_edit_sectionTitle_embarkDisembark => 'Embark / Disembark';
 
   @override

@@ -14640,6 +14640,179 @@
       }
     }
   },
+  "trips_cylinders_title": "Cylinders",
+  "trips_cylinders_summary": "Full {full} · Partial {partial} · Empty {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "Not filled yet {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "Set up cylinders",
+  "trips_cylinders_setUpHint": "Track the cylinders you hold on this trip: fills, mixes and what is left in each.",
+  "trips_cylinders_status_full": "Full",
+  "trips_cylinders_status_partial": "Partial",
+  "trips_cylinders_status_empty": "Empty",
+  "trips_cylinders_status_unknown": "Not filled yet",
+  "trips_cylinders_mixAir": "Air",
+  "trips_cylinders_segment_board": "Board",
+  "trips_cylinders_segment_ledger": "Ledger",
+  "trips_cylinders_action_add": "Add cylinders",
+  "trips_cylinders_action_fill": "Fill",
+  "trips_cylinders_action_fillSeveral": "Fill several",
+  "trips_cylinders_action_adjust": "Adjust",
+  "trips_cylinders_bottle": "Bottle {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} dive} other{{count} dives}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "Filled at {place}, {when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "Filled {when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "Adjusted {when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "Dived at {site}, {when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "Dived {when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "No cylinders on this trip yet",
+  "trips_cylinders_ledgerEmpty": "No fills or adjustments yet",
+  "trips_cylinders_kind_fill": "Fill",
+  "trips_cylinders_kind_adjustment": "Adjustment",
+  "trips_cylinders_deleteConfirmUnused": "Delete this cylinder and its fills?",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{Delete this cylinder and its fills? {count} dive used it. That dive keeps its tank; only the link is removed.} other{Delete this cylinder and its fills? {count} dives used it. Those dives keep their tanks; only the link is removed.}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "Delete this entry?",
+  "trips_cylinders_add_tabRental": "Rental",
+  "trips_cylinders_add_tabOwned": "From my equipment",
+  "trips_cylinders_add_count": "How many",
+  "trips_cylinders_add_preset": "Cylinder type",
+  "trips_cylinders_add_prefix": "Label prefix",
+  "trips_cylinders_add_prefixDefault": "Truck",
+  "trips_cylinders_add_noOwned": "No cylinders in your equipment are left to add.",
+  "trips_cylinders_add_errorCount": "Enter a number from 1 to 20.",
+  "trips_cylinders_fill_titleEdit": "Edit fill",
+  "trips_cylinders_fill_when": "When",
+  "trips_cylinders_fill_where": "Fill station",
+  "trips_cylinders_fill_whereNone": "Not set",
+  "trips_cylinders_fill_pressure": "Fill pressure ({unit})",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "O2 ordered (%)",
+  "trips_cylinders_fill_he": "He ordered (%)",
+  "trips_cylinders_fill_analyzedO2": "O2 analyzed (%)",
+  "trips_cylinders_fill_analyzedHe": "He analyzed (%)",
+  "trips_cylinders_fill_bottle": "Bottle number",
+  "trips_cylinders_fill_cost": "Cost",
+  "trips_cylinders_fill_currency": "Currency",
+  "trips_cylinders_fill_package": "Covered by a package",
+  "trips_cylinders_fill_slots": "Cylinders to fill",
+  "trips_cylinders_fill_errorMix": "Oxygen must be 1 to 100 percent, helium 0 to 99, and together at most 100.",
+  "trips_cylinders_fill_errorNoSlot": "Pick at least one cylinder.",
+  "trips_cylinders_note": "Note",
+  "trips_cylinders_adjust_titleEdit": "Edit adjustment",
+  "trips_cylinders_adjust_pressure": "Pressure ({unit})",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "Mark empty",
+  "trips_cylinders_edit_title": "Edit cylinder",
+  "trips_cylinders_edit_label": "Label",
+  "trips_cylinders_edit_volume": "Size ({unit})",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "Working pressure ({unit})",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "Custom",
   "trips_edit_sectionTitle_embarkDisembark": "Embark / Disembark",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_hint_embarkPort": "e.g. Hurghada Marina",

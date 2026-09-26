@@ -6996,6 +6996,179 @@
       }
     }
   },
+  "trips_cylinders_title": "Flessen",
+  "trips_cylinders_summary": "Vol {full} · Deels {partial} · Leeg {empty}",
+  "@trips_cylinders_summary": {
+    "placeholders": {
+      "full": {
+        "type": "int"
+      },
+      "partial": {
+        "type": "int"
+      },
+      "empty": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_summaryUnfilled": "Nog niet gevuld {count}",
+  "@trips_cylinders_summaryUnfilled": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_setUp": "Flessen instellen",
+  "trips_cylinders_setUpHint": "Houd de flessen bij die je op deze reis hebt: vullingen, mengsels en wat er in elke fles over is.",
+  "trips_cylinders_status_full": "Vol",
+  "trips_cylinders_status_partial": "Deels vol",
+  "trips_cylinders_status_empty": "Leeg",
+  "trips_cylinders_status_unknown": "Nog niet gevuld",
+  "trips_cylinders_mixAir": "Lucht",
+  "trips_cylinders_segment_board": "Overzicht",
+  "trips_cylinders_segment_ledger": "Logboek",
+  "trips_cylinders_action_add": "Flessen toevoegen",
+  "trips_cylinders_action_fill": "Vullen",
+  "trips_cylinders_action_fillSeveral": "Meerdere vullen",
+  "trips_cylinders_action_adjust": "Bijwerken",
+  "trips_cylinders_bottle": "Fles {label}",
+  "@trips_cylinders_bottle": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_linkedDives": "{count, plural, one{{count} duik} other{{count} duiken}}",
+  "@trips_cylinders_linkedDives": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_last_fillAt": "Gevuld bij {place}, {when}",
+  "@trips_cylinders_last_fillAt": {
+    "placeholders": {
+      "place": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_fill": "Gevuld {when}",
+  "@trips_cylinders_last_fill": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_adjustment": "Bijgewerkt {when}",
+  "@trips_cylinders_last_adjustment": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_diveAt": "Gedoken bij {site}, {when}",
+  "@trips_cylinders_last_diveAt": {
+    "placeholders": {
+      "site": {
+        "type": "String"
+      },
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_last_dive": "Gedoken {when}",
+  "@trips_cylinders_last_dive": {
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_boardEmpty": "Nog geen flessen op deze reis",
+  "trips_cylinders_ledgerEmpty": "Nog geen vullingen of correcties",
+  "trips_cylinders_kind_fill": "Vulling",
+  "trips_cylinders_kind_adjustment": "Correctie",
+  "trips_cylinders_deleteConfirmUnused": "Deze fles en haar vullingen verwijderen?",
+  "trips_cylinders_deleteConfirmUsed": "{count, plural, one{Deze fles en haar vullingen verwijderen? {count} duik gebruikte haar. Die duik houdt zijn fles; alleen de koppeling verdwijnt.} other{Deze fles en haar vullingen verwijderen? {count} duiken gebruikten haar. Die duiken houden hun flessen; alleen de koppeling verdwijnt.}}",
+  "@trips_cylinders_deleteConfirmUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "trips_cylinders_deleteEventConfirm": "Dit item verwijderen?",
+  "trips_cylinders_add_tabRental": "Huur",
+  "trips_cylinders_add_tabOwned": "Uit mijn uitrusting",
+  "trips_cylinders_add_count": "Aantal",
+  "trips_cylinders_add_preset": "Flestype",
+  "trips_cylinders_add_prefix": "Voorvoegsel voor de naam",
+  "trips_cylinders_add_prefixDefault": "Pick-up",
+  "trips_cylinders_add_noOwned": "Er zijn geen flessen uit je uitrusting meer om toe te voegen.",
+  "trips_cylinders_add_errorCount": "Voer een getal van 1 tot 20 in.",
+  "trips_cylinders_fill_titleEdit": "Vulling bewerken",
+  "trips_cylinders_fill_when": "Wanneer",
+  "trips_cylinders_fill_where": "Vulstation",
+  "trips_cylinders_fill_whereNone": "Niet ingesteld",
+  "trips_cylinders_fill_pressure": "Vuldruk ({unit})",
+  "@trips_cylinders_fill_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_fill_o2": "O2 besteld (%)",
+  "trips_cylinders_fill_he": "He besteld (%)",
+  "trips_cylinders_fill_analyzedO2": "O2 geanalyseerd (%)",
+  "trips_cylinders_fill_analyzedHe": "He geanalyseerd (%)",
+  "trips_cylinders_fill_bottle": "Flesnummer",
+  "trips_cylinders_fill_cost": "Kosten",
+  "trips_cylinders_fill_currency": "Valuta",
+  "trips_cylinders_fill_package": "Inbegrepen in een pakket",
+  "trips_cylinders_fill_slots": "Te vullen flessen",
+  "trips_cylinders_fill_errorMix": "Zuurstof moet tussen 1 en 100 procent liggen, helium tussen 0 en 99, en samen hoogstens 100.",
+  "trips_cylinders_fill_errorNoSlot": "Kies minstens één fles.",
+  "trips_cylinders_note": "Notitie",
+  "trips_cylinders_adjust_titleEdit": "Correctie bewerken",
+  "trips_cylinders_adjust_pressure": "Druk ({unit})",
+  "@trips_cylinders_adjust_pressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_adjust_markEmpty": "Als leeg markeren",
+  "trips_cylinders_edit_title": "Fles bewerken",
+  "trips_cylinders_edit_label": "Naam",
+  "trips_cylinders_edit_volume": "Grootte ({unit})",
+  "@trips_cylinders_edit_volume": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_workingPressure": "Werkdruk ({unit})",
+  "@trips_cylinders_edit_workingPressure": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "trips_cylinders_edit_presetCustom": "Aangepast",
   "trips_edit_label_disembarkPort": "Disembark Port",
   "trips_edit_label_embarkPort": "Embark Port",
   "trips_edit_label_endDate": "Einddatum",
