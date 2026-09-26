@@ -17,7 +17,7 @@ the SSD. The benefit scales with how busy the machine is: nearer 1.3x when
 little else is running, nearer 2x when several worktrees are testing at once.
 
 The tuning is machine-local by design. Only these instructions live in the
-repository; the scripts, shell config, and launch agent all sit outside it, in
+repository; the scripts, shell config, and launch agents all sit outside it, in
 `~/.local/bin`, `~/.zshenv`, and `~/Library/LaunchAgents`. Nothing here changes
 CI behaviour, and the numbers below are tuned to one specific machine, so treat
 them as a starting point rather than settings to copy verbatim.
@@ -93,37 +93,160 @@ Create `~/.local/bin/flutter-ramtmp`:
 ```bash
 #!/usr/bin/env bash
 # Create (idempotently) a RAM-backed volume for Flutter's test temp traffic.
-# Usage:  flutter-ramtmp [size_gb]     (default 16)
+#
+# Why: `flutter test` copies the incremental kernel once per test file. Those
+# dills run 66-207 MB each and grow as a run proceeds, so a single invocation
+# moves tens of GB through $TMPDIR. On a laptop running several worktrees at
+# once that saturates the NVMe long before it saturates the CPU.
+#
+# Usage:
+#   flutter-ramtmp [size_gb]             create if missing (default 24), print
+#                                        the temp dir:
+#                                          export TMPDIR="$(flutter-ramtmp)/"
+#   flutter-ramtmp --clean [hours]       delete flutter_tools.* dirs left by
+#                                        killed or hung runs: nothing inside
+#                                        written for <hours> (default 3) and no
+#                                        live process naming the dir
+#   flutter-ramtmp --clean-dry-run [h]   list what --clean would delete
+#   flutter-ramtmp --recreate [size_gb]  detach and rebuild at a new size;
+#                                        refuses while any flutter test
+#                                        process is alive (contents are lost)
+#
+# A ram:// device cannot be resized in place (`hdiutil resize` returns EINVAL
+# and there is no partition to grow), which is why --recreate exists.
+
 set -euo pipefail
 
-SIZE_GB="${1:-${FLUTTER_RAMTMP_GB:-16}}"
+DEFAULT_GB="${FLUTTER_RAMTMP_GB:-24}"
 VOL_NAME="fltmp"
 MOUNT="/Volumes/${VOL_NAME}"
 TMPSUB="${MOUNT}/tmp"
 
-if mount | grep -q " on ${MOUNT} "; then
-  mkdir -p "${TMPSUB}"; echo "${TMPSUB}"; exit 0
-fi
+is_mounted() {
+  mount | grep -q " on ${MOUNT} "
+}
 
-SECTORS=$(( SIZE_GB * 1024 * 1024 * 2 ))   # 512-byte sectors
-DEV="$(hdiutil attach -nomount "ram://${SECTORS}" | awk '{print $1}')"
-[ -n "${DEV}" ] || { echo "hdiutil failed" >&2; exit 1; }
+create() {
+  local size_gb="$1"
+  if is_mounted; then
+    mkdir -p "${TMPSUB}"
+    echo "${TMPSUB}"
+    return 0
+  fi
 
-# erasevolume formats and mounts in one step, no sudo required.
-if ! diskutil erasevolume HFS+ "${VOL_NAME}" "${DEV}" >/dev/null 2>&1; then
-  hdiutil detach "${DEV}" >/dev/null 2>&1 || true
-  echo "failed to format ${DEV}" >&2; exit 1
-fi
+  # 512-byte sectors
+  local sectors=$(( size_gb * 1024 * 1024 * 2 ))
+  local dev
+  dev="$(hdiutil attach -nomount "ram://${sectors}" 2>/dev/null | awk '{print $1}')"
+  if [ -z "${dev}" ]; then
+    echo "flutter-ramtmp: hdiutil failed to allocate ram://${sectors}" >&2
+    return 1
+  fi
 
-mkdir -p "${TMPSUB}"
-echo "${TMPSUB}"
+  # erasevolume formats and mounts in one step, no sudo required.
+  if ! diskutil erasevolume HFS+ "${VOL_NAME}" "${dev}" >/dev/null 2>&1; then
+    echo "flutter-ramtmp: failed to format ${dev}" >&2
+    hdiutil detach "${dev}" >/dev/null 2>&1 || true
+    return 1
+  fi
+
+  mkdir -p "${TMPSUB}"
+  echo "${TMPSUB}"
+}
+
+# PIDs and commands of every process that is part of a `flutter test` run.
+flutter_test_procs() {
+  ps -axo pid=,command= |
+    grep -E 'flutter_tools\.snapshot test|/flutter_tester ' |
+    grep -v grep || true
+}
+
+clean() {
+  local hours="$1" dry_run="$2"
+  is_mounted || return 0
+  local minutes=$(( hours * 60 ))
+  local live
+  live="$(ps -axo command= || true)"
+
+  local d freed=0 kb
+  for d in "${TMPSUB}"/flutter_tools.*; do
+    [ -d "${d}" ] || continue
+    # A running suite writes a new dill per test file, so anything written
+    # within the window means the run is still alive.
+    if [ -n "$(find "${d}" -mmin "-${minutes}" -print -quit 2>/dev/null)" ]; then
+      continue
+    fi
+    # A live flutter_tester names its listener dill on its command line.
+    if printf '%s\n' "${live}" | grep -qF "${d}/"; then
+      continue
+    fi
+    kb="$(du -sk "${d}" | awk '{print $1}')"
+    freed=$(( freed + kb ))
+    if [ "${dry_run}" = 1 ]; then
+      echo "would delete ${d} ($(( kb / 1024 )) MB)"
+    else
+      rm -rf "${d}"
+      echo "deleted ${d} ($(( kb / 1024 )) MB)"
+    fi
+  done
+  if [ "${dry_run}" = 1 ]; then
+    echo "flutter-ramtmp: $(( freed / 1024 )) MB in stale dirs (dry run)"
+  else
+    echo "$(date '+%F %T') flutter-ramtmp: freed $(( freed / 1024 )) MB"
+  fi
+}
+
+recreate() {
+  local size_gb="$1"
+  local procs
+  procs="$(flutter_test_procs)"
+  if [ -n "${procs}" ]; then
+    echo "flutter-ramtmp: refusing to recreate, flutter test processes are running:" >&2
+    printf '%s\n' "${procs}" | cut -c1-160 >&2
+    return 2
+  fi
+  if is_mounted; then
+    # No -force: a volume something still has open stays mounted.
+    if ! hdiutil detach "${MOUNT}" >/dev/null 2>&1; then
+      echo "flutter-ramtmp: ${MOUNT} is busy; not detaching" >&2
+      return 1
+    fi
+  fi
+  create "${size_gb}"
+}
+
+case "${1:-}" in
+  --clean) clean "${2:-3}" 0 ;;
+  --clean-dry-run) clean "${2:-3}" 1 ;;
+  --recreate) recreate "${2:-${DEFAULT_GB}}" ;;
+  -h|--help) sed -n '2,24p' "$0" ;;
+  *) create "${1:-${DEFAULT_GB}}" ;;
+esac
 ```
 
 Then `chmod +x ~/.local/bin/flutter-ramtmp`.
 
-Size it for your machine. 16 GB out of 64 GB is comfortable. Allocation is
-lazy, so an idle RAM disk costs almost nothing; only the pages actually written
-consume memory.
+Size it for your machine. 24 GB out of 64 GB is comfortable: it leaves room
+for several worktrees testing at once while capping what leftover temp files
+can hold at well under half of RAM. Allocation is lazy, so an idle RAM disk
+costs almost nothing; only the pages actually written consume memory.
+
+#### Changing the size
+
+A `ram://` device cannot grow or shrink while mounted. `hdiutil resize`
+rejects it with `Invalid argument (22)`, and `diskutil erasevolume` puts the
+filesystem straight on the device with no partition to resize. The only way
+to change the size is to detach the volume and build a new one, which
+discards its contents. `--recreate` does that safely: it refuses while any
+`flutter test` or `flutter_tester` process is alive, and it detaches without
+`-force`, so a volume that something still has open stays mounted.
+
+```bash
+~/.local/bin/flutter-ramtmp --recreate 24
+```
+
+To make a new size stick across logins, also change the size argument in the
+login agent (step 3). The agent's argument wins over the script's default.
 
 ### 2. Point `TMPDIR` at it
 
@@ -175,7 +298,7 @@ A RAM disk does not survive a reboot. Create
   <key>ProgramArguments</key>
   <array>
     <string>/Users/YOUR_USERNAME/.local/bin/flutter-ramtmp</string>
-    <string>16</string>
+    <string>24</string>
   </array>
   <key>RunAtLoad</key>
   <true/>
@@ -191,7 +314,52 @@ Load it with
 `launchctl load ~/Library/LaunchAgents/app.local.flutter-ramtmp.plist`.
 `ProgramArguments` needs an absolute path, so substitute your own username.
 
-### 4. A wrapper that applies the tuning
+The size argument here is what persists: the agent runs at every login and
+passes it to the helper, overriding the helper's own default.
+
+### 4. Clean up leftovers automatically
+
+A killed or hung `flutter test` never deletes its `flutter_tools.*` directory,
+and each one holds hundreds of megabytes to over a gigabyte of kernels. Left
+alone they fill the volume. When that happens the compiler fails with
+`No space left on device` and `flutter test` hangs forever instead of exiting,
+which leaves yet another directory behind (see [Maintenance](#maintenance)).
+
+Create `~/Library/LaunchAgents/app.local.flutter-ramtmp-clean.plist` to run
+`--clean` every 30 minutes. It deletes only directories with nothing written
+inside them for 3 hours and not named by any live process, so running suites
+are never touched:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>app.local.flutter-ramtmp-clean</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/YOUR_USERNAME/.local/bin/flutter-ramtmp</string>
+    <string>--clean</string>
+    <string>3</string>
+  </array>
+  <key>StartInterval</key>
+  <integer>1800</integer>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/tmp/flutter-ramtmp-clean.out</string>
+  <key>StandardErrorPath</key>
+  <string>/tmp/flutter-ramtmp-clean.err</string>
+</dict>
+</plist>
+```
+
+Load it with
+`launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/app.local.flutter-ramtmp-clean.plist`.
+`flutter-ramtmp --clean-dry-run` lists what it would delete.
+
+### 5. A wrapper that applies the tuning
 
 Create `~/.local/bin/ft` so you do not have to remember the flags:
 
@@ -262,18 +430,30 @@ directory, so there is no shared mutable state between them.
 
 Killed or crashed runs leak their temp directories. These accumulate quickly
 given the file sizes involved: 23 GB across 18 abandoned directories was
-observed on one machine.
-
-List what is safe to remove, keeping anything a live process still holds open:
+observed on one machine. A RAM disk makes this urgent rather than untidy:
+once the volume is full, the compiler's write fails with
+`No space left on device` and `flutter test` waits forever for a result that
+never comes. It shows no failure and no summary line, and every run sits at 0%
+CPU. The error is only visible with `flutter test -v`. Check the volume first
+when runs stall:
 
 ```bash
-T="${TMPDIR:-/tmp}"
-LIVE=$(lsof -n 2>/dev/null | grep -o "flutter_tools\.[A-Za-z0-9]*" | sort -u)
-for d in "$T"/flutter_tools.*; do
-  b=$(basename "$d")
-  echo "$LIVE" | grep -qx "$b" || echo "stale: $b ($(du -sh "$d" | cut -f1))"
-done
+df -h /Volumes/fltmp
+ls -d /Volumes/fltmp/tmp/flutter_tools.* | wc -l
 ```
+
+The cleanup agent from step 4 handles this on its own. To reclaim space
+immediately:
+
+```bash
+~/.local/bin/flutter-ramtmp --clean-dry-run   # list what would go
+~/.local/bin/flutter-ramtmp --clean           # delete it
+~/.local/bin/flutter-ramtmp --clean 1         # shorter idle window, in hours
+```
+
+Staleness is judged by write time, not by `lsof`. A running suite opens each
+kernel only briefly, so `lsof` frequently shows nothing open on the volume even
+while several suites are running on it.
 
 Orphaned `flutter_tester` processes also survive killed runs and pin their temp
 directories. Identify them by a parent PID of 1, zero CPU, and a long elapsed
