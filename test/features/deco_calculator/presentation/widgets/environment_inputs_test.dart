@@ -56,4 +56,27 @@ void main() {
       reason: 'unreadable text used to reset the altitude to sea level',
     );
   });
+
+  testWidgets('a below-sea-level altitude keeps its sign (#1900 review)', (
+    tester,
+  ) async {
+    Intl.defaultLocale = 'en_US';
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        overrides: [
+          settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
+        ],
+        child: const EnvironmentInputs(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextFormField).first, '-430');
+    await tester.pump();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(EnvironmentInputs)),
+    );
+    expect(container.read(calcAltitudeProvider), -430);
+  });
 }

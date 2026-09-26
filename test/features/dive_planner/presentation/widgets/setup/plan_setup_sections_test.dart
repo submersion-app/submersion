@@ -497,6 +497,23 @@ void main() {
     expect(container.read(divePlanNotifierProvider).altitude, 1000);
   });
 
+  testWidgets('a below-sea-level plan altitude keeps its sign (#1900 review)', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(_harness(const PlanEnvironmentSection()));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField).first, '-430');
+    await tester.pumpAndSettle();
+
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanEnvironmentSection)),
+    );
+    expect(container.read(divePlanNotifierProvider).altitude, -430);
+  });
+
   testWidgets('environment section water type feeds the plan and deco', (
     tester,
   ) async {
