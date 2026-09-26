@@ -12051,9 +12051,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Az O2 és a He értéke 0 és 100 közé essen, összegük legfeljebb 100 lehet';
 
   @override
-  String get passport_logFill_invalidNumber => 'Adjon meg egy számot';
-
-  @override
   String get passport_logFill_saveFailed =>
       'A töltés mentése nem sikerült. Próbálja újra.';
 
@@ -12915,10 +12912,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'Vásárlási ár';
-
-  @override
-  String get equipment_edit_purchasePriceValidation =>
-      'Adjon meg érvényes összeget';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -14320,11 +14313,6 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Ár 100 $unit egységenként';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'Adjon meg egy érvényes számot (tizedesjel: \"$separator\")';
   }
 
   @override
@@ -30089,9 +30077,6 @@ class AppLocalizationsHu extends AppLocalizations {
       'Magas O2-tartalmú keverék e felett (% O2)';
 
   @override
-  String get equipmentConditionSettings_invalid => 'Adjon meg egy számot';
-
-  @override
   String get equipmentConditionSettings_saveFailed =>
       'A mentés nem sikerült. Próbálja újra.';
 
@@ -41984,9 +41969,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
-
-  @override
-  String get numberInput_invalidValue => 'Adjon meg érvényes számot';
 
   @override
   String numberInput_invalidNumber(String separator) {

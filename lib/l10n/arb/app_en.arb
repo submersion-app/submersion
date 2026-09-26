@@ -6948,7 +6948,6 @@
   "passport_logFill_analyzer": "Analyzer",
   "passport_logFill_notes": "Notes",
   "passport_logFill_invalidMix": "O2 and He must each be 0 to 100 and total 100 or less",
-  "passport_logFill_invalidNumber": "Enter a number",
   "passport_logFill_saveFailed": "Could not save the fill. Try again.",
   "equipment_bulkTags_confirmAdding": "{count, plural, =1{Adding to 1 equipment item} other{Adding to all {count} equipment items}}",
   "@equipment_bulkTags_confirmAdding": {
@@ -7564,7 +7563,6 @@
   "equipment_edit_purchaseDateLabel": "Purchase Date",
   "equipment_edit_purchaseInfoTitle": "Purchase Information",
   "equipment_edit_purchasePriceLabel": "Purchase Price",
-  "equipment_edit_purchasePriceValidation": "Enter a valid amount",
   "equipment_edit_remindMeBeforeServiceDue": "Remind me before service is due:",
   "equipment_edit_reminderDays": "{days} days",
   "equipment_edit_saveButton_edit": "Save Changes",
@@ -8414,14 +8412,6 @@
   "gasCalculators_blender_cylinderVolume": "Cylinder water capacity",
   "gasCalculators_blender_cylinderPresets": "Presets",
   "gasCalculators_blender_unitPrice": "Price per 100 {unit}",
-  "gasCalculators_blender_invalidNumber": "Enter a valid number (decimal separator: \"{separator}\")",
-  "@gasCalculators_blender_invalidNumber": {
-    "placeholders": {
-      "separator": {
-        "type": "String"
-      }
-    }
-  },
   "gasCalculators_blender_currency": "Currency",
   "gasCalculators_blender_currencyFollowsUnits": "Follows Settings > Units > Default currency",
   "gasCalculators_blender_manageCylinderSizes": "Manage cylinder sizes",
@@ -19540,7 +19530,6 @@
   "equipmentConditionSettings_coldLabel": "Cold water below",
   "equipmentConditionSettings_deepLabel": "Deep dive at or beyond",
   "equipmentConditionSettings_o2Label": "High-O2 mix above (% O2)",
-  "equipmentConditionSettings_invalid": "Enter a number",
   "equipmentConditionSettings_saveFailed": "Could not save. Try again.",
   "equipmentConditionSettings_sensorHeader": "Sensor summaries",
   "equipmentConditionSettings_sensorHelp": "Each dive's profile is summarised once for cell output, transmitter dropouts and scrubber use. New and edited dives are summarised on their own.",
@@ -25934,7 +25923,6 @@
   "plannerCanvas_compare_planned": "Plan",
   "plannerCanvas_compare_actual": "Actual",
   "plannerCanvas_compare_showOnChart": "Show on chart",
-  "numberInput_invalidValue": "Enter a valid number",
   "numberInput_invalidNumber": "Enter a valid number (decimal separator: \"{separator}\")",
   "@numberInput_invalidNumber": {
     "placeholders": {

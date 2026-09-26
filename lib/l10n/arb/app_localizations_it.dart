@@ -12076,9 +12076,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'O2 ed He devono essere tra 0 e 100 e sommare al massimo 100';
 
   @override
-  String get passport_logFill_invalidNumber => 'Inserisci un numero';
-
-  @override
   String get passport_logFill_saveFailed =>
       'Impossibile salvare la ricarica. Riprova.';
 
@@ -12953,10 +12950,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'Prezzo di acquisto';
-
-  @override
-  String get equipment_edit_purchasePriceValidation =>
-      'Inserisci un importo valido';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -14368,11 +14361,6 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Prezzo per 100 $unit';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'Inserisci un numero valido (separatore decimale: \"$separator\")';
   }
 
   @override
@@ -30206,9 +30194,6 @@ class AppLocalizationsIt extends AppLocalizations {
       'Miscela ad alto O2 oltre (% O2)';
 
   @override
-  String get equipmentConditionSettings_invalid => 'Inserisci un numero';
-
-  @override
   String get equipmentConditionSettings_saveFailed =>
       'Salvataggio non riuscito. Riprova.';
 
@@ -42149,9 +42134,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
-
-  @override
-  String get numberInput_invalidValue => 'Inserisci un numero valido';
 
   @override
   String numberInput_invalidNumber(String separator) {

@@ -20098,12 +20098,6 @@ abstract class AppLocalizations {
   /// **'O2 and He must each be 0 to 100 and total 100 or less'**
   String get passport_logFill_invalidMix;
 
-  /// No description provided for @passport_logFill_invalidNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter a number'**
-  String get passport_logFill_invalidNumber;
-
   /// No description provided for @passport_logFill_saveFailed.
   ///
   /// In en, this message translates to:
@@ -21355,12 +21349,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Purchase Price'**
   String get equipment_edit_purchasePriceLabel;
-
-  /// No description provided for @equipment_edit_purchasePriceValidation.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter a valid amount'**
-  String get equipment_edit_purchasePriceValidation;
 
   /// No description provided for @equipment_edit_remindMeBeforeServiceDue.
   ///
@@ -23667,12 +23655,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Price per 100 {unit}'**
   String gasCalculators_blender_unitPrice(String unit);
-
-  /// No description provided for @gasCalculators_blender_invalidNumber.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter a valid number (decimal separator: \"{separator}\")'**
-  String gasCalculators_blender_invalidNumber(String separator);
 
   /// No description provided for @gasCalculators_blender_currency.
   ///
@@ -48413,12 +48395,6 @@ abstract class AppLocalizations {
   /// **'High-O2 mix above (% O2)'**
   String get equipmentConditionSettings_o2Label;
 
-  /// No description provided for @equipmentConditionSettings_invalid.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter a number'**
-  String get equipmentConditionSettings_invalid;
-
   /// No description provided for @equipmentConditionSettings_saveFailed.
   ///
   /// In en, this message translates to:
@@ -67556,12 +67532,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show on chart'**
   String get plannerCanvas_compare_showOnChart;
-
-  /// No description provided for @numberInput_invalidValue.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter a valid number'**
-  String get numberInput_invalidValue;
 
   /// No description provided for @numberInput_invalidNumber.
   ///

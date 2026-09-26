@@ -11895,9 +11895,6 @@ class AppLocalizationsEn extends AppLocalizations {
       'O2 and He must each be 0 to 100 and total 100 or less';
 
   @override
-  String get passport_logFill_invalidNumber => 'Enter a number';
-
-  @override
   String get passport_logFill_saveFailed =>
       'Could not save the fill. Try again.';
 
@@ -12758,9 +12755,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => 'Purchase Price';
-
-  @override
-  String get equipment_edit_purchasePriceValidation => 'Enter a valid amount';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue =>
@@ -14140,11 +14134,6 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return 'Price per 100 $unit';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return 'Enter a valid number (decimal separator: \"$separator\")';
   }
 
   @override
@@ -29732,9 +29721,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get equipmentConditionSettings_o2Label => 'High-O2 mix above (% O2)';
 
   @override
-  String get equipmentConditionSettings_invalid => 'Enter a number';
-
-  @override
   String get equipmentConditionSettings_saveFailed =>
       'Could not save. Try again.';
 
@@ -41527,9 +41513,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
-
-  @override
-  String get numberInput_invalidValue => 'Enter a valid number';
 
   @override
   String numberInput_invalidNumber(String separator) {
