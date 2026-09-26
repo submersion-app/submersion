@@ -911,14 +911,32 @@ static int ble_ioctl(void* userdata, unsigned int request,
                 data, size, bytes, n_bytes);
             if (status == LIBDC_STATUS_SUCCESS &&
                 g_strcmp0(path, stream->notify_path) == 0) {
+                // BlueZ may deliver the echo before or after the method
+                // reply, on another thread. If it is already queued, drop
+                // it; otherwise arm a one-shot filter for when it arrives.
                 g_mutex_lock(&stream->read_mutex);
+                gboolean dropped = FALSE;
+                for (GList* link = g_queue_peek_tail_link(stream->read_chunks);
+                     link != NULL; link = link->prev) {
+                    GByteArray* chunk = (GByteArray*)link->data;
+                    if (chunk->len == n_bytes &&
+                        memcmp(chunk->data, bytes, n_bytes) == 0) {
+                        g_queue_delete_link(stream->read_chunks, link);
+                        g_byte_array_unref(chunk);
+                        dropped = TRUE;
+                        break;
+                    }
+                }
                 if (stream->suppress_notify_echo) {
                     g_byte_array_unref(stream->suppress_notify_echo);
+                    stream->suppress_notify_echo = NULL;
                 }
-                stream->suppress_notify_echo =
-                    g_byte_array_sized_new((guint)n_bytes);
-                g_byte_array_append(stream->suppress_notify_echo, bytes,
-                                    (guint)n_bytes);
+                if (!dropped) {
+                    stream->suppress_notify_echo =
+                        g_byte_array_sized_new((guint)n_bytes);
+                    g_byte_array_append(stream->suppress_notify_echo, bytes,
+                                        (guint)n_bytes);
+                }
                 g_mutex_unlock(&stream->read_mutex);
             }
             g_variant_unref(bytes_var);
