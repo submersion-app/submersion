@@ -68546,6 +68546,12 @@ abstract class AppLocalizations {
   /// **'Enter 0 or more'**
   String get numberInput_notNegative;
 
+  /// No description provided for @numberInput_percentRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 0 to 100'**
+  String get numberInput_percentRange;
+
   /// No description provided for @diveCenters_rental_sectionTitle.
   ///
   /// In en, this message translates to:

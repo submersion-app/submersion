@@ -12742,6 +12742,7 @@
   "numberInput_invalidWholeNumber": "הזן מספר שלם",
   "numberInput_required": "שדה חובה",
   "numberInput_notNegative": "הזן 0 או יותר",
+  "numberInput_percentRange": "הזן ערך בין 0 ל-100",
   "diveCenters_rental_sectionTitle": "ציוד מושכר",
   "diveCenters_rental_lastTimeAt": "בפעם הקודמת ב-{center}",
   "diveCenters_rental_lastDiveOn": "הצלילה האחרונה כאן: {date}",

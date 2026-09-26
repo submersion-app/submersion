@@ -508,10 +508,8 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
 
-      expect(
-        find.text('O2 and He must each be 0 to 100 and total 100 or less'),
-        findsOneWidget,
-      );
+      // A single field's range, not the combined O2 + He message.
+      expect(find.text('Enter 0 to 100'), findsOneWidget);
       final container = ProviderScope.containerOf(
         tester.element(find.byType(PlanTankList)),
       );

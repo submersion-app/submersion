@@ -42208,6 +42208,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get numberInput_notNegative => 'Enter 0 or more';
 
   @override
+  String get numberInput_percentRange => 'Enter 0 to 100';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'Rental gear';
 
   @override

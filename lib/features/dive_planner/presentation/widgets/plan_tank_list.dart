@@ -408,8 +408,10 @@ class _TankEditDialogState extends State<_TankEditDialog> {
       numberValidator(
         context,
         check: (percent) {
+          // One field out of range gets a range message; the combined
+          // O2 + He message below is only for the sum.
           if (percent < 0 || percent > 100) {
-            return context.l10n.passport_logFill_invalidMix;
+            return context.l10n.numberInput_percentRange;
           }
           if (otherPercent != null && percent + otherPercent > 100) {
             return context.l10n.gasCalculators_blender_templateInvalid;

@@ -40340,6 +40340,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get numberInput_notNegative => '请输入 0 或更大的数';
 
   @override
+  String get numberInput_percentRange => '请输入 0 到 100 之间的数';
+
+  @override
   String get diveCenters_rental_sectionTitle => '租赁装备';
 
   @override

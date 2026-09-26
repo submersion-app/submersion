@@ -42953,6 +42953,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get numberInput_notNegative => 'Saisissez 0 ou plus';
 
   @override
+  String get numberInput_percentRange => 'Saisissez une valeur de 0 à 100';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'Matériel de location';
 
   @override

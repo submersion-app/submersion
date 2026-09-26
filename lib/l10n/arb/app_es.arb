@@ -12742,6 +12742,7 @@
   "numberInput_invalidWholeNumber": "Introduce un número entero",
   "numberInput_required": "Obligatorio",
   "numberInput_notNegative": "Introduce 0 o más",
+  "numberInput_percentRange": "Introduce un valor de 0 a 100",
   "diveCenters_rental_sectionTitle": "Equipo de alquiler",
   "diveCenters_rental_lastTimeAt": "La última vez en {center}",
   "diveCenters_rental_lastDiveOn": "Última inmersión aquí: {date}",

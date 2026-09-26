@@ -12842,6 +12842,7 @@
   "numberInput_invalidWholeNumber": "Geben Sie eine ganze Zahl ein",
   "numberInput_required": "Erforderlich",
   "numberInput_notNegative": "Geben Sie 0 oder mehr ein",
+  "numberInput_percentRange": "Geben Sie 0 bis 100 ein",
   "diveCenters_rental_sectionTitle": "Leihausrüstung",
   "diveCenters_rental_lastTimeAt": "Letztes Mal bei {center}",
   "diveCenters_rental_lastDiveOn": "Letzter Tauchgang hier: {date}",

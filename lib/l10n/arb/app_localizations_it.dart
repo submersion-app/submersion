@@ -42836,6 +42836,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get numberInput_notNegative => 'Inserisci 0 o più';
 
   @override
+  String get numberInput_percentRange => 'Inserisci un valore da 0 a 100';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'Attrezzatura a noleggio';
 
   @override

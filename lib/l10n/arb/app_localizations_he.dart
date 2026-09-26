@@ -41983,6 +41983,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get numberInput_notNegative => 'הזן 0 או יותר';
 
   @override
+  String get numberInput_percentRange => 'הזן ערך בין 0 ל-100';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'ציוד מושכר';
 
   @override
