@@ -91,12 +91,17 @@ The alias maps `'statistics'` to `'insights'` inside `normalizeNavOrder`,
 before the recognised-id check. The stored value is never rewritten on read;
 the next save simply writes `'insights'`.
 
-Known and accepted: once an updated device saves and syncs `'insights'`, a
-device still on an older build does not recognise it and shows Statistics in
-its default position until it updates.
+Older builds on synced devices are covered by writing both ids. Every save
+goes through `withLegacyNavIds`, which writes each renamed id's old id right
+after it (`['equipment', 'insights', 'statistics', 'buddies']`). A build from
+before the rename drops the unknown `'insights'` and finds `'statistics'` in
+the same slot; this build reads `'statistics'` as `'insights'` and drops it as
+a duplicate. The extra write goes away with its `kRenamedNavIds` entry once no
+supported build predates the rename. (The first draft of this spec accepted
+the older-build gap; review of the PR changed that decision.)
 
-The alias is the only place in `lib/` where the literal `'statistics'` nav id
-survives.
+`lib/shared/widgets/nav/nav_id_aliases.dart` is the only place in `lib/` where
+the literal `'statistics'` nav id survives.
 
 ## Rename table
 
@@ -311,7 +316,7 @@ after the rename it matches the section, which suits sub-project 2.
 - **ARB conflicts.** The key rename touches about 4,000 ARB lines. Keeping it a
   scripted commit means a conflict is resolved by rerunning the script on the
   new base, not by hand-merging.
-- **Mixed-version sync.** Covered under "The nav id alias"; accepted.
+- **Mixed-version sync.** Covered under "The nav id alias": both ids are written, so an older build keeps the slot too.
 - **Translation quality.** The section name is new in ten locales; native
   review is requested on the PR.
 

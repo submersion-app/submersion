@@ -7,6 +7,7 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/features/settings/presentation/widgets/nav_order_editor.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
+import 'package:submersion/shared/widgets/nav/nav_id_aliases.dart';
 
 import '../../../../support/fake_app_settings_repository.dart';
 
@@ -288,7 +289,7 @@ void main() {
       await tester.tap(find.widgetWithText(TextButton, 'Reset to defaults'));
       await tester.pumpAndSettle();
 
-      expect(repo.navPrimaryIds, movableNavIds);
+      expect(repo.navPrimaryIds, withLegacyNavIds(movableNavIds));
     });
 
     testWidgets('move-up on first overflow row promotes it to primary', (
@@ -348,7 +349,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repo.navPrimaryIds, isNotNull);
-      expect(repo.navPrimaryIds!.length, movableNavIds.length);
+      expect(
+        repo.navPrimaryIds!.length,
+        withLegacyNavIds(movableNavIds).length,
+      );
       // 'gps-log' sits second-to-last canonically; moving it up must move it
       // ahead of 'transfer' while both stay in the overflow tail.
       final order = repo.navPrimaryIds!;
@@ -364,7 +368,7 @@ void main() {
 
       expect(repo.navRailIds, isNotNull);
       expect(repo.navRailIds!.take(2).toList(), ['sites', 'dives']);
-      expect(repo.navRailIds!.length, movableNavIds.length);
+      expect(repo.navRailIds!.length, withLegacyNavIds(movableNavIds).length);
       // The phone order must not have been touched.
       expect(repo.navPrimaryIds, isNull);
     });

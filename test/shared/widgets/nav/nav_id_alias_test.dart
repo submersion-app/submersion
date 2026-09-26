@@ -125,8 +125,70 @@ void main() {
           .read(navPhoneOrderNotifierProvider.notifier)
           .setOrder(order);
 
-      expect(repo.navPrimaryIds, contains('insights'));
-      expect(repo.navPrimaryIds, isNot(contains('statistics')));
+      // The user's slot is kept, and the old id follows the new one so an
+      // older synced build still finds its destination there.
+      expect(repo.navPrimaryIds!.take(4).toList(), [
+        'equipment',
+        'insights',
+        'statistics',
+        'buddies',
+      ]);
+    });
+
+    test('this build reads its own saved order back unchanged', () async {
+      final repo = FakeAppSettingsRepository();
+      final container = _container(repo);
+      addTearDown(container.dispose);
+
+      final order = await _loaded(container, navPhoneOrderNotifierProvider);
+      await container
+          .read(navPhoneOrderNotifierProvider.notifier)
+          .setOrder(order);
+
+      expect(
+        normalizeNavOrder(
+          stored: repo.navPrimaryIds!,
+          movableIds: movableNavIds,
+        ),
+        order,
+      );
+    });
+  });
+
+  group('saving for older builds', () {
+    test('the old id is written right after its replacement', () {
+      expect(withLegacyNavIds(const ['equipment', 'insights', 'buddies']), [
+        'equipment',
+        'insights',
+        'statistics',
+        'buddies',
+      ]);
+    });
+
+    test('an order without a renamed id is written as it is', () {
+      expect(withLegacyNavIds(const ['equipment', 'buddies']), [
+        'equipment',
+        'buddies',
+      ]);
+    });
+
+    test('an older build finds the old id in the saved slot', () {
+      // A build from before the rename: it ships 'statistics' and has never
+      // heard of 'insights', so it drops that id and keeps the one after it.
+      const olderBuild = ['equipment', 'buddies', 'statistics', 'sites'];
+      final saved = withLegacyNavIds(const [
+        'sites',
+        'insights',
+        'equipment',
+        'buddies',
+      ]);
+
+      expect(normalizeNavOrder(stored: saved, movableIds: olderBuild), [
+        'sites',
+        'statistics',
+        'equipment',
+        'buddies',
+      ]);
     });
   });
 }

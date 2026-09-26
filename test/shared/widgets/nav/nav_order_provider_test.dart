@@ -3,6 +3,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
+import 'package:submersion/shared/widgets/nav/nav_id_aliases.dart';
 import 'package:submersion/shared/widgets/nav/nav_order_provider.dart';
 
 import '../../../support/fake_app_settings_repository.dart';
@@ -84,7 +85,7 @@ void main() {
           .read(navPhoneOrderNotifierProvider.notifier)
           .setOrder(reordered);
 
-      expect(repo.navPrimaryIds, reordered);
+      expect(repo.navPrimaryIds, withLegacyNavIds(reordered));
       expect(container.read(navPhoneOrderNotifierProvider), reordered);
     });
 
@@ -100,7 +101,10 @@ void main() {
       ]);
 
       expect(repo.navPrimaryIds!.first, 'equipment');
-      expect(repo.navPrimaryIds!.toSet(), movableNavIds.toSet());
+      expect(
+        repo.navPrimaryIds!.toSet(),
+        withLegacyNavIds(movableNavIds).toSet(),
+      );
     });
 
     test('resetToDefaults writes the canonical order', () async {
@@ -114,7 +118,7 @@ void main() {
           .read(navPhoneOrderNotifierProvider.notifier)
           .resetToDefaults();
 
-      expect(repo.navPrimaryIds, movableNavIds);
+      expect(repo.navPrimaryIds, withLegacyNavIds(movableNavIds));
       expect(container.read(navPhoneOrderNotifierProvider), movableNavIds);
     });
   });
