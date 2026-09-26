@@ -11,6 +11,9 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 
+/// Cubic feet in one litre, the factor `VolumeUnit` converts with.
+const _cuftPerLiter = 0.0353147;
+
 /// The SCR panel's two gas-flow rates (CMF injection rate and assumed VO2)
 /// follow the diver's volume unit on screen and are stored in L/min (#1935).
 void main() {
@@ -60,13 +63,13 @@ void main() {
 
       await tester.enterText(_fieldWithLabel('Injection Rate'), '0.3');
       await tester.pump();
-      expect(captured.injectionRate, closeTo(0.3 / 0.0353147, 0.0001));
+      expect(captured.injectionRate, closeTo(0.3 / _cuftPerLiter, 0.0001));
 
       await tester.enterText(_fieldWithLabel('Assumed VO₂'), '0.05');
       await tester.pump();
-      expect(captured.assumedVo2, closeTo(0.05 / 0.0353147, 0.0001));
+      expect(captured.assumedVo2, closeTo(0.05 / _cuftPerLiter, 0.0001));
       // The untouched injection rate is still reported from the typed value.
-      expect(captured.injectionRate, closeTo(0.3 / 0.0353147, 0.0001));
+      expect(captured.injectionRate, closeTo(0.3 / _cuftPerLiter, 0.0001));
     });
 
     testWidgets('an untouched rate keeps its stored L/min value exactly', (
@@ -130,7 +133,7 @@ void main() {
 
         await tester.enterText(_fieldWithLabel('Assumed VO₂'), '0.05');
         await tester.pump();
-        expect(captured.assumedVo2, closeTo(0.05 / 0.0353147, 0.0001));
+        expect(captured.assumedVo2, closeTo(0.05 / _cuftPerLiter, 0.0001));
       });
     }
 
@@ -162,7 +165,7 @@ void main() {
 
       await tester.enterText(_fieldWithLabel('Injection Rate'), '0.3');
       await tester.pump();
-      expect(host.injectionRate, closeTo(0.3 / 0.0353147, 0.0001));
+      expect(host.injectionRate, closeTo(0.3 / _cuftPerLiter, 0.0001));
 
       await tester.enterText(_fieldWithLabel('Injection Rate'), '');
       await tester.pump();
@@ -201,7 +204,7 @@ void main() {
 
       await tester.enterText(_fieldWithLabel('Injection Rate'), '0.3');
       await tester.pump();
-      expect(host.injectionRate, closeTo(0.3 / 0.0353147, 0.0001));
+      expect(host.injectionRate, closeTo(0.3 / _cuftPerLiter, 0.0001));
     });
 
     testWidgets('a unit change while open re-renders the rates', (
@@ -218,6 +221,11 @@ void main() {
       expect(find.text('cuft/min'), findsNWidgets(2));
       expect(_textOf(tester, 'Injection Rate'), '0.28');
       expect(_textOf(tester, 'Assumed VO₂'), '0.046');
+      // The cursor lands after the new text rather than being dropped.
+      expect(
+        _textFieldOf(tester, 'Injection Rate').controller!.selection,
+        const TextSelection.collapsed(offset: 4),
+      );
 
       // Re-rendering must not drift the stored values.
       await tester.enterText(_fieldWithLabel('Type'), 'Sofnolime');
@@ -228,7 +236,7 @@ void main() {
       // And new entries are read in the new unit.
       await tester.enterText(_fieldWithLabel('Injection Rate'), '0.3');
       await tester.pump();
-      expect(host.injectionRate, closeTo(0.3 / 0.0353147, 0.0001));
+      expect(host.injectionRate, closeTo(0.3 / _cuftPerLiter, 0.0001));
     });
   });
 
@@ -262,7 +270,7 @@ void main() {
       tester,
     ) async {
       // 0.3 cuft/min typed by an imperial diver is stored as 8.49504... L/min.
-      const stored = 0.3 / 0.0353147;
+      const stored = 0.3 / _cuftPerLiter;
       final captured = _Captured();
       await _pumpPanel(
         tester,
@@ -293,7 +301,7 @@ void main() {
       await tester.pump();
 
       expect(_textOf(tester, 'Injection Rate'), '8.495');
-      expect(host.injectionRate, closeTo(0.3 / 0.0353147, 0.0001));
+      expect(host.injectionRate, closeTo(0.3 / _cuftPerLiter, 0.0001));
     });
 
     testWidgets('hints keep their metric values', (tester) async {

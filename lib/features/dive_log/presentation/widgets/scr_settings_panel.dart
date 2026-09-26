@@ -301,7 +301,12 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
       return (text: controller.text, litersPerMin: null);
     }
     final next = seed(litersPerMin);
-    controller.text = next.text;
+    // Setting the whole value keeps a focused field's cursor, at the end of
+    // the new text; assigning `text` alone would leave no valid selection.
+    controller.value = TextEditingValue(
+      text: next.text,
+      selection: TextSelection.collapsed(offset: next.text.length),
+    );
     return next;
   }
 
