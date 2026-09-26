@@ -15,6 +15,7 @@ class FilterTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final active = ref.watch(connectionsFilterProvider).hasActiveFilters;
     final chips = activeDiveFilterChips(
       context,
       ref,
@@ -25,12 +26,14 @@ class FilterTab extends ConsumerWidget {
       children: [
         const YearRangeSlider(),
         const SizedBox(height: 8),
-        if (chips.isEmpty)
+        // Some axes set in All filters have no chip; the filter itself, not
+        // the chip count, says whether anything is active.
+        if (!active)
           Text(
             l10n.connections_filter_none,
             style: Theme.of(context).textTheme.bodyMedium,
           )
-        else
+        else if (chips.isNotEmpty)
           Wrap(runSpacing: 4, children: chips),
         const SizedBox(height: 8),
         Wrap(
@@ -48,7 +51,7 @@ class FilterTab extends ConsumerWidget {
                 ),
               ),
             ),
-            if (chips.isNotEmpty)
+            if (active)
               TextButton(
                 onPressed: () =>
                     ref.read(connectionsFilterProvider.notifier).state =

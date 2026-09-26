@@ -6,7 +6,6 @@ import 'package:submersion/features/connections/presentation/panel/details_tab.d
 import 'package:submersion/features/connections/presentation/panel/filter_tab.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_selection_provider.dart';
-import 'package:submersion/features/dive_log/presentation/widgets/active_filter_chips.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The View, Filter and Details tabs: the fixed right panel on wide
@@ -66,14 +65,9 @@ class _ConnectionsPanelState extends ConsumerState<ConnectionsPanel>
   @override
   Widget build(BuildContext context) {
     ref.listen<GraphSelection?>(connectionsSelectionProvider, _onSelection);
-    ref.watch(connectionsFilterProvider);
     final l10n = context.l10n;
     final theme = Theme.of(context);
-    final filterCount = activeDiveFilterChips(
-      context,
-      ref,
-      connectionsFilterProvider,
-    ).length;
+    final filterCount = ref.watch(connectionsFilterProvider).activeAxisCount;
     final content = switch (_tabs.index) {
       ConnectionsPanel.filterIndex => const FilterTab(),
       ConnectionsPanel.detailsIndex => DetailsTab(graph: widget.graph),

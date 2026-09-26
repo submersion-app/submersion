@@ -127,4 +127,21 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Tap a node or a line to see details.'), findsOneWidget);
   });
+
+  testWidgets('an axis without a chip still counts as an active filter', (
+    tester,
+  ) async {
+    final c = await _pump(tester);
+    await tester.tap(find.byKey(const ValueKey('connections-tab-filter')));
+    await tester.pumpAndSettle();
+    c.read(connectionsFilterProvider.notifier).state = const DiveFilterState(
+      minRating: 4,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Filter (1)'), findsOneWidget);
+    expect(find.text('No filters are active.'), findsNothing);
+    await tester.tap(find.text('Clear'));
+    await tester.pumpAndSettle();
+    expect(c.read(connectionsFilterProvider).hasActiveFilters, isFalse);
+  });
 }

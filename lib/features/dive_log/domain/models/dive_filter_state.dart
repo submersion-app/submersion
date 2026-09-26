@@ -185,6 +185,35 @@ class DiveFilterState {
       equipmentAttrConditions.isNotEmpty ||
       query != null;
 
+  /// How many independent axes are active; a range (dates, depth, O2,
+  /// bottom time) counts once. Zero exactly when [hasActiveFilters] is false,
+  /// so a summary built from it never contradicts the filter.
+  int get activeAxisCount => [
+    startDate != null || endDate != null,
+    diveTypeId != null,
+    siteId != null,
+    tripId != null,
+    diveCenterId != null,
+    minDepth != null || maxDepth != null,
+    favoritesOnly == true,
+    excludedFromStatsOnly == true,
+    decoOnly != null,
+    noBuddyOnly == true,
+    tagIds.isNotEmpty,
+    weekdays.isNotEmpty,
+    equipmentIds.isNotEmpty,
+    buddyNameFilter != null && buddyNameFilter!.isNotEmpty,
+    buddyId != null,
+    diveIds.isNotEmpty,
+    minO2Percent != null || maxO2Percent != null,
+    minRating != null,
+    minBottomTimeMinutes != null || maxBottomTimeMinutes != null,
+    computerId != null,
+    customFieldKey != null && customFieldKey!.isNotEmpty,
+    equipmentAttrConditions.isNotEmpty,
+    query != null,
+  ].where((active) => active).length;
+
   /// Value equality over every axis, so an unchanged filter set again is
   /// no change to a listener, and the id-set family keyed on the filter
   /// reuses its instance for an equal filter.
