@@ -56,7 +56,8 @@ class MapCameraAnimator {
 
   /// Jumps (no animation) to show every point: a single point at
   /// [singlePointZoom], otherwise the padded bounds. Empty input and input
-  /// with no in-range point are no-ops.
+  /// with no in-range point are no-ops. Any in-flight animation is cancelled
+  /// first, so it cannot keep moving the camera and undo the fit.
   void fitAll(
     List<LatLng> points, {
     double singlePointZoom = 12.0,
@@ -64,6 +65,7 @@ class MapCameraAnimator {
   }) {
     final usable = points.where(isUsableMapPoint).toList();
     if (usable.isEmpty) return;
+    dispose();
     if (usable.length == 1) {
       controller.move(usable.single, singlePointZoom);
       return;

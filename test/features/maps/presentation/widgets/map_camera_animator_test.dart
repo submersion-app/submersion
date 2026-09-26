@@ -153,4 +153,28 @@ void main() {
     expect(tester.takeException(), isNull);
     expect(controller.camera.zoom, closeTo(2, 1e-6));
   });
+
+  testWidgets(
+    'fitAll cancels an in-flight move so it cannot overwrite the fit',
+    (tester) async {
+      final controller = await _pumpMap(tester);
+      final animator = MapCameraAnimator(
+        controller: controller,
+        vsync: const TestVSync(),
+      );
+      addTearDown(animator.dispose);
+
+      final done = animator.animateToBounds(
+        LatLngBounds(const LatLng(10, 10), const LatLng(10.01, 10.01)),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      animator.fitAll([const LatLng(-8, 115)]);
+      await tester.pumpAndSettle();
+      await done.timeout(const Duration(seconds: 1));
+
+      expect(controller.camera.center.latitude, closeTo(-8, 1e-6));
+      expect(controller.camera.zoom, closeTo(12, 1e-6));
+    },
+  );
 }

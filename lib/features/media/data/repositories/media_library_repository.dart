@@ -413,13 +413,20 @@ class MediaLibraryRepository {
     return row.read(count) ?? 0;
   }
 
-  /// Emits whenever anything that can move a map point changes: the media
-  /// row itself, a dive's entry fix, or a site's coordinates. Built and
-  /// debounced exactly like [watchMediaChanges]; see its notes on why a
-  /// `tableUpdates` stream and not a watched query.
+  /// Emits whenever anything that can move a map point, or change which
+  /// points are in scope, changes: the media row itself, a dive's entry fix,
+  /// a site's coordinates, or a species tag (the species filter is an EXISTS
+  /// over media_species). Built and debounced exactly like
+  /// [watchMediaChanges]; see its notes on why a `tableUpdates` stream and
+  /// not a watched query.
   Stream<void> watchMapChanges() => _db
       .tableUpdates(
-        TableUpdateQuery.onAllTables([_db.media, _db.dives, _db.diveSites]),
+        TableUpdateQuery.onAllTables([
+          _db.media,
+          _db.dives,
+          _db.diveSites,
+          _db.mediaSpecies,
+        ]),
       )
       .debounce(MediaRepository.changeTickDebounce);
 

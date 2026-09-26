@@ -831,6 +831,53 @@ void main() {
       },
     );
 
+    // The species filter is an EXISTS over media_species, so tagging or
+    // untagging a photo changes which points the map shows.
+    test(
+      'MediaLibraryRepository.watchMapChanges fires on a media_species write',
+      () async {
+        await seedParents();
+        await db
+            .into(db.media)
+            .insert(
+              MediaCompanion.insert(
+                id: 'm-tag',
+                filePath: 'm-tag.jpg',
+                fileType: const Value('photo'),
+                sourceType: const Value('localFile'),
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+        await db
+            .into(db.species)
+            .insert(
+              SpeciesCompanion.insert(
+                id: 'sp-1',
+                commonName: 'Manta',
+                category: 'fish',
+              ),
+            );
+
+        expect(
+          await fires(
+            MediaLibraryRepository().watchMapChanges(),
+            () => db
+                .into(db.mediaSpecies)
+                .insert(
+                  MediaSpeciesCompanion.insert(
+                    id: 'ms-1',
+                    mediaId: 'm-tag',
+                    speciesId: 'sp-1',
+                    createdAt: now,
+                  ),
+                ),
+          ),
+          isTrue,
+        );
+      },
+    );
+
     test('watchStoresChanges fires', () async {
       expect(
         await fires(

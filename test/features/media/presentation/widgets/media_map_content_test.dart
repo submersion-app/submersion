@@ -772,4 +772,25 @@ void main() {
     expect(tile.item.id, 'a');
     await _flushMapTimers(tester);
   });
+
+  testWidgets('a site rename updates the title of an open strip', (
+    tester,
+  ) async {
+    final notifier = await openStrip(tester);
+    expect(find.text('Blue Hole'), findsOneWidget);
+
+    notifier.seed(
+      MediaMapState(
+        points: [
+          _point('a', label: 'Blue Hole North'),
+          _point('b', label: 'Blue Hole North'),
+        ],
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(MediaPlaceStrip), findsOneWidget);
+    expect(find.text('Blue Hole North'), findsOneWidget);
+    await _flushMapTimers(tester);
+  });
 }

@@ -41,10 +41,10 @@ class MediaMapContent extends ConsumerStatefulWidget {
 }
 
 /// A stack of co-located points the strip is showing, by id, so the strip
-/// always renders the current item for each.
+/// always renders the current item for each, and its title follows the
+/// current place label (a site rename shows without reopening the strip).
 class _StripSelection {
-  const _StripSelection({required this.title, required this.ids});
-  final String title;
+  const _StripSelection({required this.ids});
   final List<String> ids;
 }
 
@@ -196,10 +196,7 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
     final noProgress = target.zoom <= camera.zoom + 0.01;
     if (coLocated || noProgress) {
       setState(() {
-        _strip = _StripSelection(
-          title: _titleFor(cluster),
-          ids: [for (final p in cluster) p.item.id],
-        );
+        _strip = _StripSelection(ids: [for (final p in cluster) p.item.id]);
       });
     } else {
       _animator.animateToBounds(node.bounds, maxZoom: _maxZoom);
@@ -444,7 +441,7 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
             ),
           ),
 
-        if (strip != null)
+        if (strip != null && stripPoints.isNotEmpty)
           Positioned(
             left: 16,
             right: 16,
@@ -455,7 +452,7 @@ class _MediaMapContentState extends ConsumerState<MediaMapContent>
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 640),
                   child: MediaPlaceStrip(
-                    title: strip.title,
+                    title: _titleFor(stripPoints),
                     points: stripPoints,
                     onClose: _closeStrip,
                     onItemTap: (point) => widget.openViewer(
