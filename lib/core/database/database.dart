@@ -3328,6 +3328,48 @@ class Transmitters extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Cylinder fill history (issue #2334, v228). One row per fill of one
+/// physical cylinder, keyed by the cylinder's passport id (an equipment
+/// attribute, not a foreign key) so the history survives a deleted and
+/// re-created item and can belong to a cylinder the diver does not own.
+/// [equipmentId] is a convenience link resolved from the passport id at write
+/// time and re-resolved by "Link an existing tag". Synced entity with its own
+/// hlc, registered like [Transmitters].
+@DataClassName('CylinderFillRow')
+class CylinderFills extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId => text().nullable().references(Divers, #id)();
+  TextColumn get passportId => text()();
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  IntColumn get filledAt => integer()();
+  RealColumn get o2Percent => real()();
+  RealColumn get hePercent => real().withDefault(const Constant(0.0))();
+  RealColumn get pressureBar => real().nullable()();
+  RealColumn get temperatureC => real().nullable()();
+  TextColumn get analyzer => text().nullable()();
+  TextColumn get stationName => text().nullable()();
+  // base64url Ed25519 public key from a signed record (PR 3); null for a
+  // manual fill.
+  TextColumn get stationKey => text().nullable()();
+  // The JWS token verbatim (PR 3); the truth for every analysis column.
+  TextColumn get signedRecord => text().nullable()();
+  // FillSource.name: manual, qr, nfc, file, link, issued.
+  TextColumn get source => text().withDefault(const Constant('manual'))();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Dive computers (devices that record dive data)
 class DiveComputers extends Table {
   TextColumn get id => text()();
@@ -4396,6 +4438,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     CylinderConfigItems,
     // Rental gear memory (v221, issue #2075)
     DiveCenterGearNotes,
+    // Cylinder fill history (v228, issue #2334)
+    CylinderFills,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -4405,7 +4449,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 228;
+  static const int currentSchemaVersion = 230;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -5065,13 +5109,19 @@ class AppDatabase extends _$AppDatabase {
     // shows every built-in preset. Renumbered from 225, which is held by PR
     // #1978, after v226 landed while this was in review.
     227,
-    // v228: nav_tracks -- measured underwater routes from Seacraft ENC
+    // v228: cylinder_fills, the fill history keyed by passport id (issue
+    // #2334). Table-only rung, no backfill, floor stays at 224. Renumbered
+    // from 227, which hidden tank presets (#2305) took while this was in
+    // review.
+    228,
+    // v230: nav_tracks -- measured underwater routes from Seacraft ENC
     // navigation consoles and similar IMU-equipped computers (issues #1195,
     // #1445). Table-only rung, additive, so the floor stays at 224.
-    // Renumbered from 209: main shipped up to 226 while this branch was
-    // open, and a rung at or below the shipped version never runs its
-    // onUpgrade step. 227 went to hidden tank presets (#2315).
-    228,
+    // Renumbered from 209, then 228: main shipped cylinder fills (#2364) as
+    // 228 while this branch was open, and 229 is claimed by the diver
+    // figure branch (#2372). A rung at or below the shipped version never
+    // runs its onUpgrade step.
+    230,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -5487,9 +5537,9 @@ class AppDatabase extends _$AppDatabase {
     }
   }
 
-  /// v228: the nav_tracks table for measured underwater routes (spec
+  /// v230: the nav_tracks table for measured underwater routes (spec
   /// 2026-09-10-underwater-nav-track-design.md, issues #1195, #1445).
-  /// Idempotent (createTable is IF NOT EXISTS); called from the v228
+  /// Idempotent (createTable is IF NOT EXISTS); called from the v230
   /// onUpgrade step and the beforeOpen backstop.
   Future<void> _assertNavTracksSchema() async {
     await createMigrator().createTable(navTracks);
@@ -8656,6 +8706,29 @@ class AppDatabase extends _$AppDatabase {
     }
     await createMigrator().createTable(equipmentTags);
     await assertEquipmentTagUniqueness(this);
+  }
+
+  /// Idempotent creation of the v228 `cylinder_fills` table and its two
+  /// lookup indexes (issue #2334). Called from the v228 rung and the
+  /// beforeOpen backstop. Skipped on a partial migration-test fixture that
+  /// lacks either parent table.
+  Future<void> _assertCylinderFillsSchema() async {
+    for (final parent in const ['divers', 'equipment']) {
+      final rows = await customSelect(
+        "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
+        variables: [Variable<String>(parent)],
+      ).get();
+      if (rows.isEmpty) return;
+    }
+    await createMigrator().createTable(cylinderFills);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_passport '
+      'ON cylinder_fills(passport_id, filled_at)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_cylinder_fills_equipment '
+      'ON cylinder_fills(equipment_id)',
+    );
   }
 
   /// Idempotent creation of the v221 `dive_center_gear_notes` table (issue
@@ -12705,16 +12778,22 @@ class AppDatabase extends _$AppDatabase {
           await _assertHiddenTankPresetIdsColumn();
         }
         if (from < 227) await reportProgress();
-        // v228: nav_tracks -- measured underwater routes from Seacraft ENC
+        // v228: cylinder fill history (issue #2334). Table-only rung, no
+        // backfill.
+        if (from < 228) {
+          await _assertCylinderFillsSchema();
+        }
+        if (from < 228) await reportProgress();
+        // v230: nav_tracks -- measured underwater routes from Seacraft ENC
         // navigation consoles and similar IMU-equipped computers (spec
         // 2026-09-10-underwater-nav-track-design.md, issues #1195, #1445).
         // A new synced table, so onUpgrade need only create it; idempotent
         // and re-asserted in the beforeOpen backstop against the
         // parallel-branch version collisions noted above.
-        if (from < 228) {
+        if (from < 230) {
           await _assertNavTracksSchema();
         }
-        if (from < 228) await reportProgress();
+        if (from < 230) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
@@ -12743,7 +12822,7 @@ class AppDatabase extends _$AppDatabase {
         // Enable foreign keys
         await customStatement('PRAGMA foreign_keys = ON');
 
-        // v228 backstop: re-assert the nav_tracks table. A database that
+        // v230 backstop: re-assert the nav_tracks table. A database that
         // arrives by restore or sync-adopt never runs onUpgrade.
         await _assertNavTracksSchema();
 
@@ -13219,6 +13298,9 @@ class AppDatabase extends _$AppDatabase {
         // version-collision self-heal). Column only, so it cannot touch
         // diver data.
         await _assertMediaCloudAssetIdColumn();
+        // v228 backstop: the cylinder_fills table (parallel-branch
+        // version-collision self-heal; createTable is idempotent).
+        await _assertCylinderFillsSchema();
 
         // v194 backstop: re-assert dive_tanks.transmitter_serial. Every tank
         // read selects the whole row, so a database that arrives by restore

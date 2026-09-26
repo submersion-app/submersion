@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_log/data/repositories/profile_series_re
 import 'package:submersion/features/dive_log/domain/codecs/profile_sample.dart';
 
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/unique_ids.dart';
 
 /// Issue #2002: a profile attached to an EXISTING dive must leave a
 /// dive_data_sources row (so a re-download is caught by the fingerprint
@@ -50,7 +51,7 @@ void main() {
     bool isPlanned = false,
     String? computerId,
   }) async {
-    final id = 'dive-${DateTime.now().microsecondsSinceEpoch}';
+    final id = uniqueTestId('dive');
     final now = DateTime.now().millisecondsSinceEpoch;
     await db
         .into(db.dives)

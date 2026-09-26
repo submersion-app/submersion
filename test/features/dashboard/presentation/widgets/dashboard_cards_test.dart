@@ -17,7 +17,7 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 import 'package:submersion/features/media/presentation/pages/photo_viewer_page.dart';
 import 'package:submersion/features/media/presentation/providers/media_providers.dart';
-import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -61,7 +61,7 @@ Future<NavSpy> pumpCard(
       for (final path in const [
         '/dives/new',
         '/planning/dive-planner',
-        '/statistics',
+        '/insights',
         '/gps-log',
         '/settings/diver-profile/emergency-card',
       ])
@@ -398,7 +398,7 @@ void main() {
     // gets its own pump rather than popping back.
     for (final (label, destination) in const [
       ('Plan Dive', '/planning/dive-planner'),
-      ('Statistics', '/statistics'),
+      ('Insights', '/insights'),
       ('GPS Logger', '/gps-log'),
       ('Emergency card', '/settings/diver-profile/emergency-card'),
     ]) {

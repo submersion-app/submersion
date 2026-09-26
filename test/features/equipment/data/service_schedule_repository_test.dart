@@ -152,8 +152,8 @@ void main() {
 
   test('usage samples honor the since filter', () async {
     final tank = await makeTank();
-    final oldMs = DateTime(2020, 1, 1).millisecondsSinceEpoch;
-    final newMs = DateTime(2026, 1, 1).millisecondsSinceEpoch;
+    final oldMs = DateTime.utc(2020, 1, 1).millisecondsSinceEpoch;
+    final newMs = DateTime.utc(2026, 1, 1).millisecondsSinceEpoch;
     for (final (id, ms) in [('old', oldMs), ('new', newMs)]) {
       await db
           .into(db.dives)
@@ -176,7 +176,7 @@ void main() {
     expect(all, hasLength(2));
     final recent = await equipmentRepo.getExposureSamplesForEquipment(
       tank.id,
-      since: DateTime(2025, 1, 1),
+      since: DateTime.utc(2025, 1, 1),
     );
     expect(recent, hasLength(1));
     expect(recent.single.date.year, 2026);

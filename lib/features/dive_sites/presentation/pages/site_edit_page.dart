@@ -53,6 +53,11 @@ class SiteEditPage extends ConsumerStatefulWidget {
   final bool embedded;
   final void Function(String savedId)? onSaved;
   final VoidCallback? onCancel;
+
+  /// Called in embedded mode once the site is deleted, so the host can leave
+  /// the pane. The delete action is offered in embedded mode only when this
+  /// is set; a standalone page returns to the site list itself.
+  final VoidCallback? onDeleted;
   final GeoPoint? initialLocation;
 
   const SiteEditPage({
@@ -62,6 +67,7 @@ class SiteEditPage extends ConsumerStatefulWidget {
     this.embedded = false,
     this.onSaved,
     this.onCancel,
+    this.onDeleted,
     this.initialLocation,
   }) : assert(
          siteId == null || mergeSiteIds == null,
@@ -1160,7 +1166,7 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           ? Icons.merge_type
           : Icons.add_location,
       actions: [
-        if (widget.isEditing && !widget.embedded)
+        if (widget.isEditing && (!widget.embedded || widget.onDeleted != null))
           IconButton(
             icon: const Icon(Icons.delete),
             tooltip: context.l10n.diveSites_edit_appBar_deleteSiteTooltip,
@@ -1945,7 +1951,12 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
       ref.invalidate(sitesProvider);
 
       if (mounted) {
-        context.go('/sites');
+        _hasChanges = false;
+        if (widget.embedded) {
+          widget.onDeleted?.call();
+        } else {
+          context.go('/sites');
+        }
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(context.l10n.diveSites_detail_deleteSnackbar)),
         );

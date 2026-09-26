@@ -62,6 +62,7 @@ import 'package:submersion/features/dive_log/presentation/providers/buoyancy_twi
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_detail_ui_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/dive_log/presentation/providers/highlight_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_mode_badge.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_sighting_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_type_badge_row.dart';
@@ -113,6 +114,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/o2_toxicity_ca
 import 'package:submersion/features/dive_log/presentation/widgets/range_stats_panel.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_detail_properties_menu.dart';
 import 'package:submersion/shared/widgets/section_fold.dart';
+import 'package:submersion/shared/widgets/section_properties_menu.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/responsive_section_pair.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/sac_volume_hint.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
@@ -220,6 +222,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   final GlobalKey _appBarMenuKey = GlobalKey();
   final GlobalKey _headerMenuKey = GlobalKey();
 
+  /// Opens the display-options panel from the overflow menu. One controller
+  /// serves both headers, since only one of them is ever built.
+  final MenuController _displayOptionsMenu = MenuController();
+
   /// Whether an export is currently in progress
   bool _isExportingProfile = false;
 
@@ -254,7 +260,12 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   /// query param -- the DetailScrollRetainer then keeps the scroll offset, so
   /// the same section stays in view. Standalone replaces the route so stepping
   /// through dives does not pile up the back stack.
+  ///
+  /// The list lights the row it opened through [highlightedDiveIdProvider] as
+  /// well as the selected param, so the highlight moves with the pane. Left
+  /// behind, it keeps the first dive lit next to the one on show (#2345).
   void _navigateToDive(String neighborId) {
+    ref.read(highlightedDiveIdProvider.notifier).state = neighborId;
     if (widget.embedded) {
       context.go('/dives?selected=$neighborId');
     } else {
@@ -1165,7 +1176,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     }
 
     // Standalone mode: Full Scaffold with AppBar. On a phone-width window
-    // the title has no room beside six action icons, so the favorite toggle
+    // the title has no room beside five action icons, so the favorite toggle
     // -- the one action that reads as well from a menu -- moves into the
     // overflow.
     final compactActions =
@@ -1173,11 +1184,11 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final favoriteLabel = dive.isFavorite
         ? context.l10n.diveLog_detail_tooltip_removeFromFavorites
         : context.l10n.diveLog_detail_tooltip_addToFavorites;
+    final canLogForBuddy = _hasMirrorCandidates(ref, dive);
     return Scaffold(
       appBar: AppBar(
         title: Text(context.l10n.diveLog_detail_appBar),
         actions: [
-          DiveDetailPropertiesMenu(isGauge: dive.isGauge),
           DiveNavButtons(diveId: diveId, onNavigate: _navigateToDive),
           if (!compactActions)
             IconButton(
@@ -1197,143 +1208,153 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
             tooltip: context.l10n.diveLog_detail_tooltip_editDive,
             onPressed: () => context.push('/dives/$diveId/edit'),
           ),
-          PopupMenuButton<String>(
-            key: _appBarMenuKey,
-            onSelected: (value) {
-              switch (value) {
-                case 'toggleFavorite':
-                  ref
-                      .read(paginatedDiveListProvider.notifier)
-                      .toggleFavorite(diveId);
-                  break;
-                case 'export':
-                  _showExportOptions(
-                    context,
-                    ref,
-                    dive,
-                    shareAnchorFrom(_appBarMenuKey.currentContext),
-                  );
-                  break;
-                case 'reparse':
-                  _reparseDive(context, ref, dive);
-                  break;
-                case 'resync':
-                  _resyncDive(context, ref, dive);
-                  break;
-                case 'logNearMiss':
-                  context.push('/incidents/new?diveId=$diveId');
-                  break;
-                case 'markLogged':
-                  _markAsLogged(dive);
-                  break;
-                case 'logForBuddy':
-                  _logForBuddy(dive);
-                  break;
-                case 'linkPreDive':
-                  _linkPreDiveChecklist(context, dive);
-                  break;
-                case 'unlinkPreDive':
-                  _unlinkPreDiveChecklist(context, linkedPreDive!);
-                  break;
-                case 'whatIf':
-                  showWhatIfSheet(context, dive);
-                  break;
-                case 'delete':
-                  _showDeleteConfirmation(context, ref);
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              if (compactActions)
-                PopupMenuItem(
-                  value: 'toggleFavorite',
-                  child: ListTile(
-                    leading: Icon(
-                      dive.isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: dive.isFavorite ? Colors.red : null,
+          DiveDetailPropertiesMenu(
+            isGauge: dive.isGauge,
+            controller: _displayOptionsMenu,
+            child: PopupMenuButton<String>(
+              key: _appBarMenuKey,
+              onSelected: (value) {
+                switch (value) {
+                  case 'toggleFavorite':
+                    ref
+                        .read(paginatedDiveListProvider.notifier)
+                        .toggleFavorite(diveId);
+                    break;
+                  case 'displayOptions':
+                    _displayOptionsMenu.open();
+                    break;
+                  case 'export':
+                    _showExportOptions(
+                      context,
+                      ref,
+                      dive,
+                      shareAnchorFrom(_appBarMenuKey.currentContext),
+                    );
+                    break;
+                  case 'reparse':
+                    _reparseDive(context, ref, dive);
+                    break;
+                  case 'resync':
+                    _resyncDive(context, ref, dive);
+                    break;
+                  case 'logNearMiss':
+                    context.push('/incidents/new?diveId=$diveId');
+                    break;
+                  case 'markLogged':
+                    _markAsLogged(dive);
+                    break;
+                  case 'logForBuddy':
+                    _logForBuddy(dive);
+                    break;
+                  case 'linkPreDive':
+                    _linkPreDiveChecklist(context, dive);
+                    break;
+                  case 'unlinkPreDive':
+                    _unlinkPreDiveChecklist(context, linkedPreDive!);
+                    break;
+                  case 'whatIf':
+                    showWhatIfSheet(context, dive);
+                    break;
+                  case 'delete':
+                    _showDeleteConfirmation(context, ref);
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                displayOptionsMenuItem(context, 'displayOptions'),
+                if (compactActions)
+                  PopupMenuItem(
+                    value: 'toggleFavorite',
+                    child: ListTile(
+                      leading: Icon(
+                        dive.isFavorite
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color: dive.isFavorite ? Colors.red : null,
+                      ),
+                      title: Text(favoriteLabel),
+                      contentPadding: EdgeInsets.zero,
                     ),
-                    title: Text(favoriteLabel),
+                  ),
+                PopupMenuItem(
+                  value: 'export',
+                  child: ListTile(
+                    leading: const Icon(Icons.download),
+                    title: Text(context.l10n.diveLog_detail_menu_export),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-              PopupMenuItem(
-                value: 'export',
-                child: ListTile(
-                  leading: const Icon(Icons.download),
-                  title: Text(context.l10n.diveLog_detail_menu_export),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              PopupMenuItem(
-                value: 'logNearMiss',
-                child: ListTile(
-                  leading: const Icon(Icons.flag_outlined),
-                  title: Text(context.l10n.diveLog_detail_menu_logNearMiss),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-              if (dive.isPlanned)
                 PopupMenuItem(
-                  value: 'markLogged',
+                  value: 'logNearMiss',
                   child: ListTile(
-                    leading: const Icon(Icons.event_available_outlined),
-                    title: Text(context.l10n.diveLog_detail_menu_markLogged),
+                    leading: const Icon(Icons.flag_outlined),
+                    title: Text(context.l10n.diveLog_detail_menu_logNearMiss),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-              if (_hasMirrorCandidates(ref, dive))
-                PopupMenuItem(
-                  value: 'logForBuddy',
-                  child: ListTile(
-                    leading: const Icon(Icons.people_outline),
-                    title: Text(context.l10n.diveLog_detail_menu_logForBuddy),
-                    contentPadding: EdgeInsets.zero,
+                if (dive.isPlanned)
+                  PopupMenuItem(
+                    value: 'markLogged',
+                    child: ListTile(
+                      leading: const Icon(Icons.event_available_outlined),
+                      title: Text(context.l10n.diveLog_detail_menu_markLogged),
+                      contentPadding: EdgeInsets.zero,
+                    ),
                   ),
-                ),
-              _preDiveLinkMenuItem(context, linkedPreDive),
-              if (hasRawData)
+                if (canLogForBuddy)
+                  PopupMenuItem(
+                    value: 'logForBuddy',
+                    child: ListTile(
+                      leading: const Icon(Icons.people_outline),
+                      title: Text(context.l10n.diveLog_detail_menu_logForBuddy),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                _preDiveLinkMenuItem(context, linkedPreDive),
+                if (hasRawData)
+                  PopupMenuItem(
+                    value: 'reparse',
+                    child: ListTile(
+                      leading: const Icon(Icons.refresh),
+                      title: Text(
+                        context.l10n.diveLog_detail_menu_reparseRawData,
+                      ),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (hasImportedFile)
+                  PopupMenuItem(
+                    value: 'resync',
+                    child: ListTile(
+                      leading: const Icon(Icons.sync),
+                      title: Text(
+                        context.l10n.diveLog_detail_menu_resyncImportedFile,
+                      ),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
+                if (dive.profile.isNotEmpty)
+                  PopupMenuItem(
+                    value: 'whatIf',
+                    child: ListTile(
+                      leading: const Icon(Icons.tune),
+                      title: Text(context.l10n.diveLog_detail_menu_whatIf),
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                  ),
                 PopupMenuItem(
-                  value: 'reparse',
+                  value: 'delete',
                   child: ListTile(
-                    leading: const Icon(Icons.refresh),
+                    leading: const Icon(Icons.delete, color: Colors.red),
                     title: Text(
-                      context.l10n.diveLog_detail_menu_reparseRawData,
+                      context.l10n.diveLog_detail_menu_delete,
+                      style: const TextStyle(color: Colors.red),
                     ),
                     contentPadding: EdgeInsets.zero,
                   ),
                 ),
-              if (hasImportedFile)
-                PopupMenuItem(
-                  value: 'resync',
-                  child: ListTile(
-                    leading: const Icon(Icons.sync),
-                    title: Text(
-                      context.l10n.diveLog_detail_menu_resyncImportedFile,
-                    ),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              if (dive.profile.isNotEmpty)
-                PopupMenuItem(
-                  value: 'whatIf',
-                  child: ListTile(
-                    leading: const Icon(Icons.tune),
-                    title: Text(context.l10n.diveLog_detail_menu_whatIf),
-                    contentPadding: EdgeInsets.zero,
-                  ),
-                ),
-              PopupMenuItem(
-                value: 'delete',
-                child: ListTile(
-                  leading: const Icon(Icons.delete, color: Colors.red),
-                  title: Text(
-                    context.l10n.diveLog_detail_menu_delete,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                  contentPadding: EdgeInsets.zero,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -1353,6 +1374,7 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
     final linkedPreDive = ref
         .watch(preDiveSessionForDiveProvider(dive.id))
         .value;
+    final canLogForBuddy = _hasMirrorCandidates(ref, dive);
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -1422,7 +1444,6 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                   ],
                 ),
               ),
-              DiveDetailPropertiesMenu(isGauge: dive.isGauge),
               DiveNavButtons(diveId: dive.id, onNavigate: _navigateToDive),
               // Favorite toggle
               IconButton(
@@ -1453,149 +1474,159 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
                 },
               ),
               // More options
-              PopupMenuButton<String>(
-                key: _headerMenuKey,
-                icon: const Icon(Icons.more_vert, size: 20),
-                padding: EdgeInsets.zero,
-                onSelected: (value) {
-                  switch (value) {
-                    case 'export':
-                      _showExportOptions(
-                        context,
-                        ref,
-                        dive,
-                        shareAnchorFrom(_headerMenuKey.currentContext),
-                      );
-                      break;
-                    case 'reparse':
-                      _reparseDive(context, ref, dive);
-                      break;
-                    case 'resync':
-                      _resyncDive(context, ref, dive);
-                      break;
-                    case 'logNearMiss':
-                      context.push('/incidents/new?diveId=$diveId');
-                      break;
-                    case 'markLogged':
-                      _markAsLogged(dive);
-                      break;
-                    case 'logForBuddy':
-                      _logForBuddy(dive);
-                      break;
-                    case 'linkPreDive':
-                      _linkPreDiveChecklist(context, dive);
-                      break;
-                    case 'unlinkPreDive':
-                      _unlinkPreDiveChecklist(context, linkedPreDive!);
-                      break;
-                    case 'whatIf':
-                      showWhatIfSheet(context, dive);
-                      break;
-                    case 'delete':
-                      _showDeleteConfirmation(context, ref);
-                      break;
-                    case 'open':
-                      // Open in full-page mode. push (not go) so there's a back
-                      // button and the pushed page skips the master-detail
-                      // redirect above instead of bouncing straight back into
-                      // the pane it was opened from.
-                      context.push('/dives/$diveId');
-                      break;
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'open',
-                    child: ListTile(
-                      leading: const Icon(Icons.open_in_new),
-                      title: Text(
-                        context.l10n.diveLog_detail_menu_openFullPage,
-                      ),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'export',
-                    child: ListTile(
-                      leading: const Icon(Icons.download),
-                      title: Text(context.l10n.diveLog_detail_menu_export),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                  PopupMenuItem(
-                    value: 'logNearMiss',
-                    child: ListTile(
-                      leading: const Icon(Icons.flag_outlined),
-                      title: Text(context.l10n.diveLog_detail_menu_logNearMiss),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                  if (dive.isPlanned)
+              DiveDetailPropertiesMenu(
+                isGauge: dive.isGauge,
+                controller: _displayOptionsMenu,
+                child: PopupMenuButton<String>(
+                  key: _headerMenuKey,
+                  icon: const Icon(Icons.more_vert, size: 20),
+                  padding: EdgeInsets.zero,
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'displayOptions':
+                        _displayOptionsMenu.open();
+                        break;
+                      case 'export':
+                        _showExportOptions(
+                          context,
+                          ref,
+                          dive,
+                          shareAnchorFrom(_headerMenuKey.currentContext),
+                        );
+                        break;
+                      case 'reparse':
+                        _reparseDive(context, ref, dive);
+                        break;
+                      case 'resync':
+                        _resyncDive(context, ref, dive);
+                        break;
+                      case 'logNearMiss':
+                        context.push('/incidents/new?diveId=$diveId');
+                        break;
+                      case 'markLogged':
+                        _markAsLogged(dive);
+                        break;
+                      case 'logForBuddy':
+                        _logForBuddy(dive);
+                        break;
+                      case 'linkPreDive':
+                        _linkPreDiveChecklist(context, dive);
+                        break;
+                      case 'unlinkPreDive':
+                        _unlinkPreDiveChecklist(context, linkedPreDive!);
+                        break;
+                      case 'whatIf':
+                        showWhatIfSheet(context, dive);
+                        break;
+                      case 'delete':
+                        _showDeleteConfirmation(context, ref);
+                        break;
+                      case 'open':
+                        // Open in full-page mode. push (not go) so there's a back
+                        // button and the pushed page skips the master-detail
+                        // redirect above instead of bouncing straight back into
+                        // the pane it was opened from.
+                        context.push('/dives/$diveId');
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => [
                     PopupMenuItem(
-                      value: 'markLogged',
+                      value: 'open',
                       child: ListTile(
-                        leading: const Icon(Icons.event_available_outlined),
+                        leading: const Icon(Icons.open_in_new),
                         title: Text(
-                          context.l10n.diveLog_detail_menu_markLogged,
+                          context.l10n.diveLog_detail_menu_openFullPage,
                         ),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
-                  if (_hasMirrorCandidates(ref, dive))
+                    displayOptionsMenuItem(context, 'displayOptions'),
                     PopupMenuItem(
-                      value: 'logForBuddy',
+                      value: 'export',
                       child: ListTile(
-                        leading: const Icon(Icons.people_outline),
+                        leading: const Icon(Icons.download),
+                        title: Text(context.l10n.diveLog_detail_menu_export),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'logNearMiss',
+                      child: ListTile(
+                        leading: const Icon(Icons.flag_outlined),
                         title: Text(
-                          context.l10n.diveLog_detail_menu_logForBuddy,
+                          context.l10n.diveLog_detail_menu_logNearMiss,
                         ),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
-                  _preDiveLinkMenuItem(context, linkedPreDive),
-                  if (hasRawData)
+                    if (dive.isPlanned)
+                      PopupMenuItem(
+                        value: 'markLogged',
+                        child: ListTile(
+                          leading: const Icon(Icons.event_available_outlined),
+                          title: Text(
+                            context.l10n.diveLog_detail_menu_markLogged,
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    if (canLogForBuddy)
+                      PopupMenuItem(
+                        value: 'logForBuddy',
+                        child: ListTile(
+                          leading: const Icon(Icons.people_outline),
+                          title: Text(
+                            context.l10n.diveLog_detail_menu_logForBuddy,
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    _preDiveLinkMenuItem(context, linkedPreDive),
+                    if (hasRawData)
+                      PopupMenuItem(
+                        value: 'reparse',
+                        child: ListTile(
+                          leading: const Icon(Icons.refresh),
+                          title: Text(
+                            context.l10n.diveLog_detail_menu_reparseRawData,
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    if (hasImportedFile)
+                      PopupMenuItem(
+                        value: 'resync',
+                        child: ListTile(
+                          leading: const Icon(Icons.sync),
+                          title: Text(
+                            context.l10n.diveLog_detail_menu_resyncImportedFile,
+                          ),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
+                    if (dive.profile.isNotEmpty)
+                      PopupMenuItem(
+                        value: 'whatIf',
+                        child: ListTile(
+                          leading: const Icon(Icons.tune),
+                          title: Text(context.l10n.diveLog_detail_menu_whatIf),
+                          contentPadding: EdgeInsets.zero,
+                        ),
+                      ),
                     PopupMenuItem(
-                      value: 'reparse',
+                      value: 'delete',
                       child: ListTile(
-                        leading: const Icon(Icons.refresh),
+                        leading: const Icon(Icons.delete, color: Colors.red),
                         title: Text(
-                          context.l10n.diveLog_detail_menu_reparseRawData,
+                          context.l10n.diveLog_detail_menu_delete,
+                          style: const TextStyle(color: Colors.red),
                         ),
                         contentPadding: EdgeInsets.zero,
                       ),
                     ),
-                  if (hasImportedFile)
-                    PopupMenuItem(
-                      value: 'resync',
-                      child: ListTile(
-                        leading: const Icon(Icons.sync),
-                        title: Text(
-                          context.l10n.diveLog_detail_menu_resyncImportedFile,
-                        ),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                  if (dive.profile.isNotEmpty)
-                    PopupMenuItem(
-                      value: 'whatIf',
-                      child: ListTile(
-                        leading: const Icon(Icons.tune),
-                        title: Text(context.l10n.diveLog_detail_menu_whatIf),
-                        contentPadding: EdgeInsets.zero,
-                      ),
-                    ),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: ListTile(
-                      leading: const Icon(Icons.delete, color: Colors.red),
-                      title: Text(
-                        context.l10n.diveLog_detail_menu_delete,
-                        style: const TextStyle(color: Colors.red),
-                      ),
-                      contentPadding: EdgeInsets.zero,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -1611,7 +1642,10 @@ class _DiveDetailPageState extends ConsumerState<DiveDetailPage> {
   }
 
   /// Whether any linked buddy on this dive still lacks a sibling (issue
-  /// #2002). Watched in the menu builders, so the item follows the ticks.
+  /// #2002). Call it while the page builds and hand the result to the menu,
+  /// never from a menu's itemBuilder: that runs outside build, so its first
+  /// read is still loading and the next rebuild drops the subscription,
+  /// which disposes the provider before the menu opens again (issue #2367).
   bool _hasMirrorCandidates(WidgetRef ref, Dive dive) {
     if (dive.isPlanned) return false;
     final candidates = ref.watch(mirrorCandidatesProvider(dive.id)).value;

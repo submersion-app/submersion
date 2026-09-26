@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/export/csv/csv_export_service.dart';
 import 'package:submersion/core/services/export/excel/excel_export_service.dart';
 import 'package:submersion/core/services/export/export_service.dart';
@@ -129,7 +130,7 @@ void main() {
     test('saveDivesToUddfFile writes the UDDF to the chosen path', () async {
       final dir = await Directory.systemTemp.createTemp('uddf_save_test');
       addTearDown(() => dir.delete(recursive: true));
-      final target = '${dir.path}/dives.uddf';
+      final target = p.join(dir.path, 'dives.uddf');
       mockPicker.saveFileResult = Uri.file(target);
 
       expect(await service.saveDivesToUddfFile([]), target);
@@ -141,7 +142,7 @@ void main() {
     test('saveDivesToUddfFile delegates to the UDDF service', () async {
       final dir = await Directory.systemTemp.createTemp('uddf_facade_test');
       addTearDown(() => dir.delete(recursive: true));
-      final target = '${dir.path}/facade.uddf';
+      final target = p.join(dir.path, 'facade.uddf');
       mockPicker.saveFileResult = Uri.file(target);
 
       expect(await ExportService().saveDivesToUddfFile([]), target);

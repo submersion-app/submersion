@@ -216,7 +216,7 @@ void main() {
   /// Portuguese word inside one of them would be wrong.
   const untranslated = <String, Set<String>>{
     'es': {
-      'statistics_category_overview_subtitle',
+      'insights_category_overview_subtitle',
       'transfer_computers_appleWatchSubtitle',
     },
     'pt': {

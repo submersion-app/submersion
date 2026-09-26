@@ -5,8 +5,8 @@ import 'package:submersion/core/presentation/widgets/ocean_background.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dashboard/presentation/widgets/hero_diver_avatar.dart';
-import 'package:submersion/features/statistics/domain/career_totals.dart';
-import 'package:submersion/features/statistics/presentation/providers/career_totals_provider.dart';
+import 'package:submersion/features/insights/domain/career_totals.dart';
+import 'package:submersion/features/insights/presentation/providers/career_totals_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
@@ -18,7 +18,7 @@ import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.d
 /// compact greeting + headline stats layout.
 ///
 /// Dive and time totals come from [careerTotalsProvider], so they include the
-/// diver's pre-app logbook and agree with the Statistics overview (issue #808).
+/// diver's pre-app logbook and agree with the Insights overview (issue #808).
 class HeroHeader extends ConsumerWidget {
   const HeroHeader({super.key});
 
@@ -159,7 +159,7 @@ class HeroHeader extends ConsumerWidget {
 
     // "N dives logged" would misdescribe a total that includes the diver's
     // prior offset -- those dives are precisely the ones NOT logged in-app, and
-    // the Statistics breakdown reserves "logged" for the in-app count. Divers
+    // the Insights breakdown reserves "logged" for the in-app count. Divers
     // without prior experience keep the original copy.
     final String diveText;
     if (career.hasPriorDives) {
