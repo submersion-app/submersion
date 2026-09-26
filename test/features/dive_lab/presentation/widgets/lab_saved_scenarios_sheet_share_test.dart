@@ -17,6 +17,9 @@ import 'package:submersion/features/dive_lab/presentation/providers/scenario_out
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_saved_scenarios_sheet.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -114,6 +117,7 @@ void main() {
             (request) async => const ScenarioEngine().run(request),
           ),
           labShareActionsProvider.overrideWithValue(recorder),
+          validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
         ],
         locale: const Locale('en'),
         child: _Host(dive.id),
@@ -162,4 +166,63 @@ void main() {
     expect(recorder.pdfs, hasLength(1));
     expect(String.fromCharCodes(recorder.pdfs.single.take(4)), '%PDF');
   });
+
+  testWidgets(
+    'an import that creates the dive files it under the active diver',
+    (tester) async {
+      final now = DateTime(2026, 9, 26);
+      await DiverRepository().createDiver(
+        Diver(id: 'diver-1', name: 'Ada', createdAt: now, updatedAt: now),
+      );
+      final host = await DiveRepository().createDive(
+        Dive(id: 'host', diveNumber: 1, dateTime: DateTime(2026, 8, 1)),
+      );
+      final inputs = _inputs(host);
+      // The shared dive does not exist here, so the import creates it.
+      final incoming = scenarioToSublabJson(
+        scenario: DiveScenario(
+          id: 'remote',
+          diveId: 'student-dive',
+          name: 'From a student',
+          branchSeconds: 900,
+          mode: ScenarioMode.replan,
+          interventions: const [AscendNowIntervention()],
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        ),
+        snapshot: DiveSnapshot.fromDive(
+          dive: inputs.dive.copyWith(id: 'student-dive'),
+          profile: inputs.profile,
+          gasSwitches: inputs.gasSwitches,
+          tankPressures: inputs.tankPressures,
+        ),
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: [
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            labRequestInputsProvider(
+              host.id,
+            ).overrideWith((ref) async => inputs),
+            scenarioEngineRunnerProvider.overrideWithValue(
+              (request) async => const ScenarioEngine().run(request),
+            ),
+            labShareActionsProvider.overrideWithValue(_Recorder(incoming)),
+            validatedCurrentDiverIdProvider.overrideWith(
+              (ref) async => 'diver-1',
+            ),
+          ],
+          locale: const Locale('en'),
+          child: _Host(host.id),
+        ),
+      );
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byIcon(Icons.file_open_outlined));
+      await tester.pumpAndSettle();
+      final created = await DiveRepository().getDiveById('student-dive');
+      expect(created, isNotNull);
+      expect(created!.diverId, 'diver-1');
+    },
+  );
 }

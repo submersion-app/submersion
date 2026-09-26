@@ -176,7 +176,7 @@ final labRequestInputsProvider = FutureProvider.family<LabRequestInputs?, String
     // The SCR model exactly as dive detail analyses it.
     scrInjectionRate: dive.scrInjectionRate,
     scrSupplyO2Percent: dive.diluentGas?.o2,
-    scrVo2: dive.assumedVo2 ?? 1.3,
+    scrVo2: dive.assumedVo2 ?? ScrCalculator.defaultVo2,
     startCompartments: startCompartments,
     startCns: startCns,
     startOtu: startOtu,

@@ -317,6 +317,7 @@ class ScenarioEngine {
     final engine = PlanEngine(
       config: settings.engineConfigFor(
         scrInjectionRateLpm: request.scrInjectionRate,
+        scrVo2Lpm: request.scrVo2,
       ),
     );
     final planOutcome = engine.compute(plan, startState: branch.tissueState);

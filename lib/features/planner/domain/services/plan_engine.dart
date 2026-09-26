@@ -18,6 +18,7 @@ import 'package:submersion/features/planner/domain/services/tank_role_resolver.d
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     as domain;
 import 'package:submersion/features/planner/domain/entities/plan_outcome.dart';
+import 'package:submersion/core/deco/scr_calculator.dart';
 
 /// Thresholds and policy limits the engine evaluates plans against.
 class PlanEngineConfig {
@@ -39,6 +40,10 @@ class PlanEngineConfig {
 
   /// SCR supply injection rate (surface liters per minute) for the CMF loop.
   final double scrInjectionRateLpm;
+
+  /// SCR diver metabolic O2 consumption (surface liters per minute), which
+  /// sets the CMF loop's steady-state O2 fraction.
+  final double scrVo2Lpm;
 
   /// pSCR metabolic O2 consumption in surface mL/min (Subsurface
   /// `o2consumption`, default 720).
@@ -73,6 +78,7 @@ class PlanEngineConfig {
     this.loopVolumeLiters = 6.0,
     this.buddyFactor = 2.0,
     this.scrInjectionRateLpm = 12.0,
+    this.scrVo2Lpm = ScrCalculator.defaultVo2,
     this.pscrO2ConsumptionMlMin = 720.0,
     this.pscrSacMlMin = 20000.0,
     this.pscrRatio = 100.0,
@@ -99,6 +105,7 @@ class PlanEngineConfig {
       loopVolumeLiters: loopVolumeLiters,
       buddyFactor: plan.sacFactor,
       scrInjectionRateLpm: scrInjectionRateLpm,
+      scrVo2Lpm: scrVo2Lpm,
       pscrO2ConsumptionMlMin: pscrO2ConsumptionMlMin,
       pscrSacMlMin: pscrSacMlMin,
       pscrRatio: pscrRatio,
@@ -178,6 +185,7 @@ class PlanEngine {
         supplyFO2: gas.o2 / 100.0,
         supplyFHe: gas.he / 100.0,
         injectionRateLpm: config.scrInjectionRateLpm,
+        vo2: config.scrVo2Lpm,
       );
     }
     if (mode == domain.PlanMode.pscr) {

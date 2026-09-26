@@ -13,6 +13,7 @@ import 'package:submersion/features/dive_lab/presentation/lab_share.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/dive_scenario_providers.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/planner/presentation/widgets/plan_name_dialog.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -59,9 +60,11 @@ class _LabSavedScenariosSheetState
       final source = await actions.pickScenarioFile();
       if (source == null) return;
       final file = sublabFromJson(source);
+      final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
       final result = await ScenarioFileImporter().import(
         file,
         diveNotes: l10n.diveLab_sublab_notes,
+        diverId: diverId,
       );
       messenger.showSnackBar(
         SnackBar(

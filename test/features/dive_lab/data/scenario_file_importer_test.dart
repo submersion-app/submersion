@@ -11,6 +11,8 @@ import 'package:submersion/features/dive_lab/domain/entities/scenario_request.da
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
+import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
 
 import '../../../helpers/test_database.dart';
 
@@ -142,4 +144,18 @@ void main() {
       expect(dive.diluentGas?.o2, 40);
     },
   );
+
+  test('a created dive belongs to the importing diver', () async {
+    final now = DateTime(2026, 9, 26);
+    await DiverRepository().createDiver(
+      Diver(id: 'diver-1', name: 'Ada', createdAt: now, updatedAt: now),
+    );
+    final result = await ScenarioFileImporter().import(
+      _file(diveId: 'for-diver'),
+      diveNotes: 'n',
+      diverId: 'diver-1',
+    );
+    final dive = await DiveRepository().getDiveById(result.diveId);
+    expect(dive!.diverId, 'diver-1');
+  });
 }

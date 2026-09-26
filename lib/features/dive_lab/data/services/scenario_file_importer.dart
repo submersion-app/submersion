@@ -41,10 +41,12 @@ class ScenarioFileImporter {
   final DiveScenarioRepository _scenarios;
 
   /// [diveNotes] is written on a dive created from the snapshot (the caller
-  /// localises it).
+  /// localises it). [diverId] owns a created dive: dive lists are scoped to
+  /// the active diver, so a dive without one would never be shown.
   Future<ImportedScenario> import(
     SublabFile file, {
     required String diveNotes,
+    String? diverId,
   }) async {
     final snapshot = file.snapshot;
     var diveId = snapshot.diveId;
@@ -54,6 +56,7 @@ class ScenarioFileImporter {
       final dive = await _dives.createDive(
         Dive(
           id: diveId,
+          diverId: diverId,
           diveNumber: null,
           dateTime: snapshot.diveDateTime,
           diveMode: snapshot.diveMode,

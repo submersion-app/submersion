@@ -40,16 +40,16 @@ Future<void> showDiveLab(
   String diveId, {
   String? scenarioId,
 }) {
-  // The draft outlives the page (it is keyed by dive), so an open without a
-  // saved scenario starts over: "New scenario" and the What if menu must
-  // never edit, or re-save over, whatever the last visit left behind. The
-  // branch then seeds from the chart selection or the final ascent again.
-  if (scenarioId == null) {
-    ProviderScope.containerOf(
-      context,
-      listen: false,
-    ).read(labDraftProvider(diveId).notifier).reset();
-  }
+  // The draft outlives the page (it is keyed by dive), so every open starts
+  // over: "New scenario" and the What if menu must never edit, or re-save
+  // over, whatever the last visit left behind, and a saved scenario that
+  // fails to load (deleted elsewhere and synced away) must not leave it on
+  // screen either. The branch then seeds from the chart selection or the
+  // final ascent, and a saved scenario replaces the draft once it loads.
+  ProviderScope.containerOf(
+    context,
+    listen: false,
+  ).read(labDraftProvider(diveId).notifier).reset();
   return Navigator.of(context, rootNavigator: true).push(
     MaterialPageRoute<void>(
       builder: (_) => DiveLabPage(diveId: diveId, scenarioId: scenarioId),
@@ -99,8 +99,12 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
     try {
       switch (what) {
         case 'pdf':
-          final outcome = ref.read(scenarioOutcomeProvider(diveId)).valueOrNull;
-          if (outcome == null) return;
+          // Tapped during a recompute, wait for the current draft's outcome
+          // rather than dropping the tap (valueOrNull is null while loading).
+          final outcome = await ref.read(
+            scenarioOutcomeProvider(diveId).future,
+          );
+          if (outcome == null || !mounted) return;
           final png = await captureLabChart(_chartKey);
           if (!mounted) return;
           final section = labSlateScenario(
