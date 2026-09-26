@@ -66,6 +66,24 @@ enum ImportNoticeKind {
   /// imported dives affected.
   sitesUnresolved,
 
+  /// A remote source's gear list could not be fetched, so no gear was
+  /// imported. [ImportNotice.count] is always 1.
+  gearUnavailable,
+
+  /// A remote source's certification list could not be fetched.
+  /// [ImportNotice.count] is always 1.
+  certificationsUnavailable,
+
+  /// A remote source could not list some dives' photos, so those photos
+  /// were not imported. [ImportNotice.count] is the number of dives.
+  photoListingsUnavailable,
+
+  /// Photos a remote source listed that could not be downloaded or saved
+  /// at import time. [ImportNotice.count] is the number of photos. Appended
+  /// by the adapter after the grouped parser notices, like
+  /// [diveNumberConflict].
+  photosNotDownloaded,
+
   /// With "Retain source dive numbers" on, an imported dive kept a number
   /// that another dive in the log already uses. The number is kept as the
   /// diver asked rather than silently changed, so the diver is told instead
@@ -96,7 +114,11 @@ enum ImportNoticeKind {
     valuesNotConverted ||
     photosSkipped ||
     macdiveXmlOmitsCertsAndService ||
-    macdiveLogbooksNotImported => false,
+    macdiveLogbooksNotImported ||
+    gearUnavailable ||
+    certificationsUnavailable ||
+    photoListingsUnavailable ||
+    photosNotDownloaded => false,
   };
 }
 

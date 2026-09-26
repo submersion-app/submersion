@@ -101,6 +101,15 @@ abstract final class EquipmentAttrKeys {
   static const cellSlot = 'cell_slot';
   static const installedDate = 'installed_date';
   static const rechargeable = 'rechargeable';
+
+  // DPV mission planning (issue #2086). The three existing keys are named
+  // here so the planner never spells a raw string; the two tow factors are
+  // new and default when absent (see ScooterSpec).
+  static const dpvSpeedMps = 'speed_mps';
+  static const dpvBurnTimeH = 'burn_time_h';
+  static const dpvBatteryCapacityWh = 'battery_capacity_wh';
+  static const towSpeedFactor = 'tow_speed_factor';
+  static const towBurnFactor = 'tow_burn_factor';
 }
 
 class EquipmentAttributeDef {
@@ -578,6 +587,18 @@ abstract final class EquipmentAttributeCatalog {
         key: 'speed_mps',
         kind: AttributeKind.number,
         dimension: AttributeDimension.speedMps,
+      ),
+      // Towing a dead scooter's diver: the tower's speed as a fraction of
+      // rated, and the burn-rate multiplier. Absent means the planner's
+      // defaults (0.6 and 1.5), so a diver only fills these in to correct
+      // them for a ride-on or an unusually strong scooter.
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.towSpeedFactor,
+        kind: AttributeKind.number,
+      ),
+      EquipmentAttributeDef(
+        key: EquipmentAttrKeys.towBurnFactor,
+        kind: AttributeKind.number,
       ),
       // Shared verbatim with the camera and rebreather entries.
       EquipmentAttributeDef(

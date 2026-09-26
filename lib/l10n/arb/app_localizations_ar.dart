@@ -10347,6 +10347,149 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get divelogsImport_fetch_button => 'جلب سجل الغوص';
+
+  @override
+  String get divelogsImport_fetch_certificationsUnavailable =>
+      'تعذّر جلب الشهادات ولن يتم استيرادها.';
+
+  @override
+  String get divelogsImport_fetch_empty =>
+      'لا يوجد في سجل divelogs.de الخاص بك ما يمكن استيراده.';
+
+  @override
+  String get divelogsImport_fetch_failedTitle => 'تعذّر جلب سجلك';
+
+  @override
+  String get divelogsImport_fetch_fetching => 'جارٍ جلب سجلك…';
+
+  @override
+  String divelogsImport_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تم العثور على $count غوصة',
+      many: 'تم العثور على $count غوصة',
+      few: 'تم العثور على $count غوصات',
+      two: 'تم العثور على $count غوصتين',
+      one: 'تم العثور على $count غوصة',
+      zero: 'لم يتم العثور على أي غوصة',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divelogsImport_fetch_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة للاستيراد',
+      many: '$count صورة للاستيراد',
+      few: '$count صور للاستيراد',
+      two: '$count صورتان للاستيراد',
+      one: '$count صورة للاستيراد',
+      zero: 'لا توجد صور لاستيرادها',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_gearUnavailable =>
+      'تعذّر جلب المعدات؛ سيتم استيراد الغوصات بدون روابط المعدات.';
+
+  @override
+  String get divelogsImport_fetch_includePhotos => 'تضمين الصور';
+
+  @override
+  String get divelogsImport_fetch_includePhotosHint =>
+      'يتم تنزيل الصور أثناء الاستيراد إلى مجلد تختاره.';
+
+  @override
+  String divelogsImport_fetch_listingPhotos(int current, int total) {
+    return 'جارٍ سرد صور الغوصة $current من $total…';
+  }
+
+  @override
+  String divelogsImport_fetch_photoListingsFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذّر سرد صور $count غوصة.',
+      many: 'تعذّر سرد صور $count غوصة.',
+      few: 'تعذّر سرد صور $count غوصات.',
+      two: 'تعذّر سرد صور $count غوصتين.',
+      one: 'تعذّر سرد صور $count غوصة.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_retry => 'إعادة المحاولة';
+
+  @override
+  String get divelogsImport_fetch_sessionExpired =>
+      'انتهت صلاحية جلستك على divelogs.de. عُد وسجّل الدخول مرة أخرى.';
+
+  @override
+  String divelogsImport_fetch_skippedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذّرت قراءة $count غوصة وسيتم تخطيها.',
+      many: 'تعذّرت قراءة $count غوصة وسيتم تخطيها.',
+      few: 'تعذّرت قراءة $count غوصات وسيتم تخطيها.',
+      two: 'تعذّرت قراءة $count غوصتين وسيتم تخطيهما.',
+      one: 'تعذّرت قراءة $count غوصة وسيتم تخطيها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_signIn_badCredentials =>
+      'رفض divelogs.de اسم المستخدم أو كلمة المرور.';
+
+  @override
+  String get divelogsImport_signIn_button => 'تسجيل الدخول';
+
+  @override
+  String get divelogsImport_signIn_description =>
+      'سجّل الدخول بحساب divelogs.de الخاص بك لاستيراد سجلك. لا يتم تخزين كلمة المرور مطلقًا، بل يتم تخزين الجلسة الناتجة مؤقتًا فقط.';
+
+  @override
+  String get divelogsImport_signIn_passwordLabel => 'كلمة المرور';
+
+  @override
+  String get divelogsImport_signIn_passwordRequired => 'كلمة المرور مطلوبة';
+
+  @override
+  String divelogsImport_signIn_signedInAs(String username) {
+    return 'تم تسجيل الدخول باسم $username';
+  }
+
+  @override
+  String get divelogsImport_signIn_signingIn => 'جارٍ تسجيل الدخول…';
+
+  @override
+  String get divelogsImport_signIn_signOut => 'تسجيل الخروج';
+
+  @override
+  String get divelogsImport_signIn_title => 'تسجيل الدخول إلى divelogs.de';
+
+  @override
+  String get divelogsImport_signIn_unexpected =>
+      'أرسل divelogs.de استجابة غير متوقعة. حاول مرة أخرى لاحقًا.';
+
+  @override
+  String get divelogsImport_signIn_unreachable =>
+      'تعذّر الوصول إلى divelogs.de. تحقق من الاتصال وحاول مرة أخرى.';
+
+  @override
+  String get divelogsImport_signIn_usernameLabel => 'اسم المستخدم';
+
+  @override
+  String get divelogsImport_signIn_usernameRequired => 'اسم المستخدم مطلوب';
+
+  @override
   String get divers_detail_activeDiver => 'الغواص النشط';
 
   @override
@@ -16225,7 +16368,64 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_library_viewMode_grid => 'شبكة';
 
   @override
+  String get media_library_viewMode_map => 'خريطة';
+
+  @override
   String get media_library_viewMode_timeline => 'الخط الزمني';
+
+  @override
+  String get media_map_closeStrip => 'إغلاق';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر في $place',
+      two: 'عنصران في $place',
+      one: 'عنصر واحد في $place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint =>
+      'تُوضع الصور ومقاطع الفيديو حسب إحداثيات GPS الخاصة بها، أو نقطة دخول الغوصة، أو موقع الغوص.';
+
+  @override
+  String get media_map_emptyTitle => 'لا توجد وسائط لها موقع';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return 'خطأ في تحميل مواقع الوسائط: $error';
+  }
+
+  @override
+  String get media_map_markerSemantics => 'فتح الوسائط';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر',
+      two: 'عنصران',
+      one: 'عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر بلا موقع',
+      two: 'عنصران بلا موقع',
+      one: 'عنصر واحد بلا موقع',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => 'الانتقال إلى الغطسة';
@@ -21362,6 +21562,20 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا يمكن الكتابة في هذا المجلد. اختر مجلدًا آخر.';
 
   @override
+  String importWizard_photos_downloadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count صورة للتنزيل',
+      many: '$count صورة للتنزيل',
+      few: '$count صور للتنزيل',
+      two: '$count صورتان للتنزيل',
+      one: '$count صورة للتنزيل',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String importWizard_review_olderDivesSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23837,6 +24051,63 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get universalImport_summary_noticeSitesUnresolvedBody =>
       'أشارت هذه الغطسات إلى موقع غوص لا يصفه الملف، فاستُوردت بدون موقع. يمكنك تعيين موقع بتحرير الغطسة.';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableTitle =>
+      'لم يتم استيراد المعدات';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableBody =>
+      'تعذّر جلب قائمة المعدات، لذا لم يتم استيراد أي معدات ولم تُربط الغطسات بمعداتها. استورد مجددًا لاحقًا لإضافتها.';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
+      'لم يتم استيراد الشهادات';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableBody =>
+      'تعذّر جلب قائمة الشهادات، لذا لم يتم استيراد أي شهادات. استورد مجددًا لاحقًا لإضافتها.';
+
+  @override
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
+      'تعذّر سرد بعض الصور';
+
+  @override
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'تعذّر سرد صور $count غطسة، لذا لم يتم استيرادها.',
+      many: 'تعذّر سرد صور $count غطسة، لذا لم يتم استيرادها.',
+      few: 'تعذّر سرد صور $count غطسات، لذا لم يتم استيرادها.',
+      two: 'تعذّر سرد صور $count غطستين، لذا لم يتم استيرادها.',
+      one: 'تعذّر سرد صور $count غطسة، لذا لم يتم استيرادها.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
+      'لم يتم تنزيل بعض الصور';
+
+  @override
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'تعذّر تنزيل $count صورة. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+      many:
+          'تعذّر تنزيل $count صورة. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+      few:
+          'تعذّر تنزيل $count صور. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+      two:
+          'تعذّر تنزيل $count صورتين. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+      one:
+          'تعذّر تنزيل $count صورة. استورد مجددًا لإعادة المحاولة؛ لن تتكرر الصور المحفوظة بالفعل.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
@@ -28489,6 +28760,12 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => 'السرعة القصوى';
+
+  @override
+  String get attrLabel_tow_burn_factor => 'معامل استهلاك البطارية أثناء السحب';
+
+  @override
+  String get attrLabel_tow_speed_factor => 'معامل السرعة أثناء السحب';
 
   @override
   String get attrLabel_sku => 'رمز المنتج (SKU)';
@@ -41122,6 +41399,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get transfer_importCloud_garminSubtitle =>
       'استيراد الغوصات من حساب Garmin Connect الخاص بك';
+
+  @override
+  String get transfer_importCloud_divelogsTitle => 'divelogs.de';
+
+  @override
+  String get transfer_importCloud_divelogsSubtitle =>
+      'استيراد سجلك ومواقعك ومعداتك وشهاداتك وصورك من divelogs.de';
 
   @override
   String get transfer_section_cloudTitle => 'السحابة';

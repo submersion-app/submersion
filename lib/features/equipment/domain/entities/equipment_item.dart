@@ -148,6 +148,16 @@ class EquipmentItem extends Equatable {
   double? get workingPressureBar =>
       attrNum(EquipmentAttrKeys.workingPressureBar);
 
+  /// DPV specs (curated attributes; see the DPV entry in
+  /// [EquipmentAttributeCatalog]). Null when unspecified. Burn time is stored
+  /// in hours and the tow factors are dimensionless (issue #2086).
+  double? get dpvSpeedMps => attrNum(EquipmentAttrKeys.dpvSpeedMps);
+  double? get dpvBurnTimeHours => attrNum(EquipmentAttrKeys.dpvBurnTimeH);
+  double? get dpvBatteryCapacityWh =>
+      attrNum(EquipmentAttrKeys.dpvBatteryCapacityWh);
+  double? get dpvTowSpeedFactor => attrNum(EquipmentAttrKeys.towSpeedFactor);
+  double? get dpvTowBurnFactor => attrNum(EquipmentAttrKeys.towBurnFactor);
+
   /// The catalog stores the choice key ('aluminum', 'steel',
   /// 'carbon_composite'); the enum name for the last one differs.
   TankMaterial? get tankMaterial =>

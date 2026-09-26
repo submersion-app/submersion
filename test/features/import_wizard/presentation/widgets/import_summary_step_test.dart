@@ -1521,6 +1521,57 @@ void main() {
       );
     });
 
+    testWidgets('says gear could not be fetched', (tester) async {
+      await expectCard(
+        tester,
+        const ImportNotice(kind: ImportNoticeKind.gearUnavailable, count: 1),
+        title: 'Gear not imported',
+        bodyFragment: 'gear list could not be fetched',
+        countLine: null,
+      );
+    });
+
+    testWidgets('says certifications could not be fetched', (tester) async {
+      await expectCard(
+        tester,
+        const ImportNotice(
+          kind: ImportNoticeKind.certificationsUnavailable,
+          count: 1,
+        ),
+        title: 'Certifications not imported',
+        bodyFragment: 'certification list could not be fetched',
+        countLine: null,
+      );
+    });
+
+    testWidgets('counts dives whose photos could not be listed', (
+      tester,
+    ) async {
+      await expectCard(
+        tester,
+        const ImportNotice(
+          kind: ImportNoticeKind.photoListingsUnavailable,
+          count: 4,
+        ),
+        title: 'Some photos not listed',
+        bodyFragment: 'Photos for 4 dives could not be listed',
+        countLine: null,
+      );
+    });
+
+    testWidgets('counts photos that could not be downloaded', (tester) async {
+      await expectCard(
+        tester,
+        const ImportNotice(
+          kind: ImportNoticeKind.photosNotDownloaded,
+          count: 1,
+        ),
+        title: 'Some photos not downloaded',
+        bodyFragment: '1 photo could not be downloaded',
+        countLine: null,
+      );
+    });
+
     testWidgets('points a MacDive XML import at the sqlite database', (
       tester,
     ) async {
