@@ -41160,9 +41160,6 @@ class AppLocalizationsDe extends AppLocalizations {
   String get diveLab_sheet_allBailout => 'Alle Bailout-Flaschen';
 
   @override
-  String get diveLab_share_menu => 'Teilen';
-
-  @override
   String get diveLab_share_pdf => 'PDF-Slate teilen';
 
   @override

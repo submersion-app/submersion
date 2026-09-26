@@ -1,8 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/constants/enums.dart';
+import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_intervention.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_mode.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_outcome.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_request.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_settings.dart';
 import 'package:submersion/features/dive_lab/domain/services/scenario_engine.dart';
 import 'package:submersion/features/dive_lab/presentation/pages/dive_lab_page.dart';
@@ -71,7 +78,11 @@ GoRouter _router() => GoRouter(
   ],
 );
 
-Widget _app(GoRouter router, LabRequestInputs inputs) => testAppRouter(
+Widget _app(
+  GoRouter router,
+  LabRequestInputs inputs, {
+  Future<ScenarioOutcome> Function(ScenarioRequest)? runner,
+}) => testAppRouter(
   router: router,
   locale: const Locale('en'),
   overrides: [
@@ -79,7 +90,7 @@ Widget _app(GoRouter router, LabRequestInputs inputs) => testAppRouter(
     labRequestInputsProvider('d').overrideWith((ref) async => inputs),
     labDefaultBranchProvider('d').overrideWith((ref) async => 900),
     scenarioEngineRunnerProvider.overrideWithValue(
-      (request) async => const ScenarioEngine().run(request),
+      runner ?? (request) async => const ScenarioEngine().run(request),
     ),
     gasSwitchesProvider.overrideWith((ref, id) async => <GasSwitchWithTank>[]),
     diveProvider.overrideWith((ref, id) async => inputs.dive),
@@ -178,4 +189,112 @@ void main() {
       expect(find.text('planner page'), findsOneWidget);
     },
   );
+
+  testWidgets('opening the lab without a scenario starts a fresh draft', (
+    tester,
+  ) async {
+    final router = _router();
+    addTearDown(router.dispose);
+    await tester.pumpWidget(_app(router, _inputs()));
+    await tester.pumpAndSettle();
+    final container = ProviderScope.containerOf(
+      tester.element(find.text('open lab')),
+    );
+    // A scenario left in the draft by an earlier visit.
+    container
+        .read(labDraftProvider('d').notifier)
+        .loadScenario(
+          DiveScenario(
+            id: 'saved-a',
+            diveId: 'd',
+            name: 'Lost deco',
+            branchSeconds: 1200,
+            mode: ScenarioMode.replan,
+            interventions: const [AscendNowIntervention()],
+            createdAt: DateTime(2026),
+            updatedAt: DateTime(2026),
+          ),
+        );
+    await tester.tap(find.text('open lab'));
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    final draft = container.read(labDraftProvider('d'));
+    expect(draft.scenarioId, isNull);
+    expect(draft.name, isNull);
+    expect(draft.interventions, isEmpty);
+    expect(draft.branchSeconds, 900);
+  });
+
+  testWidgets('a sheet opened over the lab during the hand-off survives it', (
+    tester,
+  ) async {
+    final router = _router();
+    addTearDown(router.dispose);
+    var gate = Completer<void>()..complete();
+    await tester.pumpWidget(
+      _app(
+        router,
+        _inputs(),
+        runner: (request) async {
+          await gate.future;
+          return const ScenarioEngine().run(request);
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+    await _openLabAndMenu(tester);
+    gate = Completer<void>();
+    await tester.tap(find.text('Open in planner'));
+    await tester.pump();
+    // While the engine runs, something else opens above the lab.
+    unawaited(
+      showDialog<void>(
+        context: tester.element(find.byType(DiveLabPage)),
+        builder: (_) => const AlertDialog(content: Text('over the lab')),
+      ),
+    );
+    await tester.pump();
+    gate.complete();
+    await tester.pumpAndSettle();
+    // The lab route itself went, not the dialog opened above it: the dialog
+    // is still on the stack (beneath the planner the router just pushed).
+    expect(find.byType(DiveLabPage, skipOffstage: false), findsNothing);
+    expect(find.text('over the lab', skipOffstage: false), findsOneWidget);
+    expect(find.text('planner page'), findsOneWidget);
+  });
+
+  testWidgets('a re-plan draft hands off the outcome already on screen', (
+    tester,
+  ) async {
+    final router = _router();
+    addTearDown(router.dispose);
+    var runs = 0;
+    await tester.pumpWidget(
+      _app(
+        router,
+        _inputs(),
+        runner: (request) async {
+          runs++;
+          return const ScenarioEngine().run(request);
+        },
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('open lab'));
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await tester.tap(find.text('Re-plan'));
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    final before = runs;
+    await tester.tap(find.byTooltip('More'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Open in planner'));
+    await tester.pumpAndSettle();
+    expect(find.text('planner page'), findsOneWidget);
+    expect(runs, before);
+  });
 }

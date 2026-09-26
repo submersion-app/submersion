@@ -66276,12 +66276,6 @@ abstract class AppLocalizations {
   /// **'All bailout cylinders'**
   String get diveLab_sheet_allBailout;
 
-  /// No description provided for @diveLab_share_menu.
-  ///
-  /// In en, this message translates to:
-  /// **'Share'**
-  String get diveLab_share_menu;
-
   /// No description provided for @diveLab_share_pdf.
   ///
   /// In en, this message translates to:

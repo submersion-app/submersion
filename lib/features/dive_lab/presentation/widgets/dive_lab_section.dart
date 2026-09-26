@@ -6,7 +6,7 @@ import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart'
 import 'package:submersion/features/dive_lab/presentation/lab_format.dart';
 import 'package:submersion/features/dive_lab/presentation/pages/dive_lab_page.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/dive_scenario_providers.dart';
-import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -25,10 +25,12 @@ class DiveLabSection extends ConsumerWidget {
     final scenarios =
         ref.watch(diveScenariosForDiveProvider(diveId)).valueOrNull ??
         const <DiveScenario>[];
-    final tanks = ref
-        .watch(labRequestInputsProvider(diveId))
-        .valueOrNull
-        ?.tanks;
+    // Tank names come from the dive itself; the full lab inputs (profile,
+    // pressures, residual tissues, logged SAC) are only assembled when a
+    // saved scenario's summary actually needs an outcome.
+    final tanks = scenarios.isEmpty
+        ? null
+        : ref.watch(diveProvider(diveId)).valueOrNull?.tanks;
     String tankName(String id) => tanks == null ? id : labTankName(tanks, id);
 
     return Card(

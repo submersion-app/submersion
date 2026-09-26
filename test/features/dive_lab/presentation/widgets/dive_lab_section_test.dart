@@ -38,6 +38,32 @@ void main() {
     expect(find.byType(ListTile), findsNothing);
   });
 
+  testWidgets('does not assemble lab inputs when nothing is saved', (
+    tester,
+  ) async {
+    final dive = await DiveRepository().createDive(
+      Dive(id: '', diveNumber: 1, dateTime: DateTime(2026, 1, 1)),
+    );
+    var assembled = false;
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+          labRequestInputsProvider(dive.id).overrideWith((ref) async {
+            assembled = true;
+            return null;
+          }),
+        ],
+        locale: const Locale('en'),
+        child: SingleChildScrollView(child: DiveLabSection(diveId: dive.id)),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text('New scenario'), findsOneWidget);
+    expect(assembled, isFalse);
+  });
+
   testWidgets('lists saved scenarios with their summary', (tester) async {
     final dive = await DiveRepository().createDive(
       Dive(id: '', diveNumber: 1, dateTime: DateTime(2026, 1, 1)),

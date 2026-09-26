@@ -40427,9 +40427,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get diveLab_sheet_allBailout => 'כל מיכלי הביילאוט';
 
   @override
-  String get diveLab_share_menu => 'שיתוף';
-
-  @override
   String get diveLab_share_pdf => 'שיתוף דף PDF';
 
   @override

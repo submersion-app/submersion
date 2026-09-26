@@ -41361,9 +41361,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get diveLab_sheet_allBailout => 'Tous les blocs de bailout';
 
   @override
-  String get diveLab_share_menu => 'Partager';
-
-  @override
   String get diveLab_share_pdf => 'Partager la fiche PDF';
 
   @override

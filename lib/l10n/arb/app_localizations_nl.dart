@@ -40972,9 +40972,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get diveLab_sheet_allBailout => 'Alle bailoutflessen';
 
   @override
-  String get diveLab_share_menu => 'Delen';
-
-  @override
   String get diveLab_share_pdf => 'PDF-slate delen';
 
   @override

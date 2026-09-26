@@ -41083,9 +41083,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get diveLab_sheet_allBailout => 'Minden bailout palack';
 
   @override
-  String get diveLab_share_menu => 'Megosztás';
-
-  @override
   String get diveLab_share_pdf => 'PDF-lap megosztása';
 
   @override

@@ -41263,9 +41263,6 @@ class AppLocalizationsPt extends AppLocalizations {
   String get diveLab_sheet_allBailout => 'Todas as garrafas de bailout';
 
   @override
-  String get diveLab_share_menu => 'Partilhar';
-
-  @override
   String get diveLab_share_pdf => 'Partilhar ficha PDF';
 
   @override

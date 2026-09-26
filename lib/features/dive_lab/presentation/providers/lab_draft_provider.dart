@@ -120,6 +120,11 @@ class LabDraftNotifier extends StateNotifier<LabDraft> {
     state = state.copyWith(interventions: const []);
   }
 
+  /// Starts over: no branch, no interventions, not tied to a saved scenario.
+  void reset() {
+    state = const LabDraft();
+  }
+
   /// Replaces the draft with a saved scenario (authoritative, even when the
   /// default branch was already seeded).
   void loadScenario(DiveScenario scenario) {

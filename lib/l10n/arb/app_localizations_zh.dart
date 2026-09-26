@@ -38836,9 +38836,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get diveLab_sheet_allBailout => '全部逼出气瓶';
 
   @override
-  String get diveLab_share_menu => '分享';
-
-  @override
   String get diveLab_share_pdf => '分享 PDF 卡片';
 
   @override

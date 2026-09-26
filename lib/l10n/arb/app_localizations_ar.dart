@@ -40924,9 +40924,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get diveLab_sheet_allBailout => 'كل أسطوانات الطوارئ';
 
   @override
-  String get diveLab_share_menu => 'مشاركة';
-
-  @override
   String get diveLab_share_pdf => 'مشاركة بطاقة PDF';
 
   @override

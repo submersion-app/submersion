@@ -41249,9 +41249,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get diveLab_sheet_allBailout => 'Tutte le bombole di bailout';
 
   @override
-  String get diveLab_share_menu => 'Condividi';
-
-  @override
   String get diveLab_share_pdf => 'Condividi scheda PDF';
 
   @override

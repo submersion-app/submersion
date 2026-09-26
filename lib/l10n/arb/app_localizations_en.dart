@@ -40637,9 +40637,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get diveLab_sheet_allBailout => 'All bailout cylinders';
 
   @override
-  String get diveLab_share_menu => 'Share';
-
-  @override
   String get diveLab_share_pdf => 'Share PDF slate';
 
   @override

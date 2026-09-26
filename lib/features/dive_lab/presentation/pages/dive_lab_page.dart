@@ -40,6 +40,16 @@ Future<void> showDiveLab(
   String diveId, {
   String? scenarioId,
 }) {
+  // The draft outlives the page (it is keyed by dive), so an open without a
+  // saved scenario starts over: "New scenario" and the What if menu must
+  // never edit, or re-save over, whatever the last visit left behind. The
+  // branch then seeds from the chart selection or the final ascent again.
+  if (scenarioId == null) {
+    ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(labDraftProvider(diveId).notifier).reset();
+  }
   return Navigator.of(context, rootNavigator: true).push(
     MaterialPageRoute<void>(
       builder: (_) => DiveLabPage(diveId: diveId, scenarioId: scenarioId),
@@ -140,13 +150,20 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
   /// without opening the planner leaves the lab where it was.
   Future<void> _rebuildInPlanner(LabRequestInputs inputs) async {
     final router = GoRouter.of(context);
-    final rootNavigator = Navigator.of(context, rootNavigator: true);
+    final labRoute = ModalRoute.of(context);
     await showWhatIfSheet(context, inputs.dive);
     final location =
         router.routerDelegate.currentConfiguration.last.matchedLocation;
     if (location == '/planning/dive-planner' && mounted) {
-      rootNavigator.pop();
+      _leaveLab(labRoute);
     }
+  }
+
+  /// Removes this page's own route, wherever it sits in the root navigator's
+  /// stack, so anything opened above it meanwhile (a sheet, a dialog) stays.
+  void _leaveLab(ModalRoute<Object?>? labRoute) {
+    if (labRoute == null || !labRoute.isActive) return;
+    labRoute.navigator?.removeRoute(labRoute);
   }
 
   /// Hands the current draft to the planner as an unsaved plan and opens the
@@ -157,7 +174,7 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
     final l10n = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
-    final rootNavigator = Navigator.of(context, rootNavigator: true);
+    final labRoute = ModalRoute.of(context);
     final units = UnitFormatter(ref.read(settingsProvider));
     final draft = ref.read(labDraftProvider(diveId));
     if (!draft.isSeeded) return;
@@ -176,7 +193,17 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
       final request = inputs.toRequest(
         scenario.copyWith(mode: ScenarioMode.replan),
       );
-      final outcome = await ref.read(scenarioEngineRunnerProvider)(request);
+      // A re-plan draft already has this outcome on screen (the provider is
+      // keyed by the draft); only a replay draft needs the re-plan computed.
+      final shown = ref.read(scenarioOutcomeProvider(diveId));
+      final reusable =
+          draft.effectiveMode == ScenarioMode.replan &&
+              shown.hasValue &&
+              !shown.isLoading
+          ? shown.value
+          : null;
+      final outcome =
+          reusable ?? await ref.read(scenarioEngineRunnerProvider)(request);
       final switches = await ref.read(gasSwitchesProvider(diveId).future);
       if (!mounted) return;
       final dive = inputs.dive;
@@ -210,9 +237,9 @@ class _DiveLabPageState extends ConsumerState<DiveLabPage> {
       }
       // The lab is an imperative route on the root navigator, above every
       // page the router manages; a route pushed while it is up lands beneath
-      // it. Leave first, then push. The draft survives in its provider, so
-      // reopening the lab from the dive shows the same scenario.
-      rootNavigator.pop();
+      // it. Leave first, then push. A saved scenario reopens from the dive's
+      // What if card; an unsaved draft does not survive the hand-off.
+      _leaveLab(labRoute);
       router.push('/planning/dive-planner');
     } catch (e) {
       messenger.showSnackBar(
