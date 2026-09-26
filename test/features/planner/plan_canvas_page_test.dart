@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +11,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
+import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
@@ -52,8 +55,9 @@ void main() {
 
   // Convert to Dive creates the dive through the dive list notifier, which
   // reads the current diver; the real provider needs SharedPreferences.
-  Widget harness({String? diverId}) => testApp(
+  Widget harness({String? diverId, List<dynamic> extra = const []}) => testApp(
     overrides: [
+      ...extra,
       settingsProvider.overrideWith((ref) => _TestSettingsNotifier()),
       currentDiverIdProvider.overrideWith((ref) {
         final notifier = MockCurrentDiverIdNotifier();
@@ -398,6 +402,36 @@ void main() {
     final listed = await convertAt(tester, diverId: null, siteId: siteId);
     expect(listed, hasLength(1));
     expect(listed.single.site?.id, siteId);
+  });
+
+  testWidgets('convert rechecks the plan once the site lookup lands', (
+    tester,
+  ) async {
+    final lookup = Completer<DiveSite?>();
+    await setSize(tester, const Size(420, 900));
+    await tester.pumpWidget(
+      harness(extra: [siteProvider.overrideWith((ref, id) => lookup.future)]),
+    );
+    final notifier = ProviderScope.containerOf(
+      tester.element(find.byType(PlanCanvasPage)),
+    ).read(divePlanNotifierProvider.notifier);
+    seed(tester);
+    notifier.updateSite('pending-site');
+    await tester.pumpAndSettle();
+
+    // Convert while the plan is valid, then make it invalid (a deep air
+    // plan trips a critical gas-density issue) before the lookup resolves.
+    await openMenu(tester, 'Convert to Dive');
+    notifier.addSimplePlan(maxDepth: 50, bottomTimeMinutes: 25);
+    lookup.complete(null);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Cannot convert: plan has critical warnings'),
+      findsOneWidget,
+    );
+    final dives = await tester.runAsync(() => DiveRepository().getAllDives());
+    expect(dives, isEmpty);
   });
 
   testWidgets('tapping the title renames the plan', (tester) async {

@@ -699,8 +699,18 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   }
 
   Future<void> _convertToDive() async {
-    final isValid = ref.read(planIsValidProvider);
-    if (!isValid) {
+    // The plan holds only the site id; the dive needs the site itself. A site
+    // deleted since the plan was saved resolves to null and is left off.
+    final siteId = ref.read(divePlanNotifierProvider).siteId;
+    final site = siteId == null
+        ? null
+        : await ref.read(siteProvider(siteId).future);
+    if (!mounted) return;
+
+    // Checked after the lookup, with the rest of the plan below: the diver
+    // can still edit while it resolves, and a plan made invalid meanwhile
+    // must not be converted.
+    if (!ref.read(planIsValidProvider)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.l10n.divePlanner_error_cannotConvert),
@@ -709,14 +719,6 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       );
       return;
     }
-
-    // The plan holds only the site id; the dive needs the site itself. A site
-    // deleted since the plan was saved resolves to null and is left off.
-    final siteId = ref.read(divePlanNotifierProvider).siteId;
-    final site = siteId == null
-        ? null
-        : await ref.read(siteProvider(siteId).future);
-    if (!mounted) return;
 
     // Saved plans are not diver-scoped, so the plan may name a site private to
     // another diver. Attach only a shared site or one the dive's own owner
