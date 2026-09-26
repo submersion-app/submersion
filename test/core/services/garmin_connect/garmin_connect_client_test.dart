@@ -170,6 +170,8 @@ Map<String, dynamic> _diveActivity({
   String typeKey = 'single_gas_diving',
   double? startLatitude,
   double? startLongitude,
+  double? endLatitude,
+  double? endLongitude,
 }) => {
   'activityId': id,
   'startTimeGMT': startTimeGmt,
@@ -177,6 +179,8 @@ Map<String, dynamic> _diveActivity({
   'activityName': 'Dive $id',
   'startLatitude': ?startLatitude,
   'startLongitude': ?startLongitude,
+  'endLatitude': ?endLatitude,
+  'endLongitude': ?endLongitude,
 };
 
 void main() {
@@ -467,6 +471,26 @@ void main() {
       expect(dives.single.longitude, -16.3228);
     });
 
+    test('carries Connect\'s own end position through the summary', () async {
+      final server = _FakeGarminServer()
+        ..activities.add(
+          _diveActivity(
+            id: 9,
+            startLatitude: 28.4594,
+            startLongitude: -16.3228,
+            endLatitude: 28.4612,
+            endLongitude: -16.3251,
+          ),
+        );
+      final client = GarminConnectClient(httpClient: server.client);
+      await client.login('diver@example.com', 'hunter2');
+
+      final dives = await client.listDives();
+
+      expect(dives.single.exitLatitude, 28.4612);
+      expect(dives.single.exitLongitude, -16.3251);
+    });
+
     test(
       'leaves position null when Connect has none for the activity',
       () async {
@@ -479,6 +503,8 @@ void main() {
 
         expect(dives.single.latitude, isNull);
         expect(dives.single.longitude, isNull);
+        expect(dives.single.exitLatitude, isNull);
+        expect(dives.single.exitLongitude, isNull);
       },
     );
 

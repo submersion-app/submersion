@@ -21,6 +21,8 @@ class GarminActivitySummary {
     this.durationSeconds,
     this.latitude,
     this.longitude,
+    this.exitLatitude,
+    this.exitLongitude,
   });
 
   final int activityId;
@@ -48,6 +50,13 @@ class GarminActivitySummary {
   /// file's own start-of-session field doesn't.
   final double? latitude;
   final double? longitude;
+
+  /// Garmin Connect's own end-position estimate for the activity, kept as the
+  /// exit-position fallback for the same reason as [latitude]/[longitude]:
+  /// the FIT file's `session.end_position_lat/long` is only set when the watch
+  /// got a fix after surfacing.
+  final double? exitLatitude;
+  final double? exitLongitude;
 }
 
 /// One page of the dive-activity listing, plus the cursor needed to ask for
@@ -427,6 +436,8 @@ class GarminConnectClient {
       durationSeconds: (item['duration'] as num?)?.round(),
       latitude: (item['startLatitude'] as num?)?.toDouble(),
       longitude: (item['startLongitude'] as num?)?.toDouble(),
+      exitLatitude: (item['endLatitude'] as num?)?.toDouble(),
+      exitLongitude: (item['endLongitude'] as num?)?.toDouble(),
     );
   }
 
