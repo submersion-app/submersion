@@ -126,6 +126,13 @@ void main() {
       expect(formatDecimalForDisplay(12.345678), '12.345678');
     });
 
+    test('drops floating-point noise, keeping the display trailing zero '
+        '(#2032)', () {
+      Intl.defaultLocale = 'en_US';
+      expect(formatDecimalForDisplay(55 / 100.0 * 100.0), '55.0');
+      expect(formatDecimalForDisplay(0.1 + 0.2), '0.3');
+    });
+
     test('spells out a magnitude that stringifies in exponent notation', () {
       // No diver can read "1e+21" off a checklist tile.
       Intl.defaultLocale = 'en_US';
