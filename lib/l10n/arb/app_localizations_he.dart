@@ -41273,6 +41273,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get profilePhoto_source_camera => 'צילום תמונה';
 
   @override
+  String get common_camera_unavailable =>
+      'לא ניתן היה לפתוח את המצלמה. נא לאפשר גישה למצלמה בהגדרות.';
+
+  @override
   String get profilePhoto_source_library => 'בחירה מהספרייה';
 
   @override

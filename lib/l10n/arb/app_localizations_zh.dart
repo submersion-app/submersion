@@ -39652,6 +39652,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get profilePhoto_source_camera => '拍照';
 
   @override
+  String get common_camera_unavailable => '无法打开相机。请在设置中允许访问相机。';
+
+  @override
   String get profilePhoto_source_library => '从图库中选择';
 
   @override

@@ -41837,6 +41837,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get profilePhoto_source_camera => 'Foto maken';
 
   @override
+  String get common_camera_unavailable =>
+      'De camera kon niet worden geopend. Sta cameratoegang toe via Instellingen.';
+
+  @override
   String get profilePhoto_source_library => 'Kies uit bibliotheek';
 
   @override

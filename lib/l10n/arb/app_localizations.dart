@@ -67463,6 +67463,12 @@ abstract class AppLocalizations {
   /// **'Take Photo'**
   String get profilePhoto_source_camera;
 
+  /// No description provided for @common_camera_unavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera could not be opened. Please allow camera access in Settings.'**
+  String get common_camera_unavailable;
+
   /// No description provided for @profilePhoto_source_library.
   ///
   /// In en, this message translates to:

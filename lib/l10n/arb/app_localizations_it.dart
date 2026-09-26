@@ -42104,6 +42104,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get profilePhoto_source_camera => 'Scatta foto';
 
   @override
+  String get common_camera_unavailable =>
+      'Impossibile aprire la fotocamera. Consenti l\'accesso alla fotocamera nelle Impostazioni.';
+
+  @override
   String get profilePhoto_source_library => 'Scegli dalla libreria';
 
   @override

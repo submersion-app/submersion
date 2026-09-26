@@ -12522,6 +12522,7 @@
   "settings_storageUsage_category_importedFiles": "原始导入文件",
   "profilePhoto_sheet_title": "个人资料照片",
   "profilePhoto_source_camera": "拍照",
+  "common_camera_unavailable": "无法打开相机。请在设置中允许访问相机。",
   "profilePhoto_source_library": "从图库中选择",
   "profilePhoto_source_file": "选择文件",
   "profilePhoto_source_contacts": "从通讯录中选择",

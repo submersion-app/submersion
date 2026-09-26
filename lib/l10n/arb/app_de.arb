@@ -12635,6 +12635,7 @@
   "settings_storageUsage_category_importedFiles": "Original-Importdateien",
   "profilePhoto_sheet_title": "Profilfoto",
   "profilePhoto_source_camera": "Foto aufnehmen",
+  "common_camera_unavailable": "Die Kamera konnte nicht geöffnet werden. Bitte erlauben Sie den Kamerazugriff in den Einstellungen.",
   "profilePhoto_source_library": "Aus Mediathek wählen",
   "profilePhoto_source_file": "Datei wählen",
   "profilePhoto_source_contacts": "Aus Kontakten wählen",

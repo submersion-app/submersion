@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/material.dart' hide Size;
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -237,5 +238,25 @@ void main() {
     await tapAndProcess(tester, 'Choose Photo');
     expect(harness.pushedExtras, isEmpty);
     expect(find.text('Choose Photo'), findsOneWidget);
+  });
+
+  testWidgets('a camera that is denied says so and stays on the page', (
+    tester,
+  ) async {
+    final harness = await pumpScanPage(
+      tester,
+      engine: FakeEngine(padiTrainingMetric()),
+      mobileLayout: true,
+      pickImage: (source) async =>
+          throw PlatformException(code: 'camera_access_denied'),
+    );
+    await tapAndProcess(tester, 'Take Photo');
+    expect(harness.pushedExtras, isEmpty);
+    expect(
+      find.text(
+        'The camera could not be opened. Please allow camera access in Settings.',
+      ),
+      findsOneWidget,
+    );
   });
 }

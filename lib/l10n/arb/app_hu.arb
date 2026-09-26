@@ -12522,6 +12522,7 @@
   "settings_storageUsage_category_importedFiles": "Eredeti importált fájlok",
   "profilePhoto_sheet_title": "Profilkép",
   "profilePhoto_source_camera": "Fénykép készítése",
+  "common_camera_unavailable": "A kamerát nem sikerült megnyitni. Kérem, engedélyezze a kamerahozzáférést a Beállításokban.",
   "profilePhoto_source_library": "Választás a könyvtárból",
   "profilePhoto_source_file": "Fájl választása",
   "profilePhoto_source_contacts": "Választás a névjegyekből",

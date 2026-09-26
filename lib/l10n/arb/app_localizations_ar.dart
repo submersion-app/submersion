@@ -41796,6 +41796,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get profilePhoto_source_camera => 'التقاط صورة';
 
   @override
+  String get common_camera_unavailable =>
+      'تعذّر فتح الكاميرا. يرجى السماح بالوصول إلى الكاميرا في الإعدادات.';
+
+  @override
   String get profilePhoto_source_library => 'الاختيار من المكتبة';
 
   @override

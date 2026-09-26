@@ -27,6 +27,13 @@ OS version and build for each line.
       the paste field still opens a tag.
 - [ ] A label at 25 mm scans from about 15 cm.
 
+## Existing camera features (Android now declares CAMERA)
+
+- [ ] Android: scan a paper logbook page with Take Photo; the camera
+      permission prompt appears once, and capture works after allowing it.
+- [ ] Android: deny the camera, then Take Photo for a logbook page and for a
+      profile photo: each shows the camera-access message, nothing crashes.
+
 ## Links
 
 - [ ] iPhone, app closed: tap `https://submersion.app/c#...` in Notes: the app

@@ -26015,6 +26015,7 @@
   "settings_storageUsage_category_importedFiles": "Imported logbook files",
   "profilePhoto_sheet_title": "Profile Photo",
   "profilePhoto_source_camera": "Take Photo",
+  "common_camera_unavailable": "The camera could not be opened. Please allow camera access in Settings.",
   "profilePhoto_source_library": "Choose from Library",
   "profilePhoto_source_file": "Choose File",
   "profilePhoto_source_contacts": "Choose from Contacts",

@@ -12522,6 +12522,7 @@
   "settings_storageUsage_category_importedFiles": "קובצי הייבוא המקוריים",
   "profilePhoto_sheet_title": "תמונת פרופיל",
   "profilePhoto_source_camera": "צילום תמונה",
+  "common_camera_unavailable": "לא ניתן היה לפתוח את המצלמה. נא לאפשר גישה למצלמה בהגדרות.",
   "profilePhoto_source_library": "בחירה מהספרייה",
   "profilePhoto_source_file": "בחירת קובץ",
   "profilePhoto_source_contacts": "בחירה מאנשי הקשר",

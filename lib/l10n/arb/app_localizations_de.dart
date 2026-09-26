@@ -42033,6 +42033,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get profilePhoto_source_camera => 'Foto aufnehmen';
 
   @override
+  String get common_camera_unavailable =>
+      'Die Kamera konnte nicht geöffnet werden. Bitte erlauben Sie den Kamerazugriff in den Einstellungen.';
+
+  @override
   String get profilePhoto_source_library => 'Aus Mediathek wählen';
 
   @override

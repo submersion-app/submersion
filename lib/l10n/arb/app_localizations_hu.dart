@@ -41944,6 +41944,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get profilePhoto_source_camera => 'Fénykép készítése';
 
   @override
+  String get common_camera_unavailable =>
+      'A kamerát nem sikerült megnyitni. Kérem, engedélyezze a kamerahozzáférést a Beállításokban.';
+
+  @override
   String get profilePhoto_source_library => 'Választás a könyvtárból';
 
   @override

@@ -12522,6 +12522,7 @@
   "settings_storageUsage_category_importedFiles": "Ficheiros de importação originais",
   "profilePhoto_sheet_title": "Foto do perfil",
   "profilePhoto_source_camera": "Tirar foto",
+  "common_camera_unavailable": "Não foi possível abrir a câmera. Permita o acesso à câmera nas Configurações.",
   "profilePhoto_source_library": "Escolher da biblioteca",
   "profilePhoto_source_file": "Escolher ficheiro",
   "profilePhoto_source_contacts": "Escolher dos contactos",

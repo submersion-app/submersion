@@ -42229,6 +42229,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profilePhoto_source_camera => 'Prendre une photo';
 
   @override
+  String get common_camera_unavailable =>
+      'Impossible d\'ouvrir l\'appareil photo. Veuillez autoriser l\'accès à l\'appareil photo dans les Réglages.';
+
+  @override
   String get profilePhoto_source_library => 'Choisir dans la galerie';
 
   @override
