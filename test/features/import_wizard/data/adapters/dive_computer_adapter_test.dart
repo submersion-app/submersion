@@ -1612,6 +1612,205 @@ void main() {
               as DiveComputer;
       expect(captured.name, equals('My Custom Name'));
     });
+
+    // Issue #422: Cressi's Bluetooth adapter advertises the Cartesio's model
+    // code whatever computer is behind it; the download names the real one.
+    group('with a model the device reported', () {
+      DiscoveredDevice cressiScannedAsCartesio() => DiscoveredDevice(
+        id: 'device-cressi',
+        name: '1_12345',
+        connectionType: DeviceConnectionType.ble,
+        address: 'D1:2C:3B:4A:59:68',
+        recognizedModel: const DeviceModel(
+          id: 'cressi_cartesio',
+          manufacturer: 'Cressi',
+          model: 'Cartesio',
+          connectionTypes: [DeviceConnectionType.ble],
+          dcModel: 1,
+        ),
+        discoveredAt: DateTime(2026, 9, 26),
+      );
+
+      DiveComputerAdapter discoveryAdapter() => DiveComputerAdapter(
+        importService: mockImportService,
+        computerRepository: mockComputerRepo,
+        diveRepository: mockDiveRepo,
+        consolidationService: mockConsolidationService,
+        diverId: diverId,
+      );
+
+      test('creates a new computer under the reported model', () async {
+        final dcAdapter = discoveryAdapter();
+        when(mockComputerRepo.createComputer(any)).thenAnswer(
+          (invocation) async =>
+              invocation.positionalArguments[0] as DiveComputer,
+        );
+
+        await dcAdapter.ensureComputer(
+          device: cressiScannedAsCartesio(),
+          serialNumber: '74565',
+          reportedProduct: 'Donatello',
+          reportedModel: 4,
+        );
+
+        final created =
+            verify(mockComputerRepo.createComputer(captureAny)).captured.single
+                as DiveComputer;
+        expect(created.manufacturer, 'Cressi');
+        expect(created.model, 'Donatello');
+        expect(created.name, 'Cressi Donatello');
+      });
+
+      test('keeps a custom device name for the new computer', () async {
+        final dcAdapter = discoveryAdapter()..setCustomDeviceName('My Cressi');
+        when(mockComputerRepo.createComputer(any)).thenAnswer(
+          (invocation) async =>
+              invocation.positionalArguments[0] as DiveComputer,
+        );
+
+        await dcAdapter.ensureComputer(
+          device: cressiScannedAsCartesio(),
+          serialNumber: '74565',
+          reportedProduct: 'Donatello',
+          reportedModel: 4,
+        );
+
+        final created =
+            verify(mockComputerRepo.createComputer(captureAny)).captured.single
+                as DiveComputer;
+        expect(created.model, 'Donatello');
+        expect(created.name, 'My Cressi');
+      });
+
+      test(
+        'rebinds and relabels a record an older build saved as Cartesio',
+        () async {
+          final dcAdapter = discoveryAdapter();
+          final old = makeComputer(
+            id: 'old-cressi',
+            name: 'Cressi Cartesio',
+            manufacturer: 'Cressi',
+            model: 'Cartesio',
+            serialNumber: '74565',
+          );
+          when(
+            mockComputerRepo.findByHardwareIdentity(
+              manufacturer: 'Cressi',
+              model: 'Cartesio',
+              serialNumber: '74565',
+              diverId: diverId,
+            ),
+          ).thenAnswer((_) async => old);
+
+          await dcAdapter.ensureComputer(
+            device: cressiScannedAsCartesio(),
+            serialNumber: '74565',
+            reportedProduct: 'Donatello',
+            reportedModel: 4,
+          );
+
+          verifyNever(mockComputerRepo.createComputer(any));
+          final updated =
+              verify(
+                    mockComputerRepo.updateComputer(captureAny),
+                  ).captured.single
+                  as DiveComputer;
+          expect(updated.id, 'old-cressi');
+          expect(updated.model, 'Donatello');
+          expect(updated.name, 'Cressi Donatello');
+          expect(updated.bluetoothAddress, 'D1:2C:3B:4A:59:68');
+        },
+      );
+
+      test('finds a record already saved under the reported model', () async {
+        final dcAdapter = discoveryAdapter();
+        final existing = makeComputer(
+          id: 'donatello',
+          name: 'Cressi Donatello',
+          manufacturer: 'Cressi',
+          model: 'Donatello',
+          serialNumber: '74565',
+        );
+        when(
+          mockComputerRepo.findByHardwareIdentity(
+            manufacturer: 'Cressi',
+            model: 'Donatello',
+            serialNumber: '74565',
+            diverId: diverId,
+          ),
+        ).thenAnswer((_) async => existing);
+
+        await dcAdapter.ensureComputer(
+          device: cressiScannedAsCartesio(),
+          serialNumber: '74565',
+          reportedProduct: 'Donatello',
+          reportedModel: 4,
+        );
+
+        verifyNever(mockComputerRepo.createComputer(any));
+        expect(dcAdapter.computer?.id, 'donatello');
+        expect(dcAdapter.computer?.model, 'Donatello');
+      });
+
+      test('without a reported model, behaviour is unchanged', () async {
+        final dcAdapter = discoveryAdapter();
+        when(mockComputerRepo.createComputer(any)).thenAnswer(
+          (invocation) async =>
+              invocation.positionalArguments[0] as DiveComputer,
+        );
+
+        await dcAdapter.ensureComputer(
+          device: cressiScannedAsCartesio(),
+          serialNumber: '74565',
+        );
+
+        final created =
+            verify(mockComputerRepo.createComputer(captureAny)).captured.single
+                as DiveComputer;
+        expect(created.model, 'Cartesio');
+        expect(created.name, 'Cressi Cartesio');
+      });
+
+      test('stamps imported dives with the reported descriptor', () async {
+        // Known-computer mode: the descriptor is captured even though no
+        // record is created.
+        await adapter.ensureComputer(
+          device: cressiScannedAsCartesio(),
+          serialNumber: '74565',
+          reportedProduct: 'Donatello',
+          reportedModel: 4,
+        );
+        adapter.setDownloadedDives([makeDownloadedDive(fingerprint: 'fp1')]);
+        final bundle = await adapter.buildBundle();
+        when(
+          mockImportService.importSingleDiveAsNew(
+            any,
+            computerId: anyNamed('computerId'),
+            diverId: anyNamed('diverId'),
+            descriptorVendor: anyNamed('descriptorVendor'),
+            descriptorProduct: anyNamed('descriptorProduct'),
+            descriptorModel: anyNamed('descriptorModel'),
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+          ),
+        ).thenAnswer((_) async => 'imported-id');
+
+        await adapter.performImport(bundle, {
+          ImportEntityType.dives: {0},
+        }, {});
+
+        verify(
+          mockImportService.importSingleDiveAsNew(
+            any,
+            computerId: anyNamed('computerId'),
+            diverId: anyNamed('diverId'),
+            descriptorVendor: 'Cressi',
+            descriptorProduct: 'Donatello',
+            descriptorModel: 4,
+            libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+          ),
+        ).called(1);
+      });
+    });
   });
 
   // -------------------------------------------------------------------------

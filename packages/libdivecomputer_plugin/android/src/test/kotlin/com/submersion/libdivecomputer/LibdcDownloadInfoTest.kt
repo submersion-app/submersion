@@ -28,4 +28,17 @@ class LibdcDownloadInfoTest {
         // A serial above 2^31 arrives as a negative Int through JNI.
         assertEquals("4294967295", libdcUnsignedOrNull(-1))
     }
+
+    // Issue #422: the product and model code a device reported about itself.
+    @Test
+    fun reportedDeviceDecodesTheNativePair() {
+        assertEquals(
+            ReportedDevice("Donatello", 4L),
+            reportedDeviceOrNull(arrayOf("Donatello", "4")),
+        )
+        assertNull(reportedDeviceOrNull(null))
+        assertNull(reportedDeviceOrNull(arrayOf("", "4")))
+        assertNull(reportedDeviceOrNull(arrayOf("Donatello", "x")))
+        assertNull(reportedDeviceOrNull(arrayOf("Donatello")))
+    }
 }

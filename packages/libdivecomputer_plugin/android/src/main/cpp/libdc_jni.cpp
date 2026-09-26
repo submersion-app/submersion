@@ -205,6 +205,28 @@ Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadCancel(
     libdc_download_cancel(session);
 }
 
+// The product and model code the device reported about itself during the
+// last run, as [product, model], or null when there is nothing to relabel
+// (issue #422).
+extern "C" JNIEXPORT jobjectArray JNICALL
+Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadSessionReportedDevice(
+    JNIEnv *env, jclass, jlong sessionPtr) {
+    auto *session = reinterpret_cast<libdc_download_session_t *>(sessionPtr);
+    char product[64];
+    unsigned int model = 0;
+    if (!libdc_download_session_reported_device(session, product,
+                                                sizeof(product), &model)) {
+        return nullptr;
+    }
+    jclass stringClass = env->FindClass("java/lang/String");
+    jobjectArray result = env->NewObjectArray(2, stringClass, nullptr);
+    env->SetObjectArrayElement(result, 0, env->NewStringUTF(product));
+    char modelText[16];
+    snprintf(modelText, sizeof(modelText), "%u", model);
+    env->SetObjectArrayElement(result, 1, env->NewStringUTF(modelText));
+    return result;
+}
+
 extern "C" JNIEXPORT void JNICALL
 Java_com_submersion_libdivecomputer_LibdcWrapper_nativeDownloadSessionFree(
     JNIEnv *, jclass, jlong sessionPtr) {
@@ -595,6 +617,58 @@ static int jni_io_ioctl(void *userdata, unsigned int request,
         env->DeleteLocalRef(cls);
         if (attached) ctx->jvm->DetachCurrentThread();
         return status;
+    }
+
+    // Handle BLE characteristic reads (issue #422).
+    {
+        char uuid[LIBDC_BLE_UUID_STRING_SIZE];
+        size_t value_size = 0;
+        int decoded = libdc_ble_characteristic_read_decode(
+            request, data, size, uuid, &value_size);
+        if (decoded == LIBDC_BLE_CHAR_READ_INVALID) {
+            return LIBDC_STATUS_INVALIDARGS;
+        }
+        if (decoded == LIBDC_BLE_CHAR_READ_OK) {
+            JNIEnv *env;
+            bool attached = false;
+            if (ctx->jvm->GetEnv(reinterpret_cast<void **>(&env),
+                                 JNI_VERSION_1_6) != JNI_OK) {
+                ctx->jvm->AttachCurrentThread(&env, nullptr);
+                attached = true;
+            }
+            jclass cls = env->GetObjectClass(ctx->ioHandler);
+            jmethodID method = env->GetMethodID(cls, "readCharacteristic",
+                "(Ljava/lang/String;)[B");
+            env->DeleteLocalRef(cls);
+            int status = LIBDC_STATUS_UNSUPPORTED;
+            if (method == nullptr) {
+                env->ExceptionClear();
+            } else {
+                jstring jUuid = env->NewStringUTF(uuid);
+                auto jValue = (jbyteArray)env->CallObjectMethod(
+                    ctx->ioHandler, method, jUuid);
+                env->DeleteLocalRef(jUuid);
+                if (env->ExceptionCheck()) {
+                    env->ExceptionClear();
+                    status = LIBDC_STATUS_IO;
+                } else if (jValue == nullptr) {
+                    status = LIBDC_STATUS_IO;
+                } else {
+                    jsize len = env->GetArrayLength(jValue);
+                    jbyte *bytes = env->GetByteArrayElements(jValue, nullptr);
+                    status = libdc_ble_characteristic_read_fill(
+                        data, size, reinterpret_cast<unsigned char *>(bytes),
+                        static_cast<size_t>(len));
+                    env->ReleaseByteArrayElements(jValue, bytes, JNI_ABORT);
+                    env->DeleteLocalRef(jValue);
+                }
+            }
+            __android_log_print(ANDROID_LOG_DEBUG, TAG,
+                "ioctl BLE_CHARACTERISTIC_READ %s (%zu bytes) -> %d",
+                uuid, value_size, status);
+            if (attached) ctx->jvm->DetachCurrentThread();
+            return status;
+        }
     }
 
     return LIBDC_STATUS_UNSUPPORTED;

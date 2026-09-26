@@ -45,6 +45,20 @@ typedef struct {
     gint timeout_ms;
     gchar* device_name;
 
+    // Every GATT characteristic under the device, UUID (lowercase) -> object
+    // path, for DC_IOCTL_BLE_CHARACTERISTIC_READ (issue #422).
+    GHashTable* characteristic_paths;
+    // A characteristic read of the notify characteristic makes BlueZ emit a
+    // PropertiesChanged "Value" for it as well; that echo is not download
+    // data. D-Bus gives the echo and a notification the same shape, so the
+    // echo is recognised by timing: a byte-equal chunk queued while the read
+    // was in flight, or one arriving before suppress_echo_deadline (monotonic
+    // microseconds). All three fields are guarded by read_mutex.
+    GByteArray* suppress_notify_echo;
+    gint64 suppress_echo_deadline;
+    // Chunks ever queued, so a read can tell which arrived during it.
+    guint64 chunks_pushed;
+
     GMutex pin_mutex;
     GCond pin_cond;
     gchar* pending_pin;

@@ -7,6 +7,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/screen_awake.dart';
 
+import 'package:submersion/features/dive_computer/domain/services/reported_model_relabel.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_computer_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
@@ -88,6 +89,12 @@ class DownloadState {
   /// when the download completed without asking for one.
   final ClockSyncStatus? clockSyncStatus;
 
+  /// The libdivecomputer product and model code the device reported about
+  /// itself during this download, when they differ from the ones it was
+  /// scanned as (issue #422). Null until a completion event carries them.
+  final String? reportedProduct;
+  final int? reportedModel;
+
   const DownloadState({
     this.phase = DownloadPhase.initializing,
     this.progress,
@@ -99,6 +106,8 @@ class DownloadState {
     this.firmwareVersion,
     this.sinceCutoff,
     this.clockSyncStatus,
+    this.reportedProduct,
+    this.reportedModel,
   });
 
   DownloadState copyWith({
@@ -112,6 +121,8 @@ class DownloadState {
     String? firmwareVersion,
     DateTime? sinceCutoff,
     ClockSyncStatus? clockSyncStatus,
+    String? reportedProduct,
+    int? reportedModel,
     bool clearError = false,
     bool clearClockSyncStatus = false,
   }) {
@@ -128,6 +139,8 @@ class DownloadState {
       clockSyncStatus: clearClockSyncStatus
           ? null
           : (clockSyncStatus ?? this.clockSyncStatus),
+      reportedProduct: reportedProduct ?? this.reportedProduct,
+      reportedModel: reportedModel ?? this.reportedModel,
     );
   }
 
@@ -313,6 +326,8 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
         :final serialNumber,
         :final firmwareVersion,
         :final clockSyncStatus,
+        :final reportedProduct,
+        :final reportedModel,
       ):
         state = state.copyWith(
           phase: DownloadPhase.complete,
@@ -320,12 +335,14 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
           serialNumber: serialNumber,
           firmwareVersion: firmwareVersion,
           clockSyncStatus: ClockSyncStatus.fromWireName(clockSyncStatus),
+          reportedProduct: reportedProduct,
+          reportedModel: reportedModel,
         );
         _downloadSubscription?.cancel();
         _downloadSubscription = null;
         _releaseScreenAwake();
         // Persist device info on the computer record.
-        _persistDeviceInfo(serialNumber, firmwareVersion);
+        _persistDeviceInfo(serialNumber, firmwareVersion, reportedProduct);
       case pigeon.DownloadErrorEvent(:final error):
         _log.error(
           'Download failed (${error.code}): ${error.message}',
@@ -350,9 +367,13 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
   /// alone (issue #1423), so a reported serial that disagrees with the stored
   /// one means another physical computer answered. Nothing from that unit
   /// belongs on this record: not its serial, firmware, or address.
+  ///
+  /// A device that named a different model than the one it was saved as is
+  /// relabeled to it (issue #422), keeping a name the diver chose.
   Future<void> _persistDeviceInfo(
     String? reportedSerialNumber,
     String? reportedFirmwareVersion,
+    String? reportedProduct,
   ) async {
     final computer = _computer;
     if (computer == null) return;
@@ -375,11 +396,15 @@ class DownloadNotifier extends StateNotifier<DownloadState> {
     }
 
     try {
+      final relabeled = relabelToReportedProduct(computer, reportedProduct);
       final address = _addressToRebind(computer);
-      if (serialNumber == null && firmwareVersion == null && address == null) {
+      if (serialNumber == null &&
+          firmwareVersion == null &&
+          address == null &&
+          identical(relabeled, computer)) {
         return;
       }
-      final updated = computer.copyWith(
+      final updated = relabeled.copyWith(
         serialNumber: serialNumber ?? computer.serialNumber,
         firmwareVersion: firmwareVersion ?? computer.firmwareVersion,
         bluetoothAddress: address ?? computer.bluetoothAddress,

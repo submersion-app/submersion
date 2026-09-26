@@ -31,7 +31,14 @@ class DownloadIsolationTest {
             override fun onProgress(current: Int, max: Int) {}
             override fun onDive(pigeonEncodedDive: ByteArray) {}
             override fun onError(code: String, message: String) {}
-            override fun onComplete(totalDives: Long) {}
+            override fun onComplete(
+                totalDives: Long,
+                serialNumber: String?,
+                firmwareVersion: String?,
+                clockSyncStatus: String?,
+                reportedProduct: String?,
+                reportedModel: Long,
+            ) {}
         }
 
         val connection = object : ServiceConnection {

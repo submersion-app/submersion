@@ -9,5 +9,7 @@ oneway interface IDiveDownloadCallback {
     void onError(String code, String message);
     // Strings are nullable: null serial/firmware when the device reported
     // none, null clockSyncStatus when no sync was requested (issue #1216).
-    void onComplete(long totalDives, String serialNumber, String firmwareVersion, String clockSyncStatus);
+    // reportedProduct/reportedModel: the model the device named about itself
+    // (issue #422); null and -1 when there is nothing to relabel.
+    void onComplete(long totalDives, String serialNumber, String firmwareVersion, String clockSyncStatus, String reportedProduct, long reportedModel);
 }

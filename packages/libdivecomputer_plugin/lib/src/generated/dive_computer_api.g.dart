@@ -922,6 +922,8 @@ abstract class DiveComputerFlutterApi {
     String? serialNumber,
     String? firmwareVersion,
     String? clockSyncStatus,
+    String? reportedProduct,
+    int? reportedModel,
   );
 
   void onError(DiveComputerError error);
@@ -1088,12 +1090,16 @@ abstract class DiveComputerFlutterApi {
           final String? arg_serialNumber = (args[1] as String?);
           final String? arg_firmwareVersion = (args[2] as String?);
           final String? arg_clockSyncStatus = (args[3] as String?);
+          final String? arg_reportedProduct = (args[4] as String?);
+          final int? arg_reportedModel = (args[5] as int?);
           try {
             api.onDownloadComplete(
               arg_totalDives!,
               arg_serialNumber,
               arg_firmwareVersion,
               arg_clockSyncStatus,
+              arg_reportedProduct,
+              arg_reportedModel,
             );
             return wrapResponse(empty: true);
           } on PlatformException catch (e) {

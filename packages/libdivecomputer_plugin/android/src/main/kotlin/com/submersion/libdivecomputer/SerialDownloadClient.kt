@@ -56,11 +56,18 @@ class SerialDownloadClient(
             serialNumber: String?,
             firmwareVersion: String?,
             clockSyncStatus: String?,
+            reportedProduct: String?,
+            reportedModel: Long,
         ) {
             finish()
+            // AIDL has no nullable long: -1 (or an empty product) means the
+            // device reported nothing to relabel (issue #422).
+            val product = reportedProduct?.takeIf { it.isNotEmpty() && reportedModel >= 0 }
+            val model = if (product != null) reportedModel else null
             mainHandler.post {
                 flutterApi.onDownloadComplete(
-                    totalDives, serialNumber, firmwareVersion, clockSyncStatus
+                    totalDives, serialNumber, firmwareVersion, clockSyncStatus,
+                    product, model
                 ) { }
             }
         }

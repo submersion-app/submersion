@@ -130,6 +130,10 @@ enum BleCharacteristicSelector {
         // characteristics can tie on raw score and win on discovery order.
         terminalIoServiceUUID,
         ubloxServiceUUID,
+        // Cressi (Goa family). Looks like Nordic UART but ends in
+        // ...E50E24DC10B8; 6E400003 is a read-only version field here, read
+        // through the characteristic read ioctl (issue #422).
+        CBUUID(string: "6E400001-B5A3-F393-E0A9-E50E24DC10B8"),
     ]
 
     static let preferredWriteUUIDs: Set<CBUUID> = [

@@ -363,6 +363,35 @@ do {
            "ublox-pin: FIFO wins the notify role despite the lower raw score")
 }
 
+// Issue #422: the Cressi service (Goa family) is preferred, as in Subsurface.
+// A plain service with the higher raw score must still lose to it.
+do {
+    let plainService = "0000cccc-0000-1000-8000-00805f9b34fb"
+    let plainWrite = "0000ccc1-0000-1000-8000-00805f9b34fb"
+    let plainNotify = "0000ccc2-0000-1000-8000-00805f9b34fb"
+    let cressiService = "6E400001-B5A3-F393-E0A9-E50E24DC10B8"
+    let cressiWrite = "6E400002-B5A3-F393-E0A9-E50E24DC10B8"
+    let cressiIndicate = "6E400006-B5A3-F393-E0A9-E50E24DC10B8"
+    let services = [
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: plainService),
+            characteristics: [
+                char(plainWrite, [.writeWithoutResponse]),
+                char(plainNotify, [.notify]),
+            ]
+        ),
+        BleCharacteristicSelector.Service(
+            uuid: CBUUID(string: cressiService),
+            characteristics: [
+                char(cressiWrite, [.write]),
+                char(cressiIndicate, [.indicate]),
+            ]
+        ),
+    ]
+    let result = resolve(services, BleCharacteristicSelector.select(services: services))
+    expect(result?.serviceIndex == 1, "cressi: Cressi service is preferred")
+}
+
 if failures == 0 {
     print("All BleCharacteristicSelector tests passed.")
     exit(0)

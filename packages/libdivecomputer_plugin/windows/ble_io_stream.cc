@@ -101,6 +101,11 @@ const winrt::guid BleIoStream::kPreferredWriteUuid{
 const winrt::guid BleIoStream::kPreferredNotifyUuid{
     0xA60B8E5C, 0xB267, 0x44D7,
     {0x97, 0x64, 0x83, 0x7C, 0xAF, 0x96, 0x48, 0x9E}};
+// Cressi (Goa family). Looks like Nordic UART but ends in ...E50E24DC10B8;
+// 6E400003 is a read-only version field here (issue #422).
+const winrt::guid BleIoStream::kCressiServiceUuid{
+    0x6E400001, 0xB5A3, 0xF393,
+    {0xE0, 0xA9, 0xE5, 0x0E, 0x24, 0xDC, 0x10, 0xB8}};
 // Halcyon Symbios device-centric Tx/Rx endpoints. The app WRITES commands to
 // the device's Rx (00000101) and READS replies (indications) from its Tx
 // (00000201) -- matching Subsurface's qt-ble.cpp. Both chars advertise
@@ -261,6 +266,7 @@ bool BleIoStream::DiscoverCharacteristics() {
         bool credits_required = false;
     };
     Candidate best;
+    all_characteristics_.clear();
 
     for (auto const& service : services_result.Services()) {
         auto chars_result =
@@ -294,6 +300,7 @@ bool BleIoStream::DiscoverCharacteristics() {
         GattCharacteristic ublox_credits{nullptr};
 
         for (auto const& ch : chars_result.Characteristics()) {
+            all_characteristics_.push_back(ch);
             auto props = ch.CharacteristicProperties();
 
             if (ch.Uuid() == kTerminalIoDataRxUuid) tio_data_rx = ch;
@@ -363,7 +370,8 @@ bool BleIoStream::DiscoverCharacteristics() {
         int service_score = best_write_score + best_notify_score;
         if (service.Uuid() == kPreferredServiceUuid ||
             service.Uuid() == kTerminalIoServiceUuid ||
-            service.Uuid() == kUbloxServiceUuid) {
+            service.Uuid() == kUbloxServiceUuid ||
+            service.Uuid() == kCressiServiceUuid) {
             service_score += 1000;
         }
 
@@ -698,6 +706,7 @@ void BleIoStream::Close() {
         notify_characteristic_ = nullptr;
     }
     write_characteristic_ = nullptr;
+    all_characteristics_.clear();
     // Release the throughput-optimized connection request (reverts to the
     // controller's default interval) before tearing down the device.
     preferred_connection_request_ = nullptr;
@@ -876,7 +885,49 @@ int BleIoStream::IoctlCallback(void* userdata, unsigned int request,
         }
     }
 
+    // Characteristic reads (issue #422).
+    {
+        char uuid[LIBDC_BLE_UUID_STRING_SIZE];
+        size_t value_size = 0;
+        int decoded = libdc_ble_characteristic_read_decode(
+            request, data, size, uuid, &value_size);
+        if (decoded == LIBDC_BLE_CHAR_READ_INVALID) {
+            return LIBDC_STATUS_INVALIDARGS;
+        }
+        if (decoded == LIBDC_BLE_CHAR_READ_OK) {
+            const auto* u = static_cast<const uint8_t*>(data);
+            winrt::guid guid{
+                (uint32_t(u[0]) << 24) | (uint32_t(u[1]) << 16) |
+                    (uint32_t(u[2]) << 8) | uint32_t(u[3]),
+                uint16_t((u[4] << 8) | u[5]),
+                uint16_t((u[6] << 8) | u[7]),
+                {u[8], u[9], u[10], u[11], u[12], u[13], u[14], u[15]}};
+            return stream->ReadCharacteristic(guid, data, size);
+        }
+    }
+
     return LIBDC_STATUS_UNSUPPORTED;
+}
+
+int BleIoStream::ReadCharacteristic(const winrt::guid& uuid, void* data,
+                                    size_t size) {
+    try {
+        for (const auto& ch : all_characteristics_) {
+            if (ch.Uuid() != uuid) continue;
+            auto result = ch.ReadValueAsync(BluetoothCacheMode::Uncached).get();
+            if (result.Status() != GattCommunicationStatus::Success) {
+                return LIBDC_STATUS_IO;
+            }
+            auto reader = DataReader::FromBuffer(result.Value());
+            std::vector<uint8_t> value(reader.UnconsumedBufferLength());
+            reader.ReadBytes(value);
+            return libdc_ble_characteristic_read_fill(
+                data, size, value.data(), value.size());
+        }
+        return LIBDC_STATUS_NOACCESS;
+    } catch (...) {
+        return LIBDC_STATUS_IO;
+    }
 }
 
 int BleIoStream::PollCallback(void* userdata, int timeout) {
