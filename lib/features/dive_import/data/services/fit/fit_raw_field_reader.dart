@@ -12,7 +12,7 @@ import 'dart:typed_data';
 /// It does not validate the CRC; fit_tool has already accepted the file by the
 /// time this runs, and a malformed stream yields null rather than an error.
 class FitRawFieldReader {
-  const FitRawFieldReader._();
+  const FitRawFieldReader._(); // coverage:ignore-line
 
   /// FIT `sint32` invalid value: the field is present but holds no data.
   static const int _sint32Invalid = 0x7FFFFFFF;
