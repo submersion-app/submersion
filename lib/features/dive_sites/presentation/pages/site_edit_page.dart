@@ -1710,7 +1710,9 @@ class _SiteEditPageState extends ConsumerState<SiteEditPage> {
           _expandedSections[key] = true;
         }
       });
-      await Future<void>.delayed(Duration.zero);
+      // A zero-length delay resolves before the frame that builds the
+      // expanded sections, so their fields would miss validate() (#1900).
+      await WidgetsBinding.instance.endOfFrame;
       if (!mounted) return;
     }
     if (!_formKey.currentState!.validate()) return;

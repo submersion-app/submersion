@@ -176,6 +176,14 @@ String _seedWeight(double displayValue) =>
 /// [readNumber]. Grouping is off, so this is digit-only text.
 String _seedInt(int value) => _seedDecimal(value.toDouble(), 0);
 
+extension on double? {
+  /// This value through [convert], or null when there is none.
+  double? map(double Function(double) convert) {
+    final value = this;
+    return value == null ? null : convert(value);
+  }
+}
+
 /// [controller]'s number for saving. Blank means "not recorded" for every
 /// numeric field on this page; unreadable text never reaches here, because
 /// each field's validator has already stopped the save (#1900).
@@ -1274,20 +1282,16 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       visibilityMeters: _visibilityMetersInput(units),
       currentDirection: _currentDirection?.name,
       currentStrength: _currentStrength?.name,
-      swellHeight: _swellHeightController.text.isNotEmpty
-          ? units.depthToMeters(_savedNumber(_swellHeightController)!)
-          : null,
+      swellHeight: _savedNumber(
+        _swellHeightController,
+      ).map(units.depthToMeters),
       entryMethod: _entryMethod?.name,
       exitMethod: _exitMethod?.name,
-      altitude: _altitudeController.text.isNotEmpty
-          ? units.altitudeToMeters(_savedNumber(_altitudeController)!)
-          : null,
-      surfacePressure: _surfacePressureController.text.isNotEmpty
-          ? _savedNumber(_surfacePressureController)! / 1000
-          : null,
-      windSpeed: _windSpeedController.text.isNotEmpty
-          ? units.windSpeedToMs(_savedNumber(_windSpeedController)!)
-          : null,
+      altitude: _savedNumber(_altitudeController).map(units.altitudeToMeters),
+      surfacePressure: _savedNumber(_surfacePressureController).map(
+        (mbar) => mbar / 1000, // Convert mbar to bar
+      ),
+      windSpeed: _savedNumber(_windSpeedController).map(units.windSpeedToMs),
       windDirection: _windDirection?.name,
       cloudCover: _cloudCover?.name,
       precipitation: _precipitation?.name,
@@ -5242,7 +5246,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
           _expanded[key] = true;
         }
       });
-      await Future<void>.delayed(Duration.zero);
+      // A zero-length delay resolves before the frame that builds the
+      // expanded sections, so their fields would miss validate() (#1900).
+      await WidgetsBinding.instance.endOfFrame;
       if (!mounted) return;
     }
     if (!_formKey.currentState!.validate()) return;
@@ -5276,45 +5282,42 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       if (exitDateTime != null) {
         runtime = exitDateTime.difference(entryDateTime);
         if (runtime.isNegative) runtime = null;
-      } else if (_runtimeController.text.isNotEmpty) {
-        runtime = Duration(
-          minutes: _savedNumber(_runtimeController, integer: true)!.toInt(),
-        );
+      } else if (_savedNumber(_runtimeController, integer: true)
+          case final minutes?) {
+        runtime = Duration(minutes: minutes.toInt());
       }
 
       // Bottom time is manually entered (time at depth, excluding descent/ascent)
       Duration? duration;
-      if (_durationController.text.isNotEmpty) {
-        duration = Duration(
-          minutes: _savedNumber(_durationController, integer: true)!.toInt(),
-        );
+      if (_savedNumber(_durationController, integer: true)
+          case final minutes?) {
+        duration = Duration(minutes: minutes.toInt());
       }
 
       // Parse form values and convert to metric for storage
-      final maxDepth = _maxDepthController.text.isNotEmpty
-          ? units.depthToMeters(_savedNumber(_maxDepthController)!)
-          : null;
-      final avgDepth = _avgDepthController.text.isNotEmpty
-          ? units.depthToMeters(_savedNumber(_avgDepthController)!)
-          : null;
-      final waterTemp = _waterTempController.text.isNotEmpty
-          ? units.temperatureToCelsius(_savedNumber(_waterTempController)!)
-          : null;
-      final airTemp = _airTempController.text.isNotEmpty
-          ? units.temperatureToCelsius(_savedNumber(_airTempController)!)
-          : null;
+      final maxDepth = _savedNumber(
+        _maxDepthController,
+      ).map(units.depthToMeters);
+      final avgDepth = _savedNumber(
+        _avgDepthController,
+      ).map(units.depthToMeters);
+      final waterTemp = _savedNumber(
+        _waterTempController,
+      ).map(units.temperatureToCelsius);
+      final airTemp = _savedNumber(
+        _airTempController,
+      ).map(units.temperatureToCelsius);
 
       // Parse conditions values (convert to metric)
-      final swellHeight = _swellHeightController.text.isNotEmpty
-          ? units.depthToMeters(_savedNumber(_swellHeightController)!)
-          : null;
-      final altitude = _altitudeController.text.isNotEmpty
-          ? units.altitudeToMeters(_savedNumber(_altitudeController)!)
-          : null;
-      final surfacePressure = _surfacePressureController.text.isNotEmpty
-          ? _savedNumber(_surfacePressureController)! /
-                1000 // Convert mbar to bar
-          : null;
+      final swellHeight = _savedNumber(
+        _swellHeightController,
+      ).map(units.depthToMeters);
+      final altitude = _savedNumber(
+        _altitudeController,
+      ).map(units.altitudeToMeters);
+      final surfacePressure = _savedNumber(_surfacePressureController).map(
+        (mbar) => mbar / 1000, // Convert mbar to bar
+      );
 
       // Create dive entity
       final dive = Dive(
@@ -5327,7 +5330,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
                 (_existingDive?.isPlanned ?? false) ||
                 _diveNumberController.text.isEmpty
             ? null
-            : _savedNumber(_diveNumberController, integer: true)!.toInt(),
+            : _savedNumber(_diveNumberController, integer: true)?.toInt(),
         name: _nameController.text.trim().isNotEmpty
             ? _nameController.text.trim()
             : null,
@@ -5368,9 +5371,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
         altitude: altitude,
         surfacePressure: surfacePressure,
         // Weather fields
-        windSpeed: _windSpeedController.text.isNotEmpty
-            ? units.windSpeedToMs(_savedNumber(_windSpeedController)!)
-            : null,
+        windSpeed: _savedNumber(_windSpeedController).map(units.windSpeedToMs),
         windDirection: _windDirection,
         cloudCover: _cloudCover,
         precipitation: _precipitation,
@@ -5388,9 +5389,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             (_weightingFeedback == WeightingFeedback.overweighted ||
                     _weightingFeedback == WeightingFeedback.underweighted) &&
                 _weightingFeedbackAmountController.text.isNotEmpty
-            ? units.weightToKg(
-                _savedNumber(_weightingFeedbackAmountController)!,
-              )
+            ? _savedNumber(
+                _weightingFeedbackAmountController,
+              ).map(units.weightToKg)
             : null,
         // Tags
         tags: _selectedTags,

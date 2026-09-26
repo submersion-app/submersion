@@ -81,6 +81,14 @@ void main() {
     expect(find.text('Enter a whole number'), findsOneWidget);
   });
 
+  testWidgets('lets the error wrap rather than cutting off the separator '
+      'hint in a narrow field', (tester) async {
+    Intl.defaultLocale = 'en_US';
+    await pump(tester);
+    final field = tester.widget<TextField>(find.byType(TextField));
+    expect(field.decoration!.errorMaxLines, 3);
+  });
+
   testWidgets('filters out letters', (tester) async {
     Intl.defaultLocale = 'en_US';
     final reads = await pump(tester);

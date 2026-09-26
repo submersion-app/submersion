@@ -63,7 +63,11 @@ class NumberField extends StatelessWidget {
       style: style,
       textAlign: textAlign,
       textInputAction: textInputAction,
-      decoration: decoration,
+      // Numeric fields often sit two or three to a row; one line would cut
+      // the message off before the separator hint, its most useful part.
+      decoration: decoration.copyWith(
+        errorMaxLines: decoration.errorMaxLines ?? 3,
+      ),
       keyboardType: TextInputType.numberWithOptions(
         decimal: !integer,
         signed: allowNegative,

@@ -169,6 +169,38 @@ void main() {
     );
   });
 
+  testWidgets('an unreadable number in a section collapsed before Save still '
+      'blocks the save (#1900 review)', (tester) async {
+    Intl.defaultLocale = 'en_US';
+
+    final created = await repository.createDive(
+      Dive(id: '', dateTime: DateTime(2026, 4, 2, 9, 30), waterTemp: 24),
+    );
+
+    await pumpEditor(tester, created.id);
+    final conditions = find.textContaining('24').first;
+    await tester.ensureVisible(conditions);
+    await tester.pumpAndSettle();
+    await tester.tap(conditions);
+    await tester.pumpAndSettle();
+    await typeIntoRow(tester, 'Water Temp', '2..4');
+
+    // Collapse the group again, so its fields unmount before Save.
+    final header = find.text('Conditions').first;
+    await tester.ensureVisible(header);
+    await tester.pumpAndSettle();
+    await tester.tap(header);
+    await tester.pumpAndSettle();
+    expect(find.text('Water Temp'), findsNothing);
+
+    await tapSave(tester);
+
+    expect(find.textContaining('Error saving dive'), findsNothing);
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    final reloaded = (await repository.getDiveById(created.id))!;
+    expect(reloaded.waterTemp, 24);
+  });
+
   testWidgets('fr: a comma decimal typed into max depth is stored', (
     tester,
   ) async {
