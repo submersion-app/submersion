@@ -18,6 +18,7 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/domain/services/trip_cylinder_state_fold.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -70,6 +71,7 @@ void main() {
     bool several = false,
     TripCylinderEvent? editing,
     MockSettingsNotifier? settings,
+    TripFillPassportCopier? copier,
   }) async {
     tester.view.physicalSize = const Size(800, 2000);
     tester.view.devicePixelRatio = 1.0;
@@ -86,6 +88,8 @@ void main() {
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
           ),
+          if (copier != null)
+            tripFillPassportCopierProvider.overrideWithValue(copier),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -318,4 +322,61 @@ void main() {
       expect(lastTripFillCenter(states), isNull);
     });
   });
+
+  testWidgets('a retry after a failed save never fills a slot twice', (
+    tester,
+  ) async {
+    final copier = _FlakyCopier(failures: 1);
+    final picked = {cylinders[0].id, cylinders[1].id};
+    await pumpAndOpen(
+      tester,
+      preselected: picked,
+      several: true,
+      copier: copier,
+    );
+    await type(tester, 'fill-pressure', '200');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+
+    await type(tester, 'fill-pressure', '210');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    for (final id in picked) {
+      final fills = await repo.getEventsForCylinder(id);
+      expect(fills, hasLength(1));
+      expect(fills.single.pressure, 210);
+    }
+    expect(find.text('Save'), findsNothing);
+  });
+
+  testWidgets('fill several names the cost per cylinder', (tester) async {
+    await pumpAndOpen(tester, several: true);
+    expect(find.text('Cost per cylinder'), findsOneWidget);
+    expect(find.text('Cost'), findsNothing);
+  });
+}
+
+/// Fails the first [failures] passport copies, then succeeds.
+class _FlakyCopier extends TripFillPassportCopier {
+  _FlakyCopier({required this.failures});
+
+  int failures;
+
+  @override
+  Future<void> afterSave(
+    TripCylinderEvent event,
+    TripCylinder slot, {
+    String? diverId,
+    String? stationName,
+  }) async {
+    if (failures > 0) {
+      failures--;
+      throw StateError('copy failed');
+    }
+  }
 }

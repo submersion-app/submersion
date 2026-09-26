@@ -7238,6 +7238,7 @@
   "trips_cylinders_fill_analyzedHe": "He analysiert (%)",
   "trips_cylinders_fill_bottle": "Flaschennummer",
   "trips_cylinders_fill_cost": "Kosten",
+  "trips_cylinders_fill_costEach": "Kosten pro Flasche",
   "trips_cylinders_fill_currency": "Währung",
   "trips_cylinders_fill_package": "Im Paket enthalten",
   "trips_cylinders_fill_slots": "Zu füllende Flaschen",
@@ -7256,6 +7257,8 @@
   "trips_cylinders_adjust_markEmpty": "Als leer markieren",
   "trips_cylinders_edit_title": "Flasche bearbeiten",
   "trips_cylinders_edit_label": "Bezeichnung",
+  "trips_cylinders_edit_errorLabel": "Gib eine Bezeichnung ein.",
+  "trips_cylinders_edit_errorNeedsPressure": "Gib auch den Betriebsdruck ein, damit die Größe umgerechnet werden kann.",
   "trips_cylinders_edit_volume": "Größe ({unit})",
   "@trips_cylinders_edit_volume": {
     "placeholders": {

@@ -6,6 +6,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart'
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 
 /// A mix as the board shows it. Air is a word and is translated; nitrox and
 /// trimix keep their international notation (EAN32, Tx 21/35).
@@ -31,6 +32,14 @@ Color tripCylinderStatusColor(ColorScheme scheme, TripCylinderStatus status) =>
       TripCylinderStatus.empty => scheme.error,
       TripCylinderStatus.unknown => scheme.outline,
     };
+
+/// Tells the diver that a cylinder change did not go through (a delete or a
+/// reorder), so a failure is never silent.
+void showTripCylinderChangeFailed(BuildContext context) {
+  ScaffoldMessenger.of(
+    context,
+  ).showSnackBar(SnackBar(content: Text(context.l10n.common_error_tryAgain)));
+}
 
 typedef TripCylinderCounts = ({int full, int partial, int empty, int unknown});
 

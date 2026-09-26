@@ -17,11 +17,13 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_cylinder_board_page.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/arb/app_localizations_en.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
+import '../../helpers/failing_trip_cylinder_repository.dart';
 
 void main() {
   late AppDatabase db;
@@ -74,7 +76,10 @@ void main() {
     ),
   );
 
-  Future<void> pumpBoard(WidgetTester tester) async {
+  Future<void> pumpBoard(
+    WidgetTester tester, {
+    TripCylinderRepository? repository,
+  }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -89,6 +94,8 @@ void main() {
               TankPresetEntity.fromBuiltIn(TankPresets.byName('al80')!),
             ]),
           ),
+          if (repository != null)
+            tripCylinderRepositoryProvider.overrideWithValue(repository),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -205,6 +212,67 @@ void main() {
     );
     expect(full.value, isFalse);
     expect(notFull.value, isTrue);
+  });
+
+  testWidgets('a failed slot delete says so and keeps the slot', (
+    tester,
+  ) async {
+    final a = await slot('Truck 1', 0);
+    await pumpBoard(tester, repository: FailingTripCylinderRepository());
+
+    await tester.tap(find.byKey(Key('slot-menu-${a.id}')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Delete').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.text('Truck 1'), findsOneWidget);
+  });
+
+  testWidgets('a reorder shows the new order at once and is written', (
+    tester,
+  ) async {
+    await slot('Truck 1', 0);
+    await slot('Truck 2', 1);
+    await slot('Truck 3', 2);
+    await pumpBoard(tester);
+
+    tester
+        .widget<ReorderableListView>(find.byType(ReorderableListView))
+        .onReorderItem!(2, 0);
+    await tester.pump();
+    double top(String label) => tester.getTopLeft(find.text(label)).dy;
+    expect(top('Truck 3'), lessThan(top('Truck 1')));
+
+    await tester.pumpAndSettle();
+    final stored = await repo.getCylindersForTrip(tripId);
+    expect(stored.map((c) => c.label), ['Truck 3', 'Truck 1', 'Truck 2']);
+    expect(top('Truck 3'), lessThan(top('Truck 1')));
+  });
+
+  testWidgets('a failed reorder says so and puts the slots back', (
+    tester,
+  ) async {
+    await slot('Truck 1', 0);
+    await slot('Truck 2', 1);
+    await pumpBoard(tester, repository: FailingTripCylinderRepository());
+
+    tester
+        .widget<ReorderableListView>(find.byType(ReorderableListView))
+        .onReorderItem!(1, 0);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    double top(String label) => tester.getTopLeft(find.text(label)).dy;
+    expect(top('Truck 1'), lessThan(top('Truck 2')));
   });
 
   test('reorderedIds moves one id and keeps the rest in order', () {

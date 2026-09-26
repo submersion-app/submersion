@@ -7134,6 +7134,7 @@
   "trips_cylinders_fill_analyzedHe": "He analizado (%)",
   "trips_cylinders_fill_bottle": "Número de botella",
   "trips_cylinders_fill_cost": "Coste",
+  "trips_cylinders_fill_costEach": "Coste por botella",
   "trips_cylinders_fill_currency": "Moneda",
   "trips_cylinders_fill_package": "Incluida en un paquete",
   "trips_cylinders_fill_slots": "Botellas a cargar",
@@ -7152,6 +7153,8 @@
   "trips_cylinders_adjust_markEmpty": "Marcar como vacía",
   "trips_cylinders_edit_title": "Editar botella",
   "trips_cylinders_edit_label": "Etiqueta",
+  "trips_cylinders_edit_errorLabel": "Introduce una etiqueta.",
+  "trips_cylinders_edit_errorNeedsPressure": "Introduce también la presión de trabajo para poder convertir el tamaño.",
   "trips_cylinders_edit_volume": "Tamaño ({unit})",
   "@trips_cylinders_edit_volume": {
     "placeholders": {

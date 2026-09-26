@@ -16,6 +16,7 @@ import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.da
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/app_date_picker.dart';
 
 /// True when a cylinder can hold the mix: O2 1 to 100 percent, He 0 to 99,
 /// together at most 100.
@@ -44,7 +45,7 @@ Future<DateTime?> pickTripCylinderWhen(
   BuildContext context,
   DateTime current,
 ) async {
-  final date = await showDatePicker(
+  final date = await showAppDatePicker(
     context: context,
     initialDate: DateTime(current.year, current.month, current.day),
     firstDate: DateTime(2000),
@@ -117,6 +118,11 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
   bool _package = false;
   bool _saving = false;
   String? _error;
+
+  /// Fills this sheet already wrote, by slot id. When a save fails after
+  /// some writes (a later slot, or the passport copy), Save again updates
+  /// these instead of adding a second fill to the same slot.
+  final _written = <String, TripCylinderEvent>{};
 
   static String _num(double? v, int digits) =>
       v == null ? '' : formatRoundedForInput(v, digits);
@@ -197,6 +203,17 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
     final t = c.text.trim();
     return t.isEmpty ? null : t;
   }
+
+  /// A new fill on slot [id]; [_save] fills in the fields from the form.
+  static TripCylinderEvent _blankFill(String id, DateTime now) =>
+      TripCylinderEvent(
+        id: '',
+        tripCylinderId: id,
+        kind: TripCylinderEventKind.fill,
+        occurredAt: now,
+        createdAt: now,
+        updatedAt: now,
+      );
 
   Future<void> _pickWhen() async {
     final picked = await pickTripCylinderWhen(context, _when);
@@ -300,29 +317,29 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
         final now = DateTime.now().toUtc();
         for (final id in ids) {
           final a = analysis[id]!;
-          saved.add(
-            await repo.createEvent(
-              TripCylinderEvent(
-                id: '',
-                tripCylinderId: id,
-                kind: TripCylinderEventKind.fill,
-                occurredAt: _when,
-                bottleLabel: _text(_bottle[id]!),
-                pressure: bar,
-                o2Percent: orderedO2,
-                hePercent: orderedHe,
-                analyzedO2: a.o2,
-                analyzedHe: a.he,
-                diveCenterId: _centerId,
-                cost: cost,
-                currency: currency,
-                isPackage: _package,
-                note: _note.text,
-                createdAt: now,
-                updatedAt: now,
-              ),
-            ),
+          final fill = (_written[id] ?? _blankFill(id, now)).copyWith(
+            occurredAt: _when,
+            bottleLabel: _text(_bottle[id]!),
+            pressure: bar,
+            o2Percent: orderedO2,
+            hePercent: orderedHe,
+            analyzedO2: a.o2,
+            analyzedHe: a.he,
+            diveCenterId: _centerId,
+            cost: cost,
+            currency: currency,
+            isPackage: _package,
+            note: _note.text,
           );
+          final TripCylinderEvent stored;
+          if (_written.containsKey(id)) {
+            await repo.updateEvent(fill);
+            stored = fill;
+          } else {
+            stored = await repo.createEvent(fill);
+          }
+          _written[id] = stored;
+          saved.add(stored);
         }
       }
       // A fill on one of the diver's own cylinders is also written to its
@@ -537,7 +554,10 @@ class _FillSheetState extends ConsumerState<_FillSheet> {
                     key: const Key('fill-cost'),
                     controller: _cost,
                     decoration: InputDecoration(
-                      labelText: l10n.trips_cylinders_fill_cost,
+                      // Several slots each store this cost, so say so.
+                      labelText: widget.several
+                          ? l10n.trips_cylinders_fill_costEach
+                          : l10n.trips_cylinders_fill_cost,
                     ),
                     keyboardType: decimal,
                   ),

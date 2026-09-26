@@ -7321,6 +7321,7 @@
   "trips_cylinders_fill_analyzedHe": "分析 He（%）",
   "trips_cylinders_fill_bottle": "瓶号",
   "trips_cylinders_fill_cost": "费用",
+  "trips_cylinders_fill_costEach": "每个气瓶的费用",
   "trips_cylinders_fill_currency": "货币",
   "trips_cylinders_fill_package": "包含在套餐中",
   "trips_cylinders_fill_slots": "要充气的气瓶",
@@ -7339,6 +7340,8 @@
   "trips_cylinders_adjust_markEmpty": "标记为空",
   "trips_cylinders_edit_title": "编辑气瓶",
   "trips_cylinders_edit_label": "名称",
+  "trips_cylinders_edit_errorLabel": "请输入名称。",
+  "trips_cylinders_edit_errorNeedsPressure": "请同时输入工作压力，以便换算尺寸。",
   "trips_cylinders_edit_volume": "尺寸（{unit}）",
   "@trips_cylinders_edit_volume": {
     "placeholders": {

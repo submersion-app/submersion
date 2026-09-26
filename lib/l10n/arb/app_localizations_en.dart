@@ -23878,6 +23878,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get trips_cylinders_fill_cost => 'Cost';
 
   @override
+  String get trips_cylinders_fill_costEach => 'Cost per cylinder';
+
+  @override
   String get trips_cylinders_fill_currency => 'Currency';
 
   @override
@@ -23912,6 +23915,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_label => 'Label';
+
+  @override
+  String get trips_cylinders_edit_errorLabel => 'Enter a label.';
+
+  @override
+  String get trips_cylinders_edit_errorNeedsPressure =>
+      'Enter the working pressure too, so the size can be converted.';
 
   @override
   String trips_cylinders_edit_volume(String unit) {

@@ -33,6 +33,29 @@ enum _AddMode { rental, owned }
 /// The largest batch one save adds: a truck, not a fill station's stock.
 const int _maxRentalCount = 20;
 
+/// Labels for [count] new rental slots named [prefix]. Numbering continues
+/// after the slots already on the trip and past the highest number [prefix]
+/// already carries, so a deleted slot never makes a new one repeat a label
+/// still on the board.
+List<String> tripRentalLabels(
+  String prefix,
+  int count,
+  List<String> existingLabels,
+) {
+  final numbered = RegExp(
+    prefix.isEmpty ? r'^(\d+)$' : '^${RegExp.escape(prefix)} (\\d+)\$',
+  );
+  var highest = existingLabels.length;
+  for (final label in existingLabels) {
+    final n = int.tryParse(numbered.firstMatch(label.trim())?.group(1) ?? '');
+    if (n != null && n > highest) highest = n;
+  }
+  return [
+    for (var n = highest + 1; n <= highest + count; n++)
+      prefix.isEmpty ? '$n' : '$prefix $n',
+  ];
+}
+
 class _AddTripCylindersSheet extends ConsumerStatefulWidget {
   final String tripId;
   final List<TripCylinder> existing;
@@ -97,14 +120,15 @@ class _AddTripCylindersSheetState
       }
       final presets = ref.read(tankPresetsProvider).value ?? const [];
       final preset = presets.where((p) => p.name == _presetName).firstOrNull;
-      final prefix = _prefix.text.trim();
+      final labels = tripRentalLabels(_prefix.text.trim(), count, [
+        for (final c in widget.existing) c.label,
+      ]);
       for (var i = 0; i < count; i++) {
-        final n = start + i + 1;
         drafts.add(
           TripCylinder(
             id: '',
             tripId: widget.tripId,
-            label: prefix.isEmpty ? '$n' : '$prefix $n',
+            label: labels[i],
             volume: preset?.volumeLiters,
             workingPressure: preset?.workingPressureBar,
             material: preset?.material,
@@ -148,10 +172,9 @@ class _AddTripCylindersSheetState
       _error = null;
     });
     try {
-      final repo = ref.read(tripCylinderRepositoryProvider);
-      for (final draft in drafts) {
-        await repo.createCylinder(draft);
-      }
+      // One transaction: a failure part way adds nothing, so Save again
+      // never doubles the batch.
+      await ref.read(tripCylinderRepositoryProvider).createCylinders(drafts);
       if (mounted) Navigator.of(context).pop();
     } catch (_) {
       if (mounted) setState(() => _error = l10n.common_error_tryAgain);

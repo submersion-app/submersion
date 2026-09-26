@@ -23021,6 +23021,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get trips_cylinders_fill_cost => '费用';
 
   @override
+  String get trips_cylinders_fill_costEach => '每个气瓶的费用';
+
+  @override
   String get trips_cylinders_fill_currency => '货币';
 
   @override
@@ -23055,6 +23058,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_label => '名称';
+
+  @override
+  String get trips_cylinders_edit_errorLabel => '请输入名称。';
+
+  @override
+  String get trips_cylinders_edit_errorNeedsPressure => '请同时输入工作压力，以便换算尺寸。';
 
   @override
   String trips_cylinders_edit_volume(String unit) {

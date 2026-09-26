@@ -86,6 +86,33 @@ void main() {
       expect(r.volumeLiters, al80.volumeLiters);
     });
 
+    test('an imperial size with no working pressure asks for one', () {
+      final r = cylinderSpecsFromInput(
+        imperial,
+        sizeText: '80',
+        workingPressureText: '',
+      );
+      expect(r.needsPressure, isTrue);
+      expect(r.volumeLiters, isNull);
+      expect(
+        cylinderSpecsFromInput(
+          imperial,
+          sizeText: '80',
+          workingPressureText: '',
+          preset: al80,
+        ).needsPressure,
+        isFalse,
+      );
+      expect(
+        cylinderSpecsFromInput(
+          metric,
+          sizeText: '11.1',
+          workingPressureText: '',
+        ).needsPressure,
+        isFalse,
+      );
+    });
+
     test('blank fields are unknown, not invalid', () {
       final r = cylinderSpecsFromInput(
         metric,

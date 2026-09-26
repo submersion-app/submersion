@@ -23671,6 +23671,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get trips_cylinders_fill_cost => 'עלות';
 
   @override
+  String get trips_cylinders_fill_costEach => 'עלות לכל מכל';
+
+  @override
   String get trips_cylinders_fill_currency => 'מטבע';
 
   @override
@@ -23705,6 +23708,13 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_label => 'שם';
+
+  @override
+  String get trips_cylinders_edit_errorLabel => 'הזינו שם.';
+
+  @override
+  String get trips_cylinders_edit_errorNeedsPressure =>
+      'הזינו גם לחץ עבודה כדי שאפשר יהיה להמיר את הגודל.';
 
   @override
   String trips_cylinders_edit_volume(String unit) {

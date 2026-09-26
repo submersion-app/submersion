@@ -7134,6 +7134,7 @@
   "trips_cylinders_fill_analyzedHe": "He geanalyseerd (%)",
   "trips_cylinders_fill_bottle": "Flesnummer",
   "trips_cylinders_fill_cost": "Kosten",
+  "trips_cylinders_fill_costEach": "Kosten per fles",
   "trips_cylinders_fill_currency": "Valuta",
   "trips_cylinders_fill_package": "Inbegrepen in een pakket",
   "trips_cylinders_fill_slots": "Te vullen flessen",
@@ -7152,6 +7153,8 @@
   "trips_cylinders_adjust_markEmpty": "Als leeg markeren",
   "trips_cylinders_edit_title": "Fles bewerken",
   "trips_cylinders_edit_label": "Naam",
+  "trips_cylinders_edit_errorLabel": "Voer een naam in.",
+  "trips_cylinders_edit_errorNeedsPressure": "Voer ook de werkdruk in, zodat de grootte kan worden omgerekend.",
   "trips_cylinders_edit_volume": "Grootte ({unit})",
   "@trips_cylinders_edit_volume": {
     "placeholders": {

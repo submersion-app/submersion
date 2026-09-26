@@ -38838,6 +38838,12 @@ abstract class AppLocalizations {
   /// **'Cost'**
   String get trips_cylinders_fill_cost;
 
+  /// No description provided for @trips_cylinders_fill_costEach.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost per cylinder'**
+  String get trips_cylinders_fill_costEach;
+
   /// No description provided for @trips_cylinders_fill_currency.
   ///
   /// In en, this message translates to:
@@ -38903,6 +38909,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Label'**
   String get trips_cylinders_edit_label;
+
+  /// No description provided for @trips_cylinders_edit_errorLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a label.'**
+  String get trips_cylinders_edit_errorLabel;
+
+  /// No description provided for @trips_cylinders_edit_errorNeedsPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the working pressure too, so the size can be converted.'**
+  String get trips_cylinders_edit_errorNeedsPressure;
 
   /// No description provided for @trips_cylinders_edit_volume.
   ///

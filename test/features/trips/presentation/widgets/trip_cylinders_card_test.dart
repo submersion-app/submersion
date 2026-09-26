@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -70,6 +72,7 @@ void main() {
     List<TripCylinderState> slots, {
     bool past = false,
     MockSettingsNotifier? settings,
+    Future<List<TripCylinderState>>? loading,
   }) {
     final router = GoRouter(
       routes: [
@@ -90,7 +93,9 @@ void main() {
         settingsProvider.overrideWith(
           (ref) => settings ?? MockSettingsNotifier(),
         ),
-        tripCylinderStatesProvider('t1').overrideWith((ref) async => slots),
+        tripCylinderStatesProvider(
+          't1',
+        ).overrideWith((ref) => loading ?? Future.value(slots)),
       ],
       child: MaterialApp.router(
         locale: const Locale('en'),
@@ -149,5 +154,17 @@ void main() {
     await tester.tap(find.byKey(const Key('trip-cylinders-card')));
     await tester.pumpAndSettle();
     expect(find.text('BOARD'), findsOneWidget);
+  });
+
+  testWidgets('shows nothing until the slots have loaded', (tester) async {
+    final pending = Completer<List<TripCylinderState>>();
+    await tester.pumpWidget(host(const [], loading: pending.future));
+    await tester.pump();
+    expect(find.byKey(const Key('cylinders-set-up')), findsNothing);
+    expect(find.text('Cylinders'), findsNothing);
+
+    pending.complete(states());
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('cylinder-chip-c1')), findsOneWidget);
   });
 }

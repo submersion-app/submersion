@@ -205,6 +205,25 @@ class TripCylinderRepository {
     }
   }
 
+  /// Inserts every slot in [cylinders] in one transaction: a failure part
+  /// way leaves none of them, so a retry never doubles the batch.
+  Future<List<domain.TripCylinder>> createCylinders(
+    List<domain.TripCylinder> cylinders,
+  ) async {
+    try {
+      return await _db.transaction(
+        () async => [for (final c in cylinders) await createCylinder(c)],
+      );
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to create cylinders',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
   /// Rewrites board order to match [orderedIds]. Only rows whose position
   /// changed are written and staged, so a no-op reorder syncs nothing.
   Future<void> reorderCylinders(List<String> orderedIds) async {

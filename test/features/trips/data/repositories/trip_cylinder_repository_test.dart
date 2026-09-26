@@ -423,5 +423,25 @@ void main() {
       await repository.reorderCylinders([c.id, a.id, b.id]);
       expect(await pendingCountFor('tripCylinders', a.id), 0);
     });
+
+    test('createCylinders writes the whole batch or none of it', () async {
+      final made = await repository.createCylinders([
+        slot(label: 'A'),
+        slot(label: 'B', sortOrder: 1),
+      ]);
+      expect(made.map((x) => x.label), ['A', 'B']);
+      expect(await pendingCountFor('tripCylinders', made.last.id), 1);
+
+      // The second row reuses an id, so the insert fails part way.
+      await expectLater(
+        repository.createCylinders([
+          slot(label: 'C', sortOrder: 2),
+          slot(label: 'D', sortOrder: 3).copyWith(id: made.first.id),
+        ]),
+        throwsA(anything),
+      );
+      final listed = await repository.getCylindersForTrip(tripId);
+      expect(listed.map((x) => x.label), ['A', 'B']);
+    });
   });
 }

@@ -14778,6 +14778,7 @@
   "trips_cylinders_fill_analyzedHe": "He analyzed (%)",
   "trips_cylinders_fill_bottle": "Bottle number",
   "trips_cylinders_fill_cost": "Cost",
+  "trips_cylinders_fill_costEach": "Cost per cylinder",
   "trips_cylinders_fill_currency": "Currency",
   "trips_cylinders_fill_package": "Covered by a package",
   "trips_cylinders_fill_slots": "Cylinders to fill",
@@ -14796,6 +14797,8 @@
   "trips_cylinders_adjust_markEmpty": "Mark empty",
   "trips_cylinders_edit_title": "Edit cylinder",
   "trips_cylinders_edit_label": "Label",
+  "trips_cylinders_edit_errorLabel": "Enter a label.",
+  "trips_cylinders_edit_errorNeedsPressure": "Enter the working pressure too, so the size can be converted.",
   "trips_cylinders_edit_volume": "Size ({unit})",
   "@trips_cylinders_edit_volume": {
     "placeholders": {

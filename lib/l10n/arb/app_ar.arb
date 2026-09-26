@@ -7134,6 +7134,7 @@
   "trips_cylinders_fill_analyzedHe": "He المقاس (%)",
   "trips_cylinders_fill_bottle": "رقم الأسطوانة",
   "trips_cylinders_fill_cost": "التكلفة",
+  "trips_cylinders_fill_costEach": "التكلفة لكل أسطوانة",
   "trips_cylinders_fill_currency": "العملة",
   "trips_cylinders_fill_package": "ضمن باقة",
   "trips_cylinders_fill_slots": "الأسطوانات المراد تعبئتها",
@@ -7152,6 +7153,8 @@
   "trips_cylinders_adjust_markEmpty": "تعليم كفارغة",
   "trips_cylinders_edit_title": "تعديل الأسطوانة",
   "trips_cylinders_edit_label": "الاسم",
+  "trips_cylinders_edit_errorLabel": "أدخل اسمًا.",
+  "trips_cylinders_edit_errorNeedsPressure": "أدخل ضغط العمل أيضًا حتى يمكن تحويل الحجم.",
   "trips_cylinders_edit_volume": "الحجم ({unit})",
   "@trips_cylinders_edit_volume": {
     "placeholders": {

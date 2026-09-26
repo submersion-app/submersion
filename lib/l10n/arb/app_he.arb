@@ -7134,6 +7134,7 @@
   "trips_cylinders_fill_analyzedHe": "He שנמדד (%)",
   "trips_cylinders_fill_bottle": "מספר מכל",
   "trips_cylinders_fill_cost": "עלות",
+  "trips_cylinders_fill_costEach": "עלות לכל מכל",
   "trips_cylinders_fill_currency": "מטבע",
   "trips_cylinders_fill_package": "כלול בחבילה",
   "trips_cylinders_fill_slots": "מכלים למילוי",
@@ -7152,6 +7153,8 @@
   "trips_cylinders_adjust_markEmpty": "סימון כריק",
   "trips_cylinders_edit_title": "עריכת מכל",
   "trips_cylinders_edit_label": "שם",
+  "trips_cylinders_edit_errorLabel": "הזינו שם.",
+  "trips_cylinders_edit_errorNeedsPressure": "הזינו גם לחץ עבודה כדי שאפשר יהיה להמיר את הגודל.",
   "trips_cylinders_edit_volume": "גודל ({unit})",
   "@trips_cylinders_edit_volume": {
     "placeholders": {

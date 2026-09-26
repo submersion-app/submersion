@@ -23962,6 +23962,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get trips_cylinders_fill_cost => 'التكلفة';
 
   @override
+  String get trips_cylinders_fill_costEach => 'التكلفة لكل أسطوانة';
+
+  @override
   String get trips_cylinders_fill_currency => 'العملة';
 
   @override
@@ -23997,6 +24000,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_label => 'الاسم';
+
+  @override
+  String get trips_cylinders_edit_errorLabel => 'أدخل اسمًا.';
+
+  @override
+  String get trips_cylinders_edit_errorNeedsPressure =>
+      'أدخل ضغط العمل أيضًا حتى يمكن تحويل الحجم.';
 
   @override
   String trips_cylinders_edit_volume(String unit) {

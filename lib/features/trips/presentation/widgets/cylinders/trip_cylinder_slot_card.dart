@@ -45,8 +45,13 @@ Future<bool> confirmDeleteTripCylinder(
     ),
   );
   if (confirmed != true || !context.mounted) return false;
-  await repo.deleteCylinder(cylinder.id);
-  return true;
+  try {
+    await repo.deleteCylinder(cylinder.id);
+    return true;
+  } catch (_) {
+    if (context.mounted) showTripCylinderChangeFailed(context);
+    return false;
+  }
 }
 
 enum _SlotAction { fill, adjust, edit, delete }

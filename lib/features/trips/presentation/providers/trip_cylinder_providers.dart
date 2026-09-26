@@ -47,8 +47,9 @@ final tripFillPassportCopierProvider = Provider<TripFillPassportCopier>(
   (ref) => TripFillPassportCopier(),
 );
 
-/// Every fill and adjustment on a trip, newest first (ties by id, newest
-/// id first, so the order never depends on the query), for the ledger.
+/// Every fill and adjustment on a trip, newest first, for the ledger.
+/// Entries at the same time list the one recorded last first, then fall
+/// back to the id, so the order never depends on the query.
 final tripCylinderLedgerProvider =
     FutureProvider.family<List<TripCylinderEvent>, String>((ref, tripId) async {
       final repository = ref.watch(tripCylinderRepositoryProvider);
@@ -57,7 +58,9 @@ final tripCylinderLedgerProvider =
       final events = [for (final list in bySlot.values) ...list]
         ..sort((a, b) {
           final byTime = b.occurredAt.compareTo(a.occurredAt);
-          return byTime != 0 ? byTime : b.id.compareTo(a.id);
+          if (byTime != 0) return byTime;
+          final byCreated = b.createdAt.compareTo(a.createdAt);
+          return byCreated != 0 ? byCreated : b.id.compareTo(a.id);
         });
       return events;
     });

@@ -14,10 +14,12 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_event.dart';
 import 'package:submersion/features/trips/presentation/pages/trip_cylinder_board_page.dart';
+import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../../helpers/mock_providers.dart';
 import '../../../../../helpers/test_database.dart';
+import '../../../helpers/failing_trip_cylinder_repository.dart';
 
 void main() {
   late TripCylinderRepository repo;
@@ -74,7 +76,10 @@ void main() {
     ),
   );
 
-  Future<void> pumpLedger(WidgetTester tester) async {
+  Future<void> pumpLedger(
+    WidgetTester tester, {
+    TripCylinderRepository? repository,
+  }) async {
     tester.view.physicalSize = const Size(900, 1800);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.reset);
@@ -86,6 +91,8 @@ void main() {
                 MockSettingsNotifier(const AppSettings(defaultCurrency: 'EUR')),
           ),
           allDiveCentersProvider.overrideWith((ref) async => const []),
+          if (repository != null)
+            tripCylinderRepositoryProvider.overrideWithValue(repository),
         ],
         child: MaterialApp(
           locale: const Locale('en'),
@@ -173,5 +180,21 @@ void main() {
     await tester.tap(find.byKey(const Key('ledger-e1')));
     await tester.pumpAndSettle();
     expect(find.text('Edit fill'), findsOneWidget);
+  });
+
+  testWidgets('a failed delete says so and keeps the entry', (tester) async {
+    await event('e1', TripCylinderEventKind.fill, hour: 8, pressure: 200);
+    await pumpLedger(tester, repository: FailingTripCylinderRepository());
+
+    await tester.tap(find.byKey(const Key('ledger-delete-e1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('ledger-e1')), findsOneWidget);
   });
 }

@@ -7032,6 +7032,7 @@
   "trips_cylinders_fill_analyzedHe": "He analysé (%)",
   "trips_cylinders_fill_bottle": "Numéro du bloc",
   "trips_cylinders_fill_cost": "Coût",
+  "trips_cylinders_fill_costEach": "Coût par bloc",
   "trips_cylinders_fill_currency": "Devise",
   "trips_cylinders_fill_package": "Inclus dans un forfait",
   "trips_cylinders_fill_slots": "Blocs à gonfler",
@@ -7050,6 +7051,8 @@
   "trips_cylinders_adjust_markEmpty": "Marquer vide",
   "trips_cylinders_edit_title": "Modifier le bloc",
   "trips_cylinders_edit_label": "Nom",
+  "trips_cylinders_edit_errorLabel": "Saisissez un nom.",
+  "trips_cylinders_edit_errorNeedsPressure": "Saisissez aussi la pression de service pour pouvoir convertir la taille.",
   "trips_cylinders_edit_volume": "Taille ({unit})",
   "@trips_cylinders_edit_volume": {
     "placeholders": {

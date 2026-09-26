@@ -7032,6 +7032,7 @@
   "trips_cylinders_fill_analyzedHe": "Mért He (%)",
   "trips_cylinders_fill_bottle": "Palackszám",
   "trips_cylinders_fill_cost": "Költség",
+  "trips_cylinders_fill_costEach": "Költség palackonként",
   "trips_cylinders_fill_currency": "Pénznem",
   "trips_cylinders_fill_package": "A csomag része",
   "trips_cylinders_fill_slots": "Töltendő palackok",
@@ -7050,6 +7051,8 @@
   "trips_cylinders_adjust_markEmpty": "Megjelölés üresként",
   "trips_cylinders_edit_title": "Palack szerkesztése",
   "trips_cylinders_edit_label": "Név",
+  "trips_cylinders_edit_errorLabel": "Adj meg egy nevet.",
+  "trips_cylinders_edit_errorNeedsPressure": "Add meg az üzemi nyomást is, hogy a méret átszámítható legyen.",
   "trips_cylinders_edit_volume": "Méret ({unit})",
   "@trips_cylinders_edit_volume": {
     "placeholders": {

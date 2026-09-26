@@ -159,4 +159,35 @@ void main() {
     expect(find.text('Enter a valid number'), findsOneWidget);
     expect((await repo.getCylinderById(slot.id))!.volume, 11.1);
   });
+
+  testWidgets('refuses a blank label and keeps the sheet open', (tester) async {
+    await pumpAndOpen(tester);
+    await tester.enterText(field('Label'), '   ');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter a label.'), findsOneWidget);
+    expect((await repo.getCylinderById(slot.id))!.label, 'Truck 1');
+  });
+
+  testWidgets('an imperial size needs a working pressure to convert', (
+    tester,
+  ) async {
+    final imperial = MockSettingsNotifier();
+    await imperial.setImperial();
+    await pumpAndOpen(tester, settings: imperial);
+
+    await tester.enterText(field('Working pressure (psi)'), '');
+    await tester.enterText(field('Size (cuft)'), '80');
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text(
+        'Enter the working pressure too, so the size can be converted.',
+      ),
+      findsOneWidget,
+    );
+    expect((await repo.getCylinderById(slot.id))!.volume, 11.1);
+  });
 }

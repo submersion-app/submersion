@@ -6,7 +6,6 @@ import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip.dart';
-import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
 import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
@@ -26,10 +25,13 @@ class TripCylindersCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final states =
-        ref.watch(tripCylinderStatesProvider(trip.id)).value ??
-        const <TripCylinderState>[];
-    if (states.isEmpty && !trip.isUpcoming) return const SizedBox.shrink();
+    final async = ref.watch(tripCylinderStatesProvider(trip.id));
+    // Until the slots load there is nothing true to say: an empty list here
+    // would offer set-up to a trip that already has cylinders.
+    final states = async.value;
+    if (states == null || (states.isEmpty && !trip.isUpcoming)) {
+      return const SizedBox.shrink();
+    }
     final l10n = context.l10n;
     final theme = Theme.of(context);
     final units = UnitFormatter(ref.watch(settingsProvider));

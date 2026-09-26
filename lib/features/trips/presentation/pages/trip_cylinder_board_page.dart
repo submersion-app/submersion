@@ -1,9 +1,11 @@
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_cylinder_state.dart';
+import 'package:submersion/features/trips/presentation/helpers/trip_cylinder_display.dart';
 import 'package:submersion/features/trips/presentation/providers/trip_cylinder_providers.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/add_trip_cylinders_sheet.dart';
 import 'package:submersion/features/trips/presentation/widgets/cylinders/trip_cylinder_fill_sheet.dart';
@@ -145,9 +147,10 @@ class _TripCylinderBoardPageState extends ConsumerState<TripCylinderBoardPage> {
   }
 }
 
-/// The reorderable list of slot cards. Dragging a card writes the new board
-/// order through the repository; the list redraws from the provider.
-class TripCylinderBoardList extends ConsumerWidget {
+/// The reorderable list of slot cards. A drop shows the new order at once
+/// and writes it through the repository; if the write fails the slots go
+/// back and the diver is told.
+class TripCylinderBoardList extends ConsumerStatefulWidget {
   final List<TripCylinderState> states;
   final Map<String, String> centerNames;
 
@@ -158,21 +161,78 @@ class TripCylinderBoardList extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TripCylinderBoardList> createState() =>
+      _TripCylinderBoardListState();
+}
+
+class _TripCylinderBoardListState extends ConsumerState<TripCylinderBoardList> {
+  /// The order just dropped, shown until the provider reports it.
+  List<String>? _pending;
+
+  /// The order the provider reported when the drop happened. A refresh
+  /// still carrying it is stale, not an answer.
+  List<String>? _before;
+
+  List<String> get _ids => [for (final s in widget.states) s.cylinder.id];
+
+  @override
+  void didUpdateWidget(TripCylinderBoardList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // The provider has caught up (the dropped order) or moved on (any order
+    // but the one before the drop, say a sync); either way it is the truth.
+    // A refresh that still shows the old order leaves the drop in place.
+    final ids = _ids;
+    if (_pending != null &&
+        (listEquals(ids, _pending) || !listEquals(ids, _before))) {
+      _pending = null;
+      _before = null;
+    }
+  }
+
+  /// The slots in the order to draw: the dropped order while it is pending
+  /// and still names exactly the slots on the board.
+  List<TripCylinderState> get _ordered {
+    final pending = _pending;
+    if (pending == null) return widget.states;
+    final byId = {for (final s in widget.states) s.cylinder.id: s};
+    if (pending.length != byId.length || !pending.every(byId.containsKey)) {
+      return widget.states;
+    }
+    return [for (final id in pending) byId[id]!];
+  }
+
+  Future<void> _reorder(int oldIndex, int newIndex) async {
+    final shown = [for (final s in _ordered) s.cylinder.id];
+    final next = reorderedIds(shown, oldIndex, newIndex);
+    if (listEquals(next, shown)) return;
+    setState(() {
+      _pending = next;
+      _before ??= _ids;
+    });
+    try {
+      await ref.read(tripCylinderRepositoryProvider).reorderCylinders(next);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _pending = null;
+        _before = null;
+      });
+      showTripCylinderChangeFailed(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final states = _ordered;
     return ReorderableListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 8),
       itemCount: states.length,
-      onReorderItem: (oldIndex, newIndex) {
-        final ids = [for (final s in states) s.cylinder.id];
-        ref
-            .read(tripCylinderRepositoryProvider)
-            .reorderCylinders(reorderedIds(ids, oldIndex, newIndex));
-      },
+      onReorderItem: _reorder,
       itemBuilder: (context, i) => TripCylinderSlotCard(
         key: ValueKey(states[i].cylinder.id),
         state: states[i],
-        allStates: states,
-        centerNames: centerNames,
+        allStates: widget.states,
+        centerNames: widget.centerNames,
       ),
     );
   }

@@ -109,6 +109,11 @@ class _TripCylinderEditSheetState
     if (_saving) return;
     final l10n = context.l10n;
     final units = UnitFormatter(ref.read(settingsProvider));
+    final label = _label.text.trim();
+    if (label.isEmpty) {
+      setState(() => _error = l10n.trips_cylinders_edit_errorLabel);
+      return;
+    }
     final preset = _presetNamed(_presetName);
     final specs = cylinderSpecsFromInput(
       units,
@@ -116,8 +121,12 @@ class _TripCylinderEditSheetState
       workingPressureText: _workingPressure.text,
       preset: preset,
     );
-    if (specs.invalid) {
-      setState(() => _error = l10n.numberInput_invalidValue);
+    if (specs.invalid || specs.needsPressure) {
+      setState(
+        () => _error = specs.invalid
+            ? l10n.numberInput_invalidValue
+            : l10n.trips_cylinders_edit_errorNeedsPressure,
+      );
       return;
     }
     setState(() {
@@ -130,7 +139,7 @@ class _TripCylinderEditSheetState
           .read(tripCylinderRepositoryProvider)
           .updateCylinder(
             c.copyWith(
-              label: _label.text.trim(),
+              label: label,
               volume: specs.volumeLiters,
               workingPressure: specs.workingPressureBar,
               material: preset?.material ?? c.material,

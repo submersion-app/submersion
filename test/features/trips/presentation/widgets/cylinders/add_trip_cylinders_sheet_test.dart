@@ -180,4 +180,13 @@ void main() {
     expect(find.text('Pick at least one cylinder.'), findsOneWidget);
     expect(await repo.getCylindersForTrip(tripId), isEmpty);
   });
+
+  test('rental labels never repeat one still on the board', () {
+    // Truck 2 was deleted: the count is 3 but Truck 4 is taken.
+    expect(tripRentalLabels('Truck', 1, ['Truck 1', 'Truck 3', 'Truck 4']), [
+      'Truck 5',
+    ]);
+    expect(tripRentalLabels('Car', 2, ['Truck 1']), ['Car 2', 'Car 3']);
+    expect(tripRentalLabels('', 2, ['1', '5']), ['6', '7']);
+  });
 }

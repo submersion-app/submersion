@@ -34,8 +34,15 @@ String cylinderSizeForInput(
 /// Reads a size and a working pressure typed in the diver's units back to
 /// liters and bar. Blank fields are unknown; unreadable or non-positive
 /// numbers set [invalid]. In imperial a chosen [preset] supplies the water
-/// volume, because a rated cuft figure cannot be reversed exactly.
-({double? volumeLiters, double? workingPressureBar, bool invalid})
+/// volume, because a rated cuft figure cannot be reversed exactly; without
+/// one a cuft size needs the working pressure, and [needsPressure] is set
+/// rather than dropping the typed size.
+({
+  double? volumeLiters,
+  double? workingPressureBar,
+  bool invalid,
+  bool needsPressure,
+})
 cylinderSpecsFromInput(
   UnitFormatter units, {
   required String sizeText,
@@ -49,7 +56,12 @@ cylinderSpecsFromInput(
   final badSize = sizeTrim.isNotEmpty && (size == null || size <= 0);
   final badWp = wpTrim.isNotEmpty && (wpDisplay == null || wpDisplay <= 0);
   if (badSize || badWp) {
-    return (volumeLiters: null, workingPressureBar: null, invalid: true);
+    return (
+      volumeLiters: null,
+      workingPressureBar: null,
+      invalid: true,
+      needsPressure: false,
+    );
   }
   final wpBar = wpDisplay == null ? null : units.pressureToBar(wpDisplay);
   double? liters;
@@ -62,5 +74,10 @@ cylinderSpecsFromInput(
       liters = size * _litersPerCuft / wpBar;
     }
   }
-  return (volumeLiters: liters, workingPressureBar: wpBar, invalid: false);
+  return (
+    volumeLiters: liters,
+    workingPressureBar: wpBar,
+    invalid: false,
+    needsPressure: size != null && liters == null,
+  );
 }

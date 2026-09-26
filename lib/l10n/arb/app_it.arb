@@ -7028,6 +7028,7 @@
   "trips_cylinders_fill_analyzedHe": "He analizzato (%)",
   "trips_cylinders_fill_bottle": "Numero della bombola",
   "trips_cylinders_fill_cost": "Costo",
+  "trips_cylinders_fill_costEach": "Costo per bombola",
   "trips_cylinders_fill_currency": "Valuta",
   "trips_cylinders_fill_package": "Incluso in un pacchetto",
   "trips_cylinders_fill_slots": "Bombole da ricaricare",
@@ -7046,6 +7047,8 @@
   "trips_cylinders_adjust_markEmpty": "Segna come vuota",
   "trips_cylinders_edit_title": "Modifica bombola",
   "trips_cylinders_edit_label": "Nome",
+  "trips_cylinders_edit_errorLabel": "Inserisci un nome.",
+  "trips_cylinders_edit_errorNeedsPressure": "Inserisci anche la pressione di esercizio per poter convertire la dimensione.",
   "trips_cylinders_edit_volume": "Dimensione ({unit})",
   "@trips_cylinders_edit_volume": {
     "placeholders": {

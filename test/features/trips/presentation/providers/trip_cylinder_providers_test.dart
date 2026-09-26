@@ -201,4 +201,27 @@ void main() {
     );
     expect(ledger.map((e) => e.id), ['e-new', 'e-old']);
   });
+
+  test('ledger entries at the same minute list the later one first', () async {
+    final a = await slot('A');
+    Future<void> at8(String id) => repository.createEvent(
+      TripCylinderEvent(
+        id: id,
+        tripCylinderId: a.id,
+        kind: TripCylinderEventKind.fill,
+        occurredAt: at,
+        createdAt: at,
+        updatedAt: at,
+      ),
+    );
+    // Ids sort the other way round, so only the creation time can win.
+    await at8('z-first');
+    await Future<void>.delayed(const Duration(milliseconds: 5));
+    await at8('a-second');
+
+    final ledger = await container.read(
+      tripCylinderLedgerProvider(tripId).future,
+    );
+    expect(ledger.map((e) => e.id), ['a-second', 'z-first']);
+  });
 }

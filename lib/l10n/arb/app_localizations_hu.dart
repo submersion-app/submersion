@@ -24198,6 +24198,9 @@ class AppLocalizationsHu extends AppLocalizations {
   String get trips_cylinders_fill_cost => 'Költség';
 
   @override
+  String get trips_cylinders_fill_costEach => 'Költség palackonként';
+
+  @override
   String get trips_cylinders_fill_currency => 'Pénznem';
 
   @override
@@ -24233,6 +24236,13 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get trips_cylinders_edit_label => 'Név';
+
+  @override
+  String get trips_cylinders_edit_errorLabel => 'Adj meg egy nevet.';
+
+  @override
+  String get trips_cylinders_edit_errorNeedsPressure =>
+      'Add meg az üzemi nyomást is, hogy a méret átszámítható legyen.';
 
   @override
   String trips_cylinders_edit_volume(String unit) {
