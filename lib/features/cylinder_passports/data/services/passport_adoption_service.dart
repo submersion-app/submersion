@@ -102,6 +102,7 @@ class PassportAdoptionService {
       if (date == null) continue;
       await _schedules.updateSchedule(
         schedule.withBaseline(date, now: at, picked: true),
+        notify: false,
       );
     }
     if (tag.o2Clean) {

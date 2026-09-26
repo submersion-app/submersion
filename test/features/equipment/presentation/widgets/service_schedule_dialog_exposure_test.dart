@@ -16,8 +16,10 @@ class _RecordingScheduleRepository implements ServiceScheduleRepository {
   _RecordingScheduleRepository(this.onSaved);
 
   @override
-  Future<void> updateSchedule(ServiceSchedule schedule) async =>
-      onSaved(schedule);
+  Future<void> updateSchedule(
+    ServiceSchedule schedule, {
+    bool notify = true,
+  }) async => onSaved(schedule);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => null;

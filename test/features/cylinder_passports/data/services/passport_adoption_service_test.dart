@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
@@ -167,5 +168,19 @@ void main() {
       ),
       isEmpty,
     );
+  });
+
+  test('announces one local change, after the adoption commits', () async {
+    var notified = 0;
+    final sub = SyncEventBus.changes.listen((_) => notified++);
+    addTearDown(sub.cancel);
+    await service.adopt(
+      full,
+      diverId: 'd1',
+      fallbackName: 'Cylinder',
+      now: now,
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(notified, 1);
   });
 }
