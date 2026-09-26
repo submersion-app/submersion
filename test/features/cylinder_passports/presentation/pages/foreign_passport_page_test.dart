@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:drift/drift.dart' show Value;
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/data/services/passport_adoption_service.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/core/database/database.dart' hide TankPresets;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -211,4 +217,100 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('passport '), findsOneWidget);
   });
+
+  /// Pumps the foreign page for [full] with an adoption service that fails
+  /// with [error], taps Add to my gear, and returns the strings.
+  Future<AppLocalizations> addFailingWith(
+    WidgetTester tester,
+    Object error,
+  ) async {
+    final overrides = await getBaseOverrides();
+    final router = GoRouter(
+      initialLocation: foreignPassportLocation(full),
+      routes: [
+        GoRoute(
+          path: '/equipment/tag',
+          builder: (context, state) => ForeignPassportPage(
+            tag: foreignTagFromQuery(state.uri.queryParameters['t']),
+          ),
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          ...overrides,
+          passportAdoptionServiceProvider.overrideWithValue(
+            _FailingAdoption(error),
+          ),
+        ].cast(),
+        child: MaterialApp.router(
+          routerConfig: router,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(ForeignPassportPage)),
+    );
+    await tester.tap(find.byKey(const Key('foreign_addToGear')));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 300)),
+    );
+    await tester.pumpAndSettle();
+    return l10n;
+  }
+
+  testWidgets('a tag held by another cylinder names the holder', (
+    tester,
+  ) async {
+    final db = await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    await tester.runAsync(() async {
+      final t = DateTime.now().millisecondsSinceEpoch;
+      await db
+          .into(db.equipment)
+          .insert(
+            EquipmentCompanion.insert(
+              id: 'eq-held',
+              name: 'Dad 12',
+              type: 'tank',
+              createdAt: t,
+              updatedAt: t,
+              diverId: const Value(null),
+            ),
+          );
+    });
+    final l10n = await addFailingWith(tester, const PassportIdInUse('eq-held'));
+    expect(find.text(l10n.passport_tag_linkInUse('Dad 12')), findsOneWidget);
+    // The button is usable again.
+    final button = tester.widget<OutlinedButton>(
+      find.byKey(const Key('foreign_addToGear')),
+    );
+    expect(button.onPressed, isNotNull);
+  });
+
+  testWidgets('a failed add says so and stays on the page', (tester) async {
+    await setUpTestDatabase();
+    addTearDown(tearDownTestDatabase);
+    final l10n = await addFailingWith(tester, StateError('database is locked'));
+    expect(find.text(l10n.passport_foreign_addFailed), findsOneWidget);
+    expect(find.byType(ForeignPassportPage), findsOneWidget);
+  });
+}
+
+class _FailingAdoption extends PassportAdoptionService {
+  _FailingAdoption(this.error);
+
+  final Object error;
+
+  @override
+  Future<EquipmentItem> adopt(
+    CylinderPassportPayload tag, {
+    required String? diverId,
+    required String fallbackName,
+    DateTime? now,
+  }) async => throw error;
 }
