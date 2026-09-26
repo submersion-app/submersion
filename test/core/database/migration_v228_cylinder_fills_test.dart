@@ -81,12 +81,12 @@ void main() {
     return rows.map((r) => r.read<String>('name')).toSet();
   }
 
-  test('v228 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 228);
+  test('v228 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v230 (nav_tracks) landed on top; the newest rung owns
+    // the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(228));
     expect(AppDatabase.migrationVersions, contains(228));
-    expect(AppDatabase.migrationStepCount(227), 1);
+    expect(AppDatabase.migrationStepCount(227), greaterThanOrEqualTo(1));
     // Additive rung: the sync compatibility floor must not move.
     expect(AppDatabase.minimumCompatibleSchemaVersion, 224);
   });
