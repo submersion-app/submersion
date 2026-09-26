@@ -91,8 +91,23 @@ class SafetyFindingsRepository {
           ),
       ]);
 
+      // Two devices that reviewed a dive before ids were deterministic left
+      // the same finding under two random ids. The diff keeps one (the
+      // lowest id, so every device keeps the same one) and drops the other;
+      // a dismissal made on either survives on the one kept.
+      final dismissedBySpan = <(String, int?, int?), int>{};
+      for (final r in known) {
+        final at = r.dismissedAt;
+        if (at == null) continue;
+        dismissedBySpan.update(
+          (r.ruleId, r.startTimestamp, r.endTimestamp),
+          (earliest) => at < earliest ? at : earliest,
+          ifAbsent: () => at,
+        );
+      }
+
       final matched = <String>{};
-      final updates = <(String, SafetyFinding)>[];
+      final updates = <(String, SafetyFinding, int?)>[];
       final inserts = <SafetyFinding>[];
       for (var i = 0; i < review.findings.length; i++) {
         final computed = review.findings[i];
@@ -103,6 +118,9 @@ class SafetyFindingsRepository {
           continue;
         }
         matched.add(old.id);
+        final dismissedAt =
+            old.dismissedAt ??
+            dismissedBySpan[(old.ruleId, old.startTimestamp, old.endTimestamp)];
         persisted.add(
           SafetyFinding(
             id: old.id,
@@ -113,16 +131,17 @@ class SafetyFindingsRepository {
             endTimestamp: computed.endTimestamp,
             value: computed.value,
             engineVersion: computed.engineVersion,
-            dismissedAt: old.dismissedAt == null
+            dismissedAt: dismissedAt == null
                 ? null
-                : DateTime.fromMillisecondsSinceEpoch(old.dismissedAt!),
+                : DateTime.fromMillisecondsSinceEpoch(dismissedAt),
             createdAt: DateTime.fromMillisecondsSinceEpoch(old.createdAt),
           ),
         );
         if (old.severity != computed.severity.dbValue ||
             old.value != computed.value ||
-            old.engineVersion != computed.engineVersion) {
-          updates.add((old.id, computed));
+            old.engineVersion != computed.engineVersion ||
+            old.dismissedAt != dismissedAt) {
+          updates.add((old.id, computed, dismissedAt));
         }
       }
 
@@ -141,7 +160,7 @@ class SafetyFindingsRepository {
         );
       }
 
-      for (final (id, computed) in updates) {
+      for (final (id, computed, dismissedAt) in updates) {
         await (_db.update(
           _db.diveSafetyFindings,
         )..where((t) => t.id.equals(id))).write(
@@ -149,6 +168,7 @@ class SafetyFindingsRepository {
             severity: Value(computed.severity.dbValue),
             value: Value(computed.value),
             engineVersion: Value(computed.engineVersion),
+            dismissedAt: Value(dismissedAt),
           ),
         );
         await _syncRepository.markRecordPending(

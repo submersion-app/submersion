@@ -1287,6 +1287,15 @@ class SyncService {
         contradictedByEntity[delEntry.key] = contradicted;
       }
     }
+    final payloadScopes = _payloadEventScopes(
+      remotePayload.deletions,
+      remotePayload.exportedAt,
+    );
+    if (payloadScopes != null) {
+      for (final rec in remotePayload.data.diveProfileEvents) {
+        _addScopeContradiction(contradictedByEntity, payloadScopes, rec);
+      }
+    }
 
     final deletionResult = await _applyRemoteDeletions(
       remotePayload.deletions,
@@ -1907,9 +1916,12 @@ class SyncService {
     };
     final parentUpdatedAt = <String, Map<String, int>>{};
     final contradictedByEntity = <String, Set<String>>{};
+    final payloadScopes = _payloadEventScopes(deletions, baseExportedAt);
     final pass2Tables = <String>{
       for (final table in _baseApplyEntityFlags.keys)
-        if (parentTypes.contains(table) || deletionIds.containsKey(table))
+        if (parentTypes.contains(table) ||
+            deletionIds.containsKey(table) ||
+            (payloadScopes != null && table == 'diveProfileEvents'))
           table,
     };
     progress.beginPass(1);
@@ -1928,6 +1940,9 @@ class SyncService {
         }
         if (deletionIds[table]?.contains(id) == true) {
           (contradictedByEntity[table] ??= {}).add(id);
+        }
+        if (payloadScopes != null && table == 'diveProfileEvents') {
+          _addScopeContradiction(contradictedByEntity, payloadScopes, rec);
         }
       }
     }
@@ -2085,13 +2100,16 @@ class SyncService {
     };
     final parentUpdatedAt = <String, Map<String, int>>{};
     final contradictedByEntity = <String, Set<String>>{};
+    final payloadScopes = _payloadEventScopes(deletions, baseExportedAt);
     progress.beginPass(1);
     await BaseJsonStreamReader().parse(
       openWithProgress(),
       wantRows: (section, table) =>
           section == 'data' &&
           _baseApplyEntityFlags.containsKey(table) &&
-          (parentTypes.contains(table) || deletionIds.containsKey(table)),
+          (parentTypes.contains(table) ||
+              deletionIds.containsKey(table) ||
+              (payloadScopes != null && table == 'diveProfileEvents')),
       onRow: (section, table, rowBytes) async {
         final rec = jsonDecode(utf8.decode(rowBytes)) as Map<String, dynamic>;
         final id = recordIdForEntity(table, rec);
@@ -2103,6 +2121,9 @@ class SyncService {
         }
         if (deletionIds[table]?.contains(id) == true) {
           (contradictedByEntity[table] ??= {}).add(id);
+        }
+        if (payloadScopes != null && table == 'diveProfileEvents') {
+          _addScopeContradiction(contradictedByEntity, payloadScopes, rec);
         }
       },
     );
@@ -2210,6 +2231,40 @@ class SyncService {
         recordsFailed: recordsFailed,
       );
     });
+  }
+
+  /// The payload's own event scope tombstones (#1926), or null when it has
+  /// none. A delete time missing from an older peer falls back to the
+  /// payload's export time, as [_applyRemoteDeletions] does.
+  static EventScopeCoverage? _payloadEventScopes(
+    Map<String, List<SyncDeletion>> deletions,
+    int exportedAt,
+  ) {
+    final scopes = deletions[EventScopeTombstone.entityType];
+    if (scopes == null || scopes.isEmpty) return null;
+    return EventScopeCoverage.from(
+      deletedAt: {
+        for (final d in scopes)
+          d.id: d.deletedAt > 0 ? d.deletedAt : exportedAt,
+      },
+      clocks: {for (final d in scopes) d.id: ?tryParseHlc(d.hlc)},
+    );
+  }
+
+  /// Records [event] as contradicted when a scope in the same payload covers
+  /// it. The publisher sends it live beside that scope, so it still holds
+  /// it, and the same-payload rule the per-row path follows applies: the
+  /// live row is the publisher's current truth and survives both the scope
+  /// and the merge guard.
+  static void _addScopeContradiction(
+    Map<String, Set<String>> contradictedByEntity,
+    EventScopeCoverage payloadScopes,
+    Map<String, dynamic> event,
+  ) {
+    final id = recordIdForEntity('diveProfileEvents', event);
+    if (id != null && payloadScopes.covers(event)) {
+      (contradictedByEntity['diveProfileEvents'] ??= {}).add(id);
+    }
   }
 
   Future<_MergeResult> _applyRemoteDeletions(
@@ -3014,6 +3069,7 @@ class SyncService {
         // guard above, where only a copy newer than the delete comes back.
         if (eventScopes != null &&
             !eventScopes.isEmpty &&
+            !contradicted.contains(recordId) &&
             eventScopes.covers(record)) {
           continue;
         }

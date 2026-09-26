@@ -375,6 +375,71 @@ void main() {
     },
   );
 
+  group('duplicates from independent reviews before #1926', () {
+    // Two devices that reviewed a dive before finding ids were deterministic
+    // each minted a random id for the same finding, and sync left both rows
+    // on both devices. A recompute keeps one and tombstones the other; the
+    // choice follows the ids alone, so every device keeps the same row.
+    Future<void> insertRaw(String id, {DateTime? dismissedAt}) async {
+      await db
+          .into(db.diveSafetyFindings)
+          .insert(
+            DiveSafetyFindingsCompanion.insert(
+              id: id,
+              diveId: 'dive-1',
+              ruleId: SafetyRuleId.rapidAscent.dbValue,
+              severity: SafetySeverity.caution.dbValue,
+              startTimestamp: const Value(100),
+              endTimestamp: const Value(140),
+              value: const Value(14.2),
+              engineVersion: 1,
+              dismissedAt: Value(dismissedAt?.millisecondsSinceEpoch),
+              createdAt: now.millisecondsSinceEpoch,
+            ),
+          );
+    }
+
+    test('converge on the lowest id', () async {
+      await insertRaw('f-b');
+      await insertRaw('f-a');
+
+      await repo.saveReview(
+        SafetyReview(
+          diveId: 'dive-1',
+          engineVersion: 1,
+          reviewedAt: now,
+          findings: [finding('computed')],
+        ),
+      );
+
+      expect((await repo.getReview('dive-1'))!.findings.single.id, 'f-a');
+      expect((await db.select(db.deletionLog).get()).map((t) => t.recordId), [
+        'f-b',
+      ]);
+    });
+
+    test('keep a dismissal made on the duplicate that goes', () async {
+      await insertRaw('f-a');
+      await insertRaw('f-b', dismissedAt: now);
+
+      await repo.saveReview(
+        SafetyReview(
+          diveId: 'dive-1',
+          engineVersion: 1,
+          reviewedAt: now,
+          findings: [finding('computed')],
+        ),
+      );
+
+      final kept = (await repo.getReview('dive-1'))!.findings.single;
+      expect(kept.id, 'f-a');
+      expect(
+        kept.dismissedAt?.millisecondsSinceEpoch,
+        now.millisecondsSinceEpoch,
+      );
+    });
+  });
+
   test('a saved review exports without re-stamping the dive', () async {
     // Both safety tables export their pending rows on their own (#1769);
     // re-stamping the dive for a child-only change would let this device's

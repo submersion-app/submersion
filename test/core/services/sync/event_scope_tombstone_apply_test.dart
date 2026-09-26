@@ -186,6 +186,50 @@ void main() {
     expect(await eventIds(), {'e-later'});
   });
 
+  group('an event the same payload also sends live', () {
+    // A publisher that sends an event live beside a scope covering it still
+    // holds that event. As with a per-row tombstone the same payload
+    // contradicts, its live row is the publisher's current truth and wins.
+    Future<Map<String, dynamic>> seedLiveAndOther() async {
+      await addEvent('e-live', computerId: 'c1', hlc: at(-1000));
+      await addEvent('e-other', computerId: 'c1', hlc: at(-1000));
+      return (await SyncDataSerializer().fetchRecord(
+        'diveProfileEvents',
+        'e-live',
+      ))!;
+    }
+
+    test('through a base file', () async {
+      final live = await seedLiveAndOther();
+
+      await pull(events: [live], deletions: scope('d1'));
+
+      expect(await eventIds(), {'e-live'});
+    });
+
+    test('through a changeset', () async {
+      final live = await seedLiveAndOther();
+      final data = SyncData(diveProfileEvents: [live]);
+      await SyncService(
+        syncRepository: SyncRepository(),
+        serializer: SyncDataSerializer(),
+      ).debugApplyPayload(
+        SyncPayload(
+          version: syncFormatVersion,
+          exportedAt: deleteMs + 5000,
+          deviceId: 'peer-b',
+          checksum: sha256
+              .convert(utf8.encode(jsonEncode(data.toJson())))
+              .toString(),
+          data: data,
+          deletions: scope('d1'),
+        ),
+      );
+
+      expect(await eventIds(), {'e-live'});
+    });
+  });
+
   test('a malformed scope deletes nothing and the sync goes on', () async {
     await addEvent('e1', hlc: at(-1000));
 
