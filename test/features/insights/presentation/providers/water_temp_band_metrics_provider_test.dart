@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/gas_consumption_display.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_gas_lane_provider.dart';
 import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
@@ -141,4 +143,75 @@ void main() {
     expect(fahrenheit.map((b) => b.upper), [50, 65, 75, null]);
     expect(fahrenheit.map((b) => b.sacDiveCount), [0, 1, 0, 0]);
   });
+
+  // Issue #1930: the table combines three queries. Any one of them failing
+  // must put the whole card in its error state. A partial table would read
+  // as data: every band showing "--" for SAC looks like no dive recorded
+  // one, and a missing band query looks like no dive recorded a temperature.
+  group('one failed query fails the whole table', () {
+    for (final failing in _Query.values) {
+      test(failing.name, () async {
+        await dive('a', waterTemp: 5.0);
+
+        final c = ProviderContainer(
+          overrides: [
+            ...(await getBaseOverrides()).cast(),
+            insightsRepositoryProvider.overrideWithValue(
+              _FailingInsightsRepository(failing),
+            ),
+          ],
+        );
+        addTearDown(c.dispose);
+
+        await expectLater(
+          c.read(waterTempBandMetricsProvider.future),
+          throwsA(anything),
+        );
+      });
+    }
+  });
+}
+
+enum _Query { bandPerDive, sacPerDive, bottomTimePerDive }
+
+/// The real repository with one of the table's three queries failing the
+/// way a broken query does since #1930: by throwing.
+class _FailingInsightsRepository extends InsightsRepository {
+  _FailingInsightsRepository(this.failing);
+
+  final _Query failing;
+
+  Never _fail() => throw StateError('query failed: ${failing.name}');
+
+  @override
+  Future<Map<String, int>> getWaterTempBandPerDive({
+    required TemperatureUnit unit,
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
+    if (failing == _Query.bandPerDive) _fail();
+    return super.getWaterTempBandPerDive(
+      unit: unit,
+      diverId: diverId,
+      filter: filter,
+    );
+  }
+
+  @override
+  Future<List<TrendDataPoint>> getSacPressurePerDive({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
+    if (failing == _Query.sacPerDive) _fail();
+    return super.getSacPressurePerDive(diverId: diverId, filter: filter);
+  }
+
+  @override
+  Future<List<TrendDataPoint>> getBottomTimePerDive({
+    String? diverId,
+    DiveFilterState filter = const DiveFilterState(),
+  }) async {
+    if (failing == _Query.bottomTimePerDive) _fail();
+    return super.getBottomTimePerDive(diverId: diverId, filter: filter);
+  }
 }

@@ -3,10 +3,13 @@ import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/domain/visibility/visibility_scale.dart';
 import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
-import 'package:submersion/features/insights/domain/entities/species_insights.dart';
 
 import '../../../../helpers/test_database.dart';
 
+/// Issue #1930: a failed query must reach the caller. Returning a safe
+/// default instead let a provider complete with data, so each card showed its
+/// empty state ("No data available") and never its error state, and a broken
+/// query looked exactly like a diver with no dives.
 void main() {
   group('InsightsRepository error handling', () {
     late InsightsRepository repository;
@@ -14,98 +17,72 @@ void main() {
     setUp(() async {
       await setUpTestDatabase();
       repository = InsightsRepository();
+      await DatabaseService.instance.database.close();
+      DatabaseService.instance.resetForTesting();
     });
 
     tearDown(() {
       DatabaseService.instance.resetForTesting();
     });
 
-    test('all methods return safe defaults on database error', () async {
-      await DatabaseService.instance.database.close();
-      DatabaseService.instance.resetForTesting();
+    final calls = <String, Future<Object?> Function(InsightsRepository r)>{
+      'getSacVolumePerDive': (r) => r.getSacVolumePerDive(),
+      'getSacPressurePerDive': (r) => r.getSacPressurePerDive(),
+      'getGasMixDistribution': (r) => r.getGasMixDistribution(),
+      'getSacVolumeRecords': (r) => r.getSacVolumeRecords(),
+      'getSacPressureRecords': (r) => r.getSacPressureRecords(),
+      'getSacVolumeByTankRole': (r) => r.getSacVolumeByTankRole(),
+      'getSacPressureByTankRole': (r) => r.getSacPressureByTankRole(),
+      'getDiveTypeDistribution': (r) => r.getDiveTypeDistribution(),
+      'getDepthPerDive': (r) => r.getDepthPerDive(),
+      'getBottomTimePerDive': (r) => r.getBottomTimePerDive(),
+      'getDivesPerYear': (r) => r.getDivesPerYear(),
+      'getYearStats': (r) => r.getYearStats(2026),
+      'getDivesBySuitThickness': (r) => r.getDivesBySuitThickness(),
+      'getCumulativeDiveCount': (r) => r.getCumulativeDiveCount(),
+      'getVisibilityDistribution': (r) =>
+          r.getVisibilityDistribution(scale: VisibilityScale.tropical),
+      'getWaterTypeDistribution': (r) => r.getWaterTypeDistribution(),
+      'getSiteTypeDistribution': (r) => r.getSiteTypeDistribution(),
+      'getEntryMethodDistribution': (r) => r.getEntryMethodDistribution(),
+      'getEntryExitMethodPairsForSite': (r) =>
+          r.getEntryExitMethodPairsForSite(siteId: 'site-1'),
+      'getSiteDiveStatistics': (r) => r.getSiteDiveStatistics(siteId: 'site-1'),
+      'getTemperatureByMonth': (r) => r.getTemperatureByMonth(),
+      'getDivesByWaterTempBand': (r) =>
+          r.getDivesByWaterTempBand(unit: TemperatureUnit.celsius),
+      'getWaterTempBandPerDive': (r) =>
+          r.getWaterTempBandPerDive(unit: TemperatureUnit.celsius),
+      'getTopBuddies': (r) => r.getTopBuddies(),
+      'getSoloVsBuddyCount': (r) => r.getSoloVsBuddyCount(),
+      'getTopDiveCenters': (r) => r.getTopDiveCenters(),
+      'getCountriesVisited': (r) => r.getCountriesVisited(),
+      'getRegionsExplored': (r) => r.getRegionsExplored(),
+      'getDivesPerTrip': (r) => r.getDivesPerTrip(),
+      'getUniqueSpeciesCount': (r) => r.getUniqueSpeciesCount(),
+      'getMostCommonSightings': (r) => r.getMostCommonSightings(),
+      'getBestSitesForMarineLife': (r) => r.getBestSitesForMarineLife(),
+      'getSpeciesInsights': (r) => r.getSpeciesInsights(speciesId: 'test-id'),
+      'getDivesByDayOfWeek': (r) => r.getDivesByDayOfWeek(),
+      'getDivesByTimeOfDay': (r) => r.getDivesByTimeOfDay(),
+      'getDivesBySeason': (r) => r.getDivesBySeason(),
+      'getSurfaceIntervalStats': (r) => r.getSurfaceIntervalStats(),
+      'getMostUsedGear': (r) => r.getMostUsedGear(),
+      'getWeightPerDive': (r) => r.getWeightPerDive(),
+      'getWaterTempPerDive': (r) => r.getWaterTempPerDive(),
+      'getAscentDescentRates': (r) => r.getAscentDescentRates(),
+      'getTimeAtDepthRanges': (r) => r.getTimeAtDepthRanges(),
+      'scanRecordedDecoSignals': (r) => r.scanRecordedDecoSignals(),
+      'getDecoObligationStats': (r) => r.getDecoObligationStats(),
+      'countExcludedDives': (r) => r.countExcludedDives(),
+    };
 
-      // Methods that return empty list
-      expect(await repository.getSacVolumePerDive(), isEmpty);
-      expect(await repository.getSacPressurePerDive(), isEmpty);
-      expect(await repository.getGasMixDistribution(), isEmpty);
-      expect(await repository.getDiveTypeDistribution(), isEmpty);
-      expect(await repository.getDepthPerDive(), isEmpty);
-      expect(await repository.getBottomTimePerDive(), isEmpty);
-      expect(await repository.getDivesPerYear(), isEmpty);
-      expect(await repository.getCumulativeDiveCount(), isEmpty);
-      expect(
-        await repository.getVisibilityDistribution(
-          scale: VisibilityScale.tropical,
-        ),
-        isEmpty,
-      );
-      expect(await repository.getWaterTypeDistribution(), isEmpty);
-      expect(await repository.getEntryMethodDistribution(), isEmpty);
-      expect(await repository.getTemperatureByMonth(), isEmpty);
-      expect(await repository.getWaterTempPerDive(), isEmpty);
-      expect(
-        await repository.getDivesByWaterTempBand(unit: TemperatureUnit.celsius),
-        isEmpty,
-      );
-      expect(
-        await repository.getWaterTempBandPerDive(unit: TemperatureUnit.celsius),
-        isEmpty,
-      );
-      expect(await repository.getTopBuddies(), isEmpty);
-      expect(await repository.getTopDiveCenters(), isEmpty);
-      expect(await repository.getCountriesVisited(), isEmpty);
-      expect(await repository.getRegionsExplored(), isEmpty);
-      expect(await repository.getDivesPerTrip(), isEmpty);
-      expect(await repository.getMostCommonSightings(), isEmpty);
-      expect(await repository.getBestSitesForMarineLife(), isEmpty);
-      expect(await repository.getDivesByDayOfWeek(), isEmpty);
-      expect(await repository.getDivesByTimeOfDay(), isEmpty);
-      expect(await repository.getDivesBySeason(), isEmpty);
-      expect(await repository.getMostUsedGear(), isEmpty);
-      expect(await repository.getWeightPerDive(), isEmpty);
-      expect(await repository.getTimeAtDepthRanges(), isEmpty);
-
-      // Methods that return zero
-      expect(await repository.getUniqueSpeciesCount(), equals(0));
-
-      // Methods that return record defaults
-      final sacVolumeRecords = await repository.getSacVolumeRecords();
-      expect(sacVolumeRecords.best, isNull);
-      expect(sacVolumeRecords.worst, isNull);
-
-      final sacPressureRecords = await repository.getSacPressureRecords();
-      expect(sacPressureRecords.best, isNull);
-      expect(sacPressureRecords.worst, isNull);
-
-      // Methods that return empty map
-      expect(await repository.getSacVolumeByTankRole(), isEmpty);
-      expect(await repository.getSacPressureByTankRole(), isEmpty);
-
-      // Methods that return tuple defaults
-      final soloVsBuddy = await repository.getSoloVsBuddyCount();
-      expect(soloVsBuddy.solo, equals(0));
-      expect(soloVsBuddy.buddy, equals(0));
-      expect(soloVsBuddy.notRecorded, equals(0));
-
-      final surfaceInterval = await repository.getSurfaceIntervalStats();
-      expect(surfaceInterval.avgMinutes, isNull);
-      expect(surfaceInterval.minMinutes, isNull);
-      expect(surfaceInterval.maxMinutes, isNull);
-
-      final ascentDescent = await repository.getAscentDescentRates();
-      expect(ascentDescent.avgAscent, isNull);
-      expect(ascentDescent.avgDescent, isNull);
-
-      final decoStats = await repository.getDecoObligationStats();
-      expect(decoStats.decoCount, equals(0));
-      expect(decoStats.noDecoCount, equals(0));
-      expect(decoStats.unknownCount, equals(0));
-
-      // Methods that return empty entity
-      final speciesStats = await repository.getSpeciesInsights(
-        speciesId: 'test-id',
-      );
-      expect(speciesStats, equals(SpeciesInsights.empty));
-    });
+    for (final MapEntry(key: name, value: call) in calls.entries) {
+      test('$name rethrows a database error instead of a safe default', () {
+        // The original error, not a wrapper: the logger records it and the
+        // provider surfaces it unchanged.
+        expect(call(repository), throwsStateError);
+      });
+    }
   });
 }
