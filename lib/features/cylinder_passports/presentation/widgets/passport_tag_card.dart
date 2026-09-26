@@ -67,7 +67,9 @@ class PassportTagCard extends ConsumerWidget {
   final CylinderPassportPayload? scannedTag;
 
   /// Wired by the label printer; null disables the button.
-  final Future<void> Function()? onPrintLabel;
+  /// Called with the Print button's own context, so the share sheet can
+  /// point at the button rather than at the whole page.
+  final Future<void> Function(BuildContext buttonContext)? onPrintLabel;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -154,10 +156,14 @@ class PassportTagCard extends ConsumerWidget {
               spacing: 8,
               runSpacing: 8,
               children: [
-                FilledButton.tonalIcon(
-                  onPressed: payload == null ? null : onPrintLabel,
-                  icon: const Icon(Icons.print),
-                  label: Text(l10n.passport_tag_printLabel),
+                Builder(
+                  builder: (buttonContext) => FilledButton.tonalIcon(
+                    onPressed: payload == null || onPrintLabel == null
+                        ? null
+                        : () => onPrintLabel!(buttonContext),
+                    icon: const Icon(Icons.print),
+                    label: Text(l10n.passport_tag_printLabel),
+                  ),
                 ),
                 OutlinedButton.icon(
                   onPressed: () async {

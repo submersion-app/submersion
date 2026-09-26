@@ -166,4 +166,38 @@ void main() {
     expect(find.text(l10n.passport_tag_stale), findsOneWidget);
     expect(find.text(l10n.passport_tag_written('Jan 1, 2024')), findsOneWidget);
   });
+
+  testWidgets('Print label hands over the button, not the whole card', (
+    tester,
+  ) async {
+    BuildContext? anchor;
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: [
+          ...overrides,
+          passportIdProvider(id).overrideWith((ref) async => pid),
+          serviceClockStatusesProvider(id).overrideWith((ref) async => []),
+        ],
+        child: SingleChildScrollView(
+          child: PassportTagCard(
+            equipment: tank,
+            onPrintLabel: (context) async => anchor = context,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    final l10n = AppLocalizations.of(
+      tester.element(find.byType(PassportTagCard)),
+    );
+    final button = find.widgetWithText(
+      FilledButton,
+      l10n.passport_tag_printLabel,
+    );
+    await tester.tap(button);
+    await tester.pumpAndSettle();
+    final box = anchor!.findRenderObject()! as RenderBox;
+    expect(box.size, tester.getSize(button));
+  });
 }

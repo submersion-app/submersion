@@ -122,4 +122,40 @@ void main() {
     final labels = await printVia(tester, ['spare', 'reg', 'tank']);
     expect(labels!.map((l) => l.title), ['Apeks', 'Faber 12']);
   });
+
+  testWidgets('the share sheet anchors on the given widget', (tester) async {
+    Rect? origin;
+    final overrides = await getBaseOverrides();
+    await tester.pumpWidget(
+      testApp(
+        overrides: overrides,
+        child: Consumer(
+          builder: (context, ref, _) => Center(
+            child: Builder(
+              builder: (buttonContext) => SizedBox(
+                width: 120,
+                height: 40,
+                child: TextButton(
+                  onPressed: () => printPassportLabels(
+                    context,
+                    ref,
+                    ['tank'],
+                    anchor: buttonContext,
+                    export: (labels, at) async => origin = at,
+                  ),
+                  child: const Text('print'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('print'));
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 200)),
+    );
+    await tester.pumpAndSettle();
+    expect(origin, tester.getRect(find.byType(SizedBox).last));
+  });
 }

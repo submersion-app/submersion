@@ -33,12 +33,15 @@ Future<void> printPassportLabels(
   BuildContext context,
   WidgetRef ref,
   List<String> equipmentIds, {
+  BuildContext? anchor,
   PassportLabelExport export = _shareLabelPdf,
 }) async {
   final l10n = context.l10n;
   final units = UnitFormatter(ref.read(settingsProvider));
   final passportRepo = ref.read(cylinderPassportRepositoryProvider);
   final diverId = await ref.read(validatedCurrentDiverIdProvider.future);
+  // `ref` is unusable once the calling widget is gone; stop rather than throw.
+  if (!context.mounted) return;
   final now = DateTime.now();
 
   // Batched: one read for the items and their attributes, one for every
@@ -55,11 +58,12 @@ Future<void> printPassportLabels(
     for (final id in equipmentIds)
       if (byId[id] case final item? when item.type == EquipmentType.tank) item,
   ];
-  if (tanks.isEmpty) return;
+  if (tanks.isEmpty || !context.mounted) return;
   final tankIds = [for (final t in tanks) t.id];
   final recordsById = await ref
       .read(serviceRecordRepositoryProvider)
       .getRecordsForEquipmentIds(tankIds);
+  if (!context.mounted) return;
   final clocksById = Map.fromIterables(
     tankIds,
     await Future.wait([
@@ -106,7 +110,10 @@ Future<void> printPassportLabels(
     );
   }
   if (labels.isEmpty || !context.mounted) return;
-  final box = context.findRenderObject() as RenderBox?;
+  // The share popover (iPad, macOS) points at [anchor], the control that
+  // was tapped, when the caller gives one.
+  final target = anchor != null && anchor.mounted ? anchor : context;
+  final box = target.findRenderObject() as RenderBox?;
   await export(
     labels,
     box == null ? null : box.localToGlobal(Offset.zero) & box.size,
