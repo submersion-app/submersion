@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
+import 'package:submersion/features/equipment/presentation/utils/equipment_owner_sections.dart';
+import 'package:submersion/features/equipment/presentation/widgets/equipment_owner_chip.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
@@ -1252,6 +1256,12 @@ class EquipmentListTile extends ConsumerWidget {
     final detail =
         label?.subtitle ?? (item.fullName != item.name ? item.fullName : null);
     final hasTags = tags.isNotEmpty;
+    // Another profile's gear shared with this one names its owner (#2046).
+    final hasOwner = showsOwnerChip(
+      item,
+      ref.watch(validatedCurrentDiverIdProvider).value,
+      multipleDivers: ref.watch(hasMultipleDiversProvider),
+    );
     final accent = resolveFeatureAccent(
       context,
       ref,
@@ -1287,7 +1297,7 @@ class EquipmentListTile extends ConsumerWidget {
           ),
         ),
         title: Text(item.name),
-        subtitle: detail != null || hasChips || hasTags
+        subtitle: detail != null || hasChips || hasTags || hasOwner
             ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
@@ -1298,6 +1308,11 @@ class EquipmentListTile extends ConsumerWidget {
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: TagChips(tags: tags, maxTags: 3),
+                    ),
+                  if (hasOwner)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: EquipmentOwnerChip(ownerId: item.diverId),
                     ),
                 ],
               )

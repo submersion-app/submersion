@@ -2,11 +2,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/divers/domain/entities/diver.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
-import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_field.dart';
@@ -112,12 +113,16 @@ Future<List<Override>> _buildPhoneOverrides({
   String? highlightedEquipmentId,
   EquipmentArrangement? arrangement,
   SortState<EquipmentSortField>? sort,
+  List<Diver> divers = const [],
+  String? activeDiverId,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
 
   return [
     sharedPreferencesProvider.overrideWithValue(prefs),
+    allDiversProvider.overrideWith((ref) async => divers),
+    validatedCurrentDiverIdProvider.overrideWith((ref) async => activeDiverId),
     settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
     currentDiverIdProvider.overrideWith((ref) => MockCurrentDiverIdNotifier()),
     equipmentByStatusProvider.overrideWith((ref, status) => items),
@@ -2197,6 +2202,63 @@ void main() {
             'invalidate that family',
       );
       expect(activeBuilds, activeBefore);
+    });
+  });
+
+  group('owner chip on rows (issue #2046)', () {
+    final t = DateTime(2026);
+    final divers = [
+      Diver(id: 'owner', name: 'Bill', createdAt: t, updatedAt: t),
+      Diver(id: 'wife', name: 'Anna', createdAt: t, updatedAt: t),
+    ];
+    const own = EquipmentItem(
+      id: 'mine',
+      diverId: 'owner',
+      name: 'My BCD',
+      type: EquipmentType.bcd,
+    );
+    const hers = EquipmentItem(
+      id: 'hers',
+      diverId: 'wife',
+      name: 'Her Reg',
+      type: EquipmentType.regulator,
+    );
+
+    Future<void> pump(WidgetTester tester, List<Diver> ds) async {
+      final overrides = await _buildPhoneOverrides(
+        items: [own, hers],
+        divers: ds,
+        activeDiverId: 'owner',
+      );
+      await tester.pumpWidget(
+        testApp(
+          overrides: overrides,
+          child: const EquipmentListContent(showAppBar: false),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a shared row names its owner; an own row does not', (
+      tester,
+    ) async {
+      await pump(tester, divers);
+      expect(
+        find.byKey(const ValueKey('equipment-owner-chip-wife')),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const ValueKey('equipment-owner-chip-owner')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('no chips with a single profile', (tester) async {
+      await pump(tester, divers.take(1).toList());
+      expect(
+        find.byKey(const ValueKey('equipment-owner-chip-wife')),
+        findsNothing,
+      );
     });
   });
 }
