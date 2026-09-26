@@ -282,5 +282,16 @@ void main() {
     // The notifiers compute this inside listeners; the SQL path reports the
     // error through AsyncValue, this must not throw before it gets there.
     expect(diveFilterTablesTouched(broken), {'dives'});
+    // A tree that resolves but is structurally wrong (a text value on a
+    // bool field) must not escape either: the compiler's cast would throw
+    // a TypeError, not a QueryCompileError.
+    final wrongType = DiveFilterState(
+      query: ConditionNode(
+        const FieldPath(['favorite']),
+        QueryOp.eq,
+        const StringValue('x'),
+      ),
+    );
+    expect(diveFilterTablesTouched(wrongType), {'dives'});
   });
 }

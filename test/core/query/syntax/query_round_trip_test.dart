@@ -25,7 +25,8 @@ void main() {
   );
 
   QueryValue number(Random r, UnitPrefs prefs) {
-    final raw = r.nextInt(400) + (r.nextBool() ? 0 : r.nextInt(100) / 100);
+    // Up to three decimals, the precision a diver plausibly types.
+    final raw = r.nextInt(400) + (r.nextBool() ? 0 : r.nextInt(1000) / 1000);
     final unit = r.nextInt(3) == 0
         ? (r.nextBool() ? QueryUnit.m : QueryUnit.ft)
         : null;

@@ -48,6 +48,23 @@ void main() {
     ));
   });
 
+  test('last N months and years clamp to the target month', () {
+    // March 31 minus one month is February 28, not "February 31" spilling
+    // into March 3 and dropping all of February.
+    expect(parseDateText('last 1 months', now: DateTime(2026, 3, 31)), (
+      start: DateTime(2026, 2, 28),
+      end: DateTime(2026, 3, 31),
+    ));
+    expect(parseDateText('last 2 months', now: DateTime(2026, 5, 31)), (
+      start: DateTime(2026, 3, 31),
+      end: DateTime(2026, 5, 31),
+    ));
+    expect(parseDateText('last 1 years', now: DateTime(2028, 2, 29)), (
+      start: DateTime(2027, 2, 28),
+      end: DateTime(2028, 2, 29),
+    ));
+  });
+
   test('an unpadded ISO date is not a date', () {
     expect(parseDateText('2025-3-1', now: now), isNull);
   });

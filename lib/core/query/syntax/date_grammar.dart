@@ -116,8 +116,10 @@ DateRange? parseDateText(String text, {required DateTime now}) {
       // midnight lands a day early across a spring-forward change.
       'day' => DateTime(today.year, today.month, today.day - n),
       'week' => DateTime(today.year, today.month, today.day - 7 * n),
-      'month' => DateTime(today.year, today.month - n, today.day),
-      _ => DateTime(today.year - n, today.month, today.day),
+      // Month and year steps keep the day of month, clamped to the target
+      // month's length: DateTime would roll "February 31" into March.
+      'month' => _sameDayIn(today.year, today.month - n, today.day),
+      _ => _sameDayIn(today.year - n, today.month, today.day),
     };
     return (start: start, end: today);
   }
@@ -126,6 +128,14 @@ DateRange? parseDateText(String text, {required DateTime now}) {
 
 /// A padded `yyyy-mm-dd` as a calendar day, or null when it is not one or
 /// names an impossible day (2025-02-30). Shared with the JSON codec.
+/// Day [day] of the month [year]-[month] (month may be out of range and is
+/// normalized), clamped to that month's last day.
+DateTime _sameDayIn(int year, int month, int day) {
+  final first = DateTime(year, month, 1);
+  final lastDay = DateTime(first.year, first.month + 1, 0).day;
+  return DateTime(first.year, first.month, day < lastDay ? day : lastDay);
+}
+
 DateTime? parseIsoDay(String s) {
   final m = _isoDate.firstMatch(s);
   if (m == null) return null;

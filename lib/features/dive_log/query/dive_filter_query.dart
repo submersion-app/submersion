@@ -1,4 +1,5 @@
 import 'package:submersion/core/query/compiler/query_compiler.dart';
+import 'package:submersion/core/query/compiler/query_validator.dart';
 import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
@@ -211,8 +212,15 @@ CompiledQuery compileDiveFilter(
 /// falls back to the base tick and the SQL path reports the error through
 /// its AsyncValue, where the diver can see it.
 Set<String> diveFilterTablesTouched(DiveFilterState filter) {
+  // The advanced tree is public data: validate it first, so a
+  // structurally wrong node (a text value on a bool field) never reaches
+  // the compiler's casts from a listener.
+  final tree = filter.toQuery();
+  if (validateQuery(tree, diveQueryEntity, appQueryRegistry).isNotEmpty) {
+    return const {'dives'};
+  }
   try {
-    return compileDiveFilter(filter).tablesTouched;
+    return compileQuery(tree, diveQueryEntity, appQueryRegistry).tablesTouched;
   } on QueryCompileError {
     return const {'dives'};
   }

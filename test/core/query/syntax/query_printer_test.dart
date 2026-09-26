@@ -40,6 +40,20 @@ void main() {
     expect(metric.print(typed), 'depth > 100ft');
   });
 
+  test('numbers keep their typed precision and shed float noise', () {
+    expect(formatQueryNumber(100.123), '100.123');
+    expect(formatQueryNumber(18.5), '18.5');
+    expect(formatQueryNumber(30), '30');
+    expect(formatQueryNumber(100.12300000000001), '100.123');
+    expect(formatQueryNumber(0.1 + 0.2), '0.3');
+    final typed = ConditionNode(
+      const FieldPath(['depth']),
+      QueryOp.gt,
+      const NumberValue(100.123 / 3.28084, QueryUnit.ft),
+    );
+    expect(metric.print(typed), 'depth > 100.123ft');
+  });
+
   test('operators, presence, lists, between, scoped, text', () {
     expect(
       metric.print(

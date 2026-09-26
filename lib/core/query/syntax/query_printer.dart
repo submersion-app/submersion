@@ -6,12 +6,15 @@ import 'package:submersion/core/query/syntax/query_parser.dart'
     show kQueryKeywords;
 import 'package:submersion/core/query/units/unit_prefs.dart';
 
-/// Integers print bare; other values print with up to two decimals, trailing
-/// zeros trimmed. Two decimals is what every unit field in the app shows.
+/// Integers print bare; other values keep the precision the diver typed
+/// (up to four decimals, trailing zeros trimmed). Every unit converts with
+/// one constant both ways, so a typed value comes back to the float ulp;
+/// four decimals absorb that noise without rounding a typed threshold
+/// away (100.123 ft stays 100.123 ft).
 String formatQueryNumber(double v) {
-  final rounded = (v * 100).round() / 100;
+  final rounded = (v * 10000).round() / 10000;
   if (rounded == rounded.roundToDouble()) return rounded.toInt().toString();
-  var s = rounded.toStringAsFixed(2);
+  var s = rounded.toStringAsFixed(4);
   while (s.endsWith('0')) {
     s = s.substring(0, s.length - 1);
   }
