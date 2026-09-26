@@ -6,6 +6,8 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// pSCR ratio control for a passive semi-closed rebreather plan. The ratio is a
 /// global equipment preference (Subsurface `pscr_ratio`): larger values add
@@ -51,7 +53,7 @@ class _PscrSettingsSectionState extends ConsumerState<PscrSettingsSection> {
     super.dispose();
   }
 
-  /// Paired with [parseUserDecimal] in [_onChanged]: seeding with a dot while
+  /// Paired with [readNumber] in [_onChanged]: seeding with a dot while
   /// parsing in the diver's locale would misread the value (#1091).
   String _format(double ratio) => formatDecimalForInput(ratio.roundToDouble());
 
@@ -63,8 +65,12 @@ class _PscrSettingsSectionState extends ConsumerState<PscrSettingsSection> {
     if (_ratioController.text != text) _ratioController.text = text;
   }
 
-  void _onChanged(String text) {
-    final parsed = parseUserDecimal(text);
+  void _onChanged(NumberRead read) {
+    final parsed = switch (read) {
+      NumberValue(:final value) => value,
+      // The field shows why for unreadable text.
+      NumberBlank() || NumberInvalid() => null,
+    };
     if (parsed == null || parsed <= 0) {
       // Invalid/empty input: drop any pending valid value and cancel the
       // debounce so an earlier edit can't flush after the user has cleared or
@@ -99,7 +105,7 @@ class _PscrSettingsSectionState extends ConsumerState<PscrSettingsSection> {
       child: Row(
         children: [
           Expanded(
-            child: TextFormField(
+            child: NumberField(
               controller: _ratioController,
               focusNode: _focusNode,
               decoration: InputDecoration(
@@ -108,7 +114,6 @@ class _PscrSettingsSectionState extends ConsumerState<PscrSettingsSection> {
                 isDense: true,
                 border: const OutlineInputBorder(),
               ),
-              keyboardType: const TextInputType.numberWithOptions(),
               onChanged: _onChanged,
             ),
           ),

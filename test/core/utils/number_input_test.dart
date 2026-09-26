@@ -326,4 +326,50 @@ void main() {
       expect(smartParseUserDecimal('   '), isNull);
     });
   });
+
+  group('grouping separator after the decimal separator', () {
+    test('is unreadable rather than silently dropped', () {
+      // intl skips a grouping separator anywhere, so under de "12,5.6" read
+      // as 12.56: a number the diver never typed (#1900).
+      Intl.defaultLocale = 'de';
+      expect(parseUserDecimal('12,5.6'), isNull);
+      expect(parseUserDecimal('1.234,5.6'), isNull);
+      Intl.defaultLocale = 'en_US';
+      expect(parseUserDecimal('12.5,6'), isNull);
+    });
+
+    test('leaves well-formed grouping alone', () {
+      Intl.defaultLocale = 'de';
+      expect(parseUserDecimal('1.234,56'), 1234.56);
+    });
+  });
+
+  group('smartParseUserInt', () {
+    test('reads a whole number', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserInt('42'), 42);
+    });
+
+    test('returns null for blank input', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserInt('  '), isNull);
+    });
+
+    test('rejects a fraction, including a corrected wrong separator', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserInt('12,5'), isNull);
+      // "12.5" is corrected to 12,5 by the smart parser, still a fraction.
+      expect(smartParseUserInt('12.5'), isNull);
+    });
+
+    test('accepts a corrected separator that yields a whole value', () {
+      Intl.defaultLocale = 'de';
+      expect(smartParseUserInt('12.0'), 12);
+    });
+
+    test('returns null for garbage', () {
+      Intl.defaultLocale = 'en_US';
+      expect(smartParseUserInt('abc'), isNull);
+    });
+  });
 }

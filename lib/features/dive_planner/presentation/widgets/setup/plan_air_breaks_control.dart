@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Air-break (back-gas break) control for the Setup accordion's deco
 /// section: a switch, and - once enabled - two compact minute fields for the
@@ -72,9 +74,16 @@ class _PlanAirBreaksControlState extends State<PlanAirBreaksControl> {
     widget.onChanged(enabled ? _defaultPolicy : null);
   }
 
-  void _changeO2Minutes(String value) {
-    final minutes = parseUserInt(value);
-    if (minutes == null || minutes <= 0) return;
+  /// Whole minutes above zero, or null to leave the policy alone: blank and
+  /// zero as before, and unreadable text, which the field reports itself.
+  static int? _minutes(NumberRead read) => switch (read) {
+    NumberValue(:final value) when value > 0 => value.toInt(),
+    NumberValue() || NumberBlank() || NumberInvalid() => null,
+  };
+
+  void _changeO2Minutes(NumberRead read) {
+    final minutes = _minutes(read);
+    if (minutes == null) return;
     final current = widget.policy ?? _defaultPolicy;
     widget.onChanged(
       AirBreakPolicy(
@@ -84,9 +93,9 @@ class _PlanAirBreaksControlState extends State<PlanAirBreaksControl> {
     );
   }
 
-  void _changeBreakMinutes(String value) {
-    final minutes = parseUserInt(value);
-    if (minutes == null || minutes <= 0) return;
+  void _changeBreakMinutes(NumberRead read) {
+    final minutes = _minutes(read);
+    if (minutes == null) return;
     final current = widget.policy ?? _defaultPolicy;
     widget.onChanged(
       AirBreakPolicy(o2Seconds: current.o2Seconds, breakSeconds: minutes * 60),
@@ -148,18 +157,18 @@ class _MinutesField extends StatelessWidget {
 
   final String label;
   final TextEditingController controller;
-  final ValueChanged<String> onChanged;
+  final ValueChanged<NumberRead> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return NumberField(
       controller: controller,
+      integer: true,
       decoration: InputDecoration(
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         labelText: label,
       ),
-      keyboardType: TextInputType.number,
       onChanged: onChanged,
     );
   }

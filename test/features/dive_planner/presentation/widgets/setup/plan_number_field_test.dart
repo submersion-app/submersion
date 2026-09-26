@@ -183,6 +183,79 @@ void main() {
     expect(_hasError(tester), isFalse);
   });
 
+  testWidgets('unreadable text shows the message under the row until it is '
+      'committed (#1900)', (tester) async {
+    double? reported;
+    await tester.pumpWidget(
+      _harness(
+        value: 9,
+        min: 1,
+        max: 30,
+        isInteger: false,
+        decimals: 1,
+        onChanged: (v) => reported = v,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, '1..8');
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    expect(_field(tester).decoration!.errorText, isNotNull);
+    expect(reported, isNull);
+
+    await tester.tap(find.byKey(const Key('elsewhere')));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Enter a valid number'), findsNothing);
+    expect(_field(tester).controller!.text, '9');
+  });
+
+  testWidgets('showing the message keeps the same text field, so the '
+      'keyboard stays up (#1900 review)', (tester) async {
+    await tester.pumpWidget(
+      _harness(
+        value: 9,
+        min: 1,
+        max: 30,
+        isInteger: false,
+        decimals: 1,
+        onChanged: (_) {},
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.showKeyboard(find.byType(TextField).first);
+    final before = tester.state(find.byType(EditableText).first);
+
+    await tester.enterText(find.byType(TextField).first, '1..8');
+    await tester.pump();
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    expect(
+      identical(tester.state(find.byType(EditableText).first), before),
+      isTrue,
+      reason: 'a remounted field closes the input connection',
+    );
+  });
+
+  testWidgets('a fraction in a whole-number box says so instead of becoming '
+      'a different number (#1900 review)', (tester) async {
+    double? reported;
+    await tester.pumpWidget(
+      _harness(value: 9, min: 1, max: 100, onChanged: (v) => reported = v),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, '5.5');
+    await tester.pumpAndSettle();
+
+    expect(
+      _field(tester).controller!.text,
+      '5.5',
+      reason: 'a digits-only filter turned "5.5" into 55',
+    );
+    expect(find.text('Enter a whole number'), findsOneWidget);
+    expect(reported, isNull);
+  });
+
   testWidgets('restores the current value when unreadable text is committed', (
     tester,
   ) async {

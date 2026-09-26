@@ -15,6 +15,7 @@ import 'package:submersion/features/equipment/presentation/utils/service_categor
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Service Record Dialog for Add/Edit
 class ServiceRecordDialog extends ConsumerStatefulWidget {
@@ -403,17 +404,14 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
                             keyboardType: const TextInputType.numberWithOptions(
                               decimal: true,
                             ),
-                            validator: (value) {
-                              if (value != null && value.isNotEmpty) {
-                                final parsed = parseUserDecimal(value);
-                                if (parsed == null || parsed < 0) {
-                                  return context
-                                      .l10n
-                                      .equipment_serviceDialog_costValidation;
-                                }
-                              }
-                              return null;
-                            },
+                            validator: numberValidator(
+                              context,
+                              check: (cost) => cost < 0
+                                  ? context
+                                        .l10n
+                                        .equipment_serviceDialog_costValidation
+                                  : null,
+                            ),
                           );
                         },
                       ),
@@ -578,7 +576,11 @@ class _ServiceRecordDialogState extends ConsumerState<ServiceRecordDialog> {
         provider: _providerController.text.trim().isEmpty
             ? null
             : _providerController.text.trim(),
-        cost: parseUserDecimal(_costController.text),
+        // Blank is "no cost"; validate() stopped unreadable text.
+        cost: switch (readNumber(_costController.text)) {
+          NumberValue(:final value) => value,
+          NumberBlank() || NumberInvalid() => null,
+        },
         currency: _currencyController.text.trim().isEmpty
             ? _fallbackCurrencyCode()
             : _currencyController.text.trim().toUpperCase(),

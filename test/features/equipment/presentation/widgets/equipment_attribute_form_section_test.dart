@@ -137,6 +137,30 @@ void main() {
     expect(cleared, contains('buoyancy_kg'));
   });
 
+  testWidgets('number field says why unreadable text is not taken (#1900)', (
+    tester,
+  ) async {
+    final previousLocale = Intl.defaultLocale;
+    addTearDown(() => Intl.defaultLocale = previousLocale);
+    Intl.defaultLocale = 'en_US';
+    EquipmentAttribute? emitted;
+    await pumpSection(
+      tester,
+      type: EquipmentType.wetsuit,
+      values: const {},
+      onChanged: (a) => emitted = a,
+    );
+    final buoyancy = find.byKey(const ValueKey('attr-field-buoyancy_kg'));
+    await tester.ensureVisible(buoyancy);
+
+    await tester.enterText(buoyancy, '2.5');
+    await tester.enterText(buoyancy, '2..5');
+    await tester.pump();
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    expect(emitted?.valueNum, closeTo(2.5, 0.001));
+  });
+
   testWidgets('text field emits trimmed value and clears when emptied', (
     tester,
   ) async {

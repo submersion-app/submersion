@@ -15,6 +15,8 @@ import 'package:submersion/features/dive_planner/presentation/widgets/plan_saved
 import 'package:submersion/features/planner/domain/entities/dive_plan.dart'
     show PlanMode;
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 const _uuid = Uuid();
 
@@ -298,26 +300,28 @@ class _TankEditDialogState extends State<_TankEditDialog> {
               Row(
                 children: [
                   Expanded(
-                    child: TextField(
+                    child: NumberField(
                       controller: _volumeController,
                       decoration: InputDecoration(
                         labelText: context.l10n.divePlanner_field_volume(
                           widget.units.volumeSymbol,
                         ),
                       ),
-                      keyboardType: TextInputType.number,
+                      // Blocks save through the dialog's Form; the value is
+                      // read in _save.
+                      onChanged: (_) {},
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: TextField(
+                    child: NumberField(
                       controller: _pressureController,
                       decoration: InputDecoration(
                         labelText: context.l10n.divePlanner_field_startPressure(
                           widget.units.pressureSymbol,
                         ),
                       ),
-                      keyboardType: TextInputType.number,
+                      onChanged: (_) {},
                     ),
                   ),
                 ],
@@ -334,7 +338,7 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                       keyboardType: TextInputType.number,
                       validator: (value) => _validateGasPercent(
                         value,
-                        parseUserDecimal(_heController.text),
+                        _otherPercent(_heController),
                       ),
                     ),
                   ),
@@ -348,7 +352,7 @@ class _TankEditDialogState extends State<_TankEditDialog> {
                       keyboardType: TextInputType.number,
                       validator: (value) => _validateGasPercent(
                         value,
-                        parseUserDecimal(_o2Controller.text),
+                        _otherPercent(_o2Controller),
                       ),
                     ),
                   ),
@@ -400,22 +404,41 @@ class _TankEditDialogState extends State<_TankEditDialog> {
   /// the sibling O2/He field's own current value -- must not exceed 100.
   /// GasMix derives N2 as the remainder of the two, so an over-100 mix
   /// feeds a negative N2 fraction straight into gas-planning math.
-  String? _validateGasPercent(String? value, double? otherPercent) {
-    if (value == null || value.trim().isEmpty) return null;
-    final parsed = parseUserDecimal(value);
-    if (parsed == null || parsed < 0 || parsed > 100) {
-      return context.l10n.numberInput_invalidValue;
-    }
-    if (otherPercent != null && parsed + otherPercent > 100) {
-      return context.l10n.gasCalculators_blender_templateInvalid;
-    }
-    return null;
-  }
+  String? _validateGasPercent(String? value, double? otherPercent) =>
+      numberValidator(
+        context,
+        check: (percent) {
+          if (percent < 0 || percent > 100) {
+            return context.l10n.passport_logFill_invalidMix;
+          }
+          if (otherPercent != null && percent + otherPercent > 100) {
+            return context.l10n.gasCalculators_blender_templateInvalid;
+          }
+          return null;
+        },
+      )(value);
+
+  /// The sibling O2/He field's percentage for the sum check, or null when it
+  /// is blank or unreadable (that field reports its own error).
+  double? _otherPercent(TextEditingController controller) =>
+      switch (readNumber(controller.text)) {
+        NumberValue(:final value) => value,
+        NumberBlank() || NumberInvalid() => null,
+      };
+
+  /// A field's number once [_formKey] has validated: blank is [blank], and
+  /// unreadable text cannot reach here.
+  double? _validated(TextEditingController controller, {double? blank}) =>
+      switch (readNumber(controller.text)) {
+        NumberValue(:final value) => value,
+        NumberBlank() => blank,
+        NumberInvalid() => blank, // unreachable: validate() blocked the save
+      };
 
   void _save() {
     if (!_formKey.currentState!.validate()) return;
 
-    final parsedPressure = parseUserDecimal(_pressureController.text);
+    final parsedPressure = _validated(_pressureController);
     final startPressureBar = parsedPressure != null
         ? widget.units.pressureToBar(parsedPressure)
         : null;
@@ -441,8 +464,8 @@ class _TankEditDialogState extends State<_TankEditDialog> {
       equipmentId: original?.equipmentId,
       decoSwitchDepth: original?.decoSwitchDepth,
       gasMix: GasMix(
-        o2: parseUserDecimal(_o2Controller.text) ?? 21,
-        he: parseUserDecimal(_heController.text) ?? 0,
+        o2: _validated(_o2Controller, blank: 21)!,
+        he: _validated(_heController, blank: 0)!,
       ),
       // Everything except an explicit bailout is derived by
       // TankRoleResolver; backGas is the neutral "derive me" placeholder.
@@ -475,7 +498,7 @@ class _TankEditDialogState extends State<_TankEditDialog> {
         volumeEdited: false,
       );
     }
-    final parsed = parseUserDecimal(_volumeController.text);
+    final parsed = _validated(_volumeController);
     if (!_isCuft) {
       return (
         volumeLiters: parsed,

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_template_display.dart';
@@ -81,6 +83,14 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   late double _lastValidO2;
   late double _lastValidHe;
 
+  /// The spec and pressure fields' last readable values, in display units,
+  /// for the same reason as [_lastValidO2]: a mistype reports what the diver
+  /// last typed, never null, while the field shows its error.
+  late LiveNumber _volume;
+  late LiveNumber _workingPressure;
+  late LiveNumber _startPressure;
+  late LiveNumber _endPressure;
+
   @override
   void initState() {
     super.initState();
@@ -154,6 +164,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     );
     _lastValidO2 = widget.tank.gasMix.o2;
     _lastValidHe = widget.tank.gasMix.he;
+    _volume = LiveNumber(null)..resolve(_volumeController.text);
+    _workingPressure = LiveNumber(null)
+      ..resolve(_workingPressureController.text);
+    _startPressure = LiveNumber(null)..resolve(_startPressureController.text);
+    _endPressure = LiveNumber(null)..resolve(_endPressureController.text);
     _mndController = TextEditingController();
     _role = widget.tank.role;
     _material = widget.tank.material;
@@ -195,7 +210,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// imperial mode AND working pressure is available, otherwise "L".
   String _effectiveVolumeSuffix(UnitFormatter units) {
     final settings = ref.read(settingsProvider);
-    final wp = parseUserDecimal(_workingPressureController.text);
+    final wp = _workingPressure.resolve(_workingPressureController.text);
     if (settings.volumeUnit == VolumeUnit.cubicFeet && wp != null && wp > 0) {
       return units.volumeSymbol;
     }
@@ -208,8 +223,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   ({double? volumeLiters, double? workingPressureBar}) _metricSpecs() {
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
-    final volumeDisplay = parseUserDecimal(_volumeController.text);
-    final workingPressureDisplay = parseUserDecimal(
+    // Blank is "not set", as before.
+    final volumeDisplay = _volume.resolve(_volumeController.text);
+    final workingPressureDisplay = _workingPressure.resolve(
       _workingPressureController.text,
     );
     // Convert working pressure to bar first (needed for cuft->liters).
@@ -312,12 +328,16 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   GasMix _currentGasMix() {
     final o2Text = _o2Controller.text;
     final heText = _heController.text;
-    final o2 =
-        parseUserDecimal(o2Text) ??
-        (o2Text.trim().isEmpty ? 21.0 : _lastValidO2);
-    final he =
-        parseUserDecimal(heText) ??
-        (heText.trim().isEmpty ? 0.0 : _lastValidHe);
+    final o2 = switch (readNumber(o2Text)) {
+      NumberValue(:final value) => value,
+      NumberBlank() => 21.0,
+      NumberInvalid() => _lastValidO2,
+    };
+    final he = switch (readNumber(heText)) {
+      NumberValue(:final value) => value,
+      NumberBlank() => 0.0,
+      NumberInvalid() => _lastValidHe,
+    };
     return GasMix(o2: o2, he: he);
   }
 
@@ -326,10 +346,12 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     final units = UnitFormatter(settings);
     final specs = _metricSpecs();
 
-    final startPressureDisplay = parseUserDecimal(
+    final startPressureDisplay = _startPressure.resolve(
       _startPressureController.text,
     );
-    final endPressureDisplay = parseUserDecimal(_endPressureController.text);
+    final endPressureDisplay = _endPressure.resolve(
+      _endPressureController.text,
+    );
 
     widget.onChanged(
       DiveTank(
@@ -651,14 +673,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       children: [
         // Volume
         Expanded(
-          child: TextFormField(
+          child: NumberField(
             controller: _volumeController,
             decoration: InputDecoration(
               labelText: context.l10n.diveLog_tank_label_volume,
               suffixText: _effectiveVolumeSuffix(units),
               isDense: true,
             ),
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             onChanged: (_) {
               _clearPreset();
               _notifyChange();
@@ -698,14 +719,13 @@ class _TankEditorState extends ConsumerState<TankEditor> {
         const SizedBox(width: 12),
         // Working pressure
         Expanded(
-          child: TextFormField(
+          child: NumberField(
             controller: _workingPressureController,
             decoration: InputDecoration(
               labelText: context.l10n.diveLog_tank_label_workingPressure,
               suffixText: units.pressureSymbol,
               isDense: true,
             ),
-            keyboardType: TextInputType.number,
             onChanged: (_) {
               _clearPreset();
               _notifyChange();
@@ -754,8 +774,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 validator: _validateGasPercent,
                 onChanged: (value) {
                   _mndDriven = false;
-                  final parsed = parseUserDecimal(value);
-                  if (parsed != null) _lastValidO2 = parsed;
+                  if (readNumber(value) case NumberValue(:final value)) {
+                    _lastValidO2 = value;
+                  }
                   setState(() {});
                   _notifyChange();
                 },
@@ -777,8 +798,9 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 validator: _validateGasPercent,
                 onChanged: (value) {
                   _mndDriven = false;
-                  final parsed = parseUserDecimal(value);
-                  if (parsed != null) _lastValidHe = parsed;
+                  if (readNumber(value) case NumberValue(:final value)) {
+                    _lastValidHe = value;
+                  }
                   setState(() {});
                   _notifyChange();
                 },
@@ -805,12 +827,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// Empty is "not set" (fine, `_currentGasMix` defaults it); anything else
   /// must parse (#1900) -- a mistyped percentage otherwise silently becomes
   /// whatever the tank's last saved mix was, with no sign anything was wrong.
-  String? _validateGasPercent(String? value) {
-    if (value == null || value.trim().isEmpty) return null;
-    return parseUserDecimal(value) == null
-        ? context.l10n.numberInput_invalidValue
-        : null;
-  }
+  String? _validateGasPercent(String? value) => numberValidator(context)(value);
 
   Widget _buildGasChip(GasTemplate template) {
     final currentMix = _currentGasMix();
@@ -828,27 +845,25 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     return Row(
       children: [
         Expanded(
-          child: TextFormField(
+          child: NumberField(
             controller: _startPressureController,
             decoration: InputDecoration(
               labelText: context.l10n.diveLog_tank_label_startPressure,
               suffixText: units.pressureSymbol,
               isDense: true,
             ),
-            keyboardType: TextInputType.number,
             onChanged: (_) => _notifyChange(),
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: TextFormField(
+          child: NumberField(
             controller: _endPressureController,
             decoration: InputDecoration(
               labelText: context.l10n.diveLog_tank_label_endPressure,
               suffixText: units.pressureSymbol,
               isDense: true,
             ),
-            keyboardType: TextInputType.number,
             onChanged: (_) => _notifyChange(),
           ),
         ),
@@ -892,7 +907,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             ),
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             onChanged: (value) {
-              final parsed = parseUserDecimal(value);
+              final parsed = switch (readNumber(value)) {
+                NumberValue(:final value) => value,
+                // No MND to drive He from; the diver is mid-edit.
+                NumberBlank() || NumberInvalid() => null,
+              };
               if (parsed != null && parsed > 0) {
                 _mndDriven = true;
                 final mndMeters = units.depthToMeters(parsed);

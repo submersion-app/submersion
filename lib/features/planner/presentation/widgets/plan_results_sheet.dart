@@ -14,6 +14,8 @@ import 'package:submersion/features/planner/presentation/widgets/range_table_sec
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/planner/domain/services/plan_issue_grouping.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Localized, unit-aware message for a plan issue. Reuses the existing
 /// `divePlanner_warning_*` strings where a type overlaps, so only genuinely
@@ -484,6 +486,7 @@ class _StopMinimumDialog extends ConsumerStatefulWidget {
 
 class _StopMinimumDialogState extends ConsumerState<_StopMinimumDialog> {
   late final TextEditingController _controller;
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -507,11 +510,16 @@ class _StopMinimumDialogState extends ConsumerState<_StopMinimumDialog> {
       title: Text(
         l10n.plannerCanvas_stopMinimum_dialogTitle(widget.depthLabel),
       ),
-      content: TextField(
-        controller: _controller,
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(
-          labelText: l10n.plannerCanvas_stopMinimum_minutesLabel,
+      content: Form(
+        key: _formKey,
+        child: TextFormField(
+          controller: _controller,
+          keyboardType: TextInputType.number,
+          inputFormatters: numberInputFormatters(),
+          validator: numberValidator(context, integer: true),
+          decoration: InputDecoration(
+            labelText: l10n.plannerCanvas_stopMinimum_minutesLabel,
+          ),
         ),
       ),
       actions: [
@@ -531,7 +539,17 @@ class _StopMinimumDialogState extends ConsumerState<_StopMinimumDialog> {
         ),
         FilledButton(
           onPressed: () {
-            final minutes = int.tryParse(_controller.text);
+            // "5.5" used to close the dialog as if applied, leaving the deco
+            // stop unchanged (#1900).
+            if (!_formKey.currentState!.validate()) return;
+            final minutes = switch (readNumber(
+              _controller.text,
+              integer: true,
+            )) {
+              NumberValue(:final value) => value.toInt(),
+              // Blank closes with no change, as before.
+              NumberBlank() || NumberInvalid() => null,
+            };
             if (minutes != null) {
               // Non-positive is "no minimum": the engine ignores <= 0,
               // so persisting 0 would pin the row with no effect.

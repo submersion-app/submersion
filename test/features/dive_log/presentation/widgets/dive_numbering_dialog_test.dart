@@ -253,6 +253,24 @@ void main() {
         );
       });
 
+      testWidgets('a typed start number is used; a typo keeps the last one '
+          '(#1900)', (tester) async {
+        final repo = _FakeDiveRepository();
+        await _pumpAndOpen(tester, repo: repo);
+
+        await tester.tap(find.text('Renumber all dives'));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), '50');
+        await tester.enterText(find.byType(TextField), '5.5');
+        await tester.pumpAndSettle();
+        expect(find.text('Enter a whole number'), findsOneWidget);
+
+        await tester.tap(find.text('Renumber'));
+        await tester.pumpAndSettle();
+
+        expect(repo.renumberStartFrom, 50);
+      });
+
       testWidgets('cancel in confirmation dialog does not call repository', (
         tester,
       ) async {

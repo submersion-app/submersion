@@ -7,6 +7,7 @@ import 'package:submersion/features/dive_sites/domain/entities/site_feature.dart
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// What the sheet hands back to its caller. Null (a dismissed sheet)
 /// means "write nothing".
@@ -176,6 +177,8 @@ class _SiteFeatureSheetState extends ConsumerState<SiteFeatureSheet> {
               Expanded(
                 child: TextFormField(
                   key: const ValueKey('siteFeatureBearingField'),
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: numberValidator(context),
                   controller: _bearing,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -189,6 +192,8 @@ class _SiteFeatureSheetState extends ConsumerState<SiteFeatureSheet> {
               Expanded(
                 child: TextFormField(
                   key: const ValueKey('siteFeatureDepthField'),
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                  validator: numberValidator(context),
                   controller: _depth,
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -233,12 +238,26 @@ class _SiteFeatureSheetState extends ConsumerState<SiteFeatureSheet> {
     );
   }
 
+  /// An optional field's number: blank is "not set"; [_save] has already
+  /// refused unreadable text.
+  static double? _optional(TextEditingController controller) =>
+      switch (readNumber(controller.text)) {
+        NumberValue(:final value) => value,
+        NumberBlank() || NumberInvalid() => null,
+      };
+
   void _save(BuildContext context, double unitInMeters) {
     // Read in the diver's locale, matching _formatNumber. A blanket
     // replaceAll(',', '.') would misread the en_US thousands separator,
     // turning "1,250" into 1.25 (#1091).
-    final bearing = parseUserDecimal(_bearing.text);
-    final depth = parseUserDecimal(_depth!.text);
+    // An unreadable number used to save the feature without it (#1900);
+    // stay open, the fields say why.
+    if (invalidNumberText(context, _bearing.text) != null ||
+        invalidNumberText(context, _depth!.text) != null) {
+      return;
+    }
+    final bearing = _optional(_bearing);
+    final depth = _optional(_depth!);
     Navigator.of(context).pop(
       SiteFeatureSheetSave(
         typeName: _typeName,

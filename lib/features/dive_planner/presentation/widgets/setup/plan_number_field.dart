@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// A compact numeric row for one planner setting: the label on the left, a
 /// fixed-width number box, and the unit outside the box so every row in the
@@ -77,6 +78,11 @@ class PlanNumberFieldState extends State<PlanNumberField> {
   late FocusNode _focusNode;
   bool _outOfRange = false;
 
+  /// The text cannot be read as a number. Unlike [_outOfRange], this gets a
+  /// message under the row: a red border alone says something is wrong but
+  /// not what (#1900).
+  bool _unreadable = false;
+
   String _seed(double value) => widget.isInteger
       ? formatDecimalForInput(value.roundToDouble())
       : formatRoundedForInput(value, widget.decimals);
@@ -100,6 +106,7 @@ class PlanNumberFieldState extends State<PlanNumberField> {
         // The red border belonged to the text just replaced; a value from the
         // parent is one the plan holds. build() follows, so no setState.
         _outOfRange = false;
+        _unreadable = false;
       }
     }
   }
@@ -112,9 +119,13 @@ class PlanNumberFieldState extends State<PlanNumberField> {
     super.dispose();
   }
 
-  double? _parse(String text) => widget.isInteger
-      ? parseUserInt(text)?.toDouble()
-      : parseUserDecimal(text);
+  double? _parse(String text) =>
+      switch (readNumber(text, integer: widget.isInteger)) {
+        NumberValue(:final value) => value,
+        // Blank is handled before parsing; unreadable text is marked by
+        // [_onChanged] and put back by [commit].
+        NumberBlank() || NumberInvalid() => null,
+      };
 
   bool _inRange(double value) =>
       (widget.min == null || value >= widget.min!) &&
@@ -124,15 +135,22 @@ class PlanNumberFieldState extends State<PlanNumberField> {
     if (_outOfRange != value) setState(() => _outOfRange = value);
   }
 
+  void _setUnreadable(bool value) {
+    if (_unreadable != value) setState(() => _unreadable = value);
+  }
+
   void _onChanged(String text) {
     if (text.trim().isEmpty) {
       _setOutOfRange(false);
+      _setUnreadable(false);
       widget.onChanged(null);
       return;
     }
     final parsed = _parse(text);
-    // Half-typed text ("1." on the way to "1.5") is not an error yet; the
-    // commit below is what decides whether it was ever a number.
+    // Half-typed text ("1." on the way to "1.5") already reads as a number,
+    // so what is left here is genuinely unreadable. The plan keeps its value
+    // and the commit below puts it back in the box.
+    _setUnreadable(parsed == null);
     if (parsed == null) return;
     if (!_inRange(parsed)) {
       _setOutOfRange(true);
@@ -166,6 +184,7 @@ class PlanNumberFieldState extends State<PlanNumberField> {
     if (parsed == null) {
       _controller.text = widget.value != null ? _seed(widget.value!) : '';
       _setOutOfRange(false);
+      _setUnreadable(false);
       return;
     }
     if (_inRange(parsed)) return;
@@ -180,7 +199,7 @@ class PlanNumberFieldState extends State<PlanNumberField> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final row = Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
@@ -202,15 +221,16 @@ class PlanNumberFieldState extends State<PlanNumberField> {
                   hintText: _seed(widget.hintValue),
                   // A bare red border: the row has no space for a message and
                   // an error line would shift every row below it.
-                  errorText: _outOfRange ? '' : null,
+                  errorText: _outOfRange || _unreadable ? '' : null,
                   errorStyle: const TextStyle(height: 0, fontSize: 0),
                 ),
                 keyboardType: TextInputType.numberWithOptions(
                   decimal: !widget.isInteger,
                 ),
-                inputFormatters: widget.isInteger
-                    ? [FilteringTextInputFormatter.digitsOnly]
-                    : [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
+                // Separators are kept even for whole numbers: a digits-only
+                // filter turned "5.5" into 55, where readNumber now reports
+                // a fraction as unreadable (#1900 review).
+                inputFormatters: numberInputFormatters(),
                 onChanged: _onChanged,
               ),
             ),
@@ -222,6 +242,31 @@ class PlanNumberFieldState extends State<PlanNumberField> {
           ),
         ],
       ),
+    );
+    // Always the same Column, with the message added only while the text is
+    // unreadable: swapping the root widget would remount the field and close
+    // its input connection mid-typing. The rows below shift only for as long
+    // as the diver has something to fix.
+    final theme = Theme.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        row,
+        if (_unreadable)
+          Text(
+            invalidNumberText(
+                  context,
+                  _controller.text,
+                  integer: widget.isInteger,
+                ) ??
+                '',
+            textAlign: TextAlign.end,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.error,
+            ),
+          ),
+      ],
     );
   }
 }

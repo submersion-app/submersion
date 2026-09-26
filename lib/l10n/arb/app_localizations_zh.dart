@@ -11660,9 +11660,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_logFill_invalidMix => 'O2 和 He 须各在 0 到 100 之间，且总和不超过 100';
 
   @override
-  String get passport_logFill_invalidNumber => '请输入数字';
-
-  @override
   String get passport_logFill_saveFailed => '无法保存充气记录。请重试。';
 
   @override
@@ -12489,9 +12486,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_edit_purchasePriceLabel => '购买价格';
-
-  @override
-  String get equipment_edit_purchasePriceValidation => '请输入有效金额';
 
   @override
   String get equipment_edit_remindMeBeforeServiceDue => '在维护到期前提醒我：';
@@ -14003,11 +13997,6 @@ class AppLocalizationsZh extends AppLocalizations {
   @override
   String gasCalculators_blender_unitPrice(String unit) {
     return '每 100 $unit 价格';
-  }
-
-  @override
-  String gasCalculators_blender_invalidNumber(String separator) {
-    return '请输入有效数字（小数点分隔符：\"$separator\"）';
   }
 
   @override
@@ -29125,9 +29114,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get equipmentConditionSettings_o2Label => '高氧混合气高于（% O2）';
 
   @override
-  String get equipmentConditionSettings_invalid => '请输入数字';
-
-  @override
   String get equipmentConditionSettings_saveFailed => '无法保存。请重试。';
 
   @override
@@ -40571,7 +40557,15 @@ class AppLocalizationsZh extends AppLocalizations {
   String get plannerCanvas_compare_showOnChart => 'Show on chart';
 
   @override
-  String get numberInput_invalidValue => '请输入有效的数字';
+  String numberInput_invalidNumber(String separator) {
+    return '请输入有效数字（小数点分隔符：\"$separator\"）';
+  }
+
+  @override
+  String get numberInput_invalidWholeNumber => '请输入整数';
+
+  @override
+  String get numberInput_required => '必填';
 
   @override
   String get diveCenters_rental_sectionTitle => '租赁装备';

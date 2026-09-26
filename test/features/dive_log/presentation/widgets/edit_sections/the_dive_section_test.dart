@@ -67,7 +67,7 @@ void main() {
     },
   );
 
-  testWidgets('bottom time row filters decimal input to digits only', (
+  testWidgets('bottom time row reports a fraction instead of rewriting it', (
     tester,
   ) async {
     final maxC = TextEditingController(text: '30.0');
@@ -100,11 +100,13 @@ void main() {
       ),
     );
 
-    // Bottom time is parsed with int.tryParse on save, so non-digits would
-    // silently become 0 -- the digits-only formatter must strip them.
+    // A digits-only filter used to turn "12.5" into 125 minutes without a
+    // word. The text is kept and the row says what is wrong (#1900 review).
     await tester.tap(find.text('42 min'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextFormField), '12.5');
-    expect(botC.text, '125');
+    await tester.pumpAndSettle();
+    expect(botC.text, '12.5');
+    expect(find.text('Enter a whole number'), findsOneWidget);
   });
 }

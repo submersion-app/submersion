@@ -56,9 +56,12 @@ class BlenderCylinderCard extends ConsumerWidget {
               pressureController: startPressure,
               o2Controller: startO2,
               heController: startHe,
-              onPressure: (v) =>
-                  ref.read(blenderStartPressureProvider.notifier).state = units
-                      .pressureToBar(pressureOrZero(v)),
+              onPressure: (v) {
+                final display = pressureOrKeep(v);
+                if (display == null) return; // the field shows why
+                ref.read(blenderStartPressureProvider.notifier).state = units
+                    .pressureToBar(display);
+              },
               // A blank box keeps the value it had. See mixPercentOrKeep.
               onMix: () {
                 final current = ref.read(blenderStartMixProvider);
@@ -94,9 +97,12 @@ class BlenderCylinderCard extends ConsumerWidget {
               pressureController: targetPressure,
               o2Controller: targetO2,
               heController: targetHe,
-              onPressure: (v) =>
-                  ref.read(blenderTargetPressureProvider.notifier).state = units
-                      .pressureToBar(pressureOrZero(v)),
+              onPressure: (v) {
+                final display = pressureOrKeep(v);
+                if (display == null) return; // the field shows why
+                ref.read(blenderTargetPressureProvider.notifier).state = units
+                    .pressureToBar(display);
+              },
               onMix: () {
                 final current = ref.read(blenderTargetMixProvider);
                 ref.read(blenderTargetMixProvider.notifier).state = GasMix(

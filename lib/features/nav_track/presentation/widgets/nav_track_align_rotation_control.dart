@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
+import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// The rotation control: the existing +/- stepper (0.5 degree steps)
 /// alongside a directly editable numeric field, so a diver who knows the
@@ -60,7 +63,10 @@ class _NavTrackRotationControlState extends State<NavTrackRotationControl> {
     super.dispose();
   }
 
-  static String _format(double value) => value.toStringAsFixed(1);
+  /// In the diver's locale, so a German seed reads "12,5" and parses back;
+  /// `toStringAsFixed` always wrote '.', which [readNumber] reads as a
+  /// grouping separator there (#1091, #1900).
+  static String _format(double value) => formatFixedForInput(value, 1);
 
   void _onFocusChange() {
     if (!_focusNode.hasFocus) _commit();
@@ -70,9 +76,13 @@ class _NavTrackRotationControlState extends State<NavTrackRotationControl> {
   /// not a valid number, leaves [widget.headingOffsetDeg] unchanged and
   /// restores the field to it rather than crashing or silently zeroing it.
   void _commit() {
-    final parsed = double.tryParse(_controller.text.trim());
-    if (parsed == null || !parsed.isFinite) {
-      _controller.text = _format(widget.headingOffsetDeg);
+    final parsed = switch (readNumber(_controller.text)) {
+      NumberValue(:final value) => value,
+      // Blank or unreadable: the field showed why while it held the text.
+      NumberBlank() || NumberInvalid() => null,
+    };
+    if (parsed == null) {
+      setState(() => _controller.text = _format(widget.headingOffsetDeg));
       return;
     }
     final clamped = parsed.clamp(_min, _max);
@@ -107,7 +117,16 @@ class _NavTrackRotationControlState extends State<NavTrackRotationControl> {
               signed: true,
             ),
             textInputAction: TextInputAction.done,
-            decoration: const InputDecoration(suffixText: '°', isDense: true),
+            inputFormatters: numberInputFormatters(),
+            decoration: InputDecoration(
+              suffixText: '°',
+              isDense: true,
+              // "2,5" under a comma locale used to be rejected and reverted
+              // without a word; unreadable text now says why (#1900).
+              errorText: invalidNumberText(context, _controller.text),
+              errorMaxLines: 3,
+            ),
+            onChanged: (_) => setState(() {}),
             onTapOutside: (_) => _focusNode.unfocus(),
             onEditingComplete: _focusNode.unfocus,
             onSubmitted: (_) => _focusNode.unfocus(),

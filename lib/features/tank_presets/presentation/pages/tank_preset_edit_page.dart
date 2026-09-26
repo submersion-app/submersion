@@ -13,6 +13,7 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_display.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 class TankPresetEditPage extends ConsumerStatefulWidget {
   final String? presetId;
@@ -188,11 +189,12 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
                             if (value == null || value.isEmpty) {
                               return context.l10n.tankPresets_edit_required;
                             }
-                            final parsed = parseUserDecimal(value);
-                            if (parsed == null || parsed <= 0) {
-                              return context.l10n.tankPresets_edit_validVolume;
-                            }
-                            return null;
+                            return numberValidator(
+                              context,
+                              check: (volume) => volume <= 0
+                                  ? context.l10n.tankPresets_edit_validVolume
+                                  : null,
+                            )(value);
                           },
                         ),
                       ),
@@ -212,13 +214,13 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
                             if (value == null || value.isEmpty) {
                               return context.l10n.tankPresets_edit_required;
                             }
-                            final parsed = parseUserInt(value);
-                            if (parsed == null || parsed <= 0) {
-                              return context
-                                  .l10n
-                                  .tankPresets_edit_validPressure;
-                            }
-                            return null;
+                            return numberValidator(
+                              context,
+                              integer: true,
+                              check: (pressure) => pressure <= 0
+                                  ? context.l10n.tankPresets_edit_validPressure
+                                  : null,
+                            )(value);
                           },
                         ),
                       ),
@@ -267,9 +269,16 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
     );
   }
 
+  static double? _readable(TextEditingController controller) =>
+      switch (readNumber(controller.text)) {
+        NumberValue(:final value) => value,
+        NumberBlank() || NumberInvalid() => null,
+      };
+
   Widget _buildInfoCard(AppSettings settings, UnitFormatter units) {
-    final volumeDisplay = parseUserDecimal(_volumeController.text);
-    final pressureDisplay = parseUserDecimal(_workingPressureController.text);
+    // Nothing to show until both read; an unreadable field shows its error.
+    final volumeDisplay = _readable(_volumeController);
+    final pressureDisplay = _readable(_workingPressureController);
 
     if (volumeDisplay == null || pressureDisplay == null) {
       return const SizedBox.shrink();
@@ -339,10 +348,8 @@ class _TankPresetEditPageState extends ConsumerState<TankPresetEditPage> {
       final displayName = _displayNameController.text.trim();
       // The validators above already rejected anything unreadable in the
       // diver's locale, so both fields parse here.
-      final volumeDisplay = parseUserDecimal(_volumeController.text)!;
-      final pressureDisplay = parseUserDecimal(
-        _workingPressureController.text,
-      )!;
+      final volumeDisplay = _readable(_volumeController)!;
+      final pressureDisplay = _readable(_workingPressureController)!;
       final description = _descriptionController.text.trim();
 
       // Convert to storage units (metric)

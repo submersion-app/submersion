@@ -221,7 +221,7 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
 
-    expect(find.text('Enter a valid number'), findsOneWidget);
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
     expect(await repo.getForCenter('c1'), isEmpty);
     expect(find.text('New rental note'), findsOneWidget);
   });

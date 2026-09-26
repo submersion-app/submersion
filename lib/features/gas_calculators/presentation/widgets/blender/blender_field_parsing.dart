@@ -1,4 +1,4 @@
-import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Read a mix percentage from a field, keeping [previous] when the field is
 /// blank or half-typed.
@@ -13,11 +13,22 @@ import 'package:submersion/core/utils/number_input.dart';
 ///
 /// Keeping the previous value means a half-finished edit shows a procedure
 /// that is one keystroke stale rather than one that is confidently wrong.
-double mixPercentOrKeep(String text, double previous) {
-  if (text.trim().isEmpty) return previous;
-  return smartParseUserDecimal(text) ?? previous;
-}
+///
+/// Unreadable text keeps [previous] too, while the field shows its error.
+double mixPercentOrKeep(String text, double previous) =>
+    switch (readNumber(text)) {
+      NumberValue(:final value) => value,
+      NumberBlank() || NumberInvalid() => previous,
+    };
 
 /// Read a pressure from a field. Blank genuinely means zero here: an empty
 /// cylinder is the most common starting point there is.
-double pressureOrZero(String text) => smartParseUserDecimal(text) ?? 0;
+///
+/// Null for unreadable text, so the caller keeps the pressure it has. Reading
+/// it as zero, as this once did, turned a mistyped fill pressure into an
+/// empty cylinder while the field showed its error (#1900).
+double? pressureOrKeep(String text) => switch (readNumber(text)) {
+  NumberValue(:final value) => value,
+  NumberBlank() => 0,
+  NumberInvalid() => null,
+};

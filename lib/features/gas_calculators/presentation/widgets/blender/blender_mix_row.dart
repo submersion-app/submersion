@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:submersion/core/utils/locale_number_symbols.dart';
-import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_decimal_digits_formatter.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
 
 /// A row of pressure (optional) plus O2 plus He fields.
 ///
@@ -218,19 +217,13 @@ class BlenderMixRow extends StatelessWidget {
     return ListenableBuilder(
       listenable: controller,
       builder: (context, _) {
-        final text = controller.text;
-        final unreadable =
-            text.trim().isNotEmpty && smartParseUserDecimal(text) == null;
-        final errorText = unreadable
-            ? context.l10n.gasCalculators_blender_invalidNumber(
-                localeNumberFormat().symbols.DECIMAL_SEP,
-              )
-            : sharedErrorText;
+        final errorText =
+            invalidNumberText(context, controller.text) ?? sharedErrorText;
         return TextField(
           controller: controller,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),
           inputFormatters: [
-            FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+            ...numberInputFormatters(),
             BlenderDecimalDigitsFormatter(maxIntDigits: maxIntDigits),
           ],
           decoration: InputDecoration(

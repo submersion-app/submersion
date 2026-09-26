@@ -8,6 +8,7 @@ import 'package:submersion/features/checklists/presentation/providers/checklist_
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Create/edit page for a checklist template and its items.
 class ChecklistTemplateEditPage extends ConsumerStatefulWidget {
@@ -273,7 +274,14 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
         title: _titleController.text.trim(),
         category: category.isEmpty ? null : category,
         notes: _notesController.text.trim(),
-        dueOffsetDays: parseUserInt(_offsetController.text),
+        // Blank is "no due date"; validate() stopped unreadable text.
+        dueOffsetDays: switch (readNumber(
+          _offsetController.text,
+          integer: true,
+        )) {
+          NumberValue(:final value) => value.toInt(),
+          NumberBlank() || NumberInvalid() => null,
+        },
         sortOrder: widget.item?.sortOrder ?? widget.defaultSortOrder,
         createdAt: widget.item?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
@@ -326,13 +334,13 @@ class _ChecklistItemDialogState extends State<_ChecklistItemDialog> {
                 decoration: InputDecoration(
                   labelText: context.l10n.checklists_item_dueOffsetLabel,
                 ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) return null;
-                  final parsed = parseUserInt(value);
-                  return (parsed == null || parsed < 0)
+                validator: numberValidator(
+                  context,
+                  integer: true,
+                  check: (days) => days < 0
                       ? context.l10n.checklists_item_dueOffsetInvalid
-                      : null;
-                },
+                      : null,
+                ),
               ),
             ],
           ),

@@ -9,6 +9,7 @@ import 'package:submersion/shared/widgets/forms/form_section.dart';
 import 'package:submersion/shared/widgets/forms/suggestion_form_row.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/environment_enum_display.dart';
 import 'package:submersion/features/dive_sites/presentation/site_difficulty_display.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 /// Site group 3: min/max depth rows, difficulty chips row, rating row.
 class DiveInfoSection extends StatelessWidget {
@@ -64,6 +65,8 @@ class DiveInfoSection extends StatelessWidget {
       label: label,
       controller: controller,
       suggestions: const [],
+      // An unreadable depth used to save as no depth (#1900).
+      validator: numberValidator(context),
       caption: extras?.sourceLabel,
       trailing: extras == null
           ? null

@@ -319,6 +319,18 @@ void main() {
     expect(entries.single.weightKg, 85.0);
   });
 
+  testWidgets('an unreadable body weight says why (#1900)', (tester) async {
+    await pumpPage(tester);
+
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Body Weight (optional)'),
+      '8..5',
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+  });
+
   testWidgets('through-the-dive panel renders swing and ditchable rows', (
     tester,
   ) async {
