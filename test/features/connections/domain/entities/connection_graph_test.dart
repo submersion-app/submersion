@@ -83,4 +83,23 @@ void main() {
       isFalse,
     );
   });
+  test('trimming never lets a far hop displace a nearer one', () {
+    final g = ConnectionGraph(
+      nodes: [
+        ConnectionNode(ref: _b('focus'), label: 'F', diveCount: 1, hop: 0),
+        ConnectionNode(ref: _b('near'), label: 'N', diveCount: 1, hop: 1),
+        ConnectionNode(ref: _b('far'), label: 'X', diveCount: 99, hop: 3),
+      ],
+      edges: const [],
+    );
+    final t = g.trimmed(2, keep: _b('focus'));
+    expect(t.nodes.map((n) => n.ref.id).toSet(), {'focus', 'near'});
+    expect(t.hiddenNodeCount, 1);
+  });
+
+  test('hop takes part in equality and copyWith', () {
+    final n = ConnectionNode(ref: _b('a'), label: 'A', diveCount: 1, hop: 2);
+    expect(n.copyWith(hop: 1).hop, 1);
+    expect(n == n.copyWith(hop: 1), isFalse);
+  });
 }

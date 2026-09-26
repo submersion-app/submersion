@@ -43,6 +43,7 @@ class ConnectionNode extends Equatable {
     required this.diveCount,
     this.subtitle,
     this.photo,
+    this.hop,
   });
 
   final NodeRef ref;
@@ -55,12 +56,17 @@ class ConnectionNode extends Equatable {
   /// Buddy photo bytes when the buddy has one; null for every other kind.
   final Uint8List? photo;
 
+  /// Shared-dive steps from the focus in an around view: 0 for the focus
+  /// itself, 1 to 3 for the rest. Null in a whole map.
+  final int? hop;
+
   ConnectionNode copyWith({
     NodeRef? ref,
     String? label,
     int? diveCount,
     NodeSubtitle? subtitle,
     Uint8List? photo,
+    int? hop,
   }) {
     return ConnectionNode(
       ref: ref ?? this.ref,
@@ -68,6 +74,7 @@ class ConnectionNode extends Equatable {
       diveCount: diveCount ?? this.diveCount,
       subtitle: subtitle ?? this.subtitle,
       photo: photo ?? this.photo,
+      hop: hop ?? this.hop,
     );
   }
 
@@ -78,6 +85,7 @@ class ConnectionNode extends Equatable {
     ref,
     label,
     diveCount,
+    hop,
     subtitle,
     _PhotoIdentity(photo),
   ];

@@ -39,7 +39,7 @@ class ConnectionGraph extends Equatable {
   int weightedDegree(NodeRef ref) =>
       edgesOf(ref).fold(0, (sum, e) => sum + e.weight);
 
-  /// Keeps the top [budget] nodes by dive count, then weighted degree, then
+  /// Keeps the top [budget] nodes by hop, then dive count, then weighted degree, then
   /// id, plus [keep] (the focus) if it would otherwise fall out. Edges that
   /// touch a removed node are dropped. Returns `this` when nothing is cut.
   ConnectionGraph trimmed(int budget, {NodeRef? keep}) {
@@ -51,6 +51,8 @@ class ConnectionGraph extends Equatable {
     }
     final ranked = [...nodes]
       ..sort((a, b) {
+        final byHop = (a.hop ?? 0).compareTo(b.hop ?? 0);
+        if (byHop != 0) return byHop;
         final byDives = b.diveCount.compareTo(a.diveCount);
         if (byDives != 0) return byDives;
         final byDegree = (degree[b.ref] ?? 0).compareTo(degree[a.ref] ?? 0);
