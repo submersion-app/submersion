@@ -54,6 +54,9 @@ const _mediaExtensions = {
   '.mp4',
   '.mov',
   '.m4v',
+  '.avi',
+  '.mkv',
+  '.webm',
 };
 
 /// Characters no file name may carry on Windows, plus control characters.

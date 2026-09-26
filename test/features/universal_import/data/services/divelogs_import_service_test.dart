@@ -296,6 +296,9 @@ void main() {
     );
     expect(nameFor('https://x.de/pic.php?id=9'), 'divelogs-1-1.jpg');
     expect(nameFor('https://x.de/clip.MOV'), 'clip.MOV');
+    expect(nameFor('https://x.de/clip.webm'), 'clip.webm');
+    expect(nameFor('https://x.de/clip.mkv'), 'clip.mkv');
+    expect(nameFor('https://x.de/clip.avi'), 'clip.avi');
     expect(nameFor('https://x.de/a%3Ab%3F.jpg'), 'a_b_.jpg');
     expect(nameFor('https://x.de/.jpg'), 'divelogs-1-1.jpg');
   });

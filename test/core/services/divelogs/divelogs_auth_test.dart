@@ -169,4 +169,26 @@ void main() {
       );
     },
   );
+
+  test(
+    'a sign-out the keychain refuses keeps the session and says so',
+    () async {
+      final failing = _ClearFailsStore();
+      final auth = DivelogsAuth(httpClient: loginClient(), store: failing);
+      await auth.signIn('rainer', 'secret');
+
+      await expectLater(auth.signOut(), throwsA(isA<StateError>()));
+
+      expect(auth.username, 'rainer');
+      expect(await auth.getToken(), 'jwt-1');
+    },
+  );
+}
+
+/// A keychain that stores sessions but refuses to delete them.
+class _ClearFailsStore extends DivelogsSessionStore {
+  _ClearFailsStore() : super(storage: InMemoryKeychain());
+
+  @override
+  Future<void> clear() async => throw StateError('keychain delete refused');
 }

@@ -195,9 +195,13 @@ class _DivelogsSignInStepState extends ConsumerState<DivelogsSignInStep> {
     try {
       await auth.signOut();
     } catch (e) {
-      // The in-memory session is gone either way; a keychain that refuses
-      // the delete only leaves a token the next sign-in overwrites.
+      // The keychain kept the session, so this is not a sign-out: stay
+      // signed in and say so, rather than let the cached token sign the
+      // same account back in next time.
       _log.warning('Could not clear the divelogs.de session: ${e.runtimeType}');
+      if (!mounted) return;
+      setState(() => _errorText = context.l10n.common_error_tryAgain);
+      return;
     }
     _auth = null;
     widget.onSignedIn(null);
@@ -245,6 +249,16 @@ class _DivelogsSignInStepState extends ConsumerState<DivelogsSignInStep> {
                 onPressed: _signOut,
                 child: Text(l10n.divelogsImport_signIn_signOut),
               ),
+              if (_errorText != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _errorText!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ],
           ),
         ),

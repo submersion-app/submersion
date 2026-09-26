@@ -140,7 +140,9 @@ class DivelogsApiClient {
   }
 
   Future<List<DivelogsPicture>> getPictures(String diveId) async {
-    final response = await _get('/pictures/$diveId');
+    // One path segment whatever the id holds: a `/`, `?` or `#` in it must
+    // not address another route.
+    final response = await _get('/pictures/${Uri.encodeComponent(diveId)}');
     final rows = _rows(_decode(response.body, '/pictures'), '/pictures', const [
       'pictures',
     ]);

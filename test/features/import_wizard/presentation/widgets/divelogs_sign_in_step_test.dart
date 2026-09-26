@@ -283,6 +283,39 @@ void main() {
     expect(find.text('Sign in to divelogs.de'), findsOneWidget);
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
+
+  testWidgets('a sign-out the keychain refuses stays signed in and says so', (
+    tester,
+  ) async {
+    final failing = _ClearFailsStore();
+    await tester.runAsync(
+      () => failing.save(
+        const DivelogsSession(username: 'rainer', token: 'cached'),
+      ),
+    );
+    container.dispose();
+    container = ProviderContainer(
+      overrides: [
+        divelogsSessionStoreProvider.overrideWithValue(failing),
+        divelogsHttpClientProvider.overrideWithValue(
+          MockClient((_) async => http.Response('{}', 200)),
+        ),
+      ],
+    );
+    await pumpStep(tester);
+    expect(find.text('Signed in as rainer'), findsOneWidget);
+
+    await tester.tap(find.text('Sign out'));
+    await settle(tester);
+
+    expect(find.text('Signed in as rainer'), findsOneWidget);
+    expect(
+      find.text('Something went wrong. Please try again.'),
+      findsOneWidget,
+    );
+    expect(signedIn.whereType<Null>(), isEmpty);
+    expect(container.read(divelogsSignedInProvider), isTrue);
+  });
 }
 
 /// A keychain that refuses every write, as a macOS build without the
@@ -302,4 +335,13 @@ class _UnreadableStore extends DivelogsSessionStore {
   @override
   Future<DivelogsSession?> load() async =>
       throw PlatformException(code: 'keychain', message: 'locked');
+}
+
+/// A keychain that stores sessions but refuses to delete them.
+class _ClearFailsStore extends DivelogsSessionStore {
+  _ClearFailsStore() : super(storage: InMemoryKeychain());
+
+  @override
+  Future<void> clear() async =>
+      throw PlatformException(code: 'keychain', message: 'delete refused');
 }

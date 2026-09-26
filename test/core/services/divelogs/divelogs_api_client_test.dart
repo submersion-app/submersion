@@ -306,4 +306,15 @@ void main() {
       );
     });
   });
+
+  test('getPictures keeps a dive id as a single path segment', () async {
+    Uri? seen;
+    final api = client((req) async {
+      seen = req.url;
+      return http.Response('[]', 200);
+    });
+    await api.getPictures('a/b?c#d');
+    expect(seen!.pathSegments, ['api', 'pictures', 'a/b?c#d']);
+    expect(seen!.query, isEmpty);
+  });
 }

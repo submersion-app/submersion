@@ -113,13 +113,18 @@ class DivelogsAuth {
     _token = null;
   }
 
+  /// Forgets the session. The keychain is cleared first: if it refuses,
+  /// the error propagates and the in-memory session stays, so a sign-out
+  /// that did not happen is never reported as one (the cached token would
+  /// otherwise sign the same account straight back in next time). Any
+  /// renewal in flight is abandoned either way.
   Future<void> signOut() async {
     _generation++;
     _renewal = null;
+    await _store.clear();
     _username = null;
     _password = null;
     _token = null;
-    await _store.clear();
   }
 
   Future<String> _login(String username, String password) async {
