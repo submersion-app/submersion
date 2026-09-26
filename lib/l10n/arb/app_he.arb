@@ -5636,6 +5636,7 @@
   "settings_conflict_ref_tag": "תגית",
   "settings_conflict_ref_tank": "בלון",
   "settings_conflict_ref_trip": "טיול",
+  "settings_conflict_ref_tripCylinder": "בלון הטיול",
   "settings_conflict_remoteVersion": "גרסה מרוחקת",
   "settings_conflict_resolved": "נפתרו {count, plural, =1{התנגשות אחת} other{{count} התנגשויות}}",
   "settings_conflict_title": "פתרון התנגשויות",

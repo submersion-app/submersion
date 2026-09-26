@@ -689,6 +689,7 @@ void main() {
       'pre_dive_checklist_template_items.template_id',
       'trip_checklist_items.trip_id',
       'trip_day_weather.trip_id',
+      'trip_cylinders.trip_id',
       'trip_itinerary_days.trip_id',
     };
     final unhandled = {

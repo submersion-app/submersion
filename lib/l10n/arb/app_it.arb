@@ -5530,6 +5530,7 @@
   "settings_conflict_ref_tag": "Tag",
   "settings_conflict_ref_tank": "Bombola",
   "settings_conflict_ref_trip": "Viaggio",
+  "settings_conflict_ref_tripCylinder": "Bombola del viaggio",
   "settings_conflict_remoteVersion": "Versione remota",
   "settings_conflict_resolved": "{count, plural, =1{1 conflitto risolto} other{{count} conflitti risolti}}",
   "settings_conflict_title": "Risolvi conflitti",

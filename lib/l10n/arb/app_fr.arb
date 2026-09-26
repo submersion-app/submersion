@@ -5530,6 +5530,7 @@
   "settings_conflict_ref_tag": "Étiquette",
   "settings_conflict_ref_tank": "Bloc",
   "settings_conflict_ref_trip": "Voyage",
+  "settings_conflict_ref_tripCylinder": "Bouteille du voyage",
   "settings_conflict_remoteVersion": "Version distante",
   "settings_conflict_resolved": "{count, plural, =1{{count} conflit resolu} other{{count} conflits resolus}}",
   "settings_conflict_title": "Résoudre les conflits",

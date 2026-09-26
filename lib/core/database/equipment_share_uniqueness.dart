@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 
-/// The (equipment_id, diver_id) unique index on `equipment_shares` (v232,
+/// The (equipment_id, diver_id) unique index on `equipment_shares` (v233,
 /// issue #2046). With the index in place an unguarded duplicate insert
 /// throws, so every writer uses `DoNothing`.
 const String kEquipmentSharesUniqueIndexName =

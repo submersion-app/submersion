@@ -18271,6 +18271,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_conflict_ref_trip => '行程';
 
   @override
+  String get settings_conflict_ref_tripCylinder => '行程气瓶';
+
+  @override
   String get settings_conflict_remoteVersion => '远程版本';
 
   @override

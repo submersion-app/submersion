@@ -288,6 +288,8 @@ class SyncData {
   final List<Map<String, dynamic>> liveaboardDetails;
   final List<Map<String, dynamic>> itineraryDays;
   final List<Map<String, dynamic>> tripDayWeather;
+  final List<Map<String, dynamic>> tripCylinders;
+  final List<Map<String, dynamic>> tripCylinderEvents;
   final List<Map<String, dynamic>> checklistTemplates;
   final List<Map<String, dynamic>> checklistTemplateItems;
   final List<Map<String, dynamic>> tripChecklistItems;
@@ -388,6 +390,8 @@ class SyncData {
     this.liveaboardDetails = const [],
     this.itineraryDays = const [],
     this.tripDayWeather = const [],
+    this.tripCylinders = const [],
+    this.tripCylinderEvents = const [],
     this.checklistTemplates = const [],
     this.checklistTemplateItems = const [],
     this.tripChecklistItems = const [],
@@ -483,6 +487,8 @@ class SyncData {
     'liveaboardDetails': liveaboardDetails,
     'itineraryDays': itineraryDays,
     'tripDayWeather': tripDayWeather,
+    'tripCylinders': tripCylinders,
+    'tripCylinderEvents': tripCylinderEvents,
     'checklistTemplates': checklistTemplates,
     'checklistTemplateItems': checklistTemplateItems,
     'tripChecklistItems': tripChecklistItems,
@@ -579,6 +585,8 @@ class SyncData {
       liveaboardDetails: _parseList(json['liveaboardDetails']),
       itineraryDays: _parseList(json['itineraryDays']),
       tripDayWeather: _parseList(json['tripDayWeather']),
+      tripCylinders: _parseList(json['tripCylinders']),
+      tripCylinderEvents: _parseList(json['tripCylinderEvents']),
       checklistTemplates: _parseList(json['checklistTemplates']),
       checklistTemplateItems: _parseList(json['checklistTemplateItems']),
       tripChecklistItems: _parseList(json['tripChecklistItems']),
@@ -933,6 +941,13 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'tripDayWeather', table: _db.tripDayWeather, blob: false, full: null),
+    (key: 'tripCylinders', table: _db.tripCylinders, blob: false, full: null),
+    (
+      key: 'tripCylinderEvents',
+      table: _db.tripCylinderEvents,
+      blob: false,
+      full: null,
+    ),
     (
       key: 'checklistTemplates',
       table: _db.checklistTemplates,
@@ -1954,6 +1969,14 @@ class SyncDataSerializer {
         'tripDayWeather',
         () => _exportTripDayWeather(hlcSince),
       ),
+      tripCylinders: await _safeExport(
+        'tripCylinders',
+        () => _exportTripCylinders(hlcSince),
+      ),
+      tripCylinderEvents: await _safeExport(
+        'tripCylinderEvents',
+        () => _exportTripCylinderEvents(hlcSince),
+      ),
       checklistTemplates: await _safeExport(
         'checklistTemplates',
         () => _exportChecklistTemplates(hlcSince),
@@ -2554,6 +2577,16 @@ class SyncDataSerializer {
           _db.tripDayWeather,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
+      case 'tripCylinders':
+        final row = await (_db.select(
+          _db.tripCylinders,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'tripCylinderEvents':
+        final row = await (_db.select(
+          _db.tripCylinderEvents,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
       case 'checklistTemplates':
         final row = await (_db.select(
           _db.checklistTemplates,
@@ -3007,6 +3040,16 @@ class SyncDataSerializer {
       case 'tripDayWeather':
         final rows = await (_db.select(
           _db.tripDayWeather,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'tripCylinders':
+        final rows = await (_db.select(
+          _db.tripCylinders,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'tripCylinderEvents':
+        final rows = await (_db.select(
+          _db.tripCylinderEvents,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'checklistTemplates':
@@ -3635,7 +3678,7 @@ class SyncDataSerializer {
         );
   }
 
-  /// Applies one incoming `equipment_shares` row (v232, issue #2046). The
+  /// Applies one incoming `equipment_shares` row (v233, issue #2046). The
   /// (item, diver) pair is unique, so a peer's copy of a pair this device
   /// holds under another id is reconciled to the lower id and then skipped
   /// with DO NOTHING, as [_applySiteSiteTypeRecord] does.
@@ -3937,6 +3980,20 @@ class SyncDataSerializer {
             .into(_db.tripDayWeather)
             .insertOnConflictUpdate(
               TripDayWeatherData.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'tripCylinders':
+        await _db
+            .into(_db.tripCylinders)
+            .insertOnConflictUpdate(
+              TripCylinderRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'tripCylinderEvents':
+        await _db
+            .into(_db.tripCylinderEvents)
+            .insertOnConflictUpdate(
+              TripCylinderEventRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'checklistTemplates':
@@ -4836,6 +4893,26 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'tripCylinders':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.tripCylinders,
+            records
+                .map((r) => TripCylinderRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'tripCylinderEvents':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.tripCylinderEvents,
+            records
+                .map((r) => TripCylinderEventRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
       case 'checklistTemplates':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -5589,6 +5666,10 @@ class SyncDataSerializer {
         return plain(_db.tripItineraryDays, _db.tripItineraryDays.id);
       case 'tripDayWeather':
         return plain(_db.tripDayWeather, _db.tripDayWeather.id);
+      case 'tripCylinders':
+        return plain(_db.tripCylinders, _db.tripCylinders.id);
+      case 'tripCylinderEvents':
+        return plain(_db.tripCylinderEvents, _db.tripCylinderEvents.id);
       case 'checklistTemplates':
         return plain(_db.checklistTemplates, _db.checklistTemplates.id);
       case 'checklistTemplateItems':
@@ -5983,6 +6064,10 @@ class SyncDataSerializer {
         return _db.tripItineraryDays;
       case 'tripDayWeather':
         return _db.tripDayWeather;
+      case 'tripCylinders':
+        return _db.tripCylinders;
+      case 'tripCylinderEvents':
+        return _db.tripCylinderEvents;
       case 'checklistTemplates':
         return _db.checklistTemplates;
       case 'checklistTemplateItems':
@@ -6352,6 +6437,16 @@ class SyncDataSerializer {
       case 'tripDayWeather':
         await (_db.delete(
           _db.tripDayWeather,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'tripCylinders':
+        await (_db.delete(
+          _db.tripCylinders,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'tripCylinderEvents':
+        await (_db.delete(
+          _db.tripCylinderEvents,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'checklistTemplates':
@@ -7162,6 +7257,28 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
+  Future<List<Map<String, dynamic>>> _exportTripCylinders(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.tripCylinders);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportTripCylinderEvents(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.tripCylinderEvents);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
   Future<List<Map<String, dynamic>>> _exportChecklistTemplates(
     String? hlcSince,
   ) async {
@@ -7750,7 +7867,7 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// Equipment shares (v232, issue #2046), gated on the parent item's clock
+  /// Equipment shares (v233, issue #2046), gated on the parent item's clock
   /// like [_exportEquipmentTags].
   Future<List<Map<String, dynamic>>> _exportEquipmentShares(
     String? hlcSince,
@@ -7769,7 +7886,7 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson()).toList();
   }
 
-  /// Equipment share and ownership events (v232, issue #2046), gated on the
+  /// Equipment share and ownership events (v233, issue #2046), gated on the
   /// parent item's clock like [_exportEquipmentTags].
   Future<List<Map<String, dynamic>>> _exportEquipmentOwnershipEvents(
     String? hlcSince,

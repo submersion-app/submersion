@@ -99,6 +99,7 @@ class ConflictReferenceResolver {
     'switchToTankId': 'divePlanTanks',
     'planId': 'divePlans',
     'tripId': 'trips',
+    'tripCylinderId': 'tripCylinders',
     'diveCenterId': 'diveCenters',
     'courseId': 'courses',
     'certificationId': 'certifications',

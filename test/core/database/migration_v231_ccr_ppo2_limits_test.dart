@@ -10,8 +10,9 @@ const _columns = {
 };
 
 void main() {
-  test('v231 is in the ladder', () {
-    // Relaxed once v232 (equipment sharing, issue #2046) landed on top.
+  test('v231 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v232 (trip cylinders) landed on top; the newest rung owns
+    // the exact assertion.
     expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(231));
     expect(AppDatabase.migrationVersions, contains(231));
     expect(AppDatabase.migrationStepCount(230), greaterThanOrEqualTo(1));

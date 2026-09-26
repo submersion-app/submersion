@@ -19301,6 +19301,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Voyage';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'Bouteille du voyage';
+
+  @override
   String get settings_conflict_remoteVersion => 'Version distante';
 
   @override

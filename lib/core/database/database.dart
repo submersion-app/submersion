@@ -222,6 +222,97 @@ class TripDayWeather extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// A cylinder slot the diver holds on a trip (v232, issue #2325): one of the
+/// N bottles in the truck, not a specific bottle. A rental slot stands
+/// alone; an owned cylinder links through [equipmentId] and copies its
+/// specs here at creation. The operator's number for the bottle currently
+/// in the slot rides on each fill event (TripCylinderEvents.bottleLabel), so
+/// a swap at the fill station is one event, never a new row.
+///
+/// A child of trips with its own updatedAt and hlc, synced like
+/// TripDayWeather. Metric storage (liters, bar); conversion happens at
+/// display time.
+@DataClassName('TripCylinderRow')
+class TripCylinders extends Table {
+  TextColumn get id => text()();
+  TextColumn get tripId => text().references(Trips, #id)();
+
+  /// The owned cylinder in this slot, if any. Deleting the item clears the
+  /// link; the slot keeps the specs it copied.
+  TextColumn get equipmentId => text().nullable().references(
+    Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// The slot's name, or the owned bottle's mark: "Truck 3", "My HP100".
+  TextColumn get label => text().withDefault(const Constant(''))();
+  RealColumn get volume => real().nullable()(); // liters
+  RealColumn get workingPressure => real().nullable()(); // bar
+  TextColumn get material => text().nullable()(); // TankMaterial.name
+  TextColumn get presetName => text().nullable()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  TextColumn get notes => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// The ledger of a trip cylinder slot (v232, issue #2325): a fill (where,
+/// when, pressure, the mix ordered, what the analyzer read, the operator's
+/// bottle number, what it cost) or an adjustment (a corrected pressure, a
+/// "mark empty"). A dive's consumption is not a row here: it is the
+/// dive_tanks.trip_cylinder_id link. The slot's current state is derived
+/// from the two and never stored.
+@DataClassName('TripCylinderEventRow')
+class TripCylinderEvents extends Table {
+  TextColumn get id => text()();
+  TextColumn get tripCylinderId =>
+      text().references(TripCylinders, #id, onDelete: KeyAction.cascade)();
+
+  /// TripCylinderEventKind.name: fill or adjustment.
+  TextColumn get kind => text()();
+
+  /// The diver's wall clock as UTC epoch milliseconds, the frame
+  /// dives.dive_date_time uses, so fills and dives order on one timeline.
+  IntColumn get occurredAt => integer()();
+
+  /// The operator's number for the bottle now in the slot (fills).
+  TextColumn get bottleLabel => text().nullable()();
+
+  /// Fill pressure, or the corrected current pressure (bar).
+  RealColumn get pressure => real().nullable()();
+  RealColumn get o2Percent => real().nullable()(); // the mix ordered
+  RealColumn get hePercent => real().nullable()();
+  RealColumn get analyzedO2 => real().nullable()(); // what the analyzer read
+  RealColumn get analyzedHe => real().nullable()();
+  TextColumn get diveCenterId => text().nullable().references(
+    DiveCenters,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+  RealColumn get cost => real().nullable()();
+
+  /// Null means the diver's default currency, as the service cost defaults
+  /// do; a NOT NULL default would make every fill silently claim USD.
+  TextColumn get currency => text().nullable()();
+  BoolColumn get isPackage => boolean().withDefault(const Constant(false))();
+  TextColumn get note => text().withDefault(const Constant(''))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+
+  /// Hybrid Logical Clock for cross-device conflict resolution.
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 /// Reusable checklist templates for trip planning (issue #164)
 class ChecklistTemplates extends Table {
   // coverage:ignore-start
@@ -1148,6 +1239,16 @@ class DiveTanks extends Table {
   /// re-parses never write it.
   TextColumn get regulatorEquipmentId => text().nullable().references(
     Equipment,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
+
+  /// v232: the trip cylinder slot this tank was breathed from (issue
+  /// #2325). User-authored through the tank editor; downloads and re-parses
+  /// never write it. Set null when the slot goes, like every other nullable
+  /// link on this table.
+  TextColumn get tripCylinderId => text().nullable().references(
+    TripCylinders,
     #id,
     onDelete: KeyAction.setNull,
   )();
@@ -2833,7 +2934,7 @@ class EquipmentTags extends Table {
   TextColumn get hlc => text().nullable()();
 }
 
-/// Diver profiles an equipment item is shared with (v232, issue #2046). The
+/// Diver profiles an equipment item is shared with (v233, issue #2046). The
 /// owner stays `equipment.diver_id`; a row here makes the item visible to
 /// [diverId] too. Surrogate uuid primary key like [EquipmentTags]; the
 /// (equipment_id, diver_id) unique index lives in
@@ -2856,7 +2957,7 @@ class EquipmentShares extends Table {
   TextColumn get hlc => text().nullable()();
 }
 
-/// Append-only log of an item's share and ownership changes (v232, issue
+/// Append-only log of an item's share and ownership changes (v233, issue
 /// #2046): `shared`, `unshared`, and `transferred` from the transfer work.
 /// Diver references are SET NULL, so deleting a profile keeps the event,
 /// read as "a deleted profile". No row is ever updated, except by a diver
@@ -4441,7 +4542,7 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     SiteTags,
     // Equipment tags (v219, issue #1942)
     EquipmentTags,
-    // Equipment sharing and its event log (v232, issue #2046)
+    // Equipment sharing and its event log (v233, issue #2046)
     EquipmentShares,
     EquipmentOwnershipEvents,
     // Training courses (v1.5)
@@ -4502,6 +4603,9 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DiveCenterGearNotes,
     // Cylinder fill history (v228, issue #2334)
     CylinderFills,
+    // Trip cylinder slots and their ledger (v232, issue #2325)
+    TripCylinders,
+    TripCylinderEvents,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -4511,7 +4615,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 232;
+  static const int currentSchemaVersion = 233;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -5191,14 +5295,21 @@ class AppDatabase extends _$AppDatabase {
     // (#1772) as 230 while this was open, and 229 is claimed by #2372,
     // #2331 and #2407.
     231,
-    // v232: equipment sharing (issue #2046). Two tables, equipment_shares
+    // v232: trip-scale gas logistics, phase 1 (issue #2325). trip_cylinders
+    // and trip_cylinder_events, two children of trips, and the nullable
+    // dive_tanks.trip_cylinder_id link. Tables and one column, no backfill,
+    // so the floor stays at 224. Renumbered from 228 while in review: main
+    // shipped cylinder fills (#2364) as 228, nav tracks (#1772) as 230 and
+    // CCR ppO2 limits (#2387) as 231, and 229 is held by #2372.
+    232,
+    // v233: equipment sharing (issue #2046). Two tables, equipment_shares
     // with its (equipment_id, diver_id) unique index and
     // equipment_ownership_events, plus two lookup indexes. Additive only, so
     // the compatibility floor stays. Renumbered from 228, then 229: cylinder
     // fills (#2364) took 228, 229 is claimed by the diver figure branch
-    // (#2372), nav tracks (#1772) took 230 and CCR ppO2 limits (#2342)
-    // took 231 while this was open.
-    232,
+    // (#2372), nav tracks (#1772) took 230, CCR ppO2 limits (#2342) took
+    // 231 and trip cylinders (#2325) took 232 while this was open.
+    233,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -8836,9 +8947,9 @@ class AppDatabase extends _$AppDatabase {
     );
   }
 
-  /// Idempotent creation of the v232 equipment sharing schema (issue #2046):
+  /// Idempotent creation of the v233 equipment sharing schema (issue #2046):
   /// `equipment_shares` with its (equipment, diver) unique index, and
-  /// `equipment_ownership_events`. Called from the v232 rung and the
+  /// `equipment_ownership_events`. Called from the v233 rung and the
   /// beforeOpen backstop.
   ///
   /// Skipped on a partial migration-test fixture that lacks either parent
@@ -8872,6 +8983,41 @@ class AppDatabase extends _$AppDatabase {
       if (rows.isEmpty) return;
     }
     await createMigrator().createTable(diveCenterGearNotes);
+  }
+
+  /// Idempotent creation of the v232 trip cylinder tables and the
+  /// dive_tanks.trip_cylinder_id link (issue #2325). Called from the v232
+  /// rung and the beforeOpen backstop.
+  ///
+  /// Skipped on a partial migration-test fixture that lacks a parent table,
+  /// so a fixture written for an older rung does not gain tables whose
+  /// foreign keys point nowhere, nor a link column with no parent. The
+  /// column is added after the tables so its reference has a target.
+  Future<void> _assertTripCylindersSchema() async {
+    for (final parent in const ['trips', 'equipment', 'dive_centers']) {
+      if (!await _tableExists(parent)) return;
+    }
+    await createMigrator().createTable(tripCylinders);
+    await createMigrator().createTable(tripCylinderEvents);
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_trip_cylinders_trip_id '
+      'ON trip_cylinders(trip_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_trip_cylinder_events_cylinder_id '
+      'ON trip_cylinder_events(trip_cylinder_id)',
+    );
+    await _addColumnIfMissing(
+      'dive_tanks',
+      'trip_cylinder_id',
+      'TEXT REFERENCES trip_cylinders(id) ON DELETE SET NULL',
+    );
+    if (await _tableExists('dive_tanks')) {
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_dive_tanks_trip_cylinder '
+        'ON dive_tanks(trip_cylinder_id)',
+      );
+    }
   }
 
   /// Idempotent DDL for the v174 dive_types.show_in_detail_header and
@@ -9221,7 +9367,7 @@ class AppDatabase extends _$AppDatabase {
         // same reason: createAll() never builds raw-SQL indexes.
         await assertEquipmentTagUniqueness(this);
 
-        // Equipment share pair unique index (v232, issue #2046), for the
+        // Equipment share pair unique index (v233, issue #2046), for the
         // same reason.
         await assertEquipmentShareUniqueness(this);
       },
@@ -12930,12 +13076,19 @@ class AppDatabase extends _$AppDatabase {
           await _assertCcrPpO2LimitColumns();
         }
         if (from < 231) await reportProgress();
-        // v232: equipment sharing (issue #2046). Table-only rung, no
-        // backfill: no existing row changes.
+
+        // v232: trip cylinder slots, their ledger and the dive_tanks link
+        // (issue #2325). Tables and one nullable column, no backfill.
         if (from < 232) {
-          await _assertEquipmentSharingSchema();
+          await _assertTripCylindersSchema();
         }
         if (from < 232) await reportProgress();
+        // v233: equipment sharing (issue #2046). Table-only rung, no
+        // backfill: no existing row changes.
+        if (from < 233) {
+          await _assertEquipmentSharingSchema();
+        }
+        if (from < 233) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
@@ -13074,7 +13227,11 @@ class AppDatabase extends _$AppDatabase {
         // version-collision self-heal; createTable is idempotent).
         await _assertDiveCenterGearNotesSchema();
 
-        // v232 backstop: the equipment sharing tables and the share pair
+        // v232 backstop: the trip cylinder tables and the dive_tanks link
+        // (parallel-branch version-collision self-heal; all idempotent).
+        await _assertTripCylindersSchema();
+
+        // v233 backstop: the equipment sharing tables and the share pair
         // index (parallel-branch version-collision self-heal; all
         // idempotent).
         await _assertEquipmentSharingSchema();
