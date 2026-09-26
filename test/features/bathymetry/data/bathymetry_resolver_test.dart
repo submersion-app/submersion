@@ -85,6 +85,10 @@ class _ErrorSource implements BathymetrySource {
 }
 
 class _ThrowingProbeSource implements BathymetrySource {
+  /// Thrown by [probe]; null throws an unexpected [StateError].
+  final Object? error;
+  _ThrowingProbeSource({this.error});
+
   @override
   String get id => 'probe-boom';
   @override
@@ -93,7 +97,7 @@ class _ThrowingProbeSource implements BathymetrySource {
   double get minKnownFraction => 0.60;
   @override
   Future<SourceCapability?> probe(GeoPoint center) async =>
-      throw StateError('probe exploded');
+      throw error ?? StateError('probe exploded');
   @override
   Future<BathymetryGrid> fetch(
     GeoPoint c, {
@@ -126,6 +130,8 @@ void main() {
     final res = await BathymetryResolver(sources: [a, b]).resolve(p);
     expect(res.grid!.sourceId, 'b');
     expect(a.fetchCount, 0);
+    // Not covering is an answer, not a failure: the grid is definitive.
+    expect(res.definitive, isTrue);
   });
 
   test('falls through a transient failure to the next tier', () async {
@@ -133,6 +139,48 @@ void main() {
     final b = FakeSource('b', result: gridWith(wet, 'b'));
     final res = await BathymetryResolver(sources: [a, b]).resolve(p);
     expect(res.grid!.sourceId, 'b');
+  });
+
+  test(
+    'a fallback grid reached past a transient failure is not definitive '
+    '(issue #1770: one network hiccup must not pin the fallback forever)',
+    () async {
+      final regional = FakeSource('regional', global: false); // throws
+      final fallback = FakeSource(
+        'fallback',
+        result: gridWith(wet, 'fallback'),
+      );
+      final res = await BathymetryResolver(
+        sources: [regional, fallback],
+      ).resolve(p);
+      // Still handed back for immediate display...
+      expect(res.grid!.sourceId, 'fallback');
+      // ...but flagged so the repository does not cache it as the answer.
+      expect(res.definitive, isFalse);
+    },
+  );
+
+  test('a failure in a tier BELOW the winner does not taint it', () async {
+    // The walk stops at the first accepted grid, so a lower tier is never
+    // even fetched and cannot have failed on the way to the answer.
+    final winner = FakeSource('winner', result: gridWith(wet, 'winner'));
+    final lowerDown = FakeSource('lower'); // would throw
+    final res = await BathymetryResolver(
+      sources: [winner, lowerDown],
+    ).resolve(p);
+    expect(res.grid!.sourceId, 'winner');
+    expect(res.definitive, isTrue);
+    expect(lowerDown.fetchCount, 0);
+  });
+
+  test('a known-cell-floor rejection ahead of the winner does not taint it '
+      '(the source answered; its grid was just too thin to use)', () async {
+    final holey = <double?>[50.0, null, null, null, null];
+    final thin = FakeSource('thin', result: gridOf(holey, 'thin'));
+    final b = FakeSource('b', result: gridWith(wet, 'b'));
+    final res = await BathymetryResolver(sources: [thin, b]).resolve(p);
+    expect(res.grid!.sourceId, 'b');
+    expect(res.definitive, isTrue);
   });
 
   test('dry grid from a GLOBAL source is a definitive empty', () async {
@@ -152,6 +200,33 @@ void main() {
     expect(res.definitive, isFalse);
   });
 
+  test('a global dry answer reached past a transient failure is not a '
+      'definitive empty (a small lake a global DEM calls land must not be '
+      'pinned dry because the regional source hiccuped)', () async {
+    final regionalDown = FakeSource('regional', global: false); // throws
+    final globalDry = FakeSource('g', result: gridWith(dry, 'g'));
+    final res = await BathymetryResolver(
+      sources: [regionalDown, globalDry],
+    ).resolve(p);
+    expect(res.grid, isNull);
+    expect(res.definitive, isFalse);
+  });
+
+  test(
+    'a global dry answer with a failing source AFTER it is still not '
+    'definitive: that source never answered and might have had water',
+    () async {
+      final globalDry = FakeSource('g', result: gridWith(dry, 'g'));
+      final laterDown = FakeSource('later'); // throws
+      final res = await BathymetryResolver(
+        sources: [globalDry, laterDown],
+      ).resolve(p);
+      expect(res.grid, isNull);
+      expect(res.definitive, isFalse);
+      expect(laterDown.fetchCount, 1);
+    },
+  );
+
   test('all sources failing is transient', () async {
     final res = await BathymetryResolver(
       sources: [FakeSource('a'), FakeSource('b')],
@@ -169,6 +244,7 @@ void main() {
       final b = FakeSource('b', result: gridWith(wet, 'b'));
       final res = await BathymetryResolver(sources: [blowsUp, b]).resolve(p);
       expect(res.grid!.sourceId, 'b');
+      expect(res.definitive, isFalse);
     },
   );
 
@@ -297,7 +373,10 @@ void main() {
     },
   );
 
-  test('a probe that throws is treated as not covering', () async {
+  test('a probe that throws drops that source but is a transient failure, '
+      'not "does not cover"', () async {
+    // The source could not say whether it covers the point, so it might have
+    // outranked the winner: the answer must not be cached as definitive.
     final res = await BathymetryResolver(
       sources: [
         _ThrowingProbeSource(),
@@ -305,5 +384,18 @@ void main() {
       ],
     ).resolve(p);
     expect(res.grid!.sourceId, 'b');
+    expect(res.definitive, isFalse);
+  });
+
+  test('a probe throwing BathymetryFetchException taints a global dry answer '
+      'too', () async {
+    final res = await BathymetryResolver(
+      sources: [
+        _ThrowingProbeSource(error: const BathymetryFetchException('down')),
+        FakeSource('g', result: gridWith(dry, 'g')),
+      ],
+    ).resolve(p);
+    expect(res.grid, isNull);
+    expect(res.definitive, isFalse);
   });
 }

@@ -66,9 +66,11 @@ abstract interface class BathymetrySource {
   double get minKnownFraction;
 
   /// What this source can deliver at [center], or null when it does not
-  /// cover the point. May make a network call, so a probe that fails for
-  /// any reason must return null rather than throw: one unreachable source
-  /// must never block the others.
+  /// cover the point. May make a network call; when that call fails, throw
+  /// [BathymetryFetchException] rather than returning null. The resolver
+  /// drops a throwing source, so it never blocks the others, but it must know
+  /// the difference: "could not ask" is not "does not cover", and caching a
+  /// fallback this source might have beaten would pin it forever (#1770).
   Future<SourceCapability?> probe(GeoPoint center);
 
   /// Fetches a depth grid roughly [spanMeters] across centered on [center].

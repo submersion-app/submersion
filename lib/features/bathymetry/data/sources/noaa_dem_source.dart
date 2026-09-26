@@ -37,6 +37,60 @@ class NoaaDemSource implements BathymetrySource {
 
   static const Duration _timeout = Duration(seconds: 15);
 
+  /// Where the mosaic holds any DEM finer than [usefulCellSizeMeters], as
+  /// (south, north, west, east) boxes in degrees. Outside them [probe]
+  /// declines without a network call.
+  ///
+  /// This is load-bearing for caching, not only a saved round trip. A probe
+  /// that cannot reach the service reports a transient failure, and the
+  /// resolver then refuses to cache whatever it falls back to (issue #1770),
+  /// because NOAA might have outranked it. Without this table a NOAA outage
+  /// would stop caching for every coordinate on Earth, although NOAA can
+  /// only ever win inside these boxes.
+  ///
+  /// Derived 2026-09-26 from the ImageServer's own catalogue: every item
+  /// with `LowPS < 0.00046` (50 m at the equator), clustered, then padded
+  /// by about a degree so new DEMs next to existing ones still land inside.
+  /// Not only US coasts: NCEI also publishes DEMs for Bermuda, the Bahamas,
+  /// Grenada, the Cook and Society Islands and the Galapagos. A DEM added
+  /// somewhere new is missed until this table grows; the ETOPO, GMRT and
+  /// EMODnet tiers still serve such a point, just more coarsely.
+  static const List<({double south, double north, double west, double east})>
+  coverageRegions = [
+    // US mainland and Great Lakes, plus Bermuda and the Bahamas.
+    (south: 23, north: 50, west: -128, east: -63),
+    // Alaska east of the antimeridian, through the central Aleutians.
+    (south: 50, north: 72, west: -180, east: -129),
+    // Western Aleutians, west of the antimeridian (Shemya, Attu).
+    (south: 50, north: 56, west: 171, east: 180),
+    // Hawaii and the Northwestern Hawaiian Islands (Midway, Kure).
+    (south: 17, north: 30, west: -180, east: -153),
+    // Puerto Rico and the US and British Virgin Islands.
+    (south: 16.5, north: 19.5, west: -68.5, east: -63.5),
+    // Grenada.
+    (south: 11, north: 14, west: -63, east: -60.5),
+    // Guam and the Northern Mariana Islands.
+    (south: 12, north: 21, west: 143.5, east: 147),
+    // Wake Island.
+    (south: 18.5, north: 20, west: 166, east: 167.5),
+    // American Samoa.
+    (south: -15.5, north: -10.5, west: -172, east: -168),
+    // Cook Islands (Rarotonga) and Society Islands (Tahiti).
+    (south: -23, north: -15.5, west: -161, east: -148),
+    // Galapagos.
+    (south: -3, north: 3, west: -93, east: -86.5),
+  ];
+
+  /// Whether [center] falls inside [coverageRegions], i.e. whether a probe
+  /// there is worth a network call at all.
+  static bool mayCover(GeoPoint center) => coverageRegions.any(
+    (r) =>
+        center.latitude >= r.south &&
+        center.latitude <= r.north &&
+        center.longitude >= r.west &&
+        center.longitude <= r.east,
+  );
+
   final http.Client _client;
   final String baseUrl;
 
@@ -62,8 +116,13 @@ class NoaaDemSource implements BathymetrySource {
   @override
   double get minKnownFraction => 0.60;
 
+  /// Declines (null) where the mosaic has nothing finer than its ETOPO
+  /// background, and instantly outside [coverageRegions]. Throws
+  /// [BathymetryFetchException] when the service cannot be asked: see
+  /// [BathymetrySource.probe] for why that must not read as a decline.
   @override
   Future<SourceCapability?> probe(GeoPoint center) async {
+    if (!mayCover(center)) return null;
     final url = Uri.parse('$baseUrl/identify').replace(
       queryParameters: {
         'geometry': '{"x":${center.longitude},"y":${center.latitude}}',
@@ -76,13 +135,29 @@ class NoaaDemSource implements BathymetrySource {
         'f': 'json',
       },
     );
+    final Object? body;
     try {
       final resp = await _client.get(url).timeout(_timeout);
-      if (resp.statusCode != 200) return null;
-      final body = jsonDecode(resp.body);
-      if (body is! Map<String, dynamic>) return null;
-      // ArcGIS returns error envelopes with HTTP 200, so a body without a
-      // catalogue is an ordinary decline rather than an exceptional case.
+      if (resp.statusCode != 200) {
+        throw BathymetryFetchException('NOAA identify HTTP ${resp.statusCode}');
+      }
+      body = jsonDecode(resp.body);
+    } on BathymetryFetchException {
+      rethrow;
+    } catch (e) {
+      // Unreachable, timed out or unparseable: the service did not answer,
+      // which is not the same as saying it has nothing here.
+      throw BathymetryFetchException('NOAA identify failed: $e');
+    }
+    if (body is! Map<String, dynamic>) {
+      throw const BathymetryFetchException('NOAA identify: unexpected body');
+    }
+    // ArcGIS reports server failures as an error envelope with HTTP 200.
+    if (body['error'] != null) {
+      throw BathymetryFetchException('NOAA identify error: ${body['error']}');
+    }
+    try {
+      // A body without a catalogue, and no error, is an ordinary decline.
       final items =
           (body['catalogItems'] as Map<String, dynamic>?)?['features'];
       if (items is! List || items.isEmpty) return null;
@@ -131,8 +206,8 @@ class NoaaDemSource implements BathymetrySource {
         detail: bestName ?? 'NOAA NCEI DEM',
       );
     } catch (_) {
-      // A probe never throws: an unreachable or surprising service simply
-      // means this source does not contribute here.
+      // The service answered, but with catalogue items of a shape this code
+      // does not understand: nothing here it can use, so decline.
       return null;
     }
   }
