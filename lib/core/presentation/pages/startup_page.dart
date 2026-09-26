@@ -735,6 +735,17 @@ class _StartupWrapperState extends State<StartupWrapper>
     // (cf. the coverage-ignored bootstrap in lib/main.dart). The wall-time
     // attribution itself lives in the unit-tested [timeStartupStep].
     // coverage:ignore-start
+    // Leftover sync temp files, every launch (issue #1931). An interrupted
+    // sync strands its `ssv1_` base export or assembled base in the app temp
+    // dir, a full copy of the library, and nothing else reclaims it short of
+    // Repair sync. First, ahead of the database: the sweep needs no database
+    // or provider (a device that signed out can still hold a leftover), so it
+    // still runs when the open fails or waits on a lock, and it lists the dir
+    // before any sync of this launch has started. Its five-minute grace
+    // covers one that starts while the listing runs. Not awaited, and no
+    // try/catch: the sweep logs and swallows every failure itself.
+    unawaited(sweepLeftoverSyncTempFiles());
+
     await timeStartupStep(
       'database',
       () => DatabaseService.instance.initialize(
@@ -857,16 +868,6 @@ class _StartupWrapperState extends State<StartupWrapper>
         );
       }
     }());
-
-    // Leftover sync temp files, every launch (issue #1931). An interrupted
-    // sync strands its `ssv1_` base export or assembled base in the app temp
-    // dir, a full copy of the library, and nothing else reclaims it short of
-    // Repair sync. One listing of the temp dir; it spares anything touched in
-    // the last five minutes, so a sync that starts during launch keeps its
-    // in-flight files.
-    // Not gated on a provider: a device that signed out can still hold one.
-    // No try/catch: the sweep logs and swallows every failure itself.
-    unawaited(sweepLeftoverSyncTempFiles());
 
     // Scratch-file sweep, at most once a day. Unlike the media sweep above,
     // whose probe is one indexed SELECT, this walks the filesystem, so it
