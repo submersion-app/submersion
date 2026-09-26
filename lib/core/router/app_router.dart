@@ -398,6 +398,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   filterProvider: state.extra is StateProvider<DiveFilterState>
                       ? state.extra as StateProvider<DiveFilterState>
                       : null,
+                  // `?section=query` opens the query editor (#2365).
+                  initialSection: state.uri.queryParameters['section'],
                 ),
               ),
               GoRoute(

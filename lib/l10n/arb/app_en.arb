@@ -26802,5 +26802,9 @@
   "query_editor_valueTrue": "Yes",
   "@query_editor_valueTrue": {"description": "Boolean value editor"},
   "query_editor_valueFalse": "No",
-  "@query_editor_valueFalse": {"description": "Boolean value editor"}
+  "@query_editor_valueFalse": {"description": "Boolean value editor"},
+  "diveLog_filter_queryRow": "Query",
+  "@diveLog_filter_queryRow": {"description": "Quick filter sheet row that opens the advanced search on its query editor"},
+  "diveLog_search_section_query": "Query",
+  "@diveLog_search_section_query": {"description": "Advanced search section that hosts the query editor"}
 }

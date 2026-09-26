@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/icons/mdi_icons.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
@@ -18,6 +19,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/searchable_fil
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/weekday_filter_selector.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/query/presentation/dive_query_editor.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
@@ -40,7 +42,12 @@ class DiveSearchPage extends ConsumerStatefulWidget {
   /// `DiveFilterSheet` works around.
   final StateProvider<DiveFilterState>? filterProvider;
 
-  const DiveSearchPage({super.key, this.filterProvider});
+  /// The section to open expanded, from the route's `section` query
+  /// parameter: `query` opens the query editor (the quick sheet's Query
+  /// row). Null keeps the default expansion.
+  final String? initialSection;
+
+  const DiveSearchPage({super.key, this.filterProvider, this.initialSection});
 
   @override
   ConsumerState<DiveSearchPage> createState() => _DiveSearchPageState();
@@ -83,6 +90,9 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
   String? _customFieldKey;
   String? _customFieldValue;
 
+  // The advanced query (#2365): the tree the text tab and the builder edit.
+  QueryNode? _query;
+
   // Controllers
   final _minDepthController = TextEditingController();
   final _maxDepthController = TextEditingController();
@@ -93,6 +103,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
 
   // Expansion state
   final Map<String, bool> _expanded = {
+    'query': false,
     'date': true,
     'location': false,
     'conditions': false,
@@ -142,6 +153,10 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     _customFieldKey = filter.customFieldKey;
     _customFieldValue = filter.customFieldValue;
     _customFieldValueController.text = _customFieldValue ?? '';
+    _query = filter.query;
+    if (_query != null || widget.initialSection == 'query') {
+      _expanded['query'] = true;
+    }
 
     // Set controller text
     _minDepthController.text = _minDepth?.toStringAsFixed(0) ?? '';
@@ -213,6 +228,18 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 8),
         children: [
+          // Query section: the typed field and the rule builder over the
+          // advanced part of the filter (#2365).
+          _buildSection(
+            key: 'query',
+            title: context.l10n.diveLog_search_section_query,
+            icon: Icons.code,
+            child: DiveQueryEditor(
+              value: _query,
+              onChanged: (node) => setState(() => _query = node),
+            ),
+          ),
+
           // Date Range Section
           _buildSection(
             key: 'date',
@@ -966,6 +993,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
       _customFieldKey = null;
       _customFieldValue = null;
       _customFieldValueController.clear();
+      _query = null;
 
       _minDepthController.clear();
       _maxDepthController.clear();
@@ -977,29 +1005,57 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
 
   void _applyAndSearch() {
     // Apply all filters to whichever section owns this page
-    ref.read(_filterProvider.notifier).state = DiveFilterState(
+    // copyWith over the current state: the axes this page does not edit
+    // (excluded-from-stats, buddy id, the Insights dive-id seam, computer,
+    // gear attribute conditions) survive a search (#2365).
+    final current = ref.read(_filterProvider);
+    final buddyName = _buddyNameFilter;
+    final fieldKey = _customFieldKey;
+    final fieldValue = _customFieldValue;
+    ref.read(_filterProvider.notifier).state = current.copyWith(
       startDate: _startDate,
+      clearStartDate: _startDate == null,
       endDate: _endDate,
+      clearEndDate: _endDate == null,
       weekdays: _selectedWeekdays,
       siteId: _siteId,
+      clearSiteId: _siteId == null,
       tripId: _tripId,
+      clearTripId: _tripId == null,
       diveCenterId: _diveCenterId,
+      clearDiveCenterId: _diveCenterId == null,
       minDepth: _minDepth,
+      clearMinDepth: _minDepth == null,
       maxDepth: _maxDepth,
+      clearMaxDepth: _maxDepth == null,
       minBottomTimeMinutes: _minDurationMinutes,
+      clearMinBottomTimeMinutes: _minDurationMinutes == null,
       maxBottomTimeMinutes: _maxDurationMinutes,
+      clearMaxBottomTimeMinutes: _maxDurationMinutes == null,
       decoOnly: _decoOnly,
+      clearDecoOnly: _decoOnly == null,
       diveTypeId: _diveTypeId,
+      clearDiveType: _diveTypeId == null,
       minO2Percent: _minO2Percent,
+      clearMinO2Percent: _minO2Percent == null,
       maxO2Percent: _maxO2Percent,
+      clearMaxO2Percent: _maxO2Percent == null,
       equipmentIds: _equipmentIds,
-      buddyNameFilter: _buddyNameFilter,
+      buddyNameFilter: buddyName,
+      clearBuddyNameFilter: buddyName == null || buddyName.isEmpty,
       noBuddyOnly: _noBuddyOnly ? true : null,
+      clearNoBuddyOnly: !_noBuddyOnly,
       tagIds: _selectedTagIds,
       minRating: _minRating,
+      clearMinRating: _minRating == null,
       favoritesOnly: _favoritesOnly ? true : null,
-      customFieldKey: _customFieldKey,
-      customFieldValue: _customFieldValue,
+      clearFavoritesOnly: !_favoritesOnly,
+      customFieldKey: fieldKey,
+      clearCustomFieldKey: fieldKey == null || fieldKey.isEmpty,
+      customFieldValue: fieldValue,
+      clearCustomFieldValue: fieldValue == null || fieldValue.isEmpty,
+      query: _query,
+      clearQuery: _query == null,
     );
 
     if (_targetsDiveList) {

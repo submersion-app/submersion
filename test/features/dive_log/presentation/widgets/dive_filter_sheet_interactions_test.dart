@@ -170,11 +170,18 @@ void main() {
   testWidgets('date presets and clear-dates affordance', (tester) async {
     final ref = await openSheet(tester);
 
-    // The preset chips all live in one Wrap at the top of the sheet, so they
-    // are visible without scrolling. Tapping each runs its own setState
-    // closure.
+    // The preset chips all live in one Wrap near the top of the sheet, below
+    // the Advanced search and Query links. "Clear dates" sits below them, so
+    // it is reached by scrolling down (tapText) and a chip after it by
+    // scrolling back up. Tapping each runs its own setState closure.
     Future<void> tapChip(String label) async {
-      await tester.tap(find.text(label).first);
+      final chip = find.text(label);
+      if (chip.evaluate().isEmpty) {
+        await tester.scrollUntilVisible(chip, -60, scrollable: scrollable());
+      }
+      await tester.ensureVisible(chip.first);
+      await tester.pumpAndSettle();
+      await tester.tap(chip.first);
       await tester.pumpAndSettle();
     }
 
@@ -183,7 +190,7 @@ void main() {
     await tapChip('Last 12 months');
 
     // Dates are now set, so the "Clear dates" button is shown.
-    await tapChip('Clear dates');
+    await tapText(tester, 'Clear dates');
 
     // This year sets a range; All time then resets both bounds.
     await tapChip('This year');

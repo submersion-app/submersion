@@ -69757,6 +69757,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No'**
   String get query_editor_valueFalse;
+
+  /// Quick filter sheet row that opens the advanced search on its query editor
+  ///
+  /// In en, this message translates to:
+  /// **'Query'**
+  String get diveLog_filter_queryRow;
+
+  /// Advanced search section that hosts the query editor
+  ///
+  /// In en, this message translates to:
+  /// **'Query'**
+  String get diveLog_search_section_query;
 }
 
 class _AppLocalizationsDelegate

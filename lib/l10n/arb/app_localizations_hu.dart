@@ -43312,4 +43312,10 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get query_editor_valueFalse => 'No';
+
+  @override
+  String get diveLog_filter_queryRow => 'Query';
+
+  @override
+  String get diveLog_search_section_query => 'Query';
 }
