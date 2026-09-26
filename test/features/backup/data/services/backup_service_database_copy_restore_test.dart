@@ -179,6 +179,44 @@ void main() {
     expect(diveCount(swappedIn), 5);
   });
 
+  test('refuses a copy whose journal cannot be folded in, before the safety '
+      'backup or the swap', () async {
+    // Same crash-shaped fixture as above, but another connection holds a
+    // read snapshot on the copy's -wal, so the checkpoint cannot empty it.
+    final live = p.join(tempDir.path, 'live.db');
+    final db = sqlite3.sqlite3.open(live);
+    db.execute('PRAGMA journal_mode = WAL');
+    db.execute('PRAGMA wal_autocheckpoint = 0');
+    db.execute('CREATE TABLE dives (id TEXT PRIMARY KEY)');
+    db.execute('CREATE TABLE dive_sites (id TEXT PRIMARY KEY)');
+    db.execute('PRAGMA user_version = 63');
+    db.execute("INSERT INTO dives VALUES ('dive-0')");
+    final path = copyPath();
+    File(live).copySync(path);
+    File('$live-wal').copySync('$path-wal');
+    db.close();
+
+    final reader = sqlite3.sqlite3.open(path);
+    addTearDown(reader.close);
+    reader.execute('BEGIN');
+    reader.select('SELECT COUNT(*) FROM dives');
+
+    final adapter = _FakeBackupDatabaseAdapter(swappedInPath: swappedIn);
+    await expectLater(
+      serviceFor(adapter).restoreFromDatabaseCopy(path),
+      throwsA(
+        isA<BackupException>().having(
+          (e) => e.message,
+          'message',
+          contains('Could not prepare the database copy'),
+        ),
+      ),
+    );
+    expect(adapter.backupCallCount, 0);
+    expect(adapter.restoreCallCount, 0);
+    reader.execute('COMMIT');
+  });
+
   test('restores a copy encrypted with the live key', () async {
     final path = copyPath();
     writeDatabase(path, dives: 2);

@@ -745,26 +745,17 @@ class DatabaseService {
   static void checkpointWriteAheadLog(String dbPath, {String? keyHex}) {
     final db = openRaw(dbPath, keyHex: keyHex);
     try {
-      // (busy, log frames, checkpointed frames); busy is non-zero when
-      // another connection kept the checkpoint from finishing.
-      final busy = db
-          .select('PRAGMA wal_checkpoint(TRUNCATE)')
-          .first
-          .values
-          .first;
-      if (busy != 0) {
-        throw FileSystemException(
-          'The database journal could not be folded in; the file is in use',
-          dbPath,
-        );
-      }
+      db.select('PRAGMA wal_checkpoint(TRUNCATE)');
     } finally {
       db.close();
     }
+    // Judged by the file rather than the pragma's busy flag: a checkpoint
+    // another connection blocked leaves frames in the log, and so does one
+    // SQLite skipped for any other reason.
     final wal = File('$dbPath-wal');
     if (wal.existsSync() && wal.lengthSync() > 0) {
       throw FileSystemException(
-        'The database journal still holds data after folding it in',
+        'The database journal could not be folded in completely',
         wal.path,
       );
     }
