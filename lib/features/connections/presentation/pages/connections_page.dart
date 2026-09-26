@@ -164,6 +164,20 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     return '$summary. ${l10n.connections_semantics_selected(selected)}';
   }
 
+  /// Clears a selection the newly loaded graph no longer contains, so a
+  /// view change never leaves the canvas dimmed around a missing node or the
+  /// Details tab describing an entity that is not on the map.
+  void _dropStaleSelection(ConnectionGraph graph) {
+    final selection = ref.read(connectionsSelectionProvider);
+    final present = switch (selection) {
+      null => true,
+      NodeSelection(:final ref) => graph.nodeFor(ref) != null,
+      EdgeSelection(:final a, :final b) =>
+        graph.nodeFor(a) != null && graph.nodeFor(b) != null,
+    };
+    if (!present) ref.read(connectionsSelectionProvider.notifier).state = null;
+  }
+
   void _onSelection(GraphSelection? previous, GraphSelection? next) {
     if (next == null || previous != null || !_sheet.isAttached) return;
     if (_sheet.size < 0.5) {
@@ -202,6 +216,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
       if (next.hasError && next.error is FocusNotFoundException) {
         _warnFocusMissing();
       }
+      if (!next.isLoading && next.hasValue) _dropStaleSelection(next.value!);
     });
     ref.listen<GraphSelection?>(connectionsSelectionProvider, _onSelection);
 

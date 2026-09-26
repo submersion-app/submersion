@@ -11,6 +11,7 @@ import 'package:submersion/features/connections/domain/entities/connection_kind.
 import 'package:submersion/features/connections/domain/entities/connection_node.dart';
 import 'package:submersion/features/connections/domain/entities/graph_selection.dart';
 import 'package:submersion/features/connections/domain/entities/node_ref.dart';
+import 'package:submersion/features/connections/domain/views/connection_presets.dart';
 import 'package:submersion/features/connections/domain/views/connections_view_state.dart';
 import 'package:submersion/features/connections/presentation/connections_links.dart';
 import 'package:submersion/features/connections/presentation/pages/connections_page.dart';
@@ -297,5 +298,38 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(find.text('Centre here'), findsOneWidget);
+  });
+
+  testWidgets('a view that drops the selected node clears the selection', (
+    tester,
+  ) async {
+    final c = await _pump(
+      tester,
+      graph: (ref, budget) {
+        final view = ref.watch(connectionsViewProvider);
+        return view.presetId == 'reef'
+            ? ConnectionGraph(
+                nodes: [
+                  ConnectionNode(
+                    ref: const NodeRef(ConnectionKind.site, 's1'),
+                    label: 'Reef',
+                    diveCount: 4,
+                  ),
+                ],
+                edges: const [],
+              )
+            : _graph;
+      },
+    );
+    c.read(connectionsSelectionProvider.notifier).state = NodeSelection(
+      _b('jane'),
+    );
+    await tester.pump();
+    await c
+        .read(connectionsViewProvider.notifier)
+        .update((s) => s.applyPreset(ConnectionPresets.byId('reef')!));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(c.read(connectionsSelectionProvider), isNull);
   });
 }
