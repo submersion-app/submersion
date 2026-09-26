@@ -173,6 +173,32 @@ void main() {
       expect(values, {38: 1, 39: 2});
     });
 
+    test('finds the message in a later file of a chained FIT file', () {
+      final lap = [_s32(38, 5)];
+      final sessionFields = [_s32(38, 111), _s32(39, 222)];
+      final first =
+          (_FitBytes()
+                ..define(0, 19, lap)
+                ..data(0, lap))
+              .file();
+      final second =
+          (_FitBytes()
+                ..define(0, session, sessionFields)
+                ..data(0, sessionFields))
+              .file();
+
+      final values = FitRawFieldReader.firstSint32Fields(
+        (BytesBuilder()
+              ..add(first)
+              ..add(second))
+            .toBytes(),
+        globalId: session,
+        fieldIds: const {38, 39},
+      );
+
+      expect(values, {38: 111, 39: 222});
+    });
+
     test('ignores a field whose declared size is not four bytes', () {
       final fields = [
         (id: 38, size: 1, baseType: _uint8, bytes: const [7]),
