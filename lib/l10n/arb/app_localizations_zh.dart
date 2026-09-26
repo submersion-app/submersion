@@ -11630,6 +11630,69 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_tag_linked => '标签已关联';
 
   @override
+  String get passport_scan_title => '扫描气瓶标签';
+
+  @override
+  String get passport_scan_hint => '将相机对准标签，或粘贴标签链接。';
+
+  @override
+  String get passport_scan_cameraUnavailable => '此处无法使用相机。请改为粘贴标签链接。';
+
+  @override
+  String get passport_scan_linkLabel => '标签链接';
+
+  @override
+  String get passport_scan_paste => '粘贴';
+
+  @override
+  String get passport_scan_open => '打开';
+
+  @override
+  String get passport_scan_openFailed => '无法打开标签。请重试。';
+
+  @override
+  String get passport_scan_newerFormat => '此标签由较新版本的 Submersion 写入，部分信息可能缺失。';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return '已从 $name 填入';
+  }
+
+  @override
+  String get passport_foreign_title => '气瓶标签';
+
+  @override
+  String get passport_foreign_notInGear => '此气瓶不在您的装备中。';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return '标签于 $date 写入时的内容';
+  }
+
+  @override
+  String get passport_foreign_noDetails => '该标签除标识外不含其他信息。';
+
+  @override
+  String get passport_foreign_o2Clean => '写入标签时为氧清洁';
+
+  @override
+  String get passport_foreign_useOnDive => '用于一次潜水';
+
+  @override
+  String get passport_foreign_addToGear => '添加到我的装备';
+
+  @override
+  String get passport_foreign_addFailed => '无法添加气瓶。请重试。';
+
+  @override
+  String get passport_foreign_defaultName => '气瓶';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return '序列号 $serial';
+  }
+
+  @override
   String get passport_logFill_date => '充气日期';
 
   @override

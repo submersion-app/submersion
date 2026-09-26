@@ -11994,6 +11994,74 @@ class AppLocalizationsEn extends AppLocalizations {
   String get passport_tag_linked => 'Tag linked';
 
   @override
+  String get passport_scan_title => 'Scan a cylinder tag';
+
+  @override
+  String get passport_scan_hint =>
+      'Point the camera at the label, or paste the tag\'s link.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'The camera is not available here. Paste the tag\'s link instead.';
+
+  @override
+  String get passport_scan_linkLabel => 'Tag link';
+
+  @override
+  String get passport_scan_paste => 'Paste';
+
+  @override
+  String get passport_scan_open => 'Open';
+
+  @override
+  String get passport_scan_openFailed => 'Could not open the tag. Try again.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'This tag was written by a newer version of Submersion. Some details may be missing.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'Filled from $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'Cylinder tag';
+
+  @override
+  String get passport_foreign_notInGear => 'This cylinder is not in your gear.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'As written on the tag on $date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'The tag carries no details beyond its identity.';
+
+  @override
+  String get passport_foreign_o2Clean => 'O2 clean when the tag was written';
+
+  @override
+  String get passport_foreign_useOnDive => 'Use on a dive';
+
+  @override
+  String get passport_foreign_addToGear => 'Add to my gear';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'Could not add the cylinder. Try again.';
+
+  @override
+  String get passport_foreign_defaultName => 'Cylinder';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'Serial $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'Filled on';
 
   @override

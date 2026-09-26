@@ -20206,6 +20206,120 @@ abstract class AppLocalizations {
   /// **'Tag linked'**
   String get passport_tag_linked;
 
+  /// No description provided for @passport_scan_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan a cylinder tag'**
+  String get passport_scan_title;
+
+  /// No description provided for @passport_scan_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Point the camera at the label, or paste the tag\'s link.'**
+  String get passport_scan_hint;
+
+  /// No description provided for @passport_scan_cameraUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera is not available here. Paste the tag\'s link instead.'**
+  String get passport_scan_cameraUnavailable;
+
+  /// No description provided for @passport_scan_linkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag link'**
+  String get passport_scan_linkLabel;
+
+  /// No description provided for @passport_scan_paste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get passport_scan_paste;
+
+  /// No description provided for @passport_scan_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get passport_scan_open;
+
+  /// No description provided for @passport_scan_openFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the tag. Try again.'**
+  String get passport_scan_openFailed;
+
+  /// No description provided for @passport_scan_newerFormat.
+  ///
+  /// In en, this message translates to:
+  /// **'This tag was written by a newer version of Submersion. Some details may be missing.'**
+  String get passport_scan_newerFormat;
+
+  /// No description provided for @passport_scan_filledFrom.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled from {name}'**
+  String passport_scan_filledFrom(String name);
+
+  /// No description provided for @passport_foreign_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder tag'**
+  String get passport_foreign_title;
+
+  /// No description provided for @passport_foreign_notInGear.
+  ///
+  /// In en, this message translates to:
+  /// **'This cylinder is not in your gear.'**
+  String get passport_foreign_notInGear;
+
+  /// No description provided for @passport_foreign_writtenOn.
+  ///
+  /// In en, this message translates to:
+  /// **'As written on the tag on {date}'**
+  String passport_foreign_writtenOn(String date);
+
+  /// No description provided for @passport_foreign_noDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'The tag carries no details beyond its identity.'**
+  String get passport_foreign_noDetails;
+
+  /// No description provided for @passport_foreign_o2Clean.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 clean when the tag was written'**
+  String get passport_foreign_o2Clean;
+
+  /// No description provided for @passport_foreign_useOnDive.
+  ///
+  /// In en, this message translates to:
+  /// **'Use on a dive'**
+  String get passport_foreign_useOnDive;
+
+  /// No description provided for @passport_foreign_addToGear.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to my gear'**
+  String get passport_foreign_addToGear;
+
+  /// No description provided for @passport_foreign_addFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not add the cylinder. Try again.'**
+  String get passport_foreign_addFailed;
+
+  /// No description provided for @passport_foreign_defaultName.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder'**
+  String get passport_foreign_defaultName;
+
+  /// No description provided for @passport_foreign_serial.
+  ///
+  /// In en, this message translates to:
+  /// **'Serial {serial}'**
+  String passport_foreign_serial(String serial);
+
   /// No description provided for @passport_logFill_date.
   ///
   /// In en, this message translates to:

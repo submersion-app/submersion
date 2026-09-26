@@ -11911,6 +11911,74 @@ class AppLocalizationsHe extends AppLocalizations {
   String get passport_tag_linked => 'התג קושר';
 
   @override
+  String get passport_scan_title => 'סריקת תג מיכל';
+
+  @override
+  String get passport_scan_hint =>
+      'כוונו את המצלמה אל התווית, או הדביקו את הקישור מהתג.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'המצלמה אינה זמינה כאן. הדביקו במקום זאת את הקישור מהתג.';
+
+  @override
+  String get passport_scan_linkLabel => 'קישור התג';
+
+  @override
+  String get passport_scan_paste => 'הדבקה';
+
+  @override
+  String get passport_scan_open => 'פתיחה';
+
+  @override
+  String get passport_scan_openFailed => 'לא ניתן היה לפתוח את התג. נסו שוב.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'התג נכתב בגרסה חדשה יותר של Submersion. ייתכן שחלק מהפרטים חסרים.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'מולא מתוך $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'תג מיכל';
+
+  @override
+  String get passport_foreign_notInGear => 'המיכל הזה אינו חלק מהציוד שלך.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'כפי שנכתב בתג ב-$date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'התג אינו נושא פרטים מלבד המזהה שלו.';
+
+  @override
+  String get passport_foreign_o2Clean => 'נקי ל-O2 בזמן כתיבת התג';
+
+  @override
+  String get passport_foreign_useOnDive => 'שימוש בצלילה';
+
+  @override
+  String get passport_foreign_addToGear => 'הוספה לציוד שלי';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'לא ניתן היה להוסיף את המיכל. נסו שוב.';
+
+  @override
+  String get passport_foreign_defaultName => 'מיכל';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'מספר סידורי $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'מולא בתאריך';
 
   @override

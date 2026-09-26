@@ -12089,6 +12089,77 @@ class AppLocalizationsNl extends AppLocalizations {
   String get passport_tag_linked => 'Tag gekoppeld';
 
   @override
+  String get passport_scan_title => 'Flessentag scannen';
+
+  @override
+  String get passport_scan_hint =>
+      'Richt de camera op het label of plak de link van de tag.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'De camera is hier niet beschikbaar. Plak in plaats daarvan de link van de tag.';
+
+  @override
+  String get passport_scan_linkLabel => 'Taglink';
+
+  @override
+  String get passport_scan_paste => 'Plakken';
+
+  @override
+  String get passport_scan_open => 'Openen';
+
+  @override
+  String get passport_scan_openFailed =>
+      'De tag kon niet worden geopend. Probeer het opnieuw.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'Deze tag is geschreven door een nieuwere versie van Submersion. Sommige gegevens kunnen ontbreken.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'Ingevuld vanuit $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'Flessentag';
+
+  @override
+  String get passport_foreign_notInGear =>
+      'Deze fles hoort niet bij je uitrusting.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'Zoals op de tag geschreven op $date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'De tag bevat geen gegevens behalve zijn identiteit.';
+
+  @override
+  String get passport_foreign_o2Clean =>
+      'O2-schoon toen de tag werd geschreven';
+
+  @override
+  String get passport_foreign_useOnDive => 'Gebruiken bij een duik';
+
+  @override
+  String get passport_foreign_addToGear => 'Toevoegen aan mijn uitrusting';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'De fles kon niet worden toegevoegd. Probeer het opnieuw.';
+
+  @override
+  String get passport_foreign_defaultName => 'Fles';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'Serienummer $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'Gevuld op';
 
   @override
