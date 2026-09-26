@@ -19150,6 +19150,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Viaje';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'Botella del viaje';
+
+  @override
   String get settings_conflict_remoteVersion => 'Versión remota';
 
   @override

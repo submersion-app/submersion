@@ -16,6 +16,7 @@ import 'package:submersion/features/divers/data/repositories/diver_delete_steps.
 import 'package:submersion/features/divers/data/repositories/diver_owned_rows.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart'
     as domain;
+import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
 import 'package:submersion/features/media/data/repositories/media_parent_cascade.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
@@ -652,6 +653,19 @@ class DiverRepository {
         // Step 3: Delete and tombstone the trips, with the children their
         // own deletion tombstones, and the sites the diver still owns. The
         // shared ones were reassigned in Step 0 and keep their children.
+        // Other divers' surviving tanks can still link this diver's trip
+        // slots. Cleared and staged here, as the gear links are below: the
+        // schema's SET NULL reaches no peer.
+        await clearTripCylinderLinks(
+          _db,
+          _syncRepository,
+          await _idsOf(
+            'SELECT id FROM trip_cylinders WHERE trip_id IN '
+            '(SELECT id FROM trips WHERE diver_id = ?)',
+            [id],
+          ),
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
         await deleteDiverRows(_db, _syncRepository, id, diverTripAndSiteSteps);
 
         // Step 4: Delete and tombstone the rest of the diver's library.
@@ -666,6 +680,15 @@ class DiverRepository {
           now: DateTime.now().millisecondsSinceEpoch,
         );
         await deleteDiverRows(_db, _syncRepository, id, diverGearSteps);
+        // Fills on other divers' trips made at this diver's centers: the
+        // centers go with the library below, so clear and stage those links
+        // now; the schema's SET NULL reaches no peer.
+        await clearTripCylinderEventCenterLinks(
+          _db,
+          _syncRepository,
+          await _idsOf('SELECT id FROM dive_centers WHERE diver_id = ?', [id]),
+          now: DateTime.now().millisecondsSinceEpoch,
+        );
         // After the gear, so only surviving gear's schedules keep a kind.
         await retireDiverServiceKinds(
           _db,

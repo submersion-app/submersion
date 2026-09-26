@@ -6,9 +6,10 @@ import 'package:submersion/core/services/export/shared/file_export_utils.dart';
 import 'package:submersion/core/utils/share_anchor.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
@@ -698,8 +699,18 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
   }
 
   Future<void> _convertToDive() async {
-    final isValid = ref.read(planIsValidProvider);
-    if (!isValid) {
+    // The plan holds only the site id; the dive needs the site itself. A site
+    // deleted since the plan was saved resolves to null and is left off.
+    final siteId = ref.read(divePlanNotifierProvider).siteId;
+    final site = siteId == null
+        ? null
+        : await ref.read(siteProvider(siteId).future);
+    if (!mounted) return;
+
+    // Checked after the lookup, with the rest of the plan below: the diver
+    // can still edit while it resolves, and a plan made invalid meanwhile
+    // must not be converted.
+    if (!ref.read(planIsValidProvider)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(context.l10n.divePlanner_error_cannotConvert),
@@ -709,14 +720,34 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
       return;
     }
 
+    // Saved plans are not diver-scoped, so the plan may name a site private to
+    // another diver. Attach only a shared site or one the dive's own owner
+    // owns: the owner-or-shared rule the site list applies (VisibilityFilter),
+    // except that with no current diver the dive is unowned, where every
+    // all-divers read would show the site, so only an unowned site qualifies.
+    // From here to addDive nothing awaits, and addDive reads the diver once on
+    // entry, so the dive goes to the diver this check was made for.
+    final diverId = ref.read(currentDiverIdProvider);
+    final visibleSite =
+        site != null && (site.isShared || site.diverId == diverId)
+        ? site
+        : null;
+
+    // Read the plan after the site lookup so the dive describes the plan as
+    // it is now. If the diver switched sites meanwhile, the fetched site is
+    // stale, so drop it rather than attach the wrong one.
     final notifier = ref.read(divePlanNotifierProvider.notifier);
     final outcome = ref.read(planOutcomeProvider);
     final series = ref.read(planCanvasSeriesProvider);
+    final currentSite = ref.read(divePlanNotifierProvider).siteId == siteId
+        ? visibleSite
+        : null;
 
     // The state's segments stop at the bottom; the engine computes the
     // ascent. Persist the full computed profile so the logged dive shows
     // the deco schedule the plan produced.
     final dive = notifier.toDive().copyWith(
+      site: currentSite,
       profile: [
         for (final point in series.profile)
           DiveProfilePoint(
@@ -730,10 +761,13 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     );
 
     // The logged dive is a planned, unnumbered entry until the diver's
-    // download fills it or they mark it as logged (issue #2002).
+    // download fills it or they mark it as logged (issue #2002). It goes
+    // through the dive list notifier, as the dive edit page's saves do, so it
+    // is assigned to the current diver: the dive list shows only that diver's
+    // dives, and a dive written without one never appears there (#2392).
     final created = await ref
-        .read(diveRepositoryProvider)
-        .createPlannedDive(dive);
+        .read(paginatedDiveListProvider.notifier)
+        .addDive(dive);
     notifier.setLinkedDive(created.id);
     await notifier.save(
       summary: PlanSummaryData(
