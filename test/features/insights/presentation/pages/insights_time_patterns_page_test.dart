@@ -7,19 +7,13 @@ import 'package:submersion/features/insights/presentation/providers/insights_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
+import '../../../../helpers/semantics_finders.dart';
 
 typedef _SurfaceInterval = ({
   double? avgMinutes,
   double? minMinutes,
   double? maxMinutes,
 });
-
-/// Finds the [Semantics] widget the page labelled [label]. Matching the
-/// widget's own label keeps the check on what the page built, independent
-/// of how the chart's text merges into the semantics tree.
-Finder _labelled(String label) => find.byWidgetPredicate(
-  (w) => w is Semantics && w.properties.label == label,
-);
 
 void main() {
   Future<void> pumpPage(
@@ -78,13 +72,18 @@ void main() {
     // Missing days and months are filled with zero and left out of the
     // screen-reader summary, which lists days in calendar order.
     expect(
-      _labelled('Bar chart. Dives by day of week. Sun: 2, Sat: 4'),
+      findSemanticsLabelled('Bar chart. Dives by day of week. Sun: 2, Sat: 4'),
       findsOneWidget,
     );
-    expect(_labelled('Bar chart. Dives by month. Jul: 5'), findsOneWidget);
+    expect(
+      findSemanticsLabelled('Bar chart. Dives by month. Jul: 5'),
+      findsOneWidget,
+    );
     // Stored bucket keys become localized display labels.
     expect(
-      _labelled('Pie chart. Dives by time of day. Morning: 75%, Night: 25%'),
+      findSemanticsLabelled(
+        'Pie chart. Dives by time of day. Morning: 75%, Night: 25%',
+      ),
       findsOneWidget,
     );
     // Under an hour reads in minutes; an hour or more reads as h and m.

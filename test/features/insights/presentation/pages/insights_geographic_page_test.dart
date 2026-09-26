@@ -7,13 +7,7 @@ import 'package:submersion/features/insights/presentation/providers/insights_pro
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
-
-/// Finds the [Semantics] widget the page labelled [label]. Matching the
-/// widget's own label keeps the check on what the page built, independent
-/// of how the chart's text merges into the semantics tree.
-Finder _labelled(String label) => find.byWidgetPredicate(
-  (w) => w is Semantics && w.properties.label == label,
-);
+import '../../../../helpers/semantics_finders.dart';
 
 void main() {
   Future<void> pumpPage(
@@ -65,15 +59,15 @@ void main() {
     );
 
     expect(
-      _labelled('2 countries. Top: Bonaire with 12 dives'),
+      findSemanticsLabelled('2 countries. Top: Bonaire with 12 dives'),
       findsOneWidget,
     );
     expect(
-      _labelled('1 regions. Top: Caribbean with 16 dives'),
+      findSemanticsLabelled('1 regions. Top: Caribbean with 16 dives'),
       findsOneWidget,
     );
     expect(
-      _labelled('3 trips. Top: Klein Bonaire week with 9 dives'),
+      findSemanticsLabelled('3 trips. Top: Klein Bonaire week with 9 dives'),
       findsOneWidget,
     );
   });
@@ -86,9 +80,9 @@ void main() {
       trips: () async => const [],
     );
 
-    expect(_labelled('No countries visited'), findsOneWidget);
-    expect(_labelled('No regions explored'), findsOneWidget);
-    expect(_labelled('No trip data'), findsOneWidget);
+    expect(findSemanticsLabelled('No countries visited'), findsOneWidget);
+    expect(findSemanticsLabelled('No regions explored'), findsOneWidget);
+    expect(findSemanticsLabelled('No trip data'), findsOneWidget);
   });
 
   testWidgets('shows a per-section error when a query fails', (tester) async {
