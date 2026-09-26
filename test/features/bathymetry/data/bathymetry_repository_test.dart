@@ -61,6 +61,44 @@ class ScriptedSource implements BathymetrySource {
   }
 }
 
+/// A regional source that fails transiently for its first [failures]
+/// fetches, then recovers: the one-off network hiccup of issue #1770.
+class FlakyRegionalSource implements BathymetrySource {
+  int failures;
+  int calls = 0;
+  FlakyRegionalSource({this.failures = 1});
+
+  @override
+  String get id => 'regional';
+  @override
+  bool get global => false;
+  @override
+  double get minKnownFraction => 0.60;
+  @override
+  Future<SourceCapability?> probe(GeoPoint center) async =>
+      const SourceCapability(cellSizeMeters: 2, detail: 'regional');
+  @override
+  Future<BathymetryGrid> fetch(GeoPoint c, {required double spanMeters}) async {
+    calls++;
+    if (failures > 0) {
+      failures--;
+      throw const BathymetryFetchException('one-off network error');
+    }
+    return BathymetryGrid(
+      originLat: 12.14,
+      originLon: -68.31,
+      cellSizeLatDeg: 0.004,
+      cellSizeLonDeg: 0.004,
+      rows: 2,
+      cols: 2,
+      depthsMeters: const [5, 6, 7, 8],
+      sourceId: 'regional',
+      resolutionMeters: 2,
+      fetchedAt: DateTime.utc(2026, 7, 28),
+    );
+  }
+}
+
 /// Records every center it was asked to fetch, tagging each returned grid
 /// with the call's index -- so a test can tell which fetch call produced
 /// which cached grid.
@@ -264,6 +302,66 @@ void main() {
     expect(await db.select(db.bathymetryCache).get(), isEmpty);
     expect(await r.getGrid(bonaire), isNull);
     expect(source.calls, 2); // retried
+  });
+
+  group('a fallback reached past a transient failure (issue #1770)', () {
+    BathymetryRepository tiered(
+      FlakyRegionalSource regional,
+      ScriptedSource g,
+    ) => BathymetryRepository(
+      db: db,
+      resolver: BathymetryResolver(sources: [regional, g]),
+    );
+
+    test('the fallback grid is returned for display but NOT cached, so the '
+        'next call retries the regional source and caches its grid', () async {
+      final regional = FlakyRegionalSource();
+      final fallback = ScriptedSource(() => BathymetryResolution.ok(wetGrid()));
+      final r = tiered(regional, fallback);
+
+      final first = await r.getGrid(bonaire);
+      expect(first!.sourceId, 'gmrt');
+      expect(await db.select(db.bathymetryCache).get(), isEmpty);
+      expect(await r.hasCachedAnswer(bonaire), isFalse);
+
+      final second = await r.getGrid(bonaire);
+      expect(second!.sourceId, 'regional');
+      expect(regional.calls, 2);
+      final row = await db.select(db.bathymetryCache).getSingle();
+      expect(row.status, 'ok');
+      expect(row.sourceId, 'regional');
+
+      // Now a definitive answer: served from cache, no further fetch.
+      await r.getGrid(bonaire);
+      expect(regional.calls, 2);
+    });
+
+    test('a global dry answer past a transient failure is not cached as '
+        'empty either', () async {
+      final regional = FlakyRegionalSource();
+      final globalDry = ScriptedSource(
+        () => const BathymetryResolution.empty(),
+      );
+      final r = tiered(regional, globalDry);
+
+      expect(await r.getGrid(bonaire), isNull);
+      expect(await db.select(db.bathymetryCache).get(), isEmpty);
+      expect(await r.hasCachedAnswer(bonaire), isFalse);
+
+      // The regional source recovers and finds the water.
+      expect((await r.getGrid(bonaire))!.sourceId, 'regional');
+    });
+
+    test('the LOD patch path follows the same rule', () async {
+      final regional = FlakyRegionalSource();
+      final fallback = ScriptedSource(() => BathymetryResolution.ok(wetGrid()));
+      final r = tiered(regional, fallback);
+
+      expect((await r.getGridForSpan(bonaire, 500))!.sourceId, 'gmrt');
+      expect(await r.hasCachedAnswer(bonaire, spanMeters: 500), isFalse);
+      expect((await r.getGridForSpan(bonaire, 500))!.sourceId, 'regional');
+      expect(await r.hasCachedAnswer(bonaire, spanMeters: 500), isTrue);
+    });
   });
 
   test('concurrent calls for one key share a single resolve', () async {
