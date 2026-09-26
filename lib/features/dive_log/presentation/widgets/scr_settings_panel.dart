@@ -108,17 +108,24 @@ const double _hintInjectionRateLpm = 8.0;
 /// VO₂ assumed when the dive has none recorded, in L/min.
 const double _defaultVo2Lpm = 1.30;
 
-class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
-  /// Read once, like the seeded text: the fields hold values in this unit.
-  late final UnitFormatter _units;
+/// The text a flow field was seeded with, and the L/min value it stands for.
+///
+/// While the field still holds [text] the panel reports [litersPerMin] as is,
+/// so a save that never touched the field cannot drift it through the
+/// rounding of a cuft/min seed (8.0 L/min seeds as 0.28, which reads back as
+/// 7.93). Both halves are frozen at seeding time: the parent passes each
+/// reported value back in, so comparing against the widget's current value
+/// would restore whatever was last typed.
+typedef _FlowSeed = ({String text, double? litersPerMin});
 
-  /// Seeded text of each flow field, and the stored L/min value it came from.
-  /// While a field still holds its seed the stored value is reported as is,
-  /// so a save that never touched it cannot drift it through the rounding of
-  /// a cuft/min seed (8.0 L/min seeds as 0.28, which reads back as 7.93).
-  late final String _injectionRateSeed;
-  late final String _assumedVo2Seed;
-  late final double _assumedVo2Initial;
+class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
+  /// The unit the flow fields currently hold. Replaced, with the fields
+  /// re-seeded, when the diver's volume unit changes while the panel is open
+  /// (including when the stored settings finish loading after it was built).
+  late UnitFormatter _units;
+
+  late _FlowSeed _injectionRateSeed;
+  late _FlowSeed _assumedVo2Seed;
 
   late ScrType _selectedType;
   late TextEditingController _injectionRateController;
@@ -143,10 +150,10 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
     // decides the separator, matching what parseUserDecimal reads back in
     // _notifyChange. The VO2 default is formatted too: a literal '1.30' would
     // be unreadable in a comma-decimal locale and silently become null (#1091).
-    _injectionRateSeed = widget.injectionRate != null
-        ? _seedFlow(widget.injectionRate!, _units.rmvDecimals)
-        : '';
-    _injectionRateController = TextEditingController(text: _injectionRateSeed);
+    _injectionRateSeed = _seedInjectionRate(widget.injectionRate);
+    _injectionRateController = TextEditingController(
+      text: _injectionRateSeed.text,
+    );
     _additionRatioController = TextEditingController(
       text: widget.additionRatio != null
           ? formatDecimalForInput(widget.additionRatio!)
@@ -162,9 +169,8 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
     _supplyHeController = TextEditingController(
       text: formatDecimalForInput(widget.supplyGas?.he ?? 0),
     );
-    _assumedVo2Initial = widget.assumedVo2 ?? _defaultVo2Lpm;
-    _assumedVo2Seed = _seedFlow(_assumedVo2Initial, _vo2Decimals);
-    _assumedVo2Controller = TextEditingController(text: _assumedVo2Seed);
+    _assumedVo2Seed = _seedAssumedVo2(widget.assumedVo2 ?? _defaultVo2Lpm);
+    _assumedVo2Controller = TextEditingController(text: _assumedVo2Seed.text);
     _loopO2MinController = TextEditingController(
       text: widget.loopO2Min != null
           ? formatDecimalForInput(widget.loopO2Min!)
@@ -230,26 +236,45 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
   String _flowHint(double litersPerMin, int decimals) =>
       formatFixedForDisplay(_units.convertRmv(litersPerMin), decimals);
 
-  /// A flow field read back as L/min, or the stored value while the field
-  /// still holds its seed.
-  double? _readFlowLpm(
-    TextEditingController controller,
-    String seed,
-    double? stored,
-  ) {
-    if (controller.text == seed) return stored;
+  _FlowSeed _seedFlowField(double? litersPerMin, int decimals) => (
+    text: litersPerMin != null ? _seedFlow(litersPerMin, decimals) : '',
+    litersPerMin: litersPerMin,
+  );
+
+  _FlowSeed _seedInjectionRate(double? litersPerMin) =>
+      _seedFlowField(litersPerMin, _units.rmvDecimals);
+
+  _FlowSeed _seedAssumedVo2(double? litersPerMin) =>
+      _seedFlowField(litersPerMin, _vo2Decimals);
+
+  /// A flow field read back as L/min, or the seeded value while the field
+  /// still holds its seed text.
+  double? _readFlowLpm(TextEditingController controller, _FlowSeed seed) {
+    if (controller.text == seed.text) return seed.litersPerMin;
     final display = parseUserDecimal(controller.text);
     return display != null ? _units.volumeToLiters(display) : null;
   }
 
-  double? get _injectionRateLpm => _readFlowLpm(
-    _injectionRateController,
-    _injectionRateSeed,
-    widget.injectionRate,
-  );
+  double? get _injectionRateLpm =>
+      _readFlowLpm(_injectionRateController, _injectionRateSeed);
 
   double? get _assumedVo2Lpm =>
-      _readFlowLpm(_assumedVo2Controller, _assumedVo2Seed, _assumedVo2Initial);
+      _readFlowLpm(_assumedVo2Controller, _assumedVo2Seed);
+
+  /// Re-renders both flow fields in [units]. Each field is read as L/min in
+  /// the old unit first, so what the diver typed carries over; the stored
+  /// values are unchanged, so nothing needs reporting.
+  void _changeUnits(UnitFormatter units) {
+    final injectionRate = _injectionRateLpm;
+    final assumedVo2 = _assumedVo2Lpm;
+    setState(() {
+      _units = units;
+      _injectionRateSeed = _seedInjectionRate(injectionRate);
+      _assumedVo2Seed = _seedAssumedVo2(assumedVo2);
+      _injectionRateController.text = _injectionRateSeed.text;
+      _assumedVo2Controller.text = _assumedVo2Seed.text;
+    });
+  }
 
   void _notifyChange() {
     final supplyO2 = parseUserDecimal(_supplyO2Controller.text);
@@ -280,6 +305,14 @@ class _ScrSettingsPanelState extends ConsumerState<ScrSettingsPanel> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    ref.listen<VolumeUnit>(
+      settingsProvider.select((settings) => settings.volumeUnit),
+      (_, next) {
+        if (next != _units.settings.volumeUnit) {
+          _changeUnits(UnitFormatter(ref.read(settingsProvider)));
+        }
+      },
+    );
 
     return Card(
       child: Padding(

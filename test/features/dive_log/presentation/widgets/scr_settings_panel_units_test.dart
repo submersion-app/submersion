@@ -154,6 +154,64 @@ void main() {
     });
   });
 
+  group('fed back through the parent, as on the dive edit page', () {
+    testWidgets('clearing a rate that started empty reports null', (
+      tester,
+    ) async {
+      final host = await _pumpHost(tester, VolumeUnit.cubicFeet, null);
+
+      await tester.enterText(_fieldWithLabel('Injection Rate'), '0.3');
+      await tester.pump();
+      expect(host.injectionRate, closeTo(0.3 / 0.0353147, 0.0001));
+
+      await tester.enterText(_fieldWithLabel('Injection Rate'), '');
+      await tester.pump();
+      expect(host.injectionRate, isNull);
+    });
+
+    testWidgets('typing the seed back restores the original stored rate', (
+      tester,
+    ) async {
+      final host = await _pumpHost(tester, VolumeUnit.cubicFeet, 8.0);
+
+      await tester.enterText(_fieldWithLabel('Injection Rate'), '0.3');
+      await tester.pump();
+      await tester.enterText(_fieldWithLabel('Injection Rate'), '0.28');
+      await tester.pump();
+
+      // "0.28" is what 8.0 L/min was shown as, not the 8.495 L/min the
+      // parent was handed for "0.3".
+      expect(host.injectionRate, 8.0);
+    });
+
+    testWidgets('a unit change while open re-renders the rates', (
+      tester,
+    ) async {
+      // Settings start at the metric defaults and are replaced once the
+      // diver's row loads, which can happen after the panel is built.
+      final host = await _pumpHost(tester, VolumeUnit.liters, 8.0);
+      expect(_textOf(tester, 'Injection Rate'), '8');
+
+      await host.settings.setVolumeUnit(VolumeUnit.cubicFeet);
+      await tester.pump();
+
+      expect(find.text('cuft/min'), findsNWidgets(2));
+      expect(_textOf(tester, 'Injection Rate'), '0.28');
+      expect(_textOf(tester, 'Assumed VO₂'), '0.046');
+
+      // Re-rendering must not drift the stored values.
+      await tester.enterText(_fieldWithLabel('Type'), 'Sofnolime');
+      await tester.pump();
+      expect(host.injectionRate, 8.0);
+      expect(host.assumedVo2, 1.30);
+
+      // And new entries are read in the new unit.
+      await tester.enterText(_fieldWithLabel('Injection Rate'), '0.3');
+      await tester.pump();
+      expect(host.injectionRate, closeTo(0.3 / 0.0353147, 0.0001));
+    });
+  });
+
   group('liters', () {
     testWidgets('shows and stores rates in L/min unchanged', (tester) async {
       final captured = _Captured();
@@ -265,6 +323,68 @@ String _textOf(WidgetTester tester, String label) =>
 
 String? _hintOf(WidgetTester tester, String label) =>
     _textFieldOf(tester, label).decoration?.hintText;
+
+/// Hosts the panel the way the dive edit page does: each reported value is
+/// stored and passed back in on the next build.
+class _Host {
+  _Host(this.settings, this.injectionRate);
+
+  final MockSettingsNotifier settings;
+  double? injectionRate;
+  double? assumedVo2 = 1.30;
+}
+
+Future<_Host> _pumpHost(
+  WidgetTester tester,
+  VolumeUnit volumeUnit,
+  double? injectionRate,
+) async {
+  final host = _Host(
+    MockSettingsNotifier(AppSettings(volumeUnit: volumeUnit)),
+    injectionRate,
+  );
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [settingsProvider.overrideWith((ref) => host.settings)],
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: SingleChildScrollView(
+            child: StatefulBuilder(
+              builder: (context, setState) => ScrSettingsPanel(
+                scrType: ScrType.cmf,
+                injectionRate: host.injectionRate,
+                assumedVo2: host.assumedVo2,
+                onChanged:
+                    ({
+                      scrType,
+                      injectionRate,
+                      additionRatio,
+                      orificeSize,
+                      supplyGas,
+                      assumedVo2,
+                      loopO2Min,
+                      loopO2Max,
+                      loopO2Avg,
+                      scrubberType,
+                      scrubberDurationMinutes,
+                      scrubberRemainingMinutes,
+                    }) => setState(() {
+                      host.injectionRate = injectionRate;
+                      host.assumedVo2 = assumedVo2;
+                    }),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+  return host;
+}
 
 Future<void> _pumpPanel(
   WidgetTester tester,
