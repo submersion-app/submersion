@@ -23,11 +23,22 @@ abstract class NameResolver {
   List<String> candidates(QuerySubject kind, String text);
 }
 
+/// Implemented by resolvers that can list every name of a subject, which
+/// the editor's completions and ref pickers use; the parser itself needs
+/// only [NameResolver].
+abstract class NameEntries {
+  Iterable<String> entryLabels(QuerySubject kind);
+}
+
 /// Exact, case-insensitive label lookup over an in-memory map. For tests
 /// and for callers that already hold the labels.
-class MapNameResolver implements NameResolver {
+class MapNameResolver implements NameResolver, NameEntries {
   final Map<QuerySubject, Map<String, String>> labelsToIds;
   const MapNameResolver(this.labelsToIds);
+
+  @override
+  Iterable<String> entryLabels(QuerySubject kind) =>
+      labelsToIds[kind]?.keys ?? const [];
 
   @override
   RefValue? resolve(QuerySubject kind, String text) {

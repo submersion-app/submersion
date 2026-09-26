@@ -13,7 +13,7 @@ import 'package:submersion/features/query/app_query_registry.dart';
 /// ref picker lists [entries]; a saved query checks its ids through
 /// [labelOf]. A snapshot, not a live query, so parsing stays synchronous;
 /// the provider reloads it when any of its tables changes.
-class QueryNameIndex implements NameResolver {
+class QueryNameIndex implements NameResolver, NameEntries {
   const QueryNameIndex(this._entries);
 
   static const empty = QueryNameIndex({});
@@ -21,6 +21,10 @@ class QueryNameIndex implements NameResolver {
   final Map<QuerySubject, List<RefValue>> _entries;
 
   List<RefValue> entries(QuerySubject kind) => _entries[kind] ?? const [];
+
+  @override
+  Iterable<String> entryLabels(QuerySubject kind) =>
+      entries(kind).map((r) => r.label);
 
   String? labelOf(QuerySubject kind, String id) {
     for (final r in entries(kind)) {
