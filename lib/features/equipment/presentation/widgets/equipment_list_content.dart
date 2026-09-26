@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/theme/status_colors.dart';
 import 'package:submersion/features/cylinder_passports/presentation/utils/print_passport_labels.dart';
@@ -102,6 +103,8 @@ class EquipmentListContent extends ConsumerStatefulWidget {
 }
 
 class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
+  static const String _scanTagMenuValue = 'scan_tag';
+
   /// The bulk-selection state machine for this list: the page's when it
   /// passes one, otherwise this list's own.
   late final SelectionController _selection = _adoptSelection();
@@ -464,6 +467,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                     PopupMenuButton<String>(
                       icon: const Icon(Icons.more_vert),
                       onSelected: (value) {
+                        if (value == _scanTagMenuValue) {
+                          scanAndOpenCylinderTag(context, ref);
+                          return;
+                        }
                         if (value.startsWith('view_')) {
                           final mode = ListViewMode.fromName(
                             value.replaceFirst('view_', ''),
@@ -479,6 +486,21 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
                           equipmentListViewModeProvider,
                         );
                         return [
+                          PopupMenuItem<String>(
+                            key: const ValueKey('equipment_menu_scanTag'),
+                            value: _scanTagMenuValue,
+                            child: Row(
+                              children: [
+                                const Icon(Icons.qr_code_scanner, size: 20),
+                                const SizedBox(width: 12),
+                                // Wraps rather than overflows: some translations are long.
+                                Flexible(
+                                  child: Text(context.l10n.passport_scan_title),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const PopupMenuDivider(),
                           ...ListViewModeToggle.menuItems(
                             context,
                             currentMode: currentMode,
@@ -860,6 +882,10 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           icon: const Icon(Icons.more_vert, size: 20),
           padding: dense ? EdgeInsets.zero : const EdgeInsets.all(8),
           onSelected: (value) {
+            if (value == _scanTagMenuValue) {
+              scanAndOpenCylinderTag(context, ref);
+              return;
+            }
             if (value.startsWith('view_')) {
               final mode = ListViewMode.fromName(
                 value.replaceFirst('view_', ''),
@@ -870,6 +896,19 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           itemBuilder: (context) {
             final currentMode = ref.read(equipmentListViewModeProvider);
             return [
+              PopupMenuItem<String>(
+                key: const ValueKey('equipment_menu_scanTag'),
+                value: _scanTagMenuValue,
+                child: Row(
+                  children: [
+                    const Icon(Icons.qr_code_scanner, size: 20),
+                    const SizedBox(width: 12),
+                    // Wraps rather than overflows: some translations are long.
+                    Flexible(child: Text(context.l10n.passport_scan_title)),
+                  ],
+                ),
+              ),
+              const PopupMenuDivider(),
               ...ListViewModeToggle.menuItems(
                 context,
                 currentMode: currentMode,
