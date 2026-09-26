@@ -21,6 +21,9 @@ import 'package:submersion/features/auto_update/presentation/providers/update_me
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_origin_republish_provider.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -86,6 +89,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _adoptDialogShownThisSession = false;
   late final FileShareHandler _fileShareHandler;
+  late final PassportLinkDispatcher _passportLinks;
   late final AppLifecycleListener _lifecycleListener;
 
   @override
@@ -111,11 +115,23 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         );
       },
     );
+    _passportLinks = PassportLinkDispatcher(
+      source: ref.read(incomingLinkSourceProvider),
+      open: _openPassportLink,
+    );
+    // Before a diver exists the setup wizard owns the screen; a tag tapped
+    // on a fresh install waits for it.
+    ref.listenManual<AsyncValue<bool>>(
+      hasAnyDiversProvider,
+      (_, next) => _passportLinks.setReady(next.value ?? false),
+      fireImmediately: true,
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeSyncOnLaunch();
       _resumeMediaTransfers();
       _republishOwnedMedia();
       _fileShareHandler.initialize();
+      _passportLinks.start();
       // Fill the per-dive sensor summary cache for dives that predate it or
       // changed since. Single-flight, oldest first, no-op when current.
       SensorSummaryScheduler.instance.scheduleStaleSweep();
@@ -124,6 +140,7 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   @override
   void dispose() {
+    _passportLinks.dispose();
     _fileShareHandler.dispose();
     _lifecycleListener.dispose();
     WidgetsBinding.instance.removeObserver(this);
@@ -347,6 +364,15 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       case IncomingFileOutcome.none:
         break;
     }
+  }
+
+  /// Opens a passport tag that arrived as a link. The root navigator's
+  /// context sits under the router and the scaffold messenger, which is all
+  /// [openScannedTag] needs.
+  Future<void> _openPassportLink(String text) async {
+    final context = rootNavigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
+    await openScannedTag(context, ref, text);
   }
 
   Future<void> _handleIncomingFiles(List<String> paths) async {
