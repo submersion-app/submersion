@@ -75,5 +75,10 @@ ImportNoticeKind? _kindFor(ImportWarningCode? code) => switch (code) {
   ImportWarningCode.macdiveLogbooksNotImported =>
     ImportNoticeKind.macdiveLogbooksNotImported,
   ImportWarningCode.sitesUnresolved => ImportNoticeKind.sitesUnresolved,
+  ImportWarningCode.gearUnavailable => ImportNoticeKind.gearUnavailable,
+  ImportWarningCode.certificationsUnavailable =>
+    ImportNoticeKind.certificationsUnavailable,
+  ImportWarningCode.photoListingsUnavailable =>
+    ImportNoticeKind.photoListingsUnavailable,
   ImportWarningCode.diagnostic || null => null,
 };

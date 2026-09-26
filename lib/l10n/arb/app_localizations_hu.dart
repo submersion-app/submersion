@@ -10502,6 +10502,140 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get divelogsImport_fetch_button => 'Napló letöltése';
+
+  @override
+  String get divelogsImport_fetch_certificationsUnavailable =>
+      'A képesítéseket nem sikerült letölteni, ezért nem lesznek importálva.';
+
+  @override
+  String get divelogsImport_fetch_empty =>
+      'A divelogs.de naplódban nincs mit importálni.';
+
+  @override
+  String get divelogsImport_fetch_failedTitle =>
+      'Nem sikerült letölteni a naplódat';
+
+  @override
+  String get divelogsImport_fetch_fetching => 'A napló letöltése…';
+
+  @override
+  String divelogsImport_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés található',
+      one: '$count merülés található',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divelogsImport_fetch_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count importálandó fénykép',
+      one: '$count importálandó fénykép',
+      zero: 'Nincs importálandó fénykép',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_gearUnavailable =>
+      'A felszerelést nem sikerült letölteni; a merülések felszerelés-hivatkozások nélkül lesznek importálva.';
+
+  @override
+  String get divelogsImport_fetch_includePhotos => 'Fényképek belefoglalása';
+
+  @override
+  String get divelogsImport_fetch_includePhotosHint =>
+      'A fényképek az importálás során egy általad választott mappába töltődnek le.';
+
+  @override
+  String divelogsImport_fetch_listingPhotos(int current, int total) {
+    return '$total merülésből a(z) $current fényképeinek listázása…';
+  }
+
+  @override
+  String divelogsImport_fetch_photoListingsFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülés fényképeit nem sikerült listázni.',
+      one: '$count merülés fényképeit nem sikerült listázni.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_retry => 'Újra';
+
+  @override
+  String get divelogsImport_fetch_sessionExpired =>
+      'A divelogs.de munkameneted lejárt. Lépj vissza, és jelentkezz be újra.';
+
+  @override
+  String divelogsImport_fetch_skippedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count merülést nem sikerült beolvasni, ezért kimaradnak.',
+      one: '$count merülést nem sikerült beolvasni, ezért kimarad.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_signIn_badCredentials =>
+      'A divelogs.de elutasította a felhasználónevet vagy a jelszót.';
+
+  @override
+  String get divelogsImport_signIn_button => 'Bejelentkezés';
+
+  @override
+  String get divelogsImport_signIn_description =>
+      'Jelentkezz be a divelogs.de fiókoddal a naplód importálásához. A jelszavadat soha nem tároljuk; csak a létrejövő munkamenetet tároljuk gyorsítótárban.';
+
+  @override
+  String get divelogsImport_signIn_passwordLabel => 'Jelszó';
+
+  @override
+  String get divelogsImport_signIn_passwordRequired =>
+      'A jelszó megadása kötelező';
+
+  @override
+  String divelogsImport_signIn_signedInAs(String username) {
+    return 'Bejelentkezve mint $username';
+  }
+
+  @override
+  String get divelogsImport_signIn_signingIn => 'Bejelentkezés…';
+
+  @override
+  String get divelogsImport_signIn_signOut => 'Kijelentkezés';
+
+  @override
+  String get divelogsImport_signIn_title =>
+      'Bejelentkezés a divelogs.de fiókba';
+
+  @override
+  String get divelogsImport_signIn_unexpected =>
+      'A divelogs.de váratlan választ küldött. Próbáld újra később.';
+
+  @override
+  String get divelogsImport_signIn_unreachable =>
+      'A divelogs.de nem érhető el. Ellenőrizd a kapcsolatot, és próbáld újra.';
+
+  @override
+  String get divelogsImport_signIn_usernameLabel => 'Felhasználónév';
+
+  @override
+  String get divelogsImport_signIn_usernameRequired =>
+      'A felhasználónév megadása kötelező';
+
+  @override
   String get divers_detail_activeDiver => 'Aktív merülő';
 
   @override
@@ -16400,7 +16534,61 @@ class AppLocalizationsHu extends AppLocalizations {
   String get media_library_viewMode_grid => 'Rács';
 
   @override
+  String get media_library_viewMode_map => 'Térkép';
+
+  @override
   String get media_library_viewMode_timeline => 'Idővonal';
+
+  @override
+  String get media_map_closeStrip => 'Bezárás';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem itt: $place',
+      one: '$count elem itt: $place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint =>
+      'A fotók és videók a saját GPS-adatuk, a merülés beszállási pontja vagy a merülőhely alapján kerülnek a térképre.';
+
+  @override
+  String get media_map_emptyTitle => 'Nincs helyadattal rendelkező média';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return 'Hiba a médiahelyek betöltésekor: $error';
+  }
+
+  @override
+  String get media_map_markerSemantics => 'Média megnyitása';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem',
+      one: '$count elem',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elem hely nélkül',
+      one: '$count elem hely nélkül',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => 'Ugrás a merüléshez';
@@ -21633,6 +21821,17 @@ class AppLocalizationsHu extends AppLocalizations {
       'Ebbe a mappába nem lehet írni. Válasszon másikat.';
 
   @override
+  String importWizard_photos_downloadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count letöltendő fotó',
+      one: '$count letöltendő fotó',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String importWizard_review_olderDivesSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -24036,6 +24235,56 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get universalImport_summary_noticeSitesUnresolvedBody =>
       'Ezek a merülések olyan merülőhelyre hivatkoztak, amelyet a fájl nem ír le, ezért merülőhely nélkül lettek importálva. A merülés szerkesztésével megadhatsz egyet.';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableTitle =>
+      'A felszerelés nem lett importálva';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableBody =>
+      'A felszereléslistát nem sikerült letölteni, ezért nem lett importálva felszerelés, és a merülések nincsenek összekapcsolva a felszerelésükkel. A hozzáadásához importálj újra később.';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
+      'A képesítések nem lettek importálva';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableBody =>
+      'A képesítések listáját nem sikerült letölteni, ezért nem lett importálva képesítés. A hozzáadásukhoz importálj újra később.';
+
+  @override
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
+      'Néhány fényképet nem sikerült listázni';
+
+  @override
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count merülés fényképeit nem sikerült listázni, ezért nem lettek importálva.',
+      one:
+          '$count merülés fényképeit nem sikerült listázni, ezért nem lettek importálva.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
+      'Néhány fénykép nem lett letöltve';
+
+  @override
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          '$count fényképet nem sikerült letölteni. Az újrapróbáláshoz importálj újra; a már mentett fényképek nem duplikálódnak.',
+      one:
+          '$count fényképet nem sikerült letölteni. Az újrapróbáláshoz importálj újra; a már mentett fényképek nem duplikálódnak.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
@@ -28722,6 +28971,12 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => 'Végsebesség';
+
+  @override
+  String get attrLabel_tow_burn_factor => 'Fogyasztási tényező vontatáskor';
+
+  @override
+  String get attrLabel_tow_speed_factor => 'Sebességtényező vontatáskor';
 
   @override
   String get attrLabel_sku => 'Cikkszám';
@@ -41233,6 +41488,13 @@ class AppLocalizationsHu extends AppLocalizations {
   @override
   String get transfer_importCloud_garminSubtitle =>
       'Merülések importálása a Garmin Connect fiókból';
+
+  @override
+  String get transfer_importCloud_divelogsTitle => 'divelogs.de';
+
+  @override
+  String get transfer_importCloud_divelogsSubtitle =>
+      'Napló, merülőhelyek, felszerelés, képesítések és fényképek importálása a divelogs.de oldalról';
 
   @override
   String get transfer_section_cloudTitle => 'Felhő';

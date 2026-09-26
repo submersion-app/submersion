@@ -10271,6 +10271,136 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get divelogsImport_fetch_button => 'הורדת היומן';
+
+  @override
+  String get divelogsImport_fetch_certificationsUnavailable =>
+      'לא ניתן היה להוריד את ההסמכות, והן לא ייובאו.';
+
+  @override
+  String get divelogsImport_fetch_empty =>
+      'ביומן divelogs.de שלך אין מה לייבא.';
+
+  @override
+  String get divelogsImport_fetch_failedTitle => 'לא ניתן להוריד את היומן שלך';
+
+  @override
+  String get divelogsImport_fetch_fetching => 'מוריד את היומן שלך…';
+
+  @override
+  String divelogsImport_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'נמצאו $count צלילות',
+      one: 'נמצאה $count צלילה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divelogsImport_fetch_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות לייבוא',
+      one: '$count תמונה לייבוא',
+      zero: 'אין תמונות לייבוא',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_gearUnavailable =>
+      'לא ניתן היה להוריד את הציוד; הצלילות ייובאו ללא קישורים לציוד.';
+
+  @override
+  String get divelogsImport_fetch_includePhotos => 'הכללת תמונות';
+
+  @override
+  String get divelogsImport_fetch_includePhotosHint =>
+      'התמונות מורדות במהלך הייבוא לתיקייה שתבחרו.';
+
+  @override
+  String divelogsImport_fetch_listingPhotos(int current, int total) {
+    return 'מקבל את רשימת התמונות לצלילה $current מתוך $total…';
+  }
+
+  @override
+  String divelogsImport_fetch_photoListingsFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן היה לקבל את רשימת התמונות של $count צלילות.',
+      one: 'לא ניתן היה לקבל את רשימת התמונות של $count צלילה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_retry => 'נסה שוב';
+
+  @override
+  String get divelogsImport_fetch_sessionExpired =>
+      'ההפעלה שלך ב-divelogs.de פגה. חזרו אחורה והתחברו שוב.';
+
+  @override
+  String divelogsImport_fetch_skippedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן היה לקרוא $count צלילות, והן ידולגו.',
+      one: 'לא ניתן היה לקרוא $count צלילה, והיא תדולג.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_signIn_badCredentials =>
+      'divelogs.de דחה את שם המשתמש או הסיסמה.';
+
+  @override
+  String get divelogsImport_signIn_button => 'התחברות';
+
+  @override
+  String get divelogsImport_signIn_description =>
+      'התחברו עם חשבון divelogs.de שלך כדי לייבא את היומן שלך. הסיסמה שלך לעולם אינה נשמרת; רק ההפעלה שנוצרת ממנה נשמרת במטמון.';
+
+  @override
+  String get divelogsImport_signIn_passwordLabel => 'סיסמה';
+
+  @override
+  String get divelogsImport_signIn_passwordRequired => 'נדרשת סיסמה';
+
+  @override
+  String divelogsImport_signIn_signedInAs(String username) {
+    return 'מחובר כ-$username';
+  }
+
+  @override
+  String get divelogsImport_signIn_signingIn => 'מתחבר…';
+
+  @override
+  String get divelogsImport_signIn_signOut => 'התנתק';
+
+  @override
+  String get divelogsImport_signIn_title => 'התחברות ל-divelogs.de';
+
+  @override
+  String get divelogsImport_signIn_unexpected =>
+      'divelogs.de שלח תגובה לא צפויה. נסו שוב מאוחר יותר.';
+
+  @override
+  String get divelogsImport_signIn_unreachable =>
+      'לא ניתן להתחבר ל-divelogs.de. בדקו את החיבור ונסו שוב.';
+
+  @override
+  String get divelogsImport_signIn_usernameLabel => 'שם משתמש';
+
+  @override
+  String get divelogsImport_signIn_usernameRequired => 'נדרש שם משתמש';
+
+  @override
   String get divers_detail_activeDiver => 'צולל פעיל';
 
   @override
@@ -16058,7 +16188,61 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_library_viewMode_grid => 'רשת';
 
   @override
+  String get media_library_viewMode_map => 'מפה';
+
+  @override
   String get media_library_viewMode_timeline => 'ציר זמן';
+
+  @override
+  String get media_map_closeStrip => 'סגירה';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים ב-$place',
+      one: 'פריט אחד ב-$place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint =>
+      'תמונות וסרטונים ממוקמים לפי ה-GPS שלהם, נקודת הכניסה של הצלילה או אתר הצלילה.';
+
+  @override
+  String get media_map_emptyTitle => 'אין מדיה עם מיקום';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return 'שגיאה בטעינת מיקומי המדיה: $error';
+  }
+
+  @override
+  String get media_map_markerSemantics => 'פתיחת מדיה';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים ללא מיקום',
+      one: 'פריט אחד ללא מיקום',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => 'מעבר לצלילה';
@@ -21143,6 +21327,17 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לכתוב לתיקייה זו. בחרו תיקייה אחרת.';
 
   @override
+  String importWizard_photos_downloadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות להורדה',
+      one: '$count תמונה להורדה',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String importWizard_review_olderDivesSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23518,6 +23713,56 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get universalImport_summary_noticeSitesUnresolvedBody =>
       'צלילות אלה הפנו לאתר צלילה שהקובץ אינו מתאר, ולכן יובאו ללא אתר. אפשר להגדיר אתר בעריכת הצלילה.';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableTitle =>
+      'הציוד לא יובא';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableBody =>
+      'לא ניתן היה להוריד את רשימת הציוד, ולכן לא יובא ציוד והצלילות לא קושרו לציוד שלהן. ייבאו שוב מאוחר יותר כדי להוסיף אותו.';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
+      'ההסמכות לא יובאו';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableBody =>
+      'לא ניתן היה להוריד את רשימת ההסמכות, ולכן לא יובאו הסמכות. ייבאו שוב מאוחר יותר כדי להוסיף אותן.';
+
+  @override
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
+      'רשימת חלק מהתמונות לא התקבלה';
+
+  @override
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'לא ניתן היה לקבל את רשימת התמונות של $count צלילות, ולכן הן לא יובאו.',
+      one:
+          'לא ניתן היה לקבל את רשימת התמונות של $count צלילה, ולכן הן לא יובאו.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
+      'חלק מהתמונות לא הורדו';
+
+  @override
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'לא ניתן היה להוריד $count תמונות. ייבאו שוב כדי לנסות שוב; תמונות שכבר נשמרו לא ישוכפלו.',
+      one:
+          'לא ניתן היה להוריד $count תמונה. ייבאו שוב כדי לנסות שוב; תמונות שכבר נשמרו לא ישוכפלו.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
@@ -28136,6 +28381,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => 'מהירות מרבית';
+
+  @override
+  String get attrLabel_tow_burn_factor => 'מקדם צריכת סוללה בגרירה';
+
+  @override
+  String get attrLabel_tow_speed_factor => 'מקדם מהירות בגרירה';
 
   @override
   String get attrLabel_sku => 'מק״ט';
@@ -40574,6 +40825,13 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get transfer_importCloud_garminSubtitle =>
       'ייבוא צלילות מחשבון Garmin Connect שלך';
+
+  @override
+  String get transfer_importCloud_divelogsTitle => 'divelogs.de';
+
+  @override
+  String get transfer_importCloud_divelogsSubtitle =>
+      'ייבוא היומן, האתרים, הציוד, ההסמכות והתמונות שלך מ-divelogs.de';
 
   @override
   String get transfer_section_cloudTitle => 'ענן';
