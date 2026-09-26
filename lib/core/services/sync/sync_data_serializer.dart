@@ -689,6 +689,71 @@ class SyncDataSerializer {
   /// lives outside the library and so outside any delete cascade.
   final Future<void> Function(String trackId) _evictTrackGeometry;
 
+  /// Evicts the cached geometry of each track in [trackIds].
+  ///
+  /// The cache is derived data, so failing to evict must never fail the
+  /// merge. The local cache sweep catches a missed eviction for a deleted
+  /// track; for an edited one the stale LODs stay until the track is next
+  /// edited, which still beats aborting the merge over a cache.
+  Future<void> _evictGeometryOf(Iterable<String> trackIds) async {
+    for (final trackId in trackIds) {
+      try {
+        await _evictTrackGeometry(trackId);
+      } catch (e, stackTrace) {
+        _log.warning(
+          'Could not evict cached geometry for track $trackId',
+          error: e,
+          stackTrace: stackTrace,
+        );
+      }
+    }
+  }
+
+  /// Ids of the [incoming] tracks whose stored row draws differently from the
+  /// incoming one, read BEFORE the upsert overwrites it.
+  ///
+  /// A trim or split made on this device evicts its own cached LODs
+  /// (trimTrackProvider, splitTrackProvider); one arriving from a peer only
+  /// overwrites the row, and the cache has no TTL, so without this the map
+  /// kept drawing the pre-trim polyline for good (issue #2447). A track new
+  /// to this device has nothing cached, and a metadata-only edit (a rename)
+  /// keeps its still-valid cache.
+  Future<Set<String>> _gpsTracksWithNewGeometry(
+    List<GpsTrackRow> incoming,
+  ) async {
+    final byId = {for (final track in incoming) track.id: track};
+    final ids = byId.keys.toList();
+    final reshaped = <String>{};
+    // Chunked to stay under SQLite's bound-variable limit, as in
+    // fetchRecords.
+    const idChunk = 900;
+    for (var i = 0; i < ids.length; i += idChunk) {
+      final chunk = ids.sublist(i, math.min(i + idChunk, ids.length));
+      final stored = await (_db.select(
+        _db.gpsTracks,
+      )..where((t) => t.id.isIn(chunk))).get();
+      for (final row in stored) {
+        final next = byId[row.id]!;
+        if (row.trimStartTime != next.trimStartTime ||
+            row.trimEndTime != next.trimEndTime ||
+            row.pointCount != next.pointCount ||
+            !_sameBytes(row.points, next.points)) {
+          reshaped.add(row.id);
+        }
+      }
+    }
+    return reshaped;
+  }
+
+  static bool _sameBytes(Uint8List? a, Uint8List? b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null || a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
   Future<List<Map<String, dynamic>>> _safeExport(
     String label,
     Future<List<Map<String, dynamic>>> Function() loader,
@@ -3926,11 +3991,13 @@ class SyncDataSerializer {
             );
         return;
       case 'gpsTracks':
-        await _db
-            .into(_db.gpsTracks)
-            .insertOnConflictUpdate(
-              GpsTrackRow.fromJson(data, serializer: _syncBlobSerializer),
-            );
+        final track = GpsTrackRow.fromJson(
+          data,
+          serializer: _syncBlobSerializer,
+        );
+        final reshaped = await _gpsTracksWithNewGeometry([track]);
+        await _db.into(_db.gpsTracks).insertOnConflictUpdate(track);
+        await _evictGeometryOf(reshaped);
         return;
       case 'navTracks':
         await _db
@@ -4845,17 +4912,16 @@ class SyncDataSerializer {
         );
         return;
       case 'gpsTracks':
+        final tracks = records
+            .map(
+              (r) => GpsTrackRow.fromJson(r, serializer: _syncBlobSerializer),
+            )
+            .toList();
+        final reshaped = await _gpsTracksWithNewGeometry(tracks);
         await _db.batch(
-          (b) => b.insertAllOnConflictUpdate(
-            _db.gpsTracks,
-            records
-                .map(
-                  (r) =>
-                      GpsTrackRow.fromJson(r, serializer: _syncBlobSerializer),
-                )
-                .toList(),
-          ),
+          (b) => b.insertAllOnConflictUpdate(_db.gpsTracks, tracks),
         );
+        await _evictGeometryOf(reshaped);
         return;
       case 'navTracks':
         await _db.batch(
@@ -6281,17 +6347,8 @@ class SyncDataSerializer {
         // A delete made on this device evicts the cached LODs itself
         // (deleteTrackProvider); one arriving from a peer has to do it here,
         // or up to three blobs outlive the track until the next local cache
-        // sweep (issue #1929). The cache is derived data, so failing to evict
-        // must never fail the merge: the sweep catches what this misses.
-        try {
-          await _evictTrackGeometry(recordId);
-        } catch (e, stackTrace) {
-          _log.warning(
-            'Could not evict cached geometry for track $recordId',
-            error: e,
-            stackTrace: stackTrace,
-          );
-        }
+        // sweep (issue #1929).
+        await _evictGeometryOf([recordId]);
         return;
       case 'navTracks':
         await (_db.delete(

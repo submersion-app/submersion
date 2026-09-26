@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/local_cache_database_service.dart';
+import 'package:submersion/core/services/sync/sync_data_serializer.dart';
 import 'package:submersion/features/gps_log/data/repositories/gps_track_repository.dart';
 import 'package:submersion/features/gps_log/data/repositories/track_geometry_cache_repository.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
@@ -114,5 +117,31 @@ void main() {
       gpsTrackGeometryProvider(('nope', TrackLod.detail)).future,
     );
     expect(result, isEmpty);
+  });
+
+  test('an open map redraws a track a peer trimmed (issue #2447)', () async {
+    final id = await seedWobblyTrack();
+    final container = ProviderContainer();
+    addTearDown(container.dispose);
+    final key = gpsTrackGeometryProvider((id, TrackLod.thumbnail));
+    // Seconds 50 to 99 of a track running east from longitude 0.
+    bool trimmed(List<GpsTrackPoint>? points) =>
+        points != null && points.isNotEmpty && points.first.longitude > 0.0049;
+    final redrawn = Completer<void>();
+    final sub = container.listen(key, (_, next) {
+      if (trimmed(next.value) && !redrawn.isCompleted) redrawn.complete();
+    });
+    addTearDown(sub.close);
+    expect(trimmed(await container.read(key.future)), isFalse);
+
+    final serializer = SyncDataSerializer();
+    await serializer.upsertRecord('gpsTracks', {
+      ...(await serializer.fetchRecord('gpsTracks', id))!,
+      'trimStartTime': 1700000050000,
+    });
+
+    // The warm cache hit never watched the track row, so only the eviction's
+    // change on the cache table can reach this provider.
+    await redrawn.future.timeout(const Duration(seconds: 10));
   });
 }
