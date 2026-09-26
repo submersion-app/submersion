@@ -231,7 +231,8 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
   /// The parent to write on save: [_validParentIdFor] once the active list
   /// has loaded. Before that, the id may have come from a deep link
   /// (`/equipment/new?parent=`), so it is looked up directly and kept only
-  /// when it names a fitted item of [diverId]'s whose type can hold [type].
+  /// when it names a fitted item visible to [diverId] (owned or shared) whose
+  /// type can hold [type].
   Future<String?> _parentIdToSave(EquipmentType type, String? diverId) async {
     final id = _parentEquipmentId;
     if (id == null) return null;
@@ -241,7 +242,10 @@ class _EquipmentEditPageState extends ConsumerState<EquipmentEditPage> {
     final parent = await ref
         .read(equipmentRepositoryProvider)
         .getEquipmentById(id);
-    if (parent == null || !parent.isFitted || parent.diverId != diverId) {
+    if (parent == null || !parent.isFitted) return null;
+    // A parent shared with [diverId] is as usable as one it owns (#2046).
+    if (diverId != null &&
+        !await ref.read(equipmentRepositoryProvider).isVisibleTo(id, diverId)) {
       return null;
     }
     return _parentTypesFor(type).contains(parent.type) ? id : null;

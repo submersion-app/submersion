@@ -522,6 +522,10 @@ void main() {
 
   _tickGroup('equipment', [
     (
+      name: 'allServiceKindsByIdProvider',
+      read: (c) => c.read(allServiceKindsByIdProvider.future),
+    ),
+    (
       name: 'equipmentSharesProvider',
       read: (c) => c.read(equipmentSharesProvider(_id).future),
     ),

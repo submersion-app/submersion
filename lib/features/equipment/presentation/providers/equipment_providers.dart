@@ -788,6 +788,18 @@ final serviceKindsProvider = FutureProvider<List<ServiceKind>>((ref) async {
   return repository.getAllKinds(diverId: validatedDiverId);
 });
 
+/// Every service kind by id, whoever created it. For resolving the name of
+/// a kind a schedule or record already references: a shared item's clock can
+/// use its owner's custom kind, which [serviceKindsProvider] (the active
+/// diver's choices) leaves out (issue #2046).
+final allServiceKindsByIdProvider = FutureProvider<Map<String, ServiceKind>>((
+  ref,
+) async {
+  final repository = ref.watch(serviceKindRepositoryProvider);
+  ref.invalidateSelfWhen(repository.watchServiceKindsChanges());
+  return {for (final k in await repository.getAllKinds()) k.id: k};
+});
+
 /// The dueSoon window: the widest configured reminder-days value for the
 /// current diver, so a clock turns amber as soon as its earliest reminder
 /// would fire.

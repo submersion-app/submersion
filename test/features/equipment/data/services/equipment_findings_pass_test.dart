@@ -1,3 +1,4 @@
+import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
@@ -6,6 +7,7 @@ import 'package:submersion/features/equipment/data/repositories/dive_sensor_summ
 import 'package:submersion/features/equipment/data/repositories/equipment_findings_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_observation_repository.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_share_repository.dart';
 import 'package:submersion/features/equipment/data/services/equipment_condition_refresher.dart';
 import 'package:submersion/features/equipment/data/services/equipment_findings_pass.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_finding.dart';
@@ -70,6 +72,43 @@ void main() {
       expect(result.cancelled, isFalse);
     },
   );
+
+  test('itemsById includes an item shared with the diver', () async {
+    // Issue #2046: a shared item is as much the sharee's as an owned one.
+    for (final id in ['owner', 'wife']) {
+      await db
+          .into(db.divers)
+          .insert(
+            DiversCompanion.insert(
+              id: id,
+              name: id,
+              createdAt: 1,
+              updatedAt: 1,
+            ),
+          );
+    }
+    await db
+        .into(db.equipment)
+        .insert(
+          EquipmentCompanion.insert(
+            id: 'reg',
+            name: 'Reg',
+            type: 'regulator',
+            createdAt: 1,
+            updatedAt: 1,
+            diverId: const Value('owner'),
+          ),
+        );
+    final pass = EquipmentFindingsPass(refresher: _Refresher('none'));
+    expect(await pass.itemsById(['reg'], diverId: 'wife'), isEmpty);
+    await EquipmentShareRepository().shareMany(
+      equipmentIds: ['reg'],
+      diverIds: ['wife'],
+      actingDiverId: 'owner',
+    );
+    final items = await pass.itemsById(['reg'], diverId: 'wife');
+    expect(items.map((i) => i.id), ['reg']);
+  });
 
   test('the pass reads the active diver\'s settings', () async {
     // No active diver: the defaults the app would show.

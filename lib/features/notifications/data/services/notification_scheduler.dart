@@ -64,7 +64,10 @@ class NotificationScheduler {
     final items = await _equipmentRepository.getActiveEquipment(
       diverId: diverId,
     );
-    final kinds = await _serviceKindRepository.getAllKinds(diverId: diverId);
+    // Every kind, not only [diverId]'s: a shared item's schedule can use its
+    // owner's custom kind, and ServiceDueEngine drops a schedule whose kind
+    // is missing (issue #2046).
+    final kinds = await _serviceKindRepository.getAllKinds();
     final kindsById = {for (final k in kinds) k.id: k};
 
     // Clean up expired records first
