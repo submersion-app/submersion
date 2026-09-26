@@ -798,6 +798,7 @@ class DiveComputerRepository {
     required domain.DiveComputer? computer,
     required DateTime profileStartTime,
     required int durationSeconds,
+    required int? bottomTimeSeconds,
     required double? maxDepth,
     required double? effectiveAvgDepth,
     required double? minWaterTemp,
@@ -828,7 +829,9 @@ class DiveComputerRepository {
       sourceFormat: const Value('dive_computer'),
       maxDepth: Value(maxDepth),
       avgDepth: Value(effectiveAvgDepth),
-      duration: Value(durationSeconds),
+      // Readers (field attribution, split, uncombine) take this column as the
+      // source's bottom time, not its runtime; exitTime below carries that.
+      duration: Value(bottomTimeSeconds),
       waterTemp: Value(minWaterTemp),
       entryLatitude: Value(entryLatitude),
       entryLongitude: Value(entryLongitude),
@@ -1525,6 +1528,7 @@ class DiveComputerRepository {
                 computer: computer,
                 profileStartTime: profileStartTime,
                 durationSeconds: durationSeconds,
+                bottomTimeSeconds: bottomTimeSeconds,
                 maxDepth: maxDepth,
                 effectiveAvgDepth: effectiveAvgDepth,
                 minWaterTemp: minWaterTemp,
@@ -1595,6 +1599,12 @@ class DiveComputerRepository {
                 computer: await getComputerById(computerId),
                 profileStartTime: profileStartTime,
                 durationSeconds: durationSeconds,
+                // This download's own reading, not the dive row's bottom
+                // time, which may come from another computer or a hand edit.
+                bottomTimeSeconds: _calculateBottomTimeFromPoints(
+                  points,
+                  totalDurationSeconds: durationSeconds,
+                ),
                 maxDepth: maxDepth,
                 effectiveAvgDepth:
                     avgDepth ??

@@ -811,7 +811,10 @@ void main() {
       final src = await getSource('src-1');
       expect(src.maxDepth, 28.5);
       expect(src.avgDepth, 15.5);
-      expect(src.duration, 3200);
+      // The column holds the source's bottom time, derived from the samples
+      // (final ascent starts at t=120), not the 3200 s runtime. Readers such
+      // as split and uncombine copy it onto a dive's bottomTime.
+      expect(src.duration, 120);
       expect(src.waterTemp, 17.0);
       expect(src.decoAlgorithm, 'vpm');
       expect(src.gradientFactorLow, 25);
@@ -3195,6 +3198,42 @@ void main() {
 
       final dive = await getDive('dive-1');
       expect(dive.bottomTime, 1800);
+    });
+
+    test('the source row stores no bottom time when the samples yield none, '
+        'clearing a runtime an older build stored there', () async {
+      await insertDive('dive-1');
+      await insertComputer('comp-1');
+      await insertSource(
+        id: 'src-1',
+        diveId: 'dive-1',
+        computerId: 'comp-1',
+        isPrimary: true,
+        duration: 1800,
+      );
+
+      final parsed = makeParsedDive(
+        durationSeconds: 1800,
+        samples: [
+          pigeon.ProfileSample(timeSeconds: 0, depthMeters: 0.0),
+          pigeon.ProfileSample(timeSeconds: 60, depthMeters: 10.0),
+        ],
+      );
+
+      await service.applyParsedUpdate(
+        diveId: 'dive-1',
+        sourceRowId: 'src-1',
+        parsed: parsed,
+        descriptorVendor: null,
+        descriptorProduct: null,
+        descriptorModel: null,
+        libdivecomputerVersion: null,
+      );
+
+      final src = await getSource('src-1');
+      expect(src.duration, isNull);
+      // The provenance window still spans the whole runtime.
+      expect(src.exitTime!.difference(src.entryTime!).inSeconds, 1800);
     });
 
     test('bottomTime never exceeds durationSeconds when the sample stream '
