@@ -190,8 +190,9 @@ class BleIoStream(
                 // A read-poll read in flight gets no completion either; free
                 // its gate and fail any reader, which otherwise waits out
                 // libdivecomputer's timeout (or forever, for "no timeout").
-                releaseReadGate()
+                // Close before releasing, the order issueGattRead relies on.
                 synchronized(readPollLock) { readPoll.close() }
+                releaseReadGate()
                 // A command write in flight gets no completion callback once
                 // the link is down either. libdivecomputer's negative "no
                 // timeout" maps to Long.MAX_VALUE, so its wait would never
@@ -511,6 +512,9 @@ class BleIoStream(
         characteristic: BluetoothGattCharacteristic,
         value: ByteArray
     ) {
+        // A read-poll stream subscribes to nothing, so nothing pushed may
+        // reach readQueue as if it were a read response (issue #1454).
+        if (readCharacteristic != null) return
         val notify = notifyCharacteristic
         if (notify != null && characteristic.uuid != notify.uuid) return
         readQueue.offer(value)
@@ -548,9 +552,18 @@ class BleIoStream(
             NativeLogger.w(TAG, "BLE", "read-poll: timed out waiting for GATT to be free")
             return false
         }
-        // Set before issuing: the completion can arrive on the binder thread
-        // before readCharacteristic() returns.
-        readGateHeld.set(true)
+        // Publish ownership before issuing (the completion can arrive on the
+        // binder thread before readCharacteristic() returns), and only while
+        // the policy is open. Both close paths close the policy under this
+        // lock before releasing the gate, so either they see the flag and
+        // release the permit, or this sees the close and returns it here.
+        val published = synchronized(readPollLock) {
+            if (readPoll.isClosed) false else { readGateHeld.set(true); true }
+        }
+        if (!published) {
+            gattOperation.release()
+            return false
+        }
         if (!g.readCharacteristic(char)) {
             releaseReadGate()
             NativeLogger.w(TAG, "BLE", "read-poll: readCharacteristic() returned false")

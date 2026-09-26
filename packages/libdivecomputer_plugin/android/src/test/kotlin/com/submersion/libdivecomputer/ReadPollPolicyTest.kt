@@ -73,6 +73,16 @@ class ReadPollPolicyTest {
         assertEquals(Action.ISSUE_READ, policy.next(500))
     }
 
+    // BleIoStream publishes GATT-gate ownership only while the policy is
+    // open, so a close racing a read issue can never miss the permit.
+    @Test
+    fun closeIsObservable() {
+        val policy = ReadPollPolicy()
+        assertFalse(policy.isClosed)
+        policy.close()
+        assertTrue(policy.isClosed)
+    }
+
     @Test
     fun closeFailsReadsAndIgnoresLateCompletions() {
         val policy = ReadPollPolicy()

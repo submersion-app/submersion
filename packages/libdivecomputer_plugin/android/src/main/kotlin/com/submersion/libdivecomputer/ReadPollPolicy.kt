@@ -47,11 +47,14 @@ class ReadPollPolicy {
     // Long.MIN_VALUE, not 0: the clock derives from System.nanoTime(), which
     // may be negative, and a fresh policy must not start out backing off.
     private var retryNotBeforeMs = Long.MIN_VALUE
-    private var closed = false
+    // Readable so BleIoStream can refuse to publish GATT-gate ownership once
+    // the stream is closing.
+    var isClosed = false
+        private set
 
     // What a reader with an empty queue should do now.
     fun next(nowMs: Long): Action {
-        if (closed) return Action.CLOSED
+        if (isClosed) return Action.CLOSED
         if (readInFlight || nowMs < retryNotBeforeMs) return Action.WAIT
         readInFlight = true
         return Action.ISSUE_READ
@@ -68,7 +71,7 @@ class ReadPollPolicy {
     // libdivecomputer; hasData is false for an empty value or a failed read.
     fun completed(hasData: Boolean, nowMs: Long): Boolean {
         readInFlight = false
-        if (closed) return false
+        if (isClosed) return false
         if (discardInFlight) {
             discardInFlight = false
             return false
@@ -89,7 +92,7 @@ class ReadPollPolicy {
     // The link is going away. Every later read fails and late completions are
     // ignored.
     fun close() {
-        closed = true
+        isClosed = true
         readInFlight = false
         discardInFlight = false
     }
