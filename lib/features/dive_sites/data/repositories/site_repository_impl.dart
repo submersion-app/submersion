@@ -527,12 +527,11 @@ class SiteRepository {
       await clearDiveSiteLinks(_db, _syncRepository, ids, now: now);
       await clearPlanLinksToSites(_db, _syncRepository, ids, now: now);
       await (_db.delete(_db.diveSites)..where((t) => t.id.isIn(ids))).go();
-      for (final id in ids) {
-        await _syncRepository.logDeletion(
-          entityType: 'diveSites',
-          recordId: id,
-        );
-      }
+      // One batch for every tombstone, not a transaction per site.
+      await _syncRepository.logDeletions(
+        entityType: 'diveSites',
+        recordIds: ids,
+      );
       return cleared;
     });
     if (split == null) return links;
