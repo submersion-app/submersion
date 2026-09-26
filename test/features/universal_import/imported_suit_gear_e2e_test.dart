@@ -28,7 +28,7 @@ import 'package:submersion/features/equipment/data/repositories/equipment_reposi
 import 'package:submersion/features/equipment/data/repositories/equipment_set_repository_impl.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/tags/data/repositories/tag_repository.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
 import 'package:submersion/features/universal_import/data/csv/models/import_configuration.dart';
@@ -123,7 +123,7 @@ Future<void> _expectSuitStats({
   required int unknownThickness,
   required int drysuit,
 }) async {
-  final stats = await StatisticsRepository().getDivesBySuitThickness(
+  final stats = await InsightsRepository().getDivesBySuitThickness(
     diverId: _diverId,
   );
   expect(stats.byThickness, byThickness);

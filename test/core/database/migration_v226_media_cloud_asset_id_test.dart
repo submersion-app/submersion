@@ -45,13 +45,13 @@ void main() {
     };
   }
 
-  test('v226 is the current schema version and is in the ladder', () {
-    // The newest rung owns the exact assertion; relax it to
-    // greaterThanOrEqualTo when the next one lands.
-    expect(AppDatabase.currentSchemaVersion, 226);
+  test('v226 is at or below the current schema version and in the ladder', () {
+    // Relaxed once v227 (hidden tank presets) landed on top; the newest
+    // rung owns the exact assertion.
+    expect(AppDatabase.currentSchemaVersion, greaterThanOrEqualTo(226));
     expect(AppDatabase.migrationVersions, contains(226));
     // Counted from 225 so it holds whether or not #1978's rung has landed.
-    expect(AppDatabase.migrationStepCount(225), 1);
+    expect(AppDatabase.migrationStepCount(225), greaterThanOrEqualTo(1));
   });
 
   test('the column is additive and did not move the sync floor', () {

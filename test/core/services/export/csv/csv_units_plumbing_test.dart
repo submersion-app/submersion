@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/export_service.dart';
 
@@ -13,15 +15,20 @@ import 'csv_test_fixtures.dart';
 void main() {
   late MockFilePickerPlatform mockPicker;
   late FilePickerPlatform originalPicker;
+  late Directory workDir;
 
   setUp(() {
+    workDir = Directory.systemTemp.createTempSync('csv_units_plumbing');
     originalPicker = FilePickerPlatform.instance;
     mockPicker = MockFilePickerPlatform()
-      ..saveFileResult = Uri.file('/tmp/export.csv');
+      ..saveFileResult = Uri.file(p.join(workDir.path, 'export.csv'));
     FilePickerPlatform.instance = mockPicker;
   });
 
-  tearDown(() => FilePickerPlatform.instance = originalPicker);
+  tearDown(() {
+    FilePickerPlatform.instance = originalPicker;
+    workDir.deleteSync(recursive: true);
+  });
 
   final units = CsvExportUnits.fromSettings(imperial);
   final service = ExportService();

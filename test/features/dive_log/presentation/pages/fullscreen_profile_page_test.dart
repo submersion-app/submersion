@@ -18,6 +18,8 @@ import 'package:submersion/features/dive_log/presentation/providers/profile_revi
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/profile_transport_bar.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/source_bar.dart';
+import 'package:submersion/features/equipment/domain/entities/dive_sensor_summary.dart';
+import 'package:submersion/features/equipment/presentation/providers/dive_sensor_summary_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -394,6 +396,61 @@ void main() {
     expect(chart.onSafetyFindingTap, isNotNull);
     expect(chart.onSafetyFindingDismiss, isNotNull);
     expect(chart.onSafetyFindingDetails, isNull); // no section in fullscreen
+  });
+
+  testWidgets('cell divergence runs reach the chart as secondary ranges', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _wrap([
+        ..._defaultOverrides(),
+        diveSensorSummaryProvider('d1').overrideWith(
+          (ref) async => DiveSensorSummary(
+            diveId: 'd1',
+            engineVersion: 1,
+            sourceUpdatedAt: 1,
+            computedAt: DateTime.utc(2026),
+            cellMetrics: const [
+              CellMetrics(
+                slot: 2,
+                samples: 61,
+                divergenceRanges: [
+                  DivergenceRange(
+                    startSeconds: 300,
+                    endSeconds: 420,
+                    peakBar: 0.2,
+                  ),
+                ],
+              ),
+              CellMetrics(
+                slot: 1,
+                samples: 61,
+                divergenceRanges: [
+                  DivergenceRange(
+                    startSeconds: 60,
+                    endSeconds: 120,
+                    peakBar: 0.3,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ]),
+    );
+    await tester.pumpAndSettle();
+
+    final chart = tester.widget<DiveProfileChart>(
+      find.byType(DiveProfileChart),
+    );
+    final errorColor = Theme.of(
+      tester.element(find.byType(DiveProfileChart)),
+    ).colorScheme.error;
+    expect(
+      chart.secondaryRanges.map((r) => (r.startTimestamp, r.endTimestamp)),
+      [(60, 120), (300, 420)],
+    );
+    expect(chart.secondaryRanges.map((r) => r.color).toSet(), {errorColor});
   });
 
   testWidgets('fullscreen tap callback toggles the shared provider', (

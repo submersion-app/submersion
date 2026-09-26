@@ -24,6 +24,7 @@ import 'package:submersion/features/equipment/domain/entities/service_schedule.d
 import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/equipment/data/repositories/cylinder_gear_links.dart';
 import 'package:submersion/features/safety/data/repositories/incident_repository.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_fill_repository.dart';
 import 'package:submersion/features/transmitters/data/repositories/transmitter_repository.dart';
 
 /// One item's exposure as [EquipmentRepository.getItemExposure] wires it:
@@ -585,6 +586,9 @@ class EquipmentRepository {
         // Registry rows naming the item (as a cylinder or a transmitter)
         // stay; the link is staged, not just nulled.
         await TransmitterRepository().unlinkFromDeletedEquipment(id);
+        // Fill history keeps its passport id and drops the gear link, staged
+        // for sync; "Link an existing tag" restores it on a new row.
+        await CylinderFillRepository().unlinkFromDeletedEquipment(id);
         // Cylinders linked to this item, as their own gear or the regulator
         // they were breathed from: cleared, and each tank staged for sync.
         await clearCylinderGearLinks(_db, _syncRepository, [
@@ -1661,10 +1665,18 @@ class EquipmentRepository {
   /// updates changed rows, deletes (with a tombstone) rows no longer present.
   /// Curated ids are normalized to the deterministic form here so callers
   /// building attributes before the equipment id exists still converge.
+  /// Writes [desired] as the item's attribute set.
+  ///
+  /// With [preserveSystem] (the default), a system attribute the caller did
+  /// not pass (a cylinder's passport id) is kept rather than deleted: the
+  /// edit form shows only its type's fields and may have been opened before
+  /// a synced id arrived, and neither is a reason to drop the tag's
+  /// identity. The passport repository passes false to release a tag.
   Future<void> saveAttributes(
     String equipmentId,
-    List<EquipmentAttribute> desired,
-  ) async {
+    List<EquipmentAttribute> desired, {
+    bool preserveSystem = true,
+  }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
 
     final normalized = desired.where((a) => a.hasValue).map((a) {
@@ -1690,6 +1702,11 @@ class EquipmentRepository {
     await _db.transaction(() async {
       for (final row in existingRows) {
         if (desiredIds.contains(row.id)) continue;
+        if (preserveSystem &&
+            !row.isCustom &&
+            EquipmentAttributeCatalog.isSystemKey(row.attrKey)) {
+          continue;
+        }
         await (_db.delete(
           _db.equipmentAttributes,
         )..where((t) => t.id.equals(row.id))).go();

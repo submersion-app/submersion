@@ -5,6 +5,7 @@ import 'package:submersion/core/deco/schedule_policy.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/domain/entities/plan_segment.dart';
 import 'package:submersion/features/equipment/domain/entities/gear_provenance.dart';
+import 'package:submersion/features/planner/domain/entities/mission/dpv_mission.dart';
 
 /// Breathing mode of a saved dive plan.
 ///
@@ -137,6 +138,11 @@ class DivePlan extends Equatable {
   final double? plannedWeightKg;
   final Map<String, double>? plannedWeightPlacement;
 
+  /// The DPV mission layered on this plan, or null for a plan without one.
+  /// When present, [segments] are generated from the mission's route and
+  /// must be treated as a cache of it, never edited by hand.
+  final DpvMission? mission;
+
   const DivePlan({
     required this.id,
     required this.name,
@@ -186,6 +192,7 @@ class DivePlan extends Equatable {
     this.gearProvenance = const [],
     this.plannedWeightKg,
     this.plannedWeightPlacement,
+    this.mission,
   });
 
   /// CCR setpoints with the spec defaults (0.7 shallow, 1.3 below 10 m).
@@ -280,6 +287,8 @@ class DivePlan extends Equatable {
     double? plannedWeightKg,
     bool clearPlannedWeight = false,
     Map<String, double>? plannedWeightPlacement,
+    DpvMission? mission,
+    bool clearMission = false,
   }) {
     return DivePlan(
       id: id ?? this.id,
@@ -352,6 +361,7 @@ class DivePlan extends Equatable {
       plannedWeightPlacement: clearPlannedWeight
           ? null
           : (plannedWeightPlacement ?? this.plannedWeightPlacement),
+      mission: clearMission ? null : (mission ?? this.mission),
     );
   }
 
@@ -406,6 +416,7 @@ class DivePlan extends Equatable {
     gearProvenance,
     plannedWeightKg,
     plannedWeightPlacement,
+    mission,
   ];
 }
 

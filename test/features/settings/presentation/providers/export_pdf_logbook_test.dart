@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
@@ -410,7 +411,7 @@ void main() {
 
   group('savePdfToFile', () {
     test('saves the template the user picked, not the legacy layout', () async {
-      final target = '${workDir.path}/saved_simple.pdf';
+      final target = p.join(workDir.path, 'saved_simple.pdf');
       picker.saveFileResult = Uri.file(target);
 
       final container = makeContainer();
@@ -440,7 +441,7 @@ void main() {
     });
 
     test('the detailed template saves a different document', () async {
-      final target = '${workDir.path}/saved_detailed.pdf';
+      final target = p.join(workDir.path, 'saved_detailed.pdf');
       picker.saveFileResult = Uri.file(target);
 
       final container = makeContainer();

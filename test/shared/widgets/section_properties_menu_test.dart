@@ -15,12 +15,14 @@ class _Calls {
   int openSettings = 0;
 }
 
+/// A page whose overflow menu opens the display-options panel, as Dive
+/// Details and Site Details host it.
 Widget _harness(
   _Calls calls, {
   DiveDetailLayout layout = DiveDetailLayout.detailed,
   List<bool> visible = const [true, true, true],
-  double? iconSize,
 }) {
+  final controller = MenuController();
   return MaterialApp(
     locale: const Locale('en'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -29,6 +31,7 @@ Widget _harness(
       appBar: AppBar(
         actions: [
           SectionPropertiesMenu(
+            controller: controller,
             layout: layout,
             onLayoutChanged: calls.layouts.add,
             entries: [
@@ -45,7 +48,12 @@ Widget _harness(
                 calls.reorders.add((oldIndex, newIndex)),
             onShowAll: () => calls.showAll++,
             onOpenSettings: () => calls.openSettings++,
-            iconSize: iconSize,
+            child: PopupMenuButton<String>(
+              onSelected: (_) => controller.open(),
+              itemBuilder: (context) => [
+                displayOptionsMenuItem(context, 'displayOptions'),
+              ],
+            ),
           ),
         ],
       ),
@@ -54,7 +62,9 @@ Widget _harness(
 }
 
 Future<void> _open(WidgetTester tester) async {
-  await tester.tap(find.byIcon(Icons.tune));
+  await tester.tap(find.byIcon(Icons.more_vert));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Display options'));
   await tester.pumpAndSettle();
 }
 
@@ -180,10 +190,34 @@ void main() {
     expect(calls.openSettings, 1);
   });
 
-  testWidgets('iconSize sizes the tune icon', (tester) async {
+  testWidgets('the panel stays closed until the overflow row is chosen', (
+    tester,
+  ) async {
     await sized(tester);
-    await tester.pumpWidget(_harness(_Calls(), iconSize: 20));
+    await tester.pumpWidget(_harness(_Calls()));
 
-    expect(tester.widget<Icon>(find.byIcon(Icons.tune)).size, 20);
+    expect(find.text('Display options'), findsNothing);
+    expect(find.text('LAYOUT'), findsNothing);
+
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.dashboard_customize_outlined), findsOneWidget);
+    expect(find.text('LAYOUT'), findsNothing);
+  });
+
+  testWidgets('choosing the overflow row opens the panel under the button', (
+    tester,
+  ) async {
+    await sized(tester);
+    await tester.pumpWidget(_harness(_Calls()));
+    await _open(tester);
+
+    expect(find.text('Display options'), findsNothing);
+    expect(find.text('LAYOUT'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('LAYOUT')).dy,
+      greaterThan(tester.getBottomLeft(find.byIcon(Icons.more_vert)).dy),
+    );
   });
 }

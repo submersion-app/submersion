@@ -8,7 +8,7 @@ import 'package:submersion/features/planning/presentation/planning_tools.dart';
 import 'package:submersion/shared/widgets/master_detail/master_detail_scaffold.dart';
 import 'package:submersion/shared/widgets/master_detail/responsive_breakpoints.dart';
 
-/// Gas Calculators hub: the six calculators as a list, the selected one
+/// Gas Calculators hub: the calculators as a list, the selected one
 /// beside it.
 ///
 /// This is a hub one level below Planning and is built the same way, so the

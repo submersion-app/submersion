@@ -13,8 +13,9 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/core/utils/log_failure.dart';
 
 /// Library browse presentations. Values are persisted by name via the app
-/// settings key-value store.
-enum MediaLibraryViewMode { grid, byDive, timeline }
+/// settings key-value store; an unknown stored name falls back to [grid],
+/// which is what makes adding a value here migration-free.
+enum MediaLibraryViewMode { grid, byDive, timeline, map }
 
 final mediaLibraryRepositoryProvider = Provider<MediaLibraryRepository>((ref) {
   return MediaLibraryRepository();
@@ -27,7 +28,7 @@ final mediaLibraryFilterProvider = StateProvider<MediaLibraryFilter>(
   (ref) => MediaLibraryFilter.none,
 );
 
-/// Persisted view mode for the library (grid / by dive / timeline).
+/// Persisted view mode for the library (grid / by dive / timeline / map).
 final mediaLibraryViewModeProvider =
     StateNotifierProvider<MediaLibraryViewModeNotifier, MediaLibraryViewMode>((
       ref,

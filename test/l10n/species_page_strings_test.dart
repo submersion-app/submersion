@@ -16,7 +16,7 @@ void main() {
     );
     expect(l10n.marineLife_speciesDetail_showAll(12), 'Show all (12)');
     expect(l10n.marineLife_speciesDetail_countTimes(3), '× 3');
-    expect(l10n.statistics_marineLife_seeAllSpecies_title, 'See all species');
+    expect(l10n.insights_marineLife_seeAllSpecies_title, 'See all species');
   });
 
   test('Species page strings are translated, not English, in German', () async {
@@ -25,7 +25,7 @@ void main() {
     expect(l10n.marineLife_speciesPage_title, 'Arten');
     expect(l10n.marineLife_speciesPage_divesCount(2), '2 Tauchgänge');
     expect(
-      l10n.statistics_marineLife_seeAllSpecies_title,
+      l10n.insights_marineLife_seeAllSpecies_title,
       isNot('See all species'),
     );
   });

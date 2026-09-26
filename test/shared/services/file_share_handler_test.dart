@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart'
     show TargetPlatform, debugDefaultTargetPlatformOverride;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'package:submersion/shared/services/file_share_handler.dart';
 
@@ -168,6 +169,116 @@ void main() {
           await tempDir.delete(recursive: true);
         }
       });
+
+      group('with a multi-file callback', () {
+        late Directory tempDir;
+
+        setUp(() async {
+          tempDir = await Directory.systemTemp.createTemp('test_share_');
+        });
+
+        tearDown(() async {
+          await tempDir.delete(recursive: true);
+        });
+
+        Future<String> writeFile(String name) async {
+          final path = p.join(tempDir.path, name);
+          await File(path).writeAsString('data');
+          return path;
+        }
+
+        SharedMediaFile shared(String path) =>
+            SharedMediaFile(path: path, type: SharedMediaType.file);
+
+        test('hands every shared file over when several are shared', () async {
+          final single = <String>[];
+          List<String>? multi;
+          final handler = FileShareHandler(
+            onFileReceived: (bytes, name) async => single.add(name),
+            onFilesReceived: (paths) async => multi = paths,
+          );
+          final first = await writeFile('100 Reef Single-Gas Dive.fit');
+          final second = await writeFile('101 Wall Single-Gas Dive.fit');
+
+          await handler.handleMediaFiles([shared(first), shared(second)]);
+
+          // Several dives exported from Garmin Connect at once used to lose
+          // all but the first (#1635).
+          expect(multi, [first, second]);
+          expect(single, isEmpty);
+        });
+
+        test('leaves out shared files that no longer exist', () async {
+          List<String>? multi;
+          final handler = FileShareHandler(
+            onFileReceived: (bytes, name) async {},
+            onFilesReceived: (paths) async => multi = paths,
+          );
+          final first = await writeFile('a.fit');
+          final third = await writeFile('c.fit');
+
+          await handler.handleMediaFiles([
+            shared(first),
+            shared(p.join(tempDir.path, 'missing.fit')),
+            shared(third),
+          ]);
+
+          expect(multi, [first, third]);
+        });
+
+        test('uses the single-file path when only one shared file is '
+            'readable', () async {
+          final single = <String>[];
+          var multiCalled = false;
+          final handler = FileShareHandler(
+            onFileReceived: (bytes, name) async => single.add(name),
+            onFilesReceived: (paths) async => multiCalled = true,
+          );
+          final second = await writeFile('b.fit');
+
+          await handler.handleMediaFiles([
+            shared(p.join(tempDir.path, 'missing.fit')),
+            shared(second),
+          ]);
+
+          expect(single, ['b.fit']);
+          expect(multiCalled, isFalse);
+        });
+
+        test('reports a failing multi-file callback through onError', () async {
+          Object? error;
+          final handler = FileShareHandler(
+            onFileReceived: (bytes, name) async {},
+            onFilesReceived: (paths) async => throw Exception('boom'),
+            onError: (e) => error = e,
+          );
+
+          await handler.handleMediaFiles([
+            shared(await writeFile('a.fit')),
+            shared(await writeFile('b.fit')),
+          ]);
+
+          expect(error, isA<Exception>());
+        });
+      });
+
+      test(
+        'reports an entry that is not a shared file and imports nothing',
+        () async {
+          Object? error;
+          var received = false;
+          final handler = FileShareHandler(
+            onFileReceived: (bytes, name) async => received = true,
+            onFilesReceived: (paths) async => received = true,
+            onError: (e) => error = e,
+          );
+
+          await handler.handleMediaFiles(['not a SharedMediaFile']);
+
+          expect(error, isA<TypeError>());
+          expect(received, isFalse);
+        },
+      );
 
       test('calls onError when callback throws', () async {
         Object? receivedError;

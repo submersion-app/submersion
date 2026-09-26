@@ -13,7 +13,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 const kSetupFinishFeatureRoutes = <String>[
   '/dive-computers/discover', // dive computer download
   '/transfer', // file import
-  '/statistics', // statistics
+  '/insights', // insights
   '/sites', // dive sites map
   '/equipment', // gear / service tracking
 ];
@@ -75,8 +75,8 @@ class _FinishStepState extends ConsumerState<FinishStep> {
         kSetupFinishFeatureRoutes[1],
       ),
       (
-        Icons.query_stats,
-        l10n.setup_finish_feature_statistics,
+        Icons.insights,
+        l10n.setup_finish_feature_insights,
         kSetupFinishFeatureRoutes[2],
       ),
       (

@@ -1,6 +1,6 @@
 import 'package:submersion/core/database/dive_stats_scope.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
-import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 
 /// The WHERE terms every connections query shares, for a `dives` table
 /// aliased `d`: the owning diver (when known), the always-on statistics

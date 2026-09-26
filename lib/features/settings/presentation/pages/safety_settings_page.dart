@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -13,7 +14,8 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Settings for the post-dive safety review: master toggle, per-rule
-/// visibility toggles, and a manual backfill over the whole logbook.
+/// visibility toggles, and a manual backfill over the whole logbook. Also the
+/// entry point to the equipment condition settings, which live beneath it.
 class SafetySettingsPage extends ConsumerStatefulWidget {
   const SafetySettingsPage({super.key});
 
@@ -168,6 +170,20 @@ class _SafetySettingsPageState extends ConsumerState<SafetySettingsPage> {
                 : Text(l10n.safetySettings_dismissAll_subtitle),
             enabled: enabled && !_busy,
             onTap: enabled && !_busy ? _dismissAllFindings : null,
+          ),
+          const Divider(height: 1),
+          // Independent of the safety review toggle, but locked during a sweep
+          // like every other control: pushing keeps this page mounted, so the
+          // sweep would carry on underneath the equipment condition page.
+          ListTile(
+            leading: const Icon(Icons.build_circle_outlined),
+            title: Text(l10n.settings_section_equipmentCondition_title),
+            subtitle: Text(l10n.settings_section_equipmentCondition_subtitle),
+            trailing: const Icon(Icons.chevron_right),
+            enabled: !_busy,
+            onTap: _busy
+                ? null
+                : () => context.push('/settings/safety/equipment-condition'),
           ),
         ],
       ),

@@ -6,11 +6,13 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/divers/data/repositories/diver_repository.dart';
 import 'package:submersion/features/divers/domain/entities/diver.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/data/repositories/diver_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/data/repositories/tank_preset_repository.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
 Diver _makeDiver({String name = 'Default', bool isDefault = true}) {
@@ -121,6 +123,108 @@ void main() {
         );
       },
     );
+  });
+
+  group('hidden built-in presets (issue #2305)', () {
+    late MockSettingsNotifier settings;
+
+    ProviderContainer makeHidingContainer() {
+      settings = MockSettingsNotifier();
+      return ProviderContainer(
+        overrides: [
+          sharedPreferencesProvider.overrideWithValue(prefs),
+          settingsProvider.overrideWith((ref) => settings),
+        ],
+      );
+    }
+
+    test('tankPresetsProvider leaves hidden built-in presets out', () async {
+      await seedCurrentDiver();
+      final container = makeHidingContainer();
+      addTearDown(container.dispose);
+      await settings.setTankPresetHidden('hp80', true);
+
+      final names = (await container.read(
+        tankPresetsProvider.future,
+      )).map((p) => p.name);
+      expect(names, isNot(contains('hp80')));
+      expect(names, contains('al80'));
+    });
+
+    test('tankPresetsProvider follows a change to the hidden set', () async {
+      await seedCurrentDiver();
+      final container = makeHidingContainer();
+      addTearDown(container.dispose);
+      final sub = container.listen(tankPresetsProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      expect(
+        (await container.read(tankPresetsProvider.future)).map((p) => p.name),
+        contains('lp85'),
+      );
+      await settings.setTankPresetHidden('lp85', true);
+      expect(
+        (await container.read(tankPresetsProvider.future)).map((p) => p.name),
+        isNot(contains('lp85')),
+      );
+      await settings.setTankPresetHidden('lp85', false);
+      expect(
+        (await container.read(tankPresetsProvider.future)).map((p) => p.name),
+        contains('lp85'),
+      );
+    });
+
+    test('a synced row that hides the default: the default stays offered, '
+        'and moving the default does not hide it', () async {
+      // The notifier never writes the default into the hidden set, but a
+      // synced diver_settings row can carry one.
+      final diverId = await seedCurrentDiver();
+      await DiverSettingsRepository().getOrCreateSettingsForDiver(diverId);
+      await DiverSettingsRepository().updateSettingsForDiver(
+        diverId,
+        const AppSettings(
+          defaultTankPreset: 'hp100',
+          hiddenTankPresetIds: {'hp100', 'lp85'},
+        ),
+      );
+      final container = makeContainer();
+      addTearDown(container.dispose);
+      final sub = container.listen(tankPresetsProvider, (_, _) {});
+      addTearDown(sub.close);
+      final notifier = container.read(settingsProvider.notifier);
+      await notifier.initialLoad;
+
+      var names = (await container.read(
+        tankPresetsProvider.future,
+      )).map((p) => p.name);
+      expect(names, contains('hp100'));
+      expect(names, isNot(contains('lp85')));
+
+      await notifier.setDefaultTankPreset('al80');
+      expect(container.read(settingsProvider).hiddenTankPresetIds, {'lp85'});
+      names = (await container.read(
+        tankPresetsProvider.future,
+      )).map((p) => p.name);
+      expect(names, contains('hp100'));
+    });
+
+    test('the settings page list keeps every preset', () async {
+      await seedCurrentDiver();
+      final container = makeHidingContainer();
+      addTearDown(container.dispose);
+      await settings.setTankPresetHidden('hp80', true);
+      final sub = container.listen(tankPresetListNotifierProvider, (_, _) {});
+      addTearDown(sub.close);
+
+      while (container.read(tankPresetListNotifierProvider).isLoading) {
+        await Future<void>.delayed(Duration.zero);
+      }
+      final names = container
+          .read(tankPresetListNotifierProvider)
+          .value!
+          .map((p) => p.name);
+      expect(names, contains('hp80'));
+    });
   });
 
   group('tankPresetListNotifierProvider '

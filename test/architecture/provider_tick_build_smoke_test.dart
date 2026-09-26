@@ -37,6 +37,7 @@ import 'package:submersion/features/connections/domain/entities/node_ref.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
 import 'package:submersion/features/courses/presentation/providers/course_providers.dart';
 import 'package:submersion/features/cylinder_configs/presentation/providers/cylinder_config_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/dashboard/presentation/providers/dashboard_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
 import 'package:submersion/features/dive_computer/presentation/providers/download_providers.dart';
@@ -67,7 +68,7 @@ import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_pro
 import 'package:submersion/features/settings/presentation/pages/connected_accounts_page.dart';
 import 'package:submersion/features/settings/presentation/pages/photos_media_setup_page.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/tags/presentation/providers/tag_providers.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/features/trips/data/repositories/trip_repository.dart';
@@ -544,6 +545,14 @@ void main() {
 
   _tickGroup('equipment', [
     (
+      name: 'passportIdProvider',
+      read: (c) => c.read(passportIdProvider('missing').future),
+    ),
+    (
+      name: 'fillsForEquipmentProvider',
+      read: (c) => c.read(fillsForEquipmentProvider('missing').future),
+    ),
+    (
       name: 'activeEquipmentClocksProvider',
       read: (c) => c.read(activeEquipmentClocksProvider.future),
     ),
@@ -793,7 +802,7 @@ void main() {
     ),
   ]);
 
-  _tickGroup('statistics', [
+  _tickGroup('insights', [
     (
       name: 'filteredDiveStatisticsProvider',
       read: (c) => c.read(filteredDiveStatisticsProvider.future),

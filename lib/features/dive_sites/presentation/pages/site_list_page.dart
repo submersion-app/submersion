@@ -63,6 +63,14 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
     }
   }
 
+  /// Leaves a pane whose site was just deleted: drops the selection from the
+  /// URL and the list's highlight, which would otherwise keep pointing at a
+  /// site that no longer exists.
+  void _leaveDeletedSite(BuildContext context) {
+    ref.read(highlightedSiteIdProvider.notifier).state = null;
+    context.go(GoRouterState.of(context).uri.path);
+  }
+
   @override
   Widget build(BuildContext context) {
     final fab = FloatingActionButton.extended(
@@ -93,10 +101,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
         detailBuilder: (context, id) => SiteDetailPage(
           siteId: id,
           embedded: true,
-          onDeleted: () {
-            final state = GoRouterState.of(context);
-            context.go(state.uri.path);
-          },
+          onDeleted: () => _leaveDeletedSite(context),
         ),
         summaryBuilder: (context) => const SiteSummaryWidget(),
         editBuilder: (context, id, onSaved, onCancel) => SiteEditPage(
@@ -104,6 +109,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
           embedded: true,
           onSaved: onSaved,
           onCancel: onCancel,
+          onDeleted: () => _leaveDeletedSite(context),
         ),
         createBuilder: (context, onSaved, onCancel) =>
             SiteEditPage(embedded: true, onSaved: onSaved, onCancel: onCancel),
@@ -257,11 +263,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
           detailBuilder: (context, id) => SiteDetailPage(
             siteId: id,
             embedded: true,
-            onDeleted: () {
-              final state = GoRouterState.of(context);
-              final currentPath = state.uri.path;
-              context.go(currentPath);
-            },
+            onDeleted: () => _leaveDeletedSite(context),
           ),
           summaryBuilder: (context) => const SiteSummaryWidget(),
           mapBuilder: (context, selectedId, onItemSelected) => SiteMapContent(
@@ -279,6 +281,7 @@ class _SiteListPageState extends ConsumerState<SiteListPage> {
             embedded: true,
             onSaved: onSaved,
             onCancel: onCancel,
+            onDeleted: () => _leaveDeletedSite(context),
           ),
           createBuilder: (context, onSaved, onCancel) => SiteEditPage(
             embedded: true,

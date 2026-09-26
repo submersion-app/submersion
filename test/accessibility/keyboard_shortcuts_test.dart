@@ -191,7 +191,7 @@ void main() {
       expect(labels, contains('Go to Dives'));
       expect(labels, contains('Go to Sites'));
       expect(labels, contains('Go to Equipment'));
-      expect(labels, contains('Go to Statistics'));
+      expect(labels, contains('Go to Insights'));
       expect(labels, contains('Go to Settings'));
       expect(labels, contains('Search dives'));
       expect(labels, contains('Go back'));

@@ -86,7 +86,7 @@ void main() {
     });
 
     Future<String> writeFile(String name, String contents) async {
-      final file = File('${root.path}/$name');
+      final file = File(p.join(root.path, name));
       await file.writeAsString(contents);
       return (await sha256OfFile(file)).hash;
     }
@@ -153,7 +153,7 @@ void main() {
       await writeFile('gone.jpg', 'zzzz');
       await scanner().scan(now: DateTime(2026, 6, 12));
 
-      await File('${root.path}/gone.jpg').delete();
+      await File(p.join(root.path, 'gone.jpg')).delete();
       await scanner().scan(now: DateTime(2026, 6, 13));
 
       expect((await watched.indexForRoot(root.path)).keys, ['a.jpg']);
@@ -170,7 +170,7 @@ void main() {
 
       expect(report.autoRepaired, 1);
       final repaired = (await repo.getMediaById('m1'))!;
-      expect(repaired.localPath, '${root.path}/a.jpg');
+      expect(repaired.localPath, p.join(root.path, 'a.jpg'));
       expect(repaired.isOrphaned, isFalse);
     });
 
@@ -209,7 +209,9 @@ void main() {
     });
 
     test('nested files index under a separator-relative path', () async {
-      await Directory('${root.path}/2026/june').create(recursive: true);
+      await Directory(
+        p.join(root.path, '2026', 'june'),
+      ).create(recursive: true);
       await writeFile('2026/june/a.jpg', 'aaaa');
 
       await scanner().scan(now: DateTime(2026, 6, 12));
@@ -235,7 +237,7 @@ void main() {
     });
 
     test('an auto-applied repair points at the real file', () async {
-      await Directory('${root.path}/2026').create(recursive: true);
+      await Directory(p.join(root.path, '2026')).create(recursive: true);
       final hash = await writeFile('2026/a.jpg', 'aaaa');
       await seedMissing('m1', hash);
       final missing = (await repo.getMediaById('m1'))!;
@@ -256,7 +258,7 @@ void main() {
       // Index it, then delete the file WITHOUT re-scanning: the index still
       // claims the bytes are there.
       await scanner().scan(now: DateTime(2026, 6, 12));
-      await File('${root.path}/a.jpg').delete();
+      await File(p.join(root.path, 'a.jpg')).delete();
 
       final report = await scanner(
         missing: () => [missing],

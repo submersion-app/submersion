@@ -27,7 +27,7 @@ import 'package:submersion/shared/widgets/app_date_picker.dart';
 /// This page provides a comprehensive form for searching dives with
 /// all available filter criteria. It edits whichever filter the surface that
 /// opened it owns: the dive list's [diveFilterProvider] by default, or the
-/// Statistics tab's own filter when that section pushes the page with its
+/// Insights tab's own filter when that section pushes the page with its
 /// provider as the route `extra` (#1079). Applying the dive-list filter takes
 /// the user to the dive list; applying any other section's filter returns to
 /// that section, which is already showing the filtered results.

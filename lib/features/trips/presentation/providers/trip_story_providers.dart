@@ -6,7 +6,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/marine_life/domain/entities/species.dart';
 import 'package:submersion/features/marine_life/presentation/providers/species_providers.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 import 'package:submersion/features/trips/domain/entities/trip_story.dart';
 import 'package:submersion/features/trips/domain/services/trip_story_builder.dart';
 import 'package:submersion/features/trips/presentation/providers/liveaboard_providers.dart';
@@ -104,6 +104,6 @@ final siteHistoryByNameProvider = FutureProvider.autoDispose
       if (diverId == null) {
         return (diveCount: 0, avgWaterTemp: null, avgMaxDepth: null);
       }
-      final repository = ref.watch(statisticsRepositoryProvider);
+      final repository = ref.watch(insightsRepositoryProvider);
       return repository.getSiteHistoryByName(siteName, diverId: diverId);
     });

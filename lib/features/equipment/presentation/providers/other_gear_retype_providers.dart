@@ -5,7 +5,7 @@ import 'package:submersion/features/divers/presentation/providers/diver_provider
 import 'package:submersion/features/equipment/data/services/other_gear_retype_service.dart';
 import 'package:submersion/features/equipment/domain/entities/other_gear_retype.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 
 final otherGearRetypeServiceProvider = Provider<OtherGearRetypeService>(
   (ref) => OtherGearRetypeService(ref.watch(equipmentRepositoryProvider)),

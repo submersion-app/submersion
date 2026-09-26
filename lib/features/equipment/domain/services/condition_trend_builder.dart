@@ -5,7 +5,7 @@ import 'package:submersion/features/equipment/domain/entities/dive_sensor_summar
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_observation.dart';
 import 'package:submersion/features/equipment/domain/entities/service_clock_status.dart';
-import 'package:submersion/features/statistics/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/domain/trend_aggregation.dart';
 
 /// The default trend kind for an item type, or null for a type with no
 /// per-dive sensor story (a mask, a fin, a cylinder).

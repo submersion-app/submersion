@@ -2,7 +2,6 @@ import 'dart:ui' as ui show ImageByteFormat;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/export/export_service.dart';
@@ -10,22 +9,19 @@ import 'package:submersion/core/utils/currency.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart'
-    show GasMix;
 import 'package:submersion/features/gas_calculators/domain/blending/billed_fill.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_gas_role.dart';
-import 'package:submersion/features/gas_calculators/domain/blending/blender_preferences.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/flush_fee.dart';
 import 'package:submersion/features/gas_calculators/presentation/gas_calculator_tools.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/gas_blender_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_billed_line_row.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_formatting.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_invoice_export_sheet.dart';
+import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_line_edit_sheet.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_section_title.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_table_style.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/blender_volume_conversion.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
 
@@ -779,17 +775,6 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
               units: units,
               decimals: decimals,
             ),
-          if (fill.customMix case final mix?)
-            Padding(
-              padding: const EdgeInsets.only(left: 16, top: 2),
-              child: Text(
-                '${units.formatVolume(mix.cylinderLiters)} · '
-                '${formatPreciseMix(context, GasMix(o2: mix.o2, he: mix.he))}',
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
         ],
       ),
     );
@@ -840,16 +825,18 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
     saveBlenderPreferences(ref);
   }
 
-  /// Edit an existing line, or add a manual one when [fill] is null.
+  /// Edit an existing line, or add a hand-entered one when [fill] is null.
   ///
-  /// The amount stays editable on computed fills too: rounding and the
-  /// occasional discount happen at a real counter, and re-blending the
-  /// cylinder to change what it costs would be absurd.
+  /// The amount stays editable on computed fills and free-amount lines:
+  /// rounding and the occasional discount happen at a real counter, and
+  /// re-blending the cylinder to change what it costs would be absurd. A gas
+  /// fill entered here is the exception, priced from what was filled
+  /// (issue #2302).
   Future<void> _editLine(BilledFill? fill) async {
-    final edited = await showModalBottomSheet<_LineEdit>(
+    final edited = await showModalBottomSheet<BlenderLineEdit>(
       context: context,
       isScrollControlled: true,
-      builder: (context) => _LineEditSheet(fill: fill),
+      builder: (context) => BlenderLineEditSheet(fill: fill),
     );
     if (edited == null) return;
 
@@ -860,9 +847,8 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
         BilledFill(
           id: DateTime.now().microsecondsSinceEpoch.toString(),
           label: edited.label,
-          lines: const [],
+          lines: edited.lines ?? const [],
           total: edited.amount,
-          customMix: edited.customMix,
         ),
       );
     } else {
@@ -871,10 +857,9 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
           if (f.id == fill.id)
             f.copyWith(
               label: edited.label,
+              lines: edited.lines,
               total: edited.amount,
               clearTotal: edited.amount == null,
-              customMix: edited.customMix,
-              clearCustomMix: edited.customMix == null,
             )
           else
             f,
@@ -940,312 +925,3 @@ class _BlenderInvoiceCardState extends ConsumerState<BlenderInvoiceCard> {
 
 /// The two actions offered by a fill line's overflow menu.
 enum _FillLineAction { edit, delete }
-
-/// What the edit sheet hands back.
-class _LineEdit {
-  const _LineEdit({required this.label, required this.amount, this.customMix});
-  final String label;
-  final double? amount;
-  final BilledCustomMix? customMix;
-}
-
-/// Owns its own controllers, and disposes them in its own State.
-///
-/// Creating them in the caller and disposing on the sheet's future looks
-/// equivalent and is not: the future completes when the route is popped, while
-/// the exit transition keeps rebuilding these fields for several more frames
-/// against a controller that is already gone.
-///
-/// A scrollable, keyboard-aware bottom sheet rather than the fixed-size
-/// `AlertDialog` this replaced: a cylinder row and an O2/He row roughly
-/// double the field count, and a taller fixed dialog risks overflow once the
-/// keyboard is up on the narrowest phone the app supports (issue #1335).
-class _LineEditSheet extends ConsumerStatefulWidget {
-  const _LineEditSheet({required this.fill});
-
-  final BilledFill? fill;
-
-  @override
-  ConsumerState<_LineEditSheet> createState() => _LineEditSheetState();
-}
-
-class _LineEditSheetState extends ConsumerState<_LineEditSheet> {
-  late final TextEditingController _label;
-  late final TextEditingController _amount;
-  late final TextEditingController _cylinder;
-  late final TextEditingController _o2;
-  late final TextEditingController _he;
-
-  /// Only a new line or one that is still a manual/custom-mix entry offers
-  /// the cylinder and mix fields. A computed fill's gases are already
-  /// itemised in [BilledFill.lines]; editing them here would let the label
-  /// and the itemisation disagree.
-  bool get _showMix => widget.fill == null || widget.fill!.isManual;
-
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    final fill = widget.fill;
-    final settings = ref.read(settingsProvider);
-    _label = TextEditingController(text: fill?.label ?? '');
-    _amount = TextEditingController(
-      text: fill?.total == null ? '' : formatRoundedForInput(fill!.total!, 2),
-    );
-    final mix = fill?.customMix;
-    final double cylinderLiters =
-        mix?.cylinderLiters ?? ref.read(blenderCylinderLitersProvider);
-    _cylinder = TextEditingController(
-      text: formatRoundedForInput(
-        litersToDisplayVolume(cylinderLiters, settings),
-        2,
-      ),
-    );
-    _o2 = TextEditingController(text: formatRoundedForInput(mix?.o2 ?? 21, 1));
-    _he = TextEditingController(text: formatRoundedForInput(mix?.he ?? 0, 1));
-  }
-
-  @override
-  void dispose() {
-    _label.dispose();
-    _amount.dispose();
-    _cylinder.dispose();
-    _o2.dispose();
-    _he.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    final label = _label.text.trim();
-    final amount = parseUserDecimal(_amount.text);
-    BilledCustomMix? customMix;
-    if (_showMix) {
-      final settings = ref.read(settingsProvider);
-      final liters = parseUserDecimal(_cylinder.text);
-      final o2 = parseUserDecimal(_o2.text);
-      final he = parseUserDecimal(_he.text);
-      if (liters != null && o2 != null && he != null) {
-        if (!MixTemplate(o2: o2, he: he).isValid) {
-          setState(
-            () => _error = context.l10n.gasCalculators_blender_error_invalidMix,
-          );
-          return;
-        }
-        customMix = BilledCustomMix(
-          cylinderLiters: displayVolumeToLiters(liters, settings),
-          o2: o2,
-          he: he,
-        );
-      }
-    }
-    final effectiveLabel = label.isNotEmpty
-        ? label
-        : customMix != null
-        ? formatPreciseMix(context, GasMix(o2: customMix.o2, he: customMix.he))
-        : '';
-    // Nothing to name the line with. Said out loud rather than returned on
-    // quietly: a Save that does nothing and explains nothing reads as a
-    // broken button (PR #1359 review), the same reasoning MixTemplateManager
-    // applies to a half-typed mix.
-    if (effectiveLabel.isEmpty) {
-      setState(
-        () => _error = context.l10n.gasCalculators_blender_lineNeedsDescription,
-      );
-      return;
-    }
-    Navigator.of(context).pop(
-      _LineEdit(label: effectiveLabel, amount: amount, customMix: customMix),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final fill = widget.fill;
-    final settings = ref.watch(settingsProvider);
-    final units = UnitFormatter(settings);
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: 16,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              fill == null
-                  ? context.l10n.gasCalculators_blender_addManualLine
-                  : context.l10n.gasCalculators_blender_editLine(fill.label),
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              key: const Key('blender-line-description'),
-              controller: _label,
-              autofocus: true,
-              decoration: InputDecoration(
-                labelText: context.l10n.gasCalculators_blender_lineDescription,
-                isDense: true,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (_showMix) ...[
-              _cylinderRow(context, settings, units),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _numberField(
-                      context,
-                      _o2,
-                      context.l10n.gasCalculators_blender_o2,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: _numberField(
-                      context,
-                      _he,
-                      context.l10n.gasCalculators_blender_he,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-            ],
-            TextField(
-              key: const Key('blender-line-amount'),
-              controller: _amount,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              onSubmitted: (_) => _submit(),
-              decoration: InputDecoration(
-                labelText: context.l10n.gasCalculators_blender_lineAmount,
-                isDense: true,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            if (_error != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: Text(
-                  _error!,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                ),
-              ),
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: _submit,
-              child: Text(context.l10n.common_action_save),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _cylinderRow(
-    BuildContext context,
-    AppSettings settings,
-    UnitFormatter units,
-  ) {
-    // Sourced from the diver's global tank presets (issue #1335 follow-up),
-    // same as BlenderBillingCard._cylinderRow: the blender keeps no cylinder
-    // vault of its own, so this sheet's picker reads the same list.
-    final presetsAsync = ref.watch(tankPresetsProvider);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: TextField(
-            key: const Key('blender-line-cylinder'),
-            controller: _cylinder,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputFormatters: [
-              FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
-            ],
-            decoration: InputDecoration(
-              labelText:
-                  '${context.l10n.gasCalculators_blender_cylinderVolume} '
-                  '(${units.volumeSymbol})',
-              isDense: true,
-              border: const OutlineInputBorder(),
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        presetsAsync.when(
-          loading: () => const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-            child: SizedBox(
-              width: 24,
-              height: 24,
-              child: CircularProgressIndicator(strokeWidth: 2),
-            ),
-          ),
-          error: (error, stackTrace) => IconButton(
-            icon: const Icon(Icons.error_outline),
-            tooltip: context.l10n.gasCalculators_blender_cylinderPresets,
-            onPressed: null,
-          ),
-          data: (presets) => PopupMenuButton<double>(
-            key: const Key('blender-line-cylinder-presets'),
-            tooltip: context.l10n.gasCalculators_blender_cylinderPresets,
-            position: PopupMenuPosition.under,
-            itemBuilder: (context) => [
-              for (final preset in presets)
-                PopupMenuItem<double>(
-                  value: preset.volumeLiters,
-                  child: Text(
-                    '${preset.displayName} '
-                    '(${units.formatTankVolume(preset.volumeLiters, null)})',
-                  ),
-                ),
-            ],
-            onSelected: (liters) => setState(
-              () => _cylinder.text = formatRoundedForInput(
-                litersToDisplayVolume(liters, settings),
-                2,
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(context.l10n.gasCalculators_blender_cylinderPresets),
-                  const Icon(Icons.arrow_drop_down),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _numberField(
-    BuildContext context,
-    TextEditingController controller,
-    String label,
-  ) {
-    return TextField(
-      controller: controller,
-      keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
-      decoration: InputDecoration(
-        labelText: '$label (%)',
-        isDense: true,
-        border: const OutlineInputBorder(),
-      ),
-    );
-  }
-}

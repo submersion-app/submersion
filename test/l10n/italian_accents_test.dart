@@ -62,7 +62,7 @@ void main() {
     'diveLog_sources_separateDialog_body': {'unita'},
     'gpsTrack_colorMode_uniform': {'unita'},
     'species_peacock_flounder_name': {'passera'},
-    'statistics_timePatterns_month_jun': {'giu'},
+    'insights_timePatterns_month_jun': {'giu'},
   };
 
   /// Dart's `\b` is ASCII-only: `\w` does not include `ù`, so `\bpiu\b`

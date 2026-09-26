@@ -8,7 +8,7 @@ import 'package:submersion/features/planning/presentation/widgets/planning_list_
 import 'package:submersion/features/planning/presentation/widgets/planning_tool_pane.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
-/// The Gas Calculators list: the six calculators, then the safety disclaimer.
+/// The Gas Calculators list: the calculators, then the safety disclaimer.
 ///
 /// Rendered on its own on narrow windows, and as the master pane of the Gas
 /// Calculators split view on desktop. [onToolSelected] is supplied only in the
@@ -39,7 +39,7 @@ class GasCalculatorsListContent extends ConsumerWidget {
     final tools = gasCalculatorToolsOf(context);
 
     // Reset belongs to the list rather than to any one calculator: it returns
-    // all six to their defaults at once.
+    // all of them to their defaults at once.
     final actions = [
       IconButton(
         icon: const Icon(Icons.refresh),

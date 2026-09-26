@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/gas_model.dart';
 import 'package:submersion/core/deco/constants/buhlmann_coefficients.dart';
+import 'package:submersion/core/deco/max_operating_depth.dart';
 import 'package:submersion/core/utils/gas_compressibility.dart';
 import 'package:submersion/features/buddies/domain/entities/buddy.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart';
@@ -1276,10 +1277,11 @@ class GasMix extends Equatable {
     return '$roundedO2% O2';
   }
 
-  /// Maximum Operating Depth (MOD) at given ppO2
-  double mod({double ppO2 = 1.4}) {
-    return ((ppO2 / (o2 / 100)) - 1) * 10;
-  }
+  /// Maximum Operating Depth (MOD) at given ppO2, exact and unrounded.
+  ///
+  /// Round it down for display with `UnitFormatter.formatDepthFloor`.
+  double mod({double ppO2 = 1.4}) =>
+      maxOperatingDepthMeters(o2 / 100, maxPpO2: ppO2);
 
   /// Equivalent Narcotic Depth at given depth.
   ///

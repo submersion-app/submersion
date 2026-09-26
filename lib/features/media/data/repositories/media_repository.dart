@@ -205,23 +205,35 @@ class MediaRepository {
   /// dive is excluded too, because the dashboard ribbon links each tile to
   /// its dive and an unattached item would render as a dead tile. Backs the
   /// dashboard media ribbon.
-  Future<List<domain.MediaItem>> getRecentMedia({int limit = 12}) async {
+  ///
+  /// [diverId] limits the result to media on that diver's dives, so a
+  /// secondary diver never sees another profile's photos. Null leaves the
+  /// query unscoped, matching every other diver-scoped repository.
+  Future<List<domain.MediaItem>> getRecentMedia({
+    int limit = 12,
+    String? diverId,
+  }) async {
     try {
       final browsableTypes = [
         mediaTypeToDbString(domain.MediaType.photo),
         mediaTypeToDbString(domain.MediaType.video),
       ];
+      Expression<bool> where =
+          _db.media.fileType.isIn(browsableTypes) &
+          _db.media.diveId.isNotNull();
+      if (diverId != null) {
+        where = where & _db.dives.diverId.equals(diverId);
+      }
       final query =
           _db.select(_db.media).join([
               leftOuterJoin(
                 _db.mediaEnrichment,
                 _db.mediaEnrichment.mediaId.equalsExp(_db.media.id),
               ),
+              if (diverId != null)
+                innerJoin(_db.dives, _db.dives.id.equalsExp(_db.media.diveId)),
             ])
-            ..where(
-              _db.media.fileType.isIn(browsableTypes) &
-                  _db.media.diveId.isNotNull(),
-            )
+            ..where(where)
             ..orderBy([OrderingTerm.desc(_db.media.takenAt)])
             ..limit(limit);
 

@@ -268,9 +268,16 @@ void main() {
         final port = _FakeBookmarkPort();
 
         // Guard: the buggy code path creates a stray 'content:' dir under CWD.
+        // Best-effort: Windows rejects the colon outright, so exists() throws
+        // there instead of answering false, and the stray it guards against
+        // cannot be created in the first place.
         addTearDown(() async {
-          final stray = Directory('content:');
-          if (await stray.exists()) await stray.delete(recursive: true);
+          try {
+            final stray = Directory('content:');
+            if (await stray.exists()) await stray.delete(recursive: true);
+          } on FileSystemException {
+            return;
+          }
         });
 
         final lease = await BackupService.resolveBackupsDirectoryLeased(

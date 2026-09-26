@@ -935,7 +935,7 @@ class SubsurfaceXmlParser implements ImportParser {
       // Pressure *readings* (`start`, `end`) are sensor artifacts that
       // Subsurface dive computers can emit for phantom cylinder slots
       // (see the `does not invent extra tanks from placeholder cylinders`
-      // regression test using subsurface_export.ssrf) — these are excluded
+      // regression test using fixtures/shore-log.ssrf); these are excluded
       // from the preservation signal on purpose. Empty-string attribute
       // values (e.g., `<cylinder o2='' />`) also count as absent.
       final hasAnyCylinderProperty =
@@ -1179,11 +1179,14 @@ class SubsurfaceXmlParser implements ImportParser {
     _ => null,
   };
 
+  // Subsurface rates every dive condition on a comfort scale: five stars is
+  // the most comfortable condition and one star the least. For current that
+  // means five stars is no current and one star is the strongest (#1857).
   static CurrentStrength? _mapCurrentStrength(int? value) => switch (value) {
-    1 => CurrentStrength.none,
-    2 => CurrentStrength.light,
+    1 || 2 => CurrentStrength.strong,
     3 => CurrentStrength.moderate,
-    4 || 5 => CurrentStrength.strong,
+    4 => CurrentStrength.light,
+    5 => CurrentStrength.none,
     _ => null,
   };
 

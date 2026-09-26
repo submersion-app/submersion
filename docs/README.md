@@ -49,11 +49,11 @@ Track all your gear with service reminders and maintenance history. Create equip
 
 [Manage your gear &rarr;](guide/equipment.md)
 
-### Statistics & Analytics
+### Insights
 
 Eleven specialized dashboards for deep insights into your diving. Track personal records, gas consumption, dive patterns, buddy stats, and more.
 
-[View statistics features &rarr;](guide/statistics.md)
+[View Insights features &rarr;](guide/insights.md)
 
 ### Sites & Maps
 

@@ -9,7 +9,7 @@ Welcome to Submersion! This guide will help you get up and running with your new
 3. [**Dive Logging**](guide/dive-logging.md) - Master all the dive entry features
 4. [**Dive Sites**](guide/dive-sites.md) - Manage your dive site database
 5. [**Equipment**](guide/equipment.md) - Track your gear and service schedules
-6. [**Statistics**](guide/statistics.md) - Understand your diving analytics
+6. [**Insights**](guide/insights.md) - Understand your diving analytics
 7. [**Import/Export**](guide/import-export.md) - Move data in and out
 8. [**Dive Computers**](guide/dive-computer.md) - Connect and download dives
 9. [**Settings**](guide/settings.md) - Customize Submersion for you

@@ -59,7 +59,7 @@ void main() {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
         validatedCurrentDiverIdProvider.overrideWith((ref) async => diverId),
-        // statisticsRepositoryProvider watches the gas model (issue #828),
+        // insightsRepositoryProvider watches the gas model (issue #828),
         // which otherwise builds the real SettingsNotifier and leaves its
         // async load running past this container's disposal.
         gasModelProvider.overrideWith((ref) => GasModel.real),

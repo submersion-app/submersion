@@ -23,17 +23,16 @@ void main() {
       // bottom-bar slots. Those must stay slots 1-3 so the bar survives the
       // upgrade unchanged.
       final result = normalizeNavOrder(
-        stored: const ['equipment', 'buddies', 'statistics'],
+        stored: const ['equipment', 'buddies', 'insights'],
         movableIds: movableNavIds,
       );
 
-      expect(result.take(3).toList(), ['equipment', 'buddies', 'statistics']);
+      expect(result.take(3).toList(), ['equipment', 'buddies', 'insights']);
       expect(
         result.skip(3).toList(),
         movableNavIds
             .where(
-              (id) =>
-                  !const ['equipment', 'buddies', 'statistics'].contains(id),
+              (id) => !const ['equipment', 'buddies', 'insights'].contains(id),
             )
             .toList(),
       );

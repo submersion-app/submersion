@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:cross_file/cross_file.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/files/picked_file_materializer.dart';
 
 import '../../../helpers/mock_file_picker_platform.dart';
@@ -37,7 +38,7 @@ void main() {
   });
 
   Future<File> writeSource(String name, String contents) async {
-    final f = File('${tmp.path}/$name');
+    final f = File(p.join(tmp.path, name));
     await f.writeAsString(contents);
     return f;
   }
@@ -45,7 +46,7 @@ void main() {
   test('returns an empty list without touching the temp directory', () async {
     expect(await materializePickedFiles(const []), isEmpty);
     expect(
-      Directory('${tmp.path}/picked').existsSync(),
+      Directory(p.join(tmp.path, 'picked')).existsSync(),
       isFalse,
       reason: 'nothing to copy means no scratch directory should be created',
     );

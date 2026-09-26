@@ -538,6 +538,75 @@ void main() {
       expect(find.byType(SiteEditPage), findsOneWidget);
     });
 
+    /// Pumps the page on [initialLocation] with 'test-site-id' highlighted,
+    /// runs [onDeleted] from the pane [pane] builds, and returns the
+    /// highlighted id left behind.
+    Future<String?> highlightAfterDelete<T extends Widget>(
+      WidgetTester tester, {
+      required ListViewMode viewMode,
+      required String initialLocation,
+      required VoidCallback? Function(T pane) onDeleted,
+    }) async {
+      tester.view.devicePixelRatio = 1.0;
+      tester.view.physicalSize = const Size(1200, 800);
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final overrides = await _buildOverrides(viewMode: viewMode);
+      await tester.pumpWidget(
+        _buildTestWidget(
+          child: const SiteListPage(),
+          overrides: [
+            ...overrides,
+            tableDetailsPaneProvider('sites').overrideWith((ref) => true),
+            highlightedSiteIdProvider.overrideWith((ref) => 'test-site-id'),
+          ],
+          initialLocation: initialLocation,
+        ),
+      );
+      await tester.pump();
+      tester.takeException();
+      await tester.pump();
+      tester.takeException();
+
+      onDeleted(tester.widget<T>(find.byType(T)))!();
+      await tester.pump();
+      tester.takeException();
+
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(SiteListPage)),
+      );
+      return container.read(highlightedSiteIdProvider);
+    }
+
+    for (final viewMode in [ListViewMode.table, ListViewMode.detailed]) {
+      testWidgets('${viewMode.name} mode: deleting from the edit pane clears '
+          'the highlighted site', (tester) async {
+        final highlighted = await highlightAfterDelete<SiteEditPage>(
+          tester,
+          viewMode: viewMode,
+          initialLocation: '/sites?selected=test-site-id&mode=edit',
+          onDeleted: (pane) => pane.onDeleted,
+        );
+
+        expect(highlighted, isNull);
+      });
+
+      testWidgets('${viewMode.name} mode: deleting from the detail pane '
+          'clears the highlighted site', (tester) async {
+        final highlighted = await highlightAfterDelete<SiteDetailPage>(
+          tester,
+          viewMode: viewMode,
+          initialLocation: '/sites?selected=test-site-id',
+          onDeleted: (pane) => pane.onDeleted,
+        );
+
+        expect(highlighted, isNull);
+      });
+    }
+
     testWidgets('table mode filter button opens filter sheet', (tester) async {
       tester.view.devicePixelRatio = 1.0;
       tester.view.physicalSize = const Size(1200, 800);

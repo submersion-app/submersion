@@ -891,9 +891,14 @@ class SyncService {
         message: e.message,
       );
     } on CloudStorageException catch (e) {
+      // toString carries the underlying cause the message omits, which is
+      // what a user's diagnostics need to tell an outage from a sign-in.
+      _log.warning('Sync failed: $e');
       return SyncResult(
         status: SyncResultStatus.networkError,
-        message: e.message,
+        message: _causedByTimeout(e)
+            ? _l10n.settings_cloudSync_result_timedOut
+            : e.message,
       );
     } catch (e, stackTrace) {
       _log.error('Changeset sync failed', error: e, stackTrace: stackTrace);
@@ -940,6 +945,14 @@ class SyncService {
     } on SyncEncryptionRequired {
       // Not unreadable-corrupt: encrypted. Reaches performSync's handler,
       // which halts with awaitingPassphrase instead of a generic error.
+      rethrow;
+    } on TimeoutException {
+      // Not unreadable either: the backend could not be reached. This is the
+      // sync's first cloud request, so a dead connection or an expired
+      // sign-in surfaces here first. performSync's handlers still halt the
+      // sync, but say what went wrong instead of blaming the marker (#2332).
+      rethrow;
+    } on CloudStorageException {
       rethrow;
     } catch (e) {
       _log.warning('Library epoch marker unreadable; failing closed: $e');
@@ -1181,6 +1194,18 @@ class SyncService {
     }
   }
 
+  /// True when [e] is a provider's report of a missed deadline. Providers put
+  /// HTTP timeouts on every request and wrap a miss like any other failure,
+  /// sometimes more than once as calls nest, so the chain of causes is walked
+  /// rather than only the first link.
+  static bool _causedByTimeout(CloudStorageException e) {
+    Object? cause = e.cause;
+    while (cause is CloudStorageException) {
+      cause = cause.cause;
+    }
+    return cause is TimeoutException;
+  }
+
   String _formatSyncError(Object error, StackTrace stackTrace) {
     final trace = stackTrace.toString().split('\n');
     final location = trace.firstWhere(
@@ -1343,6 +1368,7 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (type: 'gpsTracks', records: data.gpsTracks, hasUpdatedAt: true),
+          (type: 'navTracks', records: data.navTracks, hasUpdatedAt: true),
           (type: 'divePlans', records: data.divePlans, hasUpdatedAt: true),
           (
             type: 'divePlanTanks',
@@ -1433,6 +1459,11 @@ class SyncService {
           (
             type: 'transmitters',
             records: data.transmitters,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'cylinderFills',
+            records: data.cylinderFills,
             hasUpdatedAt: true,
           ),
           (type: 'species', records: data.species, hasUpdatedAt: false),
@@ -2334,6 +2365,7 @@ class SyncService {
     'preDiveSessions': true,
     'preDiveSessionItems': true,
     'gpsTracks': true,
+    'navTracks': true,
     'divePlans': true,
     'divePlanTanks': true,
     'divePlanSegments': true,
@@ -2357,6 +2389,7 @@ class SyncService {
     'weightPresetEntries': false,
     'diveComputers': true,
     'transmitters': true,
+    'cylinderFills': true,
     'species': false,
     'tags': true,
     'courses': true,
@@ -2457,6 +2490,25 @@ class SyncService {
   /// before the diver's tombstone reached it, is cleared by
   /// SyncDataSerializer.repairDanglingForeignKeys, which drops the row
   /// instead where the column is NOT NULL.)
+  /// Fields cleared together with a set-null [parentRefs] reference when
+  /// its parent is tombstoned, keyed by entity type and then by the
+  /// reference's field: values that only mean something while the
+  /// reference is set.
+  ///
+  /// navTracks.linkMode records HOW diveId got linked ('auto'/'manual') and
+  /// is null exactly when diveId is (nav_tracks schema comment,
+  /// database.dart). Clearing it here keeps that invariant when a peer's
+  /// still-linked route arrives after this device already tombstoned its
+  /// dive, mirroring what NavTrackRepository does for the same unlink on
+  /// the local delete path. isPrimary is left alone: it is NOT NULL with a
+  /// default, and nothing reads it without also filtering on diveId.
+  @visibleForTesting
+  static const Map<String, Map<String, List<String>>> alsoClearedWithParent = {
+    'navTracks': {
+      'diveId': ['linkMode'],
+    },
+  };
+
   @visibleForTesting
   static const Map<String, List<ParentRef>> parentRefs = {
     'dives': [
@@ -2488,6 +2540,11 @@ class SyncService {
       // v206: the transmitter gear item the entry is (condition phase 3b).
       (field: 'transmitterEquipmentId', parent: 'equipment', nullable: true),
       (field: 'diveComputerId', parent: 'diveComputers', nullable: true),
+    ],
+    // The gear link is nullable: a fill outlives a deleted cylinder (set
+    // null) and a fill of a rental cylinder never had one.
+    'cylinderFills': [
+      (field: 'equipmentId', parent: 'equipment', nullable: true),
     ],
     // v202: a child item (O2 cell, battery) points at the item it is installed
     // in. Nullable: deleting the parent orphans the child, never drops it.
@@ -2574,6 +2631,15 @@ class SyncService {
       (field: 'siteId', parent: 'diveSites', nullable: true),
       (field: 'equipmentId', parent: 'equipment', nullable: true),
       (field: 'signerId', parent: 'buddies', nullable: true),
+    ],
+    // All three nullable (onDelete: KeyAction.setNull): the recording
+    // outlives a deleted dive, site or equipment item and just loses the
+    // link (spec 2026-09-10-underwater-nav-track-design.md).
+    'navTracks': [
+      // diveId also clears linkMode: see [alsoClearedWithParent].
+      (field: 'diveId', parent: 'dives', nullable: true),
+      (field: 'siteId', parent: 'diveSites', nullable: true),
+      (field: 'equipmentId', parent: 'equipment', nullable: true),
     ],
     'siteSpecies': [
       (field: 'siteId', parent: 'diveSites', nullable: false),
@@ -2813,7 +2879,14 @@ class SyncService {
               // the child's reference intact regardless of merge order.
               (revivedParents[ref.parent]?.contains(parentId) != true)) {
             if (ref.nullable) {
-              recordToApply = {...recordToApply, ref.field: null};
+              recordToApply = {
+                ...recordToApply,
+                ref.field: null,
+                for (final also
+                    in alsoClearedWithParent[entityType]?[ref.field] ??
+                        const <String>[])
+                  also: null,
+              };
             } else {
               droppedByParent = true;
               break;
@@ -4662,12 +4735,17 @@ class SyncService {
   /// Download and parse the cloud epoch marker. Returns null when absent.
   /// Throws on listing/parse failure: "unreadable" must be distinguishable
   /// from "absent" -- the caller fails the sync closed rather than guessing.
+  ///
+  /// The listing is a sync's first cloud request, so it also carries the
+  /// provider's cold start (an OAuth token refresh, the sync-folder lookup).
+  /// It gets the same 30 s as the download: the HTTP layer alone allows 15 s
+  /// to connect, and a shorter cap failed slow but working connections.
   Future<LibraryEpochMarker?> readLibraryEpochMarker(
     CloudStorageProvider provider,
   ) async {
     final files = await provider
         .listFiles(namePattern: libraryEpochFileName)
-        .timeout(const Duration(seconds: 8));
+        .timeout(const Duration(seconds: 30));
     final candidates = files
         .where((f) => !_isConflictCopy(f.name))
         .where((f) => f.name == libraryEpochFileName)

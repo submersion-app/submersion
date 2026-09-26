@@ -95,6 +95,38 @@ void main() {
     expect(divers!.single.name, 'Eric');
   });
 
+  testWidgets('the Insights tile uses the section glyph', (tester) async {
+    final router = GoRouter(
+      initialLocation: '/wizard',
+      routes: [
+        GoRoute(
+          path: '/wizard',
+          builder: (context, state) => Consumer(
+            builder: (context, ref, _) {
+              ref.watch(setupWizardProvider(SetupWizardMode.firstRun));
+              return const Scaffold(
+                body: FinishStep(mode: SetupWizardMode.firstRun),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      testAppRouter(
+        router: router,
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+        locale: const Locale('en'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Explore insights about your diving'), findsOneWidget);
+    expect(find.byIcon(Icons.insights), findsOneWidget);
+    expect(find.byIcon(Icons.query_stats), findsNothing);
+  });
+
   testWidgets('apply failure surfaces an error and re-enables the button', (
     tester,
   ) async {

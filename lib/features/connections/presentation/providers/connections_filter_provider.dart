@@ -4,7 +4,7 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 /// The Connections page's own view filter.
 ///
 /// Deliberately separate from `diveFilterProvider` (the dive list) and
-/// `statisticsFilterProvider`: scoping the graph must never scope the list
+/// `insightsFilterProvider`: scoping the graph must never scope the list
 /// or the charts, and vice versa.
 final connectionsFilterProvider = StateProvider<DiveFilterState>(
   (ref) => const DiveFilterState(),

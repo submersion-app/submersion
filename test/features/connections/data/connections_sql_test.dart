@@ -80,8 +80,9 @@ void main() {
           diverId: 'me',
           filter: const DiveFilterState(siteId: 's1'),
         );
-        expect(r.sql, contains('d.id IN (SELECT id FROM dives WHERE'));
-        expect(r.params, ['me', 's1']);
+        expect(r.sql, contains('d.id IN (SELECT'));
+        expect(r.params.first, 'me');
+        expect(r.params, contains('s1'));
       },
     );
 

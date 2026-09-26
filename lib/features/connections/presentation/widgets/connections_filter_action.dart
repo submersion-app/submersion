@@ -5,7 +5,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sh
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// App bar action opening the shared filter sheet bound to the connections
-/// filter, badged while a filter is set. Mirrors StatisticsFilterAction.
+/// filter, badged while a filter is set. Mirrors InsightsFilterAction.
 class ConnectionsFilterAction extends ConsumerWidget {
   const ConnectionsFilterAction({super.key});
 

@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart'
     show SyncRepository;
+import 'package:submersion/core/services/cloud_storage/cloud_storage_provider.dart';
 import 'package:submersion/core/services/cloud_storage/encrypting_cloud_storage_provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/sync/crypto/encryption_key_store.dart';
@@ -140,6 +141,47 @@ void main() {
           .read(syncStateProvider.notifier)
           .libraryReplaceInfo();
       expect(info, isNull);
+    });
+
+    // Sync Now runs this pre-check before the sync. When a revoked sign-in
+    // fails the pre-check, the provider clears the dead grant, so the sync
+    // that follows fails its own isAuthenticated() with only the generic
+    // "not authenticated". The provider's own message is the actionable one
+    // and must not be lost with the swallowed pre-check error (issue #2332).
+    const expiredMessage =
+        'Google Drive sign-in expired. Please sign in again.';
+
+    test('a sign-in the pre-check found expired is named by the sync that '
+        'follows', () async {
+      cloud = _SignInExpiresOnEpochListCloud(expiredMessage);
+      final container = await makeContainer();
+      final notifier = container.read(syncStateProvider.notifier);
+
+      expect(await notifier.libraryReplaceInfo(), isNull);
+      await notifier.performSync();
+
+      final state = container.read(syncStateProvider);
+      expect(state.status, SyncStatus.error);
+      expect(state.message, expiredMessage);
+    });
+
+    test('a pre-check failure is not replayed by a later sync', () async {
+      final expiring = _SignInExpiresOnEpochListCloud(expiredMessage);
+      cloud = expiring;
+      final container = await makeContainer();
+      final notifier = container.read(syncStateProvider.notifier);
+
+      await notifier.libraryReplaceInfo();
+      // The user signs in again and the next sync gets through...
+      expiring.authenticated = true;
+      await notifier.performSync();
+      // ...so a later, unrelated sign-out reports itself, not the old expiry.
+      expiring.authenticated = false;
+      await notifier.performSync();
+
+      final state = container.read(syncStateProvider);
+      expect(state.status, SyncStatus.error);
+      expect(state.message, isNot(expiredMessage));
     });
 
     group('encrypted library', () {
@@ -379,4 +421,27 @@ void main() {
       expect(state.replaceAwaitingAdoption, isFalse);
     });
   });
+}
+
+/// Models a revoked Google Drive grant: the first epoch-marker listing fails
+/// with the provider's sign-in-expired error and, as the real provider does,
+/// drops the session, so every later isAuthenticated() reports false.
+class _SignInExpiresOnEpochListCloud extends FakeCloudStorageProvider {
+  _SignInExpiresOnEpochListCloud(this.message);
+
+  final String message;
+  bool _expired = false;
+
+  @override
+  Future<List<CloudFileInfo>> listFiles({
+    String? folderId,
+    String? namePattern,
+  }) async {
+    if (!_expired && namePattern == libraryEpochFileName) {
+      _expired = true;
+      authenticated = false;
+      throw CloudStorageException(message);
+    }
+    return super.listFiles(folderId: folderId, namePattern: namePattern);
+  }
 }

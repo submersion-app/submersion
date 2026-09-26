@@ -3,10 +3,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dashboard/presentation/providers/media_ribbon_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
 
+import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
 /// Regression tests for the home-page photo ribbon showing photos that no
@@ -26,6 +28,14 @@ void main() {
     db = await setUpTestDatabase();
   });
   tearDown(tearDownTestDatabase);
+
+  ProviderContainer newContainer() => ProviderContainer(
+    overrides: [
+      currentDiverIdProvider.overrideWith(
+        (ref) => MockCurrentDiverIdNotifier(),
+      ),
+    ],
+  );
 
   Future<void> insertDive(String id) => db
       .into(db.dives)
@@ -106,7 +116,7 @@ void main() {
       takenAt: DateTime(2026, 3, 2),
     );
 
-    final container = ProviderContainer();
+    final container = newContainer();
     addTearDown(container.dispose);
 
     // Dashboard on screen: an active listener builds the ribbon's provider,
@@ -151,7 +161,7 @@ void main() {
       takenAt: DateTime(2026, 3, 1),
     );
 
-    final container = ProviderContainer();
+    final container = newContainer();
     addTearDown(container.dispose);
 
     final onScreen = container.listen(recentMediaProvider, (_, _) {});

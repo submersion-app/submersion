@@ -55,8 +55,8 @@ void main() {
     expect(de.diveLog_detail_label_sac, 'Druckverbrauch');
     expect(de.enum_diveField_rmv_short, 'AMV');
     expect(de.enum_diveField_sac, 'Druckverbrauch');
-    expect(de.statistics_gas_sacRecords_bestRmv, contains('AMV'));
-    expect(de.statistics_gas_sacRecords_bestSac, contains('Druckverbrauch'));
+    expect(de.insights_gas_sacRecords_bestRmv, contains('AMV'));
+    expect(de.insights_gas_sacRecords_bestSac, contains('Druckverbrauch'));
     expect(de.settings_units_gasConsumption, 'Gasverbrauch');
   });
 

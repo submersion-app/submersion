@@ -285,7 +285,7 @@ ScanResult scanForTickViolations({
 /// `ref.invalidateSelfWhen(repo.watchXChanges())` used at most call sites, the
 /// raw `.listen()` + `ref.onDispose` that `StateNotifier`s must use because
 /// `invalidateSelfWhen` is a `Ref` extension, and a shared helper such as
-/// `_keepAliveWithExpiry` in `statistics_providers.dart`.
+/// `_keepAliveWithExpiry` in `insights_providers.dart`.
 bool _hasTick(
   _Invocations invocations,
   _TopLevelFunctions functions,

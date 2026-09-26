@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/theme/status_colors.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/print_passport_labels.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_attr_condition_text.dart';
 import 'package:submersion/core/constants/list_view_mode.dart';
@@ -552,6 +553,27 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
           ref,
           equipmentIds: _selectedIds.toList(),
         ),
+      ),
+      BulkAction(
+        id: 'printLabels',
+        icon: Icons.qr_code_2,
+        label: context.l10n.passport_tag_printLabels,
+        isEnabled: (ids) =>
+            everyChecked(ids, (e) => e.type == EquipmentType.tank),
+        onInvoke: () async {
+          final ids = _selectedIds.toList();
+          final messenger = ScaffoldMessenger.of(context);
+          final failedText = context.l10n.passport_tag_printFailed;
+          try {
+            await printPassportLabels(context, ref, ids);
+          } catch (_) {
+            // Keep the selection so the diver can try again.
+            messenger.showSnackBar(SnackBar(content: Text(failedText)));
+            return BulkActionOutcome.failed;
+          }
+          _selection.exit();
+          return BulkActionOutcome.completed;
+        },
       ),
     ];
   }

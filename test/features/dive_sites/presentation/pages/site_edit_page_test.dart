@@ -665,6 +665,122 @@ void main() {
       expect(find.byIcon(Icons.edit), findsOneWidget);
       expect(find.text('Edit Site'), findsWidgets);
     });
+
+    Future<void> pumpEmbeddedEdit(
+      WidgetTester tester, {
+      VoidCallback? onDeleted,
+    }) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            allDiversProvider.overrideWith((_) async => const <Diver>[]),
+            shareByDefaultProvider.overrideWith((_) async => false),
+          ],
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SiteEditPage(
+                siteId: 'e-del',
+                embedded: true,
+                onSaved: (id) {},
+                onCancel: () {},
+                onDeleted: onDeleted,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('confirming a standalone delete returns to the site list', (
+      tester,
+    ) async {
+      await SiteRepository().createSite(
+        const DiveSite(id: 'e-del', name: 'Doomed Site'),
+      );
+      final router = GoRouter(
+        initialLocation: '/sites/e-del/edit',
+        routes: [
+          GoRoute(
+            path: '/sites',
+            builder: (context, state) =>
+                const Scaffold(body: Text('SITES_LIST')),
+          ),
+          GoRoute(
+            path: '/sites/:id/edit',
+            builder: (context, state) =>
+                SiteEditPage(siteId: state.pathParameters['id']),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            allDiversProvider.overrideWith((_) async => const <Diver>[]),
+            shareByDefaultProvider.overrideWith((_) async => false),
+          ],
+          child: MaterialApp.router(
+            routerConfig: router,
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.delete));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('SITES_LIST'), findsOneWidget);
+      expect(await SiteRepository().getSiteById('e-del'), isNull);
+    });
+
+    testWidgets('embedded edit offers delete when the host handles it', (
+      tester,
+    ) async {
+      await SiteRepository().createSite(
+        const DiveSite(id: 'e-del', name: 'Doomed Site'),
+      );
+      await pumpEmbeddedEdit(tester, onDeleted: () {});
+
+      expect(find.widgetWithIcon(IconButton, Icons.delete), findsOneWidget);
+    });
+
+    testWidgets('embedded edit hides delete when no host handles it', (
+      tester,
+    ) async {
+      await SiteRepository().createSite(
+        const DiveSite(id: 'e-del', name: 'Doomed Site'),
+      );
+      await pumpEmbeddedEdit(tester);
+
+      expect(find.widgetWithIcon(IconButton, Icons.delete), findsNothing);
+    });
+
+    testWidgets('confirming an embedded delete removes the site and calls '
+        'onDeleted', (tester) async {
+      await SiteRepository().createSite(
+        const DiveSite(id: 'e-del', name: 'Doomed Site'),
+      );
+      var deleted = 0;
+      await pumpEmbeddedEdit(tester, onDeleted: () => deleted++);
+
+      await tester.tap(find.widgetWithIcon(IconButton, Icons.delete));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      expect(deleted, 1);
+      expect(await SiteRepository().getSiteById('e-del'), isNull);
+    });
   });
 
   group('save flow', () {

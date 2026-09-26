@@ -1,4 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
+import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/services/export/csv/codec/csv_export_units.dart';
 import 'package:submersion/core/services/export/csv/csv_equipment_writer.dart';
 import 'package:submersion/core/services/export/csv/csv_sites_writer.dart';
@@ -52,5 +56,33 @@ void main() {
     final itemRow = rowOf(CsvEquipmentWriter(units).write([item]), 1);
     expect(itemRow['Name'], "'@suit");
     expect(itemRow['Serial Number'], "'-42");
+  });
+
+  // Issue #2334: a passport id is the physical tag's identity; copying it
+  // through CSV would give two cylinders one tag.
+  test('equipment: the passport id is never exported', () {
+    final csv = CsvEquipmentWriter(units).write([
+      const EquipmentItem(
+        id: 'tank',
+        name: 'Faber 12',
+        type: EquipmentType.tank,
+        attributes: [
+          EquipmentAttribute(
+            id: 'a1',
+            equipmentId: 'tank',
+            key: EquipmentAttrKeys.passportId,
+            valueText: '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab',
+          ),
+          EquipmentAttribute(
+            id: 'a2',
+            equipmentId: 'tank',
+            key: 'valve_type',
+            valueText: 'din',
+          ),
+        ],
+      ),
+    ]);
+    expect(rowOf(csv, 1)['Attributes'], 'valve_type=din');
+    expect(csv, isNot(contains('passport_id')));
   });
 }

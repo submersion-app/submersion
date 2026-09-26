@@ -250,6 +250,25 @@ void main() {
       expect(router.state.uri.toString(), isNot(contains('mode=edit')));
       expect(router.state.uri.toString(), contains('selected=${dive.id}'));
 
+      // 6. Simulate Delete: the site is gone, so return to the dive itself
+      await tester.tap(editButton);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.byType(SiteEditPage), findsOneWidget);
+
+      tester.widget<SiteEditPage>(find.byType(SiteEditPage)).onDeleted!();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      await tester.pump(const Duration(milliseconds: 200));
+
+      expect(find.byType(SiteEditPage), findsNothing);
+      expect(find.byType(SiteDetailPage), findsNothing);
+      expect(find.byType(DiveDetailPage), findsOneWidget);
+      expect(router.state.uri.toString(), isNot(contains('mode=')));
+      expect(router.state.uri.toString(), isNot(contains('site=')));
+      expect(router.state.uri.toString(), contains('selected=${dive.id}'));
+
       FlutterError.onError = originalOnError;
     },
   );

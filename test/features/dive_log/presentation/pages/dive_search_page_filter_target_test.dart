@@ -5,13 +5,13 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_search_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_filter_sheet.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_database.dart';
 
-/// Regression coverage for #1079: opening Advanced Search from the Statistics
+/// Regression coverage for #1079: opening Advanced Search from the Insights
 /// tab used to hijack the dive-list filter and dump the user on the dive list.
 /// The page now targets whichever filter provider opened it, and returns to
 /// the surface it was pushed from unless that surface is the dive list.
@@ -33,7 +33,7 @@ void main() {
       diveFilterProvider.overrideWith(
         (ref) => const DiveFilterState(minRating: 2),
       ),
-      statisticsFilterProvider.overrideWith(
+      insightsFilterProvider.overrideWith(
         (ref) => const DiveFilterState(minRating: 4),
       ),
     ].cast<Override>();
@@ -65,10 +65,10 @@ void main() {
           ],
         ),
         GoRoute(
-          path: '/statistics',
+          path: '/insights',
           builder: (context, _) =>
               statisticsBuilder?.call(context) ??
-              const Scaffold(body: Text('statistics')),
+              const Scaffold(body: Text('insights')),
         ),
       ],
     );
@@ -119,10 +119,10 @@ void main() {
     tester,
   ) async {
     final overrides = await buildOverrides();
-    final router = buildRouter(initialLocation: '/statistics');
+    final router = buildRouter(initialLocation: '/insights');
     await pumpApp(tester, router: router, overrides: overrides);
 
-    router.push('/dives/search', extra: statisticsFilterProvider);
+    router.push('/dives/search', extra: insightsFilterProvider);
     await tester.pumpAndSettle();
     expect(find.byType(DiveSearchPage), findsOneWidget);
 
@@ -131,9 +131,9 @@ void main() {
     await tester.pumpAndSettle();
 
     final container = containerOf(tester);
-    expect(container.read(statisticsFilterProvider).minRating, 5);
+    expect(container.read(insightsFilterProvider).minRating, 5);
     expect(container.read(diveFilterProvider).minRating, 2);
-    expect(find.text('statistics'), findsOneWidget);
+    expect(find.text('insights'), findsOneWidget);
     expect(find.byType(DiveSearchPage), findsNothing);
   });
 
@@ -154,7 +154,7 @@ void main() {
 
     final container = containerOf(tester);
     expect(container.read(diveFilterProvider).minRating, 5);
-    expect(container.read(statisticsFilterProvider).minRating, 4);
+    expect(container.read(insightsFilterProvider).minRating, 4);
     expect(find.text('dive list'), findsOneWidget);
   });
 
@@ -173,7 +173,7 @@ void main() {
         GoRoute(
           path: '/search',
           builder: (_, _) =>
-              DiveSearchPage(filterProvider: statisticsFilterProvider),
+              DiveSearchPage(filterProvider: insightsFilterProvider),
         ),
       ],
     );
@@ -184,7 +184,7 @@ void main() {
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle();
 
-    expect(containerOf(tester).read(statisticsFilterProvider).minRating, 5);
+    expect(containerOf(tester).read(insightsFilterProvider).minRating, 5);
     expect(find.text('dive list'), findsOneWidget);
   });
 
@@ -194,7 +194,7 @@ void main() {
     final overrides = await buildOverrides();
     Object? capturedExtra;
     final router = buildRouter(
-      initialLocation: '/statistics',
+      initialLocation: '/insights',
       onSearchExtra: (extra) => capturedExtra = extra,
       statisticsBuilder: (context) => Scaffold(
         body: Center(
@@ -205,7 +205,7 @@ void main() {
                 isScrollControlled: true,
                 builder: (_) => DiveFilterSheet(
                   ref: ref,
-                  filterProvider: statisticsFilterProvider,
+                  filterProvider: insightsFilterProvider,
                 ),
               ),
               child: const Text('open filter'),
@@ -223,7 +223,7 @@ void main() {
     await tester.tap(find.byIcon(Icons.manage_search));
     await tester.pumpAndSettle();
 
-    expect(capturedExtra, same(statisticsFilterProvider));
+    expect(capturedExtra, same(insightsFilterProvider));
     expect(find.byType(DiveSearchPage), findsOneWidget);
   });
 }

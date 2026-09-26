@@ -91,11 +91,11 @@ Fixes the MOD calculation for trimix, which used the O2 fraction of air.
 - [x] `flutter test` passes
 - [x] `flutter analyze` passes
 - [x] Manual testing on: macOS
-
-## Screenshots
-
-(Delete this section if not applicable.)
 ```
+
+This PR touches no UI code, so its author deleted the Screenshots section.
+For a PR that does, see
+[Screenshots for UI Changes](#screenshots-for-ui-changes).
 
 ## Linking Issues
 
@@ -126,6 +126,67 @@ Things that trip people up:
 - **No issue yet?** Open one first. Only bot-authored PRs (version bumps,
   Dependabot) are exempt.
 
+## Screenshots for UI Changes
+
+Every PR that changes anything a user can see must show the change in
+screenshots in its description. Reviewers judge UI work from the images, and
+the images record what shipped long after the branch is gone.
+
+### What counts as a UI change
+
+A PR needs screenshots when it changes files in any of these places:
+
+| Area | Paths |
+| --- | --- |
+| Feature screens, widgets and their providers | `lib/**/presentation/` |
+| Shared widgets, theme and icons | `lib/shared/widgets/`, `lib/core/theme/`, `lib/core/ui/`, `lib/core/icons/` |
+| Platform UI resources | launch screens, app icons and window chrome under `android/`, `ios/`, `macos/`, `windows/`, `linux/` |
+
+When in doubt, include a screenshot.
+
+### What to capture
+
+- **Before and after**, side by side or one after the other, for anything that
+  changed. A new screen needs only the after.
+- **Light and dark mode** when the change touches colours, tints or contrast.
+- **Phone and desktop widths** when the change touches layout. Submersion
+  switches between single-pane and master-detail layouts by width, so a change
+  that looks right on one can break on the other.
+- **The platform it affects**, when the change is platform-specific.
+- **Realistic data.** Use a dive with a profile, tanks and a site rather than an
+  empty record, and test with the units that make the change visible (metric
+  and imperial when the change displays units).
+
+### How to add them
+
+Drag the images into the PR description on github.com. GitHub hosts them and
+puts the Markdown in for you. `gh` and the REST API cannot upload images, so a
+PR opened from the command line needs its screenshots added in the browser
+afterwards. Treat that PR as not ready for review until they are there.
+
+A filled-out section looks like this:
+
+```markdown
+## Screenshots
+
+| Before | After |
+| --- | --- |
+| ![before](https://github.com/user-attachments/assets/...) | ![after](https://github.com/user-attachments/assets/...) |
+
+Dark mode:
+
+![after, dark](https://github.com/user-attachments/assets/...)
+```
+
+### No visible change
+
+Some PRs touch UI paths without changing what anyone sees: a refactor, a
+provider rewrite, a renamed widget. Tick the template's **No visible UI
+change** box and say in the Summary why nothing looks different. A reviewer who
+disagrees will ask for screenshots.
+
+A PR that touches none of those paths deletes the Screenshots section.
+
 ## PR Best Practices
 
 ### Keep PRs Small
@@ -142,11 +203,9 @@ Things that trip people up:
 
 ### Add Screenshots
 
-For UI changes:
-
-- Before and after
-- Different screen sizes
-- Light and dark mode
+Required for every UI change. See
+[Screenshots for UI Changes](#screenshots-for-ui-changes) for what counts and
+what to capture.
 
 ### Respond to Feedback
 

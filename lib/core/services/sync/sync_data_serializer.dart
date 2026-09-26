@@ -296,6 +296,7 @@ class SyncData {
   final List<Map<String, dynamic>> preDiveSessions;
   final List<Map<String, dynamic>> preDiveSessionItems;
   final List<Map<String, dynamic>> gpsTracks;
+  final List<Map<String, dynamic>> navTracks;
   final List<Map<String, dynamic>> divePlans;
   final List<Map<String, dynamic>> divePlanTanks;
   final List<Map<String, dynamic>> divePlanSegments;
@@ -311,6 +312,7 @@ class SyncData {
   final List<Map<String, dynamic>> weightPresetEntries;
   final List<Map<String, dynamic>> diveComputers;
   final List<Map<String, dynamic>> transmitters;
+  final List<Map<String, dynamic>> cylinderFills;
 
   /// Inbound only since v182: older peers still send row-per-sample arrays;
   /// they apply into the legacy tables and are packed into series by
@@ -392,6 +394,7 @@ class SyncData {
     this.preDiveSessions = const [],
     this.preDiveSessionItems = const [],
     this.gpsTracks = const [],
+    this.navTracks = const [],
     this.divePlans = const [],
     this.divePlanTanks = const [],
     this.divePlanSegments = const [],
@@ -407,6 +410,7 @@ class SyncData {
     this.weightPresetEntries = const [],
     this.diveComputers = const [],
     this.transmitters = const [],
+    this.cylinderFills = const [],
     this.tankPressureProfiles = const [],
     this.tideRecords = const [],
     this.settings = const [],
@@ -483,6 +487,7 @@ class SyncData {
     'preDiveSessions': preDiveSessions,
     'preDiveSessionItems': preDiveSessionItems,
     'gpsTracks': gpsTracks,
+    'navTracks': navTracks,
     'divePlans': divePlans,
     'divePlanTanks': divePlanTanks,
     'divePlanSegments': divePlanSegments,
@@ -498,6 +503,7 @@ class SyncData {
     'weightPresetEntries': weightPresetEntries,
     'diveComputers': diveComputers,
     'transmitters': transmitters,
+    'cylinderFills': cylinderFills,
     'tideRecords': tideRecords,
     'settings': settings,
     'species': species,
@@ -577,6 +583,7 @@ class SyncData {
       preDiveSessions: _parseList(json['preDiveSessions']),
       preDiveSessionItems: _parseList(json['preDiveSessionItems']),
       gpsTracks: _parseList(json['gpsTracks']),
+      navTracks: _parseList(json['navTracks']),
       divePlans: _parseList(json['divePlans']),
       divePlanTanks: _parseList(json['divePlanTanks']),
       divePlanSegments: _parseList(json['divePlanSegments']),
@@ -592,6 +599,7 @@ class SyncData {
       weightPresetEntries: _parseList(json['weightPresetEntries']),
       diveComputers: _parseList(json['diveComputers']),
       transmitters: _parseList(json['transmitters']),
+      cylinderFills: _parseList(json['cylinderFills']),
       tankPressureProfiles: _parseList(json['tankPressureProfiles']),
       tideRecords: _parseList(json['tideRecords']),
       settings: _parseList(json['settings']),
@@ -965,6 +973,7 @@ class SyncDataSerializer {
       full: null,
     ),
     (key: 'gpsTracks', table: _db.gpsTracks, blob: true, full: null),
+    (key: 'navTracks', table: _db.navTracks, blob: true, full: null),
     (key: 'divePlans', table: _db.divePlans, blob: false, full: null),
     (key: 'divePlanTanks', table: _db.divePlanTanks, blob: false, full: null),
     (
@@ -1012,6 +1021,7 @@ class SyncDataSerializer {
     ),
     (key: 'diveComputers', table: _db.diveComputers, blob: false, full: null),
     (key: 'transmitters', table: _db.transmitters, blob: false, full: null),
+    (key: 'cylinderFills', table: _db.cylinderFills, blob: false, full: null),
     (key: 'tideRecords', table: _db.tideRecords, blob: false, full: null),
     (
       key: 'settings',
@@ -1952,6 +1962,10 @@ class SyncDataSerializer {
         'gpsTracks',
         () => _exportGpsTracks(hlcSince),
       ),
+      navTracks: await _safeExport(
+        'navTracks',
+        () => _exportNavTracks(hlcSince),
+      ),
       divePlans: await _safeExport(
         'divePlans',
         () => _exportDivePlans(hlcSince),
@@ -2024,6 +2038,10 @@ class SyncDataSerializer {
       transmitters: await _safeExport(
         'transmitters',
         () => _exportTransmitters(hlcSince),
+      ),
+      cylinderFills: await _safeExport(
+        'cylinderFills',
+        () => _exportCylinderFills(hlcSince),
       ),
       tideRecords: await _safeExport(
         'tideRecords',
@@ -2537,6 +2555,12 @@ class SyncDataSerializer {
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         // The points BLOB rides as base64, matching _exportGpsTracks.
         return row?.toJson(serializer: _syncBlobSerializer);
+      case 'navTracks':
+        final row = await (_db.select(
+          _db.navTracks,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        // The points BLOB rides as base64, matching _exportNavTracks.
+        return row?.toJson(serializer: _syncBlobSerializer);
       case 'divePlans':
         final row = await (_db.select(
           _db.divePlans,
@@ -2634,6 +2658,11 @@ class SyncDataSerializer {
       case 'transmitters':
         final row = await (_db.select(
           _db.transmitters,
+        )..where((t) => t.id.equals(recordId))).getSingleOrNull();
+        return row?.toJson();
+      case 'cylinderFills':
+        final row = await (_db.select(
+          _db.cylinderFills,
         )..where((t) => t.id.equals(recordId))).getSingleOrNull();
         return row?.toJson();
       case 'tideRecords':
@@ -3025,6 +3054,11 @@ class SyncDataSerializer {
       case 'transmitters':
         final rows = await (_db.select(
           _db.transmitters,
+        )..where((t) => t.id.isIn(idList))).get();
+        return {for (final r in rows) r.id: r.toJson()};
+      case 'cylinderFills':
+        final rows = await (_db.select(
+          _db.cylinderFills,
         )..where((t) => t.id.isIn(idList))).get();
         return {for (final r in rows) r.id: r.toJson()};
       case 'tags':
@@ -3888,6 +3922,13 @@ class SyncDataSerializer {
               GpsTrackRow.fromJson(data, serializer: _syncBlobSerializer),
             );
         return;
+      case 'navTracks':
+        await _db
+            .into(_db.navTracks)
+            .insertOnConflictUpdate(
+              NavTrackRow.fromJson(data, serializer: _syncBlobSerializer),
+            );
+        return;
       case 'divePlans':
         await _db
             .into(_db.divePlans)
@@ -3985,6 +4026,13 @@ class SyncDataSerializer {
             .into(_db.transmitters)
             .insertOnConflictUpdate(
               TransmitterRow.fromJson(data).toCompanion(false),
+            );
+        return;
+      case 'cylinderFills':
+        await _db
+            .into(_db.cylinderFills)
+            .insertOnConflictUpdate(
+              CylinderFillRow.fromJson(data).toCompanion(false),
             );
         return;
       case 'tankPressureProfiles':
@@ -4799,6 +4847,19 @@ class SyncDataSerializer {
           ),
         );
         return;
+      case 'navTracks':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.navTracks,
+            records
+                .map(
+                  (r) =>
+                      NavTrackRow.fromJson(r, serializer: _syncBlobSerializer),
+                )
+                .toList(),
+          ),
+        );
+        return;
       case 'divePlans':
         await _db.batch(
           (b) => b.insertAllOnConflictUpdate(
@@ -5041,6 +5102,16 @@ class SyncDataSerializer {
             _db.transmitters,
             records
                 .map((r) => TransmitterRow.fromJson(r).toCompanion(false))
+                .toList(),
+          ),
+        );
+        return;
+      case 'cylinderFills':
+        await _db.batch(
+          (b) => b.insertAllOnConflictUpdate(
+            _db.cylinderFills,
+            records
+                .map((r) => CylinderFillRow.fromJson(r).toCompanion(false))
                 .toList(),
           ),
         );
@@ -5426,6 +5497,8 @@ class SyncDataSerializer {
         return plain(_db.preDiveSessionItems, _db.preDiveSessionItems.id);
       case 'gpsTracks':
         return plain(_db.gpsTracks, _db.gpsTracks.id);
+      case 'navTracks':
+        return plain(_db.navTracks, _db.navTracks.id);
       case 'divePlans':
         return plain(_db.divePlans, _db.divePlans.id);
       case 'divePlanTanks':
@@ -5470,6 +5543,8 @@ class SyncDataSerializer {
         return plain(_db.diveComputers, _db.diveComputers.id);
       case 'transmitters':
         return plain(_db.transmitters, _db.transmitters.id);
+      case 'cylinderFills':
+        return plain(_db.cylinderFills, _db.cylinderFills.id);
       case 'species':
         return plain(_db.species, _db.species.id);
       case 'tags':
@@ -5803,6 +5878,8 @@ class SyncDataSerializer {
         return _db.preDiveSessionItems;
       case 'gpsTracks':
         return _db.gpsTracks;
+      case 'navTracks':
+        return _db.navTracks;
       case 'divePlans':
         return _db.divePlans;
       case 'divePlanTanks':
@@ -5847,6 +5924,8 @@ class SyncDataSerializer {
         return _db.diveComputers;
       case 'transmitters':
         return _db.transmitters;
+      case 'cylinderFills':
+        return _db.cylinderFills;
       case 'species':
         return _db.species;
       case 'tags':
@@ -6190,6 +6269,11 @@ class SyncDataSerializer {
           _db.gpsTracks,
         )..where((t) => t.id.equals(recordId))).go();
         return;
+      case 'navTracks':
+        await (_db.delete(
+          _db.navTracks,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
       case 'divePlans':
         await (_db.delete(
           _db.divePlans,
@@ -6282,6 +6366,11 @@ class SyncDataSerializer {
       case 'transmitters':
         await (_db.delete(
           _db.transmitters,
+        )..where((t) => t.id.equals(recordId))).go();
+        return;
+      case 'cylinderFills':
+        await (_db.delete(
+          _db.cylinderFills,
         )..where((t) => t.id.equals(recordId))).go();
         return;
       case 'tideRecords':
@@ -7035,26 +7124,47 @@ class SyncDataSerializer {
     return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
   }
 
-  /// The stored size, in bytes, of the packed sample blobs an incremental
-  /// changeset would carry above [hlcSince] (everything when it is null).
+  Future<List<Map<String, dynamic>>> _exportNavTracks(String? hlcSince) async {
+    final query = _db.select(_db.navTracks);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    // nav_tracks carries the points BLOB; encode it as base64, like
+    // gps_tracks.points.
+    return rows.map((r) => r.toJson(serializer: _syncBlobSerializer)).toList();
+  }
+
+  /// The stored size, in bytes, of the packed sample/route blobs an
+  /// incremental changeset would carry above [hlcSince] (everything when it
+  /// is null).
   ///
   /// The changeset export builds its whole payload in memory, base64 and
   /// `jsonEncode` alive at once, which the base path deliberately avoids by
-  /// streaming to a temp file. These two entities are the only ones whose
-  /// rows carry a large blob AND can all move at once: the v182 migration
-  /// stamps every packed row with one freshly issued HLC, so the first
-  /// changeset after the upgrade would otherwise select the entire packed
-  /// corpus into a single unstreamed payload. [ChangesetWriter] asks this
-  /// first and publishes a streamed base instead when the answer is too big.
+  /// streaming to a temp file. These are the entities whose rows carry a
+  /// large blob AND can all move at once: the v182 migration stamps every
+  /// packed profile/pressure row with one freshly issued HLC, so the first
+  /// changeset after that upgrade would otherwise select the entire packed
+  /// corpus into a single unstreamed payload -- and an imported nav_tracks
+  /// route (or several) carries its own large `points` blob the same way.
+  /// [ChangesetWriter] asks this first and publishes a streamed base instead
+  /// when the answer is too big.
   ///
   /// `length()` on a blob column reads the record header, not the payload,
-  /// so this costs a scan of two small tables and no blob reads.
+  /// so this costs a scan of a few small tables and no blob reads.
   Future<int> pendingSeriesBlobBytes(String? hlcSince) async {
+    const blobColumnByTable = {
+      'dive_profile_series': 'samples',
+      'tank_pressure_series': 'samples',
+      'nav_tracks': 'points',
+    };
     var total = 0;
-    for (final table in const ['dive_profile_series', 'tank_pressure_series']) {
-      // Guarded per table: _assertProfileSeriesSchema waits for each series
-      // table's foreign key parents, so a partially built database can reach
-      // a publish without one.
+    for (final entry in blobColumnByTable.entries) {
+      final table = entry.key;
+      final column = entry.value;
+      // Guarded per table: _assertProfileSeriesSchema/_assertNavTracksSchema
+      // wait for each table's foreign key parents, so a partially built
+      // database can reach a publish without one.
       final exists = await _db
           .customSelect(
             "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?",
@@ -7064,7 +7174,7 @@ class SyncDataSerializer {
       if (exists.isEmpty) continue;
       final row = await _db
           .customSelect(
-            'SELECT COALESCE(SUM(LENGTH(samples)), 0) AS n FROM $table'
+            'SELECT COALESCE(SUM(LENGTH($column)), 0) AS n FROM $table'
             '${hlcSince == null ? '' : ' WHERE hlc > ?'}',
             variables: hlcSince == null
                 ? const []
@@ -7258,6 +7368,17 @@ class SyncDataSerializer {
     String? hlcSince,
   ) async {
     final query = _db.select(_db.transmitters);
+    if (hlcSince != null) {
+      query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
+    }
+    final rows = await query.get();
+    return rows.map((r) => r.toJson()).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> _exportCylinderFills(
+    String? hlcSince,
+  ) async {
+    final query = _db.select(_db.cylinderFills);
     if (hlcSince != null) {
       query.where((t) => t.hlc.isBiggerThanValue(hlcSince));
     }

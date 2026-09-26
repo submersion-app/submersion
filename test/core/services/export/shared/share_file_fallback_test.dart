@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:ui' show Rect;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:share_plus_platform_interface/share_plus_platform_interface.dart';
@@ -62,7 +63,7 @@ void main() {
 
   group('without a file-capable share sheet', () {
     test('saveAndShareFile saves through the dialog, not the sheet', () async {
-      final target = '${chosen.path}/dives.uddf';
+      final target = p.join(chosen.path, 'dives.uddf');
       picker.saveFileResult = Uri.file(target);
 
       final path = await saveAndShareFile(
@@ -78,7 +79,7 @@ void main() {
     });
 
     test('saveAndShareFileBytes saves through the dialog', () async {
-      final target = '${chosen.path}/dives.xlsx';
+      final target = p.join(chosen.path, 'dives.xlsx');
       picker.saveFileResult = Uri.file(target);
 
       final path = await saveAndShareFileBytes(
@@ -94,7 +95,7 @@ void main() {
     });
 
     test('sharePdfBytes reaches the dialog as a PDF', () async {
-      picker.saveFileResult = Uri.file('${chosen.path}/logbook.pdf');
+      picker.saveFileResult = Uri.file(p.join(chosen.path, 'logbook.pdf'));
 
       await sharePdfBytes([4, 5, 6], 'logbook.pdf');
 
@@ -106,7 +107,7 @@ void main() {
       // The share path writes into the documents directory because the sheet
       // needs a file to hand over. The dialog writes the bytes itself, so
       // doing both would litter the user's Documents with every export.
-      picker.saveFileResult = Uri.file('${chosen.path}/dives.uddf');
+      picker.saveFileResult = Uri.file(p.join(chosen.path, 'dives.uddf'));
 
       await saveAndShareFile('<uddf/>', 'dives.uddf', 'application/xml');
 
@@ -124,12 +125,12 @@ void main() {
         'application/xml',
       );
 
-      expect(path, '${documents.path}/dives.uddf');
+      expect(path, p.join(documents.path, 'dives.uddf'));
       expect(File(path).readAsStringSync(), '<uddf>kept</uddf>');
     });
 
     test('non-ASCII content survives the dialog as UTF-8', () async {
-      final target = '${chosen.path}/sites.kml';
+      final target = p.join(chosen.path, 'sites.kml');
       picker.saveFileResult = Uri.file(target);
 
       await saveAndShareFile(
@@ -155,7 +156,7 @@ void main() {
         'application/xml',
       );
 
-      expect(path, '${documents.path}/dives.uddf');
+      expect(path, p.join(documents.path, 'dives.uddf'));
       expect(sharePlatform.calls.single.subject, 'dives.uddf');
       expect(picker.lastSavedFileName, isNull);
     });

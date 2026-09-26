@@ -18,6 +18,7 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/pdf_text.dart';
 import '../../../../helpers/test_app.dart';
 import '../../../../helpers/test_database.dart';
+import '../../../../helpers/temp_dir.dart';
 
 /// Exporting a training log from the course page must render depth and
 /// temperature in the active diver's units, not hardcoded metric.
@@ -85,7 +86,7 @@ void main() {
   tearDown(() async {
     debugCanShareFiles = null;
     await tearDownTestDatabase();
-    if (await shareDir.exists()) await shareDir.delete(recursive: true);
+    await deleteTempDir(shareDir);
   });
 
   testWidgets('exported training log uses the diver\'s units', (tester) async {

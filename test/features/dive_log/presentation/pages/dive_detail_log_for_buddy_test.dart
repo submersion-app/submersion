@@ -37,82 +37,146 @@ class _SlowMirrorService extends DiveMirrorService {
   }
 }
 
-void main() {
-  testWidgets('leaving the page mid-mirror does not throw', (tester) async {
-    final dive = createTestDiveWithBottomTime();
-    final chris = Diver(
-      id: 'chris',
+const _menuLabel = "Log for a buddy's profile";
+
+MirrorCandidate _chrisCandidate() {
+  final chris = Diver(
+    id: 'chris',
+    name: 'Chris',
+    createdAt: DateTime(2026),
+    updatedAt: DateTime(2026),
+  );
+  return (
+    buddy: Buddy(
+      id: 'b1',
       name: 'Chris',
+      linkedDiverId: 'chris',
       createdAt: DateTime(2026),
       updatedAt: DateTime(2026),
-    );
-    final candidate = (
-      buddy: Buddy(
-        id: 'b1',
-        name: 'Chris',
-        linkedDiverId: 'chris',
-        createdAt: DateTime(2026),
-        updatedAt: DateTime(2026),
-      ),
-      diver: chris,
-    );
-    final service = _SlowMirrorService();
-    final navigatorKey = GlobalKey<NavigatorState>();
-    final overrides = await getBaseOverrides();
+    ),
+    diver: chris,
+  );
+}
 
-    final originalOnError = FlutterError.onError;
-    FlutterError.onError = (details) {
-      if (details.toString().contains('overflowed')) return;
-      originalOnError?.call(details);
-    };
-    addTearDown(() => FlutterError.onError = originalOnError);
+/// Opens the detail page for [dive] from a launcher route. The candidates
+/// override is asynchronous, like the real provider, so the page must have
+/// loaded them before the overflow menu builds its items (issue #2367).
+Future<void> _openDetail(
+  WidgetTester tester, {
+  required Dive dive,
+  required List<MirrorCandidate> candidates,
+  required bool embedded,
+  DiveMirrorService? service,
+  GlobalKey<NavigatorState>? navigatorKey,
+}) async {
+  final overrides = await getBaseOverrides();
 
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          ...overrides,
-          diveProvider(dive.id).overrideWith((ref) async => dive),
-          diveDataSourcesProvider(
-            dive.id,
-          ).overrideWith((ref) async => <DiveDataSource>[]),
-          buddiesForDiveProvider(
-            dive.id,
-          ).overrideWith((ref) async => <BuddyWithRole>[]),
-          siblingDivesProvider(dive.id).overrideWith((ref) async => <Dive>[]),
-          // Synchronous, so the value is there when the overflow menu
-          // builds its items: a pending read would hide the entry.
-          mirrorCandidatesProvider(dive.id).overrideWith((ref) => [candidate]),
+  final originalOnError = FlutterError.onError;
+  FlutterError.onError = (details) {
+    if (details.toString().contains('overflowed')) return;
+    originalOnError?.call(details);
+  };
+  addTearDown(() => FlutterError.onError = originalOnError);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        ...overrides,
+        diveProvider(dive.id).overrideWith((ref) async => dive),
+        diveDataSourcesProvider(
+          dive.id,
+        ).overrideWith((ref) async => <DiveDataSource>[]),
+        buddiesForDiveProvider(
+          dive.id,
+        ).overrideWith((ref) async => <BuddyWithRole>[]),
+        siblingDivesProvider(dive.id).overrideWith((ref) async => <Dive>[]),
+        mirrorCandidatesProvider(
+          dive.id,
+        ).overrideWith((ref) async => candidates),
+        if (service != null)
           diveMirrorServiceProvider.overrideWithValue(service),
-        ],
-        child: MaterialApp(
-          locale: const Locale('en'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          navigatorKey: navigatorKey,
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: Center(
-                child: TextButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute<void>(
-                      builder: (_) =>
-                          DiveDetailPage(diveId: dive.id, embedded: true),
-                    ),
+      ],
+      child: MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        navigatorKey: navigatorKey,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: Center(
+              child: TextButton(
+                onPressed: () => Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (_) =>
+                        DiveDetailPage(diveId: dive.id, embedded: embedded),
                   ),
-                  child: const Text('open dive'),
                 ),
+                child: const Text('open dive'),
               ),
             ),
           ),
         ),
       ),
-    );
-    await tester.tap(find.text('open dive'));
-    await tester.pumpAndSettle();
+    ),
+  );
+  await tester.tap(find.text('open dive'));
+  await tester.pumpAndSettle();
+}
 
-    await tester.tap(find.byIcon(Icons.more_vert).first);
-    await tester.pumpAndSettle();
-    await tester.tap(find.text("Log for a buddy's profile"));
+Future<void> _openOverflowMenu(WidgetTester tester) async {
+  await tester.tap(find.byIcon(Icons.more_vert).first);
+  await tester.pumpAndSettle();
+}
+
+void main() {
+  for (final embedded in [true, false]) {
+    final menu = embedded ? 'header' : 'app bar';
+
+    testWidgets('the $menu menu offers the mirror once candidates load', (
+      tester,
+    ) async {
+      await _openDetail(
+        tester,
+        dive: createTestDiveWithBottomTime(),
+        candidates: [_chrisCandidate()],
+        embedded: embedded,
+      );
+
+      await _openOverflowMenu(tester);
+
+      expect(find.text(_menuLabel), findsOneWidget);
+    });
+
+    testWidgets('the $menu menu hides the mirror without candidates', (
+      tester,
+    ) async {
+      await _openDetail(
+        tester,
+        dive: createTestDiveWithBottomTime(),
+        candidates: const [],
+        embedded: embedded,
+      );
+
+      await _openOverflowMenu(tester);
+
+      expect(find.text(_menuLabel), findsNothing);
+    });
+  }
+
+  testWidgets('leaving the page mid-mirror does not throw', (tester) async {
+    final service = _SlowMirrorService();
+    final navigatorKey = GlobalKey<NavigatorState>();
+    await _openDetail(
+      tester,
+      dive: createTestDiveWithBottomTime(),
+      candidates: [_chrisCandidate()],
+      embedded: true,
+      service: service,
+      navigatorKey: navigatorKey,
+    );
+
+    await _openOverflowMenu(tester);
+    await tester.tap(find.text(_menuLabel));
     await tester.pumpAndSettle();
     expect(find.text('Also log this dive in another profile?'), findsOneWidget);
     await tester.tap(find.widgetWithText(FilledButton, 'Log'));

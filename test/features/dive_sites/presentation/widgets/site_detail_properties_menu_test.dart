@@ -10,6 +10,7 @@ import 'package:submersion/core/constants/site_detail_sections.dart';
 import 'package:submersion/features/dive_sites/presentation/widgets/site_detail_properties_menu.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+import 'package:submersion/shared/widgets/section_properties_menu.dart';
 
 /// Keeps settings in memory so the menu's writes show on the next pump.
 class _FakeSettingsNotifier extends StateNotifier<AppSettings>
@@ -29,13 +30,27 @@ class _FakeSettingsNotifier extends StateNotifier<AppSettings>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// The page's overflow button, whose row opens the panel.
+Widget _overflow(MenuController controller) => PopupMenuButton<String>(
+  onSelected: (_) => controller.open(),
+  itemBuilder: (context) => [displayOptionsMenuItem(context, 'displayOptions')],
+);
+
 Widget _harness(_FakeSettingsNotifier notifier) {
+  final controller = MenuController();
   final router = GoRouter(
     routes: [
       GoRoute(
         path: '/',
         builder: (context, state) => Scaffold(
-          appBar: AppBar(actions: const [SiteDetailPropertiesMenu()]),
+          appBar: AppBar(
+            actions: [
+              SiteDetailPropertiesMenu(
+                controller: controller,
+                child: _overflow(controller),
+              ),
+            ],
+          ),
         ),
       ),
       GoRoute(
@@ -60,7 +75,9 @@ Widget _harness(_FakeSettingsNotifier notifier) {
 Future<void> _open(WidgetTester tester) async {
   await tester.binding.setSurfaceSize(const Size(600, 1600));
   addTearDown(() => tester.binding.setSurfaceSize(null));
-  await tester.tap(find.byIcon(Icons.tune));
+  await tester.tap(find.byIcon(Icons.more_vert));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Display options'));
   await tester.pumpAndSettle();
 }
 

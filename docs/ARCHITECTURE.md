@@ -225,7 +225,7 @@ submersion/
 │   │   ├── dive_sites/              # Site management & maps
 │   │   ├── dive_computer/           # Device connectivity
 │   │   ├── equipment/               # Gear & service tracking
-│   │   ├── statistics/              # Analytics (11 dashboard pages)
+│   │   ├── insights/                # Analytics (11 dashboard pages)
 │   │   ├── import_export/           # UDDF, CSV, PDF
 │   │   ├── settings/                # App configuration
 │   │   ├── divers/                  # Multi-account support
@@ -757,10 +757,10 @@ Submersion uses **go_router** with a `ShellRoute` for persistent navigation.
 │   ├── /equipment/:id
 │   └── /equipment/sets
 │
-├── /statistics
-│   ├── /statistics/records
-│   ├── /statistics/gas
-│   ├── /statistics/progression
+├── /insights
+│   ├── /insights/overview
+│   ├── /insights/gas
+│   ├── /insights/progression
 │   └── ... (11 sub-pages)
 │
 ├── /settings

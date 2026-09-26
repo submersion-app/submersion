@@ -20,7 +20,7 @@ void main() {
       ('certifications', '/certifications'),
       ('courses', '/courses'),
       ('species', '/species'),
-      ('statistics', '/statistics'),
+      ('insights', '/insights'),
       ('connections', '/connections'),
       ('planning', '/planning'),
       ('transfer', '/transfer'),

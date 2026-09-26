@@ -139,6 +139,48 @@ void main() {
       expect(container.read(settingsProvider).hiddenChamberIds, isEmpty);
     });
 
+    test('setTankPresetHidden toggles hidden tank presets', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      expect(container.read(settingsProvider).hiddenTankPresetIds, isEmpty);
+      await container
+          .read(settingsProvider.notifier)
+          .setTankPresetHidden('hp80', true);
+      expect(container.read(settingsProvider).hiddenTankPresetIds, {'hp80'});
+      await container
+          .read(settingsProvider.notifier)
+          .setTankPresetHidden('hp80', false);
+      expect(container.read(settingsProvider).hiddenTankPresetIds, isEmpty);
+    });
+
+    test('setTankPresetHidden never hides the default preset', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      final notifier = container.read(settingsProvider.notifier);
+      await notifier.setDefaultTankPreset('steel12');
+      await notifier.setTankPresetHidden('steel12', true);
+      expect(container.read(settingsProvider).hiddenTankPresetIds, isEmpty);
+    });
+
+    test('setDefaultTankPreset shows a hidden preset again', () async {
+      container.read(settingsProvider.notifier);
+      await waitForInit();
+
+      final notifier = container.read(settingsProvider.notifier);
+      await notifier.setTankPresetHidden('hp80', true);
+      await notifier.setTankPresetHidden('lp85', true);
+      await notifier.setDefaultTankPreset('hp80');
+      final settings = container.read(settingsProvider);
+      expect(settings.defaultTankPreset, 'hp80');
+      expect(settings.hiddenTankPresetIds, {'lp85'});
+
+      // Clearing the default leaves the hidden set alone.
+      await notifier.setDefaultTankPreset(null);
+      expect(container.read(settingsProvider).hiddenTankPresetIds, {'lp85'});
+    });
+
     test('setHomeChipEnabled toggles hidden home chips', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();
@@ -398,6 +440,52 @@ void main() {
         await notifier.setPpO2Limits(1.3, 1.5);
         expect(container.read(settingsProvider).ppO2MaxWorking, 1.3);
         expect(container.read(settingsProvider).ppO2MaxDeco, 1.5);
+      },
+    );
+
+    test(
+      'setCcrPpO2Limits keeps 0.5-1.6 on a 0.1 grid, high >= low (#2342)',
+      () async {
+        container.read(settingsProvider.notifier);
+        await waitForInit();
+
+        final notifier = container.read(settingsProvider.notifier);
+        final initial = container.read(settingsProvider);
+        expect(initial.ccrSetpointLow, 0.7);
+        expect(initial.ccrSetpointHigh, 1.3);
+        expect(initial.ccrDiluentModPpO2, 1.6);
+
+        await notifier.setCcrPpO2Limits(
+          setpointLow: 0.1,
+          setpointHigh: 1.9,
+          diluentModPpO2: 0.05,
+        );
+        var s = container.read(settingsProvider);
+        expect(s.ccrSetpointLow, 0.5);
+        expect(s.ccrSetpointHigh, 1.6);
+        expect(s.ccrDiluentModPpO2, 0.5);
+
+        // Off-grid values snap to the nearest tenth.
+        await notifier.setCcrPpO2Limits(
+          setpointLow: 0.74,
+          setpointHigh: 1.26,
+          diluentModPpO2: 1.55,
+        );
+        s = container.read(settingsProvider);
+        expect(s.ccrSetpointLow, 0.7);
+        expect(s.ccrSetpointHigh, 1.3);
+        expect(s.ccrDiluentModPpO2, 1.6);
+
+        // A high setpoint below the low one is raised to it.
+        await notifier.setCcrPpO2Limits(
+          setpointLow: 1.2,
+          setpointHigh: 0.9,
+          diluentModPpO2: 1.5,
+        );
+        s = container.read(settingsProvider);
+        expect(s.ccrSetpointLow, 1.2);
+        expect(s.ccrSetpointHigh, 1.2);
+        expect(s.ccrDiluentModPpO2, 1.5);
       },
     );
 

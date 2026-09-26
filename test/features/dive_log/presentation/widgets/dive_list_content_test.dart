@@ -19,6 +19,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/dive_table_vie
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+import 'package:submersion/shared/widgets/feature_accent.dart';
 
 import '../../../../helpers/selection_contract.dart';
 import '../../../../helpers/mock_providers.dart';
@@ -1475,6 +1476,26 @@ void main() {
 
         expect(find.text('search page'), findsOneWidget);
         expect(router.routerDelegate.canPop(), isTrue);
+      });
+    }
+
+    // The phone app bar and the desktop compact bar name the section the
+    // same way; they once read two different keys ("Dive Log" vs "Dives").
+    for (final showAppBar in const [true, false]) {
+      final bar = showAppBar ? 'app bar' : 'compact bar';
+      testWidgets('$bar title reads Dives', (tester) async {
+        await pumpList(
+          tester,
+          overrides: await detailedOverrides(),
+          showAppBar: showAppBar,
+        );
+
+        final title = find.byType(FeatureAppBarTitle);
+        expect(
+          find.descendant(of: title, matching: find.text('Dives')),
+          findsOneWidget,
+        );
+        expect(find.text('Dive Log'), findsNothing);
       });
     }
   });

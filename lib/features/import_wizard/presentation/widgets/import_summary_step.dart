@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,6 +15,7 @@ import 'package:submersion/features/import_wizard/presentation/providers/import_
 import 'package:submersion/features/import_wizard/presentation/widgets/import_summary_diver_outcomes.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/missing_dives_card.dart';
 import 'package:submersion/features/import_wizard/presentation/widgets/undo_fills_button.dart';
+import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
@@ -548,6 +551,30 @@ _FileNoticeWording? _fileNoticeWording(
     ),
     // No action button: Dive Numbering is a dialog on the dive list, not
     // a route, so the body tells the diver where to find it.
+    ImportNoticeKind.gearUnavailable => (
+      title: l10n.universalImport_summary_noticeGearUnavailableTitle,
+      body: l10n.universalImport_summary_noticeGearUnavailableBody,
+      action: null,
+    ),
+    ImportNoticeKind.certificationsUnavailable => (
+      title: l10n.universalImport_summary_noticeCertificationsUnavailableTitle,
+      body: l10n.universalImport_summary_noticeCertificationsUnavailableBody,
+      action: null,
+    ),
+    ImportNoticeKind.photoListingsUnavailable => (
+      title: l10n.universalImport_summary_noticePhotoListingsUnavailableTitle,
+      body: l10n.universalImport_summary_noticePhotoListingsUnavailableBody(
+        notice.count,
+      ),
+      action: null,
+    ),
+    ImportNoticeKind.photosNotDownloaded => (
+      title: l10n.universalImport_summary_noticePhotosNotDownloadedTitle,
+      body: l10n.universalImport_summary_noticePhotosNotDownloadedBody(
+        notice.count,
+      ),
+      action: null,
+    ),
     ImportNoticeKind.diveNumberConflict => (
       title: l10n.universalImport_summary_noticeDiveNumberConflictTitle,
       body: l10n.universalImport_summary_noticeDiveNumberConflictBody,
@@ -663,6 +690,8 @@ class _FileOutcomeRow extends StatelessWidget {
         l10n.universalImport_summary_fileUnsupported,
     };
 
+    final canImportAsRoute =
+        outcome.isNavTrackRoute && outcome.filePath != null;
     // Why a file failed, verbatim from its parser. Only failures carry one.
     final reason = outcome.status == ImportFileOutcomeStatus.parseFailed
         ? outcome.error
@@ -674,11 +703,12 @@ class _FileOutcomeRow extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 10,
+            runSpacing: 4,
             children: [
               Icon(icon, size: 18, color: theme.colorScheme.onSurfaceVariant),
-              const SizedBox(width: 10),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 200),
                 child: Text(
@@ -687,13 +717,18 @@ class _FileOutcomeRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 10),
               Text(
                 label,
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
+              if (canImportAsRoute)
+                TextButton(
+                  key: const ValueKey('import-summary-import-as-route'),
+                  onPressed: () => _importAsRoute(context),
+                  child: Text(l10n.universalImport_summary_importAsRoute),
+                ),
             ],
           ),
           if (reason != null && reason.isNotEmpty)
@@ -713,6 +748,31 @@ class _FileOutcomeRow extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  /// Re-reads the excluded file from its stored path and hands it to the
+  /// route review page. The batch pipeline only reads bytes to detect the
+  /// format and does not keep them, so a Seacraft ENC file flagged
+  /// `needsIndividualImport` would otherwise be a dead end in this batch
+  /// summary with no way to actually import it as a route.
+  Future<void> _importAsRoute(BuildContext context) async {
+    final path = outcome.filePath;
+    if (path == null) return;
+    final l10n = context.l10n;
+    try {
+      final bytes = await File(path).readAsBytes();
+      if (!context.mounted) return;
+      await navigateToNavTrackReview(
+        context,
+        bytes,
+        fileName: outcome.fileName,
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.dropTarget_error_readFailed)));
+    }
   }
 }
 

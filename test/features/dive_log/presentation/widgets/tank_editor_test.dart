@@ -17,6 +17,68 @@ import '../../../../helpers/mock_providers.dart';
 
 void main() {
   group('TankEditor', () {
+    testWidgets('a tank keeps showing a preset the diver has hidden (#2305)', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final builtInPresets = TankPresets.all
+          .map((p) => TankPresetEntity.fromBuiltIn(p))
+          .toList();
+      // What tankPresetsProvider serves once HP80 is hidden.
+      final visiblePresets = builtInPresets
+          .where((p) => p.name != 'hp80')
+          .toList();
+
+      const tank = DiveTank(
+        id: 'tank-hidden',
+        volume: 10.2,
+        workingPressure: 237.317,
+        gasMix: GasMix(o2: 21.0, he: 0.0),
+        presetName: 'hp80',
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            sharedPreferencesProvider.overrideWithValue(prefs),
+            settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+            currentDiverIdProvider.overrideWith(
+              (ref) => MockCurrentDiverIdNotifier(),
+            ),
+            tankPresetListNotifierProvider.overrideWith(
+              (ref) => _MockTankPresetListNotifier(builtInPresets),
+            ),
+            tankPresetsProvider.overrideWith(
+              (ref) => Future.value(visiblePresets),
+            ),
+          ].cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SingleChildScrollView(
+                child: TankEditor(
+                  tank: tank,
+                  tankNumber: 1,
+                  onChanged: (_) {},
+                  onRemove: () {},
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final dropdown = tester.widget<DropdownButton<TankPresetEntity?>>(
+        find.byType(DropdownButton<TankPresetEntity?>),
+      );
+      expect(dropdown.value?.name, 'hp80');
+      expect(find.text('HP80'), findsOneWidget);
+    });
+
     testWidgets('renders pressure values in metric (bar)', (tester) async {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();

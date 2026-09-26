@@ -107,7 +107,8 @@ void main() {
       // The safety copy landed in the always-writable sandbox default.
       final backupPath = p.join(
         tmp.path,
-        'Submersion/Backups',
+        'Submersion',
+        'Backups',
         '20260412-081201000-v63-v64.db',
       );
       expect(

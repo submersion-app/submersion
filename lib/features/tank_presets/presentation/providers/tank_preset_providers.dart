@@ -1,8 +1,10 @@
 import 'package:submersion/core/providers/provider.dart';
 
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
+import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/data/repositories/tank_preset_repository.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
+import 'package:submersion/features/tank_presets/domain/services/tank_preset_visibility.dart';
 import 'package:submersion/core/utils/log_failure.dart';
 
 /// Repository provider
@@ -10,8 +12,11 @@ final tankPresetRepositoryProvider = Provider<TankPresetRepository>((ref) {
   return TankPresetRepository();
 });
 
-/// All tank presets provider (custom + built-in, custom first)
-/// Includes built-in presets plus custom presets for the current diver
+/// Tank presets the pickers offer (custom + built-in, custom first)
+/// Includes built-in presets plus custom presets for the current diver,
+/// minus the built-in presets the diver hid (issue #2305). The Tank Presets
+/// settings page reads [tankPresetListNotifierProvider] instead, which keeps
+/// every preset so a hidden one can be shown again.
 ///
 /// Stays a [FutureProvider] so imperative
 /// `ref.read(tankPresetsProvider.future)` reads still resolve, while
@@ -20,12 +25,31 @@ final tankPresetRepositoryProvider = Provider<TankPresetRepository>((ref) {
 /// a cached one-shot snapshot.
 final tankPresetsProvider = FutureProvider<List<TankPresetEntity>>((ref) async {
   final repository = ref.watch(tankPresetRepositoryProvider);
+  // Selects the presets that are effectively hidden (the default is always
+  // offered), by content rather than by Set instance: a settings reload
+  // decodes a fresh Set, and starring a preset that was never hidden must
+  // not re-run this provider either.
+  final hidden = ref
+      .watch(settingsProvider.select(_effectivelyHiddenKey))
+      .split('\n')
+      .where((name) => name.isNotEmpty)
+      .toSet();
   final validatedDiverId = await ref.watch(
     validatedCurrentDiverIdProvider.future,
   );
   ref.invalidateSelfWhen(repository.watchTankPresetsChanges());
-  return repository.getAllPresets(diverId: validatedDiverId);
+  final all = await repository.getAllPresets(diverId: validatedDiverId);
+  return visibleTankPresets(all, hidden);
 });
+
+/// The hidden built-in preset slugs minus the default preset, sorted and
+/// newline-joined so equal contents compare equal.
+String _effectivelyHiddenKey(AppSettings settings) =>
+    (settings.hiddenTankPresetIds
+            .where((name) => name != settings.defaultTankPreset)
+            .toList()
+          ..sort())
+        .join('\n');
 
 /// Custom (user-defined) tank presets only for the current diver
 final customTankPresetsProvider = FutureProvider<List<TankPresetEntity>>((

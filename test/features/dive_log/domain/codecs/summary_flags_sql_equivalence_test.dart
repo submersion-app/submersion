@@ -8,7 +8,7 @@ import '../../../../helpers/test_database.dart';
 /// Pins that the scalar columns a `dive_profile_series` row stores next to
 /// its blob agree with what the legacy row-per-sample SQL would have
 /// computed over the same decoded samples. The deco-signal SQL consumers
-/// (dive_filter_sql.dart, dive_repository_impl.dart, statistics_repository)
+/// (dive_filter_sql.dart, dive_repository_impl.dart, insights_repository)
 /// read these columns instead of scanning `dive_profiles`, so a mismatch
 /// here would silently reclassify every dive that has one.
 void main() {

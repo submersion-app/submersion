@@ -205,6 +205,10 @@ class AppSettings {
   final String? defaultTankPreset;
   final bool applyDefaultTankToImports;
 
+  /// Built-in tank preset slugs hidden from the pickers (issue #2305). The
+  /// Tank Presets page still lists them, import matching still uses them.
+  final Set<String> hiddenTankPresetIds;
+
   // Decompression & Safety settings
   /// Gradient Factor Low (0-100, typically 30)
   final int gfLow;
@@ -217,6 +221,15 @@ class AppSettings {
 
   /// Maximum ppO2 for deco gas (typically 1.6 bar)
   final double ppO2MaxDeco;
+
+  /// CCR default low setpoint in bar (issue #2342).
+  final double ccrSetpointLow;
+
+  /// CCR default high setpoint in bar, the one held at depth.
+  final double ccrSetpointHigh;
+
+  /// ppO2 a CCR diluent may reach on a flush, which sets its MOD.
+  final double ccrDiluentModPpO2;
 
   /// CNS% warning threshold (typically 80%)
   final int cnsWarningThreshold;
@@ -573,11 +586,15 @@ class AppSettings {
     this.defaultStartPressure = 200,
     this.defaultTankPreset = 'al80',
     this.applyDefaultTankToImports = false,
+    this.hiddenTankPresetIds = const {},
     // Decompression defaults
     this.gfLow = 50,
     this.gfHigh = 85,
     this.ppO2MaxWorking = 1.4,
     this.ppO2MaxDeco = 1.6,
+    this.ccrSetpointLow = 0.7,
+    this.ccrSetpointHigh = 1.3,
+    this.ccrDiluentModPpO2 = 1.6,
     this.cnsWarningThreshold = 80,
     this.ascentRateWarning = 9.0,
     this.ascentRateCritical = 12.0,
@@ -752,10 +769,14 @@ class AppSettings {
     String? defaultTankPreset,
     bool clearDefaultTankPreset = false,
     bool? applyDefaultTankToImports,
+    Set<String>? hiddenTankPresetIds,
     int? gfLow,
     int? gfHigh,
     double? ppO2MaxWorking,
     double? ppO2MaxDeco,
+    double? ccrSetpointLow,
+    double? ccrSetpointHigh,
+    double? ccrDiluentModPpO2,
     int? cnsWarningThreshold,
     double? ascentRateWarning,
     double? ascentRateCritical,
@@ -903,10 +924,14 @@ class AppSettings {
           : (defaultTankPreset ?? this.defaultTankPreset),
       applyDefaultTankToImports:
           applyDefaultTankToImports ?? this.applyDefaultTankToImports,
+      hiddenTankPresetIds: hiddenTankPresetIds ?? this.hiddenTankPresetIds,
       gfLow: gfLow ?? this.gfLow,
       gfHigh: gfHigh ?? this.gfHigh,
       ppO2MaxWorking: ppO2MaxWorking ?? this.ppO2MaxWorking,
       ppO2MaxDeco: ppO2MaxDeco ?? this.ppO2MaxDeco,
+      ccrSetpointLow: ccrSetpointLow ?? this.ccrSetpointLow,
+      ccrSetpointHigh: ccrSetpointHigh ?? this.ccrSetpointHigh,
+      ccrDiluentModPpO2: ccrDiluentModPpO2 ?? this.ccrDiluentModPpO2,
       cnsWarningThreshold: cnsWarningThreshold ?? this.cnsWarningThreshold,
       ascentRateWarning: ascentRateWarning ?? this.ascentRateWarning,
       ascentRateCritical: ascentRateCritical ?? this.ascentRateCritical,
@@ -1531,11 +1556,40 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     await _saveSettings();
   }
 
+  /// Also shows [presetName] again if it was hidden: the default preset is
+  /// always offered in the pickers (issue #2305). The outgoing default is
+  /// dropped from the hidden set too, since a stale entry for it (a synced
+  /// row can carry one) would otherwise hide it the moment it stops being
+  /// the default, without the diver ever having switched it off.
   Future<void> setDefaultTankPreset(String? presetName) async {
+    final hidden = state.hiddenTankPresetIds;
+    final previous = state.defaultTankPreset;
+    final touchesHidden =
+        hidden.contains(presetName) || hidden.contains(previous);
     state = state.copyWith(
       defaultTankPreset: presetName,
       clearDefaultTankPreset: presetName == null,
+      hiddenTankPresetIds: touchesHidden
+          ? {
+              for (final name in hidden)
+                if (name != presetName && name != previous) name,
+            }
+          : null,
     );
+    await _saveSettings();
+  }
+
+  /// Hides or shows a built-in tank preset in the pickers (issue #2305).
+  /// The current default preset cannot be hidden, so hiding it is a no-op.
+  Future<void> setTankPresetHidden(String presetName, bool hidden) async {
+    if (hidden && presetName == state.defaultTankPreset) return;
+    final ids = {...state.hiddenTankPresetIds};
+    if (hidden) {
+      ids.add(presetName);
+    } else {
+      ids.remove(presetName);
+    }
+    state = state.copyWith(hiddenTankPresetIds: ids);
     await _saveSettings();
   }
 
@@ -1614,6 +1668,34 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     state = state.copyWith(
       ppO2MaxWorking: clampedWorking,
       ppO2MaxDeco: clampedMax,
+    );
+    await _saveSettings();
+  }
+
+  /// Selectable range of the CCR ppO2 limits (issue #2342), on a 0.1 bar
+  /// grid like the OC limits.
+  static const double ccrPpO2Min = 0.5;
+  static const double ccrPpO2Max = 1.6;
+
+  /// [value] clamped to the CCR range and snapped to its 0.1 bar grid.
+  static double ccrPpO2OnGrid(double value) =>
+      (value.clamp(ccrPpO2Min, ccrPpO2Max) * 10).round() / 10;
+
+  /// Set the CCR ppO2 limits in one persisted write. Each is put on the
+  /// [ccrPpO2Min]..[ccrPpO2Max] 0.1 bar grid, and the high setpoint is held
+  /// at or above the low one, the same "never inverted" rule
+  /// [setPpO2Limits] keeps.
+  Future<void> setCcrPpO2Limits({
+    required double setpointLow,
+    required double setpointHigh,
+    required double diluentModPpO2,
+  }) async {
+    final low = ccrPpO2OnGrid(setpointLow);
+    final high = ccrPpO2OnGrid(setpointHigh);
+    state = state.copyWith(
+      ccrSetpointLow: low,
+      ccrSetpointHigh: high < low ? low : high,
+      ccrDiluentModPpO2: ccrPpO2OnGrid(diluentModPpO2),
     );
     await _saveSettings();
   }

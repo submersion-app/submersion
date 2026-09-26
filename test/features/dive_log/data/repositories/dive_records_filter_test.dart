@@ -7,8 +7,8 @@ import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dar
 
 import '../../../../helpers/test_database.dart';
 
-/// Issue #1028: the Statistics tab's personal records ignored the active
-/// Statistics filter while every other panel on the page honoured it.
+/// Issue #1028: the Insights tab's personal records ignored the active
+/// Insights filter while every other panel on the page honoured it.
 void main() {
   late AppDatabase db;
   late DiveRepository repository;

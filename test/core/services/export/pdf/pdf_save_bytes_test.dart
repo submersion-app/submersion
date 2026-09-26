@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/export/export_service.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/export/pdf/pdf_export_service.dart';
@@ -84,7 +85,10 @@ void main() {
   final pdfBytes = <int>[...'%PDF-1.4'.codeUnits, 0x0A, 0x25, 0xE2, 0x0A];
 
   test('writes the supplied bytes to the chosen path', () async {
-    final target = '${workDir.path}/dive_logbook_padiStyle_2026-01-15.pdf';
+    final target = p.join(
+      workDir.path,
+      'dive_logbook_padiStyle_2026-01-15.pdf',
+    );
     picker.saveFileResult = Uri.file(target);
 
     final path = await service.savePdfBytesToFile(
@@ -97,7 +101,7 @@ void main() {
   });
 
   test('offers the caller file name and a .pdf filter to the picker', () async {
-    picker.saveFileResult = Uri.file('${workDir.path}/out.pdf');
+    picker.saveFileResult = Uri.file(p.join(workDir.path, 'out.pdf'));
 
     await service.savePdfBytesToFile(
       pdfBytes,
@@ -123,7 +127,7 @@ void main() {
   });
 
   test('saveDivesToPdfFile routes the generated logbook through it', () async {
-    final target = '${workDir.path}/logbook.pdf';
+    final target = p.join(workDir.path, 'logbook.pdf');
     picker.saveFileResult = Uri.file(target);
 
     final path = await service.saveDivesToPdfFile(
@@ -150,7 +154,7 @@ void main() {
   test(
     'ExportService.savePdfBytesToFile delegates to the PDF service',
     () async {
-      final target = '${workDir.path}/facade.pdf';
+      final target = p.join(workDir.path, 'facade.pdf');
       picker.saveFileResult = Uri.file(target);
 
       final path = await ExportService().savePdfBytesToFile(

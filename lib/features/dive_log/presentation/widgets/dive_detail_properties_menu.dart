@@ -7,7 +7,8 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/section_properties_menu.dart';
 
-/// The dive detail page's display-options dropdown.
+/// The dive detail page's display-options panel, opened from its overflow
+/// menu.
 ///
 /// Puts the page-shape choices where the page is (which sections show, in
 /// what order, and how much room each one gets) instead of only under
@@ -17,7 +18,12 @@ import 'package:submersion/shared/widgets/section_properties_menu.dart';
 /// The menu itself is the shared [SectionPropertiesMenu]; this wrapper
 /// decides which sections a dive offers and where each choice is written.
 class DiveDetailPropertiesMenu extends ConsumerWidget {
-  const DiveDetailPropertiesMenu({super.key, required this.isGauge});
+  const DiveDetailPropertiesMenu({
+    super.key,
+    required this.isGauge,
+    required this.controller,
+    required this.child,
+  });
 
   /// Whether the dive is a gauge (bottom-timer) dive.
   ///
@@ -25,6 +31,12 @@ class DiveDetailPropertiesMenu extends ConsumerWidget {
   /// toggles are left out rather than shown switched on with nothing behind
   /// them.
   final bool isGauge;
+
+  /// See [SectionPropertiesMenu.controller].
+  final MenuController controller;
+
+  /// The page's overflow button, which the panel drops down from.
+  final Widget child;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -41,6 +53,7 @@ class DiveDetailPropertiesMenu extends ConsumerWidget {
     ];
 
     return SectionPropertiesMenu(
+      controller: controller,
       layout: layout,
       onLayoutChanged: (option) =>
           ref.read(settingsProvider.notifier).setDiveDetailLayout(option),
@@ -66,6 +79,7 @@ class DiveDetailPropertiesMenu extends ConsumerWidget {
           ),
       onShowAll: () => _showAll(ref, sections, offered),
       onOpenSettings: () => context.pushNamed('diveDetailSections'),
+      child: child,
     );
   }
 

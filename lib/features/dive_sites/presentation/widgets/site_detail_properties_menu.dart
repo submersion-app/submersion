@@ -7,17 +7,25 @@ import 'package:submersion/features/settings/presentation/providers/settings_pro
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/section_properties_menu.dart';
 
-/// The Site Details page's display-options dropdown.
+/// The Site Details page's display-options panel, opened from its overflow
+/// menu.
 ///
 /// The same menu as Dive Details ([SectionPropertiesMenu]), writing to the
 /// diver's site settings instead, so the two pages are configured
 /// independently. Every card is offered, including ones with nothing to show
 /// for the current site: a site can gain coordinates or hazards later.
 class SiteDetailPropertiesMenu extends ConsumerWidget {
-  const SiteDetailPropertiesMenu({super.key, this.iconSize});
+  const SiteDetailPropertiesMenu({
+    super.key,
+    required this.controller,
+    required this.child,
+  });
 
-  /// Size of the tune icon; the embedded header uses a smaller one.
-  final double? iconSize;
+  /// See [SectionPropertiesMenu.controller].
+  final MenuController controller;
+
+  /// The page's overflow button, which the panel drops down from.
+  final Widget child;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,8 +41,8 @@ class SiteDetailPropertiesMenu extends ConsumerWidget {
         ref.read(settingsProvider.notifier).setSiteDetailSections(updated);
 
     return SectionPropertiesMenu(
+      controller: controller,
       layout: layout,
-      iconSize: iconSize,
       onLayoutChanged: (option) =>
           ref.read(settingsProvider.notifier).setSiteDetailLayout(option),
       entries: [
@@ -65,6 +73,7 @@ class SiteDetailPropertiesMenu extends ConsumerWidget {
       onShowAll: () =>
           write([for (final s in sections) s.copyWith(visible: true)]),
       onOpenSettings: () => context.pushNamed('siteDetailSections'),
+      child: child,
     );
   }
 }

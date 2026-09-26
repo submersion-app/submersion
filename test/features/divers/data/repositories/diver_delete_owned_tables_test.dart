@@ -209,6 +209,22 @@ void main() {
           );
       return [('transmitters', 'transmitters', 'tx-a')];
     },
+    'a cylinder fill': () async {
+      await db
+          .into(db.cylinderFills)
+          .insert(
+            CylinderFillsCompanion.insert(
+              id: 'fill-a',
+              passportId: 'pp-a',
+              filledAt: stale,
+              o2Percent: 32,
+              diverId: const Value('diver-a'),
+              createdAt: stale,
+              updatedAt: stale,
+            ),
+          );
+      return [('cylinder_fills', 'cylinderFills', 'fill-a')];
+    },
     'a custom dive role': () async {
       await db
           .into(db.diveRoles)
@@ -709,6 +725,7 @@ const _clearedByDelete = {
   'tags',
   'tank_presets',
   'transmitters',
+  'cylinder_fills',
   'trips',
   'weight_presets',
 };

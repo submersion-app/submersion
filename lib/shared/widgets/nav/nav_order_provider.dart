@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
+import 'package:submersion/shared/widgets/nav/nav_id_aliases.dart';
 import 'package:submersion/shared/widgets/nav/nav_slot_count.dart';
 
 /// Canonical list of every nav destination, including the `more` sentinel.
@@ -168,10 +169,14 @@ class NavOrderNotifier extends StateNotifier<List<String>> {
 
   /// Normalizes [ids], persists, and updates state.
   ///
+  /// The saved value also carries each renamed destination's old id (see
+  /// [withLegacyNavIds]) so an older synced build keeps the user's slot; the
+  /// state holds only the normalized ids.
+  ///
   /// Rethrows a write failure so the caller can roll its optimistic UI back.
   Future<void> setOrder(List<String> ids) async {
     final normalized = normalizeNavOrder(stored: ids, movableIds: movableIds);
-    await write(normalized);
+    await write(withLegacyNavIds(normalized));
     if (mounted) state = normalized;
   }
 

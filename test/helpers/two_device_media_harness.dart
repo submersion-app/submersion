@@ -44,6 +44,8 @@ import 'package:submersion/features/media_store/data/media_transfer_queue_reposi
 import 'package:submersion/features/media_store/data/media_upload_pipeline.dart';
 import 'package:submersion/features/media_store/domain/media_transfer_hold.dart';
 
+import 'unique_ids.dart';
+
 import 'fake_cloud_storage_provider.dart';
 import 'fake_photo_picker_service.dart';
 import 'in_memory_media_object_store.dart';
@@ -285,7 +287,7 @@ class HarnessDevice {
   Future<String> createDive({String diverId = 'diver1', DateTime? at}) async {
     await activate();
     final when = (at ?? DateTime(2026, 7, 1, 10)).millisecondsSinceEpoch;
-    final id = 'dive-${name.hashCode}-${DateTime.now().microsecondsSinceEpoch}';
+    final id = uniqueTestId('dive-${name.hashCode}');
     await db
         .into(db.dives)
         .insert(

@@ -460,6 +460,17 @@ class _DiveListPageState extends ConsumerState<DiveListPage> {
                   Uri(path: state.uri.path, queryParameters: params).toString(),
                 );
               },
+              onDeleted: () {
+                // The site is gone, so return to the dive it was opened from.
+                final params = {
+                  for (final entry in state.uri.queryParameters.entries)
+                    if (entry.key != 'mode' && entry.key != 'site')
+                      entry.key: entry.value,
+                };
+                context.replace(
+                  Uri(path: state.uri.path, queryParameters: params).toString(),
+                );
+              },
             );
           }
           return DiveEditPage(

@@ -68,20 +68,25 @@ void main() {
   );
 
   group('SettingsListContent', () {
-    testWidgets('the equipment condition section reads in the active locale', (
+    testWidgets('equipment condition is not a top-level section', (
       tester,
     ) async {
+      // It is reached from Settings > Safety instead. A tall surface builds
+      // every row, so the absence check is not satisfied by lazy building.
+      await tester.binding.setSurfaceSize(const Size(400, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
       await tester.pumpWidget(
-        await buildWidget(debugEnabled: false, locale: const Locale('de')),
+        await buildWidget(debugEnabled: false, locale: const Locale('en')),
       );
       await tester.pumpAndSettle();
-      await tester.scrollUntilVisible(
-        find.text('Ausrüstungszustand'),
-        200,
-        scrollable: find.byType(Scrollable).first,
-      );
-      expect(find.text('Ausrüstungszustand'), findsOneWidget);
+
+      expect(find.text('Units'), findsOneWidget);
       expect(find.text('Equipment condition'), findsNothing);
+      expect(
+        settingsSections.map((s) => s.id),
+        isNot(contains('equipmentCondition')),
+      );
     });
 
     testWidgets('shows Debug section when debug mode is enabled', (

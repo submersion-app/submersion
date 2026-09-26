@@ -32,4 +32,22 @@ and each issue needs its own keyword ("Closes #1, closes #2", not
 
 ## Screenshots
 
-<!-- If UI changes, add before/after screenshots. Delete this section if not applicable. -->
+<!--
+Required when the PR changes anything a user can see. That covers any change
+under:
+
+  lib/**/presentation/
+  lib/shared/widgets/, lib/core/theme/, lib/core/ui/, lib/core/icons/
+  UI resources in android/, ios/, macos/, windows/ or linux/
+  (launch screens, app icons, window chrome)
+
+Drag the images into this description on github.com. Show before and after
+(only the after for a brand-new screen), light and dark mode when colours
+change, and phone and desktop widths when the layout changes.
+
+Touched those paths but nothing looks different (a refactor, a provider
+change)? Tick the box below and say why in the Summary. Touched none of them?
+Delete this section.
+-->
+
+- [ ] No visible UI change

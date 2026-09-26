@@ -11,7 +11,11 @@ void main() {
     // compiler only partly checks, so this failing is the prompt to also
     // update defaultSections and the ARB keys for the localized switches.
     test('section count changes are intentional', () {
-      expect(DiveDetailSectionId.values.length, 23);
+      // Bumped for DiveDetailSectionId.navTrack (spec
+      // 2026-09-10-underwater-nav-track-design.md, "Dive detail section").
+      // Its localized switches use plain English literals rather than new
+      // ARB keys, on purpose -- a later l10n pass adds those, per the spec.
+      expect(DiveDetailSectionId.values.length, 24);
     });
 
     test('values match expected IDs', () {

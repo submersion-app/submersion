@@ -38,14 +38,15 @@ class ArchiveExpansion {
 
 /// Expands ZIP archives at file-intake time so their members flow through
 /// the normal detection/parse pipeline (a DiveCloud export ZIP becomes a
-/// bulk batch of .zxu files plus a photo index).
+/// bulk batch of .zxu files plus a photo index; a Garmin Connect "Export
+/// Original" ZIP becomes the one activity's .fit file).
 class ZipExpansionService {
   const ZipExpansionService();
 
   /// Total uncompressed size cap: guards against zip bombs.
   static const maxUncompressedBytes = 500 * 1024 * 1024;
 
-  static const _diveFileExtensions = {'.zxu', '.zxl'};
+  static const _diveFileExtensions = {'.zxu', '.zxl', '.fit'};
   static const _photoExtensions = {'.jpg', '.jpeg', '.png', '.heic', '.heif'};
 
   /// True for any of the three ZIP signatures: `PK\x03\x04` (local file

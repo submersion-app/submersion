@@ -11,7 +11,9 @@ import 'package:submersion/features/media/data/repositories/media_row_mapper.dar
 import 'package:submersion/features/media/data/services/trip_media_scanner.dart';
 import 'package:submersion/features/media/domain/entities/media_library_filter.dart';
 import 'package:submersion/features/media/domain/entities/media_library_sort.dart';
+import 'package:submersion/features/media/domain/entities/media_map_point.dart';
 import 'package:submersion/features/media/domain/entities/media_source_type.dart';
+import 'package:submersion/features/media/domain/services/media_placement_resolver.dart';
 
 /// Paginated, filtered, cross-dive media reads for the Media section.
 ///
@@ -299,6 +301,138 @@ class MediaLibraryRepository {
     final row = await (_db.selectOnly(m)..addColumns([count])).getSingle();
     return row.read(count) ?? 0;
   }
+
+  /// Photo and video rows only: documents have nothing to show on a map and
+  /// signatures are never library rows. Subsumes [_notSignature].
+  Expression<bool> get _mappable =>
+      _db.media.fileType.isIn(const ['photo', 'video']);
+
+  /// Every in-scope row that can be placed on the map, in the timeline's
+  /// order (date taken ascending, then id).
+  ///
+  /// Unpaged by design: the cluster layer needs the whole located set at
+  /// once. Sites are joined twice, through the dive and through the row's
+  /// own site link, because site-attached media (issue #959) has no dive.
+  /// The four coordinate pairs are fetched raw and resolved in Dart by
+  /// [resolveMediaPlacement] so the plausibility rule lives in one place.
+  Future<List<MediaMapPoint>> getMapPoints({
+    required String? diverId,
+    MediaLibraryFilter filter = MediaLibraryFilter.none,
+  }) async {
+    try {
+      final m = _db.media;
+      final d = _db.dives;
+      final s = _db.diveSites;
+      final attached = _db.alias(_db.diveSites, 'attached_site');
+
+      final where =
+          _baseWhere(diverId, filter) &
+          _mappable &
+          (m.latitude.isNotNull() |
+              d.entryLatitude.isNotNull() |
+              s.latitude.isNotNull() |
+              attached.latitude.isNotNull());
+
+      final query =
+          _db.select(m).join([
+              leftOuterJoin(d, d.id.equalsExp(m.diveId)),
+              leftOuterJoin(s, s.id.equalsExp(d.siteId)),
+              leftOuterJoin(attached, attached.id.equalsExp(m.siteId)),
+            ])
+            ..where(where)
+            ..orderBy([OrderingTerm.asc(_dateKey), OrderingTerm.asc(m.id)]);
+
+      final rows = await query.get();
+      final points = <MediaMapPoint>[];
+      for (final row in rows) {
+        final mediaRow = row.readTable(m);
+        final diveRow = row.readTableOrNull(d);
+        final siteRow = row.readTableOrNull(s);
+        final attachedRow = row.readTableOrNull(attached);
+
+        final resolved = resolveMediaPlacement(
+          ownLatitude: mediaRow.latitude,
+          ownLongitude: mediaRow.longitude,
+          diveEntryLatitude: diveRow?.entryLatitude,
+          diveEntryLongitude: diveRow?.entryLongitude,
+          diveSiteLatitude: siteRow?.latitude,
+          diveSiteLongitude: siteRow?.longitude,
+          attachedSiteLatitude: attachedRow?.latitude,
+          attachedSiteLongitude: attachedRow?.longitude,
+        );
+        if (resolved == null) continue;
+
+        // A site placement is labelled with the site the item sits at; a GPS
+        // placement takes the nearest context, the dive's site first.
+        final label = resolved.placement == MediaPlacement.attachedSite
+            ? attachedRow?.name
+            : siteRow?.name ?? attachedRow?.name;
+        points.add(
+          MediaMapPoint(
+            entry: MediaLibraryEntry(
+              item: mediaItemFromRow(mediaRow),
+              diveNumber: diveRow?.diveNumber,
+              // Wall-clock-as-UTC, exactly as getPage hydrates it.
+              diveDateTime: diveRow == null
+                  ? null
+                  : DateTime.fromMillisecondsSinceEpoch(
+                      diveRow.diveDateTime,
+                      isUtc: true,
+                    ),
+              siteName: label,
+            ),
+            point: resolved.point,
+            placement: resolved.placement,
+            placeLabel: label,
+          ),
+        );
+      }
+      return points;
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to get media map points',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      rethrow;
+    }
+  }
+
+  /// How many photo and video rows the grid would show for this scope. The
+  /// map's "without a location" count is this minus [getMapPoints].length.
+  Future<int> countInScope({
+    required String? diverId,
+    MediaLibraryFilter filter = MediaLibraryFilter.none,
+  }) async {
+    final m = _db.media;
+    final d = _db.dives;
+    final count = countAll();
+    final query =
+        _db.selectOnly(m).join([
+            leftOuterJoin(d, d.id.equalsExp(m.diveId), useColumns: false),
+          ])
+          ..addColumns([count])
+          ..where(_baseWhere(diverId, filter) & _mappable);
+    final row = await query.getSingle();
+    return row.read(count) ?? 0;
+  }
+
+  /// Emits whenever anything that can move a map point, or change which
+  /// points are in scope, changes: the media row itself, a dive's entry fix,
+  /// a site's coordinates, or a species tag (the species filter is an EXISTS
+  /// over media_species). Built and debounced exactly like
+  /// [watchMediaChanges]; see its notes on why a `tableUpdates` stream and
+  /// not a watched query.
+  Stream<void> watchMapChanges() => _db
+      .tableUpdates(
+        TableUpdateQuery.onAllTables([
+          _db.media,
+          _db.dives,
+          _db.diveSites,
+          _db.mediaSpecies,
+        ]),
+      )
+      .debounce(MediaRepository.changeTickDebounce);
 
   /// Emits whenever the media table changes. Deliberately coarse: consumers
   /// reload page one rather than patching rows (per the Media section spec's

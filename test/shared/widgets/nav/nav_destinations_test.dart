@@ -1,8 +1,15 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/shared/widgets/nav/nav_destinations.dart';
 
 void main() {
   group('kNavDestinations', () {
+    test('Insights uses the insights glyph', () {
+      final insights = kNavDestinations.singleWhere((d) => d.id == 'insights');
+      expect(insights.icon, Icons.insights_outlined);
+      expect(insights.selectedIcon, Icons.insights);
+    });
+
     test('has exactly 18 entries (17 routable + more sentinel)', () {
       expect(kNavDestinations.length, 18);
     });
@@ -38,7 +45,7 @@ void main() {
         'certifications',
         'courses',
         'species',
-        'statistics',
+        'insights',
         'connections',
         'planning',
         'transfer',
@@ -75,7 +82,7 @@ void main() {
         'certifications',
         'courses',
         'species',
-        'statistics',
+        'insights',
         'connections',
         'planning',
         'transfer',

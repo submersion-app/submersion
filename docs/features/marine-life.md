@@ -76,7 +76,7 @@ Each species entry contains:
 ## Species Page
 
 The Species page lists every species you have logged, across all your dives.
-Open it from **Statistics** > **Marine Life** > **See all species**.
+Open it from **Insights** > **Marine Life** > **See all species**.
 
 - **Search** matches the common name (in your language), the English name
   and the scientific name.
@@ -88,7 +88,7 @@ Open it from **Statistics** > **Marine Life** > **See all species**.
 - The **Manage catalog** action in the toolbar opens the species catalog,
   where you add, edit and delete species.
 
-The Species page is not affected by the Statistics filter.
+The Species page is not affected by the Insights filter.
 
 ## Adding Custom Species
 
@@ -125,7 +125,7 @@ is up to you.
 
 ### Marine Life Dashboard
 
-In Statistics, the Marine Life section shows:
+In Insights, the Marine Life section shows:
 
 | Stat | Description |
 |------|-------------|

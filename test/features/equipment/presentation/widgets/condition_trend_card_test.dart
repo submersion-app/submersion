@@ -10,8 +10,8 @@ import 'package:submersion/features/equipment/presentation/providers/condition_t
 import 'package:submersion/features/equipment/presentation/providers/equipment_condition_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/condition_trend_card.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/statistics/domain/trend_aggregation.dart';
-import 'package:submersion/features/statistics/presentation/widgets/dive_trend_chart.dart';
+import 'package:submersion/features/insights/domain/trend_aggregation.dart';
+import 'package:submersion/features/insights/presentation/widgets/dive_trend_chart.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';

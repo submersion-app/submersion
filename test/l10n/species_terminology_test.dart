@@ -5,7 +5,7 @@ import 'package:submersion/l10n/arb/app_localizations.dart';
 
 /// The app calls the catalog, the per-dive sightings and the browse page
 /// "Species". "Marine Life" was the older term and survived on a handful of
-/// section headers, the picker title and the Statistics tab, which read as a
+/// section headers, the picker title and the Insights tab, which read as a
 /// second, separate feature sitting next to the Species page.
 ///
 /// The safety incident category is deliberately excluded: there "marine life"
@@ -24,9 +24,9 @@ void main() {
     l10n.marineLife_speciesPage_emptyHint,
     l10n.diveDetailSection_sightings_name,
     l10n.settings_manage_species_subtitle,
-    l10n.statistics_category_marineLife_title,
-    l10n.statistics_marineLife_appBar_title,
-    l10n.statistics_marineLife_bestSites_title,
+    l10n.insights_category_marineLife_title,
+    l10n.insights_marineLife_appBar_title,
+    l10n.insights_marineLife_bestSites_title,
   ];
 
   /// The wording each locale used for the old "marine life" term. Every entry
@@ -58,9 +58,9 @@ void main() {
     expect(en.marineLife_siteSection_noSpotted, 'No species spotted yet');
     expect(en.diveDetailSection_sightings_name, 'Species Sightings');
     expect(en.settings_manage_species_subtitle, 'Manage the species catalog');
-    expect(en.statistics_category_marineLife_title, 'Species');
-    expect(en.statistics_marineLife_appBar_title, 'Species');
-    expect(en.statistics_marineLife_bestSites_title, 'Best Sites');
+    expect(en.insights_category_marineLife_title, 'Species');
+    expect(en.insights_marineLife_appBar_title, 'Species');
+    expect(en.insights_marineLife_bestSites_title, 'Best Sites');
   });
 
   test('the nav label matches the Species page title in every locale', () {

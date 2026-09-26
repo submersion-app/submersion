@@ -72,7 +72,7 @@ class AppShortcuts {
         isGlobal: true,
       ),
       ShortcutEntry(
-        label: 'Go to Statistics',
+        label: 'Go to Insights',
         category: 'Navigation',
         activator: platformShortcut(LogicalKeyboardKey.digit4),
         isGlobal: true,
@@ -143,7 +143,7 @@ class AppShortcuts {
       // top-level sections SHOULD reset the stack. The child routes here use
       // `push`, because these bindings are mounted around the entire shell and
       // `go` into a `/dives` child would rebuild the stack as [dive list, X],
-      // stranding a user who pressed the key from Media or Statistics.
+      // stranding a user who pressed the key from Media or Insights.
       platformShortcut(LogicalKeyboardKey.keyN): () {
         // PUSH (not go): the digit shortcuts below switch tabs, but this
         // opens a sub-page and must stay poppable (#647).
@@ -159,7 +159,7 @@ class AppShortcuts {
         context.go('/equipment');
       },
       platformShortcut(LogicalKeyboardKey.digit4): () {
-        context.go('/statistics');
+        context.go('/insights');
       },
       platformShortcut(LogicalKeyboardKey.digit5): () {
         context.go('/settings');

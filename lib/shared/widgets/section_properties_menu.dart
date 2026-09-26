@@ -37,13 +37,18 @@ class SectionMenuEntry {
   final bool visible;
 }
 
-/// A detail page's display-options dropdown: its layout, which sections
-/// show, and in what order.
+/// A detail page's display-options panel: its layout, which sections show,
+/// and in what order.
 ///
-/// Shared by Dive Details and Site Details. It holds no settings of its own:
-/// each page's wrapper decides which sections to offer and where each choice
-/// is written, so the two pages store their configurations separately while
-/// presenting them identically.
+/// Shared by Dive Details and Site Details, where it opens from the page's
+/// overflow menu: the page wraps its overflow button in this widget as
+/// [child], lists [displayOptionsMenuItem] among the overflow items, and
+/// opens [controller] when that item is chosen. The panel then drops down
+/// under the overflow button the diver just used.
+///
+/// It holds no settings of its own: each page's wrapper decides which
+/// sections to offer and where each choice is written, so the two pages store
+/// their configurations separately while presenting them identically.
 ///
 /// Sections are reordered by their drag handles right here, which keeps a
 /// page's own section rows down to a single tap target each. The last item
@@ -59,7 +64,8 @@ class SectionPropertiesMenu extends StatelessWidget {
     required this.onReorder,
     required this.onShowAll,
     required this.onOpenSettings,
-    this.iconSize,
+    required this.controller,
+    required this.child,
   });
 
   /// The page's current layout, shown as the checked radio item.
@@ -84,15 +90,19 @@ class SectionPropertiesMenu extends StatelessWidget {
   /// Opens the page's section settings screen.
   final VoidCallback onOpenSettings;
 
-  /// Size of the tune icon; null keeps the [IconButton] default. The
-  /// embedded master-detail headers use a smaller icon.
-  final double? iconSize;
+  /// Opens and closes the panel; owned by the page so its overflow menu can
+  /// open the panel.
+  final MenuController controller;
+
+  /// The widget the panel drops down from: the page's overflow button.
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
 
     return MenuAnchor(
+      controller: controller,
       alignmentOffset: const Offset(0, 8),
       style: const MenuStyle(
         maximumSize: WidgetStatePropertyAll(Size(_kSectionListWidth, 640)),
@@ -151,14 +161,21 @@ class SectionPropertiesMenu extends StatelessWidget {
           child: Text(l10n.diveLog_detail_displayOptions_reorder),
         ),
       ],
-      builder: (context, controller, _) => IconButton(
-        icon: Icon(Icons.tune, size: iconSize),
-        tooltip: l10n.diveLog_detail_displayOptions_tooltip,
-        onPressed: () =>
-            controller.isOpen ? controller.close() : controller.open(),
-      ),
+      child: child,
     );
   }
+}
+
+/// The overflow-menu row that opens a [SectionPropertiesMenu].
+PopupMenuItem<T> displayOptionsMenuItem<T>(BuildContext context, T value) {
+  return PopupMenuItem<T>(
+    value: value,
+    child: ListTile(
+      leading: const Icon(Icons.dashboard_customize_outlined),
+      title: Text(context.l10n.diveLog_detail_displayOptions_tooltip),
+      contentPadding: EdgeInsets.zero,
+    ),
+  );
 }
 
 /// One section's row: its visibility toggle with a drag handle alongside.

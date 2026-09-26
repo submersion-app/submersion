@@ -198,7 +198,7 @@ testWidgets('displays dive statistics', (tester) async {
           ),
         ),
       ],
-      child: const MaterialApp(home: StatisticsPage()),
+      child: const MaterialApp(home: InsightsPage()),
     ),
   );
 

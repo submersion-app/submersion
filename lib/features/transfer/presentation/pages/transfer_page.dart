@@ -870,10 +870,10 @@ class _ComputersSectionContent extends ConsumerWidget {
 
 /// Cloud import section content.
 ///
-/// Lists dive-computer manufacturer cloud accounts that dives can be
-/// imported from directly (no file export/transfer needed). Additional
-/// providers (Shearwater Cloud, etc.) get their own card here as they're
-/// added.
+/// Lists dive-computer manufacturer cloud accounts and online logbook
+/// services (divelogs.de) that dives can be imported from directly (no file
+/// export/transfer needed). Additional providers (Shearwater Cloud, etc.)
+/// get their own card here as they're added.
 class _CloudSectionContent extends ConsumerWidget {
   final WidgetRef ref;
 
@@ -903,6 +903,13 @@ class _CloudSectionContent extends ConsumerWidget {
             subtitle: context.l10n.transfer_importCloud_garminSubtitle,
             icon: Icons.watch,
             onTap: () => context.push('/transfer/import-cloud/garmin'),
+          ),
+          const SizedBox(height: 8),
+          _CloudProviderCard(
+            title: context.l10n.transfer_importCloud_divelogsTitle,
+            subtitle: context.l10n.transfer_importCloud_divelogsSubtitle,
+            icon: Icons.menu_book,
+            onTap: () => context.push('/transfer/import-cloud/divelogs'),
           ),
         ],
       ),

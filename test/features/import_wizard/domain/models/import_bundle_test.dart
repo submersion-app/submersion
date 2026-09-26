@@ -7,7 +7,7 @@ import 'package:submersion/features/import_wizard/domain/models/import_bundle.da
 void main() {
   group('ImportSourceType', () {
     test('has all expected values', () {
-      expect(ImportSourceType.values, hasLength(7));
+      expect(ImportSourceType.values, hasLength(8));
       expect(ImportSourceType.values, contains(ImportSourceType.uddf));
       expect(ImportSourceType.values, contains(ImportSourceType.fit));
       expect(ImportSourceType.values, contains(ImportSourceType.healthKit));
@@ -15,6 +15,7 @@ void main() {
       expect(ImportSourceType.values, contains(ImportSourceType.diveComputer));
       expect(ImportSourceType.values, contains(ImportSourceType.suuntoCloud));
       expect(ImportSourceType.values, contains(ImportSourceType.garminCloud));
+      expect(ImportSourceType.values, contains(ImportSourceType.divelogs));
     });
   });
 
