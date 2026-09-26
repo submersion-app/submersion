@@ -1025,7 +1025,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
     final text = await ref.read(passportScanLauncherProvider)(context);
     if (text == null || !mounted) return;
     try {
-      switch (await resolveScannedTag(ref, text)) {
+      final resolution = await resolveScannedTag(ref, text);
+      // The tank card closed while the tag was looked up: fill nothing.
+      if (!mounted) return;
+      switch (resolution) {
         case OwnCylinder(:final equipmentId, :final tag):
           final item = await ref
               .read(equipmentRepositoryProvider)
@@ -1056,7 +1059,6 @@ class _TankEditorState extends ConsumerState<TankEditor> {
             );
           }
         case ForeignCylinder(:final tag):
-          if (!mounted) return;
           final filled = _applyScannedSpec(
             volumeL: tag.volumeL,
             workingPressureBar: tag.workingPressureBar?.toDouble(),
