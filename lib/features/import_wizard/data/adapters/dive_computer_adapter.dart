@@ -235,7 +235,7 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     int? reportedModel,
   }) async {
     // Capture descriptor fields regardless of whether a computer record already
-    // exists — these are always needed for the import service. A device that
+    // exists: these are always needed for the import service. A device that
     // named a different model during the download (issue #422) is stamped
     // with that one.
     final model = device.recognizedModel;
