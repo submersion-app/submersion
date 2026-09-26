@@ -3458,30 +3458,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get connections_title => 'Connessioni';
 
   @override
-  String get connections_lens_circle => 'Cerchia di immersione';
-
-  @override
-  String get connections_lens_where => 'Chi si immerge dove';
-
-  @override
-  String get connections_tooltip_filter => 'Filtra connessioni';
-
-  @override
   String get connections_tooltip_relayout => 'Ridisponi';
 
   @override
   String get connections_tooltip_showWholeWeb => 'Torna alla mappa completa';
-
-  @override
-  String connections_filterBar_nodes(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count nodi',
-      one: '1 nodo',
-    );
-    return '$_temp0';
-  }
 
   @override
   String connections_filterBar_edges(int count) {
@@ -3493,9 +3473,6 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get connections_filterBar_clear => 'Rimuovi filtro';
 
   @override
   String connections_hiddenNodes(int count) {
@@ -3521,9 +3498,6 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get connections_action_open => 'Apri';
-
-  @override
-  String get connections_action_focus => 'Metti al centro';
 
   @override
   String get connections_action_showDives => 'Mostra immersioni';

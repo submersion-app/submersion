@@ -3460,30 +3460,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get connections_title => 'Ligações';
 
   @override
-  String get connections_lens_circle => 'Círculo de mergulho';
-
-  @override
-  String get connections_lens_where => 'Quem mergulha onde';
-
-  @override
-  String get connections_tooltip_filter => 'Filtrar ligações';
-
-  @override
   String get connections_tooltip_relayout => 'Reorganizar';
 
   @override
   String get connections_tooltip_showWholeWeb => 'Voltar ao mapa completo';
-
-  @override
-  String connections_filterBar_nodes(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count elementos',
-      one: '$count elemento',
-    );
-    return '$_temp0';
-  }
 
   @override
   String connections_filterBar_edges(int count) {
@@ -3495,9 +3475,6 @@ class AppLocalizationsPt extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get connections_filterBar_clear => 'Limpar filtro';
 
   @override
   String connections_hiddenNodes(int count) {
@@ -3523,9 +3500,6 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get connections_action_open => 'Abrir';
-
-  @override
-  String get connections_action_focus => 'Centrar';
 
   @override
   String get connections_action_showDives => 'Ver mergulhos';

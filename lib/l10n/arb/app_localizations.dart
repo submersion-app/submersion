@@ -5601,24 +5601,6 @@ abstract class AppLocalizations {
   /// **'Connections'**
   String get connections_title;
 
-  /// No description provided for @connections_lens_circle.
-  ///
-  /// In en, this message translates to:
-  /// **'Dive circle'**
-  String get connections_lens_circle;
-
-  /// No description provided for @connections_lens_where.
-  ///
-  /// In en, this message translates to:
-  /// **'Who dives where'**
-  String get connections_lens_where;
-
-  /// No description provided for @connections_tooltip_filter.
-  ///
-  /// In en, this message translates to:
-  /// **'Filter connections'**
-  String get connections_tooltip_filter;
-
   /// No description provided for @connections_tooltip_relayout.
   ///
   /// In en, this message translates to:
@@ -5631,23 +5613,11 @@ abstract class AppLocalizations {
   /// **'Back to the whole map'**
   String get connections_tooltip_showWholeWeb;
 
-  /// No description provided for @connections_filterBar_nodes.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{1 node} other{{count} nodes}}'**
-  String connections_filterBar_nodes(int count);
-
   /// No description provided for @connections_filterBar_edges.
   ///
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 connection} other{{count} connections}}'**
   String connections_filterBar_edges(int count);
-
-  /// No description provided for @connections_filterBar_clear.
-  ///
-  /// In en, this message translates to:
-  /// **'Clear filter'**
-  String get connections_filterBar_clear;
 
   /// No description provided for @connections_hiddenNodes.
   ///
@@ -5678,12 +5648,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open'**
   String get connections_action_open;
-
-  /// No description provided for @connections_action_focus.
-  ///
-  /// In en, this message translates to:
-  /// **'Focus'**
-  String get connections_action_focus;
 
   /// No description provided for @connections_action_showDives.
   ///

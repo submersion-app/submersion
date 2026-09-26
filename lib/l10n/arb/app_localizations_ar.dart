@@ -3401,30 +3401,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get connections_title => 'الروابط';
 
   @override
-  String get connections_lens_circle => 'دائرة الغوص';
-
-  @override
-  String get connections_lens_where => 'من يغوص أين';
-
-  @override
-  String get connections_tooltip_filter => 'تصفية الروابط';
-
-  @override
   String get connections_tooltip_relayout => 'إعادة الترتيب';
 
   @override
   String get connections_tooltip_showWholeWeb => 'العودة إلى الخريطة الكاملة';
-
-  @override
-  String connections_filterBar_nodes(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count عقدة',
-      one: 'عقدة واحدة',
-    );
-    return '$_temp0';
-  }
 
   @override
   String connections_filterBar_edges(int count) {
@@ -3436,9 +3416,6 @@ class AppLocalizationsAr extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get connections_filterBar_clear => 'مسح التصفية';
 
   @override
   String connections_hiddenNodes(int count) {
@@ -3464,9 +3441,6 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get connections_action_open => 'فتح';
-
-  @override
-  String get connections_action_focus => 'تركيز';
 
   @override
   String get connections_action_showDives => 'عرض الغوصات';

@@ -3440,30 +3440,10 @@ class AppLocalizationsNl extends AppLocalizations {
   String get connections_title => 'Verbindingen';
 
   @override
-  String get connections_lens_circle => 'Duikkring';
-
-  @override
-  String get connections_lens_where => 'Wie duikt waar';
-
-  @override
-  String get connections_tooltip_filter => 'Verbindingen filteren';
-
-  @override
   String get connections_tooltip_relayout => 'Opnieuw schikken';
 
   @override
   String get connections_tooltip_showWholeWeb => 'Terug naar de hele kaart';
-
-  @override
-  String connections_filterBar_nodes(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count knooppunten',
-      one: '1 knooppunt',
-    );
-    return '$_temp0';
-  }
 
   @override
   String connections_filterBar_edges(int count) {
@@ -3475,9 +3455,6 @@ class AppLocalizationsNl extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get connections_filterBar_clear => 'Filter wissen';
 
   @override
   String connections_hiddenNodes(int count) {
@@ -3503,9 +3480,6 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get connections_action_open => 'Openen';
-
-  @override
-  String get connections_action_focus => 'Centreren';
 
   @override
   String get connections_action_showDives => 'Duiken tonen';

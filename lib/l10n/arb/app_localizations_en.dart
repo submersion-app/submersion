@@ -3404,30 +3404,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get connections_title => 'Connections';
 
   @override
-  String get connections_lens_circle => 'Dive circle';
-
-  @override
-  String get connections_lens_where => 'Who dives where';
-
-  @override
-  String get connections_tooltip_filter => 'Filter connections';
-
-  @override
   String get connections_tooltip_relayout => 'Lay out again';
 
   @override
   String get connections_tooltip_showWholeWeb => 'Back to the whole map';
-
-  @override
-  String connections_filterBar_nodes(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count nodes',
-      one: '1 node',
-    );
-    return '$_temp0';
-  }
 
   @override
   String connections_filterBar_edges(int count) {
@@ -3439,9 +3419,6 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get connections_filterBar_clear => 'Clear filter';
 
   @override
   String connections_hiddenNodes(int count) {
@@ -3467,9 +3444,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get connections_action_open => 'Open';
-
-  @override
-  String get connections_action_focus => 'Focus';
 
   @override
   String get connections_action_showDives => 'Show dives';

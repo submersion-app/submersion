@@ -3276,30 +3276,10 @@ class AppLocalizationsZh extends AppLocalizations {
   String get connections_title => '关联';
 
   @override
-  String get connections_lens_circle => '潜伴圈';
-
-  @override
-  String get connections_lens_where => '谁在哪里潜水';
-
-  @override
-  String get connections_tooltip_filter => '筛选关联';
-
-  @override
   String get connections_tooltip_relayout => '重新排列';
 
   @override
   String get connections_tooltip_showWholeWeb => '返回完整图谱';
-
-  @override
-  String connections_filterBar_nodes(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count 个节点',
-      one: '1 个节点',
-    );
-    return '$_temp0';
-  }
 
   @override
   String connections_filterBar_edges(int count) {
@@ -3311,9 +3291,6 @@ class AppLocalizationsZh extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get connections_filterBar_clear => '清除筛选';
 
   @override
   String connections_hiddenNodes(int count) {
@@ -3339,9 +3316,6 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get connections_action_open => '打开';
-
-  @override
-  String get connections_action_focus => '聚焦';
 
   @override
   String get connections_action_showDives => '显示潜水';

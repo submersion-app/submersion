@@ -3470,30 +3470,10 @@ class AppLocalizationsFr extends AppLocalizations {
   String get connections_title => 'Connexions';
 
   @override
-  String get connections_lens_circle => 'Cercle de plongée';
-
-  @override
-  String get connections_lens_where => 'Qui plonge où';
-
-  @override
-  String get connections_tooltip_filter => 'Filtrer les connexions';
-
-  @override
   String get connections_tooltip_relayout => 'Réorganiser';
 
   @override
   String get connections_tooltip_showWholeWeb => 'Retour à la carte complète';
-
-  @override
-  String connections_filterBar_nodes(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count nœuds',
-      one: '$count nœud',
-    );
-    return '$_temp0';
-  }
 
   @override
   String connections_filterBar_edges(int count) {
@@ -3505,9 +3485,6 @@ class AppLocalizationsFr extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get connections_filterBar_clear => 'Effacer le filtre';
 
   @override
   String connections_hiddenNodes(int count) {
@@ -3533,9 +3510,6 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get connections_action_open => 'Ouvrir';
-
-  @override
-  String get connections_action_focus => 'Centrer';
 
   @override
   String get connections_action_showDives => 'Voir les plongées';

@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/providers/provider.dart';
-import 'package:submersion/features/connections/domain/entities/connection_graph.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_filter_provider.dart';
 import 'package:submersion/features/connections/presentation/providers/connections_providers.dart';
-import 'package:submersion/features/connections/presentation/widgets/connections_filter_bar.dart';
 import 'package:submersion/features/connections/presentation/widgets/year_range_slider.dart';
-import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
 import '../../../../helpers/mock_providers.dart';
@@ -35,37 +32,6 @@ Future<ProviderContainer> _pump(
 }
 
 void main() {
-  testWidgets('the filter bar is hidden without a filter and clears with one', (
-    tester,
-  ) async {
-    final c = await _pump(
-      tester,
-      Consumer(
-        builder: (context, ref, _) {
-          ref.watch(connectionsFilterProvider);
-          return ConnectionsFilterBar(
-            graph: AsyncValue.data(
-              ConnectionGraph.empty.copyWith(hiddenNodeCount: 0),
-            ),
-          );
-        },
-      ),
-    );
-    expect(find.byKey(const ValueKey('connections-filter-bar')), findsNothing);
-    c.read(connectionsFilterProvider.notifier).state = const DiveFilterState(
-      siteId: 's1',
-    );
-    await tester.pump();
-    expect(
-      find.byKey(const ValueKey('connections-filter-bar')),
-      findsOneWidget,
-    );
-    expect(find.text('0 nodes, 0 connections'), findsOneWidget);
-    await tester.tap(find.byTooltip('Clear filter'));
-    await tester.pump();
-    expect(c.read(connectionsFilterProvider).hasActiveFilters, isFalse);
-  });
-
   testWidgets('the year slider writes the date range into the filter', (
     tester,
   ) async {

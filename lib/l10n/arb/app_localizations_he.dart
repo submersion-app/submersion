@@ -3379,30 +3379,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get connections_title => 'קשרים';
 
   @override
-  String get connections_lens_circle => 'מעגל הצלילה';
-
-  @override
-  String get connections_lens_where => 'מי צולל איפה';
-
-  @override
-  String get connections_tooltip_filter => 'סינון קשרים';
-
-  @override
   String get connections_tooltip_relayout => 'סידור מחדש';
 
   @override
   String get connections_tooltip_showWholeWeb => 'חזרה למפה המלאה';
-
-  @override
-  String connections_filterBar_nodes(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count צמתים',
-      one: 'צומת אחד',
-    );
-    return '$_temp0';
-  }
 
   @override
   String connections_filterBar_edges(int count) {
@@ -3414,9 +3394,6 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get connections_filterBar_clear => 'ניקוי סינון';
 
   @override
   String connections_hiddenNodes(int count) {
@@ -3442,9 +3419,6 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get connections_action_open => 'פתיחה';
-
-  @override
-  String get connections_action_focus => 'מיקוד';
 
   @override
   String get connections_action_showDives => 'הצגת צלילות';

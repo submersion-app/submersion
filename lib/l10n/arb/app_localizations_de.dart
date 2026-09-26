@@ -3469,30 +3469,10 @@ class AppLocalizationsDe extends AppLocalizations {
   String get connections_title => 'Verbindungen';
 
   @override
-  String get connections_lens_circle => 'Tauchkreis';
-
-  @override
-  String get connections_lens_where => 'Wer taucht wo';
-
-  @override
-  String get connections_tooltip_filter => 'Verbindungen filtern';
-
-  @override
   String get connections_tooltip_relayout => 'Neu anordnen';
 
   @override
   String get connections_tooltip_showWholeWeb => 'Zurück zur ganzen Karte';
-
-  @override
-  String connections_filterBar_nodes(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count Knoten',
-      one: '1 Knoten',
-    );
-    return '$_temp0';
-  }
 
   @override
   String connections_filterBar_edges(int count) {
@@ -3504,9 +3484,6 @@ class AppLocalizationsDe extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get connections_filterBar_clear => 'Filter löschen';
 
   @override
   String connections_hiddenNodes(int count) {
@@ -3532,9 +3509,6 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get connections_action_open => 'Öffnen';
-
-  @override
-  String get connections_action_focus => 'Fokussieren';
 
   @override
   String get connections_action_showDives => 'Tauchgänge anzeigen';

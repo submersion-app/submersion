@@ -3454,30 +3454,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get connections_title => 'Kapcsolatok';
 
   @override
-  String get connections_lens_circle => 'Búvárkör';
-
-  @override
-  String get connections_lens_where => 'Ki hol merül';
-
-  @override
-  String get connections_tooltip_filter => 'Kapcsolatok szűrése';
-
-  @override
   String get connections_tooltip_relayout => 'Újrarendezés';
 
   @override
   String get connections_tooltip_showWholeWeb => 'Vissza a teljes térképhez';
-
-  @override
-  String connections_filterBar_nodes(int count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count csomópont',
-      one: '1 csomópont',
-    );
-    return '$_temp0';
-  }
 
   @override
   String connections_filterBar_edges(int count) {
@@ -3489,9 +3469,6 @@ class AppLocalizationsHu extends AppLocalizations {
     );
     return '$_temp0';
   }
-
-  @override
-  String get connections_filterBar_clear => 'Szűrő törlése';
 
   @override
   String connections_hiddenNodes(int count) {
@@ -3518,9 +3495,6 @@ class AppLocalizationsHu extends AppLocalizations {
 
   @override
   String get connections_action_open => 'Megnyitás';
-
-  @override
-  String get connections_action_focus => 'Középre';
 
   @override
   String get connections_action_showDives => 'Merülések megjelenítése';
