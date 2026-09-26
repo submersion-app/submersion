@@ -63,6 +63,9 @@ dependencies:
 
   # Networking
   http: ^1.2.2
+  # HTTP-date parsing for Retry-After (all three RFC 7231 forms, pure Dart,
+  # so it stays usable on web). Already locked as a dependency of http.
+  http_parser: ^4.1.2
   # Network-type detection for media store transfer policies (Wi-Fi vs
   # cellular vs offline).
   connectivity_plus: ^7.3.1

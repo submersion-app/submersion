@@ -13536,7 +13536,199 @@ class AppLocalizationsZh extends AppLocalizations {
   String get gasCalculators_mod_aboutMod => '关于 MOD';
 
   @override
-  String get gasCalculators_mod_aboutModBody => 'O₂ 越低 = 最大作业深度越深 = 免减压极限越短';
+  String get gasCalculators_mod_mode => '模式';
+
+  @override
+  String get gasCalculators_mod_modeRecHint =>
+      '休闲潜水高氧：MOD 与 EAD，按每 10 米 1 bar 计算，与日志一致。';
+
+  @override
+  String get gasCalculators_mod_modeOcTecHint => '开放式三混气：MOD、最小深度、麻醉与气体密度。';
+
+  @override
+  String get gasCalculators_mod_modeCcrTecHint =>
+      '密闭式循环呼吸器：混合气为稀释气。MOD 为冲洗时稀释气的 MOD；回路保持设定点。';
+
+  @override
+  String get gasCalculators_mod_heliumHe => '氦气 (He)';
+
+  @override
+  String get gasCalculators_mod_setpoint => '设定点 (bar)';
+
+  @override
+  String get gasCalculators_mod_limitsTitle => 'ppO₂ 限值';
+
+  @override
+  String get gasCalculators_mod_workingPpO2 => '工作 ppO₂';
+
+  @override
+  String get gasCalculators_mod_decoPpO2 => '减压 ppO₂';
+
+  @override
+  String get gasCalculators_mod_flushPpO2 => '稀释气 MOD 的 ppO₂（冲洗）';
+
+  @override
+  String get gasCalculators_mod_minPpO2 => '最小 ppO₂（低氧混合气）';
+
+  @override
+  String get gasCalculators_mod_fromProfile => '来自你的潜水员档案';
+
+  @override
+  String gasCalculators_mod_differsFromProfile(String value) {
+    return '与档案不同（$value bar）';
+  }
+
+  @override
+  String get gasCalculators_mod_useProfileValue => '使用档案值';
+
+  @override
+  String get gasCalculators_mod_checkTargetDepth => '同时检查目标深度';
+
+  @override
+  String get gasCalculators_mod_targetDepth => '目标深度';
+
+  @override
+  String get gasCalculators_mod_diluentMod => '稀释气 MOD（冲洗）';
+
+  @override
+  String gasCalculators_mod_contingencyMod(String ppO2) {
+    return '应急 MOD（$ppO2 bar）';
+  }
+
+  @override
+  String gasCalculators_mod_decoMod(String ppO2) {
+    return '减压 ppO₂ $ppO2 bar 时的 MOD';
+  }
+
+  @override
+  String gasCalculators_mod_minDepth(String ppO2) {
+    return 'ppO₂ $ppO2 bar 时的最小深度';
+  }
+
+  @override
+  String get gasCalculators_mod_fromSurface => '从水面起';
+
+  @override
+  String gasCalculators_mod_mnd(String limit) {
+    return 'MND（END 限值 $limit）';
+  }
+
+  @override
+  String get gasCalculators_mod_noNarcoticLimit => '无限值';
+
+  @override
+  String get gasCalculators_mod_atDepthTitle => '在深度';
+
+  @override
+  String get gasCalculators_mod_atMod => '在 MOD';
+
+  @override
+  String get gasCalculators_mod_atTarget => '在目标深度';
+
+  @override
+  String get gasCalculators_mod_rowDepth => '深度';
+
+  @override
+  String get gasCalculators_mod_rowPpO2 => 'ppO₂';
+
+  @override
+  String get gasCalculators_mod_rowEad => 'EAD（N₂ 致麻醉）';
+
+  @override
+  String get gasCalculators_mod_rowEnd => 'END（N₂ + O₂ 致麻醉）';
+
+  @override
+  String get gasCalculators_mod_rowEadd => 'EADD（空气密度）';
+
+  @override
+  String get gasCalculators_mod_rowDensity => '0 °C 时的气体密度';
+
+  @override
+  String get gasCalculators_mod_openDensity => '在气体密度计算器中打开';
+
+  @override
+  String get gasCalculators_mod_assessmentTitle => '评估';
+
+  @override
+  String gasCalculators_mod_recBeyondLimit(String limit) {
+    return 'MOD 超过 $limit 的休闲潜水限值。在那里，限制来自麻醉和气体密度，而非氧气。';
+  }
+
+  @override
+  String gasCalculators_mod_recWithinLimit(String limit) {
+    return 'MOD 在 $limit 的休闲潜水限值之内。';
+  }
+
+  @override
+  String gasCalculators_mod_targetBeyondMod(String ppO2) {
+    return '目标深度比 MOD 更深：那里的 ppO₂ 为 $ppO2 bar。';
+  }
+
+  @override
+  String get gasCalculators_mod_targetAboveMinDepth => '目标深度浅于最小深度：混合气在那里是低氧的。';
+
+  @override
+  String gasCalculators_mod_hypoxic(String depth) {
+    return '低氧混合气：不要在浅于 $depth 处呼吸。';
+  }
+
+  @override
+  String gasCalculators_mod_narcosisExceeded(
+    String where,
+    String depth,
+    String limit,
+  ) {
+    return '$where：麻醉深度 $depth 超过你的 END 限值 $limit。';
+  }
+
+  @override
+  String gasCalculators_mod_densityWarn(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where：气体密度 $density g/L 高于建议的 $limit g/L。';
+  }
+
+  @override
+  String gasCalculators_mod_densityCritical(
+    String where,
+    String density,
+    String limit,
+  ) {
+    return '$where：气体密度 $density g/L 高于 $limit g/L 的硬性限值。';
+  }
+
+  @override
+  String gasCalculators_mod_targetBeyondDiluentMod(String ppO2) {
+    return '目标深度比稀释气 MOD 更深：在那里冲洗会得到 ppO₂ $ppO2 bar。';
+  }
+
+  @override
+  String gasCalculators_mod_diluentAboveSetpoint(String where, String ppO2) {
+    return '$where：仅稀释气即达到 ppO₂ $ppO2 bar，高于设定点；回路按稀释气的 ppO₂ 运行。';
+  }
+
+  @override
+  String gasCalculators_mod_setpointCapped(String where) {
+    return '$where：设定点高于环境压力，回路为纯氧。';
+  }
+
+  @override
+  String get gasCalculators_mod_allClear => '在所检查的深度内，均在你的 ppO₂、END 和密度限值之内。';
+
+  @override
+  String get gasCalculators_mod_aboutModesBody =>
+      'MOD 是混合气达到 ppO₂ 限值的深度。它始终向下取整，从不向上。\n\nRec 按每 10 米 1 bar 计算，与日志一致。OC Tec 和 CCR Tec 按水类型计算环境压力，与气体密度计算器一致，因此同一混合气在那里的 MOD 可能略浅。\n\nEAD 将氮气视为致麻醉，END 将氮气和氧气都视为致麻醉。你的 END 限值、氧气是否致麻醉以及默认 ppO₂ 限值均来自你的潜水员档案。';
+
+  @override
+  String get gasCalculators_mod_modeRec => 'Rec';
+
+  @override
+  String get gasCalculators_mod_modeOcTec => 'OC Tec';
+
+  @override
+  String get gasCalculators_mod_modeCcrTec => 'CCR Tec';
 
   @override
   String get gasCalculators_mod_inputParameters => '输入参数';
@@ -18130,7 +18322,7 @@ class AppLocalizationsZh extends AppLocalizations {
   String get settings_decompression_header_oxygenToxicity => '氧中毒';
 
   @override
-  String get settings_decompression_ppO2LimitsTitle => '氧分压上限';
+  String get settings_decompression_ppO2LimitsTitle => '氧分压上限 OC';
 
   @override
   String settings_decompression_ppO2LimitsSubtitle(String working, String max) {
@@ -18138,7 +18330,43 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
-  String get settings_decompression_ppO2Dialog_title => '氧分压上限';
+  String get settings_decompression_ppO2Dialog_title => '氧分压上限 OC';
+
+  @override
+  String get settings_decompression_ccrPpO2LimitsTitle => '氧分压上限 CCR';
+
+  @override
+  String settings_decompression_ccrPpO2LimitsSubtitle(
+    String low,
+    String high,
+    String dil,
+  ) {
+    return '低设定点 $low · 高设定点 $high · 稀释气 MOD $dil bar';
+  }
+
+  @override
+  String get settings_decompression_ccrDialog_info =>
+      '循环呼吸器潜水的默认值。MOD 计算器的 CCR 模式以这些值为起点。';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLow => '低设定点';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointLowHint =>
+      '靠近水面时，下潜和上升期间';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHigh => '高设定点';
+
+  @override
+  String get settings_decompression_ccrDialog_setpointHighHint => '在深度时';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentMod => '稀释气 MOD';
+
+  @override
+  String get settings_decompression_ccrDialog_diluentModHint =>
+      '冲洗时稀释气可达到的 ppO2；决定其 MOD';
 
   @override
   String get settings_decompression_ppO2Dialog_info =>

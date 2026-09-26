@@ -8,8 +8,30 @@ void main() {
     expect(FitDeviceMapper.modelName(2859), 'Descent Mk1');
   });
 
-  test('falls back for unknown or null product', () {
-    expect(FitDeviceMapper.modelName(999999), 'Garmin Descent');
-    expect(FitDeviceMapper.modelName(null), 'Garmin Descent');
+  test('tells the Descent Mk3 apart from the Mk3i', () {
+    expect(FitDeviceMapper.modelName(4222), 'Descent Mk3');
+  });
+
+  test('maps every Fenix 8 variant to a Fenix 8, not a Descent (#1605)', () {
+    expect(FitDeviceMapper.modelName(4532), 'Fenix 8 Solar');
+    expect(FitDeviceMapper.modelName(4533), 'Fenix 8 Solar');
+    expect(FitDeviceMapper.modelName(4534), 'Fenix 8');
+    expect(FitDeviceMapper.modelName(4536), 'Fenix 8');
+    expect(FitDeviceMapper.modelName(4631), 'Fenix 8 Pro');
+  });
+
+  test('maps the other dive-capable Garmin watch families', () {
+    expect(FitDeviceMapper.modelName(4005), 'Descent G1');
+    expect(FitDeviceMapper.modelName(4588), 'Descent G2');
+    expect(FitDeviceMapper.modelName(3906), 'Fenix 7');
+    expect(FitDeviceMapper.modelName(4375), 'Fenix 7 Pro Solar');
+    expect(FitDeviceMapper.modelName(4313), 'Epix Pro (Gen 2)');
+    expect(FitDeviceMapper.modelName(4575), 'Enduro 3');
+    expect(FitDeviceMapper.modelName(4775), 'Tactix 8');
+  });
+
+  test('names an unknown product generically, never as a Descent', () {
+    expect(FitDeviceMapper.modelName(999999), 'Garmin');
+    expect(FitDeviceMapper.modelName(null), 'Garmin');
   });
 }
