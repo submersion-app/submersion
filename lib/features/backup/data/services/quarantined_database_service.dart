@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 
@@ -7,12 +8,19 @@ import 'package:submersion/features/backup/data/services/backup_schema_probe.dar
 import 'package:submersion/features/backup/domain/entities/quarantined_database.dart';
 
 /// Reads the schema version a database copy holds, trying [keyHex] first.
-/// Returns null when the copy does not open at all; never throws.
+/// Completes with null when the copy does not open at all; never throws.
 typedef QuarantineSchemaProbe =
-    int? Function(String path, {required String? keyHex});
+    Future<int?> Function(String path, {required String? keyHex});
 
-int? _defaultProbe(String path, {required String? keyHex}) =>
-    probeBackupSchemaVersion(path, keyHex: keyHex);
+/// Probes on a worker isolate. Opening a copy is synchronous SQLite work,
+/// and closing it can fold a large -wal in, which would stall the UI isolate
+/// while the Backups page loads. A top-level function, so the [Isolate.run]
+/// closure's scope holds only the two strings it sends.
+Future<int?> _probeOnWorker(String path, {required String? keyHex}) =>
+    Isolate.run(
+      () => probeBackupSchemaVersion(path, keyHex: keyHex),
+      debugName: 'quarantine-probe',
+    );
 
 /// One file name that belongs to a quarantined copy.
 typedef QuarantinedName = ({
@@ -78,7 +86,7 @@ class QuarantinedDatabaseService {
   QuarantinedDatabaseService({
     required Future<String> Function() databasePath,
     required String? Function() keyHex,
-    QuarantineSchemaProbe probe = _defaultProbe,
+    QuarantineSchemaProbe probe = _probeOnWorker,
   }) : _databasePath = databasePath,
        _keyHex = keyHex,
        _probe = probe;
@@ -171,7 +179,7 @@ class QuarantinedDatabaseService {
       schemaVersion = null;
       status = QuarantinedDatabaseStatus.incomplete;
     } else {
-      schemaVersion = _probe(mainPath, keyHex: _keyHex());
+      schemaVersion = await _probe(mainPath, keyHex: _keyHex());
       status = _statusFor(schemaVersion);
     }
 

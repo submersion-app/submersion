@@ -76,6 +76,7 @@ class QuarantinedDatabase {
     int? sizeBytes,
     QuarantinedDatabaseStatus? status,
     int? schemaVersion,
+    bool clearSchemaVersion = false,
   }) => QuarantinedDatabase(
     path: path ?? this.path,
     kind: kind ?? this.kind,
@@ -83,6 +84,8 @@ class QuarantinedDatabase {
     files: files ?? this.files,
     sizeBytes: sizeBytes ?? this.sizeBytes,
     status: status ?? this.status,
-    schemaVersion: schemaVersion ?? this.schemaVersion,
+    schemaVersion: clearSchemaVersion
+        ? null
+        : schemaVersion ?? this.schemaVersion,
   );
 }

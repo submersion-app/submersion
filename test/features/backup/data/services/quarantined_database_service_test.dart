@@ -36,7 +36,7 @@ void main() {
   }) => QuarantinedDatabaseService(
     databasePath: () async => dbPath,
     keyHex: () => keyHex,
-    probe: (path, {required keyHex}) {
+    probe: (path, {required keyHex}) async {
       probed?.add((path, keyHex));
       return versions[p.basename(path)];
     },
@@ -191,7 +191,7 @@ void main() {
       final service = QuarantinedDatabaseService(
         databasePath: () async => dbPath,
         keyHex: () => null,
-        probe: (path, {required keyHex}) {
+        probe: (path, {required keyHex}) async {
           // What a read-write open does on close: checkpoint and delete.
           File(path).writeAsBytesSync(List.filled(200, 1));
           File('$path-wal').deleteSync();

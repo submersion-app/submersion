@@ -186,8 +186,7 @@ class _QuarantinedDatabaseTile extends ConsumerWidget {
         timestamp: copy.quarantinedAt.toLocal(),
         sizeBytes: copy.sizeBytes,
         location: BackupLocation.local,
-        diveCount: 0,
-        siteCount: 0,
+        // Unknown, not zero: counting would mean opening the copy here.
       ),
       currentSchemaVersion: AppDatabase.currentSchemaVersion,
       offerReplace: offerReplace,

@@ -62,4 +62,14 @@ void main() {
     expect(copy.status, QuarantinedDatabaseStatus.needsNewerApp);
     expect(copy.schemaVersion, 999);
   });
+
+  test('copyWith can clear the schema version', () {
+    expect(original.copyWith(clearSchemaVersion: true).schemaVersion, isNull);
+    expect(
+      original
+          .copyWith(schemaVersion: 5, clearSchemaVersion: true)
+          .schemaVersion,
+      isNull,
+    );
+  });
 }
