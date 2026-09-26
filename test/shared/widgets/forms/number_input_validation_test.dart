@@ -42,15 +42,17 @@ void main() {
 
   group('NumberRead', () {
     test('equal reads hash alike, so they work as set and map keys', () {
-      expect({
-        const NumberBlank(),
-        const NumberBlank(),
-        const NumberInvalid(),
-        const NumberInvalid(),
-        const NumberValue(2),
-        const NumberValue(2),
-        const NumberValue(3),
-      }, hasLength(4));
+      // Built at runtime, not as constants, so equality is by value.
+      NumberRead read(String text) => readNumber(text);
+      expect(read('').hashCode, read('  ').hashCode);
+      expect(read('x').hashCode, read('y').hashCode);
+      expect(read('2').hashCode, read('2.0').hashCode);
+      expect(<NumberRead>{
+        read('2'),
+        read('2.0'),
+        read(''),
+        read('x'),
+      }, hasLength(3));
     });
 
     test('describes itself for test failures and logs', () {
