@@ -15,9 +15,15 @@ The written form is always
     https://submersion.app/c#<payload>
 
 Submersion also accepts `submersion://c?<payload>`, and the payload in either
-the fragment or the query of both forms. Write the https form: it opens the
-app directly when installed, and a browser fallback otherwise. The payload
-sits in the fragment so a browser never sends it to the server.
+the fragment or the query of both forms. Readers match the scheme and host in
+any case, accept `http` and a `www.submersion.app` host, and require the path
+to be exactly `/c`; any other path or host is not a tag. The payload sits in
+the fragment so a browser never sends it to the server.
+
+Write the https form. From the release that adds scanning, and once the
+website's app-link files are published, it opens Submersion directly when
+installed and a browser page that shows the snapshot otherwise. Until then,
+the tag is read by Submersion's own scanner and by pasting the link.
 
 ## Payload
 
@@ -30,7 +36,7 @@ metric. Only `f` and `p` are required.
 | `p` | passport id, a UUID, lower case | `8f3a5c1e-1b2c-4d5e-8f90-1234567890ab` |
 | `w` | date the tag was written, `YYYY-MM-DD` | `2026-09-25` |
 | `n` | name or identifier, at most 40 characters | `Steel+12+L` |
-| `sn` | stamped serial | `AB12345` |
+| `sn` | stamped serial, at most 24 characters | `AB12345` |
 | `v` | volume, litres, up to one decimal, 0.5 to 50 | `12` |
 | `wp` | working pressure, bar, integer, 50 to 400 | `232` |
 | `m` | material: `al`, `st`, `cf` | `st` |
@@ -74,12 +80,16 @@ URI records in order and ignore records they do not know.
 
 When a tag is too small, optional keys are dropped in this fixed order until
 the record fits: `n`, `sn`, `vi`, `h`, `oc`, `vt`, `m`, `wp`, `v`. `f`, `p`
-and `w` are never dropped. A 144-byte NTAG213 holds identity only; NTAG215
-(504 bytes) and NTAG216 (888 bytes) hold everything, and NTAG216 has room
-for the fill record too.
+and `w` are never dropped. For the example above, a 144-byte NTAG213 drops
+the name and serial and keeps the spec and dates; NTAG215 (504 bytes) and
+NTAG216 (888 bytes) hold everything, and NTAG216 has room for the fill
+record too. Names and serials are cut by whole characters, never mid-glyph.
 
 ## Printing
 
-Error correction M. A full payload is at most 160 characters, a version 9
-code (53 modules), which is about half a millimetre per module on a 26 mm
-label and scans well with a phone camera.
+Error correction M. A printed or on-screen tag is at most 160 characters, a
+version 9 code (53 modules), about half a millimetre per module on a 26 mm
+label, which scans well with a phone camera. A tag that would run longer (a
+long name in a script that percent-encodes to several characters per glyph)
+drops optional keys in the NFC order above until it fits; the label prints
+the name as text anyway.
