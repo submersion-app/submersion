@@ -43,6 +43,12 @@
     <!-- Declare Bluetooth feature as optional (app works without dive computer) -->
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="false" />
 
+    <!-- Camera for scanning cylinder passport labels (issue #2335). Scanning
+         is optional; devices without a camera must still install the app. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+
     <!-- Notification permissions for gear maintenance reminders -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
@@ -69,6 +75,9 @@
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
               />
+            <!-- app_links delivers passport links; Flutter's own deep linking
+                 would push the same link to the router a second time. -->
+            <meta-data android:name="flutter_deeplinking_enabled" android:value="false" />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -119,6 +128,20 @@
                 <data android:scheme="file" android:mimeType="application/fit"/>
                 <data android:scheme="file" android:mimeType="application/zip"/>
                 <data android:scheme="file" android:mimeType="application/x-zip-compressed"/>
+            </intent-filter>
+            <!-- Cylinder passport tags printed as https links (issue #2335). -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="submersion.app" android:path="/c"/>
+            </intent-filter>
+            <!-- The accepted custom-scheme form, submersion://c?<payload>. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="submersion" android:host="c"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
