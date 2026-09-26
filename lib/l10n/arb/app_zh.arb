@@ -1,4 +1,5 @@
 {
+  "equipment_filter_owner_all": "全部",
   "equipment_delete_notOwner": "只有所有者可以删除此装备",
   "equipment_sharedWithMe": "与我共享",
   "equipment_owner_unknown": "其他资料",

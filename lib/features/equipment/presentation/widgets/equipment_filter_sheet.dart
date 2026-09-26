@@ -361,7 +361,7 @@ class _EquipmentFilterSheetState extends ConsumerState<EquipmentFilterSheet> {
     }
     final l10n = context.l10n;
     final labels = {
-      EquipmentOwnerFilter.all: l10n.equipment_list_typeFilterAll,
+      EquipmentOwnerFilter.all: l10n.equipment_filter_owner_all,
       EquipmentOwnerFilter.mine: l10n.equipment_filter_owner_mine,
       EquipmentOwnerFilter.sharedWithMe: l10n.equipment_sharedWithMe,
     };

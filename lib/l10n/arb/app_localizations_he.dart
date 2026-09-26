@@ -9,6 +9,9 @@ class AppLocalizationsHe extends AppLocalizations {
   AppLocalizationsHe([String locale = 'he']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => 'הכל';
+
+  @override
   String get equipment_delete_notOwner => 'רק הבעלים יכול למחוק פריט זה';
 
   @override

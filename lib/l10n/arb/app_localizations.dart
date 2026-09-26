@@ -116,6 +116,12 @@ abstract class AppLocalizations {
     Locale('zh'),
   ];
 
+  /// No description provided for @equipment_filter_owner_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get equipment_filter_owner_all;
+
   /// No description provided for @equipment_delete_notOwner.
   ///
   /// In en, this message translates to:

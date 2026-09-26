@@ -1,4 +1,5 @@
 {
+  "equipment_filter_owner_all": "הכל",
   "equipment_delete_notOwner": "רק הבעלים יכול למחוק פריט זה",
   "equipment_sharedWithMe": "משותף איתי",
   "equipment_owner_unknown": "פרופיל אחר",

@@ -1,4 +1,5 @@
 {
+  "equipment_filter_owner_all": "Todos",
   "equipment_delete_notOwner": "Solo su propietario puede eliminar este elemento",
   "equipment_sharedWithMe": "Compartido conmigo",
   "equipment_owner_unknown": "Otro perfil",

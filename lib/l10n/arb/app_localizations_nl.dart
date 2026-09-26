@@ -9,6 +9,9 @@ class AppLocalizationsNl extends AppLocalizations {
   AppLocalizationsNl([String locale = 'nl']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => 'Alle';
+
+  @override
   String get equipment_delete_notOwner =>
       'Alleen de eigenaar kan dit item verwijderen';
 

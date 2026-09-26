@@ -9,6 +9,9 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => 'الكل';
+
+  @override
   String get equipment_delete_notOwner => 'يمكن لمالك هذا العنصر وحده حذفه';
 
   @override

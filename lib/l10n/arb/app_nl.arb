@@ -1,4 +1,5 @@
 {
+  "equipment_filter_owner_all": "Alle",
   "equipment_delete_notOwner": "Alleen de eigenaar kan dit item verwijderen",
   "equipment_sharedWithMe": "Met mij gedeeld",
   "equipment_owner_unknown": "Ander profiel",

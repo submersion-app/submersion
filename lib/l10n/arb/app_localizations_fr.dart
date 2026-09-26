@@ -9,6 +9,9 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => 'Tous';
+
+  @override
   String get equipment_delete_notOwner =>
       'Seul son propriétaire peut supprimer cet élément';
 

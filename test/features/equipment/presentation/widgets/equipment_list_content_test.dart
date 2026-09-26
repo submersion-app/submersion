@@ -2432,6 +2432,23 @@ void main() {
       );
     });
 
+    testWidgets('the Owner filter default chip reads All', (tester) async {
+      await pump(tester, divers);
+      await _openFilterPanel(tester);
+      final chip = find.byKey(const ValueKey('equipment_filter_owner_all'));
+      if (chip.evaluate().isEmpty) {
+        await tester.scrollUntilVisible(
+          chip,
+          120,
+          scrollable: find.byType(Scrollable).last,
+        );
+      }
+      expect(
+        find.descendant(of: chip, matching: find.text('All')),
+        findsOneWidget,
+      );
+    });
+
     testWidgets('the Owner filter narrows to gear shared with me', (
       tester,
     ) async {

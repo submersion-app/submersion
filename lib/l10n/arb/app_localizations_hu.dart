@@ -9,6 +9,9 @@ class AppLocalizationsHu extends AppLocalizations {
   AppLocalizationsHu([String locale = 'hu']) : super(locale);
 
   @override
+  String get equipment_filter_owner_all => 'Összes';
+
+  @override
   String get equipment_delete_notOwner =>
       'Ezt az elemet csak a tulajdonosa törölheti';
 
