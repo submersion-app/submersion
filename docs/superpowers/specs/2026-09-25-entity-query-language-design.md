@@ -686,9 +686,25 @@ Decided in the whole-branch review of PR 1:
 - **`DiveFilterState` has value equality**, so an unchanged filter set
   again is no change to a listener and the id-set family reuses its
   instance for an equal filter.
-- **The tick-table lookup never throws** (`diveFilterTablesTouched` falls
-  back to `dives` on a compile error), and the dive list's tick tables are
-  named once, on the repository (`DiveRepository.diveListTickTables`).
+- **The tick-table lookup never throws** (`diveFilterTablesTouched`
+  validates first and falls back to `dives`), and the dive list's tick
+  tables are named once, on the repository
+  (`DiveRepository.diveListTickTables`).
+- **List-bearing nodes copy their lists** (`AndNode`, `OrNode`, `TextNode`,
+  `ListValue`, `FieldPath` hold `List.unmodifiable` copies), so a caller's
+  later mutation cannot change a tree that `DiveFilterState` hashes; their
+  constructors are therefore not `const`.
+- **Open-ended date phrases** (`since 2024`, `before 2024`) lower to their
+  one bound under `=` and `in`, to its complement under `!=`, and are
+  refused under an ordering op with the day to write instead.
+- **Reversed `between` bounds mean the range between them**: the parser
+  orders them (canonical text) and the compiler orders them again for a
+  tree the builder or JSON made.
+- **Typed numbers are canonical at four decimals** in the typed unit, so
+  the printer's four decimals lose nothing that was parsed.
+- **Every malformed saved-query payload fails as `QueryJsonException`**,
+  whatever the damage (a cast, a node's own argument check, a number).
+- **`gasCount:none` is "no tanks"**: a count is never unrecorded.
 
 ## Open items for the implementation plans
 
