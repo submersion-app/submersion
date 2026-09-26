@@ -381,10 +381,10 @@ class _GarminCloudSignInStepState extends ConsumerState<GarminCloudSignInStep> {
 /// Fetch step for the Garmin Connect import wizard.
 ///
 /// Lists every diving/apnea activity, then downloads and parses each page's
-/// FIT files in parallel. A single dive's fetch/parse failure is skipped
+/// FIT files, a few at a time. A single dive's fetch/parse failure is skipped
 /// rather than aborting the whole fetch, matching how a single corrupt file
-/// is handled elsewhere in the import pipeline. Paging, Fetch All, and the
-/// selection list live in [CloudImportFetchStep].
+/// is handled elsewhere in the import pipeline. Paging, Fetch All, retrying
+/// the skipped dives and the selection list live in [CloudImportFetchStep].
 class GarminCloudFetchStep extends StatelessWidget {
   const GarminCloudFetchStep({
     super.key,
@@ -394,6 +394,11 @@ class GarminCloudFetchStep extends StatelessWidget {
 
   final GarminConnectClient? client;
   final void Function(List<GarminParsedDive> dives) onDivesFetched;
+
+  /// How many FIT downloads run at once. Firing a whole page together drew
+  /// Garmin's rate limiting, which lost dives from the import (#1635); a
+  /// small pool keeps most of the speed without the burst.
+  static const int maxConcurrentDownloads = 3;
 
   static const _fitParser = FitParserService();
 
@@ -438,7 +443,20 @@ class GarminCloudFetchStep extends StatelessWidget {
           }
         }
 
-        await Future.wait(List.generate(page.length, downloadOne));
+        // A fixed pool of workers pulls the next undownloaded index, so a
+        // slot is reused as soon as its dive finishes. Dart runs this on one
+        // isolate, so claiming `next++` between awaits cannot race.
+        var next = 0;
+        Future<void> worker() async {
+          while (next < page.length) {
+            await downloadOne(next++);
+          }
+        }
+
+        final workers = page.length < maxConcurrentDownloads
+            ? page.length
+            : maxConcurrentDownloads;
+        await Future.wait(List.generate(workers, (_) => worker()));
         return results;
       },
       diveOf: (parsed) => parsed.dive,

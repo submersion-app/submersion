@@ -103,8 +103,13 @@ class GarminLoginResult {
 /// its own Android app; garth publishes it because the OAuth 1 exchange
 /// cannot be performed without it.
 class GarminConnectClient {
-  GarminConnectClient({http.Client? httpClient})
-    : _http = httpClient ?? http.Client();
+  /// [retryDelay] waits out the backoff between attempts of a transient API
+  /// failure. Injectable so a test can record the waits instead of sleeping.
+  GarminConnectClient({
+    http.Client? httpClient,
+    Future<void> Function(Duration delay)? retryDelay,
+  }) : _http = httpClient ?? http.Client(),
+       _retryDelay = retryDelay ?? Future<void>.delayed;
 
   static const String _ssoBase = 'https://sso.garmin.com';
   static const String _apiBase = 'https://connectapi.garmin.com';
@@ -143,7 +148,16 @@ class GarminConnectClient {
   /// still recognised rather than silently dropped.
   static const List<String> _diveTypeFragments = ['diving', 'apnea'];
 
+  /// Attempts an authenticated API request gets before a transient failure
+  /// (rate limiting, a 5xx, a dropped connection) is reported to the caller.
+  static const int _maxApiAttempts = 3;
+
+  /// Upper bound on a server-requested `Retry-After` wait, so a large value
+  /// cannot stall an import for minutes per dive.
+  static const Duration _maxRetryAfter = Duration(seconds: 30);
+
   final http.Client _http;
+  final Future<void> Function(Duration delay) _retryDelay;
 
   /// Minimal cookie jar. The SSO handshake threads Cloudflare and Garmin
   /// session cookies across three requests, and `package:http` does not
@@ -550,25 +564,64 @@ class GarminConnectClient {
   ///
   /// Garmin has no refresh-token grant here: the long-lived OAuth 1 token is
   /// the refresh mechanism.
+  ///
+  /// A transient failure is retried with a short backoff before it reaches
+  /// the caller. The fetch step downloads a page of FIT files at once, and
+  /// Garmin answers a burst like that with the odd 429 or 5xx; without a
+  /// retry each of those became a dive silently missing from the import
+  /// (#1635). Every caller issues a GET, so repeating one is safe.
   Future<http.Response> _apiRequest(String method, Uri url) async {
     final oauth1 = _oauth1Token;
     if (oauth1 == null) {
       throw const GarminApiException('Not signed in to Garmin Connect');
     }
-    if (_oauth2Token == null || _oauth2Token!.isExpired()) {
-      _oauth2Token = await _exchangeForOAuth2(oauth1);
-    }
 
-    final response = await _send(
-      method,
-      url,
-      headers: {
-        ..._apiHeaders,
-        'Authorization': _oauth2Token!.authorizationHeader,
-      },
-    );
-    _throwForStatus(response, 'Garmin request failed');
-    return response;
+    for (var attempt = 1; ; attempt++) {
+      if (_oauth2Token == null || _oauth2Token!.isExpired()) {
+        _oauth2Token = await _exchangeForOAuth2(oauth1);
+      }
+
+      final http.Response response;
+      try {
+        response = await _send(
+          method,
+          url,
+          headers: {
+            ..._apiHeaders,
+            'Authorization': _oauth2Token!.authorizationHeader,
+          },
+        );
+      } on GarminApiException {
+        // _send only throws for a transport-level failure.
+        if (attempt >= _maxApiAttempts) rethrow;
+        await _retryDelay(_backoff(attempt));
+        continue;
+      }
+
+      if (_isTransientStatus(response.statusCode) &&
+          attempt < _maxApiAttempts) {
+        await _retryDelay(_retryAfter(response) ?? _backoff(attempt));
+        continue;
+      }
+      _throwForStatus(response, 'Garmin request failed');
+      return response;
+    }
+  }
+
+  static bool _isTransientStatus(int statusCode) =>
+      statusCode == 429 || statusCode >= 500;
+
+  /// 1 s after the first failed attempt, 2 s after the second.
+  static Duration _backoff(int attempt) =>
+      Duration(seconds: 1 << (attempt - 1));
+
+  /// The server's own `Retry-After` wait, in seconds, capped at
+  /// [_maxRetryAfter]. Null when absent or not a plain number of seconds.
+  static Duration? _retryAfter(http.Response response) {
+    final seconds = int.tryParse(response.headers['retry-after']?.trim() ?? '');
+    if (seconds == null || seconds < 0) return null;
+    final requested = Duration(seconds: seconds);
+    return requested > _maxRetryAfter ? _maxRetryAfter : requested;
   }
 
   Future<List<dynamic>> _getJsonList(Uri url) async {

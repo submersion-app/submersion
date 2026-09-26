@@ -274,6 +274,12 @@ class _ControllableClient extends _FakeGarminClient {
   void complete(int activityId, Uint8List bytes) {
     _pending[activityId]!.complete(bytes);
   }
+
+  /// Downloads started but not yet completed, in start order.
+  List<int> get pendingIds => [
+    for (final entry in _pending.entries)
+      if (!entry.value.isCompleted) entry.key,
+  ];
 }
 
 /// Fails the first listing, succeeds on every later one -- the shape a
@@ -1121,6 +1127,121 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Found 2 dives'), findsOneWidget);
+    });
+
+    testWidgets('caps how many downloads run at once', (tester) async {
+      final client = _ControllableClient(
+        dives: [for (var id = 1; id <= 5; id++) _activity(id)],
+      );
+
+      await tester.pumpWidget(
+        _host(
+          store: _FakeSessionStore(),
+          clientFactory: _FakeGarminClient.new,
+          child: GarminCloudFetchStep(client: client, onDivesFetched: (_) {}),
+        ),
+      );
+      await tester.pump();
+
+      // A whole page fired at once is what drew Garmin's rate limiting
+      // (#1635), so only the first few are in flight.
+      expect(
+        client.fetchedActivityIds,
+        hasLength(GarminCloudFetchStep.maxConcurrentDownloads),
+      );
+
+      // Finishing one frees a slot for the next dive in the page.
+      client.complete(client.fetchedActivityIds.first, fitBytes);
+      await tester.pump();
+      expect(
+        client.fetchedActivityIds,
+        hasLength(GarminCloudFetchStep.maxConcurrentDownloads + 1),
+      );
+
+      // Drain the rest; each completion lets a queued dive start.
+      while (client.pendingIds.isNotEmpty) {
+        client.complete(client.pendingIds.first, fitBytes);
+        await tester.pump();
+      }
+      await tester.pumpAndSettle();
+
+      expect(client.fetchedActivityIds, unorderedEquals([1, 2, 3, 4, 5]));
+      expect(find.text('Found 5 dives'), findsOneWidget);
+    });
+
+    testWidgets('Try Again re-downloads only the dives that failed', (
+      tester,
+    ) async {
+      final failing = {2};
+      final client = _FakeGarminClient(
+        dives: [_activity(1), _activity(2)],
+        fitBytesByActivityId: {1: fitBytes, 2: fitBytes},
+        failActivityIds: failing,
+      );
+      List<GarminParsedDive>? fetched;
+
+      await tester.pumpWidget(
+        _host(
+          store: _FakeSessionStore(),
+          clientFactory: _FakeGarminClient.new,
+          child: GarminCloudFetchStep(
+            client: client,
+            onDivesFetched: (dives) => fetched = dives,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(fetched, hasLength(1));
+      expect(
+        find.text('1 dive could not be converted and was skipped.'),
+        findsOneWidget,
+      );
+
+      // Whatever made dive 2 fail has passed.
+      failing.clear();
+      client.fetchedActivityIds.clear();
+      await tester.tap(find.widgetWithText(TextButton, 'Try Again'));
+      await tester.pumpAndSettle();
+
+      expect(client.fetchedActivityIds, [2]);
+      expect(fetched, hasLength(2));
+      expect(find.text('Found 2 dives'), findsOneWidget);
+      expect(
+        find.text('1 dive could not be converted and was skipped.'),
+        findsNothing,
+      );
+      expect(find.widgetWithText(TextButton, 'Try Again'), findsNothing);
+    });
+
+    testWidgets('a dive that fails again stays skipped and retryable', (
+      tester,
+    ) async {
+      final client = _FakeGarminClient(
+        dives: [_activity(1), _activity(2)],
+        fitBytesByActivityId: {1: fitBytes, 2: fitBytes},
+        failActivityIds: {2},
+      );
+
+      await tester.pumpWidget(
+        _host(
+          store: _FakeSessionStore(),
+          clientFactory: _FakeGarminClient.new,
+          child: GarminCloudFetchStep(client: client, onDivesFetched: (_) {}),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(TextButton, 'Try Again'));
+      await tester.pumpAndSettle();
+
+      expect(client.fetchedActivityIds, [1, 2, 2]);
+      expect(find.text('Found 1 dive'), findsOneWidget);
+      expect(
+        find.text('1 dive could not be converted and was skipped.'),
+        findsOneWidget,
+      );
+      expect(find.widgetWithText(TextButton, 'Try Again'), findsOneWidget);
     });
 
     testWidgets(

@@ -122,14 +122,21 @@ class _CloudImportFetchStepState<TSummary, TParsed>
   bool _isFetching = true;
   bool _isLoadingMore = false;
   bool _isFetchingAll = false;
+  bool _isRetryingFailed = false;
   bool _hasFetched = false;
   bool _hasMorePages = true;
-  int _failedCount = 0;
   String? _error;
   String? _loadMoreError;
   String? _progressText;
 
   final List<TParsed> _parsedDives = [];
+
+  /// Listed dives whose download or conversion failed, kept so Try Again
+  /// can re-request exactly those. Without it a transient failure left the
+  /// dive out of the import with no way back short of starting over (#1635).
+  final List<TSummary> _failedSummaries = [];
+
+  int get _failedCount => _failedSummaries.length;
 
   /// Indices into [_parsedDives] the diver wants carried into the rest of
   /// the wizard. Every newly downloaded dive is selected by default, so
@@ -179,7 +186,7 @@ class _CloudImportFetchStepState<TSummary, TParsed>
       _error = null;
       _parsedDives.clear();
       _selectedIndices.clear();
-      _failedCount = 0;
+      _failedSummaries.clear();
       _hasMorePages = true;
       _nextCursor = 0;
       // A retry starts the whole fetch over, so no paging error or spinner
@@ -187,6 +194,7 @@ class _CloudImportFetchStepState<TSummary, TParsed>
       _loadMoreError = null;
       _isLoadingMore = false;
       _isFetchingAll = false;
+      _isRetryingFailed = false;
       _progressText = widget.strings.listing;
     });
 
@@ -225,7 +233,12 @@ class _CloudImportFetchStepState<TSummary, TParsed>
   /// first-page failure does -- it's reported next to the Load More button
   /// instead, leaving everything fetched so far intact.
   Future<void> _loadMore() async {
-    if (!widget.hasClient || _isLoadingMore || !_hasMorePages) return;
+    if (!widget.hasClient ||
+        _isLoadingMore ||
+        _isRetryingFailed ||
+        !_hasMorePages) {
+      return;
+    }
 
     setState(() {
       _isLoadingMore = true;
@@ -265,7 +278,9 @@ class _CloudImportFetchStepState<TSummary, TParsed>
   /// to hammer a failing endpoint wouldn't recover on its own. Once the
   /// history is exhausted, paging controls are hidden.
   Future<void> _fetchAll() async {
-    if (_isFetchingAll || _isLoadingMore) return;
+    // _loadMore returns at once while a retry runs, which would turn the
+    // loop below into a spin.
+    if (_isFetchingAll || _isLoadingMore || _isRetryingFailed) return;
     // The loop below stops on _loadMoreError, so an error left over from an
     // earlier page would make this button a silent no-op. Clearing it here
     // is what makes Fetch All a genuine retry after a failed page.
@@ -294,14 +309,44 @@ class _CloudImportFetchStepState<TSummary, TParsed>
     });
     if (!mounted) return;
 
-    for (final parsed in results) {
+    for (var i = 0; i < results.length; i++) {
+      final parsed = results[i];
       if (parsed == null) {
-        _failedCount++;
+        _failedSummaries.add(page[i]);
       } else {
         _selectedIndices.add(_parsedDives.length);
         _parsedDives.add(parsed);
       }
     }
+  }
+
+  /// Downloads the dives that failed earlier again. Any that fail a second
+  /// time go back on the failed list, so the diver can keep trying.
+  Future<void> _retryFailed() async {
+    if (_isRetryingFailed ||
+        _isLoadingMore ||
+        _isFetchingAll ||
+        _failedSummaries.isEmpty) {
+      return;
+    }
+
+    final retry = List<TSummary>.of(_failedSummaries);
+    setState(() {
+      _isRetryingFailed = true;
+      _failedSummaries.clear();
+    });
+
+    try {
+      await _downloadPage(retry);
+    } catch (_) {
+      // downloadPage reports per-dive failures as null slots, so reaching
+      // this means the whole batch failed: every dive is still missing.
+      _failedSummaries.addAll(retry);
+    }
+    if (!mounted) return;
+
+    _publishSelection();
+    setState(() => _isRetryingFailed = false);
   }
 
   void _toggleSelected(int index) {
@@ -424,13 +469,7 @@ class _CloudImportFetchStepState<TSummary, TParsed>
               ),
               if (_failedCount > 0) ...[
                 const SizedBox(height: 8),
-                Text(
-                  strings.someFailed(_failedCount),
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
+                _buildFailedNotice(theme, strings),
               ],
               if (_hasMorePages) ...[
                 const SizedBox(height: 24),
@@ -458,13 +497,7 @@ class _CloudImportFetchStepState<TSummary, TParsed>
           if (_failedCount > 0)
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 4, 24, 0),
-              child: Text(
-                strings.someFailed(_failedCount),
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                textAlign: TextAlign.center,
-              ),
+              child: _buildFailedNotice(theme, strings),
             ),
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 8, 4),
@@ -516,6 +549,38 @@ class _CloudImportFetchStepState<TSummary, TParsed>
     }
 
     return const SizedBox.shrink();
+  }
+
+  /// How many dives were skipped, with a Try Again that re-requests only
+  /// those. Shared between the empty-results and populated-list states.
+  Widget _buildFailedNotice(ThemeData theme, CloudImportFetchStrings strings) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          strings.someFailed(_failedCount),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        if (_isRetryingFailed)
+          const Padding(
+            padding: EdgeInsets.all(12),
+            child: SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          )
+        else
+          TextButton.icon(
+            onPressed: _isLoadingMore || _isFetchingAll ? null : _retryFailed,
+            icon: const Icon(Icons.refresh),
+            label: Text(strings.retry),
+          ),
+      ],
+    );
   }
 
   /// The Load More/Fetch All controls shared between the empty-results and
