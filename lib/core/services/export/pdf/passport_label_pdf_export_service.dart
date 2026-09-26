@@ -22,7 +22,8 @@ class PassportLabelData {
   final String url;
 }
 
-/// Renders cylinder passport labels, 62 x 32 mm each, ten to an A4 sheet.
+/// Renders cylinder passport labels, 62 x 32 mm each, 24 to an A4 sheet
+/// (three across, eight down, inside 8 mm margins).
 /// The QR uses error correction M like the on-screen code.
 class PassportLabelPdfExportService {
   /// [loadTheme] picks the fonts. The default is the shared Roboto loader;
@@ -45,7 +46,9 @@ class PassportLabelPdfExportService {
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(10 * PdfPageFormat.mm),
+        // 8 mm, not 10: three 62 mm labels and two 3 mm gaps need 192 mm,
+        // and a 10 mm margin leaves only 190.
+        margin: const pw.EdgeInsets.all(8 * PdfPageFormat.mm),
         build: (context) => [
           pw.Wrap(
             spacing: 3 * PdfPageFormat.mm,

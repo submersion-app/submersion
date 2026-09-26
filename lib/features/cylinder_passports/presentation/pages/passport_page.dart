@@ -17,6 +17,12 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
+/// The scanned tag a route carried, or null when the route's extra is
+/// anything else. A deep link or a restored route can arrive with an extra
+/// of another type, and a hard cast would crash the page.
+CylinderPassportPayload? scannedTagFrom(Object? extra) =>
+    extra is CylinderPassportPayload ? extra : null;
+
 /// One cylinder's passport (spec section 8): every card names its source of
 /// truth, and every value with a unit goes through the unit formatter.
 class PassportPage extends ConsumerStatefulWidget {

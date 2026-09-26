@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_fill.dart';
+import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_passport_payload.dart';
 import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
@@ -309,6 +310,14 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     expect(find.text(l10n.passport_tag_printFailed), findsOneWidget);
+  });
+
+  test('route extras that are not a tag are ignored, not cast', () {
+    const tag = CylinderPassportPayload(passportId: pid);
+    expect(scannedTagFrom(tag), tag);
+    expect(scannedTagFrom(null), isNull);
+    expect(scannedTagFrom('https://submersion.app/c#p=x'), isNull);
+    expect(scannedTagFrom(42), isNull);
   });
 }
 

@@ -33,6 +33,19 @@ void main() {
     expect(pdfPageCount(bytes), 1);
   });
 
+  test('twenty-four labels fill one A4 sheet, three to a row', () async {
+    final page = await service().generateBytes([
+      for (var i = 0; i < 24; i++)
+        PassportLabelData(title: 'Tank $i', url: '$url&n=Tank+$i'),
+    ]);
+    expect(pdfPageCount(page), 1);
+    final more = await service().generateBytes([
+      for (var i = 0; i < 25; i++)
+        PassportLabelData(title: 'Tank $i', url: '$url&n=Tank+$i'),
+    ]);
+    expect(pdfPageCount(more), 2);
+  });
+
   test('ten labels fit on one A4 sheet', () async {
     final bytes = await service().generateBytes([
       for (var i = 0; i < 10; i++)
