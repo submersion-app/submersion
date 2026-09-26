@@ -77,7 +77,8 @@ class ConnectionsPainter extends CustomPainter {
 
   double radiusOf(ConnectionNode n) =>
       NodeMetrics.radiusFor(n.diveCount, graph.maxDiveCount) *
-      viewport.scale.clamp(0.5, 1.5);
+      viewport.scale.clamp(0.5, 1.5) *
+      frame.appearOf(n.ref);
 
   TextPainter _label(
     ConnectionNode n, {
@@ -144,6 +145,8 @@ class ConnectionsPainter extends CustomPainter {
       nodesByRef[n.ref] = n;
       final centre = viewport.toScreen(p);
       final r = radiusOf(n);
+      // The first frame of a grow-in has nothing to show yet.
+      if (r < 0.5) continue;
       final isSelected = n.ref == selectedNode;
       final isLit = isSelected || lit.contains(n.ref) || n.ref == hovered;
       final fill = colors
@@ -245,6 +248,13 @@ class ConnectionsPainter extends CustomPainter {
       if (!visible.contains(c.ref)) continue;
       final dimmed = dim && !forced.contains(c.ref);
       final tp = _label(nodesByRef[c.ref]!, dimmed: dimmed, ink: ink);
+      final appear = frame.appearOf(c.ref);
+      if (appear < 1) {
+        canvas.saveLayer(
+          c.rect.inflate(4),
+          Paint()..color = Color.fromRGBO(0, 0, 0, appear),
+        );
+      }
       final halo = haloColor;
       if (halo != null) {
         canvas.drawRRect(
@@ -253,6 +263,7 @@ class ConnectionsPainter extends CustomPainter {
         );
       }
       tp.paint(canvas, c.rect.topLeft);
+      if (appear < 1) canvas.restore();
     }
   }
 

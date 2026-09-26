@@ -98,4 +98,37 @@ void main() {
     expect(c.settled, isTrue);
     expect(c.frame.positions, isEmpty);
   });
+
+  test('an animated refocus morphs over 450 ms, then settles', () {
+    final c = ConnectionsLayoutController(vsync: const TestVSync());
+    addTearDown(c.dispose);
+    c.setGraph(_graph, mode: GraphLayoutMode.web);
+    while (!c.settled) {
+      c.stepForTest();
+    }
+    final before = c.frame.positions[_b('a')]!;
+    c.setGraph(
+      _graph,
+      mode: GraphLayoutMode.ego,
+      focus: _b('b'),
+      animate: true,
+    );
+    expect(c.settled, isFalse);
+    expect(c.frame.positions[_b('a')], before);
+    c.stepForTest(0, const Duration(milliseconds: 225));
+    final mid = c.frame.positions[_b('a')]!;
+    expect(mid, isNot(before));
+    expect(c.settled, isFalse);
+    c.stepForTest(0, const Duration(milliseconds: 250));
+    expect(c.settled, isTrue);
+    expect(c.frame.positions[_b('b')], GraphPoint.zero);
+  });
+
+  test('without animate the ego layout is immediate', () {
+    final c = ConnectionsLayoutController(vsync: const TestVSync());
+    addTearDown(c.dispose);
+    c.setGraph(_graph, mode: GraphLayoutMode.web);
+    c.setGraph(_graph, mode: GraphLayoutMode.ego, focus: _b('b'));
+    expect(c.settled, isTrue);
+  });
 }

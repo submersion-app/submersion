@@ -30,6 +30,7 @@ class ConnectionsCanvas extends StatefulWidget {
     required this.onFocus,
     this.selection,
     this.semanticsLabel,
+    this.animate = false,
   });
 
   final ConnectionGraph graph;
@@ -40,11 +41,15 @@ class ConnectionsCanvas extends StatefulWidget {
   final ValueChanged<NodeRef> onFocus;
   final String? semanticsLabel;
 
+  /// Glide the camera to the new fit when the graph changes (a refocus).
+  final bool animate;
+
   @override
   State<ConnectionsCanvas> createState() => _ConnectionsCanvasState();
 }
 
-class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
+class _ConnectionsCanvasState extends State<ConnectionsCanvas>
+    with SingleTickerProviderStateMixin {
   GraphViewport _viewport = const GraphViewport();
 
   /// The camera follows the layout until the diver moves it.
@@ -67,6 +72,24 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
   final Map<(NodeRef, int), TextPainter> _initialsCache = {};
   TextStyle? _cachedLabelStyle;
 
+  late final AnimationController _glide = AnimationController(
+    vsync: this,
+    duration: kRefocusDuration,
+  )..addListener(_onGlide);
+  GraphViewport? _glideFrom;
+
+  void _onGlide() {
+    final from = _glideFrom;
+    if (from == null || _size == Size.zero) return;
+    setState(() {
+      _viewport = CameraTween(
+        from,
+        _fitTarget(_size),
+        _size,
+      ).at(kRefocusCurve.transform(_glide.value));
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -83,6 +106,12 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
     }
     if (old.graph != widget.graph) {
       _autoFit = true;
+      if (widget.animate &&
+          _everFitted &&
+          !MediaQuery.disableAnimationsOf(context)) {
+        _glideFrom = _viewport;
+        _glide.forward(from: 0);
+      }
       _clearTextCaches();
       _decodePhotos();
     }
@@ -91,6 +120,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
   @override
   void dispose() {
     widget.controller.removeListener(_onFrame);
+    _glide.dispose();
     _photos.disposeAll();
     _clearTextCaches();
     super.dispose();
@@ -100,6 +130,8 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
     if (!mounted) return;
     setState(() {
       final frame = widget.controller.frame;
+      // While a refocus glide runs it owns the camera.
+      if (_glide.isAnimating) return;
       if (!_autoFit || _size == Size.zero || frame.positions.isEmpty) return;
       final target = _fitTarget(_size);
       if (!_everFitted || widget.controller.settled) {
@@ -181,6 +213,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
   void _zoomAt(double factor, Offset focal) {
     setState(() {
       _autoFit = false;
+      _glide.stop();
       _viewport = _viewport
           .zoomedAt(factor, focal)
           .clampedTo(widget.controller.frame.bounds, _size);
@@ -190,6 +223,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
   void _pan(Offset delta) {
     setState(() {
       _autoFit = false;
+      _glide.stop();
       _viewport = _viewport
           .panned(delta)
           .clampedTo(widget.controller.frame.bounds, _size);
@@ -294,6 +328,7 @@ class _ConnectionsCanvasState extends State<ConnectionsCanvas> {
                   (r) => r
                     ..onLongPressStart = (d) {
                       _autoFit = false;
+                      _glide.stop();
                       _dragging = _nodeAt(d.localPosition);
                       if (_dragging != null) {
                         widget.onSelect(NodeSelection(_dragging!));

@@ -192,6 +192,59 @@ void main() {
     }
     expect(_painter(tester).viewport.offset, afterDrag);
   });
+
+  testWidgets('a refocus glides the camera, and a pan stops it', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(400, 400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const MaterialApp(home: _GlideHost()));
+    await tester.pump();
+    final start = _painter(tester).viewport.scale;
+    tester.state<_GlideHostState>(find.byType(_GlideHost)).spread();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 225));
+    final mid = _painter(tester).viewport.scale;
+    await tester.pump(const Duration(milliseconds: 300));
+    final end = _painter(tester).viewport.scale;
+    expect(
+      end,
+      lessThan(start),
+      reason: 'the wider graph needs a smaller scale',
+    );
+    expect(mid, lessThan(start));
+    expect(mid, greaterThan(end));
+
+    tester.state<_GlideHostState>(find.byType(_GlideHost)).spread(wider: true);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.drag(find.byType(ConnectionsCanvas), const Offset(40, 0));
+    await tester.pump();
+    final afterPan = _painter(tester).viewport;
+    await tester.pump(const Duration(milliseconds: 400));
+    expect(_painter(tester).viewport.scale, afterPan.scale);
+  });
+
+  testWidgets('reduce motion snaps the camera', (tester) async {
+    tester.view.physicalSize = const Size(400, 400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(disableAnimations: true),
+          child: _GlideHost(),
+        ),
+      ),
+    );
+    await tester.pump();
+    tester.state<_GlideHostState>(find.byType(_GlideHost)).spread();
+    await tester.pump();
+    final first = _painter(tester).viewport.scale;
+    await tester.pump(const Duration(milliseconds: 225));
+    expect(_painter(tester).viewport.scale, first);
+  });
 }
 
 /// Owns its controller like ConnectionsPage does, so the ticker is disposed
@@ -237,6 +290,72 @@ class _ReloadHostState extends State<_ReloadHost>
         colors: const ConnectionKindColors({}, Colors.grey),
         onSelect: (_) {},
         onFocus: (_) {},
+      ),
+    ),
+  );
+}
+
+/// An ego view that re-centres on a wider graph, the way Centre here does.
+class _GlideHost extends StatefulWidget {
+  const _GlideHost();
+  @override
+  State<_GlideHost> createState() => _GlideHostState();
+}
+
+class _GlideHostState extends State<_GlideHost>
+    with SingleTickerProviderStateMixin {
+  late final controller = ConnectionsLayoutController(vsync: this)
+    ..setGraph(_graph, mode: GraphLayoutMode.ego, focus: _b('me'));
+  ConnectionGraph graph = _graph;
+
+  void spread({bool wider = false}) {
+    final count = wider ? 60 : 30;
+    setState(() {
+      graph = _graph.copyWith(
+        nodes: [
+          ..._graph.nodes,
+          for (var i = 0; i < count; i++)
+            ConnectionNode(ref: _b('n$i'), label: 'N$i', diveCount: 1, hop: 2),
+        ],
+        edges: [
+          ..._graph.edges,
+          for (var i = 0; i < count; i++)
+            ConnectionEdge(
+              source: _b('jane'),
+              target: _b('n$i'),
+              weight: 1,
+              firstDiveAt: DateTime.utc(2024),
+              lastDiveAt: DateTime.utc(2024),
+            ),
+        ],
+      );
+      controller.setGraph(
+        graph,
+        mode: GraphLayoutMode.ego,
+        focus: _b('me'),
+        animate: !MediaQuery.disableAnimationsOf(context),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: SizedBox(
+      width: 400,
+      height: 400,
+      child: ConnectionsCanvas(
+        graph: graph,
+        controller: controller,
+        colors: const ConnectionKindColors({}, Colors.grey),
+        onSelect: (_) {},
+        onFocus: (_) {},
+        animate: true,
       ),
     ),
   );

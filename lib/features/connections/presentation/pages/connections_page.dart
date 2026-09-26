@@ -46,6 +46,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
   NodeRef? _laidOutFocus;
   bool _focusWarned = false;
 
+  /// False until the first graph is laid out; that one never animates.
+  bool _hadGraph = false;
+
   /// True until a deep link has been written to the view. Riverpod forbids
   /// provider writes inside initState, so the write waits for the first
   /// frame, and the first graph watch waits with it (no wasted load).
@@ -97,7 +100,11 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
     super.dispose();
   }
 
-  void _syncLayout(ConnectionGraph graph, NodeRef? focus) {
+  void _syncLayout(
+    ConnectionGraph graph,
+    NodeRef? focus, {
+    required bool animate,
+  }) {
     if (identical(_laidOut, graph) && _laidOutFocus == focus) return;
     _laidOut = graph;
     _laidOutFocus = focus;
@@ -105,7 +112,9 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
       graph,
       mode: focus == null ? GraphLayoutMode.web : GraphLayoutMode.ego,
       focus: focus,
+      animate: animate,
     );
+    _hadGraph = true;
   }
 
   /// Raises the node budget to [ConnectionsPage.maxBudget]. Only a graph
@@ -226,7 +235,8 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
         hasActiveFilter: hasActiveFilter,
       );
     } else {
-      _syncLayout(graph, focus);
+      final animate = _hadGraph && !MediaQuery.disableAnimationsOf(context);
+      _syncLayout(graph, focus, animate: animate);
       final kinds = graph.nodes.map((n) => n.ref.kind).toSet();
       canvasArea = Stack(
         children: [
@@ -237,6 +247,7 @@ class _ConnectionsPageState extends ConsumerState<ConnectionsPage>
               colors: colors,
               selection: selection,
               semanticsLabel: _semanticsLabel(graph, selection),
+              animate: animate,
               onSelect: (s) =>
                   ref.read(connectionsSelectionProvider.notifier).state = s,
               onFocus: (node) {
