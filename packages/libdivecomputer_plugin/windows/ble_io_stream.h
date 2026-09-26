@@ -71,6 +71,9 @@ class BleIoStream {
   static int CloseCallback(void* userdata);
   static int IoctlCallback(void* userdata, unsigned int request,
                             void* data, size_t size);
+  // DC_IOCTL_BLE_CHARACTERISTIC_READ (issue #422): read one characteristic
+  // by UUID from any discovered service into the request buffer.
+  int ReadCharacteristic(const winrt::guid& uuid, void* data, size_t size);
   static int PollCallback(void* userdata, int timeout);
   static int PurgeCallback(void* userdata, unsigned int direction);
 
@@ -106,6 +109,7 @@ class BleIoStream {
   static const winrt::guid kUbloxServiceUuid;
   static const winrt::guid kUbloxDataUuid;
   static const winrt::guid kUbloxCreditsUuid;
+  static const winrt::guid kCressiServiceUuid;
 
   // Opening credit grant. 0xFF is reserved by the TIO protocol, so 254 is the
   // largest value that means "credits" rather than a control code.
@@ -126,6 +130,10 @@ class BleIoStream {
   winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
       GattCharacteristic notify_characteristic_{nullptr};
   winrt::event_token notify_token_;
+  // Every characteristic discovery saw, for characteristic reads (#422).
+  std::vector<winrt::Windows::Devices::Bluetooth::GenericAttributeProfile::
+                  GattCharacteristic>
+      all_characteristics_;
   // ATT handle of the data notify characteristic, cached so the notification
   // thread can identify a callback's source without reading
   // notify_characteristic_ -- Close() clears that member concurrently, and
