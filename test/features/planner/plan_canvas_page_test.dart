@@ -5,6 +5,7 @@ import 'package:submersion/core/constants/map_style.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
@@ -284,46 +285,94 @@ void main() {
     expect(find.byType(SnackBar), findsOneWidget);
   });
 
-  testWidgets('convert logs the dive for the current diver at the plan site', (
-    tester,
-  ) async {
-    final seeded = await tester.runAsync(() async {
+  Future<String> createDiver(WidgetTester tester, String id) async {
+    final diver = await tester.runAsync(() {
       final now = DateTime.now();
-      final diver = await DiverRepository().createDiver(
-        Diver(
-          id: 'convert-diver',
-          name: 'Test Diver',
-          isDefault: true,
-          createdAt: now,
-          updatedAt: now,
-        ),
+      return DiverRepository().createDiver(
+        Diver(id: id, name: id, createdAt: now, updatedAt: now),
       );
-      final site = await SiteRepository().createSite(
-        DiveSite(id: '', name: 'Blue Hole', diverId: diver.id),
-      );
-      return (diverId: diver.id, siteId: site.id);
     });
-    final diverId = seeded!.diverId;
+    return diver!.id;
+  }
 
+  Future<String> createSite(
+    WidgetTester tester, {
+    required String ownerId,
+    bool isShared = false,
+  }) async {
+    final site = await tester.runAsync(
+      () => SiteRepository().createSite(
+        DiveSite(
+          id: '',
+          name: 'Blue Hole',
+          diverId: ownerId,
+          isShared: isShared,
+        ),
+      ),
+    );
+    return site!.id;
+  }
+
+  /// Converts a plan at [siteId] while [diverId] is the current diver, and
+  /// returns that diver's dives: what their dive list reads.
+  Future<List<Dive>> convertAt(
+    WidgetTester tester, {
+    required String diverId,
+    required String siteId,
+  }) async {
     await setSize(tester, const Size(420, 900));
     await tester.pumpWidget(harness(diverId: diverId));
     seed(tester);
     ProviderScope.containerOf(
       tester.element(find.byType(PlanCanvasPage)),
-    ).read(divePlanNotifierProvider.notifier).updateSite(seeded.siteId);
+    ).read(divePlanNotifierProvider.notifier).updateSite(siteId);
     await tester.pumpAndSettle();
 
     await openMenu(tester, 'Convert to Dive');
     expect(find.byType(SnackBar), findsOneWidget);
 
-    // The dive list reads the current diver's dives only, so a dive written
-    // without a diver never shows up there.
     final listed = await tester.runAsync(
       () => DiveRepository().getAllDives(diverId: diverId),
     );
+    return listed!;
+  }
+
+  testWidgets('convert logs the dive for the current diver at the plan site', (
+    tester,
+  ) async {
+    final diverId = await createDiver(tester, 'convert-diver');
+    final siteId = await createSite(tester, ownerId: diverId);
+
+    // The dive list reads the current diver's dives only, so a dive written
+    // without a diver never shows up there.
+    final listed = await convertAt(tester, diverId: diverId, siteId: siteId);
     expect(listed, hasLength(1));
-    expect(listed!.single.isPlanned, isTrue);
-    expect(listed.single.site?.id, seeded.siteId);
+    expect(listed.single.isPlanned, isTrue);
+    expect(listed.single.site?.id, siteId);
+  });
+
+  testWidgets('convert leaves off a site private to another diver', (
+    tester,
+  ) async {
+    final diverId = await createDiver(tester, 'convert-diver');
+    final ownerId = await createDiver(tester, 'site-owner');
+    final siteId = await createSite(tester, ownerId: ownerId);
+
+    // Saved plans are not diver-scoped, so a plan can name a site the
+    // current diver cannot see; the new dive must not expose it.
+    final listed = await convertAt(tester, diverId: diverId, siteId: siteId);
+    expect(listed, hasLength(1));
+    expect(listed.single.site, isNull);
+  });
+
+  testWidgets('convert keeps a site another diver shares', (tester) async {
+    final diverId = await createDiver(tester, 'convert-diver');
+    final ownerId = await createDiver(tester, 'site-owner');
+    final siteId = await createSite(tester, ownerId: ownerId, isShared: true);
+
+    final listed = await convertAt(tester, diverId: diverId, siteId: siteId);
+    expect(listed, hasLength(1));
+    expect(listed.single.site?.id, siteId);
   });
 
   testWidgets('tapping the title renames the plan', (tester) async {

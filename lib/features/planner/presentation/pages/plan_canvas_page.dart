@@ -9,6 +9,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/providers/dive_planner_providers.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/plan_tank_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/segment_list.dart';
 import 'package:submersion/features/dive_planner/presentation/widgets/simple_plan_dialog.dart';
@@ -717,6 +718,16 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
         : await ref.read(siteProvider(siteId).future);
     if (!mounted) return;
 
+    // Saved plans are not diver-scoped, so the plan may name a site private to
+    // another diver. Attach only a site the current diver can see, by the same
+    // owner-or-shared rule the site list applies (VisibilityFilter).
+    final diverId = ref.read(currentDiverIdProvider);
+    final visibleSite =
+        site != null &&
+            (diverId == null || site.diverId == diverId || site.isShared)
+        ? site
+        : null;
+
     // Read the plan after the site lookup so the dive describes the plan as
     // it is now. If the diver switched sites meanwhile, the fetched site is
     // stale, so drop it rather than attach the wrong one.
@@ -724,7 +735,7 @@ class _PlanCanvasPageState extends ConsumerState<PlanCanvasPage> {
     final outcome = ref.read(planOutcomeProvider);
     final series = ref.read(planCanvasSeriesProvider);
     final currentSite = ref.read(divePlanNotifierProvider).siteId == siteId
-        ? site
+        ? visibleSite
         : null;
 
     // The state's segments stop at the bottom; the engine computes the
