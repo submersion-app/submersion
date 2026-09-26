@@ -5,6 +5,7 @@ import 'package:submersion/core/domain/models/incoming_dive_data.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/dive_computer/domain/services/reported_model_relabel.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/data_quality/data/services/quality_scan_service.dart';
@@ -230,14 +231,24 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     required DiscoveredDevice device,
     String? serialNumber,
     String? firmwareVersion,
+    String? reportedProduct,
+    int? reportedModel,
   }) async {
     // Capture descriptor fields regardless of whether a computer record already
-    // exists — these are always needed for the import service.
+    // exists — these are always needed for the import service. A device that
+    // named a different model during the download (issue #422) is stamped
+    // with that one.
     final model = device.recognizedModel;
+    final reported = reportedProduct?.trim();
+    final hasReported =
+        model != null &&
+        reported != null &&
+        reported.isNotEmpty &&
+        reportedModel != null;
     if (model != null) {
       _descriptorVendor = model.manufacturer;
-      _descriptorProduct = model.model;
-      _descriptorModel = model.dcModel;
+      _descriptorProduct = hasReported ? reported : model.model;
+      _descriptorModel = hasReported ? reportedModel : model.dcModel;
     }
 
     // Fetch the libdivecomputer version string once per session.
@@ -266,23 +277,41 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     // identifier instead of creating a duplicate synced computer record.
     final normalizedSerial = serialNumber?.trim();
     final normalizedManufacturer = device.manufacturer?.trim();
-    final normalizedModel = device.model?.trim();
+    final scannedModel = device.model?.trim();
+    final normalizedModel = hasReported ? reported : scannedModel;
     if (normalizedSerial?.isNotEmpty == true &&
         normalizedManufacturer?.isNotEmpty == true &&
         normalizedModel?.isNotEmpty == true) {
-      final existing = await _computerRepository.findByHardwareIdentity(
+      var existing = await _computerRepository.findByHardwareIdentity(
         manufacturer: normalizedManufacturer!,
         model: normalizedModel!,
         serialNumber: normalizedSerial!,
         diverId: _diverId,
       );
-      if (existing != null) {
-        final rebound = existing.copyWith(
+      // A build before issue #422 saved the computer under the model it was
+      // scanned as; find that record rather than creating a duplicate.
+      if (existing == null &&
+          hasReported &&
+          scannedModel?.isNotEmpty == true &&
+          scannedModel != normalizedModel) {
+        existing = await _computerRepository.findByHardwareIdentity(
+          manufacturer: normalizedManufacturer,
+          model: scannedModel!,
           serialNumber: normalizedSerial,
-          firmwareVersion: firmwareVersion,
-          connectionType: connectionTypeStr,
-          bluetoothAddress: device.address,
+          diverId: _diverId,
         );
+      }
+      if (existing != null) {
+        final rebound =
+            relabelToReportedProduct(
+              existing,
+              hasReported ? reported : null,
+            ).copyWith(
+              serialNumber: normalizedSerial,
+              firmwareVersion: firmwareVersion,
+              connectionType: connectionTypeStr,
+              bluetoothAddress: device.address,
+            );
         await _computerRepository.updateComputer(rebound);
         _computer = rebound;
         return;
@@ -294,10 +323,15 @@ class DiveComputerAdapter implements ImportSourceAdapter {
     final newComputer =
         DiveComputer.create(
           id: const Uuid().v4(),
-          name: _customDeviceName ?? device.displayName,
+          // A reported model (issue #422) replaces the scan-time label.
+          name:
+              _customDeviceName ??
+              (hasReported
+                  ? '${device.manufacturer} $reported'
+                  : device.displayName),
           diverId: _diverId,
           manufacturer: device.manufacturer,
-          model: device.model,
+          model: hasReported ? reported : device.model,
         ).copyWith(
           serialNumber: serialNumber,
           firmwareVersion: firmwareVersion,
