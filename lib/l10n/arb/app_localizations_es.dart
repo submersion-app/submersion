@@ -16784,7 +16784,61 @@ class AppLocalizationsEs extends AppLocalizations {
   String get media_library_viewMode_grid => 'Cuadrícula';
 
   @override
+  String get media_library_viewMode_map => 'Mapa';
+
+  @override
   String get media_library_viewMode_timeline => 'Cronología';
+
+  @override
+  String get media_map_closeStrip => 'Cerrar';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos en $place',
+      one: '$count elemento en $place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint =>
+      'Las fotos y los vídeos se sitúan según su propio GPS, el punto de entrada de la inmersión o el punto de buceo.';
+
+  @override
+  String get media_map_emptyTitle => 'Sin medios con ubicación';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return 'Error al cargar las ubicaciones de los medios: $error';
+  }
+
+  @override
+  String get media_map_markerSemantics => 'Abrir medio';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos',
+      one: '$count elemento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementos sin ubicación',
+      one: '$count elemento sin ubicación',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => 'Ir a la inmersión';
@@ -24645,6 +24699,9 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_importAsRoute => 'Importar como ruta';
+
+  @override
   String get universalImport_summary_fileNeedsIndividualImport =>
       'Requiere importación individual';
 
@@ -28588,6 +28645,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get dive3d_seascape_overlay_walls => 'Paredes verticales';
 
   @override
+  String get dive3d_seascape_showRoute => 'Mostrar ruta';
+
+  @override
   String get dive3d_overlay_water => 'Superficie del agua';
 
   @override
@@ -28874,6 +28934,14 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get dive3d_spatial_estimatedPath =>
       'Ruta estimada (navegación a estima)';
+
+  @override
+  String get dive3d_spatial_recordedPath => 'Ruta grabada';
+
+  @override
+  String dive3d_spatial_recordedPathWithSource(String source) {
+    return 'Ruta grabada ($source)';
+  }
 
   @override
   String get dive3d_spatial_synthesizedSeafloor => 'Fondo marino sintetizado';
@@ -42572,6 +42640,414 @@ class AppLocalizationsEs extends AppLocalizations {
       'Cómo se agrupa y ordena el equipo en una inmersión';
 
   @override
+  String get navTrack_common_loadError => 'No se pudo cargar esta ruta.';
+
+  @override
+  String get navTrack_common_notFound => 'Ruta no encontrada.';
+
+  @override
+  String get navTrack_common_cancel => 'Cancelar';
+
+  @override
+  String get navTrack_common_save => 'Guardar';
+
+  @override
+  String get navTrack_common_delete => 'Eliminar';
+
+  @override
+  String get navTrack_common_unlink => 'Desvincular';
+
+  @override
+  String get navTrack_common_open3dTooltip => 'Abrir 3D';
+
+  @override
+  String navTrack_common_diveNumber(String number) {
+    return 'Inmersión #$number';
+  }
+
+  @override
+  String navTrack_common_diveById(String id) {
+    return 'Inmersión $id';
+  }
+
+  @override
+  String get navTrack_common_unlinked => 'sin vincular';
+
+  @override
+  String get navTrack_align_title => 'Alinear en el mapa';
+
+  @override
+  String get navTrack_align_resetTooltip => 'Restablecer corrección';
+
+  @override
+  String get navTrack_align_setStartHere => 'Poner inicio aquí';
+
+  @override
+  String get navTrack_align_setEndHere => 'Poner fin aquí';
+
+  @override
+  String get navTrack_align_setStartOnMap => 'Poner inicio en el mapa';
+
+  @override
+  String get navTrack_align_fromDiveEntry => 'Desde la entrada de la inmersión';
+
+  @override
+  String get navTrack_align_fromSite => 'Desde el punto de buceo';
+
+  @override
+  String get navTrack_align_fromGps => 'Desde GPS';
+
+  @override
+  String get navTrack_align_startLabel => 'Inicio: ';
+
+  @override
+  String get navTrack_align_endLabel => 'Fin: ';
+
+  @override
+  String get navTrack_align_endMode_none => 'Ninguno';
+
+  @override
+  String get navTrack_align_endMode_sameAsStart => 'Igual que el inicio';
+
+  @override
+  String get navTrack_align_endMode_point => 'Colocar en el mapa';
+
+  @override
+  String get navTrack_align_endMode_gpsFix => 'Desde el fix GPS';
+
+  @override
+  String navTrack_align_trustSummary(String distance, int minutes) {
+    return 'Confianza: verificado hasta $distance, $minutes min';
+  }
+
+  @override
+  String get navTrack_align_rotationLabel => 'Rotación:';
+
+  @override
+  String navTrack_align_rotationDegrees(String degrees) {
+    return '$degrees°';
+  }
+
+  @override
+  String navTrack_terrain_summary(
+    int onLand,
+    int below,
+    int total,
+    int unknown,
+    String maxPart,
+    String coarsePart,
+  ) {
+    return '$onLand puntos en tierra, $below de $total bajo el fondo marino$maxPart, $unknown desconocidos$coarsePart';
+  }
+
+  @override
+  String navTrack_terrain_maxPart(String depth) {
+    return ' (máx. $depth)';
+  }
+
+  @override
+  String get navTrack_terrain_coarsePart =>
+      ' (batimetría de baja resolución: solo se comprobaron conflictos en tierra)';
+
+  @override
+  String get navTrack_detail_renameTitle => 'Cambiar nombre de la ruta';
+
+  @override
+  String get navTrack_detail_deleteTitle => '¿Eliminar ruta?';
+
+  @override
+  String get navTrack_detail_deleteMessage => 'Esto no se puede deshacer.';
+
+  @override
+  String get navTrack_detail_defaultTitle => 'Ruta';
+
+  @override
+  String get navTrack_detail_menuRename => 'Cambiar nombre';
+
+  @override
+  String get navTrack_detail_menuChangeSite => 'Cambiar punto de buceo';
+
+  @override
+  String get navTrack_detail_noMapYet =>
+      'Coloca el punto de inicio para ver esto en un mapa.';
+
+  @override
+  String get navTrack_detail_correctionStatus_none =>
+      'Aún no se ha aplicado ninguna corrección.';
+
+  @override
+  String get navTrack_detail_correctionStatus_sameAsStart =>
+      'Fin establecido igual que el inicio.';
+
+  @override
+  String get navTrack_detail_correctionStatus_point =>
+      'Punto final establecido en el mapa.';
+
+  @override
+  String get navTrack_detail_correctionStatus_gpsFix =>
+      'Fin establecido desde el fix GPS de la grabación.';
+
+  @override
+  String navTrack_detail_device(String name) {
+    return 'Dispositivo: $name';
+  }
+
+  @override
+  String navTrack_detail_equipment(String name) {
+    return 'Equipo: $name';
+  }
+
+  @override
+  String navTrack_detail_distance(String value) {
+    return 'Distancia: $value';
+  }
+
+  @override
+  String navTrack_detail_maxDepth(String value) {
+    return 'Profundidad máx.: $value';
+  }
+
+  @override
+  String navTrack_detail_maxSpeed(String value) {
+    return 'Velocidad máx.: $value';
+  }
+
+  @override
+  String navTrack_detail_avgSpeed(String value) {
+    return 'Velocidad media: $value';
+  }
+
+  @override
+  String navTrack_detail_duration(int hours, int minutes) {
+    return 'Duración: $hours h $minutes min';
+  }
+
+  @override
+  String navTrack_detail_battery(String start, String end) {
+    return 'Batería: $start V -> $end V';
+  }
+
+  @override
+  String get navTrack_detail_noDiveLinked => 'Ninguna inmersión vinculada';
+
+  @override
+  String get navTrack_detail_chooseDive => 'Elegir inmersión';
+
+  @override
+  String get navTrack_detail_noSite => 'Sin punto de buceo';
+
+  @override
+  String get navTrack_detail_chooseSite => 'Elegir punto de buceo';
+
+  @override
+  String get navTrack_review_title => 'Importar ruta submarina';
+
+  @override
+  String navTrack_review_segmentSummaryNoFix(int underwater) {
+    return '$underwater muestras bajo el agua, sin fix GPS después de la inmersión.';
+  }
+
+  @override
+  String navTrack_review_segmentSummaryWithFix(
+    int underwater,
+    int surface,
+    String vector,
+  ) {
+    return '$underwater muestras bajo el agua, $surface muestras en superficie, fix GPS a $vector del final estimado.';
+  }
+
+  @override
+  String navTrack_review_saveError(String error) {
+    return 'No se pudo guardar esta ruta: $error';
+  }
+
+  @override
+  String navTrack_review_importError(String error) {
+    return 'No se pudo importar este archivo: $error';
+  }
+
+  @override
+  String get navTrack_review_sourceLabel => 'Registro Seacraft ENC';
+
+  @override
+  String get navTrack_review_nameHint => 'Nombre (opcional)';
+
+  @override
+  String get navTrack_review_warningNoMovement =>
+      'No se registró movimiento: la distancia y la velocidad se mantienen en cero durante todo el archivo.';
+
+  @override
+  String get navTrack_review_warningDuplicate =>
+      'Esto parece una ruta ya importada del mismo archivo.';
+
+  @override
+  String get navTrack_review_replaceLabel => 'Reemplazar';
+
+  @override
+  String get navTrack_review_linkToDive => 'Vincular a una inmersión';
+
+  @override
+  String get navTrack_review_diveSite => 'Punto de buceo';
+
+  @override
+  String get navTrack_review_equipment => 'Equipo';
+
+  @override
+  String get navTrack_review_noEquipmentChosen => 'Sin equipo';
+
+  @override
+  String get navTrack_review_noSiteChosen => 'Ningún punto de buceo elegido';
+
+  @override
+  String get navTrack_review_row_start => 'Inicio';
+
+  @override
+  String get navTrack_review_row_end => 'Fin';
+
+  @override
+  String get navTrack_review_row_duration => 'Duración';
+
+  @override
+  String get navTrack_review_row_distance => 'Distancia';
+
+  @override
+  String get navTrack_review_row_maxDepth => 'Profundidad máx.';
+
+  @override
+  String get navTrack_review_row_maxSpeed => 'Velocidad máx.';
+
+  @override
+  String get navTrack_review_leaveUnlinked => 'Dejar sin vincular';
+
+  @override
+  String navTrack_list_importFailed(String error) {
+    return 'Error al importar: $error';
+  }
+
+  @override
+  String get navTrack_list_matchError => 'No se pudieron emparejar las rutas.';
+
+  @override
+  String get navTrack_list_matchSuccess => 'Rutas emparejadas con inmersiones.';
+
+  @override
+  String navTrack_list_deleteMessage(String name) {
+    return '¿Eliminar «$name»?';
+  }
+
+  @override
+  String get navTrack_list_importTooltip => 'Importar archivo de ruta';
+
+  @override
+  String get navTrack_list_matchTooltip => 'Emparejar ahora';
+
+  @override
+  String get navTrack_list_title => 'Rutas submarinas';
+
+  @override
+  String get navTrack_list_noMapRoutes =>
+      'Aún no hay rutas colocadas en el mapa.';
+
+  @override
+  String get navTrack_list_empty => 'Aún no hay rutas submarinas.';
+
+  @override
+  String get navTrack_seascape_title => 'Paisaje submarino de la ruta';
+
+  @override
+  String get navTrack_seascape_noScene =>
+      'Esta ruta no tiene un paisaje submarino disponible.';
+
+  @override
+  String get navTrack_handoff_recognized =>
+      'Registro de navegación Seacraft ENC reconocido';
+
+  @override
+  String get navTrack_handoff_description =>
+      'Esto es una ruta submarina, no un registro de inmersión. Tiene su propio lugar en Submersion, separado de tu importación de inmersiones.';
+
+  @override
+  String get navTrack_handoff_reviewButton => 'Revisar ruta';
+
+  @override
+  String get navTrack_section_title => 'Ruta submarina';
+
+  @override
+  String navTrack_section_routeCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count rutas',
+      one: '$count ruta',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_section_noRouteLinked => 'Ninguna ruta vinculada';
+
+  @override
+  String get navTrack_section_linkButton => 'Vincular ruta';
+
+  @override
+  String get navTrack_section_importButton => 'Importar archivo';
+
+  @override
+  String get navTrack_section_primaryTag => 'principal';
+
+  @override
+  String get navTrack_section_menuOpen => 'Abrir ruta';
+
+  @override
+  String get navTrack_section_menuOpen3d => 'Abrir paisaje 3D';
+
+  @override
+  String get navTrack_section_menuMakePrimary => 'Marcar como principal';
+
+  @override
+  String get navTrack_importError_unsupportedFormat =>
+      'Este archivo no es un registro de navegación Seacraft ENC.';
+
+  @override
+  String get navTrack_importError_unreadable =>
+      'No se pudo leer este archivo como un registro de navegación Seacraft ENC.';
+
+  @override
+  String get navTrack_importError_tooShort =>
+      'Esta grabación tiene muy pocas muestras para ser una ruta utilizable.';
+
+  @override
+  String get navTrack_importError_badData =>
+      'Este archivo tiene datos que Submersion no pudo interpretar.';
+
+  @override
+  String get navTrack_importError_tooLarge =>
+      'Esta grabación tiene más muestras de las que una ruta puede almacenar.';
+
+  @override
+  String get diveDetailSection_navTrack_name => 'Ruta submarina';
+
+  @override
+  String get diveDetailSection_navTrack_description =>
+      'Ruta submarina medida desde una consola de navegación';
+
+  @override
+  String get dashboard_quickActions_navRoutes => 'Rutas submarinas';
+
+  @override
+  String navTrack_list_durationHours(int hours, int minutes) {
+    return '${hours}h ${minutes}min';
+  }
+
+  @override
+  String navTrack_list_durationMinutes(int minutes) {
+    return '${minutes}min';
+  }
+
+  @override
+  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
+
+  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -42758,4 +43234,418 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get diveCenters_rental_deleteConfirm =>
       '¿Eliminar esta nota de alquiler?';
+
+  @override
+  String get query_buddies_certifications => 'Certificaciones';
+
+  @override
+  String get query_buddies_email => 'Correo electrónico';
+
+  @override
+  String get query_buddies_favorite => 'Favorito';
+
+  @override
+  String get query_buddies_name => 'Nombre';
+
+  @override
+  String get query_buddies_notes => 'Notas';
+
+  @override
+  String get query_buddies_phone => 'Teléfono';
+
+  @override
+  String get query_centers_city => 'Ciudad';
+
+  @override
+  String get query_centers_country => 'País';
+
+  @override
+  String get query_centers_name => 'Nombre';
+
+  @override
+  String get query_certifications_agency => 'Agencia';
+
+  @override
+  String get query_certifications_cardNumber => 'Número de tarjeta';
+
+  @override
+  String get query_certifications_expiryDate => 'Fecha de caducidad';
+
+  @override
+  String get query_certifications_instructorName => 'Nombre del instructor';
+
+  @override
+  String get query_certifications_issueDate => 'Fecha de emisión';
+
+  @override
+  String get query_certifications_level => 'Nivel';
+
+  @override
+  String get query_certifications_name => 'Nombre';
+
+  @override
+  String get query_computers_manufacturer => 'Fabricante';
+
+  @override
+  String get query_computers_model => 'Modelo';
+
+  @override
+  String get query_computers_name => 'Nombre';
+
+  @override
+  String get query_computers_serialNumber => 'Número de serie';
+
+  @override
+  String get query_courses_agency => 'Agencia';
+
+  @override
+  String get query_courses_completionDate => 'Fecha de finalización';
+
+  @override
+  String get query_courses_name => 'Nombre';
+
+  @override
+  String get query_courses_startDate => 'Fecha de inicio';
+
+  @override
+  String get query_customFields_key => 'Clave';
+
+  @override
+  String get query_customFields_value => 'Valor';
+
+  @override
+  String get query_diveTypes_builtIn => 'Predefinido';
+
+  @override
+  String get query_diveTypes_name => 'Nombre';
+
+  @override
+  String get query_dives_airTemp => 'Temperatura del aire';
+
+  @override
+  String get query_dives_avgDepth => 'Profundidad media';
+
+  @override
+  String get query_dives_boatName => 'Barco';
+
+  @override
+  String get query_dives_bottomTime => 'Tiempo de fondo';
+
+  @override
+  String get query_dives_buddies => 'Compañeros';
+
+  @override
+  String get query_dives_center => 'Centro de buceo';
+
+  @override
+  String get query_dives_cnsEnd => 'CNS al final';
+
+  @override
+  String get query_dives_computer => 'Ordenador de buceo';
+
+  @override
+  String get query_dives_course => 'Curso';
+
+  @override
+  String get query_dives_currentStrength => 'Corriente';
+
+  @override
+  String get query_dives_customFields => 'Campos personalizados';
+
+  @override
+  String get query_dives_date => 'Fecha';
+
+  @override
+  String get query_dives_deco => 'Inmersión con descompresión';
+
+  @override
+  String get query_dives_depth => 'Profundidad máxima';
+
+  @override
+  String get query_dives_diveMaster => 'Divemaster';
+
+  @override
+  String get query_dives_diveMode => 'Modo de buceo';
+
+  @override
+  String get query_dives_diveNumber => 'Número de inmersión';
+
+  @override
+  String get query_dives_diveOperator => 'Operador';
+
+  @override
+  String get query_dives_entryMethod => 'Método de entrada';
+
+  @override
+  String get query_dives_excludedFromStats => 'Excluida de las estadísticas';
+
+  @override
+  String get query_dives_exitMethod => 'Método de salida';
+
+  @override
+  String get query_dives_favorite => 'Favorito';
+
+  @override
+  String get query_dives_gasCount => 'Número de botellas';
+
+  @override
+  String get query_dives_gear => 'Equipo';
+
+  @override
+  String get query_dives_hasProfile => 'Tiene perfil';
+
+  @override
+  String get query_dives_id => 'ID de inmersión';
+
+  @override
+  String get query_dives_legacyBuddy => 'Compañero (texto antiguo)';
+
+  @override
+  String get query_dives_media => 'Multimedia';
+
+  @override
+  String get query_dives_name => 'Nombre';
+
+  @override
+  String get query_dives_notes => 'Notas';
+
+  @override
+  String get query_dives_otu => 'OTU';
+
+  @override
+  String get query_dives_planned => 'Planificada';
+
+  @override
+  String get query_dives_rating => 'Valoración';
+
+  @override
+  String get query_dives_runtime => 'Duración total';
+
+  @override
+  String get query_dives_sightings => 'Avistamientos';
+
+  @override
+  String get query_dives_site => 'Punto de buceo';
+
+  @override
+  String get query_dives_surfaceConditions => 'Condiciones en superficie';
+
+  @override
+  String get query_dives_surfaceInterval => 'Intervalo de superficie';
+
+  @override
+  String get query_dives_tags => 'Etiquetas';
+
+  @override
+  String get query_dives_tanks => 'Botellas';
+
+  @override
+  String get query_dives_trip => 'Viaje';
+
+  @override
+  String get query_dives_types => 'Tipos de inmersión';
+
+  @override
+  String get query_dives_visibility => 'Visibilidad';
+
+  @override
+  String get query_dives_waterTemp => 'Temperatura del agua';
+
+  @override
+  String get query_dives_waterType => 'Tipo de agua';
+
+  @override
+  String get query_dives_weekday => 'Día de la semana';
+
+  @override
+  String get query_dives_weight => 'Lastre';
+
+  @override
+  String get query_dives_weights => 'Lastre';
+
+  @override
+  String get query_dives_year => 'Año';
+
+  @override
+  String get query_entity_buddies => 'Compañeros';
+
+  @override
+  String get query_entity_centers => 'Centros de buceo';
+
+  @override
+  String get query_entity_certifications => 'Certificaciones';
+
+  @override
+  String get query_entity_computers => 'Ordenadores de buceo';
+
+  @override
+  String get query_entity_courses => 'Cursos';
+
+  @override
+  String get query_entity_customFields => 'Campos personalizados';
+
+  @override
+  String get query_entity_diveTypes => 'Tipos de inmersión';
+
+  @override
+  String get query_entity_dives => 'Inmersiones';
+
+  @override
+  String get query_entity_equipment => 'Equipo';
+
+  @override
+  String get query_entity_equipmentAttributes => 'Atributos del equipo';
+
+  @override
+  String get query_entity_media => 'Multimedia';
+
+  @override
+  String get query_entity_sightings => 'Avistamientos';
+
+  @override
+  String get query_entity_sites => 'Puntos de buceo';
+
+  @override
+  String get query_entity_species => 'Especies';
+
+  @override
+  String get query_entity_tags => 'Etiquetas';
+
+  @override
+  String get query_entity_tanks => 'Botellas';
+
+  @override
+  String get query_entity_trips => 'Viajes';
+
+  @override
+  String get query_entity_weights => 'Lastre';
+
+  @override
+  String get query_equipmentAttributes_custom => 'Personalizado';
+
+  @override
+  String get query_equipmentAttributes_key => 'Clave';
+
+  @override
+  String get query_equipmentAttributes_valueNum => 'Valor numérico';
+
+  @override
+  String get query_equipmentAttributes_valueText => 'Valor de texto';
+
+  @override
+  String get query_equipment_active => 'Activo';
+
+  @override
+  String get query_equipment_attributes => 'Atributos';
+
+  @override
+  String get query_equipment_brand => 'Marca';
+
+  @override
+  String get query_equipment_model => 'Modelo';
+
+  @override
+  String get query_equipment_name => 'Nombre';
+
+  @override
+  String get query_equipment_serialNumber => 'Número de serie';
+
+  @override
+  String get query_equipment_status => 'Estado';
+
+  @override
+  String get query_equipment_type => 'Tipo';
+
+  @override
+  String get query_media_caption => 'Descripción';
+
+  @override
+  String get query_media_favorite => 'Favorito';
+
+  @override
+  String get query_media_type => 'Tipo';
+
+  @override
+  String get query_sightings_count => 'Cantidad';
+
+  @override
+  String get query_sightings_notes => 'Notas';
+
+  @override
+  String get query_sightings_species => 'Especies';
+
+  @override
+  String get query_sites_city => 'Ciudad';
+
+  @override
+  String get query_sites_country => 'País';
+
+  @override
+  String get query_sites_island => 'Isla';
+
+  @override
+  String get query_sites_maxDepth => 'Profundidad máxima';
+
+  @override
+  String get query_sites_name => 'Nombre';
+
+  @override
+  String get query_sites_rating => 'Valoración';
+
+  @override
+  String get query_sites_region => 'Región';
+
+  @override
+  String get query_species_category => 'Categoría';
+
+  @override
+  String get query_species_name => 'Nombre';
+
+  @override
+  String get query_species_scientificName => 'Nombre científico';
+
+  @override
+  String get query_tags_name => 'Nombre';
+
+  @override
+  String get query_tanks_cylinder => 'Botella';
+
+  @override
+  String get query_tanks_endPressure => 'Presión final';
+
+  @override
+  String get query_tanks_he => 'Helio';
+
+  @override
+  String get query_tanks_name => 'Nombre';
+
+  @override
+  String get query_tanks_o2 => 'Oxígeno';
+
+  @override
+  String get query_tanks_startPressure => 'Presión inicial';
+
+  @override
+  String get query_tanks_volume => 'Volumen';
+
+  @override
+  String get query_trips_endDate => 'Fecha de fin';
+
+  @override
+  String get query_trips_location => 'Ubicación';
+
+  @override
+  String get query_trips_name => 'Nombre';
+
+  @override
+  String get query_trips_startDate => 'Fecha de inicio';
+
+  @override
+  String get query_weights_amount => 'Cantidad';
+
+  @override
+  String get query_weights_notes => 'Notas';
+
+  @override
+  String get query_weights_type => 'Tipo';
 }

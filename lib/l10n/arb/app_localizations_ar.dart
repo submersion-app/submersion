@@ -16522,7 +16522,64 @@ class AppLocalizationsAr extends AppLocalizations {
   String get media_library_viewMode_grid => 'شبكة';
 
   @override
+  String get media_library_viewMode_map => 'خريطة';
+
+  @override
   String get media_library_viewMode_timeline => 'الخط الزمني';
+
+  @override
+  String get media_map_closeStrip => 'إغلاق';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر في $place',
+      two: 'عنصران في $place',
+      one: 'عنصر واحد في $place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint =>
+      'تُوضع الصور ومقاطع الفيديو حسب إحداثيات GPS الخاصة بها، أو نقطة دخول الغوصة، أو موقع الغوص.';
+
+  @override
+  String get media_map_emptyTitle => 'لا توجد وسائط لها موقع';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return 'خطأ في تحميل مواقع الوسائط: $error';
+  }
+
+  @override
+  String get media_map_markerSemantics => 'فتح الوسائط';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر',
+      two: 'عنصران',
+      one: 'عنصر واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count عناصر بلا موقع',
+      two: 'عنصران بلا موقع',
+      one: 'عنصر واحد بلا موقع',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => 'الانتقال إلى الغطسة';
@@ -24318,6 +24375,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get universalImport_summary_importAsRoute => 'استيراد كمسار';
+
+  @override
   String get universalImport_summary_fileNeedsIndividualImport =>
       'يتطلب استيرادًا فرديًا';
 
@@ -28194,6 +28254,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dive3d_seascape_overlay_walls => 'جدران شديدة الانحدار';
 
   @override
+  String get dive3d_seascape_showRoute => 'إظهار المسار';
+
+  @override
   String get dive3d_overlay_water => 'سطح الماء';
 
   @override
@@ -28476,6 +28539,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dive3d_spatial_estimatedPath => 'مسار مقدّر (الحساب الاستدلالي)';
+
+  @override
+  String get dive3d_spatial_recordedPath => 'مسار مسجّل';
+
+  @override
+  String dive3d_spatial_recordedPathWithSource(String source) {
+    return 'مسار مسجّل ($source)';
+  }
 
   @override
   String get dive3d_spatial_synthesizedSeafloor => 'قاع بحر مُركّب';
@@ -42198,6 +42269,416 @@ class AppLocalizationsAr extends AppLocalizations {
       'كيفية تجميع المعدات وترتيبها في الغوصة';
 
   @override
+  String get navTrack_common_loadError => 'تعذر تحميل هذا المسار.';
+
+  @override
+  String get navTrack_common_notFound => 'المسار غير موجود.';
+
+  @override
+  String get navTrack_common_cancel => 'إلغاء';
+
+  @override
+  String get navTrack_common_save => 'حفظ';
+
+  @override
+  String get navTrack_common_delete => 'حذف';
+
+  @override
+  String get navTrack_common_unlink => 'إلغاء الربط';
+
+  @override
+  String get navTrack_common_open3dTooltip => 'فتح ثلاثي الأبعاد';
+
+  @override
+  String navTrack_common_diveNumber(String number) {
+    return 'الغطسة رقم $number';
+  }
+
+  @override
+  String navTrack_common_diveById(String id) {
+    return 'الغطسة $id';
+  }
+
+  @override
+  String get navTrack_common_unlinked => 'غير مرتبط';
+
+  @override
+  String get navTrack_align_title => 'المحاذاة على الخريطة';
+
+  @override
+  String get navTrack_align_resetTooltip => 'إعادة تعيين التصحيح';
+
+  @override
+  String get navTrack_align_setStartHere => 'تعيين البداية هنا';
+
+  @override
+  String get navTrack_align_setEndHere => 'تعيين النهاية هنا';
+
+  @override
+  String get navTrack_align_setStartOnMap => 'تعيين البداية على الخريطة';
+
+  @override
+  String get navTrack_align_fromDiveEntry => 'من نقطة دخول الغطسة';
+
+  @override
+  String get navTrack_align_fromSite => 'من موقع الغوص';
+
+  @override
+  String get navTrack_align_fromGps => 'من GPS';
+
+  @override
+  String get navTrack_align_startLabel => 'البداية: ';
+
+  @override
+  String get navTrack_align_endLabel => 'النهاية: ';
+
+  @override
+  String get navTrack_align_endMode_none => 'بلا';
+
+  @override
+  String get navTrack_align_endMode_sameAsStart => 'مثل البداية';
+
+  @override
+  String get navTrack_align_endMode_point => 'التعيين على الخريطة';
+
+  @override
+  String get navTrack_align_endMode_gpsFix => 'من إصلاح GPS';
+
+  @override
+  String navTrack_align_trustSummary(String distance, int minutes) {
+    return 'الموثوقية: موثوق حتى $distance، $minutes دقيقة';
+  }
+
+  @override
+  String get navTrack_align_rotationLabel => 'الدوران:';
+
+  @override
+  String navTrack_align_rotationDegrees(String degrees) {
+    return '$degrees°';
+  }
+
+  @override
+  String navTrack_terrain_summary(
+    int onLand,
+    int below,
+    int total,
+    int unknown,
+    String maxPart,
+    String coarsePart,
+  ) {
+    return '$onLand نقاط على اليابسة، $below من $total تحت قاع البحر$maxPart، $unknown غير معروفة$coarsePart';
+  }
+
+  @override
+  String navTrack_terrain_maxPart(String depth) {
+    return ' (بحد أقصى $depth)';
+  }
+
+  @override
+  String get navTrack_terrain_coarsePart =>
+      ' (قياس أعماق منخفض الدقة: تم فحص تعارضات اليابسة فقط)';
+
+  @override
+  String get navTrack_detail_renameTitle => 'إعادة تسمية المسار';
+
+  @override
+  String get navTrack_detail_deleteTitle => 'حذف المسار؟';
+
+  @override
+  String get navTrack_detail_deleteMessage => 'لا يمكن التراجع عن هذا.';
+
+  @override
+  String get navTrack_detail_defaultTitle => 'مسار';
+
+  @override
+  String get navTrack_detail_menuRename => 'إعادة التسمية';
+
+  @override
+  String get navTrack_detail_menuChangeSite => 'تغيير الموقع';
+
+  @override
+  String get navTrack_detail_noMapYet =>
+      'عيّن نقطة البداية لرؤية هذا على خريطة.';
+
+  @override
+  String get navTrack_detail_correctionStatus_none =>
+      'لم يُطبَّق أي تصحيح بعد.';
+
+  @override
+  String get navTrack_detail_correctionStatus_sameAsStart =>
+      'تم تعيين النهاية لتكون مثل البداية.';
+
+  @override
+  String get navTrack_detail_correctionStatus_point =>
+      'تم تعيين نقطة النهاية على الخريطة.';
+
+  @override
+  String get navTrack_detail_correctionStatus_gpsFix =>
+      'تم تعيين النهاية من إصلاح GPS الخاص بالتسجيل.';
+
+  @override
+  String navTrack_detail_device(String name) {
+    return 'الجهاز: $name';
+  }
+
+  @override
+  String navTrack_detail_equipment(String name) {
+    return 'المعدات: $name';
+  }
+
+  @override
+  String navTrack_detail_distance(String value) {
+    return 'المسافة: $value';
+  }
+
+  @override
+  String navTrack_detail_maxDepth(String value) {
+    return 'أقصى عمق: $value';
+  }
+
+  @override
+  String navTrack_detail_maxSpeed(String value) {
+    return 'أقصى سرعة: $value';
+  }
+
+  @override
+  String navTrack_detail_avgSpeed(String value) {
+    return 'متوسط السرعة: $value';
+  }
+
+  @override
+  String navTrack_detail_duration(int hours, int minutes) {
+    return 'المدة: $hours س $minutes د';
+  }
+
+  @override
+  String navTrack_detail_battery(String start, String end) {
+    return 'البطارية: $start فولت -> $end فولت';
+  }
+
+  @override
+  String get navTrack_detail_noDiveLinked => 'لا توجد غطسة مرتبطة';
+
+  @override
+  String get navTrack_detail_chooseDive => 'اختيار غطسة';
+
+  @override
+  String get navTrack_detail_noSite => 'لا يوجد موقع غوص';
+
+  @override
+  String get navTrack_detail_chooseSite => 'اختيار موقع';
+
+  @override
+  String get navTrack_review_title => 'استيراد مسار تحت الماء';
+
+  @override
+  String navTrack_review_segmentSummaryNoFix(int underwater) {
+    return '$underwater عينات تحت الماء، لا يوجد إصلاح GPS بعد الغوص.';
+  }
+
+  @override
+  String navTrack_review_segmentSummaryWithFix(
+    int underwater,
+    int surface,
+    String vector,
+  ) {
+    return '$underwater عينات تحت الماء، $surface عينات على السطح، إصلاح GPS على بعد $vector من النهاية المقدَّرة.';
+  }
+
+  @override
+  String navTrack_review_saveError(String error) {
+    return 'تعذر حفظ هذا المسار: $error';
+  }
+
+  @override
+  String navTrack_review_importError(String error) {
+    return 'تعذر استيراد هذا الملف: $error';
+  }
+
+  @override
+  String get navTrack_review_sourceLabel => 'سجل Seacraft ENC';
+
+  @override
+  String get navTrack_review_nameHint => 'الاسم (اختياري)';
+
+  @override
+  String get navTrack_review_warningNoMovement =>
+      'لم تُسجَّل أي حركة: تبقى المسافة والسرعة عند الصفر طوال هذا الملف.';
+
+  @override
+  String get navTrack_review_warningDuplicate =>
+      'يبدو هذا مسارًا تم استيراده مسبقًا من الملف نفسه.';
+
+  @override
+  String get navTrack_review_replaceLabel => 'استبدال';
+
+  @override
+  String get navTrack_review_linkToDive => 'الربط بغطسة';
+
+  @override
+  String get navTrack_review_diveSite => 'موقع الغوص';
+
+  @override
+  String get navTrack_review_equipment => 'المعدات';
+
+  @override
+  String get navTrack_review_noEquipmentChosen => 'بدون معدات';
+
+  @override
+  String get navTrack_review_noSiteChosen => 'لم يتم اختيار موقع غوص';
+
+  @override
+  String get navTrack_review_row_start => 'البداية';
+
+  @override
+  String get navTrack_review_row_end => 'النهاية';
+
+  @override
+  String get navTrack_review_row_duration => 'المدة';
+
+  @override
+  String get navTrack_review_row_distance => 'المسافة';
+
+  @override
+  String get navTrack_review_row_maxDepth => 'أقصى عمق';
+
+  @override
+  String get navTrack_review_row_maxSpeed => 'أقصى سرعة';
+
+  @override
+  String get navTrack_review_leaveUnlinked => 'الترك بدون ربط';
+
+  @override
+  String navTrack_list_importFailed(String error) {
+    return 'فشل الاستيراد: $error';
+  }
+
+  @override
+  String get navTrack_list_matchError => 'تعذرت مطابقة المسارات.';
+
+  @override
+  String get navTrack_list_matchSuccess => 'تمت مطابقة المسارات مع الغطسات.';
+
+  @override
+  String navTrack_list_deleteMessage(String name) {
+    return 'حذف \"$name\"؟';
+  }
+
+  @override
+  String get navTrack_list_importTooltip => 'استيراد ملف مسار';
+
+  @override
+  String get navTrack_list_matchTooltip => 'المطابقة الآن';
+
+  @override
+  String get navTrack_list_title => 'المسارات تحت الماء';
+
+  @override
+  String get navTrack_list_noMapRoutes =>
+      'لا توجد مسارات موضوعة على الخريطة بعد.';
+
+  @override
+  String get navTrack_list_empty => 'لا توجد مسارات تحت الماء بعد.';
+
+  @override
+  String get navTrack_seascape_title => 'المشهد البحري للمسار';
+
+  @override
+  String get navTrack_seascape_noScene =>
+      'لا يحتوي هذا المسار على مشهد بحري قابل للاستخدام.';
+
+  @override
+  String get navTrack_handoff_recognized =>
+      'تم التعرف على سجل ملاحة Seacraft ENC';
+
+  @override
+  String get navTrack_handoff_description =>
+      'هذا مسار تحت الماء، وليس سجل غطس. له مكانه الخاص في Submersion، منفصل عن استيراد غطساتك.';
+
+  @override
+  String get navTrack_handoff_reviewButton => 'مراجعة المسار';
+
+  @override
+  String get navTrack_section_title => 'مسار تحت الماء';
+
+  @override
+  String navTrack_section_routeCount(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count مسار',
+      few: '$count مسارات',
+      two: 'مساران',
+      one: 'مسار واحد',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get navTrack_section_noRouteLinked => 'لا يوجد مسار مرتبط';
+
+  @override
+  String get navTrack_section_linkButton => 'ربط مسار';
+
+  @override
+  String get navTrack_section_importButton => 'استيراد ملف';
+
+  @override
+  String get navTrack_section_primaryTag => 'أساسي';
+
+  @override
+  String get navTrack_section_menuOpen => 'فتح المسار';
+
+  @override
+  String get navTrack_section_menuOpen3d => 'فتح المشهد ثلاثي الأبعاد';
+
+  @override
+  String get navTrack_section_menuMakePrimary => 'تعيين كأساسي';
+
+  @override
+  String get navTrack_importError_unsupportedFormat =>
+      'هذا الملف ليس سجل ملاحة Seacraft ENC.';
+
+  @override
+  String get navTrack_importError_unreadable =>
+      'تعذرت قراءة هذا الملف كسجل ملاحة Seacraft ENC.';
+
+  @override
+  String get navTrack_importError_tooShort =>
+      'يحتوي هذا التسجيل على عدد قليل جدًا من العينات ليكون مسارًا قابلاً للاستخدام.';
+
+  @override
+  String get navTrack_importError_badData =>
+      'يحتوي هذا الملف على بيانات تعذر على Submersion فهمها.';
+
+  @override
+  String get navTrack_importError_tooLarge =>
+      'يحتوي هذا التسجيل على عينات أكثر مما يمكن لمسار تخزينه.';
+
+  @override
+  String get diveDetailSection_navTrack_name => 'مسار تحت الماء';
+
+  @override
+  String get diveDetailSection_navTrack_description =>
+      'مسار تحت الماء تم قياسه من وحدة تحكم ملاحية';
+
+  @override
+  String get dashboard_quickActions_navRoutes => 'المسارات تحت الماء';
+
+  @override
+  String navTrack_list_durationHours(int hours, int minutes) {
+    return '${hours}h ${minutes}min';
+  }
+
+  @override
+  String navTrack_list_durationMinutes(int minutes) {
+    return '${minutes}min';
+  }
+
+  @override
+  String get diveLog_detail_tooltip_whatIf => 'Replan this dive';
+
+  @override
   String get diveLog_detail_menu_whatIf => 'Replan this dive';
 
   @override
@@ -42383,4 +42864,418 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get diveCenters_rental_deleteConfirm => 'حذف ملاحظة التأجير هذه؟';
+
+  @override
+  String get query_buddies_certifications => 'الشهادات';
+
+  @override
+  String get query_buddies_email => 'البريد الإلكتروني';
+
+  @override
+  String get query_buddies_favorite => 'مفضّل';
+
+  @override
+  String get query_buddies_name => 'الاسم';
+
+  @override
+  String get query_buddies_notes => 'ملاحظات';
+
+  @override
+  String get query_buddies_phone => 'الهاتف';
+
+  @override
+  String get query_centers_city => 'المدينة';
+
+  @override
+  String get query_centers_country => 'البلد';
+
+  @override
+  String get query_centers_name => 'الاسم';
+
+  @override
+  String get query_certifications_agency => 'الهيئة';
+
+  @override
+  String get query_certifications_cardNumber => 'رقم البطاقة';
+
+  @override
+  String get query_certifications_expiryDate => 'تاريخ الانتهاء';
+
+  @override
+  String get query_certifications_instructorName => 'اسم المدرب';
+
+  @override
+  String get query_certifications_issueDate => 'تاريخ الإصدار';
+
+  @override
+  String get query_certifications_level => 'المستوى';
+
+  @override
+  String get query_certifications_name => 'الاسم';
+
+  @override
+  String get query_computers_manufacturer => 'الشركة المصنعة';
+
+  @override
+  String get query_computers_model => 'الطراز';
+
+  @override
+  String get query_computers_name => 'الاسم';
+
+  @override
+  String get query_computers_serialNumber => 'الرقم التسلسلي';
+
+  @override
+  String get query_courses_agency => 'الهيئة';
+
+  @override
+  String get query_courses_completionDate => 'تاريخ الإكمال';
+
+  @override
+  String get query_courses_name => 'الاسم';
+
+  @override
+  String get query_courses_startDate => 'تاريخ البدء';
+
+  @override
+  String get query_customFields_key => 'المفتاح';
+
+  @override
+  String get query_customFields_value => 'القيمة';
+
+  @override
+  String get query_diveTypes_builtIn => 'مدمج';
+
+  @override
+  String get query_diveTypes_name => 'الاسم';
+
+  @override
+  String get query_dives_airTemp => 'درجة حرارة الهواء';
+
+  @override
+  String get query_dives_avgDepth => 'متوسط العمق';
+
+  @override
+  String get query_dives_boatName => 'القارب';
+
+  @override
+  String get query_dives_bottomTime => 'زمن القاع';
+
+  @override
+  String get query_dives_buddies => 'رفاق الغوص';
+
+  @override
+  String get query_dives_center => 'مركز الغوص';
+
+  @override
+  String get query_dives_cnsEnd => 'CNS في النهاية';
+
+  @override
+  String get query_dives_computer => 'حاسوب الغوص';
+
+  @override
+  String get query_dives_course => 'الدورة';
+
+  @override
+  String get query_dives_currentStrength => 'التيار';
+
+  @override
+  String get query_dives_customFields => 'الحقول المخصصة';
+
+  @override
+  String get query_dives_date => 'التاريخ';
+
+  @override
+  String get query_dives_deco => 'غطسة مع تخفيف الضغط';
+
+  @override
+  String get query_dives_depth => 'أقصى عمق';
+
+  @override
+  String get query_dives_diveMaster => 'مرشد الغوص';
+
+  @override
+  String get query_dives_diveMode => 'وضع الغوص';
+
+  @override
+  String get query_dives_diveNumber => 'رقم الغطسة';
+
+  @override
+  String get query_dives_diveOperator => 'المشغّل';
+
+  @override
+  String get query_dives_entryMethod => 'طريقة الدخول';
+
+  @override
+  String get query_dives_excludedFromStats => 'مستبعد من الإحصائيات';
+
+  @override
+  String get query_dives_exitMethod => 'طريقة الخروج';
+
+  @override
+  String get query_dives_favorite => 'مفضّل';
+
+  @override
+  String get query_dives_gasCount => 'عدد الأسطوانات';
+
+  @override
+  String get query_dives_gear => 'المعدات';
+
+  @override
+  String get query_dives_hasProfile => 'له ملف تعريف';
+
+  @override
+  String get query_dives_id => 'معرّف الغطسة';
+
+  @override
+  String get query_dives_legacyBuddy => 'رفيق الغوص (نص قديم)';
+
+  @override
+  String get query_dives_media => 'الوسائط';
+
+  @override
+  String get query_dives_name => 'الاسم';
+
+  @override
+  String get query_dives_notes => 'ملاحظات';
+
+  @override
+  String get query_dives_otu => 'OTU';
+
+  @override
+  String get query_dives_planned => 'مخطط';
+
+  @override
+  String get query_dives_rating => 'التقييم';
+
+  @override
+  String get query_dives_runtime => 'المدة الكلية';
+
+  @override
+  String get query_dives_sightings => 'المشاهدات';
+
+  @override
+  String get query_dives_site => 'الموقع';
+
+  @override
+  String get query_dives_surfaceConditions => 'أحوال السطح';
+
+  @override
+  String get query_dives_surfaceInterval => 'فترة السطح';
+
+  @override
+  String get query_dives_tags => 'الوسوم';
+
+  @override
+  String get query_dives_tanks => 'الأسطوانات';
+
+  @override
+  String get query_dives_trip => 'الرحلة';
+
+  @override
+  String get query_dives_types => 'أنواع الغوص';
+
+  @override
+  String get query_dives_visibility => 'الرؤية';
+
+  @override
+  String get query_dives_waterTemp => 'درجة حرارة الماء';
+
+  @override
+  String get query_dives_waterType => 'نوع الماء';
+
+  @override
+  String get query_dives_weekday => 'يوم الأسبوع';
+
+  @override
+  String get query_dives_weight => 'الثقل';
+
+  @override
+  String get query_dives_weights => 'الأثقال';
+
+  @override
+  String get query_dives_year => 'السنة';
+
+  @override
+  String get query_entity_buddies => 'رفاق الغوص';
+
+  @override
+  String get query_entity_centers => 'مراكز الغوص';
+
+  @override
+  String get query_entity_certifications => 'الشهادات';
+
+  @override
+  String get query_entity_computers => 'حواسيب الغوص';
+
+  @override
+  String get query_entity_courses => 'الدورات';
+
+  @override
+  String get query_entity_customFields => 'الحقول المخصصة';
+
+  @override
+  String get query_entity_diveTypes => 'أنواع الغوص';
+
+  @override
+  String get query_entity_dives => 'الغطسات';
+
+  @override
+  String get query_entity_equipment => 'المعدات';
+
+  @override
+  String get query_entity_equipmentAttributes => 'خصائص المعدات';
+
+  @override
+  String get query_entity_media => 'الوسائط';
+
+  @override
+  String get query_entity_sightings => 'المشاهدات';
+
+  @override
+  String get query_entity_sites => 'مواقع الغوص';
+
+  @override
+  String get query_entity_species => 'الأنواع';
+
+  @override
+  String get query_entity_tags => 'الوسوم';
+
+  @override
+  String get query_entity_tanks => 'الأسطوانات';
+
+  @override
+  String get query_entity_trips => 'الرحلات';
+
+  @override
+  String get query_entity_weights => 'الأثقال';
+
+  @override
+  String get query_equipmentAttributes_custom => 'مخصص';
+
+  @override
+  String get query_equipmentAttributes_key => 'المفتاح';
+
+  @override
+  String get query_equipmentAttributes_valueNum => 'قيمة رقمية';
+
+  @override
+  String get query_equipmentAttributes_valueText => 'قيمة نصية';
+
+  @override
+  String get query_equipment_active => 'نشط';
+
+  @override
+  String get query_equipment_attributes => 'الخصائص';
+
+  @override
+  String get query_equipment_brand => 'العلامة التجارية';
+
+  @override
+  String get query_equipment_model => 'الطراز';
+
+  @override
+  String get query_equipment_name => 'الاسم';
+
+  @override
+  String get query_equipment_serialNumber => 'الرقم التسلسلي';
+
+  @override
+  String get query_equipment_status => 'الحالة';
+
+  @override
+  String get query_equipment_type => 'النوع';
+
+  @override
+  String get query_media_caption => 'التعليق';
+
+  @override
+  String get query_media_favorite => 'مفضّل';
+
+  @override
+  String get query_media_type => 'النوع';
+
+  @override
+  String get query_sightings_count => 'العدد';
+
+  @override
+  String get query_sightings_notes => 'ملاحظات';
+
+  @override
+  String get query_sightings_species => 'الأنواع';
+
+  @override
+  String get query_sites_city => 'المدينة';
+
+  @override
+  String get query_sites_country => 'البلد';
+
+  @override
+  String get query_sites_island => 'الجزيرة';
+
+  @override
+  String get query_sites_maxDepth => 'أقصى عمق';
+
+  @override
+  String get query_sites_name => 'الاسم';
+
+  @override
+  String get query_sites_rating => 'التقييم';
+
+  @override
+  String get query_sites_region => 'المنطقة';
+
+  @override
+  String get query_species_category => 'الفئة';
+
+  @override
+  String get query_species_name => 'الاسم';
+
+  @override
+  String get query_species_scientificName => 'الاسم العلمي';
+
+  @override
+  String get query_tags_name => 'الاسم';
+
+  @override
+  String get query_tanks_cylinder => 'الأسطوانة';
+
+  @override
+  String get query_tanks_endPressure => 'ضغط النهاية';
+
+  @override
+  String get query_tanks_he => 'الهيليوم';
+
+  @override
+  String get query_tanks_name => 'الاسم';
+
+  @override
+  String get query_tanks_o2 => 'الأكسجين';
+
+  @override
+  String get query_tanks_startPressure => 'ضغط البداية';
+
+  @override
+  String get query_tanks_volume => 'الحجم';
+
+  @override
+  String get query_trips_endDate => 'تاريخ الانتهاء';
+
+  @override
+  String get query_trips_location => 'الموقع';
+
+  @override
+  String get query_trips_name => 'الاسم';
+
+  @override
+  String get query_trips_startDate => 'تاريخ البدء';
+
+  @override
+  String get query_weights_amount => 'الكمية';
+
+  @override
+  String get query_weights_notes => 'ملاحظات';
+
+  @override
+  String get query_weights_type => 'النوع';
 }
