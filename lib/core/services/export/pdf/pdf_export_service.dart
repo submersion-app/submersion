@@ -24,6 +24,12 @@ import 'package:submersion/features/trips/domain/entities/trip.dart';
 
 /// Handles PDF export for dive logbooks and trip reports.
 class PdfExportService {
+  /// [now] is the clock a logbook export is stamped with, injectable so tests
+  /// can pin it (#2446).
+  PdfExportService({DateTime Function()? now}) : _now = now ?? DateTime.now;
+
+  final DateTime Function() _now;
+
   /// File names stay ISO no matter what the diver reads in the document, so a
   /// folder of exports still sorts chronologically (#964).
   static final _fileNameDate = DateFormat('yyyy-MM-dd');
@@ -194,8 +200,12 @@ class PdfExportService {
       EquipmentSetRepository(),
     );
 
+    // Read once, so the cover's stamp and the file name name the same moment.
+    final generatedAt = _now();
+
     final builder = PdfTemplateFactory().getBuilder(options.template);
     final pdfBytes = await builder.buildPdf(
+      generatedAt: generatedAt,
       gearArrangement: gearArrangement,
       equipmentSetNamesById: equipmentSetNamesById,
       dives: dives,
@@ -216,7 +226,7 @@ class PdfExportService {
 
     final fileName =
         'dive_logbook_${options.template.name}_'
-        '${_fileNameDate.format(DateTime.now())}.pdf';
+        '${_fileNameDate.format(generatedAt)}.pdf';
     return (bytes: pdfBytes, fileName: fileName);
   }
 
