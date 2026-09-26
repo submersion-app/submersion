@@ -222,6 +222,15 @@ class AppSettings {
   /// Maximum ppO2 for deco gas (typically 1.6 bar)
   final double ppO2MaxDeco;
 
+  /// CCR default low setpoint in bar (issue #2342).
+  final double ccrSetpointLow;
+
+  /// CCR default high setpoint in bar, the one held at depth.
+  final double ccrSetpointHigh;
+
+  /// ppO2 a CCR diluent may reach on a flush, which sets its MOD.
+  final double ccrDiluentModPpO2;
+
   /// CNS% warning threshold (typically 80%)
   final int cnsWarningThreshold;
 
@@ -583,6 +592,9 @@ class AppSettings {
     this.gfHigh = 85,
     this.ppO2MaxWorking = 1.4,
     this.ppO2MaxDeco = 1.6,
+    this.ccrSetpointLow = 0.7,
+    this.ccrSetpointHigh = 1.3,
+    this.ccrDiluentModPpO2 = 1.6,
     this.cnsWarningThreshold = 80,
     this.ascentRateWarning = 9.0,
     this.ascentRateCritical = 12.0,
@@ -762,6 +774,9 @@ class AppSettings {
     int? gfHigh,
     double? ppO2MaxWorking,
     double? ppO2MaxDeco,
+    double? ccrSetpointLow,
+    double? ccrSetpointHigh,
+    double? ccrDiluentModPpO2,
     int? cnsWarningThreshold,
     double? ascentRateWarning,
     double? ascentRateCritical,
@@ -914,6 +929,9 @@ class AppSettings {
       gfHigh: gfHigh ?? this.gfHigh,
       ppO2MaxWorking: ppO2MaxWorking ?? this.ppO2MaxWorking,
       ppO2MaxDeco: ppO2MaxDeco ?? this.ppO2MaxDeco,
+      ccrSetpointLow: ccrSetpointLow ?? this.ccrSetpointLow,
+      ccrSetpointHigh: ccrSetpointHigh ?? this.ccrSetpointHigh,
+      ccrDiluentModPpO2: ccrDiluentModPpO2 ?? this.ccrDiluentModPpO2,
       cnsWarningThreshold: cnsWarningThreshold ?? this.cnsWarningThreshold,
       ascentRateWarning: ascentRateWarning ?? this.ascentRateWarning,
       ascentRateCritical: ascentRateCritical ?? this.ascentRateCritical,
@@ -1650,6 +1668,34 @@ class SettingsNotifier extends StateNotifier<AppSettings> {
     state = state.copyWith(
       ppO2MaxWorking: clampedWorking,
       ppO2MaxDeco: clampedMax,
+    );
+    await _saveSettings();
+  }
+
+  /// Selectable range of the CCR ppO2 limits (issue #2342), on a 0.1 bar
+  /// grid like the OC limits.
+  static const double ccrPpO2Min = 0.5;
+  static const double ccrPpO2Max = 1.6;
+
+  /// [value] clamped to the CCR range and snapped to its 0.1 bar grid.
+  static double ccrPpO2OnGrid(double value) =>
+      (value.clamp(ccrPpO2Min, ccrPpO2Max) * 10).round() / 10;
+
+  /// Set the CCR ppO2 limits in one persisted write. Each is put on the
+  /// [ccrPpO2Min]..[ccrPpO2Max] 0.1 bar grid, and the high setpoint is held
+  /// at or above the low one, the same "never inverted" rule
+  /// [setPpO2Limits] keeps.
+  Future<void> setCcrPpO2Limits({
+    required double setpointLow,
+    required double setpointHigh,
+    required double diluentModPpO2,
+  }) async {
+    final low = ccrPpO2OnGrid(setpointLow);
+    final high = ccrPpO2OnGrid(setpointHigh);
+    state = state.copyWith(
+      ccrSetpointLow: low,
+      ccrSetpointHigh: high < low ? low : high,
+      ccrDiluentModPpO2: ccrPpO2OnGrid(diluentModPpO2),
     );
     await _saveSettings();
   }

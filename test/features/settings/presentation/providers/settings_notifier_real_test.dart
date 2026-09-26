@@ -443,6 +443,52 @@ void main() {
       },
     );
 
+    test(
+      'setCcrPpO2Limits keeps 0.5-1.6 on a 0.1 grid, high >= low (#2342)',
+      () async {
+        container.read(settingsProvider.notifier);
+        await waitForInit();
+
+        final notifier = container.read(settingsProvider.notifier);
+        final initial = container.read(settingsProvider);
+        expect(initial.ccrSetpointLow, 0.7);
+        expect(initial.ccrSetpointHigh, 1.3);
+        expect(initial.ccrDiluentModPpO2, 1.6);
+
+        await notifier.setCcrPpO2Limits(
+          setpointLow: 0.1,
+          setpointHigh: 1.9,
+          diluentModPpO2: 0.05,
+        );
+        var s = container.read(settingsProvider);
+        expect(s.ccrSetpointLow, 0.5);
+        expect(s.ccrSetpointHigh, 1.6);
+        expect(s.ccrDiluentModPpO2, 0.5);
+
+        // Off-grid values snap to the nearest tenth.
+        await notifier.setCcrPpO2Limits(
+          setpointLow: 0.74,
+          setpointHigh: 1.26,
+          diluentModPpO2: 1.55,
+        );
+        s = container.read(settingsProvider);
+        expect(s.ccrSetpointLow, 0.7);
+        expect(s.ccrSetpointHigh, 1.3);
+        expect(s.ccrDiluentModPpO2, 1.6);
+
+        // A high setpoint below the low one is raised to it.
+        await notifier.setCcrPpO2Limits(
+          setpointLow: 1.2,
+          setpointHigh: 0.9,
+          diluentModPpO2: 1.5,
+        );
+        s = container.read(settingsProvider);
+        expect(s.ccrSetpointLow, 1.2);
+        expect(s.ccrSetpointHigh, 1.2);
+        expect(s.ccrDiluentModPpO2, 1.5);
+      },
+    );
+
     test('the individual ppO2 setters clamp to the same picker grid', () async {
       container.read(settingsProvider.notifier);
       await waitForInit();

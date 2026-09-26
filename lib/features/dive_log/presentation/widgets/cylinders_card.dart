@@ -178,7 +178,7 @@ class CylindersCard extends ConsumerWidget {
         : context.l10n.diveLog_tank_title(index + 1);
 
     final workingPpO2 = settings.ppO2MaxWorking;
-    final modDepth = units.formatDepth(
+    final modDepth = units.formatDepthFloor(
       tank.gasMix.mod(ppO2: workingPpO2),
       decimals: 0,
     );
@@ -187,7 +187,7 @@ class CylindersCard extends ConsumerWidget {
       o2Narcotic: settings.o2Narcotic,
     );
     final mndDepth = mndValue.isFinite
-        ? units.formatDepth(mndValue, decimals: 0)
+        ? units.formatDepthFloor(mndValue, decimals: 0)
         : '--';
     final modMndText = context.l10n.diveLog_tank_modMndInfo(
       modDepth,
