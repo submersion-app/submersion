@@ -1,3 +1,5 @@
+import 'package:submersion/core/deco/max_operating_depth.dart';
+
 /// SCR (Semi-Closed Rebreather) Calculator
 ///
 /// Provides calculations for SCR dive planning and analysis:
@@ -184,8 +186,7 @@ class ScrCalculator {
 
     if (maxFo2 == null || maxFo2 <= 0) return null;
 
-    // MOD = (ppO2Max / FO2 - 1) × 10
-    return ((ppO2Max / maxFo2) - 1) * 10;
+    return maxOperatingDepthMeters(maxFo2, maxPpO2: ppO2Max);
   }
 
   /// Calculate minimum safe depth for SCR
