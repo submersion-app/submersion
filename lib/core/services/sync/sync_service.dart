@@ -33,6 +33,8 @@ import 'package:submersion/core/services/sync/changeset_log/stale_restore_detect
 import 'package:submersion/core/services/sync/changeset_log/sync_liveness.dart';
 import 'package:submersion/core/services/sync/changeset_log/sync_manifest.dart';
 import 'package:submersion/core/services/sync/changeset_log/tombstone_horizon.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone_applier.dart';
 import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/core/services/sync/library_epoch.dart';
 import 'package:submersion/core/services/sync/sync_cleanup_outcome.dart';
@@ -227,6 +229,7 @@ class _EpochGate {
 /// Core sync service that orchestrates cloud sync operations
 class SyncService {
   final SyncRepository _syncRepository;
+  final EventScopeTombstoneApplier _eventScopeApplier;
   final SyncDataSerializer _serializer;
   final CloudStorageProvider? _cloudProvider;
   final SyncInitializer? _syncInitializer;
@@ -315,6 +318,9 @@ class SyncService {
     PeerDeviceNameStore? peerNames,
     Future<void> Function(MediaResolutionHints hints)? onMediaResolutionHints,
   }) : _syncRepository = syncRepository,
+       _eventScopeApplier = EventScopeTombstoneApplier(
+         syncRepository: syncRepository,
+       ),
        _serializer = serializer,
        _cloudProvider = cloudProvider,
        _syncInitializer = syncInitializer,
@@ -2222,6 +2228,24 @@ class SyncService {
       for (final deletion in entry.value) {
         final recordId = deletion.id;
         try {
+          // One tombstone for a set of events (#1926): expanded here into
+          // the rows it covers, never looked up as a record of its own.
+          if (entityType == EventScopeTombstone.entityType) {
+            final deletionHlc = _parseHlc(deletion.hlc);
+            if (deletionHlc != null) SyncClock.instance.receive(deletionHlc);
+            await _eventScopeApplier.apply(
+              deletion: deletion,
+              deletedAt: deletion.deletedAt > 0
+                  ? deletion.deletedAt
+                  : remoteExportedAt,
+              pendingEventIds:
+                  pendingByEntity['diveProfileEvents'] ?? const <String>{},
+              contradictedEventIds:
+                  contradictedByEntity['diveProfileEvents'] ?? const <String>{},
+            );
+            applied += 1;
+            continue;
+          }
           if (pendingByEntity[entityType]?.contains(recordId) == true) {
             continue;
           }
@@ -2822,6 +2846,19 @@ class SyncService {
     // merge and compared by timestamp when a delete arrives.
     final ownClocked = SyncDataSerializer.ownClockEntities.contains(entityType);
     final clockGuarded = ownClocked;
+    // Deletions apply before the merge, but the local-deletion guard below
+    // matches by exact id. A lagging peer can still hold events a scope
+    // delete removed (#1926), so those are checked against the scopes too.
+    final eventScopes = entityType == 'diveProfileEvents'
+        ? EventScopeCoverage.from(
+            deletedAt:
+                allTombstones[EventScopeTombstone.entityType] ??
+                const <String, int>{},
+            clocks:
+                tombstoneClocks[EventScopeTombstone.entityType] ??
+                const <String, Hlc>{},
+          )
+        : null;
     final factGroups = SyncFactGroups.of(entityType);
     final localById = hasUpdatedAt || clockGuarded || factGroups.isNotEmpty
         ? await _serializer.fetchRecords(entityType, [
@@ -2971,6 +3008,14 @@ class SyncService {
               recordId: recordId,
             );
           }
+        }
+
+        // A scope delete covers this event: the same rule as the per-row
+        // guard above, where only a copy newer than the delete comes back.
+        if (eventScopes != null &&
+            !eventScopes.isEmpty &&
+            eventScopes.covers(record)) {
+          continue;
         }
 
         if (!hasUpdatedAt) {

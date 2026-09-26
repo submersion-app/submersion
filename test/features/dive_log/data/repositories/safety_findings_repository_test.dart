@@ -80,7 +80,129 @@ void main() {
     expect(review.findings.first.value, 14.2);
   });
 
-  test('saveReview replaces prior findings', () async {
+  test('a recompute that reaches the same findings mints nothing', () async {
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 1,
+        reviewedAt: now,
+        findings: [finding('f1')],
+      ),
+    );
+    await repo.setDismissed(findingId: 'f1', dismissed: true, now: now);
+
+    final saved = await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 2,
+        reviewedAt: now,
+        findings: [finding('f-new-random-id')],
+      ),
+    );
+
+    expect(saved.findings.single.id, 'f1', reason: 'the stored id is kept');
+    expect(saved.findings.single.isDismissed, isTrue);
+    final review = await repo.getReview('dive-1');
+    expect(review!.engineVersion, 2);
+    expect(review.findings.single.id, 'f1');
+    expect(review.findings.single.isDismissed, isTrue);
+    expect(
+      (await db.select(db.deletionLog).get()).where(
+        (t) => t.entityType == 'diveSafetyFindings',
+      ),
+      isEmpty,
+    );
+  });
+
+  test('an unchanged finding is not re-sent', () async {
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 1,
+        reviewedAt: now,
+        findings: [finding('f1')],
+      ),
+    );
+    await syncRepository.clearAllSyncRecords();
+
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 2,
+        reviewedAt: now,
+        findings: [finding('other')],
+      ),
+    );
+
+    final pending = await syncRepository.getPendingRecords();
+    expect(pending.where((r) => r.entityType == 'diveSafetyFindings'), isEmpty);
+  });
+
+  test('a changed severity updates in place and keeps the dismissal', () async {
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 1,
+        reviewedAt: now,
+        findings: [finding('f1')],
+      ),
+    );
+    await repo.setDismissed(findingId: 'f1', dismissed: true, now: now);
+    await syncRepository.clearAllSyncRecords();
+
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 2,
+        reviewedAt: now,
+        findings: [
+          finding('other').copyWith(severity: SafetySeverity.significant),
+        ],
+      ),
+    );
+
+    final f = (await repo.getReview('dive-1'))!.findings.single;
+    expect(f.id, 'f1');
+    expect(f.severity, SafetySeverity.significant);
+    expect(f.isDismissed, isTrue);
+    final pending = await syncRepository.getPendingRecords();
+    expect(
+      pending
+          .where((r) => r.entityType == 'diveSafetyFindings')
+          .map((r) => r.recordId),
+      ['f1'],
+    );
+  });
+
+  test('a finding that stops firing is deleted with one tombstone', () async {
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 1,
+        reviewedAt: now,
+        findings: [
+          finding('f1'),
+          finding('f2', rule: SafetyRuleId.sawtoothProfile),
+        ],
+      ),
+    );
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 2,
+        reviewedAt: now,
+        findings: [finding('x')],
+      ),
+    );
+
+    expect((await repo.getReview('dive-1'))!.findings.map((f) => f.id), ['f1']);
+    final tombstones = await db.select(db.deletionLog).get();
+    expect(tombstones.map((t) => (t.entityType, t.recordId)), [
+      ('diveSafetyFindings', 'f2'),
+    ]);
+  });
+
+  test('a finding that fires again clears its old tombstone', () async {
     await repo.saveReview(
       SafetyReview(
         diveId: 'dive-1',
@@ -92,14 +214,66 @@ void main() {
     await repo.saveReview(
       SafetyReview(
         diveId: 'dive-1',
-        engineVersion: 2,
+        engineVersion: 1,
         reviewedAt: now,
-        findings: [finding('f3')],
+        findings: const [],
       ),
     );
-    final review = await repo.getReview('dive-1');
-    expect(review!.engineVersion, 2);
-    expect(review.findings.map((f) => f.id), ['f3']);
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 1,
+        reviewedAt: now,
+        findings: [finding('f1')],
+      ),
+    );
+
+    expect((await repo.getReview('dive-1'))!.findings.single.id, 'f1');
+    expect(
+      (await db.select(db.deletionLog).get()).where((t) => t.recordId == 'f1'),
+      isEmpty,
+    );
+  });
+
+  test('a finding from a rule this build does not know survives', () async {
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 1,
+        reviewedAt: now,
+        findings: [finding('f1')],
+      ),
+    );
+    await db
+        .into(db.diveSafetyFindings)
+        .insert(
+          DiveSafetyFindingsCompanion.insert(
+            id: 'f-future',
+            diveId: 'dive-1',
+            ruleId: 'someFutureRule',
+            severity: 'caution',
+            engineVersion: 9,
+            createdAt: now.millisecondsSinceEpoch,
+          ),
+        );
+
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 2,
+        reviewedAt: now,
+        findings: const [],
+      ),
+    );
+
+    final ids = (await db.select(db.diveSafetyFindings).get()).map((r) => r.id);
+    expect(ids, ['f-future']);
+    expect(
+      (await db.select(db.deletionLog).get()).where(
+        (t) => t.recordId == 'f-future',
+      ),
+      isEmpty,
+    );
   });
 
   test('a zero-findings review still marks the dive analyzed', () async {
@@ -201,36 +375,21 @@ void main() {
     },
   );
 
-  test('saveReview advances the parent dive HLC so the review syncs', () async {
-    // A review computed lazily on first view does not otherwise touch the
-    // dive, but both safety exporters gate on the parent dive's HLC. Without
-    // a bump the freshly computed review (and its device-local finding ids)
-    // would never reach other devices, so a later dismiss could reference a
-    // finding id a peer never received.
+  test('a saved review exports without re-stamping the dive', () async {
+    // Both safety tables export their pending rows on their own (#1769);
+    // re-stamping the dive for a child-only change would let this device's
+    // stale dive row beat a peer's newer edit.
     await syncRepository.markRecordPending(
       entityType: 'dives',
       recordId: 'dive-1',
       localUpdatedAt: now.millisecondsSinceEpoch,
     );
-    final watermark =
+    Future<String?> diveHlc() async =>
         (await db
                 .customSelect("SELECT hlc FROM dives WHERE id = 'dive-1'")
                 .getSingle())
-            .read<String>('hlc');
-
-    final serializer = SyncDataSerializer();
-    final deviceId = await syncRepository.getDeviceId();
-    final before = await serializer.exportChangeset(
-      deviceId: deviceId,
-      hlcWatermark: watermark,
-      deletions: const [],
-    );
-    expect(
-      before.data.diveSafetyReviews,
-      isEmpty,
-      reason: 'no review saved yet',
-    );
-    expect(before.data.diveSafetyFindings, isEmpty);
+            .read<String?>('hlc');
+    final watermark = await diveHlc();
 
     await repo.saveReview(
       SafetyReview(
@@ -241,21 +400,14 @@ void main() {
       ),
     );
 
-    final after = await serializer.exportChangeset(
-      deviceId: deviceId,
+    expect(await diveHlc(), watermark);
+    final after = await SyncDataSerializer().exportChangeset(
+      deviceId: await syncRepository.getDeviceId(),
       hlcWatermark: watermark,
       deletions: const [],
     );
-    expect(
-      after.data.diveSafetyReviews,
-      isNotEmpty,
-      reason: 'saveReview must advance the dive HLC so the review is exported',
-    );
-    expect(
-      after.data.diveSafetyFindings.map((f) => f['id']).toSet(),
-      contains('f1'),
-      reason: 'the review findings must ride the same dive-HLC bump',
-    );
+    expect(after.data.diveSafetyReviews, isNotEmpty);
+    expect(after.data.diveSafetyFindings.map((f) => f['id']), contains('f1'));
   });
 
   test(
@@ -294,31 +446,43 @@ void main() {
     },
   );
 
-  test(
-    'clearReviewForDive removes marker and findings with tombstones',
-    () async {
-      await repo.saveReview(
-        SafetyReview(
-          diveId: 'dive-1',
-          engineVersion: 1,
-          reviewedAt: now,
-          findings: [finding('f1')],
-        ),
-      );
-      await SafetyFindingsRepository.clearReviewForDive(
-        db,
-        syncRepository,
-        'dive-1',
-      );
-      expect(await repo.getReview('dive-1'), isNull);
+  test('clearReviewForDive drops only the marker', () async {
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 1,
+        reviewedAt: now,
+        findings: [finding('f1')],
+      ),
+    );
+    await SafetyFindingsRepository.clearReviewForDive(
+      db,
+      syncRepository,
+      'dive-1',
+    );
 
-      final tombstones = await db.select(db.deletionLog).get();
-      expect(
-        tombstones.map((t) => t.entityType).toSet(),
-        containsAll(['diveSafetyFindings', 'diveSafetyReviews']),
-      );
-    },
-  );
+    expect(await repo.getReview('dive-1'), isNull);
+    expect((await db.select(db.diveSafetyFindings).get()).map((r) => r.id), [
+      'f1',
+    ], reason: 'kept so the recompute can diff against it');
+    final tombstones = await db.select(db.deletionLog).get();
+    expect(tombstones.map((t) => (t.entityType, t.recordId)), [
+      ('diveSafetyReviews', 'dive-1'),
+    ]);
+
+    // The recompute reaches the same finding: nothing is tombstoned, and
+    // the marker's tombstone is cleared.
+    await repo.saveReview(
+      SafetyReview(
+        diveId: 'dive-1',
+        engineVersion: 1,
+        reviewedAt: now,
+        findings: [finding('x')],
+      ),
+    );
+    expect(await db.select(db.deletionLog).get(), isEmpty);
+    expect((await repo.getReview('dive-1'))!.findings.single.id, 'f1');
+  });
 
   group('setDismissedForDives', () {
     // Every rule is enabled unless a test narrows the set.

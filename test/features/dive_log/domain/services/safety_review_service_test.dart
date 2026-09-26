@@ -27,6 +27,24 @@ void main() {
     );
   }
 
+  test('ids are deterministic when no generator is given', () {
+    final profile = rapidAscentProfile();
+    List<String> ids() => const SafetyReviewService()
+        .review(
+          diveId: 'dive-1',
+          analysis: analyzeFixture(
+            depths: profile.depths,
+            timestamps: profile.timestamps,
+          ),
+          now: now,
+        )
+        .map((f) => f.id)
+        .toList();
+    final first = ids();
+    expect(first, isNotEmpty);
+    expect(ids(), first, reason: 'two devices reach the same ids');
+  });
+
   group('rapid ascent rule', () {
     test('clean dive produces no rapid ascent findings', () {
       final findings = reviewProfile(cleanDiveProfile());

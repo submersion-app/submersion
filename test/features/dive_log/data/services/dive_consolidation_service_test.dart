@@ -1,7 +1,10 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:libdivecomputer_plugin/libdivecomputer_plugin.dart' as pigeon;
+import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
+import 'package:submersion/core/services/sync/hlc.dart';
 import 'package:submersion/features/dive_computer/data/services/reparse_service.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -639,6 +642,49 @@ void main() {
       expect(after.computerId, targetRow.computerId);
       expect(after.computerId, 'comp-t');
     });
+
+    test(
+      'events stamped with the primary computer carry a fresh clock',
+      () async {
+        // Stamping moves the event into any scope tombstone that computer
+        // already has on this dive; with its old clock, a relayed copy of
+        // that scope would delete it (#1926).
+        await seedDive(
+          't',
+          entry: DateTime.utc(2026, 7, 1, 9),
+          computerId: 'comp-t',
+          serial: 'SER-T',
+        );
+        await seedDive(
+          's',
+          entry: DateTime.utc(2026, 7, 1, 9, 1),
+          computerId: 'comp-s',
+          serial: 'SER-S',
+        );
+        await db.customStatement(
+          'INSERT INTO dive_profile_events '
+          '(id, dive_id, timestamp, event_type, created_at) '
+          "VALUES ('ev-t', 't', 10, 'bookmark', 1)",
+        );
+        await SyncRepository().logScopedDeletion(
+          const EventScopeTombstone(diveId: 't', computerId: 'comp-t'),
+        );
+        final scope = (await db.select(db.deletionLog).get()).singleWhere(
+          (d) => d.entityType == EventScopeTombstone.entityType,
+        );
+
+        await service.apply(targetDiveId: 't', secondaryDiveIds: ['s']);
+
+        final event = await (db.select(
+          db.diveProfileEvents,
+        )..where((t) => t.id.equals('ev-t'))).getSingle();
+        expect(event.computerId, 'comp-t');
+        expect(
+          Hlc.parse(event.hlc!).compareTo(Hlc.parse(scope.originHlc!)),
+          greaterThan(0),
+        );
+      },
+    );
 
     test('scenario 5: events preserved with attribution; gas switches '
         'remapped to merged tank ids', () async {

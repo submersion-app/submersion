@@ -1,8 +1,7 @@
-import 'package:uuid/uuid.dart';
-
 import 'package:submersion/core/deco/ascent_rate_calculator.dart';
 import 'package:submersion/features/dive_log/data/services/profile_analysis_service.dart';
 import 'package:submersion/features/dive_log/domain/entities/safety_finding.dart';
+import 'package:submersion/features/dive_log/domain/services/safety_finding_identity.dart';
 
 /// Pure rules engine for the post-dive safety review.
 ///
@@ -29,7 +28,10 @@ class SafetyReviewService {
     required DateTime now,
     String Function()? idGenerator,
   }) {
-    final nextId = idGenerator ?? const Uuid().v4;
+    // Deterministic by default (see withDeterministicIds), so two devices
+    // reviewing the same dive converge on one set of rows. A caller-supplied
+    // generator is kept verbatim for tests that pin ids.
+    final nextId = idGenerator ?? () => '';
     final findings = <SafetyFinding>[];
 
     findings.addAll(_rapidAscentFindings(diveId, analysis, now, nextId));
@@ -38,7 +40,9 @@ class SafetyReviewService {
     findings.addAll(_sawtoothFindings(diveId, analysis, now, nextId));
     findings.addAll(_highSurfaceGfFindings(diveId, analysis, now, nextId));
 
-    return findings;
+    return idGenerator == null
+        ? withDeterministicIds(diveId, findings)
+        : findings;
   }
 
   /// Contiguous ceiling-violation ranges shorter than this are ignored as

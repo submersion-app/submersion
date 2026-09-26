@@ -315,9 +315,17 @@ class DiveComputerMergeRepository {
         .write(db.DiveDataSourcesCompanion(computerId: Value(toId)));
     await (_db.update(_db.diveTanks)..where((t) => t.computerId.isIn(fromIds)))
         .write(db.DiveTanksCompanion(computerId: Value(toId)));
-    await (_db.update(_db.diveProfileEvents)
-          ..where((t) => t.computerId.isIn(fromIds)))
-        .write(db.DiveProfileEventsCompanion(computerId: Value(toId)));
+    // A fresh clock on the moved events: re-pointed onto the survivor, they
+    // join any scope tombstone it already has on their dive (#1926), and
+    // with their old clocks a relayed copy of that scope would delete them.
+    await (_db.update(
+      _db.diveProfileEvents,
+    )..where((t) => t.computerId.isIn(fromIds))).write(
+      db.DiveProfileEventsCompanion(
+        computerId: Value(toId),
+        hlc: Value(await _syncRepository.issueRowClock()),
+      ),
+    );
   }
 
   /// Quality findings carry their own hlc, so each moved row is restamped.

@@ -17,6 +17,7 @@ import 'package:submersion/core/database/database.dart'
         DiveProfileEvent;
 import 'package:submersion/core/database/imported_computer_identity.dart';
 import 'package:submersion/core/matching/match_scorer.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
 import 'package:submersion/features/dive_computer/data/services/libdc_sample_units.dart';
 import 'package:submersion/features/dive_import/data/services/imported_file_reclaimer.dart';
@@ -1241,10 +1242,17 @@ class DiveComputerRepository {
   }) async {
     // Delete per-dive derived rows that importProfile will re-create.
     // These tables lack a computer_id column, so we clear by dive_id.
-    await _db.customStatement(
-      'DELETE FROM dive_profile_events WHERE dive_id = ?',
-      [diveId],
-    );
+    final deletedEvents = await (_db.delete(
+      _db.diveProfileEvents,
+    )..where((t) => t.diveId.equals(diveId))).go();
+    // One tombstone for the dive's events (#1926). Without one, peers kept
+    // the old events beside the re-imported ones. importProfile stamps the
+    // fresh events after this, so their clocks are newer and peers keep them.
+    if (deletedEvents > 0) {
+      await _syncRepository.logScopedDeletion(
+        EventScopeTombstone(diveId: diveId),
+      );
+    }
     await _tankSeries.deleteForDive(diveId);
     await _db.customStatement('DELETE FROM gas_switches WHERE dive_id = ?', [
       diveId,
@@ -1879,6 +1887,12 @@ class DiveComputerRepository {
 
       // Batch insert dive events
       if (events != null && events.isNotEmpty) {
+        // Stamped, as every other event writer is: a peer judges an event
+        // with no clock by its creation time against a scope tombstone's
+        // delete time (#1926), and those two come from different devices'
+        // wall clocks. One clock for the batch, issued after any scope this
+        // import logged, so the fresh events are newer than it.
+        final eventClock = await _syncRepository.issueRowClock();
         await _db.batch((batch) {
           for (final event in events) {
             final eventType = _mapEventTypeString(
@@ -1903,6 +1917,7 @@ class DiveComputerRepository {
                 depth: Value(depthAtEvent),
                 value: Value(event.value?.toDouble()),
                 createdAt: Value(now),
+                hlc: Value(eventClock),
               ),
             );
           }
@@ -2280,16 +2295,13 @@ class DiveComputerRepository {
   /// Delete all events for a dive
   Future<void> clearEventsForDive(String diveId) async {
     try {
-      final existing = await (_db.select(
-        _db.diveProfileEvents,
-      )..where((t) => t.diveId.equals(diveId))).get();
-      await (_db.delete(
+      final deleted = await (_db.delete(
         _db.diveProfileEvents,
       )..where((t) => t.diveId.equals(diveId))).go();
-      for (final event in existing) {
-        await _syncRepository.logDeletion(
-          entityType: 'diveProfileEvents',
-          recordId: event.id,
+      // One tombstone for the dive's events, not one per event (#1926).
+      if (deleted > 0) {
+        await _syncRepository.logScopedDeletion(
+          EventScopeTombstone(diveId: diveId),
         );
       }
       final now = DateTime.now().millisecondsSinceEpoch;

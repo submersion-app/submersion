@@ -4,6 +4,7 @@ import 'package:uuid/uuid.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
+import 'package:submersion/core/services/sync/event_scope_tombstone.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/data/repositories/profile_series_repository.dart';
@@ -349,27 +350,33 @@ class DiveSplitService {
         );
       }
 
-      // 8. Delete the originals, children before parents, tombstoning each
-      // row (the original dive survives; without explicit tombstones peers
-      // that already pulled these rows keep them forever). Gas switches
-      // never move, and only unreferenced tanks were moved.
+      // 8. Delete the originals, children before parents, and tombstone
+      // them (the original dive survives; without explicit tombstones peers
+      // that already pulled these rows keep them forever): the moved events
+      // by one scope tombstone, the rest per row. Gas switches never move,
+      // and only unreferenced tanks were moved.
       await _tankSeries.deleteByIds([for (final s in movingPressures) s.id]);
       await _profileSeries.deleteByIds([for (final s in movingProfiles) s.id]);
-      for (final row in eventRows) {
-        await _sync.logDeletion(
-          entityType: 'diveProfileEvents',
-          recordId: row.id,
-        );
-      }
       if (eventRows.isNotEmpty) {
         await (_db.delete(
           _db.diveProfileEvents,
         )..where((t) => t.id.isIn([for (final r in eventRows) r.id]))).go();
-      }
-      for (final id in movedTankIds) {
-        await _sync.logDeletion(entityType: 'diveTanks', recordId: id);
+        // One tombstone for every event this source's computer recorded on
+        // the dive, instead of one per event (#1926). eventRows is exactly
+        // that set (ownedByComputer), so the scope removes on a peer what
+        // was removed here. ownedByComputer never matches a null computer,
+        // so the id is set whenever an event moved; asserting it keeps a
+        // broken invariant from widening the scope to every event on the
+        // dive.
+        await _sync.logScopedDeletion(
+          EventScopeTombstone(diveId: diveId, computerId: source.computerId!),
+        );
       }
       if (movedTankIds.isNotEmpty) {
+        await _sync.logDeletions(
+          entityType: 'diveTanks',
+          recordIds: movedTankIds,
+        );
         await (_db.delete(
           _db.diveTanks,
         )..where((t) => t.id.isIn(movedTankIds))).go();

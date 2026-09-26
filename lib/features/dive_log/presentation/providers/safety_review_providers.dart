@@ -45,18 +45,20 @@ final safetyReviewProvider = FutureProvider.family<SafetyReview?, String>((
   if (analysis == null || analysis.ascentRates.isEmpty) return stored;
 
   final now = DateTime.now();
-  final review = SafetyReview(
-    diveId: diveId,
-    engineVersion: SafetyReviewService.engineVersion,
-    reviewedAt: now,
-    findings: const SafetyReviewService().review(
+  // Return what was stored, not the engine's raw output: a kept finding
+  // keeps its stored id and dismissal, and a dismiss must address that id.
+  return repo.saveReview(
+    SafetyReview(
       diveId: diveId,
-      analysis: analysis,
-      now: now,
+      engineVersion: SafetyReviewService.engineVersion,
+      reviewedAt: now,
+      findings: const SafetyReviewService().review(
+        diveId: diveId,
+        analysis: analysis,
+        now: now,
+      ),
     ),
   );
-  await repo.saveReview(review);
-  return review;
 });
 
 /// The safety finding currently selected for profile-chart highlighting, or
