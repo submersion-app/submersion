@@ -558,15 +558,16 @@ jobs:
       - name: Run Statistics to Insights rename script tests and checks
         # A one-shot migration tool rather than a guard: its phases drive git
         # and flutter, which the unit tests do not exercise, so it stays out
-        # of the guards coverage set above. The --check runs stop a branch
-        # that merges after the rename from bringing back an old route, route
-        # name or l10n key, which would still compile. Remove this step with
-        # the script once the branches open at rename time have landed.
+        # of the guards coverage set above. The code and keys checks stop a
+        # branch that merges after the rename from bringing back an old route,
+        # route name or l10n key, which would still compile. The values check
+        # is deliberately not run: translators must stay free to improve the
+        # section's wording. Remove this step with the script once the
+        # branches open at rename time have landed.
         run: |
           python3 scripts/rename_statistics_to_insights_test.py
           python3 scripts/rename_statistics_to_insights.py code --check
           python3 scripts/rename_statistics_to_insights.py keys --check
-          python3 scripts/rename_statistics_to_insights.py values --check
 
       - name: Run chamber directory pipeline tests
         # The harvester generates a safety-critical dataset: its validation

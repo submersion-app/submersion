@@ -109,6 +109,43 @@ class RewriteDartTest(unittest.TestCase):
                          "id: 'insights',")
 
 
+class FrozenScopeTest(unittest.TestCase):
+    """The gate checks what existed at rename time, not the live tree, so
+    later Insights work cannot trip it."""
+
+    def test_file_names_are_the_ones_renamed_at_rename_time(self):
+        mapping = rename.basename_map()
+        self.assertEqual(len(mapping), 56)
+        self.assertEqual(mapping["statistics_page.dart"], "insights_page.dart")
+        # dive_log's own file; a future insights_section.dart must not map
+        # back onto it.
+        self.assertNotIn("statistics_section.dart", mapping)
+
+    def test_bare_ids_are_only_rewritten_in_lib(self):
+        # Tests may hold the legacy 'statistics' nav id on purpose, to
+        # exercise the alias.
+        for path in rename.BARE_ID_FILES:
+            self.assertTrue(path.startswith("lib/"), path)
+
+
+class RewriteDartEquivalenceTest(unittest.TestCase):
+    def test_whole_file_and_line_by_line_agree(self):
+        basenames = {"statistics_page.dart": "insights_page.dart"}
+        text = ("import 'statistics_page.dart';\n"
+                "final r = ref.watch(statisticsRepositoryProvider);\n"
+                "context.go('/statistics');\n")
+        expected = ("import 'insights_page.dart';\n"
+                    "final r = ref.watch(insightsRepositoryProvider);\n"
+                    "context.go('/insights');\n")
+        self.assertEqual(rename.rewrite_dart(text, basenames, False), expected)
+        # A git show line anywhere switches to line-by-line; the other lines
+        # still get renamed.
+        mixed = "// git show abc1234:lib/features/statistics/x.dart\n" + text
+        self.assertEqual(
+            rename.rewrite_dart(mixed, basenames, False),
+            "// git show abc1234:lib/features/statistics/x.dart\n" + expected)
+
+
 class KeysTest(unittest.TestCase):
     def test_new_key(self):
         self.assertEqual(rename.new_key("statistics_appBar_title"),

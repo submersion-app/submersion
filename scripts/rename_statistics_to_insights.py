@@ -22,8 +22,10 @@ is what keeps DiveStatistics, SiteDiveStatistics, the dive-level
 """
 
 import argparse
+import functools
 import json
 import os
+import posixpath
 import re
 import subprocess
 import sys
@@ -36,6 +38,69 @@ NEW_DIRS = ("lib/features/insights", "test/features/insights")
 # File-name stems that keep "statistics" because they name a type another
 # feature owns (SiteDiveStatistics lives in dive_sites).
 PROTECTED_STEMS = ("site_dive_statistics",)
+
+# Every file name under OLD_DIRS that held "statistics" when the section was
+# renamed (tree 3d45f45c3c2). Frozen rather than derived from the live tree,
+# so a later Insights file whose name has a statistics_* twin elsewhere (such
+# as dive_log's edit_sections/statistics_section.dart) never maps onto it.
+RENAMED_BASENAMES = (
+    "equipment_condition_statistics_providers.dart",
+    "equipment_condition_statistics_providers_test.dart",
+    "filtered_statistics_attr_refresh_test.dart",
+    "species_statistics.dart",
+    "species_statistics_test.dart",
+    "statistics_conditions_not_recorded_test.dart",
+    "statistics_conditions_page.dart",
+    "statistics_conditions_temperature_test.dart",
+    "statistics_conditions_visibility_test.dart",
+    "statistics_conditions_water_temp_band_metrics_test.dart",
+    "statistics_conditions_water_temp_bands_test.dart",
+    "statistics_equipment_page.dart",
+    "statistics_equipment_page_test.dart",
+    "statistics_filter_action.dart",
+    "statistics_filter_action_test.dart",
+    "statistics_filter_bar.dart",
+    "statistics_filter_bar_test.dart",
+    "statistics_filter_provider.dart",
+    "statistics_gas_lane_provider.dart",
+    "statistics_gas_lane_provider_test.dart",
+    "statistics_gas_page.dart",
+    "statistics_gas_page_widget_test.dart",
+    "statistics_geographic_page.dart",
+    "statistics_list_content.dart",
+    "statistics_marine_life_page.dart",
+    "statistics_marine_life_page_test.dart",
+    "statistics_overview_page.dart",
+    "statistics_overview_page_test.dart",
+    "statistics_overview_prior_experience_test.dart",
+    "statistics_page.dart",
+    "statistics_page_content_test.dart",
+    "statistics_profile_deco_legend_test.dart",
+    "statistics_profile_page.dart",
+    "statistics_progression_page.dart",
+    "statistics_progression_page_test.dart",
+    "statistics_providers.dart",
+    "statistics_providers_all_test.dart",
+    "statistics_providers_test.dart",
+    "statistics_repository.dart",
+    "statistics_repository_ascent_descent_test.dart",
+    "statistics_repository_deco_test.dart",
+    "statistics_repository_dive_centers_test.dart",
+    "statistics_repository_error_test.dart",
+    "statistics_repository_filter_test.dart",
+    "statistics_repository_gauge_test.dart",
+    "statistics_repository_most_used_gear_test.dart",
+    "statistics_repository_per_dive_test.dart",
+    "statistics_repository_sac_test.dart",
+    "statistics_repository_series_chunking_test.dart",
+    "statistics_repository_site_dive_statistics_test.dart",
+    "statistics_repository_surface_interval_test.dart",
+    "statistics_repository_time_at_depth_test.dart",
+    "statistics_social_page.dart",
+    "statistics_social_solo_vs_buddy_test.dart",
+    "statistics_tick_reactivity_test.dart",
+    "statistics_time_patterns_page.dart",
+)
 
 _PAGES = (
     "Overview", "Gas", "Progression", "Conditions", "Social", "Geographic",
@@ -65,26 +130,16 @@ IDENTIFIERS = {
 }
 
 # Files in which every bare 'statistics' string literal is the nav id, the
-# section id, the accent key, the route name or a test label for the section.
-# Paths are post-move. Files not listed keep their 'statistics' literals (the
-# field category in TripField, BuddyField, entity_field and dive_edit_page).
+# section id, the accent key or the route name. Paths are post-move, and lib/
+# only: a test may hold the legacy 'statistics' nav id on purpose, to exercise
+# the alias in lib/shared/widgets/nav/nav_id_aliases.dart. Files not listed
+# keep their 'statistics' literals (the field category in TripField,
+# BuddyField, entity_field and dive_edit_page).
 BARE_ID_FILES = (
     "lib/core/router/app_router.dart",
     "lib/core/theme/feature_accent_colors.dart",
     "lib/features/insights/presentation/pages/insights_page.dart",
     "lib/shared/widgets/nav/nav_destinations.dart",
-    "test/architecture/provider_tick_build_smoke_test.dart",
-    "test/architecture/repository_tick_stream_test.dart",
-    "test/features/dive_log/presentation/pages/dive_search_page_filter_target_test.dart",
-    "test/features/settings/data/repositories/app_settings_repository_nav_test.dart",
-    "test/features/settings/presentation/pages/nav_customization_page_test.dart",
-    "test/features/settings/presentation/pages/settings_page_test.dart",
-    "test/features/settings/presentation/widgets/nav_customization_tile_test.dart",
-    "test/shared/widgets/main_scaffold_test.dart",
-    "test/shared/widgets/nav/nav_destinations_test.dart",
-    "test/shared/widgets/nav/nav_normalize_test.dart",
-    "test/shared/widgets/nav/nav_order_provider_test.dart",
-    "test/shared/widgets/nav/rail_destination_order_test.dart",
 )
 
 # Comments that name the section, edited after the regex passes.
@@ -272,20 +327,9 @@ def _dart_files(root):
     ]
 
 
-def basename_map(root):
-    """Old basename -> new basename for every file the code phase renames.
-
-    Derived from the files as they stand, so it is the same before and after
-    the move: an old name is a new name with "insights" put back.
-    """
-    mapping = {}
-    for path in _tracked(root, *OLD_DIRS, *NEW_DIRS):
-        base = os.path.basename(path)
-        if "statistics" in base.replace(PROTECTED_STEMS[0], ""):
-            mapping[base] = new_basename(base)
-        elif "insights" in base:
-            mapping[base.replace("insights", "statistics")] = base
-    return mapping
+def basename_map():
+    """Old basename -> new basename for every file the code phase renamed."""
+    return {old: new_basename(old) for old in RENAMED_BASENAMES}
 
 
 def is_historical_reference(line):
@@ -298,19 +342,31 @@ def is_historical_reference(line):
     return bool(_HISTORICAL.search(line))
 
 
+@functools.lru_cache(maxsize=None)
+def _basename_pattern(olds):
+    return re.compile(r"(?<![\w])(%s)(?![\w])" % "|".join(
+        sorted(map(re.escape, olds), key=len, reverse=True)))
+
+
 def rewrite_dart(text, basenames, bare_ids):
-    """Apply the code-phase renames to one Dart file's text."""
+    """Apply the code-phase renames to one Dart file's text.
+
+    Whole-file, except that a file holding a `git show <sha>:` reference is
+    done line by line so that line keeps its historical path.
+    """
+    pattern = _basename_pattern(frozenset(basenames))
+    if not _HISTORICAL.search(text):
+        return _rewrite_text(text, pattern, basenames, bare_ids)
     return "".join(
         line if is_historical_reference(line)
-        else _rewrite_line(line, basenames, bare_ids)
+        else _rewrite_text(line, pattern, basenames, bare_ids)
         for line in text.splitlines(keepends=True)
     )
 
 
-def _rewrite_line(text, basenames, bare_ids):
+def _rewrite_text(text, pattern, basenames, bare_ids):
     text = text.replace("features/statistics/", "features/insights/")
-    for old, new in basenames.items():
-        text = re.sub(r"(?<![\w])%s(?![\w])" % re.escape(old), new, text)
+    text = pattern.sub(lambda m: basenames[m.group(1)], text)
     text = _IDENTIFIER.sub(lambda m: IDENTIFIERS[m.group(1)], text)
     text = _ROUTE.sub(r"\1/insights", text)
     text = _ROUTE_NAME.sub(r"\1insights\2\3", text)
@@ -334,7 +390,7 @@ def old_key_names(root):
     and an insights_* key maps back to exactly one old name. That keeps a
     rerun after a rebase able to find old keys a merged branch brought in.
     """
-    en = json.loads(_read(root, f"{ARB_DIR}/app_en.arb"))
+    en = json.loads(_read(root, posixpath.join(ARB_DIR, "app_en.arb")))
     back = {new: old for old, new in SUFFIX_RENAMES.items()}
     names = set(EXTRA_KEYS)
     for key in (k.lstrip("@") for k in en):
@@ -388,22 +444,21 @@ def _findings(root, path, text, patterns):
 
 
 def code_phase(root, check):
-    basenames = basename_map(root)
+    basenames = basename_map()
+    outside = {}
+    for p in _tracked(root, "lib", "test"):
+        if not p.startswith(OLD_DIRS + NEW_DIRS):
+            outside.setdefault(posixpath.basename(p), []).append(p)
     for old in basenames:
-        clashes = [
-            p for p in _tracked(root, "lib", "test")
-            if os.path.basename(p) == old
-            and not p.startswith(OLD_DIRS + NEW_DIRS)
-        ]
-        if clashes:
-            sys.exit(f"basename {old} also exists outside the feature: {clashes}")
+        if old in outside:
+            sys.exit(f"basename {old} also exists outside the feature: {outside[old]}")
 
     if check:
         problems = []
         for path in _tracked(root, *OLD_DIRS):
             problems.append(f"{path}: still under the old folder")
         for path in _tracked(root, *NEW_DIRS):
-            if new_basename(os.path.basename(path)) != os.path.basename(path):
+            if new_basename(posixpath.basename(path)) != posixpath.basename(path):
                 problems.append(f"{path}: file name still says statistics")
         patterns = [
             ("import path", re.compile(r"features/statistics/")),
@@ -411,8 +466,7 @@ def code_phase(root, check):
             ("route", _ROUTE),
             ("route name", _ROUTE_NAME),
             ("widget key", _WIDGET_KEY),
-            ("file name", re.compile(r"(?<![\w])(%s)(?![\w])" % "|".join(
-                map(re.escape, basenames)))),
+            ("file name", _basename_pattern(frozenset(basenames))),
         ]
         for path in _dart_files(root):
             extra = [("bare id", _BARE_ID)] if path in BARE_ID_FILES else []
@@ -426,11 +480,11 @@ def code_phase(root, check):
     for path in _tracked(root, *OLD_DIRS, *NEW_DIRS):
         dest = path
         for old_dir, new_dir in zip(OLD_DIRS, NEW_DIRS):
-            if dest.startswith(old_dir + "/"):
-                dest = new_dir + dest[len(old_dir):]
-        dest = os.path.join(os.path.dirname(dest), new_basename(os.path.basename(dest)))
+            if dest.startswith(old_dir + posixpath.sep):
+                dest = posixpath.join(new_dir, posixpath.relpath(dest, old_dir))
+        dest = posixpath.join(posixpath.dirname(dest), new_basename(posixpath.basename(dest)))
         if dest != path:
-            os.makedirs(os.path.join(root, os.path.dirname(dest)), exist_ok=True)
+            os.makedirs(os.path.join(root, *posixpath.dirname(dest).split(posixpath.sep)), exist_ok=True)
             _git(root, "mv", path, dest)
             moved += 1
 
@@ -512,7 +566,7 @@ def keys_phase(root, check, gen):
 def values_phase(root, check, gen):
     problems = []
     for locale, values in VALUES.items():
-        path = f"{ARB_DIR}/app_{locale}.arb"
+        path = posixpath.join(ARB_DIR, f"app_{locale}.arb")
         text = _read(root, path)
         data = json.loads(text)
         for key, value in values.items():
