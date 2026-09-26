@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
+import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_settings.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
@@ -43,6 +44,9 @@ class ScenarioRequest extends Equatable {
     this.rebreatherPpO2Curve,
     this.setpointHigh,
     this.setpointLow,
+    this.scrInjectionRate,
+    this.scrSupplyO2Percent,
+    this.scrVo2 = ScrCalculator.defaultVo2,
     this.startCompartments,
     this.startCns = 0.0,
     this.startOtu = 0.0,
@@ -65,6 +69,13 @@ class ScenarioRequest extends Equatable {
   final List<double>? rebreatherPpO2Curve;
   final double? setpointHigh;
   final double? setpointLow;
+
+  /// The SCR injection model (constant mass flow), as dive detail analyses
+  /// it: injection rate in L/min at the surface, supply-gas O2 percent and
+  /// the assumed metabolic O2 consumption. Used when no loop ppO2 was logged.
+  final double? scrInjectionRate;
+  final double? scrSupplyO2Percent;
+  final double scrVo2;
 
   /// Repetitive-dive seeds, mirroring the dive detail page.
   final List<TissueCompartment>? startCompartments;
@@ -91,6 +102,9 @@ class ScenarioRequest extends Equatable {
     rebreatherPpO2Curve,
     setpointHigh,
     setpointLow,
+    scrInjectionRate,
+    scrSupplyO2Percent,
+    scrVo2,
     startCompartments,
     startCns,
     startOtu,

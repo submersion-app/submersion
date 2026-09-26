@@ -9,6 +9,8 @@ import 'package:submersion/features/dive_lab/presentation/pages/dive_lab_page.da
 import 'package:submersion/features/dive_lab/presentation/providers/lab_draft_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/lab_request_inputs_provider.dart';
 import 'package:submersion/features/dive_lab/presentation/providers/scenario_outcome_provider.dart';
+import 'package:submersion/features/dive_lab/domain/entities/scenario_intervention.dart';
+import 'package:submersion/features/dive_lab/presentation/widgets/lab_chart.dart';
 import 'package:submersion/features/dive_lab/presentation/widgets/lab_delta_panel.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/presentation/widgets/dive_profile_chart.dart';
@@ -89,6 +91,28 @@ void main() {
       );
     },
   );
+
+  testWidgets('the previous outcome stays on the chart while recomputing', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(420, 900);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    await tester.pumpWidget(_page());
+    await _settle(tester);
+    expect(tester.widget<LabChart>(find.byType(LabChart)).outcome, isNotNull);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DiveLabPage)),
+    );
+    container
+        .read(labDraftProvider('d').notifier)
+        .addIntervention(const AscendNowIntervention());
+    // Inside the recompute debounce: the draft changed, the new outcome has
+    // not landed, and the overlay must not blink out.
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(tester.widget<LabChart>(find.byType(LabChart)).outcome, isNotNull);
+    await _settle(tester);
+  });
 
   testWidgets('wide layout places the panel beside the chart', (tester) async {
     tester.view.physicalSize = const Size(1280, 800);

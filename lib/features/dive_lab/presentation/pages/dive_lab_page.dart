@@ -443,7 +443,9 @@ class _LabBody extends ConsumerWidget {
     final chart = LabChart(
       diveId: diveId,
       inputs: inputs,
-      outcome: outcome.valueOrNull,
+      // value, not valueOrNull: a draft edit reloads the provider, and
+      // the previous outcome must stay on screen until the new one lands.
+      outcome: outcome.value,
       branchSeconds: draft.branchSeconds,
       exportKey: chartKey,
     );
@@ -460,7 +462,9 @@ class _LabBody extends ConsumerWidget {
     final buoyancy = ref.watch(labBuoyancyProvider(diveId)).valueOrNull;
     final panel = LabDeltaPanel(
       inputs: inputs,
-      outcome: outcome.valueOrNull,
+      // value, not valueOrNull: a draft edit reloads the provider, and
+      // the previous outcome must stay on screen until the new one lands.
+      outcome: outcome.value,
       recomputing: outcome.isLoading,
       buoyancy: buoyancy,
     );

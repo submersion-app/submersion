@@ -85,7 +85,7 @@ class DiveScenarioRepository {
               ..where((t) => t.diveId.equals(diveId))
               ..orderBy([(t) => OrderingTerm.desc(t.updatedAt)]))
             .get();
-    return rows.map(_map).toList();
+    return [for (final row in rows) ?_map(row)];
   }
 
   Future<void> deleteScenario(String id) async {
@@ -113,15 +113,18 @@ class DiveScenarioRepository {
     return saveScenario(source.copyWith(id: _uuid.v4()));
   }
 
-  DiveScenario _map(db.DiveScenario row) {
-    List<ScenarioIntervention> interventions;
+  /// Null when this build cannot decode the row's interventions (a newer
+  /// writer's kind arriving by sync). Serving it with the interventions
+  /// dropped would show a no-op result and let a save overwrite the original,
+  /// so the row stays in the table, synced and untouched, for a build that
+  /// understands it, and this build neither lists nor opens it.
+  DiveScenario? _map(db.DiveScenario row) {
+    final List<ScenarioIntervention> interventions;
     try {
       interventions = decodeInterventions(row.interventionsJson);
     } on FormatException catch (e) {
-      // A newer writer's intervention kind: keep the scenario openable with
-      // what this build understands rather than hiding it.
-      _log.warning('Scenario ${row.id}: ${e.message}; interventions dropped');
-      interventions = const [];
+      _log.warning('Scenario ${row.id}: ${e.message}; not shown by this build');
+      return null;
     }
     return DiveScenario(
       id: row.id,

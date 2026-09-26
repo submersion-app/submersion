@@ -56,6 +56,33 @@ void main() {
     },
   );
 
+  test(
+    'a scenario this build cannot decode is kept but never served',
+    () async {
+      // A newer writer's intervention kind arrives by sync. Serving it with
+      // its interventions dropped would show a no-op result, and a save would
+      // overwrite the original; it stays in the table for a build that
+      // understands it.
+      final diveId = await dive();
+      final repo = DiveScenarioRepository();
+      final good = await repo.saveScenario(_scenario(diveId));
+      await database.customStatement(
+        "INSERT INTO dive_scenarios (id, dive_id, name, notes, branch_seconds, "
+        "mode, interventions_json, created_at, updated_at) VALUES "
+        "('future', '$diveId', 'From a newer build', '', 900, 'replan', "
+        "'{\"formatVersion\":99,\"interventions\":[{\"kind\":\"teleport\"}]}', "
+        "1, 1)",
+      );
+      final listed = await repo.getScenariosForDive(diveId);
+      expect(listed.map((s) => s.id), [good.id]);
+      expect(await repo.getScenario('future'), isNull);
+      final raw = await database
+          .customSelect("SELECT id FROM dive_scenarios WHERE id = 'future'")
+          .get();
+      expect(raw, hasLength(1));
+    },
+  );
+
   test('list is newest first and scoped to the dive', () async {
     final d1 = await dive();
     final d2 = (await DiveRepository().createDive(

@@ -3,6 +3,7 @@ import 'package:submersion/core/deco/entities/gradient_factor_source.dart';
 import 'package:submersion/core/deco/entities/profile_gas_segment.dart';
 import 'package:submersion/core/deco/entities/tissue_compartment.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/core/deco/scr_calculator.dart';
 import 'package:submersion/features/dive_lab/domain/entities/dive_scenario.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_request.dart';
 import 'package:submersion/features/dive_lab/domain/entities/scenario_settings.dart';
@@ -29,6 +30,9 @@ class LabRequestInputs {
     this.rebreatherPpO2Curve,
     this.setpointHigh,
     this.setpointLow,
+    this.scrInjectionRate,
+    this.scrSupplyO2Percent,
+    this.scrVo2 = ScrCalculator.defaultVo2,
     this.startCompartments,
     required this.startCns,
     required this.startOtu,
@@ -48,6 +52,9 @@ class LabRequestInputs {
   final List<double>? rebreatherPpO2Curve;
   final double? setpointHigh;
   final double? setpointLow;
+  final double? scrInjectionRate;
+  final double? scrSupplyO2Percent;
+  final double scrVo2;
   final List<TissueCompartment>? startCompartments;
   final double startCns;
   final double startOtu;
@@ -69,6 +76,9 @@ class LabRequestInputs {
     rebreatherPpO2Curve: rebreatherPpO2Curve,
     setpointHigh: setpointHigh,
     setpointLow: setpointLow,
+    scrInjectionRate: scrInjectionRate,
+    scrSupplyO2Percent: scrSupplyO2Percent,
+    scrVo2: scrVo2,
     startCompartments: startCompartments,
     startCns: startCns,
     startOtu: startOtu,
@@ -163,6 +173,10 @@ final labRequestInputsProvider = FutureProvider.family<LabRequestInputs?, String
     rebreatherPpO2Curve: rebreather?.curve,
     setpointHigh: dive.setpointHigh,
     setpointLow: dive.setpointLow,
+    // The SCR model exactly as dive detail analyses it.
+    scrInjectionRate: dive.scrInjectionRate,
+    scrSupplyO2Percent: dive.diluentGas?.o2,
+    scrVo2: dive.assumedVo2 ?? 1.3,
     startCompartments: startCompartments,
     startCns: startCns,
     startOtu: startOtu,

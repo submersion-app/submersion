@@ -90,6 +90,9 @@ class ScenarioEngine {
       diveMode: request.diveMode,
       setpointHigh: request.setpointHigh,
       setpointLow: request.setpointLow,
+      scrInjectionRate: request.scrInjectionRate,
+      scrSupplyO2Percent: request.scrSupplyO2Percent,
+      scrVo2: request.scrVo2,
       startCompartments: request.startCompartments,
       startOtu: request.startOtu,
       gasSegments: gas,
@@ -170,13 +173,36 @@ class ScenarioEngine {
         depths: request.depths,
         maxPpO2: settings.ppO2Deco,
       );
-      final cfGas = isOc ? cfSchedule.toGasSegments() : actualGas;
+      // A bailout on a loop dive breathes open circuit from the branch: the
+      // loop's gas and ppO2 stand before it, the bailout schedule after.
+      final bailsOut =
+          !isOc && interventions.any((i) => i is BailOutIntervention);
+      final cfGas = isOc
+          ? cfSchedule.toGasSegments()
+          : bailsOut
+          ? _openCircuitFrom(actualGas, cfSchedule.toGasSegments(), branchT)
+          : actualGas;
       final counterfactual = analyze(
         depths: request.depths,
         timestamps: request.timestamps,
         gas: cfGas,
-        ascent: isOc ? _ascentPlan(cfSchedule.tanks, settings) : null,
-        rebreatherPpO2Curve: request.rebreatherPpO2Curve,
+        ascent: isOc || bailsOut
+            ? _ascentPlan(cfSchedule.tanks, settings)
+            : null,
+        rebreatherPpO2Curve: bailsOut
+            ? [
+                for (var i = 0; i < request.depths.length; i++)
+                  i <= branchIndex && i < actual.ppO2Curve.length
+                      ? actual.ppO2Curve[i]
+                      : _ocPpO2(
+                          cfGas,
+                          request.depths,
+                          request.timestamps,
+                          i,
+                          settings,
+                        ),
+              ]
+            : request.rebreatherPpO2Curve,
       );
       final multiplier = _replayMultiplier(interventions, settings);
       final cfStart = {
@@ -288,7 +314,11 @@ class ScenarioEngine {
       remainingBottom: remaining,
     );
     final plan = compiled.plan;
-    final engine = PlanEngine(config: settings.engineConfig);
+    final engine = PlanEngine(
+      config: settings.engineConfigFor(
+        scrInjectionRateLpm: request.scrInjectionRate,
+      ),
+    );
     final planOutcome = engine.compute(plan, startState: branch.tissueState);
     if (!planOutcome.isDiveable) {
       flags.add(const ScenarioFlag(ScenarioFlagKind.replanNotCompletable));
@@ -320,19 +350,29 @@ class ScenarioEngine {
       branchIndex: branchIndex,
       remainder: remainder,
     );
+    // A loop dive's counterfactual ppO2 is spelled out sample by sample: the
+    // loop as analysed up to the branch (measured, setpoint or SCR model),
+    // then the planned loop setpoints, or open circuit after a bailout.
+    // Leaving it to the analysis would apply the loop rule to an open-circuit
+    // tail whenever no ppO2 was measured.
     List<double>? cfPpO2;
-    final measured = request.rebreatherPpO2Curve;
-    if (!isOc && measured != null) {
+    if (!isOc) {
       cfPpO2 = [
         for (var i = 0; i < spliced.depths.length; i++)
-          if (i <= branchIndex && i < measured.length)
-            measured[i]
+          if (i <= branchIndex && i < actual.ppO2Curve.length)
+            actual.ppO2Curve[i]
           else if (isLoop)
             (spliced.depths[i] > plan.effectiveSetpointSwitchDepth
                 ? plan.effectiveSetpointHigh
                 : plan.effectiveSetpointLow)
           else
-            _ocPpO2(spliced, i, settings),
+            _ocPpO2(
+              spliced.gasSegments,
+              spliced.depths,
+              spliced.timestamps,
+              i,
+              settings,
+            ),
       ];
     }
     final counterfactual = analyze(
@@ -415,17 +455,56 @@ class ScenarioEngine {
     );
   }
 
-  double _ocPpO2(SplicedProfile spliced, int i, ScenarioSettings settings) {
-    var fN2 = spliced.gasSegments.first.fN2;
-    var fHe = spliced.gasSegments.first.fHe;
-    for (final g in spliced.gasSegments) {
-      if (g.startTimestamp <= spliced.timestamps[i]) {
+  /// Open-circuit ppO2 at sample [i]: the ambient pressure times the O2
+  /// fraction of the gas segment in force at that sample.
+  double _ocPpO2(
+    List<ProfileGasSegment> gas,
+    List<double> depths,
+    List<int> timestamps,
+    int i,
+    ScenarioSettings settings,
+  ) {
+    var fN2 = gas.first.fN2;
+    var fHe = gas.first.fHe;
+    for (final g in gas) {
+      if (g.startTimestamp <= timestamps[i]) {
         fN2 = g.fN2;
         fHe = g.fHe;
       }
     }
-    return settings.environment.pressureAtDepth(spliced.depths[i]) *
-        (1.0 - fN2 - fHe);
+    return settings.environment.pressureAtDepth(depths[i]) * (1.0 - fN2 - fHe);
+  }
+
+  /// [loop] up to [branchTimestamp], then the open-circuit segments of
+  /// [openCircuit] from it: the one in force at the branch restamped to
+  /// start there, and every later one.
+  List<ProfileGasSegment> _openCircuitFrom(
+    List<ProfileGasSegment> loop,
+    List<ProfileGasSegment> openCircuit,
+    int branchTimestamp,
+  ) {
+    ProfileGasSegment? atBranch;
+    for (final g in openCircuit) {
+      if (g.startTimestamp <= branchTimestamp) atBranch = g;
+    }
+    atBranch ??= openCircuit.isEmpty ? null : openCircuit.first;
+    return [
+      for (final g in loop)
+        if (g.startTimestamp < branchTimestamp) g,
+      if (atBranch != null)
+        ProfileGasSegment(
+          startTimestamp: branchTimestamp,
+          fN2: atBranch.fN2,
+          fHe: atBranch.fHe,
+        ),
+      for (final g in openCircuit)
+        if (g.startTimestamp > branchTimestamp)
+          ProfileGasSegment(
+            startTimestamp: g.startTimestamp,
+            fN2: g.fN2,
+            fHe: g.fHe,
+          ),
+    ];
   }
 
   double _replayMultiplier(

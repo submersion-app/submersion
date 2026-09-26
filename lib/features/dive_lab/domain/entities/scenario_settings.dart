@@ -81,15 +81,22 @@ class ScenarioSettings extends Equatable {
   ScenarioSettings withGf({required int low, required int high}) =>
       copyWith(gfLow: low / 100.0, gfHigh: high / 100.0);
 
-  PlanEngineConfig get engineConfig => PlanEngineConfig(
-    ppO2Working: ppO2Working,
-    ppO2Deco: ppO2Deco,
-    cnsWarningThreshold: cnsWarningThreshold,
-    o2Narcotic: o2Narcotic,
-    buddyFactor: buddyFactor,
-    cnsMethod: cnsMethod,
-    gasModel: gasModel,
-  );
+  PlanEngineConfig get engineConfig => engineConfigFor();
+
+  /// The engine config, with the dive's SCR injection rate when it logged one
+  /// (the engine's default otherwise).
+  PlanEngineConfig engineConfigFor({double? scrInjectionRateLpm}) =>
+      PlanEngineConfig(
+        ppO2Working: ppO2Working,
+        ppO2Deco: ppO2Deco,
+        cnsWarningThreshold: cnsWarningThreshold,
+        o2Narcotic: o2Narcotic,
+        buddyFactor: buddyFactor,
+        cnsMethod: cnsMethod,
+        gasModel: gasModel,
+        scrInjectionRateLpm:
+            scrInjectionRateLpm ?? const PlanEngineConfig().scrInjectionRateLpm,
+      );
 
   ProfileAnalysisService buildAnalysisService() => ProfileAnalysisService(
     ascentRateWarning: ascentRateWarning,
