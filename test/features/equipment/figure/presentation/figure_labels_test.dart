@@ -140,7 +140,9 @@ void main() {
   });
 
   group('labelPills', () {
-    final layout = FigureLayout.forSize(const Size(900, 360));
+    // Laid out as DiverFigure lays out a 900 pt pair: the spare width split
+    // between the margins and a 180 pt gutter.
+    final layout = FigureLayout.forSize(const Size(900, 360), gutter: 180);
 
     List<FigureLabelSlot> pills(FigureModel model, {double natural = 120}) =>
         labelPills(
@@ -234,6 +236,23 @@ void main() {
           reason: '${s.item.item.id} sits two rows or more from its gear',
         );
       }
+    });
+
+    test('a pill with no room on its side moves to the other side', () {
+      // Tiny figures 12 pt apart: a centre anchor on the front has almost no
+      // room before the back figure, so its pill goes left instead of
+      // collapsing to nothing.
+      final tight = FigureLayout.forSize(const Size(900, 60));
+      final slots = labelPills(
+        model: composeFigure([item('mask', EquipmentType.mask)]),
+        layout: tight,
+        width: 900,
+        maxWidth: 900 / 4,
+        widthOf: (_) => 120,
+      );
+      expect(slots.single.rect.width, 120);
+      expect(slots.single.onLeft, isTrue);
+      expect(slots.single.rect.overlaps(tight.back), isFalse);
     });
 
     test('crowded pills step down until none overlap', () {

@@ -146,12 +146,16 @@ class _EquipmentSetDetailPageState
       typeLabel: (type) => type.localizedName(context.l10n),
     );
     final ordered = [for (final group in groups) ...group.items];
-    // Parts are told apart from items by the components index. Until it
-    // loads, every part would count as an item of its own and be numbered,
-    // then vanish and renumber the rest, so the figure waits for it.
-    final components = ref.watch(equipmentComponentsIndexProvider).value;
-    final figureShown = set.showFigure && components != null;
-    final model = figureShown
+    // Parts are told apart from items by the components index (which the
+    // rows' assembly chips load anyway). Until it loads, every part would
+    // count as an item of its own and be numbered, then vanish and renumber
+    // the rest, so the figure waits for it; if it fails to load, the figure
+    // still shows, treating nothing as a part.
+    final componentsAsync = ref.watch(equipmentComponentsIndexProvider);
+    final components = componentsAsync.hasError
+        ? ComponentsIndex.empty
+        : componentsAsync.value;
+    final model = set.showFigure && components != null
         ? _composedFigure(
             ordered,
             items: set.items,
@@ -524,7 +528,7 @@ class _EquipmentSetDetailPageState
     if (action == 'toggleFigure') {
       await ref
           .read(equipmentSetListNotifierProvider.notifier)
-          .updateSet(set.copyWith(showFigure: !set.showFigure));
+          .setShowFigure(set.id, !set.showFigure);
       return;
     }
     if (action == 'setAsDefault') {

@@ -58,4 +58,20 @@ void main() {
     expect(Color(figurePaletteFor(flat).body), flat.onSurface);
     expect(figurePillFor(flat).fill, flat.onSurface);
   });
+
+  test('derived colours are computed once per colour scheme', () {
+    final scheme = AppThemeRegistry.resolveTheme(
+      AppThemeRegistry.presets.first,
+      Brightness.dark,
+    ).colorScheme;
+    expect(
+      identical(figurePaletteFor(scheme), figurePaletteFor(scheme)),
+      isTrue,
+    );
+    expect(identical(figurePillFor(scheme), figurePillFor(scheme)), isTrue);
+    expect(
+      identical(figureHighlightFor(scheme), figureHighlightFor(scheme)),
+      isTrue,
+    );
+  });
 }

@@ -53,4 +53,24 @@ void main() {
     await repo.updateSet(created.copyWith(showFigure: false));
     expect((await repo.getSetById(created.id))!.showFigure, isFalse);
   });
+
+  test(
+    'setShowFigure writes only the flag, never the rest of the set',
+    () async {
+      final created = await repo.createSet(newSet());
+      // Another device renamed the set after a copy of it was loaded here.
+      await repo.updateSet(
+        (await repo.getSetById(created.id))!.copyWith(name: 'Renamed'),
+      );
+
+      await repo.setShowFigure(created.id, true);
+
+      final saved = (await repo.getSetById(created.id))!;
+      expect(saved.showFigure, isTrue);
+      expect(saved.name, 'Renamed');
+
+      await repo.setShowFigure(created.id, false);
+      expect((await repo.getSetById(created.id))!.showFigure, isFalse);
+    },
+  );
 }

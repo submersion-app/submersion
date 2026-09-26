@@ -32,6 +32,7 @@ void main() {
     double height = 2400,
     bool showFigure = true,
     Future<ComponentsIndex>? components,
+    AsyncValue<ComponentsIndex>? componentsState,
   }) async {
     tester.view.physicalSize = Size(width, height);
     tester.view.devicePixelRatio = 1.0;
@@ -53,10 +54,14 @@ void main() {
           equipmentArrangementProvider.overrideWithValue(
             EquipmentArrangement.defaults.copyWith(groupByType: false),
           ),
-          equipmentComponentsIndexProvider.overrideWith(
-            (ref) =>
-                components ?? Future.value(ComponentsIndex.fromRows(const [])),
-          ),
+          if (componentsState != null)
+            equipmentComponentsIndexProvider.overrideWithValue(componentsState)
+          else
+            equipmentComponentsIndexProvider.overrideWith(
+              (ref) =>
+                  components ??
+                  Future.value(ComponentsIndex.fromRows(const [])),
+            ),
           settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
         ],
         child: const MaterialApp(
@@ -252,5 +257,17 @@ void main() {
 
     final figure = tester.getRect(find.byType(DiverFigure));
     expect(figure.overlaps(const Rect.fromLTWH(0, 0, 390, 700)), isTrue);
+  });
+
+  testWidgets('a failed parts index still shows the figure', (tester) async {
+    await pump(
+      tester,
+      three,
+      componentsState: AsyncValue.error(
+        StateError('unreadable components'),
+        StackTrace.empty,
+      ),
+    );
+    expect(find.byType(DiverFigure), findsOneWidget);
   });
 }

@@ -146,7 +146,6 @@ List<FigureLabelSlot> labelPills({
   for (final p in items) {
     final zone = p.zone!;
     final anchor = layout.toBox(zone.view, zone.anchorX, zone.anchorY);
-    final onLeft = _leftOfCentre(p);
     final own = layout.rectFor(zone.view);
     final other = zone.view == FigureView.front ? layout.back : layout.front;
     var leftLimit = 0.0;
@@ -158,10 +157,17 @@ List<FigureLabelSlot> labelPills({
         leftLimit = other.right + kFigureLeaderGap;
       }
     }
-    final room = onLeft
-        ? anchor.dx - kFigureLeaderGap - leftLimit
-        : rightLimit - anchor.dx - kFigureLeaderGap;
-    final w = math.max(0.0, math.min(math.min(widthOf(p), maxWidth), room));
+    final roomLeft = anchor.dx - kFigureLeaderGap - leftLimit;
+    final roomRight = rightLimit - anchor.dx - kFigureLeaderGap;
+    final wanted = math.min(widthOf(p), maxWidth);
+    // Outward by default; a pill that would not fit there, where the other
+    // side has more room, moves across rather than shrinking to nothing.
+    var onLeft = _leftOfCentre(p);
+    final preferredRoom = onLeft ? roomLeft : roomRight;
+    final otherRoom = onLeft ? roomRight : roomLeft;
+    if (preferredRoom < wanted && otherRoom > preferredRoom) onLeft = !onLeft;
+    final room = onLeft ? roomLeft : roomRight;
+    final w = math.max(0.0, math.min(wanted, room));
     final x = onLeft
         ? anchor.dx - kFigureLeaderGap - w
         : anchor.dx + kFigureLeaderGap;

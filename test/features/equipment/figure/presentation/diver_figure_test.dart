@@ -9,6 +9,8 @@ import 'package:submersion/features/equipment/figure/domain/figure_composer.dart
 import 'package:submersion/features/equipment/figure/domain/figure_model.dart';
 import 'package:submersion/features/equipment/figure/domain/figure_view.dart';
 import 'package:submersion/features/equipment/figure/presentation/diver_figure.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_labels.dart';
+import 'package:submersion/features/equipment/figure/presentation/figure_leader_painter.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_name_label.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
@@ -318,6 +320,29 @@ void main() {
     expect(find.text('Item tool'), findsOneWidget);
   });
 
+  testWidgets('a tray tile draws with the same label body as a pill', (
+    tester,
+  ) async {
+    final withTray = composeFigure([
+      item('mask', EquipmentType.mask),
+      item('tool', EquipmentType.tool),
+    ]);
+    await pump(tester, withTray, width: 900);
+    final tile = find.ancestor(
+      of: find.text('Item tool'),
+      matching: find.byType(FigureLabelBody),
+    );
+    expect(tile, findsOneWidget);
+    expect(
+      find.descendant(of: tile, matching: find.byType(Icon)),
+      findsOneWidget,
+    );
+    expect(
+      tester.getSize(tile).height,
+      greaterThanOrEqualTo(kFigureLabelHeight),
+    );
+  });
+
   testWidgets('an unbounded width falls back to the phone layout', (
     tester,
   ) async {
@@ -413,5 +438,20 @@ void main() {
     );
     expect(name.maxLines, 1);
     expect(name.overflow, TextOverflow.ellipsis);
+  });
+
+  testWidgets('a rebuild with the same figure keeps its label layout', (
+    tester,
+  ) async {
+    FigureLeaderPainter leaders() => tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .map((c) => c.foregroundPainter)
+        .whereType<FigureLeaderPainter>()
+        .single;
+    await pump(tester, reef, width: 900);
+    final before = leaders().slots;
+    await pump(tester, reef, width: 900, selectedItemId: 'mask');
+    expect(identical(leaders().slots, before), isTrue);
+    expect(leaders().shouldRepaint(leaders()), isFalse);
   });
 }

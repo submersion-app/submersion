@@ -110,12 +110,7 @@ class FigureNameLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final highlight = selected ? figureHighlightFor(scheme) : null;
-    final style = styleFor(
-      context,
-      pill: pill,
-    ).copyWith(color: highlight?.onFill);
+    final style = styleFor(context, pill: pill);
     final padding = pill ? _pillPadding : _columnPadding;
     return Semantics(
       label: semanticsLabel,
@@ -152,42 +147,111 @@ class FigureNameLabel extends StatelessWidget {
               alignment: alignEnd
                   ? Alignment.centerRight
                   : Alignment.centerLeft,
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: padding, vertical: 3),
-                decoration: pill || selected
-                    ? BoxDecoration(
-                        color: (highlight ?? figurePillFor(scheme)).fill,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: scheme.outlineVariant,
-                          width: 0.5,
-                        ),
-                      )
-                    : null,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    badge,
-                    const SizedBox(width: _gap),
-                    Flexible(
-                      child: Text(
-                        text,
-                        maxLines: lines,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: alignEnd ? TextAlign.right : TextAlign.left,
-                        // Hug the longest line, so the badge sits beside
-                        // the words rather than across an empty gap.
-                        textWidthBasis: TextWidthBasis.longestLine,
-                        style: style,
-                      ),
-                    ),
-                  ],
-                ),
+              child: FigureLabelBody(
+                number: number,
+                text: text,
+                pill: pill,
+                selected: selected,
+                maxLines: lines,
+                textAlign: alignEnd ? TextAlign.right : TextAlign.left,
               ),
             );
           },
         ),
       ),
+    );
+  }
+}
+
+/// The visible part of a figure label: the number badge, an optional
+/// leading icon, and the name, on a pill fill in the wide layout and plain in
+/// a phone column, with the contrast-derived highlight when selected. Shared
+/// by the labels on the figure and the tiles in the tray, so both stay in
+/// step.
+class FigureLabelBody extends StatelessWidget {
+  const FigureLabelBody({
+    super.key,
+    required this.number,
+    required this.text,
+    this.pill = true,
+    this.selected = false,
+    this.maxLines = 1,
+    this.textAlign = TextAlign.left,
+    this.leading,
+    this.minHeight = 0,
+  });
+
+  final int number;
+  final String text;
+  final bool pill;
+  final bool selected;
+  final int maxLines;
+  final TextAlign textAlign;
+
+  /// Drawn between the badge and the name, for example a type icon.
+  final Widget? leading;
+
+  /// The body's height floor, for a tile that is its own tap target.
+  final double minHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final highlight = selected ? figureHighlightFor(scheme) : null;
+    final style = FigureNameLabel.styleFor(
+      context,
+      pill: pill,
+    ).copyWith(color: highlight?.onFill);
+    final padding = pill
+        ? FigureNameLabel._pillPadding
+        : FigureNameLabel._columnPadding;
+    Widget row = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        FigureNumberBadge(
+          number: number,
+          size: FigureNameLabel.badgeSize,
+          selected: selected,
+        ),
+        const SizedBox(width: FigureNameLabel._gap),
+        if (leading != null) ...[
+          IconTheme.merge(
+            data: IconThemeData(size: 18, color: highlight?.onFill),
+            child: leading!,
+          ),
+          const SizedBox(width: FigureNameLabel._gap),
+        ],
+        Flexible(
+          child: Text(
+            text,
+            maxLines: maxLines,
+            overflow: TextOverflow.ellipsis,
+            textAlign: textAlign,
+            // Hug the longest line, so the badge sits beside the words
+            // rather than across an empty gap.
+            textWidthBasis: TextWidthBasis.longestLine,
+            style: style,
+          ),
+        ),
+      ],
+    );
+    if (minHeight > 0) {
+      // Centred vertically within the floor, and no wider than its content.
+      row = ConstrainedBox(
+        constraints: BoxConstraints(minHeight: minHeight),
+        child: Align(widthFactor: 1, child: row),
+      );
+    }
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: padding, vertical: 3),
+      decoration: pill || selected
+          ? BoxDecoration(
+              color: (highlight ?? figurePillFor(scheme)).fill,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: scheme.outlineVariant, width: 0.5),
+            )
+          : null,
+      child: row,
     );
   }
 }

@@ -8,7 +8,6 @@ import 'package:submersion/features/equipment/figure/presentation/figure_labels.
 import 'package:submersion/features/equipment/figure/presentation/figure_layout.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_leader_painter.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_name_label.dart';
-import 'package:submersion/features/equipment/figure/presentation/figure_number_badge.dart';
 import 'package:submersion/features/equipment/figure/presentation/figure_palette_theme.dart';
 import 'package:submersion/features/equipment/presentation/utils/equipment_type_icon.dart';
 
@@ -47,7 +46,8 @@ class DiverFigure extends StatefulWidget {
   /// Read for the whole picture, for example "Reef set, 9 items".
   final String semanticsLabel;
 
-  /// The name shown on an item's label.
+  /// The name shown on an item's label. It must depend only on the item:
+  /// the label layout is reused while [model] is the same object.
   final String Function(PlacedItem item) labelText;
 
   /// A switch segment's text, for example "Front · 8".
@@ -72,6 +72,20 @@ class DiverFigure extends StatefulWidget {
 
 class _DiverFigureState extends State<DiverFigure> {
   FigureView _view = FigureView.front;
+  Object? _slotsKey;
+  List<FigureLabelSlot> _slots = const [];
+
+  /// The label layout, reused while nothing it depends on has changed, so a
+  /// rebuild for a highlight flash neither re-measures every name nor hands
+  /// the leader painter a new list (which repaints every leader line).
+  List<FigureLabelSlot> _cachedSlots(
+    Object key,
+    List<FigureLabelSlot> Function() compute,
+  ) {
+    if (key == _slotsKey) return _slots;
+    _slotsKey = key;
+    return _slots = compute();
+  }
 
   @override
   void initState() {
@@ -151,12 +165,16 @@ class _DiverFigureState extends State<DiverFigure> {
     final layout = FigureLayout.forSingle(
       Size(width, DiverFigure.phoneMaxFigureHeight),
     );
-    final slots = labelColumns(
-      model: widget.model,
-      view: _view,
-      layout: layout,
-      width: width,
-      labelHeight: FigureNameLabel.heightFor(context, pill: false),
+    final labelHeight = FigureNameLabel.heightFor(context, pill: false);
+    final slots = _cachedSlots(
+      (#phone, widget.model, width, _view, labelHeight),
+      () => labelColumns(
+        model: widget.model,
+        view: _view,
+        layout: layout,
+        width: width,
+        labelHeight: labelHeight,
+      ),
     );
     return Column(
       children: [
@@ -187,18 +205,22 @@ class _DiverFigureState extends State<DiverFigure> {
     final style = FigureNameLabel.styleFor(context, pill: true);
     final direction = Directionality.of(context);
     final scaler = MediaQuery.textScalerOf(context);
-    final slots = labelPills(
-      model: widget.model,
-      layout: layout,
-      width: width,
-      maxWidth: width / 4,
-      labelHeight: FigureNameLabel.heightFor(context, pill: true),
-      widthOf: (p) => FigureNameLabel.preferredWidth(
-        widget.labelText(p),
-        style,
-        direction,
-        textScaler: scaler,
-        number: p.number,
+    final labelHeight = FigureNameLabel.heightFor(context, pill: true);
+    final slots = _cachedSlots(
+      (#wide, widget.model, width, scaler, direction, style, labelHeight),
+      () => labelPills(
+        model: widget.model,
+        layout: layout,
+        width: width,
+        maxWidth: width / 4,
+        labelHeight: labelHeight,
+        widthOf: (p) => FigureNameLabel.preferredWidth(
+          widget.labelText(p),
+          style,
+          direction,
+          textScaler: scaler,
+          number: p.number,
+        ),
       ),
     );
     return _canvas(context, width, layout, slots);
@@ -281,8 +303,6 @@ class _TrayTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final highlight = selected ? figureHighlightFor(scheme) : null;
     return Semantics(
       label: semanticsLabel,
       button: onTap != null,
@@ -290,43 +310,14 @@ class _TrayTile extends StatelessWidget {
       excludeSemantics: semanticsLabel != null,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          constraints: const BoxConstraints(minHeight: kFigureLabelHeight),
-          padding: const EdgeInsets.symmetric(horizontal: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            color: (highlight ?? figurePillFor(scheme)).fill,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              FigureNumberBadge(
-                number: item.number,
-                size: FigureNameLabel.badgeSize,
-              ),
-              const SizedBox(width: 6),
-              Icon(
-                equipmentTypeIcon(item.item.type),
-                size: 18,
-                color: highlight?.onFill,
-              ),
-              const SizedBox(width: 6),
-              // Flexible so a long name truncates within the tray's width
-              // instead of overflowing the tile on a phone.
-              Flexible(
-                child: Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: FigureNameLabel.styleFor(
-                    context,
-                    pill: true,
-                  ).copyWith(color: highlight?.onFill),
-                ),
-              ),
-            ],
-          ),
+        borderRadius: BorderRadius.circular(14),
+        child: FigureLabelBody(
+          number: item.number,
+          text: name,
+          selected: selected,
+          leading: Icon(equipmentTypeIcon(item.item.type)),
+          // The tile is its own tap target (less the body's padding).
+          minHeight: kFigureLabelHeight - 6,
         ),
       ),
     );

@@ -8,7 +8,12 @@ import 'package:submersion/features/equipment/presentation/widgets/equipment_sec
 /// it stands 1.6:1 off both the page surface and the container tint a card
 /// sits on. Gear greys are fixed. The number badge uses `primary` with whichever of
 /// `onPrimary`, black or white reads on it.
-FigurePalette figurePaletteFor(ColorScheme scheme) {
+FigurePalette figurePaletteFor(ColorScheme scheme) =>
+    _figurePaletteForCache[scheme] ??= _figurePaletteForUncached(scheme);
+
+final Expando<FigurePalette> _figurePaletteForCache = Expando<FigurePalette>();
+
+FigurePalette _figurePaletteForUncached(ColorScheme scheme) {
   final body = _bodyTone(scheme);
   final shade = Color.alphaBlend(scheme.surface.withValues(alpha: 0.35), body);
   final onBadge = EquipmentSectionColors.readableOn(scheme.primary, [
@@ -59,7 +64,13 @@ class FigureHighlight {
 /// title. The fill is the faintest blend of `primary` over the card surface
 /// that still stands off both the card and the page; the text is whichever
 /// of `onSurface`, black or white reads on it.
-FigureHighlight figureHighlightFor(ColorScheme scheme) {
+FigureHighlight figureHighlightFor(ColorScheme scheme) =>
+    _figureHighlightForCache[scheme] ??= _figureHighlightForUncached(scheme);
+
+final Expando<FigureHighlight> _figureHighlightForCache =
+    Expando<FigureHighlight>();
+
+FigureHighlight _figureHighlightForUncached(ColorScheme scheme) {
   final card = scheme.surfaceContainerLow;
   var fill = scheme.primary;
   for (var percent = 16; percent <= 100; percent += 2) {
@@ -86,7 +97,12 @@ FigureHighlight figureHighlightFor(ColorScheme scheme) {
 /// four of the five presets leave `surfaceContainerHighest` unset, so it
 /// falls back to `surface` and a pill would vanish into the page. The fill
 /// is the faintest blend of `onSurface` over the card that stands off it.
-FigureHighlight figurePillFor(ColorScheme scheme) {
+FigureHighlight figurePillFor(ColorScheme scheme) =>
+    _figurePillForCache[scheme] ??= _figurePillForUncached(scheme);
+
+final Expando<FigureHighlight> _figurePillForCache = Expando<FigureHighlight>();
+
+FigureHighlight _figurePillForUncached(ColorScheme scheme) {
   final card = scheme.surfaceContainerLow;
   var fill = scheme.onSurface;
   for (var percent = 4; percent <= 60; percent += 2) {
