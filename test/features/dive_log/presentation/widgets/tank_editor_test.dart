@@ -356,12 +356,81 @@ void main() {
       await tester.pump();
 
       // The validator's inline error is shown...
-      expect(find.text('Enter a valid number'), findsOneWidget);
+      expect(find.textContaining('Enter a valid number'), findsOneWidget);
       // ...and the persisted mix keeps the tank's real He, not 0 (air).
       expect(updatedTank, isNotNull);
       expect(updatedTank!.gasMix.he, 35.0);
       expect(updatedTank!.gasMix.o2, 21.0);
     });
+
+    testWidgets(
+      'an unreadable start pressure keeps the last typed value and shows '
+      'the error (#1900)',
+      (tester) async {
+        SharedPreferences.setMockInitialValues({});
+        final prefs = await SharedPreferences.getInstance();
+        final builtInPresets = TankPresets.all
+            .map((p) => TankPresetEntity.fromBuiltIn(p))
+            .toList();
+
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              sharedPreferencesProvider.overrideWithValue(prefs),
+              settingsProvider.overrideWith((ref) => MockSettingsNotifier()),
+              currentDiverIdProvider.overrideWith(
+                (ref) => MockCurrentDiverIdNotifier(),
+              ),
+              tankPresetListNotifierProvider.overrideWith(
+                (ref) => _MockTankPresetListNotifier(builtInPresets),
+              ),
+              tankPresetsProvider.overrideWith(
+                (ref) => Future.value(builtInPresets),
+              ),
+            ].cast(),
+            child: const MaterialApp(
+              locale: Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
+              home: Scaffold(
+                body: SingleChildScrollView(
+                  child: _RebuildingTankHost(
+                    initial: DiveTank(
+                      id: 'tank-p',
+                      volume: 11.1,
+                      workingPressure: 206.843,
+                      startPressure: 200,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final startField = find.ancestor(
+          of: find.text('Start Pressure'),
+          matching: find.byType(TextFormField),
+        );
+        await tester.enterText(startField, '210');
+        await tester.pump();
+        await tester.enterText(startField, '');
+        await tester.pump();
+        await tester.enterText(startField, '2..10');
+        await tester.pump();
+
+        expect(find.textContaining('Enter a valid number'), findsOneWidget);
+        final hostState = tester.state<_RebuildingTankHostState>(
+          find.byType(_RebuildingTankHost),
+        );
+        expect(
+          hostState.lastTank!.startPressure,
+          closeTo(210, 0.001),
+          reason: 'an unreadable pressure used to be reported as null',
+        );
+      },
+    );
 
     testWidgets(
       'clearing a field then retyping garbage does not fall back to the '
@@ -447,7 +516,7 @@ void main() {
         await tester.enterText(heField, 'xyz');
         await tester.pump();
 
-        expect(find.text('Enter a valid number'), findsOneWidget);
+        expect(find.textContaining('Enter a valid number'), findsOneWidget);
         final hostState = tester.state<_RebuildingTankHostState>(
           find.byType(_RebuildingTankHost),
         );
@@ -609,7 +678,7 @@ void main() {
         await tester.enterText(o2Field, 'xyz');
         await tester.pump();
 
-        expect(find.text('Enter a valid number'), findsOneWidget);
+        expect(find.textContaining('Enter a valid number'), findsOneWidget);
         expect(
           updatedTank!.gasMix.o2,
           100.0,
