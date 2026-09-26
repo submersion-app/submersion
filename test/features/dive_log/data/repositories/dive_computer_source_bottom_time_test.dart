@@ -34,7 +34,7 @@ void main() {
   ];
 
   Future<void> insertComputer(String id) async {
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = DateTime.utc(2026, 3, 1).millisecondsSinceEpoch;
     await db
         .into(db.diveComputers)
         .insert(
