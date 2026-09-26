@@ -428,6 +428,18 @@ abstract class AppLocalizations {
   /// **'If this set includes a dive computer, auto-add the whole set to a dive downloaded or imported from it'**
   String get equipment_setEdit_computerAutoApplySwitch_subtitle;
 
+  /// No description provided for @equipment_setEdit_figureSwitch_subtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Draw this set\'s gear on a diver on the set page'**
+  String get equipment_setEdit_figureSwitch_subtitle;
+
+  /// No description provided for @equipment_setEdit_figureSwitch_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Show diver figure'**
+  String get equipment_setEdit_figureSwitch_title;
+
   /// No description provided for @equipment_setEdit_geofencesTitle.
   ///
   /// In en, this message translates to:
@@ -505,6 +517,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Default'**
   String get equipment_sets_defaultBadge;
+
+  /// No description provided for @equipment_setDetail_hideFigure.
+  ///
+  /// In en, this message translates to:
+  /// **'Hide diver figure'**
+  String get equipment_setDetail_hideFigure;
+
+  /// No description provided for @equipment_setDetail_showFigure.
+  ///
+  /// In en, this message translates to:
+  /// **'Show diver figure'**
+  String get equipment_setDetail_showFigure;
 
   /// No description provided for @equipment_setDetail_setAsDefault.
   ///
@@ -21703,6 +21727,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Set'**
   String get equipment_fab_addSet;
+
+  /// No description provided for @equipment_figure_backCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Back · {count}'**
+  String equipment_figure_backCount(int count);
+
+  /// No description provided for @equipment_figure_frontCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Front · {count}'**
+  String equipment_figure_frontCount(int count);
+
+  /// No description provided for @equipment_figure_itemLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'{number}, {type}, {name}'**
+  String equipment_figure_itemLabel(int number, String type, String name);
+
+  /// No description provided for @equipment_figure_summary.
+  ///
+  /// In en, this message translates to:
+  /// **'{name}, {count, plural, =1{{count} item} other{{count} items}}'**
+  String equipment_figure_summary(String name, int count);
+
+  /// No description provided for @equipment_figure_trayTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Also carried'**
+  String get equipment_figure_trayTitle;
 
   /// No description provided for @equipment_list_emptyState_addFirstButton.
   ///

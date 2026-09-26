@@ -1432,6 +1432,11 @@ class EquipmentSets extends Table {
   BoolColumn get autoApplyOnComputerImport =>
       boolean().withDefault(const Constant(false))();
 
+  /// Whether the set page draws this set's gear on the diver figure
+  /// (issue #2326, v229). Opt-in per set and off by default, including for
+  /// every set that existed before the column.
+  BoolColumn get showFigure => boolean().withDefault(const Constant(false))();
+
   /// Hybrid Logical Clock for cross-device conflict resolution
   /// (nullable: rows written before HLC rollout fall back to updatedAt).
   TextColumn get hlc => text().nullable()();
@@ -5124,6 +5129,12 @@ class AppDatabase extends _$AppDatabase {
     // from 227, which hidden tank presets (#2305) took while this was in
     // review.
     228,
+    // v229: equipment_sets.show_figure, the per-set diver figure switch
+    // (issue #2326). Additive, default off, no backfill, so the floor stays.
+    // Kept below v230, which main shipped first with 229 reserved for this
+    // rung: a database already at 230 skips this step, and the beforeOpen
+    // backstop adds the column there.
+    229,
     // v230: nav_tracks -- measured underwater routes from Seacraft ENC
     // navigation consoles and similar IMU-equipped computers (issues #1195,
     // #1445). Table-only rung, additive, so the floor stays at 224.
@@ -6643,6 +6654,24 @@ class AppDatabase extends _$AppDatabase {
       await customStatement(
         'ALTER TABLE diver_settings '
         'ADD COLUMN seascape_vertical_exaggeration_overrides TEXT',
+      );
+    }
+  }
+
+  /// v229: equipment_sets.show_figure (issue #2326). Additive, not null,
+  /// default 0, so every existing set comes up with the figure off.
+  /// Idempotent, so it is safe to call from both onUpgrade and the
+  /// beforeOpen backstop.
+  Future<void> _assertEquipmentSetShowFigureColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('equipment_sets')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('show_figure')) {
+      await customStatement(
+        'ALTER TABLE equipment_sets '
+        'ADD COLUMN show_figure INTEGER NOT NULL DEFAULT 0',
       );
     }
   }
@@ -12827,6 +12856,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertCylinderFillsSchema();
         }
         if (from < 228) await reportProgress();
+        // v229: equipment_sets.show_figure (issue #2326). Column-only rung,
+        // default off, no backfill.
+        if (from < 229) {
+          await _assertEquipmentSetShowFigureColumn();
+        }
+        if (from < 229) await reportProgress();
         // v230: nav_tracks -- measured underwater routes from Seacraft ENC
         // navigation consoles and similar IMU-equipped computers (spec
         // 2026-09-10-underwater-nav-track-design.md, issues #1195, #1445).
@@ -12845,6 +12880,9 @@ class AppDatabase extends _$AppDatabase {
         if (from < 231) await reportProgress();
       },
       beforeOpen: (details) async {
+        // v229 backstop: the per-set diver figure switch.
+        await _assertEquipmentSetShowFigureColumn();
+
         // v227 backstop: the hidden built-in tank presets.
         await _assertHiddenTankPresetIdsColumn();
 

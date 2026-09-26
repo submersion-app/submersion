@@ -248,6 +248,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'אם סט זה כולל מחשב צלילה, הסט כולו יתווסף אוטומטית לצלילה שהורדה או יובאה ממנו';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'הצגת הציוד של הערכה על צולל בדף שלה';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => 'הצגת דמות הצולל';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'גדרות גאוגרפיות';
 
   @override
@@ -288,6 +295,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'ברירת מחדל';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'הסתרת דמות הצולל';
+
+  @override
+  String get equipment_setDetail_showFigure => 'הצגת דמות הצולל';
 
   @override
   String get equipment_setDetail_setAsDefault => 'הגדר כברירת מחדל';
@@ -12892,6 +12905,35 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'הוסף ערכה';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'גב · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'חזית · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'נלקח גם';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>

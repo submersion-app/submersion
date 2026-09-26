@@ -251,6 +251,13 @@ class AppLocalizationsDe extends AppLocalizations {
       'Enthält dieses Set einen Tauchcomputer, wird das ganze Set automatisch zu einem von diesem heruntergeladenen oder importierten Tauchgang hinzugefügt';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Die Ausrüstung dieses Sets auf der Set-Seite an einer Taucherfigur zeigen';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => 'Taucherfigur anzeigen';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geofences';
 
   @override
@@ -291,6 +298,12 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Standard';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Taucherfigur ausblenden';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Taucherfigur anzeigen';
 
   @override
   String get equipment_setDetail_setAsDefault => 'Als Standard festlegen';
@@ -13177,6 +13190,35 @@ class AppLocalizationsDe extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'Set hinzufügen';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'Hinten · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Vorne · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count Gegenstände',
+      one: '$count Gegenstand',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'Außerdem dabei';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>

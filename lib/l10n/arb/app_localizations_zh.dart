@@ -238,6 +238,12 @@ class AppLocalizationsZh extends AppLocalizations {
       '如果该套装包含潜水电脑，则从该电脑下载或导入的潜水记录会自动添加整个套装';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle => '在套装页面上把此套装的装备画在潜水员身上';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title => '显示潜水员图示';
+
+  @override
   String get equipment_setEdit_geofencesTitle => '地理围栏';
 
   @override
@@ -277,6 +283,12 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => '默认';
+
+  @override
+  String get equipment_setDetail_hideFigure => '隐藏潜水员图示';
+
+  @override
+  String get equipment_setDetail_showFigure => '显示潜水员图示';
 
   @override
   String get equipment_setDetail_setAsDefault => '设为默认';
@@ -12583,6 +12595,35 @@ class AppLocalizationsZh extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => '添加套装';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return '背面 · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return '正面 · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count 件',
+      one: '$count 件',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => '另外携带';
 
   @override
   String get equipment_list_emptyState_addFirstButton => '添加您的第一件装备';

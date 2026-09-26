@@ -44,6 +44,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
   bool _isInitialized = false;
   bool _isDefault = false;
   bool _autoApplyOnComputerImport = false;
+  bool _showFigure = false;
   List<EquipmentSetGeofence> _geofences = [];
 
   @override
@@ -62,6 +63,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
     _selectedEquipmentIds.addAll(set.equipmentIds);
     _isDefault = set.isDefault;
     _autoApplyOnComputerImport = set.autoApplyOnComputerImport;
+    _showFigure = set.showFigure;
     _geofences = List.of(set.geofences);
   }
 
@@ -203,6 +205,18 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
               ),
               value: _autoApplyOnComputerImport,
               onChanged: (v) => setState(() => _autoApplyOnComputerImport = v),
+            ),
+            const SizedBox(height: 8),
+
+            // The diver figure on the set page (issue #2326), off by default.
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(context.l10n.equipment_setEdit_figureSwitch_title),
+              subtitle: Text(
+                context.l10n.equipment_setEdit_figureSwitch_subtitle,
+              ),
+              value: _showFigure,
+              onChanged: (v) => setState(() => _showFigure = v),
             ),
             const SizedBox(height: 16),
 
@@ -504,6 +518,7 @@ class _EquipmentSetEditPageState extends ConsumerState<EquipmentSetEditPage> {
         description: _descriptionController.text.trim(),
         equipmentIds: _selectedEquipmentIds.toList(),
         autoApplyOnComputerImport: _autoApplyOnComputerImport,
+        showFigure: _showFigure,
         createdAt: existingSet?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );

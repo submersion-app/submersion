@@ -186,6 +186,7 @@ class EquipmentSetRepository {
               name: Value(set.name),
               description: Value(set.description),
               autoApplyOnComputerImport: Value(set.autoApplyOnComputerImport),
+              showFigure: Value(set.showFigure),
               createdAt: Value(now),
               updatedAt: Value(now),
             ),
@@ -250,6 +251,7 @@ class EquipmentSetRepository {
           name: Value(set.name),
           description: Value(set.description),
           autoApplyOnComputerImport: Value(set.autoApplyOnComputerImport),
+          showFigure: Value(set.showFigure),
           updatedAt: Value(now),
         ),
       );
@@ -571,6 +573,7 @@ class EquipmentSetRepository {
       equipmentIds: equipmentIds,
       isDefault: row.isDefault,
       autoApplyOnComputerImport: row.autoApplyOnComputerImport,
+      showFigure: row.showFigure,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),
     );

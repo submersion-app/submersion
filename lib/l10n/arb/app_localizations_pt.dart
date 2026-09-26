@@ -251,6 +251,14 @@ class AppLocalizationsPt extends AppLocalizations {
       'Se este conjunto incluir um computador de mergulho, adiciona automaticamente todo o conjunto a uma imersão descarregada ou importada dele';
 
   @override
+  String get equipment_setEdit_figureSwitch_subtitle =>
+      'Mostra o equipamento deste conjunto num mergulhador na sua página';
+
+  @override
+  String get equipment_setEdit_figureSwitch_title =>
+      'Mostrar figura do mergulhador';
+
+  @override
   String get equipment_setEdit_geofencesTitle => 'Geocercas';
 
   @override
@@ -291,6 +299,12 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_sets_defaultBadge => 'Padrão';
+
+  @override
+  String get equipment_setDetail_hideFigure => 'Ocultar figura do mergulhador';
+
+  @override
+  String get equipment_setDetail_showFigure => 'Mostrar figura do mergulhador';
 
   @override
   String get equipment_setDetail_setAsDefault => 'Definir como padrão';
@@ -13182,6 +13196,35 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get equipment_fab_addSet => 'Adicionar Conjunto';
+
+  @override
+  String equipment_figure_backCount(int count) {
+    return 'Costas · $count';
+  }
+
+  @override
+  String equipment_figure_frontCount(int count) {
+    return 'Frente · $count';
+  }
+
+  @override
+  String equipment_figure_itemLabel(int number, String type, String name) {
+    return '$number, $type, $name';
+  }
+
+  @override
+  String equipment_figure_summary(String name, int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count itens',
+      one: '$count item',
+    );
+    return '$name, $_temp0';
+  }
+
+  @override
+  String get equipment_figure_trayTitle => 'Também levado';
 
   @override
   String get equipment_list_emptyState_addFirstButton =>
