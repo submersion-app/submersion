@@ -143,15 +143,8 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     _customFieldValue = filter.customFieldValue;
     _customFieldValueController.text = _customFieldValue ?? '';
 
-    // Set controller text. Depth bounds live in meters; the fields show and
-    // accept the diver's configured depth unit, as the quick filter sheet does.
-    final units = UnitFormatter(ref.read(settingsProvider));
-    _minDepthController.text = _minDepth == null
-        ? ''
-        : formatRoundedForInput(units.convertDepth(_minDepth!), 0);
-    _maxDepthController.text = _maxDepth == null
-        ? ''
-        : formatRoundedForInput(units.convertDepth(_maxDepth!), 0);
+    // Set controller text
+    _seedDepthControllers(UnitFormatter(ref.read(settingsProvider)));
     _minDurationController.text = _minDurationMinutes?.toString() ?? '';
     _maxDurationController.text = _maxDurationMinutes?.toString() ?? '';
     _buddyNameController.text = _buddyNameFilter ?? '';
@@ -201,10 +194,33 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     super.dispose();
   }
 
+  /// Show the depth bounds, held in meters, in the diver's depth unit, as the
+  /// quick filter sheet does.
+  ///
+  /// Seeds from the meter state rather than the field text, so a value the
+  /// diver already typed keeps its depth when re-shown in another unit.
+  void _seedDepthControllers(UnitFormatter units) {
+    _minDepthController.text = _minDepth == null
+        ? ''
+        : formatRoundedForInput(units.convertDepth(_minDepth!), 0);
+    _maxDepthController.text = _maxDepth == null
+        ? ''
+        : formatRoundedForInput(units.convertDepth(_maxDepth!), 0);
+  }
+
   @override
   Widget build(BuildContext context) {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
+
+    // Settings start as defaults and load the diver's row asynchronously (and
+    // reload on a diver switch), so the unit can change under an open page.
+    // Re-seed, or the fields keep text in the old unit beside the new suffix.
+    ref.listen(
+      settingsProvider.select((s) => s.depthUnit),
+      (_, _) =>
+          _seedDepthControllers(UnitFormatter(ref.read(settingsProvider))),
+    );
 
     return Scaffold(
       appBar: AppBar(

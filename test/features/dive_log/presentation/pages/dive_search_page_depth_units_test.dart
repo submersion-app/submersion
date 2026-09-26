@@ -93,6 +93,64 @@ void main() {
     expect(depthField(tester, 1).controller?.text, '98');
   });
 
+  group('when the depth unit changes after the page opens', () {
+    // Settings start as defaults (metres) and load the diver's row
+    // asynchronously, and reload on a diver switch, so the unit can change
+    // under an open page.
+    testWidgets('an existing bound is re-shown in the new unit', (
+      tester,
+    ) async {
+      final settings = MockSettingsNotifier();
+      final base = await getBaseOverrides(settingsNotifier: settings);
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: [
+            ...base,
+            diveFilterProvider.overrideWith(
+              (ref) => const DiveFilterState(minDepth: 30.48),
+            ),
+          ],
+          child: const DiveSearchPage(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(depthField(tester, 0).controller?.text, '30');
+
+      await settings.setDepthUnit(DepthUnit.feet);
+      await tester.pumpAndSettle();
+
+      expect(depthField(tester, 0).decoration?.suffixText, 'ft');
+      expect(depthField(tester, 0).controller?.text, '100');
+    });
+
+    testWidgets('a value the diver typed keeps its depth in the new unit', (
+      tester,
+    ) async {
+      final settings = MockSettingsNotifier(
+        const AppSettings(depthUnit: DepthUnit.feet),
+      );
+      final base = await getBaseOverrides(settingsNotifier: settings);
+      await tester.pumpWidget(
+        testApp(
+          locale: const Locale('en'),
+          overrides: base,
+          child: const DiveSearchPage(),
+        ),
+      );
+      await tester.pumpAndSettle();
+      await openConditions(tester);
+      await tester.enterText(depthFields().at(1), '100');
+
+      await settings.setDepthUnit(DepthUnit.meters);
+      await tester.pumpAndSettle();
+
+      // 100 ft is 30.48 m, shown rounded like every depth field.
+      expect(depthField(tester, 1).decoration?.suffixText, 'm');
+      expect(depthField(tester, 1).controller?.text, '30');
+    });
+  });
+
   group('applying', () {
     GoRouter buildRouter() => GoRouter(
       initialLocation: '/dives/search',
