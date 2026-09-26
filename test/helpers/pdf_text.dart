@@ -95,6 +95,11 @@ List<({String text, double y})> pdfTextBaselines(List<int> bytes) {
 /// tracked, so every map decodes every word: one returned string reads as the
 /// text set in that font and the rest are noise. Assert with
 /// `anyElement(contains(...))`.
+///
+/// It reads only the forms the `pdf` package writes: `beginbfchar` maps (not
+/// `beginbfrange`) and 4-digit hex strings inside `[...]TJ` arrays (not
+/// `Tj`). A PDF from another writer may use those, and its text will be
+/// missing here rather than wrong in the document.
 List<String> pdfSubsetTexts(List<int> bytes) {
   final streams = _streamPayloads(bytes).toList();
   final maps = [

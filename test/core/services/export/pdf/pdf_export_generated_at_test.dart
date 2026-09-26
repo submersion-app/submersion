@@ -54,18 +54,18 @@ void main() {
   });
 
   test('stamps the cover with the injected clock', () async {
-    final result = await exportAt(DateTime(2031, 7, 14, 10, 59));
+    final result = await exportAt(DateTime(2199, 7, 14, 10, 59));
 
     expect(
       pdfSubsetTexts(result.bytes),
-      anyElement(contains('Generated on 14/07/2031 10:59')),
+      anyElement(contains('Generated on 14/07/2199 10:59')),
       reason: 'the service must hand its clock to the template',
     );
   });
 
   test('names the file after the same instant', () async {
-    final result = await exportAt(DateTime(2031, 7, 14, 10, 59));
+    final result = await exportAt(DateTime(2199, 7, 14, 10, 59));
 
-    expect(result.fileName, 'dive_logbook_detailed_2031-07-14.pdf');
+    expect(result.fileName, 'dive_logbook_detailed_2199-07-14.pdf');
   });
 }

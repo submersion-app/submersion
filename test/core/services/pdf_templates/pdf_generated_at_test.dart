@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/pdf_templates.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_date_formatter.dart';
+import 'package:submersion/core/services/pdf_templates/pdf_fonts.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_builder.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_detailed.dart';
 import 'package:submersion/core/services/pdf_templates/pdf_template_naui.dart';
@@ -19,9 +20,14 @@ import '../../../helpers/pdf_text.dart';
 /// that ticked over a minute between them changed the embedded glyph subset,
 /// and with it the file size a test compared.
 void main() {
-  // Years away from any day this test could run on, so a stamp read from the
-  // live clock cannot pass for it.
-  final generatedAt = DateTime(2031, 7, 14, 10, 59);
+  // Far past any day this test could run on, so a stamp read from the live
+  // clock cannot pass for it.
+  final generatedAt = DateTime(2199, 7, 14, 10, 59);
+
+  // Without PdfFonts the templates fall back to Helvetica, whose text
+  // pdfVisibleText can read. Resetting makes that explicit rather than relying
+  // on nothing in this isolate having loaded Roboto.
+  setUp(PdfFonts.instance.reset);
 
   final dates = PdfDateFormatter(
     dateFormat: DateFormatPreference.ddmmyyyy,
@@ -49,10 +55,10 @@ void main() {
   // Simple stamps the date alone in its page footer; the others stamp the
   // date and time on the cover.
   final templates = <String, (PdfTemplateBuilder Function(), String)>{
-    'Detailed': (PdfTemplateDetailed.new, 'Generated on 14/07/2031 10:59'),
-    'PADI': (PdfTemplatePadi.new, 'Generated 14/07/2031 10:59'),
-    'NAUI': (PdfTemplateNaui.new, 'Generated 14/07/2031 10:59'),
-    'Simple': (PdfTemplateSimple.new, 'Generated 14/07/2031'),
+    'Detailed': (PdfTemplateDetailed.new, 'Generated on 14/07/2199 10:59'),
+    'PADI': (PdfTemplatePadi.new, 'Generated 14/07/2199 10:59'),
+    'NAUI': (PdfTemplateNaui.new, 'Generated 14/07/2199 10:59'),
+    'Simple': (PdfTemplateSimple.new, 'Generated 14/07/2199'),
   };
 
   for (final MapEntry(key: name, value: (make, stamp)) in templates.entries) {
