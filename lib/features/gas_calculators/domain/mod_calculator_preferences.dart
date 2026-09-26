@@ -2,6 +2,7 @@ import 'package:equatable/equatable.dart';
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
+import 'package:submersion/features/gas_calculators/domain/mod_limit_overrides.dart';
 
 /// The two minimum ppO2 values the calculator offers for a hypoxic mix.
 const List<double> modMinPpO2Options = [0.16, 0.18];
@@ -41,16 +42,18 @@ class ModModeInputs extends Equatable {
 
   static ModModeInputs fromJson(Object? json, ModModeInputs fallback) {
     if (json is! Map) return fallback;
-    final o2 = _number(json['o2Percent'], 1, 100) ?? fallback.o2Percent;
-    final he = (_number(json['hePercent'], 0, 100) ?? fallback.hePercent)
-        .clamp(0.0, 100.0 - o2)
-        .toDouble();
+    final o2 =
+        modNumberInRange(json['o2Percent'], 1, 100) ?? fallback.o2Percent;
+    final he =
+        (modNumberInRange(json['hePercent'], 0, 100) ?? fallback.hePercent)
+            .clamp(0.0, 100.0 - o2)
+            .toDouble();
     final check = json['checkTargetDepth'];
     return ModModeInputs(
       o2Percent: o2,
       hePercent: he,
       targetDepthMeters:
-          _number(json['targetDepthMeters'], 0, tecTargetMaxMeters) ??
+          modNumberInRange(json['targetDepthMeters'], 0, tecTargetMaxMeters) ??
           fallback.targetDepthMeters,
       checkTargetDepth: check is bool ? check : fallback.checkTargetDepth,
     );
@@ -65,28 +68,30 @@ class ModModeInputs extends Equatable {
   ];
 }
 
+/// Key of the overrides kept while no diver is active.
+const String modNoDiverKey = '';
+
 /// Everything the MOD calculator remembers between sessions (issue #2342).
 ///
-/// The ppO2 limits and the CCR setpoint are overrides: null means "use the
-/// active diver's profile value" (the OC or the CCR ppO2 limits in the
-/// settings), so a diver who never touches them follows their profile, and
-/// one who does sees the override marked against it.
+/// The ppO2 limits and the CCR setpoint are overrides of the active diver's
+/// profile (the OC or the CCR ppO2 limits in the settings), kept per diver:
+/// a diver who never touches them follows their profile, one who does sees
+/// the override marked against it, and switching divers never carries one
+/// diver's override onto another's profile.
 class ModCalculatorPreferences extends Equatable {
   final ModCalculatorMode mode;
   final ModModeInputs rec;
   final ModModeInputs ocTec;
   final ModModeInputs ccrTec;
 
-  /// Water type of the Tec modes; null follows the planner's default.
+  /// Water type of the Tec modes, salt or fresh; null follows the planner's
+  /// default.
   final WaterType? waterType;
 
   final double minPpO2;
-  final double? workingPpO2;
-  final double? decoPpO2;
-  final double? flushPpO2;
 
-  /// CCR setpoint; null follows the profile's high setpoint.
-  final double? setpointBar;
+  /// The ppO2 limit overrides by diver id; [modNoDiverKey] without one.
+  final Map<String, ModLimitOverrides> overridesByDiver;
 
   const ModCalculatorPreferences({
     required this.mode,
@@ -95,10 +100,7 @@ class ModCalculatorPreferences extends Equatable {
     required this.ccrTec,
     required this.waterType,
     required this.minPpO2,
-    required this.workingPpO2,
-    required this.decoPpO2,
-    required this.flushPpO2,
-    required this.setpointBar,
+    required this.overridesByDiver,
   });
 
   static const defaults = ModCalculatorPreferences(
@@ -123,11 +125,11 @@ class ModCalculatorPreferences extends Equatable {
     ),
     waterType: null,
     minPpO2: 0.18,
-    workingPpO2: null,
-    decoPpO2: null,
-    flushPpO2: null,
-    setpointBar: null,
+    overridesByDiver: {},
   );
+
+  /// The water types the calculator offers.
+  static const List<WaterType> waterTypes = [WaterType.salt, WaterType.fresh];
 
   ModModeInputs inputsFor(ModCalculatorMode mode) => switch (mode) {
     ModCalculatorMode.rec => rec,
@@ -135,47 +137,55 @@ class ModCalculatorPreferences extends Equatable {
     ModCalculatorMode.ccrTec => ccrTec,
   };
 
+  ModLimitOverrides overridesFor(String? diverId) =>
+      overridesByDiver[diverId ?? modNoDiverKey] ?? ModLimitOverrides.none;
+
   ModCalculatorPreferences withInputs(
     ModCalculatorMode mode,
     ModModeInputs inputs,
-  ) => ModCalculatorPreferences(
-    mode: this.mode,
+  ) => _with(
     rec: mode == ModCalculatorMode.rec ? inputs : rec,
     ocTec: mode == ModCalculatorMode.ocTec ? inputs : ocTec,
     ccrTec: mode == ModCalculatorMode.ccrTec ? inputs : ccrTec,
-    waterType: waterType,
-    minPpO2: minPpO2,
-    workingPpO2: workingPpO2,
-    decoPpO2: decoPpO2,
-    flushPpO2: flushPpO2,
-    setpointBar: setpointBar,
   );
 
-  /// The `clear*` flags reset an override to "follow the profile", which a
-  /// null argument cannot express.
+  /// [overrides] stored for [diverId]; an empty set drops the entry.
+  ModCalculatorPreferences withOverrides(
+    String? diverId,
+    ModLimitOverrides overrides,
+  ) {
+    final key = diverId ?? modNoDiverKey;
+    return _with(
+      overridesByDiver: {
+        for (final entry in overridesByDiver.entries)
+          if (entry.key != key) entry.key: entry.value,
+        if (!overrides.isEmpty) key: overrides,
+      },
+    );
+  }
+
   ModCalculatorPreferences copyWith({
     ModCalculatorMode? mode,
     WaterType? waterType,
     double? minPpO2,
-    double? workingPpO2,
-    double? decoPpO2,
-    double? flushPpO2,
-    double? setpointBar,
-    bool clearWorkingPpO2 = false,
-    bool clearDecoPpO2 = false,
-    bool clearFlushPpO2 = false,
-    bool clearSetpoint = false,
+  }) => _with(mode: mode, waterType: waterType, minPpO2: minPpO2);
+
+  ModCalculatorPreferences _with({
+    ModCalculatorMode? mode,
+    ModModeInputs? rec,
+    ModModeInputs? ocTec,
+    ModModeInputs? ccrTec,
+    WaterType? waterType,
+    double? minPpO2,
+    Map<String, ModLimitOverrides>? overridesByDiver,
   }) => ModCalculatorPreferences(
     mode: mode ?? this.mode,
-    rec: rec,
-    ocTec: ocTec,
-    ccrTec: ccrTec,
+    rec: rec ?? this.rec,
+    ocTec: ocTec ?? this.ocTec,
+    ccrTec: ccrTec ?? this.ccrTec,
     waterType: waterType ?? this.waterType,
     minPpO2: minPpO2 ?? this.minPpO2,
-    workingPpO2: clearWorkingPpO2 ? null : workingPpO2 ?? this.workingPpO2,
-    decoPpO2: clearDecoPpO2 ? null : decoPpO2 ?? this.decoPpO2,
-    flushPpO2: clearFlushPpO2 ? null : flushPpO2 ?? this.flushPpO2,
-    setpointBar: clearSetpoint ? null : setpointBar ?? this.setpointBar,
+    overridesByDiver: overridesByDiver ?? this.overridesByDiver,
   );
 
   Map<String, dynamic> toJson() => {
@@ -185,36 +195,35 @@ class ModCalculatorPreferences extends Equatable {
     'ccrTec': ccrTec.toJson(),
     'waterType': waterType?.name,
     'minPpO2': minPpO2,
-    'workingPpO2': workingPpO2,
-    'decoPpO2': decoPpO2,
-    'flushPpO2': flushPpO2,
-    'setpointBar': setpointBar,
+    'overrides': {
+      for (final entry in overridesByDiver.entries)
+        entry.key: entry.value.toJson(),
+    },
   };
 
   static ModCalculatorPreferences fromJson(Map<String, dynamic> json) {
     const d = defaults;
     final minPpO2 = json['minPpO2'];
+    final overrides = json['overrides'];
     return ModCalculatorPreferences(
       mode: _enumByName(ModCalculatorMode.values, json['mode']) ?? d.mode,
       rec: ModModeInputs.fromJson(json['rec'], d.rec),
       ocTec: ModModeInputs.fromJson(json['ocTec'], d.ocTec),
       ccrTec: ModModeInputs.fromJson(json['ccrTec'], d.ccrTec),
-      waterType: _enumByName(WaterType.values, json['waterType']),
+      // Only a type the calculator offers: another (brackish) would be
+      // computed while neither segment shows it.
+      waterType: _enumByName(waterTypes, json['waterType']),
       minPpO2: minPpO2 is num && modMinPpO2Options.contains(minPpO2.toDouble())
           ? minPpO2.toDouble()
           : d.minPpO2,
-      // Each override is put back on its slider's grid, so a value saved on
-      // an older grid (a 1.45 flush ppO2) cannot sit between two stops.
-      workingPpO2: _onGrid(_limit(json['workingPpO2']), 0.05),
-      decoPpO2: _onGrid(_limit(json['decoPpO2']), 0.05),
-      flushPpO2: _onGrid(
-        _number(json['flushPpO2'], modFlushPpO2Min, modFlushPpO2Max),
-        0.1,
-      ),
-      setpointBar: _onGrid(
-        _number(json['setpointBar'], modSetpointMinBar, modSetpointMaxBar),
-        0.1,
-      ),
+      overridesByDiver: {
+        if (overrides is Map)
+          for (final entry in overrides.entries)
+            if (entry.key is String)
+              if (ModLimitOverrides.fromJson(entry.value) case final o
+                  when !o.isEmpty)
+                entry.key as String: o,
+      },
     );
   }
 
@@ -226,33 +235,8 @@ class ModCalculatorPreferences extends Equatable {
     ccrTec,
     waterType,
     minPpO2,
-    workingPpO2,
-    decoPpO2,
-    flushPpO2,
-    setpointBar,
+    overridesByDiver,
   ];
-}
-
-double? _limit(Object? value) =>
-    _number(value, modLimitPpO2Min, modLimitPpO2Max);
-
-/// [value] rounded to the nearest multiple of [step]; null stays null.
-///
-/// Multiplies by the whole number of steps per bar rather than dividing by
-/// [step]: 1.45 / 0.1 is 14.4999... in floating point and would round down,
-/// 1.45 * 10 is exactly 14.5.
-double? _onGrid(double? value, double step) {
-  if (value == null) return null;
-  final perBar = (1 / step).round();
-  return (value * perBar).round() / perBar;
-}
-
-/// [value] as a double when it is a finite number within [min]..[max].
-double? _number(Object? value, double min, double max) {
-  if (value is! num) return null;
-  final d = value.toDouble();
-  if (!d.isFinite || d < min || d > max) return null;
-  return d;
 }
 
 T? _enumByName<T extends Enum>(List<T> values, Object? name) {

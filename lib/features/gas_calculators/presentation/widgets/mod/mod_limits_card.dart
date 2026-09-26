@@ -19,17 +19,16 @@ class ModLimitsCard extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final colorScheme = Theme.of(context).colorScheme;
     final settings = ref.watch(settingsProvider);
-    final prefs = ref.watch(modCalculatorNotifierProvider);
+    final mode = ref.watch(modCalculatorNotifierProvider).mode;
+    final limits = ref.watch(modCalculatorLimitsProvider);
     final notifier = ref.read(modCalculatorNotifierProvider.notifier);
-    final mode = prefs.mode;
 
     final working = ModPpO2LimitSlider(
       label: l10n.gasCalculators_mod_workingPpO2,
-      value: prefs.workingPpO2 ?? settings.ppO2MaxWorking,
+      value: limits.workingPpO2,
       profileValue: settings.ppO2MaxWorking,
-      isOverridden: prefs.workingPpO2 != null,
-      onChanged: (v) =>
-          notifier.setWorkingPpO2(v, profileValue: settings.ppO2MaxWorking),
+      isOverridden: limits.workingOverridden,
+      onChanged: notifier.setWorkingPpO2,
       onReset: notifier.resetWorkingPpO2,
     );
 
@@ -52,10 +51,7 @@ class ModLimitsCard extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
                 child: Text(
-                  _workingDescription(
-                    context,
-                    prefs.workingPpO2 ?? settings.ppO2MaxWorking,
-                  ),
+                  _workingDescription(context, limits.workingPpO2),
                   style: textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -66,11 +62,10 @@ class ModLimitsCard extends ConsumerWidget {
               const SizedBox(height: 24),
               ModPpO2LimitSlider(
                 label: l10n.gasCalculators_mod_decoPpO2,
-                value: prefs.decoPpO2 ?? settings.ppO2MaxDeco,
+                value: limits.decoPpO2,
                 profileValue: settings.ppO2MaxDeco,
-                isOverridden: prefs.decoPpO2 != null,
-                onChanged: (v) =>
-                    notifier.setDecoPpO2(v, profileValue: settings.ppO2MaxDeco),
+                isOverridden: limits.decoOverridden,
+                onChanged: notifier.setDecoPpO2,
                 onReset: notifier.resetDecoPpO2,
               ),
             ],
@@ -84,13 +79,10 @@ class ModLimitsCard extends ConsumerWidget {
                 max: modFlushPpO2Max,
                 step: 0.1,
                 fractionDigits: 1,
-                value: prefs.flushPpO2 ?? modProfileFlushPpO2(settings),
+                value: limits.flushPpO2,
                 profileValue: settings.ccrDiluentModPpO2,
-                isOverridden: prefs.flushPpO2 != null,
-                onChanged: (v) => notifier.setFlushPpO2(
-                  v,
-                  profileValue: modProfileFlushPpO2(settings),
-                ),
+                isOverridden: limits.flushOverridden,
+                onChanged: notifier.setFlushPpO2,
                 onReset: notifier.resetFlushPpO2,
               ),
             ],

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/units.dart';
+import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -59,6 +60,13 @@ void main() {
       expect(floorToFractionDigits(33.75, 1), 33.7);
       expect(floorToFractionDigits(33.75, 0), 33);
       expect(floorToFractionDigits(0.29999999999, 1), 0.3);
+    });
+
+    test('rounds a best-mix oxygen percentage toward the leaner mix', () {
+      expect(floorToFractionDigits(35.16, 0), 35);
+      expect(floorToFractionDigits(31.94, 0), 31);
+      expect(floorToFractionDigits(35.0, 0), 35);
+      expect(floorToFractionDigits(0, 0), 0);
     });
 
     test('floors negative values toward minus infinity', () {

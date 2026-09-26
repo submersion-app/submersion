@@ -7900,11 +7900,6 @@ class SyncDataSerializer {
       'gfHigh': 70,
       'ppO2MaxWorking': 1.4,
       'ppO2MaxDeco': 1.6,
-      // Issue #2342. Added in v227; seeded so a payload from an older peer
-      // hydrates to the documented defaults rather than null.
-      'ccrSetpointLow': 0.7,
-      'ccrSetpointHigh': 1.3,
-      'ccrDiluentModPpO2': 1.6,
       'cnsWarningThreshold': 80,
       'ascentRateWarning': 9.0,
       'ascentRateCritical': 12.0,

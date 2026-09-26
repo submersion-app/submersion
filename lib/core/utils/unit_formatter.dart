@@ -696,16 +696,3 @@ class UnitFormatter {
   /// Get the date format pattern for direct use
   String get datePattern => settings.dateFormat.pattern;
 }
-
-/// [value] floored to [fractionDigits] decimals.
-///
-/// A tolerance of 1e-9 on the scaled value keeps a number that float noise
-/// put just below a grid line on that line: 40 m computed as 39.99999999999
-/// still shows as 40, not 39.
-double floorToFractionDigits(double value, int fractionDigits) {
-  var factor = 1.0;
-  for (var i = 0; i < fractionDigits; i++) {
-    factor *= 10;
-  }
-  return (value * factor + 1e-9).floorToDouble() / factor;
-}

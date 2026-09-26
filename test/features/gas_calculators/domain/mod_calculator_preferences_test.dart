@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/domain/mod_calculator_preferences.dart';
+import 'package:submersion/features/gas_calculators/domain/mod_limit_overrides.dart';
 
 void main() {
   group('defaults', () {
@@ -15,12 +16,11 @@ void main() {
       expect(p.rec.hePercent, 0);
       expect(p.ocTec.o2Percent, 21);
       expect(p.ocTec.hePercent, 35);
-      expect(p.setpointBar, isNull);
       expect(p.minPpO2, 0.18);
       expect(p.waterType, isNull);
-      expect(p.workingPpO2, isNull);
-      expect(p.decoPpO2, isNull);
-      expect(p.flushPpO2, isNull);
+      expect(p.overridesByDiver, isEmpty);
+      expect(p.overridesFor('diver-1'), ModLimitOverrides.none);
+      expect(p.overridesFor(null), ModLimitOverrides.none);
     });
   });
 
@@ -37,11 +37,21 @@ void main() {
   });
 
   group('overrides', () {
-    test('can be set and cleared again', () {
-      final set = ModCalculatorPreferences.defaults.copyWith(workingPpO2: 1.3);
-      expect(set.workingPpO2, 1.3);
-      final cleared = set.copyWith(clearWorkingPpO2: true);
-      expect(cleared.workingPpO2, isNull);
+    test('are kept per diver and never carry to another', () {
+      final p = ModCalculatorPreferences.defaults.withOverrides(
+        'diver-a',
+        const ModLimitOverrides(workingPpO2: 1.3),
+      );
+      expect(p.overridesFor('diver-a').workingPpO2, 1.3);
+      expect(p.overridesFor('diver-b'), ModLimitOverrides.none);
+      expect(p.overridesFor(null), ModLimitOverrides.none);
+    });
+
+    test('an empty set drops the diver entry', () {
+      final p = ModCalculatorPreferences.defaults
+          .withOverrides('diver-a', const ModLimitOverrides(decoPpO2: 1.5))
+          .withOverrides('diver-a', ModLimitOverrides.none);
+      expect(p.overridesByDiver, isEmpty);
     });
   });
 
@@ -52,11 +62,17 @@ void main() {
             mode: ModCalculatorMode.ccrTec,
             waterType: WaterType.fresh,
             minPpO2: 0.16,
-            workingPpO2: 1.3,
-            decoPpO2: 1.5,
-            flushPpO2: 1.4,
-            setpointBar: 1.2,
           )
+          .withOverrides(
+            'diver-a',
+            const ModLimitOverrides(
+              workingPpO2: 1.3,
+              decoPpO2: 1.5,
+              flushPpO2: 1.4,
+              setpointBar: 1.2,
+            ),
+          )
+          .withOverrides(null, const ModLimitOverrides(flushPpO2: 1.1))
           .withInputs(
             ModCalculatorMode.ccrTec,
             const ModModeInputs(
@@ -79,8 +95,11 @@ void main() {
         'ocTec': {'o2Percent': 'x', 'hePercent': 20},
         'waterType': 42,
         'minPpO2': 0.5,
-        'workingPpO2': 9.9,
-        'decoPpO2': 1.5,
+        'overrides': {
+          'diver-a': {'workingPpO2': 9.9, 'decoPpO2': 1.5},
+          'diver-b': 'not a map',
+          'diver-c': {'workingPpO2': 9.9},
+        },
       });
       expect(decoded.mode, ModCalculatorMode.rec);
       expect(decoded.rec, ModCalculatorPreferences.defaults.rec);
@@ -88,30 +107,34 @@ void main() {
       expect(decoded.ocTec.hePercent, 20);
       expect(decoded.waterType, isNull);
       expect(decoded.minPpO2, 0.18);
-      expect(decoded.workingPpO2, isNull);
-      expect(decoded.decoPpO2, 1.5);
+      expect(decoded.overridesFor('diver-a').workingPpO2, isNull);
+      expect(decoded.overridesFor('diver-a').decoPpO2, 1.5);
+      // Nothing valid left: no entry at all.
+      expect(decoded.overridesByDiver.keys, ['diver-a']);
     });
 
-    test('stored overrides are put back on their slider grids', () {
-      final decoded = ModCalculatorPreferences.fromJson({
-        'workingPpO2': 1.33,
-        'flushPpO2': 1.45,
-        'setpointBar': 1.26,
-      });
-      expect(decoded.workingPpO2, 1.35);
-      expect(decoded.flushPpO2, 1.5);
-      expect(decoded.setpointBar, 1.3);
+    test('only the water types the calculator offers are restored', () {
+      // Brackish would be computed while neither segment shows it.
+      for (final type in WaterType.values) {
+        final decoded = ModCalculatorPreferences.fromJson({
+          'waterType': type.name,
+        });
+        expect(
+          decoded.waterType,
+          type == WaterType.brackish ? isNull : type,
+          reason: type.name,
+        );
+      }
     });
 
     test('a flush ppO2 below 1.0 is kept, down to 0.5', () {
-      expect(
-        ModCalculatorPreferences.fromJson({'flushPpO2': 0.8}).flushPpO2,
-        0.8,
-      );
-      expect(
-        ModCalculatorPreferences.fromJson({'flushPpO2': 0.4}).flushPpO2,
-        isNull,
-      );
+      double? flush(double value) => ModCalculatorPreferences.fromJson({
+        'overrides': {
+          'd': {'flushPpO2': value},
+        },
+      }).overridesFor('d').flushPpO2;
+      expect(flush(0.8), 0.8);
+      expect(flush(0.4), isNull);
     });
 
     test('helium is clamped to the room the oxygen leaves', () {

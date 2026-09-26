@@ -7,10 +7,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gas_calculators/domain/mod_calculator_preferences.dart';
+import 'package:submersion/features/gas_calculators/domain/mod_limit_overrides.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mod_calculator_providers.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
+
+import '../../helpers/mock_providers.dart';
 
 class _FakeRepository extends AppSettingsRepository {
   _FakeRepository([this.stored]);
@@ -18,6 +22,10 @@ class _FakeRepository extends AppSettingsRepository {
   String? stored;
   final writes = <String>[];
   Completer<void>? readGate;
+  final ticks = StreamController<void>.broadcast();
+
+  @override
+  Stream<void> watchSettingsChanges() => ticks.stream;
 
   @override
   Future<String?> getRawSetting(String key) async {
@@ -48,6 +56,9 @@ ProviderContainer _container(
     overrides: [
       appSettingsRepositoryProvider.overrideWithValue(repo),
       settingsProvider.overrideWith((ref) => _FixedSettings(settings)),
+      currentDiverIdProvider.overrideWith(
+        (ref) => MockCurrentDiverIdNotifier()..state = 'diver-a',
+      ),
     ],
   );
   addTearDown(container.dispose);
@@ -57,10 +68,9 @@ ProviderContainer _container(
 void main() {
   group('ModCalculatorNotifier', () {
     test('restores the stored preferences', () async {
-      final stored = ModCalculatorPreferences.defaults.copyWith(
-        mode: ModCalculatorMode.ocTec,
-        workingPpO2: 1.3,
-      );
+      final stored = ModCalculatorPreferences.defaults
+          .copyWith(mode: ModCalculatorMode.ocTec)
+          .withOverrides('diver-a', const ModLimitOverrides(workingPpO2: 1.3));
       final repo = _FakeRepository(jsonEncode(stored.toJson()));
       final container = _container(repo);
       container.read(modCalculatorNotifierProvider);
@@ -145,15 +155,106 @@ void main() {
 
     test('an override equal to the profile value follows the profile', () {
       final container = _container(_FakeRepository());
+      ModLimitOverrides overrides() =>
+          container.read(modCalculatorNotifierProvider).overridesFor('diver-a');
       final notifier = container.read(modCalculatorNotifierProvider.notifier)
-        ..setWorkingPpO2(1.3, profileValue: 1.4);
-      expect(container.read(modCalculatorNotifierProvider).workingPpO2, 1.3);
-      notifier.setWorkingPpO2(1.4, profileValue: 1.4);
-      expect(container.read(modCalculatorNotifierProvider).workingPpO2, isNull);
+        ..setWorkingPpO2(1.3);
+      expect(overrides().workingPpO2, 1.3);
+      notifier.setWorkingPpO2(1.4);
+      expect(overrides().workingPpO2, isNull);
       notifier
-        ..setFlushPpO2(1.5, profileValue: 1.6)
+        ..setFlushPpO2(1.5)
         ..resetFlushPpO2();
-      expect(container.read(modCalculatorNotifierProvider).flushPpO2, isNull);
+      expect(overrides().flushPpO2, isNull);
+    });
+
+    test('overrides belong to the active diver', () async {
+      final container = _container(_FakeRepository());
+      container.read(modCalculatorNotifierProvider.notifier)
+        ..setWorkingPpO2(1.2)
+        ..setSetpoint(1.0);
+      expect(container.read(modCalculatorLimitsProvider).workingPpO2, 1.2);
+
+      await container
+          .read(currentDiverIdProvider.notifier)
+          .setCurrentDiver('diver-b');
+      final limits = container.read(modCalculatorLimitsProvider);
+      expect(limits.workingPpO2, 1.4, reason: 'diver-b follows the profile');
+      expect(limits.setpointBar, 1.3);
+      expect(limits.workingOverridden, isFalse);
+    });
+
+    test('raising working pulls deco up; lowering deco pulls working down', () {
+      final container = _container(_FakeRepository());
+      ModResolvedLimits limits() => container.read(modCalculatorLimitsProvider);
+      final notifier = container.read(modCalculatorNotifierProvider.notifier)
+        ..setDecoPpO2(1.5)
+        ..setWorkingPpO2(1.6);
+      expect(limits().workingPpO2, 1.6);
+      expect(limits().decoPpO2, 1.6);
+
+      notifier.setDecoPpO2(1.2);
+      expect(limits().decoPpO2, 1.2);
+      expect(limits().workingPpO2, 1.2);
+      expect(
+        container.read(modCalculatorInputsProvider).decoPpO2,
+        greaterThanOrEqualTo(
+          container.read(modCalculatorInputsProvider).workingPpO2,
+        ),
+      );
+
+      // Back to the profile deco (1.6) keeps working where it is.
+      notifier.resetDecoPpO2();
+      expect(limits().decoPpO2, 1.6);
+      expect(limits().workingPpO2, 1.2);
+    });
+
+    test(
+      'a change synced from another device reaches the open calculator',
+      () async {
+        final repo = _FakeRepository();
+        final container = _container(repo);
+        container.read(modCalculatorNotifierProvider);
+        await Future<void>.delayed(Duration.zero);
+
+        repo.stored = jsonEncode(
+          ModCalculatorPreferences.defaults
+              .copyWith(mode: ModCalculatorMode.ccrTec)
+              .toJson(),
+        );
+        repo.ticks.add(null);
+        await Future<void>.delayed(Duration.zero);
+        expect(
+          container.read(modCalculatorNotifierProvider).mode,
+          ModCalculatorMode.ccrTec,
+        );
+      },
+    );
+
+    test('a sync tick never overwrites an edit not yet saved', () {
+      fakeAsync((async) {
+        final repo = _FakeRepository(
+          jsonEncode(
+            ModCalculatorPreferences.defaults
+                .copyWith(mode: ModCalculatorMode.ccrTec)
+                .toJson(),
+          ),
+        );
+        final container = _container(repo);
+        container.read(modCalculatorNotifierProvider);
+        async.flushMicrotasks();
+        container
+            .read(modCalculatorNotifierProvider.notifier)
+            .setMode(ModCalculatorMode.ocTec);
+        repo.ticks.add(null);
+        async.flushMicrotasks();
+        expect(
+          container.read(modCalculatorNotifierProvider).mode,
+          ModCalculatorMode.ocTec,
+        );
+        async.elapse(ModCalculatorNotifier.saveDelay);
+        expect(repo.writes, hasLength(1));
+      });
     });
   });
 
@@ -176,7 +277,7 @@ void main() {
 
       container
           .read(modCalculatorNotifierProvider.notifier)
-          .setWorkingPpO2(1.2, profileValue: 1.3);
+          .setWorkingPpO2(1.2);
       inputs = container.read(modCalculatorInputsProvider);
       expect(inputs.workingPpO2, 1.2);
     });
@@ -193,14 +294,16 @@ void main() {
       // The diluent MOD follows the CCR profile, no longer the OC deco value.
       expect(inputs.flushPpO2, 1.45);
 
+      ModLimitOverrides overrides() =>
+          container.read(modCalculatorNotifierProvider).overridesFor('diver-a');
       final notifier = container.read(modCalculatorNotifierProvider.notifier)
-        ..setSetpoint(1.0, profileValue: 1.2);
+        ..setSetpoint(1.0);
       inputs = container.read(modCalculatorInputsProvider);
       expect(inputs.setpointBar, 1.0);
-      expect(container.read(modCalculatorNotifierProvider).setpointBar, 1.0);
+      expect(overrides().setpointBar, 1.0);
 
-      notifier.setSetpoint(1.2, profileValue: 1.2);
-      expect(container.read(modCalculatorNotifierProvider).setpointBar, isNull);
+      notifier.setSetpoint(1.2);
+      expect(overrides().setpointBar, isNull);
     });
 
     test('a profile value outside the calculator range is held to it', () {

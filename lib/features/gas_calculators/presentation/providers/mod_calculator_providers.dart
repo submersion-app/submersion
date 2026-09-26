@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
 import 'package:submersion/features/gas_calculators/domain/mod_calculator_preferences.dart';
+import 'package:submersion/features/gas_calculators/domain/mod_limit_overrides.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 
@@ -18,29 +21,49 @@ const String modCalculatorPrefsKey = 'gas_mod_calculator_prefs';
 
 const _log = LoggerService('ModCalculatorPreferences');
 
-/// The MOD calculator's inputs, restored on first use and saved after every
-/// change, like the blender's preferences.
+/// The MOD calculator's inputs, restored on first use, re-read when sync
+/// changes them, and saved after every change.
 ///
 /// Saves are debounced: dragging a slider is one database write once it
-/// settles, not one per frame.
+/// settles, not one per frame. The ppO2 limit overrides belong to the active
+/// diver, read through [_diverId] and resolved against [_profile].
 class ModCalculatorNotifier extends StateNotifier<ModCalculatorPreferences> {
-  ModCalculatorNotifier(this._repository)
-    : super(ModCalculatorPreferences.defaults) {
-    unawaited(_load());
+  ModCalculatorNotifier(
+    this._repository, {
+    required String? Function() diverId,
+    required ModProfileLimits Function() profile,
+  }) : _diverId = diverId,
+       _profile = profile,
+       super(ModCalculatorPreferences.defaults) {
+    unawaited(reload());
   }
 
   final AppSettingsRepository _repository;
+  final String? Function() _diverId;
+  final ModProfileLimits Function() _profile;
   Timer? _saveTimer;
+  bool _saving = false;
 
-  /// Set once the diver changes anything, so a load that finishes late never
-  /// overwrites an edit made meanwhile.
-  bool _edited = false;
+  /// Numbers each read in the order it started. An edit bumps it too, so a
+  /// read that began before an edit, or before a newer read, never publishes.
+  int _loadSeq = 0;
 
   static const Duration saveDelay = Duration(milliseconds: 500);
 
-  Future<void> _load() async {
+  bool get _hasUnsavedEdit => (_saveTimer?.isActive ?? false) || _saving;
+
+  /// Adopts the stored preferences.
+  ///
+  /// Runs on creation and on every settings tick, so a change synced from
+  /// another device reaches an open calculator. While an edit here is not yet
+  /// saved the stored value is older than the state and is ignored; the save
+  /// itself ticks again, and that read finds what was saved.
+  Future<void> reload() async {
+    final seq = ++_loadSeq;
     final raw = await _repository.getRawSetting(modCalculatorPrefsKey);
-    if (raw == null || _edited || !mounted) return;
+    if (raw == null || !mounted || seq != _loadSeq || _hasUnsavedEdit) {
+      return;
+    }
     try {
       final decoded = jsonDecode(raw);
       if (decoded is Map<String, dynamic>) {
@@ -57,7 +80,7 @@ class ModCalculatorNotifier extends StateNotifier<ModCalculatorPreferences> {
 
   void _update(ModCalculatorPreferences next) {
     if (next == state) return;
-    _edited = true;
+    _loadSeq++;
     state = next;
     _saveTimer?.cancel();
     _saveTimer = Timer(saveDelay, () => unawaited(_save()));
@@ -66,6 +89,7 @@ class ModCalculatorNotifier extends StateNotifier<ModCalculatorPreferences> {
   /// A failed write is logged rather than propagated: the value the diver
   /// chose is live in the calculator either way.
   Future<void> _save() async {
+    _saving = true;
     try {
       await _repository.setRawSetting(
         modCalculatorPrefsKey,
@@ -77,6 +101,8 @@ class ModCalculatorNotifier extends StateNotifier<ModCalculatorPreferences> {
         error: e,
         stackTrace: stackTrace,
       );
+    } finally {
+      _saving = false;
     }
   }
 
@@ -84,6 +110,13 @@ class ModCalculatorNotifier extends StateNotifier<ModCalculatorPreferences> {
 
   void _updateCurrent(ModModeInputs inputs) =>
       _update(state.withInputs(state.mode, inputs));
+
+  ModLimitOverrides get _overrides => state.overridesFor(_diverId());
+
+  void _updateOverrides(ModLimitOverrides overrides) =>
+      _update(state.withOverrides(_diverId(), overrides));
+
+  ModResolvedLimits get _resolved => resolveModLimits(_overrides, _profile());
 
   void setMode(ModCalculatorMode mode) => _update(state.copyWith(mode: mode));
 
@@ -99,16 +132,6 @@ class ModCalculatorNotifier extends StateNotifier<ModCalculatorPreferences> {
     ),
   );
 
-  /// Like the ppO2 limits: a value equal to the profile's high setpoint
-  /// clears the override.
-  void setSetpoint(double bar, {required double profileValue}) => _update(
-    _sameAs(bar, profileValue)
-        ? state.copyWith(clearSetpoint: true)
-        : state.copyWith(setpointBar: bar),
-  );
-
-  void resetSetpoint() => _update(state.copyWith(clearSetpoint: true));
-
   void setTargetDepth(double meters) =>
       _updateCurrent(_current.copyWith(targetDepthMeters: meters));
 
@@ -119,33 +142,46 @@ class ModCalculatorNotifier extends StateNotifier<ModCalculatorPreferences> {
 
   void setMinPpO2(double ppO2) => _update(state.copyWith(minPpO2: ppO2));
 
-  /// A value equal to the profile's clears the override, so the calculator
-  /// follows later profile changes again.
-  void setWorkingPpO2(double ppO2, {required double profileValue}) => _update(
-    _sameAs(ppO2, profileValue)
-        ? state.copyWith(clearWorkingPpO2: true)
-        : state.copyWith(workingPpO2: ppO2),
+  /// Working and deco are never inverted, the rule the profile keeps:
+  /// raising working pulls deco up with it, lowering deco pulls working
+  /// down. A value equal to the profile's is stored as "follow the profile".
+  void setWorkingPpO2(double ppO2) =>
+      _setWorkingDeco(ppO2, math.max(_resolved.decoPpO2, ppO2));
+
+  void setDecoPpO2(double ppO2) =>
+      _setWorkingDeco(math.min(_resolved.workingPpO2, ppO2), ppO2);
+
+  void resetWorkingPpO2() {
+    final working = _profile().workingPpO2;
+    _setWorkingDeco(working, math.max(_resolved.decoPpO2, working));
+  }
+
+  void resetDecoPpO2() {
+    final deco = _profile().decoPpO2;
+    _setWorkingDeco(math.min(_resolved.workingPpO2, deco), deco);
+  }
+
+  void _setWorkingDeco(double working, double deco) => _updateOverrides(
+    _overrides.withLimits(
+      workingPpO2: working,
+      decoPpO2: deco,
+      profile: _profile(),
+    ),
   );
 
-  void setDecoPpO2(double ppO2, {required double profileValue}) => _update(
-    _sameAs(ppO2, profileValue)
-        ? state.copyWith(clearDecoPpO2: true)
-        : state.copyWith(decoPpO2: ppO2),
-  );
+  void setFlushPpO2(double ppO2) =>
+      _updateOverrides(_overrides.withFlushPpO2(ppO2, _profile()));
 
-  void setFlushPpO2(double ppO2, {required double profileValue}) => _update(
-    _sameAs(ppO2, profileValue)
-        ? state.copyWith(clearFlushPpO2: true)
-        : state.copyWith(flushPpO2: ppO2),
-  );
+  void resetFlushPpO2() =>
+      _updateOverrides(_overrides.withFlushPpO2(null, _profile()));
 
-  void resetWorkingPpO2() => _update(state.copyWith(clearWorkingPpO2: true));
-  void resetDecoPpO2() => _update(state.copyWith(clearDecoPpO2: true));
-  void resetFlushPpO2() => _update(state.copyWith(clearFlushPpO2: true));
+  void setSetpoint(double bar) =>
+      _updateOverrides(_overrides.withSetpoint(bar, _profile()));
+
+  void resetSetpoint() =>
+      _updateOverrides(_overrides.withSetpoint(null, _profile()));
 
   void reset() => _update(ModCalculatorPreferences.defaults);
-
-  static bool _sameAs(double a, double b) => (a - b).abs() < 1e-9;
 
   /// A pending save still goes out when the notifier goes away.
   @override
@@ -159,9 +195,23 @@ class ModCalculatorNotifier extends StateNotifier<ModCalculatorPreferences> {
 }
 
 final modCalculatorNotifierProvider =
-    StateNotifierProvider<ModCalculatorNotifier, ModCalculatorPreferences>(
-      (ref) => ModCalculatorNotifier(ref.read(appSettingsRepositoryProvider)),
-    );
+    StateNotifierProvider<ModCalculatorNotifier, ModCalculatorPreferences>((
+      ref,
+    ) {
+      final repository = ref.read(appSettingsRepositoryProvider);
+      final notifier = ModCalculatorNotifier(
+        repository,
+        diverId: () => ref.read(currentDiverIdProvider),
+        profile: () => modProfileLimits(ref.read(settingsProvider)),
+      );
+      // A change arriving from sync ticks the settings table. The tick fires
+      // for every key; a re-read that finds the same value changes nothing.
+      final subscription = repository.watchSettingsChanges().listen(
+        (_) => unawaited(notifier.reload()),
+      );
+      ref.onDispose(subscription.cancel);
+      return notifier;
+    });
 
 /// The water type the Tec modes use: the diver's choice, else the planner's
 /// default. A custom salinity maps to salt, the sea water it defaults to.
@@ -191,21 +241,42 @@ double modProfileFlushPpO2(AppSettings settings) => settings.ccrDiluentModPpO2
     .clamp(modFlushPpO2Min, modFlushPpO2Max)
     .toDouble();
 
+/// The active diver's profile limits: the OC ppO2 limits for Rec and OC
+/// Tec, the CCR ppO2 limits for CCR Tec.
+ModProfileLimits modProfileLimits(AppSettings settings) => ModProfileLimits(
+  workingPpO2: settings.ppO2MaxWorking,
+  decoPpO2: settings.ppO2MaxDeco,
+  flushPpO2: modProfileFlushPpO2(settings),
+  setpointBar: modProfileSetpoint(settings),
+);
+
+/// The ppO2 limits in effect for the active diver, and which of them differ
+/// from their profile.
+final modCalculatorLimitsProvider = Provider<ModResolvedLimits>((ref) {
+  final prefs = ref.watch(modCalculatorNotifierProvider);
+  final diverId = ref.watch(currentDiverIdProvider);
+  final settings = ref.watch(settingsProvider);
+  return resolveModLimits(
+    prefs.overridesFor(diverId),
+    modProfileLimits(settings),
+  );
+});
+
 /// The calculator inputs with every override resolved against the active
-/// diver's profile: the OC ppO2 limits for Rec and OC Tec, the CCR ppO2
-/// limits for CCR Tec.
+/// diver's profile.
 final modCalculatorInputsProvider = Provider<GasLimitsInputs>((ref) {
   final prefs = ref.watch(modCalculatorNotifierProvider);
   final settings = ref.watch(settingsProvider);
+  final limits = ref.watch(modCalculatorLimitsProvider);
   final mode = prefs.inputsFor(prefs.mode);
   return GasLimitsInputs(
     mode: prefs.mode,
     o2Percent: mode.o2Percent,
     hePercent: mode.hePercent,
-    workingPpO2: prefs.workingPpO2 ?? settings.ppO2MaxWorking,
-    decoPpO2: prefs.decoPpO2 ?? settings.ppO2MaxDeco,
-    flushPpO2: prefs.flushPpO2 ?? modProfileFlushPpO2(settings),
-    setpointBar: prefs.setpointBar ?? modProfileSetpoint(settings),
+    workingPpO2: limits.workingPpO2,
+    decoPpO2: limits.decoPpO2,
+    flushPpO2: limits.flushPpO2,
+    setpointBar: limits.setpointBar,
     minPpO2: prefs.minPpO2,
     endLimitMeters: settings.endLimit,
     o2Narcotic: settings.o2Narcotic,

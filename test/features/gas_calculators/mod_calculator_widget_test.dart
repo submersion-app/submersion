@@ -3,12 +3,16 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/gas_calculators/domain/gas_limits.dart';
+import 'package:submersion/features/gas_calculators/domain/mod_limit_overrides.dart';
 import 'package:submersion/features/gas_calculators/presentation/providers/mod_calculator_providers.dart';
 import 'package:submersion/features/gas_calculators/presentation/widgets/mod_calculator.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
+
+import '../../helpers/mock_providers.dart';
 
 class _MemoryRepository extends AppSettingsRepository {
   String? stored;
@@ -40,6 +44,9 @@ Future<ProviderContainer> _pump(
       overrides: [
         appSettingsRepositoryProvider.overrideWithValue(_MemoryRepository()),
         settingsProvider.overrideWith((ref) => _FixedSettings(settings)),
+        currentDiverIdProvider.overrideWith(
+          (ref) => MockCurrentDiverIdNotifier(),
+        ),
       ],
       child: const MaterialApp(
         locale: Locale('en'),
@@ -145,16 +152,17 @@ void main() {
     final container = await _pump(tester);
     expect(find.text('From your diver profile'), findsOneWidget);
 
-    container
-        .read(modCalculatorNotifierProvider.notifier)
-        .setWorkingPpO2(1.3, profileValue: 1.4);
+    container.read(modCalculatorNotifierProvider.notifier).setWorkingPpO2(1.3);
     await _settle(tester);
 
     expect(find.text('Differs from your profile (1.40 bar)'), findsOneWidget);
     await tester.tap(find.text('Use profile value'));
     await _settle(tester);
     expect(find.text('From your diver profile'), findsOneWidget);
-    expect(container.read(modCalculatorNotifierProvider).workingPpO2, isNull);
+    expect(
+      container.read(modCalculatorNotifierProvider).overridesFor(null),
+      ModLimitOverrides.none,
+    );
   });
 
   testWidgets('a target deeper than the MOD is a danger', (tester) async {
@@ -192,8 +200,8 @@ void main() {
       notifier
         ..setMode(mode)
         ..setCheckTargetDepth(true)
-        ..setWorkingPpO2(1.3, profileValue: 1.4)
-        ..setFlushPpO2(1.5, profileValue: 1.6);
+        ..setWorkingPpO2(1.3)
+        ..setFlushPpO2(1.5);
       await _settle(tester);
       expect(tester.takeException(), isNull, reason: mode.name);
     }

@@ -28,6 +28,7 @@ class ModInputCard extends ConsumerWidget {
     final settings = ref.watch(settingsProvider);
     final units = UnitFormatter(settings);
     final prefs = ref.watch(modCalculatorNotifierProvider);
+    final limits = ref.watch(modCalculatorLimitsProvider);
     final notifier = ref.read(modCalculatorNotifierProvider.notifier);
     final mode = prefs.mode;
     final inputs = prefs.inputsFor(mode);
@@ -140,13 +141,10 @@ class ModInputCard extends ConsumerWidget {
                 max: modSetpointMaxBar,
                 step: 0.1,
                 fractionDigits: 1,
-                value: prefs.setpointBar ?? modProfileSetpoint(settings),
+                value: limits.setpointBar,
                 profileValue: settings.ccrSetpointHigh,
-                isOverridden: prefs.setpointBar != null,
-                onChanged: (v) => notifier.setSetpoint(
-                  v,
-                  profileValue: modProfileSetpoint(settings),
-                ),
+                isOverridden: limits.setpointOverridden,
+                onChanged: notifier.setSetpoint,
                 onReset: notifier.resetSetpoint,
               ),
             ],
@@ -160,10 +158,7 @@ class ModInputCard extends ConsumerWidget {
                     label: l10n.decoCalculator_waterType,
                     child: SegmentedButton<WaterType>(
                       segments: [
-                        for (final type in const [
-                          WaterType.salt,
-                          WaterType.fresh,
-                        ])
+                        for (final type in ModCalculatorPreferences.waterTypes)
                           ButtonSegment(
                             value: type,
                             label: Text(type.localizedName(l10n)),

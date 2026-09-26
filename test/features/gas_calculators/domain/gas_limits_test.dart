@@ -277,27 +277,30 @@ void main() {
       expect(r.flushPpO2AtTarget, greaterThan(1.1));
     });
 
-    test('with a target depth the MND is the loop\'s', () {
-      // O2 narcotic: a loop at 1.3 carries more O2 than the diluent at
-      // moderate depths, so it reaches the END limit shallower.
-      final diluent = computeGasLimits(ccr(setpoint: 1.3));
-      final loop = computeGasLimits(ccr(setpoint: 1.3, target: 30));
-      expect(loop.mndMeters, lessThan(diluent.mndMeters!));
-      // And it agrees with the narcosis check at the target.
-      final atMnd = computeGasLimits(
-        ccr(setpoint: 1.3, target: loop.mndMeters! + 0.5),
-      );
-      expect(atMnd.atTarget!.exceedsEndLimit, isTrue);
-    });
-
-    test('without a target the MND is the flushed diluent\'s', () {
-      final low = computeGasLimits(ccr(setpoint: 0.7));
-      final high = computeGasLimits(ccr(setpoint: 1.3));
+    test('the MND is the flushed diluent\'s, with or without a target', () {
+      // Like the MOD column: the MND does not change meaning when the
+      // target depth is switched on. The loop's narcosis at the target is
+      // judged by the target column instead.
       final oc = computeGasLimits(
         _inputs(mode: ModCalculatorMode.ocTec, o2: 21, he: 35),
       );
-      expect(low.mndMeters, closeTo(high.mndMeters!, 1e-6));
-      expect(low.mndMeters, closeTo(oc.mndMeters!, 1e-6));
+      for (final r in [
+        computeGasLimits(ccr(setpoint: 0.7)),
+        computeGasLimits(ccr(setpoint: 1.3)),
+        computeGasLimits(ccr(setpoint: 1.3, target: 30)),
+      ]) {
+        expect(r.mndMeters, closeTo(oc.mndMeters!, 1e-6));
+      }
+    });
+
+    test('the loop at the target is still judged for narcosis', () {
+      // O2 narcotic: a loop at 1.3 carries more O2 than the diluent at
+      // moderate depths, so it can pass the END limit shallower than the MND.
+      final diluent = computeGasLimits(ccr(setpoint: 1.3));
+      final atMnd = computeGasLimits(
+        ccr(setpoint: 1.3, target: diluent.mndMeters!),
+      );
+      expect(atMnd.atTarget!.exceedsEndLimit, isTrue);
     });
 
     test('OC and Rec have no flush ppO2', () {

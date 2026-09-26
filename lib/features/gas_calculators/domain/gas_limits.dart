@@ -46,9 +46,9 @@ const double modLimitPpO2Max = 1.6;
 const double modFlushPpO2Min = 0.5;
 const double modFlushPpO2Max = 1.6;
 
-/// Deepest depth the MND search looks at. A mix still within the END limit
+/// Deepest depth the MND is reported to. A mix still within the END limit
 /// there has no practical narcotic limit.
-const double _mndSearchCeilingMeters = 300;
+const double _mndCeilingMeters = 300;
 
 class GasLimitsInputs {
   final ModCalculatorMode mode;
@@ -313,13 +313,18 @@ GasLimitsResult computeGasLimits(GasLimitsInputs inputs) {
     secondaryModMeters: secondaryMod,
     secondaryPpO2: secondaryPpO2,
     minDepthMeters: minDepth,
-    // On CCR the setpoint only applies with a target depth. With one, the
-    // MND is the loop's, so it agrees with the narcosis check at the target
-    // (a loop above the diluent's ppO2 is more narcotic when O2 counts);
-    // without one, it is the flushed diluent's, like the MOD column.
-    mndMeters: isRec
+    // On CCR the MND is the flushed diluent's, like the MOD column, whether
+    // or not a target is set: the loop's narcosis at the target is judged by
+    // the target column.
+    mndMeters: environment == null
         ? null
-        : _mnd(inputs.endLimitMeters, (d) => assess(d, onLoop: target != null)),
+        : _mnd(
+            endLimit: inputs.endLimitMeters,
+            fO2: fO2,
+            fN2: (100.0 - o2 - he) / 100,
+            o2Narcotic: inputs.o2Narcotic,
+            environment: environment,
+          ),
     atMod: assess(math.max(mod, 0.0), onLoop: false),
     atTarget: atTarget,
     beyondRecreationalLimit: isRec && mod > recreationalDepthLimitMeters,
@@ -404,26 +409,24 @@ DepthAssessment _assess({
   );
 }
 
-/// Deepest depth whose narcotic depth stays within [endLimit].
+/// Deepest depth of an open-circuit gas whose narcotic depth stays within
+/// [endLimit], or null when it stays within it to [_mndCeilingMeters].
 ///
-/// Bisection rather than a closed form, because on a CCR loop the gas
-/// changes with depth: the narcotic depth still only grows with depth, so
-/// the search is well defined for every mode.
-double? _mnd(double endLimit, DepthAssessment Function(double) assess) {
-  if (assess(_mndSearchCeilingMeters).narcoticDepthMeters <= endLimit) {
-    return null;
-  }
-  var low = 0.0;
-  var high = _mndSearchCeilingMeters;
-  if (assess(low).narcoticDepthMeters > endLimit) return 0;
-  // 30 halvings of 300 m resolve to well under a micrometer.
-  for (var i = 0; i < 30; i++) {
-    final mid = (low + high) / 2;
-    if (assess(mid).narcoticDepthMeters > endLimit) {
-      high = mid;
-    } else {
-      low = mid;
-    }
-  }
-  return low;
+/// The narcotic gas is a fixed fraction k of the ambient pressure (N2 over
+/// air's N2 for EAD, N2 plus O2 for END), so it stays within the limit while
+/// the ambient pressure is at most the limit's pressure divided by k.
+double? _mnd({
+  required double endLimit,
+  required double fO2,
+  required double fN2,
+  required bool o2Narcotic,
+  required DiveEnvironment environment,
+}) {
+  final k = o2Narcotic ? fN2 + fO2 : fN2 / airN2Fraction;
+  if (k <= 0) return null;
+  final depth = environment.depthAtPressure(
+    environment.pressureAtDepth(endLimit) / k,
+  );
+  if (depth >= _mndCeilingMeters) return null;
+  return math.max(depth, 0.0);
 }
