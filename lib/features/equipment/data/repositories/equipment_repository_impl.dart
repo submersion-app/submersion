@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import 'package:submersion/core/data/repositories/sync_repository.dart';
+import 'package:submersion/core/data/visibility/visibility_filter.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
@@ -85,9 +86,7 @@ class EquipmentRepository {
           (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
 
-      if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
-      }
+      VisibilityFilter.applyToEquipment(_db, query, diverId);
 
       final rows = await query.get();
       return await _mapRowsWithAttributes(
@@ -119,9 +118,7 @@ class EquipmentRepository {
         )
         ..orderBy([(t) => OrderingTerm.asc(t.name.collate(Collate.noCase))]);
 
-      if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
-      }
+      VisibilityFilter.applyToEquipment(_db, query, diverId);
 
       final rows = await query.get();
       return await _mapRowsWithAttributes(sortedByText(rows, (r) => r.name));
@@ -160,9 +157,7 @@ class EquipmentRepository {
           (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
 
-      if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
-      }
+      VisibilityFilter.applyToEquipment(_db, query, diverId);
 
       final rows = await query.get();
       return await _mapRowsWithAttributes(
@@ -199,9 +194,7 @@ class EquipmentRepository {
           (t) => OrderingTerm.asc(t.name.collate(Collate.noCase)),
         ]);
 
-      if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
-      }
+      VisibilityFilter.applyToEquipment(_db, query, diverId);
 
       final rows = await query.get();
       return await _mapRowsWithAttributes(
@@ -276,6 +269,27 @@ class EquipmentRepository {
       );
       rethrow;
     }
+  }
+
+  /// Whether [diverId] owns [equipmentId] or holds a share of it.
+  Future<bool> isVisibleTo(String equipmentId, String diverId) async =>
+      (await visibleIdsAmong([equipmentId], diverId)).isNotEmpty;
+
+  /// The subset of [ids] visible to [diverId] (owned or shared), in one
+  /// statement per 450 ids (each chunk binds the ids plus the diver twice).
+  Future<Set<String>> visibleIdsAmong(
+    Iterable<String> ids,
+    String diverId,
+  ) async {
+    final list = ids.toSet().toList();
+    final visible = <String>{};
+    for (var i = 0; i < list.length; i += 450) {
+      final chunk = list.sublist(i, (i + 450).clamp(0, list.length));
+      final query = _db.select(_db.equipment)..where((t) => t.id.isIn(chunk));
+      VisibilityFilter.applyToEquipment(_db, query, diverId);
+      visible.addAll((await query.get()).map((r) => r.id));
+    }
+    return visible;
   }
 
   /// Create new equipment. With [notify] false the caller notifies sync once
@@ -817,9 +831,7 @@ class EquipmentRepository {
         ..where((t) => t.lastServiceDate.isNotNull())
         ..where((t) => t.serviceIntervalDays.isNotNull());
 
-      if (diverId != null) {
-        query.where((t) => t.diverId.equals(diverId));
-      }
+      VisibilityFilter.applyToEquipment(_db, query, diverId);
 
       final rows = await query.get();
       return await _mapRowsWithAttributes(rows);
@@ -842,15 +854,20 @@ class EquipmentRepository {
   }) async {
     try {
       final searchTerm = '%${query.toLowerCase()}%';
-      // Qualified: tags has a diver_id and a name column too.
-      final diverFilter = diverId != null ? 'AND e.diver_id = ?' : '';
+      // Qualified: tags has a diver_id and a name column too. Owned or
+      // shared with [diverId] (issue #2046).
+      final visibility = VisibilityFilter.equipmentSqlFragment(
+        tableAlias: 'e',
+        diverId: diverId,
+        conjunction: 'AND',
+      );
       final variables = [
         Variable.withString(searchTerm),
         Variable.withString(searchTerm),
         Variable.withString(searchTerm),
         Variable.withString(searchTerm),
         Variable.withString(searchTerm),
-        if (diverId != null) Variable.withString(diverId),
+        ...visibility.variables,
       ];
 
       final results = await _db.customSelect('''
@@ -862,7 +879,7 @@ class EquipmentRepository {
            OR LOWER(e.model) LIKE ?
            OR LOWER(e.serial_number) LIKE ?
            OR LOWER(t.name) LIKE ?)
-        $diverFilter
+        ${visibility.whereClause}
         ORDER BY e.is_active DESC, e.type ASC, e.name COLLATE NOCASE ASC
       ''', variables: variables).get();
 
@@ -874,6 +891,7 @@ class EquipmentRepository {
       final items = ordered.map((row) {
         return EquipmentItem(
           id: row.data['id'] as String,
+          diverId: row.data['diver_id'] as String?,
           name: row.data['name'] as String,
           type: EquipmentType.values.firstWhere(
             (t) => t.name == row.data['type'],
@@ -912,6 +930,9 @@ class EquipmentRepository {
                     .cast<int>()
               : null,
           parentEquipmentId: row.data['parent_equipment_id'] as String?,
+          createdAt: DateTime.fromMillisecondsSinceEpoch(
+            row.data['created_at'] as int,
+          ),
         );
       }).toList();
       final attrsById = await getAttributesForEquipmentIds(

@@ -25,6 +25,7 @@ import 'package:submersion/features/equipment/domain/services/battery_cycles.dar
 import 'package:submersion/features/equipment/domain/services/exposure_classifier.dart';
 import 'package:submersion/features/equipment/domain/services/service_due_engine.dart';
 import 'package:submersion/features/equipment/presentation/providers/exposure_thresholds_provider.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_share_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_tag_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/notifications/presentation/providers/notification_providers.dart';
@@ -50,6 +51,10 @@ final activeEquipmentProvider = FutureProvider<List<EquipmentItem>>((
     validatedCurrentDiverIdProvider.future,
   );
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  // Shared gear (issue #2046) comes and goes with a share row.
+  ref.invalidateSelfWhen(
+    ref.read(equipmentShareRepositoryProvider).watchChanges(),
+  );
   // The list filters on hydrated attributes (#1805), and saveAttributes
   // or a sync pull writes only equipment_attributes.
   ref.invalidateSelfWhen(repository.watchAttributeChanges());
@@ -65,6 +70,10 @@ final retiredEquipmentProvider = FutureProvider<List<EquipmentItem>>((
     validatedCurrentDiverIdProvider.future,
   );
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  // Shared gear (issue #2046) comes and goes with a share row.
+  ref.invalidateSelfWhen(
+    ref.read(equipmentShareRepositoryProvider).watchChanges(),
+  );
   return repository.getRetiredEquipment(diverId: validatedDiverId);
 });
 
@@ -79,6 +88,10 @@ final equipmentByStatusProvider =
         validatedCurrentDiverIdProvider.future,
       );
       ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+      // Shared gear (issue #2046) comes and goes with a share row.
+      ref.invalidateSelfWhen(
+        ref.read(equipmentShareRepositoryProvider).watchChanges(),
+      );
       // The list filters on hydrated attributes (#1805), and saveAttributes
       // or a sync pull writes only equipment_attributes.
       ref.invalidateSelfWhen(repository.watchAttributeChanges());
@@ -101,6 +114,10 @@ final allEquipmentProvider = FutureProvider<List<EquipmentItem>>((ref) async {
   );
 
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  // Shared gear (issue #2046) comes and goes with a share row.
+  ref.invalidateSelfWhen(
+    ref.read(equipmentShareRepositoryProvider).watchChanges(),
+  );
   // The list filters on hydrated attributes (#1805), and saveAttributes
   // or a sync pull writes only equipment_attributes.
   ref.invalidateSelfWhen(repository.watchAttributeChanges());
@@ -373,6 +390,10 @@ final equipmentSearchProvider =
       }
       final repository = ref.watch(equipmentRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+      // Shared gear (issue #2046) comes and goes with a share row.
+      ref.invalidateSelfWhen(
+        ref.read(equipmentShareRepositoryProvider).watchChanges(),
+      );
       // Tag names match too (issue #1942): a rename or a new link must
       // refresh the results.
       ref.invalidateSelfWhen(
@@ -966,6 +987,10 @@ final activeEquipmentClocksProvider = FutureProvider<List<EquipmentClocks>>((
     validatedCurrentDiverIdProvider.future,
   );
   ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+  // Shared gear (issue #2046) comes and goes with a share row.
+  ref.invalidateSelfWhen(
+    ref.read(equipmentShareRepositoryProvider).watchChanges(),
+  );
   // Install dates and slots decide which dives a part owns. Rare writes,
   // unlike the dive detail stream (media ticks it), which would re-evaluate
   // every item's clocks far too often for a list-wide provider.
@@ -1050,6 +1075,10 @@ final tripServiceAlertsProvider = FutureProvider.family<List<DueClock>, String>(
       validatedCurrentDiverIdProvider.future,
     );
     ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+    // Shared gear (issue #2046) comes and goes with a share row.
+    ref.invalidateSelfWhen(
+      ref.read(equipmentShareRepositoryProvider).watchChanges(),
+    );
     _invalidateOnServiceLedgerChanges(ref);
 
     final items = await repository.getActiveEquipment(
