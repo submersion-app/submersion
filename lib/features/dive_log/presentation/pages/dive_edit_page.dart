@@ -1753,7 +1753,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             controller: _visibilityController,
             suffixText: UnitFormatter(ref.read(settingsProvider)).depthSymbol,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            inputValidator: numberValidator(context),
+            inputValidator: _bulkValidator(BulkField.visibility),
           ),
         ),
         _gatedRow(
@@ -1788,7 +1788,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             suffixText: units.depthSymbol,
             keyboardType: TextInputType.number,
             alwaysEditing: true,
-            inputValidator: numberValidator(context),
+            inputValidator: _bulkValidator(BulkField.swellHeight),
           ),
         ),
         _gatedRow(
@@ -1822,7 +1822,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             controller: _altitudeController,
             keyboardType: TextInputType.number,
             alwaysEditing: true,
-            inputValidator: numberValidator(context),
+            inputValidator: _bulkValidator(BulkField.altitude),
           ),
         ),
         _gatedRow(
@@ -1832,7 +1832,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             controller: _surfacePressureController,
             keyboardType: TextInputType.number,
             alwaysEditing: true,
-            inputValidator: numberValidator(context),
+            inputValidator: _bulkValidator(BulkField.surfacePressure),
           ),
         ),
       ],
@@ -1852,7 +1852,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             controller: _windSpeedController,
             keyboardType: TextInputType.number,
             alwaysEditing: true,
-            inputValidator: numberValidator(context),
+            inputValidator: _bulkValidator(BulkField.windSpeed),
           ),
         ),
         _gatedRow(
@@ -1898,7 +1898,7 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             controller: _humidityController,
             keyboardType: TextInputType.number,
             alwaysEditing: true,
-            inputValidator: numberValidator(context),
+            inputValidator: _bulkValidator(BulkField.humidity),
           ),
         ),
         _gatedRow(
@@ -1912,6 +1912,12 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
       ],
     );
   }
+
+  /// The number validator for bulk row [field], or none while the row is
+  /// switched off: text in a row that will not be written must not block
+  /// the save (#1900 review).
+  FormFieldValidator<String>? _bulkValidator(BulkField field) =>
+      _bulkEnabled.contains(field) ? numberValidator(context) : null;
 
   /// A bulk-edit number. It has no controller of its own, so it owns one
   /// through [_bulkNumberControllers]; [_saveBulk] validates the form first,
@@ -1928,6 +1934,8 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
     return NumberField(
       controller: controller,
       integer: integer,
+      // A switched-off row is not written, so it cannot block the save.
+      validates: _bulkEnabled.contains(field),
       decoration: const InputDecoration(isDense: true),
       onChanged: (read) => switch (read) {
         NumberValue(:final value) => onChanged(value),

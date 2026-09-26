@@ -12841,6 +12841,7 @@
   "numberInput_invalidNumber": "Gib eine gültige Zahl ein (Dezimaltrennzeichen: \"{separator}\")",
   "numberInput_invalidWholeNumber": "Geben Sie eine ganze Zahl ein",
   "numberInput_required": "Erforderlich",
+  "numberInput_notNegative": "Geben Sie 0 oder mehr ein",
   "diveCenters_rental_sectionTitle": "Leihausrüstung",
   "diveCenters_rental_lastTimeAt": "Letztes Mal bei {center}",
   "diveCenters_rental_lastDiveOn": "Letzter Tauchgang hier: {date}",

@@ -42833,6 +42833,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get numberInput_required => 'Obbligatorio';
 
   @override
+  String get numberInput_notNegative => 'Inserisci 0 o più';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'Attrezzatura a noleggio';
 
   @override

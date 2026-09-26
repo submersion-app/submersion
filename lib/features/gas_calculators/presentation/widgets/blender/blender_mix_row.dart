@@ -218,7 +218,8 @@ class BlenderMixRow extends StatelessWidget {
       listenable: controller,
       builder: (context, _) {
         final errorText =
-            invalidNumberText(context, controller.text) ?? sharedErrorText;
+            invalidNumberText(context, controller.text, allowNegative: false) ??
+            sharedErrorText;
         return TextField(
           controller: controller,
           keyboardType: const TextInputType.numberWithOptions(decimal: true),

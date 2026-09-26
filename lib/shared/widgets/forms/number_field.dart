@@ -44,6 +44,7 @@ class NumberField extends StatelessWidget {
     this.decoration = const InputDecoration(),
     this.integer = false,
     this.allowNegative = false,
+    this.validates = true,
     this.required = false,
     this.check,
     this.focusNode,
@@ -60,9 +61,14 @@ class NumberField extends StatelessWidget {
   final InputDecoration decoration;
   final bool integer;
 
-  /// Offers a signed keyboard. The input filter keeps a minus sign either
-  /// way, so a typed "-5" is never silently read as 5.
+  /// Accepts a value below zero and offers a signed keyboard. Off, a typed
+  /// "-5" is kept by the filter and refused with a message, never silently
+  /// read as 5.
   final bool allowNegative;
+
+  /// False skips validation, for a field whose value is not going to be
+  /// used, such as a bulk-edit row that is switched off.
+  final bool validates;
   final bool required;
   final String? Function(double value)? check;
   final FocusNode? focusNode;
@@ -93,13 +99,18 @@ class NumberField extends StatelessWidget {
       ),
       inputFormatters: numberInputFormatters(),
       autovalidateMode: AutovalidateMode.onUserInteraction,
-      validator: numberValidator(
-        context,
-        integer: integer,
-        required: required,
-        check: check,
+      validator: validates
+          ? numberValidator(
+              context,
+              integer: integer,
+              required: required,
+              allowNegative: allowNegative,
+              check: check,
+            )
+          : null,
+      onChanged: (text) => onChanged(
+        readNumber(text, integer: integer, allowNegative: allowNegative),
       ),
-      onChanged: (text) => onChanged(readNumber(text, integer: integer)),
       onEditingComplete: onEditingComplete,
       onFieldSubmitted: onFieldSubmitted,
     );

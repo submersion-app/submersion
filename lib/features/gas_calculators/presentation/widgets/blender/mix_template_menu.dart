@@ -193,7 +193,7 @@ class _TemplateEditDialogState extends State<_TemplateEditDialog> {
   }
 
   static double? _percent(TextEditingController controller) =>
-      switch (readNumber(controller.text)) {
+      switch (readNumber(controller.text, allowNegative: false)) {
         NumberValue(:final value) => value,
         NumberBlank() || NumberInvalid() => null,
       };

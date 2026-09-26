@@ -16,7 +16,7 @@ import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 ///
 /// Unreadable text keeps [previous] too, while the field shows its error.
 double mixPercentOrKeep(String text, double previous) =>
-    switch (readNumber(text)) {
+    switch (readNumber(text, allowNegative: false)) {
       NumberValue(:final value) => value,
       NumberBlank() || NumberInvalid() => previous,
     };
@@ -27,8 +27,9 @@ double mixPercentOrKeep(String text, double previous) =>
 /// Null for unreadable text, so the caller keeps the pressure it has. Reading
 /// it as zero, as this once did, turned a mistyped fill pressure into an
 /// empty cylinder while the field showed its error (#1900).
-double? pressureOrKeep(String text) => switch (readNumber(text)) {
-  NumberValue(:final value) => value,
-  NumberBlank() => 0,
-  NumberInvalid() => null,
-};
+double? pressureOrKeep(String text) =>
+    switch (readNumber(text, allowNegative: false)) {
+      NumberValue(:final value) => value,
+      NumberBlank() => 0,
+      NumberInvalid() => null,
+    };

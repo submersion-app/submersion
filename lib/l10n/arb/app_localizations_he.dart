@@ -41980,6 +41980,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get numberInput_required => 'שדה חובה';
 
   @override
+  String get numberInput_notNegative => 'הזן 0 או יותר';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'ציוד מושכר';
 
   @override

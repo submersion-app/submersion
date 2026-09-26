@@ -12741,6 +12741,7 @@
   "numberInput_invalidNumber": "أدخل رقمًا صالحًا (الفاصلة العشرية: \"{separator}\")",
   "numberInput_invalidWholeNumber": "أدخل عددًا صحيحًا",
   "numberInput_required": "مطلوب",
+  "numberInput_notNegative": "أدخل 0 أو أكثر",
   "diveCenters_rental_sectionTitle": "معدات مستأجرة",
   "diveCenters_rental_lastTimeAt": "آخر مرة في {center}",
   "diveCenters_rental_lastDiveOn": "آخر غوصة هنا: {date}",

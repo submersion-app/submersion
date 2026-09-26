@@ -26418,6 +26418,7 @@
   },
   "numberInput_invalidWholeNumber": "Enter a whole number",
   "numberInput_required": "Required",
+  "numberInput_notNegative": "Enter 0 or more",
   "diveCenters_rental_sectionTitle": "Rental gear",
   "diveCenters_rental_lastTimeAt": "Last time at {center}",
   "@diveCenters_rental_lastTimeAt": {"placeholders": {"center": {"type": "Object"}}},

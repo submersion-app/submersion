@@ -67,6 +67,22 @@ void main() {
     });
   });
 
+  group('non-negative fields (#1900 review)', () {
+    test('readNumber reports a negative as unreadable when not allowed', () {
+      Intl.defaultLocale = 'en_US';
+      expect(readNumber('-5'), const NumberValue(-5));
+      expect(readNumber('-5', allowNegative: false), const NumberInvalid());
+      expect(readNumber('5', allowNegative: false), const NumberValue(5));
+    });
+
+    test('LiveNumber keeps its last value for a negative by default', () {
+      Intl.defaultLocale = 'en_US';
+      final live = LiveNumber(200);
+      expect(live.resolve('-50'), 200);
+      expect(LiveNumber(0, allowNegative: true).resolve('-50'), -50);
+    });
+  });
+
   group('LiveNumber', () {
     test('reports readable values and remembers them', () {
       Intl.defaultLocale = 'en_US';
@@ -157,6 +173,22 @@ void main() {
       expect(validator('5'), isNull);
       expect(validator(''), isNull);
       expect(validator('x'), startsWith('Enter a valid number'));
+    });
+
+    testWidgets('a negative where none is allowed asks for 0 or more', (
+      tester,
+    ) async {
+      Intl.defaultLocale = 'en_US';
+      final context = await pumpContext(tester);
+      expect(
+        numberValidator(context, allowNegative: false)('-5'),
+        'Enter 0 or more',
+      );
+      expect(numberValidator(context)('-5'), isNull);
+      expect(
+        invalidNumberText(context, '-5', allowNegative: false),
+        'Enter 0 or more',
+      );
     });
 
     testWidgets('invalidNumberText is null for blank and readable text', (

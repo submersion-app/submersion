@@ -770,6 +770,70 @@ void main() {
       expect((await repository.getDiveById(d1.id))!.humidity, 40);
     });
 
+    testWidgets('a switched-off row with a typo does not block the save '
+        '(#1900 review)', (tester) async {
+      final d1 = await repository.createDive(
+        createTestDiveWithBottomTime().copyWith(id: 'num-off', humidity: 40),
+      );
+      final overrides = await getBaseOverrides();
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: buildOverrides(overrides).cast(),
+          child: MaterialApp(
+            locale: const Locale('en'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: DiveEditPage(bulkDiveIds: [d1.id], embedded: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      Finder gateOf(String label) => find.ancestor(
+        of: find.text(label),
+        matching: find.byType(BulkFieldGate),
+      );
+      Future<void> toggle(String label) async {
+        await tester.ensureVisible(find.text(label));
+        await tester.tap(
+          find.descendant(of: gateOf(label), matching: find.byType(Checkbox)),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      // A typo in a row the diver then switches off again.
+      await toggle('Setpoint high');
+      await tester.enterText(
+        find.descendant(
+          of: gateOf('Setpoint high'),
+          matching: find.byType(TextField),
+        ),
+        '1..3',
+      );
+      await tester.pumpAndSettle();
+      await toggle('Setpoint high');
+
+      await toggle('Humidity');
+      await tester.enterText(
+        find.descendant(
+          of: gateOf('Humidity'),
+          matching: find.byType(TextField),
+        ),
+        '60',
+      );
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Save'));
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Apply'));
+      await tester.pumpAndSettle();
+
+      expect((await repository.getDiveById(d1.id))!.humidity, 60);
+    });
+
     testWidgets('selecting every collection mode covers all op branches', (
       tester,
     ) async {

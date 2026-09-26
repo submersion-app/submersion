@@ -89,6 +89,17 @@ void main() {
     expect(field.decoration!.errorMaxLines, 3);
   });
 
+  testWidgets('rejects a negative by default and says so (#1900 review)', (
+    tester,
+  ) async {
+    Intl.defaultLocale = 'en_US';
+    final reads = await pump(tester);
+    await tester.enterText(find.byType(TextFormField), '-5');
+    await tester.pump();
+    expect(reads.last, const NumberInvalid());
+    expect(find.text('Enter 0 or more'), findsOneWidget);
+  });
+
   testWidgets('filters out letters', (tester) async {
     Intl.defaultLocale = 'en_US';
     final reads = await pump(tester);

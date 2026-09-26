@@ -12741,6 +12741,7 @@
   "numberInput_invalidNumber": "Adjon meg egy érvényes számot (tizedesjel: \"{separator}\")",
   "numberInput_invalidWholeNumber": "Adjon meg egy egész számot",
   "numberInput_required": "Kötelező",
+  "numberInput_notNegative": "Adjon meg 0-t vagy többet",
   "diveCenters_rental_sectionTitle": "Bérelt felszerelés",
   "diveCenters_rental_lastTimeAt": "Legutóbb itt: {center}",
   "diveCenters_rental_lastDiveOn": "Legutóbbi merülés itt: {date}",

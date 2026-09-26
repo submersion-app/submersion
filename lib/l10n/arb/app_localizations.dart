@@ -68540,6 +68540,12 @@ abstract class AppLocalizations {
   /// **'Required'**
   String get numberInput_required;
 
+  /// No description provided for @numberInput_notNegative.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter 0 or more'**
+  String get numberInput_notNegative;
+
   /// No description provided for @diveCenters_rental_sectionTitle.
   ///
   /// In en, this message translates to:

@@ -108,5 +108,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(botC.text, '12.5');
     expect(find.text('Enter a whole number'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextFormField), '-45');
+    await tester.pumpAndSettle();
+    expect(find.text('Enter 0 or more'), findsOneWidget);
   });
 }

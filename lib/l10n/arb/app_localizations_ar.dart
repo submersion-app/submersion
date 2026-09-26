@@ -42513,6 +42513,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get numberInput_required => 'مطلوب';
 
   @override
+  String get numberInput_notNegative => 'أدخل 0 أو أكثر';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'معدات مستأجرة';
 
   @override

@@ -240,7 +240,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
   /// A field's number, or null when blank or unreadable. [_submit] checks
   /// unreadable text first and says so in the sheet's error line.
   static double? _numberIn(TextEditingController controller) =>
-      switch (readNumber(controller.text)) {
+      switch (readNumber(controller.text, allowNegative: false)) {
         NumberValue(:final value) => value,
         NumberBlank() || NumberInvalid() => null,
       };
@@ -249,7 +249,11 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
   /// text is unreadable, or null when none is.
   String? _unreadableError(List<TextEditingController> controllers) {
     for (final controller in controllers) {
-      final message = invalidNumberText(context, controller.text);
+      final message = invalidNumberText(
+        context,
+        controller.text,
+        allowNegative: false,
+      );
       if (message != null) return message;
     }
     return null;

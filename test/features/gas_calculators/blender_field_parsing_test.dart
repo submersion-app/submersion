@@ -39,4 +39,10 @@ void main() {
       },
     );
   });
+
+  test('a negative pressure or mix is refused, so the caller keeps its value '
+      '(#1900 review)', () {
+    expect(pressureOrKeep('-50'), isNull);
+    expect(mixPercentOrKeep('-5', 21), 21);
+  });
 }

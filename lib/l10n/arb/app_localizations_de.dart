@@ -42759,6 +42759,9 @@ class AppLocalizationsDe extends AppLocalizations {
   String get numberInput_required => 'Erforderlich';
 
   @override
+  String get numberInput_notNegative => 'Geben Sie 0 oder mehr ein';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'Leihausrüstung';
 
   @override

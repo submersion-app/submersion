@@ -12741,6 +12741,7 @@
   "numberInput_invalidNumber": "Voer een geldig getal in (decimaalteken: \"{separator}\")",
   "numberInput_invalidWholeNumber": "Voer een geheel getal in",
   "numberInput_required": "Verplicht",
+  "numberInput_notNegative": "Voer 0 of meer in",
   "diveCenters_rental_sectionTitle": "Huuruitrusting",
   "diveCenters_rental_lastTimeAt": "Vorige keer bij {center}",
   "diveCenters_rental_lastDiveOn": "Laatste duik hier: {date}",

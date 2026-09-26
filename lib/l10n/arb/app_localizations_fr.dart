@@ -42950,6 +42950,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get numberInput_required => 'Obligatoire';
 
   @override
+  String get numberInput_notNegative => 'Saisissez 0 ou plus';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'Matériel de location';
 
   @override

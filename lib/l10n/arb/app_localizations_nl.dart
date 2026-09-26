@@ -42555,6 +42555,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get numberInput_required => 'Verplicht';
 
   @override
+  String get numberInput_notNegative => 'Voer 0 of meer in';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'Huuruitrusting';
 
   @override

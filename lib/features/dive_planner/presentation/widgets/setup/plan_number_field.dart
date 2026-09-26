@@ -119,13 +119,18 @@ class PlanNumberFieldState extends State<PlanNumberField> {
     super.dispose();
   }
 
-  double? _parse(String text) =>
-      switch (readNumber(text, integer: widget.isInteger)) {
-        NumberValue(:final value) => value,
-        // Blank is handled before parsing; unreadable text is marked by
-        // [_onChanged] and put back by [commit].
-        NumberBlank() || NumberInvalid() => null,
-      };
+  double? _parse(String text) => switch (readNumber(
+    text,
+    integer: widget.isInteger,
+    // Every planner setting is zero or more; the filter keeps a typed
+    // minus, so a negative is refused here, not read as positive.
+    allowNegative: false,
+  )) {
+    NumberValue(:final value) => value,
+    // Blank is handled before parsing; unreadable text is marked by
+    // [_onChanged] and put back by [commit].
+    NumberBlank() || NumberInvalid() => null,
+  };
 
   bool _inRange(double value) =>
       (widget.min == null || value >= widget.min!) &&
@@ -259,6 +264,7 @@ class PlanNumberFieldState extends State<PlanNumberField> {
                   context,
                   _controller.text,
                   integer: widget.isInteger,
+                  allowNegative: false,
                 ) ??
                 '',
             textAlign: TextAlign.end,

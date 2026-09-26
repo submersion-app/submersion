@@ -12741,6 +12741,7 @@
   "numberInput_invalidNumber": "Introduza um número válido (separador decimal: \"{separator}\")",
   "numberInput_invalidWholeNumber": "Insira um número inteiro",
   "numberInput_required": "Obrigatório",
+  "numberInput_notNegative": "Insira 0 ou mais",
   "diveCenters_rental_sectionTitle": "Equipamento alugado",
   "diveCenters_rental_lastTimeAt": "Da última vez em {center}",
   "diveCenters_rental_lastDiveOn": "Último mergulho aqui: {date}",

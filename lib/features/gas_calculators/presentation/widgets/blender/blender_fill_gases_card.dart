@@ -146,13 +146,17 @@ class BlenderFillGasesCard extends ConsumerWidget {
         ],
         decoration: InputDecoration(
           labelText: '${context.l10n.gasCalculators_blender_o2} (%)',
-          errorText: invalidNumberText(context, topupO2Controller.text),
+          errorText: invalidNumberText(
+            context,
+            topupO2Controller.text,
+            allowNegative: false,
+          ),
           isDense: true,
           border: const OutlineInputBorder(),
         ),
         onChanged: (v) {
           final topup = ref.read(blenderTopupO2PercentProvider.notifier);
-          topup.state = switch (readNumber(v)) {
+          topup.state = switch (readNumber(v, allowNegative: false)) {
             NumberValue(:final value) => value.clamp(0.0, 100.0),
             NumberBlank() => 0.0, // no oxygen in the topup, as before
             // Used to read as 0 % too; keep the fraction, the field says why.
@@ -190,7 +194,11 @@ class BlenderFillGasesCard extends ConsumerWidget {
           labelText: context.l10n.gasCalculators_blender_unitPrice(
             units.volumeSymbol,
           ),
-          errorText: invalidNumberText(context, controller.text),
+          errorText: invalidNumberText(
+            context,
+            controller.text,
+            allowNegative: false,
+          ),
           isDense: true,
           border: const OutlineInputBorder(),
         ),
@@ -222,7 +230,7 @@ class BlenderFillGasesCard extends ConsumerWidget {
     int index,
     AppSettings settings,
   ) {
-    return switch (readNumber(text)) {
+    return switch (readNumber(text, allowNegative: false)) {
       NumberValue(:final value) => displayToPricePer100Liters(value, settings),
       NumberBlank() => null,
       NumberInvalid() => index < previous.length ? previous[index] : null,
@@ -252,7 +260,11 @@ class BlenderFillGasesCard extends ConsumerWidget {
               '$label '
               '${context.l10n.gasCalculators_blender_flushFeeVolume} '
               '(${units.volumeSymbol})',
-          errorText: invalidNumberText(context, controller.text),
+          errorText: invalidNumberText(
+            context,
+            controller.text,
+            allowNegative: false,
+          ),
           isDense: true,
           border: const OutlineInputBorder(),
         ),
@@ -289,7 +301,7 @@ class BlenderFillGasesCard extends ConsumerWidget {
     int index,
     AppSettings settings,
   ) {
-    return switch (readNumber(text)) {
+    return switch (readNumber(text, allowNegative: false)) {
       NumberValue(:final value) => displayVolumeToLiters(value, settings),
       NumberBlank() => 0,
       NumberInvalid() =>

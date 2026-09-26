@@ -42854,6 +42854,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get numberInput_required => 'Obrigatório';
 
   @override
+  String get numberInput_notNegative => 'Insira 0 ou mais';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'Equipamento alugado';
 
   @override

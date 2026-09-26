@@ -60,13 +60,21 @@ final class NumberInvalid extends NumberRead {
 
 /// Reads [text] with the smart parsers, which correct one unambiguous
 /// wrong-separator keystroke (#1876). With [integer], a fractional value is
-/// [NumberInvalid] rather than rounded.
-NumberRead readNumber(String text, {bool integer = false}) {
+/// [NumberInvalid] rather than rounded. Without [allowNegative], so is a
+/// negative: the input filter keeps a typed minus sign so "-5" is never
+/// silently read as 5, and the field refuses it here instead (#1900 review).
+NumberRead readNumber(
+  String text, {
+  bool integer = false,
+  bool allowNegative = true,
+}) {
   if (text.trim().isEmpty) return const NumberBlank();
   final value = integer
       ? smartParseUserInt(text)?.toDouble()
       : smartParseUserDecimal(text);
-  return value == null ? const NumberInvalid() : NumberValue(value);
+  if (value == null) return const NumberInvalid();
+  if (!allowNegative && value < 0) return const NumberInvalid();
+  return NumberValue(value);
 }
 
 /// One live-updating numeric field's value across edits, for a field that
@@ -80,14 +88,22 @@ NumberRead readNumber(String text, {bool integer = false}) {
 /// parents write every change straight back, so after a diver clears a field
 /// to retype it the parent already holds the blank value, and falling back to
 /// the parent's value would lose what the diver last typed.
+///
+/// A negative counts as unreadable unless [allowNegative]: every live field
+/// so far holds a quantity that cannot be below zero.
 class LiveNumber {
-  LiveNumber(this._lastReadable, {this.integer = false});
+  LiveNumber(
+    this._lastReadable, {
+    this.integer = false,
+    this.allowNegative = false,
+  });
 
   final bool integer;
+  final bool allowNegative;
   double? _lastReadable;
 
   double? resolve(String text, {double? blank}) {
-    switch (readNumber(text, integer: integer)) {
+    switch (readNumber(text, integer: integer, allowNegative: allowNegative)) {
       case NumberValue(:final value):
         _lastReadable = value;
         return value;
@@ -105,8 +121,16 @@ String? invalidNumberText(
   BuildContext context,
   String text, {
   bool integer = false,
+  bool allowNegative = true,
 }) {
-  if (readNumber(text, integer: integer) is! NumberInvalid) return null;
+  final read = readNumber(text, integer: integer, allowNegative: allowNegative);
+  if (read is! NumberInvalid) return null;
+  // Readable, but below zero where the field cannot be.
+  if (readNumber(text, integer: integer) case NumberValue(
+    :final value,
+  ) when value < 0) {
+    return context.l10n.numberInput_notNegative;
+  }
   return integer
       ? context.l10n.numberInput_invalidWholeNumber
       : context.l10n.numberInput_invalidNumber(
@@ -122,13 +146,24 @@ FormFieldValidator<String> numberValidator(
   BuildContext context, {
   bool integer = false,
   bool required = false,
+  bool allowNegative = true,
   String? Function(double value)? check,
 }) {
   return (text) {
     final input = text ?? '';
-    return switch (readNumber(input, integer: integer)) {
+    final read = readNumber(
+      input,
+      integer: integer,
+      allowNegative: allowNegative,
+    );
+    return switch (read) {
       NumberBlank() => required ? context.l10n.numberInput_required : null,
-      NumberInvalid() => invalidNumberText(context, input, integer: integer),
+      NumberInvalid() => invalidNumberText(
+        context,
+        input,
+        integer: integer,
+        allowNegative: allowNegative,
+      ),
       NumberValue(:final value) => check?.call(value),
     };
   };

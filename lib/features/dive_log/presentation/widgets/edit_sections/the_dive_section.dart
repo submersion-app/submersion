@@ -92,7 +92,11 @@ class TheDiveSection extends StatelessWidget {
             // Separators are kept so a fraction is reported, not read as a
             // larger whole number ("5.5" as 55; #1900 review).
             inputFormatters: numberInputFormatters(),
-            inputValidator: numberValidator(context, integer: true),
+            inputValidator: numberValidator(
+              context,
+              integer: true,
+              allowNegative: false,
+            ),
             placeholder: l10n.diveLog_edit_row_notSet,
           ),
         FormRow.picker(
@@ -137,7 +141,11 @@ class TheDiveSection extends StatelessWidget {
           // Separators are kept so a fraction is reported, not read as a
           // larger whole number ("5.5" as 55; #1900 review).
           inputFormatters: numberInputFormatters(),
-          inputValidator: numberValidator(context, integer: true),
+          inputValidator: numberValidator(
+            context,
+            integer: true,
+            allowNegative: false,
+          ),
           profileSuggestion: bottomTimeSuggestion,
         ),
         FormRow.text(
@@ -148,7 +156,11 @@ class TheDiveSection extends StatelessWidget {
           // Separators are kept so a fraction is reported, not read as a
           // larger whole number ("5.5" as 55; #1900 review).
           inputFormatters: numberInputFormatters(),
-          inputValidator: numberValidator(context, integer: true),
+          inputValidator: numberValidator(
+            context,
+            integer: true,
+            allowNegative: false,
+          ),
           placeholder: l10n.diveLog_edit_row_notSet,
           profileSuggestion: runtimeSuggestion,
         ),

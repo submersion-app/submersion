@@ -256,6 +256,27 @@ void main() {
     expect(reported, isNull);
   });
 
+  testWidgets('a negative in a box with no minimum is refused (#1900 review)', (
+    tester,
+  ) async {
+    double? reported;
+    await tester.pumpWidget(
+      _harness(
+        value: 9,
+        isInteger: false,
+        decimals: 1,
+        onChanged: (v) => reported = v,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextField).first, '-5');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter 0 or more'), findsOneWidget);
+    expect(reported, isNull);
+  });
+
   testWidgets('restores the current value when unreadable text is committed', (
     tester,
   ) async {

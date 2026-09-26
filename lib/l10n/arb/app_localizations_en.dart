@@ -42205,6 +42205,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get numberInput_required => 'Required';
 
   @override
+  String get numberInput_notNegative => 'Enter 0 or more';
+
+  @override
   String get diveCenters_rental_sectionTitle => 'Rental gear';
 
   @override
