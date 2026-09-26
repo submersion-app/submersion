@@ -459,7 +459,8 @@ class _LabBody extends ConsumerWidget {
         LabInterventionChips(diveId: diveId, inputs: inputs),
       ],
     );
-    final buoyancy = ref.watch(labBuoyancyProvider(diveId)).valueOrNull;
+    // value, not valueOrNull, for the same reason as the outcome below.
+    final buoyancy = ref.watch(labBuoyancyProvider(diveId)).value;
     final panel = LabDeltaPanel(
       inputs: inputs,
       // value, not valueOrNull: a draft edit reloads the provider, and

@@ -116,4 +116,30 @@ void main() {
       );
     },
   );
+
+  test(
+    'a dive created from an SCR snapshot keeps its injection model',
+    () async {
+      final file = _file(diveId: 'scr-dive');
+      final scr = SublabFile(
+        scenario: file.scenario,
+        snapshot: DiveSnapshot(
+          diveId: 'scr-dive',
+          diveDateTime: DateTime(2026, 8, 1),
+          diveMode: DiveMode.scr,
+          scrInjectionRate: 10.5,
+          assumedVo2: 1.1,
+          diluentGas: const GasMix(o2: 40),
+          tanks: file.snapshot.tanks,
+          profile: file.snapshot.profile,
+        ),
+      );
+      final result = await ScenarioFileImporter().import(scr, diveNotes: 'n');
+      final dive = await DiveRepository().getDiveById(result.diveId);
+      expect(dive!.diveMode, DiveMode.scr);
+      expect(dive.scrInjectionRate, 10.5);
+      expect(dive.assumedVo2, 1.1);
+      expect(dive.diluentGas?.o2, 40);
+    },
+  );
 }

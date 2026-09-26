@@ -113,4 +113,29 @@ void main() {
       );
     });
   }
+
+  test('an SCR re-plan keeps the SCR loop ppO2 after the branch', () {
+    final outcome = const ScenarioEngine().run(
+      _loopRequest(
+        d,
+        mode: DiveMode.scr,
+        branchSeconds: 900,
+        scenarioMode: ScenarioMode.replan,
+        scrInjectionRate: 10,
+        scrSupplyO2Percent: 50,
+      ),
+    );
+    final branch = outcome.branch.index;
+    final atBranch = outcome.actual.ppO2Curve[branch];
+    // Still on the bottom a minute later: same depth, same SCR loop ppO2,
+    // not the 1.3 bar CCR setpoint the plan would default to.
+    final after = outcome.counterfactualTimestamps.indexWhere(
+      (t) => t >= outcome.branch.runtimeSeconds + 60,
+    );
+    expect(outcome.counterfactual.ppO2Curve[after], closeTo(atBranch, 0.05));
+    expect(
+      (outcome.counterfactual.ppO2Curve[after] - 1.3).abs(),
+      greaterThan(0.1),
+    );
+  });
 }

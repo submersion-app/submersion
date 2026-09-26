@@ -116,4 +116,43 @@ void main() {
     (noProfile['diveSnapshot'] as Map)['profile'] = [];
     expect(() => sublabFromJson(jsonEncode(noProfile)), throwsFormatException);
   });
+
+  test('an unknown scenario mode is a format error', () {
+    final json =
+        jsonDecode(
+              scenarioToSublabJson(
+                scenario: _scenario(),
+                snapshot: _snapshot(),
+              ),
+            )
+            as Map<String, Object?>;
+    (json['scenario'] as Map)['mode'] = 'sweep';
+    expect(() => sublabFromJson(jsonEncode(json)), throwsFormatException);
+  });
+
+  test('the SCR injection model travels with the snapshot', () {
+    final scr = DiveSnapshot.fromDive(
+      dive: Dive(
+        id: 'scr-1',
+        dateTime: DateTime.utc(2026, 8, 1, 9),
+        diveMode: DiveMode.scr,
+        scrInjectionRate: 10.5,
+        assumedVo2: 1.1,
+        diluentGas: const GasMix(o2: 40),
+      ),
+      profile: const [
+        DiveProfilePoint(timestamp: 0, depth: 0),
+        DiveProfilePoint(timestamp: 10, depth: 5),
+      ],
+      gasSwitches: const [],
+      tankPressures: const {},
+    );
+    final back = DiveSnapshot.fromJson(
+      (jsonDecode(jsonEncode(scr.toJson())) as Map).cast<String, Object?>(),
+    );
+    expect(back.scrInjectionRate, 10.5);
+    expect(back.assumedVo2, 1.1);
+    expect(back.diluentGas, const GasMix(o2: 40));
+    expect(back, scr);
+  });
 }

@@ -221,6 +221,69 @@ void main() {
     expect(firstHigh.startTimestamp, greaterThanOrEqualTo(120));
   });
 
+  test('a switch between two cylinders of the same mix is recorded', () {
+    const a = DiveTank(
+      id: 'a',
+      volume: 12,
+      startPressure: 200,
+      gasMix: GasMix(o2: 21),
+      role: TankRole.backGas,
+    );
+    const b = DiveTank(
+      id: 'b',
+      volume: 12,
+      startPressure: 200,
+      gasMix: GasMix(o2: 21),
+      role: TankRole.stage,
+      order: 1,
+    );
+    final plan = domain.DivePlan(
+      id: 'p',
+      name: 'p',
+      gfLow: 30,
+      gfHigh: 70,
+      createdAt: DateTime(2026),
+      updatedAt: DateTime(2026),
+      tanks: const [a, b],
+      segments: [
+        PlanSegment.hold(
+          id: 'anchor',
+          depth: 30,
+          durationMinutes: 0,
+          tankId: 'a',
+          gasMix: const GasMix(o2: 21),
+        ),
+        PlanSegment.hold(
+          id: 'on-a',
+          depth: 30,
+          durationMinutes: 5,
+          tankId: 'a',
+          gasMix: const GasMix(o2: 21),
+          order: 1,
+        ),
+        PlanSegment.hold(
+          id: 'on-b',
+          depth: 30,
+          durationMinutes: 5,
+          tankId: 'b',
+          gasMix: const GasMix(o2: 21),
+          order: 2,
+        ),
+      ],
+    );
+    const engine = PlanEngine();
+    final r = synthesizeRemainder(
+      plan: plan,
+      outcome: engine.compute(plan),
+      startTimestamp: 0,
+      startDepth: 30,
+      ascentPlan: engine.ascentPlanFor(plan.tanks),
+    );
+    final toB = r.tankSwitches.where((s) => s.tankId == 'b');
+    expect(toB, hasLength(1));
+    expect(toB.single.timestamp, 300);
+  });
+
   test('splice keeps the actual prefix and appends the remainder once', () {
     final plan = _plan();
     const engine = PlanEngine();

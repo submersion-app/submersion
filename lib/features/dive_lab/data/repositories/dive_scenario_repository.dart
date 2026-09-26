@@ -113,8 +113,8 @@ class DiveScenarioRepository {
     return saveScenario(source.copyWith(id: _uuid.v4()));
   }
 
-  /// Null when this build cannot decode the row's interventions (a newer
-  /// writer's kind arriving by sync). Serving it with the interventions
+  /// Null when this build cannot decode the row's interventions or mode (a
+  /// newer writer's kind arriving by sync). Serving it with the interventions
   /// dropped would show a no-op result and let a save overwrite the original,
   /// so the row stays in the table, synced and untouched, for a build that
   /// understands it, and this build neither lists nor opens it.
@@ -126,13 +126,20 @@ class DiveScenarioRepository {
       _log.warning('Scenario ${row.id}: ${e.message}; not shown by this build');
       return null;
     }
+    final mode = ScenarioMode.values.asNameMap()[row.mode];
+    if (mode == null) {
+      _log.warning(
+        'Scenario ${row.id}: unknown mode ${row.mode}; not shown by this build',
+      );
+      return null;
+    }
     return DiveScenario(
       id: row.id,
       diveId: row.diveId,
       name: row.name,
       notes: row.notes.isEmpty ? null : row.notes,
       branchSeconds: row.branchSeconds,
-      mode: ScenarioMode.values.asNameMap()[row.mode] ?? ScenarioMode.replay,
+      mode: mode,
       interventions: interventions,
       createdAt: DateTime.fromMillisecondsSinceEpoch(row.createdAt),
       updatedAt: DateTime.fromMillisecondsSinceEpoch(row.updatedAt),

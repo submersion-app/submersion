@@ -83,6 +83,20 @@ void main() {
     },
   );
 
+  test(
+    'a scenario with a mode this build does not know is not served',
+    () async {
+      final diveId = await dive();
+      final repo = DiveScenarioRepository();
+      final saved = await repo.saveScenario(_scenario(diveId));
+      await database.customStatement(
+        "UPDATE dive_scenarios SET mode = 'sweep' WHERE id = '${saved.id}'",
+      );
+      expect(await repo.getScenariosForDive(diveId), isEmpty);
+      expect(await repo.getScenario(saved.id), isNull);
+    },
+  );
+
   test('list is newest first and scoped to the dive', () async {
     final d1 = await dive();
     final d2 = (await DiveRepository().createDive(

@@ -74,18 +74,22 @@ class _Builder {
     String? tankId,
     double? setpoint,
   }) {
-    if (_fN2 == fN2 && _fHe == fHe && _setpoint == setpoint) return;
-    gasSegments.add(
-      ProfileGasSegment(
-        startTimestamp: t,
-        fN2: fN2,
-        fHe: fHe,
-        setpoint: setpoint,
-      ),
-    );
-    _fN2 = fN2;
-    _fHe = fHe;
-    _setpoint = setpoint;
+    // The gas and the cylinder change independently: two cylinders of the
+    // same mix are one gas segment but two tanks to charge.
+    final gasChanged = _fN2 != fN2 || _fHe != fHe || _setpoint != setpoint;
+    if (gasChanged) {
+      gasSegments.add(
+        ProfileGasSegment(
+          startTimestamp: t,
+          fN2: fN2,
+          fHe: fHe,
+          setpoint: setpoint,
+        ),
+      );
+      _fN2 = fN2;
+      _fHe = fHe;
+      _setpoint = setpoint;
+    }
     if (tankId != null && tankId != _tankId) {
       tankSwitches.add(ScenarioGasSwitch(timestamp: t, tankId: tankId));
       _tankId = tankId;

@@ -20,6 +20,9 @@ class DiveSnapshot extends Equatable {
     this.surfacePressureBar,
     this.setpointHigh,
     this.setpointLow,
+    this.scrInjectionRate,
+    this.assumedVo2,
+    this.diluentGas,
     this.tanks = const [],
     this.gasSwitches = const [],
     this.profile = const [],
@@ -38,6 +41,13 @@ class DiveSnapshot extends Equatable {
   final double? surfacePressureBar;
   final double? setpointHigh;
   final double? setpointLow;
+
+  /// The SCR injection model: injection rate (L/min at the surface), the
+  /// assumed metabolic O2 consumption, and the supply (diluent) gas. Absent
+  /// from files written before these fields existed.
+  final double? scrInjectionRate;
+  final double? assumedVo2;
+  final GasMix? diluentGas;
   final List<DiveTank> tanks;
   final List<ScenarioGasSwitch> gasSwitches;
   final List<DiveProfilePoint> profile;
@@ -64,6 +74,9 @@ class DiveSnapshot extends Equatable {
     surfacePressureBar: dive.surfacePressure,
     setpointHigh: dive.setpointHigh,
     setpointLow: dive.setpointLow,
+    scrInjectionRate: dive.scrInjectionRate,
+    assumedVo2: dive.assumedVo2,
+    diluentGas: dive.diluentGas,
     tanks: dive.tanks,
     gasSwitches: gasSwitches,
     profile: [
@@ -92,6 +105,10 @@ class DiveSnapshot extends Equatable {
     'surfacePressureBar': surfacePressureBar,
     'setpointHigh': setpointHigh,
     'setpointLow': setpointLow,
+    if (scrInjectionRate != null) 'scrInjectionRate': scrInjectionRate,
+    if (assumedVo2 != null) 'assumedVo2': assumedVo2,
+    if (diluentGas != null) 'diluentO2': diluentGas!.o2,
+    if (diluentGas != null) 'diluentHe': diluentGas!.he,
     'tanks': [
       for (final t in tanks)
         {
@@ -169,6 +186,14 @@ class DiveSnapshot extends Equatable {
       surfacePressureBar: (json['surfacePressureBar'] as num?)?.toDouble(),
       setpointHigh: (json['setpointHigh'] as num?)?.toDouble(),
       setpointLow: (json['setpointLow'] as num?)?.toDouble(),
+      scrInjectionRate: (json['scrInjectionRate'] as num?)?.toDouble(),
+      assumedVo2: (json['assumedVo2'] as num?)?.toDouble(),
+      diluentGas: json['diluentO2'] is num
+          ? GasMix(
+              o2: (json['diluentO2'] as num).toDouble(),
+              he: (json['diluentHe'] as num?)?.toDouble() ?? 0,
+            )
+          : null,
       tanks: tanks,
       gasSwitches: [
         for (final raw in (json['gasSwitches'] as List? ?? const []))
@@ -217,6 +242,9 @@ class DiveSnapshot extends Equatable {
     surfacePressureBar,
     setpointHigh,
     setpointLow,
+    scrInjectionRate,
+    assumedVo2,
+    diluentGas,
     tanks,
     gasSwitches,
     profile,

@@ -357,10 +357,28 @@ class ScenarioEngine {
     // tail whenever no ppO2 was measured.
     List<double>? cfPpO2;
     if (!isOc) {
+      // An SCR loop's ppO2 comes from its injection model, never from the
+      // CCR setpoints; unknown (zero, as the analysis reports it) when the
+      // dive logged no model.
+      final scrInjection = request.scrInjectionRate;
+      final scrSupply = request.scrSupplyO2Percent;
+      final scrTail =
+          plan.mode == domain.PlanMode.scr &&
+              scrInjection != null &&
+              scrSupply != null
+          ? const O2ToxicityCalculator().calculatePpO2CurveSCR(
+              spliced.depths,
+              injectionRateLpm: scrInjection,
+              supplyO2Percent: scrSupply,
+              vo2: request.scrVo2,
+            )
+          : null;
       cfPpO2 = [
         for (var i = 0; i < spliced.depths.length; i++)
           if (i <= branchIndex && i < actual.ppO2Curve.length)
             actual.ppO2Curve[i]
+          else if (plan.mode == domain.PlanMode.scr)
+            scrTail?[i] ?? 0.0
           else if (isLoop)
             (spliced.depths[i] > plan.effectiveSetpointSwitchDepth
                 ? plan.effectiveSetpointHigh

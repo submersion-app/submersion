@@ -84,7 +84,7 @@ SublabFile sublabFromJson(String source) {
       branchSeconds: (s['branchSeconds'] as num).toInt(),
       mode:
           ScenarioMode.values.asNameMap()[s['mode'] as String?] ??
-          ScenarioMode.replay,
+          (throw FormatException('Unknown scenario mode: ${s['mode']}')),
       interventions: decodeInterventions(jsonEncode(s['interventions'])),
       createdAt: DateTime.parse(s['createdAt'] as String),
       updatedAt: DateTime.parse(s['updatedAt'] as String),
