@@ -42,6 +42,36 @@ void main() {
       tester.widget<TextField>(find.byKey(fieldKey)).controller!
           as QueryErrorHighlightController;
 
+  testWidgets('a name typed before the index loaded commits once it loads', (
+    tester,
+  ) async {
+    final calls = <QueryNode?>[];
+    Widget hostWith(QueryEditorContext c) => MaterialApp(
+      home: Scaffold(
+        body: QueryTextField(
+          context: c,
+          value: null,
+          onChanged: calls.add,
+          fieldKey: fieldKey,
+        ),
+      ),
+    );
+    final loading = context.copyWith(names: const MapNameResolver({}));
+    await tester.pumpWidget(hostWith(loading));
+    await tester.enterText(find.byKey(fieldKey), 'site = "Salt Pier"');
+    await tester.pump();
+    expect(calls, isEmpty);
+    // The index arrives: the same text now resolves, with no edit.
+    await tester.pumpWidget(hostWith(context));
+    await tester.pump();
+    expect(calls, hasLength(1));
+    expect(calls.single, isA<ConditionNode>());
+    expect(
+      tester.widget<TextField>(find.byKey(fieldKey)).decoration!.errorText,
+      isNull,
+    );
+  });
+
   testWidgets('a valid query is committed', (tester) async {
     QueryNode? committed;
     await tester.pumpWidget(host(value: null, onChanged: (n) => committed = n));

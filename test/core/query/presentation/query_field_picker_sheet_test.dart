@@ -39,18 +39,24 @@ void main() {
         scrollable: find.byType(Scrollable).last,
       );
 
-  Widget host(void Function(FieldPick?) onPicked) => MaterialApp(
-    home: Scaffold(
-      body: Builder(
-        builder: (ctx) => TextButton(
-          onPressed: () async => onPicked(
-            await showQueryFieldPicker(ctx, editor: context, strings: strings),
+  Widget host(void Function(FieldPick?) onPicked, {int hopsUsed = 0}) =>
+      MaterialApp(
+        home: Scaffold(
+          body: Builder(
+            builder: (ctx) => TextButton(
+              onPressed: () async => onPicked(
+                await showQueryFieldPicker(
+                  ctx,
+                  editor: context,
+                  strings: strings,
+                  hopsUsed: hopsUsed,
+                ),
+              ),
+              child: const Text('open'),
+            ),
           ),
-          child: const Text('open'),
         ),
-      ),
-    ),
-  );
+      );
 
   testWidgets('tapping a field returns its path', (tester) async {
     FieldPick? picked;
@@ -107,5 +113,33 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Max depth'), findsOneWidget);
     expect(find.text('Buddies'), findsNothing);
+  });
+
+  testWidgets('the fourth hop can still be walked', (tester) async {
+    FieldPick? picked;
+    // Three hops used by enclosing groups: one more is within the limit.
+    await tester.pumpWidget(host((p) => picked = p, hopsUsed: 3));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await scrollTo(tester, find.byKey(const ValueKey('descend-buddies')));
+    await tester.tap(find.byKey(const ValueKey('descend-buddies')));
+    await tester.pumpAndSettle();
+    expect(find.text('Fields of Buddies'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.short_text).first);
+    await tester.pumpAndSettle();
+    expect(picked?.path.segments.first, 'buddies');
+    expect(picked?.isRelation, isFalse);
+  });
+
+  testWidgets('at the hop limit no relation is offered', (tester) async {
+    await tester.pumpWidget(host((_) {}, hopsUsed: 3));
+    await tester.tap(find.text('open'));
+    await tester.pumpAndSettle();
+    await scrollTo(tester, find.byKey(const ValueKey('descend-buddies')));
+    await tester.tap(find.byKey(const ValueKey('descend-buddies')));
+    await tester.pumpAndSettle();
+    // Four hops walked: picking certifications would be a fifth.
+    expect(find.text('Certifications'), findsNothing);
+    expect(find.byIcon(Icons.link), findsNothing);
   });
 }

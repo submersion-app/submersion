@@ -43737,11 +43737,6 @@ class AppLocalizationsIt extends AppLocalizations {
   String get query_savedRow_title => 'Salvate';
 
   @override
-  String query_savedRow_unreadable(String name, String detail) {
-    return 'Impossibile leggere \"$name\": $detail';
-  }
-
-  @override
   String query_savedRow_unresolved(String name) {
     return '\"$name\" fa riferimento a qualcosa che non esiste più';
   }

@@ -70170,12 +70170,6 @@ abstract class AppLocalizations {
   /// **'Saved'**
   String get query_savedRow_title;
 
-  /// Snackbar when tapping a saved query this build cannot read
-  ///
-  /// In en, this message translates to:
-  /// **'Cannot read \"{name}\": {detail}'**
-  String query_savedRow_unreadable(String name, String detail);
-
   /// Tooltip on a saved query with a deleted reference
   ///
   /// In en, this message translates to:

@@ -13062,7 +13062,6 @@
   "query_saveDialog_nameValidation": "Voer een naam in",
   "query_saveDialog_title": "Query opslaan",
   "query_savedRow_title": "Opgeslagen",
-  "query_savedRow_unreadable": "Kan \"{name}\" niet lezen: {detail}",
   "query_savedRow_unresolved": "\"{name}\" verwijst naar iets dat niet meer bestaat",
   "query_saved_snackbar": "\"{name}\" opgeslagen",
   "savedQueries_appBar_title": "Opgeslagen query's",

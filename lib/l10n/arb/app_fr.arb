@@ -13062,7 +13062,6 @@
   "query_saveDialog_nameValidation": "Saisissez un nom",
   "query_saveDialog_title": "Enregistrer la requête",
   "query_savedRow_title": "Enregistrées",
-  "query_savedRow_unreadable": "Impossible de lire « {name} » : {detail}",
   "query_savedRow_unresolved": "« {name} » fait référence à un élément qui n'existe plus",
   "query_saved_snackbar": "« {name} » enregistrée",
   "savedQueries_appBar_title": "Requêtes enregistrées",

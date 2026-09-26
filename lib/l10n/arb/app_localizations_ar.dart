@@ -43416,11 +43416,6 @@ class AppLocalizationsAr extends AppLocalizations {
   String get query_savedRow_title => 'المحفوظة';
 
   @override
-  String query_savedRow_unreadable(String name, String detail) {
-    return 'تعذّرت قراءة \"$name\": $detail';
-  }
-
-  @override
   String query_savedRow_unresolved(String name) {
     return 'يشير \"$name\" إلى شيء لم يعد موجودًا';
   }

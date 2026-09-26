@@ -13062,7 +13062,6 @@
   "query_saveDialog_nameValidation": "Adjon meg egy nevet",
   "query_saveDialog_title": "Lekérdezés mentése",
   "query_savedRow_title": "Mentett",
-  "query_savedRow_unreadable": "\"{name}\" nem olvasható: {detail}",
   "query_savedRow_unresolved": "\"{name}\" olyasmire hivatkozik, ami már nem létezik",
   "query_saved_snackbar": "Mentve: \"{name}\"",
   "savedQueries_appBar_title": "Mentett lekérdezések",

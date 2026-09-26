@@ -43103,11 +43103,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get query_savedRow_title => 'Saved';
 
   @override
-  String query_savedRow_unreadable(String name, String detail) {
-    return 'Cannot read \"$name\": $detail';
-  }
-
-  @override
   String query_savedRow_unresolved(String name) {
     return '\"$name\" refers to something that no longer exists';
   }

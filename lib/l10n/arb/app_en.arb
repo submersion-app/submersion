@@ -27015,8 +27015,6 @@
   "@query_saved_snackbar": {"description": "Confirmation after saving a query", "placeholders": {"name": {"type": "String"}}},
   "query_savedRow_title": "Saved",
   "@query_savedRow_title": {"description": "Heading of the saved-query chip row"},
-  "query_savedRow_unreadable": "Cannot read \"{name}\": {detail}",
-  "@query_savedRow_unreadable": {"description": "Snackbar when tapping a saved query this build cannot read", "placeholders": {"name": {"type": "String"}, "detail": {"type": "String"}}},
   "query_savedRow_unresolved": "\"{name}\" refers to something that no longer exists",
   "@query_savedRow_unresolved": {"description": "Tooltip on a saved query with a deleted reference", "placeholders": {"name": {"type": "String"}}},
   "savedQueries_appBar_title": "Saved Queries",

@@ -13062,7 +13062,6 @@
   "query_saveDialog_nameValidation": "Inserisci un nome",
   "query_saveDialog_title": "Salva query",
   "query_savedRow_title": "Salvate",
-  "query_savedRow_unreadable": "Impossibile leggere \"{name}\": {detail}",
   "query_savedRow_unresolved": "\"{name}\" fa riferimento a qualcosa che non esiste più",
   "query_saved_snackbar": "\"{name}\" salvata",
   "savedQueries_appBar_title": "Query salvate",

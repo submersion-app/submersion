@@ -9,7 +9,7 @@ import 'package:submersion/features/query/app_query_registry.dart';
 import 'package:submersion/features/query/domain/saved_query_load.dart';
 import 'package:submersion/features/query/presentation/providers/query_unit_prefs_provider.dart';
 import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
-import 'package:submersion/features/query/presentation/query_error_text.dart';
+import 'package:submersion/features/query/presentation/saved_query_problem_text.dart';
 import 'package:submersion/features/query/presentation/widgets/save_query_dialog.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/fab_clearance.dart';
@@ -131,36 +131,24 @@ class _SavedQueryListState extends ConsumerState<_SavedQueryList> {
     final theme = Theme.of(context);
     final l10n = context.l10n;
     final subject = load.saved.querySubject;
-    final Widget subtitle = switch (load.problem) {
-      null => Text(
-        QueryPrinter(
-          appQueryRegistry,
-          appQueryRegistry.entityFor(subject!),
-          prefs,
-        ).print(load.node),
-        style: const TextStyle(fontFamily: 'monospace'),
-      ),
-      SavedQueryProblem.unresolvedRef => Text(
-        l10n.savedQueries_problem_unresolved(load.detail ?? ''),
-        style: TextStyle(color: theme.colorScheme.tertiary),
-      ),
-      SavedQueryProblem.unreadable => Text(
-        l10n.savedQueries_problem_unreadable,
-        style: TextStyle(color: theme.colorScheme.error),
-      ),
-      SavedQueryProblem.invalid => Text(
-        l10n.savedQueries_problem_invalid(
-          load.error == null
-              ? load.detail ?? ''
-              : describeQueryError(l10n, load.error!),
-        ),
-        style: TextStyle(color: theme.colorScheme.error),
-      ),
-      SavedQueryProblem.unknownSubject => Text(
-        l10n.savedQueries_problem_unknownSubject(load.detail ?? ''),
-        style: TextStyle(color: theme.colorScheme.error),
-      ),
-    };
+    final problem = savedQueryProblemText(l10n, load);
+    final Widget subtitle = problem == null
+        ? Text(
+            QueryPrinter(
+              appQueryRegistry,
+              appQueryRegistry.entityFor(subject!),
+              prefs,
+            ).print(load.node),
+            style: const TextStyle(fontFamily: 'monospace'),
+          )
+        : Text(
+            problem,
+            style: TextStyle(
+              color: load.problem == SavedQueryProblem.unresolvedRef
+                  ? theme.colorScheme.tertiary
+                  : theme.colorScheme.error,
+            ),
+          );
     final (IconData icon, Color color) = switch (load.problem) {
       null => (Icons.bookmark_outline, theme.colorScheme.primary),
       // Applies, but something it names is gone: flagged, as on the chip.

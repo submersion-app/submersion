@@ -13162,7 +13162,6 @@
   "query_saveDialog_nameValidation": "Namen eingeben",
   "query_saveDialog_title": "Abfrage speichern",
   "query_savedRow_title": "Gespeichert",
-  "query_savedRow_unreadable": "\"{name}\" kann nicht gelesen werden: {detail}",
   "query_savedRow_unresolved": "\"{name}\" verweist auf etwas, das nicht mehr existiert",
   "query_saved_snackbar": "\"{name}\" gespeichert",
   "savedQueries_appBar_title": "Gespeicherte Abfragen",

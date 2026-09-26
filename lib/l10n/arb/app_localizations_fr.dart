@@ -43858,11 +43858,6 @@ class AppLocalizationsFr extends AppLocalizations {
   String get query_savedRow_title => 'Enregistrées';
 
   @override
-  String query_savedRow_unreadable(String name, String detail) {
-    return 'Impossible de lire « $name » : $detail';
-  }
-
-  @override
   String query_savedRow_unresolved(String name) {
     return '« $name » fait référence à un élément qui n\'existe plus';
   }

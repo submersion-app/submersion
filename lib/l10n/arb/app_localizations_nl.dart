@@ -43459,11 +43459,6 @@ class AppLocalizationsNl extends AppLocalizations {
   String get query_savedRow_title => 'Opgeslagen';
 
   @override
-  String query_savedRow_unreadable(String name, String detail) {
-    return 'Kan \"$name\" niet lezen: $detail';
-  }
-
-  @override
   String query_savedRow_unresolved(String name) {
     return '\"$name\" verwijst naar iets dat niet meer bestaat';
   }

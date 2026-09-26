@@ -77,7 +77,10 @@ class _FieldPickerSheetState extends State<_FieldPickerSheet> {
           FieldPath(_segments),
         ).entities.last;
 
-  bool get _canDescend => widget.hopsUsed + _segments.length + 1 < kMaxPathHops;
+  /// Whether one more relation fits in the path. Walking into a relation
+  /// and picking one as the target each add a hop, and a path may hold up
+  /// to [kMaxPathHops] of them (the limit `resolvePath` enforces).
+  bool get _canAddHop => widget.hopsUsed + _segments.length + 1 <= kMaxPathHops;
 
   bool _matches(String key, String label) {
     final s = _search.text.trim().toLowerCase();
@@ -145,33 +148,32 @@ class _FieldPickerSheetState extends State<_FieldPickerSheet> {
                         isRelation: false,
                       )),
                     ),
-                for (final r in entity.relations)
-                  if (_matches(r.key, labels.relation(r)))
-                    ListTile(
-                      leading: const Icon(Icons.link),
-                      title: Text(labels.relation(r)),
-                      subtitle: Text(
-                        widget.strings.useRelation.replaceAll(
-                          '{name}',
-                          labels.relation(r),
+                if (_canAddHop)
+                  for (final r in entity.relations)
+                    if (_matches(r.key, labels.relation(r)))
+                      ListTile(
+                        leading: const Icon(Icons.link),
+                        title: Text(labels.relation(r)),
+                        subtitle: Text(
+                          widget.strings.useRelation.replaceAll(
+                            '{name}',
+                            labels.relation(r),
+                          ),
                         ),
+                        trailing: IconButton(
+                          key: ValueKey('descend-${r.key}'),
+                          icon: const Icon(Icons.chevron_right),
+                          tooltip: widget.strings.fieldsOf.replaceAll(
+                            '{name}',
+                            labels.relation(r),
+                          ),
+                          onPressed: () => _descend(r.key),
+                        ),
+                        onTap: () => Navigator.of(context).pop((
+                          path: FieldPath([..._segments, r.key]),
+                          isRelation: true,
+                        )),
                       ),
-                      trailing: _canDescend
-                          ? IconButton(
-                              key: ValueKey('descend-${r.key}'),
-                              icon: const Icon(Icons.chevron_right),
-                              tooltip: widget.strings.fieldsOf.replaceAll(
-                                '{name}',
-                                labels.relation(r),
-                              ),
-                              onPressed: () => _descend(r.key),
-                            )
-                          : null,
-                      onTap: () => Navigator.of(context).pop((
-                        path: FieldPath([..._segments, r.key]),
-                        isRelation: true,
-                      )),
-                    ),
               ],
             ),
           ),

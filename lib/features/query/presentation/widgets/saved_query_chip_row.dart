@@ -4,6 +4,7 @@ import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/query/domain/saved_query_load.dart';
 import 'package:submersion/features/query/presentation/providers/saved_query_providers.dart';
+import 'package:submersion/features/query/presentation/saved_query_problem_text.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// The "Saved" chip row of spec Unit 7: one chip per saved query of
@@ -74,10 +75,20 @@ class SavedQueryChipRow extends ConsumerWidget {
             color: theme.colorScheme.error,
           ),
           label: Text(name),
+          // The same wording as the Manage page, in the diver's language,
+          // under the query's name.
           onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                context.l10n.query_savedRow_unreadable(name, load.detail ?? ''),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(savedQueryProblemText(context.l10n, load)!),
+                ],
               ),
             ),
           ),

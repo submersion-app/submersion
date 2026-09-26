@@ -13062,7 +13062,6 @@
   "query_saveDialog_nameValidation": "Digite um nome",
   "query_saveDialog_title": "Salvar consulta",
   "query_savedRow_title": "Salvas",
-  "query_savedRow_unreadable": "Não é possível ler \"{name}\": {detail}",
   "query_savedRow_unresolved": "\"{name}\" se refere a algo que não existe mais",
   "query_saved_snackbar": "Consulta \"{name}\" salva",
   "savedQueries_appBar_title": "Consultas salvas",

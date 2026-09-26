@@ -42877,11 +42877,6 @@ class AppLocalizationsHe extends AppLocalizations {
   String get query_savedRow_title => 'שמורות';
 
   @override
-  String query_savedRow_unreadable(String name, String detail) {
-    return 'לא ניתן לקרוא את \"$name\": $detail';
-  }
-
-  @override
   String query_savedRow_unresolved(String name) {
     return '\"$name\" מפנה למשהו שכבר לא קיים';
   }

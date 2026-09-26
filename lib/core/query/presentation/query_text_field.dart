@@ -74,6 +74,13 @@ class _QueryTextFieldState extends State<QueryTextField> {
     } else if (widget.context.prefs != old.context.prefs && _error == null) {
       // The unit setting changed: the same tree reads differently now.
       _controller.text = widget.context.printer.print(_committed);
+    } else if (widget.context.names != old.context.names && _error != null) {
+      // The name index arrived or changed: text that named something it
+      // did not know may resolve now. After the frame, since committing
+      // calls the parent back and this runs inside its build.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _onTextChanged(_controller.text);
+      });
     }
   }
 

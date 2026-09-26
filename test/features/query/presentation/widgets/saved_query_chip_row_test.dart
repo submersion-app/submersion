@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/core/query/domain/query_error_code.dart';
+import 'package:submersion/core/query/domain/query_errors.dart';
 import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/core/query/domain/query_subject.dart';
 import 'package:submersion/features/query/domain/entities/saved_query.dart';
@@ -26,9 +28,10 @@ void main() {
 
   Widget host(
     List<SavedQueryLoad> loads,
-    ValueChanged<SavedQueryLoad> onApply,
-  ) => testApp(
-    locale: const Locale('en'),
+    ValueChanged<SavedQueryLoad> onApply, {
+    Locale locale = const Locale('en'),
+  }) => testApp(
+    locale: locale,
     overrides: [
       savedQueryLoadsProvider('dives').overrideWith((ref) async => loads),
     ],
@@ -80,7 +83,64 @@ void main() {
       await tester.tap(find.widgetWithText(ActionChip, 'Future'));
       await tester.pump();
       expect(applied.map((l) => l.saved.id), ['a']);
-      expect(find.textContaining('version 99'), findsOneWidget);
+      expect(
+        find.text('Cannot be read by this version of the app'),
+        findsOneWidget,
+      );
+      // The detail is the loader's English text, never shown.
+      expect(find.textContaining('version 99'), findsNothing);
     },
   );
+
+  testWidgets('an invalid query explains itself in the diver\'s language', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        [
+          SavedQueryLoad(
+            saved('c', 'Warp'),
+            problem: SavedQueryProblem.invalid,
+            detail: 'unknown field "warp"',
+            error: const QueryError(
+              QueryErrorCode.unknownField,
+              args: {'name': 'warp'},
+            ),
+          ),
+        ],
+        (_) {},
+        locale: const Locale('de'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ActionChip, 'Warp'));
+    await tester.pump();
+    expect(
+      find.text(
+        'Verwendet etwas, das diese Version nicht kennt: '
+        'unbekanntes Feld "warp"',
+      ),
+      findsOneWidget,
+    );
+    expect(find.textContaining('unknown field'), findsNothing);
+  });
+
+  testWidgets('a query for an unknown list says which list', (tester) async {
+    await tester.pumpWidget(
+      host([
+        SavedQueryLoad(
+          saved('d', 'Whales'),
+          problem: SavedQueryProblem.unknownSubject,
+          detail: 'whales',
+        ),
+      ], (_) {}),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ActionChip, 'Whales'));
+    await tester.pump();
+    expect(
+      find.text('For a list this version does not have: whales'),
+      findsOneWidget,
+    );
+  });
 }

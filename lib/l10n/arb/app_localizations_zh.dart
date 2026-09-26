@@ -41229,11 +41229,6 @@ class AppLocalizationsZh extends AppLocalizations {
   String get query_savedRow_title => '已保存';
 
   @override
-  String query_savedRow_unreadable(String name, String detail) {
-    return '无法读取 \"$name\"：$detail';
-  }
-
-  @override
   String query_savedRow_unresolved(String name) {
     return '\"$name\" 引用了已不存在的内容';
   }

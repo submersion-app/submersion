@@ -13062,7 +13062,6 @@
   "query_saveDialog_nameValidation": "נא להזין שם",
   "query_saveDialog_title": "שמירת שאילתה",
   "query_savedRow_title": "שמורות",
-  "query_savedRow_unreadable": "לא ניתן לקרוא את \"{name}\": {detail}",
   "query_savedRow_unresolved": "\"{name}\" מפנה למשהו שכבר לא קיים",
   "query_saved_snackbar": "\"{name}\" נשמרה",
   "savedQueries_appBar_title": "שאילתות שמורות",

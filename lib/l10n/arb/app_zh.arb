@@ -13062,7 +13062,6 @@
   "query_saveDialog_nameValidation": "请输入名称",
   "query_saveDialog_title": "保存查询",
   "query_savedRow_title": "已保存",
-  "query_savedRow_unreadable": "无法读取 \"{name}\"：{detail}",
   "query_savedRow_unresolved": "\"{name}\" 引用了已不存在的内容",
   "query_saved_snackbar": "已保存 \"{name}\"",
   "savedQueries_appBar_title": "已保存的查询",

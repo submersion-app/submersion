@@ -43574,11 +43574,6 @@ class AppLocalizationsHu extends AppLocalizations {
   String get query_savedRow_title => 'Mentett';
 
   @override
-  String query_savedRow_unreadable(String name, String detail) {
-    return '\"$name\" nem olvasható: $detail';
-  }
-
-  @override
   String query_savedRow_unresolved(String name) {
     return '\"$name\" olyasmire hivatkozik, ami már nem létezik';
   }

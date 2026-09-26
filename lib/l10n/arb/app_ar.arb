@@ -13062,7 +13062,6 @@
   "query_saveDialog_nameValidation": "أدخل اسمًا",
   "query_saveDialog_title": "حفظ الاستعلام",
   "query_savedRow_title": "المحفوظة",
-  "query_savedRow_unreadable": "تعذّرت قراءة \"{name}\": {detail}",
   "query_savedRow_unresolved": "يشير \"{name}\" إلى شيء لم يعد موجودًا",
   "query_saved_snackbar": "تم حفظ \"{name}\"",
   "savedQueries_appBar_title": "الاستعلامات المحفوظة",
