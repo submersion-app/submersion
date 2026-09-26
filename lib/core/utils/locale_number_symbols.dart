@@ -54,8 +54,7 @@ String localiseNumberSeparators(String text) {
 }
 
 /// [value] as locale-aware text at whatever precision the value itself carries,
-/// up to the 15 significant digits a double holds exactly (see
-/// [_withoutBinaryNoise]).
+/// capped at 15 significant digits (see [_withoutBinaryNoise]).
 ///
 /// The shared body of `formatDecimalForInput` and `formatDecimalForDisplay`,
 /// which differ only in [stripTrailingZero]. That strip happens here rather
@@ -82,12 +81,16 @@ String localiseDoubleText(double value, {required bool stripTrailingZero}) {
 
 /// Significant digits kept by [_withoutBinaryNoise]: 15, which is DBL_DIG.
 ///
-/// Every decimal of up to 15 significant digits round-trips through a double
-/// exactly, so rounding here never changes a value anyone typed or a device
-/// recorded. The error an arithmetic step leaves sits in the 16th and 17th
-/// digits, so this still discards the noise of several chained steps (a unit
-/// conversion there and back, say). Only a double that needs 16 or 17 digits
-/// to reproduce, which in practice means one carrying that noise, loses them.
+/// A double does not store most decimals exactly (0.1 has no finite binary
+/// form), and it takes up to 17 significant digits to pin down one particular
+/// double. What DBL_DIG guarantees is narrower and is what this relies on: a
+/// decimal of up to 15 significant digits, converted to the nearest double and
+/// rounded back to 15 digits, comes out as the same decimal. So rounding here
+/// never changes a value anyone typed or a device recorded, as long as it had
+/// at most 15 significant digits. The error an arithmetic step leaves sits in
+/// the 16th and 17th digits, so this still discards the noise of several
+/// chained steps (a unit conversion there and back, say). The cost is that a
+/// double which genuinely needs 16 or 17 digits renders rounded to 15.
 const _significantDigits = 15;
 
 /// [value] with the floating-point noise below [_significantDigits] removed,

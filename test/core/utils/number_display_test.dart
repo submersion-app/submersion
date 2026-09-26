@@ -128,9 +128,17 @@ void main() {
 
     test('drops floating-point noise, keeping the display trailing zero '
         '(#2032)', () {
+      // Dart doubles are IEEE-754 binary64 on every platform, so these inputs
+      // are noisy everywhere; the guards make any change to that loud rather
+      // than letting the assertions below pass on a clean input.
+      const noisyHe = 55 / 100.0 * 100.0;
+      const noisySum = 0.1 + 0.2;
+      expect(noisyHe, isNot(55.0), reason: 'guard: the input must be noisy');
+      expect(noisySum, isNot(0.3), reason: 'guard: the input must be noisy');
+
       Intl.defaultLocale = 'en_US';
-      expect(formatDecimalForDisplay(55 / 100.0 * 100.0), '55.0');
-      expect(formatDecimalForDisplay(0.1 + 0.2), '0.3');
+      expect(formatDecimalForDisplay(noisyHe), '55.0');
+      expect(formatDecimalForDisplay(noisySum), '0.3');
     });
 
     test('spells out a magnitude that stringifies in exponent notation', () {
