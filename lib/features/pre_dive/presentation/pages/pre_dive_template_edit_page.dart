@@ -8,6 +8,16 @@ import 'package:submersion/features/pre_dive/domain/entities/pre_dive_checklist_
 import 'package:submersion/features/pre_dive/presentation/providers/pre_dive_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+
+/// A bound once the form has validated: blank is "no bound", and unreadable
+/// text cannot reach here.
+double? _validatedNumber(TextEditingController controller) =>
+    switch (readNumber(controller.text)) {
+      NumberValue(:final value) => value,
+      NumberBlank() => null,
+      NumberInvalid() => null, // unreachable: validate() ran first
+    };
 
 /// Create/edit page for a pre-dive checklist template and its items.
 class PreDiveTemplateEditPage extends ConsumerStatefulWidget {
@@ -509,8 +519,8 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
         itemType: _itemType,
         valueLabel: isValue && valueLabel.isNotEmpty ? valueLabel : null,
         valueUnit: isValue && valueUnit.isNotEmpty ? valueUnit : null,
-        valueMin: isValue ? parseUserDecimal(_valueMinController.text) : null,
-        valueMax: isValue ? parseUserDecimal(_valueMaxController.text) : null,
+        valueMin: isValue ? _validatedNumber(_valueMinController) : null,
+        valueMax: isValue ? _validatedNumber(_valueMaxController) : null,
         isRequired: _isRequired,
         sourceItemId: _itemType == PreDiveItemType.cellLinearity
             ? _selectedSourceId
@@ -610,6 +620,8 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  // An unreadable bound used to save as no bound (#1900).
+                  validator: numberValidator(context),
                   decoration: InputDecoration(
                     labelText: _itemType == PreDiveItemType.cellLinearity
                         ? l10n.preDive_item_linearityMin
@@ -621,6 +633,8 @@ class _PreDiveItemDialogState extends State<_PreDiveItemDialog> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  // An unreadable bound used to save as no bound (#1900).
+                  validator: numberValidator(context),
                   decoration: InputDecoration(
                     labelText: _itemType == PreDiveItemType.cellLinearity
                         ? l10n.preDive_item_linearityMax

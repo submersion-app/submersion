@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/services/database_service.dart';
-import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/data/services/dive_time_migration_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/app_bar_text_action.dart';
 import 'package:submersion/shared/widgets/app_date_picker.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 class FixDiveTimesPage extends ConsumerStatefulWidget {
   const FixDiveTimesPage({super.key});
@@ -77,8 +77,16 @@ class _FixDiveTimesPageState extends ConsumerState<FixDiveTimesPage> {
   }
 
   void _onOffsetChanged(String value) {
-    final parsed = parseUserInt(value);
-    setState(() => _offsetHours = parsed ?? 0);
+    setState(
+      () => _offsetHours = switch (readNumber(value, integer: true)) {
+        NumberValue(:final value) => value.toInt(),
+        NumberBlank() => 0,
+        // The filter admits digits and a leading '-' only, so this is the
+        // sign on the way to a negative offset: keep the offset until the
+        // digits arrive.
+        NumberInvalid() => _offsetHours,
+      },
+    );
   }
 
   void _toggleSelectAll() {

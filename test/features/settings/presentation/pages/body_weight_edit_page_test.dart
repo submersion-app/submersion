@@ -63,6 +63,26 @@ void main() {
     expect(entries.single.weightKg, 82.5);
   });
 
+  testWidgets('an unreadable weight keeps the dialog open and says why '
+      '(#1900)', (tester) async {
+    await pumpPage(tester);
+    await tester.tap(find.text('Add measurement'));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.widgetWithText(TextField, 'Weight (kg)'),
+      '8..25',
+    );
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Enter a valid number'), findsOneWidget);
+    expect(find.text('Save'), findsOneWidget, reason: 'dialog still open');
+    final entries = await DiverWeightEntryRepository().getEntriesForDiver(
+      diverId,
+    );
+    expect(entries, isEmpty);
+  });
+
   testWidgets('dialog cancel adds nothing; height renders in the subtitle', (
     tester,
   ) async {

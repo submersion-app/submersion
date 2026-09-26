@@ -11,3 +11,5 @@ None was changed; each is for the maintainer to decide.
 | scr_settings_panel.dart, supply O2 | supply O2 % | supply gas dropped (null) | Same shape as the CCR diluent. |
 | segment_editor.dart, target depth | segment target depth | 0 m (a surface target) | Saving an emptied depth plans a leg to the surface rather than asking for a depth. |
 | segment_editor.dart, duration | segment duration | 0 min (an instantaneous leg) | An emptied duration saves a zero-length leg. |
+| body_weight_edit_page.dart, add dialog | body weight | dialog closes, nothing saved, no message | Save with an empty weight looks like it worked. |
+| gtr_reserve_dialog.dart | GTR reserve pressure | dialog closes, setting unchanged, no message | Same shape: Save with an empty box does nothing visible. |

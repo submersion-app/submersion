@@ -27,6 +27,7 @@ import 'package:submersion/features/dive_log/presentation/widgets/combine_dives_
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
+import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
 
 QualityUnitFormatters buildQualityUnitFormatters(WidgetRef ref) =>
     qualityUnitFormattersFor(UnitFormatter(ref.watch(settingsProvider)));
@@ -735,6 +736,7 @@ Future<({Duration offset, bool importWide})?> showTimeShiftSheet(
         : formatDecimalForInput(suggestedOffset.inHours.toDouble()),
   );
   var importWide = false;
+  final formKey = GlobalKey<FormState>();
   return showModalBottomSheet<({Duration offset, bool importWide})>(
     context: context,
     isScrollControlled: true,
@@ -752,13 +754,17 @@ Future<({Duration offset, bool importWide})?> showTimeShiftSheet(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TextField(
-                controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(
-                  signed: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: l10n.dataQuality_repairLabel_shiftTime('h'),
+              Form(
+                key: formKey,
+                child: TextFormField(
+                  controller: controller,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    signed: true,
+                  ),
+                  validator: numberValidator(context, integer: true),
+                  decoration: InputDecoration(
+                    labelText: l10n.dataQuality_repairLabel_shiftTime('h'),
+                  ),
                 ),
               ),
               if (offerImportWide)
@@ -771,7 +777,17 @@ Future<({Duration offset, bool importWide})?> showTimeShiftSheet(
               const SizedBox(height: 12),
               FilledButton(
                 onPressed: () {
-                  final hours = parseUserInt(controller.text) ?? 0;
+                  // Unreadable hours used to apply no shift and report
+                  // success (#1900).
+                  if (!formKey.currentState!.validate()) return;
+                  final hours = switch (readNumber(
+                    controller.text,
+                    integer: true,
+                  )) {
+                    NumberValue(:final value) => value.toInt(),
+                    NumberBlank() => 0, // no shift, as before
+                    NumberInvalid() => 0, // unreachable: validated above
+                  };
                   Navigator.of(context).pop((
                     offset: Duration(hours: hours),
                     importWide: importWide,
