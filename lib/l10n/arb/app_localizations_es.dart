@@ -12180,6 +12180,76 @@ class AppLocalizationsEs extends AppLocalizations {
   String get passport_tag_linked => 'Etiqueta vinculada';
 
   @override
+  String get passport_scan_title => 'Escanear etiqueta de botella';
+
+  @override
+  String get passport_scan_hint =>
+      'Apunta la cámara a la etiqueta o pega el enlace de la etiqueta.';
+
+  @override
+  String get passport_scan_cameraUnavailable =>
+      'La cámara no está disponible aquí. Pega el enlace de la etiqueta.';
+
+  @override
+  String get passport_scan_linkLabel => 'Enlace de la etiqueta';
+
+  @override
+  String get passport_scan_paste => 'Pegar';
+
+  @override
+  String get passport_scan_open => 'Abrir';
+
+  @override
+  String get passport_scan_openFailed =>
+      'No se pudo abrir la etiqueta. Inténtalo de nuevo.';
+
+  @override
+  String get passport_scan_newerFormat =>
+      'Esta etiqueta la escribió una versión más reciente de Submersion. Puede que falten algunos datos.';
+
+  @override
+  String passport_scan_filledFrom(String name) {
+    return 'Completado desde $name';
+  }
+
+  @override
+  String get passport_foreign_title => 'Etiqueta de botella';
+
+  @override
+  String get passport_foreign_notInGear => 'Esta botella no está en tu equipo.';
+
+  @override
+  String passport_foreign_writtenOn(String date) {
+    return 'Según la etiqueta escrita el $date';
+  }
+
+  @override
+  String get passport_foreign_noDetails =>
+      'La etiqueta no incluye datos aparte de su identificador.';
+
+  @override
+  String get passport_foreign_o2Clean =>
+      'Limpia para O2 cuando se escribió la etiqueta';
+
+  @override
+  String get passport_foreign_useOnDive => 'Usar en una inmersión';
+
+  @override
+  String get passport_foreign_addToGear => 'Añadir a mi equipo';
+
+  @override
+  String get passport_foreign_addFailed =>
+      'No se pudo añadir la botella. Inténtalo de nuevo.';
+
+  @override
+  String get passport_foreign_defaultName => 'Botella';
+
+  @override
+  String passport_foreign_serial(String serial) {
+    return 'N.º de serie $serial';
+  }
+
+  @override
   String get passport_logFill_date => 'Cargada el';
 
   @override
@@ -42091,6 +42161,14 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get profilePhoto_source_camera => 'Hacer foto';
+
+  @override
+  String get common_camera_unavailable =>
+      'No se pudo abrir la cámara. Permite el acceso a la cámara en Ajustes.';
+
+  @override
+  String get common_photo_pickFailed =>
+      'No se pudo abrir la foto. Prueba con otra.';
 
   @override
   String get profilePhoto_source_library => 'Elegir de la galería';

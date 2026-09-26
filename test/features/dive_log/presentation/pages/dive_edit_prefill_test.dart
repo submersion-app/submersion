@@ -1,9 +1,17 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/presentation/providers/equipment_component_providers.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
+import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'dart:io';
 
+import 'package:submersion/features/dive_log/domain/entities/dive.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_prefill.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/media/data/services/media_import_service.dart';
@@ -11,6 +19,8 @@ import 'package:submersion/features/media/domain/entities/media_item.dart';
 import 'package:submersion/features/media/presentation/providers/photo_picker_providers.dart';
 import 'package:submersion/features/dive_log/presentation/pages/dive_edit_page.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
+import 'package:submersion/features/tank_presets/data/repositories/tank_preset_repository.dart';
+import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/presentation/providers/tank_preset_providers.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
 
@@ -71,11 +81,14 @@ void main() {
       DivePrefill? prefill,
       void Function(String)? onSaved,
       List<Override> extraOverrides = const [],
+      MockSettingsNotifier? settingsNotifier,
     }) async {
       tester.view.physicalSize = const Size(800, 2600);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
-      final overrides = await getBaseOverrides();
+      final overrides = await getBaseOverrides(
+        settingsNotifier: settingsNotifier,
+      );
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -206,5 +219,226 @@ void main() {
       expect(savedId, isNotNull);
       expect(mediaService.localFileCalls, 1);
     });
+    testWidgets('a cylinder prefill becomes the first tank', (tester) async {
+      String? savedId;
+      await pumpEditPage(
+        tester,
+        prefill: const DivePrefill(
+          tank: DiveTank(
+            id: '',
+            name: 'Club 10',
+            volume: 10,
+            workingPressure: 300,
+            material: TankMaterial.steel,
+            gasMix: GasMix(o2: 32),
+          ),
+        ),
+        onSaved: (id) => savedId = id,
+      );
+      await tester.tap(find.text('Save'));
+      for (var i = 0; i < 100 && savedId == null; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      final dive = await tester.runAsync(
+        () => repository.getDiveById(savedId!),
+      );
+      final tank = dive!.tanks.first;
+      expect(tank.name, 'Club 10');
+      expect(tank.volume, 10);
+      expect(tank.workingPressure, 300);
+      expect(tank.material, TankMaterial.steel);
+      expect(tank.gasMix.o2, 32);
+    });
+
+    testWidgets('an identity-only tag keeps the default tank', (tester) async {
+      String? savedId;
+      await pumpEditPage(
+        tester,
+        prefill: const DivePrefill(tank: DiveTank(id: '')),
+        onSaved: (id) => savedId = id,
+      );
+      await tester.tap(find.text('Save'));
+      for (var i = 0; i < 100 && savedId == null; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      final dive = await tester.runAsync(
+        () => repository.getDiveById(savedId!),
+      );
+      // The settings default (the built-in al80 preset), not a blank tank.
+      expect(dive!.tanks.first.volume, 11.1);
+      expect(dive.tanks.first.presetName, 'al80');
+    });
+
+    /// The diver's default is a custom preset, which loads asynchronously
+    /// and replaces an untouched first tank.
+    Future<String> saveWithCustomDefault(
+      WidgetTester tester,
+      DiveTank tank,
+    ) async {
+      final settings = MockSettingsNotifier();
+      await settings.setDefaultTankPreset('club15');
+      String? savedId;
+      await pumpEditPage(
+        tester,
+        prefill: DivePrefill(tank: tank),
+        onSaved: (id) => savedId = id,
+        settingsNotifier: settings,
+        extraOverrides: [
+          tankPresetRepositoryProvider.overrideWithValue(_Club15Presets()),
+        ],
+      );
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.text('Save'));
+      for (var i = 0; i < 100 && savedId == null; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      return savedId!;
+    }
+
+    testWidgets('an identity-only tag still gets a custom default preset', (
+      tester,
+    ) async {
+      final id = await saveWithCustomDefault(tester, const DiveTank(id: ''));
+      final dive = await tester.runAsync(() => repository.getDiveById(id));
+      expect(dive!.tanks.first.volume, 15);
+      expect(dive.tanks.first.presetName, 'club15');
+    });
+
+    testWidgets('a tag with a spec survives a custom default preset', (
+      tester,
+    ) async {
+      final id = await saveWithCustomDefault(
+        tester,
+        const DiveTank(id: '', volume: 10, workingPressure: 300),
+      );
+      final dive = await tester.runAsync(() => repository.getDiveById(id));
+      expect(dive!.tanks.first.volume, 10);
+      expect(dive.tanks.first.workingPressure, 300);
+    });
+
+    testWidgets(
+      'scanning an own cylinder in the tank card adds it to the gear',
+      (tester) async {
+        const passportId = '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
+        final item = (await tester.runAsync(
+          () => EquipmentRepository().createEquipment(
+            const EquipmentItem(
+              id: '',
+              name: 'Faber 12',
+              type: EquipmentType.tank,
+            ),
+          ),
+        ))!;
+        await tester.runAsync(
+          () => CylinderPassportRepository().assignPassportId(
+            equipmentId: item.id,
+            passportId: passportId,
+          ),
+        );
+        String? savedId;
+        await pumpEditPage(
+          tester,
+          onSaved: (id) => savedId = id,
+          extraOverrides: [
+            passportScanLauncherProvider.overrideWithValue(
+              (context) async => 'https://submersion.app/c#f=1&p=$passportId',
+            ),
+          ],
+        );
+        await tester.tap(find.textContaining('Tank 1').first);
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.ensureVisible(find.byKey(const Key('tank-scan-tag')));
+        await tester.tap(find.byKey(const Key('tank-scan-tag')));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 300)),
+        );
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.tap(find.text('Save'));
+        for (var i = 0; i < 100 && savedId == null; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        final dive = await tester.runAsync(
+          () => repository.getDiveById(savedId!),
+        );
+        expect(dive!.equipment.map((e) => e.id), contains(item.id));
+      },
+    );
+
+    testWidgets('Save right after a tank scan waits for the gear to be added', (
+      tester,
+    ) async {
+      const passportId = '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
+      final item = (await tester.runAsync(
+        () => EquipmentRepository().createEquipment(
+          const EquipmentItem(
+            id: '',
+            name: 'Faber 12',
+            type: EquipmentType.tank,
+          ),
+        ),
+      ))!;
+      await tester.runAsync(
+        () => CylinderPassportRepository().assignPassportId(
+          equipmentId: item.id,
+          passportId: passportId,
+        ),
+      );
+      // Holds gear expansion open, as a slow database would.
+      final gate = Completer<void>();
+      String? savedId;
+      await pumpEditPage(
+        tester,
+        onSaved: (id) => savedId = id,
+        extraOverrides: [
+          passportScanLauncherProvider.overrideWithValue(
+            (context) async => 'https://submersion.app/c#f=1&p=$passportId',
+          ),
+          equipmentComponentsIndexProvider.overrideWith((ref) async {
+            await gate.future;
+            return ComponentsIndex.empty;
+          }),
+        ],
+      );
+      await tester.tap(find.textContaining('Tank 1').first);
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.ensureVisible(find.byKey(const Key('tank-scan-tag')));
+      await tester.tap(find.byKey(const Key('tank-scan-tag')));
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 300)),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+
+      // The scan has filled the tank; its gear add is still pending.
+      await tester.tap(find.text('Save'));
+      await tester.pump(const Duration(milliseconds: 100));
+      gate.complete();
+      for (var i = 0; i < 100 && savedId == null; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 10)),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+      }
+      final dive = await tester.runAsync(
+        () => repository.getDiveById(savedId!),
+      );
+      expect(dive!.equipment.map((e) => e.id), contains(item.id));
+    });
   });
+}
+
+class _Club15Presets extends TankPresetRepository {
+  @override
+  Future<TankPresetEntity?> getPresetByName(String name) async =>
+      name == 'club15'
+      ? TankPresetEntity(
+          id: 'custom-club15',
+          name: 'club15',
+          displayName: 'Club 15',
+          volumeLiters: 15,
+          workingPressureBar: 232,
+          material: TankMaterial.steel,
+          createdAt: DateTime(2026),
+          updatedAt: DateTime(2026),
+        )
+      : null;
 }

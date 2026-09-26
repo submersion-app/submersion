@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/theme/status_colors.dart';
@@ -448,6 +449,32 @@ void main() {
       ]);
       expect(entry.enabled, isFalse);
     });
+
+    for (final showAppBar in [true, false]) {
+      testWidgets('scan a cylinder tag is in the menu (appBar: $showAppBar)', (
+        tester,
+      ) async {
+        var launched = 0;
+        await tester.pumpWidget(
+          await host(
+            [_makeEquipment(id: 'e1', name: 'Aaa Reg')],
+            showAppBar: showAppBar,
+            extraOverrides: [
+              passportScanLauncherProvider.overrideWithValue((context) async {
+                launched++;
+                return null;
+              }),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byIcon(Icons.more_vert).first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('equipment_menu_scanTag')));
+        await tester.pumpAndSettle();
+        expect(launched, 1);
+      });
+    }
   });
 
   group('selection contract', () {

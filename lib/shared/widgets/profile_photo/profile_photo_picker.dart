@@ -1,9 +1,14 @@
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show PlatformException;
 import 'package:image_picker/image_picker.dart';
+import 'package:submersion/core/services/logger_service.dart';
+import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_photo_crop_dialog.dart';
 import 'package:submersion/shared/widgets/profile_photo/profile_photo_source_sheet.dart';
+
+final _log = LoggerService.forClass(ProfilePhotoResult);
 
 /// Outcome of running the profile photo flow.
 ///
@@ -73,16 +78,41 @@ Future<ProfilePhotoResult?> pickProfilePhoto({
         ? ImageSource.camera
         : ImageSource.gallery;
     final ({Uint8List bytes, String name})? picked;
-    if (pickImageOverride != null) {
-      picked = await pickImageOverride(imageSource);
-    } else {
-      final file = await ImagePicker().pickImage(source: imageSource);
-      // Read through the XFile handle, not File(file.path). A picked file is
-      // a HANDLE: on Android SAF the path can be unusable, and image_picker
-      // makes no promise it addresses a real filesystem entry.
-      picked = file == null
-          ? null
-          : (bytes: await file.readAsBytes(), name: file.name);
+    try {
+      if (pickImageOverride != null) {
+        picked = await pickImageOverride(imageSource);
+      } else {
+        final file = await ImagePicker().pickImage(source: imageSource);
+        // Read through the XFile handle, not File(file.path). A picked file
+        // is a HANDLE: on Android SAF the path can be unusable, and
+        // image_picker makes no promise it addresses a real filesystem entry.
+        picked = file == null
+            ? null
+            : (bytes: await file.readAsBytes(), name: file.name);
+      }
+    } on PlatformException catch (e, stackTrace) {
+      // A denied camera permission lands here (image_picker's
+      // camera_access_denied, on iOS and on Android once the app declares
+      // the CAMERA permission), as does a library file that cannot be read.
+      _log.error(
+        'Could not pick a profile photo',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (context.mounted) {
+        ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+          SnackBar(
+            // Only the camera has a permission story to tell; a library or
+            // file failure is not the diver's camera settings.
+            content: Text(
+              imageSource == ImageSource.camera
+                  ? context.l10n.common_camera_unavailable
+                  : context.l10n.common_photo_pickFailed,
+            ),
+          ),
+        );
+      }
+      return null;
     }
     if (picked == null) return null;
     raw = picked.bytes;

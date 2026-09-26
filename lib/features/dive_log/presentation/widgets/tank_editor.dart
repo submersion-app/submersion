@@ -11,7 +11,12 @@ import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/domain/services/tank_preset_visibility.dart';
@@ -21,6 +26,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_disp
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
+
+final _log = LoggerService.forClass(TankEditor);
 
 /// Callback when tank data changes
 typedef TankChangeCallback = void Function(DiveTank tank);
@@ -38,6 +45,12 @@ class TankEditor extends ConsumerStatefulWidget {
   /// (#797), which never writes pressures.
   final bool showPressures;
 
+  /// Called with the diver's own cylinder when its tag is scanned, so the
+  /// host can add it to the dive's gear (issue #2335). The tank itself never
+  /// records the link: `DiveTank.equipmentId` belongs to the transmitter
+  /// registry.
+  final ValueChanged<EquipmentItem>? onCylinderScanned;
+
   const TankEditor({
     super.key,
     required this.tank,
@@ -46,6 +59,7 @@ class TankEditor extends ConsumerStatefulWidget {
     this.onRemove,
     this.canRemove = true,
     this.showPressures = true,
+    this.onCylinderScanned,
   });
 
   @override
@@ -205,6 +219,10 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   /// Current volume (liters) and working pressure (bar) parsed from the
   /// controllers and converted from the user's units to metric. Shared by
   /// [_notifyChange] and [_saveAsPreset] so both agree on the conversion.
+  /// The working pressure cubic feet are converted at when a tank has none,
+  /// matching UnitFormatter.formatTankVolume's estimate.
+  static const double _assumedWorkingPressureBar = 200;
+
   ({double? volumeLiters, double? workingPressureBar}) _metricSpecs() {
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
@@ -225,8 +243,15 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           // can't be accurately reverse-converted via ideal gas law because
           // it includes compressibility and other manufacturer factors.
           volumeLiters = _selectedPreset!.volumeLiters;
-        } else if (workingPressureBar != null && workingPressureBar > 0) {
-          volumeLiters = (volumeDisplay * 28.3168) / workingPressureBar;
+        } else {
+          // Without a working pressure, estimate at the same pressure
+          // UnitFormatter.formatTankVolume assumes for display, rather than
+          // dropping the diver's volume.
+          final pressureBar =
+              workingPressureBar != null && workingPressureBar > 0
+              ? workingPressureBar
+              : _assumedWorkingPressureBar;
+          volumeLiters = (volumeDisplay * 28.3168) / pressureBar;
         }
       } else {
         // Metric: value is already in liters.
@@ -457,6 +482,12 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               ),
             ],
           ),
+        ),
+        IconButton(
+          key: const Key('tank-scan-tag'),
+          icon: const Icon(Icons.qr_code_scanner),
+          tooltip: context.l10n.passport_scan_title,
+          onPressed: _scanCylinder,
         ),
         if (widget.canRemove && widget.onRemove != null)
           IconButton(
@@ -992,6 +1023,137 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           _notifyChange();
         })
         .catchError((Object _) {});
+  }
+
+  Future<void> _scanCylinder() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final text = await ref.read(passportScanLauncherProvider)(context);
+    if (text == null || !mounted) return;
+    try {
+      switch (await resolveScannedTag(ref, text)) {
+        case OwnCylinder(:final equipmentId, :final tag):
+          final item = await ref
+              .read(equipmentRepositoryProvider)
+              .getEquipmentById(equipmentId);
+          final fills = await ref
+              .read(cylinderFillRepositoryProvider)
+              .getForCylinder(
+                passportId: tag.passportId,
+                equipmentId: equipmentId,
+              );
+          if (!mounted || item == null) return;
+          final filled = _applyScannedSpec(
+            volumeL: item.volumeL,
+            workingPressureBar: item.workingPressureBar,
+            material: item.tankMaterial,
+            mix: fills.isEmpty ? null : fills.first.gasMix,
+          );
+          // The cylinder joins the dive's gear even when it records no spec.
+          widget.onCylinderScanned?.call(item);
+          if (filled) {
+            messenger.showSnackBar(
+              SnackBar(content: Text(l10n.passport_scan_filledFrom(item.name))),
+            );
+          }
+        case ForeignCylinder(:final tag):
+          if (!mounted) return;
+          final filled = _applyScannedSpec(
+            volumeL: tag.volumeL,
+            workingPressureBar: tag.workingPressureBar?.toDouble(),
+            material: tag.material,
+            mix: null,
+          );
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                filled
+                    ? l10n.passport_scan_filledFrom(
+                        tag.name ?? l10n.passport_foreign_defaultName,
+                      )
+                    : l10n.passport_foreign_noDetails,
+              ),
+            ),
+          );
+        case NotACylinderTag():
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.passport_tag_linkInvalid)),
+          );
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to fill a tank from a scanned tag',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.passport_scan_openFailed)),
+      );
+    }
+  }
+
+  /// Fills the spec fields (and the mix, when given) the way choosing a
+  /// preset does, in the diver's units, then reports the tank. Returns false,
+  /// changing nothing, when there is nothing to fill: a tag that carries only
+  /// its identity must not clear the tank's preset.
+  bool _applyScannedSpec({
+    double? volumeL,
+    double? workingPressureBar,
+    TankMaterial? material,
+    GasMix? mix,
+  }) {
+    if (volumeL == null &&
+        workingPressureBar == null &&
+        material == null &&
+        mix == null) {
+      return false;
+    }
+    final settings = ref.read(settingsProvider);
+    final units = UnitFormatter(settings);
+    final match = volumeL != null && workingPressureBar != null
+        ? TankPresets.matchBySpecs(volumeL, workingPressureBar)
+        : null;
+    // The preset follows the size; a tag that leaves the size alone leaves it.
+    final sizeChanged = volumeL != null || workingPressureBar != null;
+    setState(() {
+      if (sizeChanged) {
+        _selectedPreset = match == null
+            ? null
+            : TankPresetEntity.fromBuiltIn(match);
+      }
+      if (volumeL != null) {
+        if (settings.volumeUnit == VolumeUnit.cubicFeet) {
+          // Gas capacity needs a pressure: the tag's, else the tank's
+          // current one, else the same estimate _metricSpecs converts back
+          // with, so the tag's liters survive the round trip.
+          final pressureBar =
+              workingPressureBar ??
+              _metricSpecs().workingPressureBar ??
+              _assumedWorkingPressureBar;
+          final cuft = match?.volumeCuft ?? volumeL * pressureBar / 28.3168;
+          _volumeController.text = formatRoundedForInput(cuft, 1);
+        } else {
+          _volumeController.text = formatRoundedForInput(volumeL, 1);
+        }
+      }
+      if (workingPressureBar != null) {
+        _workingPressureController.text = formatRoundedForInput(
+          units.convertPressure(workingPressureBar),
+          0,
+        );
+      }
+      if (material != null) _material = material;
+      if (mix != null) {
+        _mndDriven = false;
+        _o2Controller.text = formatDecimalForInput(mix.o2);
+        _heController.text = formatDecimalForInput(mix.he);
+        _lastValidO2 = mix.o2;
+        _lastValidHe = mix.he;
+      }
+    });
+    _notifyChange();
+    return true;
   }
 
   void _applyPreset(TankPresetEntity preset) {

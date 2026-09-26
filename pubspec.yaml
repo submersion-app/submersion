@@ -160,6 +160,11 @@ dependencies:
   # Keeps the screen awake while a blocking sync-maintenance dialog is up: a
   # phone that locks mid-wipe suspends the work behind it (issue #1194).
   wakelock_plus: ^1.7.0
+  # Camera QR scanning of cylinder passport labels (issue #2335).
+  mobile_scanner: ^7.4.2
+  # Incoming passport links (https://submersion.app/c and submersion://c).
+  # Flutter's own deep linking is off because it drops the custom-scheme host.
+  app_links: ^7.2.1
 
 dev_dependencies:
   flutter_test:

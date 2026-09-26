@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/features/equipment/data/services/sensor_summary_scheduler.dart';
 import 'package:submersion/l10n/arb/app_localizations.dart';
@@ -21,6 +22,9 @@ import 'package:submersion/features/auto_update/presentation/providers/update_me
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/backup/presentation/widgets/restore_barrier.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_origin_republish_provider.dart';
 import 'package:submersion/features/nav_track/presentation/pages/nav_track_import_review_page.dart';
 import 'package:submersion/features/media_store/presentation/providers/media_store_providers.dart';
@@ -86,6 +90,9 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
   final _scaffoldMessengerKey = GlobalKey<ScaffoldMessengerState>();
   bool _adoptDialogShownThisSession = false;
   late final FileShareHandler _fileShareHandler;
+  late final PassportLinkDispatcher _passportLinks;
+  late final GoRouter _linkRouter;
+  bool _hasDivers = false;
   late final AppLifecycleListener _lifecycleListener;
 
   @override
@@ -111,11 +118,24 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
         );
       },
     );
+    _passportLinks = PassportLinkDispatcher(
+      source: ref.read(incomingLinkSourceProvider),
+      open: _openPassportLink,
+    );
+    // A tag tapped on a fresh install waits until setup is over, and one
+    // tapped with the app closed waits for the navigator to exist.
+    _linkRouter = ref.read(appRouterProvider);
+    _linkRouter.routeInformationProvider.addListener(_updatePassportLinkReady);
+    ref.listenManual<AsyncValue<bool>>(hasAnyDiversProvider, (_, next) {
+      _hasDivers = next.value ?? false;
+      _updatePassportLinkReady();
+    }, fireImmediately: true);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _maybeSyncOnLaunch();
       _resumeMediaTransfers();
       _republishOwnedMedia();
       _fileShareHandler.initialize();
+      _passportLinks.start();
       // Fill the per-dive sensor summary cache for dives that predate it or
       // changed since. Single-flight, oldest first, no-op when current.
       SensorSummaryScheduler.instance.scheduleStaleSweep();
@@ -124,6 +144,10 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
 
   @override
   void dispose() {
+    _linkRouter.routeInformationProvider.removeListener(
+      _updatePassportLinkReady,
+    );
+    _passportLinks.dispose();
     _fileShareHandler.dispose();
     _lifecycleListener.dispose();
     WidgetsBinding.instance.removeObserver(this);
@@ -347,6 +371,33 @@ class _SubmersionAppState extends ConsumerState<SubmersionApp>
       case IncomingFileOutcome.none:
         break;
     }
+  }
+
+  /// Whether a passport link can open now: a diver exists, setup is no
+  /// longer on screen (the wizard writes the diver before it finishes, and
+  /// finishing replaces the whole stack), and the root navigator is built
+  /// (go_router builds none until its async redirect resolves).
+  void _updatePassportLinkReady() {
+    if (!mounted) return;
+    final settled =
+        _hasDivers &&
+        _linkRouter.routeInformationProvider.value.uri.path != '/welcome';
+    final navigatorBuilt = rootNavigatorKey.currentContext != null;
+    _passportLinks.setReady(settled && navigatorBuilt);
+    if (settled && !navigatorBuilt) {
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _updatePassportLinkReady(),
+      );
+    }
+  }
+
+  /// Opens a passport tag that arrived as a link. The root navigator's
+  /// context sits under the router and the scaffold messenger, which is all
+  /// [openScannedTag] needs.
+  Future<void> _openPassportLink(String text) async {
+    final context = rootNavigatorKey.currentContext;
+    if (context == null || !context.mounted) return;
+    await openScannedTag(context, ref, text);
   }
 
   Future<void> _handleIncomingFiles(List<String> paths) async {

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -13,6 +15,8 @@ import 'package:submersion/core/services/sync/sync_initializer.dart'
 import 'package:submersion/core/services/sync/sync_service.dart'
     show ConflictResolution;
 import 'package:submersion/features/backup/presentation/pages/restore_complete_page.dart';
+import 'package:submersion/features/cylinder_passports/presentation/services/passport_link_dispatcher.dart';
+import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/backup/presentation/providers/backup_providers.dart';
 import 'package:submersion/features/settings/presentation/providers/sync_providers.dart';
 
@@ -117,6 +121,14 @@ class _DrivableBackupOp extends StateNotifier<BackupOperationState>
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// An incoming-link source a test can push links into.
+class _PushableLinks implements IncomingLinkSource {
+  final controller = StreamController<Uri>.broadcast();
+
+  @override
+  Stream<Uri> get links => controller.stream;
+}
+
 /// Minimal router wired to the real [rootNavigatorKey] so the app-root adopt
 /// dialog (which reads `rootNavigatorKey.currentContext`) can surface.
 GoRouter _testRouter() => GoRouter(
@@ -143,13 +155,16 @@ void main() {
     WidgetTester tester,
     _DrivableSyncNotifier sync, {
     _DrivableBackupOp? backupOp,
+    List<Override> extraOverrides = const [],
+    IncomingLinkSource? links,
+    GoRouter? router,
   }) async {
-    final base = await getBaseOverrides();
+    final base = await getBaseOverrides(incomingLinks: links);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           ...base,
-          appRouterProvider.overrideWithValue(_testRouter()),
+          appRouterProvider.overrideWithValue(router ?? _testRouter()),
           syncStateProvider.overrideWith((ref) => sync),
           if (backupOp != null)
             backupOperationProvider.overrideWith((ref) => backupOp),
@@ -157,6 +172,7 @@ void main() {
             (ref) async => DeviceIdentityStatus.unchanged,
           ),
           restoreLastProviderProvider.overrideWith((ref) async {}),
+          ...extraOverrides,
         ],
         child: const SubmersionApp(),
       ),
@@ -302,5 +318,115 @@ void main() {
     await tester.tap(find.text('Review'));
     await tester.pumpAndSettle();
     expect(find.text('Adopt Restored Library?'), findsOneWidget);
+  });
+
+  testWidgets('a cylinder tag link arriving at the running app is opened', (
+    tester,
+  ) async {
+    final links = _PushableLinks();
+    addTearDown(links.controller.close);
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      links: links,
+      extraOverrides: [
+        hasAnyDiversProvider.overrideWith((ref) async => true),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
+
+    // A tag link with no passport id: it reaches the tag handling, which
+    // refuses it with a message instead of navigating.
+    links.controller.add(Uri.parse('submersion://c?f=1'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('That is not a cylinder tag'), findsOneWidget);
+  });
+
+  testWidgets('a tag link during setup waits until setup is left', (
+    tester,
+  ) async {
+    final links = _PushableLinks();
+    addTearDown(links.controller.close);
+    final router = GoRouter(
+      navigatorKey: rootNavigatorKey,
+      initialLocation: '/welcome',
+      routes: [
+        GoRoute(
+          path: '/welcome',
+          builder: (context, state) => const Scaffold(body: Text('wizard')),
+        ),
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(body: SizedBox.shrink()),
+        ),
+      ],
+    );
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      links: links,
+      router: router,
+      extraOverrides: [
+        // The wizard has already written the diver row: divers exist, but
+        // setup is still on screen.
+        hasAnyDiversProvider.overrideWith((ref) async => true),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
+
+    links.controller.add(Uri.parse('submersion://c?f=1'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('That is not a cylinder tag'), findsNothing);
+
+    router.go('/');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('That is not a cylinder tag'), findsOneWidget);
+  });
+
+  testWidgets('a tag link before the navigator is built is kept, not lost', (
+    tester,
+  ) async {
+    final links = _PushableLinks();
+    addTearDown(links.controller.close);
+    final gate = Completer<void>();
+    // An async top-level redirect, like the app's own: go_router builds no
+    // Navigator until it resolves.
+    final router = GoRouter(
+      navigatorKey: rootNavigatorKey,
+      redirect: (context, state) async {
+        await gate.future;
+        return null;
+      },
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const Scaffold(body: SizedBox.shrink()),
+        ),
+      ],
+    );
+    await pumpApp(
+      tester,
+      _DrivableSyncNotifier(const SyncState()),
+      links: links,
+      router: router,
+      extraOverrides: [
+        hasAnyDiversProvider.overrideWith((ref) async => true),
+        validatedCurrentDiverIdProvider.overrideWith((ref) async => null),
+      ],
+    );
+    expect(rootNavigatorKey.currentContext, isNull);
+
+    links.controller.add(Uri.parse('submersion://c?f=1'));
+    await tester.pump();
+
+    gate.complete();
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(find.text('That is not a cylinder tag'), findsOneWidget);
   });
 }
