@@ -50,7 +50,7 @@ void main() {
       Dive(
         id: 'deco',
         diverId: diverId,
-        dateTime: DateTime(2026, 1, 1),
+        dateTime: DateTime.utc(2026, 1, 1),
         profile: const [
           DiveProfilePoint(timestamp: 0, depth: 30, decoType: 0),
           DiveProfilePoint(timestamp: 60, depth: 30, decoType: 2),
@@ -61,7 +61,7 @@ void main() {
       Dive(
         id: 'noDeco',
         diverId: diverId,
-        dateTime: DateTime(2026, 1, 2),
+        dateTime: DateTime.utc(2026, 1, 2),
         profile: const [DiveProfilePoint(timestamp: 0, depth: 18, decoType: 0)],
       ),
     );
@@ -70,7 +70,7 @@ void main() {
       Dive(
         id: 'eventOnly',
         diverId: diverId,
-        dateTime: DateTime(2026, 1, 3),
+        dateTime: DateTime.utc(2026, 1, 3),
         profile: const [DiveProfilePoint(timestamp: 0, depth: 30)],
       ),
     );
@@ -86,7 +86,11 @@ void main() {
           ),
         );
     await diveRepo.createDive(
-      Dive(id: 'unrecorded', diverId: diverId, dateTime: DateTime(2026, 1, 4)),
+      Dive(
+        id: 'unrecorded',
+        diverId: diverId,
+        dateTime: DateTime.utc(2026, 1, 4),
+      ),
     );
   });
 

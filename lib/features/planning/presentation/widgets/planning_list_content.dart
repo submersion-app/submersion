@@ -175,7 +175,7 @@ class _PlannerSection extends ConsumerWidget {
   }
 }
 
-/// A compact list tile for a planning tool, matching the Statistics page style.
+/// A compact list tile for a planning tool, matching the Insights page style.
 class PlanningTile extends StatelessWidget {
   const PlanningTile({
     super.key,

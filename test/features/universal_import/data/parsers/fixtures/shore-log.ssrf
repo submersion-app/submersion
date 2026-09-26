@@ -1,0 +1,83 @@
+<divelog program='subsurface' version='3'>
+<settings>
+<divecomputerid model='Shearwater Cloud Desktop' deviceid='5e1c0a2d' serial='2.12.6' nickname='Teric'/>
+</settings>
+<divesites>
+<site uuid='c3000001' name='North Jetty' gps='27.000000 -80.000000'>
+  <geo cat='2' origin='2' value='United States of America'/>
+</site>
+<site uuid='c3000002' name='North Jetty' gps='27.000014 -79.999991'>
+  <geo cat='2' origin='2' value='United States of America'/>
+</site>
+<site uuid='d4000001' name='Training Pool' gps='27.100000 -80.100000'>
+  <geo cat='2' origin='2' value='United States of America'/>
+</site>
+</divesites>
+<dives>
+<dive number='1' visibility='1' current='4' sac='16.262 l/min' tags='shore, student' divesiteid='c3000002' watersalinity='1030 g/l' date='2025-09-20' time='07:44:37' duration='0:42 min'>
+  <divemaster>Alex Rivera</divemaster>
+  <buddy>, Jordan Lee</buddy>
+  <notes>Summary:</notes>
+  <suit>3mm wetsuit</suit>
+  <cylinder size='11.094 l' workpressure='206.843 bar' description='AL80' />
+  <cylinder />
+  <cylinder />
+  <cylinder />
+  <cylinder />
+  <cylinder />
+  <weightsystem weight='6.35 kg' description='belt' />
+  <divetemperature air='21.111 C'/>
+  <divecomputer model='Teric'>
+  <depth max='2.41 m' mean='1.584 m' />
+  <temperature water='21.0 C' />
+  <event time='0:00 min' type='11' value='21' name='gaschange' cylinder='0' />
+  <sample time='0:00 min' depth='0.0 m' temp='21.0 C' pressure0='196.9 bar' />
+  <sample time='0:04 min' depth='0.8 m' />
+  <sample time='0:08 min' depth='1.4 m' />
+  <sample time='0:12 min' depth='1.9 m' />
+  <sample time='0:16 min' depth='2.2 m' />
+  <sample time='0:20 min' depth='2.41 m' />
+  <sample time='0:24 min' depth='2.3 m' />
+  <sample time='0:28 min' depth='2.0 m' />
+  <sample time='0:32 min' depth='1.7 m' />
+  <sample time='0:36 min' depth='1.2 m' />
+  <sample time='0:40 min' depth='0.6 m' />
+  <sample time='0:42 min' depth='0.0 m' />
+  </divecomputer>
+</dive>
+<dive number='2' tags='shore' divesiteid='c3000001' watersalinity='1030 g/l' date='2025-09-20' time='09:10:00' duration='0:30 min'>
+  <buddy>Casey Morgan</buddy>
+  <cylinder size='11.094 l' workpressure='206.843 bar' description='AL80' />
+  <cylinder />
+  <cylinder />
+  <divecomputer model='Teric'>
+  <depth max='3.0 m' mean='2.0 m' />
+  <sample time='0:00 min' depth='0.0 m' />
+  <sample time='0:15 min' depth='3.0 m' />
+  <sample time='0:30 min' depth='0.0 m' />
+  </divecomputer>
+</dive>
+<dive number='3' tags='pool' divesiteid='d4000001' date='2025-10-26' time='10:59:11' duration='1:36 min'>
+  <cylinder end='143.3 bar' />
+  <cylinder />
+  <cylinder />
+  <divecomputer model='Teric'>
+  <depth max='1.2 m' mean='0.8 m' />
+  <sample time='0:00 min' depth='0.0 m' />
+  <sample time='0:48 min' depth='1.2 m' />
+  <sample time='1:36 min' depth='0.0 m' />
+  </divecomputer>
+</dive>
+<dive number='4' tags='pool' divesiteid='d4000001' date='2025-10-26' time='11:13:34' duration='2:30 min'>
+  <cylinder start='200.0 bar' end='130.0 bar' />
+  <cylinder />
+  <cylinder />
+  <divecomputer model='Teric'>
+  <depth max='1.5 m' mean='1.0 m' />
+  <sample time='0:00 min' depth='0.0 m' />
+  <sample time='1:15 min' depth='1.5 m' />
+  <sample time='2:30 min' depth='0.0 m' />
+  </divecomputer>
+</dive>
+</dives>
+</divelog>

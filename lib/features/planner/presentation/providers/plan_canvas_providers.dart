@@ -14,7 +14,7 @@ import 'package:submersion/features/planner/domain/services/plan_engine.dart';
 import 'package:submersion/features/planner/domain/services/plan_state_outcome.dart';
 import 'package:submersion/features/planner/domain/services/range_table_service.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_providers.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_providers.dart';
 
 /// PlanEngine thresholds sourced from the diver's deco settings.
 final planEngineConfigProvider = Provider<PlanEngineConfig>((ref) {
@@ -42,10 +42,10 @@ final planOutcomeProvider = Provider<PlanOutcome>((ref) {
 /// The diver's logged average back-gas SAC in L/min ("from your log");
 /// null when no logged dive carries enough tank data to compute one.
 final loggedAverageSacProvider = FutureProvider<double?>((ref) async {
-  final repository = ref.watch(statisticsRepositoryProvider);
+  final repository = ref.watch(insightsRepositoryProvider);
   // Not autoDispose, so without this the logged SAC was computed once and
   // cached for the whole process lifetime (issue #974).
-  ref.invalidateSelfWhen(repository.watchStatisticsChanges());
+  ref.invalidateSelfWhen(repository.watchInsightsChanges());
   final sacByRole = await repository.getSacVolumeByTankRole();
   return sacByRole['backGas'] ??
       (sacByRole.isEmpty ? null : sacByRole.values.first);

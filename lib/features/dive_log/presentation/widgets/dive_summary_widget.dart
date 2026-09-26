@@ -6,8 +6,8 @@ import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_providers.dart';
-import 'package:submersion/features/statistics/domain/career_totals.dart';
-import 'package:submersion/features/statistics/presentation/providers/career_totals_provider.dart';
+import 'package:submersion/features/insights/domain/career_totals.dart';
+import 'package:submersion/features/insights/presentation/providers/career_totals_provider.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 
 /// Summary widget shown in the detail pane when no dive is selected.
@@ -16,7 +16,7 @@ import 'package:submersion/l10n/l10n_extension.dart';
 /// including total dives, hours logged, records, and recent activity.
 ///
 /// Dive count and dive time are career totals (logged + prior dives), matching
-/// the Statistics overview and the home hero header (issue #808).
+/// the Insights overview and the home hero header (issue #808).
 class DiveSummaryWidget extends ConsumerWidget {
   const DiveSummaryWidget({super.key});
 
@@ -129,7 +129,7 @@ class DiveSummaryWidget extends ConsumerWidget {
               value: '${career.combinedDives}',
               label: context.l10n.diveLog_summary_stat_totalDives,
               subtitle: career.hasPriorDives
-                  ? context.l10n.statistics_priorBreakdown(
+                  ? context.l10n.insights_priorBreakdown(
                       '${career.loggedDives}',
                       '${career.priorDives}',
                     )
@@ -142,7 +142,7 @@ class DiveSummaryWidget extends ConsumerWidget {
               value: timeString,
               label: context.l10n.diveLog_summary_stat_diveTime,
               subtitle: career.hasPriorTime
-                  ? context.l10n.statistics_priorBreakdown(
+                  ? context.l10n.insights_priorBreakdown(
                       career.loggedTimeFormatted,
                       career.priorTimeFormatted,
                     )
@@ -441,9 +441,9 @@ class DiveSummaryWidget extends ConsumerWidget {
               label: Text(context.l10n.diveLog_summary_action_importComputer),
             ),
             OutlinedButton.icon(
-              onPressed: () => context.go('/statistics'),
-              icon: const Icon(Icons.bar_chart),
-              label: Text(context.l10n.diveLog_summary_action_viewStats),
+              onPressed: () => context.go('/insights'),
+              icon: const Icon(Icons.insights),
+              label: Text(context.l10n.diveLog_summary_action_viewInsights),
             ),
           ],
         ),

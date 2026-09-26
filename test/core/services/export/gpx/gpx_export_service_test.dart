@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/services/export/gpx/gpx_export_service.dart';
 import 'package:submersion/core/services/export/kml/kml_export_service.dart';
 import 'package:submersion/features/gps_log/domain/entities/gps_track.dart';
@@ -56,7 +57,7 @@ void main() {
     });
 
     test('saveTrackToFile writes GPX to the chosen path', () async {
-      final target = '${tempDir.path}/track.gpx';
+      final target = p.join(tempDir.path, 'track.gpx');
       mockPicker.saveFileResult = Uri.file(target);
 
       final result = await service.saveTrackToFile(_track());
@@ -78,7 +79,7 @@ void main() {
     });
 
     test('saveTrackKmlToFile writes a gx:Track to the chosen path', () async {
-      final target = '${tempDir.path}/track.kml';
+      final target = p.join(tempDir.path, 'track.kml');
       mockPicker.saveFileResult = Uri.file(target);
 
       final result = await service.saveTrackKmlToFile(_track());

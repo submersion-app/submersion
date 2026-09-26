@@ -40,7 +40,7 @@ import 'package:submersion/features/dive_log/domain/services/profile_series_merg
 import 'package:submersion/core/constants/sort_options.dart';
 import 'package:submersion/core/models/sort_state.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
-import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 import 'package:submersion/features/dive_centers/domain/entities/dive_center.dart'
     as domain;
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
@@ -2627,9 +2627,9 @@ class DiveRepository {
         }
       }
     }
-    // Equipment attributes: the same EXISTS Statistics uses, one per
+    // Equipment attributes: the same EXISTS Insights uses, one per
     // condition. Missing until #1805, so the list and its count ignored the
-    // Suit thickness filter that the table view and Statistics applied.
+    // Suit thickness filter that the table view and Insights applied.
     for (final condition in filter.equipmentAttrConditions) {
       final c = equipmentAttrConditionSql(condition, diveIdRef: 'd.id');
       clauses.add(c.sql);
@@ -3411,7 +3411,7 @@ class DiveRepository {
   /// Get dive records (superlatives)
   ///
   /// Optionally filter by [diverId] for per-diver records, and by [filter] for
-  /// a narrowed scope. Issue #1028: the Statistics tab shows these superlatives
+  /// a narrowed scope. Issue #1028: the Insights tab shows these superlatives
   /// beside totals that already honour its filter, so a deepest dive drawn from
   /// the whole logbook contradicted the panel right above it.
   Future<DiveRecords> getRecords({

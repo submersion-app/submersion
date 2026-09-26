@@ -9,7 +9,7 @@
   * [Dive Logging](guide/dive-logging.md)
   * [Dive Sites & Maps](guide/dive-sites.md)
   * [Equipment Management](guide/equipment.md)
-  * [Statistics & Analytics](guide/statistics.md)
+  * [Insights](guide/insights.md)
   * [Import & Export](guide/import-export.md)
   * [Dive Computers](guide/dive-computer.md)
   * [Settings](guide/settings.md)

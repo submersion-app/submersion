@@ -15,7 +15,7 @@ import 'package:submersion/features/safety/presentation/pages/incident_edit_page
 import 'package:submersion/features/safety/presentation/pages/incidents_list_page.dart';
 import 'package:submersion/features/safety/presentation/pages/no_fly_page.dart';
 import 'package:submersion/features/settings/presentation/pages/section_appearance_page.dart';
-import 'package:submersion/features/statistics/presentation/providers/statistics_filter_provider.dart';
+import 'package:submersion/features/insights/presentation/providers/insights_filter_provider.dart';
 import 'package:submersion/features/settings/presentation/pages/settings_page.dart';
 import 'package:submersion/features/settings/presentation/pages/site_detail_sections_page.dart';
 import 'package:submersion/features/settings/presentation/widgets/unrecognized_backups_notice.dart';
@@ -1164,7 +1164,7 @@ void main() {
   });
 
   group('diveSearch route carries the calling section filter (#1079)', () {
-    // Statistics keeps its own filter, so the advanced search form has to be
+    // Insights keeps its own filter, so the advanced search form has to be
     // told which filter it is editing. The section pushes its provider as the
     // route `extra`; anything else (deep link, keyboard shortcut) falls back
     // to the dive list's filter.
@@ -1194,8 +1194,8 @@ void main() {
       context = tester.element(find.byType(SizedBox));
 
       expect(
-        buildWith(statisticsFilterProvider).filterProvider,
-        same(statisticsFilterProvider),
+        buildWith(insightsFilterProvider).filterProvider,
+        same(insightsFilterProvider),
       );
     });
 

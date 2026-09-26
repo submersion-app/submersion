@@ -2,17 +2,17 @@ import 'package:drift/drift.dart' show Value;
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:submersion/core/database/database.dart';
-import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 
 import '../../../helpers/test_database.dart';
 
 void main() {
   late AppDatabase db;
-  late StatisticsRepository repo;
+  late InsightsRepository repo;
 
   setUp(() async {
     db = await setUpTestDatabase();
-    repo = StatisticsRepository();
+    repo = InsightsRepository();
 
     // Foreign keys are enforced (beforeOpen turns them on), so the parent
     // diver and site rows must exist before any dive references them.

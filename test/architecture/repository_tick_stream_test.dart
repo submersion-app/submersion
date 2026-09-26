@@ -16,7 +16,7 @@ import 'package:submersion/features/media/data/repositories/media_library_reposi
 import 'package:submersion/features/media/data/repositories/media_repository.dart';
 import 'package:submersion/features/media_store/data/media_stores_repository.dart';
 import 'package:submersion/features/settings/data/repositories/app_settings_repository.dart';
-import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 import 'package:submersion/features/trips/data/repositories/itinerary_day_repository.dart';
 import 'package:submersion/features/trips/data/repositories/liveaboard_details_repository.dart';
 import 'package:submersion/features/universal_import/data/repositories/csv_preset_repository.dart';
@@ -172,8 +172,8 @@ void main() {
       'MediaLibraryRepository.watchMediaChanges':
           MediaLibraryRepository().watchMediaChanges,
       'MediaRepository.watchMediaChanges': MediaRepository().watchMediaChanges,
-      'StatisticsRepository.watchStatisticsChanges':
-          StatisticsRepository().watchStatisticsChanges,
+      'InsightsRepository.watchInsightsChanges':
+          InsightsRepository().watchInsightsChanges,
       'ServiceRecordRepository.watchServiceRecordsChanges':
           ServiceRecordRepository().watchServiceRecordsChanges,
       'ServiceKindRepository.watchServiceKindsChanges':
@@ -219,11 +219,11 @@ void main() {
     }
   });
 
-  group('statistics', () {
-    test('watchStatisticsChanges fires on a dives write', () async {
+  group('insights', () {
+    test('watchInsightsChanges fires on a dives write', () async {
       expect(
         await fires(
-          StatisticsRepository().watchStatisticsChanges(),
+          InsightsRepository().watchInsightsChanges(),
           () => db
               .into(db.dives)
               .insert(
@@ -239,7 +239,7 @@ void main() {
       );
     });
 
-    test('watchStatisticsChanges fires on a dive_tanks write', () async {
+    test('watchInsightsChanges fires on a dive_tanks write', () async {
       // The case watchDivesChanges would have missed. dive_tanks carries all
       // of the SAC math, and a tank-only sync changeset never touches the
       // dives row -- so subscribing to the dives tick alone would have left
@@ -256,7 +256,7 @@ void main() {
           );
       expect(
         await fires(
-          StatisticsRepository().watchStatisticsChanges(),
+          InsightsRepository().watchInsightsChanges(),
           () => db
               .into(db.diveTanks)
               .insert(DiveTanksCompanion.insert(id: 't1', diveId: 'd1')),
@@ -266,7 +266,7 @@ void main() {
     });
 
     test(
-      'watchStatisticsChanges fires on an equipment_attributes write',
+      'watchInsightsChanges fires on an equipment_attributes write',
       () async {
         // The equipment-attribute filter (#1805) and the suit-thickness chart
         // read attribute rows, and saveAttributes or a sync pull writes only
@@ -274,7 +274,7 @@ void main() {
         await seedParents();
         expect(
           await fires(
-            StatisticsRepository().watchStatisticsChanges(),
+            InsightsRepository().watchInsightsChanges(),
             () => db
                 .into(db.equipmentAttributes)
                 .insert(
@@ -292,10 +292,10 @@ void main() {
       },
     );
 
-    test('watchStatisticsChanges fires on a dive_sites write', () async {
+    test('watchInsightsChanges fires on a dive_sites write', () async {
       expect(
         await fires(
-          StatisticsRepository().watchStatisticsChanges(),
+          InsightsRepository().watchInsightsChanges(),
           () => db
               .into(db.diveSites)
               .insert(
@@ -313,7 +313,7 @@ void main() {
 
     // Site type links are clockless children: typing a site writes only the
     // junction, never dive_sites, so the chart must listen to it (#1765).
-    test('watchStatisticsChanges fires on a site_site_types write', () async {
+    test('watchInsightsChanges fires on a site_site_types write', () async {
       await db
           .into(db.diveSites)
           .insert(
@@ -326,7 +326,7 @@ void main() {
           );
       expect(
         await fires(
-          StatisticsRepository().watchStatisticsChanges(),
+          InsightsRepository().watchInsightsChanges(),
           () => db
               .into(db.siteSiteTypes)
               .insert(

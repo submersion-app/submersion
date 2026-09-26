@@ -114,7 +114,7 @@ String visibilityDistributionLabel(
     final band = bucket == null
         ? null
         : formatLegacyVisibilityBand(bucket, l10n, units);
-    return l10n.statistics_conditions_visibility_legacySuffix(band ?? name);
+    return l10n.insights_conditions_visibility_legacySuffix(band ?? name);
   }
   final band = VisibilityBand.values.where((b) => b.name == key).firstOrNull;
   return band == null ? key : visibilityBandName(band, l10n);
