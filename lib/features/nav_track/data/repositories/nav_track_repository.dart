@@ -6,6 +6,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_sites/data/repositories/site_repository_impl.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart'
     show GeoPoint;
@@ -570,6 +571,17 @@ class NavTrackRepository {
   Future<List<String>> routeIdsLinkedToDive(String diveId) =>
       _idsWhere((t) => t.diveId.equals(diveId));
 
+  /// [routeIdsLinkedToDive] for many dives, in one query per chunk rather
+  /// than one per dive, and under SQLite's bound-variable limit however many
+  /// dives a bulk delete selects (issue #1953).
+  Future<List<String>> routeIdsLinkedToDives(List<String> diveIds) async {
+    final routeIds = <String>[];
+    for (final chunk in seriesIdChunks(diveIds)) {
+      routeIds.addAll(await _idsWhere((t) => t.diveId.isIn(chunk)));
+    }
+    return routeIds;
+  }
+
   /// Normalizes routes whose linked dive was just deleted.
   ///
   /// The `nav_tracks.dive_id` foreign key's `SET NULL` action already
@@ -583,15 +595,15 @@ class NavTrackRepository {
     if (routeIds.isEmpty) return;
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(
-        _db.navTracks,
-      )..where((t) => t.id.isIn(routeIds))).write(
-        NavTracksCompanion(
-          linkMode: const Value(null),
-          isPrimary: const Value(true),
-          updatedAt: Value(now),
-        ),
-      );
+      for (final chunk in seriesIdChunks(routeIds)) {
+        await (_db.update(_db.navTracks)..where((t) => t.id.isIn(chunk))).write(
+          NavTracksCompanion(
+            linkMode: const Value(null),
+            isPrimary: const Value(true),
+            updatedAt: Value(now),
+          ),
+        );
+      }
       for (final routeId in routeIds) {
         await _markPending(routeId, now);
       }

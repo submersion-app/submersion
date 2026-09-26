@@ -8,6 +8,7 @@ import 'package:submersion/core/services/database_service.dart';
 import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/services/sync/sync_event_bus.dart';
 import 'package:submersion/core/utils/stream_debounce.dart';
+import 'package:submersion/features/dive_log/data/repositories/series_id_chunks.dart';
 import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
 import 'package:submersion/features/media/data/repositories/media_row_mapper.dart';
 import 'package:submersion/features/media/data/services/repair/media_repair_service.dart';
@@ -555,12 +556,12 @@ class MediaRepository {
       await _db.transaction(() async {
         var targets = ids;
         if (keepIf != null) {
-          final rows = await (_db.select(
-            _db.media,
-          )..where((t) => t.id.isIn(ids))).get();
           targets = [
-            for (final row in rows)
-              if (!keepIf(row)) row.id,
+            for (final chunk in seriesIdChunks(ids))
+              for (final row in await (_db.select(
+                _db.media,
+              )..where((t) => t.id.isIn(chunk))).get())
+                if (!keepIf(row)) row.id,
           ];
           if (targets.isEmpty) return;
         }
@@ -1981,9 +1982,14 @@ class MediaRepository {
     if (diveIds.isEmpty) {
       return (doomed: const <domain.MediaItem>[], unlinkIds: const <String>[]);
     }
-    final rows = await (_db.select(
-      _db.media,
-    )..where((t) => t.diveId.isIn(diveIds))).get();
+    // Chunked: a bulk delete can pass more dives than SQLite binds in one
+    // statement (issue #1953).
+    final rows = [
+      for (final chunk in seriesIdChunks(diveIds))
+        ...await (_db.select(
+          _db.media,
+        )..where((t) => t.diveId.isIn(chunk))).get(),
+    ];
     final doomed = <domain.MediaItem>[];
     final unlinkIds = <String>[];
     for (final row in rows) {
@@ -2013,21 +2019,37 @@ class MediaRepository {
   ) async {
     if (mediaIds.isEmpty || diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
+    final dyingDives = diveIds.toSet();
     await _db.transaction(() async {
       // The enrichment is dive-scoped (depth and elapsed time on THAT dive's
       // profile) and its FK is NOT NULL with a cascade, so the dive rows
       // about to be deleted would take it with them silently. Drop it here
       // instead, with tombstones, or a peer re-adds it on its next publish
       // (media sync program spec 5.3).
-      await _dropEnrichmentForDives(mediaIds, diveIds);
-      final unlinked =
-          await (_db.update(
+      await _dropEnrichmentForDives(mediaIds, dyingDives);
+      // Each row's current dive is checked here rather than bound as a
+      // second `IN (...)` beside the media ids: a bulk delete can pass more
+      // dives than SQLite binds in one statement (issue #1953). The read
+      // and the write share the transaction, so a row relinked to a
+      // surviving dive in between is still left alone, and not marked as
+      // changed either.
+      final unlinked = <String>[];
+      for (final chunk in seriesIdChunks(mediaIds)) {
+        final stillLinked = [
+          for (final row in await (_db.select(
             _db.media,
-          )..where((t) => t.id.isIn(mediaIds) & t.diveId.isIn(diveIds))).write(
-            MediaCompanion(diveId: const Value(null), updatedAt: Value(now)),
-          );
-      if (unlinked == 0) return;
-      for (final id in mediaIds) {
+          )..where((t) => t.id.isIn(chunk))).get())
+            if (dyingDives.contains(row.diveId)) row.id,
+        ];
+        if (stillLinked.isEmpty) continue;
+        await (_db.update(
+          _db.media,
+        )..where((t) => t.id.isIn(stillLinked))).write(
+          MediaCompanion(diveId: const Value(null), updatedAt: Value(now)),
+        );
+        unlinked.addAll(stillLinked);
+      }
+      for (final id in unlinked) {
         await _syncRepository.markRecordPending(
           entityType: 'media',
           recordId: id,
@@ -2263,13 +2285,20 @@ class MediaRepository {
   /// The dive-deletion path must not touch enrichment a row gained on
   /// ANOTHER dive: the partition that chose these ids ran before this call,
   /// and a row can be relinked in between.
+  ///
+  /// Chunked over [mediaIds], with each row's dive checked against [diveIds]
+  /// here rather than bound beside them (see [unlinkMediaFromDeletedDives]).
   Future<void> _dropEnrichmentForDives(
     List<String> mediaIds,
-    List<String> diveIds,
+    Set<String> diveIds,
   ) async {
-    final stale = await (_db.select(
-      _db.mediaEnrichment,
-    )..where((t) => t.mediaId.isIn(mediaIds) & t.diveId.isIn(diveIds))).get();
+    final stale = [
+      for (final chunk in seriesIdChunks(mediaIds))
+        for (final row in await (_db.select(
+          _db.mediaEnrichment,
+        )..where((t) => t.mediaId.isIn(chunk))).get())
+          if (diveIds.contains(row.diveId)) row,
+    ];
     for (final row in stale) {
       await (_db.delete(
         _db.mediaEnrichment,
@@ -2281,10 +2310,15 @@ class MediaRepository {
     }
   }
 
+  /// Chunked: the dive-deletion cascade reaches this with every photo on
+  /// the dives being deleted (issue #1953).
   Future<void> _dropEnrichmentRows(List<String> mediaIds) async {
-    final stale = await (_db.select(
-      _db.mediaEnrichment,
-    )..where((t) => t.mediaId.isIn(mediaIds))).get();
+    final stale = [
+      for (final chunk in seriesIdChunks(mediaIds))
+        ...await (_db.select(
+          _db.mediaEnrichment,
+        )..where((t) => t.mediaId.isIn(chunk))).get(),
+    ];
     for (final row in stale) {
       await (_db.delete(
         _db.mediaEnrichment,
