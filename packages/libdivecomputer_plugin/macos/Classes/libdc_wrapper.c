@@ -1,5 +1,6 @@
 #include "libdc_wrapper.h"
 #include <stddef.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -522,4 +523,42 @@ void libdc_parsed_dive_free(libdc_parsed_dive_t *dive) {
     free(dive->samples);
     free(dive->events);
     free(dive);
+}
+
+// ============================================================
+// BLE Characteristic Read ioctl (issue #422)
+// ============================================================
+
+int libdc_ble_characteristic_read_decode(
+    unsigned int request, const void *data, size_t size,
+    char uuid_str[LIBDC_BLE_UUID_STRING_SIZE], size_t *value_size) {
+    if (request != LIBDC_IOCTL_BLE_CHARACTERISTIC_READ) {
+        return LIBDC_BLE_CHAR_READ_NOT_THIS;
+    }
+    if (data == NULL || size <= LIBDC_BLE_UUID_SIZE || uuid_str == NULL ||
+        value_size == NULL) {
+        return LIBDC_BLE_CHAR_READ_INVALID;
+    }
+    const unsigned char *u = (const unsigned char *)data;
+    snprintf(uuid_str, LIBDC_BLE_UUID_STRING_SIZE,
+             "%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-"
+             "%02x%02x%02x%02x%02x%02x",
+             u[0], u[1], u[2], u[3], u[4], u[5], u[6], u[7], u[8], u[9],
+             u[10], u[11], u[12], u[13], u[14], u[15]);
+    *value_size = size - LIBDC_BLE_UUID_SIZE;
+    return LIBDC_BLE_CHAR_READ_OK;
+}
+
+int libdc_ble_characteristic_read_fill(void *data, size_t size,
+                                       const unsigned char *value,
+                                       size_t value_len) {
+    if (data == NULL || size <= LIBDC_BLE_UUID_SIZE) {
+        return LIBDC_STATUS_INVALIDARGS;
+    }
+    size_t wanted = size - LIBDC_BLE_UUID_SIZE;
+    if (value == NULL || value_len < wanted) {
+        return LIBDC_STATUS_DATAFORMAT;
+    }
+    memcpy((unsigned char *)data + LIBDC_BLE_UUID_SIZE, value, wanted);
+    return LIBDC_STATUS_SUCCESS;
 }

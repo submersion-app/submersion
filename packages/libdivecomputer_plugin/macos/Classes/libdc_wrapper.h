@@ -170,6 +170,43 @@ typedef struct {
 } libdc_io_callbacks_t;
 
 // ============================================================
+// BLE Characteristic Read ioctl (issue #422)
+// ============================================================
+
+// Some dive computers keep data outside the serial-over-GATT stream. The
+// Cressi Goa family has no BLE version command: libdivecomputer reads the
+// serial, model and firmware from three extra characteristics through
+// DC_IOCTL_BLE_CHARACTERISTIC_READ. The request buffer is the 16-byte
+// big-endian characteristic UUID followed by the bytes to fill with its
+// value; `size` covers both. The constants mirror libdivecomputer's
+// ioctl.h/ble.h so this header stays free of its headers;
+// test_ble_characteristic_read.c pins them against the real macros.
+#define LIBDC_BLE_UUID_SIZE 16
+#define LIBDC_BLE_UUID_STRING_SIZE 37
+// DC_IOCTL_IOR('b', 3, DC_IOCTL_SIZE_VARIABLE)
+#define LIBDC_IOCTL_BLE_CHARACTERISTIC_READ 0x40006203u
+
+#define LIBDC_BLE_CHAR_READ_NOT_THIS 0   // some other ioctl
+#define LIBDC_BLE_CHAR_READ_OK 1         // decoded
+#define LIBDC_BLE_CHAR_READ_INVALID (-1) // right ioctl, unusable buffer
+
+// Decode a characteristic read request. On LIBDC_BLE_CHAR_READ_OK, uuid_str
+// receives the lowercase 8-4-4-4-12 form and *value_size the number of value
+// bytes the bridge must supply. Anything else leaves both untouched.
+int libdc_ble_characteristic_read_decode(
+    unsigned int request, const void *data, size_t size,
+    char uuid_str[LIBDC_BLE_UUID_STRING_SIZE], size_t *value_size);
+
+// Copy a characteristic value into the request buffer after its UUID.
+// Returns LIBDC_STATUS_SUCCESS when value_len covers the requested size (a
+// longer value is truncated to it), LIBDC_STATUS_DATAFORMAT when it falls
+// short (a zero-padded version block would be misparsed), and
+// LIBDC_STATUS_INVALIDARGS for a malformed buffer.
+int libdc_ble_characteristic_read_fill(void *data, size_t size,
+                                       const unsigned char *value,
+                                       size_t value_len);
+
+// ============================================================
 // Parsed Dive Data
 // ============================================================
 
