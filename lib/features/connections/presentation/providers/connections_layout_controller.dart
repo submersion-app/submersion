@@ -54,7 +54,7 @@ class ConnectionsLayoutController extends ChangeNotifier {
       return;
     }
     _web = WholeWebLayout(
-      nodes: graph.nodes.map((n) => n.ref).toList(),
+      nodes: _byDives(graph),
       edges: graph.edges,
       initialPositions: warmStart ? previous : const {},
     );
@@ -75,10 +75,7 @@ class ConnectionsLayoutController extends ChangeNotifier {
   /// Clears pins and lays the current graph out again from its seed.
   void relayout() {
     if (_mode == GraphLayoutMode.ego) return;
-    _web = WholeWebLayout(
-      nodes: _graph.nodes.map((n) => n.ref).toList(),
-      edges: _graph.edges,
-    );
+    _web = WholeWebLayout(nodes: _byDives(_graph), edges: _graph.edges);
     _frame = _web!.frame;
     _syncTicker();
     notifyListeners();
@@ -119,4 +116,14 @@ class ConnectionsLayoutController extends ChangeNotifier {
     _ticker.dispose();
     super.dispose();
   }
+
+  /// Busiest first, then by name, so the island grid leads with the
+  /// entities the diver knows best.
+  static List<NodeRef> _byDives(ConnectionGraph graph) =>
+      ([...graph.nodes]..sort((a, b) {
+            final byDives = b.diveCount.compareTo(a.diveCount);
+            return byDives != 0 ? byDives : a.label.compareTo(b.label);
+          }))
+          .map((n) => n.ref)
+          .toList();
 }

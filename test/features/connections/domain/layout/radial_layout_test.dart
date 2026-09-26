@@ -86,4 +86,27 @@ void main() {
     );
     expect(f.positions, {_focus: GraphPoint.zero});
   });
+
+  test('farther hops sit on outer rings', () {
+    ConnectionNode hop(ConnectionKind k, String id, int h) =>
+        ConnectionNode(ref: NodeRef(k, id), label: id, diveCount: 1, hop: h);
+    final near = [
+      for (var i = 0; i < 30; i++) hop(ConnectionKind.buddy, 'n$i', 1),
+    ];
+    final far = [
+      for (var i = 0; i < 5; i++) hop(ConnectionKind.site, 'f$i', 2),
+    ];
+    final f = RadialLayout.compute(
+      focus: _focus,
+      nodes: [_n(ConnectionKind.buddy, 'me'), ...near, ...far],
+      edges: [
+        for (final n in [...near, ...far]) _spoke(n.ref, 1),
+      ],
+    );
+    final nearMax = near
+        .map((n) => f.positions[n.ref]!.length)
+        .reduce(math.max);
+    final farMin = far.map((n) => f.positions[n.ref]!.length).reduce(math.min);
+    expect(farMin, greaterThan(nearMax));
+  });
 }

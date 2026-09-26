@@ -9,11 +9,12 @@ import 'package:submersion/features/connections/domain/layout/layout_frame.dart'
 
 /// Hub-and-spokes placement for ego mode.
 ///
-/// The focus sits at the origin. Neighbours are grouped by kind (in
-/// [ConnectionKind] order) into contiguous arcs sized by count, sorted by
-/// spoke weight within the arc, and spill to outer rings when an arc cannot
-/// hold them at [minArcSpacing]. Nodes not connected to the focus are
-/// dropped.
+/// The focus sits at the origin. Nodes are placed by hop: hop 1 (and nodes
+/// without a hop) on the inner rings, each farther hop outside all of the
+/// nearer ones. Within a hop, kinds (in [ConnectionKind] order) keep
+/// contiguous arcs sized by count, sorted by spoke weight within the arc,
+/// and spill to outer rings when an arc cannot hold them at
+/// [minArcSpacing].
 class RadialLayout {
   const RadialLayout._();
 
@@ -30,50 +31,60 @@ class RadialLayout {
       final other = e.otherEnd(focus);
       if (other != null) weightTo[other] = (weightTo[other] ?? 0) + e.weight;
     }
-    final neighbours = nodes
-        .where((n) => n.ref != focus && weightTo.containsKey(n.ref))
-        .toList();
+    // Hop 2 and 3 nodes reach the focus only through chords, so every node
+    // gets a weight (zero without a spoke) for the in-arc ordering.
+    for (final n in nodes) {
+      if (n.ref != focus) weightTo.putIfAbsent(n.ref, () => 0);
+    }
+    final neighbours = nodes.where((n) => n.ref != focus).toList();
     final positions = <NodeRef, GraphPoint>{focus: GraphPoint.zero};
     if (neighbours.isEmpty) {
       return LayoutFrame.fromPositions(positions, settled: true);
     }
 
-    final groups = <ConnectionKind, List<ConnectionNode>>{};
+    final hops = <int, List<ConnectionNode>>{};
     for (final n in neighbours) {
-      groups.putIfAbsent(n.ref.kind, () => []).add(n);
+      hops.putIfAbsent(n.hop ?? 1, () => []).add(n);
     }
-    final kinds = groups.keys.toList()
-      ..sort((a, b) => a.index.compareTo(b.index));
-    for (final k in kinds) {
-      groups[k]!.sort((a, b) {
-        final byWeight = weightTo[b.ref]!.compareTo(weightTo[a.ref]!);
-        return byWeight != 0 ? byWeight : a.label.compareTo(b.label);
-      });
-    }
-
-    final total = neighbours.length;
-    var arcStart = 0.0;
-    for (final k in kinds) {
-      final members = groups[k]!;
-      final arc = 2 * math.pi * members.length / total;
-      var placed = 0;
-      var ring = 0;
-      while (placed < members.length) {
-        final radius = firstRing + ring * ringGap;
-        final capacity = math.max(1, (arc * radius / minArcSpacing).floor());
-        final count = math.min(capacity, members.length - placed);
-        for (var i = 0; i < count; i++) {
-          final t = count == 1 ? 0.5 : (i + 0.5) / count;
-          final angle = arcStart + arc * t;
-          positions[members[placed + i].ref] = GraphPoint(
-            radius * math.cos(angle),
-            radius * math.sin(angle),
-          );
-        }
-        placed += count;
-        ring++;
+    var ringBase = 0;
+    for (final h in hops.keys.toList()..sort()) {
+      final members = hops[h]!;
+      final byKind = <ConnectionKind, List<ConnectionNode>>{};
+      for (final n in members) {
+        byKind.putIfAbsent(n.ref.kind, () => []).add(n);
       }
-      arcStart += arc;
+      final kinds = byKind.keys.toList()
+        ..sort((a, b) => a.index.compareTo(b.index));
+      var arcStart = 0.0;
+      var ringsUsed = 1;
+      for (final k in kinds) {
+        final group = byKind[k]!
+          ..sort((a, b) {
+            final byWeight = weightTo[b.ref]!.compareTo(weightTo[a.ref]!);
+            return byWeight != 0 ? byWeight : a.label.compareTo(b.label);
+          });
+        final arc = 2 * math.pi * group.length / members.length;
+        var placed = 0;
+        var ring = 0;
+        while (placed < group.length) {
+          final radius = firstRing + (ringBase + ring) * ringGap;
+          final capacity = math.max(1, (arc * radius / minArcSpacing).floor());
+          final count = math.min(capacity, group.length - placed);
+          for (var i = 0; i < count; i++) {
+            final t = count == 1 ? 0.5 : (i + 0.5) / count;
+            final angle = arcStart + arc * t;
+            positions[group[placed + i].ref] = GraphPoint(
+              radius * math.cos(angle),
+              radius * math.sin(angle),
+            );
+          }
+          placed += count;
+          ring++;
+        }
+        ringsUsed = math.max(ringsUsed, ring);
+        arcStart += arc;
+      }
+      ringBase += ringsUsed;
     }
     return LayoutFrame.fromPositions(positions, settled: true);
   }

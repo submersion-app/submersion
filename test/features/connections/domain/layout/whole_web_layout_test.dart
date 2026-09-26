@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/features/connections/domain/entities/connection_edge.dart';
 import 'package:submersion/features/connections/domain/entities/connection_kind.dart';
@@ -57,5 +59,23 @@ void main() {
     final l = WholeWebLayout(nodes: const [], edges: const []);
     expect(l.settled, isTrue);
     expect(l.frame.positions, isEmpty);
+  });
+
+  test('single nodes sit in a grid below the linked components, in order', () {
+    final l = WholeWebLayout(
+      nodes: [_b('solo2'), _b('a'), _b('b'), _b('solo1')],
+      edges: [_e('a', 'b')],
+    )..advance(400);
+    final p = l.frame.positions;
+    final linkedBottom = math.max(p[_b('a')]!.y, p[_b('b')]!.y);
+    expect(p[_b('solo2')]!.y, greaterThan(linkedBottom));
+    expect(p[_b('solo1')]!.y, greaterThan(linkedBottom));
+    expect(
+      p[_b('solo2')]!.x,
+      lessThan(p[_b('solo1')]!.x),
+      reason: 'input order',
+    );
+    l.moveNode(_b('solo1'), const GraphPoint(-500, -500));
+    expect(l.frame.positions[_b('solo1')], const GraphPoint(-500, -500));
   });
 }
