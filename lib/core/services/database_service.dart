@@ -869,8 +869,9 @@ class DatabaseService {
 
   /// The restore journal for the database at [dbPath], probing with the live
   /// key, deleting through [_deleteIfExists] (so [debugFailDeleteFor]
-  /// reaches it) and stamping with [debugClock] when set. Public for the startup screen, which must ask the same
-  /// question before anything is opened.
+  /// reaches it) and stamping with [debugClock] when set. Public for the
+  /// startup screen, which must ask the same question before anything is
+  /// opened.
   RestoreJournal restoreJournalFor(String dbPath) => RestoreJournal(
     dbPath,
     readSchemaVersion: (path) =>
