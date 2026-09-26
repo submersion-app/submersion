@@ -11,7 +11,12 @@ import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/utils/number_display.dart';
 import 'package:submersion/core/utils/number_input.dart';
+import 'package:submersion/core/services/logger_service.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
+import 'package:submersion/features/cylinder_passports/domain/services/passport_resolver.dart';
+import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
+import 'package:submersion/features/cylinder_passports/presentation/utils/scan_cylinder_tag.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/features/tank_presets/domain/entities/tank_preset_entity.dart';
 import 'package:submersion/features/tank_presets/domain/services/tank_preset_visibility.dart';
@@ -21,6 +26,8 @@ import 'package:submersion/features/dive_log/presentation/widgets/tank_enum_disp
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
 import 'package:submersion/features/equipment/presentation/widgets/service_status_indicator.dart';
+
+final _log = LoggerService.forClass(TankEditor);
 
 /// Callback when tank data changes
 typedef TankChangeCallback = void Function(DiveTank tank);
@@ -38,6 +45,12 @@ class TankEditor extends ConsumerStatefulWidget {
   /// (#797), which never writes pressures.
   final bool showPressures;
 
+  /// Called with the diver's own cylinder when its tag is scanned, so the
+  /// host can add it to the dive's gear (issue #2335). The tank itself never
+  /// records the link: `DiveTank.equipmentId` belongs to the transmitter
+  /// registry.
+  final ValueChanged<EquipmentItem>? onCylinderScanned;
+
   const TankEditor({
     super.key,
     required this.tank,
@@ -46,6 +59,7 @@ class TankEditor extends ConsumerStatefulWidget {
     this.onRemove,
     this.canRemove = true,
     this.showPressures = true,
+    this.onCylinderScanned,
   });
 
   @override
@@ -453,6 +467,12 @@ class _TankEditorState extends ConsumerState<TankEditor> {
               ),
             ],
           ),
+        ),
+        IconButton(
+          key: const Key('tank-scan-tag'),
+          icon: const Icon(Icons.qr_code_scanner),
+          tooltip: context.l10n.passport_scan_title,
+          onPressed: _scanCylinder,
         ),
         if (widget.canRemove && widget.onRemove != null)
           IconButton(
@@ -988,6 +1008,118 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           _notifyChange();
         })
         .catchError((Object _) {});
+  }
+
+  Future<void> _scanCylinder() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = context.l10n;
+    final text = await ref.read(passportScanLauncherProvider)(context);
+    if (text == null || !mounted) return;
+    try {
+      switch (await resolveScannedTag(ref, text)) {
+        case OwnCylinder(:final equipmentId, :final tag):
+          final item = await ref
+              .read(equipmentRepositoryProvider)
+              .getEquipmentById(equipmentId);
+          final fills = await ref
+              .read(cylinderFillRepositoryProvider)
+              .getForCylinder(
+                passportId: tag.passportId,
+                equipmentId: equipmentId,
+              );
+          if (!mounted || item == null) return;
+          _applyScannedSpec(
+            volumeL: item.volumeL,
+            workingPressureBar: item.workingPressureBar,
+            material: item.tankMaterial,
+            mix: fills.isEmpty ? null : fills.first.gasMix,
+          );
+          widget.onCylinderScanned?.call(item);
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.passport_scan_filledFrom(item.name))),
+          );
+        case ForeignCylinder(:final tag):
+          if (!mounted) return;
+          _applyScannedSpec(
+            volumeL: tag.volumeL,
+            workingPressureBar: tag.workingPressureBar?.toDouble(),
+            material: tag.material,
+            mix: null,
+          );
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                l10n.passport_scan_filledFrom(
+                  tag.name ?? l10n.passport_foreign_defaultName,
+                ),
+              ),
+            ),
+          );
+        case NotACylinderTag():
+          messenger.showSnackBar(
+            SnackBar(content: Text(l10n.passport_tag_linkInvalid)),
+          );
+      }
+    } catch (e, stackTrace) {
+      _log.error(
+        'Failed to fill a tank from a scanned tag',
+        error: e,
+        stackTrace: stackTrace,
+      );
+      if (!mounted) return;
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.passport_scan_openFailed)),
+      );
+    }
+  }
+
+  /// Fills the spec fields (and the mix, when given) the way choosing a
+  /// preset does, in the diver's units, then reports the tank.
+  void _applyScannedSpec({
+    double? volumeL,
+    double? workingPressureBar,
+    TankMaterial? material,
+    GasMix? mix,
+  }) {
+    final settings = ref.read(settingsProvider);
+    final units = UnitFormatter(settings);
+    final match = volumeL != null && workingPressureBar != null
+        ? TankPresets.matchBySpecs(volumeL, workingPressureBar)
+        : null;
+    setState(() {
+      _selectedPreset = match == null
+          ? null
+          : TankPresetEntity.fromBuiltIn(match);
+      if (volumeL != null) {
+        if (settings.volumeUnit == VolumeUnit.cubicFeet) {
+          final cuft =
+              match?.volumeCuft ??
+              (workingPressureBar == null
+                  ? null
+                  : volumeL * workingPressureBar / 28.3168);
+          if (cuft != null) {
+            _volumeController.text = formatRoundedForInput(cuft, 1);
+          }
+        } else {
+          _volumeController.text = formatRoundedForInput(volumeL, 1);
+        }
+      }
+      if (workingPressureBar != null) {
+        _workingPressureController.text = formatRoundedForInput(
+          units.convertPressure(workingPressureBar),
+          0,
+        );
+      }
+      if (material != null) _material = material;
+      if (mix != null) {
+        _mndDriven = false;
+        _o2Controller.text = formatDecimalForInput(mix.o2);
+        _heController.text = formatDecimalForInput(mix.he);
+        _lastValidO2 = mix.o2;
+        _lastValidHe = mix.he;
+      }
+    });
+    _notifyChange();
   }
 
   void _applyPreset(TankPresetEntity preset) {

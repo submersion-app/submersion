@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
+import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/cylinder_passports/data/repositories/cylinder_passport_repository.dart';
+import 'package:submersion/features/cylinder_passports/presentation/widgets/passport_scan_sheet.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
@@ -309,6 +313,54 @@ void main() {
       expect(dive!.tanks.first.volume, 10);
       expect(dive.tanks.first.workingPressure, 300);
     });
+
+    testWidgets(
+      'scanning an own cylinder in the tank card adds it to the gear',
+      (tester) async {
+        const passportId = '8f3a5c1e-1b2c-4d5e-8f90-1234567890ab';
+        final item = (await tester.runAsync(
+          () => EquipmentRepository().createEquipment(
+            const EquipmentItem(
+              id: '',
+              name: 'Faber 12',
+              type: EquipmentType.tank,
+            ),
+          ),
+        ))!;
+        await tester.runAsync(
+          () => CylinderPassportRepository().assignPassportId(
+            equipmentId: item.id,
+            passportId: passportId,
+          ),
+        );
+        String? savedId;
+        await pumpEditPage(
+          tester,
+          onSaved: (id) => savedId = id,
+          extraOverrides: [
+            passportScanLauncherProvider.overrideWithValue(
+              (context) async => 'https://submersion.app/c#f=1&p=$passportId',
+            ),
+          ],
+        );
+        await tester.tap(find.textContaining('Tank 1').first);
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.ensureVisible(find.byKey(const Key('tank-scan-tag')));
+        await tester.tap(find.byKey(const Key('tank-scan-tag')));
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 300)),
+        );
+        await tester.pump(const Duration(milliseconds: 300));
+        await tester.tap(find.text('Save'));
+        for (var i = 0; i < 100 && savedId == null; i++) {
+          await tester.pump(const Duration(milliseconds: 100));
+        }
+        final dive = await tester.runAsync(
+          () => repository.getDiveById(savedId!),
+        );
+        expect(dive!.equipment.map((e) => e.id), contains(item.id));
+      },
+    );
   });
 }
 

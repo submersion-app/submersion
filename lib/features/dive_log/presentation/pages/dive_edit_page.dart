@@ -3031,6 +3031,9 @@ class _DiveEditPageState extends ConsumerState<DiveEditPage> {
             },
             onRemove: _tanks.length > 1 ? () => _removeTank(i) : null,
             canRemove: _tanks.length > 1,
+            // A scanned own cylinder joins this dive's gear; the tank row
+            // itself never links to it (issue #2335).
+            onCylinderScanned: (item) => _addGear([item]),
           ),
       ],
       onAddTank: _addTank,
