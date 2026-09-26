@@ -2648,6 +2648,7 @@ Future<void> _confirmAndBulkShareEquipment(
   final visible = await ref.read(allEquipmentProvider.future);
   final ownedCount = visible.where((e) => e.diverId == diverId).length;
   if (ownedCount == 0) {
+    if (!context.mounted) return;
     messenger.showSnackBar(
       SnackBar(content: Text(l10n.settings_shareAll_noneToShare)),
     );
@@ -2673,12 +2674,14 @@ Future<void> _confirmAndBulkShareEquipment(
     final result = await ref
         .read(equipmentShareRepositoryProvider)
         .shareAllForDiver(ownerId: diverId, diverIds: chosen.toList());
+    if (!context.mounted) return;
     messenger.showSnackBar(
       SnackBar(
         content: Text(l10n.equipment_bulkShare_done(result.itemsChanged)),
       ),
     );
   } catch (_) {
+    if (!context.mounted) return;
     messenger.showSnackBar(
       SnackBar(
         content: Text(l10n.common_error_tryAgain),

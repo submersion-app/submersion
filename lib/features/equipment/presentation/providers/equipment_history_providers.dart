@@ -13,8 +13,14 @@ final equipmentHistoryProvider =
       final repository = ref.watch(equipmentRepositoryProvider);
       final shares = ref.watch(equipmentShareRepositoryProvider);
       ref.invalidateSelfWhen(repository.watchEquipmentChanges());
+      // Usage comes from the dives and their gear and tank links, so putting
+      // the item on (or off) a dive refreshes the card.
       ref.invalidateSelfWhen(
-        ref.read(diveRepositoryProvider).watchDivesChanges(),
+        ref.read(diveRepositoryProvider).watchTables(const {
+          'dives',
+          'dive_equipment',
+          'dive_tanks',
+        }),
       );
       ref.invalidateSelfWhen(shares.watchChanges());
       final item = await repository.getEquipmentById(equipmentId);

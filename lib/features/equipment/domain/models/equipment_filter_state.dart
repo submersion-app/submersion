@@ -132,15 +132,21 @@ class EquipmentFilterState {
   /// Whether the tag selection is what emptied [equipment]: some item passes
   /// the category and its conditions, but none of those carries a selected
   /// tag. The empty state blames the axis that did the emptying.
+  /// [activeDiverId] keeps the owner axis (issue #2046) in both passes.
   bool tagsEmptied(
     List<EquipmentItem> equipment,
-    Map<String, Iterable<String>> tagIdsByEquipment,
-  ) =>
+    Map<String, Iterable<String>> tagIdsByEquipment, {
+    String? activeDiverId,
+  }) =>
       tagIds.isNotEmpty &&
-      apply(equipment, tagIdsByEquipment).isEmpty &&
-      copyWith(
-        clearTagIds: true,
-      ).apply(equipment, tagIdsByEquipment).isNotEmpty;
+      apply(
+        equipment,
+        tagIdsByEquipment,
+        activeDiverId: activeDiverId,
+      ).isEmpty &&
+      copyWith(clearTagIds: true)
+          .apply(equipment, tagIdsByEquipment, activeDiverId: activeDiverId)
+          .isNotEmpty;
 
   /// Copy with per-axis clearing. Clearing the status axis resets both of its
   /// values, since they are one choice to the diver. A new or cleared

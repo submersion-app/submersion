@@ -311,6 +311,7 @@ class _EquipmentListContentState extends ConsumerState<EquipmentListContent> {
     final tagsEmptied = filter.tagsEmptied(
       equipmentAsync.value ?? const <EquipmentItem>[],
       tagIdsByEquipment,
+      activeDiverId: activeDiverId,
     );
 
     // Table mode uses a dedicated scaffold with column configuration support.

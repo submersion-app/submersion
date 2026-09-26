@@ -42,4 +42,17 @@ void main() {
       expect(f == const EquipmentFilterState(), isFalse);
     },
   );
+
+  test('tagsEmptied keeps the owner axis (issue #2046)', () {
+    // Shared with me narrows to b; b carries no tag, so the tags emptied it.
+    const f = EquipmentFilterState(
+      owner: EquipmentOwnerFilter.sharedWithMe,
+      tagIds: {'t1'},
+    );
+    const tags = {
+      'a': ['t1'],
+    };
+    expect(f.apply(items, tags, activeDiverId: 'owner'), isEmpty);
+    expect(f.tagsEmptied(items, tags, activeDiverId: 'owner'), isTrue);
+  });
 }
