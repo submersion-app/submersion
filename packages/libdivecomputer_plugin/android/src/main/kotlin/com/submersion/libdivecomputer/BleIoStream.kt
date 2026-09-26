@@ -527,8 +527,11 @@ class BleIoStream(
         if (characteristic.uuid != readCharacteristic?.uuid) return
         releaseReadGate()
         val ok = status == BluetoothGatt.GATT_SUCCESS && value.isNotEmpty()
-        val deliver = synchronized(readPollLock) { readPoll.completed(ok, nowMs()) }
-        if (deliver) readQueue.offer(value)
+        // Queued under the read-poll lock, as purge() clears under it, so a
+        // value the policy accepts can never land after a purge.
+        val deliver = synchronized(readPollLock) {
+            readPoll.completed(ok, nowMs()).also { if (it) readQueue.offer(value) }
+        }
         NativeLogger.d(TAG, "BLE",
             "read-poll response: status=$status bytes=${value.size} delivered=$deliver")
     }
@@ -553,6 +556,7 @@ class BleIoStream(
             NativeLogger.w(TAG, "BLE", "read-poll: readCharacteristic() returned false")
             return false
         }
+        NativeLogger.d(TAG, "BLE", "read-poll: read issued on ${char.uuid}")
         return true
     }
 
@@ -1101,11 +1105,15 @@ class BleIoStream(
         // Direction 1 = input (read buffer). Clear any stale data
         // so the next protocol exchange starts clean.
         if (direction and 1 != 0) {
-            readBuffer = ByteArray(0)
-            readQueue.clear()
             // A read already on the wire answers a command libdivecomputer
-            // has abandoned (issue #1454).
-            synchronized(readPollLock) { readPoll.purge() }
+            // has abandoned (issue #1454). One lock with onReadResponse: a
+            // read completing concurrently is either queued before the clear
+            // or discarded by the policy, never appended after it.
+            synchronized(readPollLock) {
+                readPoll.purge()
+                readBuffer = ByteArray(0)
+                readQueue.clear()
+            }
         }
     }
 

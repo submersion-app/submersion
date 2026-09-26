@@ -521,8 +521,13 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             return Int32(LIBDC_STATUS_SUCCESS)
         }
 
-        packetBuffer.purge()
-        withReadPoll { $0.purge() }
+        // One lock with handleReadResponse: a read completing concurrently is
+        // either queued before the clear or discarded by the policy, never
+        // appended after it (issue #1454).
+        withReadPoll { policy in
+            policy.purge()
+            packetBuffer.purge()
+        }
         return Int32(LIBDC_STATUS_SUCCESS)
     }
 
@@ -557,6 +562,8 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
                 return Int32(LIBDC_STATUS_IO)
             case .issueRead:
                 peripheral.readValue(for: characteristic)
+                NativeLogger.d("BleIoStream", category: "BLE",
+                    "read-poll: read issued on \(characteristic.uuid.uuidString)")
             case .wait:
                 break
             }
@@ -573,11 +580,14 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
     private func handleReadResponse(_ characteristic: CBCharacteristic, error: Error?) {
         let value = error == nil ? (characteristic.value ?? Data()) : Data()
         let now = Self.milliseconds(.now())
-        let deliver = withReadPoll { $0.completed(hasData: !value.isEmpty, nowMs: now) }
-        if deliver {
-            consecutiveReadTimeouts = 0
-            packetBuffer.append(value)
+        // Queued under the read-poll lock, as performPurge clears under it, so
+        // a value the policy accepts can never land after a purge.
+        let deliver = withReadPoll { policy -> Bool in
+            let deliver = policy.completed(hasData: !value.isEmpty, nowMs: now)
+            if deliver { packetBuffer.append(value) }
+            return deliver
         }
+        if deliver { consecutiveReadTimeouts = 0 }
         if let error {
             NativeLogger.w("BleIoStream", category: "BLE",
                 "read-poll read failed for \(characteristic.uuid.uuidString):"
