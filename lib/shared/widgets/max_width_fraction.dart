@@ -40,12 +40,17 @@ class MaxWidthFraction extends SingleChildRenderObjectWidget {
 /// The render object behind [MaxWidthFraction].
 class RenderMaxWidthFraction extends RenderProxyBox {
   RenderMaxWidthFraction({required double fraction, RenderBox? child})
-    : _fraction = fraction,
+    : assert(_isValidFraction(fraction)),
+      _fraction = fraction,
       super(child);
+
+  // The intrinsic widths divide by the fraction, so it must stay positive.
+  static bool _isValidFraction(double value) => value > 0 && value <= 1;
 
   double get fraction => _fraction;
   double _fraction;
   set fraction(double value) {
+    assert(_isValidFraction(value));
     if (value == _fraction) return;
     _fraction = value;
     markNeedsLayout();

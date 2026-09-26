@@ -20,6 +20,7 @@ import '../../../../helpers/mock_providers.dart';
 /// wrap one letter per line (issue #1981).
 void main() {
   final t0 = DateTime(2025, 1, 1);
+  // Spelled as the reporter named their gear in the issue's screenshot.
   const title = 'Regulator Assembley - Apeks & DGX Long Hose';
   const partName =
       '2nd Stage / Necklace / DGX Gears Xtra / XTRA Doubles Reg Package / '

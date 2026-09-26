@@ -192,6 +192,12 @@ void main() {
         () => MaxWidthFraction(fraction: fraction, child: const SizedBox()),
         throwsAssertionError,
       );
+      expect(
+        () => RenderMaxWidthFraction(fraction: fraction),
+        throwsAssertionError,
+      );
+      final box = RenderMaxWidthFraction(fraction: 0.5);
+      expect(() => box.fraction = fraction, throwsAssertionError);
     }
   });
 }
