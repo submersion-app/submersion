@@ -1028,19 +1028,22 @@ class _TankEditorState extends ConsumerState<TankEditor> {
                 equipmentId: equipmentId,
               );
           if (!mounted || item == null) return;
-          _applyScannedSpec(
+          final filled = _applyScannedSpec(
             volumeL: item.volumeL,
             workingPressureBar: item.workingPressureBar,
             material: item.tankMaterial,
             mix: fills.isEmpty ? null : fills.first.gasMix,
           );
+          // The cylinder joins the dive's gear even when it records no spec.
           widget.onCylinderScanned?.call(item);
-          messenger.showSnackBar(
-            SnackBar(content: Text(l10n.passport_scan_filledFrom(item.name))),
-          );
+          if (filled) {
+            messenger.showSnackBar(
+              SnackBar(content: Text(l10n.passport_scan_filledFrom(item.name))),
+            );
+          }
         case ForeignCylinder(:final tag):
           if (!mounted) return;
-          _applyScannedSpec(
+          final filled = _applyScannedSpec(
             volumeL: tag.volumeL,
             workingPressureBar: tag.workingPressureBar?.toDouble(),
             material: tag.material,
@@ -1049,9 +1052,11 @@ class _TankEditorState extends ConsumerState<TankEditor> {
           messenger.showSnackBar(
             SnackBar(
               content: Text(
-                l10n.passport_scan_filledFrom(
-                  tag.name ?? l10n.passport_foreign_defaultName,
-                ),
+                filled
+                    ? l10n.passport_scan_filledFrom(
+                        tag.name ?? l10n.passport_foreign_defaultName,
+                      )
+                    : l10n.passport_foreign_noDetails,
               ),
             ),
           );
@@ -1074,22 +1079,34 @@ class _TankEditorState extends ConsumerState<TankEditor> {
   }
 
   /// Fills the spec fields (and the mix, when given) the way choosing a
-  /// preset does, in the diver's units, then reports the tank.
-  void _applyScannedSpec({
+  /// preset does, in the diver's units, then reports the tank. Returns false,
+  /// changing nothing, when there is nothing to fill: a tag that carries only
+  /// its identity must not clear the tank's preset.
+  bool _applyScannedSpec({
     double? volumeL,
     double? workingPressureBar,
     TankMaterial? material,
     GasMix? mix,
   }) {
+    if (volumeL == null &&
+        workingPressureBar == null &&
+        material == null &&
+        mix == null) {
+      return false;
+    }
     final settings = ref.read(settingsProvider);
     final units = UnitFormatter(settings);
     final match = volumeL != null && workingPressureBar != null
         ? TankPresets.matchBySpecs(volumeL, workingPressureBar)
         : null;
+    // The preset follows the size; a tag that leaves the size alone leaves it.
+    final sizeChanged = volumeL != null || workingPressureBar != null;
     setState(() {
-      _selectedPreset = match == null
-          ? null
-          : TankPresetEntity.fromBuiltIn(match);
+      if (sizeChanged) {
+        _selectedPreset = match == null
+            ? null
+            : TankPresetEntity.fromBuiltIn(match);
+      }
       if (volumeL != null) {
         if (settings.volumeUnit == VolumeUnit.cubicFeet) {
           final cuft =
@@ -1120,6 +1137,7 @@ class _TankEditorState extends ConsumerState<TankEditor> {
       }
     });
     _notifyChange();
+    return true;
   }
 
   void _applyPreset(TankPresetEntity preset) {

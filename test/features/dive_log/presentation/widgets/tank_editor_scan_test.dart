@@ -98,6 +98,7 @@ void main() {
     required void Function(DiveTank) onChanged,
     void Function(EquipmentItem)? onCylinderScanned,
     MockSettingsNotifier? settings,
+    DiveTank tank = const DiveTank(id: 'tank-1'),
   }) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
@@ -128,7 +129,7 @@ void main() {
           home: Scaffold(
             body: SingleChildScrollView(
               child: TankEditor(
-                tank: const DiveTank(id: 'tank-1'),
+                tank: tank,
                 tankNumber: 1,
                 onChanged: onChanged,
                 onCylinderScanned: onCylinderScanned,
@@ -185,6 +186,45 @@ void main() {
     expect(changed!.material, TankMaterial.aluminum);
     expect(changed!.gasMix.o2, 21);
     expect(scannedItem, isNull);
+  });
+
+  const al80Tank = DiveTank(
+    id: 'tank-1',
+    volume: 11.1,
+    workingPressure: 207,
+    material: TankMaterial.aluminum,
+    presetName: 'al80',
+  );
+
+  testWidgets('a tag with no details changes nothing and says so', (
+    tester,
+  ) async {
+    DiveTank? changed;
+    final l10n = await pump(
+      tester,
+      scanned: 'https://submersion.app/c#f=1&p=$stranger',
+      onChanged: (t) => changed = t,
+      tank: al80Tank,
+    );
+    await scan(tester);
+    expect(changed, isNull);
+    expect(find.text(l10n.passport_foreign_noDetails), findsOneWidget);
+  });
+
+  testWidgets('a tag without volume or pressure keeps the preset', (
+    tester,
+  ) async {
+    DiveTank? changed;
+    await pump(
+      tester,
+      scanned: 'https://submersion.app/c#f=1&p=$stranger&m=st',
+      onChanged: (t) => changed = t,
+      tank: al80Tank,
+    );
+    await scan(tester);
+    expect(changed!.material, TankMaterial.steel);
+    expect(changed!.presetName, 'al80');
+    expect(changed!.volume, 11.1);
   });
 
   testWidgets('text that is not a tag changes nothing', (tester) async {
