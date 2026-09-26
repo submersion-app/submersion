@@ -10,7 +10,7 @@ import 'package:submersion/features/dive_log/domain/entities/dive_computer.dart'
 /// later downloads match descriptors against.
 ///
 /// The name is replaced only while it is still the default one the app gave
-/// the computer ("<manufacturer> <model>"); a name the diver chose is kept.
+/// the computer (manufacturer then model); a name the diver chose is kept.
 /// Returns [computer] itself when there is nothing to change.
 DiveComputer relabelToReportedProduct(
   DiveComputer computer,
