@@ -12523,6 +12523,7 @@
   "profilePhoto_sheet_title": "Profielfoto",
   "profilePhoto_source_camera": "Foto maken",
   "common_camera_unavailable": "De camera kon niet worden geopend. Sta cameratoegang toe via Instellingen.",
+  "common_photo_pickFailed": "De foto kon niet worden geopend. Probeer een andere.",
   "profilePhoto_source_library": "Kies uit bibliotheek",
   "profilePhoto_source_file": "Kies bestand",
   "profilePhoto_source_contacts": "Kies uit contacten",

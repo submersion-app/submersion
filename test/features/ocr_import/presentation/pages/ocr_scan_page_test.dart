@@ -259,4 +259,26 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('a failing library pick is not reported as a camera problem', (
+    tester,
+  ) async {
+    await pumpScanPage(
+      tester,
+      engine: FakeEngine(padiTrainingMetric()),
+      mobileLayout: true,
+      pickImage: (source) async => throw PlatformException(code: 'read_failed'),
+    );
+    await tapAndProcess(tester, 'Choose Photo');
+    expect(
+      find.text(
+        'The camera could not be opened. Please allow camera access in Settings.',
+      ),
+      findsNothing,
+    );
+    expect(
+      find.text('The photo could not be opened. Try another one.'),
+      findsOneWidget,
+    );
+  });
 }

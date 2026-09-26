@@ -12523,6 +12523,7 @@
   "profilePhoto_sheet_title": "صورة الملف الشخصي",
   "profilePhoto_source_camera": "التقاط صورة",
   "common_camera_unavailable": "تعذّر فتح الكاميرا. يرجى السماح بالوصول إلى الكاميرا في الإعدادات.",
+  "common_photo_pickFailed": "تعذّر فتح الصورة. جرّب صورة أخرى.",
   "profilePhoto_source_library": "الاختيار من المكتبة",
   "profilePhoto_source_file": "اختيار ملف",
   "profilePhoto_source_contacts": "الاختيار من جهات الاتصال",

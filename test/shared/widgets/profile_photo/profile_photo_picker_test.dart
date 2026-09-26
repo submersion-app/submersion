@@ -272,10 +272,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
-    final libraryOption = find.text('Choose File').evaluate().isNotEmpty
-        ? find.text('Choose File')
-        : find.text('Choose from Library');
-    await tester.tap(libraryOption);
+    await tester.tap(find.text('Take Photo'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 400));
 
@@ -287,5 +284,58 @@ void main() {
       ),
       findsOneWidget,
     );
+  });
+
+  testWidgets('a failing library pick is not reported as a camera problem', (
+    tester,
+  ) async {
+    Object? error;
+
+    await tester.pumpWidget(
+      testApp(
+        locale: const Locale('en'),
+        child: Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () async {
+              try {
+                await pickProfilePhoto(
+                  context: context,
+                  hasPhoto: false,
+                  allowContacts: false,
+                  pickImageOverride: (source) async =>
+                      throw PlatformException(code: 'read_failed'),
+                );
+              } catch (e) {
+                error = e;
+              }
+            },
+            child: const Text('open'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('open'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    final libraryOption = find.text('Choose File').evaluate().isNotEmpty
+        ? find.text('Choose File')
+        : find.text('Choose from Library');
+    await tester.tap(libraryOption);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(
+      find.text(
+        'The camera could not be opened. Please allow camera access in Settings.',
+      ),
+      findsNothing,
+    );
+    expect(
+      find.text('The photo could not be opened. Try another one.'),
+      findsOneWidget,
+    );
+    expect(error, isNull);
   });
 }

@@ -26016,6 +26016,7 @@
   "profilePhoto_sheet_title": "Profile Photo",
   "profilePhoto_source_camera": "Take Photo",
   "common_camera_unavailable": "The camera could not be opened. Please allow camera access in Settings.",
+  "common_photo_pickFailed": "The photo could not be opened. Try another one.",
   "profilePhoto_source_library": "Choose from Library",
   "profilePhoto_source_file": "Choose File",
   "profilePhoto_source_contacts": "Choose from Contacts",

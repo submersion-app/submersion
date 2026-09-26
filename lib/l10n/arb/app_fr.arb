@@ -12523,6 +12523,7 @@
   "profilePhoto_sheet_title": "Photo de profil",
   "profilePhoto_source_camera": "Prendre une photo",
   "common_camera_unavailable": "Impossible d'ouvrir l'appareil photo. Veuillez autoriser l'accès à l'appareil photo dans les Réglages.",
+  "common_photo_pickFailed": "Impossible d'ouvrir la photo. Veuillez en essayer une autre.",
   "profilePhoto_source_library": "Choisir dans la galerie",
   "profilePhoto_source_file": "Choisir un fichier",
   "profilePhoto_source_contacts": "Choisir dans les contacts",

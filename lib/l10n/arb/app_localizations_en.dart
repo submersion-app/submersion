@@ -41492,6 +41492,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The camera could not be opened. Please allow camera access in Settings.';
 
   @override
+  String get common_photo_pickFailed =>
+      'The photo could not be opened. Try another one.';
+
+  @override
   String get profilePhoto_source_library => 'Choose from Library';
 
   @override

@@ -12523,6 +12523,7 @@
   "profilePhoto_sheet_title": "Foto de perfil",
   "profilePhoto_source_camera": "Hacer foto",
   "common_camera_unavailable": "No se pudo abrir la cámara. Permite el acceso a la cámara en Ajustes.",
+  "common_photo_pickFailed": "No se pudo abrir la foto. Prueba con otra.",
   "profilePhoto_source_library": "Elegir de la galería",
   "profilePhoto_source_file": "Elegir archivo",
   "profilePhoto_source_contacts": "Elegir de Contactos",

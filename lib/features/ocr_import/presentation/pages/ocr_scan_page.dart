@@ -60,7 +60,8 @@ class _OcrScanPageState extends ConsumerState<OcrScanPage> {
   }
 
   /// [_pick], with a denied camera (image_picker's camera_access_denied)
-  /// explained instead of thrown.
+  /// explained instead of thrown. A library or file failure gets its own
+  /// message: it is not a camera problem.
   Future<String?> _pickOrExplain(ImageSource source) async {
     try {
       return await _pick(source);
@@ -72,7 +73,13 @@ class _OcrScanPageState extends ConsumerState<OcrScanPage> {
       );
       if (mounted) {
         ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-          SnackBar(content: Text(context.l10n.common_camera_unavailable)),
+          SnackBar(
+            content: Text(
+              source == ImageSource.camera
+                  ? context.l10n.common_camera_unavailable
+                  : context.l10n.common_photo_pickFailed,
+            ),
+          ),
         );
       }
       return null;

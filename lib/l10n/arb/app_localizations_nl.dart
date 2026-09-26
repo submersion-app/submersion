@@ -41841,6 +41841,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'De camera kon niet worden geopend. Sta cameratoegang toe via Instellingen.';
 
   @override
+  String get common_photo_pickFailed =>
+      'De foto kon niet worden geopend. Probeer een andere.';
+
+  @override
   String get profilePhoto_source_library => 'Kies uit bibliotheek';
 
   @override

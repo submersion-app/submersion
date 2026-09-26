@@ -92,8 +92,8 @@ Future<ProfilePhotoResult?> pickProfilePhoto({
       }
     } on PlatformException catch (e, stackTrace) {
       // A denied camera permission lands here (image_picker's
-      // camera_access_denied), on iOS and on Android once the app declares
-      // the CAMERA permission.
+      // camera_access_denied, on iOS and on Android once the app declares
+      // the CAMERA permission), as does a library file that cannot be read.
       _log.error(
         'Could not pick a profile photo',
         error: e,
@@ -101,7 +101,15 @@ Future<ProfilePhotoResult?> pickProfilePhoto({
       );
       if (context.mounted) {
         ScaffoldMessenger.maybeOf(context)?.showSnackBar(
-          SnackBar(content: Text(context.l10n.common_camera_unavailable)),
+          SnackBar(
+            // Only the camera has a permission story to tell; a library or
+            // file failure is not the diver's camera settings.
+            content: Text(
+              imageSource == ImageSource.camera
+                  ? context.l10n.common_camera_unavailable
+                  : context.l10n.common_photo_pickFailed,
+            ),
+          ),
         );
       }
       return null;

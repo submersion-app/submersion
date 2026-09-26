@@ -42233,6 +42233,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Impossible d\'ouvrir l\'appareil photo. Veuillez autoriser l\'accès à l\'appareil photo dans les Réglages.';
 
   @override
+  String get common_photo_pickFailed =>
+      'Impossible d\'ouvrir la photo. Veuillez en essayer une autre.';
+
+  @override
   String get profilePhoto_source_library => 'Choisir dans la galerie';
 
   @override
