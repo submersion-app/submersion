@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
@@ -15,6 +16,15 @@ import '../../../../helpers/mock_providers.dart';
 import '../../../../helpers/test_app.dart';
 
 void main() {
+  // UnitFormatter localises the decimal separator from Intl.defaultLocale,
+  // so pin it for the English-formatted expectations below.
+  late String? savedIntlLocale;
+  setUp(() {
+    savedIntlLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
+  });
+  tearDown(() => Intl.defaultLocale = savedIntlLocale);
+
   const id = 'eq-1';
   const al80 = EquipmentItem(
     id: id,

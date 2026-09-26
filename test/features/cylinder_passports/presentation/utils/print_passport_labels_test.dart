@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/tank_presets.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/database/database.dart' hide TankPresets;
@@ -36,7 +37,12 @@ void main() {
         );
   }
 
+  // UnitFormatter localises the decimal separator from Intl.defaultLocale,
+  // so pin it for the English-formatted spec lines below.
+  late String? savedIntlLocale;
   setUp(() async {
+    savedIntlLocale = Intl.defaultLocale;
+    Intl.defaultLocale = 'en_US';
     db = await setUpTestDatabase();
     await seed('tank', 'tank', serial: 'F123');
     await seed('reg', 'regulator');
@@ -63,7 +69,10 @@ void main() {
       ),
     ]);
   });
-  tearDown(tearDownTestDatabase);
+  tearDown(() async {
+    Intl.defaultLocale = savedIntlLocale;
+    await tearDownTestDatabase();
+  });
 
   /// Pumps a button that prints labels for [ids] and returns what reached
   /// the exporter, or null when it was never called.
