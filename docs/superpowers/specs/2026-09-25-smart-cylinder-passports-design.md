@@ -236,9 +236,11 @@ shows "Tag out of date" on the Tag card with Rewrite (NFC) and Reprint (QR).
 5. A rejected tag: `PassportResolution.invalid(reason)`, shown as a snack bar
    with the reason and a Paste link retry.
 
-From the tank editor a hit sets the tank's `equipmentId`, copies the spec and
-prefills the gas mix from the newest fill; a miss prefills the spec from the
-snapshot and the mix from any fill record that arrived with it.
+From the tank editor a hit copies the spec, prefills the gas mix from the
+newest fill, and adds the cylinder to the dive's gear list. It never writes
+`dive_tanks.equipment_id`, which the transmitter registry owns (decided
+2026-09-26). A miss prefills the spec from the snapshot and the mix from any
+fill record that arrived with it.
 
 ## 8. The passport page
 
@@ -552,13 +554,16 @@ encoder, and `pw.BarcodeWidget` in the PDF label.
 - Android manifest: an intent filter with `android:autoVerify="true"` for
   `https` on `submersion.app` with `pathPrefix` `/c` and `/f`, and a filter
   for the `submersion` scheme.
-- go_router: top-level `/c` and `/f` routes that read `state.uri.fragment`,
-  falling back to `state.uri.query`. The existing top-level `redirect` gates
-  on setup; an incoming link before the shell is ready is queued and replayed
-  the same way an incoming file is.
-- Whether Flutter hands the fragment through intact on both platforms is
-  verified on device in PR 1b. If any carrier strips it, the writer uses the
-  query for that carrier and section 6.1 records the exception.
+- Links arrive through the `app_links` package; Flutter's own deep linking is
+  off on iOS (`FlutterDeepLinkingEnabled` false) and Android
+  (`flutter_deeplinking_enabled` false), because it passes only path, query
+  and fragment and so dropped the `submersion://c` host (decided 2026-09-26).
+  A dispatcher accepts passport tags only, drops a repeat of the same link
+  within two seconds, and holds a link that arrives before any diver exists
+  until setup finishes.
+- Whether each carrier hands the fragment through intact is verified on
+  device (the 1b device checklist). If any carrier strips it, the writer uses
+  the query for that carrier and section 6.1 records the exception.
 
 ### 13.3 NFC
 

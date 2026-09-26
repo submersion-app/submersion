@@ -20,10 +20,11 @@ any case, accept `http` and a `www.submersion.app` host, and require the path
 to be exactly `/c`; any other path or host is not a tag. The payload sits in
 the fragment so a browser never sends it to the server.
 
-Write the https form. From the release that adds scanning, and once the
-website's app-link files are published, it opens Submersion directly when
-installed and a browser page that shows the snapshot otherwise. Until then,
-the tag is read by Submersion's own scanner and by pasting the link.
+Write the https form. It opens Submersion directly where the app is
+installed, once the website's app-link files are published, and a browser
+page that shows the snapshot otherwise. Submersion's own scanner (the
+Equipment list's menu, and each tank in the dive editor) and pasting the link
+work without the website.
 
 ## Payload
 
