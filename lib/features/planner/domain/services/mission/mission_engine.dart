@@ -5,6 +5,7 @@ import 'package:submersion/features/planner/domain/entities/mission/mission_leg.
 import 'package:submersion/features/planner/domain/entities/mission/mission_member.dart';
 import 'package:submersion/features/planner/domain/entities/mission/mission_outcome.dart';
 import 'package:submersion/features/planner/domain/services/mission/leg_speed_resolver.dart';
+import 'package:submersion/features/planner/domain/services/mission/exit_path_evaluator.dart';
 import 'package:submersion/features/planner/domain/services/mission/member_gas_service.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_geometry.dart';
 import 'package:submersion/features/planner/domain/services/mission/mission_member_analysis.dart';
@@ -36,7 +37,10 @@ class MissionEngine {
     required domain.DivePlan plan,
     required DpvMission mission,
   }) {
-    final issues = validateMission(mission);
+    final issues = [
+      ...validateMission(mission),
+      ...validatePlanForMission(plan),
+    ];
     if (issues.any((i) => i.severity == MissionIssueSeverity.blocking)) {
       return MissionOutcome.empty(issues: issues);
     }
@@ -103,6 +107,19 @@ class MissionEngine {
     final roundTripOutcome = scenarios.engine.compute(
       plan.copyWith(segments: profile.segments),
     );
+    if (ExitPathEvaluator.breaksCriticalLimit(roundTripOutcome)) {
+      // The planned route is unsafe before anything fails; no exit
+      // analysis of it can be trusted.
+      return MissionOutcome.empty(
+        issues: [
+          ...issues,
+          const MissionIssue(
+            type: MissionIssueType.planNotDiveable,
+            severity: MissionIssueSeverity.blocking,
+          ),
+        ],
+      );
+    }
     final environment = PlanEngine.environmentFor(plan);
     final bottomTank = plan.tanks.firstWhere(
       (t) => t.id == profile.segments.first.tankId,

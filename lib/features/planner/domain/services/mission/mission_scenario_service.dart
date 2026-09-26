@@ -149,12 +149,15 @@ class MissionScenarioService {
       mode: mode,
       towerId: tower,
       feasible:
-          result.gasShortfallMemberIds.isEmpty && batteryShortfall.isEmpty,
+          result.gasShortfallMemberIds.isEmpty &&
+          batteryShortfall.isEmpty &&
+          !result.notDiveable,
       exitBottomSeconds: result.exitBottomSeconds,
       ttsSeconds: result.ttsSeconds,
       exitLitersByMember: result.exitLitersByMember,
       gasShortfallMemberIds: result.gasShortfallMemberIds,
       batteryShortfallMemberIds: batteryShortfall,
+      notDiveable: result.notDiveable,
     );
   }
 
@@ -265,7 +268,10 @@ class MissionScenarioService {
 
     return ExitOutcome(
       mode: MissionExitMode.surface,
-      feasible: result.gasShortfallMemberIds.isEmpty && !exceeded,
+      feasible:
+          result.gasShortfallMemberIds.isEmpty &&
+          !exceeded &&
+          !result.notDiveable,
       exitBottomSeconds: 0,
       ttsSeconds: result.ttsSeconds,
       exitLitersByMember: result.exitLitersByMember,
@@ -275,6 +281,7 @@ class MissionScenarioService {
       walkM: chosen.walkM,
       viaShore: chosen.viaShore,
       surfaceLimitExceeded: exceeded,
+      notDiveable: result.notDiveable,
     );
   }
 

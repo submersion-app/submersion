@@ -48,12 +48,18 @@ class ExitPathResult extends Equatable {
   /// True when an exit leg cannot be travelled at the exit speed.
   final bool blockedByCurrent;
 
+  /// True when the plan engine finds a critical limit broken on this exit
+  /// (ppO2, hypoxic gas, gas density or CNS). Gas running out is not one of
+  /// them: that is judged per diver here, not at the plan's single SAC.
+  final bool notDiveable;
+
   const ExitPathResult({
     required this.exitBottomSeconds,
     required this.ttsSeconds,
     required this.exitLitersByMember,
     required this.gasShortfallMemberIds,
     required this.blockedByCurrent,
+    this.notDiveable = false,
   });
 
   static const blocked = ExitPathResult(
@@ -71,6 +77,7 @@ class ExitPathResult extends Equatable {
     exitLitersByMember,
     gasShortfallMemberIds,
     blockedByCurrent,
+    notDiveable,
   ];
 }
 
@@ -176,6 +183,18 @@ class ExitPathEvaluator {
       exitLitersByMember: liters,
       gasShortfallMemberIds: shortfall,
       blockedByCurrent: false,
+      notDiveable: breaksCriticalLimit(outcome),
+    );
+  }
+
+  /// Whether [outcome] breaks a critical plan-engine limit other than gas
+  /// running out: ppO2, hypoxic gas, gas density or CNS. Gas running out is
+  /// judged per diver by this evaluator, not at the plan's single SAC.
+  static bool breaksCriticalLimit(PlanOutcome outcome) {
+    return outcome.issues.any(
+      (i) =>
+          i.severity == PlanIssueSeverity.critical &&
+          i.type != PlanIssueType.gasOut,
     );
   }
 

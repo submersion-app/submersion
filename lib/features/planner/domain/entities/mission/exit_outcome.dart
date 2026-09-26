@@ -32,6 +32,10 @@ class ExitOutcome extends Equatable {
   /// beat at cruise can still stop a swim or a slow tow.
   final bool blockedByCurrent;
 
+  /// True when the plan engine calls this exit not diveable: it breaks a
+  /// critical ppO2, hypoxic, gas density or CNS limit on its own.
+  final bool notDiveable;
+
   /// Surface exit only: seconds at the surface after the ascent, swimming
   /// and, via a shore, walking.
   final int surfaceSeconds;
@@ -59,6 +63,7 @@ class ExitOutcome extends Equatable {
     this.gasShortfallMemberIds = const {},
     this.batteryShortfallMemberIds = const {},
     this.blockedByCurrent = false,
+    this.notDiveable = false,
     this.surfaceSeconds = 0,
     this.surfaceSwimM,
     this.walkM,
@@ -79,6 +84,7 @@ class ExitOutcome extends Equatable {
     Set<String>? gasShortfallMemberIds,
     Set<String>? batteryShortfallMemberIds,
     bool? blockedByCurrent,
+    bool? notDiveable,
     int? surfaceSeconds,
     double? surfaceSwimM,
     bool clearSurfaceSwimM = false,
@@ -99,6 +105,7 @@ class ExitOutcome extends Equatable {
       batteryShortfallMemberIds:
           batteryShortfallMemberIds ?? this.batteryShortfallMemberIds,
       blockedByCurrent: blockedByCurrent ?? this.blockedByCurrent,
+      notDiveable: notDiveable ?? this.notDiveable,
       surfaceSeconds: surfaceSeconds ?? this.surfaceSeconds,
       surfaceSwimM: clearSurfaceSwimM
           ? null
@@ -120,6 +127,7 @@ class ExitOutcome extends Equatable {
     gasShortfallMemberIds,
     batteryShortfallMemberIds,
     blockedByCurrent,
+    notDiveable,
     surfaceSeconds,
     surfaceSwimM,
     walkM,

@@ -23,6 +23,23 @@ enum MissionIssueType {
 
   /// The plan carries no cylinder, so no dive can be computed at all.
   planHasNoTank,
+
+  /// A cylinder has no volume or no fill pressure, so no exit's gas can be
+  /// proven safe.
+  tankBudgetUnknown,
+
+  /// The plan is a rebreather plan; version 1 plans open circuit only.
+  unsupportedMode,
+
+  /// The planned route itself breaks a critical plan-engine limit (ppO2,
+  /// hypoxic gas, gas density or CNS) before any failure.
+  planNotDiveable,
+
+  /// The battery reserve fraction is outside 0 to 1, or not a number.
+  batteryReserveInvalid,
+
+  /// A leg depth is negative or not a number. Carries the leg id.
+  legDepthInvalid,
   untraversableLeg,
   scenarioFailed,
 }
@@ -33,7 +50,8 @@ enum MissionIssueSeverity { info, warning, blocking }
 /// tie-break priority when two members bind at the same waypoint.
 ///
 /// [teamGas]: the member could get out, but a teammate's gas cannot cover
-/// the exit. [blockedByCurrent]: no exit can make headway. [noFeasibleTow]:
+/// the exit. [exposure]: the exit breaks a critical oxygen or gas limit
+/// (in practice CNS from the extra time). [blockedByCurrent]: no exit can make headway. [noFeasibleTow]:
 /// only when the member has a teammate whose tow was possible but failed.
 /// [surfaceSwimLimit]: open water, the only way out is a surface swim longer
 /// than the mission's limit.
@@ -41,6 +59,7 @@ enum MissionBindingFactor {
   battery,
   ownGas,
   teamGas,
+  exposure,
   blockedByCurrent,
   noFeasibleTow,
   surfaceSwimLimit,

@@ -126,8 +126,9 @@ class MissionMemberAnalysis {
   /// names the limit first: it is the setting that binds, and once a surface
   /// swim feels the current, a current that closes the underwater exits
   /// closes the surface too. Then own gas and a teammate's gas, from every
-  /// exit that ran (the swim, a tow that made headway, the surface); then a
-  /// tow that made headway but failed; then a current that closes them all.
+  /// exit that ran (the swim, a tow that made headway, the surface); then an
+  /// exit the plan engine calls not diveable; then a tow that made headway
+  /// but failed; then a current that closes them all.
   MissionBindingFactor _whyUnsurvivable(
     String memberId,
     MemberWaypointOutcome own,
@@ -136,6 +137,7 @@ class MissionMemberAnalysis {
     if (surface != null &&
         surface.surfaceLimitExceeded &&
         !surface.blockedByCurrent &&
+        !surface.notDiveable &&
         surface.gasShortfallMemberIds.isEmpty) {
       return MissionBindingFactor.surfaceSwimLimit;
     }
@@ -147,6 +149,9 @@ class MissionMemberAnalysis {
     }
     if (witnesses.any((e) => e.gasShortfallMemberIds.isNotEmpty)) {
       return MissionBindingFactor.teamGas;
+    }
+    if (witnesses.any((e) => e.notDiveable)) {
+      return MissionBindingFactor.exposure;
     }
     if (towRan) return MissionBindingFactor.noFeasibleTow;
     return MissionBindingFactor.blockedByCurrent;

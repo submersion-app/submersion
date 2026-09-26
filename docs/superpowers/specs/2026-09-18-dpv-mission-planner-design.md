@@ -76,6 +76,9 @@ style (equipment attribute catalog), but nothing consumes those numbers.
   #1772) is a later phase.
 - Charging gas for a surface swim. At the surface the diver is not breathing
   from a cylinder in this model, so a surface exit costs time, not gas.
+- Rebreather plans. A CCR, SCR or pSCR plan's loop gas is not tied to a
+  carried cylinder, so exit gas could not be charged per diver; version 1
+  refuses a plan that is not open circuit with a blocking issue.
 
 ## Design
 
@@ -281,6 +284,18 @@ and a bailout cylinder are not held to the reserve.
 A leg shorter than half a metre is a blocking validation issue: it is too
 short to travel, and its outbound and return could not be matched.
 
+Validation blocks, before any scenario runs: a battery reserve outside 0 to 1
+or not a number; a scooter whose speed, burn time, tow speed factor or tow
+burn factor is not positive; a negative or non-numeric leg depth; negative
+open-water distances, limits or walking speed; a plan that is not open
+circuit; a plan with no cylinder; and a cylinder with no volume or fill
+pressure, whose gas no exit could prove safe. A planned route the plan engine
+already calls not diveable (a critical ppO2, hypoxic gas, gas density or CNS
+limit) is refused too. An exit that breaks one of those limits on its own,
+in practice CNS from the extra time, is infeasible, and binds as exposure.
+Gas running out is not one of them: it is judged per diver, not at the plan's
+single SAC.
+
 Scenario count per failure is one swim plus up to `members - 1` tows, so the
 underwater exits take at most `waypoints * members * members` engine runs (54
 for three members and six waypoints). An overhead mission adds one run per
@@ -311,8 +326,9 @@ profile is built once and shared by every run there.
   waypoint where it binds, and the mission turn pressure: gas that must
   remain at the abandonment point to cover that member's worst feasible exit
   plus the plan's reserve. The binding factors are battery, own gas, a
-  teammate's gas, blocked by current, no feasible tow (only when the member
-  has a teammate), and surface swim over the limit.
+  teammate's gas, exposure (an exit that breaks a critical oxygen or gas
+  limit), blocked by current, no feasible tow (only when the member has a
+  teammate), and surface swim over the limit.
 - `constraint`: the member and factor that bind earliest. This is the
   sentence the feature exists to produce.
 - `issues`: blocking and warning issues (untraversable leg, empty team,

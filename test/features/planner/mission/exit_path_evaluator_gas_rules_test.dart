@@ -161,6 +161,52 @@ void main() {
     );
   });
 
+  test('an exit the plan engine calls not diveable is flagged', () {
+    // EAN36 is fine at the 20 m failure depth (1.08 bar) but an exit leg at
+    // 40 m breathes it at 1.8 bar, over the 1.6 bar critical limit.
+    const ean36 = GasMix(o2: 36);
+    final outbound = [
+      PlanSegment.travel(
+        id: 'down',
+        fromDepth: 0,
+        targetDepth: 20,
+        tankId: 'back',
+        gasMix: ean36,
+        ratePerMinute: 18,
+      ),
+      const PlanSegment(
+        id: 'hold',
+        targetDepth: 20,
+        durationSeconds: 600,
+        tankId: 'back',
+        gasMix: ean36,
+        order: 1,
+      ),
+    ];
+    ExitPathResult run(double exitDepth) => const ExitPathEvaluator().evaluate(
+      plan: _plan(
+        tanks: const [
+          DiveTank(
+            id: 'back',
+            volume: 40,
+            startPressure: 230,
+            gasMix: ean36,
+            role: TankRole.backGas,
+          ),
+        ],
+      ),
+      outboundSegments: outbound,
+      failureRuntimeSeconds: 667,
+      exitLegs: [
+        ExitLeg(id: 'x', distanceM: 100, depthM: exitDepth, headingDeg: 0),
+      ],
+      exitSpeedMps: 0.2,
+      divers: const [ExitDiver(id: 'a', sacBottom: 15)],
+    );
+    expect(run(40).notDiveable, isTrue);
+    expect(run(20).notDiveable, isFalse);
+  });
+
   group('stressed SAC is a multiple of the diver own SAC', () {
     test('the plan stressed-to-bottom ratio scales each diver', () {
       // Plan 15 L/min bottom, 37.5 stressed: a factor of 2.5.

@@ -21,6 +21,7 @@ void main() {
       MissionBindingFactor.battery,
       MissionBindingFactor.ownGas,
       MissionBindingFactor.teamGas,
+      MissionBindingFactor.exposure,
       MissionBindingFactor.blockedByCurrent,
       MissionBindingFactor.noFeasibleTow,
       MissionBindingFactor.surfaceSwimLimit,
