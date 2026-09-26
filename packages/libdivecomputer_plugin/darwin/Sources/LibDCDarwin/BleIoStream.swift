@@ -33,6 +33,7 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
     private static let ioctlDirRead: UInt32 = 1
     private static let ioctlDirWrite: UInt32 = 2
     private static let pinTimeoutSeconds: TimeInterval = 60
+    private static let characteristicReadTimeout: DispatchTimeInterval = .seconds(10)
     private static let directionInput: UInt32 = 1
     private static let maxLogBytes = 24
 
@@ -62,6 +63,8 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
     private var discoverySignaled = false
 
     private let packetBuffer = PacketReadBuffer()
+    /// Characteristic read in flight (issue #422).
+    private let pendingRead = PendingCharacteristicRead()
     private let writeSemaphore = DispatchSemaphore(value: 0)
     private let writeReadySemaphore = DispatchSemaphore(value: 0)
     private let creditSemaphore = DispatchSemaphore(value: 0)
@@ -665,6 +668,47 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
             }
         }
 
+        var uuidBuffer = [CChar](repeating: 0,
+                                 count: Int(LIBDC_BLE_UUID_STRING_SIZE))
+        var valueSize: Int = 0
+        let decoded = libdc_ble_characteristic_read_decode(
+            request, data, size, &uuidBuffer, &valueSize)
+        if decoded == LIBDC_BLE_CHAR_READ_INVALID {
+            return Int32(LIBDC_STATUS_INVALIDARGS)
+        }
+        if decoded == LIBDC_BLE_CHAR_READ_OK, let data {
+            let uuidString = String(cString: uuidBuffer)
+            let target = CBUUID(string: uuidString)
+            // libdivecomputer names only the characteristic; search every
+            // discovered service.
+            guard let characteristic = discoveredServices
+                .flatMap({ $0.characteristics })
+                .first(where: { $0.uuid == target }),
+                  characteristic.properties.contains(.read) else {
+                NativeLogger.w("BleIoStream", category: "BLE",
+                    "ioctl BLE_CHARACTERISTIC_READ \(uuidString) not readable")
+                return Int32(LIBDC_STATUS_NOACCESS)
+            }
+            pendingRead.begin(uuid: characteristic.uuid.uuidString)
+            peripheral.readValue(for: characteristic)
+            guard let value = pendingRead.wait(
+                timeout: .now() + Self.characteristicReadTimeout) else {
+                NativeLogger.e("BleIoStream", category: "BLE",
+                    "ioctl BLE_CHARACTERISTIC_READ \(uuidString) failed")
+                return Int32(LIBDC_STATUS_IO)
+            }
+            let status = value.withUnsafeBytes { bytes in
+                libdc_ble_characteristic_read_fill(
+                    data, size,
+                    bytes.bindMemory(to: UInt8.self).baseAddress,
+                    value.count)
+            }
+            NativeLogger.d("BleIoStream", category: "BLE",
+                "ioctl BLE_CHARACTERISTIC_READ \(uuidString)"
+                    + " bytes=\(value.count) -> \(status)")
+            return status
+        }
+
         return Int32(LIBDC_STATUS_UNSUPPORTED)
     }
 
@@ -725,6 +769,12 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral,
                      didUpdateValueFor characteristic: CBCharacteristic,
                      error: Error?) {
+        // A characteristic read reply (issue #422) arrives here too. Claim it
+        // before the notification path can buffer it as download data.
+        if pendingRead.complete(uuid: characteristic.uuid.uuidString,
+                                value: error == nil ? characteristic.value : nil) {
+            return
+        }
         if let error {
             NativeLogger.e("BleIoStream", category: "BLE",
                 "didUpdateValue error for \(characteristic.uuid.uuidString):"
@@ -966,6 +1016,14 @@ extension BleIoStream: CBCentralManagerDelegate {
         }
         connectError = error
         connectSemaphore.signal()
+    }
+
+    func centralManager(_ central: CBCentralManager,
+                         didDisconnectPeripheral peripheral: CBPeripheral,
+                         error: Error?) {
+        // A characteristic read in flight gets no reply once the link is
+        // down; wake its waiter rather than leave it to the timeout (#422).
+        pendingRead.cancel()
     }
 
     func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {

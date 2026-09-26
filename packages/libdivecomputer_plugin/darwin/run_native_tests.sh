@@ -16,6 +16,15 @@ swiftc -o "$BUILD_DIR/packet_read_buffer_tests" \
 
 "$BUILD_DIR/packet_read_buffer_tests"
 
+# Characteristic read slot (issue #422): a read reply shares the notification
+# callback on Apple platforms and must be claimed before it can reach the
+# download's packet buffer.
+swiftc -o "$BUILD_DIR/pending_characteristic_read_tests" \
+    Sources/LibDCDarwin/PendingCharacteristicRead.swift \
+    Tests/PendingCharacteristicReadTests/main.swift
+
+"$BUILD_DIR/pending_characteristic_read_tests"
+
 swiftc -o "$BUILD_DIR/ble_characteristic_selector_tests" \
     Sources/LibDCDarwin/BleCharacteristicSelector.swift \
     Tests/BleCharacteristicSelectorTests/main.swift
