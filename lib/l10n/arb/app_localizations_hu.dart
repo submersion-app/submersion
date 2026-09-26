@@ -11892,6 +11892,10 @@ class AppLocalizationsHu extends AppLocalizations {
   String get passport_service_trackO2Clean => 'O2-tisztítás követése';
 
   @override
+  String get passport_service_trackFailed =>
+      'Az O2-tisztítás követése nem indult el. Próbálja újra.';
+
+  @override
   String passport_service_lastDone(String date) {
     return 'Utoljára: $date';
   }

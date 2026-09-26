@@ -30,8 +30,11 @@ class PassportIdInUse implements Exception {
 /// match every other curated attribute.
 class CylinderPassportRepository {
   AppDatabase get _db => DatabaseService.instance.database;
+  CylinderPassportRepository({CylinderFillRepository? fills})
+    : _fills = fills ?? CylinderFillRepository();
+
   final EquipmentRepository _equipment = EquipmentRepository();
-  final CylinderFillRepository _fills = CylinderFillRepository();
+  final CylinderFillRepository _fills;
   final _uuid = const Uuid();
 
   Future<String?> getPassportId(String equipmentId) async {
@@ -105,44 +108,52 @@ class CylinderPassportRepository {
     required String passportId,
     String? diverId,
   }) async {
-    final holder = await findEquipmentIdByPassportId(
-      passportId,
-      diverId: diverId,
-    );
-    if (holder != null && holder != equipmentId) {
-      final row = await (_db.select(
-        _db.equipment,
-      )..where((t) => t.id.equals(holder))).getSingle();
-      // A cylinder still in service keeps its tag; a retired, sold or
-      // inactive one gives it up to the cylinder being linked.
-      if (_isFitted(row)) throw PassportIdInUse(holder);
-      await _releasePassportId(holder);
-    }
-    final previous = await getPassportId(equipmentId);
-    if (holder != equipmentId) {
-      final existing = await _equipment.getAttributesForEquipment(equipmentId);
-      final desired = [
-        for (final a in existing)
-          if (a.isCustom || a.key != EquipmentAttrKeys.passportId) a,
-        EquipmentAttribute.curated(
+    // One transaction for the whole move: the holder check, releasing a
+    // retired holder, writing the id and moving the fills. Drift runs
+    // transactions one at a time, so two links of the same tag cannot both
+    // pass the check, and a failure part-way rolls every step back.
+    await _db.transaction(() async {
+      final holder = await findEquipmentIdByPassportId(
+        passportId,
+        diverId: diverId,
+      );
+      if (holder != null && holder != equipmentId) {
+        final row = await (_db.select(
+          _db.equipment,
+        )..where((t) => t.id.equals(holder))).getSingle();
+        // A cylinder still in service keeps its tag; a retired, sold or
+        // inactive one gives it up to the cylinder being linked.
+        if (_isFitted(row)) throw PassportIdInUse(holder);
+        await _releasePassportId(holder);
+      }
+      final previous = await getPassportId(equipmentId);
+      if (holder != equipmentId) {
+        final existing = await _equipment.getAttributesForEquipment(
+          equipmentId,
+        );
+        final desired = [
+          for (final a in existing)
+            if (a.isCustom || a.key != EquipmentAttrKeys.passportId) a,
+          EquipmentAttribute.curated(
+            equipmentId: equipmentId,
+            key: EquipmentAttrKeys.passportId,
+            valueText: passportId,
+          ),
+        ];
+        await _equipment.saveAttributes(equipmentId, desired);
+      }
+      if (previous != null && previous != passportId) {
+        await _fills.rekeyPassport(
+          from: previous,
+          to: passportId,
           equipmentId: equipmentId,
-          key: EquipmentAttrKeys.passportId,
-          valueText: passportId,
-        ),
-      ];
-      await _equipment.saveAttributes(equipmentId, desired);
-    }
-    if (previous != null && previous != passportId) {
-      await _fills.rekeyPassport(
-        from: previous,
-        to: passportId,
+        );
+      }
+      await _fills.relinkToEquipment(
+        passportId: passportId,
         equipmentId: equipmentId,
       );
-    }
-    await _fills.relinkToEquipment(
-      passportId: passportId,
-      equipmentId: equipmentId,
-    );
+    });
   }
 
   /// The cylinder's passport id, minted on first use. Minting is a pure

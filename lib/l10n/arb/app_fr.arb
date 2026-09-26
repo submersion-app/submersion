@@ -3758,6 +3758,7 @@
   "passport_service_notTracked": "Non suivi",
   "passport_service_neverRecorded": "Jamais enregistré",
   "passport_service_trackO2Clean": "Suivre le nettoyage O2",
+  "passport_service_trackFailed": "Impossible de démarrer le suivi du nettoyage O2. Réessayez.",
   "passport_service_lastDone": "Dernier {date}",
   "passport_o2Warning_untracked": "Le dernier gonflage est à {o2} d'O2 et cette bouteille n'est pas suivie comme compatible O2.",
   "passport_o2Warning_overdue": "Le dernier gonflage est à {o2} d'O2 et le nettoyage O2 de cette bouteille est en retard.",

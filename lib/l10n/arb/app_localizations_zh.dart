@@ -11384,6 +11384,9 @@ class AppLocalizationsZh extends AppLocalizations {
   String get passport_service_trackO2Clean => '跟踪氧清洁';
 
   @override
+  String get passport_service_trackFailed => '无法开始跟踪氧清洁。请重试。';
+
+  @override
   String passport_service_lastDone(String date) {
     return '上次 $date';
   }

@@ -68,13 +68,34 @@ class QrModulesPainter extends CustomPainter {
     return (devicePixels < 1 ? 1 : devicePixels) / devicePixelRatio;
   }
 
+  /// Where the first module row and column start, in logical pixels: the
+  /// grid centred with its quiet zone, then snapped down to a whole device
+  /// pixel, since a whole-pixel cell on a half-pixel origin still blurs
+  /// every edge.
+  static double moduleOrigin(
+    double side,
+    int cells,
+    double cell,
+    int quietModules,
+    double devicePixelRatio,
+  ) {
+    final raw = (side - cell * cells) / 2 + cell * quietModules;
+    return (raw * devicePixelRatio).floorToDouble() / devicePixelRatio;
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final side = size.shortestSide;
     canvas.drawRect(Offset.zero & size, Paint()..color = background);
     final cells = image.moduleCount + 2 * quietModules;
     final cell = cellSize(side, cells, devicePixelRatio);
-    final origin = (side - cell * cells) / 2 + cell * quietModules;
+    final origin = moduleOrigin(
+      side,
+      cells,
+      cell,
+      quietModules,
+      devicePixelRatio,
+    );
     final paint = Paint()
       ..color = color
       ..isAntiAlias = false;

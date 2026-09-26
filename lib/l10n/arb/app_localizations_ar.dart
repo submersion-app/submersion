@@ -11721,6 +11721,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get passport_service_trackO2Clean => 'متابعة تنظيف الأكسجين';
 
   @override
+  String get passport_service_trackFailed =>
+      'تعذّر بدء متابعة تنظيف الأكسجين. حاول مرة أخرى.';
+
+  @override
   String passport_service_lastDone(String date) {
     return 'آخر مرة $date';
   }

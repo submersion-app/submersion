@@ -29,27 +29,37 @@ class PassportServiceCard extends ConsumerWidget {
   /// the item, as auto-attach does, so a second tap (or a peer doing the
   /// same) collides with the first instead of adding a duplicate clock.
   Future<void> _trackO2Clean(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final failedText = context.l10n.passport_service_trackFailed;
     final repository = ref.read(serviceScheduleRepositoryProvider);
-    final existing = await repository.getSchedulesForEquipment(equipment.id);
-    if (existing.any((s) => s.serviceKindId == 'o2-clean')) return;
-    final now = DateTime.now();
     try {
-      await repository.createSchedule(
-        ServiceSchedule(
-          id: 'auto-o2-clean-${equipment.id}',
-          equipmentId: equipment.id,
-          serviceKindId: 'o2-clean',
-          createdAt: now,
-          updatedAt: now,
-        ),
-      );
+      final existing = await repository.getSchedulesForEquipment(equipment.id);
+      if (existing.any((s) => s.serviceKindId == 'o2-clean')) return;
+      final now = DateTime.now();
+      try {
+        await repository.createSchedule(
+          ServiceSchedule(
+            id: 'auto-o2-clean-${equipment.id}',
+            equipmentId: equipment.id,
+            serviceKindId: 'o2-clean',
+            createdAt: now,
+            updatedAt: now,
+          ),
+        );
+      } catch (_) {
+        // Only the other tap winning the race is harmless; anything else is
+        // a real failure.
+        final attached = await repository.getSchedulesForEquipment(
+          equipment.id,
+        );
+        if (!attached.any((s) => s.serviceKindId == 'o2-clean')) rethrow;
+      }
+      invalidateServiceClockProviders(ref, equipment.id);
     } catch (_) {
-      // Only the other tap winning the race is harmless; anything else is a
-      // real failure and must surface.
-      final attached = await repository.getSchedulesForEquipment(equipment.id);
-      if (!attached.any((s) => s.serviceKindId == 'o2-clean')) rethrow;
+      // The button's Future is not awaited by anyone; a failure must reach
+      // the diver here or not at all.
+      messenger.showSnackBar(SnackBar(content: Text(failedText)));
     }
-    invalidateServiceClockProviders(ref, equipment.id);
   }
 
   @override

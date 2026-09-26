@@ -3860,6 +3860,7 @@
   "passport_service_notTracked": "Niet bijgehouden",
   "passport_service_neverRecorded": "Nooit vastgelegd",
   "passport_service_trackO2Clean": "O2-reiniging bijhouden",
+  "passport_service_trackFailed": "Het bijhouden van O2-reiniging kon niet worden gestart. Probeer het opnieuw.",
   "passport_service_lastDone": "Laatste {date}",
   "passport_o2Warning_untracked": "De laatste vulling is {o2} O2 en deze fles wordt niet als O2-schoon bijgehouden.",
   "passport_o2Warning_overdue": "De laatste vulling is {o2} O2 en de O2-reiniging van deze fles is over tijd.",

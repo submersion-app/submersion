@@ -9,6 +9,7 @@ import 'package:submersion/features/cylinder_passports/domain/entities/cylinder_
 import 'package:submersion/features/cylinder_passports/presentation/pages/passport_page.dart';
 import 'package:submersion/features/cylinder_passports/presentation/providers/cylinder_passport_providers.dart';
 import 'package:submersion/features/equipment/data/repositories/equipment_repository_impl.dart';
+import 'package:submersion/features/equipment/data/repositories/service_schedule_repository.dart';
 import 'package:submersion/features/equipment/domain/constants/equipment_attribute_catalog.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_attribute.dart';
 import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
@@ -377,10 +378,34 @@ void main() {
     expect(texts, isNot(contains('°C')));
     expect(RegExp(r'\d m\b|\dm\b').hasMatch(texts), isFalse);
   });
+
+  testWidgets('a failure to track O2 cleaning says so', (tester) async {
+    final l10n = await pump(
+      tester,
+      extraOverrides: [
+        serviceScheduleRepositoryProvider.overrideWithValue(
+          _BrokenScheduleRepository(),
+        ),
+      ],
+    );
+    final track = find.text(l10n.passport_service_trackO2Clean);
+    await tester.ensureVisible(track);
+    await tester.tap(track);
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    expect(find.text(l10n.passport_service_trackFailed), findsOneWidget);
+  });
 }
 
 class _BrokenEquipmentRepository extends EquipmentRepository {
   @override
   Future<List<EquipmentItem>> getEquipmentByIds(List<String> ids) async =>
       throw StateError('database is locked');
+}
+
+class _BrokenScheduleRepository extends ServiceScheduleRepository {
+  @override
+  Future<List<ServiceSchedule>> getSchedulesForEquipment(
+    String equipmentId,
+  ) async => throw StateError('database is locked');
 }

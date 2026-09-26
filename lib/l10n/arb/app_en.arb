@@ -6845,6 +6845,7 @@
   "passport_service_notTracked": "Not tracked",
   "passport_service_neverRecorded": "Never recorded",
   "passport_service_trackO2Clean": "Track O2 cleaning",
+  "passport_service_trackFailed": "Could not start tracking O2 cleaning. Try again.",
   "passport_service_lastDone": "Last {date}",
   "@passport_service_lastDone": {
     "placeholders": {

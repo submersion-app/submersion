@@ -3860,6 +3860,7 @@
   "passport_service_notTracked": "Sem acompanhamento",
   "passport_service_neverRecorded": "Nunca registrado",
   "passport_service_trackO2Clean": "Acompanhar limpeza de O2",
+  "passport_service_trackFailed": "Não foi possível começar a acompanhar a limpeza de O2. Tente novamente.",
   "passport_service_lastDone": "Última {date}",
   "passport_o2Warning_untracked": "A última carga tem {o2} de O2 e este cilindro não é acompanhado como limpo para O2.",
   "passport_o2Warning_overdue": "A última carga tem {o2} de O2 e a limpeza de O2 deste cilindro está atrasada.",

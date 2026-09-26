@@ -3860,6 +3860,7 @@
   "passport_service_notTracked": "غير متابَع",
   "passport_service_neverRecorded": "لم يُسجَّل قط",
   "passport_service_trackO2Clean": "متابعة تنظيف الأكسجين",
+  "passport_service_trackFailed": "تعذّر بدء متابعة تنظيف الأكسجين. حاول مرة أخرى.",
   "passport_service_lastDone": "آخر مرة {date}",
   "passport_o2Warning_untracked": "آخر تعبئة تحوي {o2} أكسجين، وهذه الأسطوانة غير متابَعة كنظيفة للأكسجين.",
   "passport_o2Warning_overdue": "آخر تعبئة تحوي {o2} أكسجين، وتنظيف الأكسجين لهذه الأسطوانة متأخر.",

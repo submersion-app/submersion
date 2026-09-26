@@ -3758,6 +3758,7 @@
   "passport_service_notTracked": "לא במעקב",
   "passport_service_neverRecorded": "מעולם לא נרשם",
   "passport_service_trackO2Clean": "מעקב אחר ניקוי O2",
+  "passport_service_trackFailed": "לא ניתן היה להתחיל מעקב אחר ניקוי O2. נסו שוב.",
   "passport_service_lastDone": "לאחרונה {date}",
   "passport_o2Warning_untracked": "המילוי האחרון הוא {o2} O2 והמיכל הזה אינו במעקב כנקי ל-O2.",
   "passport_o2Warning_overdue": "המילוי האחרון הוא {o2} O2 וניקוי ה-O2 של המיכל הזה באיחור.",

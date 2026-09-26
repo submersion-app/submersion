@@ -11918,6 +11918,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get passport_service_trackO2Clean => 'Acompanhar limpeza de O2';
 
   @override
+  String get passport_service_trackFailed =>
+      'Não foi possível começar a acompanhar a limpeza de O2. Tente novamente.';
+
+  @override
   String passport_service_lastDone(String date) {
     return 'Última $date';
   }

@@ -248,4 +248,47 @@ void main() {
     );
     expect(await repo.getPassportId('eq-1'), isNull);
   });
+
+  test('a failure part-way through a tag move changes nothing', () async {
+    await repo.assignPassportId(
+      equipmentId: 'eq-1',
+      passportId: id,
+      diverId: 'd1',
+    );
+    await retire('eq-1');
+    final failing = CylinderPassportRepository(fills: _FailingFills());
+    await expectLater(
+      failing.assignPassportId(
+        equipmentId: 'eq-2',
+        passportId: id,
+        diverId: 'd1',
+      ),
+      throwsA(isA<StateError>()),
+    );
+    // Rolled back: the old holder keeps the tag, the new one has none.
+    expect(await repo.getPassportId('eq-1'), id);
+    expect(await repo.getPassportId('eq-2'), isNull);
+  });
+
+  test('two cylinders linking one tag at once leave one holder', () async {
+    Future<String> attempt(String eq) => repo
+        .assignPassportId(equipmentId: eq, passportId: id, diverId: 'd1')
+        .then((_) => 'linked')
+        .catchError((Object e) => e is PassportIdInUse ? 'refused' : throw e);
+    final outcomes = await Future.wait([attempt('eq-1'), attempt('eq-2')]);
+    expect(outcomes, unorderedEquals(['linked', 'refused']));
+    final holders = [
+      for (final eq in ['eq-1', 'eq-2'])
+        if (await repo.getPassportId(eq) == id) eq,
+    ];
+    expect(holders, hasLength(1));
+  });
+}
+
+class _FailingFills extends CylinderFillRepository {
+  @override
+  Future<int> relinkToEquipment({
+    required String passportId,
+    required String equipmentId,
+  }) async => throw StateError('disk full');
 }

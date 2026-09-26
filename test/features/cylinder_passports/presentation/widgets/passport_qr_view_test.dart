@@ -83,4 +83,14 @@ void main() {
     expect(QrModulesPainter.cellSize(200, 61, 2.0), 3.0);
     expect(QrModulesPainter.cellSize(72, 61, 1.0), 1.0);
   });
+
+  test('the module grid starts on a whole device pixel', () {
+    // 72 px at 1x, 61 cells of 1 px: centring alone puts the grid at 9.5.
+    expect(QrModulesPainter.moduleOrigin(72, 61, 1.0, 4, 1.0), 9.0);
+    // 200 px at 2x, 3 px cells: 20.5 logical px is 41 device pixels, whole.
+    expect(QrModulesPainter.moduleOrigin(200, 61, 3.0, 4, 2.0), 20.5);
+    // Any ratio: the origin times the ratio is a whole number of pixels.
+    final o = QrModulesPainter.moduleOrigin(101, 61, 1.0, 4, 3.0);
+    expect((o * 3.0) % 1, 0);
+  });
 }

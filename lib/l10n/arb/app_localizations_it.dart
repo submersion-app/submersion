@@ -11917,6 +11917,10 @@ class AppLocalizationsIt extends AppLocalizations {
   String get passport_service_trackO2Clean => 'Traccia la pulizia O2';
 
   @override
+  String get passport_service_trackFailed =>
+      'Impossibile avviare il tracciamento della pulizia O2. Riprova.';
+
+  @override
   String passport_service_lastDone(String date) {
     return 'Ultima $date';
   }

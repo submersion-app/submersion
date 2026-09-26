@@ -19852,6 +19852,12 @@ abstract class AppLocalizations {
   /// **'Track O2 cleaning'**
   String get passport_service_trackO2Clean;
 
+  /// No description provided for @passport_service_trackFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not start tracking O2 cleaning. Try again.'**
+  String get passport_service_trackFailed;
+
   /// No description provided for @passport_service_lastDone.
   ///
   /// In en, this message translates to:

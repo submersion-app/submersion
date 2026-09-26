@@ -3758,6 +3758,7 @@
   "passport_service_notTracked": "Non tracciato",
   "passport_service_neverRecorded": "Mai registrato",
   "passport_service_trackO2Clean": "Traccia la pulizia O2",
+  "passport_service_trackFailed": "Impossibile avviare il tracciamento della pulizia O2. Riprova.",
   "passport_service_lastDone": "Ultima {date}",
   "passport_o2Warning_untracked": "L'ultima ricarica è al {o2} di O2 e questa bombola non è tracciata come pulita per O2.",
   "passport_o2Warning_overdue": "L'ultima ricarica è al {o2} di O2 e la pulizia O2 di questa bombola è scaduta.",

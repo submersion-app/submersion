@@ -3758,6 +3758,7 @@
   "passport_service_notTracked": "Nem követett",
   "passport_service_neverRecorded": "Soha nem rögzítették",
   "passport_service_trackO2Clean": "O2-tisztítás követése",
+  "passport_service_trackFailed": "Az O2-tisztítás követése nem indult el. Próbálja újra.",
   "passport_service_lastDone": "Utoljára: {date}",
   "passport_o2Warning_untracked": "Az utolsó töltés {o2} O2, és ez a palack nincs O2-tisztaként nyilvántartva.",
   "passport_o2Warning_overdue": "Az utolsó töltés {o2} O2, és a palack O2-tisztítása lejárt.",

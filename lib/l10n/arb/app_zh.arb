@@ -4006,6 +4006,7 @@
   "passport_service_notTracked": "未跟踪",
   "passport_service_neverRecorded": "从未记录",
   "passport_service_trackO2Clean": "跟踪氧清洁",
+  "passport_service_trackFailed": "无法开始跟踪氧清洁。请重试。",
   "passport_service_lastDone": "上次 {date}",
   "passport_o2Warning_untracked": "最近一次充气为 {o2} 氧气，而该气瓶未作为氧清洁气瓶跟踪。",
   "passport_o2Warning_overdue": "最近一次充气为 {o2} 氧气，而该气瓶的氧清洁已过期。",

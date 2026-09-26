@@ -3872,6 +3872,7 @@
   "passport_service_notTracked": "Nicht erfasst",
   "passport_service_neverRecorded": "Nie erfasst",
   "passport_service_trackO2Clean": "O2-Reinigung erfassen",
+  "passport_service_trackFailed": "Die O2-Reinigung konnte nicht erfasst werden. Bitte erneut versuchen.",
   "passport_service_lastDone": "Zuletzt {date}",
   "passport_o2Warning_untracked": "Die letzte Füllung hat {o2} O2, und diese Flasche wird nicht als O2-rein geführt.",
   "passport_o2Warning_overdue": "Die letzte Füllung hat {o2} O2, und die O2-Reinigung dieser Flasche ist überfällig.",
