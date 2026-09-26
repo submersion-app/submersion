@@ -54,6 +54,7 @@ void main() {
     int? exitTime,
     int? surfaceIntervalSeconds,
     double? cnsEnd,
+    double? otu,
     String? decoAlgorithm,
     int? gradientFactorLow,
     int? gradientFactorHigh,
@@ -82,6 +83,7 @@ void main() {
             exitTime: Value(exitTime),
             surfaceIntervalSeconds: Value(surfaceIntervalSeconds),
             cnsEnd: Value(cnsEnd),
+            otu: Value(otu),
             decoAlgorithm: Value(decoAlgorithm),
             gradientFactorLow: Value(gradientFactorLow),
             gradientFactorHigh: Value(gradientFactorHigh),
@@ -136,6 +138,7 @@ void main() {
     DateTime? exitTime,
     int? surfaceInterval,
     double? cns,
+    double? otu,
     String? decoAlgorithm,
     int? gradientFactorLow,
     int? gradientFactorHigh,
@@ -155,6 +158,7 @@ void main() {
       exitTime: Value(exitTime),
       surfaceInterval: Value(surfaceInterval),
       cns: Value(cns),
+      otu: Value(otu),
       decoAlgorithm: Value(decoAlgorithm),
       gradientFactorLow: Value(gradientFactorLow),
       gradientFactorHigh: Value(gradientFactorHigh),
@@ -946,6 +950,7 @@ void main() {
         waterTemp: 15.5,
         surfaceIntervalSeconds: 7200,
         cnsEnd: 55.0,
+        otu: 38.0,
         decoAlgorithm: 'VPM-B',
         gradientFactorLow: 35,
         gradientFactorHigh: 75,
@@ -966,6 +971,7 @@ void main() {
       expect(s.waterTemp, equals(15.5));
       expect(s.surfaceInterval, equals(7200));
       expect(s.cns, equals(55.0));
+      expect(s.otu, equals(38.0));
       expect(s.decoAlgorithm, equals('VPM-B'));
       expect(s.gradientFactorLow, equals(35));
       expect(s.gradientFactorHigh, equals(75));
@@ -1033,6 +1039,41 @@ void main() {
   // ---------------------------------------------------------------------------
   // getImportIds
   // ---------------------------------------------------------------------------
+
+  group('setPrimaryDataSource oxygen exposure (issue #1798)', () {
+    test('takes the new primary\'s OTU along with its CNS', () async {
+      final diveId = await insertTestDive(
+        id: 'dive-otu-swap',
+        cnsEnd: 14.0,
+        otu: 38.0,
+      );
+      await repository.saveComputerReading(
+        buildReading(
+          id: 'reading-garmin',
+          diveId: diveId,
+          isPrimary: true,
+          cns: 14.0,
+          otu: 38.0,
+        ),
+      );
+      await repository.saveComputerReading(
+        buildReading(id: 'reading-other', diveId: diveId, cns: 9.0),
+      );
+
+      await repository.setPrimaryDataSource(
+        diveId: diveId,
+        computerReadingId: 'reading-other',
+      );
+
+      final row = await (db.select(
+        db.dives,
+      )..where((t) => t.id.equals(diveId))).getSingle();
+      expect(row.cnsEnd, 9.0);
+      // The other computer reported no OTU, so the Garmin value must not
+      // linger beside its CNS.
+      expect(row.otu, isNull);
+    });
+  });
 
   group('getImportIds', () {
     test('returns empty set when no dives have import IDs', () async {

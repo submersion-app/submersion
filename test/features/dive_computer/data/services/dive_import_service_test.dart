@@ -1649,6 +1649,104 @@ void main() {
     );
   });
 
+  group('reported dive summary (issue #1798)', () {
+    setUp(() {
+      when(
+        mockDiveRepo.getDiveNumberForDate(any, diverId: anyNamed('diverId')),
+      ).thenAnswer((_) async => 1);
+      // The shared stub pins the summary arguments to null, so a call that
+      // carries them needs its own.
+      when(
+        mockComputerRepo.importProfile(
+          computerId: anyNamed('computerId'),
+          profileStartTime: anyNamed('profileStartTime'),
+          points: anyNamed('points'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          avgDepth: anyNamed('avgDepth'),
+          isPrimary: anyNamed('isPrimary'),
+          diverId: anyNamed('diverId'),
+          tanks: anyNamed('tanks'),
+          decoAlgorithm: anyNamed('decoAlgorithm'),
+          gfLow: anyNamed('gfLow'),
+          gfHigh: anyNamed('gfHigh'),
+          decoConservatism: anyNamed('decoConservatism'),
+          events: anyNamed('events'),
+          gasSwitches: anyNamed('gasSwitches'),
+          diveNumber: anyNamed('diveNumber'),
+          forceNew: anyNamed('forceNew'),
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+          bottomTimeSeconds: anyNamed('bottomTimeSeconds'),
+          surfaceIntervalSeconds: anyNamed('surfaceIntervalSeconds'),
+          waterType: anyNamed('waterType'),
+          cnsEnd: anyNamed('cnsEnd'),
+          otu: anyNamed('otu'),
+        ),
+      ).thenAnswer((_) async => 'dive-id');
+    });
+
+    test('forwards the source summary fields to importProfile', () async {
+      // Garmin Connect imports go through importSingleDiveAsNew. The FIT
+      // summary it carries must reach the repository, or the dive falls back
+      // to a profile-derived bottom time and loses the rest.
+      await service.importSingleDiveAsNew(
+        DownloadedDive(
+          fingerprint: 'fp-garmin',
+          startTime: DateTime(2026, 3, 3, 9, 0),
+          durationSeconds: 3700,
+          maxDepth: 20.0,
+          profile: const [],
+          bottomTimeSeconds: 3600,
+          surfaceIntervalSeconds: 5400,
+          waterType: WaterType.salt,
+          cnsEnd: 14.0,
+          otu: 38.0,
+        ),
+        computerId: computer.id,
+      );
+
+      final captured = verify(
+        mockComputerRepo.importProfile(
+          computerId: anyNamed('computerId'),
+          profileStartTime: anyNamed('profileStartTime'),
+          points: anyNamed('points'),
+          durationSeconds: anyNamed('durationSeconds'),
+          maxDepth: anyNamed('maxDepth'),
+          avgDepth: anyNamed('avgDepth'),
+          isPrimary: anyNamed('isPrimary'),
+          diverId: anyNamed('diverId'),
+          tanks: anyNamed('tanks'),
+          decoAlgorithm: anyNamed('decoAlgorithm'),
+          gfLow: anyNamed('gfLow'),
+          gfHigh: anyNamed('gfHigh'),
+          decoConservatism: anyNamed('decoConservatism'),
+          events: anyNamed('events'),
+          gasSwitches: anyNamed('gasSwitches'),
+          diveNumber: anyNamed('diveNumber'),
+          forceNew: anyNamed('forceNew'),
+          rawData: anyNamed('rawData'),
+          rawFingerprint: anyNamed('rawFingerprint'),
+          descriptorVendor: anyNamed('descriptorVendor'),
+          descriptorProduct: anyNamed('descriptorProduct'),
+          descriptorModel: anyNamed('descriptorModel'),
+          libdivecomputerVersion: anyNamed('libdivecomputerVersion'),
+          bottomTimeSeconds: captureAnyNamed('bottomTimeSeconds'),
+          surfaceIntervalSeconds: captureAnyNamed('surfaceIntervalSeconds'),
+          waterType: captureAnyNamed('waterType'),
+          cnsEnd: captureAnyNamed('cnsEnd'),
+          otu: captureAnyNamed('otu'),
+        ),
+      ).captured;
+
+      expect(captured, [3600, 5400, WaterType.salt, 14.0, 38.0]);
+    });
+  });
+
   group(
     'nav track match sweep (spec 2026-09-10-underwater-nav-track-design.md)',
     () {

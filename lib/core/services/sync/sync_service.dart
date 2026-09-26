@@ -1387,6 +1387,19 @@ class SyncService {
             hasUpdatedAt: true,
           ),
           (type: 'equipment', records: data.equipment, hasUpdatedAt: true),
+          // Trip cylinder slots reference trips and equipment; their ledger
+          // references the slots and dive centers. Both before dives, whose
+          // tanks link the slots.
+          (
+            type: 'tripCylinders',
+            records: data.tripCylinders,
+            hasUpdatedAt: true,
+          ),
+          (
+            type: 'tripCylinderEvents',
+            records: data.tripCylinderEvents,
+            hasUpdatedAt: true,
+          ),
           (
             type: 'equipmentSets',
             records: data.equipmentSets,
@@ -2381,6 +2394,8 @@ class SyncService {
     'liveaboardDetails': true,
     'itineraryDays': true,
     'tripDayWeather': true,
+    'tripCylinders': true,
+    'tripCylinderEvents': true,
     'checklistTemplates': true,
     'checklistTemplateItems': true,
     'tripChecklistItems': true,
@@ -2581,6 +2596,9 @@ class SyncService {
       // v202: the regulator breathed from the cylinder; user-authored and
       // nullable, so a deleted regulator only clears the link.
       (field: 'regulatorEquipmentId', parent: 'equipment', nullable: true),
+      // v232: the trip cylinder slot; nullable, so a slot the peer never
+      // sent, or has deleted, only clears the link.
+      (field: 'tripCylinderId', parent: 'tripCylinders', nullable: true),
       (field: 'computerId', parent: 'diveComputers', nullable: true),
     ],
     'diveWeights': [(field: 'diveId', parent: 'dives', nullable: false)],
@@ -2689,6 +2707,14 @@ class SyncService {
     'liveaboardDetails': [(field: 'tripId', parent: 'trips', nullable: false)],
     'itineraryDays': [(field: 'tripId', parent: 'trips', nullable: false)],
     'tripDayWeather': [(field: 'tripId', parent: 'trips', nullable: false)],
+    'tripCylinders': [
+      (field: 'tripId', parent: 'trips', nullable: false),
+      (field: 'equipmentId', parent: 'equipment', nullable: true),
+    ],
+    'tripCylinderEvents': [
+      (field: 'tripCylinderId', parent: 'tripCylinders', nullable: false),
+      (field: 'diveCenterId', parent: 'diveCenters', nullable: true),
+    ],
     'checklistTemplateItems': [
       (field: 'templateId', parent: 'checklistTemplates', nullable: false),
     ],

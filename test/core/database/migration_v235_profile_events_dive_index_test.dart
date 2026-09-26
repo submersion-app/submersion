@@ -22,7 +22,7 @@ void main() {
     // greaterThanOrEqualTo when the next one lands.
     expect(AppDatabase.currentSchemaVersion, 235);
     expect(AppDatabase.migrationVersions, contains(235));
-    expect(AppDatabase.migrationStepCount(231), 1);
+    expect(AppDatabase.migrationStepCount(232), 1);
   });
 
   test('scoped event tombstones raise the sync floor to 235', () {

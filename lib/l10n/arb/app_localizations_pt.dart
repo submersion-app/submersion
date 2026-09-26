@@ -19080,6 +19080,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get settings_conflict_ref_trip => 'Viagem';
 
   @override
+  String get settings_conflict_ref_tripCylinder => 'Cilindro da viagem';
+
+  @override
   String get settings_conflict_remoteVersion => 'Versão Remota';
 
   @override

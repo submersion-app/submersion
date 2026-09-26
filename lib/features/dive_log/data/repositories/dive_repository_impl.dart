@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import 'package:submersion/features/dive_log/data/repositories/trip_cylinder_links.dart';
 import 'package:submersion/core/constants/dive_search.dart';
 import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/data/repositories/sync_repository.dart';
@@ -1416,6 +1417,15 @@ class DiveRepository {
       _log.info('Creating dive: ${dive.diveNumber ?? "new"}');
       final id = dive.id.isEmpty ? _uuid.v4() : dive.id;
       final now = DateTime.now().millisecondsSinceEpoch;
+      // A tank may only link a slot on the dive's own trip. Checked before
+      // the tank rows are written: a link to a missing slot would otherwise
+      // fail the save on the foreign key. The trip resolves as the row write
+      // resolves it, since the editor saves Dive(trip: selected) with a null
+      // tripId.
+      final validSlots = await tripCylinderIdsForTrip(
+        _db,
+        dive.tripId ?? dive.trip?.id,
+      );
 
       // One transaction for the dive and every child it owns. The profile
       // used to be written inside the child batch below and is now a
@@ -1589,6 +1599,9 @@ class DiveRepository {
                 computerId: Value(tank.computerId),
                 transmitterSerial: Value(tank.transmitterSerial),
                 regulatorEquipmentId: Value(tank.regulatorEquipmentId),
+                tripCylinderId: Value(
+                  validTripCylinderLink(tank.tripCylinderId, validSlots),
+                ),
                 sourceTankIndex: Value(tank.sourceTankIndex),
               ),
             );
@@ -1720,6 +1733,15 @@ class DiveRepository {
       }
 
       final now = DateTime.now().millisecondsSinceEpoch;
+      // A tank may only link a slot on the dive's own trip. Checked before
+      // the tank rows are written: a link to a missing slot would otherwise
+      // fail the save on the foreign key. The trip resolves as the row write
+      // resolves it, since the editor saves Dive(trip: selected) with a null
+      // tripId.
+      final validSlots = await tripCylinderIdsForTrip(
+        _db,
+        dive.tripId ?? dive.trip?.id,
+      );
 
       // One transaction for the dive and every child it owns, the way
       // createDive already does it. Without one, a throw partway through
@@ -1883,6 +1905,11 @@ class DiveRepository {
                 // The regulator link is user-authored, unlike the two above,
                 // so an edit does write it.
                 regulatorEquipmentId: Value(tank.regulatorEquipmentId),
+                // The slot link is user-authored like the regulator, so an
+                // edit writes it; every rebuild site must carry it.
+                tripCylinderId: Value(
+                  validTripCylinderLink(tank.tripCylinderId, validSlots),
+                ),
               ),
             );
             // Log as pending update (assuming sync handles updates)
@@ -1913,6 +1940,9 @@ class DiveRepository {
                     computerId: Value(tank.computerId),
                     transmitterSerial: Value(tank.transmitterSerial),
                     regulatorEquipmentId: Value(tank.regulatorEquipmentId),
+                    tripCylinderId: Value(
+                      validTripCylinderLink(tank.tripCylinderId, validSlots),
+                    ),
                     sourceTankIndex: Value(tank.sourceTankIndex),
                   ),
                 );
@@ -3751,6 +3781,7 @@ class DiveRepository {
               computerId: t.computerId,
               transmitterSerial: t.transmitterSerial,
               regulatorEquipmentId: t.regulatorEquipmentId,
+              tripCylinderId: t.tripCylinderId,
               equipmentId: t.equipmentId,
               sourceTankIndex: t.sourceTankIndex,
             ),
@@ -4174,6 +4205,7 @@ class DiveRepository {
           computerId: t.computerId,
           transmitterSerial: t.transmitterSerial,
           regulatorEquipmentId: t.regulatorEquipmentId,
+          tripCylinderId: t.tripCylinderId,
           equipmentId: t.equipmentId,
           sourceTankIndex: t.sourceTankIndex,
         );
@@ -6411,6 +6443,7 @@ class DiveRepository {
     domain.DiveTank t,
     int order, {
     bool withLink = false,
+    Set<String> validSlots = const {},
   }) => DiveTanksCompanion(
     id: Value(id),
     diveId: Value(diveId),
@@ -6429,6 +6462,11 @@ class DiveRepository {
     transmitterSerial: Value(t.transmitterSerial),
     regulatorEquipmentId: Value(t.regulatorEquipmentId),
     sourceTankIndex: Value(t.sourceTankIndex),
+    // The trip cylinder slot, kept out of templates for the same reason as
+    // the registry link: only a restore writes it.
+    tripCylinderId: withLink
+        ? Value(validTripCylinderLink(t.tripCylinderId, validSlots))
+        : const Value.absent(),
     // The registry's cylinder link, owned by the transmitter registry. A
     // template copied from a linked tank must not stamp that cylinder onto
     // every dive it lands on, so only a restore writes it.
@@ -6556,10 +6594,22 @@ class DiveRepository {
   Future<void> bulkRestoreTankRows(List<DiveTank> rows) async {
     if (rows.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
+    final slotsByDive = <String, Set<String>>{};
     for (final row in rows) {
+      var companion = row.toCompanion(false);
+      final link = row.tripCylinderId;
+      if (link != null) {
+        // The captured link may name a slot deleted since the capture.
+        final valid = slotsByDive[row.diveId] ??= await _tripCylinderIdsForDive(
+          row.diveId,
+        );
+        if (!valid.contains(link)) {
+          companion = companion.copyWith(tripCylinderId: const Value(null));
+        }
+      }
       await (_db.update(
         _db.diveTanks,
-      )..where((t) => t.id.equals(row.id))).write(row.toCompanion(false));
+      )..where((t) => t.id.equals(row.id))).write(companion);
       await _syncRepository.markRecordPending(
         entityType: 'diveTanks',
         recordId: row.id,
@@ -6567,6 +6617,14 @@ class DiveRepository {
       );
     }
     await _bumpDives(rows.map((r) => r.diveId).toSet().toList(), now);
+  }
+
+  /// The slot ids on [diveId]'s trip: the links a restored tank may keep.
+  Future<Set<String>> _tripCylinderIdsForDive(String diveId) async {
+    final dive = await (_db.select(
+      _db.dives,
+    )..where((d) => d.id.equals(diveId))).getSingleOrNull();
+    return tripCylinderIdsForTrip(_db, dive?.tripId);
   }
 
   /// How many of [diveIds] have no tank rows at all. Used to warn before an
@@ -6600,6 +6658,11 @@ class DiveRepository {
     if (diveIds.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     for (final diveId in diveIds) {
+      // A restored slot link may name a slot deleted since the capture;
+      // written unchecked it would fail the undo on the foreign key.
+      final validSlots = restoreLinks
+          ? await _tripCylinderIdsForDive(diveId)
+          : const <String>{};
       final existing = await (_db.select(
         _db.diveTanks,
       )..where((t) => t.diveId.equals(diveId))).get();
@@ -6623,6 +6686,7 @@ class DiveRepository {
                 tanks[i],
                 i,
                 withLink: restoreLinks,
+                validSlots: validSlots,
               ),
             );
         await _syncRepository.markRecordPending(
@@ -6713,16 +6777,29 @@ class DiveRepository {
 
     try {
       final now = DateTime.now().millisecondsSinceEpoch;
-      await (_db.update(_db.dives)..where((t) => t.id.isIn(diveIds))).write(
-        DivesCompanion(tripId: Value(tripId), updatedAt: Value(now)),
-      );
-      for (final diveId in diveIds) {
-        await _syncRepository.markRecordPending(
-          entityType: 'dives',
-          recordId: diveId,
-          localUpdatedAt: now,
+      // One transaction: the dives move and their stale slot links go
+      // together, or nothing changes.
+      await _db.transaction(() async {
+        await (_db.update(_db.dives)..where((t) => t.id.isIn(diveIds))).write(
+          DivesCompanion(tripId: Value(tripId), updatedAt: Value(now)),
         );
-      }
+        for (final diveId in diveIds) {
+          await _syncRepository.markRecordPending(
+            entityType: 'dives',
+            recordId: diveId,
+            localUpdatedAt: now,
+          );
+          // A tank link into another trip's slot means nothing once the dive
+          // has moved; the single-dive paths drop it the same way.
+          await clearForeignTripCylinderLinks(
+            _db,
+            _syncRepository,
+            diveId,
+            tripId: tripId,
+            now: now,
+          );
+        }
+      });
       SyncEventBus.notifyLocalChange();
       _log.info('Bulk updated trip for ${diveIds.length} dives');
     } catch (e, stackTrace) {
@@ -7356,6 +7433,7 @@ class DiveRepository {
           ),
           surfaceInterval: Value(diveRow.surfaceIntervalSeconds),
           cns: Value(diveRow.cnsEnd),
+          otu: Value(diveRow.otu),
           decoAlgorithm: Value(diveRow.decoAlgorithm),
           gradientFactorLow: Value(diveRow.gradientFactorLow),
           gradientFactorHigh: Value(diveRow.gradientFactorHigh),
@@ -7420,6 +7498,7 @@ class DiveRepository {
             exitTime: Value(newPrimary.exitTime?.millisecondsSinceEpoch),
             surfaceIntervalSeconds: Value(newPrimary.surfaceInterval),
             cnsEnd: Value(newPrimary.cns),
+            otu: Value(newPrimary.otu),
             decoAlgorithm: Value(newPrimary.decoAlgorithm),
             gradientFactorLow: Value(newPrimary.gradientFactorLow),
             gradientFactorHigh: Value(newPrimary.gradientFactorHigh),

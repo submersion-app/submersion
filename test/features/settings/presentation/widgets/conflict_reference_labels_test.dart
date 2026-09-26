@@ -54,6 +54,7 @@ void main() {
       'divePlanTanks': 'Planned tank',
       'divePlans': 'Dive plan',
       'trips': 'Trip',
+      'tripCylinders': 'Trip cylinder',
       'diveCenters': 'Dive center',
       'courses': 'Course',
       'certifications': 'Certification',
