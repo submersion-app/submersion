@@ -449,11 +449,14 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
     gchar* tio_credits_tx_path = NULL;
     gchar* ublox_data_path = NULL;
     gchar* ublox_credits_path = NULL;
-    // Read-poll candidate and the object path of its service. BlueZ lists
-    // services and characteristics as separate objects, so service UUIDs are
-    // collected by path and the candidate's parent is checked after the walk.
+    // Every characteristic carrying the Seac data UUID, with the object path
+    // of its service. BlueZ lists services and characteristics as separate
+    // objects, so parents can only be checked after the walk, and a GATT table
+    // may reuse a characteristic UUID across services: all are kept, and the
+    // first under the Seac service wins.
+    GPtrArray* read_poll_candidates = g_ptr_array_new_with_free_func(g_free);
+    GPtrArray* read_poll_parents = g_ptr_array_new_with_free_func(g_free);
     gchar* read_poll_path = NULL;
-    gchar* read_poll_service_path = NULL;
     // Parent service of the best notify candidate, so the read tier can tell
     // a notify characteristic under the Seac service from one elsewhere.
     gchar* best_notify_service_path = NULL;
@@ -522,13 +525,13 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
         } else if (g_ascii_strcasecmp(uuid, UBLOX_CREDITS_UUID) == 0) {
             g_free(ublox_credits_path);
             ublox_credits_path = g_strdup(obj_path);
-        } else if (g_ascii_strcasecmp(uuid, SEAC_DATA_UUID) == 0 &&
-                   !read_poll_path) {
+        } else if (g_ascii_strcasecmp(uuid, SEAC_DATA_UUID) == 0) {
             GVariant* parent = g_variant_lookup_value(
                 char_props, "Service", G_VARIANT_TYPE_OBJECT_PATH);
             if (parent) {
-                read_poll_path = g_strdup(obj_path);
-                read_poll_service_path = g_variant_dup_string(parent, NULL);
+                g_ptr_array_add(read_poll_candidates, g_strdup(obj_path));
+                g_ptr_array_add(read_poll_parents,
+                                g_variant_dup_string(parent, NULL));
                 g_variant_unref(parent);
             }
         }
@@ -592,20 +595,23 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
     }
     g_variant_unref(objects);
 
-    // Keep the read-poll candidate only if it sits under the allowlisted
-    // service and can be both read and written.
-    if (read_poll_path) {
-        const gchar* parent_uuid =
-            g_hash_table_lookup(service_uuids, read_poll_service_path);
-        gboolean usable =
-            parent_uuid &&
+    // Keep the first candidate that sits under the allowlisted service and
+    // can be both read and written.
+    for (guint i = 0; i < read_poll_candidates->len && !read_poll_path; i++) {
+        const gchar* candidate = g_ptr_array_index(read_poll_candidates, i);
+        const gchar* parent_uuid = g_hash_table_lookup(
+            service_uuids, g_ptr_array_index(read_poll_parents, i));
+        if (parent_uuid &&
             g_ascii_strcasecmp(parent_uuid, SEAC_SERVICE_UUID) == 0 &&
-            has_flag(stream->connection, read_poll_path, "read") &&
-            (has_flag(stream->connection, read_poll_path, "write") ||
-             has_flag(stream->connection, read_poll_path,
-                      "write-without-response"));
-        if (!usable) g_clear_pointer(&read_poll_path, g_free);
+            has_flag(stream->connection, candidate, "read") &&
+            (has_flag(stream->connection, candidate, "write") ||
+             has_flag(stream->connection, candidate,
+                      "write-without-response"))) {
+            read_poll_path = g_strdup(candidate);
+        }
     }
+    g_ptr_array_unref(read_poll_candidates);
+    g_ptr_array_unref(read_poll_parents);
     // BlueZ lists characteristics flat, so the notify pass above spans every
     // service: a stray notify characteristic anywhere on the device (Battery
     // Level, a DFU service) would otherwise shadow the allowlisted service,
@@ -620,7 +626,6 @@ gboolean ble_io_stream_connect(BleIoStream* stream,
             g_ascii_strcasecmp(notify_parent_uuid, SEAC_SERVICE_UUID) == 0;
     }
     g_free(best_notify_service_path);
-    g_free(read_poll_service_path);
     g_hash_table_unref(service_uuids);
 
     // Only run the handshake on a complete known layout, so every other device

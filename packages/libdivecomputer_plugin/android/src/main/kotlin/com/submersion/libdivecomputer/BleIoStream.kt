@@ -588,7 +588,13 @@ class BleIoStream(
             if (!connected) {
                 synchronized(readPollLock) { readPoll.close() }
             }
-            when (synchronized(readPollLock) { readPoll.next(now) }) {
+            // Re-check under the lock onReadResponse queues under: a reply
+            // that landed since the poll above must not trigger a second read
+            // while it sits in the queue (the slice poll below returns it).
+            val action = synchronized(readPollLock) {
+                if (readQueue.isNotEmpty()) ReadPollPolicy.Action.WAIT else readPoll.next(now)
+            }
+            when (action) {
                 ReadPollPolicy.Action.CLOSED -> return null
                 ReadPollPolicy.Action.ISSUE_READ -> if (!issueGattRead(char, deadline)) {
                     synchronized(readPollLock) { readPoll.issueFailed(nowMs()) }

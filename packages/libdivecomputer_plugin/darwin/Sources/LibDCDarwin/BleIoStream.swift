@@ -557,7 +557,13 @@ class BleIoStream: NSObject, CBPeripheralDelegate {
         while !packetBuffer.hasData {
             let now = DispatchTime.now()
             if now >= deadline { return Int32(LIBDC_STATUS_TIMEOUT) }
-            switch withReadPoll({ $0.next(nowMs: Self.milliseconds(now)) }) {
+            // Re-check under the lock handleReadResponse appends under: a reply
+            // that landed since the loop test must not trigger a second read
+            // while it sits in the buffer.
+            let action = withReadPoll { policy -> ReadPollPolicy.Action in
+                packetBuffer.hasData ? .wait : policy.next(nowMs: Self.milliseconds(now))
+            }
+            switch action {
             case .closed:
                 return Int32(LIBDC_STATUS_IO)
             case .issueRead:
