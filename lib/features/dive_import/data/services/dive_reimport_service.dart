@@ -144,6 +144,7 @@ class DiveReimportService {
           diveId: diveId,
           diveData: diveData,
           tanks: tanks,
+          sourceId: primary?.id,
         );
 
         await _replaceProfile(
@@ -505,6 +506,7 @@ class DiveReimportService {
     required String diveId,
     required Map<String, dynamic> diveData,
     required _ParsedTanks tanks,
+    required String? sourceId,
   }) async {
     final profileData = _profileOf(diveData);
     if (profileData == null) return;
@@ -532,6 +534,7 @@ class DiveReimportService {
       diveId,
       pressuresByTank.keys,
       pressuresByTank,
+      sourceId: sourceId,
     );
   }
 

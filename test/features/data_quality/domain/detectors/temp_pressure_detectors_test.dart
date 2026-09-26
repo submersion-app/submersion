@@ -4,6 +4,7 @@ import 'package:submersion/features/data_quality/domain/detectors/temp_anomaly_d
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
+import 'package:submersion/features/dive_log/domain/entities/dive_data_source.dart';
 import 'package:submersion/features/dive_log/domain/entities/gas_switch.dart';
 
 import '../../helpers/quality_test_helpers.dart';
@@ -550,6 +551,70 @@ void main() {
             .singleWhere((f) => f.params.containsKey('startBar'));
         expect(swap.params['startBar'], 80);
         expect(swap.params['endBar'], 200);
+      });
+    });
+
+    // Schema v182 packed two consolidated file imports' readings of one
+    // cylinder into a single series (#2440). Each alternation read as a
+    // mid-dive rise, and the interleaved lows as dropouts.
+    group('series mixed from two sources', () {
+      final entry = DateTime.utc(2026, 7, 18, 18);
+      DiveDataSource source(String id, {bool primary = false}) =>
+          DiveDataSource(
+            id: id,
+            diveId: 'd1',
+            isPrimary: primary,
+            importedAt: entry,
+            createdAt: entry,
+          );
+      final twoSources = [source('s1', primary: true), source('s2')];
+
+      /// Tank 2 at 162 bar and tank 1 at 109 bar, alternating every 2-8 s.
+      final interleaved = [
+        for (var i = 0; i < 120; i++) ...[
+          QualityPressureSample(t: i * 10, bar: 162 - i * 0.3),
+          QualityPressureSample(t: i * 10 + 2, bar: 109 - i * 0.3),
+        ],
+      ];
+
+      test('is one mixed finding and nothing else for the tank', () {
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 162, end: 126)]),
+          sources: twoSources,
+          pressures: {'t1': interleaved},
+        );
+        final out = det.detect(ctx);
+        expect(out, hasLength(1));
+        expect(out.single.params['mixedSources'], isTrue);
+        expect(out.single.params['tankId'], 't1');
+      });
+
+      test('is not claimed on a dive with a single source', () {
+        // One recording cannot mix with itself; whatever this series is, it
+        // is reported by the other checks.
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 162, end: 126)]),
+          sources: [source('s1', primary: true)],
+          pressures: {'t1': interleaved},
+        );
+        expect(
+          det.detect(ctx).where((f) => f.params.containsKey('mixedSources')),
+          isEmpty,
+        );
+      });
+
+      test('a clean series on a two-source dive is not mixed', () {
+        final ctx = makeContext(
+          dive: makeTestDive(tanks: [tank(start: 200, end: 60)]),
+          sources: twoSources,
+          pressures: {
+            't1': [
+              for (var t = 0; t <= 2400; t += 60)
+                QualityPressureSample(t: t, bar: 200 - t * (140 / 2400)),
+            ],
+          },
+        );
+        expect(det.detect(ctx), isEmpty);
       });
     });
 

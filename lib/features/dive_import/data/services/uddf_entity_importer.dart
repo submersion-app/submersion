@@ -2974,20 +2974,34 @@ class UddfEntityImporter {
             createdAt: Value(now),
           ),
         );
+        // The pressure series were written before their source row existed
+        // (issue #2440): attribute them now, so a later consolidation keeps
+        // them apart from another source's series of the same cylinder.
+        await repos.tankPressureRepository.stampSourceWhereNull(
+          diveId,
+          dataSourceId,
+        );
       } else {
         // One insert for the whole batch, so the profile-adoption rule sees
         // the dive's real source count rather than a half-written dive.
-        await repos.diveRepository.saveComputerReadings(
-          _restoredSourceCompanions(
-            entries: sourceEntries,
-            diveId: diveId,
-            computerIdByKey: computerIdByKey,
-            fallbackComputerId: computerId,
-            sourceFileName: diveSourceFileName,
-            now: now,
-          ),
+        final restored = _restoredSourceCompanions(
+          entries: sourceEntries,
+          diveId: diveId,
+          computerIdByKey: computerIdByKey,
+          fallbackComputerId: computerId,
+          sourceFileName: diveSourceFileName,
+          now: now,
         );
+        await repos.diveRepository.saveComputerReadings(restored);
         restoredDataSources += sourceEntries.length;
+        // Only a single restored source owns the series unambiguously; with
+        // several, nothing in the file says which recorded them.
+        if (restored.length == 1 && restored.single.id.present) {
+          await repos.tankPressureRepository.stampSourceWhereNull(
+            diveId,
+            restored.single.id.value,
+          );
+        }
       }
 
       count++;

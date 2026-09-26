@@ -94,6 +94,22 @@ class DiveConsolidationService {
     await _db.transaction(() async {
       await _diveRepo.backfillPrimaryDataSource(targetDiveId);
 
+      // A target with a single source owns its unattributed pressure series
+      // through it. Attributed before the secondaries' series join them,
+      // since after that nothing tells the two apart (issue #2440). A target
+      // already holding several sources is left alone, like the v232
+      // backfill: its unattributed series could belong to any of them.
+      final targetSources = await (_db.select(
+        _db.diveDataSources,
+      )..where((s) => s.diveId.equals(targetDiveId))).get();
+      if (targetSources.length == 1) {
+        await _tankSeries.stampSourceWhereNull(
+          targetDiveId,
+          targetSources.single.id,
+          now: now,
+        );
+      }
+
       // First consolidation: stamp the target's own children with the
       // primary computer so null stays reserved for manual entries.
       if (targetRow.computerId != null) {
@@ -347,6 +363,11 @@ class DiveConsolidationService {
             diveId: targetDiveId,
             tankId: mappedTank,
             computerId: secRow.computerId,
+            // The owning source, re-pointed like the profile rows above
+            // (issue #2440): two file-imported sources both carry a null
+            // computer, and without it their series of one cylinder merge
+            // into one.
+            sourceId: sourceIdMap[s.sourceId] ?? sourceIdMap[null],
             samples: [for (final p in s.samples) p.shiftedBy(offset)],
             now: now,
           );

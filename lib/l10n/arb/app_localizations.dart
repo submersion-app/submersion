@@ -50238,6 +50238,12 @@ abstract class AppLocalizations {
   /// **'{count, plural, =1{The pressure signal dropped out once} other{The pressure signal dropped out {count} times}}'**
   String dataQuality_msg_pressureDropout(int count);
 
+  /// No description provided for @dataQuality_msg_pressureMixed.
+  ///
+  /// In en, this message translates to:
+  /// **'The pressure series mixes the readings of two sources'**
+  String get dataQuality_msg_pressureMixed;
+
   /// No description provided for @dataQuality_msg_sac.
   ///
   /// In en, this message translates to:

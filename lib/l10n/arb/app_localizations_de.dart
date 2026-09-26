@@ -31400,6 +31400,10 @@ class AppLocalizationsDe extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_msg_pressureMixed =>
+      'Die Druckreihe vermischt die Messwerte zweier Quellen';
+
+  @override
   String dataQuality_msg_sac(String sac) {
     return 'Der abgeleitete Oberflächenverbrauch von $sac ist unplausibel';
   }

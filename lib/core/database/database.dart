@@ -3885,6 +3885,16 @@ class TankPressureSeries extends Table {
     #id,
     onDelete: KeyAction.setNull,
   )();
+
+  /// The data source whose recording this series is (v232, issue #2440).
+  /// Two file-imported sources both carry a null [computerId], so without
+  /// this their series of one cylinder cannot be told apart. Null on a
+  /// series whose source could not be determined.
+  TextColumn get sourceId => text().nullable().references(
+    DiveDataSources,
+    #id,
+    onDelete: KeyAction.setNull,
+  )();
   IntColumn get sampleCount => integer()();
   IntColumn get startTimestamp => integer()();
   IntColumn get endTimestamp => integer()();
@@ -4459,7 +4469,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 231;
+  static const int currentSchemaVersion = 232;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -5139,6 +5149,10 @@ class AppDatabase extends _$AppDatabase {
     // (#1772) as 230 while this was open, and 229 is claimed by #2372,
     // #2331 and #2407.
     231,
+    // v232: tank_pressure_series.source_id (issue #2440), backfilled where
+    // the source is unambiguous. Additive nullable column, so the floor
+    // stays at 224.
+    232,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -8578,6 +8592,71 @@ class AppDatabase extends _$AppDatabase {
         '${entry.key} REAL NOT NULL DEFAULT ${entry.value}',
       );
     }
+  }
+
+  /// Idempotent DDL for tank_pressure_series.source_id (v232, issue #2440).
+  Future<void> _assertTankSeriesSourceIdColumn() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('tank_pressure_series')",
+    ).get();
+    if (cols.isEmpty) return;
+    final names = cols.map((c) => c.read<String>('name')).toSet();
+    if (!names.contains('source_id')) {
+      await customStatement(
+        'ALTER TABLE tank_pressure_series ADD COLUMN source_id TEXT '
+        'REFERENCES dive_data_sources(id) ON DELETE SET NULL',
+      );
+    }
+  }
+
+  /// v232: attribute existing tank pressure series to their data source
+  /// wherever that is unambiguous: the dive has a single source, or exactly
+  /// one of its sources is the computer that recorded the series. Series of
+  /// two file imports on one dive (both with a null computer) stay null,
+  /// since nothing tells them apart. Re-runs only touch rows still null.
+  Future<void> _backfillTankSeriesSourceIds() async {
+    final cols = await customSelect(
+      "PRAGMA table_info('tank_pressure_series')",
+    ).get();
+    if (!cols.map((c) => c.read<String>('name')).contains('source_id')) {
+      return;
+    }
+    // Guarded like the backstops: a partially built database (a migration
+    // fixture, or one caught mid-ladder) may lack the sources table.
+    final sourceCols = await customSelect(
+      "PRAGMA table_info('dive_data_sources')",
+    ).get();
+    final sourceNames = sourceCols.map((c) => c.read<String>('name')).toSet();
+    if (!sourceNames.containsAll(const ['id', 'dive_id', 'computer_id'])) {
+      return;
+    }
+    await customStatement('''
+      UPDATE tank_pressure_series
+      SET source_id = (
+        SELECT s.id FROM dive_data_sources s
+        WHERE s.dive_id = tank_pressure_series.dive_id
+      )
+      WHERE source_id IS NULL
+        AND (
+          SELECT COUNT(*) FROM dive_data_sources s
+          WHERE s.dive_id = tank_pressure_series.dive_id
+        ) = 1
+    ''');
+    await customStatement('''
+      UPDATE tank_pressure_series
+      SET source_id = (
+        SELECT s.id FROM dive_data_sources s
+        WHERE s.dive_id = tank_pressure_series.dive_id
+          AND s.computer_id = tank_pressure_series.computer_id
+      )
+      WHERE source_id IS NULL
+        AND computer_id IS NOT NULL
+        AND (
+          SELECT COUNT(*) FROM dive_data_sources s
+          WHERE s.dive_id = tank_pressure_series.dive_id
+            AND s.computer_id = tank_pressure_series.computer_id
+        ) = 1
+    ''');
   }
 
   /// Idempotent DDL for diver_settings.auto_tag_imports (v211, issue #998).
@@ -12843,6 +12922,13 @@ class AppDatabase extends _$AppDatabase {
           await _assertCcrPpO2LimitColumns();
         }
         if (from < 231) await reportProgress();
+        // v232: tank_pressure_series.source_id (issue #2440), backfilled
+        // where the source is unambiguous.
+        if (from < 232) {
+          await _assertTankSeriesSourceIdColumn();
+          await _backfillTankSeriesSourceIds();
+        }
+        if (from < 232) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
@@ -13355,6 +13441,11 @@ class AppDatabase extends _$AppDatabase {
         // (parallel-branch version-collision self-heal). Defaulted columns
         // only, so it cannot touch diver data.
         await _assertCcrPpO2LimitColumns();
+
+        // v232 backstop: re-assert tank_pressure_series.source_id
+        // (parallel-branch version-collision self-heal). Column only; the
+        // backfill stays in the rung.
+        await _assertTankSeriesSourceIdColumn();
 
         // v194 backstop: re-assert dive_tanks.transmitter_serial. Every tank
         // read selects the whole row, so a database that arrives by restore

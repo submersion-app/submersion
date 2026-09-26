@@ -36,7 +36,11 @@ final activeSourceTankPressuresProvider = FutureProvider.autoDispose
       ref.invalidateSelfWhen(
         ref.watch(diveRepositoryProvider).watchAnalysisInputChanges(),
       );
-      return repository.getTankPressuresForComputer(diveId, active.computerId);
+      return repository.getTankPressuresForComputer(
+        diveId,
+        active.computerId,
+        sourceId: active.sourceId,
+      );
     });
 
 /// Real per-tank pressures augmented with in-memory linear estimates for tanks

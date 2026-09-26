@@ -31044,6 +31044,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_msg_pressureMixed => 'تمزج سلسلة الضغط قراءات مصدرين';
+
+  @override
   String dataQuality_msg_sac(String sac) {
     return 'معدل الاستهلاك السطحي الضمني $sac غير معقول';
   }

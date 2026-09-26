@@ -214,6 +214,13 @@ void main() {
       );
     });
 
+    test('mixed branch names the two sources', () {
+      expect(
+        detailFor('pressure_anomaly', {'mixedSources': true, 'tankId': 't1'}),
+        contains('two sources'),
+      );
+    });
+
     test('dropout branch counts the dropouts', () {
       expect(
         detailFor('pressure_anomaly', {'dropoutCount': 3, 'tankId': 't1'}),

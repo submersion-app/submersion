@@ -40,6 +40,7 @@ class TankPressureSeriesRepository {
     required String diveId,
     required String tankId,
     String? computerId,
+    String? sourceId,
     required List<TankPressureSample> samples,
     String? id,
     int? now,
@@ -61,6 +62,7 @@ class TankPressureSeriesRepository {
               diveId: diveId,
               tankId: tankId,
               computerId: Value(computerId),
+              sourceId: Value(sourceId),
               sampleCount: encoded.summary.sampleCount,
               startTimestamp: encoded.summary.startTimestamp,
               endTimestamp: encoded.summary.endTimestamp,
@@ -254,6 +256,37 @@ class TankPressureSeriesRepository {
       )..where((t) => t.id.isIn(ids))).write(
         TankPressureSeriesCompanion(
           computerId: Value(computerId),
+          updatedAt: Value(nowMs),
+        ),
+      );
+      for (final id in ids) {
+        await _markPending(id, nowMs);
+      }
+    });
+    return ids.length;
+  }
+
+  /// Stamps [sourceId] on the unattributed series of [diveId] (issue
+  /// #2440): a single-source import writes its series before the source row
+  /// exists, and consolidation attributes the target's own series to its
+  /// primary source before another source's series join them. Returns the
+  /// number of series stamped.
+  Future<int> stampSourceWhereNull(
+    String diveId,
+    String sourceId, {
+    int? now,
+  }) async {
+    final nowMs = now ?? DateTime.now().millisecondsSinceEpoch;
+    final ids = await _ids(
+      (t) => t.diveId.equals(diveId) & t.sourceId.isNull(),
+    );
+    if (ids.isEmpty) return 0;
+    await _db.transaction(() async {
+      await (_db.update(
+        _db.tankPressureSeries,
+      )..where((t) => t.id.isIn(ids))).write(
+        TankPressureSeriesCompanion(
+          sourceId: Value(sourceId),
           updatedAt: Value(nowMs),
         ),
       );
@@ -463,6 +496,7 @@ class TankPressureSeriesRepository {
       diveId: row.diveId,
       tankId: row.tankId,
       computerId: row.computerId,
+      sourceId: row.sourceId,
       summary: TankPressureSeriesSummary(
         sampleCount: row.sampleCount,
         startTimestamp: row.startTimestamp,

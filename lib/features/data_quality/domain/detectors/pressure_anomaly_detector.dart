@@ -1,6 +1,7 @@
 import 'package:submersion/core/profile/surfacing_pressure.dart'
     show lastTimeBelowSurfaceThreshold;
 import 'package:submersion/core/profile/tank_pressure_glitches.dart';
+import 'package:submersion/core/profile/tank_pressure_mixing.dart';
 import 'package:submersion/features/data_quality/domain/entities/dive_quality_context.dart';
 import 'package:submersion/features/data_quality/domain/entities/quality_finding.dart';
 import 'package:submersion/features/data_quality/domain/quality_thresholds.dart';
@@ -32,14 +33,35 @@ class PressureAnomalyDetector extends QualityDetector {
       final raw = ctx.pressuresByTankId[tank.id] ?? const [];
       final sp = tank.startPressure;
       final ep = tank.endPressure;
+      final readings = [for (final p in raw) (t: p.t, bar: p.bar)];
+
+      // Two recordings interleaved into one series (#2440) are reported as
+      // that and nothing else: every alternation would read as a rise, the
+      // lower track as dropouts, and either end as a mismatch. Checked first,
+      // before the dropout scan takes the lower track for misreads. Only a
+      // dive with more than one source can hold two recordings.
+      if (ctx.sources.length > 1 && looksLikeInterleavedSources(readings)) {
+        out.add(
+          make(
+            ctx,
+            discriminator: 'mixed:${tank.id}',
+            computerId: tank.computerId,
+            severity: QualitySeverity.warning,
+            params: {
+              'mixedSources': true,
+              'tankId': tank.id,
+              'tankOrder': tank.order,
+            },
+          ),
+        );
+        continue;
+      }
 
       // Dropouts and transient misreads are reported once per tank, and
       // every other check reads the series without them: each recovery from
       // a dropout would otherwise read as a mid-dive rise, and a dropout at
       // either end as an endpoint mismatch (#2441).
-      final glitches = scanPressureGlitches([
-        for (final p in raw) (t: p.t, bar: p.bar),
-      ]);
+      final glitches = scanPressureGlitches(readings);
       final series = glitches.glitchIndices.isEmpty
           ? raw
           : [

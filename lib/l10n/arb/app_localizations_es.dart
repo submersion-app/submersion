@@ -31474,6 +31474,10 @@ class AppLocalizationsEs extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_msg_pressureMixed =>
+      'La serie de presión mezcla las lecturas de dos fuentes';
+
+  @override
   String dataQuality_msg_sac(String sac) {
     return 'El consumo en superficie implícito de $sac es inverosímil';
   }

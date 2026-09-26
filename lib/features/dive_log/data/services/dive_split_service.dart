@@ -112,9 +112,15 @@ class DiveSplitService {
         for (final s in allProfileSeries)
           if (profileBelongsToSource(s)) s,
       ];
+      // A series that names its source moves with exactly that source,
+      // computer or not (issue #2440); an unattributed one falls back to the
+      // computer rule.
       final movingPressures = [
         for (final s in allPressureSeries)
-          if (ownedByComputer(s.computerId)) s,
+          if (s.sourceId == null
+              ? ownedByComputer(s.computerId)
+              : s.sourceId == source.id)
+            s,
       ];
 
       // 1. New dive: copy the original row, attribute it to the source's
@@ -319,6 +325,7 @@ class DiveSplitService {
           diveId: newDiveId,
           tankId: tankIdMap[s.tankId] ?? s.tankId,
           computerId: s.computerId,
+          sourceId: newSourceId,
           samples: s.samples,
           now: now,
         );

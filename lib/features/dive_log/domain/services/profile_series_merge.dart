@@ -119,6 +119,94 @@ List<TankPressureSeries> selectTankSeriesForComputer(
   ];
 }
 
+/// The series to read for each tank so that no two recordings of the same
+/// stretch of the dive are interleaved (issue #2440).
+///
+/// Two file imports of one dive, consolidated, each log the same cylinder,
+/// usually shifted against each other by the difference in their clocks.
+/// Interleaving them makes the line zigzag between the two every sample.
+/// A combined dive is the opposite case: its sources recorded one after the
+/// other, and every one of them belongs in the line.
+///
+/// Per tank, the series are grouped by source; a series with no source is a
+/// group of its own, since nothing ties it to any other. Groups are taken in
+/// order of preference and each is kept unless its time span overlaps one
+/// already kept. Preference: [preferredSourceId]; then an unattributed group
+/// recorded by [preferredComputerId]; then attributed groups before
+/// unattributed ones; then the group with more samples; then the one that
+/// starts first; then the first series id. Input order is preserved in the
+/// result.
+List<TankPressureSeries> selectTankSeriesPerSource(
+  List<TankPressureSeries> series, {
+  required String? preferredSourceId,
+  String? preferredComputerId,
+}) {
+  if (series.isEmpty) return const [];
+  final groupsByTank = <String, Map<String, List<TankPressureSeries>>>{};
+  for (final s in series) {
+    final key = s.sourceId ?? 'series:${s.id}';
+    ((groupsByTank[s.tankId] ??= {})[key] ??= []).add(s);
+  }
+
+  final kept = <String>{};
+  for (final groups in groupsByTank.values) {
+    final ordered = groups.values.toList()
+      ..sort((a, b) {
+        final byRank = _preferenceRank(
+          a,
+          preferredSourceId,
+          preferredComputerId,
+        ).compareTo(_preferenceRank(b, preferredSourceId, preferredComputerId));
+        if (byRank != 0) return byRank;
+        final bySize = _sampleCount(b).compareTo(_sampleCount(a));
+        if (bySize != 0) return bySize;
+        final byStart = _spanOfGroup(a).$1.compareTo(_spanOfGroup(b).$1);
+        if (byStart != 0) return byStart;
+        return a.first.id.compareTo(b.first.id);
+      });
+    final spans = <(int, int)>[];
+    for (final group in ordered) {
+      final span = _spanOfGroup(group);
+      final overlaps = spans.any((s) => span.$1 <= s.$2 && s.$1 <= span.$2);
+      if (overlaps) continue;
+      spans.add(span);
+      kept.addAll(group.map((s) => s.id));
+    }
+  }
+  return [
+    for (final s in series)
+      if (kept.contains(s.id)) s,
+  ];
+}
+
+int _preferenceRank(
+  List<TankPressureSeries> group,
+  String? preferredSourceId,
+  String? preferredComputerId,
+) {
+  final sourceId = group.first.sourceId;
+  if (sourceId != null && sourceId == preferredSourceId) return 0;
+  if (sourceId == null &&
+      preferredComputerId != null &&
+      group.every((s) => s.computerId == preferredComputerId)) {
+    return 1;
+  }
+  return sourceId != null ? 2 : 3;
+}
+
+int _sampleCount(List<TankPressureSeries> group) =>
+    group.fold(0, (n, s) => n + s.summary.sampleCount);
+
+(int, int) _spanOfGroup(List<TankPressureSeries> group) {
+  var start = group.first.summary.startTimestamp;
+  var end = group.first.summary.endTimestamp;
+  for (final s in group.skip(1)) {
+    if (s.summary.startTimestamp < start) start = s.summary.startTimestamp;
+    if (s.summary.endTimestamp > end) end = s.summary.endTimestamp;
+  }
+  return (start, end);
+}
+
 /// Series-level twin of `DiveRepository._dropSupersededOriginals`.
 ///
 /// A saved profile edit demotes the originals and inserts a null-computer

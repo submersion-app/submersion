@@ -242,6 +242,7 @@ class ReparseService {
         await _replaceTankPressureProfiles(
           diveId: diveId,
           computerId: computerId,
+          sourceId: sourceRow.id,
           parsed: parsed,
           tankIdsByIndex: tankIdsByIndex,
         );
@@ -922,6 +923,7 @@ class ReparseService {
   Future<void> _replaceTankPressureProfiles({
     required String diveId,
     required String? computerId,
+    required String sourceId,
     required pigeon.ParsedDive parsed,
     required Map<int, String> tankIdsByIndex,
   }) async {
@@ -949,6 +951,7 @@ class ReparseService {
         diveId: diveId,
         tankId: tankId,
         computerId: computerId,
+        sourceId: sourceId,
         samples: [
           for (final point in entry.value)
             TankPressureSample(

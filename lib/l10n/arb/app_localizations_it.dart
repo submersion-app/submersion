@@ -31448,6 +31448,10 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_msg_pressureMixed =>
+      'La serie di pressione mescola le letture di due fonti';
+
+  @override
   String dataQuality_msg_sac(String sac) {
     return 'Il consumo in superficie implicito di $sac non è plausibile';
   }

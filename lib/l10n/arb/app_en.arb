@@ -20371,6 +20371,7 @@
       }
     }
   },
+  "dataQuality_msg_pressureMixed": "The pressure series mixes the readings of two sources",
   "dataQuality_msg_sac": "Implied surface consumption of {sac} is implausible",
   "@dataQuality_msg_sac": {
     "placeholders": {

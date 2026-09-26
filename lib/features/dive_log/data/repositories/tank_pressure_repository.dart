@@ -36,32 +36,62 @@ class TankPressureRepository {
   /// Returns a map where keys are tank IDs and values are lists of
   /// pressure points sorted by timestamp. The series tables are the only
   /// store: v183 dropped `tank_pressure_profiles`.
+  ///
+  /// Where two sources recorded the same stretch of a tank, only the primary
+  /// source's series is read (see [selectTankSeriesPerSource], issue #2440):
+  /// interleaving two recordings of one cylinder is no pressure curve.
   Future<Map<String, List<TankPressurePoint>>> getTankPressuresForDive(
     String diveId,
-  ) async => _groupByTank(await _tankSeries.getSeriesForDive(diveId));
+  ) async => _groupByTank(
+    selectTankSeriesPerSource(
+      await _tankSeries.getSeriesForDive(diveId),
+      preferredSourceId: await _primarySourceId(diveId),
+    ),
+  );
 
-  /// [getTankPressuresForDive] for many dives at once, keyed by dive id; a
+  /// Every tank pressure reading of many dives at once, keyed by dive id; a
   /// dive with no pressure data is absent. One statement per chunk of ids
   /// instead of one per dive (issue #1867).
+  ///
+  /// Unlike [getTankPressuresForDive] this keeps every source's readings:
+  /// its readers are the exports, and a backup must not drop a recording
+  /// because another source covered the same stretch.
   Future<Map<String, Map<String, List<TankPressurePoint>>>>
   getTankPressuresForDives(List<String> diveIds) async => {
     for (final entry in (await _tankSeries.getSeriesForDives(diveIds)).entries)
       entry.key: _groupByTank(entry.value),
   };
 
-  /// [getTankPressuresForDive] as one computer saw the dive: on a tank that
+  /// [getTankPressuresForDive] as one source saw the dive: on a tank that
   /// [computerId] logged, only its series; on any other tank, every series.
   /// See [selectTankSeriesForComputer] for why a consolidated dive needs
-  /// this (two computers on one transmitter interleave on one tank).
+  /// this (two computers on one transmitter interleave on one tank). Series
+  /// of two sources that still overlap, such as two file imports with no
+  /// computer, are then narrowed to one, preferring [sourceId] (#2440).
   Future<Map<String, List<TankPressurePoint>>> getTankPressuresForComputer(
     String diveId,
-    String? computerId,
-  ) async => _groupByTank(
-    selectTankSeriesForComputer(
-      await _tankSeries.getSeriesForDive(diveId),
-      computerId,
+    String? computerId, {
+    String? sourceId,
+  }) async => _groupByTank(
+    selectTankSeriesPerSource(
+      selectTankSeriesForComputer(
+        await _tankSeries.getSeriesForDive(diveId),
+        computerId,
+      ),
+      preferredSourceId: sourceId,
+      preferredComputerId: computerId,
     ),
   );
+
+  /// The id of [diveId]'s primary data source, or null when it has none.
+  Future<String?> _primarySourceId(String diveId) async {
+    final row =
+        await (_db.select(_db.diveDataSources)
+              ..where((s) => s.diveId.equals(diveId) & s.isPrimary.equals(true))
+              ..limit(1))
+            .getSingleOrNull();
+    return row?.id;
+  }
 
   Map<String, List<TankPressurePoint>> _groupByTank(
     List<domain.TankPressureSeries> series,
@@ -88,7 +118,12 @@ class TankPressureRepository {
   ) async {
     final series = await _tankSeries.getSeriesForTank(diveId, tankId);
     if (series.isEmpty) return const <TankPressurePoint>[];
-    return mergeTankSeriesPoints(series);
+    return mergeTankSeriesPoints(
+      selectTankSeriesPerSource(
+        series,
+        preferredSourceId: await _primarySourceId(diveId),
+      ),
+    );
   }
 
   /// Bulk insert tank pressure data for a dive
@@ -97,10 +132,13 @@ class TankPressureRepository {
   /// Each tank's samples become one series; the repository marks it pending
   /// and stamps it with an hlc, so no separate per-sample sync bookkeeping is
   /// needed here.
+  /// [sourceId] names the data source the readings came from (issue #2440);
+  /// null when it is not known yet.
   Future<void> insertTankPressures(
     String diveId,
-    Map<String, List<({int timestamp, double pressure})>> pressuresByTank,
-  ) async {
+    Map<String, List<({int timestamp, double pressure})>> pressuresByTank, {
+    String? sourceId,
+  }) async {
     if (pressuresByTank.isEmpty) return;
     final now = DateTime.now().millisecondsSinceEpoch;
     // One transaction for the whole pressure set. Each insertSeries commits
@@ -116,6 +154,7 @@ class TankPressureRepository {
         await _tankSeries.insertSeries(
           diveId: diveId,
           tankId: entry.key,
+          sourceId: sourceId,
           samples: [
             for (final point in entry.value)
               TankPressureSample(
@@ -177,18 +216,24 @@ class TankPressureRepository {
   Future<void> replaceTankPressuresForTanks(
     String diveId,
     Iterable<String> tankIds,
-    Map<String, List<({int timestamp, double pressure})>> pressuresByTank,
-  ) async {
+    Map<String, List<({int timestamp, double pressure})>> pressuresByTank, {
+    String? sourceId,
+  }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     await _db.transaction(() async {
       for (final tankId in tankIds) {
         await _tankSeries.deleteForTank(diveId, tankId);
       }
-      await insertTankPressures(diveId, pressuresByTank);
+      await insertTankPressures(diveId, pressuresByTank, sourceId: sourceId);
       await _touchDive(diveId, now);
     });
     SyncEventBus.notifyLocalChange();
   }
+
+  /// Attributes the unattributed pressure series of [diveId] to [sourceId]
+  /// (issue #2440). See [TankPressureSeriesRepository.stampSourceWhereNull].
+  Future<int> stampSourceWhereNull(String diveId, String sourceId) =>
+      _tankSeries.stampSourceWhereNull(diveId, sourceId);
 
   /// Move the pressure series of [fromTankId] onto [toTankId]. Since v200 this
   /// is an exchange: the target's previous bundle comes back to the source so

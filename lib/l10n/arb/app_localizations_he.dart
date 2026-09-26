@@ -30701,6 +30701,10 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_msg_pressureMixed =>
+      'סדרת הלחץ מערבבת קריאות משני מקורות';
+
+  @override
   String dataQuality_msg_sac(String sac) {
     return 'צריכת פני השטח המשתמעת של $sac אינה סבירה';
   }

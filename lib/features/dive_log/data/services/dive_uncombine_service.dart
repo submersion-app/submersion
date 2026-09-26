@@ -550,6 +550,7 @@ class DiveUncombineService {
         diveId: newDiveId,
         tankId: tankIdMap[s.tankId] ?? s.tankId,
         computerId: s.computerId,
+        sourceId: newSourceIdByOld[s.sourceId],
         samples: [for (final p in s.samples) p.shiftedBy(offset)],
         now: now,
       );

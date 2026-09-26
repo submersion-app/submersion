@@ -31328,6 +31328,10 @@ class AppLocalizationsHu extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_msg_pressureMixed =>
+      'A nyomássor két forrás mérési adatait keveri';
+
+  @override
   String dataQuality_msg_sac(String sac) {
     return 'A becsült felszíni fogyasztás ($sac) nem hihető';
   }

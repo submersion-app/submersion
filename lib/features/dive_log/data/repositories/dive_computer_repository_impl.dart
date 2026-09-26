@@ -1748,6 +1748,7 @@ class DiveComputerRepository {
               diveId: diveId,
               tankId: tankIdsByIndex[entry.key]!,
               computerId: computerId,
+              sourceId: ownerSourceId,
               samples: [
                 for (final point in entry.value)
                   TankPressureSample(

@@ -9599,6 +9599,7 @@
   "dataQuality_msg_pressureEndpoint": "气瓶记录为 {record}，但传感器序列显示为 {series}",
   "dataQuality_msg_pressureRise": "潜水途中压力在没有气体切换的情况下上升了 {rise}",
   "dataQuality_msg_pressureDropout": "{count, plural, =1{压力信号中断了 1 次} other{压力信号中断了 {count} 次}}",
+  "dataQuality_msg_pressureMixed": "压力序列混合了两个来源的读数",
   "dataQuality_msg_sac": "推算的水面消耗量 {sac} 不合理",
   "dataQuality_msg_ppo2": "ppO2 在 {depth} 使用 {gas} 时达到 {ppo2}",
   "dataQuality_msg_hypoxic": "低氧混合气（{gas}）显示在水面处于使用状态",

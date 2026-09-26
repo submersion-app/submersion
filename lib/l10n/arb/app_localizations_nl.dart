@@ -31229,6 +31229,10 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_msg_pressureMixed =>
+      'De drukreeks vermengt de metingen van twee bronnen';
+
+  @override
   String dataQuality_msg_sac(String sac) {
     return 'Het afgeleide oppervlakteverbruik van $sac is onaannemelijk';
   }

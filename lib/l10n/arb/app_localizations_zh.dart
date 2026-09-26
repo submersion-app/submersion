@@ -29821,6 +29821,9 @@ class AppLocalizationsZh extends AppLocalizations {
   }
 
   @override
+  String get dataQuality_msg_pressureMixed => '压力序列混合了两个来源的读数';
+
+  @override
   String dataQuality_msg_sac(String sac) {
     return '推算的水面消耗量 $sac 不合理';
   }

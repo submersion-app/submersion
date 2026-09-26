@@ -359,4 +359,94 @@ void main() {
       expect(selectTankSeriesForComputer(const [], 'dc-black'), isEmpty);
     });
   });
+
+  // Issue #2440: two file imports of one dive, consolidated, both log the
+  // same cylinder with no computer. Interleaving them zigzags between two
+  // recordings offset in time.
+  group('selectTankSeriesPerSource', () {
+    List<TankPressureSample> span(int from, int to, double start) => [
+      for (var t = from; t <= to; t += 10)
+        TankPressureSample(timestamp: t, pressure: start - (t - from) * 0.05),
+    ];
+    TankPressureSeries sourced(
+      String id,
+      String? sourceId,
+      List<TankPressureSample> samples, {
+      String tankId = 'tank-a',
+      String? computerId,
+    }) => tankSeries(
+      id,
+      tankId: tankId,
+      computerId: computerId,
+      samples: samples,
+    ).copyWith(sourceId: sourceId);
+
+    test('overlapping sources on one tank keep only the preferred one', () {
+      final primary = sourced('p', 'src-p', span(0, 3000, 200));
+      final other = sourced('o', 'src-o', span(50, 3050, 198));
+      final kept = selectTankSeriesPerSource([
+        other,
+        primary,
+      ], preferredSourceId: 'src-p');
+      expect(kept.map((s) => s.id), ['p']);
+    });
+
+    test('sources that follow one another are all kept', () {
+      // A combined dive: each half was recorded by its own source.
+      final first = sourced('a', 'src-a', span(0, 1500, 200));
+      final second = sourced('b', 'src-b', span(2000, 3500, 120));
+      final kept = selectTankSeriesPerSource([
+        first,
+        second,
+      ], preferredSourceId: 'src-a');
+      expect(kept.map((s) => s.id), ['a', 'b']);
+    });
+
+    test('several series of one source are all kept', () {
+      final a = sourced('a1', 'src-a', span(0, 1500, 200));
+      final b = sourced('a2', 'src-a', span(1000, 3000, 150));
+      final kept = selectTankSeriesPerSource([a, b], preferredSourceId: null);
+      expect(kept.map((s) => s.id), ['a1', 'a2']);
+    });
+
+    test('unattributed overlapping series never interleave', () {
+      // Legacy rows with no source: each is its own recording, and the
+      // fuller one wins.
+      final short = sourced('s', null, span(0, 600, 200));
+      final full = sourced('f', null, span(0, 3000, 200));
+      final kept = selectTankSeriesPerSource([
+        short,
+        full,
+      ], preferredSourceId: 'src-x');
+      expect(kept.map((s) => s.id), ['f']);
+    });
+
+    test('an unattributed series of the preferred computer wins', () {
+      final mine = sourced('m', null, span(0, 600, 200), computerId: 'dc-1');
+      final theirs = sourced('t', null, span(0, 3000, 200), computerId: 'dc-2');
+      final kept = selectTankSeriesPerSource(
+        [theirs, mine],
+        preferredSourceId: null,
+        preferredComputerId: 'dc-1',
+      );
+      expect(kept.map((s) => s.id), ['m']);
+    });
+
+    test('each tank is chosen on its own', () {
+      final back = sourced('back', 'src-o', span(0, 3000, 200), tankId: 'b');
+      final stage = sourced('stage', 'src-p', span(0, 3000, 200), tankId: 's');
+      final kept = selectTankSeriesPerSource([
+        back,
+        stage,
+      ], preferredSourceId: 'src-p');
+      expect(kept.map((s) => s.id), ['back', 'stage']);
+    });
+
+    test('an empty list stays empty', () {
+      expect(
+        selectTankSeriesPerSource(const [], preferredSourceId: 'x'),
+        isEmpty,
+      );
+    });
+  });
 }

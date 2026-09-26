@@ -9599,6 +9599,7 @@
   "dataQuality_msg_pressureEndpoint": "A palack rekordja {record} értéket jelez, de az érzékelősorozat {series} értéket mutat",
   "dataQuality_msg_pressureRise": "A nyomás {rise} értékkel emelkedett a merülés közben gázcsere nélkül",
   "dataQuality_msg_pressureDropout": "{count, plural, =1{A nyomásjel egyszer kiesett} other{A nyomásjel {count} alkalommal kiesett}}",
+  "dataQuality_msg_pressureMixed": "A nyomássor két forrás mérési adatait keveri",
   "dataQuality_msg_sac": "A becsült felszíni fogyasztás ({sac}) nem hihető",
   "dataQuality_msg_ppo2": "A ppO2 elérte a(z) {ppo2} értéket {gas} gázzal {depth} mélységben",
   "dataQuality_msg_hypoxic": "Hipoxikus keverék ({gas}) használatban a felszínen",
