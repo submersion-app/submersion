@@ -143,9 +143,15 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     _customFieldValue = filter.customFieldValue;
     _customFieldValueController.text = _customFieldValue ?? '';
 
-    // Set controller text
-    _minDepthController.text = _minDepth?.toStringAsFixed(0) ?? '';
-    _maxDepthController.text = _maxDepth?.toStringAsFixed(0) ?? '';
+    // Set controller text. Depth bounds live in meters; the fields show and
+    // accept the diver's configured depth unit, as the quick filter sheet does.
+    final units = UnitFormatter(ref.read(settingsProvider));
+    _minDepthController.text = _minDepth == null
+        ? ''
+        : formatRoundedForInput(units.convertDepth(_minDepth!), 0);
+    _maxDepthController.text = _maxDepth == null
+        ? ''
+        : formatRoundedForInput(units.convertDepth(_maxDepth!), 0);
     _minDurationController.text = _minDurationMinutes?.toString() ?? '';
     _maxDurationController.text = _maxDurationMinutes?.toString() ?? '';
     _buddyNameController.text = _buddyNameFilter ?? '';
@@ -234,7 +240,7 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
             key: 'conditions',
             title: context.l10n.diveLog_search_section_conditions,
             icon: Icons.waves,
-            child: _buildConditionsContent(),
+            child: _buildConditionsContent(units),
           ),
 
           // Gas & Equipment Section
@@ -522,13 +528,13 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
     );
   }
 
-  Widget _buildConditionsContent() {
+  Widget _buildConditionsContent(UnitFormatter units) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Depth Range
         Text(
-          context.l10n.diveLog_search_label_depthRange,
+          context.l10n.diveLog_filter_sectionDepthRangeUnit(units.depthSymbol),
           style: Theme.of(context).textTheme.bodyLarge,
         ),
         const SizedBox(height: 8),
@@ -540,10 +546,15 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_filter_min,
                   prefixIcon: const Icon(Icons.arrow_downward),
-                  suffixText: 'm',
+                  suffixText: units.depthSymbol,
                 ),
                 keyboardType: TextInputType.number,
-                onChanged: (value) => _minDepth = parseUserDecimal(value),
+                onChanged: (value) {
+                  final entered = parseUserDecimal(value);
+                  _minDepth = entered == null
+                      ? null
+                      : units.depthToMeters(entered);
+                },
               ),
             ),
             const SizedBox(width: 16),
@@ -553,10 +564,15 @@ class _DiveSearchPageState extends ConsumerState<DiveSearchPage> {
                 decoration: InputDecoration(
                   labelText: context.l10n.diveLog_filter_max,
                   prefixIcon: const Icon(Icons.arrow_downward),
-                  suffixText: 'm',
+                  suffixText: units.depthSymbol,
                 ),
                 keyboardType: TextInputType.number,
-                onChanged: (value) => _maxDepth = parseUserDecimal(value),
+                onChanged: (value) {
+                  final entered = parseUserDecimal(value);
+                  _maxDepth = entered == null
+                      ? null
+                      : units.depthToMeters(entered);
+                },
               ),
             ),
           ],
