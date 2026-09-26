@@ -65,7 +65,11 @@ class CylinderPassportRepository {
         ])..where(
           attrs.attrKey.equals(EquipmentAttrKeys.passportId) &
               attrs.isCustom.equals(false) &
-              attrs.valueText.equals(passportId),
+              attrs.valueText.equals(passportId) &
+              // Only a cylinder holds a tag. An item retyped to other gear
+              // keeps the id (a retype undone gets it back) but never
+              // blocks or answers a lookup while it is not a tank.
+              eq.type.equals(EquipmentType.tank.name),
         );
     if (diverId != null) query.where(eq.diverId.equals(diverId));
     final holders = [for (final r in await query.get()) r.readTable(eq)];
@@ -89,6 +93,28 @@ class CylinderPassportRepository {
       row.isActive &&
       row.status != EquipmentStatus.retired.name &&
       row.status != EquipmentStatus.sold.name;
+
+  /// Items that are no longer cylinders but still carry [passportId], other
+  /// than [except]: the leftovers of a retype.
+  Future<List<String>> _nonTankCarriers(
+    String passportId,
+    String except,
+  ) async {
+    final attrs = _db.equipmentAttributes;
+    final eq = _db.equipment;
+    final rows =
+        await (_db.select(attrs).join([
+              innerJoin(eq, eq.id.equalsExp(attrs.equipmentId)),
+            ])..where(
+              attrs.attrKey.equals(EquipmentAttrKeys.passportId) &
+                  attrs.isCustom.equals(false) &
+                  attrs.valueText.equals(passportId) &
+                  eq.type.equals(EquipmentType.tank.name).not() &
+                  eq.id.equals(except).not(),
+            ))
+            .get();
+    return [for (final r in rows) r.readTable(eq).id];
+  }
 
   /// Removes [equipmentId]'s passport id, so a tag can move off a cylinder
   /// that is no longer in service.
@@ -125,6 +151,11 @@ class CylinderPassportRepository {
         // inactive one gives it up to the cylinder being linked.
         if (_isFitted(row)) throw PassportIdInUse(holder);
         await _releasePassportId(holder);
+      }
+      // A retyped item still carrying the id gives it up to the cylinder the
+      // tag is now linked to, so the id is never on two rows.
+      for (final carrier in await _nonTankCarriers(passportId, equipmentId)) {
+        await _releasePassportId(carrier);
       }
       final previous = await getPassportId(equipmentId);
       if (holder != equipmentId) {

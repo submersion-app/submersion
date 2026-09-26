@@ -283,6 +283,51 @@ void main() {
     ];
     expect(holders, hasLength(1));
   });
+
+  Future<void> retype(String eq, String type) =>
+      (db.update(db.equipment)..where((t) => t.id.equals(eq))).write(
+        EquipmentCompanion(type: Value(type)),
+      );
+
+  test(
+    'an item retyped away from a cylinder no longer holds the tag',
+    () async {
+      await repo.assignPassportId(
+        equipmentId: 'eq-1',
+        passportId: id,
+        diverId: 'd1',
+      );
+      await retype('eq-1', 'regulator');
+      expect(await repo.findEquipmentIdByPassportId(id, diverId: 'd1'), isNull);
+    },
+  );
+
+  test('linking a tag a retyped item still carries moves it', () async {
+    await repo.assignPassportId(
+      equipmentId: 'eq-1',
+      passportId: id,
+      diverId: 'd1',
+    );
+    await retype('eq-1', 'regulator');
+    await repo.assignPassportId(
+      equipmentId: 'eq-2',
+      passportId: id,
+      diverId: 'd1',
+    );
+    expect(await repo.getPassportId('eq-2'), id);
+    expect(await repo.getPassportId('eq-1'), isNull);
+  });
+
+  test('a retype undone keeps the tag', () async {
+    await repo.assignPassportId(
+      equipmentId: 'eq-1',
+      passportId: id,
+      diverId: 'd1',
+    );
+    await retype('eq-1', 'regulator');
+    await retype('eq-1', 'tank');
+    expect(await repo.findEquipmentIdByPassportId(id, diverId: 'd1'), 'eq-1');
+  });
 }
 
 class _FailingFills extends CylinderFillRepository {
