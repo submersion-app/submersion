@@ -110,13 +110,16 @@ class EntryExitPairCount {
 
 /// Repository for all advanced statistics queries.
 ///
-/// A failed query is logged and rethrown, never answered with an empty
-/// result (issue #1930). Every card treats an empty result as "you have no
-/// data for this", so a default would show a broken query as a diver with
-/// no dives, and the card's error state would never appear. Rethrowing lets
-/// the provider complete with an `AsyncError` instead. The callers outside
-/// Insights (the home dashboard, the site pages, the planner's logged SAC)
-/// already treat an error as nothing to show.
+/// A failed query is never answered with an empty result (issue #1930).
+/// Every card treats an empty result as "you have no data for this", so a
+/// default would show a broken query as a diver with no dives, and the
+/// card's error state would never appear. The failure reaches the caller
+/// instead and the provider completes with an `AsyncError`. Methods with a
+/// `catch` use it only to log the failure before rethrowing it; the few
+/// small ones without one (such as [countExcludedDives]) let it propagate
+/// unlogged. The callers outside Insights (the home dashboard, the site
+/// pages, the planner's logged SAC) already treat an error as nothing to
+/// show.
 class InsightsRepository {
   /// Equation of state used to convert cylinder pressure to gas volume.
   ///
