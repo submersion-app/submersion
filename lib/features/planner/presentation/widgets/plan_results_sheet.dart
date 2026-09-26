@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import 'package:submersion/core/providers/provider.dart';
@@ -40,13 +42,18 @@ String planIssueMessage(
       );
     case PlanIssueType.endExceeded:
       // The engine compares unrounded values, so plain rounding could print
-      // "30m exceeds the 30m limit" for an END of 30.05 m. Rounding the END
-      // up and the limit down keeps the shown END above the shown limit; the
-      // epsilon stops float noise (32.0000001) from bumping a whole value.
+      // "30m exceeds the 30m limit" for an END of 30.05 m. Round the END up
+      // and the limit down; the epsilon stops float noise (32.0000001) from
+      // bumping a whole value. The engine only raises this issue when the END
+      // is above the limit, so an END within the epsilon of it is still shown
+      // one unit higher rather than equal.
       const epsilon = 1e-6;
-      final end = (units.convertDepth(issue.value ?? 0) - epsilon).ceil();
       final limit = (units.convertDepth(issue.threshold ?? 0) + epsilon)
           .floor();
+      final end = max(
+        (units.convertDepth(issue.value ?? 0) - epsilon).ceil(),
+        limit + 1,
+      );
       return l10n.divePlanner_warning_endExceedsLimit(
         units.formatDepth(units.depthToMeters(end.toDouble()), decimals: 0),
         units.formatDepth(units.depthToMeters(limit.toDouble()), decimals: 0),

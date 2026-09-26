@@ -321,10 +321,10 @@ void main() {
     const issue = PlanIssue(
       type: PlanIssueType.endExceeded,
       severity: PlanIssueSeverity.warning,
-      message: 'END 32 m exceeds 40 m',
+      message: 'END 32 m exceeds 30 m',
       atDepth: 32,
       value: 32,
-      threshold: 40,
+      threshold: 30,
     );
 
     Future<String> render(
@@ -354,14 +354,14 @@ void main() {
     testWidgets('names both the END and the limit it exceeds', (tester) async {
       expect(
         await render(tester, const AppSettings()),
-        'END of 32m exceeds the 40m limit',
+        'END of 32m exceeds the 30m limit',
       );
     });
 
     testWidgets('converts both depths to the diver\'s units', (tester) async {
       expect(
         await render(tester, const AppSettings(depthUnit: DepthUnit.feet)),
-        'END of 105ft exceeds the 131ft limit',
+        'END of 105ft exceeds the 98ft limit',
       );
     });
 
@@ -378,6 +378,23 @@ void main() {
       );
       expect(
         await render(tester, const AppSettings(), issue: barelyOver),
+        'END of 31m exceeds the 30m limit',
+      );
+    });
+
+    testWidgets('stays above the limit when the END is a hair over it', (
+      tester,
+    ) async {
+      // Inside the float-noise epsilon: END and limit would both show 30.
+      const hairOver = PlanIssue(
+        type: PlanIssueType.endExceeded,
+        severity: PlanIssueSeverity.warning,
+        message: 'END 30 m exceeds 30 m',
+        value: 30.0000005,
+        threshold: 30,
+      );
+      expect(
+        await render(tester, const AppSettings(), issue: hairOver),
         'END of 31m exceeds the 30m limit',
       );
     });
