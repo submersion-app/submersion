@@ -4308,6 +4308,25 @@ class FieldPresets extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Saved Connections maps (issue #2322, spec Revision 2): a named MapSpec
+/// per diver, synced like field presets. `spec` is the MapSpec JSON; a spec
+/// naming a kind the reading build does not know is skipped, never deleted.
+@DataClassName('ConnectionMapRow')
+class ConnectionMaps extends Table {
+  TextColumn get id => text()();
+  TextColumn get diverId =>
+      text().references(Divers, #id, onDelete: KeyAction.cascade)();
+  TextColumn get name => text()();
+  TextColumn get spec => text()();
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  IntColumn get createdAt => integer()();
+  IntColumn get updatedAt => integer()();
+  TextColumn get hlc => text().nullable()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 // ============================================================================
 // Database Class
 // ============================================================================
@@ -4450,6 +4469,8 @@ String legacyDataSourceId(String diveId) => '$kLegacyDataSourceIdPrefix$diveId';
     DiveCenterGearNotes,
     // Cylinder fill history (v228, issue #2334)
     CylinderFills,
+    // Saved Connections maps (v232, issue #2322)
+    ConnectionMaps,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -4459,7 +4480,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// The current schema version as a static constant so that pre-open checks
   /// (e.g. version-mismatch guard) can reference it without an instance.
-  static const int currentSchemaVersion = 231;
+  static const int currentSchemaVersion = 232;
 
   /// The oldest schema whose reader can apply this build's sync payloads
   /// without loss or misinterpretation (the compatibility floor).
@@ -5139,6 +5160,10 @@ class AppDatabase extends _$AppDatabase {
     // (#1772) as 230 while this was open, and 229 is claimed by #2372,
     // #2331 and #2407.
     231,
+    // v232: connection_maps, saved Connections maps per diver, plus the
+    // idx_sightings_dive_id index the species maps join on (issue #2322).
+    // Table-and-index rung, no backfill, floor stays at 224.
+    232,
   ];
 
   /// Idempotent DDL for the v106 connector-suggestion columns (Lightroom
@@ -8749,6 +8774,30 @@ class AppDatabase extends _$AppDatabase {
     }
     await createMigrator().createTable(equipmentTags);
     await assertEquipmentTagUniqueness(this);
+  }
+
+  /// v232: the saved-maps table and the sightings dive index. Idempotent,
+  /// so the beforeOpen backstop can run it on every open.
+  Future<void> _assertConnectionMapsSchema() async {
+    final divers = await customSelect(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'divers'",
+    ).get();
+    if (divers.isNotEmpty) {
+      await createMigrator().createTable(connectionMaps);
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_connection_maps_diver '
+        'ON connection_maps(diver_id, sort_order)',
+      );
+    }
+    final sightings = await customSelect(
+      "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sightings'",
+    ).get();
+    if (sightings.isNotEmpty) {
+      await customStatement(
+        'CREATE INDEX IF NOT EXISTS idx_sightings_dive_id '
+        'ON sightings(dive_id)',
+      );
+    }
   }
 
   /// Idempotent creation of the v228 `cylinder_fills` table and its two
@@ -12843,6 +12892,12 @@ class AppDatabase extends _$AppDatabase {
           await _assertCcrPpO2LimitColumns();
         }
         if (from < 231) await reportProgress();
+        // v232: saved Connections maps and the sightings dive index (issue
+        // #2322). Table-and-index rung, no backfill.
+        if (from < 232) {
+          await _assertConnectionMapsSchema();
+        }
+        if (from < 232) await reportProgress();
       },
       beforeOpen: (details) async {
         // v227 backstop: the hidden built-in tank presets.
@@ -13355,6 +13410,10 @@ class AppDatabase extends _$AppDatabase {
         // (parallel-branch version-collision self-heal). Defaulted columns
         // only, so it cannot touch diver data.
         await _assertCcrPpO2LimitColumns();
+
+        // v232 backstop: connection_maps and idx_sightings_dive_id
+        // (parallel-branch version-collision self-heal; idempotent).
+        await _assertConnectionMapsSchema();
 
         // v194 backstop: re-assert dive_tanks.transmitter_serial. Every tank
         // read selects the whole row, so a database that arrives by restore
