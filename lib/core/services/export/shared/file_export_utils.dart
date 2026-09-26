@@ -5,6 +5,7 @@ import 'dart:ui' show Rect;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gal/gal.dart';
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -121,7 +122,7 @@ Future<String> _saveViaDialog(
 
 Future<String> _writeToDocuments(Uint8List bytes, String fileName) async {
   final directory = await getApplicationDocumentsDirectory();
-  final file = File('${directory.path}/$fileName');
+  final file = File(p.join(directory.path, fileName));
   await file.writeAsBytes(bytes);
   return file.path;
 }
@@ -129,7 +130,7 @@ Future<String> _writeToDocuments(Uint8List bytes, String fileName) async {
 /// Get temporary file path for export.
 Future<String> getExportFilePath(String fileName) async {
   final directory = await getApplicationDocumentsDirectory();
-  return '${directory.path}/$fileName';
+  return p.join(directory.path, fileName);
 }
 
 /// Export PNG image bytes via the system share sheet.
@@ -154,7 +155,7 @@ Future<String> exportImageAsPng(
 /// Throws an exception if saving fails.
 Future<String> saveImageToPhotos(List<int> pngBytes, String fileName) async {
   final directory = await getApplicationDocumentsDirectory();
-  final filePath = '${directory.path}/$fileName';
+  final filePath = p.join(directory.path, fileName);
   final file = File(filePath);
   await file.writeAsBytes(Uint8List.fromList(pngBytes));
 

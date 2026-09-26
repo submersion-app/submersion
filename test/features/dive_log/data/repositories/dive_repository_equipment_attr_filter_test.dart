@@ -5,7 +5,7 @@ import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
-import 'package:submersion/features/statistics/data/dive_filter_sql.dart';
+import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 
 import '../../../../helpers/test_database.dart';
 
@@ -164,7 +164,7 @@ void main() {
     expect(await listIds(filter), {'steel'});
   });
 
-  test('Statistics, the list and the id query select the same dives', () async {
+  test('Insights, the list and the id query select the same dives', () async {
     await seedSuits();
     await insertDive('steel');
     await insertItem(

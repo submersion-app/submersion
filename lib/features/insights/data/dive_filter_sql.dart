@@ -1,0 +1,342 @@
+import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
+
+/// Builds a self-contained SQL subquery `SELECT id FROM dives WHERE ...` that
+/// selects the ids of all dives matching [filter], mirroring
+/// [DiveFilterState.apply] semantics exactly.
+///
+/// [params] are raw bind values (ints/strings/doubles) in the same order as
+/// the `?` placeholders in [subquery]. Returns an empty no-op
+/// (`subquery: ''`, `params: []`) when the filter has no translatable active
+/// axes, so callers can skip injecting anything.
+({String subquery, List<Object?> params}) buildFilteredDiveIdSubquery(
+  DiveFilterState filter,
+) {
+  final conditions = <String>[];
+  final params = <Object?>[];
+
+  // Date range. dive_date_time is epoch MILLISECONDS (wall-clock-as-UTC), and
+  // the bounds are already normalized to that frame by DiveFilterState, so the
+  // two sides of the comparison agree on where a day starts (issue #1368).
+  // Half-open: the end bound is the start of the day AFTER endDate, which
+  // keeps the whole end day and matches apply() and the paginated list.
+  final startBoundMs = filter.startDateBoundMs;
+  if (startBoundMs != null) {
+    conditions.add('dive_date_time >= ?');
+    params.add(startBoundMs);
+  }
+  final endBoundMs = filter.endDateBoundMs;
+  if (endBoundMs != null) {
+    conditions.add('dive_date_time < ?');
+    params.add(endBoundMs);
+  }
+
+  // Dive type: membership against the many-to-many junction.
+  if (filter.diveTypeId != null) {
+    conditions.add(
+      'id IN (SELECT dive_id FROM dive_dive_types WHERE dive_type_id = ?)',
+    );
+    params.add(filter.diveTypeId);
+  }
+
+  if (filter.siteId != null) {
+    conditions.add('site_id = ?');
+    params.add(filter.siteId);
+  }
+  if (filter.tripId != null) {
+    conditions.add('trip_id = ?');
+    params.add(filter.tripId);
+  }
+  if (filter.diveCenterId != null) {
+    conditions.add('dive_center_id = ?');
+    params.add(filter.diveCenterId);
+  }
+
+  // Tags: match ANY selected tag.
+  if (filter.tagIds.isNotEmpty) {
+    final ph = List.filled(filter.tagIds.length, '?').join(', ');
+    conditions.add(
+      'id IN (SELECT dive_id FROM dive_tags WHERE tag_id IN ($ph))',
+    );
+    params.addAll(filter.tagIds);
+  }
+
+  // Weekdays: match ANY selected weekday. dive_date_time is wall-clock-as-UTC
+  // epoch ms, so strftime('%w', ...) (0=Sunday..6=Saturday) already lines up
+  // with the wall-clock day -- no 'utc' modifier needed. Converting
+  // DateTime.weekday (1=Monday..7=Sunday) via `% 7` matches that numbering.
+  if (filter.weekdays.isNotEmpty) {
+    final ph = List.filled(filter.weekdays.length, '?').join(', ');
+    conditions.add(
+      "CAST(strftime('%w', dive_date_time / 1000, 'unixepoch') AS INTEGER) "
+      'IN ($ph)',
+    );
+    params.addAll(filter.weekdays.map((w) => w % 7));
+  }
+
+  // Equipment: match ANY selected item, linked to the dive directly or
+  // through a tank (a cylinder the transmitter registry matched), as the
+  // equipment statistics count it. Kept in step with apply() and the
+  // dive list's clause.
+  if (filter.equipmentIds.isNotEmpty) {
+    final ph = List.filled(filter.equipmentIds.length, '?').join(', ');
+    conditions.add(
+      'id IN (SELECT dive_id FROM dive_equipment WHERE equipment_id IN ($ph) '
+      'UNION SELECT dive_id FROM dive_tanks WHERE equipment_id IN ($ph))',
+    );
+    params
+      ..addAll(filter.equipmentIds)
+      ..addAll(filter.equipmentIds);
+  }
+
+  // Equipment attributes: one EXISTS per condition, so they AND.
+  for (final condition in filter.equipmentAttrConditions) {
+    final c = equipmentAttrConditionSql(condition, diveIdRef: 'dives.id');
+    conditions.add(c.sql);
+    params.addAll(c.params);
+  }
+
+  // Depth: null depth excluded when a bound is set.
+  if (filter.minDepth != null) {
+    conditions.add('max_depth IS NOT NULL AND max_depth >= ?');
+    params.add(filter.minDepth);
+  }
+  if (filter.maxDepth != null) {
+    conditions.add('max_depth IS NOT NULL AND max_depth <= ?');
+    params.add(filter.maxDepth);
+  }
+
+  if (filter.favoritesOnly == true) {
+    conditions.add('is_favorite = 1');
+  }
+
+  // Finds the dives the diver excluded. Enforcement of the exclusion is
+  // DiveStatsScope's job and is applied alongside this subquery, never
+  // inside it.
+  if (filter.excludedFromStatsOnly == true) {
+    conditions.add('excluded_from_stats = 1');
+  }
+
+  if (filter.decoOnly != null) {
+    conditions.add(
+      decoSignalCondition(wantDeco: filter.decoOnly!, diveIdRef: 'dives.id'),
+    );
+  }
+
+  // No buddy: neither the legacy scalar column nor a junction-linked buddy
+  // is set, mirroring DiveRepository and DiveFilterState.apply.
+  if (filter.noBuddyOnly == true) {
+    conditions.add(
+      "(buddy IS NULL OR buddy = '') AND "
+      'NOT EXISTS (SELECT 1 FROM dive_buddies WHERE dive_buddies.dive_id = dives.id)',
+    );
+  }
+
+  // Buddy free-text: case-insensitive substring against the legacy scalar
+  // column OR any junction-linked buddy's name. The dive editor writes only
+  // the dive_buddies junction; the scalar covers old data (#757).
+  // Comma-separated names must each match (AND semantics), mirroring
+  // DiveRepository and DiveFilterState.apply.
+  if (filter.buddyNameFilter != null && filter.buddyNameFilter!.isNotEmpty) {
+    final names = filter.buddyNameFilter!
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty);
+    for (final name in names) {
+      conditions.add(
+        "((buddy IS NOT NULL AND LOWER(buddy) LIKE '%' || LOWER(?) || '%') "
+        'OR id IN (SELECT db.dive_id FROM dive_buddies db '
+        'JOIN buddies b ON b.id = db.buddy_id '
+        "WHERE LOWER(b.name) LIKE '%' || LOWER(?) || '%'))",
+      );
+      params.add(name);
+      params.add(name);
+    }
+  }
+
+  // Linked buddy: a live junction check, never the legacy scalar column,
+  // mirroring DiveRepository and DiveFilterState.apply (#1919).
+  if (filter.buddyId != null) {
+    conditions.add(
+      'id IN (SELECT dive_id FROM dive_buddies WHERE buddy_id = ?)',
+    );
+    params.add(filter.buddyId);
+  }
+
+  if (filter.diveIds.isNotEmpty) {
+    final ph = List.filled(filter.diveIds.length, '?').join(', ');
+    conditions.add('id IN ($ph)');
+    params.addAll(filter.diveIds);
+  }
+
+  // Gas O2: ANY tank within the present bounds (dives with no tanks excluded).
+  if (filter.minO2Percent != null || filter.maxO2Percent != null) {
+    final tankConds = <String>[];
+    if (filter.minO2Percent != null) {
+      tankConds.add('o2_percent >= ?');
+      params.add(filter.minO2Percent);
+    }
+    if (filter.maxO2Percent != null) {
+      tankConds.add('o2_percent <= ?');
+      params.add(filter.maxO2Percent);
+    }
+    conditions.add(
+      'id IN (SELECT dive_id FROM dive_tanks WHERE ${tankConds.join(' AND ')})',
+    );
+  }
+
+  if (filter.minRating != null) {
+    conditions.add('rating IS NOT NULL AND rating >= ?');
+    params.add(filter.minRating);
+  }
+
+  // Bottom time: compare truncated whole minutes, mirroring Duration.inMinutes.
+  if (filter.minBottomTimeMinutes != null) {
+    conditions.add('bottom_time IS NOT NULL AND bottom_time / 60 >= ?');
+    params.add(filter.minBottomTimeMinutes);
+  }
+  if (filter.maxBottomTimeMinutes != null) {
+    conditions.add('bottom_time IS NOT NULL AND bottom_time / 60 <= ?');
+    params.add(filter.maxBottomTimeMinutes);
+  }
+
+  if (filter.computerId != null) {
+    conditions.add('computer_id = ?');
+    params.add(filter.computerId);
+  }
+
+  // Custom fields: key match + optional value substring.
+  if (filter.customFieldKey != null && filter.customFieldKey!.isNotEmpty) {
+    if (filter.customFieldValue != null &&
+        filter.customFieldValue!.isNotEmpty) {
+      conditions.add(
+        "id IN (SELECT dive_id FROM dive_custom_fields "
+        "WHERE field_key = ? AND LOWER(field_value) LIKE '%' || LOWER(?) || '%')",
+      );
+      params.add(filter.customFieldKey);
+      params.add(filter.customFieldValue);
+    } else {
+      conditions.add(
+        'id IN (SELECT dive_id FROM dive_custom_fields WHERE field_key = ?)',
+      );
+      params.add(filter.customFieldKey);
+    }
+  }
+
+  if (conditions.isEmpty) {
+    return (subquery: '', params: const <Object?>[]);
+  }
+  return (
+    subquery: 'SELECT id FROM dives WHERE ${conditions.join(' AND ')}',
+    params: params,
+  );
+}
+
+/// SQL for one [EquipmentAttrCondition] (issue #1805): a correlated EXISTS
+/// over the dive's gear. The gear is every item linked through
+/// `dive_equipment` plus every cylinder the transmitter registry matched
+/// through `dive_tanks.equipment_id`, the same union the equipment-id axis
+/// uses. [diveIdRef] names the outer dive id column (`dives.id` in
+/// [buildFilteredDiveIdSubquery], `d.id` in DiveRepository).
+///
+/// Every value is bound; the returned params follow the placeholders in
+/// order: the sorted type names, the key, the sorted choices, then min and
+/// max.
+///
+/// This is the only implementation of the dive filter's attribute axis. It
+/// is shared by [buildFilteredDiveIdSubquery],
+/// `DiveRepository._buildFilterWhereClauses` and
+/// `DiveRepository.getDiveIdsMatchingEquipmentAttrs`, so Insights, the
+/// paginated list and the entity-backed views cannot disagree.
+({String sql, List<Object> params}) equipmentAttrConditionSql(
+  EquipmentAttrCondition condition, {
+  required String diveIdRef,
+}) {
+  final params = <Object>[];
+  final sql = StringBuffer('EXISTS (SELECT 1 FROM equipment_attributes ea ');
+  if (condition.types.isNotEmpty) {
+    final types = condition.types.map((t) => t.name).toList()..sort();
+    sql.write(
+      'JOIN equipment eqf ON eqf.id = ea.equipment_id '
+      'AND eqf.type IN (${List.filled(types.length, '?').join(', ')}) ',
+    );
+    params.addAll(types);
+  }
+  sql.write('WHERE ea.attr_key = ? AND ea.is_custom = 0');
+  params.add(condition.key);
+  if (condition.choices.isNotEmpty) {
+    final choices = condition.choices.toList()..sort();
+    sql.write(
+      ' AND ea.value_text IN (${List.filled(choices.length, '?').join(', ')})',
+    );
+    params.addAll(choices);
+  }
+  final min = condition.min;
+  if (min != null) {
+    sql.write(' AND ea.value_num >= ?');
+    params.add(min);
+  }
+  final max = condition.max;
+  if (max != null) {
+    sql.write(' AND ea.value_num <= ?');
+    params.add(max);
+  }
+  // The gear union is a correlated IN in the WHERE clause rather than a
+  // derived table in FROM, where an outer column reference is not portable.
+  sql.write(
+    ' AND ea.equipment_id IN ('
+    'SELECT de.equipment_id FROM dive_equipment de '
+    'WHERE de.dive_id = $diveIdRef '
+    'UNION SELECT dt.equipment_id FROM dive_tanks dt '
+    'WHERE dt.dive_id = $diveIdRef AND dt.equipment_id IS NOT NULL))',
+  );
+  return (sql: sql.toString(), params: params);
+}
+
+/// Recorded deco-signal SQL condition (no bind params), shared by
+/// [buildFilteredDiveIdSubquery], `DiveRepository._buildFilterWhereClauses`
+/// and `DiveRepository.getDiveIdsWithDecoSignal` so the three SQL paths
+/// (Insights, the paginated dive list, and the id set the entity-backed
+/// surfaces intersect with) can't drift apart. Mirrors
+/// `InsightsRepository.scanRecordedDecoSignals`:
+///
+/// - A series with a recorded deco stop (`has_deco_stop`) or a
+///   `decoStopStart` event means deco.
+/// - A series that carries `deco_type` values (`has_deco_type`) but never a
+///   stop means no-deco: the computer recorded obligations and reported
+///   none.
+/// - A positive ceiling (`has_positive_ceiling`) on a series with no
+///   `deco_type` at all also means deco (some import sources only ever
+///   write a stop depth).
+/// - A dive with no qualifying series data matches neither branch; it is
+///   only classifiable via the computed fallback, which this SQL-only axis
+///   does not have access to.
+///
+/// This is the only place the deco axis is evaluated. `DiveFilterState.apply`
+/// deliberately skips it, because list-view entities carry neither profile
+/// points nor deco-stop events.
+///
+/// [diveIdRef] must be a reference to the enclosing query's `dives.id`
+/// resolvable from inside these correlated subqueries (e.g. `d.id` when the
+/// caller aliases `dives` as `d`, or `dives.id` when it does not).
+String decoSignalCondition({
+  required bool wantDeco,
+  required String diveIdRef,
+}) {
+  final hasDecoStop =
+      'EXISTS (SELECT 1 FROM dive_profile_series s '
+      'WHERE s.dive_id = $diveIdRef AND s.has_deco_stop = 1) '
+      "OR EXISTS (SELECT 1 FROM dive_profile_events e "
+      "WHERE e.dive_id = $diveIdRef AND e.event_type = 'decoStopStart')";
+  final hasDecoType =
+      'EXISTS (SELECT 1 FROM dive_profile_series s '
+      'WHERE s.dive_id = $diveIdRef AND s.has_deco_type = 1)';
+  final hasPositiveCeiling =
+      'EXISTS (SELECT 1 FROM dive_profile_series s '
+      'WHERE s.dive_id = $diveIdRef AND s.has_positive_ceiling = 1)';
+
+  if (wantDeco) {
+    return '($hasDecoStop OR (NOT ($hasDecoType) AND $hasPositiveCeiling))';
+  }
+  return '($hasDecoType AND NOT ($hasDecoStop))';
+}

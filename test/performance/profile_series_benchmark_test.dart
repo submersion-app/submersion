@@ -13,7 +13,7 @@ import 'package:submersion/features/dive_log/data/repositories/dive_repository_i
 import 'package:submersion/features/dive_log/data/repositories/tank_pressure_repository.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
     as domain;
-import 'package:submersion/features/statistics/data/repositories/statistics_repository.dart';
+import 'package:submersion/features/insights/data/repositories/insights_repository.dart';
 
 /// Spec section 10 gates on the synthesized 1,000-dive fixture. Legacy
 /// numbers come from the legacy SQL shapes run raw against the
@@ -145,7 +145,7 @@ void main() {
         DatabaseService.instance.setTestDatabase(db);
         final dives = DiveRepository();
         final tankPressures = TankPressureRepository();
-        final stats = StatisticsRepository();
+        final stats = InsightsRepository();
         seriesHydrate = await _timeAsync(() async {
           // getDiveById hydrates the whole entity (tanks, buddies,
           // equipment, site, computer, source, safety data...) and is not

@@ -53,6 +53,28 @@ it does.
 Links inside HTML comments, code spans or fenced code blocks are ignored, by
 GitHub and by the check. Editing the description re-runs the check.
 
+### Screenshots for UI changes
+
+Every PR that changes anything a user can see must show it in screenshots in
+its description: before and after (only the after for a brand-new screen),
+plus light and dark mode when colours change and phone and desktop widths
+when layout changes. A PR counts as a UI
+change when it touches `lib/**/presentation/`, `lib/shared/widgets/`,
+`lib/core/theme/`, `lib/core/ui/`, `lib/core/icons/`, or platform UI resources
+(launch screens, app icons, window chrome) under `android/`, `ios/`, `macos/`,
+`windows/` or `linux/`. Full rules:
+[docs/contributing/pull-requests.md](docs/contributing/pull-requests.md#screenshots-for-ui-changes).
+
+- **Touched those paths, nothing looks different** (a refactor, a provider
+  change): tick "No visible UI change" in the template and say why in the
+  Summary.
+- **Touched none of them:** delete the Screenshots section.
+- **Opening the PR with `gh`:** it cannot upload images; they are dragged into
+  the description on github.com. Capture the screenshots yourself, hand the
+  image files to the maintainer, and leave the section listing what each
+  image shows. Do not tick "No visible UI change" to get past a missing
+  screenshot.
+
 ## Gotchas
 
 - The `dives` table uses `diveDateTime` (not `dateTime`) as the column name to

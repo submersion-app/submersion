@@ -1,5 +1,6 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:submersion/core/database/local_cache_database.dart';
 import 'package:submersion/features/media/data/repositories/watched_folder_repository.dart';
 
@@ -56,7 +57,7 @@ void main() {
     final index = await repo.indexForRoot('/r');
     expect(index, hasLength(1));
     expect(index['a.jpg']!.sizeBytes, 9);
-    expect(await repo.pathsForHashes({'NEW'}), {'NEW': '/r/a.jpg'});
+    expect(await repo.pathsForHashes({'NEW'}), {'NEW': p.join('/r', 'a.jpg')});
   });
 
   test('pathsForHashes returns only the hashes asked for', () async {
@@ -79,7 +80,9 @@ void main() {
       ),
     );
 
-    expect(await repo.pathsForHashes({'WANTED'}), {'WANTED': '/r/a.jpg'});
+    expect(await repo.pathsForHashes({'WANTED'}), {
+      'WANTED': p.join('/r', 'a.jpg'),
+    });
     expect(await repo.pathsForHashes(const <String>[]), isEmpty);
   });
 
@@ -96,7 +99,9 @@ void main() {
     );
 
     final hashes = [for (var i = 0; i < 2500; i++) 'H-$i'];
-    expect(await repo.pathsForHashes(hashes), {'H-2400': '/r/found.jpg'});
+    expect(await repo.pathsForHashes(hashes), {
+      'H-2400': p.join('/r', 'found.jpg'),
+    });
   });
 
   test('deleteIndexed chunks past SQLite bound-variable limits', () async {

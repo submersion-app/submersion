@@ -122,7 +122,11 @@ class SubmersionEquipmentCsvParser implements ImportParser {
               field: 'Attributes',
             ),
           );
-        } else {
+        } else if (parsed.isCustom ||
+            !EquipmentAttributeCatalog.isSystemKey(parsed.key)) {
+          // A system attribute (a passport id) in an older export is the
+          // exported cylinder's identity, not this row's; importing it would
+          // give two cylinders one tag.
           attributes.add(_attribute(parsed));
         }
       }

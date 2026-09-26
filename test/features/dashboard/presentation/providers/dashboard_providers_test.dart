@@ -101,7 +101,7 @@ void main() {
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
           ),
-          // statisticsRepositoryProvider watches the gas model (issue #828),
+          // insightsRepositoryProvider watches the gas model (issue #828),
           // which otherwise pulls in settingsProvider and its
           // SharedPreferences dependency.
           gasModelProvider.overrideWith((ref) => GasModel.real),
@@ -167,7 +167,7 @@ void main() {
           currentDiverIdProvider.overrideWith(
             (ref) => MockCurrentDiverIdNotifier(),
           ),
-          // statisticsRepositoryProvider watches the gas model (issue #828),
+          // insightsRepositoryProvider watches the gas model (issue #828),
           // which otherwise pulls in settingsProvider and its
           // SharedPreferences dependency.
           gasModelProvider.overrideWith((ref) => GasModel.real),

@@ -125,6 +125,7 @@ dependencies:
   xml: ^7.0.1
   clock: ^1.1.2  # zone-aware now() so tests can drive time via fake_async
   pdf: ^3.11.1
+  qr: ^3.0.2  # on-screen cylinder passport QR; the pdf label uses pw.BarcodeWidget
   csv: ^6.0.0
   excel_community: ^2.2.1  # maintained fork of `excel` (archive 4.x)
   archive: ^4.0.9  # ZIP expansion for DiveCloud export archives
