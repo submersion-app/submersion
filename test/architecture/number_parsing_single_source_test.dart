@@ -116,4 +116,49 @@ void main() {
       }
     });
   });
+
+  group('numeric input filters in form code', () {
+    // A digits-only or ASCII-only filter rewrites text before readNumber
+    // sees it: "5.5" becomes 55 in a whole-number field, and a locale's own
+    // separator (U+066B) is dropped from "1\u066B3". Either way the diver's
+    // typo is silently turned into a different number (#1900 review).
+    const exempt = <String, String>{
+      'lib/features/dive_computer/presentation/widgets/pin_code_dialog.dart':
+          'a PIN is digits, not a number to parse',
+    };
+    final filters = RegExp(
+      r"FilteringTextInputFormatter\.digitsOnly|allow\(RegExp\(r'\[0-9",
+    );
+
+    test('use numberInputFormatters, which keeps separators', () {
+      final offenders = <String>[];
+      for (final entity in Directory('lib').listSync(recursive: true)) {
+        if (entity is! File || !entity.path.endsWith('.dart')) continue;
+        final path = entity.path.replaceAll(r'\', '/');
+        if (exempt.containsKey(path)) continue;
+        if (!path.contains('/presentation/') &&
+            !path.startsWith('lib/shared/widgets/')) {
+          continue;
+        }
+        final lines = entity.readAsLinesSync();
+        for (var i = 0; i < lines.length; i++) {
+          if (lines[i].trimLeft().startsWith('//')) continue;
+          if (filters.hasMatch(lines[i])) offenders.add('$path:${i + 1}');
+        }
+      }
+      expect(offenders, isEmpty);
+    });
+
+    test('every exemption still applies', () {
+      for (final entry in exempt.entries) {
+        final file = File(entry.key);
+        expect(file.existsSync(), isTrue, reason: '${entry.key} is missing');
+        expect(
+          filters.hasMatch(file.readAsStringSync()),
+          isTrue,
+          reason: '${entry.key} no longer needs its exemption',
+        );
+      }
+    });
+  });
 }

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/form_row.dart';
@@ -90,7 +89,10 @@ class TheDiveSection extends StatelessWidget {
             label: l10n.diveLog_edit_label_diveNumber,
             controller: diveNumberController,
             keyboardType: TextInputType.number,
-            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+            // Separators are kept so a fraction is reported, not read as a
+            // larger whole number ("5.5" as 55; #1900 review).
+            inputFormatters: numberInputFormatters(),
+            inputValidator: numberValidator(context, integer: true),
             placeholder: l10n.diveLog_edit_row_notSet,
           ),
         FormRow.picker(
@@ -132,7 +134,10 @@ class TheDiveSection extends StatelessWidget {
           controller: bottomTimeController,
           suffixText: 'min',
           keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          // Separators are kept so a fraction is reported, not read as a
+          // larger whole number ("5.5" as 55; #1900 review).
+          inputFormatters: numberInputFormatters(),
+          inputValidator: numberValidator(context, integer: true),
           profileSuggestion: bottomTimeSuggestion,
         ),
         FormRow.text(
@@ -140,7 +145,10 @@ class TheDiveSection extends StatelessWidget {
           controller: runtimeController,
           suffixText: 'min',
           keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          // Separators are kept so a fraction is reported, not read as a
+          // larger whole number ("5.5" as 55; #1900 review).
+          inputFormatters: numberInputFormatters(),
+          inputValidator: numberValidator(context, integer: true),
           placeholder: l10n.diveLog_edit_row_notSet,
           profileSuggestion: runtimeSuggestion,
         ),

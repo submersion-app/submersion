@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/unit_formatter.dart';
 import 'package:submersion/features/gas_calculators/domain/blending/blender_gas_role.dart';
@@ -13,6 +12,7 @@ import 'package:submersion/features/gas_calculators/presentation/widgets/blender
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
 
 /// The three fill-gas roles the blender draws from -- oxygen, helium and
 /// topup -- one row each, in the diver's configured fill order.
@@ -141,7 +141,7 @@ class BlenderFillGasesCard extends ConsumerWidget {
         controller: topupO2Controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+          ...numberInputFormatters(),
           const BlenderDecimalDigitsFormatter(),
         ],
         decoration: InputDecoration(
@@ -179,7 +179,7 @@ class BlenderFillGasesCard extends ConsumerWidget {
         controller: controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+          ...numberInputFormatters(),
           // 5 digits, not the 3-digit default: a metric price per 100 L
           // converts to roughly 28x itself per 100 cuft (issue #1876
           // Copilot review), so a perfectly ordinary 50/100L becomes
@@ -244,7 +244,7 @@ class BlenderFillGasesCard extends ConsumerWidget {
         controller: controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
         inputFormatters: [
-          FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+          ...numberInputFormatters(),
           const BlenderDecimalDigitsFormatter(),
         ],
         decoration: InputDecoration(

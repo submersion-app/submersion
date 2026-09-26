@@ -201,6 +201,31 @@ void main() {
     expect(reloaded.waterTemp, 24);
   });
 
+  testWidgets('a fractional bottom time blocks save instead of saving as a '
+      'different number (#1900 review)', (tester) async {
+    Intl.defaultLocale = 'en_US';
+
+    final created = await repository.createDive(
+      Dive(
+        id: '',
+        dateTime: DateTime(2026, 4, 2, 9, 30),
+        bottomTime: const Duration(minutes: 45),
+      ),
+    );
+
+    await pumpEditor(tester, created.id);
+    await typeIntoRow(tester, 'Bottom Time', '5.5');
+    await tapSave(tester);
+
+    expect(find.text('Enter a whole number'), findsOneWidget);
+    final reloaded = (await repository.getDiveById(created.id))!;
+    expect(
+      reloaded.bottomTime,
+      const Duration(minutes: 45),
+      reason: 'a digits-only filter used to turn "5.5" into 55 minutes',
+    );
+  });
+
   testWidgets('fr: a comma decimal typed into max depth is stored', (
     tester,
   ) async {

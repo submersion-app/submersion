@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -18,6 +17,7 @@ import 'package:submersion/features/tank_presets/presentation/providers/tank_pre
 import 'package:submersion/l10n/arb/app_localizations.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
 
 /// The two kinds of line "Add a line" can put on the bill (issue #2302).
 enum BlenderLineKind {
@@ -678,7 +678,7 @@ class _BlenderLineEditSheetState extends ConsumerState<BlenderLineEditSheet> {
       key: key,
       controller: controller,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
+      inputFormatters: numberInputFormatters(),
       onChanged: (_) => setState(() {
         onChanged?.call();
         _error = null;

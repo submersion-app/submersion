@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:submersion/core/constants/units.dart';
 import 'package:submersion/core/providers/provider.dart';
@@ -14,6 +13,7 @@ import 'package:submersion/features/planner/presentation/providers/plan_canvas_p
 import 'package:submersion/features/settings/presentation/providers/settings_providers.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
 
 /// Gas settings for the Setup accordion: Bottom RMV (with one-tap logged
 /// average), reserve pressure, and the Subsurface-style Gas options
@@ -174,14 +174,17 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
     super.dispose();
   }
 
-  /// The reserve in display units. The field takes digits only, so its text
-  /// is always blank or readable.
-  double? _reserve(String value) => switch (readNumber(value)) {
+  /// The reserve in whole display units, or null when blank or unreadable.
+  double? _reserve(String value) => switch (readNumber(value, integer: true)) {
     NumberValue(:final value) => value,
     NumberBlank() || NumberInvalid() => null,
   };
 
   String? _getError(String value) {
+    // A fraction or a typo is reported rather than read as a different
+    // whole number, which a digits-only filter used to do (#1900 review).
+    final unreadable = invalidNumberText(context, value, integer: true);
+    if (unreadable != null) return unreadable;
     final parsed = _reserve(value);
     if (parsed == null) return null;
     final bar = widget.units.pressureToBar(parsed);
@@ -251,7 +254,7 @@ class _ReservePressureInputState extends State<_ReservePressureInput> {
                       errorStyle: const TextStyle(height: 0, fontSize: 0),
                     ),
                     keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    inputFormatters: numberInputFormatters(),
                     onChanged: _validate,
                   ),
                 ),

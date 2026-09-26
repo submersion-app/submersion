@@ -245,6 +245,30 @@ void main() {
     expect(container.read(divePlanNotifierProvider).reservePressure, 60);
   });
 
+  testWidgets('a fractional reserve says so and keeps the plan reserve '
+      '(#1900 review)', (tester) async {
+    await tester.pumpWidget(_harness(const PlanGasSection()));
+    await tester.pumpAndSettle();
+    final field = find.descendant(
+      of: find.bySemanticsLabel(RegExp('Reserve pressure')),
+      matching: find.byType(TextField),
+    );
+    await tester.enterText(field, '60');
+    await tester.pumpAndSettle();
+    await tester.enterText(field, '5.5');
+    await tester.pumpAndSettle();
+
+    expect(find.text('Enter a whole number'), findsOneWidget);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(PlanGasSection)),
+    );
+    expect(
+      container.read(divePlanNotifierProvider).reservePressure,
+      60,
+      reason: 'a digits-only filter used to turn "5.5" into 55',
+    );
+  });
+
   group('Bottom RMV field units (#1823)', () {
     testWidgets('metric shows the plan RMV in L/min', (tester) async {
       await tester.pumpWidget(_harness(const PlanGasSection()));

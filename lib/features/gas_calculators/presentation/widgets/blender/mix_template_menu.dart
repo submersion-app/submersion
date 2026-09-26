@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/core/utils/number_input.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive.dart'
@@ -9,6 +8,7 @@ import 'package:submersion/features/gas_calculators/presentation/providers/gas_b
 import 'package:submersion/features/gas_calculators/presentation/widgets/blender/mix_template_messages.dart';
 import 'package:submersion/l10n/l10n_extension.dart';
 import 'package:submersion/shared/widgets/forms/number_input_validation.dart';
+import 'package:submersion/shared/widgets/forms/number_field.dart';
 
 /// Two quick actions offered below the saved templates, distinct from the
 /// [MixTemplate] values the same menu also lists.
@@ -282,7 +282,7 @@ class _TemplateEditDialogState extends State<_TemplateEditDialog> {
       controller: controller,
       autofocus: controller == _o2,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
+      inputFormatters: numberInputFormatters(),
       onSubmitted: (_) => _submit(),
       decoration: InputDecoration(
         labelText: '$label (%)',
