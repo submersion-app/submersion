@@ -10529,6 +10529,139 @@ class AppLocalizationsIt extends AppLocalizations {
   }
 
   @override
+  String get divelogsImport_fetch_button => 'Scarica il diario';
+
+  @override
+  String get divelogsImport_fetch_certificationsUnavailable =>
+      'Non è stato possibile scaricare le certificazioni, che non verranno importate.';
+
+  @override
+  String get divelogsImport_fetch_empty =>
+      'Il tuo diario di divelogs.de non contiene nulla da importare.';
+
+  @override
+  String get divelogsImport_fetch_failedTitle =>
+      'Impossibile scaricare il tuo diario';
+
+  @override
+  String get divelogsImport_fetch_fetching => 'Download del diario in corso…';
+
+  @override
+  String divelogsImport_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Trovate $count immersioni',
+      one: 'Trovata $count immersione',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divelogsImport_fetch_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto da importare',
+      one: '$count foto da importare',
+      zero: 'Nessuna foto da importare',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_gearUnavailable =>
+      'Non è stato possibile scaricare l\'attrezzatura; le immersioni verranno importate senza collegamenti all\'attrezzatura.';
+
+  @override
+  String get divelogsImport_fetch_includePhotos => 'Includi le foto';
+
+  @override
+  String get divelogsImport_fetch_includePhotosHint =>
+      'Le foto vengono scaricate durante l\'importazione in una cartella a tua scelta.';
+
+  @override
+  String divelogsImport_fetch_listingPhotos(int current, int total) {
+    return 'Elenco delle foto dell\'immersione $current di $total…';
+  }
+
+  @override
+  String divelogsImport_fetch_photoListingsFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Non è stato possibile elencare le foto di $count immersioni.',
+      one: 'Non è stato possibile elencare le foto di $count immersione.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_retry => 'Riprova';
+
+  @override
+  String get divelogsImport_fetch_sessionExpired =>
+      'La tua sessione di divelogs.de è scaduta. Torna indietro e accedi di nuovo.';
+
+  @override
+  String divelogsImport_fetch_skippedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count immersioni non sono state lette e verranno saltate.',
+      one: '$count immersione non è stata letta e verrà saltata.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_signIn_badCredentials =>
+      'divelogs.de ha rifiutato il nome utente o la password.';
+
+  @override
+  String get divelogsImport_signIn_button => 'Accedi';
+
+  @override
+  String get divelogsImport_signIn_description =>
+      'Accedi con il tuo account divelogs.de per importare il tuo diario. La password non viene mai memorizzata: viene salvata in cache solo la sessione risultante.';
+
+  @override
+  String get divelogsImport_signIn_passwordLabel => 'Password';
+
+  @override
+  String get divelogsImport_signIn_passwordRequired =>
+      'La password è obbligatoria';
+
+  @override
+  String divelogsImport_signIn_signedInAs(String username) {
+    return 'Connesso come $username';
+  }
+
+  @override
+  String get divelogsImport_signIn_signingIn => 'Accesso in corso…';
+
+  @override
+  String get divelogsImport_signIn_signOut => 'Disconnetti';
+
+  @override
+  String get divelogsImport_signIn_title => 'Accedi a divelogs.de';
+
+  @override
+  String get divelogsImport_signIn_unexpected =>
+      'divelogs.de ha inviato una risposta inattesa. Riprova più tardi.';
+
+  @override
+  String get divelogsImport_signIn_unreachable =>
+      'Impossibile raggiungere divelogs.de. Controlla la connessione e riprova.';
+
+  @override
+  String get divelogsImport_signIn_usernameLabel => 'Nome utente';
+
+  @override
+  String get divelogsImport_signIn_usernameRequired =>
+      'Il nome utente è obbligatorio';
+
+  @override
   String get divers_detail_activeDiver => 'Subacqueo attivo';
 
   @override
@@ -11874,6 +12007,217 @@ class AppLocalizationsIt extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get passport_title => 'Passaporto della bombola';
+
+  @override
+  String get passport_open => 'Apri passaporto';
+
+  @override
+  String get passport_entry_noFill => 'Nessuna ricarica registrata';
+
+  @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix, $date';
+  }
+
+  @override
+  String passport_entry_lastFill(String mix, String pressure, String date) {
+    return '$mix a $pressure, $date';
+  }
+
+  @override
+  String get passport_spec_title => 'Bombola';
+
+  @override
+  String passport_spec_freeGas(String pressure) {
+    return 'Gas libero a $pressure';
+  }
+
+  @override
+  String get passport_spec_buoyancyEmpty => 'Assetto a vuoto';
+
+  @override
+  String get passport_spec_buoyancyFull => 'Assetto a pieno';
+
+  @override
+  String get passport_service_title => 'Manutenzione';
+
+  @override
+  String get passport_service_notTracked => 'Non tracciato';
+
+  @override
+  String get passport_service_neverRecorded => 'Mai registrato';
+
+  @override
+  String get passport_service_trackO2Clean => 'Traccia la pulizia O2';
+
+  @override
+  String get passport_service_trackFailed =>
+      'Impossibile avviare il tracciamento della pulizia O2. Riprova.';
+
+  @override
+  String passport_service_lastDone(String date) {
+    return 'Ultima $date';
+  }
+
+  @override
+  String passport_o2Warning_untracked(String o2) {
+    return 'L\'ultima ricarica è al $o2 di O2 e questa bombola non è tracciata come pulita per O2.';
+  }
+
+  @override
+  String passport_o2Warning_overdue(String o2) {
+    return 'L\'ultima ricarica è al $o2 di O2 e la pulizia O2 di questa bombola è scaduta.';
+  }
+
+  @override
+  String get passport_fill_title => 'Ricarica attuale';
+
+  @override
+  String get passport_fill_none => 'Nessuna ricarica registrata finora';
+
+  @override
+  String get passport_fill_log => 'Registra una ricarica';
+
+  @override
+  String passport_fill_mod(String depth, String ppo2) {
+    return 'MOD $depth a ppO2 $ppo2';
+  }
+
+  @override
+  String passport_fill_end(String depth) {
+    return 'END $depth alla MOD di lavoro';
+  }
+
+  @override
+  String passport_fill_station(String station) {
+    return 'Ricaricata da $station';
+  }
+
+  @override
+  String passport_fill_analyzer(String analyzer) {
+    return 'Analizzata con $analyzer';
+  }
+
+  @override
+  String passport_fill_analysis(String o2, String he) {
+    return 'O2 $o2, He $he';
+  }
+
+  @override
+  String passport_fill_temperature(String temperature) {
+    return 'Temperatura del gas $temperature';
+  }
+
+  @override
+  String get passport_fill_unsigned => 'Non firmata';
+
+  @override
+  String get passport_history_title => 'Storico ricariche';
+
+  @override
+  String passport_history_sinceHydro(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count ricariche dall\'ultimo collaudo',
+      one: '$count ricarica dall\'ultimo collaudo',
+      zero: 'Nessuna ricarica dall\'ultimo collaudo',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_history_delete => 'Elimina ricarica';
+
+  @override
+  String get passport_history_deleteConfirm => 'Eliminare questa ricarica?';
+
+  @override
+  String get passport_tag_title => 'Tag';
+
+  @override
+  String passport_tag_written(String date) {
+    return 'Scritto il $date';
+  }
+
+  @override
+  String get passport_tag_stale =>
+      'Il tag è stato scritto prima dell\'ultima manutenzione o modifica delle specifiche. Ristampalo.';
+
+  @override
+  String get passport_tag_printLabel => 'Stampa etichetta';
+
+  @override
+  String get passport_tag_printLabels => 'Stampa etichette';
+
+  @override
+  String get passport_tag_qrSemantics => 'Codice QR del passaporto';
+
+  @override
+  String get passport_tag_printFailed =>
+      'Impossibile creare le etichette. Riprova.';
+
+  @override
+  String get passport_tag_linkExisting => 'Collega un tag esistente';
+
+  @override
+  String get passport_tag_linkPrompt => 'Incolla il link del tag';
+
+  @override
+  String get passport_tag_linkInvalid => 'Non è un tag di bombola';
+
+  @override
+  String get passport_tag_linkFailed =>
+      'Impossibile collegare il tag. Riprova.';
+
+  @override
+  String passport_tag_linkInUse(String name) {
+    return 'Questo tag appartiene già a $name';
+  }
+
+  @override
+  String get passport_tag_linked => 'Tag collegato';
+
+  @override
+  String get passport_logFill_date => 'Ricaricata il';
+
+  @override
+  String get passport_logFill_time => 'Ora';
+
+  @override
+  String get passport_logFill_o2 => 'O2 (%)';
+
+  @override
+  String get passport_logFill_he => 'He (%)';
+
+  @override
+  String get passport_logFill_pressure => 'Pressione di ricarica';
+
+  @override
+  String get passport_logFill_temperature => 'Temperatura del gas';
+
+  @override
+  String get passport_logFill_station => 'Stazione di ricarica';
+
+  @override
+  String get passport_logFill_analyzer => 'Analizzatore';
+
+  @override
+  String get passport_logFill_notes => 'Note';
+
+  @override
+  String get passport_logFill_invalidMix =>
+      'O2 ed He devono essere tra 0 e 100 e sommare al massimo 100';
+
+  @override
+  String get passport_logFill_invalidNumber => 'Inserisci un numero';
+
+  @override
+  String get passport_logFill_saveFailed =>
+      'Impossibile salvare la ricarica. Riprova.';
 
   @override
   String equipment_bulkTags_confirmAdding(int count) {
@@ -16259,7 +16603,61 @@ class AppLocalizationsIt extends AppLocalizations {
   String get media_library_viewMode_grid => 'Griglia';
 
   @override
+  String get media_library_viewMode_map => 'Mappa';
+
+  @override
   String get media_library_viewMode_timeline => 'Cronologia';
+
+  @override
+  String get media_map_closeStrip => 'Chiudi';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi a $place',
+      one: '$count elemento a $place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint =>
+      'Foto e video sono posizionati in base al proprio GPS, al punto di ingresso dell\'immersione o al sito di immersione.';
+
+  @override
+  String get media_map_emptyTitle => 'Nessun media con posizione';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return 'Errore nel caricamento delle posizioni dei media: $error';
+  }
+
+  @override
+  String get media_map_markerSemantics => 'Apri media';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi',
+      one: '$count elemento',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count elementi senza posizione',
+      one: '$count elemento senza posizione',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => 'Vai all\'immersione';
@@ -21504,6 +21902,17 @@ class AppLocalizationsIt extends AppLocalizations {
       'Impossibile scrivere in questa cartella. Scegline un\'altra.';
 
   @override
+  String importWizard_photos_downloadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count foto da scaricare',
+      one: '$count foto da scaricare',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String importWizard_review_olderDivesSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23911,6 +24320,56 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get universalImport_summary_noticeSitesUnresolvedBody =>
       'Queste immersioni facevano riferimento a un sito di immersione che il file non descrive, quindi sono state importate senza sito. Puoi assegnarne uno modificando l\'immersione.';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableTitle =>
+      'Attrezzatura non importata';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableBody =>
+      'Non è stato possibile scaricare l\'elenco dell\'attrezzatura, quindi non è stata importata alcuna attrezzatura e le immersioni non sono state collegate alla loro attrezzatura. Importa di nuovo più tardi per aggiungerla.';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
+      'Certificazioni non importate';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableBody =>
+      'Non è stato possibile scaricare l\'elenco delle certificazioni, quindi non è stata importata alcuna certificazione. Importa di nuovo più tardi per aggiungerle.';
+
+  @override
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
+      'Alcune foto non elencate';
+
+  @override
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Non è stato possibile elencare le foto di $count immersioni, quindi non sono state importate.',
+      one:
+          'Non è stato possibile elencare le foto di $count immersione, quindi non sono state importate.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
+      'Alcune foto non scaricate';
+
+  @override
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'Non è stato possibile scaricare $count foto. Importa di nuovo per riprovare; le foto già salvate non vengono duplicate.',
+      one:
+          'Non è stato possibile scaricare $count foto. Importa di nuovo per riprovare; le foto già salvate non vengono duplicate.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
@@ -28514,6 +28973,9 @@ class AppLocalizationsIt extends AppLocalizations {
   String get attrLabel_last_hydro_test => 'Ultimo test idrostatico';
 
   @override
+  String get attrLabel_passport_id => 'ID passaporto';
+
+  @override
   String get attrLabel_connection => 'Attacco';
 
   @override
@@ -28638,6 +29100,12 @@ class AppLocalizationsIt extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => 'Velocità massima';
+
+  @override
+  String get attrLabel_tow_burn_factor => 'Fattore di consumo in traino';
+
+  @override
+  String get attrLabel_tow_speed_factor => 'Fattore di velocità in traino';
 
   @override
   String get attrLabel_sku => 'Codice articolo (SKU)';
@@ -41545,6 +42013,13 @@ class AppLocalizationsIt extends AppLocalizations {
       'Importa le immersioni dal tuo account Garmin Connect';
 
   @override
+  String get transfer_importCloud_divelogsTitle => 'divelogs.de';
+
+  @override
+  String get transfer_importCloud_divelogsSubtitle =>
+      'Importa il tuo diario, siti, attrezzatura, certificazioni e foto da divelogs.de';
+
+  @override
   String get transfer_section_cloudTitle => 'Cloud';
 
   @override
@@ -42398,4 +42873,418 @@ class AppLocalizationsIt extends AppLocalizations {
   @override
   String get diveCenters_rental_deleteConfirm =>
       'Eliminare questa nota sul noleggio?';
+
+  @override
+  String get query_buddies_certifications => 'Brevetti';
+
+  @override
+  String get query_buddies_email => 'E-mail';
+
+  @override
+  String get query_buddies_favorite => 'Preferita';
+
+  @override
+  String get query_buddies_name => 'Nome';
+
+  @override
+  String get query_buddies_notes => 'Note';
+
+  @override
+  String get query_buddies_phone => 'Telefono';
+
+  @override
+  String get query_centers_city => 'Città';
+
+  @override
+  String get query_centers_country => 'Paese';
+
+  @override
+  String get query_centers_name => 'Nome';
+
+  @override
+  String get query_certifications_agency => 'Didattica';
+
+  @override
+  String get query_certifications_cardNumber => 'Numero tessera';
+
+  @override
+  String get query_certifications_expiryDate => 'Data di scadenza';
+
+  @override
+  String get query_certifications_instructorName => 'Nome dell\'istruttore';
+
+  @override
+  String get query_certifications_issueDate => 'Data di rilascio';
+
+  @override
+  String get query_certifications_level => 'Livello';
+
+  @override
+  String get query_certifications_name => 'Nome';
+
+  @override
+  String get query_computers_manufacturer => 'Produttore';
+
+  @override
+  String get query_computers_model => 'Modello';
+
+  @override
+  String get query_computers_name => 'Nome';
+
+  @override
+  String get query_computers_serialNumber => 'Numero di serie';
+
+  @override
+  String get query_courses_agency => 'Didattica';
+
+  @override
+  String get query_courses_completionDate => 'Data di completamento';
+
+  @override
+  String get query_courses_name => 'Nome';
+
+  @override
+  String get query_courses_startDate => 'Data di inizio';
+
+  @override
+  String get query_customFields_key => 'Chiave';
+
+  @override
+  String get query_customFields_value => 'Valore';
+
+  @override
+  String get query_diveTypes_builtIn => 'Predefinito';
+
+  @override
+  String get query_diveTypes_name => 'Nome';
+
+  @override
+  String get query_dives_airTemp => 'Temperatura dell\'aria';
+
+  @override
+  String get query_dives_avgDepth => 'Profondità media';
+
+  @override
+  String get query_dives_boatName => 'Barca';
+
+  @override
+  String get query_dives_bottomTime => 'Tempo di fondo';
+
+  @override
+  String get query_dives_buddies => 'Compagni';
+
+  @override
+  String get query_dives_center => 'Diving center';
+
+  @override
+  String get query_dives_cnsEnd => 'CNS alla fine';
+
+  @override
+  String get query_dives_computer => 'Computer subacqueo';
+
+  @override
+  String get query_dives_course => 'Corso';
+
+  @override
+  String get query_dives_currentStrength => 'Corrente';
+
+  @override
+  String get query_dives_customFields => 'Campi personalizzati';
+
+  @override
+  String get query_dives_date => 'Data';
+
+  @override
+  String get query_dives_deco => 'Immersione con decompressione';
+
+  @override
+  String get query_dives_depth => 'Profondità massima';
+
+  @override
+  String get query_dives_diveMaster => 'Divemaster';
+
+  @override
+  String get query_dives_diveMode => 'Modalità di immersione';
+
+  @override
+  String get query_dives_diveNumber => 'Numero immersione';
+
+  @override
+  String get query_dives_diveOperator => 'Operatore';
+
+  @override
+  String get query_dives_entryMethod => 'Metodo di entrata';
+
+  @override
+  String get query_dives_excludedFromStats => 'Esclusa dalle statistiche';
+
+  @override
+  String get query_dives_exitMethod => 'Metodo di uscita';
+
+  @override
+  String get query_dives_favorite => 'Preferita';
+
+  @override
+  String get query_dives_gasCount => 'Numero di bombole';
+
+  @override
+  String get query_dives_gear => 'Attrezzatura';
+
+  @override
+  String get query_dives_hasProfile => 'Ha un profilo';
+
+  @override
+  String get query_dives_id => 'ID immersione';
+
+  @override
+  String get query_dives_legacyBuddy => 'Compagno (testo precedente)';
+
+  @override
+  String get query_dives_media => 'Media';
+
+  @override
+  String get query_dives_name => 'Nome';
+
+  @override
+  String get query_dives_notes => 'Note';
+
+  @override
+  String get query_dives_otu => 'OTU';
+
+  @override
+  String get query_dives_planned => 'Pianificata';
+
+  @override
+  String get query_dives_rating => 'Valutazione';
+
+  @override
+  String get query_dives_runtime => 'Durata totale';
+
+  @override
+  String get query_dives_sightings => 'Avvistamenti';
+
+  @override
+  String get query_dives_site => 'Sito';
+
+  @override
+  String get query_dives_surfaceConditions => 'Condizioni in superficie';
+
+  @override
+  String get query_dives_surfaceInterval => 'Intervallo di superficie';
+
+  @override
+  String get query_dives_tags => 'Tag';
+
+  @override
+  String get query_dives_tanks => 'Bombole';
+
+  @override
+  String get query_dives_trip => 'Viaggio';
+
+  @override
+  String get query_dives_types => 'Tipi di immersione';
+
+  @override
+  String get query_dives_visibility => 'Visibilità';
+
+  @override
+  String get query_dives_waterTemp => 'Temperatura dell\'acqua';
+
+  @override
+  String get query_dives_waterType => 'Tipo di acqua';
+
+  @override
+  String get query_dives_weekday => 'Giorno della settimana';
+
+  @override
+  String get query_dives_weight => 'Zavorra';
+
+  @override
+  String get query_dives_weights => 'Zavorra';
+
+  @override
+  String get query_dives_year => 'Anno';
+
+  @override
+  String get query_entity_buddies => 'Compagni';
+
+  @override
+  String get query_entity_centers => 'Diving center';
+
+  @override
+  String get query_entity_certifications => 'Brevetti';
+
+  @override
+  String get query_entity_computers => 'Computer subacquei';
+
+  @override
+  String get query_entity_courses => 'Corsi';
+
+  @override
+  String get query_entity_customFields => 'Campi personalizzati';
+
+  @override
+  String get query_entity_diveTypes => 'Tipi di immersione';
+
+  @override
+  String get query_entity_dives => 'Immersioni';
+
+  @override
+  String get query_entity_equipment => 'Attrezzatura';
+
+  @override
+  String get query_entity_equipmentAttributes => 'Attributi dell\'attrezzatura';
+
+  @override
+  String get query_entity_media => 'Media';
+
+  @override
+  String get query_entity_sightings => 'Avvistamenti';
+
+  @override
+  String get query_entity_sites => 'Siti di immersione';
+
+  @override
+  String get query_entity_species => 'Specie';
+
+  @override
+  String get query_entity_tags => 'Tag';
+
+  @override
+  String get query_entity_tanks => 'Bombole';
+
+  @override
+  String get query_entity_trips => 'Viaggi';
+
+  @override
+  String get query_entity_weights => 'Zavorra';
+
+  @override
+  String get query_equipmentAttributes_custom => 'Personalizzato';
+
+  @override
+  String get query_equipmentAttributes_key => 'Chiave';
+
+  @override
+  String get query_equipmentAttributes_valueNum => 'Valore numerico';
+
+  @override
+  String get query_equipmentAttributes_valueText => 'Valore testuale';
+
+  @override
+  String get query_equipment_active => 'Attivo';
+
+  @override
+  String get query_equipment_attributes => 'Attributi';
+
+  @override
+  String get query_equipment_brand => 'Marca';
+
+  @override
+  String get query_equipment_model => 'Modello';
+
+  @override
+  String get query_equipment_name => 'Nome';
+
+  @override
+  String get query_equipment_serialNumber => 'Numero di serie';
+
+  @override
+  String get query_equipment_status => 'Stato';
+
+  @override
+  String get query_equipment_type => 'Tipo';
+
+  @override
+  String get query_media_caption => 'Didascalia';
+
+  @override
+  String get query_media_favorite => 'Preferita';
+
+  @override
+  String get query_media_type => 'Tipo';
+
+  @override
+  String get query_sightings_count => 'Conteggio';
+
+  @override
+  String get query_sightings_notes => 'Note';
+
+  @override
+  String get query_sightings_species => 'Specie';
+
+  @override
+  String get query_sites_city => 'Città';
+
+  @override
+  String get query_sites_country => 'Paese';
+
+  @override
+  String get query_sites_island => 'Isola';
+
+  @override
+  String get query_sites_maxDepth => 'Profondità massima';
+
+  @override
+  String get query_sites_name => 'Nome';
+
+  @override
+  String get query_sites_rating => 'Valutazione';
+
+  @override
+  String get query_sites_region => 'Regione';
+
+  @override
+  String get query_species_category => 'Categoria';
+
+  @override
+  String get query_species_name => 'Nome';
+
+  @override
+  String get query_species_scientificName => 'Nome scientifico';
+
+  @override
+  String get query_tags_name => 'Nome';
+
+  @override
+  String get query_tanks_cylinder => 'Bombola';
+
+  @override
+  String get query_tanks_endPressure => 'Pressione finale';
+
+  @override
+  String get query_tanks_he => 'Elio';
+
+  @override
+  String get query_tanks_name => 'Nome';
+
+  @override
+  String get query_tanks_o2 => 'Ossigeno';
+
+  @override
+  String get query_tanks_startPressure => 'Pressione iniziale';
+
+  @override
+  String get query_tanks_volume => 'Volume';
+
+  @override
+  String get query_trips_endDate => 'Data di fine';
+
+  @override
+  String get query_trips_location => 'Località';
+
+  @override
+  String get query_trips_name => 'Nome';
+
+  @override
+  String get query_trips_startDate => 'Data di inizio';
+
+  @override
+  String get query_weights_amount => 'Quantità';
+
+  @override
+  String get query_weights_notes => 'Note';
+
+  @override
+  String get query_weights_type => 'Tipo';
 }

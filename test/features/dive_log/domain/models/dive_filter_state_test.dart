@@ -1,62 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:submersion/core/constants/enums.dart';
-import 'package:submersion/features/buddies/domain/entities/buddy.dart';
-import 'package:submersion/features/dive_sites/domain/entities/dive_site.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive.dart';
-import 'package:submersion/features/dive_log/domain/entities/dive_custom_field.dart';
+import 'package:submersion/core/query/domain/query_node.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
-import 'package:submersion/features/dive_roles/domain/entities/dive_role.dart';
-import 'package:submersion/features/equipment/domain/entities/equipment_item.dart';
-import 'package:submersion/features/equipment/domain/entities/gear_link.dart';
-import 'package:submersion/features/equipment/domain/models/equipment_attr_condition.dart';
-
-/// Helper to create a minimal Dive for filter testing.
-Dive _makeDive({
-  String id = 'dive-1',
-  DateTime? dateTime,
-  double? maxDepth,
-  String? diveTypeId,
-  bool isFavorite = false,
-  String? diveComputerSerial,
-  String? computerId,
-  int? rating,
-  Duration? duration,
-  String? tripId,
-  List<DiveCustomField> customFields = const [],
-  List<EquipmentItem> equipment = const [],
-  List<DiveProfilePoint> profile = const [],
-  double? waterTemp,
-  double? visibilityMeters,
-  WaterType? waterType,
-  List<MarineSighting> sightings = const [],
-  String? siteId,
-}) {
-  return Dive(
-    id: id,
-    dateTime: dateTime ?? DateTime(2026, 3, 19),
-    maxDepth: maxDepth,
-    waterTemp: waterTemp,
-    visibilityMeters: visibilityMeters,
-    waterType: waterType,
-    site: siteId == null ? null : DiveSite(id: siteId, name: siteId),
-    diveTypeIds: [diveTypeId ?? 'recreational'],
-    isFavorite: isFavorite,
-    diveComputerSerial: diveComputerSerial,
-    computerId: computerId,
-    rating: rating,
-    bottomTime: duration,
-    tripId: tripId,
-    tanks: const [],
-    profile: profile,
-    gear: looseGear(equipment),
-    notes: '',
-    photoIds: const [],
-    sightings: sightings,
-    weights: const [],
-    tags: const [],
-    customFields: customFields,
-  );
-}
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 
 void main() {
   group('DiveFilterState', () {
@@ -89,38 +35,6 @@ void main() {
         expect(filter.computerId, isNull);
         expect(filter.customFieldKey, isNull);
         expect(filter.customFieldValue, isNull);
-      });
-    });
-
-    group('readsBuddyLinks (#1915)', () {
-      test('is false without a buddy filter', () {
-        expect(const DiveFilterState().readsBuddyLinks, isFalse);
-        expect(
-          const DiveFilterState(
-            buddyNameFilter: '',
-            noBuddyOnly: false,
-            favoritesOnly: true,
-          ).readsBuddyLinks,
-          isFalse,
-        );
-        // Both the SQL builder and apply() drop blank comma-separated parts,
-        // so this filters nothing and must not subscribe to buddy writes.
-        expect(
-          const DiveFilterState(buddyNameFilter: ' , ').readsBuddyLinks,
-          isFalse,
-        );
-      });
-
-      test('is true for each filter that reads dive_buddies', () {
-        expect(const DiveFilterState(buddyId: 'b1').readsBuddyLinks, isTrue);
-        expect(
-          const DiveFilterState(buddyNameFilter: 'Ann').readsBuddyLinks,
-          isTrue,
-        );
-        expect(
-          const DiveFilterState(noBuddyOnly: true).readsBuddyLinks,
-          isTrue,
-        );
       });
     });
 
@@ -339,718 +253,124 @@ void main() {
       });
     });
 
-    group('apply', () {
-      test('returns all dives when no filters are active', () {
-        const filter = DiveFilterState();
-        final dives = [_makeDive(id: 'd1'), _makeDive(id: 'd2')];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(2));
-      });
-
-      test('filters by computerId', () {
-        const filter = DiveFilterState(computerId: 'computer-a');
-        final dives = [
-          _makeDive(id: 'd1', computerId: 'computer-a'),
-          _makeDive(id: 'd2', computerId: 'computer-b'),
-          _makeDive(id: 'd3'), // not attributed to any computer
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(1));
-        expect(result.first.id, 'd1');
-      });
-
-      // Issue #1064: computers whose firmware never reports a serial were
-      // unfilterable. Attribution rides the computer id, never the serial.
-      test('filters by computerId when the dives carry no serial', () {
-        const filter = DiveFilterState(computerId: 'computer-a');
-        final dives = [
-          _makeDive(id: 'd1', computerId: 'computer-a'),
-          _makeDive(id: 'd2', computerId: 'computer-a'),
-          _makeDive(id: 'd3', computerId: 'computer-b'),
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result.map((d) => d.id), ['d1', 'd2']);
-      });
-
-      test('filters by minRating', () {
-        const filter = DiveFilterState(minRating: 3);
-        final dives = [
-          _makeDive(id: 'd1', rating: 5),
-          _makeDive(id: 'd2', rating: 2),
-          _makeDive(id: 'd3'), // null rating
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(1));
-        expect(result.first.id, 'd1');
-      });
-
-      test('filters by minBottomTimeMinutes', () {
-        const filter = DiveFilterState(minBottomTimeMinutes: 30);
-        final dives = [
-          _makeDive(id: 'd1', duration: const Duration(minutes: 45)),
-          _makeDive(id: 'd2', duration: const Duration(minutes: 20)),
-          _makeDive(id: 'd3'), // null duration
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(1));
-        expect(result.first.id, 'd1');
-      });
-
-      test('filters by maxBottomTimeMinutes', () {
-        const filter = DiveFilterState(maxBottomTimeMinutes: 30);
-        final dives = [
-          _makeDive(id: 'd1', duration: const Duration(minutes: 20)),
-          _makeDive(id: 'd2', duration: const Duration(minutes: 45)),
-          _makeDive(id: 'd3'), // null duration
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(1));
-        expect(result.first.id, 'd1');
-      });
-
-      test('filters by both minBottomTimeMinutes and maxBottomTimeMinutes', () {
-        const filter = DiveFilterState(
-          minBottomTimeMinutes: 20,
-          maxBottomTimeMinutes: 40,
+    group('equality', () {
+      test('two filters with the same axes are equal', () {
+        DiveFilterState make() => DiveFilterState(
+          startDate: DateTime(2025, 1, 1),
+          tagIds: const ['a', 'b'],
+          weekdays: const [1],
+          minDepth: 18,
+          noBuddyOnly: true,
+          query: ConditionNode(FieldPath(['weights']), QueryOp.isEmpty, null),
         );
-        final dives = [
-          _makeDive(id: 'd1', duration: const Duration(minutes: 30)),
-          _makeDive(id: 'd2', duration: const Duration(minutes: 10)),
-          _makeDive(id: 'd3', duration: const Duration(minutes: 50)),
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(1));
-        expect(result.first.id, 'd1');
-      });
-
-      test('filters by customFieldKey', () {
-        const filter = DiveFilterState(customFieldKey: 'visibility');
-        final dives = [
-          _makeDive(
-            id: 'd1',
-            customFields: [
-              const DiveCustomField(
-                id: 'cf1',
-                key: 'visibility',
-                value: 'good',
-              ),
-            ],
-          ),
-          _makeDive(id: 'd2'),
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(1));
-        expect(result.first.id, 'd1');
-      });
-
-      test('filters by customFieldKey and customFieldValue', () {
-        const filter = DiveFilterState(
-          customFieldKey: 'visibility',
-          customFieldValue: 'good',
+        expect(make(), equals(make()));
+        expect(make().hashCode, make().hashCode);
+        expect(make(), isNot(equals(make().copyWith(minDepth: 19))));
+        expect(
+          make(),
+          isNot(equals(make().copyWith(tagIds: const ['b', 'a']))),
+          reason: 'list order is part of the value',
         );
-        final dives = [
-          _makeDive(
-            id: 'd1',
-            customFields: [
-              const DiveCustomField(
-                id: 'cf1',
-                key: 'visibility',
-                value: 'good',
-              ),
-            ],
-          ),
-          _makeDive(
-            id: 'd2',
-            customFields: [
-              const DiveCustomField(
-                id: 'cf2',
-                key: 'visibility',
-                value: 'poor',
-              ),
-            ],
-          ),
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(1));
-        expect(result.first.id, 'd1');
-      });
-
-      test('customFieldValue match is case-insensitive', () {
-        const filter = DiveFilterState(
-          customFieldKey: 'visibility',
-          customFieldValue: 'GOOD',
-        );
-        final dives = [
-          _makeDive(
-            id: 'd1',
-            customFields: [
-              const DiveCustomField(
-                id: 'cf1',
-                key: 'visibility',
-                value: 'Good',
-              ),
-            ],
-          ),
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(1));
-      });
-
-      test('filters by startDate and endDate', () {
-        final filter = DiveFilterState(
-          startDate: DateTime(2026, 3, 1),
-          endDate: DateTime(2026, 3, 31),
-        );
-        final dives = [
-          _makeDive(id: 'd1', dateTime: DateTime(2026, 3, 15)),
-          _makeDive(id: 'd2', dateTime: DateTime(2026, 2, 15)),
-          _makeDive(id: 'd3', dateTime: DateTime(2026, 4, 15)),
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(1));
-        expect(result.first.id, 'd1');
-      });
-
-      group('weekdays', () {
-        test('filters by matching weekday', () {
-          final monday = DateTime(2026, 3, 16);
-          final tuesday = DateTime(2026, 3, 17);
-          final filter = DiveFilterState(weekdays: [monday.weekday]);
-          final dives = [
-            _makeDive(id: 'd1', dateTime: monday),
-            _makeDive(id: 'd2', dateTime: tuesday),
-          ];
-
-          final result = filter.apply(dives);
-
-          expect(result.map((d) => d.id), ['d1']);
-        });
-
-        test('matches ANY selected weekday', () {
-          final monday = DateTime(2026, 3, 16);
-          final tuesday = DateTime(2026, 3, 17);
-          final wednesday = DateTime(2026, 3, 18);
-          final filter = DiveFilterState(
-            weekdays: [monday.weekday, wednesday.weekday],
-          );
-          final dives = [
-            _makeDive(id: 'd1', dateTime: monday),
-            _makeDive(id: 'd2', dateTime: tuesday),
-            _makeDive(id: 'd3', dateTime: wednesday),
-          ];
-
-          final result = filter.apply(dives);
-
-          expect(result.map((d) => d.id), containsAll(['d1', 'd3']));
-          expect(result, hasLength(2));
-        });
-
-        test('combines with date range as AND', () {
-          final insideRangeMonday = DateTime(2026, 3, 16);
-          final outsideRangeMonday = DateTime(2026, 4, 6);
-          final insideRangeTuesday = DateTime(2026, 3, 17);
-          final filter = DiveFilterState(
-            startDate: DateTime(2026, 3, 1),
-            endDate: DateTime(2026, 3, 31),
-            weekdays: [insideRangeMonday.weekday],
-          );
-          final dives = [
-            _makeDive(id: 'd1', dateTime: insideRangeMonday),
-            _makeDive(id: 'd2', dateTime: outsideRangeMonday),
-            _makeDive(id: 'd3', dateTime: insideRangeTuesday),
-          ];
-
-          final result = filter.apply(dives);
-
-          expect(result.map((d) => d.id), ['d1']);
-        });
-      });
-
-      test('filters by diveIds', () {
-        const filter = DiveFilterState(diveIds: ['d1', 'd3']);
-        final dives = [
-          _makeDive(id: 'd1'),
-          _makeDive(id: 'd2'),
-          _makeDive(id: 'd3'),
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(2));
-        expect(result.map((d) => d.id), containsAll(['d1', 'd3']));
-      });
-
-      test('combines multiple filters', () {
-        const filter = DiveFilterState(computerId: 'computer-a', minRating: 3);
-        final dives = [
-          _makeDive(id: 'd1', computerId: 'computer-a', rating: 5),
-          _makeDive(id: 'd2', computerId: 'computer-a', rating: 2),
-          _makeDive(id: 'd3', computerId: 'computer-b', rating: 5),
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(1));
-        expect(result.first.id, 'd1');
-      });
-
-      test('filters by favoritesOnly', () {
-        const filter = DiveFilterState(favoritesOnly: true);
-        final dives = [
-          _makeDive(id: 'd1', isFavorite: true),
-          _makeDive(id: 'd2', isFavorite: false),
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(1));
-        expect(result.first.id, 'd1');
-      });
-
-      test('filters by noBuddyOnly (excludes legacy and linked buddies)', () {
-        const filter = DiveFilterState(noBuddyOnly: true);
-        final buddyJohn = Buddy(
-          id: 'b1',
-          name: 'John Doe',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-        final dives = [
-          Dive(id: 'd1', dateTime: DateTime.now(), notes: ''),
-          Dive(
-            id: 'd2',
-            dateTime: DateTime.now(),
-            buddy: 'Jane Smith',
-            notes: '',
-          ),
-          Dive(
-            id: 'd3',
-            dateTime: DateTime.now(),
-            notes: '',
-            buddies: [
-              BuddyWithRole(buddy: buddyJohn, role: DiveRole.builtInBuddy()),
-            ],
-          ),
-          Dive(id: 'd4', dateTime: DateTime.now(), buddy: '', notes: ''),
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result.map((d) => d.id), containsAll(['d1', 'd4']));
-        expect(result, hasLength(2));
-      });
-
-      group('buddyId', () {
-        final buddyJohn = Buddy(
-          id: 'b1',
-          name: 'John Doe',
-          createdAt: DateTime(2026),
-          updatedAt: DateTime(2026),
-        );
-        final buddyJane = Buddy(
-          id: 'b2',
-          name: 'Jane Smith',
-          createdAt: DateTime(2026),
-          updatedAt: DateTime(2026),
-        );
-        Dive diveWith(
-          String id, {
-          List<Buddy> linked = const [],
-          String? text,
-        }) {
-          return Dive(
-            id: id,
-            dateTime: DateTime(2026, 3, 19),
-            buddy: text,
-            notes: '',
-            buddies: [
-              for (final b in linked)
-                BuddyWithRole(buddy: b, role: DiveRole.builtInBuddy()),
-            ],
-          );
-        }
-
-        test('keeps only dives linked to the buddy, matched by id', () {
-          const filter = DiveFilterState(buddyId: 'b1');
-          final dives = [
-            diveWith('d1', linked: [buddyJohn]),
-            diveWith('d2', linked: [buddyJane]),
-            diveWith('d3', linked: [buddyJane, buddyJohn]),
-            // Legacy free text naming the same person is not a link; the SQL
-            // EXISTS on dive_buddies would not match it either.
-            diveWith('d4', text: 'John Doe'),
-            diveWith('d5'),
-          ];
-
-          final result = filter.apply(dives);
-
-          expect(result.map((d) => d.id), ['d1', 'd3']);
-        });
-
-        test('drops a saved dive id whose buddy link was removed (#1919)', () {
-          // The buddy page's "View all" snapshots the buddy's dive ids and
-          // sets buddyId beside them. If d2 loses the link while the filter
-          // is active, the dive list's SQL drops it; apply() must as well.
-          const filter = DiveFilterState(diveIds: ['d1', 'd2'], buddyId: 'b1');
-          final dives = [
-            diveWith('d1', linked: [buddyJohn]),
-            diveWith('d2'),
-            diveWith('d3', linked: [buddyJohn]),
-          ];
-
-          final result = filter.apply(dives);
-
-          expect(result.map((d) => d.id), ['d1']);
-        });
-      });
-
-      test('filters by depth range', () {
-        const filter = DiveFilterState(minDepth: 10.0, maxDepth: 30.0);
-        final dives = [
-          _makeDive(id: 'd1', maxDepth: 20.0),
-          _makeDive(id: 'd2', maxDepth: 5.0),
-          _makeDive(id: 'd3', maxDepth: 40.0),
-          _makeDive(id: 'd4'), // null depth
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(1));
-        expect(result.first.id, 'd1');
-      });
-
-      test('filters by tripId', () {
-        const filter = DiveFilterState(tripId: 'trip-1');
-        final dives = [
-          _makeDive(id: 'd1', tripId: 'trip-1'),
-          _makeDive(id: 'd2', tripId: 'trip-2'),
-          _makeDive(id: 'd3'),
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(1));
-        expect(result.first.id, 'd1');
-      });
-
-      test('filters by diveTypeId', () {
-        const filter = DiveFilterState(diveTypeId: 'technical');
-        final dives = [
-          _makeDive(id: 'd1', diveTypeId: 'technical'),
-          _makeDive(id: 'd2', diveTypeId: 'recreational'),
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(1));
-        expect(result.first.id, 'd1');
-      });
-
-      test('filters by buddyNameFilter (case-insensitive legacy)', () {
-        const filter = DiveFilterState(buddyNameFilter: 'JOHN');
-        final dives = [
-          Dive(
-            id: 'd1',
-            dateTime: DateTime.now(),
-            buddy: 'John Doe',
-            notes: '',
-          ),
-          Dive(
-            id: 'd2',
-            dateTime: DateTime.now(),
-            buddy: 'Jane Smith',
-            notes: '',
-          ),
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(1));
-        expect(result.first.id, 'd1');
-      });
-
-      test('filters by buddyNameFilter (case-insensitive structured)', () {
-        const filter = DiveFilterState(buddyNameFilter: 'doe');
-        final buddyJohn = Buddy(
-          id: 'b1',
-          name: 'John Doe',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-        final dives = [
-          Dive(
-            id: 'd1',
-            dateTime: DateTime.now(),
-            notes: '',
-            buddies: [
-              BuddyWithRole(buddy: buddyJohn, role: DiveRole.builtInBuddy()),
-            ],
-          ),
-          Dive(
-            id: 'd2',
-            dateTime: DateTime.now(),
-            buddy: 'Jane Doe',
-            notes: '',
-          ),
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(2));
-      });
-
-      test('filters by multiple comma-separated buddies (AND-semantics)', () {
-        const filter = DiveFilterState(buddyNameFilter: 'John, Jane');
-        final buddyJohn = Buddy(
-          id: 'b1',
-          name: 'John Smith',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-        final buddyJane = Buddy(
-          id: 'b2',
-          name: 'Jane Smith',
-          createdAt: DateTime.now(),
-          updatedAt: DateTime.now(),
-        );
-
-        final dives = [
-          // D1: Matches both (John in structured, Jane in legacy)
-          Dive(
-            id: 'd1',
-            dateTime: DateTime.now(),
-            buddy: 'Jane Doe',
-            notes: '',
-            buddies: [
-              BuddyWithRole(buddy: buddyJohn, role: DiveRole.builtInBuddy()),
-            ],
-          ),
-          // D2: Matches both (Both in structured)
-          Dive(
-            id: 'd2',
-            dateTime: DateTime.now(),
-            notes: '',
-            buddies: [
-              BuddyWithRole(buddy: buddyJohn, role: DiveRole.builtInBuddy()),
-              BuddyWithRole(buddy: buddyJane, role: DiveRole.builtInBuddy()),
-            ],
-          ),
-          // D3: Matches only John
-          Dive(
-            id: 'd3',
-            dateTime: DateTime.now(),
-            buddy: 'John Doe',
-            notes: '',
-          ),
-          // D4: Matches only Jane
-          Dive(
-            id: 'd4',
-            dateTime: DateTime.now(),
-            notes: '',
-            buddies: [
-              BuddyWithRole(buddy: buddyJane, role: DiveRole.builtInBuddy()),
-            ],
-          ),
-        ];
-
-        final result = filter.apply(dives);
-
-        expect(result, hasLength(2));
-        expect(result.map((d) => d.id), containsAll(['d1', 'd2']));
-      });
-
-      group('decoOnly axis', () {
-        // decoOnly is a SQL-only axis: getAllDives skips profile hydration for
-        // list views and deco-stop events never reach the entity, so apply()
-        // has nothing to classify from and deliberately ignores it. Consumers
-        // intersect with decoFilteredDiveIdsProvider instead. Filtering here
-        // would silently return nothing on every real (unhydrated) list.
-        test('apply() ignores decoOnly: true', () {
-          final dives = [_makeDive(id: 'd1'), _makeDive(id: 'd2')];
-
-          expect(
-            const DiveFilterState(decoOnly: true).apply(dives).map((d) => d.id),
-            ['d1', 'd2'],
-          );
-        });
-
-        test('apply() ignores decoOnly: false', () {
-          final dives = [_makeDive(id: 'd1'), _makeDive(id: 'd2')];
-
-          expect(
-            const DiveFilterState(
-              decoOnly: false,
-            ).apply(dives).map((d) => d.id),
-            ['d1', 'd2'],
-          );
-        });
-
-        test('apply() ignores decoOnly even when a profile is hydrated', () {
-          final dives = [
-            _makeDive(
-              id: 'deco',
-              profile: const [
-                DiveProfilePoint(timestamp: 0, depth: 30, decoType: 2),
-              ],
-            ),
-            _makeDive(
-              id: 'noDeco',
-              profile: const [
-                DiveProfilePoint(timestamp: 0, depth: 18, decoType: 0),
-              ],
-            ),
-          ];
-
-          expect(
-            const DiveFilterState(decoOnly: true).apply(dives).map((d) => d.id),
-            ['deco', 'noDeco'],
-          );
-        });
-
-        test('decoOnly still combines with the axes apply() does own', () {
-          final dives = [
-            _makeDive(id: 'shallow', maxDepth: 12),
-            _makeDive(id: 'deep', maxDepth: 40),
-          ];
-
-          expect(
-            const DiveFilterState(
-              decoOnly: true,
-              minDepth: 30,
-            ).apply(dives).map((d) => d.id),
-            ['deep'],
-          );
-        });
-      });
-
-      group('equipment attribute conditions', () {
-        // Evaluated in SQL only (a registry-matched cylinder never reaches the
-        // entity with its attributes); see equipment_attr_filter_providers_test.
-        test('apply leaves the conditions to SQL', () {
-          const filter = DiveFilterState(
-            equipmentAttrConditions: [
-              EquipmentAttrCondition(key: 'hose_type', choices: {'hp'}),
-            ],
-          );
-          final dives = [_makeDive(id: 'a'), _makeDive(id: 'b')];
-          expect(filter.apply(dives).map((d) => d.id), ['a', 'b']);
-        });
+        expect(const DiveFilterState(), const DiveFilterState());
       });
     });
 
-    group('phase 1 explore axes', () {
-      MarineSighting s(String speciesId) => MarineSighting(
-        id: 'sight-$speciesId',
-        speciesId: speciesId,
-        speciesName: speciesId,
-      );
-
-      test('water temperature bounds exclude null and out-of-range dives', () {
-        final dives = [
-          _makeDive(id: 'cold', waterTemp: 8),
-          _makeDive(id: 'warm', waterTemp: 27),
-          _makeDive(id: 'none'),
-        ];
-        expect(
-          const DiveFilterState(maxWaterTemp: 15).apply(dives).map((d) => d.id),
-          ['cold'],
+    group('query (#2365)', () {
+      test('copyWith sets and clears the advanced query', () {
+        final node = ConditionNode(
+          FieldPath(['weights']),
+          QueryOp.isEmpty,
+          null,
         );
+        final withQuery = const DiveFilterState().copyWith(query: node);
+        expect(withQuery.query, node);
+        expect(withQuery.hasActiveFilters, isTrue);
+        expect(withQuery.copyWith(clearQuery: true).query, isNull);
+        expect(withQuery.copyWith(clearQuery: true).hasActiveFilters, isFalse);
+      });
+    });
+
+    group('explore axes (#2195)', () {
+      // Behaviour against real rows lives in
+      // dive_repository_explore_axes_filter_test, which runs every axis
+      // through Statistics, the list and its count. These pin what each
+      // axis lowers to, since toQuery() is now the only evaluator.
+      ConditionNode c(List<String> path, QueryOp op, QueryValue v) =>
+          ConditionNode(FieldPath(path), op, v);
+
+      test('each axis lowers to its registry field', () {
+        const f = DiveFilterState(
+          minWaterTemp: 20,
+          maxWaterTemp: 28,
+          minVisibility: 15,
+          maxVisibility: 40,
+          waterTypes: [WaterType.salt, WaterType.fresh],
+          speciesIds: ['sp_green_turtle'],
+          siteIds: ['s1', 's2'],
+        );
+        final q = f.toQuery()! as AndNode;
         expect(
-          const DiveFilterState(minWaterTemp: 20).apply(dives).map((d) => d.id),
-          ['warm'],
+          q.children,
+          containsAll(<QueryNode>[
+            c(['waterTemp'], QueryOp.gte, const NumberValue(20, null)),
+            c(['waterTemp'], QueryOp.lte, const NumberValue(28, null)),
+            c(['visibility'], QueryOp.gte, const NumberValue(15, null)),
+            c(['visibility'], QueryOp.lte, const NumberValue(40, null)),
+            c(
+              ['waterType'],
+              QueryOp.inList,
+              ListValue([const EnumValue('salt'), const EnumValue('fresh')]),
+            ),
+            c(
+              ['sightings', 'species'],
+              QueryOp.inList,
+              ListValue([const RefValue('sp_green_turtle', 'sp_green_turtle')]),
+            ),
+            c(
+              ['site'],
+              QueryOp.inList,
+              ListValue([
+                const RefValue('s1', 's1'),
+                const RefValue('s2', 's2'),
+              ]),
+            ),
+          ]),
         );
       });
 
-      test('visibility bounds read visibilityMeters only', () {
-        final dives = [
-          _makeDive(id: 'clear', visibilityMeters: 30),
-          _makeDive(id: 'murky', visibilityMeters: 4),
-          _makeDive(id: 'none'),
-        ];
+      test('a species filter makes the list follow the sightings table', () {
+        // Replaces the retired per-axis sightings tick: a sighting is written
+        // without a dives write, so the compiled query must name the table.
+        const f = DiveFilterState(speciesIds: ['x']);
+        expect(diveFilterTablesTouched(f), contains('sightings'));
         expect(
-          const DiveFilterState(
-            minVisibility: 20,
-          ).apply(dives).map((d) => d.id),
-          ['clear'],
-        );
-        expect(
-          const DiveFilterState(maxVisibility: 5).apply(dives).map((d) => d.id),
-          ['murky'],
+          diveFilterTablesTouched(const DiveFilterState(minDepth: 1)),
+          isNot(contains('sightings')),
         );
       });
 
-      test('water types OR within the axis', () {
-        final dives = [
-          _makeDive(id: 'salt', waterType: WaterType.salt),
-          _makeDive(id: 'fresh', waterType: WaterType.fresh),
-          _makeDive(id: 'none'),
-        ];
+      test('two filters differing only in an explore axis are unequal', () {
+        // The id-set family is keyed on filter equality, so a missing field
+        // here would serve one filter's cached dives for another.
         expect(
-          const DiveFilterState(
-            waterTypes: [WaterType.salt, WaterType.fresh],
-          ).apply(dives).map((d) => d.id),
-          ['salt', 'fresh'],
+          const DiveFilterState(minWaterTemp: 10),
+          isNot(const DiveFilterState(minWaterTemp: 20)),
+        );
+        expect(
+          const DiveFilterState(speciesIds: ['a']),
+          isNot(const DiveFilterState(speciesIds: ['b'])),
+        );
+        expect(
+          const DiveFilterState(siteIds: ['s1']),
+          const DiveFilterState(siteIds: ['s1']),
+        );
+        expect(
+          const DiveFilterState(waterTypes: [WaterType.salt]).hashCode,
+          const DiveFilterState(waterTypes: [WaterType.salt]).hashCode,
         );
       });
 
-      test('species ids match any sighting', () {
-        final dives = [
-          _makeDive(id: 'turtle', sightings: [s('sp_green_turtle')]),
-          _makeDive(id: 'shark', sightings: [s('sp_nurse_shark')]),
-          _makeDive(id: 'none'),
-        ];
-        expect(
-          const DiveFilterState(
-            speciesIds: ['sp_green_turtle', 'sp_hawksbill_turtle'],
-          ).apply(dives).map((d) => d.id),
-          ['turtle'],
-        );
-      });
-
-      test('site ids match any listed site and AND with siteId', () {
-        final dives = [
-          _makeDive(id: 'a', siteId: 's1'),
-          _makeDive(id: 'b', siteId: 's2'),
-          _makeDive(id: 'c'),
-        ];
-        expect(
-          const DiveFilterState(
-            siteIds: ['s1', 's2'],
-          ).apply(dives).map((d) => d.id),
-          ['a', 'b'],
-        );
-        expect(
-          const DiveFilterState(
-            siteIds: ['s1', 's2'],
-            siteId: 's2',
-          ).apply(dives).map((d) => d.id),
-          ['b'],
-        );
-      });
-
-      test('the new axes count as active and clear through copyWith', () {
+      test('the axes count as active and clear through copyWith', () {
         const f = DiveFilterState(
           minWaterTemp: 1,
           maxVisibility: 2,
@@ -1059,7 +379,6 @@ void main() {
           siteIds: ['s'],
         );
         expect(f.hasActiveFilters, isTrue);
-        expect(f.readsSightings, isTrue);
         final cleared = f.copyWith(
           clearMinWaterTemp: true,
           clearMaxVisibility: true,
@@ -1068,7 +387,7 @@ void main() {
           clearSiteIds: true,
         );
         expect(cleared.hasActiveFilters, isFalse);
-        expect(cleared.readsSightings, isFalse);
+        expect(cleared.toQuery(), isNull);
       });
     });
   });

@@ -6,8 +6,8 @@ import 'package:submersion/features/equipment/domain/entities/equipment_item.dar
 
 /// One condition on a curated equipment attribute (issue #1805).
 ///
-/// Shared by the dive list filter, which evaluates it in SQL through
-/// `equipmentAttrConditionSql`, and the equipment list filter, which
+/// Shared by the dive list filter, which lowers it to a query on the gear
+/// relation (`DiveFilterQuery`, #2365), and the equipment list filter, which
 /// evaluates it in memory through [matches]. Both follow the same rules:
 ///
 /// - Only curated rows with [key] count; custom fields never match.
@@ -94,26 +94,4 @@ class EquipmentAttrCondition {
   String toString() =>
       'EquipmentAttrCondition(key: $key, choices: $choices, min: $min, '
       'max: $max, types: $types)';
-}
-
-/// A value-equal wrapper around a condition list, for use as a provider
-/// family key.
-///
-/// A Dart `List`, and a record holding one, compares by identity, so a
-/// family keyed on the list itself would treat an equal condition set as a
-/// new key and never reuse its cached result.
-@immutable
-class EquipmentAttrConditionsKey {
-  final List<EquipmentAttrCondition> conditions;
-
-  const EquipmentAttrConditionsKey(this.conditions);
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is EquipmentAttrConditionsKey &&
-          listEquals(other.conditions, conditions);
-
-  @override
-  int get hashCode => Object.hashAll(conditions);
 }

@@ -17206,6 +17206,174 @@ abstract class AppLocalizations {
   /// **'Updated \"{name}\"'**
   String diveTypes_snackbar_updated(Object name);
 
+  /// No description provided for @divelogsImport_fetch_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetch Logbook'**
+  String get divelogsImport_fetch_button;
+
+  /// No description provided for @divelogsImport_fetch_certificationsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications could not be fetched and will not be imported.'**
+  String get divelogsImport_fetch_certificationsUnavailable;
+
+  /// No description provided for @divelogsImport_fetch_empty.
+  ///
+  /// In en, this message translates to:
+  /// **'Your divelogs.de logbook has nothing to import.'**
+  String get divelogsImport_fetch_empty;
+
+  /// No description provided for @divelogsImport_fetch_failedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not fetch your logbook'**
+  String get divelogsImport_fetch_failedTitle;
+
+  /// No description provided for @divelogsImport_fetch_fetching.
+  ///
+  /// In en, this message translates to:
+  /// **'Fetching your logbook…'**
+  String get divelogsImport_fetch_fetching;
+
+  /// No description provided for @divelogsImport_fetch_foundDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Found {count} dive} other{Found {count} dives}}'**
+  String divelogsImport_fetch_foundDives(int count);
+
+  /// No description provided for @divelogsImport_fetch_foundPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No photos to import} one{{count} photo to import} other{{count} photos to import}}'**
+  String divelogsImport_fetch_foundPhotos(int count);
+
+  /// No description provided for @divelogsImport_fetch_gearUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear could not be fetched; dives will import without gear links.'**
+  String get divelogsImport_fetch_gearUnavailable;
+
+  /// No description provided for @divelogsImport_fetch_includePhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Include photos'**
+  String get divelogsImport_fetch_includePhotos;
+
+  /// No description provided for @divelogsImport_fetch_includePhotosHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos are downloaded during the import into a folder you choose.'**
+  String get divelogsImport_fetch_includePhotosHint;
+
+  /// No description provided for @divelogsImport_fetch_listingPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Listing photos for dive {current} of {total}…'**
+  String divelogsImport_fetch_listingPhotos(int current, int total);
+
+  /// No description provided for @divelogsImport_fetch_photoListingsFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Photos for {count} dive could not be listed.} other{Photos for {count} dives could not be listed.}}'**
+  String divelogsImport_fetch_photoListingsFailed(int count);
+
+  /// No description provided for @divelogsImport_fetch_retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Try Again'**
+  String get divelogsImport_fetch_retry;
+
+  /// No description provided for @divelogsImport_fetch_sessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your divelogs.de session expired. Go back and sign in again.'**
+  String get divelogsImport_fetch_sessionExpired;
+
+  /// No description provided for @divelogsImport_fetch_skippedDives.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} dive could not be read and will be skipped.} other{{count} dives could not be read and will be skipped.}}'**
+  String divelogsImport_fetch_skippedDives(int count);
+
+  /// No description provided for @divelogsImport_signIn_badCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'divelogs.de rejected the username or password.'**
+  String get divelogsImport_signIn_badCredentials;
+
+  /// No description provided for @divelogsImport_signIn_button.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign In'**
+  String get divelogsImport_signIn_button;
+
+  /// No description provided for @divelogsImport_signIn_description.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with your divelogs.de account to import your logbook. Your password is never stored; only the resulting session is cached.'**
+  String get divelogsImport_signIn_description;
+
+  /// No description provided for @divelogsImport_signIn_passwordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get divelogsImport_signIn_passwordLabel;
+
+  /// No description provided for @divelogsImport_signIn_passwordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Password is required'**
+  String get divelogsImport_signIn_passwordRequired;
+
+  /// No description provided for @divelogsImport_signIn_signedInAs.
+  ///
+  /// In en, this message translates to:
+  /// **'Signed in as {username}'**
+  String divelogsImport_signIn_signedInAs(String username);
+
+  /// No description provided for @divelogsImport_signIn_signingIn.
+  ///
+  /// In en, this message translates to:
+  /// **'Signing in…'**
+  String get divelogsImport_signIn_signingIn;
+
+  /// No description provided for @divelogsImport_signIn_signOut.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out'**
+  String get divelogsImport_signIn_signOut;
+
+  /// No description provided for @divelogsImport_signIn_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to divelogs.de'**
+  String get divelogsImport_signIn_title;
+
+  /// No description provided for @divelogsImport_signIn_unexpected.
+  ///
+  /// In en, this message translates to:
+  /// **'divelogs.de sent an unexpected response. Try again later.'**
+  String get divelogsImport_signIn_unexpected;
+
+  /// No description provided for @divelogsImport_signIn_unreachable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not reach divelogs.de. Check your connection and try again.'**
+  String get divelogsImport_signIn_unreachable;
+
+  /// No description provided for @divelogsImport_signIn_usernameLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Username'**
+  String get divelogsImport_signIn_usernameLabel;
+
+  /// No description provided for @divelogsImport_signIn_usernameRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Username is required'**
+  String get divelogsImport_signIn_usernameRequired;
+
   /// No description provided for @divers_detail_activeDiver.
   ///
   /// In en, this message translates to:
@@ -19779,6 +19947,342 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{Updated tags on 1 item} other{Updated tags on {count} items}}'**
   String equipment_bulkTags_applied(int count);
+
+  /// No description provided for @passport_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder passport'**
+  String get passport_title;
+
+  /// No description provided for @passport_open.
+  ///
+  /// In en, this message translates to:
+  /// **'Open passport'**
+  String get passport_open;
+
+  /// No description provided for @passport_entry_noFill.
+  ///
+  /// In en, this message translates to:
+  /// **'No fill logged'**
+  String get passport_entry_noFill;
+
+  /// No description provided for @passport_entry_lastFillNoPressure.
+  ///
+  /// In en, this message translates to:
+  /// **'{mix}, {date}'**
+  String passport_entry_lastFillNoPressure(String mix, String date);
+
+  /// No description provided for @passport_entry_lastFill.
+  ///
+  /// In en, this message translates to:
+  /// **'{mix} at {pressure}, {date}'**
+  String passport_entry_lastFill(String mix, String pressure, String date);
+
+  /// No description provided for @passport_spec_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder'**
+  String get passport_spec_title;
+
+  /// No description provided for @passport_spec_freeGas.
+  ///
+  /// In en, this message translates to:
+  /// **'Free gas at {pressure}'**
+  String passport_spec_freeGas(String pressure);
+
+  /// No description provided for @passport_spec_buoyancyEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy when empty'**
+  String get passport_spec_buoyancyEmpty;
+
+  /// No description provided for @passport_spec_buoyancyFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Buoyancy when full'**
+  String get passport_spec_buoyancyFull;
+
+  /// No description provided for @passport_service_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Service'**
+  String get passport_service_title;
+
+  /// No description provided for @passport_service_notTracked.
+  ///
+  /// In en, this message translates to:
+  /// **'Not tracked'**
+  String get passport_service_notTracked;
+
+  /// No description provided for @passport_service_neverRecorded.
+  ///
+  /// In en, this message translates to:
+  /// **'Never recorded'**
+  String get passport_service_neverRecorded;
+
+  /// No description provided for @passport_service_trackO2Clean.
+  ///
+  /// In en, this message translates to:
+  /// **'Track O2 cleaning'**
+  String get passport_service_trackO2Clean;
+
+  /// No description provided for @passport_service_trackFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not start tracking O2 cleaning. Try again.'**
+  String get passport_service_trackFailed;
+
+  /// No description provided for @passport_service_lastDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Last {date}'**
+  String passport_service_lastDone(String date);
+
+  /// No description provided for @passport_o2Warning_untracked.
+  ///
+  /// In en, this message translates to:
+  /// **'The last fill is {o2} O2 and this cylinder is not tracked as O2 clean.'**
+  String passport_o2Warning_untracked(String o2);
+
+  /// No description provided for @passport_o2Warning_overdue.
+  ///
+  /// In en, this message translates to:
+  /// **'The last fill is {o2} O2 and this cylinder\'s O2 cleaning is overdue.'**
+  String passport_o2Warning_overdue(String o2);
+
+  /// No description provided for @passport_fill_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Current fill'**
+  String get passport_fill_title;
+
+  /// No description provided for @passport_fill_none.
+  ///
+  /// In en, this message translates to:
+  /// **'No fill logged yet'**
+  String get passport_fill_none;
+
+  /// No description provided for @passport_fill_log.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a fill'**
+  String get passport_fill_log;
+
+  /// No description provided for @passport_fill_mod.
+  ///
+  /// In en, this message translates to:
+  /// **'MOD {depth} at ppO2 {ppo2}'**
+  String passport_fill_mod(String depth, String ppo2);
+
+  /// No description provided for @passport_fill_end.
+  ///
+  /// In en, this message translates to:
+  /// **'END {depth} at the working MOD'**
+  String passport_fill_end(String depth);
+
+  /// No description provided for @passport_fill_station.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled by {station}'**
+  String passport_fill_station(String station);
+
+  /// No description provided for @passport_fill_analyzer.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzed with {analyzer}'**
+  String passport_fill_analyzer(String analyzer);
+
+  /// No description provided for @passport_fill_analysis.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 {o2}, He {he}'**
+  String passport_fill_analysis(String o2, String he);
+
+  /// No description provided for @passport_fill_temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas temperature {temperature}'**
+  String passport_fill_temperature(String temperature);
+
+  /// No description provided for @passport_fill_unsigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Unsigned'**
+  String get passport_fill_unsigned;
+
+  /// No description provided for @passport_history_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill history'**
+  String get passport_history_title;
+
+  /// No description provided for @passport_history_sinceHydro.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =0{No fills since the last hydro} =1{{count} fill since the last hydro} other{{count} fills since the last hydro}}'**
+  String passport_history_sinceHydro(int count);
+
+  /// No description provided for @passport_history_delete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete fill'**
+  String get passport_history_delete;
+
+  /// No description provided for @passport_history_deleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this fill record?'**
+  String get passport_history_deleteConfirm;
+
+  /// No description provided for @passport_tag_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag'**
+  String get passport_tag_title;
+
+  /// No description provided for @passport_tag_written.
+  ///
+  /// In en, this message translates to:
+  /// **'Written {date}'**
+  String passport_tag_written(String date);
+
+  /// No description provided for @passport_tag_stale.
+  ///
+  /// In en, this message translates to:
+  /// **'The tag was written before the latest service or spec change. Reprint it.'**
+  String get passport_tag_stale;
+
+  /// No description provided for @passport_tag_printLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Print label'**
+  String get passport_tag_printLabel;
+
+  /// No description provided for @passport_tag_printLabels.
+  ///
+  /// In en, this message translates to:
+  /// **'Print labels'**
+  String get passport_tag_printLabels;
+
+  /// No description provided for @passport_tag_qrSemantics.
+  ///
+  /// In en, this message translates to:
+  /// **'Passport QR code'**
+  String get passport_tag_qrSemantics;
+
+  /// No description provided for @passport_tag_printFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not create the labels. Try again.'**
+  String get passport_tag_printFailed;
+
+  /// No description provided for @passport_tag_linkExisting.
+  ///
+  /// In en, this message translates to:
+  /// **'Link an existing tag'**
+  String get passport_tag_linkExisting;
+
+  /// No description provided for @passport_tag_linkPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the link from the tag'**
+  String get passport_tag_linkPrompt;
+
+  /// No description provided for @passport_tag_linkInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That is not a cylinder tag'**
+  String get passport_tag_linkInvalid;
+
+  /// No description provided for @passport_tag_linkFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not link the tag. Try again.'**
+  String get passport_tag_linkFailed;
+
+  /// No description provided for @passport_tag_linkInUse.
+  ///
+  /// In en, this message translates to:
+  /// **'That tag already belongs to {name}'**
+  String passport_tag_linkInUse(String name);
+
+  /// No description provided for @passport_tag_linked.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag linked'**
+  String get passport_tag_linked;
+
+  /// No description provided for @passport_logFill_date.
+  ///
+  /// In en, this message translates to:
+  /// **'Filled on'**
+  String get passport_logFill_date;
+
+  /// No description provided for @passport_logFill_time.
+  ///
+  /// In en, this message translates to:
+  /// **'Time'**
+  String get passport_logFill_time;
+
+  /// No description provided for @passport_logFill_o2.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 (%)'**
+  String get passport_logFill_o2;
+
+  /// No description provided for @passport_logFill_he.
+  ///
+  /// In en, this message translates to:
+  /// **'He (%)'**
+  String get passport_logFill_he;
+
+  /// No description provided for @passport_logFill_pressure.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill pressure'**
+  String get passport_logFill_pressure;
+
+  /// No description provided for @passport_logFill_temperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Gas temperature'**
+  String get passport_logFill_temperature;
+
+  /// No description provided for @passport_logFill_station.
+  ///
+  /// In en, this message translates to:
+  /// **'Fill station'**
+  String get passport_logFill_station;
+
+  /// No description provided for @passport_logFill_analyzer.
+  ///
+  /// In en, this message translates to:
+  /// **'Analyzer'**
+  String get passport_logFill_analyzer;
+
+  /// No description provided for @passport_logFill_notes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get passport_logFill_notes;
+
+  /// No description provided for @passport_logFill_invalidMix.
+  ///
+  /// In en, this message translates to:
+  /// **'O2 and He must each be 0 to 100 and total 100 or less'**
+  String get passport_logFill_invalidMix;
+
+  /// No description provided for @passport_logFill_invalidNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a number'**
+  String get passport_logFill_invalidNumber;
+
+  /// No description provided for @passport_logFill_saveFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save the fill. Try again.'**
+  String get passport_logFill_saveFailed;
 
   /// No description provided for @equipment_bulkTags_confirmAdding.
   ///
@@ -26468,11 +26972,65 @@ abstract class AppLocalizations {
   /// **'Grid'**
   String get media_library_viewMode_grid;
 
+  /// Library view mode: thumbnails placed on a map
+  ///
+  /// In en, this message translates to:
+  /// **'Map'**
+  String get media_library_viewMode_map;
+
   /// Library view mode: date-grouped timeline
   ///
   /// In en, this message translates to:
   /// **'Timeline'**
   String get media_library_viewMode_timeline;
+
+  /// Tooltip on the button that dismisses the media map place strip
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get media_map_closeStrip;
+
+  /// Screen-reader label for a cluster of media on the map
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item at {place}} other{{count} items at {place}}}'**
+  String media_map_clusterSemantics(int count, String place);
+
+  /// Media map empty state: how items get a location
+  ///
+  /// In en, this message translates to:
+  /// **'Photos and videos are placed by their own GPS, their dive\'s entry point, or their dive\'s site.'**
+  String get media_map_emptyHint;
+
+  /// Media map empty state title
+  ///
+  /// In en, this message translates to:
+  /// **'No media with a location'**
+  String get media_map_emptyTitle;
+
+  /// Media map error state
+  ///
+  /// In en, this message translates to:
+  /// **'Error loading media locations: {error}'**
+  String media_map_errorLoading(String error);
+
+  /// Screen-reader label for a single media thumbnail on the map
+  ///
+  /// In en, this message translates to:
+  /// **'Open media'**
+  String get media_map_markerSemantics;
+
+  /// Item count shown in the media map place strip
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item} other{{count} items}}'**
+  String media_map_placeItemCount(int count);
+
+  /// Label on the media map for in-scope items that could not be placed
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} item without a location} other{{count} items without a location}}'**
+  String media_map_unlocatedCount(int count);
 
   /// Viewer action: navigate to the dive owning this media
   ///
@@ -34966,6 +35524,12 @@ abstract class AppLocalizations {
   /// **'That folder can\'t be written to. Choose another one.'**
   String get importWizard_photos_destinationUnwritable;
 
+  /// No description provided for @importWizard_photos_downloadCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} photo to download} other{{count} photos to download}}'**
+  String importWizard_photos_downloadCount(int count);
+
   /// Title for the collapsed ExpansionTile summarizing auto-skipped dives that fall at or before the diver's first-sync cutoff
   ///
   /// In en, this message translates to:
@@ -38335,6 +38899,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'These dives referred to a dive site the file does not describe, so they were imported without one. You can set a site by editing the dive.'**
   String get universalImport_summary_noticeSitesUnresolvedBody;
+
+  /// No description provided for @universalImport_summary_noticeGearUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Gear not imported'**
+  String get universalImport_summary_noticeGearUnavailableTitle;
+
+  /// No description provided for @universalImport_summary_noticeGearUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The gear list could not be fetched, so no gear was imported and dives were not linked to their gear. Import again later to add it.'**
+  String get universalImport_summary_noticeGearUnavailableBody;
+
+  /// No description provided for @universalImport_summary_noticeCertificationsUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications not imported'**
+  String get universalImport_summary_noticeCertificationsUnavailableTitle;
+
+  /// No description provided for @universalImport_summary_noticeCertificationsUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The certification list could not be fetched, so no certifications were imported. Import again later to add them.'**
+  String get universalImport_summary_noticeCertificationsUnavailableBody;
+
+  /// No description provided for @universalImport_summary_noticePhotoListingsUnavailableTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some photos not listed'**
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle;
+
+  /// No description provided for @universalImport_summary_noticePhotoListingsUnavailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{Photos for {count} dive could not be listed, so they were not imported.} other{Photos for {count} dives could not be listed, so they were not imported.}}'**
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count);
+
+  /// No description provided for @universalImport_summary_noticePhotosNotDownloadedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Some photos not downloaded'**
+  String get universalImport_summary_noticePhotosNotDownloadedTitle;
+
+  /// No description provided for @universalImport_summary_noticePhotosNotDownloadedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, one{{count} photo could not be downloaded. Import again to retry; photos already saved are not duplicated.} other{{count} photos could not be downloaded. Import again to retry; photos already saved are not duplicated.}}'**
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count);
 
   /// No description provided for @universalImport_summary_noticeMacdiveXmlCertsTitle.
   ///
@@ -45646,6 +46258,12 @@ abstract class AppLocalizations {
   /// **'Last hydrostatic test'**
   String get attrLabel_last_hydro_test;
 
+  /// No description provided for @attrLabel_passport_id.
+  ///
+  /// In en, this message translates to:
+  /// **'Passport id'**
+  String get attrLabel_passport_id;
+
   /// No description provided for @attrLabel_connection.
   ///
   /// In en, this message translates to:
@@ -45897,6 +46515,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Top speed'**
   String get attrLabel_speed_mps;
+
+  /// No description provided for @attrLabel_tow_burn_factor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tow burn factor'**
+  String get attrLabel_tow_burn_factor;
+
+  /// No description provided for @attrLabel_tow_speed_factor.
+  ///
+  /// In en, this message translates to:
+  /// **'Tow speed factor'**
+  String get attrLabel_tow_speed_factor;
 
   /// No description provided for @attrLabel_sku.
   ///
@@ -66665,6 +67295,18 @@ abstract class AppLocalizations {
   /// **'Import dives from your Garmin Connect account'**
   String get transfer_importCloud_garminSubtitle;
 
+  /// No description provided for @transfer_importCloud_divelogsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'divelogs.de'**
+  String get transfer_importCloud_divelogsTitle;
+
+  /// No description provided for @transfer_importCloud_divelogsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import your logbook, sites, gear, certifications and photos from divelogs.de'**
+  String get transfer_importCloud_divelogsSubtitle;
+
   /// No description provided for @transfer_section_cloudTitle.
   ///
   /// In en, this message translates to:
@@ -67944,6 +68586,834 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete this rental note?'**
   String get diveCenters_rental_deleteConfirm;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get query_buddies_certifications;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get query_buddies_email;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get query_buddies_favorite;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_buddies_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_buddies_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Phone'**
+  String get query_buddies_phone;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get query_centers_city;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get query_centers_country;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_centers_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Agency'**
+  String get query_certifications_agency;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Card number'**
+  String get query_certifications_cardNumber;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry date'**
+  String get query_certifications_expiryDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Instructor name'**
+  String get query_certifications_instructorName;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Issue date'**
+  String get query_certifications_issueDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Level'**
+  String get query_certifications_level;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_certifications_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Manufacturer'**
+  String get query_computers_manufacturer;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get query_computers_model;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_computers_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get query_computers_serialNumber;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Agency'**
+  String get query_courses_agency;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Completion date'**
+  String get query_courses_completionDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_courses_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get query_courses_startDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Key'**
+  String get query_customFields_key;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Value'**
+  String get query_customFields_value;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Built-in'**
+  String get query_diveTypes_builtIn;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_diveTypes_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Air temperature'**
+  String get query_dives_airTemp;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Average depth'**
+  String get query_dives_avgDepth;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Boat'**
+  String get query_dives_boatName;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Bottom time'**
+  String get query_dives_bottomTime;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies'**
+  String get query_dives_buddies;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive center'**
+  String get query_dives_center;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'CNS at end'**
+  String get query_dives_cnsEnd;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computer'**
+  String get query_dives_computer;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Course'**
+  String get query_dives_course;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Current'**
+  String get query_dives_currentStrength;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Custom fields'**
+  String get query_dives_customFields;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get query_dives_date;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Decompression dive'**
+  String get query_dives_deco;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get query_dives_depth;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive master'**
+  String get query_dives_diveMaster;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive mode'**
+  String get query_dives_diveMode;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive number'**
+  String get query_dives_diveNumber;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Operator'**
+  String get query_dives_diveOperator;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Entry method'**
+  String get query_dives_entryMethod;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Excluded from statistics'**
+  String get query_dives_excludedFromStats;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Exit method'**
+  String get query_dives_exitMethod;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get query_dives_favorite;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Number of tanks'**
+  String get query_dives_gasCount;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Gear'**
+  String get query_dives_gear;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Has profile'**
+  String get query_dives_hasProfile;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive ID'**
+  String get query_dives_id;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Buddy (legacy text)'**
+  String get query_dives_legacyBuddy;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get query_dives_media;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_dives_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_dives_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'OTU'**
+  String get query_dives_otu;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Planned'**
+  String get query_dives_planned;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get query_dives_rating;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Runtime'**
+  String get query_dives_runtime;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Sightings'**
+  String get query_dives_sightings;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Site'**
+  String get query_dives_site;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Surface conditions'**
+  String get query_dives_surfaceConditions;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Surface interval'**
+  String get query_dives_surfaceInterval;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get query_dives_tags;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get query_dives_tanks;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Trip'**
+  String get query_dives_trip;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive types'**
+  String get query_dives_types;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Visibility'**
+  String get query_dives_visibility;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Water temperature'**
+  String get query_dives_waterTemp;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Water type'**
+  String get query_dives_waterType;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Weekday'**
+  String get query_dives_weekday;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Weight'**
+  String get query_dives_weight;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Weights'**
+  String get query_dives_weights;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get query_dives_year;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Buddies'**
+  String get query_entity_buddies;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive centers'**
+  String get query_entity_centers;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Certifications'**
+  String get query_entity_certifications;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive computers'**
+  String get query_entity_computers;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Courses'**
+  String get query_entity_courses;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Custom fields'**
+  String get query_entity_customFields;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive types'**
+  String get query_entity_diveTypes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dives'**
+  String get query_entity_dives;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment'**
+  String get query_entity_equipment;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Equipment attributes'**
+  String get query_entity_equipmentAttributes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Media'**
+  String get query_entity_media;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Sightings'**
+  String get query_entity_sightings;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Dive sites'**
+  String get query_entity_sites;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get query_entity_species;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tags'**
+  String get query_entity_tags;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Tanks'**
+  String get query_entity_tanks;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Trips'**
+  String get query_entity_trips;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Weights'**
+  String get query_entity_weights;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Custom'**
+  String get query_equipmentAttributes_custom;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Key'**
+  String get query_equipmentAttributes_key;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Numeric value'**
+  String get query_equipmentAttributes_valueNum;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Text value'**
+  String get query_equipmentAttributes_valueText;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get query_equipment_active;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Attributes'**
+  String get query_equipment_attributes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Brand'**
+  String get query_equipment_brand;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get query_equipment_model;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_equipment_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Serial number'**
+  String get query_equipment_serialNumber;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get query_equipment_status;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get query_equipment_type;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Caption'**
+  String get query_media_caption;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Favorite'**
+  String get query_media_favorite;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get query_media_type;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Count'**
+  String get query_sightings_count;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_sightings_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Species'**
+  String get query_sightings_species;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'City'**
+  String get query_sites_city;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Country'**
+  String get query_sites_country;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Island'**
+  String get query_sites_island;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Max depth'**
+  String get query_sites_maxDepth;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_sites_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Rating'**
+  String get query_sites_rating;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Region'**
+  String get query_sites_region;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get query_species_category;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_species_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Scientific name'**
+  String get query_species_scientificName;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_tags_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Cylinder'**
+  String get query_tanks_cylinder;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'End pressure'**
+  String get query_tanks_endPressure;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Helium'**
+  String get query_tanks_he;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_tanks_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Oxygen'**
+  String get query_tanks_o2;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Start pressure'**
+  String get query_tanks_startPressure;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get query_tanks_volume;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'End date'**
+  String get query_trips_endDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Location'**
+  String get query_trips_location;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get query_trips_name;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Start date'**
+  String get query_trips_startDate;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get query_weights_amount;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get query_weights_notes;
+
+  /// Field label in the query builder
+  ///
+  /// In en, this message translates to:
+  /// **'Type'**
+  String get query_weights_type;
 }
 
 class _AppLocalizationsDelegate

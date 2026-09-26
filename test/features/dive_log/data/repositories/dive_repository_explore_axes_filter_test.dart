@@ -4,6 +4,7 @@ import 'package:submersion/core/constants/enums.dart';
 import 'package:submersion/core/database/database.dart';
 import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/insights/data/dive_filter_sql.dart';
 
 import '../../../../helpers/test_database.dart';
@@ -168,11 +169,18 @@ void main() {
     );
   });
 
-  test('the sightings tick fires on a sighting write alone', () async {
+  test('a species filter ticks on a sighting write alone', () async {
+    // The list follows exactly the tables the compiled filter reads (#2365),
+    // so this proves both halves: the species axis compiles to a query that
+    // names `sightings`, and a sighting write with no dives write fires it.
     await insertSpecies('turtle');
     await insertDive('t');
+    final tables = diveFilterTablesTouched(
+      const DiveFilterState(speciesIds: ['turtle']),
+    );
+    expect(tables, contains('sightings'));
     final ticks = <void>[];
-    final sub = repo.watchSightingsFilterChanges().listen(ticks.add);
+    final sub = repo.watchTables(tables).listen(ticks.add);
     await insertSighting('t', 'turtle');
     await Future<void>.delayed(DiveRepository.changeTickDebounce * 2);
     await sub.cancel();

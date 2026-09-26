@@ -10274,6 +10274,136 @@ class AppLocalizationsHe extends AppLocalizations {
   }
 
   @override
+  String get divelogsImport_fetch_button => 'הורדת היומן';
+
+  @override
+  String get divelogsImport_fetch_certificationsUnavailable =>
+      'לא ניתן היה להוריד את ההסמכות, והן לא ייובאו.';
+
+  @override
+  String get divelogsImport_fetch_empty =>
+      'ביומן divelogs.de שלך אין מה לייבא.';
+
+  @override
+  String get divelogsImport_fetch_failedTitle => 'לא ניתן להוריד את היומן שלך';
+
+  @override
+  String get divelogsImport_fetch_fetching => 'מוריד את היומן שלך…';
+
+  @override
+  String divelogsImport_fetch_foundDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'נמצאו $count צלילות',
+      one: 'נמצאה $count צלילה',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String divelogsImport_fetch_foundPhotos(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות לייבוא',
+      one: '$count תמונה לייבוא',
+      zero: 'אין תמונות לייבוא',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_gearUnavailable =>
+      'לא ניתן היה להוריד את הציוד; הצלילות ייובאו ללא קישורים לציוד.';
+
+  @override
+  String get divelogsImport_fetch_includePhotos => 'הכללת תמונות';
+
+  @override
+  String get divelogsImport_fetch_includePhotosHint =>
+      'התמונות מורדות במהלך הייבוא לתיקייה שתבחרו.';
+
+  @override
+  String divelogsImport_fetch_listingPhotos(int current, int total) {
+    return 'מקבל את רשימת התמונות לצלילה $current מתוך $total…';
+  }
+
+  @override
+  String divelogsImport_fetch_photoListingsFailed(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן היה לקבל את רשימת התמונות של $count צלילות.',
+      one: 'לא ניתן היה לקבל את רשימת התמונות של $count צלילה.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_fetch_retry => 'נסה שוב';
+
+  @override
+  String get divelogsImport_fetch_sessionExpired =>
+      'ההפעלה שלך ב-divelogs.de פגה. חזרו אחורה והתחברו שוב.';
+
+  @override
+  String divelogsImport_fetch_skippedDives(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'לא ניתן היה לקרוא $count צלילות, והן ידולגו.',
+      one: 'לא ניתן היה לקרוא $count צלילה, והיא תדולג.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get divelogsImport_signIn_badCredentials =>
+      'divelogs.de דחה את שם המשתמש או הסיסמה.';
+
+  @override
+  String get divelogsImport_signIn_button => 'התחברות';
+
+  @override
+  String get divelogsImport_signIn_description =>
+      'התחברו עם חשבון divelogs.de שלך כדי לייבא את היומן שלך. הסיסמה שלך לעולם אינה נשמרת; רק ההפעלה שנוצרת ממנה נשמרת במטמון.';
+
+  @override
+  String get divelogsImport_signIn_passwordLabel => 'סיסמה';
+
+  @override
+  String get divelogsImport_signIn_passwordRequired => 'נדרשת סיסמה';
+
+  @override
+  String divelogsImport_signIn_signedInAs(String username) {
+    return 'מחובר כ-$username';
+  }
+
+  @override
+  String get divelogsImport_signIn_signingIn => 'מתחבר…';
+
+  @override
+  String get divelogsImport_signIn_signOut => 'התנתק';
+
+  @override
+  String get divelogsImport_signIn_title => 'התחברות ל-divelogs.de';
+
+  @override
+  String get divelogsImport_signIn_unexpected =>
+      'divelogs.de שלח תגובה לא צפויה. נסו שוב מאוחר יותר.';
+
+  @override
+  String get divelogsImport_signIn_unreachable =>
+      'לא ניתן להתחבר ל-divelogs.de. בדקו את החיבור ונסו שוב.';
+
+  @override
+  String get divelogsImport_signIn_usernameLabel => 'שם משתמש';
+
+  @override
+  String get divelogsImport_signIn_usernameRequired => 'נדרש שם משתמש';
+
+  @override
   String get divers_detail_activeDiver => 'צולל פעיל';
 
   @override
@@ -11610,6 +11740,216 @@ class AppLocalizationsHe extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get passport_title => 'דרכון המיכל';
+
+  @override
+  String get passport_open => 'פתיחת הדרכון';
+
+  @override
+  String get passport_entry_noFill => 'לא נרשם מילוי';
+
+  @override
+  String passport_entry_lastFillNoPressure(String mix, String date) {
+    return '$mix, $date';
+  }
+
+  @override
+  String passport_entry_lastFill(String mix, String pressure, String date) {
+    return '$mix ב-$pressure, $date';
+  }
+
+  @override
+  String get passport_spec_title => 'מיכל';
+
+  @override
+  String passport_spec_freeGas(String pressure) {
+    return 'גז חופשי ב-$pressure';
+  }
+
+  @override
+  String get passport_spec_buoyancyEmpty => 'ציפה כשריק';
+
+  @override
+  String get passport_spec_buoyancyFull => 'ציפה כשמלא';
+
+  @override
+  String get passport_service_title => 'טיפולים';
+
+  @override
+  String get passport_service_notTracked => 'לא במעקב';
+
+  @override
+  String get passport_service_neverRecorded => 'מעולם לא נרשם';
+
+  @override
+  String get passport_service_trackO2Clean => 'מעקב אחר ניקוי O2';
+
+  @override
+  String get passport_service_trackFailed =>
+      'לא ניתן היה להתחיל מעקב אחר ניקוי O2. נסו שוב.';
+
+  @override
+  String passport_service_lastDone(String date) {
+    return 'לאחרונה $date';
+  }
+
+  @override
+  String passport_o2Warning_untracked(String o2) {
+    return 'המילוי האחרון הוא $o2 O2 והמיכל הזה אינו במעקב כנקי ל-O2.';
+  }
+
+  @override
+  String passport_o2Warning_overdue(String o2) {
+    return 'המילוי האחרון הוא $o2 O2 וניקוי ה-O2 של המיכל הזה באיחור.';
+  }
+
+  @override
+  String get passport_fill_title => 'מילוי נוכחי';
+
+  @override
+  String get passport_fill_none => 'עדיין לא נרשם מילוי';
+
+  @override
+  String get passport_fill_log => 'רישום מילוי';
+
+  @override
+  String passport_fill_mod(String depth, String ppo2) {
+    return 'MOD $depth ב-ppO2 $ppo2';
+  }
+
+  @override
+  String passport_fill_end(String depth) {
+    return 'END $depth ב-MOD העבודה';
+  }
+
+  @override
+  String passport_fill_station(String station) {
+    return 'מולא על ידי $station';
+  }
+
+  @override
+  String passport_fill_analyzer(String analyzer) {
+    return 'נותח באמצעות $analyzer';
+  }
+
+  @override
+  String passport_fill_analysis(String o2, String he) {
+    return 'O2 $o2, He $he';
+  }
+
+  @override
+  String passport_fill_temperature(String temperature) {
+    return 'טמפרטורת הגז $temperature';
+  }
+
+  @override
+  String get passport_fill_unsigned => 'לא חתום';
+
+  @override
+  String get passport_history_title => 'היסטוריית מילויים';
+
+  @override
+  String passport_history_sinceHydro(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count מילויים מאז מבחן הלחץ האחרון',
+      one: '$count מילוי מאז מבחן הלחץ האחרון',
+      zero: 'אין מילויים מאז מבחן הלחץ האחרון',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get passport_history_delete => 'מחיקת מילוי';
+
+  @override
+  String get passport_history_deleteConfirm => 'למחוק את רשומת המילוי הזו?';
+
+  @override
+  String get passport_tag_title => 'תג';
+
+  @override
+  String passport_tag_written(String date) {
+    return 'נכתב $date';
+  }
+
+  @override
+  String get passport_tag_stale =>
+      'התג נכתב לפני הטיפול או שינוי המפרט האחרון. יש להדפיסו מחדש.';
+
+  @override
+  String get passport_tag_printLabel => 'הדפסת תווית';
+
+  @override
+  String get passport_tag_printLabels => 'הדפסת תוויות';
+
+  @override
+  String get passport_tag_qrSemantics => 'קוד QR של הדרכון';
+
+  @override
+  String get passport_tag_printFailed =>
+      'לא ניתן היה ליצור את התוויות. נסו שוב.';
+
+  @override
+  String get passport_tag_linkExisting => 'קישור תג קיים';
+
+  @override
+  String get passport_tag_linkPrompt => 'הדביקו את הקישור מהתג';
+
+  @override
+  String get passport_tag_linkInvalid => 'זה אינו תג מיכל';
+
+  @override
+  String get passport_tag_linkFailed => 'לא ניתן היה לקשר את התג. נסו שוב.';
+
+  @override
+  String passport_tag_linkInUse(String name) {
+    return 'התג הזה כבר שייך ל-$name';
+  }
+
+  @override
+  String get passport_tag_linked => 'התג קושר';
+
+  @override
+  String get passport_logFill_date => 'מולא בתאריך';
+
+  @override
+  String get passport_logFill_time => 'שעה';
+
+  @override
+  String get passport_logFill_o2 => 'O2 (%)';
+
+  @override
+  String get passport_logFill_he => 'He (%)';
+
+  @override
+  String get passport_logFill_pressure => 'לחץ מילוי';
+
+  @override
+  String get passport_logFill_temperature => 'טמפרטורת הגז';
+
+  @override
+  String get passport_logFill_station => 'תחנת מילוי';
+
+  @override
+  String get passport_logFill_analyzer => 'מנתח';
+
+  @override
+  String get passport_logFill_notes => 'הערות';
+
+  @override
+  String get passport_logFill_invalidMix =>
+      'O2 ו-He חייבים להיות בין 0 ל-100 וסכומם עד 100';
+
+  @override
+  String get passport_logFill_invalidNumber => 'יש להזין מספר';
+
+  @override
+  String get passport_logFill_saveFailed =>
+      'לא ניתן היה לשמור את המילוי. נסו שוב.';
 
   @override
   String equipment_bulkTags_confirmAdding(int count) {
@@ -15862,7 +16202,61 @@ class AppLocalizationsHe extends AppLocalizations {
   String get media_library_viewMode_grid => 'רשת';
 
   @override
+  String get media_library_viewMode_map => 'מפה';
+
+  @override
   String get media_library_viewMode_timeline => 'ציר זמן';
+
+  @override
+  String get media_map_closeStrip => 'סגירה';
+
+  @override
+  String media_map_clusterSemantics(int count, String place) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים ב-$place',
+      one: 'פריט אחד ב-$place',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get media_map_emptyHint =>
+      'תמונות וסרטונים ממוקמים לפי ה-GPS שלהם, נקודת הכניסה של הצלילה או אתר הצלילה.';
+
+  @override
+  String get media_map_emptyTitle => 'אין מדיה עם מיקום';
+
+  @override
+  String media_map_errorLoading(String error) {
+    return 'שגיאה בטעינת מיקומי המדיה: $error';
+  }
+
+  @override
+  String get media_map_markerSemantics => 'פתיחת מדיה';
+
+  @override
+  String media_map_placeItemCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים',
+      one: 'פריט אחד',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String media_map_unlocatedCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count פריטים ללא מיקום',
+      one: 'פריט אחד ללא מיקום',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get media_viewer_goToDive => 'מעבר לצלילה';
@@ -20947,6 +21341,17 @@ class AppLocalizationsHe extends AppLocalizations {
       'לא ניתן לכתוב לתיקייה זו. בחרו תיקייה אחרת.';
 
   @override
+  String importWizard_photos_downloadCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count תמונות להורדה',
+      one: '$count תמונה להורדה',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String importWizard_review_olderDivesSkipped(int count) {
     String _temp0 = intl.Intl.pluralLogic(
       count,
@@ -23322,6 +23727,56 @@ class AppLocalizationsHe extends AppLocalizations {
   @override
   String get universalImport_summary_noticeSitesUnresolvedBody =>
       'צלילות אלה הפנו לאתר צלילה שהקובץ אינו מתאר, ולכן יובאו ללא אתר. אפשר להגדיר אתר בעריכת הצלילה.';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableTitle =>
+      'הציוד לא יובא';
+
+  @override
+  String get universalImport_summary_noticeGearUnavailableBody =>
+      'לא ניתן היה להוריד את רשימת הציוד, ולכן לא יובא ציוד והצלילות לא קושרו לציוד שלהן. ייבאו שוב מאוחר יותר כדי להוסיף אותו.';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableTitle =>
+      'ההסמכות לא יובאו';
+
+  @override
+  String get universalImport_summary_noticeCertificationsUnavailableBody =>
+      'לא ניתן היה להוריד את רשימת ההסמכות, ולכן לא יובאו הסמכות. ייבאו שוב מאוחר יותר כדי להוסיף אותן.';
+
+  @override
+  String get universalImport_summary_noticePhotoListingsUnavailableTitle =>
+      'רשימת חלק מהתמונות לא התקבלה';
+
+  @override
+  String universalImport_summary_noticePhotoListingsUnavailableBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'לא ניתן היה לקבל את רשימת התמונות של $count צלילות, ולכן הן לא יובאו.',
+      one:
+          'לא ניתן היה לקבל את רשימת התמונות של $count צלילה, ולכן הן לא יובאו.',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get universalImport_summary_noticePhotosNotDownloadedTitle =>
+      'חלק מהתמונות לא הורדו';
+
+  @override
+  String universalImport_summary_noticePhotosNotDownloadedBody(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other:
+          'לא ניתן היה להוריד $count תמונות. ייבאו שוב כדי לנסות שוב; תמונות שכבר נשמרו לא ישוכפלו.',
+      one:
+          'לא ניתן היה להוריד $count תמונה. ייבאו שוב כדי לנסות שוב; תמונות שכבר נשמרו לא ישוכפלו.',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get universalImport_summary_noticeMacdiveXmlCertsTitle =>
@@ -27813,6 +28268,9 @@ class AppLocalizationsHe extends AppLocalizations {
   String get attrLabel_last_hydro_test => 'מבחן הידרוסטטי אחרון';
 
   @override
+  String get attrLabel_passport_id => 'מזהה דרכון';
+
+  @override
   String get attrLabel_connection => 'חיבור';
 
   @override
@@ -27937,6 +28395,12 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get attrLabel_speed_mps => 'מהירות מרבית';
+
+  @override
+  String get attrLabel_tow_burn_factor => 'מקדם צריכת סוללה בגרירה';
+
+  @override
+  String get attrLabel_tow_speed_factor => 'מקדם מהירות בגרירה';
 
   @override
   String get attrLabel_sku => 'מק״ט';
@@ -40717,6 +41181,13 @@ class AppLocalizationsHe extends AppLocalizations {
       'ייבוא צלילות מחשבון Garmin Connect שלך';
 
   @override
+  String get transfer_importCloud_divelogsTitle => 'divelogs.de';
+
+  @override
+  String get transfer_importCloud_divelogsSubtitle =>
+      'ייבוא היומן, האתרים, הציוד, ההסמכות והתמונות שלך מ-divelogs.de';
+
+  @override
   String get transfer_section_cloudTitle => 'ענן';
 
   @override
@@ -41545,4 +42016,418 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get diveCenters_rental_deleteConfirm => 'למחוק את הערת ההשכרה הזו?';
+
+  @override
+  String get query_buddies_certifications => 'הסמכות';
+
+  @override
+  String get query_buddies_email => 'דוא\"ל';
+
+  @override
+  String get query_buddies_favorite => 'מועדף';
+
+  @override
+  String get query_buddies_name => 'שם';
+
+  @override
+  String get query_buddies_notes => 'הערות';
+
+  @override
+  String get query_buddies_phone => 'טלפון';
+
+  @override
+  String get query_centers_city => 'עיר';
+
+  @override
+  String get query_centers_country => 'מדינה';
+
+  @override
+  String get query_centers_name => 'שם';
+
+  @override
+  String get query_certifications_agency => 'ארגון';
+
+  @override
+  String get query_certifications_cardNumber => 'מספר כרטיס';
+
+  @override
+  String get query_certifications_expiryDate => 'תאריך תפוגה';
+
+  @override
+  String get query_certifications_instructorName => 'שם המדריך';
+
+  @override
+  String get query_certifications_issueDate => 'תאריך הנפקה';
+
+  @override
+  String get query_certifications_level => 'רמה';
+
+  @override
+  String get query_certifications_name => 'שם';
+
+  @override
+  String get query_computers_manufacturer => 'יצרן';
+
+  @override
+  String get query_computers_model => 'דגם';
+
+  @override
+  String get query_computers_name => 'שם';
+
+  @override
+  String get query_computers_serialNumber => 'מספר סידורי';
+
+  @override
+  String get query_courses_agency => 'ארגון';
+
+  @override
+  String get query_courses_completionDate => 'תאריך סיום';
+
+  @override
+  String get query_courses_name => 'שם';
+
+  @override
+  String get query_courses_startDate => 'תאריך התחלה';
+
+  @override
+  String get query_customFields_key => 'מפתח';
+
+  @override
+  String get query_customFields_value => 'ערך';
+
+  @override
+  String get query_diveTypes_builtIn => 'מובנה';
+
+  @override
+  String get query_diveTypes_name => 'שם';
+
+  @override
+  String get query_dives_airTemp => 'טמפרטורת האוויר';
+
+  @override
+  String get query_dives_avgDepth => 'עומק ממוצע';
+
+  @override
+  String get query_dives_boatName => 'סירה';
+
+  @override
+  String get query_dives_bottomTime => 'זמן קרקעית';
+
+  @override
+  String get query_dives_buddies => 'שותפי צלילה';
+
+  @override
+  String get query_dives_center => 'מרכז צלילה';
+
+  @override
+  String get query_dives_cnsEnd => 'CNS בסיום';
+
+  @override
+  String get query_dives_computer => 'מחשב צלילה';
+
+  @override
+  String get query_dives_course => 'קורס';
+
+  @override
+  String get query_dives_currentStrength => 'זרם';
+
+  @override
+  String get query_dives_customFields => 'שדות מותאמים אישית';
+
+  @override
+  String get query_dives_date => 'תאריך';
+
+  @override
+  String get query_dives_deco => 'צלילת דקומפרסיה';
+
+  @override
+  String get query_dives_depth => 'עומק מרבי';
+
+  @override
+  String get query_dives_diveMaster => 'דייבמאסטר';
+
+  @override
+  String get query_dives_diveMode => 'מצב צלילה';
+
+  @override
+  String get query_dives_diveNumber => 'מספר צלילה';
+
+  @override
+  String get query_dives_diveOperator => 'מפעיל';
+
+  @override
+  String get query_dives_entryMethod => 'שיטת כניסה';
+
+  @override
+  String get query_dives_excludedFromStats => 'לא נכלל בסטטיסטיקה';
+
+  @override
+  String get query_dives_exitMethod => 'שיטת יציאה';
+
+  @override
+  String get query_dives_favorite => 'מועדף';
+
+  @override
+  String get query_dives_gasCount => 'מספר מיכלים';
+
+  @override
+  String get query_dives_gear => 'ציוד';
+
+  @override
+  String get query_dives_hasProfile => 'יש פרופיל';
+
+  @override
+  String get query_dives_id => 'מזהה צלילה';
+
+  @override
+  String get query_dives_legacyBuddy => 'שותף צלילה (טקסט ישן)';
+
+  @override
+  String get query_dives_media => 'מדיה';
+
+  @override
+  String get query_dives_name => 'שם';
+
+  @override
+  String get query_dives_notes => 'הערות';
+
+  @override
+  String get query_dives_otu => 'OTU';
+
+  @override
+  String get query_dives_planned => 'מתוכננת';
+
+  @override
+  String get query_dives_rating => 'דירוג';
+
+  @override
+  String get query_dives_runtime => 'משך כולל';
+
+  @override
+  String get query_dives_sightings => 'תצפיות';
+
+  @override
+  String get query_dives_site => 'אתר';
+
+  @override
+  String get query_dives_surfaceConditions => 'תנאי פני השטח';
+
+  @override
+  String get query_dives_surfaceInterval => 'מרווח פני השטח';
+
+  @override
+  String get query_dives_tags => 'תגיות';
+
+  @override
+  String get query_dives_tanks => 'מיכלים';
+
+  @override
+  String get query_dives_trip => 'טיול';
+
+  @override
+  String get query_dives_types => 'סוגי צלילה';
+
+  @override
+  String get query_dives_visibility => 'ראות';
+
+  @override
+  String get query_dives_waterTemp => 'טמפרטורת המים';
+
+  @override
+  String get query_dives_waterType => 'סוג מים';
+
+  @override
+  String get query_dives_weekday => 'יום בשבוע';
+
+  @override
+  String get query_dives_weight => 'משקולת';
+
+  @override
+  String get query_dives_weights => 'משקולות';
+
+  @override
+  String get query_dives_year => 'שנה';
+
+  @override
+  String get query_entity_buddies => 'שותפי צלילה';
+
+  @override
+  String get query_entity_centers => 'מרכזי צלילה';
+
+  @override
+  String get query_entity_certifications => 'הסמכות';
+
+  @override
+  String get query_entity_computers => 'מחשבי צלילה';
+
+  @override
+  String get query_entity_courses => 'קורסים';
+
+  @override
+  String get query_entity_customFields => 'שדות מותאמים אישית';
+
+  @override
+  String get query_entity_diveTypes => 'סוגי צלילה';
+
+  @override
+  String get query_entity_dives => 'צלילות';
+
+  @override
+  String get query_entity_equipment => 'ציוד';
+
+  @override
+  String get query_entity_equipmentAttributes => 'מאפייני ציוד';
+
+  @override
+  String get query_entity_media => 'מדיה';
+
+  @override
+  String get query_entity_sightings => 'תצפיות';
+
+  @override
+  String get query_entity_sites => 'אתרי צלילה';
+
+  @override
+  String get query_entity_species => 'מינים';
+
+  @override
+  String get query_entity_tags => 'תגיות';
+
+  @override
+  String get query_entity_tanks => 'מיכלים';
+
+  @override
+  String get query_entity_trips => 'טיולים';
+
+  @override
+  String get query_entity_weights => 'משקולות';
+
+  @override
+  String get query_equipmentAttributes_custom => 'מותאם אישית';
+
+  @override
+  String get query_equipmentAttributes_key => 'מפתח';
+
+  @override
+  String get query_equipmentAttributes_valueNum => 'ערך מספרי';
+
+  @override
+  String get query_equipmentAttributes_valueText => 'ערך טקסט';
+
+  @override
+  String get query_equipment_active => 'פעיל';
+
+  @override
+  String get query_equipment_attributes => 'מאפיינים';
+
+  @override
+  String get query_equipment_brand => 'מותג';
+
+  @override
+  String get query_equipment_model => 'דגם';
+
+  @override
+  String get query_equipment_name => 'שם';
+
+  @override
+  String get query_equipment_serialNumber => 'מספר סידורי';
+
+  @override
+  String get query_equipment_status => 'מצב';
+
+  @override
+  String get query_equipment_type => 'סוג';
+
+  @override
+  String get query_media_caption => 'כיתוב';
+
+  @override
+  String get query_media_favorite => 'מועדף';
+
+  @override
+  String get query_media_type => 'סוג';
+
+  @override
+  String get query_sightings_count => 'כמות';
+
+  @override
+  String get query_sightings_notes => 'הערות';
+
+  @override
+  String get query_sightings_species => 'מינים';
+
+  @override
+  String get query_sites_city => 'עיר';
+
+  @override
+  String get query_sites_country => 'מדינה';
+
+  @override
+  String get query_sites_island => 'אי';
+
+  @override
+  String get query_sites_maxDepth => 'עומק מרבי';
+
+  @override
+  String get query_sites_name => 'שם';
+
+  @override
+  String get query_sites_rating => 'דירוג';
+
+  @override
+  String get query_sites_region => 'אזור';
+
+  @override
+  String get query_species_category => 'קטגוריה';
+
+  @override
+  String get query_species_name => 'שם';
+
+  @override
+  String get query_species_scientificName => 'שם מדעי';
+
+  @override
+  String get query_tags_name => 'שם';
+
+  @override
+  String get query_tanks_cylinder => 'מיכל';
+
+  @override
+  String get query_tanks_endPressure => 'לחץ סופי';
+
+  @override
+  String get query_tanks_he => 'הליום';
+
+  @override
+  String get query_tanks_name => 'שם';
+
+  @override
+  String get query_tanks_o2 => 'חמצן';
+
+  @override
+  String get query_tanks_startPressure => 'לחץ התחלתי';
+
+  @override
+  String get query_tanks_volume => 'נפח';
+
+  @override
+  String get query_trips_endDate => 'תאריך סיום';
+
+  @override
+  String get query_trips_location => 'מיקום';
+
+  @override
+  String get query_trips_name => 'שם';
+
+  @override
+  String get query_trips_startDate => 'תאריך התחלה';
+
+  @override
+  String get query_weights_amount => 'כמות';
+
+  @override
+  String get query_weights_notes => 'הערות';
+
+  @override
+  String get query_weights_type => 'סוג';
 }

@@ -3,10 +3,12 @@ import 'dart:convert';
 import 'package:submersion/core/providers/provider.dart';
 import 'package:submersion/features/buddies/presentation/providers/buddy_providers.dart';
 import 'package:submersion/features/dive_centers/presentation/providers/dive_center_providers.dart';
+import 'package:submersion/features/dive_log/data/repositories/dive_repository_impl.dart';
 import 'package:submersion/features/dive_log/domain/entities/dive_summary.dart';
 import 'package:submersion/features/dive_log/domain/models/dive_filter_state.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_computer_providers.dart';
 import 'package:submersion/features/dive_log/presentation/providers/dive_repository_provider.dart';
+import 'package:submersion/features/dive_log/query/dive_filter_query.dart';
 import 'package:submersion/features/dive_sites/presentation/providers/site_providers.dart';
 import 'package:submersion/features/divers/presentation/providers/diver_providers.dart';
 import 'package:submersion/features/equipment/presentation/providers/equipment_providers.dart';
@@ -242,21 +244,23 @@ final exploreQueryProvider =
       (ref) => ExploreQueryNotifier(ref),
     );
 
+/// ONE debounced tick over `dives` plus whatever else the compiled filter
+/// reads, mirroring `orderedDiveIdsProvider` (#2365): a species filter reads
+/// `sightings`, a buddy filter the buddy tables, an attribute condition the
+/// gear tables. One stream, not one per axis, so a junction write followed
+/// by the dive write recomputes the results once.
+Stream<void> _exploreTick(DiveRepository repo, DiveFilterState filter) {
+  final extra = diveFilterTablesTouched(filter).difference({'dives'});
+  return extra.isEmpty
+      ? repo.watchDivesChanges()
+      : repo.watchTables({'dives', ...extra});
+}
+
 final exploreResultsProvider = FutureProvider<List<DiveSummary>>((ref) async {
   final filter = ref.watch(exploreFilterProvider);
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   final repo = ref.watch(diveRepositoryProvider);
-  ref.invalidateSelfWhen(
-    filter.readsBuddyLinks
-        ? repo.watchDivesChangesWithBuddyLinks()
-        : repo.watchDivesChanges(),
-  );
-  if (filter.readsSightings) {
-    ref.invalidateSelfWhen(repo.watchSightingsFilterChanges());
-  }
-  if (filter.equipmentAttrConditions.isNotEmpty) {
-    ref.invalidateSelfWhen(repo.watchEquipmentAttrFilterChanges());
-  }
+  ref.invalidateSelfWhen(_exploreTick(repo, filter));
   if (!filter.hasActiveFilters) return const [];
   return repo.getDiveSummaries(diverId: diverId, filter: filter, limit: 100);
 });
@@ -265,10 +269,7 @@ final exploreCountProvider = FutureProvider<int>((ref) async {
   final filter = ref.watch(exploreFilterProvider);
   final diverId = await ref.watch(validatedCurrentDiverIdProvider.future);
   final repo = ref.watch(diveRepositoryProvider);
-  ref.invalidateSelfWhen(repo.watchDivesChanges());
-  if (filter.readsSightings) {
-    ref.invalidateSelfWhen(repo.watchSightingsFilterChanges());
-  }
+  ref.invalidateSelfWhen(_exploreTick(repo, filter));
   if (!filter.hasActiveFilters) return 0;
   return repo.getDiveCount(diverId: diverId, filter: filter);
 });
