@@ -805,6 +805,10 @@ class PaginatedDiveListNotifier
   final DiveRepository _repository;
   final Ref _ref;
   String? _currentDiverId;
+
+  /// Counts active-diver switches, so an operation spanning an await can tell
+  /// the loaded rows changed owner under it, even across a switch back.
+  int _diverSwitches = 0;
   int _currentOffset = 0;
   static const _pageSize = 50;
 
@@ -823,6 +827,7 @@ class PaginatedDiveListNotifier
     _ref.listen<String?>(currentDiverIdProvider, (previous, next) {
       if (previous != next) {
         _currentDiverId = next;
+        _diverSwitches++;
         loadFirstPage();
       }
     });
@@ -1177,6 +1182,7 @@ class PaginatedDiveListNotifier
   Future<domain.Dive> addDive(domain.Dive dive) async {
     // Read the diver once, at the call: see DiveListNotifier.addDive.
     final diverId = _currentDiverId;
+    final diverSwitches = _diverSwitches;
     var diveWithDiver = dive;
     if (dive.diverId == null && diverId != null) {
       final diverRepository = _ref.read(diverRepositoryProvider);
@@ -1195,9 +1201,14 @@ class PaginatedDiveListNotifier
       _ref.invalidate(diveNumberingInfoProvider);
     }
 
-    // Optimistic: prepend new summary and bump totalCount
+    // Optimistic: prepend new summary and bump totalCount. Only onto the list
+    // of the diver this call started for: after a switch the loaded rows are
+    // another diver's (or the same diver's, reloaded, after a switch back), so
+    // reload rather than prepend a dive that does not belong or is already in.
     final current = state.valueOrNull;
-    if (current != null) {
+    if (_diverSwitches != diverSwitches) {
+      await loadFirstPage();
+    } else if (current != null) {
       final summary = DiveSummary.fromDive(newDive);
       state = AsyncValue.data(
         current.copyWith(
